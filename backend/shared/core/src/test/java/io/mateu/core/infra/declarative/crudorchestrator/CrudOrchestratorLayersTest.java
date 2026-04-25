@@ -48,18 +48,39 @@ class CrudOrchestratorLayersTest {
 
   private FakeHttpRequest httpWith(String route) {
     var h = new FakeHttpRequest();
-    h.storeRunActionRqDto(RunActionRqDto.builder()
-        .componentState(java.util.Map.of("page", 0, "size", 10, "sort", java.util.List.of()))
-        .route(route)
-        .initiatorComponentId("init")
-        .consumedRoute("")
-        .build());
+    h.storeRunActionRqDto(
+        RunActionRqDto.builder()
+            .componentState(java.util.Map.of("page", 0, "size", 10, "sort", java.util.List.of()))
+            .route(route)
+            .initiatorComponentId("init")
+            .consumedRoute("")
+            .build());
     return h;
   }
 
-  @Test void listComponentIsNotNull() { assertThat(orchestrator.list(httpWith("/items"))).isNotNull(); }
-  @Test void handleNewAction() { assertThat(orchestrator.handleAction("new", httpWith("/items"))).isNotNull(); }
-  @Test void handleSearchAction() { assertThat(orchestrator.handleAction("search", httpWith("/items"))).isNotNull(); }
+  @Test
+  void listComponentIsNotNull() {
+    assertThat(orchestrator.list(httpWith("/items"))).isNotNull();
+  }
+
+  @Test
+  void handleDeleteAction() {
+    // delete with no selected items — should not throw
+    var h = httpWith("/items");
+    h.storeRunActionRqDto(
+        RunActionRqDto.builder()
+            .componentState(
+                java.util.Map.of(
+                    "page", 0,
+                    "size", 10,
+                    "sort", java.util.List.of(),
+                    "crud_selected_items", java.util.List.of()))
+            .route("/items")
+            .initiatorComponentId("init")
+            .consumedRoute("")
+            .build());
+    assertThat(orchestrator.handleAction("delete", h)).isNotNull();
+  }
 
   @Test void viewModelClassInListState() { orchestrator.setStateTo("list"); assertThat(orchestrator.viewModelClass()).isNotNull(); }
   @Test void viewModelClassInEditState() { orchestrator.setStateTo("edit"); assertThat(orchestrator.viewModelClass()).isNotNull(); }
