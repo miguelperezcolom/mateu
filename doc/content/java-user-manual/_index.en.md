@@ -1,6 +1,6 @@
 ---
 title: "Java"
-description: "Learn Mateu in a guided path: start here, use cases, concepts, build apps, advanced."
+description: "Learn Mateu in a guided path: start here, use cases, concepts, build apps, advanced, and real-world patterns."
 weight: 2
 type: "docs"
 _build:
@@ -45,6 +45,8 @@ Use this manual as a guided path.
 - [Navigation and menus](/java-user-manual/build/navigation-and-menus/)
 - [Foreign keys and options](/java-user-manual/build/foreign-keys-and-options/)
 - [Working with domain models](/java-user-manual/build/domain-models/)
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
+- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/)
 
 ## 5. Advanced
 
@@ -56,7 +58,13 @@ Use this manual as a guided path.
 - [Testing](/java-user-manual/advanced/testing/)
 - [Security](/java-user-manual/advanced/security/)
 
-## 6. Reference
+## 6. Real-world
+
+- [Real-world architecture](/java-user-manual/real-world/)
+- [Mateu in hexagonal architecture](/java-user-manual/real-world/mateu-in-hexagonal-architecture/)
+- [Distributed control plane case study](/java-user-manual/real-world/distributed-control-plane/)
+
+## 7. Reference
 
 - [Reference](/reference/)
 - [Key annotations](/reference/key-annotations/)
