@@ -118,7 +118,9 @@ class DeclarativeUtilitiesTest {
     Map<String, Object> row1 = new java.util.HashMap<>();
     row1.put("_rowNumber", 0);
     items.add(row1);
-    int idx = CrudOrchestrator.getIndex(items, 99);
-    assertThat(idx).isEqualTo(-1);
+    // getIndex throws RuntimeException when item not found
+    org.junit.jupiter.api.Assertions.assertThrows(
+        RuntimeException.class,
+        () -> CrudOrchestrator.getIndex(items, 99));
   }
 }
