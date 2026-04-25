@@ -37,7 +37,7 @@ class RunActionUseCaseWrapTest extends RunActionUseCaseTest {
 
   @Test
   void wrapListOfComponentsReturnsServerSideDto() {
-    var components = List.of(new Text("a"), new Text("b"));
+    List<io.mateu.uidl.fluent.Component> components = List.of(new Text("a"), new Text("b"));
     var model = new SimpleForm();
     var result = wrap(components, model, "base", "route", "consumed", "init", http);
     assertThat(result).isNotNull();
