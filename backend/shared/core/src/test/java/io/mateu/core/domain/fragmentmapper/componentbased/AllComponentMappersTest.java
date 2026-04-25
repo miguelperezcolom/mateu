@@ -78,7 +78,7 @@ class AllComponentMappersTest {
   @Test void fullWidth() { assertThat(map(new FullWidth(new Text("f")))).isNotNull(); }
   @Test void container() { assertThat(map(new Container(new Text("i")))).isNotNull(); }
   @Test void breadcrumbs() { assertThat(map(Breadcrumbs.builder().breadcrumbs(List.of(new Breadcrumb("Home", "/"))).build())).isNotNull(); }
-  @Test void confirmDialog() { assertThat(map(ConfirmDialog.builder().header("Confirm").build())).isNotNull(); }
+  @Test void confirmDialog() { assertThat(map(ConfirmDialog.builder().header("Confirm").content(new Text("body")).build())).isNotNull(); }
   @Test void contextMenu() { assertThat(map(ContextMenu.builder().wrapped(new Text("i")).build())).isNotNull(); }
   @Test void cookieConsent() { assertThat(map(CookieConsent.builder().message("Cookies").build())).isNotNull(); }
   @Test void cookieConsentWithPosition() { assertThat(map(CookieConsent.builder().message("C").position(CookieConsentPosition.Top).build())).isNotNull(); }

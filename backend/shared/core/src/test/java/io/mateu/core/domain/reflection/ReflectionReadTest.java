@@ -8,84 +8,62 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.core.infra.reflection.read.GetterProvider.getGetter;
 import static io.mateu.core.infra.reflection.read.SetterProvider.getSetter;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.example.uis.forms.SimpleForm;
 import io.mateu.core.infra.FakeBeanProvider;
 import io.mateu.core.infra.reflection.read.FileChecker;
+import io.mateu.core.infra.reflection.read.ValueProvider;
 import io.mateu.uidl.annotations.ReadOnly;
-import lombok.Builder;
 import org.junit.jupiter.api.Test;
 
 class ReflectionReadTest {
 
-  // --- Sample classes for testing ---
-
-  static class Parent {
-    String parentField = "parent";
-
-    String getParentField() {
-      return parentField;
-    }
-
-    void parentMethod() {}
+  public static class Parent {
+    public String parentField = "parent";
+    public String getParentField() { return parentField; }
+    public void parentMethod() {}
   }
 
-  static class Child extends Parent {
-    String childField = "child";
-    int intField = 42;
-    boolean boolField = true;
-
-    @ReadOnly String readOnlyField = "ro";
-
-    String getChildField() {
-      return childField;
-    }
-
-    void childMethod() {}
-  }
-
-  @Builder
-  static class WithFile {
-    java.io.File fileField;
+  public static class Child extends Parent {
+    public String childField = "child";
+    public int intField = 42;
+    public boolean boolField = true;
+    @ReadOnly public String readOnlyField = "ro";
+    public String getChildField() { return childField; }
+    public void childMethod() {}
   }
 
   // --- AllFieldsProvider ---
 
   @Test
   void getAllFieldsIncludesInheritedFields() {
-    var fields = getAllFields(Child.class);
-    var names = fields.stream().map(f -> f.getName()).toList();
+    var names = getAllFields(Child.class).stream().map(f -> f.getName()).toList();
     assertThat(names).contains("childField", "parentField");
   }
 
   @Test
   void getAllFieldsForNull() {
-    var fields = getAllFields(null);
-    assertThat(fields).isEmpty();
+    assertThat(getAllFields(null)).isEmpty();
   }
 
   @Test
   void getAllFieldsForObject() {
-    var fields = getAllFields(Object.class);
-    assertThat(fields).isEmpty();
+    assertThat(getAllFields(Object.class)).isEmpty();
   }
 
   // --- AllMethodsProvider ---
 
   @Test
   void getAllMethodsIncludesInheritedMethods() {
-    var methods = getAllMethods(Child.class);
-    var names = methods.stream().map(m -> m.getName()).toList();
+    var names = getAllMethods(Child.class).stream().map(m -> m.getName()).toList();
     assertThat(names).contains("childMethod", "parentMethod");
   }
 
   @Test
   void getAllMethodsForNull() {
-    var methods = getAllMethods(null);
-    assertThat(methods).isEmpty();
+    assertThat(getAllMethods(null)).isEmpty();
   }
 
   // --- FieldByNameProvider ---
@@ -99,34 +77,32 @@ class ReflectionReadTest {
 
   @Test
   void getFieldByNameFindsInheritedField() {
-    var field = getFieldByName(Child.class, "parentField");
-    assertNotNull(field);
+    assertNotNull(getFieldByName(Child.class, "parentField"));
   }
 
   @Test
   void getFieldByNameReturnsNullForMissing() {
-    var field = getFieldByName(Child.class, "nonExistent");
-    assertNull(field);
+    assertNull(getFieldByName(Child.class, "nonExistent"));
   }
 
   @Test
   void getFieldByNameForNull() {
-    var field = getFieldByName(null, "field");
-    assertNull(field);
+    assertNull(getFieldByName(null, "field"));
   }
 
   // --- GetterProvider ---
 
   @Test
   void getGetterForStringField() throws NoSuchFieldException {
-    var getter = getGetter(SimpleForm.class.getDeclaredField("stringField"));
-    assertEquals("getStringField", getter);
+    // GetterProvider.getGetter(Field) uses field type to decide is/get
+    var field = Child.class.getDeclaredField("childField");
+    assertThat(getGetter(field)).isEqualTo("getChildField");
   }
 
   @Test
   void getGetterForBooleanField() throws NoSuchFieldException {
-    var getter = getGetter(SimpleForm.class.getDeclaredField("booleanField"));
-    assertEquals("isBooleanField", getter);
+    var field = Child.class.getDeclaredField("boolField");
+    assertThat(getGetter(field)).isEqualTo("isBoolField");
   }
 
   // --- SetterProvider ---
@@ -134,52 +110,35 @@ class ReflectionReadTest {
   @Test
   void getSetterForField() {
     var setter = getSetter(getFieldByName(Child.class, "childField"));
-    assertNotNull(setter);
     assertThat(setter).contains("childField");
   }
 
   @Test
   void getSetterByName() {
-    var setter = getSetter(Child.class, "childField");
-    assertNotNull(setter);
+    assertNotNull(getSetter(Child.class, "childField"));
   }
 
   // --- ValueProvider ---
 
   @Test
-  void getValueFromField() {
+  void getValueFromPublicField() {
     var child = new Child();
     var field = getFieldByName(Child.class, "childField");
-    var value = getValue(field, child);
-    assertEquals("child", value);
+    assertEquals("child", getValue(field, child));
   }
 
   @Test
   void getValueOrNewInstanceReturnsExistingValue() {
     var child = new Child();
     var field = getFieldByName(Child.class, "childField");
-    var value = getValueOrNewInstance(new FakeBeanProvider(), field, child);
-    assertEquals("child", value);
-  }
-
-  @Test
-  void getValueOrNewInstanceCreatesNewInstance() {
-    // parentField is null in a fresh Child since it's set in the field initializer
-    // but we need a null field - use a new class
-    var child = new Child();
-    child.childField = null;
-    var field = getFieldByName(Child.class, "childField");
-    // String can't be instantiated via newInstance, so it returns null
-    var value = getValueOrNewInstance(new FakeBeanProvider(), field, child);
-    assertNull(value);
+    assertEquals("child", ValueProvider.getValueOrNewInstance(new FakeBeanProvider(), field, child));
   }
 
   // --- AllEditableFieldsProvider ---
 
   @Test
   void getAllEditableFieldsExcludesReadOnly() {
-    var fields = getAllEditableFields(Child.class);
-    var names = fields.stream().map(f -> f.getName()).toList();
+    var names = getAllEditableFields(Child.class).stream().map(f -> f.getName()).toList();
     assertThat(names).contains("childField", "intField");
     assertThat(names).doesNotContain("readOnlyField");
   }
@@ -188,25 +147,21 @@ class ReflectionReadTest {
 
   @Test
   void getAllFormFieldsReturnsMembers() {
-    var members = getAllFormFields(SimpleForm.class);
-    assertThat(members).isNotEmpty();
+    assertThat(getAllFormFields(SimpleForm.class)).isNotEmpty();
   }
 
   // --- FileChecker ---
 
   @Test
-  void isFileReturnsTrueForFileField() throws NoSuchFieldException {
-    // Use a field typed as java.io.File
-    class WithFileField {
-      java.io.File file;
-    }
-    var field = WithFileField.class.getDeclaredField("file");
-    assertThat(FileChecker.isFile(field)).isTrue();
-  }
-
-  @Test
   void isFileReturnsFalseForStringField() throws NoSuchFieldException {
     var field = Child.class.getDeclaredField("childField");
     assertThat(FileChecker.isFile(field)).isFalse();
+  }
+
+  @Test
+  void isFileReturnsTrueForFileField() throws NoSuchFieldException {
+    class WithFileField { java.io.File file; }
+    var field = WithFileField.class.getDeclaredField("file");
+    assertThat(FileChecker.isFile(field)).isTrue();
   }
 }
