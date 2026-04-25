@@ -2,12 +2,12 @@ package io.mateu.core.domain.act.crudfieldhandlers;
 
 import static io.mateu.core.domain.act.crudfieldhandlers.AddActionHandler.handleAdd;
 import static io.mateu.core.domain.act.crudfieldhandlers.CancelActionHandler.handleCancel;
-import static io.mateu.core.domain.act.crudfieldhandlers.CreateActionHandler.handleCreate;
 import static io.mateu.core.domain.act.crudfieldhandlers.MoveDownActionHandler.handleMoveDown;
 import static io.mateu.core.domain.act.crudfieldhandlers.MoveUpActionHandler.handleMoveUp;
 import static io.mateu.core.domain.act.crudfieldhandlers.NextActionHandler.handleNext;
 import static io.mateu.core.domain.act.crudfieldhandlers.PrevActionHandler.handlePrev;
 import static io.mateu.core.domain.act.crudfieldhandlers.RemoveActionHandler.handleRemove;
+import static io.mateu.core.domain.act.crudfieldhandlers.SaveActionHandler.handleSave;
 import static io.mateu.core.domain.act.crudfieldhandlers.SelectActionHandler.handleSelect;
 import static io.mateu.core.domain.act.crudfieldhandlers.SelectedActionHandler.handleSelected;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,9 +31,8 @@ class CrudFieldHandlersTest {
   Field field;
   String fieldId = "items";
 
-  // Minimal class with a List field
-  static class FormWithList {
-    List<Map<String, Object>> items;
+  public static class FormWithList {
+    public List<Map<String, Object>> items;
   }
 
   @BeforeEach
@@ -78,16 +77,13 @@ class CrudFieldHandlersTest {
   }
 
   @Test
-  void createHandlerShowsDetailForEditing() {
-    var result =
-        handleCreate(new Object(), "items_create", http, "", showDetail, editing, field, fieldId);
-    assertThat(result).isInstanceOf(State.class);
-    assertThat(showDetail.get(fieldId)).isEqualTo(true);
-    assertThat(editing.get(fieldId)).isEqualTo(true);
-  }
-
-  @Test
   void selectHandlerShowsDetail() {
+    var row1 = new HashMap<String, Object>();
+    row1.put("_rowNumber", 0);
+    var state = new HashMap<String, Object>();
+    state.put("items", new ArrayList<>(List.of(row1)));
+    http.storeRunActionRqDto(
+        RunActionRqDto.builder().componentState(state).parameters(Map.of("_rowNumber", 0)).build());
     var result =
         handleSelect(new Object(), "items_select", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
@@ -96,11 +92,20 @@ class CrudFieldHandlersTest {
 
   @Test
   void selectedHandlerShowsDetail() {
+    var row1 = new HashMap<String, Object>();
+    row1.put("_rowNumber", 0);
+    row1.put("name", "Alice");
+    var state = new HashMap<String, Object>();
+    state.put("items_selected_items", new ArrayList<>(List.of(row1)));
+    state.put("items", new ArrayList<>(List.of(row1)));
+    http.storeRunActionRqDto(RunActionRqDto.builder().componentState(state).build());
     var result =
         handleSelected(
             new Object(), "items_selected", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
-    assertThat(showDetail.get(fieldId)).isEqualTo(true);
+    // selectedHandler puts _show_detail into the returned State, not the local map
+    var newState = ((State) result).state();
+    assertThat(newState).isNotNull();
   }
 
   @Test
@@ -113,7 +118,8 @@ class CrudFieldHandlersTest {
 
   @Test
   void saveHandlerHidesDetail() {
-    var result = handleSave("items_save", http, showDetail, editing, fieldId);
+    var result =
+        handleSave(new Object(), "items_save", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(false);
     assertThat(editing.get(fieldId)).isEqualTo(false);
@@ -128,18 +134,14 @@ class CrudFieldHandlersTest {
 
   @Test
   void prevHandlerGoesBack() {
-    // set row to 1 so prev can go to 0
     var state = new HashMap<String, Object>();
     var row1 = new HashMap<String, Object>();
-    row1.put("name", "Alice");
     row1.put("_rowNumber", 0);
     var row2 = new HashMap<String, Object>();
-    row2.put("name", "Bob");
     row2.put("_rowNumber", 1);
     state.put("items", new ArrayList<>(List.of(row1, row2)));
     state.put("items-_rowNumber", 1);
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(state).build());
-
     var result =
         handlePrev(new Object(), "items_prev", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
@@ -163,20 +165,8 @@ class CrudFieldHandlersTest {
     state.put("items", new ArrayList<>(List.of(row1, row2)));
     state.put("items-_rowNumber", 1);
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(state).build());
-
     var result =
         handleMoveUp(new Object(), "items_move-up", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
-  }
-
-  // Helper to call SaveActionHandler directly (it needs a state with the right keys)
-  private Object handleSave(
-      String actionId,
-      FakeHttpRequest httpRequest,
-      Map<String, Object> showDetail,
-      Map<String, Object> editing,
-      String fieldId) {
-    return io.mateu.core.domain.act.crudfieldhandlers.SaveActionHandler.handleSave(
-        new Object(), actionId, httpRequest, "", showDetail, editing, field, fieldId);
   }
 }

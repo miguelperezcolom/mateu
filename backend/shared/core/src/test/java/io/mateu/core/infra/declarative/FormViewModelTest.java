@@ -3,10 +3,13 @@ package io.mateu.core.infra.declarative;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.core.infra.FakeHttpRequest;
+import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
+import java.util.Map;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class FormViewModelTest {
@@ -19,6 +22,14 @@ class FormViewModelTest {
 
   static class PlainForm extends FormViewModel {
     public String field = "value";
+  }
+
+  FakeHttpRequest http;
+
+  @BeforeEach
+  void setUp() {
+    http = new FakeHttpRequest();
+    http.storeRunActionRqDto(RunActionRqDto.builder().componentState(Map.of()).build());
   }
 
   @Test
@@ -53,12 +64,12 @@ class FormViewModelTest {
 
   @Test
   void componentReturnsNonNull() {
-    assertThat(new PlainForm().component(new FakeHttpRequest())).isNotNull();
+    assertThat(new PlainForm().component(http)).isNotNull();
   }
 
   @Test
   void triggersReturnsNonNull() {
-    assertThat(new PlainForm().triggers(new FakeHttpRequest())).isNotNull();
+    assertThat(new PlainForm().triggers(http)).isNotNull();
   }
 
   @Test
@@ -73,18 +84,15 @@ class FormViewModelTest {
 
   @Test
   void mapStatusToBadge() {
-    var status = new Status(StatusType.SUCCESS, "Active");
-    Badge badge = FormViewModel.mapStatusToBadge(status);
+    Badge badge = FormViewModel.mapStatusToBadge(new Status(StatusType.SUCCESS, "Active"));
     assertThat(badge).isNotNull();
     assertThat(badge.text()).isEqualTo("Active");
   }
 
   @Test
   void toMapConvertsObject() {
-    var form = new AnnotatedForm();
-    var map = FormViewModel.toMap(form);
-    assertThat(map).isNotNull();
-    assertThat(map).containsKey("name");
+    var map = FormViewModel.toMap(new AnnotatedForm());
+    assertThat(map).isNotNull().containsKey("name");
     assertThat(map.get("name")).isEqualTo("test");
   }
 }

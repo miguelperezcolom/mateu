@@ -83,7 +83,7 @@ class AllComponentMappersTest {
 
   @Test
   void badgeWithColor() {
-    assertThat(map(Badge.builder().text("x").badgeColor(BadgeColor.contrast).build())).isNotNull();
+    assertThat(map(Badge.builder().text("x").color(BadgeColor.contrast).build())).isNotNull();
   }
 
   @Test
@@ -147,18 +147,18 @@ class AllComponentMappersTest {
 
   @Test
   void formItem() {
-    assertThat(map(FormItem.builder().label("Name").content(new Text("val")).build())).isNotNull();
+    assertThat(map(FormItem.builder().content(List.of(new Text("val"))).build())).isNotNull();
   }
 
   @Test
   void formSection() {
-    assertThat(map(FormSection.builder().caption("S").content(List.of(new Text("x"))).build()))
+    assertThat(map(FormSection.builder().title("S").content(List.of(new Text("x"))).build()))
         .isNotNull();
   }
 
   @Test
   void formSubSection() {
-    assertThat(map(FormSubSection.builder().caption("S").content(List.of(new Text("x"))).build()))
+    assertThat(map(FormSubSection.builder().title("S").content(List.of(new Text("x"))).build()))
         .isNotNull();
   }
 
@@ -281,12 +281,14 @@ class AllComponentMappersTest {
 
   @Test
   void confirmDialog() {
-    assertThat(map(ConfirmDialog.builder().title("Confirm").text("Sure?").build())).isNotNull();
+    assertThat(map(ConfirmDialog.builder().header("Confirm").content(new Text("body")).build()))
+        .isNotNull();
   }
 
   @Test
   void contextMenu() {
-    assertThat(map(ContextMenu.builder().wrapped(new Text("i")).build())).isNotNull();
+    assertThat(map(ContextMenu.builder().menu(List.of()).wrapped(new Text("i")).build()))
+        .isNotNull();
   }
 
   @Test
@@ -297,7 +299,7 @@ class AllComponentMappersTest {
   @Test
   void cookieConsentWithPosition() {
     assertThat(
-            map(CookieConsent.builder().message("C").position(CookieConsentPosition.top).build()))
+            map(CookieConsent.builder().message("C").position(CookieConsentPosition.Top).build()))
         .isNotNull();
   }
 
