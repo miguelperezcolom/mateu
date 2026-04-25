@@ -49,7 +49,11 @@ class CrudOrchestratorLayersTest {
   private FakeHttpRequest httpWith(String route) {
     var h = new FakeHttpRequest();
     h.storeRunActionRqDto(RunActionRqDto.builder()
-        .componentState(Map.of()).route(route).initiatorComponentId("init").consumedRoute("").build());
+        .componentState(java.util.Map.of("page", 0, "size", 10, "sort", java.util.List.of()))
+        .route(route)
+        .initiatorComponentId("init")
+        .consumedRoute("")
+        .build());
     return h;
   }
 

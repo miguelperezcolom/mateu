@@ -124,8 +124,9 @@ class ReflectionPageMapperExtendedTest {
     assertFalse(isReadOnly(field, new FullPage(), false));
   }
 
-  @Test void isFormTrue() { assertTrue(isForm(new SimplePage())); }
-  @Test void isFormFalseForApp() { assertFalse(isForm(new FakeApp())); }
+  @Test void isFormTrue() { assertTrue(isForm(new FullPage())); } // has @Button method
+  @Test void isFormFalseForAppInstance() { assertFalse(isForm(new FakeApp())); }
+  @Test void isFormFalseForPlainObject() { assertFalse(isForm("string")); }
 
   // --- ReflectionFormFieldMapper ---
 
