@@ -11,11 +11,18 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.data.UICommand.pushStateToHistory;
 
 import io.mateu.core.infra.declarative.crudorchestrator.ListComponentLayer;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CancelCreateActionHandler;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CancelEditActionHandler;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CancelViewActionHandler;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CreateActionHandler;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CrudActionHandler;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CrudActionResult;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.DeleteActionHandler;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.SaveActionHandler;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +63,15 @@ public abstract class CrudOrchestrator<
     return null;
   }
 
+  private static final List<CrudActionHandler> CRUD_ACTION_HANDLERS =
+      List.of(
+          new CreateActionHandler(),
+          new SaveActionHandler(),
+          new DeleteActionHandler(),
+          new CancelEditActionHandler(),
+          new CancelViewActionHandler(),
+          new CancelCreateActionHandler());
+
   @SneakyThrows
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
@@ -69,65 +85,30 @@ public abstract class CrudOrchestrator<
       return handleSearchOnField(this, actionId, httpRequest);
     }
 
+    // Resolve initial savedId from component state when already in view/edit mode
     Object savedId = null;
-    List<Message> messages = new ArrayList<>();
     if ("view".equals(httpRequest.runActionRq().componentState().get("_state"))
         || "edit".equals(httpRequest.runActionRq().componentState().get("_state"))) {
       var idField = getIdFieldForRow();
       savedId = httpRequest.getComponentState(Map.class).get(idField);
     }
 
-    if ("create".equals(actionId)) {
-      savedId = saveNew(httpRequest);
-      messages.add(
-          Message.builder()
-              .variant(NotificationVariant.success)
-              .text("Item saved successfully")
-              .build());
-      actionId = "view";
+    // Apply the matching CRUD action handler (create, save, delete, cancel-*)
+    var result = CrudActionResult.of(actionId, savedId);
+    for (var handler : CRUD_ACTION_HANDLERS) {
+      if (handler.supports(actionId)) {
+        result = handler.handle(this, result, httpRequest);
+        break;
+      }
     }
-    if ("save".equals(actionId)) {
-      savedId = save(httpRequest);
-      messages.add(
-          Message.builder()
-              .variant(NotificationVariant.success)
-              .text("Item saved successfully")
-              .build());
-      // savedId = getValue(getIdField(viewClass()), entity);
-      actionId = "view";
-    }
-    if ("cancel-edit".equals(actionId)) {
-      var idField = getIdFieldForRow();
-      savedId = httpRequest.getComponentState(Map.class).get(idField);
-      var view = adapter().getEditor((IdType) savedId, httpRequest);
-      actionId = "view";
-    }
-    if ("cancel-view".equals(actionId)) {
-      var idField = getIdFieldForRow();
-      savedId = httpRequest.getComponentState(Map.class).get(idField);
-      actionId = "";
-    }
-    if ("cancel-create".equals(actionId)) {
-      actionId = "";
-    }
-    if ("delete".equals(actionId)) {
-      List<?> selection =
-          (List<?>)
-              httpRequest
-                  .runActionRq()
-                  .componentState()
-                  .getOrDefault("crud_selected_items", List.of());
-      List<IdType> selectedIds =
-          selection.stream()
-              .map(map -> (IdType) ((Map<String, Object>) map).get(getIdFieldForRow()))
-              .toList();
-      adapter().deleteAllById(selectedIds, httpRequest);
-    }
+    actionId = result.actionId();
+    savedId = result.savedId();
 
     updateRegisteredRoute(savedId, httpRequest);
 
     if ("view".equals(actionId)) {
-      return Stream.concat(handleView(httpRequest, savedId).stream(), messages.stream()).toList();
+      return Stream.concat(handleView(httpRequest, savedId).stream(), result.messages().stream())
+          .toList();
     }
     if ("edit".equals(actionId)) {
       return handleEdit(httpRequest);
