@@ -97,8 +97,8 @@ class CrudFieldHandlersTest {
     row1.put("name", "Alice");
     var state = new HashMap<String, Object>();
     state.put("items_selected_items", new ArrayList<>(List.of(row1)));
-    http.storeRunActionRqDto(
-        RunActionRqDto.builder().componentState(state).build());
+    state.put("items", new ArrayList<>(List.of(row1))); // needed for position calc
+    http.storeRunActionRqDto(RunActionRqDto.builder().componentState(state).build());
     var result = handleSelected(new Object(), "items_selected", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(true);

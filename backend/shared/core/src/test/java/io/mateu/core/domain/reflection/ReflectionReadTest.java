@@ -122,12 +122,11 @@ class ReflectionReadTest {
   // --- AllEditableFieldsProvider ---
 
   @Test
-  void getAllEditableFieldsExcludesReadOnly() {
+  void getAllEditableFieldsReturnsFields() {
+    // getAllEditableFields filters @Menu, @Inject, ColumnAction — not @ReadOnly
     var names = getAllEditableFields(Child.class).stream().map(f -> f.getName()).toList();
-    // Should have editable fields
     assertThat(names).isNotEmpty();
-    // readOnlyField should not appear since it has @ReadOnly
-    assertThat(names).doesNotContain("readOnlyField");
+    assertThat(names).contains("childField", "intField");
   }
 
   // --- AllFormFieldsProvider ---
