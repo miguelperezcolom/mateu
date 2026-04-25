@@ -2,13 +2,11 @@ package io.mateu.core.infra.declarative;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.example.uis.forms.SimpleForm;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.StatusType;
-import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class FormViewModelTest {
