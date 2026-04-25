@@ -5,7 +5,7 @@ weight: 1
 
 # Distributed control plane (SSR → SSG)
 
-This project demonstrates Mateu in a **real production-like architecture**:
+This project demonstrates Mateu in a **real distributed architecture**:
 
 - multiple microservices
 - UI owned by each service
@@ -15,20 +15,30 @@ This project demonstrates Mateu in a **real production-like architecture**:
 
 ---
 
-## Architecture at a glance
+## Architecture
 
-- Control plane → admin UI
-- Content service → domain logic
-- Static server → SSG output
-- Shell → UI composition
-- EventConductor → workflows + forms
+```
+[ Browser ]
+     ↓
+[ Mateu Renderer ]
+     ↓
+[ Mateu API ]
+     ↓
+-------------------------
+| Microservices layer   |
+|                       |
+| Content Service       |
+| Control Plane         |
+| Static Server         |
+| EventConductor        |
+-------------------------
+```
 
 ---
 
 ## Core idea
 
-> Mateu is not just a UI framework.  
-> It is a **UI orchestration layer for distributed systems**.
+> Mateu is a **UI orchestration layer for distributed systems**
 
 ---
 
@@ -38,32 +48,35 @@ Each service exposes its own UI:
 
 ```java
 @UI("/_content-service")
+public class ContentServiceHome {}
 ```
 
-And defines:
+Each module defines:
 
-- its own menu
-- its own routes
-- its own orchestrators
+- menu
+- routes
+- orchestrators
 
-👉 No shared frontend needed.
+👉 No shared frontend needed
 
 ---
 
 # 2. UI composition (shell)
 
-A shell aggregates multiple UIs:
+A shell aggregates UIs:
 
-- each module contributes menus
-- navigation is composed dynamically
+```
+[ Shell ]
+   ├── Content Service UI
+   ├── Control Plane UI
+   └── Other modules
+```
 
-👉 This enables **federated backoffices**
+👉 Federated backoffice
 
 ---
 
-# 3. DTOs, not entities
-
-UI is built from DTOs:
+# 3. DTO → Row → UI
 
 ```java
 new ChangeRow(
@@ -76,97 +89,93 @@ new ChangeRow(
 )
 ```
 
-👉 Domain model stays isolated.
+Flow:
+
+```
+DTO → Row → Component → UI
+```
+
+👉 UI model is explicit
 
 ---
 
-# 4. Rows as UI models
-
-Rows are explicitly designed:
-
-- include formatted fields
-- include status
-- include actions
+# 4. Actions as contracts
 
 ```java
-ColumnAction("compare", "Compare")
+new ColumnAction("compare", "Compare")
 ```
 
-👉 Actions are **contracts**, not logic.
+Flow:
+
+```
+User click → actionId → backend → use case
+```
+
+👉 No logic in frontend
 
 ---
 
 # 5. Query services
 
-All UI data comes from query services:
+```
+[ UI ] → [ Query Service ] → [ Database / API ]
+```
 
-- no JPA in UI layer
 - no entity leakage
+- no ORM dependency
 - pure read models
-
-👉 This aligns with CQRS patterns.
 
 ---
 
-# 6. Lookups
+# 6. Lookups across services
 
 ```java
 @Lookup(search = LabelOptionsSupplier.class, label = LabelLabelSupplier.class)
 ```
 
-Backed by:
-
-- query services
-- remote APIs if needed
-
-👉 Works across services.
+```
+UI → Supplier → Query Service → Results
+```
 
 ---
 
 # 7. Workflows + forms
 
-EventConductor provides:
-
-- workflow engine
-- forms engine
-
-Mateu UI:
-
-- triggers workflows
-- renders forms
-- orchestrates execution
-
-👉 UI becomes a control plane.
-
----
-
-# 8. Stateless by design
+```
+UI → Workflow Engine → Form → User Input → Execution
+```
 
 Mateu:
 
-- does not keep UI state on server
-- rebuilds state per request
-
-👉 Perfect for:
-
-- Kubernetes
-- autoscaling
-- ephemeral pods
+- triggers workflows
+- renders forms
+- handles results
 
 ---
 
-# 9. Why this matters
+# 8. Stateless model
 
-This architecture enables:
+Each request:
 
-- independent teams
+1. instantiate view model
+2. hydrate state
+3. execute action
+4. return UI diff
+
+👉 No server session
+
+---
+
+# 9. Why this architecture matters
+
 - independent deployments
-- consistent UI model
-- minimal frontend complexity
+- scalable
+- no frontend duplication
+- backend-owned UI
 
 ---
 
-# 10. Key takeaway
+# 10. Final insight
 
-> Mateu lets backend teams build complete, distributed UIs  
-> without owning a frontend stack.
+> Mateu lets backend teams build complete distributed UIs  
+> without owning a frontend stack
