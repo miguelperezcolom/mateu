@@ -86,21 +86,30 @@ class ReflectionPageMapperColumnsAndFormTest {
   @Test
   void getColumnsExcludesHiddenFields() {
     var cols = getColumns(SampleRow.class, new SampleRow(), "base", "route", "init", http);
-    var names = cols.stream().map(c -> c.id()).toList();
+    var names = cols.stream()
+        .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
+        .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
+        .toList();
     assertThat(names).doesNotContain("hidden");
   }
 
   @Test
   void getColumnsExcludesHiddenInListFields() {
     var cols = getColumns(SampleRow.class, new SampleRow(), "base", "route", "init", http);
-    var names = cols.stream().map(c -> c.id()).toList();
+    var names = cols.stream()
+        .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
+        .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
+        .toList();
     assertThat(names).doesNotContain("hiddenInList");
   }
 
   @Test
   void getColumnsIncludesStatus() {
     var cols = getColumns(SampleRow.class, new SampleRow(), "base", "route", "init", http);
-    var names = cols.stream().map(c -> c.id()).toList();
+    var names = cols.stream()
+        .filter(c -> c instanceof io.mateu.uidl.data.GridColumn)
+        .map(c -> ((io.mateu.uidl.data.GridColumn) c).id())
+        .toList();
     assertThat(names).contains("status");
   }
 
@@ -146,29 +155,25 @@ class ReflectionPageMapperColumnsAndFormTest {
     assertThat(form).isNotEmpty();
   }
 
-  // --- toFormLayout ---
+  // --- getForm (more variants) ---
 
   @Test
-  void toFormLayoutForPage() {
-    var layout =
-        toFormLayout(
-            new SimpleForm(), "base", "route", "consumed", "init", http, false, false, 2, "");
-    assertThat(layout).isNotNull();
+  void getFormForPageOneColumn() {
+    var form = getForm(new SimpleForm(), "base", "route", "consumed", "init", http, false, false, 1);
+    assertThat(form).isNotNull();
   }
 
   @Test
-  void toFormLayoutReadOnly() {
-    var layout =
-        toFormLayout(
-            new SimpleForm(), "base", "route", "consumed", "init", http, false, true, 2, "");
-    assertThat(layout).isNotNull();
+  void getFormForPageFourColumns() {
+    var form = getForm(new SimpleForm(), "base", "route", "consumed", "init", http, false, false, 4);
+    assertThat(form).isNotNull();
   }
 
   // --- getView ---
 
   @Test
   void getViewForForm() {
-    var view = getView(new SimpleForm(), "base", "route", "consumed", "init", http);
+    var view = getView(new SimpleForm(), "base", "route", "consumed", "init", http, false, false);
     assertThat(view).isNotNull();
   }
 

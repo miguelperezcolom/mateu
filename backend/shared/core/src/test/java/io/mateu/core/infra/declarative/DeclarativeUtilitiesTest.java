@@ -98,13 +98,15 @@ class DeclarativeUtilitiesTest {
 
   @Test
   void getIndexFindsRowByNumber() {
-    var row1 = new HashMap<String, Object>();
+    List<Map<String, Object>> items = new java.util.ArrayList<>();
+    Map<String, Object> row1 = new java.util.HashMap<>();
     row1.put("_rowNumber", 0);
     row1.put("name", "Alice");
-    var row2 = new HashMap<String, Object>();
+    Map<String, Object> row2 = new java.util.HashMap<>();
     row2.put("_rowNumber", 1);
     row2.put("name", "Bob");
-    var items = List.of(row1, row2);
+    items.add(row1);
+    items.add(row2);
 
     int idx = CrudOrchestrator.getIndex(items, 0);
     assertThat(idx).isEqualTo(0);
@@ -112,9 +114,11 @@ class DeclarativeUtilitiesTest {
 
   @Test
   void getIndexReturnsMinusOneForMissing() {
-    var row1 = new HashMap<String, Object>();
+    List<Map<String, Object>> items = new java.util.ArrayList<>();
+    Map<String, Object> row1 = new java.util.HashMap<>();
     row1.put("_rowNumber", 0);
-    int idx = CrudOrchestrator.getIndex(List.of(row1), 99);
+    items.add(row1);
+    int idx = CrudOrchestrator.getIndex(items, 99);
     assertThat(idx).isEqualTo(-1);
   }
 }
