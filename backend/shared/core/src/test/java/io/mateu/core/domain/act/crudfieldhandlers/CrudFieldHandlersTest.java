@@ -76,6 +76,15 @@ class CrudFieldHandlersTest {
 
   @Test
   void selectHandlerShowsDetail() {
+    var row1 = new HashMap<String, Object>();
+    row1.put("_rowNumber", 0);
+    var state = new HashMap<String, Object>();
+    state.put("items", new ArrayList<>(List.of(row1)));
+    http.storeRunActionRqDto(
+        RunActionRqDto.builder()
+            .componentState(state)
+            .parameters(Map.of("_rowNumber", 0))
+            .build());
     var result = handleSelect(new Object(), "items_select", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(true);
@@ -83,6 +92,13 @@ class CrudFieldHandlersTest {
 
   @Test
   void selectedHandlerShowsDetail() {
+    var row1 = new HashMap<String, Object>();
+    row1.put("_rowNumber", 0);
+    row1.put("name", "Alice");
+    var state = new HashMap<String, Object>();
+    state.put("items_selected_items", new ArrayList<>(List.of(row1)));
+    http.storeRunActionRqDto(
+        RunActionRqDto.builder().componentState(state).build());
     var result = handleSelected(new Object(), "items_selected", http, "", showDetail, editing, field, fieldId);
     assertThat(result).isInstanceOf(State.class);
     assertThat(showDetail.get(fieldId)).isEqualTo(true);
