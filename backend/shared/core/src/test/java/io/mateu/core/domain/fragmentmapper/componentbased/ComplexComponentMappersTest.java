@@ -108,7 +108,7 @@ class ComplexComponentMappersTest {
 
   // --- Grid ---
   @Test void gridEmpty() {
-    assertThat(map(Grid.builder().build())).isNotNull();
+    assertThat(map(Grid.builder().content(List.of()).build())).isNotNull();
   }
 
   @Test void gridWithColumns() {
