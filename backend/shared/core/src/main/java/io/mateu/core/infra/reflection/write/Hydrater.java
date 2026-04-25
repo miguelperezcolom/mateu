@@ -7,7 +7,9 @@ import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Hydratable;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Hydrater {
 
   public static <T> T hydrate(
@@ -25,19 +27,14 @@ public class Hydrater {
                         getActualValue(entry, object, instanceFactory, httpRequest);
                     setValue(entry.getKey(), object, actualValue);
                   } catch (Exception ex) {
-                    System.out.println("" + ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                    log.debug(
+                        "Could not hydrate field '{}': {} - {}",
+                        entry.getKey(),
+                        ex.getClass().getSimpleName(),
+                        ex.getMessage());
                   }
                 });
       }
-      //      httpRequest
-      //          .getParameterNames()
-      //          .forEach(
-      //              paramName -> {
-      //                try {
-      //                  setValue(paramName, object, httpRequest.getParameterValue(paramName));
-      //                } catch (Exception ignored) {
-      //                }
-      //              });
     }
     return object;
   }

@@ -33,7 +33,6 @@ import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.RouteConstants;
-import io.mateu.uidl.annotations.BaseRoute;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
@@ -151,47 +150,7 @@ public class RunActionUseCase {
   }
 
   private void updateResolvedRoute(RunActionCommand command, Object instance) {
-    if (true) {
-      return;
-    }
-    if (instance instanceof RouteSupplier routeSupplier) {
-      setResolvedRoute(command.httpRequest(), routeSupplier.route());
-      System.out.println(
-          ""
-              + instance.getClass().getSimpleName()
-              + " --> rq.resolvedRoute: "
-              + command.httpRequest().getAttribute("resolvedRoute"));
-      return;
-    }
-    if (instance.getClass().isAnnotationPresent(BaseRoute.class)) {
-      command
-          .httpRequest()
-          .setAttribute(
-              "resolvedRoute",
-              getLongestMatcher(
-                  Pattern.compile(instance.getClass().getAnnotation(BaseRoute.class).value()),
-                  command.route()));
-      System.out.println(
-          ""
-              + instance.getClass().getSimpleName()
-              + " --> rq.resolvedRoute: "
-              + command.httpRequest().getAttribute("resolvedRoute"));
-      return;
-    }
-    if (instance.getClass().isAnnotationPresent(Route.class)) {
-      command
-          .httpRequest()
-          .setAttribute(
-              "resolvedRoute",
-              getLongestMatcher(
-                  Pattern.compile(instance.getClass().getAnnotation(Route.class).value()),
-                  command.route()));
-      System.out.println(
-          ""
-              + instance.getClass().getSimpleName()
-              + " --> rq.resolvedRoute: "
-              + command.httpRequest().getAttribute("resolvedRoute"));
-    }
+    // intentionally no-op: route resolution is handled elsewhere
   }
 
   public static void setResolvedRoute(HttpRequest httpRequest, String route) {
@@ -219,35 +178,18 @@ public class RunActionUseCase {
     if (instance instanceof Mono<?> mono) {
       return mono.map(i -> routeIfNeeded(command, i));
     }
-    if (true || ("".equals(command.actionId()) && !command.route().endsWith("_page"))) {
-      if (instance instanceof RouteHandler handlesRoute) {
-        return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));
-      }
-      if (instance instanceof ReactiveRouteHandler handlesRoute) {
-        return handlesRoute.handleRoute(command.route(), command.httpRequest());
-      }
+    if (instance instanceof RouteHandler handlesRoute) {
+      return Mono.just(handlesRoute.handleRoute(command.route(), command.httpRequest()));
+    }
+    if (instance instanceof ReactiveRouteHandler handlesRoute) {
+      return handlesRoute.handleRoute(command.route(), command.httpRequest());
     }
     return Mono.just(instance);
   }
 
   private Mono<?> resolveMenuIfApp(
       RunActionCommand command, Object instance, HttpRequest httpRequest) {
-    return resolveMenuIfAppBeforeParameters(command, instance)
-    //        .map(
-    //            object -> {
-    //              httpRequest
-    //                  .getParameterNames()
-    //                  .forEach(
-    //                      paramName -> {
-    //                        try {
-    //                          setValue(paramName, object,
-    // httpRequest.getParameterValue(paramName));
-    //                        } catch (Exception ignored) {
-    //                        }
-    //                      });
-    //              return object;
-    //            })
-    ;
+    return resolveMenuIfAppBeforeParameters(command, instance);
   }
 
   private Mono<?> resolveMenuIfAppBeforeParameters(RunActionCommand command, Object instance) {
