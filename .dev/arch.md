@@ -52,3 +52,97 @@
 
 . outbox para garantizar la atomicidad de las transacctiones, incluyendo el lanzamiento de los eventos
 - inbox para no procesar 2 veces el mismo evento. Si falla la transacción, no se graba el id del evento como consumido
+
+# lectura con jdbc, escritura con jpa
+WRITE SIDE (comandos)
+→ DDD + agregados
+→ repositorios (Spring Data JPA o equivalente)
+
+READ SIDE (queries)
+→ JDBC directo
+→ DTOs / proyecciones
+→ sin dominio
+
+# value objects
+
+Value Object
+→ nunca null
+→ siempre válido
+
+Campo
+→ decide si existe o no
+
+
+Semantic Value Object
+Money, DateRange, Email, BookingLocator
+
+Type-safe Wrapper
+LeadName, Comments, PassengerAge
+
+Type-safe wrapper → seguridad de tipos
+Semantic VO       → modelo de dominio
+
+
+Todo campo → value object (type-safe wrapper)
+Algunos value objects → semantic (definidos en spec)
+
+Type-safe wrapper
+→ evita errores
+→ simple
+→ 1 campo
+
+Semantic Value Object
+→ modela negocio
+→ tiene reglas
+→ puede tener comportamiento
+
+
+Type-safe wrapper
+→ evitar errores de tipo
+
+Semantic VO
+→ modelar reglas de negocio
+
+Usar directamente (ej: Money)
+
+NO wrappear automáticamente
+
+Solo crear wrapper si:
+→ el campo tiene significado propio
+→ o reglas adicionales
+
+
+Primitivo        → no tiene significado
+Wrapper          → da significado
+Semantic VO      → modela comportamiento
+
+// ❌ mal
+private String salePrice;
+
+// ✔ bien
+private Money salePrice;
+
+// ❌ innecesario (por defecto)
+private BookingSalePrice salePrice;
+
+// ✔ solo si hay reglas propias
+private BookingSalePrice salePrice;
+
+
+String / int
+→ nunca en dominio
+
+Type-safe wrapper
+→ default para campos simples
+
+Semantic VO
+→ usar directamente
+
+Wrapper de semantic VO
+→ solo si añade reglas o significado nuevo
+
+fields:
+salePrice:
+type: Money
+wrapper: BookingSalePrice
+

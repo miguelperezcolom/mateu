@@ -12,3 +12,6 @@ These topics help you move from examples to real applications.
 - [Foreign keys and options](/java-user-manual/build/foreign-keys-and-options/)
 - [Domain models](/java-user-manual/build/domain-models/)
 - [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/)
+- [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/)
+- [Master-detail](/java-user-manual/build/master-detail/)
+- [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/)

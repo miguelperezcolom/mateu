@@ -20,7 +20,7 @@ if [ -z "$1" ]; then
   echo "Uso: dumpjava <fichero-salida> [directorio]"
   exit 1
 fi
-output="$1"; dir="${2:-.}"; cat /dev/null > "$output"; find "$dir" -path "$dir/target" -prune -o \( -name "*.java" -o -name "pom.xml" \) -print0 | while IFS= read -r -d '' file; do
+output="$1"; dir="${2:-.}"; cat /dev/null > "$output"; find "$dir" -path "$dir/target" -prune -o \( -name "*.java" -o -name "*.ftl" -o -name "*.json" -o -name "pom.xml" \) -print0 | while IFS= read -r -d '' file; do
   echo "===== FILE: $file =====" >> "$output"
   cat "$file" >> "$output"
   echo >> "$output"

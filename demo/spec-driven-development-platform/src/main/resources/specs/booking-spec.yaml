@@ -1,0 +1,318 @@
+$schema: ./schema/domain-dsl-schema-v0-1.json
+
+domain:
+  name: booking
+  package: com.acme.booking
+  version: 1.0.0
+  description: Gestión de reservas de viaje
+  boundedContext:
+    name: Booking
+    description: Contexto de reservas
+  language:
+    ubiquitous:
+      Booking: Reserva
+      Trip: Viaje
+      Passenger: Pasajero
+
+imports:
+  - shared.money
+  - shared.email
+
+valueObjects:
+  BookingId:
+    type: uuid
+    generation: auto
+
+  Email:
+    type: string
+    constraints:
+      required: true
+      format: email
+      maxLength: 255
+
+  Money:
+    type: object
+    fields:
+      amount:
+        type: decimal
+        constraints:
+          required: true
+          min: 0
+      currency:
+        type: string
+        constraints:
+          required: true
+          enum: [EUR, USD, GBP]
+    invariants:
+      - name: amountMustBePositive
+        expression: amount >= 0
+
+  DateRange:
+    type: object
+    fields:
+      start:
+        type: date
+        constraints:
+          required: true
+      end:
+        type: date
+        constraints:
+          required: true
+    invariants:
+      - name: startBeforeEnd
+        expression: start <= end
+
+enums:
+  BookingStatus:
+    values: [DRAFT, PENDING_PAYMENT, CONFIRMED, CANCELLED, EXPIRED]
+
+entities:
+  Passenger:
+    belongsTo: Booking
+    identity:
+      name: passengerId
+      type: PassengerId
+    fields:
+      firstName:
+        type: string
+        constraints:
+          required: true
+          minLength: 1
+          maxLength: 100
+      lastName:
+        type: string
+        constraints:
+          required: true
+          minLength: 1
+          maxLength: 100
+      age:
+        type: integer
+        constraints:
+          min: 0
+          max: 120
+
+aggregates:
+  Booking:
+    description: Reserva de un viaje
+    id:
+      name: id
+      type: BookingId
+    fields:
+      customerEmail:
+        type: Email
+        constraints:
+          required: true
+      tripId:
+        type: TripId
+        constraints:
+          required: true
+      passengers:
+        type: list
+        itemType: Passenger
+        constraints:
+          minSize: 1
+          maxSize: 9
+      totalPrice:
+        type: Money
+        constraints:
+          required: true
+      status:
+        type: BookingStatus
+        default: DRAFT
+      createdAt:
+        type: instant
+        generation: now
+      confirmedAt:
+        type: instant
+        nullable: true
+      cancelledAt:
+        type: instant
+        nullable: true
+
+    invariants:
+      - name: mustHaveAtLeastOnePassenger
+        expression: passengers.size >= 1
+        message: Booking must have at least one passenger
+      - name: confirmedMustHaveDate
+        when: status == CONFIRMED
+        expression: confirmedAt != null
+      - name: cancelledMustHaveDate
+        when: status == CANCELLED
+        expression: cancelledAt != null
+      - name: priceNonZeroWhenConfirmed
+        when: status == CONFIRMED
+        expression: totalPrice.amount > 0
+
+    commands:
+      create:
+        factory: true
+        parameters:
+          customerEmail: Email
+          tripId: TripId
+          passengers: List<Passenger>
+          totalPrice: Money
+        preconditions:
+          - passengers.size >= 1
+          - totalPrice.amount > 0
+        sets:
+          status: DRAFT
+          createdAt: now()
+        emits:
+          - BookingCreated
+
+      requestPayment:
+        preconditions:
+          - status == DRAFT
+        sets:
+          status: PENDING_PAYMENT
+        emits:
+          - BookingPaymentRequested
+
+      confirm:
+        preconditions:
+          - status == PENDING_PAYMENT
+        sets:
+          status: CONFIRMED
+          confirmedAt: now()
+        emits:
+          - BookingConfirmed
+
+      cancel:
+        parameters:
+          reason: string
+        preconditions:
+          - status in [DRAFT, PENDING_PAYMENT, CONFIRMED]
+        sets:
+          status: CANCELLED
+          cancelledAt: now()
+        emits:
+          - BookingCancelled
+
+      expire:
+        preconditions:
+          - status == PENDING_PAYMENT
+        sets:
+          status: EXPIRED
+        emits:
+          - BookingExpired
+
+    stateMachine:
+      field: status
+      initial: DRAFT
+      terminal: [CANCELLED, EXPIRED]
+      transitions:
+        - from: DRAFT
+          to: PENDING_PAYMENT
+          command: requestPayment
+        - from: PENDING_PAYMENT
+          to: CONFIRMED
+          command: confirm
+        - from: DRAFT
+          to: CANCELLED
+          command: cancel
+        - from: PENDING_PAYMENT
+          to: CANCELLED
+          command: cancel
+        - from: CONFIRMED
+          to: CANCELLED
+          command: cancel
+        - from: PENDING_PAYMENT
+          to: EXPIRED
+          command: expire
+
+events:
+  BookingCreated:
+    aggregate: Booking
+    version: 1
+    fields:
+      bookingId: BookingId
+      customerEmail: Email
+      tripId: TripId
+      totalPrice: Money
+      occurredAt: instant
+
+  BookingPaymentRequested:
+    aggregate: Booking
+    version: 1
+    fields:
+      bookingId: BookingId
+      totalPrice: Money
+      occurredAt: instant
+
+  BookingConfirmed:
+    aggregate: Booking
+    version: 1
+    fields:
+      bookingId: BookingId
+      confirmedAt: instant
+
+  BookingCancelled:
+    aggregate: Booking
+    version: 1
+    fields:
+      bookingId: BookingId
+      reason: string
+      cancelledAt: instant
+
+  BookingExpired:
+    aggregate: Booking
+    version: 1
+    fields:
+      bookingId: BookingId
+      expiredAt: instant
+
+repositories:
+  BookingRepository:
+    aggregate: Booking
+    methods:
+      get:
+        by: id
+        returns: Booking
+        required: true
+      save:
+        parameter: Booking
+      exists:
+        by: id
+        returns: boolean
+
+domainServices:
+  BookingPricingPolicy:
+    description: Calcula precio de una reserva
+    inputs:
+      tripId: TripId
+      passengers: List<Passenger>
+    output: Money
+    implementation: custom
+
+tests:
+  generate:
+    domain:
+      valueObjects: true
+      invariants: true
+      stateMachine: true
+      commands: true
+      events: true
+    repositories:
+      contractTests: true
+    serialization:
+      events: true
+  fixtures:
+    Booking:
+      valid:
+        customerEmail: test@example.com
+        tripId: 11111111-1111-1111-1111-111111111111
+        passengers:
+          - firstName: John
+            lastName: Doe
+            age: 35
+        totalPrice:
+          amount: 120.00
+          currency: EUR
+
+generation:
+  overwrite:
+    generated: true
+    custom: false
+  failOnManualChangesInGeneratedCode: true
+  traceability:
+    includeSpecReferenceInGeneratedCode: true
