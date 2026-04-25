@@ -3,6 +3,7 @@ package io.mateu.core.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.uis.UsingInterfacesUI;
+import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.infra.FakeHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.annotations.Route;
@@ -21,25 +22,21 @@ class DefaultRoutedClassResolverTest {
   @Route("/items")
   static class ItemsPage {}
 
-  @Route(value = "/child", parentRoute = "/app")
-  static class ChildPage {}
-
   RoutedClassProvider appProvider = () -> AppClass.class;
   RoutedClassProvider itemsProvider = () -> ItemsPage.class;
-  RoutedClassProvider childProvider = () -> ChildPage.class;
 
   DefaultRoutedClassResolver resolver;
 
   @BeforeEach
   void setUp() {
-    resolver = new DefaultRoutedClassResolver(List.of(appProvider, itemsProvider, childProvider));
+    resolver = new DefaultRoutedClassResolver(List.of(appProvider, itemsProvider));
   }
 
-  private io.mateu.core.application.runaction.RunActionCommand command(String route) {
+  private RunActionCommand command(String route) {
     var http = new FakeHttpRequest();
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(Map.of()).build());
-    return new io.mateu.core.application.runaction.RunActionCommand(
-        "base_url", "ui_id", route, "", "", Map.of(), Map.of(), "initiator", http, null, "");
+    return new RunActionCommand(
+        "base_url", "ui_id", route, "", "", Map.of(), Map.of(), "initiator", http, null, null);
   }
 
   @Test
@@ -73,7 +70,6 @@ class DefaultRoutedClassResolverTest {
   @Test
   void resolveWithUsingInterfacesUI() {
     var uiResolver = new DefaultRoutedClassResolver(List.of(() -> UsingInterfacesUI.class));
-    // UsingInterfacesUI may have a UI annotation - just check no exception
     assertThat(uiResolver.resolve("/", command("/"))).isNotNull();
   }
 }
