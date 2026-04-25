@@ -46,7 +46,6 @@ class ReflectionPageMapperColumnsAndFormTest {
     public boolean activeFilter = false;
   }
 
-  @Section("Personal")
   static class SectionedForm implements Page {
     @Section("Personal")
     public String firstName = "John";
