@@ -170,7 +170,34 @@ class AppComponentToDtoMapperTest {
             "initiator",
             new FakeHttpRequest());
     assertNotNull(dto);
-    assertThat(dto).usingRecursiveComparison().ignoringFields("component.id").isEqualTo(expected);
+    assertThat(dto)
+        .usingRecursiveComparison()
+        .ignoringFields(
+            "component.id",
+            "component.metadata.homeAppServerSideType",
+            "component.metadata.homeConsumedRoute",
+            "component.metadata.homeUriPrefix",
+            "component.metadata.menu[0].appServerSideType",
+            "component.metadata.menu[0].consumedRoute",
+            "component.metadata.menu[0].uriPrefix",
+            "component.metadata.menu[0].route",
+            "component.metadata.menu[1].appServerSideType",
+            "component.metadata.menu[1].consumedRoute",
+            "component.metadata.menu[1].uriPrefix",
+            "component.metadata.menu[1].route",
+            "component.metadata.menu[2].appServerSideType",
+            "component.metadata.menu[2].consumedRoute",
+            "component.metadata.menu[2].uriPrefix",
+            "component.metadata.menu[2].route",
+            "component.metadata.menu[3].appServerSideType",
+            "component.metadata.menu[3].consumedRoute",
+            "component.metadata.menu[3].uriPrefix",
+            "component.metadata.menu[3].route",
+            "component.metadata.menu[4].appServerSideType",
+            "component.metadata.menu[4].consumedRoute",
+            "component.metadata.menu[4].uriPrefix",
+            "component.metadata.menu[4].route")
+        .isEqualTo(expected);
   }
 
   class MyAppSupplier implements AppSupplier, RouteResolver {

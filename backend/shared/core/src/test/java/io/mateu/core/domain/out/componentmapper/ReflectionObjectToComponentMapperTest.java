@@ -40,6 +40,7 @@ class ReflectionObjectToComponentMapperTest {
             "initiator_component_id",
             new FakeHttpRequest());
     assertNotNull(result);
-    assertInstanceOf(io.mateu.uidl.fluent.Page.class, result);
+    // mapToComponent wraps pages in UIFragmentDto
+    assertInstanceOf(io.mateu.dtos.UIFragmentDto.class, result);
   }
 }

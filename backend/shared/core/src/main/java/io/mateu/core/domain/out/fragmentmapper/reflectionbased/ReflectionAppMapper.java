@@ -37,7 +37,7 @@ public class ReflectionAppMapper {
     if (httpRequest.getAttribute("resolvedRoute") != null) {
       var resolvedRoute = (String) httpRequest.getAttribute("resolvedRoute");
       var baseUrl = (String) httpRequest.getAttribute("baseUrl");
-      if (resolvedRoute.startsWith(baseUrl)) {
+      if (baseUrl != null && resolvedRoute.startsWith(baseUrl)) {
         return resolvedRoute.substring(baseUrl.length());
       }
       return resolvedRoute;

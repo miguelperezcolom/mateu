@@ -62,7 +62,7 @@ class ReflectionPageMapperTest {
             new FakeHttpRequest());
 
     assertNotNull(page);
-    assertNull(page.pageTitle());
+    assertNotNull(page.pageTitle()); // defaults to humanized class name when no @PageTitle
     assertNull(page.subtitle());
     assertNull(page.favicon());
     assertNull(page.cssClasses());
