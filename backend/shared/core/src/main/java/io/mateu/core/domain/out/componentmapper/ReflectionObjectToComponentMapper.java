@@ -140,7 +140,7 @@ public class ReflectionObjectToComponentMapper {
     if (instance instanceof AppState) {
       return false;
     }
-    if (route.endsWith("_page") || route.endsWith("_no_home_route")) {
+    if (route != null && (route.endsWith("_page") || route.endsWith("_no_home_route"))) {
       return true;
     }
     if (instance instanceof ComponentTreeSupplier
