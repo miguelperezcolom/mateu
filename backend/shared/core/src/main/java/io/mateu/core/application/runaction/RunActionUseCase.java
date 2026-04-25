@@ -272,41 +272,11 @@ public class RunActionUseCase {
 
   @SneakyThrows
   private Mono<?> createInstance(RunActionCommand command) {
-    // si className --> ok
-
     log.info("createInstance {}", command);
 
-    var routeFirst = false;
-
-    if (command.serverSiteType() != null && !command.serverSiteType().isEmpty()) {
-      var type = Class.forName(command.serverSiteType());
-      if (CrudOrchestrator.class.isAssignableFrom(type)) {
-        if ("view".equals(command.actionId())) {
-          var idField = command.componentState().get("idFieldForRow");
-          if (idField != null && command.httpRequest().runActionRq().parameters() != null) {
-            var id = command.httpRequest().runActionRq().parameters().get(idField);
-            if (id != null) {
-              command.httpRequest().setAttribute("oldRoute", command.route());
-              command = command.withRoute(command.route() + "/" + id);
-              command.httpRequest().setAttribute("updateUrl", command.route());
-              routeFirst = true;
-            }
-          }
-        }
-        if ("edit".equals(command.actionId())) {
-          var idField = command.componentState().get("idFieldForRow");
-          if (idField != null && command.httpRequest().runActionRq().parameters() != null) {
-            var id = command.httpRequest().runActionRq().componentState().get(idField);
-            if (id != null) {
-              command.httpRequest().setAttribute("oldRoute", command.route());
-              command = command.withRoute(command.route() + "/" + id + "/edit");
-              command.httpRequest().setAttribute("updateUrl", command.route());
-              routeFirst = true;
-            }
-          }
-        }
-      }
-    }
+    var adjusted = adjustCommandForCrudNavigation(command);
+    command = adjusted.command();
+    var routeFirst = adjusted.routeFirst();
 
     RunActionCommand finalCommand = command;
     if (routeFirst) {
@@ -1104,5 +1074,48 @@ public class RunActionUseCase {
       return potentialApp.getClass().getAnnotation(Route.class).value();
     }
     return "";
+  }
+
+  private record AdjustedCommand(RunActionCommand command, boolean routeFirst) {}
+
+  /**
+   * When a CrudOrchestrator handles a "view" or "edit" action, the target entity id must be
+   * appended to the route so that the correct sub-route is resolved. This concern is extracted here
+   * to keep createInstance focused on route resolution.
+   */
+  @SneakyThrows
+  private AdjustedCommand adjustCommandForCrudNavigation(RunActionCommand command) {
+    if (command.serverSiteType() == null || command.serverSiteType().isEmpty()) {
+      return new AdjustedCommand(command, false);
+    }
+    var type = Class.forName(command.serverSiteType());
+    if (!CrudOrchestrator.class.isAssignableFrom(type)) {
+      return new AdjustedCommand(command, false);
+    }
+    if ("view".equals(command.actionId())) {
+      var idField = command.componentState().get("idFieldForRow");
+      if (idField != null && command.httpRequest().runActionRq().parameters() != null) {
+        var id = command.httpRequest().runActionRq().parameters().get(idField);
+        if (id != null) {
+          command.httpRequest().setAttribute("oldRoute", command.route());
+          command = command.withRoute(command.route() + "/" + id);
+          command.httpRequest().setAttribute("updateUrl", command.route());
+          return new AdjustedCommand(command, true);
+        }
+      }
+    }
+    if ("edit".equals(command.actionId())) {
+      var idField = command.componentState().get("idFieldForRow");
+      if (idField != null && command.httpRequest().runActionRq().parameters() != null) {
+        var id = command.httpRequest().runActionRq().componentState().get(idField);
+        if (id != null) {
+          command.httpRequest().setAttribute("oldRoute", command.route());
+          command = command.withRoute(command.route() + "/" + id + "/edit");
+          command.httpRequest().setAttribute("updateUrl", command.route());
+          return new AdjustedCommand(command, true);
+        }
+      }
+    }
+    return new AdjustedCommand(command, false);
   }
 }
