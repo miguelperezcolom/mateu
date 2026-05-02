@@ -177,7 +177,7 @@ public final class ComponentToFragmentDtoMapper {
         getState(componentSupplier, httpRequest),
         getData(httpRequest, componentSupplier),
         UIFragmentActionDto.Replace,
-            component != null?component.containerId():null);
+        component != null ? component.containerId() : null);
   }
 
   public static Object getData(HttpRequest httpRequest, Object instance) {

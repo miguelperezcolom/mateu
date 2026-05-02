@@ -33,7 +33,7 @@ public record ServerSideComponentDto(
         rules,
         validations,
         slot,
-            containerId);
+        containerId);
   }
 
   @Override
@@ -52,7 +52,7 @@ public record ServerSideComponentDto(
         rules,
         validations,
         slot,
-            containerId);
+        containerId);
   }
 
   @Override
@@ -69,7 +69,6 @@ public record ServerSideComponentDto(
         rules,
         validations,
         slot,
-            containerId);
+        containerId);
   }
-
 }

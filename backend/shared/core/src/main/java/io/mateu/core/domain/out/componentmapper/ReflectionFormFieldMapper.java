@@ -12,7 +12,6 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Amount;
-import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.CustomField;
@@ -32,7 +31,6 @@ import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
 import io.mateu.uidl.interfaces.OptionsSupplier;
@@ -348,7 +346,7 @@ public class ReflectionFormFieldMapper {
         .readOnly(readOnly)
         .minHeightWhenDetailVisible(getMinHeightWhenDetailVisible(field))
         .optionsColumns(getOptionsColumns(field))
-            /*
+        /*
         .createForm(
             Form.builder()
                 .title("New " + getLabel(field))

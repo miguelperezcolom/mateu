@@ -2,7 +2,6 @@ package io.mateu.core.infra.declarative.crudorchestrator;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.getState;
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
-import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
@@ -48,12 +47,14 @@ public abstract class ViewComponentLayer<
     //    var item = found.get();
     httpRequest.setAttribute("selectedItem", view);
     setStateTo("view");
-    Object viewModel = view instanceof AutoNamedView autoNamedView?autoNamedView.entity():view;
+    Object viewModel = view instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : view;
 
     return new ServerSideComponentDto(
-            UUID.randomUUID().toString(),
-            this.getClass().getName(),
-            List.of((ServerSideComponentDto) wrap(
+        UUID.randomUUID().toString(),
+        this.getClass().getName(),
+        List.of(
+            (ServerSideComponentDto)
+                wrap(
                     viewComponent(view, httpRequest),
                     viewModel,
                     "base_url",
@@ -61,38 +62,39 @@ public abstract class ViewComponentLayer<
                     httpRequest.runActionRq().consumedRoute(),
                     httpRequest.runActionRq().initiatorComponentId(),
                     addData(viewModel, httpRequest))),
-            getState(this, httpRequest),
-            "",
-            "",
-            mapActions(this),
-            mapTriggers(this, httpRequest),
-            mapRules(this),
-            mapValidations(this , httpRequest.runActionRq().route()),
-            null,
-            null);
+        getState(this, httpRequest),
+        "",
+        "",
+        mapActions(this),
+        mapTriggers(this, httpRequest),
+        mapRules(this),
+        mapValidations(this, httpRequest.runActionRq().route()),
+        null,
+        null);
   }
 
   protected Component viewComponent(Object item, HttpRequest httpRequest) {
     var toolbar = createViewToolbar(item);
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(item));
-    var page = Page.builder()
+    var page =
+        Page.builder()
             .title(title)
             .style(getStyleForView())
             .badges(createBadges(item))
             .kpis(createKpis(item))
             .content(
-                    getView(
-                            item,
-                            "base_url",
-                            httpRequest.runActionRq().route(),
-                            httpRequest.runActionRq().consumedRoute(),
-                            httpRequest.runActionRq().initiatorComponentId(),
-                            httpRequest,
-                            true,
-                            false)
-                            .stream()
-                            .toList())
+                getView(
+                        item,
+                        "base_url",
+                        httpRequest.runActionRq().route(),
+                        httpRequest.runActionRq().consumedRoute(),
+                        httpRequest.runActionRq().initiatorComponentId(),
+                        httpRequest,
+                        true,
+                        false)
+                    .stream()
+                    .toList())
             .toolbar(toolbar)
             .build();
     return page;

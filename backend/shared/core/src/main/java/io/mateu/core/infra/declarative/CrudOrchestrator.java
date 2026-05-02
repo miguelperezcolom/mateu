@@ -74,19 +74,20 @@ public abstract class CrudOrchestrator<
 
   @Override
   public List<String> supportedActions() {
-    return List.of("action-on-row-",
-            "action-on-view-",
-            "search-",
-            "view",
-            "edit",
-            "new",
-            "search",
-            "create",
-            "save",
-            "delete",
-            "cancel-edit",
-            "cancel-view",
-            "cancel-create");
+    return List.of(
+        "action-on-row-",
+        "action-on-view-",
+        "search-",
+        "view",
+        "edit",
+        "new",
+        "search",
+        "create",
+        "save",
+        "delete",
+        "cancel-edit",
+        "cancel-view",
+        "cancel-create");
   }
 
   @SneakyThrows

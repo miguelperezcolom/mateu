@@ -86,7 +86,7 @@ public class ComponentTreeSupplierToDtoMapper {
         mapRules(componentTreeSupplier),
         mapValidations(componentTreeSupplier, route),
         null,
-            null);
+        null);
   }
 
   public static List<ValidationDto> mapValidations(Object serverSideObject, String route) {
@@ -379,13 +379,14 @@ public class ComponentTreeSupplierToDtoMapper {
   public static List<ActionDto> mapActions(Object serverSideObject) {
     List<ActionDto> actions = new ArrayList<>();
     if (serverSideObject instanceof ActionSupplier hasActions) {
-      actions.addAll(hasActions.actions().stream()
-          .map(ComponentTreeSupplierToDtoMapper::mapAction)
-          .toList());
+      actions.addAll(
+          hasActions.actions().stream().map(ComponentTreeSupplierToDtoMapper::mapAction).toList());
     }
     if (serverSideObject instanceof ActionHandler hasActions) {
-      actions.addAll(hasActions.supportedActions().stream()
-              .filter(actionId -> actions.stream().noneMatch(action -> action.id().equals(actionId)))
+      actions.addAll(
+          hasActions.supportedActions().stream()
+              .filter(
+                  actionId -> actions.stream().noneMatch(action -> action.id().equals(actionId)))
               .map(actionId -> ActionDto.builder().id(actionId).build())
               .toList());
     }
@@ -406,15 +407,28 @@ public class ComponentTreeSupplierToDtoMapper {
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
-            .filter(field -> List.class.isAssignableFrom(field.getType()))
-            .map(Field::getName)
-            .map(
-                    fieldName ->
-                            Stream.of("_create", "_create-and-stay", "_add", "_select", "_selected", "_prev", "_next", "_save",
-                                    "_remove", "_move-up", "_move-down", "_cancel").map(action -> fieldName + action).toList())
-            .flatMap(List::stream)
-            .map(actionId -> ActionDto.builder().id(actionId).build())
-            .forEach(fieldActions::add);
+        .filter(field -> List.class.isAssignableFrom(field.getType()))
+        .map(Field::getName)
+        .map(
+            fieldName ->
+                Stream.of(
+                        "_create",
+                        "_create-and-stay",
+                        "_add",
+                        "_select",
+                        "_selected",
+                        "_prev",
+                        "_next",
+                        "_save",
+                        "_remove",
+                        "_move-up",
+                        "_move-down",
+                        "_cancel")
+                    .map(action -> fieldName + action)
+                    .toList())
+        .flatMap(List::stream)
+        .map(actionId -> ActionDto.builder().id(actionId).build())
+        .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
         .filter(
@@ -431,32 +445,31 @@ public class ComponentTreeSupplierToDtoMapper {
         .map(method -> ActionDto.builder().id(method.getName()).validationRequired(true).build())
         .forEach(fieldActions::add);
 
-    actions.addAll(Stream.concat(
-            fieldActions.stream(),
-            Arrays.stream(
-                    serverSideObject
-                        .getClass()
-                        .getAnnotationsByType(io.mateu.uidl.annotations.Action.class))
-                .map(ComponentTreeSupplierToDtoMapper::mapToAction))
+    actions.addAll(
+        Stream.concat(
+                fieldActions.stream(),
+                Arrays.stream(
+                        serverSideObject
+                            .getClass()
+                            .getAnnotationsByType(io.mateu.uidl.annotations.Action.class))
+                    .map(ComponentTreeSupplierToDtoMapper::mapToAction))
             .filter(method -> actions.stream().noneMatch(action -> action.id().equals(action.id())))
             .toList());
 
     getAllMethods(serverSideObject.getClass()).stream()
-            .filter(method -> !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
-            .filter(method -> actions.stream().noneMatch(action -> action.id().equals(method.getName())))
-            .map(
-                    method ->
-                            ActionDto.builder()
-                                    .id(method.getName())
-                                    .build())
-            .forEach(fieldActions::add);
+        .filter(method -> !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
+        .filter(
+            method -> actions.stream().noneMatch(action -> action.id().equals(method.getName())))
+        .map(method -> ActionDto.builder().id(method.getName()).build())
+        .forEach(fieldActions::add);
 
     if (serverSideObject instanceof ActionHandler actionHandler) {
-      actions.addAll(actionHandler.supportedActions().stream()
-              .filter(actionId -> actions.stream().noneMatch(action -> action.id().equals(actionId)))
-              .map(actionId -> ActionDto.builder()
-                      .id(actionId)
-                      .build()).toList());
+      actions.addAll(
+          actionHandler.supportedActions().stream()
+              .filter(
+                  actionId -> actions.stream().noneMatch(action -> action.id().equals(actionId)))
+              .map(actionId -> ActionDto.builder().id(actionId).build())
+              .toList());
     }
     return actions;
   }

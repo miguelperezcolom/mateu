@@ -3,12 +3,8 @@ package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapActions;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
-import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
-import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ComponentDto;
-import io.mateu.dtos.ConfirmationTextsDto;
-import io.mateu.dtos.CustomEventDto;
 import io.mateu.dtos.OnCustomEventTriggerDto;
 import io.mateu.dtos.OnEnterTriggerDto;
 import io.mateu.dtos.OnErrorTriggerDto;
@@ -27,10 +23,7 @@ import io.mateu.uidl.annotations.Validation;
 import io.mateu.uidl.data.FutureComponent;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
-import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.ConfirmationTexts;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.OnEnterTrigger;
 import io.mateu.uidl.fluent.OnErrorTrigger;
@@ -39,7 +32,6 @@ import io.mateu.uidl.fluent.OnSuccessTrigger;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.TriggersSupplier;
-import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
 import io.mateu.uidl.interfaces.ValidationDtoSupplier;
@@ -92,7 +84,7 @@ public class FutureComponentToDtoMapper {
         mapRules(futureComponent.instance()),
         mapValidations(futureComponent.instance()),
         null,
-            null);
+        null);
   }
 
   private static Component createComponent(
@@ -354,5 +346,4 @@ public class FutureComponentToDtoMapper {
               .build();
     };
   }
-
 }

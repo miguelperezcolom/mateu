@@ -7,7 +7,6 @@ import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Map;
-
 import lombok.SneakyThrows;
 
 public class AutoNamedView<T extends Identifiable> implements NamedView<T>, ModelSupplier {
@@ -56,7 +55,8 @@ public class AutoNamedView<T extends Identifiable> implements NamedView<T>, Mode
       if (httpRequest.runActionRq().parameters().containsKey("initiatorState")) {
         data = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
         var instance =
-                MateuBeanProvider.getBean(InstanceFactory.class).newInstance(entityClass(), data, httpRequest);
+            MateuBeanProvider.getBean(InstanceFactory.class)
+                .newInstance(entityClass(), data, httpRequest);
         return (T) instance;
       }
     }

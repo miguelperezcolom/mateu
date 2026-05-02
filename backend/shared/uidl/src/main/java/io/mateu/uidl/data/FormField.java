@@ -1,7 +1,6 @@
 package io.mateu.uidl.data;
 
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Form;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;

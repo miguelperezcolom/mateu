@@ -8,7 +8,6 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
 import java.util.Map;
-
 import lombok.SneakyThrows;
 
 public abstract class AutoCrudAdapter<T extends Identifiable>
@@ -60,7 +59,8 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
       }
     }
     var instance =
-        MateuBeanProvider.getBean(InstanceFactory.class).newInstance(entityClass(), data, httpRequest);
+        MateuBeanProvider.getBean(InstanceFactory.class)
+            .newInstance(entityClass(), data, httpRequest);
     return new AutoNamedView<>(entityClass(), instance, repository());
   }
 

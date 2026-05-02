@@ -1,7 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
 
 import io.mateu.dtos.*;
 import io.mateu.uidl.data.FormField;

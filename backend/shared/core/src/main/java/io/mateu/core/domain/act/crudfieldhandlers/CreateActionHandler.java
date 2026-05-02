@@ -11,7 +11,6 @@ import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 
 public class CreateActionHandler {
@@ -35,7 +34,7 @@ public class CreateActionHandler {
     var rowClass = Class.forName(rowClassName);
 
     Map<String, Object> filteredState =
-            (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+        (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
     var item = MateuInstanceFactory.newInstance(rowClass, filteredState, null);
 
     var list = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);

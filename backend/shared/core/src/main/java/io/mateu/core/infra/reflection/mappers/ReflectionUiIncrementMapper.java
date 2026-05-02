@@ -203,7 +203,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         toMap(fragment.state()),
         toMap(fragment.data()),
         isDialog(fragment) ? UIFragmentActionDto.Add : UIFragmentActionDto.Replace,
-            fragment.containerId());
+        fragment.containerId());
   }
 
   private boolean isDialog(UIFragmentDto fragment) {

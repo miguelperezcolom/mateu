@@ -40,44 +40,49 @@ public abstract class EditComponentLayer<
     setStateTo("edit");
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(editor));
-    Object viewModel = editor instanceof AutoNamedView autoNamedView?autoNamedView.entity():editor;
+    Object viewModel =
+        editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
 
     return new ServerSideComponentDto(
-            UUID.randomUUID().toString(),
-            this.getClass().getName(),
-            List.of((ServerSideComponentDto) wrap(
+        UUID.randomUUID().toString(),
+        this.getClass().getName(),
+        List.of(
+            (ServerSideComponentDto)
+                wrap(
                     Page.builder()
-                            .title(title)
-                            .style(getStyleForView())
-                            .badges(createBadges(editor))
-                            .content(
-                                    getView(
-                                            editor,
-                                            "base_url",
-                                            httpRequest.runActionRq().route(),
-                                            httpRequest.runActionRq().consumedRoute(),
-                                            httpRequest.runActionRq().initiatorComponentId(),
-                                            httpRequest,
-                                            false,
-                                            false)
-                                            .stream()
-                                            .toList())
-                            .toolbar(List.of(new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
-                            .build(),
+                        .title(title)
+                        .style(getStyleForView())
+                        .badges(createBadges(editor))
+                        .content(
+                            getView(
+                                    editor,
+                                    "base_url",
+                                    httpRequest.runActionRq().route(),
+                                    httpRequest.runActionRq().consumedRoute(),
+                                    httpRequest.runActionRq().initiatorComponentId(),
+                                    httpRequest,
+                                    false,
+                                    false)
+                                .stream()
+                                .toList())
+                        .toolbar(
+                            List.of(
+                                new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
+                        .build(),
                     viewModel,
                     "base_url",
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().consumedRoute(),
                     httpRequest.runActionRq().initiatorComponentId(),
                     addData(viewModel, httpRequest))),
-            getState(this, httpRequest),
-            "",
-            "",
-            mapActions(this),
-            mapTriggers(this, httpRequest),
-            mapRules(this),
-            mapValidations(this, httpRequest.runActionRq().route()),
-            null,
-            null);
+        getState(this, httpRequest),
+        "",
+        "",
+        mapActions(this),
+        mapTriggers(this, httpRequest),
+        mapRules(this),
+        mapValidations(this, httpRequest.runActionRq().route()),
+        null,
+        null);
   }
 }
