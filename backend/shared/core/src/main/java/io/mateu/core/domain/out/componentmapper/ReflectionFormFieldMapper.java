@@ -295,6 +295,7 @@ public class ReflectionFormFieldMapper {
             columnField ->
                 !columnField.isAnnotationPresent(Hidden.class)
                     && !columnField.isAnnotationPresent(HiddenInList.class)
+                && !List.class.isAssignableFrom(columnField.getType())
             //                    && (isBasic(columnField.getType())
             //                        || columnField.getType().isEnum()
             //                        || ColumnAction.class.equals(columnField.getType())
@@ -346,83 +347,6 @@ public class ReflectionFormFieldMapper {
         .readOnly(readOnly)
         .minHeightWhenDetailVisible(getMinHeightWhenDetailVisible(field))
         .optionsColumns(getOptionsColumns(field))
-        /*
-        .createForm(
-            Form.builder()
-                .title("New " + getLabel(field))
-                .content(
-                    getForm(
-                            getFieldId(field, prefix, readOnly) + "-",
-                            getGenericClass(field, field.getType(), "E"),
-                            "base_url",
-                            httpRequest.runActionRq().route(),
-                            httpRequest.runActionRq().consumedRoute(),
-                            httpRequest.runActionRq().initiatorComponentId(),
-                            httpRequest,
-                            true,
-                            readOnly,
-                            getDetailFormColumns(field))
-                        .stream()
-                        .toList())
-                .toolbar(
-                    List.of(
-                        Button.builder()
-                            .label("Cancel")
-                            .actionId(getFieldId(field, prefix, readOnly) + "_cancel")
-                            .build(),
-                        Button.builder()
-                            .label("Save")
-                            .actionId(getFieldId(field, prefix, readOnly) + "_create")
-                            .build(),
-                        Button.builder()
-                            .label("Save and Add Another")
-                            .actionId(getFieldId(field, prefix, readOnly) + "_create-and-stay")
-                            .build()))
-                .build())
-        .editor(
-            Form.builder()
-                .title("Update " + getLabel(field))
-                .content(
-                    getForm(
-                            getFieldId(field, prefix, readOnly) + "-",
-                            getGenericClass(field, field.getType(), "E"),
-                            "base_url",
-                            httpRequest.runActionRq().route(),
-                            httpRequest.runActionRq().consumedRoute(),
-                            httpRequest.runActionRq().initiatorComponentId(),
-                            httpRequest,
-                            false,
-                            readOnly,
-                            getDetailFormColumns(field))
-                        .stream()
-                        .toList())
-                .header(
-                    List.of(
-                        io.mateu.uidl.data.Text.builder()
-                            .text(
-                                "${state['" + getFieldId(field, prefix, readOnly) + "_position']}")
-                            .build()))
-                .toolbar(
-                    List.of(
-                        Button.builder()
-                            .label("Prev")
-                            .actionId(getFieldId(field, prefix, readOnly) + "_prev")
-                            .build(),
-                        Button.builder()
-                            .label("Next")
-                            .actionId(getFieldId(field, prefix, readOnly) + "_next")
-                            .build(),
-                        Button.builder()
-                            .label("Cancel")
-                            .actionId(getFieldId(field, prefix, readOnly) + "_cancel")
-                            .build(),
-                        Button.builder()
-                            .label("Save")
-                            .actionId(getFieldId(field, prefix, readOnly) + "_save")
-                            .build()))
-                .build())
-
-             */
         .build();
   }
 

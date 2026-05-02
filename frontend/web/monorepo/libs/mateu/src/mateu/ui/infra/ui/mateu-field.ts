@@ -1,5 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
-import {css, html, LitElement, nothing, TemplateResult} from "lit";
+import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -336,7 +336,7 @@ export class MateuField extends LitElement {
 
     render() {
         const fieldId = this.field?.fieldId??''
-        setTimeout(() => this.rendered = true)
+        this.rendered = true
         return html`<div style="display: block;">
             <div>${this.renderField()}</div>
             ${this.field?.description?html`
@@ -434,6 +434,13 @@ export class MateuField extends LitElement {
 
     protected override async firstUpdated() {
         this.filteredIcons = allIcons;
+    }
+
+    protected update(changedProperties: PropertyValues) {
+        if (changedProperties.has( 'component' ) ) {
+            this.rendered = false
+        }
+        super.update(changedProperties);
     }
 
     iconFilterChanged = (event: CustomEvent) => {
@@ -1470,20 +1477,23 @@ export class MateuField extends LitElement {
                         this.data[this.id].totalElements)
                      */
                 } else {
-                    this.dispatchEvent(new CustomEvent('action-requested', {
-                        detail: {
-                            actionId: coords.action,
-                            parameters: {
-                                searchText: filter,
-                                fieldId: this.field?.fieldId,
-                                size: 200,
-                                page: 0,
-                                sort: undefined
-                            }
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
+                    if (!this.rendered) setTimeout(() => {
+                        console.log('loading data for ' + coords.action, this.state)
+                        this.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: coords.action,
+                                parameters: {
+                                    searchText: filter,
+                                    fieldId: this.field?.fieldId,
+                                    size: 200,
+                                    page: 0,
+                                    sort: undefined
+                                }
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))
+                    })
                 }
 
                 return html`

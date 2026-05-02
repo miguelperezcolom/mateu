@@ -216,7 +216,7 @@ export class MateuComponent extends ComponentElement {
                     const result = (validation.condition && validation.condition.includes('${'))?eval('`' + validation.condition + '`'):eval('' + validation.condition + '')
                     const failed = validation.condition && !result
                     if (failed) {
-                        console.log('validation failed', validation, validation.fieldId, state, data)
+                        console.log('validation failed', validation, validation.fieldId, state, data, (this.component as ServerSideComponent).serverSideType)
                         valid = false
                         const fieldNames = (validation.fieldId??'_component').split(',')
                         for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
@@ -368,17 +368,17 @@ export class MateuComponent extends ComponentElement {
                     initiatorComponentId: this.id
                 }
                 if (action && action.confirmationRequired) {
-                    this.callAfterConfirmation(action, () => this.requestActionCallToServer(finalDetail, serverSideComponent, action))
+                    this.callAfterConfirmation(action, () => this.requestActionCallToServerOrBubble(finalDetail, serverSideComponent, action))
                 } else {
-                    this.requestActionCallToServer(finalDetail, serverSideComponent, action)
+                    this.requestActionCallToServerOrBubble(finalDetail, serverSideComponent, action)
                 }
 
-            }
-            else {
+            } else {
                 const parameters = {...detail.parameters}
                 if (!parameters['initiatorState']) {
                     parameters['initiatorState'] = this.state
                 }
+                console.log('bubbling up', e.detail.actionId, this.state)
                 this.dispatchEvent(new CustomEvent(e.type, {
                     detail: {
                         ...e.detail,
@@ -426,6 +426,33 @@ export class MateuComponent extends ComponentElement {
         dialog.addEventListener('cancel', () => document.body.removeChild(dialog))
         dialog.addEventListener('reject', () => document.body.removeChild(dialog))
         document.body.append(dialog)
+    }
+
+    requestActionCallToServerOrBubble = (detail: {
+        actionId: string,
+        parameters: any,
+        callback: any,
+        callbackonly: boolean,
+        initiatorComponentId: any,
+        callbackToken: string
+    }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
+        if (action && action.bubble) {
+            const parameters = {...detail.parameters}
+            if (!parameters['initiatorState']) {
+                parameters['initiatorState'] = this.state
+            }
+            console.log('bubbling up', detail.actionId)
+            this.dispatchEvent(new CustomEvent('action-requested', {
+                detail: {
+                    ...detail,
+                    parameters
+                },
+                bubbles: true,
+                composed: true
+            }))
+        } else {
+            this.requestActionCallToServer(detail, serverSideComponent, action)
+        }
     }
 
     requestActionCallToServer = (detail: {

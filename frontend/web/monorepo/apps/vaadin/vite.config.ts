@@ -68,7 +68,8 @@ export default defineConfig({
             '/_workflow': 'http://localhost:8091',
             '/_forms': 'http://localhost:8091',
         '/home2/mateu': 'http://localhost:8091',
-            '/nested-crud': 'http://localhost:8091',
+            '/nested-crud/mateu': 'http://localhost:8091',
+            '/users/mateu': 'http://localhost:8091',
         },
     },
     optimizeDeps: {

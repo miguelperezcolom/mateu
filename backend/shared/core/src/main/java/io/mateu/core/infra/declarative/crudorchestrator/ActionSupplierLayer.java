@@ -36,9 +36,8 @@ public abstract class ActionSupplierLayer<
             .confirmationRequired(true)
             .rowsSelectedRequired(true)
             .build());
-    actions.add(Action.builder().id("save").validationRequired(true).build());
-    actions.add(Action.builder().id("create").validationRequired(true).build());
-    addActionsForChildCrudForm(actions, viewModelClass());
+    actions.add(Action.builder().id("save").build());
+    actions.add(Action.builder().id("create").build());
     getAllMethods(getClass()).stream()
         .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
         .forEach(
@@ -53,54 +52,5 @@ public abstract class ActionSupplierLayer<
                       .build());
             });
     return actions;
-  }
-
-  private void addActionsForChildCrudForm(ArrayList<Action> actions, Class<?> formClass) {
-    getAllEditableFields(formClass).stream()
-        .filter(
-            field ->
-                List.class.isAssignableFrom(field.getType())
-                    && !field.isAnnotationPresent(Lookup.class)
-                    && !field.isAnnotationPresent(Composition.class)
-                    && !isBasic(field.getType()))
-        .forEach(
-            field -> {
-              var rowClass = getGenericClass(field, field.getType(), "E");
-              var fieldsToValidate =
-                  getAllEditableFields(rowClass).stream()
-                      .map(Field::getName)
-                      .map(f -> field.getName() + "-" + f)
-                      .collect(Collectors.joining(","));
-              actions.add(
-                  Action.builder()
-                      .id(field.getName() + "_create")
-                      .validationRequired(true)
-                      .fieldsToValidate(fieldsToValidate)
-                      .build());
-              actions.add(
-                  Action.builder()
-                      .id(field.getName() + "_create-and-stay")
-                      .validationRequired(true)
-                      .fieldsToValidate(fieldsToValidate)
-                      .build());
-              actions.add(
-                  Action.builder()
-                      .id(field.getName() + "_save")
-                      .validationRequired(true)
-                      .fieldsToValidate(fieldsToValidate)
-                      .build());
-              actions.add(
-                  Action.builder()
-                      .id(field.getName() + "_next")
-                      .validationRequired(true)
-                      .fieldsToValidate(fieldsToValidate)
-                      .build());
-              actions.add(
-                  Action.builder()
-                      .id(field.getName() + "_prev")
-                      .validationRequired(true)
-                      .fieldsToValidate(fieldsToValidate)
-                      .build());
-            });
   }
 }

@@ -63,7 +63,7 @@ public abstract class ViewComponentLayer<
                     httpRequest.runActionRq().initiatorComponentId(),
                     addData(viewModel, httpRequest))),
         getState(this, httpRequest),
-        "",
+        "width: 100%;",
         "",
         mapActions(this),
         mapTriggers(this, httpRequest),
@@ -103,6 +103,9 @@ public abstract class ViewComponentLayer<
   public String getStyleForView() {
     if (viewClass().isAnnotationPresent(Style.class)) {
       return viewClass().getAnnotation(Style.class).value();
+    }
+    if (getClass().isAnnotationPresent(Style.class)) {
+      return getClass().getAnnotation(Style.class).value();
     }
     return getFormColumns(viewClass()) > 2 ? "width: 100%;" : "max-width:900px;margin: auto;";
   }

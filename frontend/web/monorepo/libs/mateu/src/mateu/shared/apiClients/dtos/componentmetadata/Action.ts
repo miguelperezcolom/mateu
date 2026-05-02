@@ -21,4 +21,5 @@ export default interface Action {
     js: string
     sse: boolean
     fieldsToValidate: string
+    bubble: boolean
 }

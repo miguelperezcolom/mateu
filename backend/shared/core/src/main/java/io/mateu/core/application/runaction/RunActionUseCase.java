@@ -1026,7 +1026,7 @@ public class RunActionUseCase {
                         httpRequest))
             .toList(),
         getState(modelView, httpRequest),
-        "",
+        "width: 100%;",
         "",
         mapActions(modelView),
         mapTriggers(modelView, httpRequest),

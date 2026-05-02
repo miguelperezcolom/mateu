@@ -60,7 +60,7 @@ record Product(
 
 class ProductRepository implements CrudRepository<Product> {
 
-    private static final Map<String, Product> db = new HashMap<>();
+    private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", "xxx", ProductStatus.Available, null)));
 
     @Override
     public Optional<Product> findById(String id) {

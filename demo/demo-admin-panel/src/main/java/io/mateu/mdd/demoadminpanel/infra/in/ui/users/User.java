@@ -1,5 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.users;
 
+import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.interfaces.Identifiable;
@@ -13,6 +14,7 @@ public record User(
         @NotEmpty String name,
         @NotEmpty @Email String email,
         @Stereotype(FieldStereotype.checkbox)
+        @Lookup(search = RoleOptionsSupplier.class, label = RoleLabelSupplier.class)
         List<String> roles
 ) implements Identifiable {
 

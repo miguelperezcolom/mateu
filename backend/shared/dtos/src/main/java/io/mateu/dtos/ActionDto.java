@@ -31,4 +31,5 @@ public record ActionDto(
     String js,
     boolean background,
     boolean sse,
-    String fieldsToValidate) {}
+    String fieldsToValidate,
+    boolean bubble) {}

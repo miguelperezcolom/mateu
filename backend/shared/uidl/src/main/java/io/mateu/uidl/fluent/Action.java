@@ -16,4 +16,5 @@ public record Action(
     String href,
     String js,
     boolean sse,
-    String fieldsToValidate) {}
+    String fieldsToValidate,
+    boolean bubble) {}

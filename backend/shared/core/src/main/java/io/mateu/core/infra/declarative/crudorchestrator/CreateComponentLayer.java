@@ -8,6 +8,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Com
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
+import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
@@ -68,9 +69,15 @@ public abstract class CreateComponentLayer<
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().consumedRoute(),
                     httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest)),
+                    httpRequest).withActions(List.of(
+                        ActionDto.builder()
+                                .id("create")
+                                .validationRequired(true)
+                                .bubble(true)
+                                .build()
+                ))),
         getState(this, httpRequest),
-        "",
+        "width: 100%;",
         "",
         mapActions(this),
         mapTriggers(this, httpRequest),

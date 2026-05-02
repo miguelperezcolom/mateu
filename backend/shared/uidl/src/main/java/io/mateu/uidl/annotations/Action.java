@@ -41,4 +41,6 @@ public @interface Action {
   boolean sse() default false;
 
   String fieldsToValidate() default "";
+
+  boolean bubble() default false;
 }

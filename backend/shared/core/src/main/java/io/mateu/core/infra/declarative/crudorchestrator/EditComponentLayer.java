@@ -10,8 +10,10 @@ import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.addData;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
+import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
@@ -74,7 +76,13 @@ public abstract class EditComponentLayer<
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().consumedRoute(),
                     httpRequest.runActionRq().initiatorComponentId(),
-                    addData(viewModel, httpRequest))),
+                    addData(viewModel, httpRequest)).withActions(List.of(
+                        ActionDto.builder()
+                                .id("save")
+                                .validationRequired(true)
+                                .bubble(true)
+                                .build()
+                ))),
         getState(this, httpRequest),
         "",
         "",
