@@ -10,7 +10,7 @@
 
 # Diseño de un sistema
 
-- DDD es el mejor paradigma que he encontrado, pero hay que entender que solo aplica a la parte de escritura. Hay que combinarlo con CQRS y con arquitectura hexagonal
+- DDD es el mejor paradigma que he encontrado para sistemas de una cierta complejidad, pero hay que entender que solo aplica a la parte de escritura. Hay que combinarlo con CQRS y con arquitectura hexagonal
 - DDD táctico + arquitectura hexagonal:
   - capas:
     - aplicación
@@ -35,8 +35,8 @@
       - out
         - gateways
         - persistencia
-- un microservicio por subdominio/contexto, pero no convertir cada componente en un microservicio. monolito modular antes que microservicios. Microservicios solo cuando es realmente necesario un despliegue independiente. Desarrollamos como si fuese un monolito, desplegamos como microservicios.
-- mejor una bd por microservicio (es más mantenible), pero necesita de una bd para hacer joins. Esta bd la alimentamos de los eventos que lanzamos desde los diferentes microservicios
+- un microservicio por subdominio/contexto, pero no convertir cada componente en un microservicio. monolito modular antes que microservicios. Microservicios solo cuando es realmente necesario un despliegue independiente. Desarrollamos como si fuese un monolito, desplegamos como microservicios. Diseñamos con límites claros (bounded contexts) y alta cohesión interna. Podemos desplegar como monolito modular o como microservicios según necesidades de independencia.
+- mejor una bd por microservicio (es más mantenible), pero necesita de una bd para hacer joins. Esta bd la alimentamos de los eventos que lanzamos desde los diferentes microservicios. En otras palabras: Para consultas transversales entre contextos se construyen read models/proyecciones específicas, alimentadas por eventos, evitando joins operacionales entre bases de datos de escritura.
 - la ui es un adaptador de entrada más, exactamente igual que una api o un consumidor de eventos
 - la lógica se empuja siempre lo más al centro posible. Si puede estar en el value object, no está en el agregado. Si puede estar en el agregado, no estás en un servicio de dominio, ...
 
@@ -64,7 +64,7 @@ READ SIDE (queries)
 → DTOs / proyecciones
 → sin dominio
 
-La UI puede hacer queries directamente a la bd. No necesita de dominio ni de repositorios. SQL directo en lugar de JPA.
+La UI puede consumir queries optimizadas sin pasar por dominio; esas queries viven en adaptadores/controladores/read models, no en el dominio. No necesita de dominio ni de repositorios. SQL directo en lugar de JPA.
 
 # value objects
 
@@ -75,49 +75,35 @@ Value Object
 Campo
 → decide si existe o no
 
+En dominio no usamos primitivos para conceptos de negocio.
 
-Semantic Value Object
-Money, DateRange, Email, BookingLocator
+Todo campo de dominio se modela como:
+→ Type-safe Wrapper, por defecto
+→ Semantic Value Object, cuando existe o cuando hay reglas/comportamiento
+
+¿Por qué wrappeamos los primitivos?
+→ porque al generarlos no tienen coste manual
+→ aportan significado explícito
+→ evitan errores de tipo
+→ permiten evolucionar hacia reglas sin refactor
 
 Type-safe Wrapper
-LeadName, Comments, PassengerAge
-
-Type-safe wrapper → seguridad de tipos
-Semantic VO       → modelo de dominio
-
-
-Todo campo → value object (type-safe wrapper)
-Algunos value objects → semantic (definidos en spec)
-
-Type-safe wrapper
-→ evita errores
 → simple
 → 1 campo
+→ aporta seguridad de tipos y significado
+→ ejemplos: LeadName, Comments, PassengerAge
 
 Semantic Value Object
 → modela negocio
 → tiene reglas
 → puede tener comportamiento
+→ ejemplos: Money, DateRange, Email, BookingLocator
 
-
-Type-safe wrapper
-→ evitar errores de tipo
-
-Semantic VO
-→ modelar reglas de negocio
-
-Usar directamente (ej: Money)
-
-NO wrappear automáticamente
-
-Solo crear wrapper si:
-→ el campo tiene significado propio
-→ o reglas adicionales
-
-
-Primitivo        → no tiene significado
-Wrapper          → da significado
-Semantic VO      → modela comportamiento
+Reglas:
+→ los wrappers simples se generan automáticamente
+→ los wrappers simples no deben contener lógica compleja
+→ los Semantic Value Objects se usan directamente cuando ya existen
+→ solo se crea un wrapper sobre un Semantic VO si añade reglas o significado nuevo
 
 // ❌ mal
 private String salePrice;
@@ -125,24 +111,11 @@ private String salePrice;
 // ✔ bien
 private Money salePrice;
 
-// ❌ innecesario (por defecto)
+// ❌ innecesario
 private BookingSalePrice salePrice;
 
-// ✔ solo si hay reglas propias
+// ✔ solo si añade reglas propias
 private BookingSalePrice salePrice;
-
-
-String / int
-→ nunca en dominio
-
-Type-safe wrapper
-→ default para campos simples
-
-Semantic VO
-→ usar directamente
-
-Wrapper de semantic VO
-→ solo si añade reglas o significado nuevo
 
 fields:
 salePrice:
@@ -153,13 +126,17 @@ wrapper: BookingSalePrice
 
 spec.json → generador → esqueleto DDD → lógica de negocio
 
-el desarrollador no necesita saber nada de DDD, solo de su negocio. de hecho, no puede tocar nada que no sea rellenar los hucos que el generador deja, para aquellas inveriantes y lógica que no hemos podido definir declarativamente. La UI, las apis, los eventos y los controladores y los tests se generan a partir de la spce, que es la verdadera fuente de la verdad.
+El desarrollador no necesita implementar infraestructura DDD repetitiva; sí debe entender el modelo de negocio y las reglas del estilo arquitectónico. De hecho, no puede tocar nada que no sea rellenar los hucos que el generador deja, para aquellas inveriantes y lógica que no hemos podido definir declarativamente. La UI, las apis, los eventos y los controladores y los tests se generan a partir de la spce, que es la verdadera fuente de la verdad.
 
 Limitar las posibilidades de acción del desarrollador es intencionado. Queremos una base de código limpia y homogénea. Si hace falta añadir algo, lo añadimos desde la idp.
 
 En la spec podemos definir el gerkhin de los tests bdd, mientras que los tests de integración y unitarios se generan a partir de la spec, dejando huecos para que el desarrollador los rellene si es necesario.
 
 Es una IDP opinionada, no un simple generador. Enlaza con git, kafka, kubernetes, crea bases de datos, tópicos, y despliega el proyecto directamente en el entorno de desarrollo. Es decir, desde la spec ya tenemos en minutos un proyecto funcional.
+
+- La spec está versionada y asociada a cada despliegue
+- La spec es la fuente de verdad: los cambios manuales fuera de los puntos permitidos se pierden al regenerar
+- No se permite lógica de negocio fuera de los puntos definidos por el generador
 
 # el flujo
 
@@ -168,7 +145,11 @@ Es una IDP opinionada, no un simple generador. Enlaza con git, kafka, kubernetes
 3. EL DT se genera a partir de la spec y de lo que ha añadido el tech lead.
 4. En cualquier momento se actualiza y redespliega el piloto funcional, que se ha generado a partir de la spec y actualizado con los cambios del tech lead. De esta manera podemos probar y validar los cambios en tiempo real, también con el product owner/la gente de negocio, en modo agile.
 5. Una vez aprobado el DT, se puede proceder a rellenar los hucos que falten.
-6. Los cambios en la spec se pueden aplicar directamente en el DT y al proyecto aunque esté en producción. 
+6. Los cambios en la spec se pueden aplicar directamente en el DT y al proyecto aunque esté en producción. Ojo, que quede claro: Ningún cambio generado llega a producción sin pipeline, validaciones, migraciones, compatibilidad y aprobación. 
 7. La spec es la fuente de verdad, y siempre está conectada a la realidad.
 
 Queda pendiente definir el flujo para aplicar los cambios en los diferentes entornos. Se puede, por ejemplo, fácilmente integrar con/añadir un sistema de gestión de cambios.
+
+Hay que añadir gobernanza: migraciones, compatibilidad, versionado de eventos/APIs, rollback, feature flags, aprobación, observabilidad.
+
+Los cambios deben ser backward compatible o versionados (eventos/APIs).

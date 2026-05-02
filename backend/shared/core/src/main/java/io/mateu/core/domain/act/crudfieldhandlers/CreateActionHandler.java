@@ -34,14 +34,8 @@ public class CreateActionHandler {
     var rowClassx = getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
     var rowClass = Class.forName(rowClassName);
 
-    var filteredState =
-        httpRequest.runActionRq().componentState().entrySet().stream()
-            .filter(entry -> entry.getKey().startsWith(fieldId + "-"))
-            .filter(entry -> entry.getValue() != null)
-            .collect(
-                Collectors.toMap(
-                    entry -> entry.getKey().substring((fieldId + "-").length()),
-                    Map.Entry::getValue));
+    Map<String, Object> filteredState =
+            (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
     var item = MateuInstanceFactory.newInstance(rowClass, filteredState, null);
 
     var list = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);

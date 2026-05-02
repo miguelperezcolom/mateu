@@ -72,6 +72,23 @@ public abstract class CrudOrchestrator<
           new CancelViewActionHandler(),
           new CancelCreateActionHandler());
 
+  @Override
+  public List<String> supportedActions() {
+    return List.of("action-on-row-",
+            "action-on-view-",
+            "search-",
+            "view",
+            "edit",
+            "new",
+            "search",
+            "create",
+            "save",
+            "delete",
+            "cancel-edit",
+            "cancel-view",
+            "cancel-create");
+  }
+
   @SneakyThrows
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {

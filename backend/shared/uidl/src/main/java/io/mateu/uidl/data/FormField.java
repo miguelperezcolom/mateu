@@ -23,8 +23,6 @@ public record FormField(
     String style,
     String cssClasses,
     List<GridContent> columns,
-    Form createForm,
-    Form editor,
     String onItemSelectionActionId,
     int colspan,
     FormPosition formPosition,

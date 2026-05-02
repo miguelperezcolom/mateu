@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapActions;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
@@ -38,6 +39,7 @@ import io.mateu.uidl.fluent.OnSuccessTrigger;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.fluent.TriggersSupplier;
+import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
 import io.mateu.uidl.interfaces.ValidationDtoSupplier;
@@ -89,7 +91,8 @@ public class FutureComponentToDtoMapper {
         mapTriggers(futureComponent.instance(), httpRequest),
         mapRules(futureComponent.instance()),
         mapValidations(futureComponent.instance()),
-        null);
+        null,
+            null);
   }
 
   private static Component createComponent(
@@ -352,106 +355,4 @@ public class FutureComponentToDtoMapper {
     };
   }
 
-  public static List<ActionDto> mapActions(Object serverSideObject) {
-    if (serverSideObject instanceof ActionSupplier hasActions) {
-      return hasActions.actions().stream().map(FutureComponentToDtoMapper::mapAction).toList();
-    }
-    List<ActionDto> fieldActions = new ArrayList<>();
-    getAllFields(serverSideObject.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
-        .map(
-            field ->
-                mapToAction(field.getAnnotation(io.mateu.uidl.annotations.Action.class))
-                    .withId(field.getName()))
-        .forEach(fieldActions::add);
-    getAllMethods(serverSideObject.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
-        .map(
-            method ->
-                mapToAction(method.getAnnotation(io.mateu.uidl.annotations.Action.class))
-                    .withId(method.getName()))
-        .forEach(fieldActions::add);
-
-    return Stream.concat(
-            fieldActions.stream(),
-            Arrays.stream(
-                    serverSideObject
-                        .getClass()
-                        .getAnnotationsByType(io.mateu.uidl.annotations.Action.class))
-                .map(FutureComponentToDtoMapper::mapToAction))
-        .toList();
-  }
-
-  private static ActionDto mapToAction(io.mateu.uidl.annotations.Action annotation) {
-    return ActionDto.builder()
-        .id(annotation.id())
-        .validationRequired(annotation.validationRequired())
-        .fieldsToValidate(annotation.fieldsToValidate())
-        .confirmationRequired(annotation.confirmationRequired())
-        .rowsSelectedRequired(annotation.rowsSelectedRequired())
-        .confirmationTexts(
-            isConfirmationTextNeeded(annotation)
-                ? ConfirmationTextsDto.builder()
-                    .title(annotation.confirmationTitle())
-                    .message(annotation.confirmationMessage())
-                    .confirmationText(annotation.confirmationText())
-                    .denialText(annotation.confirmationDenialText())
-                    .build()
-                : null)
-        .modalStyle(annotation.modalStyle())
-        .modalTitle(annotation.modalTitle())
-        .customEvent(
-            isCustomEventNeeded(annotation)
-                ? CustomEventDto.builder()
-                    .name(annotation.customEventName())
-                    .detail(annotation.customEventDetail())
-                    .build()
-                : null)
-        .href(annotation.href())
-        .js(annotation.js())
-        .background(annotation.background())
-        .sse(annotation.sse())
-        .build();
-  }
-
-  private static boolean isCustomEventNeeded(io.mateu.uidl.annotations.Action annotation) {
-    return annotation.customEventName() != null || annotation.customEventDetail() != null;
-  }
-
-  private static boolean isConfirmationTextNeeded(io.mateu.uidl.annotations.Action annotation) {
-    return annotation.confirmationText() != null
-        || annotation.confirmationMessage() != null
-        || annotation.confirmationTitle() != null
-        || annotation.confirmationDenialText() != null;
-  }
-
-  public static ActionDto mapAction(Action action) {
-    return ActionDto.builder()
-        .id(action.id())
-        .confirmationRequired(action.confirmationRequired())
-        .validationRequired(action.validationRequired())
-        .fieldsToValidate(action.fieldsToValidate())
-        .background(action.background())
-        .confirmationTexts(mapConfirmationTexts(action.confirmationTexts()))
-        .rowsSelectedRequired(action.rowsSelectedRequired())
-        .href(action.href())
-        .js(action.js())
-        .customEvent(
-            action.customEvent() != null
-                ? new CustomEventDto(action.customEvent().name(), action.customEvent().detail())
-                : null)
-        .sse(action.sse())
-        .build();
-  }
-
-  private static ConfirmationTextsDto mapConfirmationTexts(ConfirmationTexts confirmationTexts) {
-    if (confirmationTexts == null) {
-      return null;
-    }
-    return new ConfirmationTextsDto(
-        confirmationTexts.title(),
-        confirmationTexts.message(),
-        confirmationTexts.confirmationText(),
-        confirmationTexts.denialText());
-  }
 }

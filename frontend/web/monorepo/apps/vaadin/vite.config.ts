@@ -67,7 +67,8 @@ export default defineConfig({
             '/_control-plane': 'http://localhost:8091',
             '/_workflow': 'http://localhost:8091',
             '/_forms': 'http://localhost:8091',
-        '/home2/mateu': 'http://localhost:8080',
+        '/home2/mateu': 'http://localhost:8091',
+            '/nested-crud': 'http://localhost:8091',
         },
     },
     optimizeDeps: {

@@ -7,4 +7,5 @@ export default interface UIFragment {
     data: any | undefined
     state: any | undefined
     action: UIFragmentAction | undefined
+    containerId: string | undefined
 }

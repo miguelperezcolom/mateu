@@ -19,6 +19,6 @@ public final class ReflectionObjectMapper {
         new ClientSideComponentDto(
             elementDto, UUID.randomUUID().toString(), List.of(), "", "", null);
     return new UIFragmentDto(
-        initiatorComponentId, component, object, null, UIFragmentActionDto.Replace);
+        initiatorComponentId, component, object, null, UIFragmentActionDto.Replace, null);
   }
 }

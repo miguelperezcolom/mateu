@@ -46,12 +46,16 @@ public class ReflectionObjectToComponentMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (instance instanceof ServerSideComponentDto serverSideComponentDto) {
+      if (serverSideComponentDto != null && serverSideComponentDto.containerId() != null) {
+        initiatorComponentId = serverSideComponentDto.containerId();
+      }
       return new UIFragmentDto(
           initiatorComponentId,
           serverSideComponentDto,
           serverSideComponentDto.initialData(),
           getData(httpRequest),
-          UIFragmentActionDto.Replace);
+          UIFragmentActionDto.Replace,
+              serverSideComponentDto.containerId());
     }
     if (isApp(instance.getClass(), route)) {
       return mapToAppComponent(
@@ -85,10 +89,12 @@ public class ReflectionObjectToComponentMapper {
               mapTriggers(instance, httpRequest),
               mapRules(instance),
               mapValidations(instance, route),
-              null),
+              null,
+                  null),
           instance,
           getData(httpRequest, instance),
-          UIFragmentActionDto.Replace);
+          UIFragmentActionDto.Replace,
+              null);
     }
     return instance;
   }

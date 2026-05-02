@@ -1,9 +1,9 @@
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
-import { property } from "lit/decorators.js";
-import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
-import { Page } from "@mateu/shared/apiClients/dtos/Page.ts";
-import { UIFragmentAction } from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
+import {property} from "lit/decorators.js";
+import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
+import {Page} from "@mateu/shared/apiClients/dtos/Page.ts";
+import {UIFragmentAction} from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent.ts";
 import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
@@ -37,23 +37,28 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 } else {
                     this.callbackToken = nanoid()
                     if (fragment.component?.type == ComponentType.ServerSide) {
-                        const c0 = this.component as ServerSideComponent
-                        const c1 = fragment.component as ServerSideComponent
+                        if (this.component) {
+                            const c0 = this.component as ServerSideComponent
+                            const c1 = fragment.component as ServerSideComponent
 
-                        c0.actions = c1.actions
-                        c0.type = c1.type
-                        c0.rules = c1.rules
-                        c0.triggers = c1.triggers
-                        c0.serverSideType = c1.serverSideType
-                        c0.initialData = c1.initialData
-                        c0.validations = c1.validations
-                        c0.cssClasses = c1.cssClasses
-                        c0.slot = c1.slot
-                        c0.style = c1.style
-                        c0.children = c1.children
+                            c0.actions = c1.actions
+                            c0.type = c1.type
+                            c0.rules = c1.rules
+                            c0.triggers = c1.triggers
+                            c0.serverSideType = c1.serverSideType
+                            c0.initialData = c1.initialData
+                            c0.validations = c1.validations
+                            c0.cssClasses = c1.cssClasses
+                            c0.slot = c1.slot
+                            c0.style = c1.style
+                            c0.children = c1.children
 
-                        if (c0.serverSideType != c1.serverSideType
-                            || c0.id != c1.id) {
+                            if (c0.serverSideType != c1.serverSideType
+                                || c0.id != c1.id) {
+                                setTimeout(() => this.triggerOnLoad())
+                            }
+                        } else {
+                            this.component = fragment.component
                             setTimeout(() => this.triggerOnLoad())
                         }
 

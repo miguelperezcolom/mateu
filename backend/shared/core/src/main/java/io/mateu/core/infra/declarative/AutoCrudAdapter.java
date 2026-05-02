@@ -7,6 +7,8 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
+import java.util.Map;
+
 import lombok.SneakyThrows;
 
 public abstract class AutoCrudAdapter<T extends Identifiable>
@@ -49,8 +51,16 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
 
   @SneakyThrows
   public NamedView<T> getCreationForm(HttpRequest httpRequest) {
+    Map<String, Object> data = Map.of();
+    if ("create".equals(httpRequest.runActionRq().actionId())) {
+      if (httpRequest.runActionRq().parameters() != null) {
+        if (httpRequest.runActionRq().parameters().containsKey("initiatorState")) {
+          data = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+        }
+      }
+    }
     var instance =
-        MateuBeanProvider.getBean(InstanceFactory.class).newInstance(entityClass(), httpRequest);
+        MateuBeanProvider.getBean(InstanceFactory.class).newInstance(entityClass(), data, httpRequest);
     return new AutoNamedView<>(entityClass(), instance, repository());
   }
 

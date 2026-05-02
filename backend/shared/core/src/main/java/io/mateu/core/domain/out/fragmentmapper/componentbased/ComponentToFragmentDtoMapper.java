@@ -161,6 +161,9 @@ public final class ComponentToFragmentDtoMapper {
     if (component instanceof Data data) {
       return mapDataToDto(data, initiatorComponentId, componentSupplier);
     }
+    if (component != null && component.containerId() != null) {
+      initiatorComponentId = component.containerId();
+    }
     return new UIFragmentDto(
         initiatorComponentId,
         mapComponentToDto(
@@ -173,7 +176,8 @@ public final class ComponentToFragmentDtoMapper {
             httpRequest),
         getState(componentSupplier, httpRequest),
         getData(httpRequest, componentSupplier),
-        UIFragmentActionDto.Replace);
+        UIFragmentActionDto.Replace,
+            component != null?component.containerId():null);
   }
 
   public static Object getData(HttpRequest httpRequest, Object instance) {

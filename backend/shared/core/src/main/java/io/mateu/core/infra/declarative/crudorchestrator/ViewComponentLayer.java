@@ -1,13 +1,19 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
+import static io.mateu.core.application.runaction.RunActionUseCase.getState;
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.addData;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.infra.declarative.AutoNamedView;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
@@ -22,6 +28,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public abstract class ViewComponentLayer<
         View,
@@ -41,39 +48,54 @@ public abstract class ViewComponentLayer<
     //    var item = found.get();
     httpRequest.setAttribute("selectedItem", view);
     setStateTo("view");
-    return wrap(
-        viewComponent(view, httpRequest),
-        this,
-        "base_url",
-        httpRequest.runActionRq().route(),
-        httpRequest.runActionRq().consumedRoute(),
-        httpRequest.runActionRq().initiatorComponentId(),
-        addData(view, httpRequest));
+    Object viewModel = view instanceof AutoNamedView autoNamedView?autoNamedView.entity():view;
+
+    return new ServerSideComponentDto(
+            UUID.randomUUID().toString(),
+            this.getClass().getName(),
+            List.of((ServerSideComponentDto) wrap(
+                    viewComponent(view, httpRequest),
+                    viewModel,
+                    "base_url",
+                    httpRequest.runActionRq().route(),
+                    httpRequest.runActionRq().consumedRoute(),
+                    httpRequest.runActionRq().initiatorComponentId(),
+                    addData(viewModel, httpRequest))),
+            getState(this, httpRequest),
+            "",
+            "",
+            mapActions(this),
+            mapTriggers(this, httpRequest),
+            mapRules(this),
+            mapValidations(this , httpRequest.runActionRq().route()),
+            null,
+            null);
   }
 
   protected Component viewComponent(Object item, HttpRequest httpRequest) {
     var toolbar = createViewToolbar(item);
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(item));
-    return Page.builder()
-        .title(title)
-        .style(getStyleForView())
-        .badges(createBadges(item))
-        .kpis(createKpis(item))
-        .content(
-            getView(
-                    item,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest,
-                    true,
-                    false)
-                .stream()
-                .toList())
-        .toolbar(toolbar)
-        .build();
+    var page = Page.builder()
+            .title(title)
+            .style(getStyleForView())
+            .badges(createBadges(item))
+            .kpis(createKpis(item))
+            .content(
+                    getView(
+                            item,
+                            "base_url",
+                            httpRequest.runActionRq().route(),
+                            httpRequest.runActionRq().consumedRoute(),
+                            httpRequest.runActionRq().initiatorComponentId(),
+                            httpRequest,
+                            true,
+                            false)
+                            .stream()
+                            .toList())
+            .toolbar(toolbar)
+            .build();
+    return page;
   }
 
   public String getStyleForView() {

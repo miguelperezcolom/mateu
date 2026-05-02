@@ -116,6 +116,9 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    if (instance instanceof UIFragmentDto uiFragmentDto) {
+      return List.of(uiFragmentDto);
+    }
     if (instance instanceof AppState) {
       return List.of();
     }
@@ -199,7 +202,8 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         fragment.component(),
         toMap(fragment.state()),
         toMap(fragment.data()),
-        isDialog(fragment) ? UIFragmentActionDto.Add : UIFragmentActionDto.Replace);
+        isDialog(fragment) ? UIFragmentActionDto.Add : UIFragmentActionDto.Replace,
+            fragment.containerId());
   }
 
   private boolean isDialog(UIFragmentDto fragment) {

@@ -70,28 +70,6 @@ public class FieldComponentToDtoMapper {
                                 initiatorComponentId,
                                 httpRequest))
                     .toList())
-            .createForm(
-                formField.createForm() != null
-                    ? mapFormToDto(
-                        formField.createForm(),
-                        null,
-                        baseUrl,
-                        route,
-                        consumedRoute,
-                        initiatorComponentId,
-                        httpRequest)
-                    : null)
-            .editor(
-                formField.editor() != null
-                    ? mapFormToDto(
-                        formField.editor(),
-                        null,
-                        baseUrl,
-                        route,
-                        consumedRoute,
-                        initiatorComponentId,
-                        httpRequest)
-                    : null)
             .onItemSelectionActionId(formField.onItemSelectionActionId())
             .attributes(mapAttributes(formField))
             .detailPath(formField.detailPath())

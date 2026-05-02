@@ -348,6 +348,7 @@ public class ReflectionFormFieldMapper {
         .readOnly(readOnly)
         .minHeightWhenDetailVisible(getMinHeightWhenDetailVisible(field))
         .optionsColumns(getOptionsColumns(field))
+            /*
         .createForm(
             Form.builder()
                 .title("New " + getLabel(field))
@@ -422,6 +423,8 @@ public class ReflectionFormFieldMapper {
                             .actionId(getFieldId(field, prefix, readOnly) + "_save")
                             .build()))
                 .build())
+
+             */
         .build();
   }
 
@@ -451,7 +454,7 @@ public class ReflectionFormFieldMapper {
         .orElse(null);
   }
 
-  private static int getDetailFormColumns(Field field) {
+  public static int getDetailFormColumns(Field field) {
     if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
       var columns = field.getAnnotation(DetailFormCustomisation.class).columns();
       if (columns != 2) {
@@ -533,7 +536,7 @@ public class ReflectionFormFieldMapper {
     return "min-width: 10rem; width: 100%;";
   }
 
-  private static String getFieldId(Field field, String prefix, boolean readOnly) {
+  public static String getFieldId(Field field, String prefix, boolean readOnly) {
     if (readOnly && field.isAnnotationPresent(Lookup.class)) {
       return prefix + field.getName() + "-label";
     }

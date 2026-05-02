@@ -15,7 +15,8 @@ public record ServerSideComponentDto(
     List<TriggerDto> triggers,
     List<RuleDto> rules,
     List<ValidationDto> validations,
-    String slot)
+    String slot,
+    String containerId)
     implements ComponentDto {
 
   @Override
@@ -31,7 +32,8 @@ public record ServerSideComponentDto(
         triggers,
         rules,
         validations,
-        slot);
+        slot,
+            containerId);
   }
 
   @Override
@@ -49,7 +51,8 @@ public record ServerSideComponentDto(
         triggers,
         rules,
         validations,
-        slot);
+        slot,
+            containerId);
   }
 
   @Override
@@ -65,6 +68,8 @@ public record ServerSideComponentDto(
         triggers,
         rules,
         validations,
-        slot);
+        slot,
+            containerId);
   }
+
 }

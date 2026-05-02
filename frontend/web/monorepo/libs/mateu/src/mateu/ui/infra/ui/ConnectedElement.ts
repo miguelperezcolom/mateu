@@ -38,7 +38,7 @@ export default abstract class ConnectedElement extends LitElement {
                     this.applyCommand(command)
                 }
             }
-            if (message.callbackToken === this.callbackToken) {
+            if (true || !message.callbackToken || !this.callbackToken || message.callbackToken === this.callbackToken) {
                 if (message.fragment) {
                     const fragment = message.fragment
                     if (this.id == fragment.targetComponentId) {
@@ -90,7 +90,8 @@ export default abstract class ConnectedElement extends LitElement {
                                 data: undefined,
                                 state: undefined,
                                 action: UIFragmentAction.Replace,
-                                targetComponentId: this.id
+                                targetComponentId: this.id,
+                                containerId: undefined
                             } as UIFragment,
                             callbackToken: this.callbackToken
                         } as Message)

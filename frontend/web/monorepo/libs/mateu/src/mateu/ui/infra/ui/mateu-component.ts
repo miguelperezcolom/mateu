@@ -347,25 +347,48 @@ export class MateuComponent extends ComponentElement {
             const serverSideComponent = this.component as ServerSideComponent
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
 
-            if (action && action.rowsSelectedRequired) {
-                if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {
-                    this.notify('You first need to select some rows')
-                    return
+            if (action) {
+
+                if (action && action.rowsSelectedRequired) {
+                    if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {
+                        this.notify('You first need to select some rows')
+                        return
+                    }
                 }
+
+                if (action && action.validationRequired) {
+                    this.checkValidations(action.fieldsToValidate)
+                    if (!this.data._valid) {
+                        this.notify('There are validation errors')
+                        return
+                    }
+                }
+                const finalDetail = {
+                    ...detail,
+                    initiatorComponentId: this.id
+                }
+                if (action && action.confirmationRequired) {
+                    this.callAfterConfirmation(action, () => this.requestActionCallToServer(finalDetail, serverSideComponent, action))
+                } else {
+                    this.requestActionCallToServer(finalDetail, serverSideComponent, action)
+                }
+
+            }
+            else {
+                const parameters = {...detail.parameters}
+                if (!parameters['initiatorState']) {
+                    parameters['initiatorState'] = this.state
+                }
+                this.dispatchEvent(new CustomEvent(e.type, {
+                    detail: {
+                        ...e.detail,
+                        parameters
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
             }
 
-            if (action && action.validationRequired) {
-                this.checkValidations(action.fieldsToValidate)
-                if (!this.data._valid) {
-                    this.notify('There are validation errors')
-                    return
-                }
-            }
-            if (action && action.confirmationRequired) {
-                this.callAfterConfirmation(action, () => this.requestActionCallToServer(detail, serverSideComponent, action))
-            } else {
-                this.requestActionCallToServer(detail, serverSideComponent, action)
-            }
         }
     }
 

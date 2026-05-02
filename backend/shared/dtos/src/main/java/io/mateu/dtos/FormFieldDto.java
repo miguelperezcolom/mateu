@@ -43,8 +43,6 @@ public record FormFieldDto(
     boolean required,
     String style,
     List<ComponentDto> columns,
-    ComponentDto createForm,
-    ComponentDto editor,
     String onItemSelectionActionId,
     FormPositionDto formPosition,
     String formStyle,

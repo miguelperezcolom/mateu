@@ -25,7 +25,7 @@ public class DataComponentToDtoMapper {
   public static UIFragmentDto mapDataToDto(
       Data data, String targetComponentId, Object componentSupplier) {
     return new UIFragmentDto(
-        targetComponentId, null, mapItem(data.newState()), transformData(data.data()), null);
+        targetComponentId, null, mapItem(data.newState()), transformData(data.data()), null, null);
   }
 
   private static Object transformData(Object data) {

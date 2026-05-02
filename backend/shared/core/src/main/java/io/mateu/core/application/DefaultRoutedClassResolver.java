@@ -10,6 +10,8 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.RoutedClassProvider;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -72,7 +74,8 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
       for (Route annotation : routes.value()) {
         if (matches(route, annotation.value())
             && (annotation.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE)
-                || annotation.parentRoute().equals(command.consumedRoute()))) {
+                || annotation.parentRoute().equals(command.consumedRoute()))
+        && (annotation.uis().length == 0 || Arrays.stream(annotation.uis()).anyMatch(u -> u.equals(command.baseUrl())))) {
           return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
         }
         ;
@@ -83,7 +86,8 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
       var annotation = aClass.getAnnotation(Route.class);
       if (matches(route, annotation.value())
           && (annotation.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE)
-              || annotation.parentRoute().equals(command.consumedRoute()))) {
+              || annotation.parentRoute().equals(command.consumedRoute()))
+              && (annotation.uis().length == 0 || Arrays.stream(annotation.uis()).anyMatch(u -> u.equals(command.baseUrl())))) {
         return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
       }
     }
@@ -151,15 +155,17 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
     if (aClass.isAnnotationPresent(Routes.class)) {
       var routes = aClass.getAnnotation(Routes.class);
       for (Route annotation : routes.value()) {
-        if (matches(route, annotation.value()) || cleanRoute.equals(annotation.value())) {
+        if ((matches(route, annotation.value()) || cleanRoute.equals(annotation.value()))
+                && (annotation.uis().length == 0 || Arrays.stream(annotation.uis()).anyMatch(u -> u.equals(command.baseUrl())))) {
           return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
         }
         ;
       }
     }
     if (aClass.isAnnotationPresent(Route.class)) {
-      if (matches(route, aClass.getAnnotation(Route.class).value())
-          || cleanRoute.equals(aClass.getAnnotation(Route.class).value())) {
+      if ((matches(route, aClass.getAnnotation(Route.class).value())
+          || cleanRoute.equals(aClass.getAnnotation(Route.class).value()))
+              && (aClass.getAnnotation(Route.class).uis().length == 0 || Arrays.stream(aClass.getAnnotation(Route.class).uis()).anyMatch(u -> u.equals(command.baseUrl())))) {
         return Optional.of(
             new ResolvedRoute(route, aClass.getAnnotation(Route.class).value(), aClass));
       }

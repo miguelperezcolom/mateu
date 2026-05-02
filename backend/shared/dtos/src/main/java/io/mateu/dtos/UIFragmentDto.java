@@ -17,4 +17,5 @@ public record UIFragmentDto(
     ComponentDto component,
     Object state,
     Object data,
-    UIFragmentActionDto action) {}
+    UIFragmentActionDto action,
+    String containerId) {}

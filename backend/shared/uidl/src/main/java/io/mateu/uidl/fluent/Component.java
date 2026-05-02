@@ -19,4 +19,8 @@ public interface Component {
   default String cssClasses() {
     return "";
   }
+
+  default String containerId() {
+    return null;
+  }
 }

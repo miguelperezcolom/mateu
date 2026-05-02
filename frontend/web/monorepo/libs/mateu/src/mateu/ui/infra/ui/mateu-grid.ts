@@ -102,8 +102,6 @@ export class MateuGrid extends MetadataDrivenElement {
             items = this.state[this.field.fieldId]
         }
         const showDetail = this.state[this.field?.fieldId + '_show_detail'] || (this.state['_show_detail'] && this.state['_show_detail'][this.field!.fieldId])
-        const editing = this.state[this.field?.fieldId + '_editing'] || (this.state['_editing'] && this.state['_editing'][this.field!.fieldId])
-
         if (this.field?.remoteCoordinates) {
             const coords = this.field.remoteCoordinates;
             const filter = ''
@@ -153,13 +151,8 @@ export class MateuGrid extends MetadataDrivenElement {
                         ${dialogRenderer(() => {
                             return html`
                             <mateu-event-interceptor .target="${grid}">
-                                <div style="${this.field?.formStyle??'display: contents;'}">
-                                    ${renderComponent(grid, editing?(grid.field?.editor!):grid.field?.createForm!,
-                                            grid.baseUrl,
-                                            grid.state,
-                                            grid.data,
-                                            grid.appState,
-                                            grid.appData)}
+                                <div id="container" style="${this.field?.formStyle??'display: contents;'}">
+                                    <mateu-component id="${this.field?.fieldId}-container"></mateu-component>
                                 </div>
                             </mateu-event-interceptor>
                             `}, [() => nanoid()])}
@@ -177,9 +170,9 @@ export class MateuGrid extends MetadataDrivenElement {
                     .forceOverlay="${true}"
             >
                 ${this.renderMaster(items)}
-                <div slot="${showDetail?'detail':'detail-hidden'}" style="${this.field?.formStyle??'display: contents;'}">
-                    <div style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem; background-color: var(--lumo-base-color);">
-                    ${renderComponent(this, editing?(this.field?.editor!):this.field?.createForm!, this.baseUrl, this.state, this.data, this.appState, this.appData)}
+                <div style="${this.field?.formStyle??'display: ' + (showDetail?'contents':'none') + ';'}">
+                    <div id="container" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem; background-color: var(--lumo-base-color);">
+                        <mateu-component id="${this.field?.fieldId}-container"></mateu-component>
                     </div>
                 </div>
                 

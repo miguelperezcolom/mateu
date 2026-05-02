@@ -2,9 +2,12 @@ package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 
+import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Map;
+
 import lombok.SneakyThrows;
 
 public class AutoNamedView<T extends Identifiable> implements NamedView<T>, ModelSupplier {
@@ -48,6 +51,15 @@ public class AutoNamedView<T extends Identifiable> implements NamedView<T>, Mode
 
   @SneakyThrows
   T toEntity(HttpRequest httpRequest) {
+    Map<String, Object> data = Map.of();
+    if (httpRequest.runActionRq().parameters() != null) {
+      if (httpRequest.runActionRq().parameters().containsKey("initiatorState")) {
+        data = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+        var instance =
+                MateuBeanProvider.getBean(InstanceFactory.class).newInstance(entityClass(), data, httpRequest);
+        return (T) instance;
+      }
+    }
     return httpRequest.getComponentState(entityClass);
   }
 

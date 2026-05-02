@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@Route("/:id/edit")
+@Route(value = "/:id/edit", uis = {"/users"})
 @Style(StyleConstants.CONTAINER)
 @FormLayout(columns = 1)
 public class UserEditorPage {

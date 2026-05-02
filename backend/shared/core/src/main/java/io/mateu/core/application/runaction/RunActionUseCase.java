@@ -984,7 +984,7 @@ public class RunActionUseCase {
                                 .build()));
   }
 
-  public static Object wrap(
+  public static ServerSideComponentDto wrap(
       Component component,
       Object modelView,
       String baseUrl,
@@ -1002,7 +1002,7 @@ public class RunActionUseCase {
         httpRequest);
   }
 
-  public static Object wrap(
+  public static ServerSideComponentDto wrap(
       List<Component> components,
       Object modelView,
       String baseUrl,
@@ -1032,7 +1032,8 @@ public class RunActionUseCase {
         mapTriggers(modelView, httpRequest),
         mapRules(modelView),
         mapValidations(modelView, route),
-        null);
+        null,
+            null);
   }
 
   public static Object getState(Object modelView, HttpRequest httpRequest) {
