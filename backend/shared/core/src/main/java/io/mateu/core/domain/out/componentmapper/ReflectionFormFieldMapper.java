@@ -295,7 +295,7 @@ public class ReflectionFormFieldMapper {
             columnField ->
                 !columnField.isAnnotationPresent(Hidden.class)
                     && !columnField.isAnnotationPresent(HiddenInList.class)
-                && !List.class.isAssignableFrom(columnField.getType())
+                    && !List.class.isAssignableFrom(columnField.getType())
             //                    && (isBasic(columnField.getType())
             //                        || columnField.getType().isEnum()
             //                        || ColumnAction.class.equals(columnField.getType())

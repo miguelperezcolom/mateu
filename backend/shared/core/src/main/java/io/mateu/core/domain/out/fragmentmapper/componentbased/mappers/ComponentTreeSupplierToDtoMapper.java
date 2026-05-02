@@ -432,11 +432,9 @@ public class ComponentTreeSupplierToDtoMapper {
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
-            .filter(
-                    field ->
-                            field.isAnnotationPresent(Lookup.class))
-            .map(field -> ActionDto.builder().id("search-" + field.getName()).build())
-            .forEach(fieldActions::add);
+        .filter(field -> field.isAnnotationPresent(Lookup.class))
+        .map(field -> ActionDto.builder().id("search-" + field.getName()).build())
+        .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
         .filter(
@@ -486,7 +484,7 @@ public class ComponentTreeSupplierToDtoMapper {
     return ActionDto.builder()
         .id(annotation.id())
         .validationRequired(annotation.validationRequired())
-            .bubble(annotation.bubble())
+        .bubble(annotation.bubble())
         .fieldsToValidate(annotation.fieldsToValidate())
         .confirmationRequired(annotation.confirmationRequired())
         .rowsSelectedRequired(annotation.rowsSelectedRequired())
@@ -532,7 +530,7 @@ public class ComponentTreeSupplierToDtoMapper {
         .confirmationRequired(action.confirmationRequired())
         .validationRequired(action.validationRequired())
         .fieldsToValidate(action.fieldsToValidate())
-            .bubble(action.bubble())
+        .bubble(action.bubble())
         .background(action.background())
         .confirmationTexts(mapConfirmationTexts(action.confirmationTexts()))
         .rowsSelectedRequired(action.rowsSelectedRequired())

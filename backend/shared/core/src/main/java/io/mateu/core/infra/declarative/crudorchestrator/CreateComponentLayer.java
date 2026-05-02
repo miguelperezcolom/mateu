@@ -44,38 +44,39 @@ public abstract class CreateComponentLayer<
         List.of(
             (ServerSideComponentDto)
                 wrap(
-                    Page.builder()
-                        .title(title)
-                        .style(getStyleForView())
-                        .content(
-                            getView(
-                                    view,
-                                    "base_url",
-                                    httpRequest.runActionRq().route(),
-                                    httpRequest.runActionRq().consumedRoute(),
-                                    httpRequest.runActionRq().initiatorComponentId(),
-                                    httpRequest,
-                                    false,
-                                    true)
-                                .stream()
-                                .toList())
-                        .toolbar(
-                            List.of(
-                                new Button("Cancel", "cancel-create"),
-                                new Button("Create", "create")))
-                        .build(),
-                    viewModel,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest).withActions(List.of(
-                        ActionDto.builder()
+                        Page.builder()
+                            .title(title)
+                            .style(getStyleForView())
+                            .content(
+                                getView(
+                                        view,
+                                        "base_url",
+                                        httpRequest.runActionRq().route(),
+                                        httpRequest.runActionRq().consumedRoute(),
+                                        httpRequest.runActionRq().initiatorComponentId(),
+                                        httpRequest,
+                                        false,
+                                        true)
+                                    .stream()
+                                    .toList())
+                            .toolbar(
+                                List.of(
+                                    new Button("Cancel", "cancel-create"),
+                                    new Button("Create", "create")))
+                            .build(),
+                        viewModel,
+                        "base_url",
+                        httpRequest.runActionRq().route(),
+                        httpRequest.runActionRq().consumedRoute(),
+                        httpRequest.runActionRq().initiatorComponentId(),
+                        httpRequest)
+                    .withActions(
+                        List.of(
+                            ActionDto.builder()
                                 .id("create")
                                 .validationRequired(true)
                                 .bubble(true)
-                                .build()
-                ))),
+                                .build()))),
         getState(this, httpRequest),
         "width: 100%;",
         "",

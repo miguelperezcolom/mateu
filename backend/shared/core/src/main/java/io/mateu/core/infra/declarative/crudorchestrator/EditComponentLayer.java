@@ -13,7 +13,6 @@ import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
@@ -51,38 +50,40 @@ public abstract class EditComponentLayer<
         List.of(
             (ServerSideComponentDto)
                 wrap(
-                    Page.builder()
-                        .title(title)
-                        .style(getStyleForView())
-                        .badges(createBadges(editor))
-                        .content(
-                            getView(
-                                    editor,
-                                    "base_url",
-                                    httpRequest.runActionRq().route(),
-                                    httpRequest.runActionRq().consumedRoute(),
-                                    httpRequest.runActionRq().initiatorComponentId(),
-                                    httpRequest,
-                                    false,
-                                    false)
-                                .stream()
-                                .toList())
-                        .toolbar(
-                            List.of(
-                                new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
-                        .build(),
-                    viewModel,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    addData(viewModel, httpRequest)).withActions(List.of(
-                        ActionDto.builder()
+                        Page.builder()
+                            .title(title)
+                            .style(getStyleForView())
+                            .badges(createBadges(editor))
+                            .content(
+                                getView(
+                                        editor,
+                                        "base_url",
+                                        httpRequest.runActionRq().route(),
+                                        httpRequest.runActionRq().consumedRoute(),
+                                        httpRequest.runActionRq().initiatorComponentId(),
+                                        httpRequest,
+                                        false,
+                                        false)
+                                    .stream()
+                                    .toList())
+                            .toolbar(
+                                List.of(
+                                    new Button("Cancel", "cancel-edit"),
+                                    new Button("Save", "save")))
+                            .build(),
+                        viewModel,
+                        "base_url",
+                        httpRequest.runActionRq().route(),
+                        httpRequest.runActionRq().consumedRoute(),
+                        httpRequest.runActionRq().initiatorComponentId(),
+                        addData(viewModel, httpRequest))
+                    .withActions(
+                        List.of(
+                            ActionDto.builder()
                                 .id("save")
                                 .validationRequired(true)
                                 .bubble(true)
-                                .build()
-                ))),
+                                .build()))),
         getState(this, httpRequest),
         "",
         "",
