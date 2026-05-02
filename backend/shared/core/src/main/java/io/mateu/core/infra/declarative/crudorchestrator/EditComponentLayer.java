@@ -7,6 +7,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getV
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
+import static io.mateu.core.infra.declarative.crudorchestrator.CreateComponentLayer.completeActions;
 import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.addData;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
@@ -77,13 +78,18 @@ public abstract class EditComponentLayer<
                         httpRequest.runActionRq().consumedRoute(),
                         httpRequest.runActionRq().initiatorComponentId(),
                         addData(viewModel, httpRequest))
+                    .withRules(mapRules(viewModel))
+                    .withValidations(mapValidations(viewModel, httpRequest.runActionRq().route()))
+                    .withTriggers(mapTriggers(viewModel, httpRequest))
                     .withActions(
-                        List.of(
-                            ActionDto.builder()
-                                .id("save")
-                                .validationRequired(true)
-                                .bubble(true)
-                                .build()))),
+                        completeActions(
+                            viewModel,
+                            List.of(
+                                ActionDto.builder()
+                                    .id("save")
+                                    .validationRequired(true)
+                                    .bubble(true)
+                                    .build())))),
         getState(this, httpRequest),
         "",
         "",

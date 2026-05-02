@@ -18,20 +18,30 @@ import java.util.stream.Collectors;
 public class CrudAdapterHelper {
 
   public static <T> T toView(HttpRequest httpRequest, Class<T> viewClass) {
-    var map = new HashMap<>(httpRequest.runActionRq().componentState());
+    Map<String, Object> map = new HashMap<>(httpRequest.runActionRq().componentState());
+    if (httpRequest.runActionRq().parameters() != null) {
+      if (httpRequest.runActionRq().parameters().containsKey("initiatorState")) {
+        map = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+      }
+    }
     reduce("", map, viewClass);
     return MateuBeanProvider.getBean(MateuInstanceFactory.class)
         .newInstance(viewClass, map, httpRequest);
   }
 
   public static <T> T toEntity(HttpRequest httpRequest, Class<?> viewClass, Class<T> entityClass) {
-    var map = new HashMap<>(httpRequest.runActionRq().componentState());
+    Map<String, Object> map = new HashMap<>(httpRequest.runActionRq().componentState());
+    if (httpRequest.runActionRq().parameters() != null) {
+      if (httpRequest.runActionRq().parameters().containsKey("initiatorState")) {
+        map = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+      }
+    }
     reduce("", map, viewClass);
     return MateuBeanProvider.getBean(MateuInstanceFactory.class)
         .newInstance(entityClass, map, httpRequest);
   }
 
-  public static void reduce(String prefix, HashMap<String, Object> map, Class<?> type) {
+  public static void reduce(String prefix, Map<String, Object> map, Class<?> type) {
     getAllFields(type).stream()
         .filter(
             field ->

@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.isFo
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ComponentDto;
@@ -25,6 +26,8 @@ import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Disabled;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Rule;
 import io.mateu.uidl.annotations.Validation;
@@ -241,28 +244,116 @@ public class ComponentTreeSupplierToDtoMapper {
   }
 
   public static List<RuleDto> mapRules(Object serverSideObject) {
-    if (serverSideObject instanceof RuleSupplier ruleSupplier) {
-      return ruleSupplier.rules().stream()
-          .map(
-              rule ->
+    var viewClass = serverSideObject.getClass();
+    List<RuleDto> rules = new ArrayList<>();
+    rules.addAll(
+        Arrays.stream(viewClass.getAnnotationsByType(io.mateu.uidl.annotations.Rule.class))
+            .map(annotation -> mapToRule(annotation))
+            .toList());
+    getAllFields(viewClass).stream()
+        .filter(field -> field.isAnnotationPresent(Disabled.class))
+        .forEach(
+            field -> {
+              rules.add(
                   RuleDto.builder()
-                      .filter(rule.filter())
-                      .action(RuleActionDto.valueOf(rule.action().name()))
-                      .fieldAttribute(
-                          rule.fieldAttribute() != null
-                              ? RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name())
-                              : null)
-                      .fieldName(rule.fieldName())
-                      .value(rule.value())
-                      .expression(rule.expression())
-                      .result(RuleResultDto.valueOf(rule.result().name()))
-                      .actionId(rule.actionId())
-                      .build())
-          .toList();
+                      .filter("true")
+                      .action(RuleActionDto.SetDataValue)
+                      .fieldName(field.getName())
+                      // .fieldName("aButton,aField")
+                      .fieldAttribute(RuleFieldAttributeDto.disabled)
+                      .expression("true")
+                      .result(RuleResultDto.Continue)
+                      .build());
+            });
+    getAllFields(viewClass).stream()
+        .filter(
+            field ->
+                field.isAnnotationPresent(Hidden.class)
+                    && !field.getAnnotation(Hidden.class).value().isEmpty())
+        .forEach(
+            field -> {
+              rules.add(
+                  RuleDto.builder()
+                      .filter("true")
+                      .action(RuleActionDto.SetDataValue)
+                      .fieldName(field.getName())
+                      // .fieldName("aButton,aField")
+                      .fieldAttribute(RuleFieldAttributeDto.hidden)
+                      .expression(field.getAnnotation(Hidden.class).value())
+                      .result(RuleResultDto.Continue)
+                      .build());
+            });
+    getAllFields(viewClass).stream()
+        .filter(field -> List.class.isAssignableFrom(field.getType()))
+        .forEach(
+            collectionField -> {
+              var rowClass = getGenericClass(collectionField, List.class, "E");
+
+              rules.addAll(
+                  Arrays.stream(
+                          viewClass.getAnnotationsByType(io.mateu.uidl.annotations.Rule.class))
+                      .map(annotation -> mapToRule(annotation))
+                      .toList());
+              getAllFields(rowClass).stream()
+                  .filter(field -> field.isAnnotationPresent(Disabled.class))
+                  .forEach(
+                      field -> {
+                        rules.add(
+                            RuleDto.builder()
+                                .filter("true")
+                                .action(RuleActionDto.SetDataValue)
+                                .fieldName(collectionField.getName() + "-" + field.getName())
+                                // .fieldName("aButton,aField")
+                                .fieldAttribute(RuleFieldAttributeDto.disabled)
+                                .expression("true")
+                                .result(RuleResultDto.Continue)
+                                .build());
+                      });
+              getAllFields(rowClass).stream()
+                  .filter(
+                      field ->
+                          field.isAnnotationPresent(Hidden.class)
+                              && !field.getAnnotation(Hidden.class).value().isEmpty())
+                  .forEach(
+                      field -> {
+                        rules.add(
+                            RuleDto.builder()
+                                .filter("true")
+                                .action(RuleActionDto.SetDataValue)
+                                .fieldName(collectionField.getName() + "-" + field.getName())
+                                // .fieldName("aButton,aField")
+                                .fieldAttribute(RuleFieldAttributeDto.hidden)
+                                .expression(field.getAnnotation(Hidden.class).value())
+                                .result(RuleResultDto.Continue)
+                                .build());
+                      });
+            });
+
+    if (serverSideObject instanceof RuleSupplier ruleSupplier) {
+      rules.addAll(
+          ruleSupplier.rules().stream()
+              .map(
+                  rule ->
+                      RuleDto.builder()
+                          .filter(rule.filter())
+                          .action(RuleActionDto.valueOf(rule.action().name()))
+                          .fieldAttribute(
+                              rule.fieldAttribute() != null
+                                  ? RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name())
+                                  : null)
+                          .fieldName(rule.fieldName())
+                          .value(rule.value())
+                          .expression(rule.expression())
+                          .result(RuleResultDto.valueOf(rule.result().name()))
+                          .actionId(rule.actionId())
+                          .build())
+              .toList());
     }
-    return Arrays.stream(serverSideObject.getClass().getAnnotationsByType(Rule.class))
-        .map(annotation -> mapToRule(annotation))
-        .toList();
+    rules.addAll(
+        Arrays.stream(serverSideObject.getClass().getAnnotationsByType(Rule.class))
+            .map(annotation -> mapToRule(annotation))
+            .toList());
+    return rules;
   }
 
   public static RuleDto mapToRule(Rule annotation) {
