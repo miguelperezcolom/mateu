@@ -524,6 +524,7 @@ public class ComponentTreeSupplierToDtoMapper {
 
     getAllFields(serverSideObject.getClass()).stream()
         .filter(field -> field.isAnnotationPresent(Lookup.class))
+        .filter(field -> !field.getAnnotation(Lookup.class).bubble())
         .map(field -> ActionDto.builder().id("search-" + field.getName()).build())
         .forEach(fieldActions::add);
 

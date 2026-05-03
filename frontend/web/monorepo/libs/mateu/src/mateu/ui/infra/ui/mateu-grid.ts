@@ -170,7 +170,7 @@ export class MateuGrid extends MetadataDrivenElement {
                     .forceOverlay="${true}"
             >
                 ${this.renderMaster(items)}
-                <div style="${this.field?.formStyle??'display: ' + (showDetail?'contents':'none') + ';'}">
+                <div slot="${showDetail?'detail':'detail-hidden'}" style="${this.field?.formStyle??'display: contents;'}">
                     <div id="container" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem; background-color: var(--lumo-base-color);">
                         <mateu-component id="${this.field?.fieldId}-container"></mateu-component>
                     </div>
