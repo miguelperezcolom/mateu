@@ -188,8 +188,9 @@ export default abstract class ConnectedElement extends LitElement {
             }
         }
         if ('PushStateToHistory' == command.type) {
+            console.log('PushStateToHistory', command.data)
             const destination = command.data as string
-            if (destination) {
+            if (destination !== undefined) {
                 this.dispatchEvent(new CustomEvent('route-changed', {
                     detail: {
                         route: destination

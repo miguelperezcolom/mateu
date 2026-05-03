@@ -196,6 +196,9 @@ public abstract class CrudOrchestrator<
       if (id != null && registeredRoute.endsWith(id.toString())) {
         registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
       }
+      if (id == null && registeredRoute.endsWith("/new")) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
+      }
       httpRequest.setAttribute("registeredRoute", registeredRoute);
     }
   }

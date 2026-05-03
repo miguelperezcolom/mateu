@@ -54,12 +54,19 @@ public abstract class RouteHandlerLayer<
     if (registeredRoute != null) {
       return registeredRoute;
     }
+    registeredRoute = (String) httpRequest.getAttribute("registeredRoute");
+    if (registeredRoute != null) {
+      return registeredRoute;
+    }
     registeredRoute = (String) httpRequest.getAttribute("resolvedRoute");
     if (registeredRoute != null) {
       if (id != null && registeredRoute.endsWith(id.toString() + "/edit")) {
         registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
       }
       if (id != null && registeredRoute.endsWith(id.toString())) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
+      }
+      if (id == null && registeredRoute.endsWith("/new")) {
         registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
       }
       return registeredRoute;

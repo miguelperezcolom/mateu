@@ -72,6 +72,7 @@ export class MateuUi extends LitElement {
                     route = route.substring(1)
                 }
                 let targetUrl = new URL(baseUrl + route)
+                console.log('targetUrl', targetUrl)
                 if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                     let pathname = targetUrl.pathname
                     if (targetUrl.search) {
