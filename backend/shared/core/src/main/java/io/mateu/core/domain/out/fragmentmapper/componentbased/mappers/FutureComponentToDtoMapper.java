@@ -61,6 +61,7 @@ public class FutureComponentToDtoMapper {
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
         futureComponent.instance().getClass().getName(),
+        consumedRoute,
         List.of(
             mapComponentToDto(
                 null,

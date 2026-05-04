@@ -7,6 +7,7 @@ import lombok.With;
 public record ServerSideComponentDto(
     String id,
     String serverSideType,
+    String route,
     List<ComponentDto> children,
     Object initialData,
     String style,
@@ -24,6 +25,7 @@ public record ServerSideComponentDto(
     return new ServerSideComponentDto(
         id,
         serverSideType,
+        route,
         children,
         initialData,
         style,
@@ -43,6 +45,7 @@ public record ServerSideComponentDto(
     return new ServerSideComponentDto(
         id,
         serverSideType,
+        route,
         children,
         initialData,
         newStyle,
@@ -60,6 +63,7 @@ public record ServerSideComponentDto(
     return new ServerSideComponentDto(
         id,
         serverSideType,
+        route,
         children,
         initialData,
         style,

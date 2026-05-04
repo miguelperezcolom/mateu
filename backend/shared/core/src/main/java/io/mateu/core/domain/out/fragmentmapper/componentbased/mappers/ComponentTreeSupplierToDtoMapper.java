@@ -73,6 +73,7 @@ public class ComponentTreeSupplierToDtoMapper {
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
         componentTreeSupplier.getClass().getName(),
+        consumedRoute,
         List.of(
             mapComponentToDto(
                 componentTreeSupplier,

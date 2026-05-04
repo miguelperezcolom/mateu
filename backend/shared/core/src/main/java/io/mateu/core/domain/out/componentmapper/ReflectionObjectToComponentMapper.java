@@ -67,6 +67,7 @@ public class ReflectionObjectToComponentMapper {
           new ServerSideComponentDto(
               UUID.randomUUID().toString(),
               instance.getClass().getName(),
+              consumedRoute,
               List.of(
                   mapComponentToDto(
                       null,

@@ -41,6 +41,7 @@ public abstract class CreateComponentLayer<
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
         this.getClass().getName(),
+        getCrudRoute(httpRequest, null),
         List.of(
             (ServerSideComponentDto)
                 wrap(

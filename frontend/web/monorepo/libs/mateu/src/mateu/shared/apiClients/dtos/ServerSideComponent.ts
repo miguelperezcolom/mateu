@@ -7,6 +7,7 @@ import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validati
 export default interface ServerSideComponent extends Component {
 
     serverSideType: string | undefined
+    route: string | undefined
     initialData: any | undefined
     triggers: Trigger[] | undefined
     actions: Action[] | undefined

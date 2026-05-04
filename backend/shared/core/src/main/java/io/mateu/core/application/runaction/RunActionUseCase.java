@@ -1013,6 +1013,7 @@ public class RunActionUseCase {
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
         modelView.getClass().getName(),
+        consumedRoute,
         components.stream()
             .map(
                 component ->
