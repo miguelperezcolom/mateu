@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.MappedValue;
@@ -86,7 +87,7 @@ public class DataComponentToDtoMapper {
           mapping.put(statusMapping.from(), statusMapping.to());
         }
         StatusType defaultType = ann.defaultStatus();
-        var value = "" + getValue(field, item);
+        var value = toUpperCaseFirst("" + getValue(field, item));
         map.put(
             field.getName(),
             new io.mateu.uidl.data.Status(mapping.getOrDefault(value, defaultType), value));

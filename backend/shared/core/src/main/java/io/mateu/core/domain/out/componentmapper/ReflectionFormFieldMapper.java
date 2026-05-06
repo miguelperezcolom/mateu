@@ -293,7 +293,8 @@ public class ReflectionFormFieldMapper {
     getAllFields(getGenericClass(field, field.getType(), "E")).stream()
         .filter(
             columnField ->
-                !columnField.isAnnotationPresent(Hidden.class)
+                (!columnField.isAnnotationPresent(Hidden.class)
+                        || !columnField.getAnnotation(Hidden.class).value().isEmpty())
                     && !columnField.isAnnotationPresent(HiddenInList.class)
                     && !List.class.isAssignableFrom(columnField.getType())
             //                    && (isBasic(columnField.getType())

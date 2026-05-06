@@ -10,6 +10,7 @@ import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +44,7 @@ public class CrudAdapterHelper {
 
   public static void reduce(String prefix, Map<String, Object> map, Class<?> type) {
     getAllFields(type).stream()
+        .filter(field -> !Modifier.isFinal(field.getModifiers()))
         .filter(
             field ->
                 !isBasic(field.getType())
