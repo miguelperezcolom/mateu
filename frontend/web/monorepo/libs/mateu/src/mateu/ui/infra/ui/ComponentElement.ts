@@ -46,6 +46,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             c0.rules = c1.rules
                             c0.triggers = c1.triggers
                             c0.serverSideType = c1.serverSideType
+                            c0.route = c1.route
                             c0.initialData = c1.initialData
                             c0.validations = c1.validations
                             c0.cssClasses = c1.cssClasses

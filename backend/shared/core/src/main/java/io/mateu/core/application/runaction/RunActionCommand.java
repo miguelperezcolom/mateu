@@ -17,6 +17,7 @@ public record RunActionCommand(
     String initiatorComponentId,
     HttpRequest httpRequest,
     String serverSiteType,
+    String serverSideComponentRoute,
     String appServerSideType) {
 
   public RunActionCommand {

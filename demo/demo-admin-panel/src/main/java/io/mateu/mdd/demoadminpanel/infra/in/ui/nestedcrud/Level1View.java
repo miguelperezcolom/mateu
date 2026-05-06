@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.Identifiable;
 
 import java.util.List;
 
-@Style(StyleConstants.FULLWIDTH_PADDED)
+@Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 public record Level1View(
         String id,
         String name,

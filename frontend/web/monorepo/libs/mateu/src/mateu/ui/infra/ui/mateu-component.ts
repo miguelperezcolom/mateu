@@ -515,6 +515,7 @@ export class MateuComponent extends ComponentElement {
                 parameters: detail.parameters,
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,
+                serverSideComponentRoute: serverSideComponent.route,
                 initiatorComponentId: detail.initiatorComponentId??serverSideComponent.id,
                 initiator: this,
                 background: action?.background,
