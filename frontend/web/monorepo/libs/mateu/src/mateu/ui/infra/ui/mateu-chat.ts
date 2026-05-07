@@ -96,7 +96,7 @@ export class MateuChat extends LitElement {
                     // --- PROCESAR BUFFER RESTANTE ---
                     if (buffer.startsWith('data:')) {
                         console.log('Done. Última parte del stream:', buffer);
-                        agentMsg.text += buffer.slice(5);
+                        agentMsg.text += buffer.slice(5) + '\nfin del mensaje\n';
                         this.items = [...this.items];
                         this.scrollBottom();
                     }
@@ -112,7 +112,7 @@ export class MateuChat extends LitElement {
                 for (const line of lines) {
                     if (line.trim().startsWith('data:')) {
                         const chunk = line.trim().slice(5);
-                        agentMsg.text += chunk;
+                        agentMsg.text += chunk + '\n';
                         this.items = [...this.items];
                         this.scrollBottom();
                     }
@@ -132,7 +132,7 @@ export class MateuChat extends LitElement {
 
     render() {
         return html`
-            <div class="scroll-container" style="height: 10rem; overflow: auto;">
+            <div class="scroll-container" style="height: 40rem; overflow: auto;">
                 <vaadin-message-list .items="${this.items}" markdown></vaadin-message-list>
             </div>
             <vaadin-message-input @submit="${this.send}"></vaadin-message-input>
