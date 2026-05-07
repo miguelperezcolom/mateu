@@ -54,6 +54,7 @@ import './mateu-ux'
 import './mateu-event-interceptor'
 import './mateu-dialog'
 import './mateu-page'
+import './mateu-chat'
 import ComponentElement from "@infra/ui/ComponentElement";
 import ServerSideComponent from "@mateu/shared/apiClients/dtos/ServerSideComponent";
 import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/TriggerType";

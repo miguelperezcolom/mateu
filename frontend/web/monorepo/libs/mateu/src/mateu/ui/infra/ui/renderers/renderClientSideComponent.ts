@@ -17,7 +17,7 @@ import {
     renderTabLayout,
     renderVerticalLayout
 } from "@infra/ui/renderers/renderLayouts";
-import { renderAvatar, renderAvatarGroup } from "@infra/ui/renderers/avatarRenderer";
+import {renderAvatar, renderAvatarGroup} from "@infra/ui/renderers/avatarRenderer";
 import { renderVirtualList } from "@infra/ui/renderers/virtualRenderer";
 import { renderGrid } from "@infra/ui/renderers/gridRenderer";
 import { renderMessageList } from "@infra/ui/renderers/messageListRenderer";
@@ -59,6 +59,7 @@ import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderPage } from "@infra/ui/renderers/pageRenderer.ts";
 import {renderBpmn} from "@infra/ui/renderers/bpmnRenderer.ts";
+import {renderChat} from "@infra/ui/renderers/chatRenderer.ts";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -258,6 +259,9 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
         if (type == ComponentMetadataType.Avatar) {
             return renderAvatar(component, state, data)
+        }
+        if (type == ComponentMetadataType.Chat) {
+            return renderChat(component, state, data)
         }
         if (type == ComponentMetadataType.AvatarGroup) {
             return renderAvatarGroup(component)

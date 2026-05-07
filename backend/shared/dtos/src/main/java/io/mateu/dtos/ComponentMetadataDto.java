@@ -68,7 +68,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = DivDto.class, name = "Div"),
   @JsonSubTypes.Type(value = FormSectionDto.class, name = "FormSection"),
   @JsonSubTypes.Type(value = FormSubSectionDto.class, name = "FormSubSection"),
-  @JsonSubTypes.Type(value = PageDto.class, name = "Page")
+  @JsonSubTypes.Type(value = PageDto.class, name = "Page"),
+        @JsonSubTypes.Type(value = ChatDto.class, name = "Chat")
 })
 @Schema(
     oneOf = {
@@ -131,6 +132,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
       DivDto.class,
       FormSectionDto.class,
       FormSubSectionDto.class,
-      PageDto.class
+      PageDto.class,
+            ChatDto.class
     })
 public interface ComponentMetadataDto {}

@@ -17,6 +17,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.But
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.CardComponentToDtoMapper.mapCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.CarouselLayoutComponentToDtoMapper.mapCarouselLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ChartComponentToDtoMapper.mapChartToDto;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ChatComponentToDtoMapper.mapChatToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapComponentTreeSupplierToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ConfirmDialogComponentToDtoMapper.mapConfirmDialogToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ContainerComponentToDtoMapper.mapContainerToDto;
@@ -73,64 +74,7 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ElementDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
-import io.mateu.uidl.data.AccordionLayout;
-import io.mateu.uidl.data.AccordionPanel;
-import io.mateu.uidl.data.Anchor;
-import io.mateu.uidl.data.Avatar;
-import io.mateu.uidl.data.AvatarGroup;
-import io.mateu.uidl.data.Badge;
-import io.mateu.uidl.data.BoardLayout;
-import io.mateu.uidl.data.BoardLayoutItem;
-import io.mateu.uidl.data.BoardLayoutRow;
-import io.mateu.uidl.data.Bpmn;
-import io.mateu.uidl.data.Breadcrumbs;
-import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.Card;
-import io.mateu.uidl.data.CarouselLayout;
-import io.mateu.uidl.data.Chart;
-import io.mateu.uidl.data.ConfirmDialog;
-import io.mateu.uidl.data.Container;
-import io.mateu.uidl.data.ContextMenu;
-import io.mateu.uidl.data.CookieConsent;
-import io.mateu.uidl.data.CustomField;
-import io.mateu.uidl.data.Data;
-import io.mateu.uidl.data.Details;
-import io.mateu.uidl.data.Dialog;
-import io.mateu.uidl.data.Directory;
-import io.mateu.uidl.data.Div;
-import io.mateu.uidl.data.Element;
-import io.mateu.uidl.data.FormField;
-import io.mateu.uidl.data.FormItem;
-import io.mateu.uidl.data.FormLayout;
-import io.mateu.uidl.data.FormRow;
-import io.mateu.uidl.data.FormSection;
-import io.mateu.uidl.data.FormSubSection;
-import io.mateu.uidl.data.FullWidth;
-import io.mateu.uidl.data.FutureComponent;
-import io.mateu.uidl.data.Grid;
-import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.GridGroupColumn;
-import io.mateu.uidl.data.HorizontalLayout;
-import io.mateu.uidl.data.Icon;
-import io.mateu.uidl.data.Image;
-import io.mateu.uidl.data.KPI;
-import io.mateu.uidl.data.Markdown;
-import io.mateu.uidl.data.MasterDetailLayout;
-import io.mateu.uidl.data.MessageInput;
-import io.mateu.uidl.data.MessageList;
-import io.mateu.uidl.data.MicroFrontend;
-import io.mateu.uidl.data.Notification;
-import io.mateu.uidl.data.Popover;
-import io.mateu.uidl.data.ProgressBar;
-import io.mateu.uidl.data.Scroller;
-import io.mateu.uidl.data.SplitLayout;
-import io.mateu.uidl.data.State;
-import io.mateu.uidl.data.Tab;
-import io.mateu.uidl.data.TabLayout;
-import io.mateu.uidl.data.Text;
-import io.mateu.uidl.data.Tooltip;
-import io.mateu.uidl.data.VerticalLayout;
-import io.mateu.uidl.data.VirtualList;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
@@ -343,6 +287,9 @@ public final class ComponentToFragmentDtoMapper {
       return mapFormFieldToDto(
           formField, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
+      if (component instanceof Chat chat) {
+          return mapChatToDto(chat);
+      }
     if (component instanceof Avatar avatar) {
       return mapAvatarToDto(avatar);
     }

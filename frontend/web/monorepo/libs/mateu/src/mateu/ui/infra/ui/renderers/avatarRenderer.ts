@@ -1,6 +1,6 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Avatar from "@mateu/shared/apiClients/dtos/componentmetadata/Avatar";
-import { html, nothing } from "lit";
+import {html, nothing} from "lit";
 import AvatarGroup from "@mateu/shared/apiClients/dtos/componentmetadata/AvatarGroup";
 
 export const renderAvatar = (component: ClientSideComponent, state: any, data: any) => {
