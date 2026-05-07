@@ -15,10 +15,6 @@ export class MateuChat extends LitElement {
     @property()
     items: MessageListItem[] = []
 
-    // Acceso directo al elemento de la lista para el scroll
-    @query('vaadin-message-list')
-    messageListElement?: HTMLElement;
-
     @query('.scroll-container')
     scrollContainer?: HTMLElement;
 
@@ -26,59 +22,50 @@ export class MateuChat extends LitElement {
     messageInputElement?: MessageInput;
 
     private scrollBottom() {
-        // Usamos requestAnimationFrame para esperar a que Lit termine de renderizar el nuevo item
-        /*
-        requestAnimationFrame(() => {
-            if (this.messageListElement) {
-                this.messageListElement.scrollTop = this.messageListElement.scrollHeight;
-            }
-        });
-         */
-        // Usamos setTimeout 0 para forzar que se ejecute DESPUÉS del ciclo de renderizado de Lit y Vaadin
         setTimeout(() => {
             if (this.scrollContainer) {
                 this.scrollContainer.scrollTo({
                     top: this.scrollContainer.scrollHeight,
-                    behavior: 'smooth' // 'smooth' para desplazamiento fluido, 'auto' para instantáneo
+                    behavior: 'smooth'
                 });
             }
         }, 0);
     }
 
-    addMessage = (text: string, role: string) => {
+    private addMessage(text: string, role: string): number {
         const msg = {
             text,
             time: new Date().toLocaleTimeString(),
             userName: role.includes('agent') ? 'Asistente' : 'Tú',
             userColorIndex: role.includes('agent') ? 2 : 1,
         } as MessageListItem;
-
         this.items = [...this.items, msg];
         this.scrollBottom();
-        return msg;
+        return this.items.length - 1;
+    }
+
+    // Creates a NEW item object so Vaadin always detects the change (=== comparison).
+    private updateMessage(idx: number, text: string) {
+        this.items = this.items.map((item, i) =>
+            i === idx ? { ...item, text } : item
+        );
+        this.scrollBottom();
     }
 
     send = async (e: CustomEvent) => {
-
-        this.messageInputElement?.setAttribute("disabled", "disabled")
-
+        this.messageInputElement?.setAttribute("disabled", "disabled");
         const text = e.detail.value.trim();
         if (!text || !this.sseUrl) return;
 
         this.addMessage(text, 'user');
-        const agentMsg = this.addMessage('', 'agent streaming');
+        const agentIdx = this.addMessage('', 'agent');
 
         try {
-
-            console.log('Enviando mensaje:', text);
-
             const response = await fetch(`${this.sseUrl}?message=${encodeURIComponent(text)}`, {
                 headers: { 'Accept': 'text/event-stream' }
             });
 
-            // Captura errores de respuesta (404, 500, etc)
             if (!response.ok) {
-                // Intentamos leer el error que viene del servidor
                 const errorText = await response.text();
                 throw new Error(`Servidor respondió ${response.status}: ${errorText}`);
             }
@@ -88,45 +75,41 @@ export class MateuChat extends LitElement {
 
             const decoder = new TextDecoder();
             let buffer = '';
+            let accumulatedText = '';
 
             while (true) {
                 const { done, value } = await reader.read();
 
                 if (done) {
-                    // --- PROCESAR BUFFER RESTANTE ---
-                    if (buffer.startsWith('data:')) {
-                        console.log('Done. Última parte del stream:', buffer);
-                        agentMsg.text += buffer.slice(5) + '\nfin del mensaje\n';
-                        this.items = [...this.items];
-                        this.scrollBottom();
+                    if (buffer.trim().startsWith('data:')) {
+                        accumulatedText += buffer.trim().slice(5);
+                        this.updateMessage(agentIdx, accumulatedText);
                     }
                     break;
                 }
 
                 const raw = decoder.decode(value, { stream: true });
-                console.log('Nueva parte del stream:', raw);
                 buffer += raw;
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || '';
 
+                let changed = false;
                 for (const line of lines) {
                     if (line.trim().startsWith('data:')) {
-                        const chunk = line.trim().slice(5);
-                        agentMsg.text += chunk + '\n';
-                        this.items = [...this.items];
-                        this.scrollBottom();
+                        accumulatedText += line.trim().slice(5) + '\n';
+                        changed = true;
                     }
                 }
+                if (changed) {
+                    this.updateMessage(agentIdx, accumulatedText);
+                }
             }
-            this.messageInputElement?.removeAttribute("disabled")
-            this.messageInputElement?.focus()
         } catch (error: any) {
-            console.error('Error en el flujo:', error);
-            agentMsg.text = '⚠️ Error: ' + error.message;
-            this.items = [...this.items];
-            this.scrollBottom();
-            this.messageInputElement?.removeAttribute("disabled")
-            this.messageInputElement?.focus()
+            console.error('Error en el flujo SSE:', error);
+            this.updateMessage(agentIdx, '⚠️ Error: ' + error.message);
+        } finally {
+            this.messageInputElement?.removeAttribute("disabled");
+            this.messageInputElement?.focus();
         }
     }
 
@@ -142,11 +125,10 @@ export class MateuChat extends LitElement {
     static styles = css`
         :host {
             display: block;
-            height: 100%; 
+            height: 100%;
         }
 
         .chat-container {
-            /* Ocupa el 100% del padre o el viewport */
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -155,13 +137,13 @@ export class MateuChat extends LitElement {
         }
 
         vaadin-message-list {
-            flex: 1; /* Esto hace que la lista crezca y el input se quede abajo */
+            flex: 1;
             overflow-y: auto;
             padding: 1rem;
         }
 
         vaadin-message-input {
-            flex-shrink: 0; /* No permite que el input se haga pequeño */
+            flex-shrink: 0;
             padding: 1rem;
             border-top: 1px solid var(--lumo-contrast-10pct);
         }
