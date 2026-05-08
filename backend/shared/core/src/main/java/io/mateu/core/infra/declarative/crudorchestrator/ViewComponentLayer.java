@@ -52,7 +52,7 @@ public abstract class ViewComponentLayer<
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
         this.getClass().getName(),
-            getCrudRoute(httpRequest, id),
+        getCrudRoute(httpRequest, id),
         List.of(
             (ServerSideComponentDto)
                 wrap(

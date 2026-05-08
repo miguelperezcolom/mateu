@@ -1,4 +1,4 @@
-import {customElement, property, query} from "lit/decorators.js";
+import {customElement, property, query, state} from "lit/decorators.js";
 import {css, html, LitElement} from "lit";
 import {MessageListItem} from "@vaadin/message-list";
 import "@vaadin/message-list";
@@ -20,6 +20,58 @@ export class MateuChat extends LitElement {
 
     @query('vaadin-message-input')
     messageInputElement?: MessageInput;
+
+    @state()
+    recognition: any
+
+    @state()
+    listening: boolean = false
+
+
+    startListening = () => {
+        if (this.recognition) {
+            if (this.listening) {
+                this.recognition.stop();
+                this.listening = false;
+            } else {
+                this.recognition.start();
+                this.listening = true;
+            }
+        }
+    }
+
+    onSpeechResult = (event: any) => {
+        if (this.recognition) {
+            // Obtener el texto procesado
+            const transcript = event.results[0][0].transcript;
+            console.log("Resultado de la reconocimiento:", transcript);
+            if (this.messageInputElement) {
+                this.messageInputElement.value = transcript; // Poner el texto en el input
+            }
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+
+// Comprobar si el navegador es compatible
+        // @ts-ignore
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            this.recognition = new SpeechRecognition();
+            this.recognition.lang = 'es-ES'; // Configuramos el idioma a español
+
+            this.recognition.onresult = this.onSpeechResult;
+
+            this.recognition.onerror = (event: any) => {
+                console.error("Error de reconocimiento: " + event.error);
+            };
+        } else {
+            alert("Lo siento, tu navegador no soporta la API de voz.");
+        }
+
+    }
 
     private scrollBottom() {
         setTimeout(() => {
@@ -46,6 +98,32 @@ export class MateuChat extends LitElement {
 
     // Creates a NEW item object so Vaadin always detects the change (=== comparison).
     private updateMessage(idx: number, text: string) {
+        if (text.includes('xxxxx?q=')) { // /booking/bookings/QXXF4A
+            if (false) this.dispatchEvent(new CustomEvent('navigation-requested', {
+                detail: {
+                    route: '/booking/bookings',
+                    consumedRoute: '',
+                    actionId: '',
+                    baseUrl: '/_booking',
+                    appServerSideType: 'io.mateu.workflow.booking.infra.in.ui.BookingHome',
+                    uriPrefix: ''
+                },
+                bubbles: true,
+                composed: true
+            }))
+            this.dispatchEvent(new CustomEvent('navigation-requested', {
+                detail: {
+                    route: '/booking/bookings/' + text.split('xxxxx?q=')[1].replaceAll('\n', ''),
+                    consumedRoute: '',
+                    actionId: 'view',
+                    baseUrl: '/_booking',
+                    appServerSideType: 'io.mateu.workflow.booking.infra.in.ui.BookingHome',
+                    uriPrefix: ''
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
         this.items = this.items.map((item, i) =>
             i === idx ? { ...item, text } : item
         );
@@ -118,7 +196,15 @@ export class MateuChat extends LitElement {
             <div class="scroll-container" style="height: 40rem; overflow: auto;">
                 <vaadin-message-list .items="${this.items}" markdown></vaadin-message-list>
             </div>
-            <vaadin-message-input @submit="${this.send}"></vaadin-message-input>
+            <vaadin-horizontal-layout
+                    style="padding-left: 1rem; align-items: center; border-top: 1px solid var(--lumo-contrast-10pct);"><vaadin-button 
+                    theme="icon"
+                    @click="${this.startListening}"
+                    disabled="${!this.recognition}"
+            ><vaadin-icon
+                    style="color: ${this.listening?'red':'var(--lumo-contrast-50pct)'};"
+                    icon="vaadin:microphone"></vaadin-icon></vaadin-button>
+                <vaadin-message-input @submit="${this.send}" style="border-top: none;"></vaadin-message-input></vaadin-horizontal-layout>
         `
     }
 

@@ -29,6 +29,7 @@ public abstract class ActionSupplierLayer<
             .confirmationRequired(true)
             .rowsSelectedRequired(true)
             .build());
+    actions.add(Action.builder().id("search").build());
     actions.add(Action.builder().id("save").build());
     actions.add(Action.builder().id("create").build());
     getAllMethods(getClass()).stream()

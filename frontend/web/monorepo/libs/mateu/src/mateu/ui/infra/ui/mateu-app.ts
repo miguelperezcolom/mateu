@@ -24,6 +24,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppLayout } from "@vaadin/app-layout";
+import {MateuChat} from "@infra/ui/mateu-chat.ts";
 
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
@@ -58,6 +59,15 @@ export class MateuApp extends ComponentElement {
 
     @state()
     selectedParams: any | undefined = undefined
+
+    @query("mateu-chat")
+    chat: MateuChat | undefined
+
+    showHideIa = () => {
+        if (this.chat) {
+            this.chat.slot = this.chat.slot == 'detail'?'detail-hidden':'detail'
+        }
+    }
 
         getSelectedOption = (options: MenuOption[]): MenuOption | null => {
         if (options) {

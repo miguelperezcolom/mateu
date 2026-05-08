@@ -287,9 +287,9 @@ public final class ComponentToFragmentDtoMapper {
       return mapFormFieldToDto(
           formField, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
-      if (component instanceof Chat chat) {
-          return mapChatToDto(chat);
-      }
+    if (component instanceof Chat chat) {
+      return mapChatToDto(chat);
+    }
     if (component instanceof Avatar avatar) {
       return mapAvatarToDto(avatar);
     }

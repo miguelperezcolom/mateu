@@ -29,6 +29,7 @@ class RunsActionsTest extends RunActionUseCaseTest {
                       "initiator_component_id",
                       new FakeHttpRequest().storeRunActionRqDto(RunActionRqDto.builder().build()),
                       componentType.getName(),
+                      "",
                       ""))
               .blockLast();
       assertThat(increment).isNotNull();
