@@ -52,6 +52,15 @@ public abstract class RouteHandlerLayer<
   public String getCrudRoute(HttpRequest httpRequest, Object id) {
     var registeredRoute = (String) httpRequest.getAttribute("resolvedPath");
     if (registeredRoute != null) {
+      if (id != null && registeredRoute.endsWith("/" + id + "/edit")) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/" + id));
+      }
+      if (id != null && registeredRoute.endsWith("/" + id)) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/" + id));
+      }
+      if (id == null && registeredRoute.endsWith("/new")) {
+        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/new"));
+      }
       return registeredRoute;
     }
     registeredRoute = (String) httpRequest.getAttribute("registeredRoute");
