@@ -3,6 +3,9 @@ package io.mateu.core.application;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.example.uis.UsingInterfacesUI;
+import io.mateu.core.application.runaction.AppMenuResolver;
+import io.mateu.core.application.runaction.CrudNavigationAdjuster;
+import io.mateu.core.application.runaction.RouteInstanceCreator;
 import io.mateu.core.application.runaction.RunActionUseCase;
 import io.mateu.core.domain.act.DefaultActionRunnerProvider;
 import io.mateu.core.domain.in.DefaultInstanceFactoryProvider;
@@ -18,22 +21,25 @@ import org.junit.jupiter.api.Test;
 
 class DefaultMateuServiceTest {
 
+  final FakeBeanProvider beanProvider = new FakeBeanProvider();
   final InstanceFactoryProvider instanceFactoryProvider =
-      new DefaultInstanceFactoryProvider(new FakeBeanProvider());
+      new DefaultInstanceFactoryProvider(beanProvider);
   final UiIncrementMapperProvider uiIncrementMapperProvider =
-      new DefaultUiIncrementMapperProvider(new FakeBeanProvider());
+      new DefaultUiIncrementMapperProvider(beanProvider);
   final RoutedClassResolver routedClassResolver = new DefaultRoutedClassResolver(List.of());
+  final AppMenuResolver appMenuResolver =
+      new AppMenuResolver(beanProvider, instanceFactoryProvider, null, List.of());
 
   final DefaultMateuService defaultMateuService =
       new DefaultMateuService(
           new RunActionUseCase(
-              new FakeBeanProvider(),
               instanceFactoryProvider,
-              new DefaultActionRunnerProvider(new FakeBeanProvider(), instanceFactoryProvider),
+              new DefaultActionRunnerProvider(beanProvider, instanceFactoryProvider),
               uiIncrementMapperProvider,
-              routedClassResolver,
-              null,
-              List.of()));
+              new CrudNavigationAdjuster(),
+              new RouteInstanceCreator(
+                  routedClassResolver, instanceFactoryProvider, List.of(), appMenuResolver),
+              appMenuResolver));
 
   @Test
   void runStepAndReturn() throws Throwable {

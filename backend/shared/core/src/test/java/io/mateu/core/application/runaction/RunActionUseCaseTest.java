@@ -26,13 +26,17 @@ abstract class RunActionUseCaseTest {
       };
   final RoutedClassResolver routedClassResolver = new DefaultRoutedClassResolver(List.of());
 
+  private AppMenuResolver buildAppMenuResolver() {
+    return new AppMenuResolver(beanProvider, instanceFactoryProvider, null, List.of());
+  }
+
   final RunActionUseCase useCase =
       new RunActionUseCase(
-          beanProvider,
           new DefaultInstanceFactoryProvider(beanProvider),
           new DefaultActionRunnerProvider(beanProvider, instanceFactoryProvider),
           new DefaultUiIncrementMapperProvider(beanProvider),
-          routedClassResolver,
-          null,
-          List.of());
+          new CrudNavigationAdjuster(),
+          new RouteInstanceCreator(
+              routedClassResolver, instanceFactoryProvider, List.of(), buildAppMenuResolver()),
+          buildAppMenuResolver());
 }
