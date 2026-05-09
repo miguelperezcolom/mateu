@@ -283,6 +283,9 @@ public class RunActionUseCase {
       return Mono.empty();
     }
     setResolvedRoute(command.httpRequest(), command.consumedRoute());
+    if (command.httpRequest().getAttribute("resolvedPath") == null) {
+      setResolvedPath(command.httpRequest(), command.route());
+    }
     var mono =
         createInstanceAndPostHydrate(command.serverSideType(), command)
             .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
@@ -976,6 +979,11 @@ public class RunActionUseCase {
           return new AdjustedCommand(command, true);
         }
       }
+    }
+    if ("new".equals(command.actionId())) {
+      command.httpRequest().setAttribute("oldRoute", command.route());
+      command = command.withRoute(command.route() + "/new");
+      return new AdjustedCommand(command, true);
     }
     return new AdjustedCommand(command, false);
   }
