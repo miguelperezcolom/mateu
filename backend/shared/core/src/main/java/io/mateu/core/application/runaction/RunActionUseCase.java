@@ -15,7 +15,6 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import io.mateu.core.application.ResolvedRoute;
 import io.mateu.core.application.RoutedClassResolver;
 import io.mateu.core.application.out.MateuHttpClient;
@@ -251,62 +250,54 @@ public class RunActionUseCase {
 
     var adjusted = adjustCommandForCrudNavigation(command);
     command = adjusted.command();
-    var routeFirst = adjusted.routeFirst();
 
-    RunActionCommand finalCommand = command;
-    if (routeFirst) {
-      return resolveRoute(command)
+    if (adjusted.routeFirst()) {
+      // CRUD navigation: try the adjusted route first; on miss, fall back to the known type
+      RunActionCommand finalCommand = command;
+      return findRouteResolver(command)
           .switchIfEmpty(
-              Mono.defer(
-                  (Supplier)
+              (Mono)
+                  Mono.defer(
                       () -> {
                         finalCommand.httpRequest().setAttribute("updateUrl", "_no_update");
-                        var finalCommand2 =
+                        var restoredCommand =
                             finalCommand.withRoute(
                                 (String) finalCommand.httpRequest().getAttribute("oldRoute"));
-                        if (finalCommand2.serverSideType() != null
-                            && !finalCommand2.serverSideType().isEmpty()) {
-                          setResolvedRoute(
-                              finalCommand2.httpRequest(), finalCommand2.consumedRoute());
-                          var mono =
-                              createInstanceAndPostHydrate(
-                                      finalCommand2.serverSideType(), finalCommand2)
-                                  .doOnNext(
-                                      app ->
-                                          finalCommand2
-                                              .httpRequest()
-                                              .setAttribute("resolvedApp", app));
-                          if (finalCommand2.route().endsWith("_page")
-                              || finalCommand2.route().endsWith("_no_home_route")) {
-                            return mono;
-                          }
-                          return mono.flatMap(
-                              app ->
-                                  resolveMenuIfApp(finalCommand2, app)
-                                      .switchIfEmpty((Mono) resolveRoute(finalCommand2)));
-                        }
-
-                        return Mono.empty();
-                      }))
-          .flatMap(app -> resolveMenuIfApp(finalCommand, app));
-    } else {
-      if (finalCommand.serverSideType() != null && !finalCommand.serverSideType().isEmpty()) {
-        setResolvedRoute(finalCommand.httpRequest(), finalCommand.consumedRoute());
-        var mono =
-            createInstanceAndPostHydrate(finalCommand.serverSideType(), finalCommand)
-                .doOnNext(app -> finalCommand.httpRequest().setAttribute("resolvedApp", app));
-        if (finalCommand.route().endsWith("_page")
-            || finalCommand.route().endsWith("_no_home_route")) {
-          return mono;
-        }
-        return mono.flatMap(
-            app ->
-                resolveMenuIfApp(finalCommand, app)
-                    .switchIfEmpty((Mono) resolveRoute(finalCommand)));
-      }
-
-      return resolveRoute(command);
+                        return instantiateWithKnownType(restoredCommand);
+                      }));
     }
+
+    if (command.serverSideType() != null && !command.serverSideType().isEmpty()) {
+      return instantiateWithKnownType(command);
+    }
+
+    return findRouteResolver(command);
+  }
+
+  /**
+   * Path 2: we already know the serverSideType. Instantiate it and, unless the route is terminal,
+   * try to resolve deeper navigation (menu/route) from the resulting instance.
+   */
+  private Mono<?> instantiateWithKnownType(RunActionCommand command) {
+    if (command.serverSideType() == null || command.serverSideType().isEmpty()) {
+      return Mono.empty();
+    }
+    setResolvedRoute(command.httpRequest(), command.consumedRoute());
+    var mono =
+        createInstanceAndPostHydrate(command.serverSideType(), command)
+            .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
+    if (isTerminalRoute(command.route())) {
+      return mono;
+    }
+    RunActionCommand finalCommand = command;
+    return mono.flatMap(
+        app ->
+            resolveMenuIfApp(finalCommand, app)
+                .switchIfEmpty((Mono) findRouteResolver(finalCommand)));
+  }
+
+  private boolean isTerminalRoute(String route) {
+    return route.endsWith("_page") || route.endsWith("_no_home_route");
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {
@@ -320,90 +311,34 @@ public class RunActionUseCase {
     return object;
   }
 
+  /**
+   * Path 1: no serverSideType yet. Search route segments for a matching App/RouteResolver
+   * (shortest-first so the broadest enclosing app wins), then fall back to direct class matches
+   * (longest-first so the most-specific route wins).
+   */
   @SneakyThrows
-  private Mono<?> resolveRoute(RunActionCommand command) {
-    List<String> routes = createRoutes(command).reversed();
-    log.info("resolving {}", routes);
+  private Mono<?> findRouteResolver(RunActionCommand command) {
+    List<String> segments = createRoutes(command);
+    log.info("findRouteResolver segments={}", segments);
     log.info(
-        "route: {}, consumedRoute: {}, app {}",
+        "route: {}, consumedRoute: {}, serverSideType: {}",
         command.route(),
         command.consumedRoute(),
         command.serverSideType());
+    // Shortest-first: Apps / RouteResolvers (they need the shortest matching prefix)
     return Mono.defer(
             () ->
-                Flux.fromIterable(routes)
-                    .flatMap(route -> resolveAbsoluteRoute(route, command))
-                    .next())
+                Flux.fromIterable(segments).concatMap(route -> resolveAsApp(route, command)).next())
+        // Longest-first: terminal direct classes (most-specific match wins)
         .switchIfEmpty(
             (Mono)
                 Mono.defer(
                     () ->
-                        Flux.fromIterable(routes.reversed())
-                            .flatMap(route -> resolveAppRoute(route, command))
-                            .next()))
-        .switchIfEmpty(
-            (Mono)
-                Mono.defer(
-                    () ->
-                        Flux.fromIterable(routes)
-                            .flatMap(route -> resolveNonAppRoute(route, command))
+                        Flux.fromIterable(segments.reversed())
+                            .concatMap(route -> resolveAsDirectClass(route, command))
                             .next()));
   }
 
-  @SneakyThrows
-  private Mono<?> resolveAbsoluteRoute(String rawRoute, RunActionCommand command) {
-    if ("".equals(rawRoute)) {
-      rawRoute = command.baseUrl();
-    }
-    var route = removeQueryParamsFromRoute(rawRoute);
-
-    var routedClass = routedClassResolver.resolveAbsolute(route, command);
-    if (routedClass.isPresent()) {
-      setResolvedRoute(command.httpRequest(), route);
-      var instanceTypeName = routedClass.get().resolvedClass().getName();
-      var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
-      var instance = createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
-      log.info("absolute {} resolved to {}", route, instance);
-      return instance;
-    }
-    if (routeResolvers != null) {
-      var found =
-          routeResolvers.stream()
-              .filter(resolver -> resolver.supportsRoute(route, RouteConstants.NO_PARENT_ROUTE))
-              .findFirst();
-      if (found.isPresent()) {
-        var resolvedClass =
-            found.get().resolveRoute(route, RouteConstants.NO_PARENT_ROUTE, command.httpRequest());
-        if (resolvedClass != null) {
-          setResolvedRoute(command.httpRequest(), route);
-          var instanceTypeName = resolvedClass.getName();
-          var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
-          var instance =
-              createInstance(
-                  command,
-                  instanceTypeName,
-                  instanceFactory,
-                  route,
-                  Optional.of(
-                      new ResolvedRoute(
-                          route,
-                          found
-                              .get()
-                              .matchingPattern(route, RouteConstants.NO_PARENT_ROUTE)
-                              .get()
-                              .routeRegex()
-                              .pattern(),
-                          resolvedClass)));
-          log.info("absolute {} resolved to {}", route, instance);
-          return instance;
-        }
-      }
-    }
-    log.info("no absolute matching for {}", route);
-    return Mono.empty();
-  }
-
-  @NonNull
   private Mono<Object> createInstance(
       RunActionCommand command,
       String instanceTypeName,
@@ -419,56 +354,81 @@ public class RunActionUseCase {
             command.httpRequest());
   }
 
+  /**
+   * Resolves a route segment to a non-app (terminal) class. Checks exact @Route matches first, then
+   * generic resolve, then global RouteResolvers — all restricted to non-app types.
+   */
   @SneakyThrows
-  private Mono<?> resolveNonAppRoute(String rawRoute, RunActionCommand command) {
+  private Mono<?> resolveAsDirectClass(String rawRoute, RunActionCommand command) {
+    if ("".equals(rawRoute)) {
+      rawRoute = command.baseUrl();
+    }
     var route = removeQueryParamsFromRoute(rawRoute);
-    var routedClass = routedClassResolver.resolve(route, command);
+
+    // Exact @Route annotation match (no parent context needed)
+    var routedClass = routedClassResolver.resolveAbsolute(route, command);
     if (routedClass.isPresent()) {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
-      var type = Class.forName(instanceTypeName);
-      if (!isApp(type, route)) {
+      if (!isApp(Class.forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
-        var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
-        var instance =
-            createInstance(command, instanceTypeName, instanceFactory, route, routedClass);
-        log.info("non app {} resolved to {}", route, instance);
-        return instance;
+        log.info("direct class (absolute) {} → {}", route, instanceTypeName);
+        return createInstance(
+            command,
+            instanceTypeName,
+            instanceFactoryProvider.get(instanceTypeName),
+            route,
+            routedClass);
       }
     }
+
+    // Generic resolve restricted to non-app classes
+    routedClass = routedClassResolver.resolve(route, command);
+    if (routedClass.isPresent()) {
+      var instanceTypeName = routedClass.get().resolvedClass().getName();
+      if (!isApp(Class.forName(instanceTypeName), route)) {
+        setResolvedRoute(command.httpRequest(), route);
+        log.info("direct class (resolve) {} → {}", route, instanceTypeName);
+        return createInstance(
+            command,
+            instanceTypeName,
+            instanceFactoryProvider.get(instanceTypeName),
+            route,
+            routedClass);
+      }
+    }
+
+    // Global RouteResolvers — try without parent context first, then with consumedRoute
     if (routeResolvers != null) {
-      var found =
-          routeResolvers.stream()
-              .filter(resolver -> resolver.supportsRoute(route, command.consumedRoute()))
-              .findFirst();
-      if (found.isPresent()) {
-        var resolvedClass =
-            found.get().resolveRoute(route, command.consumedRoute(), command.httpRequest());
-        if (resolvedClass != null) {
-          setResolvedRoute(command.httpRequest(), route);
-          var instanceTypeName = resolvedClass.getName();
-          var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
-          var instance =
-              createInstance(
-                  command,
-                  instanceTypeName,
-                  instanceFactory,
-                  route,
-                  Optional.of(
-                      new ResolvedRoute(
-                          route,
-                          found
-                              .get()
-                              .matchingPattern(route, command.consumedRoute())
-                              .get()
-                              .routeRegex()
-                              .pattern(),
-                          resolvedClass)));
-          log.info("absolute {} resolved to {}", route, instance);
-          return instance;
+      for (var parentRoute : List.of(RouteConstants.NO_PARENT_ROUTE, command.consumedRoute())) {
+        var found =
+            routeResolvers.stream().filter(r -> r.supportsRoute(route, parentRoute)).findFirst();
+        if (found.isPresent()) {
+          var resolvedClass = found.get().resolveRoute(route, parentRoute, command.httpRequest());
+          if (resolvedClass != null) {
+            setResolvedRoute(command.httpRequest(), route);
+            var instanceTypeName = resolvedClass.getName();
+            log.info("direct class (routeResolver) {} → {}", route, instanceTypeName);
+            return createInstance(
+                command,
+                instanceTypeName,
+                instanceFactoryProvider.get(instanceTypeName),
+                route,
+                Optional.of(
+                    new ResolvedRoute(
+                        route,
+                        found
+                            .get()
+                            .matchingPattern(route, parentRoute)
+                            .get()
+                            .routeRegex()
+                            .pattern(),
+                        resolvedClass)));
+          }
         }
       }
     }
-    log.info("no non-app matched {}", route);
+
+    log.info("no direct class matched {}", route);
     return Mono.empty();
   }
 
@@ -509,25 +469,33 @@ public class RunActionUseCase {
     return newData;
   }
 
+  /**
+   * Resolves a route segment to an App / RouteResolver class (shortest-first favoured by {@link
+   * #findRouteResolver}). Returns the instantiated app after remote-menu resolution so the UI can
+   * use it as the next serverSideType.
+   */
   @SneakyThrows
-  private Mono<?> resolveAppRoute(String rawRoute, RunActionCommand command) {
+  private Mono<?> resolveAsApp(String rawRoute, RunActionCommand command) {
     var route = removeQueryParamsFromRoute(rawRoute);
     var routedClass = routedClassResolver.resolve(route, command);
     if (routedClass.isPresent()) {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
-      var type = Class.forName(instanceTypeName);
-      if (isApp(type, route)) {
+      if (isApp(Class.forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
-        var instanceFactory = instanceFactoryProvider.get(instanceTypeName);
         var instance =
-            createInstance(command, instanceTypeName, instanceFactory, route, routedClass)
+            createInstance(
+                    command,
+                    instanceTypeName,
+                    instanceFactoryProvider.get(instanceTypeName),
+                    route,
+                    routedClass)
                 .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app))
                 .map(
                     app ->
                         (app instanceof AppSupplier appSupplier)
                             ? appSupplier.getApp(command.httpRequest())
                             : app);
-        log.info("app {} resolved to {}", route, instance);
+        log.info("app {} → {}", route, instanceTypeName);
         return instance.flatMap(
             app -> resolveRemoteMenuForRoute(command, app, command.httpRequest()));
       }
@@ -718,7 +686,7 @@ public class RunActionUseCase {
       if (emptyIfRoute) {
         return Mono.empty();
       }
-      return resolveRoute(command.withConsumedRoute(route));
+      return findRouteResolver(command.withConsumedRoute(route));
     }
     if (actionable instanceof ContentLink contentLink) {
       return Mono.just(contentLink.componentSupplier().component(httpRequest));
