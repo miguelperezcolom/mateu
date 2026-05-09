@@ -58,7 +58,7 @@ public abstract class RouteHandlerLayer<
       if (id != null && registeredRoute.endsWith("/" + id)) {
         registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/" + id));
       }
-      if (id == null && registeredRoute.endsWith("/new")) {
+      if (registeredRoute.endsWith("/new")) {
         registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/new"));
       }
       return registeredRoute;

@@ -79,9 +79,8 @@ export class MateuUx extends ConnectedElement {
         if (e instanceof CustomEvent) {
             e.preventDefault()
             e.stopPropagation()
-            //this.preventNavigation = true
-            //this.route = e.detail.route
-            //this.setAttribute('route', this.route??'')
+            this.preventNavigation = true
+            this.route = e.detail.route
         }
     }
 
