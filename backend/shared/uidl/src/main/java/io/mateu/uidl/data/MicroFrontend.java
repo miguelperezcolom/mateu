@@ -10,7 +10,7 @@ public record MicroFrontend(
     String consumedRoute,
     String style,
     String cssClasses,
-    String appServerSideType,
+    String serverSideType,
     Object appState,
     String actionId)
     implements Component {}

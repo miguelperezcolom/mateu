@@ -82,10 +82,10 @@ public final class AppComponentToDtoMapper {
             .homeConsumedRoute(
                 getHomeConsumedRoute(app, route, appRoute, httpRequest, selectedOption))
             .homeBaseUrl(getHomeBaseUrl(app, route, appRoute, httpRequest, selectedOption))
-            .homeAppServerSideType(
-                getHomeAppServerSideType(app, route, appRoute, httpRequest, selectedOption))
+            .homeServerSideType(
+                getHomeServerSideType(app, route, appRoute, httpRequest, selectedOption))
             .homeUriPrefix(getHomeUriPrefix(app, route, appRoute, httpRequest, selectedOption))
-            .appServerSideType(
+            .serverSideType(
                 getAppServerSideType(
                     componentSupplier, app, route, appRoute, httpRequest, selectedOption))
             .menu(menu)
@@ -217,14 +217,14 @@ public final class AppComponentToDtoMapper {
     return provided;
   }
 
-  private static String getHomeAppServerSideType(
+  private static String getHomeServerSideType(
       App app,
       String route,
       String appRoute,
       HttpRequest httpRequest,
       Optional<Actionable> selectedOption) {
     var provided =
-        app.homeAppServerSideType() != null ? app.homeAppServerSideType() : app.serverSideType();
+        app.homeServerSideType() != null ? app.homeServerSideType() : app.serverSideType();
     if (provided == null) {
       var resolvedApp = httpRequest.getAttribute("resolvedApp");
       if (resolvedApp != null) {
@@ -286,7 +286,7 @@ public final class AppComponentToDtoMapper {
                       (option instanceof RemoteMenu remoteMenu)
                           ? remoteMenu.consumedRoute()
                           : appRoute)
-                  .appServerSideType(
+                  .serverSideType(
                       (option instanceof RemoteMenu remoteMenu)
                           ? remoteMenu.serverSideType()
                           : app.serverSideType())

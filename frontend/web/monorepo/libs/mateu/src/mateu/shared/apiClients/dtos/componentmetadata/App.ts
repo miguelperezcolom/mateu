@@ -14,14 +14,14 @@ export default interface App extends ComponentMetadata {
     totalMenuOptions: number
     homeRoute: string
     homeBaseUrl: string
-    homeAppServerSideType: string
+    homeServerSideType: string
     homeUriPrefix: string
     homeConsumedRoute: string
     style: string | undefined
     cssClasses: string | undefined
     drawerClosed: boolean
     initialRoute: string
-    appServerSideType: string
+    serverSideType: string
     uriPrefix: string
     baseUrl: string
 

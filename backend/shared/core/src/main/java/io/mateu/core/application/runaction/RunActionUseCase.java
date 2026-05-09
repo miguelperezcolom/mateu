@@ -787,7 +787,7 @@ public class RunActionUseCase {
               if (result instanceof MicroFrontend microFrontend) {
                 return app.withHomeRoute(microFrontend.route())
                     .withHomeBaseUrl(microFrontend.baseUrl())
-                    .withHomeAppServerSideType(microFrontend.appServerSideType())
+                    .withHomeServerSideType(microFrontend.serverSideType())
                     .withHomeConsumedRoute(microFrontend.consumedRoute())
                     .withHomeUriPrefix("");
               }
@@ -803,7 +803,7 @@ public class RunActionUseCase {
             .actionId("")
             .consumedRoute(remoteMenu.consumedRoute())
             .route(remoteMenu.route())
-            .serverSideType(remoteMenu.appServerSideType())
+            .serverSideType(remoteMenu.serverSideType())
             .initiatorComponentId(httpRequest.runActionRq().initiatorComponentId())
             .build();
 
@@ -840,7 +840,7 @@ public class RunActionUseCase {
                                 .consumedRoute(app.homeConsumedRoute())
                                 .actionId("")
                                 .baseUrl(remoteMenu.baseUrl())
-                                .appServerSideType(app.homeAppServerSideType())
+                                .serverSideType(app.homeServerSideType())
                                 .build()));
   }
 

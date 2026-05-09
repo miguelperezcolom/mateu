@@ -87,7 +87,7 @@ export class MateuApp extends ComponentElement {
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         // @ts-ignore
-        this.selectRoute(e.detail.value.consumedRoute, e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.appServerSideType, e.detail.value.uriPrefix)
+        this.selectRoute(e.detail.value.consumedRoute, e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.serverSideType, e.detail.value.uriPrefix)
     }
 
     goHome = () => {
@@ -95,12 +95,12 @@ export class MateuApp extends ComponentElement {
         this.selectRoute(metadata.route, '_page', '', undefined, undefined, undefined)
     }
 
-    selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, appServerSideType: string | undefined, uriPrefix: string | undefined ) => {
+    selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
         if (true) {
             this.selectedConsumedRoute = consumedRoute
             this.selectedBaseUrl = _baseUrl
             this.selectedRoute = route
-            this.selectedAppServerSideType = appServerSideType
+            this.selectedAppServerSideType = serverSideType
             this.selectedUriPrefix = uriPrefix;
             this.instant = nanoid()
             let baseUrl = this.baseUrl??''
@@ -168,7 +168,7 @@ export class MateuApp extends ComponentElement {
                         text: option.label,
                         route: option.route,
                         baseUrl: option.baseUrl,
-                        appServerSideType: option.appServerSideType,
+                        serverSideType: option.serverSideType,
                         uriPrefix: option.uriPrefix,
                         actionId: option.actionId,
                         selected: filter || option.selected,
@@ -188,7 +188,7 @@ export class MateuApp extends ComponentElement {
                     text: option.label,
                     route: option.route,
                     baseUrl: option.baseUrl,
-                    appServerSideType: option.appServerSideType,
+                    serverSideType: option.serverSideType,
                     uriPrefix: option.uriPrefix,
                     actionId: option.actionId,
                     selected: filter || option.selected,
@@ -218,7 +218,7 @@ export class MateuApp extends ComponentElement {
 `
         }
         return html`<vaadin-button theme="tertiary" 
-                @click="${() => this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
+                @click="${() => this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
         >${option.label}</vaadin-button>`
     }
 
@@ -230,17 +230,17 @@ export class MateuApp extends ComponentElement {
         path: string | undefined
         actionId: string | undefined
         baseUrl: string | undefined
-        appServerSideType: string | undefined
+        serverSideType: string | undefined
         uriPrefix: string | undefined
     }) => {
-        if (e.path == this.selectedRoute && e.consumedRoute == this.selectedConsumedRoute && e.baseUrl == this.selectedBaseUrl &&  e.appServerSideType == this.selectedAppServerSideType) {
+        if (e.path == this.selectedRoute && e.consumedRoute == this.selectedConsumedRoute && e.baseUrl == this.selectedBaseUrl &&  e.serverSideType == this.selectedAppServerSideType) {
             const uxElement = this.shadowRoot?.querySelector('mateu-ux');
             if (uxElement) {
                 console.log('force update')
                 uxElement.setAttribute("instant", nanoid())
             }
         } else {
-            this.selectRoute(e.consumedRoute, e.path, e.actionId, e.baseUrl, e.appServerSideType, e.uriPrefix)
+            this.selectRoute(e.consumedRoute, e.path, e.actionId, e.baseUrl, e.serverSideType, e.uriPrefix)
         }
         if (((this.component as ClientSideComponent).metadata as App).drawerClosed) {
             if (this.vaadinAppLayout) {
@@ -279,7 +279,7 @@ export class MateuApp extends ComponentElement {
         e.preventDefault()
         e.stopPropagation()
         var detail = (e as CustomEvent).detail
-        this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.appServerSideType, detail.uriPrefix)
+        this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix)
     }
 
     protected updated(_changedProperties: PropertyValues) {

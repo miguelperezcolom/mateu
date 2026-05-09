@@ -14,7 +14,6 @@ export class RunActionCommandHandler {
             command.initiatorComponentId,
             command.appState,
             command.serverSideType,
-            command.appServerSideType,
             command.componentState,
             command.parameters,
             command.initiator,

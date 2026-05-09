@@ -29,7 +29,7 @@ const chooseBaseUrl = (container: MateuApp, metadata: App) => {
 }
 const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
-        return container.selectedAppServerSideType??metadata.appServerSideType
+        return container.selectedAppServerSideType??metadata.serverSideType
     }
     return metadata.homeAppServerSideType
 }
@@ -67,7 +67,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     id="ux_${container.id}"
                                     baseUrl="${chooseBaseUrl(container, metadata)}"
                                     consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                    appServerSideType="${chooseAppServerSideType(container, metadata)}"
+                                    serverSideType="${chooseAppServerSideType(container, metadata)}"
                                     uriPrefix="${chooseUriPrefix(container, metadata)}"
                                     style="width: 100%;"
                                     .appState="${appState}"
@@ -120,7 +120,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <br/>
                             metadata.consumedRoute: no field metadata.consumedRoute
                             <br/>
-                            metadata.appServerSideType:${metadata.appServerSideType}
+                            metadata.serverSideType:${metadata.serverSideType}
                             <br/>
                             metadata.uriPrefix:${metadata.uriPrefix}
                             <hr>
@@ -140,7 +140,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <br/>
                             chosen.consumedRoute:${chooseConsumedRoute(container, metadata)}
                             <br/>
-                            chosen.appServerSideType:${chooseAppServerSideType(container, metadata)}
+                            chosen.serverSideType:${chooseAppServerSideType(container, metadata)}
                             <br/>
                             chosen.uriPrefix:${chooseUriPrefix(container, metadata)}
                             <hr>                              `:nothing}
@@ -151,7 +151,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 id="ux_${container.id}"
                                 baseUrl="${chooseBaseUrl(container, metadata)}"
                                 consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                appServerSideType="${chooseAppServerSideType(container, metadata)}"
+                                serverSideType="${chooseAppServerSideType(container, metadata)}"
                                 uriPrefix="${chooseUriPrefix(container, metadata)}"
                                 style="width: 100%;"
                                 .appState="${appState}"
@@ -181,7 +181,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 id="ux_${container.id}"
                                 baseUrl="${chooseBaseUrl(container, metadata)}"
                                 consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                appServerSideType="${chooseAppServerSideType(container, metadata)}"
+                                serverSideType="${chooseAppServerSideType(container, metadata)}"
                                 uriPrefix="${chooseUriPrefix(container, metadata)}"
                                 style="width: 100%; padding: 1em;"
                                 .appState="${appState}"
@@ -217,7 +217,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 ${metadata.menu.map(option => {
                                     return html`
                                 <vaadin-tab 
-                                        @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.appServerSideType, option.uriPrefix)}"
+                                        @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)}"
                                 >${option.label}</vaadin-tab>
                             `
                                 })}
@@ -245,7 +245,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <br/>
                             metadata.consumedRoute: no field metadata.consumedRoute
                             <br/>
-                            metadata.appServerSideType:${metadata.appServerSideType}
+                            metadata.serverSideType:${metadata.serverSideType}
                             <br/>
                             metadata.uriPrefix:${metadata.uriPrefix}
                             <hr>
@@ -265,7 +265,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <br/>
                             chosen.consumedRoute:${chooseConsumedRoute(container, metadata)}
                             <br/>
-                            chosen.appServerSideType:${chooseAppServerSideType(container, metadata)}
+                            chosen.serverSideType:${chooseAppServerSideType(container, metadata)}
                             <br/>
                             chosen.uriPrefix:${chooseUriPrefix(container, metadata)}
                             <hr>                              `:nothing}
@@ -276,7 +276,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         id="ux_${container.id}"
                                         baseUrl="${chooseBaseUrl(container, metadata)}"
                                         consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                        appServerSideType="${chooseAppServerSideType(container, metadata)}"
+                                        serverSideType="${chooseAppServerSideType(container, metadata)}"
                                         uriPrefix="${chooseUriPrefix(container, metadata)}"
                                         style="width: 100%;"
                                         .appState="${appState}"

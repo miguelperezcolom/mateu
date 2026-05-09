@@ -12,7 +12,7 @@ export const renderMicroFrontend = (component: ClientSideComponent) => {
                   route="${metadata.route}" 
                   consumedRoute="${metadata.consumedRoute}" 
                   id="${nanoid()}"
-                  appServerSideType="${metadata.appServerSideType}"
+                  serverSideType="${metadata.serverSideType}"
                   .appState="${metadata.appState}"
                   style="${component.style}" class="${component.cssClasses}"
                   slot="${component.slot??nothing}"

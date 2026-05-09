@@ -12,7 +12,7 @@ public record App(
     String route,
     String homeRoute,
     String homeBaseUrl,
-    String homeAppServerSideType,
+    String homeServerSideType,
     String homeUriPrefix,
     String homeConsumedRoute,
     String serverSideType,

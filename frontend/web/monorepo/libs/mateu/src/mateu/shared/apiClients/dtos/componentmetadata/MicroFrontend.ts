@@ -6,7 +6,7 @@ export default interface MicroFrontend extends ComponentMetadata {
     consumedRoute: string
     style: string
     cssClasses: string
-    appServerSideType: string
+    serverSideType: string
     appState: any
     actionId: string
 }

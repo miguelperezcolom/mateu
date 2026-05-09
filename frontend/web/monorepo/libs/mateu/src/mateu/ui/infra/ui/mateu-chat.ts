@@ -27,8 +27,12 @@ export class MateuChat extends LitElement {
     @state()
     listening: boolean = false
 
+    @state()
+    recognitionAvailable: boolean = false;
+
 
     startListening = () => {
+        console.log('startListening', this.recognition);
         if (this.recognition) {
             if (this.listening) {
                 this.recognition.stop();
@@ -43,10 +47,18 @@ export class MateuChat extends LitElement {
     onSpeechResult = (event: any) => {
         if (this.recognition) {
             // Obtener el texto procesado
-            const transcript = event.results[0][0].transcript;
-            console.log("Resultado de la reconocimiento:", transcript);
+            console.log("Resultados del reconocimiento:", event.results);
+            const transcript = event.results[event.results[0].length - 1][0].transcript;
+            console.log("Resultado del reconocimiento:", transcript);
             if (this.messageInputElement) {
                 this.messageInputElement.value = transcript; // Poner el texto en el input
+                this.send(new CustomEvent('submit', {
+                    detail: {
+                        value: transcript
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
             }
         }
     }
@@ -58,14 +70,39 @@ export class MateuChat extends LitElement {
         // @ts-ignore
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+        console.log('SpeechRecognition', SpeechRecognition);
+
         if (SpeechRecognition) {
+            console.log('SpeechRecognition available');
             this.recognition = new SpeechRecognition();
             this.recognition.lang = 'es-ES'; // Configuramos el idioma a español
+            //this.recognition.continuous = true;
+            //this.recognition.interimResults = true;
+
+            this.recognition.onend = () => {
+                console.log("El reconocimiento ha terminado.");
+                setTimeout(() => {
+                    if (this.listening) {
+                        try {
+                            this.recognition.start();
+                        } catch (e: any) {
+                            console.log('Error al iniciar el reconocimiento:', e.message);
+                        }
+                    }
+                }, 250)
+            };
+
+            this.recognitionAvailable = true;
 
             this.recognition.onresult = this.onSpeechResult;
 
             this.recognition.onerror = (event: any) => {
                 console.error("Error de reconocimiento: " + event.error);
+                if (this.listening) {
+                    setTimeout(() => {
+                        this.recognition.start();
+                    }, 250)
+                }
             };
         } else {
             alert("Lo siento, tu navegador no soporta la API de voz.");
@@ -105,7 +142,7 @@ export class MateuChat extends LitElement {
                     consumedRoute: '',
                     actionId: '',
                     baseUrl: '/_booking',
-                    appServerSideType: 'io.mateu.workflow.booking.infra.in.ui.BookingHome',
+                    serverSideType: 'io.mateu.workflow.booking.infra.in.ui.BookingHome',
                     uriPrefix: ''
                 },
                 bubbles: true,
@@ -117,7 +154,7 @@ export class MateuChat extends LitElement {
                     consumedRoute: '',
                     actionId: 'view',
                     baseUrl: '/_booking',
-                    appServerSideType: 'io.mateu.workflow.booking.infra.in.ui.BookingHome',
+                    serverSideType: 'io.mateu.workflow.booking.infra.in.ui.BookingHome',
                     uriPrefix: ''
                 },
                 bubbles: true,
@@ -186,8 +223,13 @@ export class MateuChat extends LitElement {
             console.error('Error en el flujo SSE:', error);
             this.updateMessage(agentIdx, '⚠️ Error: ' + error.message);
         } finally {
-            this.messageInputElement?.removeAttribute("disabled");
-            this.messageInputElement?.focus();
+                setTimeout(() => {
+                    if (this.messageInputElement) {
+                        this.messageInputElement.value = ''
+                    }
+                }, 250)
+                this.messageInputElement?.removeAttribute("disabled");
+                this.messageInputElement?.focus();
         }
     }
 
@@ -200,7 +242,7 @@ export class MateuChat extends LitElement {
                     style="padding-left: 1rem; align-items: center; border-top: 1px solid var(--lumo-contrast-10pct);"><vaadin-button 
                     theme="icon"
                     @click="${this.startListening}"
-                    disabled="${!this.recognition}"
+                    ?disabled="${!this.recognitionAvailable}"
             ><vaadin-icon
                     style="color: ${this.listening?'red':'var(--lumo-contrast-50pct)'};"
                     icon="vaadin:microphone"></vaadin-icon></vaadin-button>

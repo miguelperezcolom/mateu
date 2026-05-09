@@ -20,8 +20,7 @@ export default interface MenuOption {
     baseUrl: string
     route: string
     consumedRoute: string
-    appServerSideType: string | undefined
-    serverSideType: string
+    serverSideType: string | undefined
     params: any
     explode: boolean
     uriPrefix: string | undefined

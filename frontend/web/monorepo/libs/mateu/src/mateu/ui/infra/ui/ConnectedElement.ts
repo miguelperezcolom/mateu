@@ -111,7 +111,7 @@ export default abstract class ConnectedElement extends LitElement {
                         const clientSideComponent = replacement.component as ClientSideComponent
                         if (clientSideComponent.metadata?.type == ComponentMetadataType.App) {
                             const app = clientSideComponent.metadata as App
-                            const effectiveAppServerSideType = option.appServerSideType && !('' == option.appServerSideType)?option.appServerSideType:app.appServerSideType
+                            const effectiveAppServerSideType = option.serverSideType && !('' == option.serverSideType)?option.serverSideType:app.serverSideType
                             this.changeBaseUrl(app.menu, option.baseUrl, effectiveAppServerSideType, option.route, app.route)
                             replaced.push(...app.menu)
                         }
@@ -124,15 +124,15 @@ export default abstract class ConnectedElement extends LitElement {
         return replaced
     }
 
-    private changeBaseUrl(menu: MenuOption[], baseUrl: string, appServerSideType: string | undefined, uriPrefix: string | undefined, consumedRoute: string | undefined): void {
+    private changeBaseUrl(menu: MenuOption[], baseUrl: string, serverSideType: string | undefined, uriPrefix: string | undefined, consumedRoute: string | undefined): void {
         menu.forEach(option => {
             if (!option.baseUrl) {
                 if (option.submenus && option.submenus.length > 0) {
-                    this.changeBaseUrl(option.submenus, baseUrl, appServerSideType, uriPrefix, consumedRoute)
+                    this.changeBaseUrl(option.submenus, baseUrl, serverSideType, uriPrefix, consumedRoute)
                 } else {
                     option.consumedRoute = consumedRoute??''
                     option.baseUrl = baseUrl
-                    option.appServerSideType = appServerSideType
+                    option.serverSideType = serverSideType
                     option.uriPrefix = uriPrefix
                 }
             }

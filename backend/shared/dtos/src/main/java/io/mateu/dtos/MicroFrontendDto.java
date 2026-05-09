@@ -7,7 +7,7 @@ public record MicroFrontendDto(
     String consumedRoute,
     String style,
     String cssClasses,
-    String appServerSideType,
+    String serverSideType,
     Object appState,
     String actionId)
     implements ComponentMetadataDto {}

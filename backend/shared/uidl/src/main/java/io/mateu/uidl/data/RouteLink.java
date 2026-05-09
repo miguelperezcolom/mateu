@@ -20,7 +20,7 @@ public record RouteLink(
     boolean disabled,
     boolean disabledOnClick,
     Object itemData,
-    String appServerSideType,
+    String serverSideType,
     String consumedRoute)
     implements Actionable {
 

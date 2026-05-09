@@ -11,7 +11,6 @@ export interface Service {
                     initiatorComponentId: string,
                     appState: any,
                     serverSideType: string,
-                    appServerSideType: string,
                     componentState: any,
                     parameters: any,
                     initiator: HTMLElement,

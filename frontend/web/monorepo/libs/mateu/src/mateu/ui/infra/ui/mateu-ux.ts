@@ -40,7 +40,7 @@ export class MateuUx extends ConnectedElement {
     @property()
     consumedRoute = ''
     @property()
-    appServerSideType: string | undefined = undefined
+    serverSideType: string | undefined = undefined
     @property()
     uriPrefix: string | undefined = undefined
     @property()
@@ -144,7 +144,7 @@ export class MateuUx extends ConnectedElement {
         componentState: any
         actionId: string
         serverSideType: string
-        appServerSideType: string
+        serverSideType: string
         initiatorComponentId: string
         initiator: HTMLElement
         background: boolean
@@ -164,7 +164,7 @@ export class MateuUx extends ConnectedElement {
             componentState: any
             actionId: string
             serverSideType: string
-            appServerSideType: string
+            serverSideType: string
             initiatorComponentId: string
             initiator: HTMLElement
             background: boolean
@@ -186,7 +186,7 @@ export class MateuUx extends ConnectedElement {
                     detail.initiatorComponentId,
                     this.getCustomisedAppState(),
                     detail.serverSideType,
-                    detail.appServerSideType,
+                    detail.serverSideType,
                     detail.componentState,
                     detail.parameters,
                     detail.initiator,
@@ -247,7 +247,7 @@ export class MateuUx extends ConnectedElement {
                         userData: undefined,
                         actionId: '',
                         serverSideType: undefined,
-                        appServerSideType: this.appServerSideType,
+                        serverSideType: this.serverSideType,
                         initiatorComponentId: this.id,
                         initiator: this,
                         callbackToken: this.callbackToken

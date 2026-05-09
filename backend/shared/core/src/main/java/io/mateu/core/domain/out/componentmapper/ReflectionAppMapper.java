@@ -54,7 +54,7 @@ public class ReflectionAppMapper {
         .route(appRoute)
         .homeRoute(getHomeRoute(instance, selectedOption, httpRequest))
         .homeBaseUrl(getHomeBaseUrl(baseUrl, selectedOption))
-        .homeAppServerSideType(getHomeAppServerSideType(instance, selectedOption))
+        .homeServerSideType(getHomeServerSideType(instance, selectedOption))
         .homeConsumedRoute(getHomeConsumedRoute(appRoute, selectedOption))
         .homeUriPrefix(getHomeUriPrefix(selectedOption))
         .serverSideType(instance.getClass().getName())
@@ -133,10 +133,10 @@ public class ReflectionAppMapper {
     return appRoute;
   }
 
-  private static String getHomeAppServerSideType(
+  private static String getHomeServerSideType(
       Object instance, Optional<? extends Actionable> selectedOption) {
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu remoteMenu) {
-      return remoteMenu.appServerSideType();
+      return remoteMenu.serverSideType();
     }
     return null;
   }
@@ -307,12 +307,12 @@ public class ReflectionAppMapper {
       if (uri != null) {
         return new RouteLink(uri, getLabel(field))
             .withPath("/" + field.getName())
-            .withAppServerSideType(instance.getClass().getName())
+            .withServerSideType(instance.getClass().getName())
             .withConsumedRoute(appRoute);
       }
       return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field))
           .withPath("/" + field.getName())
-          .withAppServerSideType(instance.getClass().getName())
+          .withServerSideType(instance.getClass().getName())
           .withConsumedRoute(appRoute);
     }
     if (URI.class.equals(field.getType())) {

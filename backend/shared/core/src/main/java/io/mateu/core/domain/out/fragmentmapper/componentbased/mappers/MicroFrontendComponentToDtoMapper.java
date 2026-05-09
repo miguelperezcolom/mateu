@@ -15,7 +15,7 @@ public class MicroFrontendComponentToDtoMapper {
             microFrontend.consumedRoute(),
             microFrontend.style(),
             microFrontend.cssClasses(),
-            microFrontend.appServerSideType(),
+            microFrontend.serverSideType(),
             microFrontend.appState(),
             microFrontend.actionId()),
         "fieldId",
