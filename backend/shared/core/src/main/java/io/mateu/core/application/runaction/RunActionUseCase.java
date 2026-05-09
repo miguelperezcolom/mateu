@@ -973,8 +973,14 @@ public class RunActionUseCase {
       if (idField != null && command.httpRequest().runActionRq().parameters() != null) {
         var id = command.httpRequest().runActionRq().componentState().get(idField);
         if (id != null) {
-          command.httpRequest().setAttribute("oldRoute", command.route());
-          command = command.withRoute(command.route() + "/" + id + "/edit");
+          // Strip trailing id segment if the route already contains it (e.g. when editing from
+          // view)
+          var baseRoute = command.route();
+          if (baseRoute.endsWith("/" + id)) {
+            baseRoute = baseRoute.substring(0, baseRoute.lastIndexOf("/" + id));
+          }
+          command.httpRequest().setAttribute("oldRoute", baseRoute);
+          command = command.withRoute(baseRoute + "/" + id + "/edit");
           command.httpRequest().setAttribute("updateUrl", command.route());
           return new AdjustedCommand(command, true);
         }
