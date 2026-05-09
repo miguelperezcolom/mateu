@@ -1006,8 +1006,32 @@ public class RunActionUseCase {
         }
       }
       command.httpRequest().setAttribute("oldRoute", baseRoute);
+      // Set resolvedPath so getCrudRoute strips "/new" and returns the correct base route,
+      // regardless of whether findRouteResolver or instantiateWithKnownType is used.
+      command.httpRequest().setAttribute("resolvedPath", baseRoute + "/new");
       command = command.withRoute(baseRoute + "/new");
       return new AdjustedCommand(command, true);
+    }
+    if ("cancel-view".equals(command.actionId())) {
+      // Pre-strip the entity id from the route so resolvedPath is set to the list route.
+      // This ensures getCrudRoute returns the correct base route regardless of whether
+      // savedId is available from the component state.
+      var baseRoute = command.route();
+      var idFieldName = (String) command.componentState().get("idFieldForRow");
+      if (idFieldName != null) {
+        var id = command.componentState().get(idFieldName);
+        if (id != null) {
+          // Strip /edit suffix if present
+          if (baseRoute.endsWith("/edit")) {
+            baseRoute = baseRoute.substring(0, baseRoute.lastIndexOf("/edit"));
+          }
+          // Strip the trailing id segment (e.g. /products/entity-1 → /products)
+          if (baseRoute.endsWith("/" + id)) {
+            baseRoute = baseRoute.substring(0, baseRoute.lastIndexOf("/" + id));
+          }
+        }
+      }
+      command = command.withRoute(baseRoute);
     }
     return new AdjustedCommand(command, false);
   }

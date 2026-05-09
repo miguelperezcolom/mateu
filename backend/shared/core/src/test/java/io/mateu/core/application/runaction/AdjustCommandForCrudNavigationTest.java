@@ -100,6 +100,36 @@ class AdjustCommandForCrudNavigationTest extends RunActionUseCaseTest {
   }
 
   @Test
+  void stripsIdFromRouteForCancelViewAction() {
+    var httpRequest = new FakeHttpRequest();
+    httpRequest.storeRunActionRqDto(
+        RunActionRqDto.builder()
+            .componentState(Map.of("idFieldForRow", "id", "id", "entity-1", "_state", "view"))
+            .parameters(Map.of())
+            .build());
+
+    var command =
+        new RunActionCommand(
+            "base_url",
+            "ui_id",
+            "/items/entity-1",
+            "consumed",
+            "cancel-view",
+            Map.of("idFieldForRow", "id", "id", "entity-1", "_state", "view"),
+            Map.of(),
+            "initiator",
+            httpRequest,
+            FakeCrudOrchestrator.class.getName(),
+            "");
+
+    var increment = useCase.handle(command).blockLast();
+    assertThat(increment).isNotNull();
+    // The route adjustment strips /entity-1 so resolvedPath = /items.
+    // getCrudRoute then returns /items and pushStateToHistory("/items") is sent.
+    assertThat(httpRequest.getAttribute("resolvedPath")).isEqualTo("/items");
+  }
+
+  @Test
   void appendsIdAndEditToRouteForEditAction() {
     var httpRequest = new FakeHttpRequest();
     httpRequest.storeRunActionRqDto(
