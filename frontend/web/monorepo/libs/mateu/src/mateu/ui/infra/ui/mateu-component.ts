@@ -465,6 +465,8 @@ export class MateuComponent extends ComponentElement {
         callbackToken: string
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
 
+        console.log('requesting action', detail.actionId, action, serverSideComponent)
+
         if (action && action.href) {
             window.location.href = action.href
             return

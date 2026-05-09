@@ -72,7 +72,6 @@ export default abstract class ConnectedElement extends LitElement {
                             undefined,
                             undefined,
                             undefined,
-                            undefined,
                             option.params,
                             this,
                             true

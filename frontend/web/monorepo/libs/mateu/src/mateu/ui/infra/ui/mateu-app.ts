@@ -55,7 +55,7 @@ export class MateuApp extends ComponentElement {
     selectedBaseUrl: string | undefined = undefined
 
     @state()
-    selectedAppServerSideType: string | undefined = undefined
+    selectedServerSideType: string | undefined = undefined
 
     @state()
     selectedParams: any | undefined = undefined
@@ -100,7 +100,7 @@ export class MateuApp extends ComponentElement {
             this.selectedConsumedRoute = consumedRoute
             this.selectedBaseUrl = _baseUrl
             this.selectedRoute = route
-            this.selectedAppServerSideType = serverSideType
+            this.selectedServerSideType = serverSideType
             this.selectedUriPrefix = uriPrefix;
             this.instant = nanoid()
             let baseUrl = this.baseUrl??''
@@ -233,7 +233,7 @@ export class MateuApp extends ComponentElement {
         serverSideType: string | undefined
         uriPrefix: string | undefined
     }) => {
-        if (e.path == this.selectedRoute && e.consumedRoute == this.selectedConsumedRoute && e.baseUrl == this.selectedBaseUrl &&  e.serverSideType == this.selectedAppServerSideType) {
+        if (e.path == this.selectedRoute && e.consumedRoute == this.selectedConsumedRoute && e.baseUrl == this.selectedBaseUrl &&  e.serverSideType == this.selectedServerSideType) {
             const uxElement = this.shadowRoot?.querySelector('mateu-ux');
             if (uxElement) {
                 console.log('force update')
@@ -303,7 +303,7 @@ export class MateuApp extends ComponentElement {
                 if (_changedProperties.has('component')) {
                     this.selectedRoute = app.homeRoute
                     this.selectedConsumedRoute = app.homeConsumedRoute
-                    this.selectedAppServerSideType = app.homeAppServerSideType
+                    this.selectedServerSideType = app.homeServerSideType
                     this.selectedBaseUrl = app.homeBaseUrl
                     this.selectedUriPrefix = app.homeUriPrefix
                 }

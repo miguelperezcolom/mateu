@@ -29,9 +29,9 @@ const chooseBaseUrl = (container: MateuApp, metadata: App) => {
 }
 const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
-        return container.selectedAppServerSideType??metadata.serverSideType
+        return container.selectedServerSideType??metadata.serverSideType
     }
-    return metadata.homeAppServerSideType
+    return metadata.homeServerSideType
 }
 const chooseUriPrefix = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
@@ -110,7 +110,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <br/>
                             container.selectedConsumedRoute:${container.selectedConsumedRoute}
                             <br/>
-                            container.selectedAppServerSideType:${container.selectedAppServerSideType}
+                            container.selectedServerSideType:${container.selectedServerSideType}
                             <br/>
                             container.selectedUriPrefix:${container.selectedUriPrefix}
                             <hr>
@@ -130,7 +130,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <br/>
                             metadata.homeConsumedRoute:${metadata.homeConsumedRoute}
                             <br/>
-                            metadata.homeAppServerSideType:${metadata.homeAppServerSideType}
+                            metadata.homeServerSideType:${metadata.homeServerSideType}
                             <br/>
                             metadata.homeUriPrefix:${metadata.homeUriPrefix}
                             <hr>
@@ -235,7 +235,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <br/>
                             container.selectedConsumedRoute:${container.selectedConsumedRoute}
                             <br/>
-                            container.selectedAppServerSideType:${container.selectedAppServerSideType}
+                            container.selectedServerSideType:${container.selectedServerSideType}
                             <br/>
                             container.selectedUriPrefix:${container.selectedUriPrefix}
                             <hr>
@@ -255,7 +255,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <br/>
                             metadata.homeConsumedRoute:${metadata.homeConsumedRoute}
                             <br/>
-                            metadata.homeAppServerSideType:${metadata.homeAppServerSideType}
+                            metadata.homeServerSideType:${metadata.homeServerSideType}
                             <br/>
                             metadata.homeUriPrefix:${metadata.homeUriPrefix}
                             <hr>
