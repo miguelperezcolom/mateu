@@ -988,17 +988,21 @@ public class RunActionUseCase {
     }
     if ("new".equals(command.actionId())) {
       var baseRoute = command.route();
-      var state =
-          command.componentState() != null ? (String) command.componentState().get("_state") : null;
-      if ("edit".equals(state) || "view".equals(state)) {
-        // Strip /edit suffix if present
-        if (baseRoute.endsWith("/edit")) {
-          baseRoute = baseRoute.substring(0, baseRoute.lastIndexOf("/edit"));
-        }
-        // Strip the trailing id segment (last path segment)
-        int lastSlash = baseRoute.lastIndexOf("/");
-        if (lastSlash > 0) {
-          baseRoute = baseRoute.substring(0, lastSlash);
+      var idFieldName =
+          command.componentState() != null
+              ? (String) command.componentState().get("idFieldForRow")
+              : null;
+      if (idFieldName != null) {
+        var id = command.componentState().get(idFieldName);
+        if (id != null) {
+          // Strip /edit suffix if present (coming from the edit form)
+          if (baseRoute.endsWith("/edit")) {
+            baseRoute = baseRoute.substring(0, baseRoute.lastIndexOf("/edit"));
+          }
+          // Strip the trailing id segment (coming from view or edit)
+          if (baseRoute.endsWith("/" + id)) {
+            baseRoute = baseRoute.substring(0, baseRoute.lastIndexOf("/" + id));
+          }
         }
       }
       command.httpRequest().setAttribute("oldRoute", baseRoute);
