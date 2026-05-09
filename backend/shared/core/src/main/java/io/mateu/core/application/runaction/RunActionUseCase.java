@@ -987,8 +987,22 @@ public class RunActionUseCase {
       }
     }
     if ("new".equals(command.actionId())) {
-      command.httpRequest().setAttribute("oldRoute", command.route());
-      command = command.withRoute(command.route() + "/new");
+      var baseRoute = command.route();
+      var state =
+          command.componentState() != null ? (String) command.componentState().get("_state") : null;
+      if ("edit".equals(state) || "view".equals(state)) {
+        // Strip /edit suffix if present
+        if (baseRoute.endsWith("/edit")) {
+          baseRoute = baseRoute.substring(0, baseRoute.lastIndexOf("/edit"));
+        }
+        // Strip the trailing id segment (last path segment)
+        int lastSlash = baseRoute.lastIndexOf("/");
+        if (lastSlash > 0) {
+          baseRoute = baseRoute.substring(0, lastSlash);
+        }
+      }
+      command.httpRequest().setAttribute("oldRoute", baseRoute);
+      command = command.withRoute(baseRoute + "/new");
       return new AdjustedCommand(command, true);
     }
     return new AdjustedCommand(command, false);
