@@ -31,7 +31,6 @@ class ResolvesRouteForAppTest extends RunActionUseCaseTest {
                     "initiator_component_id",
                     new FakeHttpRequest().storeRunActionRqDto(RunActionRqDto.builder().build()),
                     SampleComponent.class.getName(),
-                    "",
                     ""))
             .blockLast();
     // System.out.println(toJson(increment));

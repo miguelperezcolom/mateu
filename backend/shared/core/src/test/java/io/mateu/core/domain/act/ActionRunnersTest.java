@@ -26,18 +26,7 @@ class ActionRunnersTest {
 
   private RunActionCommand command(Object instance, String actionId) {
     return new RunActionCommand(
-        "base",
-        "ui",
-        "route",
-        "consumed",
-        actionId,
-        Map.of(),
-        Map.of(),
-        "init",
-        http,
-        null,
-        null,
-        null);
+        "base", "ui", "route", "consumed", actionId, Map.of(), Map.of(), "init", http, null, null);
   }
 
   // --- ComponentTreeActionRunner ---

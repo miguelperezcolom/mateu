@@ -32,18 +32,7 @@ class DefaultRoutedClassResolverTest {
     var http = new FakeHttpRequest();
     http.storeRunActionRqDto(RunActionRqDto.builder().componentState(Map.of()).build());
     return new RunActionCommand(
-        "base_url",
-        "ui_id",
-        route,
-        "",
-        "",
-        Map.of(),
-        Map.of(),
-        "initiator",
-        http,
-        null,
-        null,
-        null);
+        "base_url", "ui_id", route, "", "", Map.of(), Map.of(), "initiator", http, null, null);
   }
 
   @Test

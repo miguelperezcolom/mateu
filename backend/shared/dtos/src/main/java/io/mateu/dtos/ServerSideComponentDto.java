@@ -75,4 +75,22 @@ public record ServerSideComponentDto(
         slot,
         containerId);
   }
+
+  @Override
+  public ComponentDto withChildren(List<ComponentDto> children) {
+    return new ServerSideComponentDto(
+        id,
+        serverSideType,
+        route,
+        children,
+        initialData,
+        style,
+        cssClasses,
+        actions,
+        triggers,
+        rules,
+        validations,
+        slot,
+        containerId);
+  }
 }

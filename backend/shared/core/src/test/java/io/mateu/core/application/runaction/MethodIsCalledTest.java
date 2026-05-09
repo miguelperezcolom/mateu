@@ -23,7 +23,6 @@ class MethodIsCalledTest extends RunActionUseCaseTest {
             "sayHello",
             "route",
             SampleComponent.class.getName(), // server side type
-            "",
             "");
 
     var httpRequest = new FakeHttpRequest();
@@ -43,7 +42,6 @@ class MethodIsCalledTest extends RunActionUseCaseTest {
                     rq.initiatorComponentId(),
                     httpRequest,
                     rq.serverSideType(),
-                    rq.appServerSideType(),
                     rq.serverSideComponentRoute()))
             .blockLast();
     assertThat(increment).isNotNull();

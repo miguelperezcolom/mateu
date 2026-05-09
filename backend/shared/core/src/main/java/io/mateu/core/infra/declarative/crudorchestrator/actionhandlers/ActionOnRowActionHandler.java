@@ -33,8 +33,7 @@ public class ActionOnRowActionHandler {
                 rq.initiatorComponentId(),
                 httpRequest,
                 rq.serverSideType(),
-                rq.serverSideComponentRoute(),
-                rq.appServerSideType());
+                rq.serverSideComponentRoute());
         Object result = invoke(method, crudOrchestrator, command);
         if (result != null) {
           return result;

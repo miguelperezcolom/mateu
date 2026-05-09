@@ -14,8 +14,7 @@ public record RunActionRqDto(
     String actionId,
     String route,
     String serverSideType,
-    String serverSideComponentRoute,
-    String appServerSideType) {
+    String serverSideComponentRoute) {
 
   public RunActionRqDto {
     componentState =

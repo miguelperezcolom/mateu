@@ -73,7 +73,6 @@ class RunActionUseCaseWrapTest extends RunActionUseCaseTest {
                         .storeRunActionRqDto(
                             RunActionRqDto.builder().componentState(Map.of()).build()),
                     SimpleForm.class.getName(),
-                    null,
                     null))
             .blockLast();
     assertThat(increment).isNotNull();
@@ -97,7 +96,6 @@ class RunActionUseCaseWrapTest extends RunActionUseCaseTest {
                         .storeRunActionRqDto(
                             RunActionRqDto.builder().componentState(Map.of()).build()),
                     SimpleForm.class.getName(),
-                    null,
                     null))
             .blockLast();
     assertThat(increment).isNotNull();

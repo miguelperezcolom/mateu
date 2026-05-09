@@ -39,4 +39,9 @@ public record ClientSideComponentDto(
   public ComponentDto setSlot(String slot) {
     return new ClientSideComponentDto(metadata, id, children, style, cssClasses, slot);
   }
+
+  @Override
+  public ComponentDto withChildren(List<ComponentDto> children) {
+    return new ClientSideComponentDto(metadata, id, children, style, cssClasses, slot);
+  }
 }

@@ -16,9 +16,8 @@ public record RunActionCommand(
     Map<String, Object> appState,
     String initiatorComponentId,
     HttpRequest httpRequest,
-    String serverSiteType,
-    String serverSideComponentRoute,
-    String appServerSideType) {
+    String serverSideType,
+    String serverSideComponentRoute) {
 
   public RunActionCommand {
     componentState =

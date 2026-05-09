@@ -264,20 +264,13 @@ public class RunActionUseCase {
                         var finalCommand2 =
                             finalCommand.withRoute(
                                 (String) finalCommand.httpRequest().getAttribute("oldRoute"));
-                        if (finalCommand2.serverSiteType() != null
-                            && !finalCommand2.serverSiteType().isEmpty()) {
-                          setResolvedRoute(finalCommand2.httpRequest(), finalCommand2.route());
-                          return createInstanceAndPostHydrate(
-                              finalCommand2.serverSiteType(), finalCommand2);
-                        }
-
-                        if (finalCommand2.appServerSideType() != null
-                            && !finalCommand2.appServerSideType().isEmpty()) {
+                        if (finalCommand2.serverSideType() != null
+                            && !finalCommand2.serverSideType().isEmpty()) {
                           setResolvedRoute(
                               finalCommand2.httpRequest(), finalCommand2.consumedRoute());
                           var mono =
                               createInstanceAndPostHydrate(
-                                      finalCommand2.appServerSideType(), finalCommand2)
+                                      finalCommand2.serverSideType(), finalCommand2)
                                   .doOnNext(
                                       app ->
                                           finalCommand2
@@ -297,15 +290,10 @@ public class RunActionUseCase {
                       }))
           .flatMap(app -> resolveMenuIfApp(finalCommand, app));
     } else {
-      if (finalCommand.serverSiteType() != null && !finalCommand.serverSiteType().isEmpty()) {
-        setResolvedRoute(finalCommand.httpRequest(), finalCommand.route());
-        return createInstanceAndPostHydrate(finalCommand.serverSiteType(), finalCommand);
-      }
-
-      if (finalCommand.appServerSideType() != null && !finalCommand.appServerSideType().isEmpty()) {
+      if (finalCommand.serverSideType() != null && !finalCommand.serverSideType().isEmpty()) {
         setResolvedRoute(finalCommand.httpRequest(), finalCommand.consumedRoute());
         var mono =
-            createInstanceAndPostHydrate(finalCommand.appServerSideType(), finalCommand)
+            createInstanceAndPostHydrate(finalCommand.serverSideType(), finalCommand)
                 .doOnNext(app -> finalCommand.httpRequest().setAttribute("resolvedApp", app));
         if (finalCommand.route().endsWith("_page")
             || finalCommand.route().endsWith("_no_home_route")) {
@@ -340,7 +328,7 @@ public class RunActionUseCase {
         "route: {}, consumedRoute: {}, app {}",
         command.route(),
         command.consumedRoute(),
-        command.appServerSideType());
+        command.serverSideType());
     return Mono.defer(
             () ->
                 Flux.fromIterable(routes)
@@ -847,7 +835,7 @@ public class RunActionUseCase {
             .actionId("")
             .consumedRoute(remoteMenu.consumedRoute())
             .route(remoteMenu.route())
-            .appServerSideType(remoteMenu.appServerSideType())
+            .serverSideType(remoteMenu.appServerSideType())
             .initiatorComponentId(httpRequest.runActionRq().initiatorComponentId())
             .build();
 
@@ -990,10 +978,10 @@ public class RunActionUseCase {
    */
   @SneakyThrows
   private AdjustedCommand adjustCommandForCrudNavigation(RunActionCommand command) {
-    if (command.serverSiteType() == null || command.serverSiteType().isEmpty()) {
+    if (command.serverSideType() == null || command.serverSideType().isEmpty()) {
       return new AdjustedCommand(command, false);
     }
-    var type = Class.forName(command.serverSiteType());
+    var type = Class.forName(command.serverSideType());
     if (!CrudOrchestrator.class.isAssignableFrom(type)) {
       return new AdjustedCommand(command, false);
     }

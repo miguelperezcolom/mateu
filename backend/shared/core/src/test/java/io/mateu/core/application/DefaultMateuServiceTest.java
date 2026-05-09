@@ -47,7 +47,6 @@ class DefaultMateuServiceTest {
             "action_id",
             "route",
             UsingInterfacesUI.class.getName(),
-            "",
             "");
     assertNotNull(
         defaultMateuService
