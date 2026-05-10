@@ -97,8 +97,89 @@ public class AiChatController {
 }
 ```
 
+## LLM-driven UI interactions
+
+The AI assistant is not limited to returning text.
+
+It can also **trigger UI actions** — navigation, form updates, or any custom behaviour — by emitting a special JSON event inside the SSE stream.
+
+### Event format
+
+Any `data:` line whose payload is a JSON object with an `event` field is treated as a UI event instead of chat text:
+
+```
+data: {"event": "<event-name>", "detail": { ... }}
+```
+
+`mateu-chat` will:
+
+1. Parse the JSON.
+2. Dispatch `new CustomEvent(event, { detail, bubbles: true, composed: true })`.
+3. **Not** display the JSON in the chat message — it is consumed silently.
+
+Text tokens and UI events can be freely mixed in the same stream.
+
+### Built-in event: `navigation-requested`
+
+Mateu's app shell listens for `navigation-requested` and routes the user to the specified view.
+
+Payload fields:
+
+| Field            | Type   | Description                                      |
+|------------------|--------|--------------------------------------------------|
+| `route`          | string | Target route (e.g. `/orders/123`)                |
+| `consumedRoute`  | string | Route consumed by the app shell (usually `""`)   |
+| `actionId`       | string | Action to trigger on arrival (e.g. `"view"`)     |
+| `baseUrl`        | string | Base URL of the target micro-frontend            |
+| `serverSideType` | string | Fully-qualified Java class of the target UI      |
+| `uriPrefix`      | string | URI prefix (usually `""`)                        |
+
+Example — navigate to a specific order:
+
+```
+data: {"event": "navigation-requested", "detail": {"route": "/orders/ORD-42", "consumedRoute": "", "actionId": "view", "baseUrl": "/_orders", "serverSideType": "com.example.OrderHome", "uriPrefix": ""}}
+```
+
+### Custom events
+
+You can define your own events and handle them anywhere in your component tree.
+
+Backend — emit the event mid-stream:
+
+```java
+// Inside your SSE Flux, after the answer tokens:
+yield "data: " + objectMapper.writeValueAsString(Map.of(
+    "event", "highlight-row",
+    "detail", Map.of("id", orderId)
+)) + "\n\n";
+```
+
+Frontend — listen for it in a custom web component or page:
+
+```js
+document.addEventListener('highlight-row', (e) => {
+    highlightRow(e.detail.id);
+});
+```
+
+### System prompt guidance
+
+To make the LLM emit these events reliably, describe the contract in the system prompt:
+
+```
+You are an assistant for the Orders application.
+
+When the user asks to open or view a specific record, emit a navigation event
+at the END of your response, after any explanatory text:
+
+data: {"event": "navigation-requested", "detail": {"route": "/orders/<id>", "consumedRoute": "", "actionId": "view", "baseUrl": "/_orders", "serverSideType": "com.example.OrderHome", "uriPrefix": ""}}
+
+Only emit one event per response. Never show the raw JSON to the user.
+```
+
 ## Summary
 
 - Annotate your root UI class with `@AI(sse = "<url>")`.
 - Implement an SSE endpoint at that URL.
 - Mateu handles the rest: button, panel, streaming UI.
+- Emit `{"event": "...", "detail": {...}}` in the stream to trigger UI actions from the LLM.

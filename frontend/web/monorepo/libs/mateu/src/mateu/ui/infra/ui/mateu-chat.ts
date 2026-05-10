@@ -5,12 +5,15 @@ import "@vaadin/message-list";
 import "@vaadin/message-input";
 import "@vaadin/vertical-layout";
 import {MessageInput} from "@vaadin/message-input";
+import {nanoid} from "nanoid";
 
 @customElement('mateu-chat')
 export class MateuChat extends LitElement {
 
     @property()
     sseUrl: string | undefined
+
+    readonly chatSessionId: string = nanoid();
 
     @property()
     items: MessageListItem[] = []
@@ -146,36 +149,28 @@ export class MateuChat extends LitElement {
 
     // Creates a NEW item object so Vaadin always detects the change (=== comparison).
     private updateMessage(idx: number, text: string) {
-        if (text.includes('xxxxx?q=')) { // /booking/bookings/QXXF4A
-            if (false) this.dispatchEvent(new CustomEvent('navigation-requested', {
-                detail: {
-                    route: '/booking/bookings',
-                    consumedRoute: '',
-                    actionId: '',
-                    baseUrl: '/_booking',
-                    serverSideType: 'io.mateu.workflow.booking.infra.in.ui.BookingHome',
-                    uriPrefix: ''
-                },
-                bubbles: true,
-                composed: true
-            }))
-            this.dispatchEvent(new CustomEvent('navigation-requested', {
-                detail: {
-                    route: '/booking/bookings/' + text.split('xxxxx?q=')[1].replaceAll('\n', ''),
-                    consumedRoute: '',
-                    actionId: 'view',
-                    baseUrl: '/_booking',
-                    serverSideType: 'io.mateu.workflow.booking.infra.in.ui.BookingHome',
-                    uriPrefix: ''
-                },
-                bubbles: true,
-                composed: true
-            }))
-        }
         this.items = this.items.map((item, i) =>
             i === idx ? { ...item, text } : item
         );
         this.scrollBottom();
+    }
+
+    /**
+     * Returns {event, detail} if the payload is a JSON object with an "event" string field,
+     * otherwise null. The "detail" field is optional and defaults to {}.
+     */
+    private tryParseCustomEvent(payload: string): { event: string; detail: any } | null {
+        const trimmed = payload.trim();
+        if (!trimmed.startsWith('{')) return null;
+        try {
+            const obj = JSON.parse(trimmed);
+            if (typeof obj.event === 'string') {
+                return { event: obj.event, detail: obj.detail ?? {} };
+            }
+        } catch {
+            // not valid JSON
+        }
+        return null;
     }
 
     /** Returns the parsed token-usage object if the data payload is JSON with token fields, otherwise null. */
@@ -221,7 +216,7 @@ export class MateuChat extends LitElement {
             const sessionId = sessionStorage.getItem('__mateu_sesion_id');
             if (sessionId) headers['X-Session-Id'] = sessionId;
 
-            const response = await fetch(`${this.sseUrl}?message=${encodeURIComponent(text)}`, { headers });
+            const response = await fetch(`${this.sseUrl}?message=${encodeURIComponent(text)}&sessionId=${this.chatSessionId}`, { headers });
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -240,10 +235,13 @@ export class MateuChat extends LitElement {
 
                 if (done) {
                     if (buffer.trim().startsWith('data:')) {
-                        const payload = buffer.trim().slice(5);
+                        const payload = buffer.trim().slice(5).trim();
                         const usage = this.tryParseTokenUsage(payload);
+                        const customEvent = !usage && this.tryParseCustomEvent(payload);
                         if (usage) {
                             this.tokenUsage = { ...this.tokenUsage, ...usage };
+                        } else if (customEvent) {
+                            this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
                         } else {
                             accumulatedText += payload;
                             this.updateMessage(agentIdx, accumulatedText);
@@ -260,10 +258,13 @@ export class MateuChat extends LitElement {
                 let changed = false;
                 for (const line of lines) {
                     if (line.trim().startsWith('data:')) {
-                        const payload = line.trim().slice(5);
+                        const payload = line.trim().slice(5).trim();
                         const usage = this.tryParseTokenUsage(payload);
+                        const customEvent = !usage && this.tryParseCustomEvent(payload);
                         if (usage) {
                             this.tokenUsage = { ...this.tokenUsage, ...usage };
+                        } else if (customEvent) {
+                            this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
                         } else {
                             accumulatedText += payload + '\n';
                             changed = true;
