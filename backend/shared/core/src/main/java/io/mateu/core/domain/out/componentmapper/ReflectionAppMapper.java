@@ -300,8 +300,10 @@ public class ReflectionAppMapper {
       appRoute = "";
     }
     var menuAnnotation = field.getAnnotation(io.mateu.uidl.annotations.Menu.class);
-    var description = (menuAnnotation != null && !menuAnnotation.description().isBlank())
-        ? menuAnnotation.description() : null;
+    var description =
+        (menuAnnotation != null && !menuAnnotation.description().isBlank())
+            ? menuAnnotation.description()
+            : null;
     if (Actionable.class.isAssignableFrom(field.getType())) {
       return completeActionable(appRoute, field, instance);
     }
@@ -333,18 +335,21 @@ public class ReflectionAppMapper {
     }
     if (Submenu.class.isAssignableFrom(field.getType())) {
       return new Menu(
-          "/" + field.getName(),
-          getLabel(field),
-          getActionables(
-              appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest))
+              "/" + field.getName(),
+              getLabel(field),
+              getActionables(
+                  appRoute,
+                  getValueOrNewInstance(field, instance, httpRequest),
+                  route,
+                  httpRequest))
           .withDescription(description);
     }
     if (MenuSupplier.class.isAssignableFrom(field.getType())) {
       var menuSupplier = (MenuSupplier) getValue(field, instance);
       return new Menu(
-          "/" + field.getName(),
-          getLabel(field),
-          completeActionables(appRoute, menuSupplier.menu(httpRequest)))
+              "/" + field.getName(),
+              getLabel(field),
+              completeActionables(appRoute, menuSupplier.menu(httpRequest)))
           .withDescription(description);
     }
     if (!isBasic(field.getType())) {
@@ -354,15 +359,18 @@ public class ReflectionAppMapper {
                   childField.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
                       && isAuthorized(childField.getAnnotation(EyesOnly.class), httpRequest))) {
         return new Menu(
-            "/" + field.getName(),
-            getLabel(field),
-            getActionables(
-                appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest))
+                "/" + field.getName(),
+                getLabel(field),
+                getActionables(
+                    appRoute,
+                    getValueOrNewInstance(field, instance, httpRequest),
+                    route,
+                    httpRequest))
             .withDescription(description);
       }
     }
     return new FieldLink(
-        "/" + field.getName(), getLabel(field), instance.getClass(), field.getName())
+            "/" + field.getName(), getLabel(field), instance.getClass(), field.getName())
         .withDescription(description);
   }
 

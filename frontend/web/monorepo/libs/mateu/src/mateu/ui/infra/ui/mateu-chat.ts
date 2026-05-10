@@ -269,6 +269,7 @@ export class MateuChat extends LitElement {
         const agentIdx = this.addMessage('', 'agent');
         this.startLoading();
 
+        let accumulatedText = '';
         try {
             const headers: Record<string, string> = {
                 'Accept': 'text/event-stream',
@@ -298,7 +299,6 @@ export class MateuChat extends LitElement {
 
             const decoder = new TextDecoder();
             let buffer = '';
-            let accumulatedText = '';
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -311,7 +311,12 @@ export class MateuChat extends LitElement {
                         if (usage) {
                             this.tokenUsage = { ...this.tokenUsage, ...usage };
                         } else if (customEvent) {
-                            this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
+                            if (customEvent.event === 'agent-error') {
+                                accumulatedText = '⚠️ ' + (customEvent.detail?.message ?? 'Error desconocido del agente');
+                                this.updateMessage(agentIdx, accumulatedText);
+                            } else {
+                                this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
+                            }
                         } else {
                             accumulatedText += payload;
                             this.updateMessage(agentIdx, accumulatedText);
@@ -334,7 +339,12 @@ export class MateuChat extends LitElement {
                         if (usage) {
                             this.tokenUsage = { ...this.tokenUsage, ...usage };
                         } else if (customEvent) {
-                            this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
+                            if (customEvent.event === 'agent-error') {
+                                accumulatedText = '⚠️ ' + (customEvent.detail?.message ?? 'Error desconocido del agente');
+                                this.updateMessage(agentIdx, accumulatedText);
+                            } else {
+                                this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
+                            }
                         } else {
                             accumulatedText += payload + '\n';
                             changed = true;
@@ -345,9 +355,18 @@ export class MateuChat extends LitElement {
                     this.updateMessage(agentIdx, accumulatedText);
                 }
             }
+
+            if (!accumulatedText) {
+                this.updateMessage(agentIdx, '⚠️ El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).');
+            }
         } catch (error: any) {
             console.error('Error en el flujo SSE:', error);
-            this.updateMessage(agentIdx, '⚠️ Error: ' + error.message);
+            const isNetworkError = error.message === 'Failed to fetch' || error.message === 'network error' || error.message === 'Load failed';
+            if (isNetworkError && !accumulatedText) {
+                this.updateMessage(agentIdx, '⚠️ No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible.');
+            } else {
+                this.updateMessage(agentIdx, '⚠️ Error: ' + error.message);
+            }
         } finally {
                 this.stopLoading();
                 setTimeout(() => {

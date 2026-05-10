@@ -15,6 +15,7 @@ import java.util.List;
 @UI("/home2")
 @Title("My first Mateu app")
 @Style(StyleConstants.CONTAINER)
+@AI(sse = "http://localhost:8095/ai/api/agent/stream")
 public class Home2 implements WidgetSupplier {
 
     @Menu
