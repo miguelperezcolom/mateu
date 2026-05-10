@@ -1,5 +1,5 @@
 import {customElement, property, query, state} from "lit/decorators.js";
-import {css, html, LitElement} from "lit";
+import {css, html, LitElement, nothing} from "lit";
 import {MessageListItem} from "@vaadin/message-list";
 import "@vaadin/message-list";
 import "@vaadin/message-input";
@@ -29,6 +29,14 @@ export class MateuChat extends LitElement {
 
     @state()
     recognitionAvailable: boolean = false;
+
+    @state()
+    loading: boolean = false;
+
+    @state()
+    elapsedSeconds: number = 0;
+
+    private _elapsedTimer: ReturnType<typeof setInterval> | undefined;
 
 
     startListening = () => {
@@ -167,6 +175,18 @@ export class MateuChat extends LitElement {
         this.scrollBottom();
     }
 
+    private startLoading() {
+        this.loading = true;
+        this.elapsedSeconds = 0;
+        this._elapsedTimer = setInterval(() => { this.elapsedSeconds++; }, 1000);
+    }
+
+    private stopLoading() {
+        this.loading = false;
+        clearInterval(this._elapsedTimer);
+        this._elapsedTimer = undefined;
+    }
+
     send = async (e: CustomEvent) => {
         this.messageInputElement?.setAttribute("disabled", "disabled");
         const text = e.detail.value.trim();
@@ -174,6 +194,7 @@ export class MateuChat extends LitElement {
 
         this.addMessage(text, 'user');
         const agentIdx = this.addMessage('', 'agent');
+        this.startLoading();
 
         try {
             const response = await fetch(`${this.sseUrl}?message=${encodeURIComponent(text)}`, {
@@ -223,6 +244,7 @@ export class MateuChat extends LitElement {
             console.error('Error en el flujo SSE:', error);
             this.updateMessage(agentIdx, '⚠️ Error: ' + error.message);
         } finally {
+                this.stopLoading();
                 setTimeout(() => {
                     if (this.messageInputElement) {
                         this.messageInputElement.value = ''
@@ -238,8 +260,14 @@ export class MateuChat extends LitElement {
             <div class="scroll-container" style="height: 40rem; overflow: auto;">
                 <vaadin-message-list .items="${this.items}" markdown></vaadin-message-list>
             </div>
+            ${this.loading ? html`
+                <div class="loading-bar">
+                    <span class="spinner"></span>
+                    <span class="loading-text">Thinking… ${this.elapsedSeconds}s</span>
+                </div>
+            ` : nothing}
             <vaadin-horizontal-layout
-                    style="padding-left: 1rem; align-items: center; border-top: 1px solid var(--lumo-contrast-10pct);"><vaadin-button 
+                    style="padding-left: 1rem; align-items: center; border-top: 1px solid var(--lumo-contrast-10pct);"><vaadin-button
                     theme="icon"
                     @click="${this.startListening}"
                     ?disabled="${!this.recognitionAvailable}"
@@ -274,6 +302,36 @@ export class MateuChat extends LitElement {
             flex-shrink: 0;
             padding: 1rem;
             border-top: 1px solid var(--lumo-contrast-10pct);
+        }
+
+        .loading-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: var(--lumo-contrast-5pct);
+            border-top: 1px solid var(--lumo-contrast-10pct);
+            font-size: var(--lumo-font-size-s);
+            color: var(--lumo-secondary-text-color);
+        }
+
+        .loading-text {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--lumo-contrast-20pct);
+            border-top-color: var(--lumo-primary-color);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     `
 }
