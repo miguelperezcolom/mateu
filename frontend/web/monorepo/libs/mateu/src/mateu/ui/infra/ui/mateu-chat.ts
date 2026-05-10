@@ -197,9 +197,13 @@ export class MateuChat extends LitElement {
         this.startLoading();
 
         try {
-            const response = await fetch(`${this.sseUrl}?message=${encodeURIComponent(text)}`, {
-                headers: { 'Accept': 'text/event-stream' }
-            });
+            const headers: Record<string, string> = { 'Accept': 'text/event-stream' };
+            const token = localStorage.getItem('__mateu_auth_token');
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            const sessionId = sessionStorage.getItem('__mateu_sesion_id');
+            if (sessionId) headers['X-Session-Id'] = sessionId;
+
+            const response = await fetch(`${this.sseUrl}?message=${encodeURIComponent(text)}`, { headers });
 
             if (!response.ok) {
                 const errorText = await response.text();
