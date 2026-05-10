@@ -17,18 +17,19 @@ public record FieldLink(
     String className,
     boolean disabled,
     boolean disabledOnClick,
-    Object itemData)
+    Object itemData,
+    String description)
     implements Actionable {
 
   public FieldLink(Class<?> type, String fieldName) {
-    this(null, null, type.getName(), fieldName, false, null, null, false, false, null);
+    this(null, null, type.getName(), fieldName, false, null, null, false, false, null, null);
   }
 
   public FieldLink(String label, Class<?> type, String fieldName) {
-    this(null, label, type.getName(), fieldName, false, null, null, false, false, null);
+    this(null, label, type.getName(), fieldName, false, null, null, false, false, null, null);
   }
 
   public FieldLink(String path, String label, Class<?> type, String fieldName) {
-    this(path, label, type.getName(), fieldName, false, null, null, false, false, null);
+    this(path, label, type.getName(), fieldName, false, null, null, false, false, null, null);
   }
 }

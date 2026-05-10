@@ -30,7 +30,8 @@ public record MenuOptionDto(
     String serverSideType,
     Map<String, Object> params,
     boolean explode,
-    String uriPrefix) {
+    String uriPrefix,
+    String description) {
 
   public MenuOptionDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());

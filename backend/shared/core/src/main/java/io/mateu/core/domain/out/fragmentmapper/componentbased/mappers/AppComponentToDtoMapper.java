@@ -304,6 +304,7 @@ public final class AppComponentToDtoMapper {
                           : app.serverSideType())
                   .params((option instanceof RemoteMenu remoteMenu) ? remoteMenu.params() : null)
                   .uriPrefix(appRoute)
+                  .description(option.description())
                   .build();
             })
         .toList();

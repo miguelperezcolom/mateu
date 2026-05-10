@@ -19,4 +19,9 @@ public interface Actionable {
   boolean disabledOnClick();
 
   Object itemData();
+
+  /** Optional description for AI assistants. Implementations may return null. */
+  default String description() {
+    return null;
+  }
 }

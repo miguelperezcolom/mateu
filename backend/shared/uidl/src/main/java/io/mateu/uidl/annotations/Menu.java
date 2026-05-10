@@ -10,4 +10,7 @@ import java.lang.annotation.Target;
 public @interface Menu {
 
   boolean selected() default false;
+
+  /** Optional description shown to AI assistants to explain the purpose of this menu entry. */
+  String description() default "";
 }

@@ -12,6 +12,8 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 interface MenuContextEntry {
     /** Breadcrumb path, e.g. ["Bookings", "List"] */
     path: string[];
+    /** Optional human-readable description of what this screen is for. */
+    description?: string;
     /** The navigation-requested detail payload to use in the SSE response */
     navigation: {
         route: string;
@@ -34,6 +36,7 @@ export class MateuChat extends LitElement {
     menu: MenuOption[] = [];
 
     readonly chatSessionId: string = nanoid();
+    private menuContextSent = false;
 
     @property()
     items: MessageListItem[] = []
@@ -227,7 +230,7 @@ export class MateuChat extends LitElement {
             if (opt.submenus && opt.submenus.length > 0) {
                 result.push(...this.buildMenuContext(opt.submenus, path));
             } else {
-                result.push({
+                const entry: MenuContextEntry = {
                     path,
                     navigation: {
                         route: opt.route,
@@ -237,7 +240,9 @@ export class MateuChat extends LitElement {
                         serverSideType: opt.serverSideType,
                         uriPrefix: opt.uriPrefix,
                     },
-                });
+                };
+                if (opt.description) entry.description = opt.description;
+                result.push(entry);
             }
         }
         return result;
@@ -277,8 +282,9 @@ export class MateuChat extends LitElement {
             const body = JSON.stringify({
                 message: text,
                 sessionId: this.chatSessionId,
-                menuContext: this.buildMenuContext(this.menu),
+                ...(!this.menuContextSent && { menuContext: this.buildMenuContext(this.menu) }),
             });
+            this.menuContextSent = true;
 
             const response = await fetch(this.sseUrl, { method: 'POST', headers, body });
 

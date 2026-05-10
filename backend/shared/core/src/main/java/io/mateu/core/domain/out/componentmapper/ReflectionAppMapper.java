@@ -299,6 +299,9 @@ public class ReflectionAppMapper {
     if ("/".equals(appRoute)) {
       appRoute = "";
     }
+    var menuAnnotation = field.getAnnotation(io.mateu.uidl.annotations.Menu.class);
+    var description = (menuAnnotation != null && !menuAnnotation.description().isBlank())
+        ? menuAnnotation.description() : null;
     if (Actionable.class.isAssignableFrom(field.getType())) {
       return completeActionable(appRoute, field, instance);
     }
@@ -308,34 +311,41 @@ public class ReflectionAppMapper {
         return new RouteLink(uri, getLabel(field))
             .withPath("/" + field.getName())
             .withServerSideType(instance.getClass().getName())
-            .withConsumedRoute(appRoute);
+            .withConsumedRoute(appRoute)
+            .withDescription(description);
       }
       return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field))
           .withPath("/" + field.getName())
           .withServerSideType(instance.getClass().getName())
-          .withConsumedRoute(appRoute);
+          .withConsumedRoute(appRoute)
+          .withDescription(description);
     }
     if (URI.class.equals(field.getType())) {
       var uri = (URI) getValue(field, instance);
       if (uri != null) {
-        return new RouteLink(uri.toString(), getLabel(field)).withPath("/" + field.getName());
+        return new RouteLink(uri.toString(), getLabel(field))
+            .withPath("/" + field.getName())
+            .withDescription(description);
       }
       return new RouteLink(appRoute + "/" + toKebabCase(field.getName()), getLabel(field))
-          .withPath("/" + field.getName());
+          .withPath("/" + field.getName())
+          .withDescription(description);
     }
     if (Submenu.class.isAssignableFrom(field.getType())) {
       return new Menu(
           "/" + field.getName(),
           getLabel(field),
           getActionables(
-              appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest));
+              appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest))
+          .withDescription(description);
     }
     if (MenuSupplier.class.isAssignableFrom(field.getType())) {
       var menuSupplier = (MenuSupplier) getValue(field, instance);
       return new Menu(
           "/" + field.getName(),
           getLabel(field),
-          completeActionables(appRoute, menuSupplier.menu(httpRequest)));
+          completeActionables(appRoute, menuSupplier.menu(httpRequest)))
+          .withDescription(description);
     }
     if (!isBasic(field.getType())) {
       if (getAllFields(field.getType()).stream()
@@ -347,11 +357,13 @@ public class ReflectionAppMapper {
             "/" + field.getName(),
             getLabel(field),
             getActionables(
-                appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest));
+                appRoute, getValueOrNewInstance(field, instance, httpRequest), route, httpRequest))
+            .withDescription(description);
       }
     }
     return new FieldLink(
-        "/" + field.getName(), getLabel(field), instance.getClass(), field.getName());
+        "/" + field.getName(), getLabel(field), instance.getClass(), field.getName())
+        .withDescription(description);
   }
 
   private static List<Actionable> completeActionables(String appRoute, List<Actionable> menu) {

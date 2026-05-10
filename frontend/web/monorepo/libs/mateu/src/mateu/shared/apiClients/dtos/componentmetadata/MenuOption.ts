@@ -24,4 +24,5 @@ export default interface MenuOption {
     params: any
     explode: boolean
     uriPrefix: string | undefined
+    description: string | undefined
 }
