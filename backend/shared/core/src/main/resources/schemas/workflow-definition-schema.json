@@ -1,0 +1,176 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "urn:eventconductor:workflow-definition-schema",
+  "title": "WorkflowDefinition",
+  "description": "Schema for an EventConductor workflow definition JSON file.",
+  "type": "object",
+  "required": ["name", "steps"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier. Auto-generated on import if omitted.",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable name of the workflow.",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "description": "Schema/definition version number.",
+      "minimum": 0,
+      "default": 0
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional free-text description of the workflow."
+    },
+    "status": {
+      "type": "string",
+      "description": "Lifecycle status of this definition.",
+      "enum": ["DRAFT", "ACTIVE", "DISABLED", "ARCHIVED"],
+      "default": "DRAFT"
+    },
+    "limitConcurrentExecutions": {
+      "type": "boolean",
+      "description": "Whether to cap the number of concurrent process instances.",
+      "default": false
+    },
+    "maxConcurrentExecutions": {
+      "type": "integer",
+      "description": "Maximum allowed concurrent instances. Only relevant when limitConcurrentExecutions is true.",
+      "minimum": 0,
+      "default": 0
+    },
+    "enqueueOnLimit": {
+      "type": "boolean",
+      "description": "When the concurrency limit is reached, enqueue new requests instead of rejecting them.",
+      "default": false
+    },
+    "steps": {
+      "type": "array",
+      "description": "Ordered list of steps that make up the workflow.",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/Step"
+      }
+    }
+  },
+  "$defs": {
+    "Step": {
+      "title": "Step",
+      "type": "object",
+      "required": ["id", "type", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Step identifier, unique within this workflow definition.",
+          "minLength": 1
+        },
+        "workflowDefinitionId": {
+          "type": "string",
+          "description": "Back-reference to the parent workflow definition. Set automatically on import."
+        },
+        "type": {
+          "type": "string",
+          "description": "Execution type of the step.",
+          "enum": ["ACTION", "JOIN", "FORK", "END", "USER_TASK", "PROCESS"]
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable step name.",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of what this step does."
+        },
+        "preconditionStepId": {
+          "type": "string",
+          "description": "ID of a previous step that must have completed before this one can start."
+        },
+        "preconditionExpression": {
+          "type": "string",
+          "description": "JEXL expression evaluated against process variables. Step is skipped if the expression returns false."
+        },
+        "parallel": {
+          "type": "boolean",
+          "description": "Whether this step can execute in parallel with other parallel-flagged steps.",
+          "default": false
+        },
+        "topic": {
+          "type": "string",
+          "description": "Kafka topic (or logical destination) to dispatch the task to. Required for ACTION steps."
+        },
+        "formId": {
+          "type": "string",
+          "description": "ID of the form to display. Required for USER_TASK steps."
+        },
+        "childWorkflowDefinitionId": {
+          "type": "string",
+          "description": "ID of the child workflow definition to start as a sub-process. Required for PROCESS steps."
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Maximum execution time in milliseconds. 0 or negative means no timeout.",
+          "minimum": 0,
+          "default": 0
+        },
+        "retries": {
+          "type": "integer",
+          "description": "Number of automatic retry attempts on ERROR or TIMEOUT before giving up.",
+          "minimum": 0,
+          "default": 0
+        },
+        "rollbackable": {
+          "type": "boolean",
+          "description": "Whether a compensation step should be triggered when this step fails after exhausting retries.",
+          "default": false
+        },
+        "compensationStepId": {
+          "type": "string",
+          "description": "ID of the step to execute as compensation when this step fails. Only relevant when rollbackable is true."
+        }
+      },
+      "if": {
+        "properties": { "type": { "const": "ACTION" } },
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["topic"]
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "type": { "const": "USER_TASK" } },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["formId"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "type": { "const": "PROCESS" } },
+            "required": ["type"]
+          },
+          "then": {
+            "required": ["childWorkflowDefinitionId"]
+          }
+        },
+        {
+          "if": {
+            "properties": { "rollbackable": { "const": true } },
+            "required": ["rollbackable"]
+          },
+          "then": {
+            "required": ["compensationStepId"]
+          }
+        }
+      ]
+    }
+  }
+}

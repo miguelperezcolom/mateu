@@ -61,6 +61,7 @@ export enum ComponentMetadataType {
     VirtualList = "VirtualList",
     FormSection="FormSection",
     FormSubSection="FormSubSection",
-    Bpmn="Bpmn"
+    Bpmn="Bpmn",
+    Workflow="Workflow"
 
 }

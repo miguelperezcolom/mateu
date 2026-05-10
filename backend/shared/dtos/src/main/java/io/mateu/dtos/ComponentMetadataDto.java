@@ -39,6 +39,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = ButtonDto.class, name = "Button"),
   @JsonSubTypes.Type(value = ChartDto.class, name = "Chart"),
   @JsonSubTypes.Type(value = BpmnDto.class, name = "Bpmn"),
+  @JsonSubTypes.Type(value = WorkflowDto.class, name = "Workflow"),
   @JsonSubTypes.Type(value = IconDto.class, name = "Icon"),
   @JsonSubTypes.Type(value = ConfirmDialogDto.class, name = "ConfirmDialog"),
   @JsonSubTypes.Type(value = ContextMenuDto.class, name = "ContextMenu"),
