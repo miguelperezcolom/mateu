@@ -31,7 +31,8 @@ public record AppDto(
     String style,
     String cssClasses,
     ComponentDto home,
-    String rootRoute)
+    String rootRoute,
+    String sseUrl)
     implements ComponentMetadataDto {
 
   public AppDto {

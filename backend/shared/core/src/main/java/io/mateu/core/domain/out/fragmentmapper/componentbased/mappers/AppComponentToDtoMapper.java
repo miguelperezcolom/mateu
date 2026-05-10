@@ -7,6 +7,7 @@ import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.Reflection
 import static io.mateu.uidl.Humanizer.toCamelCase;
 
 import io.mateu.dtos.*;
+import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ContentLink;
@@ -94,6 +95,7 @@ public final class AppComponentToDtoMapper {
             .style(app.style())
             .cssClasses(app.cssClasses())
             .home(null)
+            .sseUrl(getSseUrl(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -102,6 +104,16 @@ public final class AppComponentToDtoMapper {
         app.style(),
         app.cssClasses(),
         null);
+  }
+
+  @SneakyThrows
+  private static String getSseUrl(App app) {
+    if (app.serverSideType() == null) return null;
+    var appClass = Class.forName(app.serverSideType());
+    if (appClass.isAnnotationPresent(AI.class)) {
+      return appClass.getAnnotation(AI.class).sse();
+    }
+    return null;
   }
 
   private static List<ComponentDto> mapWidgets(

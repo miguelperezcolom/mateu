@@ -99,7 +99,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
-                            <vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>
+                            ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
@@ -159,7 +159,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 instant="${container.instant}"
                         ></mateu-ux>
                     </mateu-api-caller>
-                        <mateu-chat slot="detail-hidden" sseurl="http://localhost:8095/api/agent/stream" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>
+                        ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                    </vaadin-master-detail-layout>
                     </div>
                 </vaadin-vertical-layout>

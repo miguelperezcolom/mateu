@@ -24,5 +24,6 @@ export default interface App extends ComponentMetadata {
     serverSideType: string
     uriPrefix: string
     baseUrl: string
+    sseUrl: string | undefined
 
 }
