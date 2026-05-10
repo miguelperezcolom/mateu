@@ -77,7 +77,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         instant="${container.instant}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                     </div>
                 </vaadin-app-layout>
@@ -163,7 +163,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 instant="${container.instant}"
                         ></mateu-ux>
                     </mateu-api-caller>
-                        ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                        ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                    </vaadin-master-detail-layout>
                     </div>
                 </vaadin-vertical-layout>
@@ -195,7 +195,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         instant="${container.instant}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                     </div>
                 </vaadin-horizontal-layout>
@@ -254,7 +254,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </vaadin-scroller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                     </div>
                 </div>

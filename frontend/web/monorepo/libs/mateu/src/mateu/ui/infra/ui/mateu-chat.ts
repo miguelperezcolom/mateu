@@ -6,12 +6,32 @@ import "@vaadin/message-input";
 import "@vaadin/vertical-layout";
 import {MessageInput} from "@vaadin/message-input";
 import {nanoid} from "nanoid";
+import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
+
+/** A flattened, LLM-friendly entry describing one navigable screen. */
+interface MenuContextEntry {
+    /** Breadcrumb path, e.g. ["Bookings", "List"] */
+    path: string[];
+    /** The navigation-requested detail payload to use in the SSE response */
+    navigation: {
+        route: string;
+        consumedRoute: string;
+        actionId: string;
+        baseUrl: string;
+        serverSideType: string | undefined;
+        uriPrefix: string | undefined;
+    };
+}
 
 @customElement('mateu-chat')
 export class MateuChat extends LitElement {
 
     @property()
     sseUrl: string | undefined
+
+    /** Menu passed from the app shell; used to build LLM context. */
+    @property({ attribute: false })
+    menu: MenuOption[] = [];
 
     readonly chatSessionId: string = nanoid();
 
@@ -188,6 +208,41 @@ export class MateuChat extends LitElement {
         return null;
     }
 
+    /**
+     * Recursively flattens the menu tree into a list of LLM-friendly entries.
+     * Each entry carries the full breadcrumb path and the navigation payload
+     * the LLM should emit to open that screen.
+     */
+    private buildMenuContext(
+        options: MenuOption[],
+        parentPath: string[] = []
+    ): MenuContextEntry[] {
+        const result: MenuContextEntry[] = [];
+        for (const opt of options) {
+            if (opt.separator) continue;
+            // Skip remote entries that haven't been resolved yet — their route/baseUrl
+            // points to the remote loader, not to a real screen.
+            if (opt.remote) continue;
+            const path = [...parentPath, opt.label];
+            if (opt.submenus && opt.submenus.length > 0) {
+                result.push(...this.buildMenuContext(opt.submenus, path));
+            } else {
+                result.push({
+                    path,
+                    navigation: {
+                        route: opt.route,
+                        consumedRoute: opt.consumedRoute,
+                        actionId: opt.actionId ?? '',
+                        baseUrl: opt.baseUrl,
+                        serverSideType: opt.serverSideType,
+                        uriPrefix: opt.uriPrefix,
+                    },
+                });
+            }
+        }
+        return result;
+    }
+
     private startLoading() {
         this.loading = true;
         this.elapsedSeconds = 0;
@@ -210,13 +265,22 @@ export class MateuChat extends LitElement {
         this.startLoading();
 
         try {
-            const headers: Record<string, string> = { 'Accept': 'text/event-stream' };
+            const headers: Record<string, string> = {
+                'Accept': 'text/event-stream',
+                'Content-Type': 'application/json',
+            };
             const token = localStorage.getItem('__mateu_auth_token');
             if (token) headers['Authorization'] = 'Bearer ' + token;
             const sessionId = sessionStorage.getItem('__mateu_sesion_id');
             if (sessionId) headers['X-Session-Id'] = sessionId;
 
-            const response = await fetch(`${this.sseUrl}?message=${encodeURIComponent(text)}&sessionId=${this.chatSessionId}`, { headers });
+            const body = JSON.stringify({
+                message: text,
+                sessionId: this.chatSessionId,
+                menuContext: this.buildMenuContext(this.menu),
+            });
+
+            const response = await fetch(this.sseUrl, { method: 'POST', headers, body });
 
             if (!response.ok) {
                 const errorText = await response.text();

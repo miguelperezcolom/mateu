@@ -50,13 +50,63 @@ That is all that is required on the Java side.
 
 ## SSE endpoint contract
 
-The SSE endpoint receives the user message and streams back tokens as Server-Sent Events.
+`mateu-chat` sends a **POST** request to the SSE URL with a JSON body and streams back the response as Server-Sent Events.
 
-Expected event format (one event per token or chunk):
+### Request
+
+**Headers**
+
+| Header          | Description                                      |
+|-----------------|--------------------------------------------------|
+| `Authorization` | `Bearer <jwt>` — present when the user is logged in |
+| `X-Session-Id`  | Mateu session identifier                         |
+| `Content-Type`  | `application/json`                               |
+| `Accept`        | `text/event-stream`                              |
+
+**Body**
+
+```json
+{
+  "message": "Show me order ORD-42",
+  "sessionId": "chat-session-nanoid",
+  "menuContext": [
+    {
+      "path": ["Orders", "List"],
+      "navigation": {
+        "route": "/orders",
+        "consumedRoute": "",
+        "actionId": "",
+        "baseUrl": "/_orders",
+        "serverSideType": "com.example.OrderHome",
+        "uriPrefix": ""
+      }
+    },
+    {
+      "path": ["Customers"],
+      "navigation": {
+        "route": "/customers",
+        "consumedRoute": "",
+        "actionId": "",
+        "baseUrl": "/_customers",
+        "serverSideType": "com.example.CustomerHome",
+        "uriPrefix": ""
+      }
+    }
+  ]
+}
+```
+
+- `message` — the user's text input.
+- `sessionId` — a stable per-chat-panel ID (generated with nanoid), useful for conversational memory or logging on the backend.
+- `menuContext` — the full application menu flattened into a list of navigable screens. Each entry includes the breadcrumb `path` (e.g. `["Bookings", "List"]`) and the exact `navigation` payload the LLM should emit to open that screen.
+
+### Response
+
+Streamed Server-Sent Events, one per token or chunk:
 
 ```
-data: {"token": "Hello"}
-data: {"token": " world"}
+data: Hello
+data:  world
 data: [DONE]
 ```
 
@@ -76,6 +126,14 @@ The AI chat panel is available in all application shell variants:
 ## Example: Spring AI SSE endpoint
 
 ```java
+record ChatRequest(
+    String message,
+    String sessionId,
+    List<MenuContextEntry> menuContext
+) {}
+
+record MenuContextEntry(List<String> path, Map<String, Object> navigation) {}
+
 @RestController
 @RequestMapping("/api/ai")
 public class AiChatController {
@@ -87,9 +145,27 @@ public class AiChatController {
     }
 
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> chat(@RequestBody String userMessage) {
+    public Flux<String> chat(@RequestBody ChatRequest req) {
+        // Build a system prompt that describes the available screens
+        String menuDescription = req.menuContext().stream()
+            .map(e -> "- " + String.join(" > ", e.path())
+                    + " → " + e.navigation())
+            .collect(Collectors.joining("\n"));
+
+        String systemPrompt = """
+            You are an assistant for this application.
+            The following screens are available (path → navigation payload):
+            %s
+
+            When the user asks to open a screen, emit a navigation event at the
+            END of your response:
+            data: {"event": "navigation-requested", "detail": <navigation payload>}
+            Only emit one event. Never show the raw JSON to the user.
+            """.formatted(menuDescription);
+
         return chatClient.prompt()
-            .user(userMessage)
+            .system(systemPrompt)
+            .user(req.message())
             .stream()
             .content()
             .map(token -> "data: " + token + "\n\n");
