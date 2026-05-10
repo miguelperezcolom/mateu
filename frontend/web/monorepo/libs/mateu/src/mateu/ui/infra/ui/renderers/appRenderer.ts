@@ -49,6 +49,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <vaadin-app-layout style="${metadata?.style}" class="${metadata?.cssClasses}" .drawerOpened=${!metadata.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
+                    ${metadata.sseUrl ? html`<vaadin-button slot="navbar" @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
                     <vaadin-scroller slot="drawer" class="p-s">
                         ${metadata.menu && metadata.totalMenuOptions > 10?html`
                             <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${(e:any) => filterMenu(e, container)}">
@@ -61,20 +62,23 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-side-nav>
                     </vaadin-scroller>
                     <div class="app-content">
-                        <mateu-api-caller>
-                            <mateu-ux
-                                    route="${chooseRoute(container, metadata)}"
-                                    id="ux_${container.id}"
-                                    baseUrl="${chooseBaseUrl(container, metadata)}"
-                                    consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                    serverSideType="${chooseAppServerSideType(container, metadata)}"
-                                    uriPrefix="${chooseUriPrefix(container, metadata)}"
-                                    style="width: 100%;"
-                                    .appState="${appState}"
-                                    .appData="${appData}"
-                                    instant="${container.instant}"
-                            ></mateu-ux>
-                        </mateu-api-caller>
+                        <vaadin-master-detail-layout>
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        route="${chooseRoute(container, metadata)}"
+                                        id="ux_${container.id}"
+                                        baseUrl="${chooseBaseUrl(container, metadata)}"
+                                        consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                        serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                        uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                        style="width: 100%;"
+                                        .appState="${appState}"
+                                        .appData="${appData}"
+                                        instant="${container.instant}"
+                                ></mateu-ux>
+                            </mateu-api-caller>
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                        </vaadin-master-detail-layout>
                     </div>
                 </vaadin-app-layout>
 
@@ -172,27 +176,31 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
                         <vaadin-vertical-layout>
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}
+                            ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin: 1rem;">IA</vaadin-button>` : nothing}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>
                     <div class="app-content">
-                    <mateu-api-caller>
-                        <mateu-ux
-                                route="${chooseRoute(container, metadata)}"
-                                id="ux_${container.id}"
-                                baseUrl="${chooseBaseUrl(container, metadata)}"
-                                consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                serverSideType="${chooseAppServerSideType(container, metadata)}"
-                                uriPrefix="${chooseUriPrefix(container, metadata)}"
-                                style="width: 100%; padding: 1em;"
-                                .appState="${appState}"
-                                .appData="${appData}"
-                                instant="${container.instant}"
-                        ></mateu-ux>
-                    </mateu-api-caller>
+                        <vaadin-master-detail-layout>
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        route="${chooseRoute(container, metadata)}"
+                                        id="ux_${container.id}"
+                                        baseUrl="${chooseBaseUrl(container, metadata)}"
+                                        consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                        serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                        uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                        style="width: 100%; padding: 1em;"
+                                        .appState="${appState}"
+                                        .appData="${appData}"
+                                        instant="${container.instant}"
+                                ></mateu-ux>
+                            </mateu-api-caller>
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                        </vaadin-master-detail-layout>
                     </div>
                 </vaadin-horizontal-layout>
 
-                
+
             `:nothing}
 
             ${metadata.variant == AppVariant.TABS?html`
@@ -224,67 +232,30 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             </vaadin-tabs>
                             <vaadin-horizontal-layout>
                                 <slot name="widgets"></slot>
+                                ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
                             </vaadin-horizontal-layout>
                         </vaadin-horizontal-layout>
                     </div>
                     <div class="app-content">
-                        ${false?html`
-                            container.selectedBaseUrl:${container.selectedBaseUrl}
-                            <br/>
-                            container.selectedRoute:${container.selectedRoute}
-                            <br/>
-                            container.selectedConsumedRoute:${container.selectedConsumedRoute}
-                            <br/>
-                            container.selectedServerSideType:${container.selectedServerSideType}
-                            <br/>
-                            container.selectedUriPrefix:${container.selectedUriPrefix}
-                            <hr>
-                            metadata.baseUrl:${metadata.baseUrl}
-                            <br/>
-                            metadata.route:${metadata.route}
-                            <br/>
-                            metadata.consumedRoute: no field metadata.consumedRoute
-                            <br/>
-                            metadata.serverSideType:${metadata.serverSideType}
-                            <br/>
-                            metadata.uriPrefix:${metadata.uriPrefix}
-                            <hr>
-                            metadata.homeBaseUrl:${metadata.homeBaseUrl}
-                            <br/>
-                            metadata.homeRoute:${metadata.homeRoute}
-                            <br/>
-                            metadata.homeConsumedRoute:${metadata.homeConsumedRoute}
-                            <br/>
-                            metadata.homeServerSideType:${metadata.homeServerSideType}
-                            <br/>
-                            metadata.homeUriPrefix:${metadata.homeUriPrefix}
-                            <hr>
-                            chosen.baseUrl:${chooseBaseUrl(container, metadata)}
-                            <br/>
-                            chosen.route:${chooseRoute(container, metadata)}
-                            <br/>
-                            chosen.consumedRoute:${chooseConsumedRoute(container, metadata)}
-                            <br/>
-                            chosen.serverSideType:${chooseAppServerSideType(container, metadata)}
-                            <br/>
-                            chosen.uriPrefix:${chooseUriPrefix(container, metadata)}
-                            <hr>                              `:nothing}
-                        <vaadin-scroller>
-                            <mateu-api-caller>
-                                <mateu-ux
-                                        route="${chooseRoute(container, metadata)}"
-                                        id="ux_${container.id}"
-                                        baseUrl="${chooseBaseUrl(container, metadata)}"
-                                        consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                        serverSideType="${chooseAppServerSideType(container, metadata)}"
-                                        uriPrefix="${chooseUriPrefix(container, metadata)}"
-                                        style="width: 100%;"
-                                        .appState="${appState}"
-                                        .appData="${appData}"
-                                        instant="${container.instant}"
-                                ></mateu-ux>
-                            </mateu-api-caller>
-                        </vaadin-scroller>
+                        <vaadin-master-detail-layout>
+                            <vaadin-scroller>
+                                <mateu-api-caller>
+                                    <mateu-ux
+                                            route="${chooseRoute(container, metadata)}"
+                                            id="ux_${container.id}"
+                                            baseUrl="${chooseBaseUrl(container, metadata)}"
+                                            consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                            serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                            uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                            style="width: 100%;"
+                                            .appState="${appState}"
+                                            .appData="${appData}"
+                                            instant="${container.instant}"
+                                    ></mateu-ux>
+                                </mateu-api-caller>
+                            </vaadin-scroller>
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                        </vaadin-master-detail-layout>
                     </div>
                 </div>
             

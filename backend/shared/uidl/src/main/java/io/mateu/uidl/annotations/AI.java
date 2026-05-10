@@ -8,11 +8,7 @@ import java.lang.annotation.Target;
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE}) // can use in method only.
-public @interface UI {
+public @interface AI {
 
-  String value();
-
-  String indexHtmlPath() default "/static/_index.html";
-
-  String frontendComponentPath() default "/assets/mateu.js";
+  String sse();
 }
