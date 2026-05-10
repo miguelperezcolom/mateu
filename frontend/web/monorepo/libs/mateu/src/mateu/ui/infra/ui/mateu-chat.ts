@@ -38,6 +38,9 @@ export class MateuChat extends LitElement {
 
     private _elapsedTimer: ReturnType<typeof setInterval> | undefined;
 
+    @state()
+    tokenUsage: { inputTokens?: number; outputTokens?: number; totalTokens?: number } | undefined;
+
 
     startListening = () => {
         console.log('startListening', this.recognition);
@@ -175,6 +178,21 @@ export class MateuChat extends LitElement {
         this.scrollBottom();
     }
 
+    /** Returns the parsed token-usage object if the data payload is JSON with token fields, otherwise null. */
+    private tryParseTokenUsage(payload: string): { inputTokens?: number; outputTokens?: number; totalTokens?: number } | null {
+        const trimmed = payload.trim();
+        if (!trimmed.startsWith('{')) return null;
+        try {
+            const obj = JSON.parse(trimmed);
+            if ('inputTokens' in obj || 'outputTokens' in obj || 'totalTokens' in obj) {
+                return obj;
+            }
+        } catch {
+            // not valid JSON
+        }
+        return null;
+    }
+
     private startLoading() {
         this.loading = true;
         this.elapsedSeconds = 0;
@@ -222,8 +240,14 @@ export class MateuChat extends LitElement {
 
                 if (done) {
                     if (buffer.trim().startsWith('data:')) {
-                        accumulatedText += buffer.trim().slice(5);
-                        this.updateMessage(agentIdx, accumulatedText);
+                        const payload = buffer.trim().slice(5);
+                        const usage = this.tryParseTokenUsage(payload);
+                        if (usage) {
+                            this.tokenUsage = { ...this.tokenUsage, ...usage };
+                        } else {
+                            accumulatedText += payload;
+                            this.updateMessage(agentIdx, accumulatedText);
+                        }
                     }
                     break;
                 }
@@ -236,8 +260,14 @@ export class MateuChat extends LitElement {
                 let changed = false;
                 for (const line of lines) {
                     if (line.trim().startsWith('data:')) {
-                        accumulatedText += line.trim().slice(5) + '\n';
-                        changed = true;
+                        const payload = line.trim().slice(5);
+                        const usage = this.tryParseTokenUsage(payload);
+                        if (usage) {
+                            this.tokenUsage = { ...this.tokenUsage, ...usage };
+                        } else {
+                            accumulatedText += payload + '\n';
+                            changed = true;
+                        }
                     }
                 }
                 if (changed) {
@@ -264,6 +294,14 @@ export class MateuChat extends LitElement {
             <div class="scroll-container" style="height: 40rem; overflow: auto;">
                 <vaadin-message-list .items="${this.items}" markdown></vaadin-message-list>
             </div>
+            ${this.tokenUsage ? html`
+                <div class="token-bar">
+                    <span class="token-label">Tokens:</span>
+                    ${this.tokenUsage.inputTokens != null ? html`<span class="token-chip">in&nbsp;<strong>${this.tokenUsage.inputTokens}</strong></span>` : nothing}
+                    ${this.tokenUsage.outputTokens != null ? html`<span class="token-chip">out&nbsp;<strong>${this.tokenUsage.outputTokens}</strong></span>` : nothing}
+                    ${this.tokenUsage.totalTokens != null ? html`<span class="token-chip">total&nbsp;<strong>${this.tokenUsage.totalTokens}</strong></span>` : nothing}
+                </div>
+            ` : nothing}
             ${this.loading ? html`
                 <div class="loading-bar">
                     <span class="spinner"></span>
@@ -306,6 +344,32 @@ export class MateuChat extends LitElement {
             flex-shrink: 0;
             padding: 1rem;
             border-top: 1px solid var(--lumo-contrast-10pct);
+        }
+
+        .token-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 1rem;
+            background: var(--lumo-contrast-5pct);
+            border-top: 1px solid var(--lumo-contrast-10pct);
+            font-size: var(--lumo-font-size-xs);
+            color: var(--lumo-secondary-text-color);
+            flex-wrap: wrap;
+        }
+
+        .token-label {
+            font-weight: 600;
+            color: var(--lumo-tertiary-text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .token-chip {
+            background: var(--lumo-contrast-10pct);
+            border-radius: var(--lumo-border-radius-s);
+            padding: 0.1rem 0.4rem;
+            font-variant-numeric: tabular-nums;
         }
 
         .loading-bar {
