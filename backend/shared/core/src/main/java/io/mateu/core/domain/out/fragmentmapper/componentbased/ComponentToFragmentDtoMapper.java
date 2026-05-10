@@ -68,6 +68,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Too
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.VerticalLayoutComponentToDtoMapper.mapVerticalLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.VirtualListComponentToDtoMapper.mapVirtualListToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.WorkflowComponentToDtoMapper.mapWorkflowToDto;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.WorkflowElkComponentToDtoMapper.mapWorkflowElkToDto;
 import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.createData;
 
 import io.mateu.dtos.ClientSideComponentDto;
@@ -317,6 +318,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof io.mateu.uidl.data.Workflow workflow) {
       return mapWorkflowToDto(workflow);
+    }
+    if (component instanceof io.mateu.uidl.data.WorkflowElk workflowElk) {
+      return mapWorkflowElkToDto(workflowElk);
     }
     if (component instanceof Chart chart) {
       return mapChartToDto(chart);

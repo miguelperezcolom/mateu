@@ -61,6 +61,7 @@ import { renderPage } from "@infra/ui/renderers/pageRenderer.ts";
 import {renderBpmn} from "@infra/ui/renderers/bpmnRenderer.ts";
 import {renderChat} from "@infra/ui/renderers/chatRenderer.ts";
 import {renderWorkflow} from "@infra/ui/renderers/workflowRenderer.ts";
+import {renderWorkflowElk} from "@infra/ui/renderers/workflowElkRenderer.ts";
 
 export const updateStyle = (component: ClientSideComponent, data: any): string => {
     let style = component.style
@@ -110,6 +111,9 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         }
         if (type == ComponentMetadataType.Workflow) {
             return renderWorkflow(component)
+        }
+        if (type == ComponentMetadataType.WorkflowElk) {
+            return renderWorkflowElk(component)
         }
         if (type == ComponentMetadataType.Page) {
             return renderPage(container, component, baseUrl, state, data, appState, appData)

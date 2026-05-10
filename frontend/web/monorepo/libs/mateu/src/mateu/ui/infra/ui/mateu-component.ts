@@ -65,6 +65,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import './mateu-chart'
 import './mateu-bpmn'
 import './mateu-workflow'
+import './mateu-workflow-elk'
 import {Notification} from "@vaadin/notification"
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
