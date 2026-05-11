@@ -149,23 +149,29 @@ public class RunActionUseCase {
   private Mono<?> createInstance(RunActionCommand command) {
     log.info("createInstance {}", command);
 
-    var adjusted = crudNavigationAdjuster.adjust(command);
-    command = adjusted.command();
+    try {
+      var adjusted = crudNavigationAdjuster.adjust(command);
+      command = adjusted.command();
 
-    if (adjusted.routeFirst()) {
-      RunActionCommand finalCommand = command;
-      return routeInstanceCreator
-          .findRouteResolver(command)
-          .switchIfEmpty(
-              (Mono)
-                  Mono.defer(
-                      () -> {
-                        finalCommand.httpRequest().setAttribute("updateUrl", "_no_update");
-                        var restoredCommand =
-                            finalCommand.withRoute(
-                                (String) finalCommand.httpRequest().getAttribute("oldRoute"));
-                        return instantiateWithKnownType(restoredCommand);
-                      }));
+      if (adjusted.routeFirst()) {
+        RunActionCommand finalCommand = command;
+        return routeInstanceCreator
+            .findRouteResolver(command)
+            .switchIfEmpty(
+                (Mono)
+                    Mono.defer(
+                        () -> {
+                          finalCommand.httpRequest().setAttribute("updateUrl", "_no_update");
+                          var restoredCommand =
+                              finalCommand.withRoute(
+                                  (String) finalCommand.httpRequest().getAttribute("oldRoute"));
+                          return instantiateWithKnownType(restoredCommand);
+                        }));
+      }
+
+    } catch (Throwable e) {
+      log.info(e.getClass().getSimpleName() + ": " + e.getMessage());
+      return Mono.just(UIIncrementDto.builder().build());
     }
 
     if (command.serverSideType() != null && !command.serverSideType().isEmpty()) {

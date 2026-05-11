@@ -19,32 +19,36 @@ public abstract class RouteHandlerLayer<
   @Override
   public Object handleRoute(String route, HttpRequest httpRequest) {
     log.info("route is {}", route);
-    if (httpRequest.runActionRq().actionId() == null
-        || "".equals(httpRequest.runActionRq().actionId())) {
-      var crudRoute = getCrudRoute(httpRequest, null);
-      var cleanRoute = route;
-      if (cleanRoute.startsWith(httpRequest.runActionRq().consumedRoute())) {
-        cleanRoute = route.substring(httpRequest.runActionRq().consumedRoute().length());
-      }
-      var actionId =
-          (cleanRoute.length() >= crudRoute.length())
-              ? cleanRoute.substring(crudRoute.length())
-              : cleanRoute;
-      if (actionId.startsWith("/")) {
-        actionId = actionId.substring(1);
-      }
-      if (actionId.contains("?")) {
-        actionId = actionId.substring(0, actionId.indexOf("?"));
-      }
-      if (!"".equals(actionId)) {
-        if ("new".equals(actionId)) {
-          return create(httpRequest);
+    try {
+      if (httpRequest.runActionRq().actionId() == null
+          || "".equals(httpRequest.runActionRq().actionId())) {
+        var crudRoute = getCrudRoute(httpRequest, null);
+        var cleanRoute = route;
+        if (cleanRoute.startsWith(httpRequest.runActionRq().consumedRoute())) {
+          cleanRoute = route.substring(httpRequest.runActionRq().consumedRoute().length());
         }
-        if (actionId.endsWith("edit")) {
-          return edit(toId(actionId.split("/")[0]), httpRequest);
+        var actionId =
+            (cleanRoute.length() >= crudRoute.length())
+                ? cleanRoute.substring(crudRoute.length())
+                : cleanRoute;
+        if (actionId.startsWith("/")) {
+          actionId = actionId.substring(1);
         }
-        return view(toId(actionId), httpRequest);
+        if (actionId.contains("?")) {
+          actionId = actionId.substring(0, actionId.indexOf("?"));
+        }
+        if (!"".equals(actionId)) {
+          if ("new".equals(actionId)) {
+            return create(httpRequest);
+          }
+          if (actionId.endsWith("edit")) {
+            return edit(toId(actionId.split("/")[0]), httpRequest);
+          }
+          return view(toId(actionId), httpRequest);
+        }
       }
+    } catch (Throwable e) {
+      return "route not found:" + route;
     }
     return this;
   }

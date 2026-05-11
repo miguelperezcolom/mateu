@@ -483,6 +483,14 @@ public class ComponentTreeSupplierToDtoMapper {
               .map(actionId -> ActionDto.builder().id(actionId).build())
               .toList());
     }
+    actions.addAll(
+        Arrays.stream(
+                serverSideObject
+                    .getClass()
+                    .getAnnotationsByType(io.mateu.uidl.annotations.Action.class))
+            .map(ComponentTreeSupplierToDtoMapper::mapToAction)
+            .toList());
+
     List<ActionDto> fieldActions = new ArrayList<>();
     getAllFields(serverSideObject.getClass()).stream()
         .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))

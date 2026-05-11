@@ -142,7 +142,7 @@ export class MateuChat extends LitElement {
                 }
             };
         } else {
-            alert("Lo siento, tu navegador no soporta la API de voz.");
+            console.log("Lo siento, tu navegador no soporta la API de voz.");
         }
 
     }
@@ -382,7 +382,7 @@ export class MateuChat extends LitElement {
     render() {
         return html`
             <div class="scroll-container" style="height: 40rem; overflow: auto;">
-                <vaadin-message-list .items="${this.items}" markdown></vaadin-message-list>
+                <vaadin-message-list .items="${this.items}" markdown style="--lumo-font-size-m: 12px;"></vaadin-message-list>
             </div>
             ${this.tokenUsage ? html`
                 <div class="token-bar">
@@ -406,7 +406,7 @@ export class MateuChat extends LitElement {
             ><vaadin-icon
                     style="color: ${this.listening?'red':'var(--lumo-contrast-50pct)'};"
                     icon="vaadin:microphone"></vaadin-icon></vaadin-button>
-                <vaadin-message-input @submit="${this.send}" style="border-top: none;"></vaadin-message-input></vaadin-horizontal-layout>
+                <vaadin-message-input @submit="${this.send}" style="border-top: none; flex-grow: 1;"></vaadin-message-input></vaadin-horizontal-layout>
         `
     }
 

@@ -50,7 +50,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
                     ${metadata.sseUrl ? html`<vaadin-button slot="navbar" @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
-                    <vaadin-scroller slot="drawer" class="p-s">
+                    <vaadin-scroller slot="drawer" class="p-s"
+                                     @navigation-requested="${container.updateRoute}">
                         ${metadata.menu && metadata.totalMenuOptions > 10?html`
                             <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${(e:any) => filterMenu(e, container)}">
                                 <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
@@ -75,6 +76,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         .appState="${appState}"
                                         .appData="${appData}"
                                         instant="${container.instant}"
+                                        @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
                             ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
@@ -86,7 +88,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
                 <vaadin-vertical-layout style="width: 100%;">
-                    <vaadin-horizontal-layout style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" theme="spacing">
+                    <vaadin-horizontal-layout 
+                            style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" 
+                            theme="spacing"
+                            @navigation-requested="${container.updateRoute}">
                         <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
                         <vaadin-horizontal-layout style="align-items: center;">
                             ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
@@ -161,6 +166,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 .appState="${appState}"
                                 .appData="${appData}"
                                 instant="${container.instant}"
+                                @navigation-requested="${container.updateRoute}"
                         ></mateu-ux>
                     </mateu-api-caller>
                         ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
@@ -174,7 +180,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
 
                 <vaadin-horizontal-layout>
                     <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
-                        <vaadin-vertical-layout>
+                        <vaadin-vertical-layout
+                                @navigation-requested="${container.updateRoute}">
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}
                             ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin: 1rem;">IA</vaadin-button>` : nothing}
                         </vaadin-vertical-layout>
@@ -193,6 +200,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         .appState="${appState}"
                                         .appData="${appData}"
                                         instant="${container.instant}"
+                                        @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
                             ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
@@ -212,7 +220,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 
                 <div>
                     <div>
-                        <vaadin-horizontal-layout style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" theme="spacing">
+                        <vaadin-horizontal-layout 
+                                style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" 
+                                theme="spacing"
+                                @navigation-requested="${container.updateRoute}">
                             <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
                             <vaadin-horizontal-layout style="align-items: center;">
                                 ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
@@ -251,6 +262,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                             .appState="${appState}"
                                             .appData="${appData}"
                                             instant="${container.instant}"
+                                            @navigation-requested="${container.updateRoute}"
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </vaadin-scroller>

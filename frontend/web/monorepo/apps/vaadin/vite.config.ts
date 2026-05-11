@@ -73,6 +73,7 @@ export default defineConfig({
             '/nested-crud/mateu': 'http://localhost:8191',
             '/users/mateu': 'http://localhost:8191',
             '/chat/mateu': 'http://localhost:8191',
+            '/ai': 'http://localhost:8191',
         },
     },
     optimizeDeps: {

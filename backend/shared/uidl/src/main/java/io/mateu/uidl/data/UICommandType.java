@@ -8,5 +8,6 @@ public enum UICommandType {
   RunAction,
   AddContentToHead,
   AddContentToBody,
-  PushStateToHistory
+  PushStateToHistory,
+  DispatchEvent
 }

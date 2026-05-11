@@ -8,5 +8,6 @@ public enum UICommandTypeDto {
   RunAction,
   AddContentToHead,
   AddContentToBody,
-  PushStateToHistory
+  PushStateToHistory,
+  DispatchEvent
 }

@@ -278,6 +278,7 @@ export class MateuApp extends ComponentElement {
     updateRoute: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
+        console.log('update route', e)
         var detail = (e as CustomEvent).detail
         this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix)
     }

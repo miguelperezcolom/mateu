@@ -8,14 +8,26 @@ import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
+import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.fluent.ActionSupplier;
 import java.util.List;
 import java.util.Map;
 
-public interface ListingBackend<Filters, Row> extends ActionHandler {
+public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSupplier {
 
   @Override
   default boolean supportsAction(String actionId) {
     return "search".equals(actionId);
+  }
+
+  @Override
+  default List<String> supportedActions() {
+    return List.of("search");
+  }
+
+  @Override
+  default List<Action> actions() {
+    return List.of(Action.builder().id("search").build());
   }
 
   @Override

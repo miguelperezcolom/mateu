@@ -165,6 +165,20 @@ export default abstract class ConnectedElement extends LitElement {
         if ('SetFavicon' == command.type) {
             this.changeFavicon(command.data as string)
         }
+        if ('DispatchEvent' == command.type) {
+            const data = command.data as {
+                eventName: string
+                payload: any
+            }
+            if (data && data.eventName) {
+                console.log('dispatching event', this, data)
+                this.dispatchEvent(new CustomEvent(data.eventName, {
+                    detail: data.payload,
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        }
         if ('NavigateTo' == command.type) {
             const destination = command.data as string
             if (destination) {
