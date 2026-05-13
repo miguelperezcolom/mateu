@@ -45,6 +45,24 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
     return html`
+                    ${metadata.variant == AppVariant.MEDIATOR?html`
+                        MEDIATOR route = ${chooseRoute(container, metadata)}, consumedRoute = ${chooseConsumedRoute(container, metadata)}, baseUrl = ${chooseBaseUrl(container, metadata)}, serverSideType = ${chooseAppServerSideType(container, metadata)}, uriPrefix = ${chooseUriPrefix(container, metadata)}
+                        <mateu-api-caller>
+                            <mateu-ux
+                                    route="${chooseRoute(container, metadata)}"
+                                    id="ux_${container.id}"
+                                    baseUrl="${chooseBaseUrl(container, metadata)}"
+                                    consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                    serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                    uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                    style="width: 100%;"
+                                    .appState="${appState}"
+                                    .appData="${appData}"
+                                    instant="${container.instant}"
+                                    @navigation-requested="${container.updateRoute}"
+                            ></mateu-ux>
+                        </mateu-api-caller>
+`:nothing}
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
                 <vaadin-app-layout style="${metadata?.style}" class="${metadata?.cssClasses}" .drawerOpened=${!metadata.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>

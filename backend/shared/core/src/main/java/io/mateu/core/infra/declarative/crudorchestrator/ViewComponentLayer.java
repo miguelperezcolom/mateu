@@ -66,7 +66,7 @@ public abstract class ViewComponentLayer<
         getState(this, httpRequest),
         "width: 100%;",
         "",
-        mapActions(this),
+        mapActions(this, httpRequest),
         mapTriggers(this, httpRequest),
         mapRules(this),
         mapValidations(this, httpRequest.runActionRq().route()),

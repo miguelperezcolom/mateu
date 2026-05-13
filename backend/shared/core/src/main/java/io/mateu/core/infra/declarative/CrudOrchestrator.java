@@ -21,8 +21,12 @@ import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.DeleteAct
 import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.SaveActionHandler;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +120,21 @@ public abstract class CrudOrchestrator<
     for (var handler : CRUD_ACTION_HANDLERS) {
       if (handler.supports(actionId)) {
         result = handler.handle(this, result, httpRequest);
-        break;
+        var rq = httpRequest.runActionRq();
+        var list = new ArrayList<>();
+        list.add(new UICommand(UICommandType.DispatchEvent, new DispatchEventData(
+                "navigation-requested",
+                NavigationRequestedPayload.builder()
+                        .actionId("")
+                        .route(rq.route() + ("".equals(result.actionId()) ? "" : "/" + result.actionId()))
+                        .consumedRoute(rq.consumedRoute() + rq.route())
+                        .baseUrl((String) httpRequest.getAttribute("baseUrl"))
+                        .uriPrefix((String) httpRequest.getAttribute("baseUrl"))
+                        .serverSideType(getClass().getName())
+                        .build()
+        )));
+        list.addAll(result.messages());
+        return list;
       }
     }
     actionId = result.actionId();
@@ -217,16 +235,19 @@ public abstract class CrudOrchestrator<
   }
 
   private List<?> handleNew(HttpRequest httpRequest) {
-    _show_detail = new HashMap<>();
-    _editing = new HashMap<>();
-    var create = create(httpRequest);
-    if (childCrud()) {
-      return List.of(create);
-    }
+      var rq = httpRequest.runActionRq();
     return List.of(
-        create,
-        pushStateToHistory(getCrudRoute(httpRequest, null) + "/new"),
-        setWindowTitle(httpRequest));
+            new UICommand(UICommandType.DispatchEvent, new DispatchEventData(
+                    "navigation-requested",
+                    NavigationRequestedPayload.builder()
+                            .route(rq.consumedRoute() + "/new")
+                            .consumedRoute(rq.consumedRoute())
+                            .baseUrl((String) httpRequest.getAttribute("baseUrl"))
+                            .uriPrefix((String) httpRequest.getAttribute("baseUrl"))
+                            .serverSideType(getClass().getName())
+                            .build()
+            )),
+            setWindowTitle(httpRequest));
   }
 
   private UICommand setWindowTitle(HttpRequest httpRequest) {
@@ -239,13 +260,9 @@ public abstract class CrudOrchestrator<
     var idField = getIdFieldForRow();
     var id = (IdType) httpRequest.runActionRq().componentState().get(idField);
 
-    var edit = edit(id, httpRequest);
-    if (childCrud()) {
-      return List.of(edit);
-    }
-    return List.of(
-        edit,
-        pushStateToHistory(getCrudRoute(httpRequest, id) + "/" + id + "/edit"),
+      var rq = httpRequest.runActionRq();
+      return List.of(
+              wrapRoute("/" + id + "/edit", httpRequest),
         setWindowTitle(httpRequest));
   }
 
@@ -254,12 +271,9 @@ public abstract class CrudOrchestrator<
     _editing = new HashMap<>();
     var idField = getIdFieldForRow();
     var id = savedId != null ? "" + savedId : getIdForView(httpRequest, idField);
-    var view = view(toId(id), httpRequest);
-    if (childCrud()) {
-      return List.of(view);
-    }
-    return List.of(
-        view,
+
+      return List.of(
+              wrapRoute("/" + id, httpRequest),
         pushStateToHistory(getCrudRoute(httpRequest, id) + "/" + id),
         setWindowTitle(httpRequest));
   }
@@ -313,4 +327,20 @@ public abstract class CrudOrchestrator<
   public Component component(HttpRequest httpRequest) {
     return list(httpRequest);
   }
+
+    @Override
+    public Object wrapRoute(String route, HttpRequest httpRequest) {
+        httpRequest.setAttribute("mediator", true );
+        return wrap(App.builder()
+                        .homeRoute(route)
+                        .serverSideType(getClass().getName())
+                        .variant(AppVariant.MEDIATOR)
+                        .build(),
+                this,
+                (String) httpRequest.getAttribute("baseUrl"),
+                httpRequest.runActionRq().consumedRoute(),
+                httpRequest.runActionRq().consumedRoute(),
+                null, httpRequest
+        );
+    }
 }

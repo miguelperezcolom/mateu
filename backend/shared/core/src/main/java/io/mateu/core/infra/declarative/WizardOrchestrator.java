@@ -340,7 +340,7 @@ public abstract class WizardOrchestrator
   }
 
   @Override
-  public List<Action> actions() {
+  public List<Action> actions(HttpRequest httpRequest) {
     var actions = new ArrayList<Action>();
     actions.add(Action.builder().id("next").validationRequired(true).build());
     return actions;

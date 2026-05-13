@@ -86,7 +86,7 @@ public class ComponentTreeSupplierToDtoMapper {
         getState(componentTreeSupplier, httpRequest),
         componentTreeSupplier.style(),
         componentTreeSupplier.cssClasses(),
-        mapActions(componentTreeSupplier),
+        mapActions(componentTreeSupplier, httpRequest),
         mapTriggers(componentTreeSupplier, httpRequest),
         mapRules(componentTreeSupplier),
         mapValidations(componentTreeSupplier, route),
@@ -469,11 +469,11 @@ public class ComponentTreeSupplierToDtoMapper {
     };
   }
 
-  public static List<ActionDto> mapActions(Object serverSideObject) {
+  public static List<ActionDto> mapActions(Object serverSideObject, HttpRequest httpRequest) {
     List<ActionDto> actions = new ArrayList<>();
     if (serverSideObject instanceof ActionSupplier hasActions) {
       actions.addAll(
-          hasActions.actions().stream().map(ComponentTreeSupplierToDtoMapper::mapAction).toList());
+          hasActions.actions(httpRequest).stream().map(ComponentTreeSupplierToDtoMapper::mapAction).toList());
     }
     if (serverSideObject instanceof ActionHandler hasActions) {
       actions.addAll(

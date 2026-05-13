@@ -4,6 +4,8 @@ import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Breadcrumb;
 import io.mateu.uidl.data.KPI;
 import java.util.List;
+
+import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.Builder;
 import lombok.Singular;
 
@@ -26,4 +28,9 @@ public record Page(
     String style,
     String cssClasses,
     @Singular("actionItem") List<Action> actions)
-    implements Component, ActionSupplier {}
+    implements Component, ActionSupplier {
+    @Override
+    public List<Action> actions(HttpRequest httpRequest) {
+        return actions;
+    }
+}

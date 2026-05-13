@@ -1,10 +1,15 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
+import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppVariant;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteHandler;
 import lombok.extern.slf4j.Slf4j;
+
+import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 
 @Slf4j
 public abstract class RouteHandlerLayer<
@@ -18,34 +23,40 @@ public abstract class RouteHandlerLayer<
 
   @Override
   public Object handleRoute(String route, HttpRequest httpRequest) {
-    log.info("route is {}", route);
+    log.info("route is {}, action is {}", route, httpRequest.runActionRq().actionId());
     try {
-      if (httpRequest.runActionRq().actionId() == null
+
+        if (httpRequest.runActionRq().actionId() == null
           || "".equals(httpRequest.runActionRq().actionId())) {
-        var crudRoute = getCrudRoute(httpRequest, null);
-        var cleanRoute = route;
-        if (cleanRoute.startsWith(httpRequest.runActionRq().consumedRoute())) {
-          cleanRoute = route.substring(httpRequest.runActionRq().consumedRoute().length());
-        }
-        var actionId =
-            (cleanRoute.length() >= crudRoute.length())
-                ? cleanRoute.substring(crudRoute.length())
-                : cleanRoute;
-        if (actionId.startsWith("/")) {
-          actionId = actionId.substring(1);
-        }
-        if (actionId.contains("?")) {
-          actionId = actionId.substring(0, actionId.indexOf("?"));
-        }
-        if (!"".equals(actionId)) {
-          if ("new".equals(actionId)) {
-            return create(httpRequest);
+
+          if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
+              return wrapRoute(route, httpRequest);
           }
-          if (actionId.endsWith("edit")) {
-            return edit(toId(actionId.split("/")[0]), httpRequest);
+
+          if (route.endsWith("/new")) {
+              return create(httpRequest);
           }
-          return view(toId(actionId), httpRequest);
-        }
+
+            if (route.endsWith("/list")) {
+                return list(httpRequest);
+            }
+
+          if (route.endsWith("/edit")) {
+              return edit(toId(route), httpRequest);
+          }
+
+          if (route.equals(httpRequest.runActionRq().consumedRoute())) {
+              httpRequest.setAttribute("list", true);
+              return wrap((Component) list(httpRequest),
+                      this,
+                      (String) httpRequest.getAttribute("baseUrl"),
+                      httpRequest.runActionRq().consumedRoute(),
+                      httpRequest.runActionRq().consumedRoute(),
+                      null, httpRequest
+              );
+          }
+
+          return view(toId(route), httpRequest);
       }
     } catch (Throwable e) {
       return "route not found:" + route;

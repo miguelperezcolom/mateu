@@ -1,5 +1,5 @@
-import { customElement, property } from "lit/decorators.js";
-import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
+import {customElement, property} from "lit/decorators.js";
+import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -18,9 +18,8 @@ import './mateu-table'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { Notification } from "@vaadin/notification";
-import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import {Notification} from "@vaadin/notification";
+import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -133,22 +132,12 @@ export class MateuTableCrud extends LitElement {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         metadata.serverSideOrdering = true
         return html`
-            <vaadin-horizontal-layout theme="spacing" style="width: 100%;">
-                ${metadata.infiniteScrolling?html`
-                <div>${this.data[this.id]?.page?.totalElements} items found.</div>
-            `:nothing}
-                <mateu-filter-bar 
-                        .metadata="${metadata}"
-                        @search-requested="${this.search}"
-                        .state="${this.state}"
-                        .data="${this.data}"
-                        .appState="${this.appState}"
-                        .appdata="${this.appData}"
-                        slot="end"
-                >
-                    ${metadata.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                </mateu-filter-bar>
-            </vaadin-horizontal-layout>
+            <div style="display: flex; align-items: center; width: 100%;">
+                ${metadata.infiniteScrolling ? html`
+                    <div>${this.data[this.id]?.page?.totalElements} items found.</div>
+                ` : nothing}
+                ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
+            </div>
             ${metadata?.crudlType == 'table'?componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
             :html`
                         
@@ -183,19 +172,12 @@ export class MateuTableCrud extends LitElement {
                         
             `}
             <slot></slot>
-            ${metadata.infiniteScrolling?nothing:html`
-                <mateu-pagination
-                        @page-changed="${this.pageChanged}"
-                        @fetch-more-elements="${this.fetchMoreElements}"
-                        totalElements="${this.data[this.component?.id!]?.page?.totalElements}"
-                        pageSize="${this.data[this.component?.id!]?.page?.pageSize}"
-                        data-testid="pagination"
-                        pageNumber="${this.data[this.component?.id!]?.page?.pageNumber}"
-                >
-                    ${metadata.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                </mateu-pagination>
-`}
+            ${metadata.infiniteScrolling?nothing:componentRenderer.get()?.renderPagination(this, this.component)}
        `
+    }
+
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return componentRenderer.mustUseShadowRoot() ? super.createRenderRoot() : this
     }
 
     static styles = css`

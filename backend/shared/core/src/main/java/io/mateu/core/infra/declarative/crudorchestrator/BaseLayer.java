@@ -82,7 +82,11 @@ public abstract class BaseLayer<
 
   public abstract CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> adapter();
 
+    public abstract Object list(HttpRequest httpRequest);
+
   public abstract Object create(HttpRequest httpRequest);
+
+  public abstract Object wrapRoute(String route, HttpRequest httpRequest);
 
   public abstract Object edit(IdType id, HttpRequest httpRequest);
 

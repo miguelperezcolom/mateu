@@ -80,7 +80,7 @@ public class FutureComponentToDtoMapper {
         futureComponent.instance(),
         "",
         "",
-        mapActions(futureComponent.instance()),
+        mapActions(futureComponent.instance(), httpRequest),
         mapTriggers(futureComponent.instance(), httpRequest),
         mapRules(futureComponent.instance()),
         mapValidations(futureComponent.instance()),

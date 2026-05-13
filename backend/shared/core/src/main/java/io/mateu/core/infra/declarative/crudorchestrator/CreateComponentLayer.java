@@ -82,20 +82,20 @@ public abstract class CreateComponentLayer<
                                     .id("create")
                                     .validationRequired(true)
                                     .bubble(true)
-                                    .build())))),
-        getState(this, httpRequest),
+                                    .build()), httpRequest))),
+        getState(viewModel, httpRequest),
         "width: 100%;",
         "",
-        mapActions(this),
-        mapTriggers(this, httpRequest),
-        mapRules(this),
-        mapValidations(this, httpRequest.runActionRq().route()),
+        mapActions(viewModel, httpRequest),
+        mapTriggers(viewModel, httpRequest),
+        mapRules(viewModel),
+        mapValidations(viewModel, httpRequest.runActionRq().route()),
         null,
         null);
   }
 
-  public static List<ActionDto> completeActions(Object viewModel, List<ActionDto> actions) {
-    List<ActionDto> result = mapActions(viewModel);
+  public static List<ActionDto> completeActions(Object viewModel, List<ActionDto> actions, HttpRequest httpRequest) {
+    List<ActionDto> result = mapActions(viewModel, httpRequest);
     result.addAll(actions);
     return result;
   }

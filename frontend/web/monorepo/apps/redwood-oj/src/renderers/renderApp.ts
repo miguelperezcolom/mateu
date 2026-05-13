@@ -83,7 +83,7 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
     if (AppVariant.TABS == metadata.variant) {
         const data: TabData<string>[] = metadata.menu.map(menu => ({
             label: menu.label,
-            itemKey: menu.destination?.route,
+            itemKey: menu.route,
             // icon: {
             //     type: 'class',
             //     class: 'oj-ux-ico-home'
@@ -117,7 +117,97 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
     }
 
     if (AppVariant.MENU_ON_TOP == metadata.variant) {
-        return html`<p>menu on top</p>`
+        const topItems: TabData<string>[] = metadata.menu.map(menu => ({
+            label: menu.label,
+            itemKey: menu.route,
+        } as TabData<string>))
+
+        // Resolve effective home route when none is set
+        if (!metadata.homeRoute || metadata.homeRoute === '_no_home_route') {
+            const first = metadata.menu[0]
+            metadata.homeRoute = first?.submenus?.length ? first.submenus[0].route : (first?.route ?? '')
+        }
+
+        // Track which top-level item is active
+        const activeTopRoute = data.activeTopRoute
+            ?? metadata.menu.find(m => m.route === metadata.homeRoute || m.submenus?.some(s => s.route === metadata.homeRoute))?.route
+            ?? metadata.menu[0]?.route
+            ?? ''
+        data.activeTopRoute = activeTopRoute
+
+        const activeTopMenu = metadata.menu.find(m => m.route === activeTopRoute)
+        const subItems: TabData<string>[] = (activeTopMenu?.submenus ?? []).map(sub => ({
+            label: sub.label,
+            itemKey: sub.route,
+        } as TabData<string>))
+
+        // Initialize active consumed route and serverSideType from the active menu option
+        if (data.activeConsumedRoute === undefined) {
+            const activeSubmenu = activeTopMenu?.submenus?.find(s => s.route === metadata.homeRoute)
+            data.activeConsumedRoute = activeSubmenu?.consumedRoute ?? activeTopMenu?.consumedRoute ?? metadata.homeConsumedRoute ?? ''
+            data.activeServerSideType = activeSubmenu?.serverSideType ?? activeTopMenu?.serverSideType ?? metadata.homeServerSideType ?? ''
+        }
+        const activeConsumedRoute: string = data.activeConsumedRoute
+        const activeServerSideType: string = data.activeServerSideType ?? ''
+
+        const selectTop = (event: CustomEvent) => {
+            const route = event.detail.value
+            data.activeTopRoute = route
+            const topMenu = metadata.menu.find(m => m.route === route)
+            if (topMenu?.submenus?.length) {
+                const firstSub = topMenu.submenus[0]
+                data.activeConsumedRoute = firstSub.consumedRoute ?? ''
+                data.activeServerSideType = firstSub.serverSideType ?? topMenu.serverSideType ?? metadata.serverSideType ?? ''
+                selectedTab({ ...event, detail: { ...event.detail, value: firstSub.route } } as CustomEvent, container, baseUrl ?? '', metadata)
+            } else {
+                data.activeConsumedRoute = topMenu?.consumedRoute ?? ''
+                data.activeServerSideType = topMenu?.serverSideType ?? metadata.serverSideType ?? ''
+                selectedTab({ ...event, detail: { ...event.detail, value: route } } as CustomEvent, container, baseUrl ?? '', metadata)
+            }
+        }
+
+        const selectSubItem = (e: CustomEvent) => {
+            const route = e.detail.value
+            const allSubMenus = metadata.menu.flatMap(m => m.submenus ?? [])
+            const option = allSubMenus.find(s => s.route === route)
+            data.activeConsumedRoute = option?.consumedRoute ?? ''
+            data.activeServerSideType = option?.serverSideType ?? metadata.serverSideType ?? ''
+            selectedTab(e, container, baseUrl ?? '', metadata)
+        }
+
+        return html`<div style="${component.style ?? nothing}">
+            <oj-c-tab-bar
+                    .data="${topItems}"
+                    .selection="${activeTopRoute}"
+                    @ojSelectionAction="${selectTop}"
+                    edge="top"
+                    layout="condense"
+                    display="standard"
+                    aria-label="Main navigation"
+            ></oj-c-tab-bar>
+            ${subItems.length > 0 ? html`
+            <oj-c-tab-bar
+                    .data="${subItems}"
+                    .selection="${metadata.homeRoute}"
+                    @ojSelectionAction="${selectSubItem}"
+                    edge="top"
+                    layout="condense"
+                    display="standard"
+                    aria-label="Sub navigation"
+            ></oj-c-tab-bar>` : nothing}
+            <div style="padding: 1rem;">
+                <mateu-api-caller style="width: 100%;">
+                    <mateu-ux
+                            route="${metadata.homeRoute}"
+                            id="ux_${container.id}"
+                            baseUrl="${container.baseUrl}"
+                            consumedRoute="${activeConsumedRoute}"
+                            serverSideType="${activeServerSideType}"
+                            style="width: 100%;"
+                    ></mateu-ux>
+                </mateu-api-caller>
+            </div>
+        </div>`
     }
 
     if (AppVariant.MENU_ON_LEFT == metadata.variant) {
@@ -238,11 +328,11 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
                         >
                             <ul>
                                 ${metadata.menu.map(menu => html`
-                                    <li data-route="${menu.destination?.route}" id="${menu.destination?.route}"><a href="#">${menu.label}</a>
+                                    <li data-route="${menu.route}" id="${menu.route}"><a href="#">${menu.label}</a>
                                         ${menu.submenus && menu.submenus.length > 0?html`
                                         <ul>
                                             ${menu.submenus.map(sub => html`
-                                                <li data-route="${sub.destination?.route}" id="${sub.destination?.route}"><a href="#">${sub.label}</a></li>
+                                                <li data-route="${sub.route}" id="${sub.route}"><a href="#">${sub.label}</a></li>
                                             `)}
                                         </ul>
                                         `:nothing}
@@ -272,37 +362,5 @@ export const renderApp = (container: MateuApp, component: ClientSideComponent, b
 
 
         </div>`
-
-    return html`<h1>Hola</h1>
-    <hr>
-    <div class="oj-bg-neutral-170 oj-color-invert" style="max-width: 15rem;">
-        <oj-navigation-list
-                aria-label="Choose a navigation item"
-                drill-mode="sliding"
-                @ojSelectionAction="${(e: any) => console.log(e)}"
-                root-label="Hola"
-        >
-            <ul>
-                <li><a href="#">Item 1</a></li>
-                <li><a href="#"><!--<span class="oj-navigationlist-item-icon demo-icon-font-24 demo-palette-icon-24"></span>--> Item 2</a></li>
-                <li class="oj-navigationlist-category-divider"></li>
-                <li><a href="#"><span class="oj-navigationlist-item-label">
-        Foo
-        </span></a></li>
-                <li><a href="#">Item 3</a>
-                    <ul>
-                        <li><a href="#">Item 3-1</a></li>
-                        <li><a href="#">Item 3-2</a></li>
-                        <li><a href="#">Item 3-3</a></li>
-                        <li><a href="#">Item 3-4</a></li>
-                        <li><a href="#">Item 3-5</a></li>
-                    </ul>
-                </li>
-            </ul>
-        </oj-navigation-list>
-    </div>
-    <hr>
-    
-    `
 
 }

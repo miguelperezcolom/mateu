@@ -86,7 +86,7 @@ public class ReflectionObjectToComponentMapper {
               instance,
               "",
               "",
-              mapActions(instance),
+              mapActions(instance, httpRequest),
               mapTriggers(instance, httpRequest),
               mapRules(instance),
               mapValidations(instance, route),

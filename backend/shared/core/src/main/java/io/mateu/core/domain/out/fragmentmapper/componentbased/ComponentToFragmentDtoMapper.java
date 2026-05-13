@@ -1,5 +1,18 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased;
 
+import io.mateu.dtos.*;
+import io.mateu.uidl.data.*;
+import io.mateu.uidl.fluent.*;
+import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.DataSupplier;
+import io.mateu.uidl.interfaces.HttpRequest;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
 import static io.mateu.core.application.runaction.RunActionUseCase.getState;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.AccordionLayoutComponentToDtoMapper.mapAccordionLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.AccordionPanelComponentToDtoMapper.mapAccordionPanelToDto;
@@ -33,6 +46,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Div
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ElementComponentToDtoMapper.mapElementToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FieldComponentToDtoMapper.mapFormFieldToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormComponentToDtoMapper.mapFormToDto;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormEditorComponentToDtoMapper.mapFormEditorToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormItemComponentToDtoMapper.mapFormItemToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormLayoutComponentToDtoMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.FormRowComponentToDtoMapper.mapFormRowToDto;
@@ -70,26 +84,6 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Vir
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.WorkflowComponentToDtoMapper.mapWorkflowToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.WorkflowElkComponentToDtoMapper.mapWorkflowElkToDto;
 import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.createData;
-
-import io.mateu.dtos.ClientSideComponentDto;
-import io.mateu.dtos.ComponentDto;
-import io.mateu.dtos.ElementDto;
-import io.mateu.dtos.UIFragmentActionDto;
-import io.mateu.dtos.UIFragmentDto;
-import io.mateu.uidl.data.*;
-import io.mateu.uidl.fluent.App;
-import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.Listing;
-import io.mateu.uidl.fluent.MenuBar;
-import io.mateu.uidl.fluent.Page;
-import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.DataSupplier;
-import io.mateu.uidl.interfaces.HttpRequest;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 public final class ComponentToFragmentDtoMapper {
 
@@ -321,6 +315,9 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component instanceof io.mateu.uidl.data.WorkflowElk workflowElk) {
       return mapWorkflowElkToDto(workflowElk);
+    }
+    if (component instanceof io.mateu.uidl.data.FormEditor formEditor) {
+      return mapFormEditorToDto(formEditor);
     }
     if (component instanceof Chart chart) {
       return mapChartToDto(chart);

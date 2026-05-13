@@ -10,7 +10,15 @@ componentRenderer.setAfterRenderHook((element: HTMLElement) => {
                 "knockout",
                 "ojs/ojbootstrap",
                 "jet-composites/demo-card/loader",
-                "ojs/ojknockout"
+                "ojs/ojknockout",
+                "oj-c/button/button",
+                "oj-c/input-text/input-text",
+                "oj-c/input-number/input-number",
+                "oj-c/drawer-layout/drawer-layout",
+                "oj-c/tab-bar/tab-bar",
+                "oj-c/avatar/avatar",
+                "oj-c/table/table",
+                "ojs/ojarraydataprovider"
             ],
             // @ts-ignore
             function (require, exports, ko, ojbootstrap_1) {

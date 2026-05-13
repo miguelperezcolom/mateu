@@ -1,37 +1,14 @@
-import { customElement, property, query, state } from "lit/decorators.js";
-import { ifDefined } from "lit/directives/if-defined.js";
-import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/grid"
-import "@vaadin/tooltip"
-import '@vaadin/grid/vaadin-grid-sort-column.js';
-import '@vaadin/grid/vaadin-grid-filter-column.js';
-import '@vaadin/grid/vaadin-grid-selection-column.js';
+import { customElement, property, state } from "lit/decorators.js";
+import { html, LitElement, PropertyValues, TemplateResult } from "lit";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
-import {
-    Grid,
-    GridActiveItemChangedEvent,
-    GridDataProvider,
-    GridEventContext,
-    GridSelectedItemsChangedEvent
-} from "@vaadin/grid/all-imports";
-import { columnBodyRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
-import { badge } from "@vaadin/vaadin-lumo-styles";
-import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
+import './mateu-redwood-action-menu';
 
 
+function escAttr(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
 
 @customElement('mateu-redwood-table')
 export class MateuRedwoodTable extends LitElement {
@@ -61,210 +38,172 @@ export class MateuRedwoodTable extends LitElement {
     emptyStateMessage?: string
 
     @state()
-    detailsOpenedItems: any[] = []
+    private dataProvider: any = undefined
 
-    pagesRequested: number[] = []
+    @state()
+    private _connected = false
 
+    // Cache the ADP constructor so subsequent calls are synchronous
+    private static _ADP: any = null
 
+    protected createRenderRoot(): HTMLElement | DocumentFragment {
+        return this;
+    }
 
-    // @ts-ignore
-    dataProvider:GridDataProvider<unknown> = (params, callback) => {
-        const page = this.data[this.id]?.page
-        if (this.metadata?.infiniteScrolling && params.page > 0) {
-            let satisfied = false
-            if (page && page.content) {
-                if (page.content.length >= (params.page + 1) * params.pageSize || page.content.length == page.totalElements) {
-                    callback(page.content
-                            .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
-                        page.totalElements)
-                    satisfied = true
-                }
+    connectedCallback() {
+        super.connectedCallback()
+        this._connected = true
+    }
+
+    private getOjColumns(): Record<string, any> {
+        const cols: Record<string, any> = {}
+        this.metadata?.columns?.forEach(col => {
+            const gcol = col.metadata as GridColumn
+            const needsTemplate =
+                gcol.stereotype === 'button' ||
+                gcol.dataType === 'action' ||
+                gcol.dataType === 'actionGroup' ||
+                gcol.dataType === 'status' ||
+                gcol.dataType === 'menu'
+
+            const colDef: any = {
+                headerText: gcol.label,
+                field: gcol.id,
             }
-            if (!satisfied) {
-                if (!this.pagesRequested.find(page => page == params.page)) {
-                    this.pagesRequested.push(params.page)
-                    this.dispatchEvent(new CustomEvent('fetch-more-elements', {
-                        detail: {
-                            params,
-                            callback: () => {
-                                if (this.data[this.id]?.page?.content) {
-                                    callback(this.data[this.id].page.content
-                                            .slice(params.page * params.pageSize, ((params.page + 1) * params.pageSize)),
-                                        this.data[this.id].page.totalElements)
-                                }
-                            }
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
-                }
+            if (gcol.resizable) colDef.resizable = 'enabled'
+            if (gcol.flexGrow != null) colDef.weight = gcol.flexGrow
+            if (needsTemplate) colDef.template = gcol.id + 'Template'
+            cols[gcol.id] = colDef
+        })
+        return cols
+    }
+
+    private getTemplateSlots(): string {
+        let slots = ''
+        this.metadata?.columns?.forEach(col => {
+            const gcol = col.metadata as GridColumn
+            if (gcol.stereotype === 'button') {
+                const label = escAttr(gcol.text ?? gcol.label ?? 'View')
+                slots += `<template slot="${gcol.id}Template" data-oj-as="cell">`
+                slots += `<oj-c-button data-oj-binding-provider="preact" label="${label}" chroming="borderless"></oj-c-button>`
+                slots += `</template>`
+            } else if (gcol.dataType === 'status') {
+                slots += `<template slot="${gcol.id}Template" data-oj-as="cell">`
+                slots += `<oj-c-badge`
+                slots += ` label="[[cell.data ? (cell.data.message || String(cell.data)) : '']]"`
+                slots += ` variant="[[cell.data ? (cell.data.type === 'SUCCESS' ? 'successSubtle' : cell.data.type === 'DANGER' ? 'dangerSubtle' : cell.data.type === 'WARNING' ? 'warningSubtle' : cell.data.type === 'INFO' ? 'infoSubtle' : 'neutral') : 'neutral']]"`
+                slots += `></oj-c-badge>`
+                slots += `</template>`
+            } else if (gcol.dataType === 'actionGroup' || gcol.dataType === 'menu') {
+                slots += `<template slot="${gcol.id}Template" data-oj-as="cell">`
+                slots += `<oj-c-menu-button`
+                slots += ` data-oj-binding-provider="preact"`
+                slots += ` label="···"`
+                slots += ` chroming="borderless"`
+                slots += ` :items="[[cell.data && cell.data.actions ? cell.data.actions.map(function(a){return {label:a.label||a.text||'',key:String(cell.item.key)+'|'+(a.methodNameInCrud||a.actionId||a.id||a.key||String(a.label||'')),disabled:!!a.disabled};}) : []]]"`
+                slots += `></oj-c-menu-button>`
+                slots += `</template>`
+            } else if (gcol.dataType === 'action') {
+                slots += `<template slot="${gcol.id}Template" data-oj-as="cell">`
+                slots += `<oj-c-menu-button`
+                slots += ` data-oj-binding-provider="preact"`
+                slots += ` label="···"`
+                slots += ` chroming="borderless"`
+                slots += ` :items="[[cell.data && cell.data.methodNameInCrud ? [{label:cell.data.label||cell.data.text||'Action',key:String(cell.item.key)+'|'+cell.data.methodNameInCrud,disabled:!!cell.data.disabled}] : []]]"`
+                slots += `></oj-c-menu-button>`
+                slots += `</template>`
             }
+        })
+        return slots
+    }
+
+    private refreshDataProvider() {
+        const rows = this.data[this.id]?.page?.content ?? []
+        if (MateuRedwoodTable._ADP) {
+            this.dataProvider = new MateuRedwoodTable._ADP(rows, { keyAttributes: '@index' })
         } else {
-            const totalElements = this.metadata?.infiniteScrolling?page?.totalElements:page?.content?.length??0
-            callback(page?.content??[], totalElements);
+            // @ts-ignore
+            require(['ojs/ojarraydataprovider'], (ADP: any) => {
+                MateuRedwoodTable._ADP = ADP.default ?? ADP
+                if (!this.isConnected) return
+                this.dataProvider = new MateuRedwoodTable._ADP(rows, { keyAttributes: '@index' })
+            })
         }
     }
 
     protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties);
-        this.grid?.clearCache()
-        this.pagesRequested = []
+        super.updated(_changedProperties)
+        if (_changedProperties.has('data') || _changedProperties.has('metadata')) {
+            this.refreshDataProvider()
+        }
     }
 
-    @query("vaadin-grid")
-    grid?: Grid
+    private handleRowAction(e: CustomEvent) {
+        const item = e.detail.context.item.data
+        const btnCol = this.metadata?.columns?.find(c => {
+            const gcol = c.metadata as GridColumn
+            return gcol.stereotype === 'button' && gcol.actionId
+        })
+        if (btnCol) {
+            const gcol = btnCol.metadata as GridColumn
+            this.dispatchEvent(new CustomEvent('action-requested', {
+                detail: { actionId: gcol.actionId, parameters: item },
+                bubbles: true,
+                composed: true
+            }))
+        }
+    }
 
-    private tooltipGenerator = (context: GridEventContext<any>): string => {
-        let text = '';
+    private handleMenuAction(e: CustomEvent) {
+        const rawKey = e.detail?.key as string
+        if (!rawKey) return
+        const sep = rawKey.indexOf('|')
+        if (sep < 0) return
+        const rowIndex = parseInt(rawKey.substring(0, sep))
+        const actionId = rawKey.substring(sep + 1)
+        const rows: any[] = this.data[this.id]?.page?.content ?? []
+        const rowData = rows[rowIndex] ?? {}
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId, parameters: rowData },
+            bubbles: true,
+            composed: true
+        }))
+    }
 
-        const { column, item } = context;
+    private handleSelectedChanged(e: CustomEvent) {
+        const selectedKeys = e.detail.value?.row
+        if (!selectedKeys) return
+        const rows = this.data[this.id]?.page?.content ?? []
+        const selectedItems = selectedKeys.isAddAll()
+            ? rows
+            : rows.filter((_: any, idx: number) => selectedKeys.has(idx))
+        this.state['crud_selected_items'] = selectedItems
+    }
 
-        const gridColumn = this.metadata?.columns?.find(col => (col.metadata as GridColumn).id == column?.path)
-        if (gridColumn?.metadata) {
-            const tooltipPath = (gridColumn?.metadata as GridColumn).tooltipPath
-            if (tooltipPath) {
-                if (column && item) {
-                    text = item[tooltipPath]
-                }
-            }
-        }
+    render(): TemplateResult {
+        if (!this._connected) return html``
 
-        return text;
-    };
-
-    render():TemplateResult {
-
-        const page = this.data[this.id]?.page
-        let theme = '';
-        if (this.metadata?.wrapCellContent) {
-            theme += ' wrap-cell-content';
-        }
-        if (this.metadata?.compact) {
-            theme += ' compact';
-        }
-        if (this.metadata?.noBorder) {
-            theme += ' no-border';
-        }
-        if (this.metadata?.noRowBorder) {
-            theme += ' no-row-borders';
-        }
-        if (this.metadata?.columnBorders) {
-            theme += ' column-borders';
-        }
-        if (this.metadata?.rowStripes) {
-            theme += ' row-stripes';
-        }
-        /*
-        vaadinGridCellBackground: string
-        vaadinGridCellPadding: string
-*/
+        const columns = this.getOjColumns()
+        const selectionMode = this.metadata?.rowsSelectionEnabled
+            ? { row: 'multiple' as const }
+            : { row: 'none' as const }
 
         return html`
-            <vaadin-grid
-                    .items="${page?.content}"
-                    ?all-rows-visible="${this.metadata?.allRowsVisible}"
-                    column-rendering="${this.metadata?.lazyColumnRendering?'lazy':nothing}"
-                    ?column-reordering-allowed="${this.metadata?.columnReorderingAllowed}"
-                    .dataProvider="${this.dataProvider}"
-                    page-size="${this.metadata?.pageSize}"
-                    multi-sort-on-shift-click
-                    @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
-            this.state[this.id + '_selected_items'] = e.detail.value;
-            if (this.metadata?.onRowSelectionChangedActionId) {
-                this.dispatchEvent(new CustomEvent('action-requested', {
-                    detail: {
-                        actionId: this.metadata?.onRowSelectionChangedActionId
-                    },
-                    bubbles: true,
-                    composed: true
-                }))
-            }
-        }}"
-                    @active-item-changed="${ifDefined((this.metadata?.detailPath && !this.metadata?.useButtonForDetail)?(event: GridActiveItemChangedEvent<any>) => {
-            if (this.metadata?.detailPath) {
-                const row = event.detail.value
-                if (row) {
-                    this.detailsOpenedItems = [row]
-                } else {
-                    this.detailsOpenedItems = []
-                }
-            }
-        }:undefined)}"
-                    .detailsOpenedItems="${this.detailsOpenedItems}"
-                    ${ifDefined(this.metadata?.detailPath?gridRowDetailsRenderer<any>((item) => html`${renderComponent(
-            this,
-            item[this.metadata?.detailPath!],
-            this.baseUrl,
-            this.state,
-            this.data,
-                            this.appState,
-                            this.appData
-        )}`):undefined)}
-                    theme="${theme}"
-                    style="${this.metadata?.gridStyle}"
-            >
-                ${this.metadata?.rowsSelectionEnabled?html`
-                    <vaadin-grid-selection-column></vaadin-grid-selection-column>
-                `:nothing}
-                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                ${this.metadata?.useButtonForDetail?html`
-                    <vaadin-grid-column
-                            width="80px"
-                            flex-grow="0"
-                            ${columnBodyRenderer<any>(
-            (person, { detailsOpened }) => html`
-              <vaadin-button
-                theme="tertiary icon"
-                aria-label="Toggle details"
-                aria-expanded="${detailsOpened ? 'true' : 'false'}"
-                @click="${() => {
-                this.detailsOpenedItems = detailsOpened
-                    ? this.detailsOpenedItems.filter((p) => p !== person)
-                    : [...this.detailsOpenedItems, person];
-            }}"
-              >
-                <vaadin-icon
-                  .icon="${detailsOpened ? 'lumo:angle-down' : 'lumo:angle-right'}"
-                ></vaadin-icon>
-              </vaadin-button>
-            `,
-            []
-        )}
-                    ></vaadin-grid-column>
-                `:nothing}
-                <span slot="empty-state">${this.emptyStateMessage??this.metadata?.emptyStateMessage??'No data.'}</span>
-                ${this.metadata?.columns?.find(column => (column.metadata as GridColumn).tooltipPath)?html`<vaadin-tooltip slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>`:nothing}
-            </vaadin-grid>
+            <oj-c-table
+                data-oj-binding-provider="preact"
+                .data="${this.dataProvider}"
+                .columns="${columns}"
+                .selectionMode="${selectionMode}"
+                layout="contents"
+                @ojRowAction="${(e: CustomEvent) => this.handleRowAction(e)}"
+                @selectedChanged="${(e: CustomEvent) => this.handleSelectedChanged(e)}"
+                @ojMenuAction="${(e: CustomEvent) => this.handleMenuAction(e)}"
+                aria-label="${this.metadata?.title ?? 'Data table'}"
+                style="width: 100%;"
+            >${unsafeHTML(this.getTemplateSlots())}</oj-c-table>
             <slot></slot>
-       `
+        `
     }
-
-    static styles = css`
-        ${badge}
-        
-        vaadin-grid {
-            background-color: unset;
-        }
-
-        vaadin-grid::part(header-cell) {
-            font-variant-numeric: tabular-nums;
-            font-weight: 600;
-            background-color: unset;
-            height: 56px;
-            font-size: 16px;
-        }
-        vaadin-grid::part(cell) {
-            background-color: unset;
-            font-size: 16px;
-            height: 49px;
-        }
-        vaadin-grid::part(row) {
-            line-height: 20px;
-        color: rgb(22, 21, 19);
-            font-family: "Oracle Sans", -apple-system, "system-ui", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
-            background-color: unset;
-        }
-  `
 }
 
 declare global {
@@ -272,5 +211,3 @@ declare global {
         'mateu-redwood-table': MateuRedwoodTable
     }
 }
-
-

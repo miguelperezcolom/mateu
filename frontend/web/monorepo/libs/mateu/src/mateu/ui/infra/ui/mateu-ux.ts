@@ -230,6 +230,7 @@ export class MateuUx extends ConnectedElement {
         // if (_changedProperties.has('homeRoute')) {
         //     this.route = this.homeRoute
         // }
+        console.log('updated', _changedProperties, this.preventNavigation)
         if (_changedProperties.has('id') ||
             _changedProperties.has('baseurl') ||
             _changedProperties.has('route')  ||

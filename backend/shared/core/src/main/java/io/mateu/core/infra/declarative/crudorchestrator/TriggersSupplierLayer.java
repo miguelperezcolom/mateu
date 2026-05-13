@@ -34,6 +34,7 @@ public abstract class TriggersSupplierLayer<
     if (!isViewing(httpRequest)) {
       triggers.add(new OnLoadTrigger("search"));
     }
+    /*
     triggers.add(new OnSuccessTrigger("search", "create", ""));
     triggers.add(new OnSuccessTrigger("search", "delete", ""));
     triggers.add(new OnSuccessTrigger("search", "save", ""));
@@ -45,6 +46,7 @@ public abstract class TriggersSupplierLayer<
             method -> {
               triggers.add(new OnSuccessTrigger("search", "action-on-row-" + method.getName(), ""));
             });
+     */
 
     for (io.mateu.uidl.annotations.Trigger annotation :
         getClass().getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class)) {

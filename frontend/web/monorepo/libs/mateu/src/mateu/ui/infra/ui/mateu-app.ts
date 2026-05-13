@@ -312,16 +312,6 @@ export class MateuApp extends ComponentElement {
         }
     }
 
-    connectedCallback() {
-        super.connectedCallback()
-        //this.addEventListener('update-route', this.updateRoute)
-    }
-
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        //this.removeEventListener('update-route', this.updateRoute)
-    }
-
     render() {
         return componentRenderer.get()?.renderAppComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
     }

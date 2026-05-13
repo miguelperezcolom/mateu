@@ -39,7 +39,7 @@ public class FormViewModel
   @Hidden Map<String, Object> _editing = new HashMap<>();
 
   @Override
-  public List<Action> actions() {
+  public List<Action> actions(HttpRequest httpRequest) {
     return List.of();
   }
 

@@ -26,7 +26,7 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
   }
 
   @Override
-  default List<Action> actions() {
+  default List<Action> actions(HttpRequest httpRequest) {
     return List.of(Action.builder().id("search").build());
   }
 

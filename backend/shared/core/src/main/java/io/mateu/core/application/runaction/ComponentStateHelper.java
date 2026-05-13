@@ -69,7 +69,7 @@ public class ComponentStateHelper {
         getState(modelView, httpRequest),
         "width: 100%;",
         "",
-        mapActions(modelView),
+        mapActions(modelView, httpRequest),
         mapTriggers(modelView, httpRequest),
         mapRules(modelView),
         mapValidations(modelView, route),

@@ -41,6 +41,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = BpmnDto.class, name = "Bpmn"),
   @JsonSubTypes.Type(value = WorkflowDto.class, name = "Workflow"),
   @JsonSubTypes.Type(value = WorkflowElkDto.class, name = "WorkflowElk"),
+  @JsonSubTypes.Type(value = FormEditorDto.class, name = "FormEditor"),
   @JsonSubTypes.Type(value = IconDto.class, name = "Icon"),
   @JsonSubTypes.Type(value = ConfirmDialogDto.class, name = "ConfirmDialog"),
   @JsonSubTypes.Type(value = ContextMenuDto.class, name = "ContextMenu"),
@@ -136,6 +137,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
       FormSubSectionDto.class,
       PageDto.class,
       ChatDto.class,
-      WorkflowElkDto.class
+      WorkflowElkDto.class,
+      FormEditorDto.class
     })
 public interface ComponentMetadataDto {}

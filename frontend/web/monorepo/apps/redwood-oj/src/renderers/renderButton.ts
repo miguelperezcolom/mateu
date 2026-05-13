@@ -6,7 +6,7 @@ import { handleButtonClick } from "@/RedwoodOjComponentRenderer.ts";
 export const renderButton = (component: ClientSideComponent, _baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
     const metadata = component.metadata as Button
     return html`<oj-c-button
-                    id="button1"
+                    data-oj-binding-provider="preact"
                     data-action-id="${metadata.actionId}"
                     label="${metadata.label}"
                     @ojAction=${handleButtonClick}
