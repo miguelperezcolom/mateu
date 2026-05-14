@@ -32,7 +32,7 @@ public abstract class ValidationDtoSupplierLayer<
 
   @Override
   public List<ValidationDto> validationDtos() {
-    if ("edit".equals(state()) || "create".equals(state())) {
+    if ("edit".equals(route()) || "create".equals(route())) {
       List<ValidationDto> fieldLevelValidations = new ArrayList<>();
       getAllFields(viewModelClass()).stream()
           .flatMap(field -> getValidations(field).stream())

@@ -34,6 +34,12 @@ public abstract class ActionSupplierLayer<
                         .build());
         actions.add(Action.builder().id("save").build());
         actions.add(Action.builder().id("create").build());
+        actions.add(Action.builder().id("new").build());
+        actions.add(Action.builder().id("view").build());
+        actions.add(Action.builder().id("edit").build());
+        actions.add(Action.builder().id("cancel-create").build());
+        actions.add(Action.builder().id("cancel-view").build());
+        actions.add(Action.builder().id("cancel-edit").build());
         getAllMethods(getClass()).stream()
                 .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
                 .forEach(

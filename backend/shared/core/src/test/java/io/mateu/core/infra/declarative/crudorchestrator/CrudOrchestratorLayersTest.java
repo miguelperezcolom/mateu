@@ -128,26 +128,26 @@ class CrudOrchestratorLayersTest {
   }
 
   @Test
-  void viewModelClassInListState() {
-    orchestrator.setStateTo("list");
+  void viewModelClassInListRoute() {
+    orchestrator.setRouteTo("list");
     assertThat(orchestrator.viewModelClass()).isNotNull();
   }
 
   @Test
-  void viewModelClassInEditState() {
-    orchestrator.setStateTo("edit");
+  void viewModelClassInEditRoute() {
+    orchestrator.setRouteTo("edit");
     assertThat(orchestrator.viewModelClass()).isNotNull();
   }
 
   @Test
-  void viewModelClassInCreateState() {
-    orchestrator.setStateTo("create");
+  void viewModelClassInCreateRoute() {
+    orchestrator.setRouteTo("create");
     assertThat(orchestrator.viewModelClass()).isNotNull();
   }
 
   @Test
-  void viewModelClassInViewState() {
-    orchestrator.setStateTo("view");
+  void viewModelClassInViewRoute() {
+    orchestrator.setRouteTo("view");
     assertThat(orchestrator.viewModelClass()).isNotNull();
   }
 }

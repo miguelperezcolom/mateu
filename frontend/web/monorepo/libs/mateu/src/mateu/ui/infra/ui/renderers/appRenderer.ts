@@ -9,7 +9,11 @@ const filterMenu = (e: CustomEvent, container: MateuApp) => {
     }
 }
 
-const chooseRoute = (container: MateuApp, metadata: App) => {
+const chooseRoute = (state: any, container: MateuApp, metadata: App) => {
+    console.log("chooseRoute", state, container.selectedRoute, metadata.homeRoute)
+    if (state && state._route != undefined) {
+        return chooseConsumedRoute(container, metadata) + state._route
+    }
     if (container.selectedRoute) {
         return container.selectedRoute
     }
@@ -46,10 +50,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
 
     return html`
                     ${metadata.variant == AppVariant.MEDIATOR?html`
-                        MEDIATOR route = ${chooseRoute(container, metadata)}, consumedRoute = ${chooseConsumedRoute(container, metadata)}, baseUrl = ${chooseBaseUrl(container, metadata)}, serverSideType = ${chooseAppServerSideType(container, metadata)}, uriPrefix = ${chooseUriPrefix(container, metadata)}
+                        MEDIATOR state = ${JSON.stringify(_state)}, route = ${chooseRoute(_state, container, metadata)}, consumedRoute = ${chooseConsumedRoute(container, metadata)}, baseUrl = ${chooseBaseUrl(container, metadata)}, serverSideType = ${chooseAppServerSideType(container, metadata)}, uriPrefix = ${chooseUriPrefix(container, metadata)}
                         <mateu-api-caller>
                             <mateu-ux
-                                    route="${chooseRoute(container, metadata)}"
+                                    route="${chooseRoute(_state, container, metadata)}"
                                     id="ux_${container.id}"
                                     baseUrl="${chooseBaseUrl(container, metadata)}"
                                     consumedRoute="${chooseConsumedRoute(container, metadata)}"
@@ -84,7 +88,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <vaadin-master-detail-layout>
                             <mateu-api-caller>
                                 <mateu-ux
-                                        route="${chooseRoute(container, metadata)}"
+                                        route="${chooseRoute(_state, container, metadata)}"
                                         id="ux_${container.id}"
                                         baseUrl="${chooseBaseUrl(container, metadata)}"
                                         consumedRoute="${chooseConsumedRoute(container, metadata)}"
@@ -163,7 +167,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <hr>
                             chosen.baseUrl:${chooseBaseUrl(container, metadata)}
                             <br/>
-                            chosen.route:${chooseRoute(container, metadata)}
+                            chosen.route:${chooseRoute(_state, container, metadata)}
                             <br/>
                             chosen.consumedRoute:${chooseConsumedRoute(container, metadata)}
                             <br/>
@@ -174,7 +178,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                    <vaadin-master-detail-layout>
                     <mateu-api-caller>
                         <mateu-ux
-                                route="${chooseRoute(container, metadata)}"
+                                route="${chooseRoute(_state, container, metadata)}"
                                 id="ux_${container.id}"
                                 baseUrl="${chooseBaseUrl(container, metadata)}"
                                 consumedRoute="${chooseConsumedRoute(container, metadata)}"
@@ -208,7 +212,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <vaadin-master-detail-layout>
                             <mateu-api-caller>
                                 <mateu-ux
-                                        route="${chooseRoute(container, metadata)}"
+                                        route="${chooseRoute(_state, container, metadata)}"
                                         id="ux_${container.id}"
                                         baseUrl="${chooseBaseUrl(container, metadata)}"
                                         consumedRoute="${chooseConsumedRoute(container, metadata)}"
@@ -270,7 +274,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <vaadin-scroller>
                                 <mateu-api-caller>
                                     <mateu-ux
-                                            route="${chooseRoute(container, metadata)}"
+                                            route="${chooseRoute(_state, container, metadata)}"
                                             id="ux_${container.id}"
                                             baseUrl="${chooseBaseUrl(container, metadata)}"
                                             consumedRoute="${chooseConsumedRoute(container, metadata)}"

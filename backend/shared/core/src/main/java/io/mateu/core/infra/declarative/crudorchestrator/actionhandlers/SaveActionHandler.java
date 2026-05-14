@@ -25,6 +25,6 @@ public class SaveActionHandler implements CrudActionHandler {
                 .variant(NotificationVariant.success)
                 .text("Item saved successfully")
                 .build())
-        .withActionId("view");
+        .withRoute("/" + savedId);
   }
 }

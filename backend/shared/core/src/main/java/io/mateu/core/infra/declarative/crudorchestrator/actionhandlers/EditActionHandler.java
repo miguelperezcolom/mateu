@@ -2,13 +2,14 @@ package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
+
 import java.util.Map;
 
-public class CancelEditActionHandler implements CrudActionHandler {
+public class EditActionHandler implements CrudActionHandler {
 
   @Override
   public boolean supports(String actionId) {
-    return "cancel-edit".equals(actionId);
+    return "edit".equals(actionId);
   }
 
   @Override
@@ -19,15 +20,15 @@ public class CancelEditActionHandler implements CrudActionHandler {
       HttpRequest httpRequest) {
     var idField = orchestrator.getIdFieldForRow();
     var savedId = httpRequest.getComponentState(Map.class).get(idField);
-      if (savedId == null) {
-          savedId = httpRequest.runActionRq().parameters().get(idField);
-      }
-      if (savedId == null) {
-          var initiatorState = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
-          if (initiatorState != null) {
-              savedId = initiatorState.get(idField);
-          }
-      }
-    return current.withSavedId(savedId).withRoute("/" + savedId);
+    if (savedId == null) {
+        savedId = httpRequest.runActionRq().parameters().get(idField);
+    }
+    if (savedId == null) {
+        var initiatorState = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+        if (initiatorState != null) {
+            savedId = initiatorState.get(idField);
+        }
+    }
+    return current.withSavedId(savedId).withRoute("/" + savedId + "/edit");
   }
 }

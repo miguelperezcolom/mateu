@@ -43,7 +43,7 @@ class CrudActionHandlerTest {
       var handler = new CreateActionHandler();
       var result = handler.handle(orchestrator, CrudActionResult.of("create"), httpRequest);
 
-      assertThat(result.actionId()).isEqualTo("view");
+      assertThat(result.route()).isEqualTo("view");
     }
 
     @Test
@@ -82,7 +82,7 @@ class CrudActionHandlerTest {
       var handler = new SaveActionHandler();
       var result = handler.handle(orchestrator, CrudActionResult.of("save"), httpRequest);
 
-      assertThat(result.actionId()).isEqualTo("view");
+      assertThat(result.route()).isEqualTo("view");
     }
 
     @Test
@@ -132,7 +132,7 @@ class CrudActionHandlerTest {
       var handler = new DeleteActionHandler();
       var result = handler.handle(orchestrator, CrudActionResult.of("delete"), httpRequest);
 
-      assertThat(result.actionId()).isEqualTo("delete");
+      assertThat(result.route()).isEqualTo("delete");
     }
 
     @Test
@@ -176,7 +176,7 @@ class CrudActionHandlerTest {
       var handler = new CancelEditActionHandler();
       var result = handler.handle(orchestrator, CrudActionResult.of("cancel-edit"), httpRequest);
 
-      assertThat(result.actionId()).isEqualTo("view");
+      assertThat(result.route()).isEqualTo("view");
     }
 
     @Test
@@ -211,7 +211,7 @@ class CrudActionHandlerTest {
       var handler = new CancelViewActionHandler();
       var result = handler.handle(orchestrator, CrudActionResult.of("cancel-view"), httpRequest);
 
-      assertThat(result.actionId()).isEqualTo("");
+      assertThat(result.route()).isEqualTo("");
     }
 
     @Test
@@ -231,7 +231,7 @@ class CrudActionHandlerTest {
       var handler = new CancelCreateActionHandler();
       var result = handler.handle(orchestrator, CrudActionResult.of("cancel-create"), httpRequest);
 
-      assertThat(result.actionId()).isEqualTo("");
+      assertThat(result.route()).isEqualTo("");
     }
 
     @Test
@@ -257,13 +257,13 @@ class CrudActionHandlerTest {
   class CrudActionResultTest {
 
     @Test
-    void withActionIdCreatesNewRecord() {
+    void withRouteCreatesNewRecord() {
       var original = CrudActionResult.of("create", "id-1");
-      var updated = original.withActionId("view");
+      var updated = original.withRoute("view");
 
-      assertThat(updated.actionId()).isEqualTo("view");
+      assertThat(updated.route()).isEqualTo("view");
       assertThat(updated.savedId()).isEqualTo("id-1");
-      assertThat(original.actionId()).isEqualTo("create");
+      assertThat(original.route()).isEqualTo("create");
     }
 
     @Test

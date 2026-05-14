@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
@@ -76,7 +77,7 @@ public class DataComponentToDtoMapper {
   @SneakyThrows
   public static Map<String, Object> mapPojo(Object item) {
     Map<String, Object> map = new HashMap<>();
-    for (Field field : item.getClass().getDeclaredFields()) {
+    for (Field field : getAllEditableFields(item.getClass())) {
       if (!item.getClass().isRecord() && Modifier.isFinal(field.getModifiers())) {
         continue;
       }

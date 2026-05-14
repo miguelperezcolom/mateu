@@ -89,7 +89,7 @@ class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
 }
 
 @Route(value = "/home/grupos")
-//@Trigger(type = TriggerType.OnLoad, actionId = "search", timeoutMillis = 4000, times = -1)
+//@Trigger(type = TriggerType.OnLoad, route = "search", timeoutMillis = 4000, times = -1)
 public class GroupsCrud extends AutoCrudOrchestrator<Grupo> {
     @Override
     public AutoCrudAdapter<Grupo> simpleAdapter() {

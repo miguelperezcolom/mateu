@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
 
-public class SearchActionHandler {
+public class SearchOnFieldActionHandler {
 
   @SneakyThrows
   public static Object handleSearchOnField(

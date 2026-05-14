@@ -5,20 +5,13 @@ import static io.mateu.core.infra.declarative.CrudAdapterHelper.getIdField;
 import static io.mateu.core.infra.declarative.CrudAdapterHelper.toView;
 import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.ActionOnRowActionHandler.handleActionOnRow;
 import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.ActionOnViewActionHandler.handleActionOnView;
-import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.SearchActionHandler.handleSearchOnField;
+import static io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.SearchOnFieldActionHandler.handleSearchOnField;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.data.UICommand.pushStateToHistory;
 
 import io.mateu.core.infra.declarative.crudorchestrator.ListComponentLayer;
-import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CancelCreateActionHandler;
-import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CancelEditActionHandler;
-import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CancelViewActionHandler;
-import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CreateActionHandler;
-import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CrudActionHandler;
-import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.CrudActionResult;
-import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.DeleteActionHandler;
-import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.SaveActionHandler;
+import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.*;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.App;
@@ -27,10 +20,9 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,21 +37,26 @@ public abstract class CrudOrchestrator<
     extends ListComponentLayer<View, Editor, CreationForm, Filters, Row, IdType>
     implements ActionHandler, ActionSupplier, ComponentTreeSupplier {
 
-  String _state = "";
-  Map<String, Object> _show_detail = new HashMap<>();
-  Map<String, Object> _editing = new HashMap<>();
+    String xx = "hola";
+  String _route = "";
+    String _componentRoute = "";
 
   @Override
-  public String state() {
-    return _state;
+  public String route() {
+    return _route;
   }
 
   @Override
-  public void setStateTo(String state) {
-    _state = state;
+  public void setRouteTo(String route) {
+    _route = route;
   }
 
-  public boolean oneToOne() {
+    @Override
+    public void setComponentRouteTo(String route) {
+        _componentRoute = route;
+    }
+
+    public boolean oneToOne() {
     return false;
   }
 
@@ -74,10 +71,15 @@ public abstract class CrudOrchestrator<
           new DeleteActionHandler(),
           new CancelEditActionHandler(),
           new CancelViewActionHandler(),
-          new CancelCreateActionHandler());
+          new CancelCreateActionHandler(),
+              new ViewActionHandler(),
+              new EditActionHandler(),
+              new NewActionHandler());
 
   @Override
   public List<String> supportedActions() {
+      return List.of();
+      /*
     return List.of(
         "action-on-row-",
         "action-on-view-",
@@ -92,6 +94,8 @@ public abstract class CrudOrchestrator<
         "cancel-edit",
         "cancel-view",
         "cancel-create");
+
+       */
   }
 
   @SneakyThrows
@@ -120,45 +124,21 @@ public abstract class CrudOrchestrator<
     for (var handler : CRUD_ACTION_HANDLERS) {
       if (handler.supports(actionId)) {
         result = handler.handle(this, result, httpRequest);
-        var rq = httpRequest.runActionRq();
         var list = new ArrayList<>();
-        list.add(new UICommand(UICommandType.DispatchEvent, new DispatchEventData(
-                "navigation-requested",
-                NavigationRequestedPayload.builder()
-                        .actionId("")
-                        .route(rq.route() + ("".equals(result.actionId()) ? "" : "/" + result.actionId()))
-                        .consumedRoute(rq.consumedRoute() + rq.route())
-                        .baseUrl((String) httpRequest.getAttribute("baseUrl"))
-                        .uriPrefix((String) httpRequest.getAttribute("baseUrl"))
-                        .serverSideType(getClass().getName())
-                        .build()
-        )));
+        setRouteTo(result.route());
+        list.add(new State(this));
         list.addAll(result.messages());
+        list.add(UICommand.pushStateToHistory(pathForHistory(result.route())));
+        list.add(setWindowTitle(httpRequest));
         return list;
       }
     }
-    actionId = result.actionId();
-    savedId = result.savedId();
 
-    updateRegisteredRoute(savedId, httpRequest);
-
-    if ("view".equals(actionId)) {
-      return Stream.concat(handleView(httpRequest, savedId).stream(), result.messages().stream())
-          .toList();
-    }
-    if ("edit".equals(actionId)) {
-      return handleEdit(httpRequest);
-    }
-    if ("new".equals(actionId)) {
-      return handleNew(httpRequest);
-    }
     if ("search".equals(actionId)) {
       return handleSearch(httpRequest);
     }
 
     if (oneToOne()) {
-      _show_detail = new HashMap<>();
-      _editing = new HashMap<>();
       var parentId = parentId();
       var found =
           ((CompositionCrudRepository) adapter())
@@ -185,41 +165,16 @@ public abstract class CrudOrchestrator<
             setWindowTitle(httpRequest));
       }
     } else {
-      var list = list(httpRequest);
-      var listDto =
-          wrap(
-              list,
-              this,
-              "base_url",
-              httpRequest.runActionRq().route(),
-              httpRequest.runActionRq().consumedRoute(),
-              httpRequest.runActionRq().initiatorComponentId(),
-              httpRequest);
-      if (childCrud()) {
-        return listDto;
-      }
-      return List.of(
-          listDto,
-          pushStateToHistory(getCrudRoute(httpRequest, savedId)),
-          setWindowTitle(httpRequest));
+      throw new RuntimeException("Action not supported: " + actionId);
     }
   }
 
-  private void updateRegisteredRoute(Object id, HttpRequest httpRequest) {
-    var registeredRoute = (String) httpRequest.getAttribute("resolvedRoute");
-    if (registeredRoute != null) {
-      if (id != null && registeredRoute.endsWith(id.toString() + "/edit")) {
-        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
+    private String pathForHistory(String route) {
+      if ("/list".equals(route)) {
+          return _componentRoute;
       }
-      if (id != null && registeredRoute.endsWith(id.toString())) {
-        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
-      }
-      if (id == null && registeredRoute.endsWith("/new")) {
-        registeredRoute = registeredRoute.substring(0, registeredRoute.lastIndexOf("/"));
-      }
-      httpRequest.setAttribute("registeredRoute", registeredRoute);
+      return _componentRoute + route;
     }
-  }
 
   private Object handleSearch(HttpRequest httpRequest) {
     String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
@@ -234,61 +189,12 @@ public abstract class CrudOrchestrator<
     return new Data(Map.of("crud", search(searchText, null, pageable, httpRequest)));
   }
 
-  private List<?> handleNew(HttpRequest httpRequest) {
-      var rq = httpRequest.runActionRq();
-    return List.of(
-            new UICommand(UICommandType.DispatchEvent, new DispatchEventData(
-                    "navigation-requested",
-                    NavigationRequestedPayload.builder()
-                            .route(rq.consumedRoute() + "/new")
-                            .consumedRoute(rq.consumedRoute())
-                            .baseUrl((String) httpRequest.getAttribute("baseUrl"))
-                            .uriPrefix((String) httpRequest.getAttribute("baseUrl"))
-                            .serverSideType(getClass().getName())
-                            .build()
-            )),
-            setWindowTitle(httpRequest));
-  }
 
   private UICommand setWindowTitle(HttpRequest httpRequest) {
     return new UICommand(UICommandType.SetWindowTitle, httpRequest.getAttribute("windowTitle"));
   }
 
-  private List<?> handleEdit(HttpRequest httpRequest) {
-    _show_detail = new HashMap<>();
-    _editing = new HashMap<>();
-    var idField = getIdFieldForRow();
-    var id = (IdType) httpRequest.runActionRq().componentState().get(idField);
 
-      var rq = httpRequest.runActionRq();
-      return List.of(
-              wrapRoute("/" + id + "/edit", httpRequest),
-        setWindowTitle(httpRequest));
-  }
-
-  private List<?> handleView(HttpRequest httpRequest, Object savedId) {
-    _show_detail = new HashMap<>();
-    _editing = new HashMap<>();
-    var idField = getIdFieldForRow();
-    var id = savedId != null ? "" + savedId : getIdForView(httpRequest, idField);
-
-      return List.of(
-              wrapRoute("/" + id, httpRequest),
-        pushStateToHistory(getCrudRoute(httpRequest, id) + "/" + id),
-        setWindowTitle(httpRequest));
-  }
-
-  private String getIdForView(HttpRequest httpRequest, String idField) {
-    if (httpRequest.runActionRq().parameters() != null
-        && httpRequest.runActionRq().parameters().get(idField) != null) {
-      return (String) httpRequest.runActionRq().parameters().get(idField);
-    }
-    if (httpRequest.runActionRq().componentState().get("id") != null) {
-      return (String) httpRequest.runActionRq().componentState().get("id");
-    }
-    var path = httpRequest.path().replaceAll("/view", "");
-    return path.substring(path.lastIndexOf("/") + 1);
-  }
 
   public String getIdFieldForRow() {
     return getIdField(viewClass());
@@ -331,15 +237,18 @@ public abstract class CrudOrchestrator<
     @Override
     public Object wrapRoute(String route, HttpRequest httpRequest) {
         httpRequest.setAttribute("mediator", true );
+        var consumedRoute = (String) httpRequest.getAttribute("resolvedPath");
+        if (!route.equals(consumedRoute)) setRouteTo(route.substring(consumedRoute.length()));
         return wrap(App.builder()
                         .homeRoute(route)
                         .serverSideType(getClass().getName())
+                        .homeConsumedRoute(consumedRoute)
                         .variant(AppVariant.MEDIATOR)
                         .build(),
                 this,
                 (String) httpRequest.getAttribute("baseUrl"),
-                httpRequest.runActionRq().consumedRoute(),
-                httpRequest.runActionRq().consumedRoute(),
+                consumedRoute,
+                consumedRoute,
                 null, httpRequest
         );
     }

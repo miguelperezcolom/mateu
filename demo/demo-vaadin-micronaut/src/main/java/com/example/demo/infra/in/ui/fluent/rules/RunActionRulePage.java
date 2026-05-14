@@ -46,6 +46,6 @@ public class RunActionRulePage implements ComponentTreeSupplier, RuleSupplier, A
 
     @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
-        return Message.builder().text("actionId: " + actionId).build();
+        return Message.builder().text("route: " + actionId).build();
     }
 }

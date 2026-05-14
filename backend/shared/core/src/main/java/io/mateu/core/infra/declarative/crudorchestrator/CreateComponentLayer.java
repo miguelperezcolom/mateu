@@ -11,7 +11,7 @@ import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.data.*;
-import io.mateu.uidl.fluent.*;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
@@ -29,23 +29,16 @@ public abstract class CreateComponentLayer<
     extends EditComponentLayer<View, Editor, CreationForm, Filters, Row, IdType> {
 
   @Override
-  public Object create(HttpRequest httpRequest) {
+  public Component create(HttpRequest httpRequest) {
     httpRequest.setAttribute("new", true);
-    setStateTo("create");
+    setRouteTo("create");
     var view = adapter().getCreationForm(httpRequest);
     httpRequest.setAttribute("selectedItem", view);
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(view));
     Object viewModel = view instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : view;
 
-    return new ServerSideComponentDto(
-        UUID.randomUUID().toString(),
-        this.getClass().getName(),
-        getCrudRoute(httpRequest, null),
-        List.of(
-            (ServerSideComponentDto)
-                wrap(
-                        Page.builder()
+    return Page.builder()
                             .title(title)
                             .style(getStyleForView())
                             .content(
@@ -64,34 +57,7 @@ public abstract class CreateComponentLayer<
                                 List.of(
                                     new Button("Cancel", "cancel-create"),
                                     new Button("Create", "create")))
-                            .build(),
-                        viewModel,
-                        "base_url",
-                        httpRequest.runActionRq().route(),
-                        httpRequest.runActionRq().consumedRoute(),
-                        httpRequest.runActionRq().initiatorComponentId(),
-                        httpRequest)
-                    .withRules(mapRules(viewModel))
-                    .withValidations(mapValidations(viewModel, httpRequest.runActionRq().route()))
-                    .withTriggers(mapTriggers(viewModel, httpRequest))
-                    .withActions(
-                        completeActions(
-                            viewModel,
-                            List.of(
-                                ActionDto.builder()
-                                    .id("create")
-                                    .validationRequired(true)
-                                    .bubble(true)
-                                    .build()), httpRequest))),
-        getState(viewModel, httpRequest),
-        "width: 100%;",
-        "",
-        mapActions(viewModel, httpRequest),
-        mapTriggers(viewModel, httpRequest),
-        mapRules(viewModel),
-        mapValidations(viewModel, httpRequest.runActionRq().route()),
-        null,
-        null);
+                            .build();
   }
 
   public static List<ActionDto> completeActions(Object viewModel, List<ActionDto> actions, HttpRequest httpRequest) {

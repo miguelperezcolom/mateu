@@ -6,9 +6,9 @@ import java.util.List;
 
 /**
  * Carries the mutable state that flows through CRUD action handling: the (possibly redirected)
- * actionId and the id of the entity that was saved.
+ * route and the id of the entity that was saved.
  */
-public record CrudActionResult(String actionId, Object savedId, List<Message> messages) {
+public record CrudActionResult(String route, Object savedId, List<Message> messages) {
 
   public static CrudActionResult of(String actionId) {
     return new CrudActionResult(actionId, null, new ArrayList<>());
@@ -18,17 +18,17 @@ public record CrudActionResult(String actionId, Object savedId, List<Message> me
     return new CrudActionResult(actionId, savedId, new ArrayList<>());
   }
 
-  public CrudActionResult withActionId(String newActionId) {
-    return new CrudActionResult(newActionId, this.savedId, this.messages);
+  public CrudActionResult withRoute(String route) {
+    return new CrudActionResult(route, this.savedId, this.messages);
   }
 
   public CrudActionResult withSavedId(Object newSavedId) {
-    return new CrudActionResult(this.actionId, newSavedId, this.messages);
+    return new CrudActionResult(this.route, newSavedId, this.messages);
   }
 
   public CrudActionResult withMessage(Message message) {
     var newMessages = new ArrayList<>(this.messages);
     newMessages.add(message);
-    return new CrudActionResult(this.actionId, this.savedId, newMessages);
+    return new CrudActionResult(this.route, this.savedId, newMessages);
   }
 }

@@ -68,6 +68,10 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
 
   @SneakyThrows
   T toEntity(HttpRequest httpRequest) {
+      var initiatorState = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+      if (initiatorState != null) {
+          return MateuInstanceFactory.newInstance(entityClass(), initiatorState, httpRequest);
+      }
     return httpRequest.getComponentState(entityClass());
   }
 }

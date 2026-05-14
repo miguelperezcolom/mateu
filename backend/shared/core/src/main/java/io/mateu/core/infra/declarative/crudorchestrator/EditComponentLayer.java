@@ -14,6 +14,7 @@ import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
@@ -31,7 +32,7 @@ public abstract class EditComponentLayer<
     extends ViewComponentLayer<View, Editor, CreationForm, Filters, Row, IdType> {
 
   @Override
-  public Object edit(IdType id, HttpRequest httpRequest) {
+  public Component edit(IdType id, HttpRequest httpRequest) {
     var editor = adapter().getEditor(id, httpRequest);
     //    var found = adapter().findById(id);
     //    if (found.isEmpty()) {
@@ -39,20 +40,13 @@ public abstract class EditComponentLayer<
     //    }
     //    var item = found.get();
     httpRequest.setAttribute("selectedItem", editor);
-    setStateTo("edit");
+    setRouteTo("edit");
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(editor));
     Object viewModel =
         editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
 
-    return new ServerSideComponentDto(
-        UUID.randomUUID().toString(),
-        this.getClass().getName(),
-        getCrudRoute(httpRequest, id),
-        List.of(
-            (ServerSideComponentDto)
-                wrap(
-                        Page.builder()
+    return Page.builder()
                             .title(title)
                             .style(getStyleForView())
                             .badges(createBadges(editor))
@@ -72,33 +66,6 @@ public abstract class EditComponentLayer<
                                 List.of(
                                     new Button("Cancel", "cancel-edit"),
                                     new Button("Save", "save")))
-                            .build(),
-                        viewModel,
-                        "base_url",
-                        httpRequest.runActionRq().route(),
-                        httpRequest.runActionRq().consumedRoute(),
-                        httpRequest.runActionRq().initiatorComponentId(),
-                        addData(viewModel, httpRequest))
-                    .withRules(mapRules(viewModel))
-                    .withValidations(mapValidations(viewModel, httpRequest.runActionRq().route()))
-                    .withTriggers(mapTriggers(viewModel, httpRequest))
-                    .withActions(
-                        completeActions(
-                            viewModel,
-                            List.of(
-                                ActionDto.builder()
-                                    .id("save")
-                                    .validationRequired(true)
-                                    .bubble(true)
-                                    .build()), httpRequest))),
-        getState(this, httpRequest),
-        "",
-        "",
-        mapActions(this,  httpRequest),
-        mapTriggers(this, httpRequest),
-        mapRules(this),
-        mapValidations(this, httpRequest.runActionRq().route()),
-        null,
-        null);
+                            .build();
   }
 }

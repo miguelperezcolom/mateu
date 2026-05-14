@@ -2,13 +2,14 @@ package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
+
 import java.util.Map;
 
-public class CancelViewActionHandler implements CrudActionHandler {
+public class ViewActionHandler implements CrudActionHandler {
 
   @Override
   public boolean supports(String actionId) {
-    return "cancel-view".equals(actionId);
+    return "view".equals(actionId);
   }
 
   @Override
@@ -17,6 +18,11 @@ public class CancelViewActionHandler implements CrudActionHandler {
       CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator,
       CrudActionResult current,
       HttpRequest httpRequest) {
-      return current.withRoute("/list");
+    var idField = orchestrator.getIdFieldForRow();
+    var savedId = httpRequest.getComponentState(Map.class).get(idField);
+    if (savedId == null) {
+        savedId = httpRequest.runActionRq().parameters().get(idField);
+    }
+    return current.withSavedId(savedId).withRoute("/" + savedId);
   }
 }

@@ -211,13 +211,6 @@ export default abstract class ConnectedElement extends LitElement {
                     bubbles: true,
                     composed: true
                 }))
-                this.dispatchEvent(new CustomEvent('history-pushed', {
-                    detail: {
-                        route: destination
-                    },
-                    bubbles: true,
-                    composed: true
-                }))
             }
         }
         if ('RunAction' == command.type) {

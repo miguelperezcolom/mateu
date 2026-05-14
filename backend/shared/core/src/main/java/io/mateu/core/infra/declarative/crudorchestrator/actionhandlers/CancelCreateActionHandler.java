@@ -15,6 +15,6 @@ public class CancelCreateActionHandler implements CrudActionHandler {
       CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator,
       CrudActionResult current,
       HttpRequest httpRequest) {
-    return current.withActionId("list");
+    return current.withRoute("/list");
   }
 }

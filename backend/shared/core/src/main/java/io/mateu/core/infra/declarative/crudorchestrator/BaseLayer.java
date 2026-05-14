@@ -8,6 +8,7 @@ import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.core.infra.declarative.SimpleView;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
@@ -22,21 +23,21 @@ public abstract class BaseLayer<
     IdType> {
 
   public Class<?> viewModelClass() {
-    if ("edit".equals(state())) {
+    if ("edit".equals(route())) {
       var type = editorClass();
       if (AutoNamedView.class.isAssignableFrom(type) || SimpleView.class.isAssignableFrom(type)) {
         return entityClass();
       }
       return type;
     }
-    if ("create".equals(state())) {
+    if ("create".equals(route())) {
       var type = creationFormClass();
       if (AutoNamedView.class.isAssignableFrom(type) || SimpleView.class.isAssignableFrom(type)) {
         return entityClass();
       }
       return type;
     }
-    if ("view".equals(state())) {
+    if ("view".equals(route())) {
       var type = viewClass();
       if (AutoNamedView.class.isAssignableFrom(type)) {
         return entityClass();
@@ -82,15 +83,15 @@ public abstract class BaseLayer<
 
   public abstract CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> adapter();
 
-    public abstract Object list(HttpRequest httpRequest);
+    public abstract Component list(HttpRequest httpRequest);
 
-  public abstract Object create(HttpRequest httpRequest);
+  public abstract Component create(HttpRequest httpRequest);
 
   public abstract Object wrapRoute(String route, HttpRequest httpRequest);
 
-  public abstract Object edit(IdType id, HttpRequest httpRequest);
+  public abstract Component edit(IdType id, HttpRequest httpRequest);
 
-  public abstract Object view(IdType id, HttpRequest httpRequest);
+  public abstract Component view(IdType id, HttpRequest httpRequest);
 
   public abstract IdType toId(String s);
 
@@ -113,7 +114,10 @@ public abstract class BaseLayer<
     return false;
   }
 
-  public abstract String state();
+  public abstract String route();
 
-  public abstract void setStateTo(String state);
+  public abstract void setRouteTo(String state);
+
+    public abstract void setComponentRouteTo(String state);
+
 }

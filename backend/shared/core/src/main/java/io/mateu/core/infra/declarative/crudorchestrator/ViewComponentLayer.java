@@ -39,39 +39,17 @@ public abstract class ViewComponentLayer<
     extends StateSupplierLayer<View, Editor, CreationForm, Filters, Row, IdType> {
 
   @Override
-  public Object view(IdType id, HttpRequest httpRequest) {
+  public Component view(IdType id, HttpRequest httpRequest) {
     var view = adapter().getView(id, httpRequest);
     //    if (found.isEmpty()) {
     //      throw new RuntimeException("No item found with id " + id);
     //    }
     //    var item = found.get();
     httpRequest.setAttribute("selectedItem", view);
-    setStateTo("view");
+    setRouteTo("view");
     Object viewModel = view instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : view;
 
-    return new ServerSideComponentDto(
-        UUID.randomUUID().toString(),
-        this.getClass().getName(),
-        getCrudRoute(httpRequest, id),
-        List.of(
-            (ServerSideComponentDto)
-                wrap(
-                    viewComponent(view, httpRequest),
-                    viewModel,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    addData(viewModel, httpRequest))),
-        getState(this, httpRequest),
-        "width: 100%;",
-        "",
-        mapActions(this, httpRequest),
-        mapTriggers(this, httpRequest),
-        mapRules(this),
-        mapValidations(this, httpRequest.runActionRq().route()),
-        null,
-        null);
+    return viewComponent(view, httpRequest);
   }
 
   protected Component viewComponent(Object item, HttpRequest httpRequest) {
