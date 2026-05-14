@@ -65,7 +65,7 @@ public abstract class StateSupplierLayer<
 
   protected Map<String, Object> toMap(Object instance) {
     var map = fromJson(toJson(instance));
-    getAllEditableFields(instance.getClass()).stream()
+    getAllFields(instance.getClass()).stream()
         .filter(
             field ->
                 !isBasic(field.getType())
