@@ -50,7 +50,6 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
 
     return html`
                     ${metadata.variant == AppVariant.MEDIATOR?html`
-                        MEDIATOR state = ${JSON.stringify(_state)}, route = ${chooseRoute(_state, container, metadata)}, consumedRoute = ${chooseConsumedRoute(container, metadata)}, baseUrl = ${chooseBaseUrl(container, metadata)}, serverSideType = ${chooseAppServerSideType(container, metadata)}, uriPrefix = ${chooseUriPrefix(container, metadata)}
                         <mateu-api-caller>
                             <mateu-ux
                                     route="${chooseRoute(_state, container, metadata)}"

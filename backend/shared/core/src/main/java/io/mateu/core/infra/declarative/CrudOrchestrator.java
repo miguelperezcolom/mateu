@@ -244,6 +244,7 @@ public abstract class CrudOrchestrator<
                         .serverSideType(getClass().getName())
                         .homeConsumedRoute(consumedRoute)
                         .variant(AppVariant.MEDIATOR)
+                .style("width: 100%;")
                         .build(),
                 this,
                 (String) httpRequest.getAttribute("baseUrl"),
