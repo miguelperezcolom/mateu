@@ -16,10 +16,8 @@ import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
 import lombok.SneakyThrows;
 
 public class DataComponentToDtoMapper {
@@ -104,7 +102,11 @@ public class DataComponentToDtoMapper {
       } else {
         var value = getValue(field, item);
         if (!(value instanceof Component)) {
-          map.put(field.getName(), value);
+            if (value != null && List.class.isAssignableFrom(value.getClass())) {
+                map.put(field.getName(), ((List<?>) value).stream().map(DataComponentToDtoMapper::mapItem).toList());
+            } else {
+                map.put(field.getName(), value);
+            }
         }
       }
     }

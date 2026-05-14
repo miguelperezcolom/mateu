@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.crudorchestrator;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 
+import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
@@ -35,25 +36,34 @@ public abstract class RouteHandlerLayer<
         }
 
         if (route.endsWith("/list")) {
-          return wrapView("list", list(httpRequest), httpRequest);
+          return wrapView("list", this, list(httpRequest), httpRequest);
         }
 
         if (route.endsWith("/new")) {
-          return wrapView("new", create(httpRequest), httpRequest);
+          return wrapView(
+              "new", adapter().getCreationForm(httpRequest), create(httpRequest), httpRequest);
         }
 
         if (route.endsWith("/edit")) {
           route = route.substring(0, route.lastIndexOf("/edit"));
           var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
-          return wrapView("edit", edit(toId(id), httpRequest), httpRequest);
+          return wrapView(
+              "edit",
+              adapter().getEditor(toId(id), httpRequest),
+              edit(toId(id), httpRequest),
+              httpRequest);
         }
 
         if (route.equals(httpRequest.runActionRq().consumedRoute())) {
-          return wrapView("list", list(httpRequest), httpRequest);
+          return wrapView("list", this, list(httpRequest), httpRequest);
         }
 
         var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
-        return wrapView("/" + id, view(toId(id), httpRequest), httpRequest);
+        return wrapView(
+            "/" + id,
+            adapter().getView(toId(id), httpRequest),
+            view(toId(id), httpRequest),
+            httpRequest);
       }
     } catch (Throwable e) {
       e.printStackTrace();
@@ -63,11 +73,15 @@ public abstract class RouteHandlerLayer<
     return this;
   }
 
-  private Object wrapView(String viewName, Component component, HttpRequest httpRequest) {
+  private Object wrapView(
+      String viewName, Object modelView, Component component, HttpRequest httpRequest) {
     httpRequest.setAttribute(viewName, true);
+    if (modelView instanceof AutoNamedView<?> autoNamedView) {
+        modelView = autoNamedView.entity();
+    }
     return wrap(
         component,
-        this,
+        modelView,
         (String) httpRequest.getAttribute("baseUrl"),
         httpRequest.runActionRq().consumedRoute(),
         httpRequest.runActionRq().consumedRoute(),

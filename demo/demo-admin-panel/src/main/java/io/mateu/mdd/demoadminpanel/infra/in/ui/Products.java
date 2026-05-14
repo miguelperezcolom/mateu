@@ -2,12 +2,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.core.infra.declarative.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
-import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
-import io.mateu.uidl.annotations.HiddenInList;
-import io.mateu.uidl.annotations.Status;
-import io.mateu.uidl.annotations.StatusMapping;
-import io.mateu.uidl.annotations.Stereotype;
-import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.FieldStereotype;
@@ -43,7 +38,9 @@ record Product(
                        }
                )
                ProductStatus status,
-        ColumnActionGroup action) implements Identifiable {
+        ColumnActionGroup action,
+        @Colspan(2)
+        List<ProductComponent> components) implements Identifiable {
 
     Product {
         action = new ColumnActionGroup(new ColumnAction[]{
@@ -60,7 +57,10 @@ record Product(
 
 class ProductRepository implements CrudRepository<Product> {
 
-    private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", "xxx", ProductStatus.Available, null)));
+    private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", "xxx", ProductStatus.Available, null, List.of(
+            new ProductComponent("x", 1),
+            new ProductComponent("y", 2)
+    ))));
 
     @Override
     public Optional<Product> findById(String id) {

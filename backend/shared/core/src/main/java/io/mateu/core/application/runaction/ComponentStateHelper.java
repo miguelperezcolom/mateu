@@ -3,10 +3,12 @@ package io.mateu.core.application.runaction;
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper.mapItem;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper.mapPojo;
 import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
+import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Route;
@@ -16,9 +18,8 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.StateSupplier;
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
 import lombok.SneakyThrows;
 
 /** Static helpers for building ServerSideComponentDto and extracting component/state metadata. */
@@ -94,7 +95,13 @@ public class ComponentStateHelper {
                 var generator =
                     MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
                 var value = generator.generate();
-                newState.put(field.getName(), value);
+                if (value != null && List.class.isAssignableFrom(value.getClass())) {
+                    var list = (List<?>) value;
+                    var mappedList = list.stream().map(DataComponentToDtoMapper::mapItem).toList();
+                    newState.put(field.getName(), mappedList);
+                } else {
+                    newState.put(field.getName(), value);
+                }
               });
       addRowNumber(modelView.getClass(), newState);
       return newState;

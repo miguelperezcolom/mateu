@@ -97,6 +97,22 @@ public abstract class StateSupplierLayer<
                 }
               }
             });
+      getAllFields(instance.getClass()).stream()
+              .filter(
+                      field ->Collection.class.isAssignableFrom(field.getType())
+                                      && (instance.getClass().isRecord() || !Modifier.isFinal(field.getModifiers())))
+              .forEach(
+                      field -> {
+                          var value = getValue(field, instance);
+                          if (value != null) {
+                                  if (value instanceof Collection collection) {
+                                      map.put(field.getName(), collection.stream().map(this::toMap).toList());
+                                  } else if (value.getClass().isArray()) {
+                                      Object[] array = (Object[]) value;
+                                      map.put(field.getName(), Arrays.stream(array).map(this::toMap).toList());
+                                  }
+                              }
+                          });
     return map;
   }
 
