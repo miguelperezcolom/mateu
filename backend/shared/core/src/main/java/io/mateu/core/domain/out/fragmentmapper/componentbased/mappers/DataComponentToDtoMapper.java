@@ -17,7 +17,6 @@ import io.mateu.uidl.fluent.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
-
 import lombok.SneakyThrows;
 
 public class DataComponentToDtoMapper {
@@ -86,10 +85,12 @@ public class DataComponentToDtoMapper {
           mapping.put(statusMapping.from(), statusMapping.to());
         }
         StatusType defaultType = ann.defaultStatus();
-        var value = toUpperCaseFirst("" + getValue(field, item));
+        var value = "" + getValue(field, item);
+        var message = toUpperCaseFirst("" + getValue(field, item));
         map.put(
             field.getName(),
-            new io.mateu.uidl.data.Status(mapping.getOrDefault(value, defaultType), value));
+            new io.mateu.uidl.data.Status(
+                mapping.getOrDefault(value, defaultType), message, value));
       } else if (field.isAnnotationPresent(MappedValue.class)) {
         var ann = field.getAnnotation(MappedValue.class);
         Map<String, String> mapping = new HashMap<>();
@@ -102,11 +103,13 @@ public class DataComponentToDtoMapper {
       } else {
         var value = getValue(field, item);
         if (!(value instanceof Component)) {
-            if (value != null && List.class.isAssignableFrom(value.getClass())) {
-                map.put(field.getName(), ((List<?>) value).stream().map(DataComponentToDtoMapper::mapItem).toList());
-            } else {
-                map.put(field.getName(), value);
-            }
+          if (value != null && List.class.isAssignableFrom(value.getClass())) {
+            map.put(
+                field.getName(),
+                ((List<?>) value).stream().map(DataComponentToDtoMapper::mapItem).toList());
+          } else {
+            map.put(field.getName(), value);
+          }
         }
       }
     }

@@ -77,7 +77,7 @@ public abstract class RouteHandlerLayer<
       String viewName, Object modelView, Component component, HttpRequest httpRequest) {
     httpRequest.setAttribute(viewName, true);
     if (modelView instanceof AutoNamedView<?> autoNamedView) {
-        modelView = autoNamedView.entity();
+      modelView = autoNamedView.entity();
     }
     return wrap(
         component,

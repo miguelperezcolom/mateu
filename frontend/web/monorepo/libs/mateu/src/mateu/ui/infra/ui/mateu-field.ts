@@ -455,7 +455,10 @@ export class MateuField extends LitElement {
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) {
-            const valueToDisplay = evalIfNecessary(value, this.state, this.data) || this.data[fieldId]
+            let valueToDisplay = evalIfNecessary(value, this.state, this.data) || this.data[fieldId]
+            if (valueToDisplay && (valueToDisplay as any).value) {
+                valueToDisplay = (valueToDisplay as any).value
+            }
             if ('image' == this.field.stereotype) {
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"
@@ -536,6 +539,11 @@ export class MateuField extends LitElement {
                         }))
                     }
 
+                    let realValue = value
+                    if (value && value.value) {
+                        realValue = value.value
+                    }
+
                     return html`
                     <vaadin-select
                             id="${this.field.fieldId}"
@@ -545,12 +553,16 @@ export class MateuField extends LitElement {
                             .items="${this.data[this.id]?.content}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
-                            .value="${value}"
+                            .value="${realValue}"
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
                     ></vaadin-select>
                     `
+                }
+                let realValue = value
+                if (value && value.value) {
+                    realValue = value.value
                 }
                 return html`
                     <vaadin-select
@@ -561,7 +573,7 @@ export class MateuField extends LitElement {
                             .items="${this.field.options}"
                             .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
-                            .value="${value}"
+                            .value="${realValue}"
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
