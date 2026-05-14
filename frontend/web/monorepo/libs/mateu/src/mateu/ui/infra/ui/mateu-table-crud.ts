@@ -132,7 +132,7 @@ export class MateuTableCrud extends LitElement {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         metadata.serverSideOrdering = true
         return html`
-            <div style="display: flex; align-items: center; width: 100%;">
+            <div style="display: flex; justify-content: end; width: 100%;">
                 ${metadata.infiniteScrolling ? html`
                     <div>${this.data[this.id]?.page?.totalElements} items found.</div>
                 ` : nothing}

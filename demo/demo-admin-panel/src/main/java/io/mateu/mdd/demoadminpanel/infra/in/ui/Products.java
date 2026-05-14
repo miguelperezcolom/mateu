@@ -29,6 +29,7 @@ record Product(
                @Stereotype(FieldStereotype.textarea)
                @HiddenInList
                String description,
+               boolean certified,
                @NotNull
                @Status(
                        defaultStatus = StatusType.NONE,
@@ -57,7 +58,7 @@ record Product(
 
 class ProductRepository implements CrudRepository<Product> {
 
-    private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", "xxx", ProductStatus.Available, null, List.of(
+    private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", "xxx", true, ProductStatus.Available, null, List.of(
             new ProductComponent("x", 1),
             new ProductComponent("y", 2)
     ))));
