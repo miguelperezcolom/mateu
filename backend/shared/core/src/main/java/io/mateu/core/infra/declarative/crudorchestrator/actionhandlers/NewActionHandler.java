@@ -3,8 +3,6 @@ package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
 
-import java.util.Map;
-
 public class NewActionHandler implements CrudActionHandler {
 
   @Override

@@ -2,7 +2,6 @@ package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
-
 import java.util.Map;
 
 public class ViewActionHandler implements CrudActionHandler {
@@ -21,7 +20,7 @@ public class ViewActionHandler implements CrudActionHandler {
     var idField = orchestrator.getIdFieldForRow();
     var savedId = httpRequest.getComponentState(Map.class).get(idField);
     if (savedId == null) {
-        savedId = httpRequest.runActionRq().parameters().get(idField);
+      savedId = httpRequest.runActionRq().parameters().get(idField);
     }
     return current.withSavedId(savedId).withRoute("/" + savedId);
   }

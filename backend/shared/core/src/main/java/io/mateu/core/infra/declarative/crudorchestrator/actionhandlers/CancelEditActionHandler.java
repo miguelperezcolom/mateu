@@ -19,15 +19,16 @@ public class CancelEditActionHandler implements CrudActionHandler {
       HttpRequest httpRequest) {
     var idField = orchestrator.getIdFieldForRow();
     var savedId = httpRequest.getComponentState(Map.class).get(idField);
-      if (savedId == null) {
-          savedId = httpRequest.runActionRq().parameters().get(idField);
+    if (savedId == null) {
+      savedId = httpRequest.runActionRq().parameters().get(idField);
+    }
+    if (savedId == null) {
+      var initiatorState =
+          (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+      if (initiatorState != null) {
+        savedId = initiatorState.get(idField);
       }
-      if (savedId == null) {
-          var initiatorState = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
-          if (initiatorState != null) {
-              savedId = initiatorState.get(idField);
-          }
-      }
+    }
     return current.withSavedId(savedId).withRoute("/" + savedId);
   }
 }

@@ -18,11 +18,9 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,9 +35,9 @@ public abstract class CrudOrchestrator<
     extends ListComponentLayer<View, Editor, CreationForm, Filters, Row, IdType>
     implements ActionHandler, ActionSupplier, ComponentTreeSupplier {
 
-    String xx = "hola";
+  String xx = "hola";
   String _route = "";
-    String _componentRoute = "";
+  String _componentRoute = "";
 
   @Override
   public String route() {
@@ -51,12 +49,12 @@ public abstract class CrudOrchestrator<
     _route = route;
   }
 
-    @Override
-    public void setComponentRouteTo(String route) {
-        _componentRoute = route;
-    }
+  @Override
+  public void setComponentRouteTo(String route) {
+    _componentRoute = route;
+  }
 
-    public boolean oneToOne() {
+  public boolean oneToOne() {
     return false;
   }
 
@@ -72,14 +70,14 @@ public abstract class CrudOrchestrator<
           new CancelEditActionHandler(),
           new CancelViewActionHandler(),
           new CancelCreateActionHandler(),
-              new ViewActionHandler(),
-              new EditActionHandler(),
-              new NewActionHandler());
+          new ViewActionHandler(),
+          new EditActionHandler(),
+          new NewActionHandler());
 
   @Override
   public List<String> supportedActions() {
-      return List.of();
-      /*
+    return List.of();
+    /*
     return List.of(
         "action-on-row-",
         "action-on-view-",
@@ -169,12 +167,12 @@ public abstract class CrudOrchestrator<
     }
   }
 
-    private String pathForHistory(String route) {
-      if ("/list".equals(route)) {
-          return _componentRoute;
-      }
-      return _componentRoute + route;
+  private String pathForHistory(String route) {
+    if ("/list".equals(route)) {
+      return _componentRoute;
     }
+    return _componentRoute + route;
+  }
 
   private Object handleSearch(HttpRequest httpRequest) {
     String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
@@ -189,12 +187,9 @@ public abstract class CrudOrchestrator<
     return new Data(Map.of("crud", search(searchText, null, pageable, httpRequest)));
   }
 
-
   private UICommand setWindowTitle(HttpRequest httpRequest) {
     return new UICommand(UICommandType.SetWindowTitle, httpRequest.getAttribute("windowTitle"));
   }
-
-
 
   public String getIdFieldForRow() {
     return getIdField(viewClass());
@@ -234,23 +229,24 @@ public abstract class CrudOrchestrator<
     return list(httpRequest);
   }
 
-    @Override
-    public Object wrapRoute(String route, HttpRequest httpRequest) {
-        httpRequest.setAttribute("mediator", true );
-        var consumedRoute = (String) httpRequest.getAttribute("resolvedPath");
-        if (!route.equals(consumedRoute)) setRouteTo(route.substring(consumedRoute.length()));
-        return wrap(App.builder()
-                        .homeRoute(route)
-                        .serverSideType(getClass().getName())
-                        .homeConsumedRoute(consumedRoute)
-                        .variant(AppVariant.MEDIATOR)
-                .style("width: 100%;")
-                        .build(),
-                this,
-                (String) httpRequest.getAttribute("baseUrl"),
-                consumedRoute,
-                consumedRoute,
-                null, httpRequest
-        );
-    }
+  @Override
+  public Object wrapRoute(String route, HttpRequest httpRequest) {
+    httpRequest.setAttribute("mediator", true);
+    var consumedRoute = (String) httpRequest.getAttribute("resolvedPath");
+    if (!route.equals(consumedRoute)) setRouteTo(route.substring(consumedRoute.length()));
+    return wrap(
+        App.builder()
+            .homeRoute(route)
+            .serverSideType(getClass().getName())
+            .homeConsumedRoute(consumedRoute)
+            .variant(AppVariant.MEDIATOR)
+            .style("width: 100%;")
+            .build(),
+        this,
+        (String) httpRequest.getAttribute("baseUrl"),
+        consumedRoute,
+        consumedRoute,
+        null,
+        httpRequest);
+  }
 }

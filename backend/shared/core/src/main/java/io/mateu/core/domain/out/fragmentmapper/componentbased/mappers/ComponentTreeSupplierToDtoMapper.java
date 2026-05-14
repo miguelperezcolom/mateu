@@ -473,7 +473,9 @@ public class ComponentTreeSupplierToDtoMapper {
     List<ActionDto> actions = new ArrayList<>();
     if (serverSideObject instanceof ActionSupplier hasActions) {
       actions.addAll(
-          hasActions.actions(httpRequest).stream().map(ComponentTreeSupplierToDtoMapper::mapAction).toList());
+          hasActions.actions(httpRequest).stream()
+              .map(ComponentTreeSupplierToDtoMapper::mapAction)
+              .toList());
     }
     if (serverSideObject instanceof ActionHandler hasActions) {
       actions.addAll(

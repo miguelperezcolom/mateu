@@ -34,7 +34,7 @@ class FormViewModelTest {
 
   @Test
   void actionsAreReturned() {
-    assertThat(new PlainForm().actions()).isNotNull();
+    assertThat(new PlainForm().actions(new FakeHttpRequest())).isNotNull();
   }
 
   @Test

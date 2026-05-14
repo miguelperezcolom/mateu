@@ -1,18 +1,13 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.getState;
-import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
-import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.addData;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
-import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
@@ -27,7 +22,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public abstract class ViewComponentLayer<
         View,

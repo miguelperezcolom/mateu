@@ -1,15 +1,13 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
-import io.mateu.uidl.fluent.App;
-import io.mateu.uidl.fluent.AppVariant;
+import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteHandler;
 import lombok.extern.slf4j.Slf4j;
-
-import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 
 @Slf4j
 public abstract class RouteHandlerLayer<
@@ -26,58 +24,58 @@ public abstract class RouteHandlerLayer<
     log.info("route is {}, action is {}", route, httpRequest.runActionRq().actionId());
     try {
 
-        // hande route if no action
-        if (httpRequest.runActionRq().actionId() == null
+      // hande route if no action
+      if (httpRequest.runActionRq().actionId() == null
           || "".equals(httpRequest.runActionRq().actionId())) {
 
+        // if this is a first time, we return the mediator app
+        if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
+          setComponentRouteTo((String) httpRequest.getAttribute("resolvedPath"));
+          return wrapRoute(route, httpRequest);
+        }
 
-          // if this is a first time, we return the mediator app
-          if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
-              setComponentRouteTo((String) httpRequest.getAttribute("resolvedPath"));
-              return wrapRoute(route, httpRequest);
-          }
+        if (route.endsWith("/list")) {
+          return wrapView("list", list(httpRequest), httpRequest);
+        }
 
-            if (route.endsWith("/list")) {
-                return wrapView("list", list(httpRequest), httpRequest);
-            }
+        if (route.endsWith("/new")) {
+          return wrapView("new", create(httpRequest), httpRequest);
+        }
 
-          if (route.endsWith("/new")) {
-              return wrapView("new", create(httpRequest), httpRequest);
-          }
-
-          if (route.endsWith("/edit")) {
-              route = route.substring(0, route.lastIndexOf("/edit"));
-              var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
-              return wrapView("edit", edit(toId(id), httpRequest), httpRequest);
-          }
-
-          if (route.equals(httpRequest.runActionRq().consumedRoute())) {
-              return wrapView("list", list(httpRequest), httpRequest);
-          }
-
+        if (route.endsWith("/edit")) {
+          route = route.substring(0, route.lastIndexOf("/edit"));
           var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
-          return wrapView("/" + id, view(toId(id), httpRequest), httpRequest);
+          return wrapView("edit", edit(toId(id), httpRequest), httpRequest);
+        }
+
+        if (route.equals(httpRequest.runActionRq().consumedRoute())) {
+          return wrapView("list", list(httpRequest), httpRequest);
+        }
+
+        var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
+        return wrapView("/" + id, view(toId(id), httpRequest), httpRequest);
       }
     } catch (Throwable e) {
-        e.printStackTrace();
+      e.printStackTrace();
       return "route not found:" + route;
     }
     // action handler will be called
     return this;
   }
 
-    private Object wrapView(String viewName, Component component, HttpRequest httpRequest) {
-        httpRequest.setAttribute(viewName, true);
-        return wrap(component,
-                this,
-                (String) httpRequest.getAttribute("baseUrl"),
-                httpRequest.runActionRq().consumedRoute(),
-                httpRequest.runActionRq().consumedRoute(),
-                null, httpRequest
-        );
-    }
+  private Object wrapView(String viewName, Component component, HttpRequest httpRequest) {
+    httpRequest.setAttribute(viewName, true);
+    return wrap(
+        component,
+        this,
+        (String) httpRequest.getAttribute("baseUrl"),
+        httpRequest.runActionRq().consumedRoute(),
+        httpRequest.runActionRq().consumedRoute(),
+        null,
+        httpRequest);
+  }
 
-    public String getCrudRoute(HttpRequest httpRequest, Object id) {
+  public String getCrudRoute(HttpRequest httpRequest, Object id) {
     var registeredRoute = (String) httpRequest.getAttribute("resolvedPath");
     if (registeredRoute != null) {
       if (id != null && registeredRoute.endsWith("/" + id + "/edit")) {

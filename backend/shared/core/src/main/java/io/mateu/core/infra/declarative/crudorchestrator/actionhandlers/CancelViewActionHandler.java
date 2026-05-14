@@ -2,7 +2,6 @@ package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
-import java.util.Map;
 
 public class CancelViewActionHandler implements CrudActionHandler {
 
@@ -17,6 +16,6 @@ public class CancelViewActionHandler implements CrudActionHandler {
       CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator,
       CrudActionResult current,
       HttpRequest httpRequest) {
-      return current.withRoute("/list");
+    return current.withRoute("/list");
   }
 }

@@ -6,5 +6,5 @@ public enum AppVariantDto {
   MENU_ON_TOP,
   TABS,
   AUTO,
-    MEDIATOR
+  MEDIATOR
 }

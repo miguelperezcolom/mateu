@@ -8,7 +8,6 @@ import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
 import io.mateu.uidl.interfaces.HttpRequest;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,36 +25,36 @@ public abstract class ActionSupplierLayer<
   public List<Action> actions(HttpRequest httpRequest) {
     var actions = new ArrayList<Action>();
     if (httpRequest.getAttribute("mediator") != null) {
-        actions.add(
-                Action.builder()
-                        .id("delete")
-                        .confirmationRequired(true)
-                        .rowsSelectedRequired(true)
+      actions.add(
+          Action.builder()
+              .id("delete")
+              .confirmationRequired(true)
+              .rowsSelectedRequired(true)
+              .build());
+      actions.add(Action.builder().id("save").build());
+      actions.add(Action.builder().id("create").build());
+      actions.add(Action.builder().id("new").build());
+      actions.add(Action.builder().id("view").build());
+      actions.add(Action.builder().id("edit").build());
+      actions.add(Action.builder().id("cancel-create").build());
+      actions.add(Action.builder().id("cancel-view").build());
+      actions.add(Action.builder().id("cancel-edit").build());
+      getAllMethods(getClass()).stream()
+          .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
+          .forEach(
+              method -> {
+                actions.add(
+                    Action.builder()
+                        .id("action-on-row-" + method.getName())
+                        .confirmationRequired(
+                            method.getAnnotation(ListToolbarButton.class).confirmationRequired())
+                        .rowsSelectedRequired(
+                            method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
                         .build());
-        actions.add(Action.builder().id("save").build());
-        actions.add(Action.builder().id("create").build());
-        actions.add(Action.builder().id("new").build());
-        actions.add(Action.builder().id("view").build());
-        actions.add(Action.builder().id("edit").build());
-        actions.add(Action.builder().id("cancel-create").build());
-        actions.add(Action.builder().id("cancel-view").build());
-        actions.add(Action.builder().id("cancel-edit").build());
-        getAllMethods(getClass()).stream()
-                .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
-                .forEach(
-                        method -> {
-                            actions.add(
-                                    Action.builder()
-                                            .id("action-on-row-" + method.getName())
-                                            .confirmationRequired(
-                                                    method.getAnnotation(ListToolbarButton.class).confirmationRequired())
-                                            .rowsSelectedRequired(
-                                                    method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
-                                            .build());
-                        });
+              });
     }
     if (httpRequest.getAttribute("list") != null) {
-        actions.add(Action.builder().id("search").build());
+      actions.add(Action.builder().id("search").build());
     }
     return actions;
   }

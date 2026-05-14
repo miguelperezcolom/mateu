@@ -1,15 +1,11 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.getState;
-import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getView;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.dtos.ActionDto;
-import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Page;
@@ -17,7 +13,6 @@ import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
-import java.util.UUID;
 
 public abstract class CreateComponentLayer<
         View,
@@ -39,28 +34,26 @@ public abstract class CreateComponentLayer<
     Object viewModel = view instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : view;
 
     return Page.builder()
-                            .title(title)
-                            .style(getStyleForView())
-                            .content(
-                                getView(
-                                        view,
-                                        "base_url",
-                                        httpRequest.runActionRq().route(),
-                                        httpRequest.runActionRq().consumedRoute(),
-                                        httpRequest.runActionRq().initiatorComponentId(),
-                                        httpRequest,
-                                        false,
-                                        true)
-                                    .stream()
-                                    .toList())
-                            .toolbar(
-                                List.of(
-                                    new Button("Cancel", "cancel-create"),
-                                    new Button("Create", "create")))
-                            .build();
+        .title(title)
+        .style(getStyleForView())
+        .content(
+            getView(
+                    view,
+                    "base_url",
+                    httpRequest.runActionRq().route(),
+                    httpRequest.runActionRq().consumedRoute(),
+                    httpRequest.runActionRq().initiatorComponentId(),
+                    httpRequest,
+                    false,
+                    true)
+                .stream()
+                .toList())
+        .toolbar(List.of(new Button("Cancel", "cancel-create"), new Button("Create", "create")))
+        .build();
   }
 
-  public static List<ActionDto> completeActions(Object viewModel, List<ActionDto> actions, HttpRequest httpRequest) {
+  public static List<ActionDto> completeActions(
+      Object viewModel, List<ActionDto> actions, HttpRequest httpRequest) {
     List<ActionDto> result = mapActions(viewModel, httpRequest);
     result.addAll(actions);
     return result;

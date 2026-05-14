@@ -1,7 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;

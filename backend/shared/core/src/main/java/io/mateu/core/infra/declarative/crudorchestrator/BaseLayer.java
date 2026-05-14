@@ -83,7 +83,7 @@ public abstract class BaseLayer<
 
   public abstract CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> adapter();
 
-    public abstract Component list(HttpRequest httpRequest);
+  public abstract Component list(HttpRequest httpRequest);
 
   public abstract Component create(HttpRequest httpRequest);
 
@@ -118,6 +118,5 @@ public abstract class BaseLayer<
 
   public abstract void setRouteTo(String state);
 
-    public abstract void setComponentRouteTo(String state);
-
+  public abstract void setComponentRouteTo(String state);
 }

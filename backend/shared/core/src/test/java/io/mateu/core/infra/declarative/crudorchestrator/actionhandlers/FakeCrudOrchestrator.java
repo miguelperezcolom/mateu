@@ -4,6 +4,7 @@ import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.NamedView;
@@ -89,17 +90,17 @@ public class FakeCrudOrchestrator
   }
 
   @Override
-  public Object create(HttpRequest httpRequest) {
+  public Component create(HttpRequest httpRequest) {
     return null;
   }
 
   @Override
-  public Object edit(String id, HttpRequest httpRequest) {
+  public Component edit(String id, HttpRequest httpRequest) {
     return null;
   }
 
   @Override
-  public Object view(String id, HttpRequest httpRequest) {
+  public Component view(String id, HttpRequest httpRequest) {
     return null;
   }
 
