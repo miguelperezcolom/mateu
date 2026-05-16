@@ -55,3 +55,19 @@ test.describe('MenuApp (/app UI)', () => {
   });
 
 });
+
+test.describe('AllTypesForm (/all-types UI)', () => {
+
+  test('loads /all-types page', async ({ page }) => {
+    await page.goto('/all-types');
+    await expect(page).toHaveTitle(/All Types Form/);
+  });
+
+  test('/all-types page renders mateu-ui with /all-types baseUrl', async ({ page }) => {
+    await page.goto('/all-types');
+    const mateuUi = page.locator('mateu-ui');
+    await expect(mateuUi).toBeAttached();
+    await expect(mateuUi).toHaveAttribute('baseUrl', '/all-types');
+  });
+
+});
