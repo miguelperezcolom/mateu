@@ -26,14 +26,22 @@ The difference is that Mateu exposes a browser UI instead of an API endpoint.
 
 Many internal tools are built like this:
 
-```text
-backend → API → frontend → duplicated model → duplicated validation
+```mermaid
+flowchart LR
+    subgraph Traditional
+        B1[Backend] --> API[REST API] --> FE[Frontend app]
+        FE --> DM[Duplicated model]
+        FE --> DV[Duplicated validation]
+    end
 ```
 
 Mateu allows this instead:
 
-```text
-backend → Mateu UI adapter → browser UI
+```mermaid
+flowchart LR
+    subgraph With Mateu
+        B2[Backend] --> M[Mateu UI adapter] --> UI[Browser UI]
+    end
 ```
 
 This reduces glue code while keeping architecture clean.

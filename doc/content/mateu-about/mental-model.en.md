@@ -62,3 +62,22 @@ It is:
 ## One sentence
 
 Define your app once. Mateu builds everything else.
+
+```mermaid
+flowchart LR
+    subgraph "What you define"
+        F["Fields\nstate"]
+        M["Methods\nactions"]
+        A["Annotations\nlayout · routing · rules"]
+    end
+    subgraph "What Mateu builds"
+        UI["UI rendering"]
+        Nav["Navigation structure"]
+        Int["Interaction model"]
+        API["API communication"]
+    end
+    F --> UI
+    M --> Int
+    A --> Nav
+    A --> API
+```

@@ -50,13 +50,15 @@ The default action in the listing is **View** (read-only), not Edit.
 
 The standard flow is:
 
-```
-/users (list)
-  └── click row → /users/:id (readonly detail)
-        └── click Edit → /users/:id/edit (edit form)
-        └── click Delete → confirmation → back to list
-  └── click New → /users/new (create form)
-        └── save → back to list
+```mermaid
+flowchart TD
+    L["/users — list"] -->|click row| V["/users/:id — readonly detail"]
+    L -->|click New| C["/users/new — create form"]
+    V -->|click Edit| E["/users/:id/edit — edit form"]
+    V -->|click Delete| D{Confirmation}
+    D -->|confirm| L
+    E -->|save| L
+    C -->|save| L
 ```
 
 This is intentional: the read-only view serves as a safe preview before the user commits to editing.

@@ -107,6 +107,13 @@ Because:
 
 ## Mental model
 
+```mermaid
+flowchart TD
+    P["ProcessPage\nid · name · Callable&lt;?&gt; steps"]
+    P -->|resolves after hydration| S["Steps\nextends AutoListOrchestrator&lt;Step&gt;\nscoped by processId"]
+    S --> CR["Full CRUD on Step\nlist · create · edit · delete"]
+```
+
 - parent → state + composition
 - child → independent CRUD
 - composition → `Callable<?>`

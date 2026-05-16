@@ -56,6 +56,16 @@ public class Shell {
 
 The shell renders the combined navigation. Clicking a remote menu item proxies the request to the owning service.
 
+```mermaid
+flowchart TD
+    Browser --> Shell["Shell / Backoffice\n@UI(\"\")"]
+    Shell -->|RemoteMenu| CS["Content Service\n@UI(\"/_content-service\")"]
+    Shell -->|RemoteMenu| AS["Analytics Service\n@UI(\"/_analytics\")"]
+    Shell -->|local menu| Home["Home page"]
+    CS --> CSMenu["Pages · Templates · Settings"]
+    AS --> ASMenu["Dashboards · Reports"]
+```
+
 ---
 
 ## Why service-owned UI

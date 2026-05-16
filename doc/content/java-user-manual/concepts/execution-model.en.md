@@ -19,6 +19,17 @@ For each request:
 
 The viewmodel is discarded after the response.
 
+```mermaid
+flowchart TD
+    A[HTTP request] --> B[Determine ViewModel type]
+    B --> C[Instantiate ViewModel]
+    C --> D[Hydrate with request data\npath params · query params · state]
+    D --> E[Execute action]
+    E --> F[Serialize result]
+    F --> G[HTTP response]
+    G --> H[ViewModel discarded]
+```
+
 ## No server-side state
 
 There is no persistent UI state between requests.

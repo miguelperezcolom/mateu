@@ -79,6 +79,14 @@ This gives you:
 
 ## Mental model
 
+```mermaid
+flowchart TD
+    Q{What do you need?}
+    Q -->|Select & display a related entity| L["@Lookup\nreference — lightweight, decoupled"]
+    Q -->|Editable embedded structure| S["List&lt;Entity&gt;\nstructure — not a relationship"]
+    Q -->|Full CRUD for child entities| E["Embedded orchestrator\nCallable&lt;?&gt; → AutoListOrchestrator"]
+```
+
 - `@Lookup` → reference (lightweight, decoupled)
 - `List<Entity>` → structure (not a relationship)
 - embedded orchestrator → real child aggregate UI

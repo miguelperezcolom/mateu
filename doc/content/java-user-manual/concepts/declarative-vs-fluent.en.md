@@ -40,3 +40,17 @@ In the fluent style, you build the UI with Mateu's Java API.
 Start with the declarative style.
 
 Use the fluent style when you need more control.
+
+```mermaid
+flowchart LR
+    subgraph Declarative
+        A[Java class\nfields · methods\nannotations] --> B[Mateu infers layout\nand behaviour]
+        B --> C[Form · CRUD · grid]
+    end
+    subgraph Fluent
+        D[Builder API\nForm · Grid\nLayouts · Charts] --> E[Explicit component tree]
+        E --> F[Custom layouts\nadvanced composition]
+    end
+    C -->|can embed| F
+    F -->|can include| C
+```

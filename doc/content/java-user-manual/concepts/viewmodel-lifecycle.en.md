@@ -14,6 +14,21 @@ For each request, Mateu follows this lifecycle:
 5. execute the requested method or action
 6. serialize the result and send it to the frontend
 
+```mermaid
+flowchart TD
+    A[Request arrives] --> B[Determine ViewModel type]
+    B --> C[Instantiate ViewModel]
+    C --> D[Hydrate: path params · query params · component state]
+    D --> E{Route resolution\nneeded?}
+    E -- yes --> F[Resolve menu / route]
+    F --> G[Obtain final ViewModel]
+    E -- no --> G
+    G --> H[Evaluate Component fields\nagainst hydrated state]
+    G --> I[Execute action / method]
+    H --> J[Serialize and respond]
+    I --> J
+```
+
 ## Practical implications
 
 ### Hydration first

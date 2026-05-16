@@ -55,6 +55,16 @@ Mateu lives in `in/ui`.
 
 It adapts user interaction into application use cases and query calls.
 
+```mermaid
+flowchart LR
+    Browser --> Mateu["Infrastructure · in · ui\n(Mateu)"]
+    API["Infrastructure · in · api\n(REST / gRPC)"] --> App
+    Async["Infrastructure · in · async\n(consumers)"] --> App
+    Mateu --> App["Application\nuse cases · ports"]
+    App --> Domain["Domain\naggregates · entities\nvalue objects"]
+    App --> OutPorts["Infrastructure · out\npersistence · gateways"]
+```
+
 ---
 
 ## Why this matters
@@ -86,16 +96,12 @@ Mateu works very well with CQRS.
 
 Use DDD and aggregates for commands:
 
-```text
-Button / ColumnAction
-        ↓
-Application use case
-        ↓
-Aggregate
-        ↓
-Repository
-        ↓
-Events
+```mermaid
+flowchart TD
+    UI["Button / ColumnAction"] --> UC["Application use case"]
+    UC --> Agg["Aggregate"]
+    Agg --> Repo["Repository"]
+    Repo --> Events["Domain events"]
 ```
 
 The domain protects invariants.
@@ -112,16 +118,13 @@ Business rules stay as close to the domain as possible:
 
 Use queries and DTOs for listings and screens:
 
-```text
-Query service
-        ↓
-DTO / projection
-        ↓
-Row model
-        ↓
-ListingData
-        ↓
-Mateu UI
+```mermaid
+flowchart LR
+    DB["Database / API"] --> QS["Query service"]
+    QS --> DTO["DTO / projection"]
+    DTO --> Row["Row model"]
+    Row --> LD["ListingData"]
+    LD --> UI["Mateu UI"]
 ```
 
 The read side does not need domain entities.

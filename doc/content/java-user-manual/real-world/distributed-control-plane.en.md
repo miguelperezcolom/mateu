@@ -17,21 +17,14 @@ This project demonstrates Mateu in a **real distributed architecture**:
 
 ## Architecture
 
-```
-[ Browser ]
-     ↓
-[ Mateu Renderer ]
-     ↓
-[ Mateu API ]
-     ↓
--------------------------
-| Microservices layer   |
-|                       |
-| Content Service       |
-| Control Plane         |
-| Static Server         |
-| EventConductor        |
--------------------------
+```mermaid
+flowchart TD
+    Browser --> Renderer["Mateu Renderer"]
+    Renderer --> API["Mateu API / Shell"]
+    API --> CS["Content Service\n(owns UI + domain)"]
+    API --> CP["Control Plane\n(owns UI + domain)"]
+    API --> SS["Static Server\n(owns UI + domain)"]
+    API --> EC["EventConductor\n(owns UI + domain)"]
 ```
 
 ---

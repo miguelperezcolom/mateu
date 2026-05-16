@@ -11,6 +11,15 @@ Mateu works with explicitly designed UI rows, not domain entities. This separati
 
 ## The core idea
 
+```mermaid
+flowchart LR
+    DB["Database / API / Elasticsearch / gRPC"] --> QS["Query service"]
+    QS --> DTO["Domain DTO"]
+    DTO --> Row["UI Row\nid · formatted values\nStatus · Amount · ColumnActionGroup"]
+    Row --> LD["ListingData"]
+    LD --> UI["Mateu Grid"]
+```
+
 Listing rows are records designed for display:
 
 ```java
