@@ -1,5 +1,5 @@
 ---
-title: "Components"
+title: "UI Definition"
 type: "docs"
 _build:
   list: always
@@ -7,17 +7,18 @@ _build:
   render: always
 ---
 
-# Components
+# UI Definition
 
-Mateu provides a set of UI building blocks that are rendered automatically from your backend code.
+Mateu provides a complete Java API for building server-driven UIs. You describe the interface in Java — Mateu renders it.
 
-## How to read this section
+## Sections
 
-Each component shows:
-
-- what it looks like
-- how to use it in Java
-- key properties
+| Section | Description |
+|---|---|
+| [Fluent components](fluent-components/) | Ready-made UI components built with the fluent builder API |
+| [Annotations](annotations/) | Declarative annotations for pages, fields, layouts, and actions |
+| [Interfaces](interfaces/) | Interfaces to implement for data loading, routing, and action handling |
+| [Fluent records](records/) | Core records: `Form`, `App`, `Page`, `Listing`, `Action`, and more |
 
 ## Core idea
 
@@ -25,15 +26,8 @@ You don’t manually build UI.
 
 You describe it in Java — Mateu renders it.
 
----
+Both styles work and can be mixed:
 
-## Categories
+- **Declarative** — annotate a plain Java class; Mateu infers the layout and behaviour.
+- **Fluent** — build a component tree explicitly using builders and records.
 
-- Layouts
-- Data display
-- Inputs
-- Actions
-
----
-
-Start exploring components below.
