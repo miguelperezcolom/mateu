@@ -25,7 +25,7 @@ jobs:
         run: mvn -B install -DskipTests --file backend/pom.xml
 
       - name: Build SUT apps
-        run: mvn -B package -DskipTests --file e2e/sut/pom.xml
+        run: mvn -B install -Dmaven.test.skip=true --file e2e/sut/pom.xml
 
       - name: Start SUT apps
         run: |
@@ -62,3 +62,4 @@ jobs:
           name: playwright-report
           path: e2e/playwright-report/
           retention-days: 7
+
