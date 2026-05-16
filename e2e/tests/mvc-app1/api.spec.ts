@@ -16,6 +16,20 @@ async function callAction(request: any, url: string, body: object) {
   return response.json();
 }
 
+function collectButtons(component: any): any[] {
+  const direct = component?.metadata?.buttons ?? [];
+  const nested = (component?.children ?? []).flatMap(collectButtons);
+  return [...direct, ...nested];
+}
+
+function allButtons(fragments: any[]): any[] {
+  return fragments.flatMap((f: any) => collectButtons(f.component));
+}
+
+function titleCommand(body: any): any {
+  return body.commands.find((c: any) => c.type === 'SetWindowTitle');
+}
+
 // ---------------------------------------------------------------------------
 // SimpleForm — root UI ("/")
 // ---------------------------------------------------------------------------
@@ -249,6 +263,152 @@ test.describe('Section2 API', () => {
     });
     expect(body.fragments.length).toBeGreaterThan(0);
     expect(body.messages).toHaveLength(0);
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// Button metadata — labels and actionIds
+// ---------------------------------------------------------------------------
+
+test.describe('Button metadata', () => {
+
+  test('SimpleForm: greet button has actionId "greet" and label "Greet"', async ({ request }) => {
+    const body = await callAction(request, ROOT_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const buttons = allButtons(body.fragments);
+    const greet = buttons.find((b: any) => b.actionId === 'greet');
+    expect(greet).toBeDefined();
+    expect(greet.label).toBe('Greet');
+  });
+
+  test('Section1: submit button has actionId "submit" and label "Submit"', async ({ request }) => {
+    const body = await callAction(request, APP_API, {
+      route: '/section1',
+      actionId: '__load__',
+    });
+    const buttons = allButtons(body.fragments);
+    const submit = buttons.find((b: any) => b.actionId === 'submit');
+    expect(submit).toBeDefined();
+    expect(submit.label).toBe('Submit');
+  });
+
+  test('Section2: no action buttons (no @Button methods)', async ({ request }) => {
+    const body = await callAction(request, APP_API, {
+      route: '/section2',
+      actionId: '__load__',
+    });
+    const buttons = allButtons(body.fragments);
+    expect(buttons).toHaveLength(0);
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// Commands structure
+// ---------------------------------------------------------------------------
+
+test.describe('Commands structure', () => {
+
+  test('SimpleForm load emits a SetWindowTitle command with data "Simple Form"', async ({ request }) => {
+    const body = await callAction(request, ROOT_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const cmd = titleCommand(body);
+    expect(cmd).toBeDefined();
+    expect(cmd.type).toBe('SetWindowTitle');
+    expect(cmd.data).toBe('Simple Form');
+  });
+
+  test('MenuApp load emits a SetWindowTitle command with data "Menu App"', async ({ request }) => {
+    const body = await callAction(request, APP_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const cmd = titleCommand(body);
+    expect(cmd).toBeDefined();
+    expect(cmd.data).toBe('Menu App');
+  });
+
+  test('greet action emits no SetWindowTitle command', async ({ request }) => {
+    const body = await callAction(request, ROOT_API, {
+      route: '/',
+      actionId: 'greet',
+      componentState: { name: 'Test' },
+    });
+    expect(titleCommand(body)).toBeUndefined();
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// Idempotency — repeated loads return consistent results
+// ---------------------------------------------------------------------------
+
+test.describe('Idempotency', () => {
+
+  test('two consecutive SimpleForm loads return the same title', async ({ request }) => {
+    const load = () => callAction(request, ROOT_API, { route: '/', actionId: '__load__' });
+    const [b1, b2] = await Promise.all([load(), load()]);
+    expect(titleCommand(b1)?.data).toBe(titleCommand(b2)?.data);
+  });
+
+  test('two consecutive MenuApp loads return the same menu length', async ({ request }) => {
+    const load = () => callAction(request, APP_API, { route: '/', actionId: '__load__' });
+    const [b1, b2] = await Promise.all([load(), load()]);
+    const menuLen = (b: any) =>
+      b.fragments.find((f: any) => f.component?.metadata?.type === 'App')?.component.metadata.menu
+        ?.length ?? 0;
+    expect(menuLen(b1)).toBe(menuLen(b2));
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// MenuApp menu — count and structure
+// ---------------------------------------------------------------------------
+
+test.describe('MenuApp menu — extended', () => {
+
+  test('menu has exactly 2 entries', async ({ request }) => {
+    const body = await callAction(request, APP_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const menu = body.fragments
+      .find((f: any) => f.component?.metadata?.type === 'App')
+      .component.metadata.menu;
+    expect(menu).toHaveLength(2);
+  });
+
+  test('all menu entries have a non-empty label and path', async ({ request }) => {
+    const body = await callAction(request, APP_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const menu: any[] = body.fragments
+      .find((f: any) => f.component?.metadata?.type === 'App')
+      .component.metadata.menu;
+    for (const item of menu) {
+      expect(item.label).toBeTruthy();
+      expect(item.path).toBeTruthy();
+    }
+  });
+
+  test('all menu paths start with "/"', async ({ request }) => {
+    const body = await callAction(request, APP_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const menu: any[] = body.fragments
+      .find((f: any) => f.component?.metadata?.type === 'App')
+      .component.metadata.menu;
+    for (const item of menu) {
+      expect(item.path).toMatch(/^\//);
+    }
   });
 
 });
