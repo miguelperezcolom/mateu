@@ -150,46 +150,46 @@ Stay fully declarative when:
 
 ### Layout and structure
 
-- VerticalLayout
-- HorizontalLayout
-- FormLayout
-- SplitLayout
-- AccordionLayout
-- TabLayout
-- BoardLayout
-- CarouselLayout
-- MasterDetailLayout
-- Scroller
-- Container
-- FullWidth
+- [VerticalLayout](components/vertical-layout/)
+- [HorizontalLayout](components/horizontal-layout/)
+- [FormLayout](components/form-layout/)
+- [SplitLayout](components/split-layout/)
+- [AccordionLayout](components/accordion-layout/)
+- [TabLayout](components/tab-layout/)
+- [BoardLayout](components/board-layout/)
+- [CarouselLayout](components/carousel-layout/)
+- [MasterDetailLayout](components/master-detail-layout/)
+- [Scroller](components/scroller/)
+- [Container](components/container/)
+- [FullWidth](components/full-width/)
 
 ### Forms and inputs
 
-- Form
-- FormField
+- [Form](components/form/)
+- [FormField](components/form-field/)
 - FormItem
 - FormRow
 - FormSection
 - FormSubSection
 - CustomField
-- Button
+- [Button](components/button/)
 - MessageInput
 
 ### Data display
 
-- Grid
-- Listing
-- VirtualList
-- Directory
-- Card
-- Details
-- KPI
-- Badge
-- Chart
-- Markdown
-- Text
-- Image
-- Avatar
+- [Grid](components/grid/)
+- [TreeGrid](components/tree-grid/)
+- [VirtualList](components/virtual-list/)
+- [Directory](components/directory/)
+- [Card](components/card/)
+- [Details](components/details/)
+- [KPI](components/kpi/)
+- [Badge](components/badge/)
+- [Chart](components/chart/)
+- [Markdown](components/markdown/)
+- [Text](components/text/)
+- [Image](components/image/)
+- [Avatar](components/avatar/)
 - AvatarGroup
 
 ### Navigation and app structure
@@ -197,27 +197,27 @@ Stay fully declarative when:
 - App
 - Page
 - MenuBar
-- Breadcrumbs
-- Anchor
+- [Breadcrumbs](components/breadcrumbs/)
+- [Anchor](components/anchor/)
 - Tab
 
 ### Feedback and overlays
 
-- Dialog
-- ConfirmDialog
-- Notification
-- Tooltip
-- Popover
-- ProgressBar
-- CookieConsent
+- [Dialog](components/dialog/)
+- [ConfirmDialog](components/confirm-dialog/)
+- [Notification](components/notification/)
+- [Tooltip](components/tooltip/)
+- [Popover](components/popover/)
+- [ProgressBar](components/progress-bar/)
+- [CookieConsent](components/cookie-consent/)
 
 ### Rich / specialized
 
 - Bpmn
-- Map
-- MicroFrontend
-- Element
-- Icon
+- [Map](components/map/)
+- [MicroFrontend](components/micro-frontend/)
+- [Element](components/element/)
+- [Icon](components/icon/)
 
 ### State and infrastructure
 
