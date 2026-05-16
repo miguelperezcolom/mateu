@@ -8,6 +8,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Routes;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.RoutedClassProvider;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.Arrays;
@@ -17,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 
 @Named
 @Singleton
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class DefaultRoutedClassResolver implements RoutedClassResolver {
 
   private final List<RoutedClassProvider> providers;

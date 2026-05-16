@@ -25,6 +25,7 @@ import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.RouteResolver;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.List;
@@ -40,7 +41,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Named
 @Singleton
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class AppMenuResolver {
 
   private final BeanProvider beanProvider;

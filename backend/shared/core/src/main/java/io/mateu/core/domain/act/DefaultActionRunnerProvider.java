@@ -5,6 +5,7 @@ import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Comparator;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Named
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class DefaultActionRunnerProvider implements ActionRunnerProvider {
 
   private final BeanProvider beanProvider;

@@ -12,6 +12,7 @@ import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Hydratable;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.lang.reflect.Array;
@@ -29,7 +30,7 @@ import reactor.core.publisher.Mono;
 
 @Singleton
 @Named
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ReflectionInstanceFactory implements InstanceFactory {
 
   private final BeanProvider beanProvider;

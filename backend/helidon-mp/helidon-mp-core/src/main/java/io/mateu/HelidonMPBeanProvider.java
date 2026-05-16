@@ -1,10 +1,11 @@
 package io.mateu;
 
-import io.helidon.common.context.Contexts;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.uidl.di.MateuBeanProvider;
 import jakarta.annotation.PostConstruct;
+import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Singleton;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class HelidonMPBeanProvider implements BeanProvider {
   @Override
   public <T> T getBean(Class<T> clazz) {
     try {
-      return Contexts.globalContext().get(clazz).get();
+      return CDI.current().select(clazz).get();
     } catch (Exception ignored) {
       return null;
     }
@@ -28,9 +29,10 @@ public class HelidonMPBeanProvider implements BeanProvider {
   @Override
   public <T> Collection<T> getBeans(Class<T> clazz) {
     try {
-      return List.of(Contexts.globalContext().get(clazz).get());
+      var list = new ArrayList<T>();
+      CDI.current().select(clazz).forEach(list::add);
+      return list;
     } catch (Exception ignored) {
-      System.out.println(ignored);
       return List.of();
     }
   }

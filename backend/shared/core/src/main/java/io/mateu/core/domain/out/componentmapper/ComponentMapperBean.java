@@ -5,12 +5,13 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getC
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.reflection.ComponentMapper;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 
 @Named
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ComponentMapperBean implements ComponentMapper {
 
   @Override

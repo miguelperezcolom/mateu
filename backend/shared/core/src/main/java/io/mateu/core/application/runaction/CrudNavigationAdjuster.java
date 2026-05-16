@@ -10,7 +10,7 @@ import lombok.SneakyThrows;
 @Singleton
 public class CrudNavigationAdjuster {
 
-  record AdjustedCommand(RunActionCommand command, boolean routeFirst) {}
+  public record AdjustedCommand(RunActionCommand command, boolean routeFirst) {}
 
   /**
    * When a CrudOrchestrator handles a "view", "edit", "new", or "cancel-view" action, the route

@@ -11,6 +11,7 @@ import io.mateu.uidl.RouteConstants;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @Named
 @Singleton
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class RouteInstanceCreator {
 
   private final RoutedClassResolver routedClassResolver;

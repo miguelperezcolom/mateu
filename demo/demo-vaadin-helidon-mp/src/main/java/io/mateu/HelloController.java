@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HelloController {
 
-    @Path("/{path}")
+    @Path("/{path:(?!(health|metrics|openapi|observe)$).+}")
     @GET
     @Produces(MediaType.TEXT_HTML)
     public String getIndexAlways(@PathParam("path") String path) {

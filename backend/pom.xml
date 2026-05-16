@@ -192,6 +192,8 @@
         <configuration>
           <sourcepath>src/main/java</sourcepath>
           <source>21</source>
+          <doclint>none</doclint>
+          <failOnError>false</failOnError>
         </configuration>
         <executions>
           <execution>

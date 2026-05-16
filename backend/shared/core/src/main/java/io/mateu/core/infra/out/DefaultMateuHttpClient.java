@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.application.out.MateuHttpClient;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.io.IOException;
@@ -28,6 +29,7 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
           .build();
   private final ObjectMapper objectMapper;
 
+  @Inject
   public DefaultMateuHttpClient(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
   }

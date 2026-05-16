@@ -22,6 +22,7 @@ import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MapsToDto;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.net.URI;
 import java.net.URL;
@@ -33,7 +34,7 @@ import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
 @Named
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 
   private final ComponentFragmentMapper componentFragmentMapper;

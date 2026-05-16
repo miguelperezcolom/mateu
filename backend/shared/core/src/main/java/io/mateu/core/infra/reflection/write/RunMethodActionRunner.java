@@ -10,6 +10,7 @@ import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.lang.reflect.*;
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Named
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class RunMethodActionRunner implements ActionRunner {
 
   private final InstanceFactoryProvider instanceFactoryProvider;

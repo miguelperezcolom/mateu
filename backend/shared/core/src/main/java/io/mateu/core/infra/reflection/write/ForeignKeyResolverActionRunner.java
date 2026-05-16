@@ -11,6 +11,7 @@ import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ import lombok.SneakyThrows;
 import reactor.core.publisher.Flux;
 
 @Named
-@RequiredArgsConstructor
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ForeignKeyResolverActionRunner implements ActionRunner {
 
   private final InstanceFactoryProvider instanceFactoryProvider;
