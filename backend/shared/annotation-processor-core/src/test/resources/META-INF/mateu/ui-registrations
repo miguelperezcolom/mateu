@@ -1,0 +1,9 @@
+class=com.example.IndexedApp
+simpleClassName=IndexedApp
+path=/indexed
+indexHtmlPath=/static/_index.html
+frontendComponentPath=/assets/mateu.js
+keycloakUrl=
+keycloakRealm=
+keycloakClientId=
+keycloakJsUrl=

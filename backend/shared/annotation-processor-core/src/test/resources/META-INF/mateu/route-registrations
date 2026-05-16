@@ -1,0 +1,3 @@
+class=com.example.IndexedRoute
+simpleClassName=IndexedRoute
+routes=/indexed-route|_empty|

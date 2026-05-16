@@ -172,6 +172,35 @@ public class RouteAnnotationProcessorTest {
     assertThat(content).contains("/products");
   }
 
+  @Test
+  public void processIndexedRouteGeneratesResolverForNonCompiledClass() throws IOException {
+    // The test classpath has META-INF/mateu/route-registrations with com.example.IndexedRoute.
+    // Since ProductsPage is compiled but IndexedRoute is not, processIndexedRoutes() should
+    // generate a resolver for IndexedRoute.
+    var ctx = buildContext("com.example.ProductsPage", "ProductsPage", "/products");
+    ctx.processor.process(ctx.annotations, ctx.roundEnv);
+
+    var captor = ArgumentCaptor.forClass(String.class);
+    verify(ctx.filer, atLeast(2)).createSourceFile(captor.capture());
+
+    assertThat(captor.getAllValues()).contains("com.example.IndexedRouteRouteResolver");
+  }
+
+  @Test
+  public void processIndexedRouteSkipsCompiledClass() throws IOException {
+    // When the compiled class IS the indexed class, it should not be duplicated.
+    var ctx = buildContext("com.example.IndexedRoute", "IndexedRoute", "/indexed-route");
+    ctx.processor.process(ctx.annotations, ctx.roundEnv);
+
+    var captor = ArgumentCaptor.forClass(String.class);
+    verify(ctx.filer, times(1)).createSourceFile(captor.capture());
+    long count =
+        captor.getAllValues().stream()
+            .filter(n -> n.equals("com.example.IndexedRouteRouteResolver"))
+            .count();
+    assertThat(count).isEqualTo(1);
+  }
+
   // ---------------------------------------------------------------------------
   // Helper record
   // ---------------------------------------------------------------------------

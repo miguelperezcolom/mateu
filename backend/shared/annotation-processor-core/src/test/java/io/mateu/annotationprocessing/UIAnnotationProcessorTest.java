@@ -158,15 +158,47 @@ public class UIAnnotationProcessorTest {
   }
 
   @Test
+  public void processIndexedUIGeneratesFilesForNonCompiledClass() throws IOException {
+    // The test classpath has META-INF/mateu/ui-registrations with com.example.IndexedApp.
+    // Since HelloWorld is compiled but IndexedApp is not, processIndexedUIs() should generate
+    // files for IndexedApp in addition to HelloWorld's 4 files.
+    var ctx = buildContext("com.example.HelloWorld", "HelloWorld", "/hello");
+    ctx.processor.process(ctx.annotations, ctx.roundEnv);
+
+    var captor = ArgumentCaptor.forClass(String.class);
+    verify(ctx.filer, atLeast(5)).createSourceFile(captor.capture());
+    List<String> names = captor.getAllValues();
+
+    assertThat(names).contains("com.example.IndexedAppController");
+    assertThat(names).contains("com.example.IndexedAppMateuController");
+  }
+
+  @Test
+  public void processIndexedUISkipsCompiledClass() throws IOException {
+    // When the compiled class IS the indexed class, it should not be duplicated.
+    var ctx = buildContext("com.example.IndexedApp", "IndexedApp", "/indexed");
+    ctx.processor.process(ctx.annotations, ctx.roundEnv);
+
+    var captor = ArgumentCaptor.forClass(String.class);
+    verify(ctx.filer, times(4)).createSourceFile(captor.capture());
+    long count =
+        captor.getAllValues().stream()
+            .filter(n -> n.equals("com.example.IndexedAppController"))
+            .count();
+    assertThat(count).isEqualTo(1);
+  }
+
+  @Test
   public void processSkipsClassAlreadyPresentInCurrentCompilation() throws IOException {
     // If the same class appears both in compiled sources and an index, it should only
     // result in one set of generated files (not duplicates).
+    // Note: the test classpath also has com.example.IndexedApp in the index, so total calls
+    // are 8 (4 for HelloWorld + 4 for IndexedApp), but HelloWorldController appears only once.
     var ctx = buildContext("com.example.HelloWorld", "HelloWorld", "/");
     ctx.processor.process(ctx.annotations, ctx.roundEnv);
 
-    // Reset and run again with same class in compiled sources — should still be 4 calls total
     var captor = ArgumentCaptor.forClass(String.class);
-    verify(ctx.filer, times(4)).createSourceFile(captor.capture());
+    verify(ctx.filer, atLeast(4)).createSourceFile(captor.capture());
     long controllerCount =
         captor.getAllValues().stream()
             .filter(n -> n.equals("com.example.HelloWorldController"))
