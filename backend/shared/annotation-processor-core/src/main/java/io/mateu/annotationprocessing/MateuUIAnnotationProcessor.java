@@ -118,7 +118,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     return true;
   }
 
-  private void processIndexedUIs(Set<String> compiledClassNames) {
+  protected void processIndexedUIs(Set<String> compiledClassNames) {
     try {
       ClassLoader cl = getClass().getClassLoader();
       if (cl == null) cl = ClassLoader.getSystemClassLoader();

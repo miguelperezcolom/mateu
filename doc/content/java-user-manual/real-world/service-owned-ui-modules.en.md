@@ -118,6 +118,108 @@ A user who lacks the required role sees the menu entry hidden in the service's r
 
 ---
 
+---
+
+## Shared UI library (single deployable)
+
+A simpler variant of the same idea: package your `@UI` classes into a plain Java library and
+let one or more Spring Boot apps depend on it. All services compile into a single deployable;
+no `RemoteMenu` or HTTP federation required.
+
+### 1. Create the UI library module
+
+The library only needs `io.mateu:uidl` — no framework dependency:
+
+```xml
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>uidl</artifactId>
+    <version>${mateu.version}</version>
+</dependency>
+```
+
+Add the **indexer** annotation processor so that the library's `@UI` classes are discoverable
+by downstream modules at compile time:
+
+```xml
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>annotation-processor-indexer</artifactId>
+    <version>${mateu.version}</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+And configure it in the compiler plugin:
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <annotationProcessorPaths>
+            <path>
+                <groupId>io.mateu</groupId>
+                <artifactId>annotation-processor-indexer</artifactId>
+                <version>${mateu.version}</version>
+            </path>
+        </annotationProcessorPaths>
+    </configuration>
+</plugin>
+```
+
+When the library is compiled, `MateuUIIndexerProcessor` writes a manifest
+`META-INF/mateu/ui-registrations` into the jar listing every `@UI` class.
+
+### 2. Consume the library in the app
+
+Add the library to `<dependencies>` as usual, **and also** to `<annotationProcessorPaths>` so
+the framework-specific processor can read the manifest at compile time:
+
+```xml
+<!-- regular runtime dependency -->
+<dependency>
+    <groupId>com.example</groupId>
+    <artifactId>my-ui-lib</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <annotationProcessorPaths>
+            <path><!-- lombok --></path>
+            <path>
+                <groupId>io.mateu</groupId>
+                <artifactId>annotation-processor-mvc</artifactId>
+                <version>${mateu.version}</version>
+            </path>
+            <!-- also put the UI library here so the processor can read
+                 META-INF/mateu/ui-registrations from its jar -->
+            <path>
+                <groupId>com.example</groupId>
+                <artifactId>my-ui-lib</artifactId>
+                <version>1.0.0</version>
+            </path>
+        </annotationProcessorPaths>
+    </configuration>
+</plugin>
+```
+
+Mateu's `MateuIndexedUIProcessor` fires during the app's compilation, reads the manifest from
+the library jar, and generates the controllers (`MyPageController`,
+`MyPageMateuController`, …) exactly as if the `@UI` classes were in the app's own sources.
+
+> **Why does the library need to be on the annotation processor classpath?**
+> Annotation processors run in their own classloader, separate from the regular compile
+> classpath. Adding the library to `<annotationProcessorPaths>` ensures the processor can
+> load `META-INF/mateu/ui-registrations` from the jar.
+
+---
+
 ## Next
 
 - [Distributed control plane](/java-user-manual/real-world/distributed-control-plane/)

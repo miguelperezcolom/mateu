@@ -52,7 +52,7 @@ Nothing special is required. Just annotate your class with `@UI`:
 
 package com.example.demo;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 
 @UI("")
 public class HelloWorld {
@@ -80,10 +80,10 @@ In case you are using a maven project and you are setting custom annotation proc
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <source>1.8</source> <!-- depending on your project -->
-                    <target>1.8</target> <!-- depending on your project -->
+                    <source>21</source>
+                    <target>21</target>
                     <annotationProcessorPaths>
                         <path> <!-- when using mapstruct -->
                             <groupId>org.mapstruct</groupId>

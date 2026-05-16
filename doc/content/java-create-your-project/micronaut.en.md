@@ -101,7 +101,7 @@ Nothing special is required. Just annotate your class with `@UI`:
 
 package com.example.demo;
 
-import io.mateu.core.domain.uidefinition.shared.annotations.MateuUI;
+import io.mateu.uidl.annotations.UI;
 
 @UI("")
 public class HelloWorld {

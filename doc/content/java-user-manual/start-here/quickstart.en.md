@@ -85,6 +85,27 @@ Open `http://localhost:8080/products`
 
 ![Products list](/images/docs/admin-panel/products-list.jpeg)
 
+## Multi-module setup
+
+If your `@UI` classes live in a separate Java library module (not in the same module as the
+Spring Boot app), you also need to add `annotation-processor-indexer` to that library so
+Mateu can discover its UI classes across the module boundary:
+
+```xml
+<!-- in the library module's pom.xml -->
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>annotation-processor-indexer</artifactId>
+    <version>${mateu.version}</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+And add the library to `<annotationProcessorPaths>` in the app module.
+
+See [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) for the
+full setup.
+
 ## Next
 
 - [Admin panel](/java-user-manual/use-cases/admin-panel/)
