@@ -29,5 +29,21 @@ export default defineConfig({
       },
       testMatch: '**/mvc-app1/**/*.spec.ts',
     },
+    {
+      name: 'quarkus-app1',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8082',
+      },
+      testMatch: '**/mvc-app1/**/*.spec.ts',
+    },
+    {
+      name: 'micronaut-app1',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8083',
+      },
+      testMatch: '**/mvc-app1/**/*.spec.ts',
+    },
   ],
 });

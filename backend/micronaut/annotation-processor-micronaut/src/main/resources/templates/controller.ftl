@@ -39,7 +39,7 @@ public class ${simpleClassName}MateuController {
 
     private String baseUrl = "${path}";
 
-    @Post("v3/sync/{/ignored:.*}")
+    @Post("v3/{/ignored:.*}")
     public Mono<UIIncrementDto> runStepSync(
         @PathVariable("ignored") @Nullable String ignored,
         @Body RunActionRqDto rq,

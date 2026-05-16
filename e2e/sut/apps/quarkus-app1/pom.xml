@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.mateu.e2e</groupId>
+    <artifactId>quarkus-app1</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>quarkus-app1</name>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+        <quarkus.platform.version>3.17.8</quarkus.platform.version>
+        <mateu.version>0.0.1-MATEU</mateu.version>
+        <skipITs>true</skipITs>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>${quarkus.platform.artifact-id}</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Quarkus -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest</artifactId>
+        </dependency>
+
+        <!-- Mateu Quarkus runtime -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>quarkus-core</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+
+        <!-- Frontend web components -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>vaadin-lit</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+
+        <!-- UI definitions -->
+        <dependency>
+            <groupId>io.mateu.e2e</groupId>
+            <artifactId>sample1</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- Lombok (for generated controllers using @Slf4j) -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.40</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>generate-code</goal>
+                            <goal>generate-code-tests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <parameters>true</parameters>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.40</version>
+                        </path>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>annotation-processor-quarkus</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.mateu.e2e</groupId>
+                            <artifactId>sample1</artifactId>
+                            <version>1.0.0-SNAPSHOT</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
