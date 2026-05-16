@@ -13,7 +13,7 @@ import jakarta.validation.constraints.NotEmpty;
 
 import java.util.List;
 
-@UI("/home2")
+@UI("")
 @Title("My first Mateu app")
 @Style(StyleConstants.CONTAINER)
 @AI(sse = "http://localhost:8095/ai/api/agent/stream")
@@ -37,8 +37,8 @@ public class Home2 implements WidgetSupplier {
     @Menu
     RouteLink page4 = new RouteLink("/page4", "Page 4");
 
-    @Menu
-    RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
+//    @Menu
+//    RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
 
 
 

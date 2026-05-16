@@ -5,7 +5,7 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Message;
 import jakarta.validation.constraints.NotEmpty;
 
-@UI("")
+@UI("/home")
 @Title("My first Mateu app")
 @Style(StyleConstants.CONTAINER)
 public class Home {
