@@ -17,6 +17,7 @@
     <module>uidl</module>
     <module>dtos</module>
     <module>annotation-processor-core</module>
+    <module>annotation-processor-indexer</module>
     <module>core</module>
     <module>frontend</module>
     <module>integration-tests</module>
