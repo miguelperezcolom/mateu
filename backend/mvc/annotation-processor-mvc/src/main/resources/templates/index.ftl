@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController("${pkgName}.${simpleClassName}Controller")
-@RequestMapping("${path}")
+@RequestMapping("<#if path?has_content>${path}<#else>/</#if>")
 @Slf4j
 public class ${simpleClassName}Controller {
 

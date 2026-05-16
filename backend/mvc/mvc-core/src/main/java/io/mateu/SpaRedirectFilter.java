@@ -37,7 +37,17 @@ public class SpaRedirectFilter extends OncePerRequestFilter {
         return;
       }
 
-      // 2. Comprobar si existe un controlador mapeado para esta ruta
+      // 2. Si la ruta coincide exactamente con el baseUrl de un controlador conocido,
+      //    es la ruta del index de esa UI → dejar pasar siempre sin comprobar handlers
+      for (MateuController controller : MateuBeanProvider.getBeans(MateuController.class)) {
+        String baseUrl = controller.getBaseUrl();
+        if (!baseUrl.isEmpty() && path.equals(baseUrl)) {
+          filterChain.doFilter(request, response);
+          return;
+        }
+      }
+
+      // 3. Comprobar si existe un controlador mapeado para esta ruta
       boolean hasHandler = false;
       try {
         for (HandlerMapping hm : handlerMappings) {
@@ -53,23 +63,22 @@ public class SpaRedirectFilter extends OncePerRequestFilter {
         hasHandler = false;
       }
 
-      // 3. Si NO hay un controlador, es una ruta de la UI -> Forward al index
+      // 4. Si NO hay un controlador, es una ruta de la UI -> Forward al index
       if (!hasHandler) {
-        boolean found = false;
+        // Buscar el baseUrl más largo que sea prefijo de la ruta (longest-prefix match)
+        String bestBaseUrl = null;
         for (MateuController controller : MateuBeanProvider.getBeans(MateuController.class)) {
-          if (!"".equals(controller.getBaseUrl())) {
-            if (path.startsWith(controller.getBaseUrl())) {
-              path = controller.getBaseUrl();
-              found = true;
-              break;
+          String baseUrl = controller.getBaseUrl();
+          if (!baseUrl.isEmpty() && path.startsWith(baseUrl + "/")) {
+            if (bestBaseUrl == null || baseUrl.length() > bestBaseUrl.length()) {
+              bestBaseUrl = baseUrl;
             }
           }
         }
-        if (!found) {
-          if (path.startsWith("/mateu")) {
-          } else {
-            path = "/";
-          }
+        if (bestBaseUrl != null) {
+          path = bestBaseUrl;
+        } else if (!path.startsWith("/mateu")) {
+          path = "/";
         }
         request.getRequestDispatcher(path).forward(request, response);
         return;
