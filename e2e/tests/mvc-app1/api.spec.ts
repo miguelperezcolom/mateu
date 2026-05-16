@@ -13,7 +13,9 @@ async function callAction(request: any, url: string, body: object) {
     headers: { 'Content-Type': 'application/json' },
   });
   expect(response.ok()).toBeTruthy();
-  return response.json();
+  const json = await response.json();
+  // WebFlux returns Flux<UIIncrementDto> which serializes as a JSON array; normalize to object
+  return Array.isArray(json) ? json[0] : json;
 }
 
 function collectButtons(component: any): any[] {
@@ -308,6 +310,8 @@ test.describe('Button metadata', () => {
   test('Section1: submit button has actionId "submit" and label "Submit"', async ({ request }) => {
     const body = await callAction(request, APP_API, {
       route: '/section1',
+      consumedRoute: '',
+      serverSideType: 'io.mateu.sample1.MenuApp',
       actionId: '__load__',
     });
     const buttons = allButtons(body.fragments);
@@ -319,6 +323,8 @@ test.describe('Button metadata', () => {
   test('Section2: no action buttons (no @Button methods)', async ({ request }) => {
     const body = await callAction(request, APP_API, {
       route: '/section2',
+      consumedRoute: '',
+      serverSideType: 'io.mateu.sample1.MenuApp',
       actionId: '__load__',
     });
     const buttons = allButtons(body.fragments);
@@ -522,6 +528,8 @@ test.describe('Field metadata', () => {
   test('Section1: "value" field is string and required', async ({ request }) => {
     const body = await callAction(request, APP_API, {
       route: '/section1',
+      consumedRoute: '',
+      serverSideType: 'io.mateu.sample1.MenuApp',
       actionId: '__load__',
     });
     const fields = allFields(body.fragments);
@@ -534,6 +542,8 @@ test.describe('Field metadata', () => {
   test('Section2: "description" is string, "count" is integer, neither required', async ({ request }) => {
     const body = await callAction(request, APP_API, {
       route: '/section2',
+      consumedRoute: '',
+      serverSideType: 'io.mateu.sample1.MenuApp',
       actionId: '__load__',
     });
     const fields = allFields(body.fragments);
@@ -578,6 +588,264 @@ test.describe('Field metadata', () => {
     expect(byId('count')?.label).toBe('Count');
     expect(byId('active')?.label).toBe('Active');
     expect(byId('date')?.label).toBe('Date');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// ProfileForm — /profile UI  (@ReadOnly, @Stereotype(textarea), @FormLayout, void @Button)
+// ---------------------------------------------------------------------------
+
+const PROFILE_API = '/profile/mateu/v3/components/_/action';
+const PROFILE_TYPE = 'io.mateu.sample1.ProfileForm';
+
+test.describe('ProfileForm API', () => {
+
+  test('load returns title "Profile"', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    expect(titleCommand(body)?.data).toBe('Profile');
+    expect(body.fragments.length).toBeGreaterThan(0);
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('save (void @Button) is present in buttons', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const buttons = allButtons(body.fragments);
+    expect(buttons.find((b: any) => b.actionId === 'save')).toBeDefined();
+  });
+
+  test('reset (@Toolbar) is present in toolbar but not buttons', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const buttons = allButtons(body.fragments);
+    const toolbar = allToolbar(body.fragments);
+    expect(toolbar.find((b: any) => b.actionId === 'reset')).toBeDefined();
+    expect(buttons.find((b: any) => b.actionId === 'reset')).toBeUndefined();
+  });
+
+  test('save (void) returns no messages', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: 'save',
+      componentState: { username: 'alice', bio: 'Hello', accountId: 'ACC-001' },
+      serverSideType: PROFILE_TYPE,
+    });
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('reset returns "Reset!" message', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: 'reset',
+      serverSideType: PROFILE_TYPE,
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].variant).toBe('success');
+    expect(body.messages[0].text).toBe('Reset!');
+  });
+
+});
+
+test.describe('ProfileForm field metadata', () => {
+
+  test('username is string, required, label "Username"', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const fields = allFields(body.fragments);
+    const f = fields.find((f: any) => f.fieldId === 'username');
+    expect(f).toBeDefined();
+    expect(f.dataType).toBe('string');
+    expect(f.required).toBe(true);
+    expect(f.label).toBe('Username');
+  });
+
+  test('bio has stereotype "textarea"', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const fields = allFields(body.fragments);
+    const f = fields.find((f: any) => f.fieldId === 'bio');
+    expect(f).toBeDefined();
+    expect(f.stereotype).toBe('textarea');
+  });
+
+  test('accountId is readOnly', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const fields = allFields(body.fragments);
+    const f = fields.find((f: any) => f.fieldId === 'accountId');
+    expect(f).toBeDefined();
+    expect(f.readOnly).toBe(true);
+  });
+
+  test('username and bio are not readOnly', async ({ request }) => {
+    const body = await callAction(request, PROFILE_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'username')?.readOnly).toBeFalsy();
+    expect(fields.find((f: any) => f.fieldId === 'bio')?.readOnly).toBeFalsy();
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// StatusDemoForm — /status-demo UI  (enum + @Status/@StatusMapping, multiple @Button)
+// ---------------------------------------------------------------------------
+
+const STATUS_DEMO_API = '/status-demo/mateu/v3/components/_/action';
+const STATUS_DEMO_TYPE = 'io.mateu.sample1.StatusDemoForm';
+
+test.describe('StatusDemoForm API', () => {
+
+  test('load returns title "Status Demo"', async ({ request }) => {
+    const body = await callAction(request, STATUS_DEMO_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    expect(titleCommand(body)?.data).toBe('Status Demo');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('activate and deactivate buttons are both present', async ({ request }) => {
+    const body = await callAction(request, STATUS_DEMO_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const buttons = allButtons(body.fragments);
+    expect(buttons.find((b: any) => b.actionId === 'activate')).toBeDefined();
+    expect(buttons.find((b: any) => b.actionId === 'deactivate')).toBeDefined();
+  });
+
+  test('activate returns "Activated!" message', async ({ request }) => {
+    const body = await callAction(request, STATUS_DEMO_API, {
+      route: '/',
+      actionId: 'activate',
+      componentState: { name: 'item1', status: 'Inactive' },
+      serverSideType: STATUS_DEMO_TYPE,
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].variant).toBe('success');
+    expect(body.messages[0].text).toBe('Activated!');
+  });
+
+  test('deactivate returns "Deactivated!" message', async ({ request }) => {
+    const body = await callAction(request, STATUS_DEMO_API, {
+      route: '/',
+      actionId: 'deactivate',
+      componentState: { name: 'item1', status: 'Active' },
+      serverSideType: STATUS_DEMO_TYPE,
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].variant).toBe('success');
+    expect(body.messages[0].text).toBe('Deactivated!');
+  });
+
+});
+
+test.describe('StatusDemoForm field metadata', () => {
+
+  test('status field is string dataType (enum maps to string)', async ({ request }) => {
+    const body = await callAction(request, STATUS_DEMO_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const fields = allFields(body.fragments);
+    const f = fields.find((f: any) => f.fieldId === 'status');
+    expect(f).toBeDefined();
+    expect(f.dataType).toBe('string');
+  });
+
+  test('status field has "select" stereotype (enum default)', async ({ request }) => {
+    const body = await callAction(request, STATUS_DEMO_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const fields = allFields(body.fragments);
+    const f = fields.find((f: any) => f.fieldId === 'status');
+    expect(f?.stereotype).toBe('select');
+  });
+
+  test('status field has options for Active and Inactive', async ({ request }) => {
+    const body = await callAction(request, STATUS_DEMO_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const fields = allFields(body.fragments);
+    const f = fields.find((f: any) => f.fieldId === 'status');
+    const optionIds = (f?.options ?? []).map((o: any) => o.id ?? o.value ?? o);
+    expect(optionIds).toContain('Active');
+    expect(optionIds).toContain('Inactive');
+  });
+
+  test('name field is string, required', async ({ request }) => {
+    const body = await callAction(request, STATUS_DEMO_API, {
+      route: '/',
+      actionId: '__load__',
+    });
+    const fields = allFields(body.fragments);
+    const f = fields.find((f: any) => f.fieldId === 'name');
+    expect(f).toBeDefined();
+    expect(f.dataType).toBe('string');
+    expect(f.required).toBe(true);
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// ItemsCatalog — /items UI  (AutoCrudOrchestrator CRUD listing)
+// ---------------------------------------------------------------------------
+
+const ITEMS_API = '/items/mateu/v3/components/_/action';
+
+function collectCrudl(component: any): any[] {
+  const isCrudl = component?.metadata?.columns !== undefined;
+  const direct = isCrudl ? [component.metadata] : [];
+  const nested = (component?.children ?? []).flatMap(collectCrudl);
+  return [...direct, ...nested];
+}
+
+function allCrudl(fragments: any[]): any[] {
+  return fragments.flatMap((f: any) => collectCrudl(f.component));
+}
+
+test.describe('ItemsCatalog API (CRUD listing)', () => {
+
+  test('search returns fragments with no errors', async ({ request }) => {
+    const body = await callAction(request, ITEMS_API, {
+      route: '/',
+      actionId: 'search',
+      serverSideType: 'io.mateu.sample1.app.ItemsCatalog',
+      consumedRoute: '',
+      componentState: { page: 0, size: 10 },
+    });
+    expect(body.fragments.length).toBeGreaterThan(0);
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('search returns some data in response', async ({ request }) => {
+    const body = await callAction(request, ITEMS_API, {
+      route: '/',
+      actionId: 'search',
+      serverSideType: 'io.mateu.sample1.app.ItemsCatalog',
+      consumedRoute: '',
+      componentState: { page: 0, size: 10 },
+    });
+    expect(body.fragments.length).toBeGreaterThan(0);
   });
 
 });

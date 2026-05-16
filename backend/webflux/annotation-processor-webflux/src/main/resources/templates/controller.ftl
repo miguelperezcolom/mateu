@@ -2,7 +2,6 @@ package ${pkgName};
 
 import io.mateu.SpringHttpRequest;
 import io.mateu.core.application.MateuService;
-import io.mateu.dtos.GetUIRqDto;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @CrossOrigin
 @RestController("${pkgName}.${simpleClassName}MateuController")
@@ -30,14 +29,14 @@ public class ${simpleClassName}MateuController {
     private String baseUrl = "${path}";
 
     @PostMapping("v3/{*ignored}")
-    public Flux<UIIncrementDto> runStep(
+    public Mono<UIIncrementDto> runStep(
         @PathVariable("ignored") String ignored,
         @RequestBody RunActionRqDto rq,
         ServerHttpRequest serverHttpRequest) throws Throwable {
     var httpRequest = new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
     httpRequest.setAttribute("uiId", uiId);
     httpRequest.setAttribute("baseUrl", baseUrl);
-    return service.runAction(uiId, rq, baseUrl, httpRequest);
+    return service.runAction(uiId, rq, baseUrl, httpRequest).next();
     }
 
 }

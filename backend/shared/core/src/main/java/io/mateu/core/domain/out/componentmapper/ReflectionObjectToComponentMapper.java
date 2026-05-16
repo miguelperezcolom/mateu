@@ -20,6 +20,7 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Data;
+import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
@@ -136,6 +137,9 @@ public class ReflectionObjectToComponentMapper {
     // está anotado con @UI o con @Route
     // implementa Page
     if (instance instanceof Data) {
+      return false;
+    }
+    if (instance instanceof Message) {
       return false;
     }
     if (instance instanceof State) {

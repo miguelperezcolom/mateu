@@ -71,3 +71,46 @@ test.describe('AllTypesForm (/all-types UI)', () => {
   });
 
 });
+
+test.describe('ProfileForm (/profile UI)', () => {
+
+  test('loads /profile page', async ({ page }) => {
+    await page.goto('/profile');
+    await expect(page).toHaveTitle(/Profile/);
+  });
+
+  test('/profile page renders mateu-ui with /profile baseUrl', async ({ page }) => {
+    await page.goto('/profile');
+    const mateuUi = page.locator('mateu-ui');
+    await expect(mateuUi).toBeAttached();
+    await expect(mateuUi).toHaveAttribute('baseUrl', '/profile');
+  });
+
+});
+
+test.describe('StatusDemoForm (/status-demo UI)', () => {
+
+  test('loads /status-demo page', async ({ page }) => {
+    await page.goto('/status-demo');
+    await expect(page).toHaveTitle(/Status Demo/);
+  });
+
+  test('/status-demo page renders mateu-ui with /status-demo baseUrl', async ({ page }) => {
+    await page.goto('/status-demo');
+    const mateuUi = page.locator('mateu-ui');
+    await expect(mateuUi).toBeAttached();
+    await expect(mateuUi).toHaveAttribute('baseUrl', '/status-demo');
+  });
+
+});
+
+test.describe('ItemsCatalog (/items UI)', () => {
+
+  test('loads /items page', async ({ page }) => {
+    await page.goto('/items');
+    const mateuUi = page.locator('mateu-ui');
+    await expect(mateuUi).toBeAttached();
+    await expect(mateuUi).toHaveAttribute('baseUrl', '/items');
+  });
+
+});

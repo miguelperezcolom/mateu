@@ -21,5 +21,13 @@ export default defineConfig({
       },
       testMatch: '**/mvc-app1/**/*.spec.ts',
     },
+    {
+      name: 'webflux-app1',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8081',
+      },
+      testMatch: '**/mvc-app1/**/*.spec.ts',
+    },
   ],
 });

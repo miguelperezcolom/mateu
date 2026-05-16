@@ -823,7 +823,14 @@ public class ReflectionPageMapper {
             .anyMatch(
                 field ->
                     field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                        || field.isAnnotationPresent(Toolbar.class))
+                        || field.isAnnotationPresent(Toolbar.class)
+                        || (!Modifier.isFinal(field.getModifiers())
+                            && !field.isAnnotationPresent(KPI.class)
+                            && !field.isAnnotationPresent(Menu.class)
+                            && !field.isAnnotationPresent(Header.class)
+                            && !field.isAnnotationPresent(Footer.class)
+                            && !field.isAnnotationPresent(Avatar.class)
+                            && !Status.class.isAssignableFrom(field.getType())))
         || getAllMethods(instance.getClass()).stream()
             .anyMatch(
                 method ->

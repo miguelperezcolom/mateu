@@ -90,6 +90,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                                   toRegex("_empty")))
                       .toList());
           Arrays.stream(Optional.ofNullable(e.getAnnotationsByType(UI.class)).orElse(new UI[0]))
+              .filter(routeAnnotation -> routeAnnotation.value().isEmpty())
               .map(
                   routeAnnotation ->
                       new io.mateu.uidl.interfaces.RouteValue(
@@ -192,12 +193,14 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
                     "_empty",
                     RouteAnnotationProcessor.toRegex(path),
                     RouteAnnotationProcessor.toRegex("_empty")));
-            routes.add(
-                new io.mateu.uidl.interfaces.RouteValue(
-                    "",
-                    "_empty",
-                    RouteAnnotationProcessor.toRegex(""),
-                    RouteAnnotationProcessor.toRegex("_empty")));
+            if (path.isEmpty()) {
+              routes.add(
+                  new io.mateu.uidl.interfaces.RouteValue(
+                      "",
+                      "_empty",
+                      RouteAnnotationProcessor.toRegex(""),
+                      RouteAnnotationProcessor.toRegex("_empty")));
+            }
             RouteAnnotationProcessor.createRouteHandlerFromModel(
                 className + "UIRouteResolver",
                 pkgName,

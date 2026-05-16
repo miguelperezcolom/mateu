@@ -14,6 +14,7 @@
     <modules>
         <module>modules/sample1</module>
         <module>apps/mvc-app1</module>
+        <module>apps/webflux-app1</module>
     </modules>
 
 </project>
