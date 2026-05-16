@@ -5,22 +5,121 @@ weight: 2
 
 # Service-owned UI modules
 
-Each service exposes its own UI using:
-
-```java
-@UI("/_content-service")
-```
-
-Navigation is defined locally:
-
-- menu classes
-- orchestrators
-- routes
+In a microservices architecture, each service can own and expose its own UI. The shell application aggregates these into a unified interface using `RemoteMenu`.
 
 ---
 
-## Benefits
+## The pattern
 
-- independent deployment
-- clear boundaries
-- no shared frontend code
+Each service defines its own `@UI` and navigation:
+
+```java
+// In the content-service backend
+@UI("/_content-service")
+public class ContentServiceApp {
+
+    @Menu
+    Pages pages;
+
+    @Menu
+    Templates templates;
+
+    @Menu
+    @EyesOnly(roles = "admin")
+    Settings settings;
+}
+```
+
+The shell application pulls the remote service's menu and embeds it:
+
+```java
+// In the shell / backoffice
+@UI("")
+public class Shell {
+
+    @Menu
+    Home home;
+
+    @Menu
+    RemoteMenu contentService = new RemoteMenu(
+            "Content",
+            "https://content-service.internal/_content-service"
+    );
+
+    @Menu
+    RemoteMenu analyticsService = new RemoteMenu(
+            "Analytics",
+            "https://analytics-service.internal/_analytics"
+    );
+}
+```
+
+The shell renders the combined navigation. Clicking a remote menu item proxies the request to the owning service.
+
+---
+
+## Why service-owned UI
+
+| Concern | Benefit |
+|---|---|
+| Independent deployment | Each service's UI deploys with the service |
+| Clear boundaries | UI logic lives with domain logic |
+| No shared frontend | No coordination of a monolithic frontend repo |
+| Authorization | Each service enforces its own `@EyesOnly` rules |
+| Testability | Each UI module can be tested in isolation |
+
+---
+
+## What each service exposes
+
+Each service is a standard Mateu application:
+
+```java
+@UI("/_orders")
+public class OrdersServiceUI {
+
+    @Menu
+    OrdersOrchestrator orders;
+
+    @Menu
+    @EyesOnly(roles = "manager")
+    ReportsPage reports;
+}
+```
+
+The `@UI` path acts as the namespace for all routes in that service.
+
+---
+
+## Navigation within a service
+
+Pages within a service use standard `@Route` with `parentRoute`:
+
+```java
+@Route(value = "/_orders/order-detail/:id", parentRoute = "/_orders")
+public class OrderDetailPage implements ComponentTreeSupplier {
+    // ...
+}
+```
+
+Routes are scoped to the service. The shell navigates to them by assembling `service-base-url + route`.
+
+---
+
+## Security model
+
+Each service validates `@EyesOnly` independently using the JWT token forwarded by the shell:
+
+```
+User browser → Shell (aggregates menus) → Service backend (validates @EyesOnly)
+```
+
+A user who lacks the required role sees the menu entry hidden in the service's response — not just in the shell.
+
+---
+
+## Next
+
+- [Distributed control plane](/java-user-manual/real-world/distributed-control-plane/)
+- [Navigation and menus](/java-user-manual/build/navigation-and-menus/)
+- [Security](/java-user-manual/advanced/security/)

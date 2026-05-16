@@ -88,3 +88,4 @@ A class can implement as many of these as needed.
 - [Commands and messages](/java-user-manual/concepts/fluent-components/fluent-commands/) — CloseModal, SetWindowTitle, SetFavicon, RunAction, Dialog
 - [Listings](/java-user-manual/concepts/fluent-components/fluent-listings/) — Listing.builder(), columns, filters, sorting, row actions
 - [Nested apps](/java-user-manual/concepts/fluent-components/fluent-nested-apps/) — AppSupplier, AppVariant, menu on left/top/tabs
+- [Display components](/java-user-manual/concepts/fluent-components/fluent-display-components/) — Badge, Card, Chart, Grid, Map, Dialog, Avatar, Status, Amount
