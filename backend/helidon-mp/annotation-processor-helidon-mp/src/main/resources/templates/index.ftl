@@ -14,7 +14,7 @@ import org.jboss.resteasy.reactive.RestResponse;
 import java.util.HashMap;
 import java.util.Map;
 
-@Path("${path}")
+@Path("<#if path?has_content>${path}<#else>/</#if>")
 @Slf4j
 public class ${simpleClassName}Controller {
 

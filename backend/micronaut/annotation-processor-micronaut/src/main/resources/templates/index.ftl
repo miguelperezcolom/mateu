@@ -6,7 +6,7 @@ import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
 import lombok.extern.slf4j.Slf4j;
 
-@Controller("${path}")
+@Controller("<#if path?has_content>${path}<#else>/</#if>")
 @Slf4j
 public class ${simpleClassName}Controller {
 
