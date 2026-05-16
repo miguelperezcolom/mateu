@@ -18,16 +18,13 @@ public class DeleteActionHandler implements CrudActionHandler {
       CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator,
       CrudActionResult current,
       HttpRequest httpRequest) {
-    List<?> selection =
-        (List<?>)
-            httpRequest
-                .runActionRq()
-                .componentState()
-                .getOrDefault("crud_selected_items", List.of());
-    var idField = orchestrator.getIdFieldForRow();
-    List selectedIds =
-        selection.stream().map(map -> ((Map<String, Object>) map).get(idField)).toList();
-    orchestrator.adapter().deleteAllById(selectedIds, httpRequest);
-    return current;
+    List<?> selection = httpRequest.getSelectedRows(Map.class);
+    if (selection != null) {
+      var idField = orchestrator.getIdFieldForRow();
+      List selectedIds =
+          selection.stream().map(map -> ((Map<String, Object>) map).get(idField)).toList();
+      orchestrator.adapter().deleteAllById(selectedIds, httpRequest);
+    }
+    return current.withRoute("/list");
   }
 }

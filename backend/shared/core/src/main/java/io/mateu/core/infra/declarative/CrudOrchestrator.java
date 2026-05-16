@@ -12,11 +12,12 @@ import static io.mateu.uidl.data.UICommand.pushStateToHistory;
 
 import io.mateu.core.infra.declarative.crudorchestrator.ListComponentLayer;
 import io.mateu.core.infra.declarative.crudorchestrator.actionhandlers.*;
+import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppVariant;
-import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +34,7 @@ public abstract class CrudOrchestrator<
         Row,
         IdType>
     extends ListComponentLayer<View, Editor, CreationForm, Filters, Row, IdType>
-    implements ActionHandler, ActionSupplier, ComponentTreeSupplier {
+    implements ActionHandler, ActionSupplier, DtoSupplier {
 
   String xx = "hola";
   String _route = "";
@@ -225,12 +226,12 @@ public abstract class CrudOrchestrator<
   }
 
   @Override
-  public Component component(HttpRequest httpRequest) {
-    return list(httpRequest);
+  public ComponentDto dto(HttpRequest httpRequest) {
+    return wrapRoute((String) httpRequest.getAttribute("resolvedPath"), httpRequest);
   }
 
   @Override
-  public Object wrapRoute(String route, HttpRequest httpRequest) {
+  public ServerSideComponentDto wrapRoute(String route, HttpRequest httpRequest) {
     httpRequest.setAttribute("mediator", true);
     var consumedRoute = (String) httpRequest.getAttribute("resolvedPath");
     if (!route.equals(consumedRoute)) setRouteTo(route.substring(consumedRoute.length()));

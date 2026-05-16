@@ -204,8 +204,8 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         return convert(data, type);
       }
     } else if (type.isEnum()) {
-      if (data instanceof Map<?, ?> map && map.containsKey("message")) {
-        return Enum.valueOf(type, (String) map.get("message"));
+      if (data instanceof Map<?, ?> map && map.containsKey("value")) {
+        return Enum.valueOf(type, (String) map.get("value"));
       }
       return Enum.valueOf(type, (String) data);
     } else if (type.isArray()) {

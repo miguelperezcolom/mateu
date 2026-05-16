@@ -126,17 +126,25 @@ public class DataLayer {
 
   @SneakyThrows
   public static LookupOptionsSupplier getLookupOptionsSupplier(Object instance, Field field) {
-    var lookup = field.getAnnotation(Lookup.class);
-    if (LookupOptionsSupplier.class.equals(lookup.search())) {
-      if (instance instanceof LookupOptionsSupplier supplier) {
+    if (field != null) {
+      var lookup = field.getAnnotation(Lookup.class);
+      if (lookup != null) {
+        if (LookupOptionsSupplier.class.equals(lookup.search())) {
+          if (instance instanceof LookupOptionsSupplier supplier) {
+            return supplier;
+          }
+          return null;
+        }
+        var supplier = MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).search());
+        if (supplier == null) {
+          return field.getAnnotation(Lookup.class).search().getConstructor().newInstance();
+        }
         return supplier;
       }
-      return null;
     }
-    var supplier = MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).search());
-    if (supplier == null) {
-      return field.getAnnotation(Lookup.class).search().getConstructor().newInstance();
+    if (instance instanceof LookupOptionsSupplier supplier) {
+      return supplier;
     }
-    return supplier;
+    return null;
   }
 }

@@ -78,6 +78,7 @@ import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.DataSupplier;
+import io.mateu.uidl.interfaces.DtoSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
@@ -150,6 +151,9 @@ public final class ComponentToFragmentDtoMapper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (component == null && componentSupplier != null) {
+      if (componentSupplier instanceof DtoSupplier dtoSupplier) {
+        return dtoSupplier.dto(httpRequest);
+      }
       return mapComponentTreeSupplierToDto(
           componentSupplier, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
@@ -161,6 +165,9 @@ public final class ComponentToFragmentDtoMapper {
           futureComponent, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof ComponentTreeSupplier componentTreeSupplier) {
+      if (componentSupplier instanceof DtoSupplier dtoSupplier) {
+        return dtoSupplier.dto(httpRequest);
+      }
       return mapComponentTreeSupplierToDto(
           componentTreeSupplier, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }

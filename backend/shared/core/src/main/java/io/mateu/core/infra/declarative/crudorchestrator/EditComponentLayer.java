@@ -7,6 +7,7 @@ import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.CrudCreationForm;
@@ -55,6 +56,7 @@ public abstract class EditComponentLayer<
                 .stream()
                 .toList())
         .toolbar(List.of(new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
+        .actions(List.of(Action.builder().id("save").validationRequired(true).bubble(true).build()))
         .build();
   }
 }

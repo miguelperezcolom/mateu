@@ -1,5 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
+import io.mateu.mdd.demoadminpanel.infra.in.ui.changes.Changes;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Button;
@@ -20,6 +21,9 @@ public class Home2 implements WidgetSupplier {
 
     @Menu
     Products products;
+
+    @Menu
+    Changes changes;
 
     @Menu
     NestedApp nestedApp;

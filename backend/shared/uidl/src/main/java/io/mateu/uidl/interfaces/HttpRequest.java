@@ -88,9 +88,23 @@ public interface HttpRequest {
   List<String> getHeaderValues(String key);
 
   default <T> List<T> getSelectedRows(Class<T> rowType) {
-    return ((List<Map<String, Object>>)
-            runActionRq().componentState().getOrDefault("crud_selected_items", List.of()))
-        .stream().map(data -> MateuInstanceFactory.newInstance(rowType, data, this)).toList();
+    List<Map<String, Object>> selection =
+        (List<Map<String, Object>>) runActionRq().componentState().get("crud_selected_items");
+    if (selection == null) {
+      if (runActionRq().parameters() != null
+          && runActionRq().parameters().get("initiatorState") != null) {
+        selection =
+            (List<Map<String, Object>>)
+                ((Map<String, Object>) runActionRq().parameters().get("initiatorState"))
+                    .get("crud_selected_items");
+      }
+    }
+    if (selection != null) {
+      return selection.stream()
+          .map(data -> MateuInstanceFactory.newInstance(rowType, data, this))
+          .toList();
+    }
+    return List.of();
   }
 
   default <T> List<T> getSelectedRows(String fieldName, Class<T> rowType) {

@@ -199,6 +199,7 @@ export class MateuComponent extends ComponentElement {
         const data = this.data??{}
         const state = this.state??{}
         const newData: Record<string, any> = {...this.data??{}, errors: {}}
+        console.log('state', state)
         if (validatons) {
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
                 const validation = validatons[validationIndex]
@@ -349,9 +350,12 @@ export class MateuComponent extends ComponentElement {
             e.stopPropagation()
 
             const serverSideComponent = this.component as ServerSideComponent
-            const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
+            const action = serverSideComponent.actions?.find(action => action.id == detail.actionId
+            || (action.id.endsWith('*') && detail.actionId.startsWith(action.id.replace('*', ''))))
 
             if (action) {
+
+                console.log('action matched', action)
 
                 if (action && action.rowsSelectedRequired) {
                     if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {

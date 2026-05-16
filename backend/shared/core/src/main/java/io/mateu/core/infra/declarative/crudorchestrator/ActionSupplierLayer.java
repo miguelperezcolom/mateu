@@ -25,12 +25,7 @@ public abstract class ActionSupplierLayer<
   public List<Action> actions(HttpRequest httpRequest) {
     var actions = new ArrayList<Action>();
     if (httpRequest.getAttribute("mediator") != null) {
-      actions.add(
-          Action.builder()
-              .id("delete")
-              .confirmationRequired(true)
-              .rowsSelectedRequired(true)
-              .build());
+      actions.add(Action.builder().id("delete").build());
       actions.add(Action.builder().id("save").build());
       actions.add(Action.builder().id("create").build());
       actions.add(Action.builder().id("new").build());
@@ -39,6 +34,17 @@ public abstract class ActionSupplierLayer<
       actions.add(Action.builder().id("cancel-create").build());
       actions.add(Action.builder().id("cancel-view").build());
       actions.add(Action.builder().id("cancel-edit").build());
+      actions.add(Action.builder().id("action-on-row-*").build());
+    }
+    if (httpRequest.getAttribute("list") != null) {
+      actions.add(Action.builder().id("search").build());
+      actions.add(
+          Action.builder()
+              .id("delete")
+              .confirmationRequired(true)
+              .rowsSelectedRequired(true)
+              .bubble(true)
+              .build());
       getAllMethods(getClass()).stream()
           .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
           .forEach(
@@ -50,11 +56,9 @@ public abstract class ActionSupplierLayer<
                             method.getAnnotation(ListToolbarButton.class).confirmationRequired())
                         .rowsSelectedRequired(
                             method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
+                        .bubble(true)
                         .build());
               });
-    }
-    if (httpRequest.getAttribute("list") != null) {
-      actions.add(Action.builder().id("search").build());
     }
     return actions;
   }

@@ -10,7 +10,7 @@ const itemSelected = (e: CustomEvent) => {
     };
     e.target?.dispatchEvent(new CustomEvent('action-requested', {
         detail: {
-            actionId: e.detail.value.methodNameInCrud,
+            actionId: 'action-on-row-' + e.detail.value.methodNameInCrud,
             parameters: obj
         },
         bubbles: true,
@@ -32,7 +32,7 @@ const clicked = (e: CustomEvent) => {
     } = e.target.action
     e.target?.dispatchEvent(new CustomEvent('action-requested', {
         detail: {
-            actionId: action.methodNameInCrud,
+            actionId: 'action-on-row-' + action.methodNameInCrud,
             parameters: obj
         },
         bubbles: true,

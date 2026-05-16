@@ -22,7 +22,7 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 
   @Override
   default List<String> supportedActions() {
-    return List.of("search");
+    return List.of("search", "action-on-row-*");
   }
 
   @Override
@@ -32,6 +32,10 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 
   @Override
   default Object handleAction(String actionId, HttpRequest httpRequest) {
+    if (actionId.startsWith("action-on-row-")) {
+      String methodName = actionId.substring("action-on-row-".length());
+      return handleActionOnRow(methodName, httpRequest);
+    }
     var searchText = httpRequest.getString("searchText");
     Filters filters =
         MateuInstanceFactory.newInstance(
@@ -57,6 +61,10 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
         Map.of(
             getCrudId(httpRequest),
             found != null ? found : new ListingData(new Page("", 0, 0, 0, List.of()))));
+  }
+
+  default Object handleActionOnRow(String methodName, HttpRequest httpRequest) {
+    return null;
   }
 
   default String getCrudId(HttpRequest httpRequest) {

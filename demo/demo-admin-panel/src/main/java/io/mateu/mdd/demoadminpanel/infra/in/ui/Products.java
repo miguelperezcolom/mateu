@@ -6,11 +6,16 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.FieldStereotype;
+import io.mateu.uidl.data.ListingData;
+import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
+import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -41,12 +46,12 @@ record Product(
                ProductStatus status,
         ColumnActionGroup action,
         @Colspan(2)
-        List<ProductComponent> components) implements Identifiable {
+        List<ProductComponent> components) implements Identifiable, LookupOptionsSupplier {
 
     Product {
         action = new ColumnActionGroup(new ColumnAction[]{
-                        new ColumnAction("action-on-row-setAsBlue", "Set as blue"),
-                        new ColumnAction("action-on-row-setAsGreen", "Set as green")
+                        new ColumnAction("setAsBlue", "Set as blue"),
+                        new ColumnAction("setAsGreen", "Set as green")
                 });
     }
 
@@ -54,13 +59,18 @@ record Product(
     public String toString() {
         return name != null?"Product " + name:"New product";
     }
+
+    @Override
+    public ListingData<io.mateu.uidl.data.Option> search(String fieldName, String searchText, Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(new io.mateu.uidl.data.Option("zzz"));
+    }
 }
 
 class ProductRepository implements CrudRepository<Product> {
 
     private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", "xxx", true, ProductStatus.Available, null, List.of(
-            new ProductComponent("x", 1),
-            new ProductComponent("y", 2)
+            new ProductComponent("x", 1, null, false, "yyy"),
+            new ProductComponent("y", 2, null, true, "xxx")
     ))));
 
     @Override
@@ -94,10 +104,25 @@ class ProductAdapter extends AutoCrudAdapter<Product> {
 }
 
 @UI("/products")
+@Slf4j
 public class Products extends AutoCrudOrchestrator<Product> {
 
     @Override
     public AutoCrudAdapter<Product> simpleAdapter() {
         return new ProductAdapter();
     }
+
+    void setAsBlue(Product row) {
+      log.info("set as blue {}", row);
+    }
+
+    void setAsGreen(Product row) {
+        log.info("set as green {}", row);
+    }
+
+    @ListToolbarButton
+    void doSomethingOnRows(List<Product> selection) {
+        log.info("do something on {}", selection);
+    }
+
 }

@@ -10,7 +10,6 @@ const filterMenu = (e: CustomEvent, container: MateuApp) => {
 }
 
 const chooseRoute = (state: any, container: MateuApp, metadata: App) => {
-    console.log("chooseRoute", state, container.selectedRoute, metadata.homeRoute)
     if (state && state._route != undefined) {
         return chooseConsumedRoute(container, metadata) + state._route
     }

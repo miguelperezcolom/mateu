@@ -30,6 +30,7 @@ import io.mateu.uidl.annotations.Disabled;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Rule;
+import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.Validation;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
@@ -44,6 +45,7 @@ import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import io.mateu.uidl.interfaces.RuleSupplier;
 import io.mateu.uidl.interfaces.ValidationDtoSupplier;
 import io.mateu.uidl.interfaces.ValidationSupplier;
@@ -539,18 +541,24 @@ public class ComponentTreeSupplierToDtoMapper {
         .map(field -> ActionDto.builder().id("search-" + field.getName()).build())
         .forEach(fieldActions::add);
 
+    if (serverSideObject instanceof LookupOptionsSupplier) {
+      actions.add(ActionDto.builder().id("search-*").build());
+    }
+
     getAllFields(serverSideObject.getClass()).stream()
         .filter(
             field ->
                 !field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
-                    && field.isAnnotationPresent(Button.class))
+                    && (field.isAnnotationPresent(Button.class)
+                        || field.isAnnotationPresent(Toolbar.class)))
         .map(field -> ActionDto.builder().id(field.getName()).validationRequired(true).build())
         .forEach(fieldActions::add);
     getAllMethods(serverSideObject.getClass()).stream()
         .filter(
             method ->
                 !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
-                    && method.isAnnotationPresent(Button.class))
+                    && (method.isAnnotationPresent(Button.class)
+                        || method.isAnnotationPresent(Toolbar.class)))
         .map(method -> ActionDto.builder().id(method.getName()).validationRequired(true).build())
         .forEach(fieldActions::add);
 
@@ -565,12 +573,13 @@ public class ComponentTreeSupplierToDtoMapper {
             .filter(method -> actions.stream().noneMatch(action -> action.id().equals(action.id())))
             .toList());
 
-    getAllMethods(serverSideObject.getClass()).stream()
-        .filter(method -> !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
-        .filter(
-            method -> actions.stream().noneMatch(action -> action.id().equals(method.getName())))
-        .map(method -> ActionDto.builder().id(method.getName()).build())
-        .forEach(fieldActions::add);
+    //    getAllMethods(serverSideObject.getClass()).stream()
+    //        .filter(method -> !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
+    //        .filter(
+    //            method -> actions.stream().noneMatch(action ->
+    // action.id().equals(method.getName())))
+    //        .map(method -> ActionDto.builder().id(method.getName()).build())
+    //        .forEach(actions::add);
 
     if (serverSideObject instanceof ActionHandler actionHandler) {
       actions.addAll(
@@ -580,6 +589,16 @@ public class ComponentTreeSupplierToDtoMapper {
               .map(actionId -> ActionDto.builder().id(actionId).build())
               .toList());
     }
+
+    if (Boolean.TRUE.equals(httpRequest.getAttribute("new"))) {
+      actions.add(ActionDto.builder().id("create").validationRequired(true).bubble(true).build());
+    }
+    if (Boolean.TRUE.equals(httpRequest.getAttribute("edit"))) {
+      actions.add(ActionDto.builder().id("save").validationRequired(true).bubble(true).build());
+    }
+
+    actions.addAll(fieldActions);
+
     return actions;
   }
 

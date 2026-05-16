@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.addData;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.fluent.Component;
@@ -79,6 +80,7 @@ public abstract class RouteHandlerLayer<
     if (modelView instanceof AutoNamedView<?> autoNamedView) {
       modelView = autoNamedView.entity();
     }
+    addData(modelView, httpRequest);
     return wrap(
         component,
         modelView,

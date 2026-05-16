@@ -86,21 +86,23 @@ public class ComponentStateHelper {
             : modelView;
     if (!(state instanceof Map<?, ?>)) {
       var newState = mapPojo(state);
-      getAllFields(getViewModelClass(modelView, httpRequest)).stream()
-          .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
-          .forEach(
-              field -> {
-                var generator =
-                    MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
-                var value = generator.generate();
-                if (value != null && List.class.isAssignableFrom(value.getClass())) {
-                  var list = (List<?>) value;
-                  var mappedList = list.stream().map(DataComponentToDtoMapper::mapItem).toList();
-                  newState.put(field.getName(), mappedList);
-                } else {
-                  newState.put(field.getName(), value);
-                }
-              });
+      if (Boolean.TRUE.equals(httpRequest.getAttribute("new"))) {
+        getAllFields(getViewModelClass(modelView, httpRequest)).stream()
+            .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
+            .forEach(
+                field -> {
+                  var generator =
+                      MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
+                  var value = generator.generate();
+                  if (value != null && List.class.isAssignableFrom(value.getClass())) {
+                    var list = (List<?>) value;
+                    var mappedList = list.stream().map(DataComponentToDtoMapper::mapItem).toList();
+                    newState.put(field.getName(), mappedList);
+                  } else {
+                    newState.put(field.getName(), value);
+                  }
+                });
+      }
       addRowNumber(modelView.getClass(), newState);
       return newState;
     }

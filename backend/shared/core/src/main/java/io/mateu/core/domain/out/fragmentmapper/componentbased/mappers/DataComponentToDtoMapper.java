@@ -85,12 +85,17 @@ public class DataComponentToDtoMapper {
           mapping.put(statusMapping.from(), statusMapping.to());
         }
         StatusType defaultType = ann.defaultStatus();
-        var value = "" + getValue(field, item);
-        var message = toUpperCaseFirst("" + getValue(field, item));
-        map.put(
-            field.getName(),
-            new io.mateu.uidl.data.Status(
-                mapping.getOrDefault(value, defaultType), message, value));
+        var fieldValue = getValue(field, item);
+        if (fieldValue == null) {
+          map.put(field.getName(), null);
+        } else {
+          var value = "" + getValue(field, item);
+          var message = toUpperCaseFirst("" + getValue(field, item));
+          map.put(
+              field.getName(),
+              new io.mateu.uidl.data.Status(
+                  mapping.getOrDefault(value, defaultType), message, value));
+        }
       } else if (field.isAnnotationPresent(MappedValue.class)) {
         var ann = field.getAnnotation(MappedValue.class);
         Map<String, String> mapping = new HashMap<>();
