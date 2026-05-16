@@ -5,109 +5,227 @@ aliases:
   - /java-user-manual/application-shell/
 ---
 
-# Application shell in Mateu
+# Application shell
 
-Mateu does not just generate UI components.
+The application shell is the outer frame of your Mateu application: the navigation sidebar or tab bar, the logo, the title, and the top-level menu structure.
 
-It also defines the **application shell**:
+It is defined by the `@UI` class (declarative API) or the `AppSupplier` class (fluent API).
 
-- navigation structure
-- navigation presentation
-- branding
-- global layout
-- security
+---
 
-## Navigation structure
+## Declarative API shell
 
-Defined using `@Menu`.
-
-```java
-@Menu
-Users users;
-```
-
-## Navigation presentation
-
-Inferred automatically from menu structure.
-
-Override with `@App`.
-
-```java
-@App(AppVariant.MENU_ON_LEFT)
-```
-
-## Branding
-
-You can define branding elements:
-
-```java
-@Logo("/images/logo.png")
-@FavIcon("/images/favicon.png")
-@Title("My App")
-```
-
-## Page title
-
-```java
-@PageTitle("Users")
-```
-
-## Security
-
-Mateu allows you to secure your UI declaratively.
-
-Example:
+Annotate a class with `@UI` to make it the application root:
 
 ```java
 @UI("")
-@Title("Console")
-@KeycloakSecured(
-  url = "https://lemur-11.cloud-iam.com/auth",
-  realm = "mateu",
-  clientId = "demo"
-)
-public class ShellHome {
+@Title("My Backoffice")
+@PageTitle("My Backoffice — Admin")
+@Logo("/images/logo.svg")
+@FavIcon("/images/favicon.png")
+public class MyApp {
+
+    @Menu
+    Products products;
+
+    @Menu
+    Orders orders;
+
+    @Menu
+    @EyesOnly(roles = "admin")
+    AdminPanel admin;
 }
 ```
 
-This secures the application using Keycloak.
+---
 
-### Fine-grained security
+## Shell annotations
 
-You can also restrict access to specific parts of the UI.
+| Annotation | Effect |
+|---|---|
+| `@UI("path")` | Declares the app root and its base path (`""` = root) |
+| `@Title("text")` | Heading shown in the app shell (sidebar or header) |
+| `@Subtitle("text")` | Subheading shown below the title |
+| `@PageTitle("text")` | Browser tab `<title>` tag |
+| `@Logo("/path")` | Logo image shown in the shell header |
+| `@FavIcon("/path")` | Browser favicon |
+| `@DrawerClosed` | Start with the navigation drawer collapsed |
+| `@Style("css")` | Inline CSS on the app container |
+| `@HomeRoute("/path")` | Default landing route when the app loads |
+
+---
+
+## Fluent API shell
+
+Use `AppSupplier` + `App.builder()` for programmatic control:
 
 ```java
-@EyesOnly(roles = "admin")
-@Menu
-RemoteMenu users;
+@Route(value = "/admin", parentRoute = "")
+public class AdminApp implements AppSupplier {
+
+    @Override
+    public App getApp(HttpRequest httpRequest) {
+        return App.builder()
+                .pageTitle("My Backoffice — Admin")
+                .title("My Backoffice")
+                .subtitle("Internal tools")
+                .logo("/images/logo.svg")
+                .favicon("/images/favicon.png")
+                .variant(AppVariant.MENU_ON_LEFT)
+                .homeRoute("/admin/home")
+                .menu(List.of(
+                        new RouteLink("/home",     "Dashboard"),
+                        new RouteLink("/products", "Products"),
+                        new RouteLink("/orders",   "Orders"),
+                        new Menu("/settings", "Administration", List.of(
+                                new RouteLink("/users",    "Users"),
+                                new RouteLink("/config",   "Configuration")
+                        ))
+                ))
+                .build();
+    }
+}
 ```
 
-You can use roles or scopes to control visibility and access.
+### App.builder() branding properties
 
-## Layout
+| Property | Effect |
+|---|---|
+| `pageTitle` | Browser tab title |
+| `title` | Heading in the shell header |
+| `subtitle` | Subheading below the title |
+| `logo` | Logo image URL |
+| `favicon` | Browser favicon URL |
+| `variant` | Layout variant (see below) |
+| `homeRoute` | Default landing route |
+| `drawerClosed` | Start with drawer collapsed |
+| `style` | Inline CSS on the app container |
+| `cssClasses` | CSS class names on the app container |
 
-Use `@Style` and layout annotations to control global layout.
+---
+
+## Layout variants
+
+| `AppVariant` | Navigation position |
+|---|---|
+| `TABS` | Tab bar at the top (default) |
+| `MENU_ON_LEFT` | Collapsible sidebar on the left |
+| `MENU_ON_TOP` | Horizontal nav bar at the top |
+
+---
+
+## Style helpers
+
+`StyleConstants` provides three ready-made style values:
 
 ```java
-@Style("max-width:900px;margin:auto;")
+import io.mateu.uidl.StyleConstants;
+
+@Style(StyleConstants.CONTAINER)                 // max-width: 900px; margin: auto;
+@Style(StyleConstants.FULL_WIDTH)                // width: 100%;
+@Style(StyleConstants.FULL_WIDTH_WITH_PADDING)   // width: 100%; with side padding
 ```
 
-## Mental model
+Or use arbitrary CSS:
 
-The application shell is not configured separately.
+```java
+@Style("max-width: 1200px; margin: auto;")
+```
 
-It is derived from your model:
+---
 
-- menus → structure
-- `@App` → presentation
-- annotations → branding and behavior
-- `@KeycloakSecured` → authentication
-- `@EyesOnly` → authorization
+## Changing branding at runtime
 
-## Summary
+In the fluent API, `getApp()` receives the `HttpRequest`, so branding can be dynamic:
 
-Mateu defines the full application shell declaratively.
+```java
+@Override
+public App getApp(HttpRequest httpRequest) {
+    String tenant = httpRequest.getHeaderValue("X-Tenant-Id");
+    TenantConfig config = tenantConfigService.get(tenant);
 
-You don’t configure it separately.
+    return App.builder()
+            .title(config.appName())
+            .logo(config.logoUrl())
+            .favicon(config.faviconUrl())
+            .variant(AppVariant.MENU_ON_LEFT)
+            .menu(buildMenu(config))
+            .build();
+}
+```
 
-You define it as part of your application model.
+From an action, use `UICommand` to change the favicon or window title without a full reload:
+
+```java
+// Change favicon from an action
+return UICommand.builder()
+        .type(UICommandType.SetFavicon)
+        .data("/images/alert-favicon.png")
+        .build();
+
+// Change window title from an action
+return UICommand.builder()
+        .type(UICommandType.SetWindowTitle)
+        .data("(3 alerts) My Backoffice")
+        .build();
+```
+
+---
+
+## Widgets (home page content)
+
+The `@UI` class can implement `WidgetSupplier` to render content in the main area when no sub-page is selected:
+
+```java
+@UI("")
+@Title("My Backoffice")
+public class MyApp implements WidgetSupplier {
+
+    @Menu Products products;
+    @Menu Orders orders;
+
+    @Override
+    public List<Component> widgets(HttpRequest httpRequest) {
+        return List.of(
+                new Text("Welcome to the backoffice.")
+        );
+    }
+}
+```
+
+For a full dashboard, return a `BoardLayout` with KPI cards and charts. See [Dashboard home page](/java-user-manual/build/dashboard-home-page/).
+
+---
+
+## Security
+
+Combine shell annotations with `@KeycloakSecured` and `@EyesOnly`:
+
+```java
+@UI("")
+@Title("My Backoffice")
+@KeycloakSecured(
+        url      = "https://auth.example.com/auth",
+        realm    = "my-realm",
+        clientId = "my-client"
+)
+public class MyApp {
+
+    @Menu
+    Products products;          // visible to all authenticated users
+
+    @Menu
+    @EyesOnly(roles = "admin")
+    AdminPanel admin;           // only visible to admins
+}
+```
+
+See [Security](/java-user-manual/advanced/security/) for details.
+
+---
+
+## Next
+
+- [Dashboard home page](/java-user-manual/build/dashboard-home-page/)
+- [Navigation and menus](/java-user-manual/build/navigation-and-menus/)
+- [Security](/java-user-manual/advanced/security/)
