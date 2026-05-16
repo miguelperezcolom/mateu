@@ -33,6 +33,8 @@ jobs:
         with:
           node-version: 24
 
+      - name: Clean monorepo lock file
+        run: rm -f frontend/web/monorepo/package-lock.json
       - name: Build Mateu frontend lib
         run: cd frontend/web/monorepo/libs/mateu && rm -f package-lock.json && npm i
       - name: Build Vaadin front
