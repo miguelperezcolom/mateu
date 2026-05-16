@@ -39,7 +39,7 @@ public class JsActionPage implements ComponentTreeSupplier, ActionSupplier {
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(Action.builder()
                 .id("action")
                         .js("state.count = state.count?state.count + 1:1; console.log(state);")

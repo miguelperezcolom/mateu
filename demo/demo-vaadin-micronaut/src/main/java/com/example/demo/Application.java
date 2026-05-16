@@ -35,6 +35,7 @@ import io.micronaut.serde.annotation.SerdeImport;
         "io.mateu.core.application.createjourney",
         "io.mateu.core.application.runaction",
         "io.mateu.core.domain",
+        "io.mateu.core.domain.in",
         "io.mateu.core.domain.fragmentmapper",
         "io.mateu.core.domain.reflection",
         "io.mateu.core.infra.reflection",

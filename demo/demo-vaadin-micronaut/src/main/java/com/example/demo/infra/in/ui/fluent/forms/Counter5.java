@@ -22,7 +22,7 @@ public class Counter5 implements ComponentTreeSupplier, ActionSupplier, Triggers
     int count = 0;
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
                 Action.builder()
                         .id("increment")

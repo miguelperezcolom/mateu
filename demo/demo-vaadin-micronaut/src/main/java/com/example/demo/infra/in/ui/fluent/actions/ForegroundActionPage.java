@@ -43,7 +43,7 @@ public class ForegroundActionPage implements ComponentTreeSupplier, ActionSuppli
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(Action.builder()
                         .id("action")
                 .build());

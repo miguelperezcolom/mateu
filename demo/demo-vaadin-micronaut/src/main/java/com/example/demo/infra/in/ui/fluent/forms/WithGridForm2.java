@@ -105,7 +105,7 @@ public class WithGridForm2 implements ComponentTreeSupplier, ActionHandler, Acti
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(Action.builder().id("action_id").build());
     }
 

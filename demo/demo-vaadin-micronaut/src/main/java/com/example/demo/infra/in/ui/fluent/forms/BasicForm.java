@@ -98,7 +98,7 @@ public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSu
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(Action.builder().id("action_id").build());
     }
 

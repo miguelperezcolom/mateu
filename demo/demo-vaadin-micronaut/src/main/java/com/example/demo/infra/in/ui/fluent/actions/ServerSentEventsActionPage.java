@@ -61,7 +61,7 @@ public class ServerSentEventsActionPage implements ComponentTreeSupplier, Action
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(Action.builder()
                         .id("to-server")
                         .sse(true)

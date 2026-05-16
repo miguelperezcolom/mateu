@@ -13,7 +13,6 @@ import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.RouteHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -44,10 +43,14 @@ public class JsonSchemaBased implements ComponentTreeSupplier, RouteHandler {
         return getFormComponent();
     }
 
-    @SneakyThrows
     private Component getFormComponent() {
-        var schema = new ObjectMapper().readValue(this.getClass().getResourceAsStream("/schemas/" + route),
-                Map.class);
+        Map<?, ?> schema;
+        try {
+            schema = new ObjectMapper().readValue(this.getClass().getResourceAsStream("/schemas/" + route),
+                    Map.class);
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
         return Form.builder()
                 .title(route)
                 .content(List.of(FormLayout.builder()
@@ -66,19 +69,22 @@ public class JsonSchemaBased implements ComponentTreeSupplier, RouteHandler {
                 .build();
     }
 
-    @SneakyThrows
     private Component getIndexComponent() {
-        return Form.builder()
-                .content(List.of(
-                        new VerticalLayout(
-                                new Scanner().getResourceFiles("schemas").stream()
-                                        .map(fileName -> (Component)
-                                                new Anchor(fileName,
-                                                        "/json-schema/" + fileName))
-                                        .toList()
-                        )
-                ))
-                .build();
+        try {
+            return Form.builder()
+                    .content(List.of(
+                            new VerticalLayout(
+                                    new Scanner().getResourceFiles("schemas").stream()
+                                            .map(fileName -> (Component)
+                                                    new Anchor(fileName,
+                                                            "/json-schema/" + fileName))
+                                            .toList()
+                            )
+                    ))
+                    .build();
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

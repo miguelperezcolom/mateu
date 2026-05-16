@@ -57,7 +57,7 @@ class CustomEventActionComponent implements ComponentTreeSupplier, ActionSupplie
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(Action.builder()
                 .id("action")
                 .customEvent(new CustomEvent("my-event", new Detail("xxxx", 3535)))
@@ -86,7 +86,7 @@ public class CustomEventActionPage implements ComponentTreeSupplier, ActionSuppl
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(Action.builder()
                 .id("wrapper-action")
                 .js("console.log('captured custom event', detail); alert('got it!');")

@@ -44,7 +44,7 @@ public class ConfirmationRequiredActionPage implements ComponentTreeSupplier, Ac
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(Action.builder()
                 .id("action")
                         .confirmationRequired(true)

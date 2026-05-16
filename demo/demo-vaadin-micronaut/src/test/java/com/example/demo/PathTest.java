@@ -8,6 +8,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,7 +21,7 @@ class PathTest {
 
     @BeforeAll // (1)
     static void setupServer() {
-        server = ApplicationContext.run(EmbeddedServer.class);
+        server = ApplicationContext.run(EmbeddedServer.class, Map.of("micronaut.server.port", "-1"));
         client = server
                 .getApplicationContext()
                 .createBean(HttpClient.class, server.getURL());

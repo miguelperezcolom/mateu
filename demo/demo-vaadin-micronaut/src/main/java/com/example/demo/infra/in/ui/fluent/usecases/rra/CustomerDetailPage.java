@@ -154,7 +154,7 @@ class OrdersCrud implements ListingBackend<NoFilters, OrderCrudRow>, ComponentTr
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
                 Action.builder()
                         .id("delete-order")

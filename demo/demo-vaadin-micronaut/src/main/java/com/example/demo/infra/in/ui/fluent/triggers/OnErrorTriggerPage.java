@@ -33,7 +33,7 @@ public class OnErrorTriggerPage implements ComponentTreeSupplier, ActionSupplier
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
                 Action.builder()
                         .id("action")

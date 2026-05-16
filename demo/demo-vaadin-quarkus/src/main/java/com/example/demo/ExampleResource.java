@@ -12,6 +12,6 @@ public class ExampleResource {
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/{name:.*}")
     public String hello(String name) {
-        return "Hello from Quarkus REST " + name;
+        return "Hello from Quarkus REST" + (name != null && !name.isEmpty() ? " " + name : "");
     }
 }

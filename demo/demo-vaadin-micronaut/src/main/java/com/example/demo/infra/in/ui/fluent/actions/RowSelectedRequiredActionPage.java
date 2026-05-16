@@ -138,7 +138,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
                 Action.builder()
                         .id("xx")

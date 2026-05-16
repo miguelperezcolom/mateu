@@ -64,7 +64,7 @@ public class ConditionalValidationPage implements ComponentTreeSupplier, Validat
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
                 Action.builder()
                         .id("xx")

@@ -171,7 +171,7 @@ public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersF
     }
 
     @Override
-    public List<Action> actions() {
+    public List<Action> actions(HttpRequest httpRequest) {
         return List.of(
                 Action.builder()
                         .id("delete-order")
