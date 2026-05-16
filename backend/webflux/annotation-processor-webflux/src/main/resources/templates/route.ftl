@@ -16,7 +16,7 @@ public class ${generatedClassName} implements RouteResolver {
     private final List<Pair<Pattern, Pattern>> patterns = List.of(
     <#list routes>
         <#items as route>
-            new Pair(Pattern.compile("${route.first()}"), Pattern.compile("${route.second()}"))<#sep>,
+            new Pair(Pattern.compile("${route.routeRegex}"), Pattern.compile("${route.parentRouteRegex}"))<#sep>,
         </#items>
     </#list>
     );

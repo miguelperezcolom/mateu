@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 
 @UI("/hello")
 public class HelloWorld implements ActionHandler, RouteHandler {
+
   @Override
   public boolean supportsAction(String actionId) {
     return true;

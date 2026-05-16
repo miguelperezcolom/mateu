@@ -14,8 +14,8 @@
   <description>parent project</description>
 
   <modules>
-    <module>webflux-core</module>
     <module>annotation-processor-webflux</module>
+    <module>webflux-core</module>
   </modules>
 
 </project>

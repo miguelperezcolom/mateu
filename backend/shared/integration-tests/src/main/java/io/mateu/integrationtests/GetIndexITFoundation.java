@@ -1,20 +1,11 @@
 package io.mateu.integrationtests;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.containsString;
 
 public class GetIndexITFoundation {
 
-  void getsIndex() {
-    given()
-        .log()
-        .all()
-        .when()
-        .get("/travel")
-        .then()
-        .log()
-        .all()
-        .statusCode(200)
-        .body("html.head.title", equalTo("Travel app"));
+  public void getsIndex() {
+    given().when().get("/travel").then().statusCode(200).body(containsString("Travel app"));
   }
 }

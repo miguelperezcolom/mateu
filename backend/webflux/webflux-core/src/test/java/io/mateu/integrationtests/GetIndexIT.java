@@ -10,17 +10,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = FakeApplication.class)
-public class GetIndexIT {
+class GetIndexIT {
 
   @LocalServerPort private Integer port;
-
-  @Test
-  void getsIndex() {
-    new GetIndexITFoundation().getsIndex();
-  }
 
   @BeforeEach
   void setUp() {
     RestAssured.port = port;
+  }
+
+  @Test
+  void getsIndex() {
+    new GetIndexITFoundation().getsIndex();
   }
 }

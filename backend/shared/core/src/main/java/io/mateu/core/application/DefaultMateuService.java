@@ -24,8 +24,8 @@ public class DefaultMateuService implements MateuService {
         new RunActionCommand(
             baseUrl,
             uiId,
-            rq.route(),
-            rq.consumedRoute(),
+            rq.route() != null ? rq.route() : "/",
+            rq.consumedRoute() != null ? rq.consumedRoute() : "_empty",
             rq.actionId(),
             rq.componentState(),
             rq.appState(),

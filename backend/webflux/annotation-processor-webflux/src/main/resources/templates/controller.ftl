@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 @CrossOrigin
 @RestController("${pkgName}.${simpleClassName}MateuController")
@@ -29,8 +29,8 @@ public class ${simpleClassName}MateuController {
 
     private String baseUrl = "${path}";
 
-    @PostMapping("v3/{ignored}")
-    public Mono<UIIncrementDto> runStep(
+    @PostMapping("v3/{*ignored}")
+    public Flux<UIIncrementDto> runStep(
         @PathVariable("ignored") String ignored,
         @RequestBody RunActionRqDto rq,
         ServerHttpRequest serverHttpRequest) throws Throwable {

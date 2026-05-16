@@ -10,17 +10,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(webEnvironment = RANDOM_PORT, classes = FakeApplication.class)
-public class CreateJourneyIT {
+class CreateJourneyIT {
+
   @LocalServerPort private Integer port;
-
-  @Test
-  void createsJourney() {
-
-    new CreateJourneyITFoundation().createsJourney();
-  }
 
   @BeforeEach
   void setUp() {
     RestAssured.port = port;
+  }
+
+  @Test
+  void createsJourney() {
+    new CreateJourneyITFoundation().createsJourney();
   }
 }
