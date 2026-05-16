@@ -1,0 +1,7 @@
+class=com.example.ProductsPage
+simpleClassName=ProductsPage
+routes=/products|_empty|
+---
+class=com.example.OrderDetailPage
+simpleClassName=OrderDetailPage
+routes=/orders/:id|/orders|;/orders/:id/edit|/orders/:id|

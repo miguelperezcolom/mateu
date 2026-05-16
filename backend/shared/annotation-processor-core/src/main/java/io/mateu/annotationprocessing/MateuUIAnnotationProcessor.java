@@ -217,7 +217,7 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     }
   }
 
-  private List<Map<String, String>> parseIndexFile(URL url) throws IOException {
+  List<Map<String, String>> parseIndexFile(URL url) throws IOException {
     List<Map<String, String>> result = new ArrayList<>();
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
       Map<String, String> current = new LinkedHashMap<>();

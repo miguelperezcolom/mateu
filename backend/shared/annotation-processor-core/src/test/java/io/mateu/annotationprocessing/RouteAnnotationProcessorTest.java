@@ -2,59 +2,31 @@ package io.mateu.annotationprocessing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 import io.mateu.uidl.annotations.Route;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.io.Writer;
+import java.net.URL;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.tools.JavaFileObject;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 public class RouteAnnotationProcessorTest {
 
-  @Test
-  public void runs() throws IOException {
-    var processor = mock(RouteAnnotationProcessor.class);
-    when(processor.process(any(), any())).thenCallRealMethod();
-
-    var filer = mock(Filer.class);
-    var javaFileObject = mock(JavaFileObject.class);
-    Writer writer = new StringWriter();
-    when(javaFileObject.openWriter()).thenReturn(writer);
-    when(filer.createSourceFile(any())).thenReturn(javaFileObject);
-    when(processor.getFiler()).thenReturn(filer);
-    var routeAnnotation = mock(Route.class);
-    when(routeAnnotation.value()).thenReturn("/");
-    when(routeAnnotation.parentRoute()).thenReturn("");
-    var annotatedType = mock(TypeElement.class);
-    Set<? extends TypeElement> annotations = Set.of(annotatedType);
-    RoundEnvironment roundEnv = mock(RoundEnvironment.class);
-    var helloWorld = mock(TypeElement.class);
-    when(helloWorld.toString()).thenReturn("com.example.HelloWorld");
-    var name = mock(Name.class);
-    when(name.toString()).thenReturn("com.example.HelloWorld");
-    when(helloWorld.getQualifiedName()).thenReturn(name);
-    var simpleName = mock(Name.class);
-    when(simpleName.toString()).thenReturn("HelloWorld");
-    when(helloWorld.getSimpleName()).thenReturn(simpleName);
-    when(helloWorld.getAnnotation(any())).thenReturn(null);
-    when(helloWorld.getAnnotation(Route.class)).thenReturn(routeAnnotation);
-    when(helloWorld.getAnnotationsByType(Route.class)).thenReturn(new Route[] {routeAnnotation});
-
-    Set<? extends Element> annotatedTypes = Set.of(helloWorld);
-    when(roundEnv.getElementsAnnotatedWith(any(TypeElement.class)))
-        .then(invocation -> annotatedTypes);
-    var worked = processor.process(annotations, roundEnv);
-    assertThat(worked).isTrue();
-  }
+  // ---------------------------------------------------------------------------
+  // toRegex — static utility
+  // ---------------------------------------------------------------------------
 
   @Test
   public void toRegexHandlesNull() {
@@ -72,5 +44,147 @@ public class RouteAnnotationProcessorTest {
   public void toRegexKeepsStaticSegments() {
     assertThat(RouteAnnotationProcessor.toRegex("/users/list")).isEqualTo("/users/list");
     assertThat(RouteAnnotationProcessor.toRegex("")).isEqualTo("");
+  }
+
+  // ---------------------------------------------------------------------------
+  // parseIndexFile — pure parsing logic
+  // ---------------------------------------------------------------------------
+
+  @Test
+  public void parseIndexFileReturnsTwoEntries() throws IOException {
+    URL url = getClass().getResource("/route-registrations-sample.txt");
+    var processor = new RouteAnnotationProcessor();
+
+    List<Map<String, String>> entries = processor.parseIndexFile(url);
+
+    assertThat(entries).hasSize(2);
+  }
+
+  @Test
+  public void parseIndexFileParsesSingleRoute() throws IOException {
+    URL url = getClass().getResource("/route-registrations-sample.txt");
+    var processor = new RouteAnnotationProcessor();
+
+    List<Map<String, String>> entries = processor.parseIndexFile(url);
+
+    Map<String, String> first = entries.get(0);
+    assertThat(first.get("class")).isEqualTo("com.example.ProductsPage");
+    assertThat(first.get("simpleClassName")).isEqualTo("ProductsPage");
+    assertThat(first.get("routes")).isEqualTo("/products|_empty|");
+  }
+
+  @Test
+  public void parseIndexFileParsesMultipleRoutes() throws IOException {
+    URL url = getClass().getResource("/route-registrations-sample.txt");
+    var processor = new RouteAnnotationProcessor();
+
+    List<Map<String, String>> entries = processor.parseIndexFile(url);
+
+    Map<String, String> second = entries.get(1);
+    assertThat(second.get("class")).isEqualTo("com.example.OrderDetailPage");
+    // Two routes separated by ; with value|parentRoute|uis format
+    assertThat(second.get("routes")).contains("/orders/:id|/orders|").contains(";");
+  }
+
+  // ---------------------------------------------------------------------------
+  // process() — source file generation
+  // ---------------------------------------------------------------------------
+
+  private RouteTestContext buildContext(String className, String simpleName, String path)
+      throws IOException {
+    var processor = new RouteAnnotationProcessor();
+
+    var processingEnv = mock(ProcessingEnvironment.class);
+    var filer = mock(Filer.class);
+    when(processingEnv.getFiler()).thenReturn(filer);
+    processor.init(processingEnv);
+
+    var writer = new StringWriter();
+    var javaFileObject = mock(JavaFileObject.class);
+    when(javaFileObject.openWriter())
+        .thenAnswer(
+            inv ->
+                new StringWriter() {
+                  @Override
+                  public void close() {
+                    writer.append(this.toString());
+                  }
+                });
+    when(filer.createSourceFile(anyString())).thenReturn(javaFileObject);
+
+    var routeAnnotation = mock(Route.class);
+    when(routeAnnotation.value()).thenReturn(path);
+    when(routeAnnotation.parentRoute()).thenReturn("_empty");
+    when(routeAnnotation.uis()).thenReturn(new String[0]);
+
+    var element = mock(TypeElement.class);
+    var qualifiedName = mock(Name.class);
+    when(qualifiedName.toString()).thenReturn(className);
+    when(element.getQualifiedName()).thenReturn(qualifiedName);
+    var simpleName2 = mock(Name.class);
+    when(simpleName2.toString()).thenReturn(simpleName);
+    when(element.getSimpleName()).thenReturn(simpleName2);
+    when(element.getAnnotation(any())).thenReturn(null);
+    when(element.getAnnotationsByType(Route.class)).thenReturn(new Route[] {routeAnnotation});
+
+    var annotation = mock(TypeElement.class);
+    Set<TypeElement> annotations = Set.of(annotation);
+    var roundEnv = mock(RoundEnvironment.class);
+    when(roundEnv.getElementsAnnotatedWith(any(TypeElement.class)))
+        .thenAnswer(inv -> Set.<Element>of(element));
+    when(roundEnv.processingOver()).thenReturn(false);
+
+    return new RouteTestContext(processor, filer, writer, annotations, roundEnv);
+  }
+
+  @Test
+  public void processReturnsTrueForRouteAnnotation() throws IOException {
+    var ctx = buildContext("com.example.ProductsPage", "ProductsPage", "/products");
+    assertThat(ctx.processor.process(ctx.annotations, ctx.roundEnv)).isTrue();
+  }
+
+  @Test
+  public void processCreatesRouteResolverFile() throws IOException {
+    var ctx = buildContext("com.example.ProductsPage", "ProductsPage", "/products");
+    ctx.processor.process(ctx.annotations, ctx.roundEnv);
+
+    var captor = ArgumentCaptor.forClass(String.class);
+    verify(ctx.filer, atLeast(1)).createSourceFile(captor.capture());
+
+    assertThat(captor.getAllValues()).contains("com.example.ProductsPageRouteResolver");
+  }
+
+  @Test
+  public void processedRouteResolverContentIncludesClassName() throws IOException {
+    var ctx = buildContext("com.example.ProductsPage", "ProductsPage", "/products");
+    ctx.processor.process(ctx.annotations, ctx.roundEnv);
+
+    String content = ctx.capturedContent();
+    assertThat(content).contains("ProductsPage");
+  }
+
+  @Test
+  public void processedRouteResolverContentIncludesRoute() throws IOException {
+    var ctx = buildContext("com.example.ProductsPage", "ProductsPage", "/products");
+    ctx.processor.process(ctx.annotations, ctx.roundEnv);
+
+    String content = ctx.capturedContent();
+    assertThat(content).contains("/products");
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helper record
+  // ---------------------------------------------------------------------------
+
+  private record RouteTestContext(
+      RouteAnnotationProcessor processor,
+      Filer filer,
+      StringWriter writer,
+      Set<TypeElement> annotations,
+      RoundEnvironment roundEnv) {
+
+    String capturedContent() {
+      return writer.toString();
+    }
   }
 }
