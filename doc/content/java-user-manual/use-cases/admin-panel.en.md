@@ -190,6 +190,101 @@ The list is generated automatically from the model and repository.
 
 ---
 
+## Going further: column actions
+
+The Products example also shows how to add **per-row actions** in the listing.
+
+Add a `ColumnActionGroup` field to the model and initialize it in the compact constructor:
+
+```java
+record Product(
+        @NotEmpty @EditableOnlyWhenCreating String id,
+        @NotEmpty String name,
+        @Stereotype(FieldStereotype.textarea)
+        @HiddenInList String description,
+        boolean certified,
+        @NotNull
+        @Status(
+                defaultStatus = StatusType.NONE,
+                mappings = {
+                        @StatusMapping(from = "Available", to = StatusType.SUCCESS),
+                        @StatusMapping(from = "OutOfStock", to = StatusType.DANGER)
+                }
+        )
+        ProductStatus status,
+        ColumnActionGroup action,
+        @Colspan(2)
+        List<ProductComponent> components
+) implements Identifiable, LookupOptionsSupplier {
+
+    Product {
+        action = new ColumnActionGroup(new ColumnAction[]{
+                new ColumnAction("setAsBlue", "Set as blue"),
+                new ColumnAction("setAsGreen", "Set as green")
+        });
+    }
+}
+```
+
+Then add handler methods with matching names in the orchestrator:
+
+```java
+@UI("/products")
+public class Products extends AutoCrudOrchestrator<Product> {
+
+    @Override
+    public AutoCrudAdapter<Product> simpleAdapter() {
+        return new ProductAdapter();
+    }
+
+    void setAsBlue(Product row) {
+        // called when "Set as blue" is clicked for a row
+    }
+
+    void setAsGreen(Product row) {
+        // called when "Set as green" is clicked for a row
+    }
+
+    @ListToolbarButton
+    void doSomethingOnRows(List<Product> selection) {
+        // called when the toolbar button is clicked with selected rows
+    }
+}
+```
+
+- `ColumnAction("actionId", "Label")` — single action button per row
+- `ColumnActionGroup` — group of action buttons per row
+- The method name in the orchestrator must match the `actionId`
+- `@ListToolbarButton` adds a button to the list toolbar that receives all selected rows
+
+---
+
+## Going further: nested collections in the form
+
+The `List<ProductComponent>` field in the Product model renders as an **inline editable table** inside the detail form.
+
+```java
+public record ProductComponent(
+        String code,
+        int quantity,
+        @Lookup(bubble = true)
+        String relatedComponentCode,
+        boolean special,
+        @Hidden("!state['special']")
+        String comment
+) {}
+```
+
+Key points:
+
+- `@Lookup(bubble = true)` shows a lookup widget without opening a separate page
+- `@Hidden("!state['special']")` hides `comment` unless `special` is checked — the expression is evaluated in the browser as the user changes values
+- `@Colspan(2)` on the `components` field in `Product` makes the table span the full width
+
+The nested table works the same as any collection field: Mateu adds add/remove buttons and renders each child's fields as columns.
+
+---
+
 ## Mental model
 
 - model → data + UI definition
@@ -197,11 +292,17 @@ The list is generated automatically from the model and repository.
 - repository → persistence
 - adapter → connection point
 - orchestrator → full CRUD flow
+- `ColumnAction` / `ColumnActionGroup` → per-row actions; handler methods go in the orchestrator
+- `@ListToolbarButton` → batch action on selected rows
+- `List<ChildRecord>` → inline editable nested table
 
 ---
 
 ## Next
 
+- [Users CRUD with lookups](/java-user-manual/use-cases/users-crud/)
+- [Custom listing](/java-user-manual/use-cases/custom-listing/)
+- [Nested CRUD](/java-user-manual/use-cases/nested-crud/)
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
 - [Validation](/java-user-manual/concepts/validation/)
 - [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/)
