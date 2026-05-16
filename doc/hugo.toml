@@ -142,3 +142,7 @@ link = "https://cpwebassets.codepen.io/assets/embed/ei.js"
 attributes = "async"
 [[params.plugins.js]]
 link = "plugins/youtube-lite.js"
+[[params.plugins.js]]
+link = "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"
+[[params.plugins.js]]
+link = "js/mermaid-init.js"
