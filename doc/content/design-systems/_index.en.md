@@ -18,11 +18,12 @@ your needs. This allows you to easily create your **micro frontends** which you 
 **Red Hat**/**SAP**/**Oracle**/**Vaadin** user interfaces. In the end, **Mateu**'s frontends are just web components which you can embed anywhere, indeed. 
 
 E.g. you can use the **Redwood** frontend if you want your microfrontends to be embedded in/coexist with existing **Oracle** UIs, or choose
-the **SAP Fiori** frontend if you want your microfrontends to be embedded in/coexist with existing **SAP** UIs, or 
+the **SAP Fiori** frontend if you want your microfrontends to be embedded in/coexist with existing **SAP** UIs, 
+the **Lightning Web Components** renderer if you want your microfrontends to be embedded in/coexist with existing **SalesForce** UIs 
 choose **Red Hat** or **Vaadin** just because you like it (like I do).
 
 I imagine I do not need to say this but, obviously, you can also serve your applications in a **standalone** mode without 
-embedding them in existing **Red Hat**/**SAP**/**Oracle**/**Vaadin** web user interfaces. In fact, changing the design system for your 
+embedding them in existing **Red Hat**/**SAP**/**Oracle**/**SalesForce**/**Vaadin** web user interfaces. In fact, changing the design system for your 
 **Mateu**-based UIs is as easy as just changing a maven dependency. 
 
 For some of the frontends I have used the components which are open source / free-to-use from each design system, and provided my own alternate 

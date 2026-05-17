@@ -100,7 +100,7 @@ export class MateuRedwoodTable extends LitElement {
                 slots += ` data-oj-binding-provider="preact"`
                 slots += ` label="···"`
                 slots += ` chroming="borderless"`
-                slots += ` :items="[[cell.data && cell.data.actions ? cell.data.actions.map(function(a){return {label:a.label||a.text||'',key:String(cell.item.key)+'|'+(a.methodNameInCrud||a.actionId||a.id||a.key||String(a.label||'')),disabled:!!a.disabled};}) : []]]"`
+                slots += ` :items="[[cell.data && cell.data.actions ? cell.data.actions.map(function(a){return {label:a.label||a.text||'',key:(cell.item.key+'')+'|'+(a.methodNameInCrud||a.actionId||a.id||a.key||(a.label||'')),disabled:!!a.disabled};}) : []]]"`
                 slots += `></oj-c-menu-button>`
                 slots += `</template>`
             } else if (gcol.dataType === 'action') {
@@ -109,7 +109,7 @@ export class MateuRedwoodTable extends LitElement {
                 slots += ` data-oj-binding-provider="preact"`
                 slots += ` label="···"`
                 slots += ` chroming="borderless"`
-                slots += ` :items="[[cell.data && cell.data.methodNameInCrud ? [{label:cell.data.label||cell.data.text||'Action',key:String(cell.item.key)+'|'+cell.data.methodNameInCrud,disabled:!!cell.data.disabled}] : []]]"`
+                slots += ` :items="[[cell.data && cell.data.methodNameInCrud ? [{label:cell.data.label||cell.data.text||'Action',key:(cell.item.key+'')+'|'+cell.data.methodNameInCrud,disabled:!!cell.data.disabled}] : []]]"`
                 slots += `></oj-c-menu-button>`
                 slots += `</template>`
             }
