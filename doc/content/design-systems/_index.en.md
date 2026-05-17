@@ -5,12 +5,6 @@ title: "Design Systems"
 description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
 weight: 40
 
-# don't create a separete form
-type: "docs"
-_build:
-  list: always
-  publishResources: true
-  render: always
 ---
 
 Mateu provides several frontends using different design systems, so you can choose he one which you like most / fits 
