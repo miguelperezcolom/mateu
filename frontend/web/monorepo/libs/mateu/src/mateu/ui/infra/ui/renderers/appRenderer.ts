@@ -3,13 +3,13 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 
-const filterMenu = (e: CustomEvent, container: MateuApp) => {
+export const filterMenu = (e: CustomEvent, container: MateuApp) => {
     if (container.filter != e.detail.value) {
         container.filter = e.detail.value
     }
 }
 
-const chooseRoute = (state: any, container: MateuApp, metadata: App) => {
+export const chooseRoute = (state: any, container: MateuApp, metadata: App) => {
     if (state && state._route != undefined) {
         return chooseConsumedRoute(container, metadata) + state._route
     }
@@ -18,25 +18,25 @@ const chooseRoute = (state: any, container: MateuApp, metadata: App) => {
     }
     return metadata.homeRoute
 }
-const chooseConsumedRoute = (container: MateuApp, metadata: App) => {
+export const chooseConsumedRoute = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
         return container.selectedConsumedRoute??metadata.route // la ruta consumida es la de la app
     }
     return metadata.homeConsumedRoute
 }
-const chooseBaseUrl = (container: MateuApp, metadata: App) => {
+export const chooseBaseUrl = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
         return container.selectedBaseUrl??container.baseUrl
     }
     return metadata.homeBaseUrl
 }
-const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
+export const chooseAppServerSideType = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
         return container.selectedServerSideType??metadata.serverSideType
     }
     return metadata.homeServerSideType
 }
-const chooseUriPrefix = (container: MateuApp, metadata: App) => {
+export const chooseUriPrefix = (container: MateuApp, metadata: App) => {
     if (container.selectedRoute) {
         return container.selectedUriPrefix
     }
