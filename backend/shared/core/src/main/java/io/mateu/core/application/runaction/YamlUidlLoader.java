@@ -118,6 +118,24 @@ public class YamlUidlLoader {
       visible = false)
   abstract static class PolymorphicMixin {}
 
+  public Component loadFromSpec(String specPath) {
+    var cl = Thread.currentThread().getContextClassLoader();
+    var resource = cl.getResourceAsStream(specPath);
+    if (resource == null) {
+      resource = YamlUidlLoader.class.getClassLoader().getResourceAsStream(specPath);
+    }
+    if (resource == null) {
+      log.warn("No YAML spec found at classpath:{}", specPath);
+      return null;
+    }
+    try (var is = resource) {
+      return mapper.readValue(is, Component.class);
+    } catch (Exception e) {
+      log.warn("Failed to parse YAML spec {}: {}", specPath, e.getMessage());
+      return null;
+    }
+  }
+
   public Mono<Component> load(RunActionCommand command) {
     var route = stripQueryParams(command.route());
     if (route.startsWith("/")) {

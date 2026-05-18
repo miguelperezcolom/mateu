@@ -98,6 +98,20 @@ class YamlUidlLoaderTest {
     assertThat(component).isInstanceOf(VerticalLayout.class);
   }
 
+  @Test
+  void loadFromSpecLoadsVerticalLayout() {
+    Component component = loader.loadFromSpec("specs/ui/demo/hello.yaml");
+
+    assertThat(component).isInstanceOf(VerticalLayout.class);
+  }
+
+  @Test
+  void loadFromSpecReturnsNullWhenNotFound() {
+    Component component = loader.loadFromSpec("specs/ui/nonexistent.yaml");
+
+    assertThat(component).isNull();
+  }
+
   private RunActionCommand command(String route) {
     return new RunActionCommand(null, null, route, null, null, null, null, null, null, null, null);
   }

@@ -12,6 +12,7 @@ import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.Com
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.application.runaction.YamlUidlLoader;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
@@ -29,15 +30,20 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ListingBackend;
 import io.mateu.uidl.interfaces.Page;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @Named
+@RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ReflectionObjectToComponentMapper {
+
+  private final YamlUidlLoader yamlUidlLoader;
 
   public Object mapToComponent(
       Object instance,
@@ -57,6 +63,41 @@ public class ReflectionObjectToComponentMapper {
           getData(httpRequest),
           UIFragmentActionDto.Replace,
           serverSideComponentDto.containerId());
+    }
+    if (!(instance instanceof ComponentTreeSupplier)
+        && instance.getClass().isAnnotationPresent(UISpec.class)) {
+      var uiSpec = instance.getClass().getAnnotation(UISpec.class);
+      var component = yamlUidlLoader.loadFromSpec(uiSpec.value());
+      if (component != null) {
+        return new UIFragmentDto(
+            initiatorComponentId,
+            new ServerSideComponentDto(
+                UUID.randomUUID().toString(),
+                instance.getClass().getName(),
+                consumedRoute,
+                List.of(
+                    mapComponentToDto(
+                        null,
+                        component,
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        initiatorComponentId,
+                        httpRequest)),
+                instance,
+                "",
+                "",
+                mapActions(instance, httpRequest),
+                mapTriggers(instance, httpRequest),
+                mapRules(instance),
+                mapValidations(instance, route),
+                null,
+                null),
+            instance,
+            getData(httpRequest, instance),
+            UIFragmentActionDto.Replace,
+            null);
+      }
     }
     if (isApp(instance.getClass(), route)) {
       return mapToAppComponent(
