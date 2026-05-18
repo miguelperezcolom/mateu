@@ -1,0 +1,1514 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://mateu.io/uidl/schema.json",
+  "title": "Mateu UIDL Schema",
+  "description": "JSON Schema for Mateu UI Definition Language (UIDL) components. Use the 'type' discriminator field to identify the concrete component type.",
+  "$defs": {
+
+    "AccordionLayoutVariant": { "type": "string", "enum": ["filled", "small", "reverse"] },
+    "BadgeColor": { "type": "string", "enum": ["success", "error", "contrast", "normal", "warning"] },
+    "BindingSource": { "type": "string", "enum": ["componentData", "appState"] },
+    "ButtonColor": { "type": "string", "enum": ["success", "error", "contrast", "normal"] },
+    "ButtonSize": { "type": "string", "enum": ["small", "normal", "large"] },
+    "ButtonStyle": { "type": "string", "enum": ["primary", "secondary", "tertiary", "tertiaryInline"] },
+    "ButtonVariant": { "type": "string", "enum": ["danger", "warning", "error"] },
+    "CardVariant": { "type": "string", "enum": ["outlined", "elevated", "horizontal", "stretchMedia", "coverMedia"] },
+    "ChartType": { "type": "string", "enum": ["bar", "line", "scatter", "polarArea", "bubble", "pie", "doughnut", "radar"] },
+    "ColumnAlignment": { "type": "string", "enum": ["start", "center", "end"] },
+    "CookieConsentPosition": { "type": "string", "enum": ["Top", "Bottom", "TopLeft", "TopRight", "BottomLeft", "BottomRight"] },
+    "Direction": { "type": "string", "enum": ["ascending", "descending"] },
+    "FieldDataType": {
+      "type": "string",
+      "enum": ["integer", "string", "number", "date", "time", "dateTime", "bool", "array", "file", "status", "money", "component", "menu", "range", "action", "actionGroup", "dateRange"]
+    },
+    "FieldStereotype": {
+      "type": "string",
+      "enum": ["regular", "radio", "checkbox", "textarea", "toggle", "combobox", "select", "email", "password", "richText", "listBox", "html", "markdown", "image", "icon", "link", "money", "grid", "color", "choice", "popover", "slider", "button", "stars"]
+    },
+    "FormPosition": { "type": "string", "enum": ["top", "right", "bottom", "left", "modalLeft", "modalRight", "modal"] },
+    "HorizontalAlignment": { "type": "string", "enum": ["START", "CENTER", "END", "STRETCH"] },
+    "HorizontalLayoutJustification": { "type": "string", "enum": ["START", "CENTER", "END", "BETWEEN", "AROUND", "EVENLY"] },
+    "NotificationPosition": {
+      "type": "string",
+      "enum": ["topStretch", "topStart", "topCenter", "topEnd", "middle", "bottomStart", "bottomCenter", "bottomEnd", "bottomStretch"]
+    },
+    "NotificationVariant": { "type": "string", "enum": ["success", "warning", "error", "primary", "contrast"] },
+    "Orientation": { "type": "string", "enum": ["horizontal", "vertical"] },
+    "RouteTarget": { "type": "string", "enum": ["Top", "Parent"] },
+    "RuleAction": {
+      "type": "string",
+      "enum": ["SetAppDataValue", "SetAppStateValue", "SetDataValue", "RunAction", "RunJS", "SetAttributeValue", "SetStateValue", "SetCssClass", "SetStyle"]
+    },
+    "RuleFieldAttribute": {
+      "type": "string",
+      "enum": ["required", "disabled", "hidden", "pattern", "minValue", "maxValue", "minLength", "maxLength", "css", "style", "theme", "errorMessage", "description", "none"]
+    },
+    "RuleResult": { "type": "string", "enum": ["Continue", "Stop"] },
+    "SpacingVariant": { "type": "string", "enum": ["xs", "s", "m", "l", "xl"] },
+    "SplitLayoutVariant": { "type": "string", "enum": ["small", "minimal"] },
+    "StatusType": { "type": "string", "enum": ["NONE", "INFO", "SUCCESS", "WARNING", "DANGER"] },
+    "TabLayoutVariant": { "type": "string", "enum": ["small", "minimal", "centered", "bordered", "equalWidth"] },
+    "TextContainer": { "type": "string", "enum": ["div", "p", "h1", "h2", "h3", "h4", "h5", "h6", "span"] },
+    "TextVariant": { "type": "string", "enum": ["b", "i"] },
+    "UICommandType": {
+      "type": "string",
+      "enum": ["CloseModal", "SetWindowTitle", "SetFavicon", "NavigateTo", "RunAction", "AddContentToHead", "AddContentToBody", "PushStateToHistory", "DispatchEvent"]
+    },
+    "VerticalAlignment": { "type": "string", "enum": ["START", "CENTER", "END", "BETWEEN", "AROUND", "EVENLY", "BASELINE"] },
+
+    "Component": {
+      "description": "Any UI component. Use the 'type' field to indicate the concrete component.",
+      "oneOf": [
+        { "$ref": "#/$defs/AccordionLayout" },
+        { "$ref": "#/$defs/AccordionPanel" },
+        { "$ref": "#/$defs/Anchor" },
+        { "$ref": "#/$defs/AppData" },
+        { "$ref": "#/$defs/AppState" },
+        { "$ref": "#/$defs/Avatar" },
+        { "$ref": "#/$defs/AvatarGroup" },
+        { "$ref": "#/$defs/Badge" },
+        { "$ref": "#/$defs/BoardLayout" },
+        { "$ref": "#/$defs/BoardLayoutItem" },
+        { "$ref": "#/$defs/BoardLayoutRow" },
+        { "$ref": "#/$defs/Bpmn" },
+        { "$ref": "#/$defs/Breadcrumbs" },
+        { "$ref": "#/$defs/Button" },
+        { "$ref": "#/$defs/Card" },
+        { "$ref": "#/$defs/CarouselLayout" },
+        { "$ref": "#/$defs/Chart" },
+        { "$ref": "#/$defs/Chat" },
+        { "$ref": "#/$defs/ConfirmDialog" },
+        { "$ref": "#/$defs/Container" },
+        { "$ref": "#/$defs/ContextMenu" },
+        { "$ref": "#/$defs/CookieConsent" },
+        { "$ref": "#/$defs/CustomField" },
+        { "$ref": "#/$defs/Data" },
+        { "$ref": "#/$defs/Details" },
+        { "$ref": "#/$defs/Dialog" },
+        { "$ref": "#/$defs/Directory" },
+        { "$ref": "#/$defs/Div" },
+        { "$ref": "#/$defs/Element" },
+        { "$ref": "#/$defs/FormEditor" },
+        { "$ref": "#/$defs/FormField" },
+        { "$ref": "#/$defs/FormItem" },
+        { "$ref": "#/$defs/FormLayout" },
+        { "$ref": "#/$defs/FormRow" },
+        { "$ref": "#/$defs/FormSection" },
+        { "$ref": "#/$defs/FormSubSection" },
+        { "$ref": "#/$defs/FullWidth" },
+        { "$ref": "#/$defs/FutureComponent" },
+        { "$ref": "#/$defs/Grid" },
+        { "$ref": "#/$defs/GridColumn" },
+        { "$ref": "#/$defs/GridGroupColumn" },
+        { "$ref": "#/$defs/HorizontalLayout" },
+        { "$ref": "#/$defs/Icon" },
+        { "$ref": "#/$defs/Image" },
+        { "$ref": "#/$defs/KPI" },
+        { "$ref": "#/$defs/Map" },
+        { "$ref": "#/$defs/Markdown" },
+        { "$ref": "#/$defs/MasterDetailLayout" },
+        { "$ref": "#/$defs/MessageInput" },
+        { "$ref": "#/$defs/MessageList" },
+        { "$ref": "#/$defs/MicroFrontend" },
+        { "$ref": "#/$defs/Notification" },
+        { "$ref": "#/$defs/Popover" },
+        { "$ref": "#/$defs/ProgressBar" },
+        { "$ref": "#/$defs/Scroller" },
+        { "$ref": "#/$defs/SplitLayout" },
+        { "$ref": "#/$defs/State" },
+        { "$ref": "#/$defs/Tab" },
+        { "$ref": "#/$defs/TabLayout" },
+        { "$ref": "#/$defs/Text" },
+        { "$ref": "#/$defs/Tooltip" },
+        { "$ref": "#/$defs/VerticalLayout" },
+        { "$ref": "#/$defs/VirtualList" },
+        { "$ref": "#/$defs/Workflow" },
+        { "$ref": "#/$defs/WorkflowElk" }
+      ]
+    },
+
+    "Actionable": {
+      "description": "A navigable/clickable menu item or link.",
+      "oneOf": [
+        { "$ref": "#/$defs/ContentLink" },
+        { "$ref": "#/$defs/FieldLink" },
+        { "$ref": "#/$defs/Menu" },
+        { "$ref": "#/$defs/MenuSeparator" },
+        { "$ref": "#/$defs/MethodLink" },
+        { "$ref": "#/$defs/RemoteMenu" },
+        { "$ref": "#/$defs/RouteLink" }
+      ]
+    },
+
+    "GridContent": {
+      "description": "A column definition inside a Grid.",
+      "oneOf": [
+        { "$ref": "#/$defs/GridColumn" },
+        { "$ref": "#/$defs/GridGroupColumn" }
+      ]
+    },
+
+    "FieldValidation": {
+      "description": "A field-level validation rule.",
+      "oneOf": [
+        { "$ref": "#/$defs/JsValidation" },
+        { "$ref": "#/$defs/MinValidation" },
+        { "$ref": "#/$defs/MaxValidation" },
+        { "$ref": "#/$defs/PatternValidation" }
+      ]
+    },
+
+    "UserTrigger": {
+      "description": "A user-interactive trigger (e.g. button).",
+      "oneOf": [
+        { "$ref": "#/$defs/Button" }
+      ]
+    },
+
+    "Amount": {
+      "type": "object",
+      "properties": {
+        "currency": { "type": "string", "description": "ISO 4217 currency code" },
+        "value": { "type": "number" },
+        "locale": { "type": "string", "default": "de-DE" }
+      },
+      "required": ["currency", "value"]
+    },
+
+    "Binding": {
+      "type": "object",
+      "properties": {
+        "source": { "$ref": "#/$defs/BindingSource" },
+        "propertyId": { "type": "string" }
+      },
+      "required": ["propertyId"]
+    },
+
+    "Breadcrumb": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "link": { "type": "string" }
+      },
+      "required": ["text", "link"]
+    },
+
+    "ChartAxisScale": {
+      "type": "object",
+      "properties": {
+        "beginAtZero": { "type": "boolean" }
+      }
+    },
+
+    "ChartData": {
+      "type": "object",
+      "properties": {
+        "labels": { "type": "array", "items": { "type": "string" } },
+        "datasets": { "type": "array", "items": { "$ref": "#/$defs/ChartDataset" } }
+      }
+    },
+
+    "ChartDataset": {
+      "type": "object",
+      "properties": {
+        "label": { "type": "string" },
+        "data": { "type": "array", "items": { "type": "number" } }
+      }
+    },
+
+    "ChartOptions": {
+      "type": "object",
+      "properties": {
+        "maintainAspectRatio": { "type": "boolean" },
+        "scales": { "$ref": "#/$defs/ChartScales" }
+      }
+    },
+
+    "ChartScales": {
+      "type": "object",
+      "properties": {
+        "y": { "$ref": "#/$defs/ChartAxisScale" },
+        "z": { "$ref": "#/$defs/ChartAxisScale" }
+      }
+    },
+
+    "ClientSideEvent": {
+      "type": "object",
+      "properties": {
+        "eventName": { "type": "string" },
+        "details": { "type": "object", "additionalProperties": true }
+      },
+      "required": ["eventName", "details"]
+    },
+
+    "ColumnAction": {
+      "type": "object",
+      "properties": {
+        "methodNameInCrud": { "type": "string" },
+        "label": { "type": "string" },
+        "icon": { "type": "string" },
+        "disabled": { "type": "boolean" }
+      },
+      "required": ["methodNameInCrud", "label"]
+    },
+
+    "ColumnActionGroup": {
+      "type": "object",
+      "properties": {
+        "actions": { "type": "array", "items": { "$ref": "#/$defs/ColumnAction" } }
+      }
+    },
+
+    "DateRange": {
+      "type": "object",
+      "properties": {
+        "from": { "type": "string", "format": "date" },
+        "to": { "type": "string", "format": "date" }
+      }
+    },
+
+    "Destination": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "parameters": { "type": "object", "additionalProperties": true }
+      },
+      "required": ["path"]
+    },
+
+    "DispatchEventData": {
+      "type": "object",
+      "properties": {
+        "eventName": { "type": "string" },
+        "payload": {}
+      }
+    },
+
+    "File": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" }
+      }
+    },
+
+    "Message": {
+      "type": "object",
+      "properties": {
+        "variant": { "$ref": "#/$defs/NotificationVariant" },
+        "position": { "$ref": "#/$defs/NotificationPosition" },
+        "title": { "type": "string" },
+        "text": { "type": "string" },
+        "duration": { "type": "integer", "description": "Duration in milliseconds" }
+      }
+    },
+
+    "NavigationRequestedPayload": {
+      "type": "object",
+      "properties": {
+        "route": { "type": "string" },
+        "consumedRoute": { "type": "string" },
+        "actionId": { "type": "string" },
+        "baseUrl": { "type": "string" },
+        "serverSideType": { "type": "string" },
+        "uriPrefix": { "type": "string" }
+      }
+    },
+
+    "Option": {
+      "type": "object",
+      "properties": {
+        "value": {},
+        "label": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" },
+        "imageStyle": { "type": "string" }
+      },
+      "required": ["value"]
+    },
+
+    "Page": {
+      "type": "object",
+      "properties": {
+        "searchSignature": { "type": "string" },
+        "pageSize": { "type": "integer" },
+        "pageNumber": { "type": "integer" },
+        "totalElements": { "type": "integer" },
+        "content": { "type": "array", "items": {} }
+      }
+    },
+
+    "Pageable": {
+      "type": "object",
+      "properties": {
+        "page": { "type": "integer" },
+        "size": { "type": "integer" },
+        "sort": { "type": "array", "items": { "$ref": "#/$defs/Sort" } }
+      }
+    },
+
+    "Range": {
+      "type": "object",
+      "properties": {
+        "from": { "type": "integer" },
+        "to": { "type": "integer" }
+      }
+    },
+
+    "RemoteCoordinates": {
+      "type": "object",
+      "properties": {
+        "baseUrl": { "type": "string" },
+        "route": { "type": "string" },
+        "consumedRoute": { "type": "string" },
+        "action": { "type": "string" },
+        "params": { "type": "object", "additionalProperties": true }
+      }
+    },
+
+    "Rule": {
+      "type": "object",
+      "properties": {
+        "filter": { "type": "string" },
+        "action": { "$ref": "#/$defs/RuleAction" },
+        "fieldName": { "type": "string" },
+        "fieldAttribute": { "$ref": "#/$defs/RuleFieldAttribute" },
+        "value": {},
+        "expression": { "type": "string" },
+        "actionId": { "type": "string" },
+        "result": { "$ref": "#/$defs/RuleResult" }
+      }
+    },
+
+    "Sort": {
+      "type": "object",
+      "properties": {
+        "field": { "type": "string" },
+        "direction": { "$ref": "#/$defs/Direction" }
+      }
+    },
+
+    "Status": {
+      "type": "object",
+      "properties": {
+        "type": { "$ref": "#/$defs/StatusType" },
+        "message": { "type": "string" },
+        "value": { "type": "string" }
+      }
+    },
+
+    "UICommand": {
+      "type": "object",
+      "properties": {
+        "type": { "$ref": "#/$defs/UICommandType" },
+        "data": {}
+      }
+    },
+
+    "Validation": {
+      "type": "object",
+      "properties": {
+        "condition": { "type": "string" },
+        "fieldId": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+
+    "JsValidation": {
+      "type": "object",
+      "required": ["type", "js", "message"],
+      "properties": {
+        "type": { "type": "string", "const": "JsValidation" },
+        "js": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+
+    "MinValidation": {
+      "type": "object",
+      "required": ["type", "min", "message"],
+      "properties": {
+        "type": { "type": "string", "const": "MinValidation" },
+        "min": { "type": "integer" },
+        "message": { "type": "string" }
+      }
+    },
+
+    "MaxValidation": {
+      "type": "object",
+      "required": ["type", "max", "message"],
+      "properties": {
+        "type": { "type": "string", "const": "MaxValidation" },
+        "max": { "type": "integer" },
+        "message": { "type": "string" }
+      }
+    },
+
+    "PatternValidation": {
+      "type": "object",
+      "required": ["type", "pattern", "message"],
+      "properties": {
+        "type": { "type": "string", "const": "PatternValidation" },
+        "pattern": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+
+    "ContentLink": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "ContentLink" },
+        "path": { "type": "string" },
+        "label": { "type": "string" },
+        "selected": { "type": "boolean" },
+        "component": { "$ref": "#/$defs/Component" },
+        "className": { "type": "string" },
+        "disabled": { "type": "boolean" },
+        "disabledOnClick": { "type": "boolean" },
+        "itemData": {}
+      }
+    },
+
+    "FieldLink": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FieldLink" },
+        "path": { "type": "string" },
+        "label": { "type": "string" },
+        "serverSideType": { "type": "string" },
+        "fieldName": { "type": "string" },
+        "selected": { "type": "boolean" },
+        "component": { "$ref": "#/$defs/Component" },
+        "className": { "type": "string" },
+        "disabled": { "type": "boolean" },
+        "disabledOnClick": { "type": "boolean" },
+        "itemData": {},
+        "description": { "type": "string" }
+      }
+    },
+
+    "Menu": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Menu" },
+        "path": { "type": "string" },
+        "label": { "type": "string" },
+        "submenu": { "type": "array", "items": { "$ref": "#/$defs/Actionable" } },
+        "selected": { "type": "boolean" },
+        "component": { "$ref": "#/$defs/Component" },
+        "className": { "type": "string" },
+        "disabled": { "type": "boolean" },
+        "disabledOnClick": { "type": "boolean" },
+        "itemData": {},
+        "description": { "type": "string" }
+      }
+    },
+
+    "MenuSeparator": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "MenuSeparator" }
+      },
+      "additionalProperties": false
+    },
+
+    "MethodLink": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "MethodLink" },
+        "path": { "type": "string" },
+        "label": { "type": "string" },
+        "serverSideType": { "type": "string" },
+        "methodName": { "type": "string" },
+        "selected": { "type": "boolean" },
+        "component": { "$ref": "#/$defs/Component" },
+        "className": { "type": "string" },
+        "disabled": { "type": "boolean" },
+        "disabledOnClick": { "type": "boolean" },
+        "itemData": {}
+      }
+    },
+
+    "RemoteMenu": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "RemoteMenu" },
+        "baseUrl": { "type": "string" },
+        "route": { "type": "string" },
+        "consumedRoute": { "type": "string" },
+        "serverSideType": { "type": "string" },
+        "params": { "type": "object", "additionalProperties": true },
+        "explode": { "type": "boolean" },
+        "label": { "type": "string" },
+        "path": { "type": "string" }
+      }
+    },
+
+    "RouteLink": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "RouteLink" },
+        "path": { "type": "string" },
+        "route": { "type": "string" },
+        "label": { "type": "string" },
+        "target": { "$ref": "#/$defs/RouteTarget" },
+        "selected": { "type": "boolean" },
+        "component": { "$ref": "#/$defs/Component" },
+        "className": { "type": "string" },
+        "disabled": { "type": "boolean" },
+        "disabledOnClick": { "type": "boolean" },
+        "itemData": {},
+        "serverSideType": { "type": "string" },
+        "consumedRoute": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+
+    "GridColumn": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "GridColumn" },
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "dataType": { "$ref": "#/$defs/FieldDataType" },
+        "stereotype": { "$ref": "#/$defs/FieldStereotype" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "align": { "$ref": "#/$defs/ColumnAlignment" },
+        "sortable": { "type": "boolean" },
+        "sortingProperty": { "type": "string" },
+        "filterable": { "type": "boolean" },
+        "frozen": { "type": "boolean" },
+        "frozenToEnd": { "type": "boolean" },
+        "autoWidth": { "type": "boolean" },
+        "flexGrow": { "type": "string" },
+        "resizable": { "type": "boolean" },
+        "width": { "type": "string" },
+        "tooltipPath": { "type": "string" },
+        "actionId": { "type": "string" },
+        "text": { "type": "string" }
+      }
+    },
+
+    "GridGroupColumn": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "GridGroupColumn" },
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "columns": { "type": "array", "items": { "$ref": "#/$defs/GridColumn" } }
+      }
+    },
+
+    "AccordionLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "AccordionLayout" },
+        "id": { "type": "string" },
+        "panels": { "type": "array", "items": { "$ref": "#/$defs/AccordionPanel" } },
+        "variant": { "$ref": "#/$defs/AccordionLayoutVariant" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "AccordionPanel": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "AccordionPanel" },
+        "label": { "type": "string" },
+        "content": { "$ref": "#/$defs/Component" },
+        "active": { "type": "boolean" },
+        "disabled": { "type": "boolean" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Anchor": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Anchor" },
+        "text": { "type": "string" },
+        "url": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "AppData": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "AppData" },
+        "data": {},
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "AppState": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "AppState" },
+        "state": {},
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Avatar": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Avatar" },
+        "name": { "type": "string" },
+        "abbreviation": { "type": "string" },
+        "image": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "AvatarGroup": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "AvatarGroup" },
+        "avatars": { "type": "array", "items": { "$ref": "#/$defs/Avatar" } },
+        "maxItemsVisible": { "type": "integer" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Badge": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Badge" },
+        "text": { "type": "string" },
+        "iconOnLeft": { "type": "string" },
+        "iconOnRight": { "type": "string" },
+        "color": { "$ref": "#/$defs/BadgeColor" },
+        "primary": { "type": "boolean" },
+        "small": { "type": "boolean" },
+        "pill": { "type": "boolean" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "BoardLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "BoardLayout" },
+        "id": { "type": "string" },
+        "rows": { "type": "array", "items": { "$ref": "#/$defs/BoardLayoutRow" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "BoardLayoutItem": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "BoardLayoutItem" },
+        "content": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "boardCols": { "type": "integer" }
+      }
+    },
+
+    "BoardLayoutRow": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "BoardLayoutRow" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Bpmn": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Bpmn" },
+        "xml": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Breadcrumbs": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Breadcrumbs" },
+        "currentItemText": { "type": "string" },
+        "breadcrumbs": { "type": "array", "items": { "$ref": "#/$defs/Breadcrumb" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Button": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Button" },
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "iconOnLeft": { "type": "string" },
+        "iconOnRight": { "type": "string" },
+        "image": { "type": "string" },
+        "color": { "$ref": "#/$defs/ButtonColor" },
+        "variant": { "$ref": "#/$defs/ButtonVariant" },
+        "buttonStyle": { "$ref": "#/$defs/ButtonStyle" },
+        "size": { "$ref": "#/$defs/ButtonSize" },
+        "autofocus": { "type": "boolean" },
+        "disabled": { "type": "boolean" },
+        "actionId": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "parameters": {}
+      }
+    },
+
+    "Card": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Card" },
+        "id": { "type": "string" },
+        "media": { "$ref": "#/$defs/Component" },
+        "headerPrefix": { "$ref": "#/$defs/Component" },
+        "header": { "$ref": "#/$defs/Component" },
+        "title": { "$ref": "#/$defs/Component" },
+        "subtitle": { "$ref": "#/$defs/Component" },
+        "headerSuffix": { "$ref": "#/$defs/Component" },
+        "content": { "$ref": "#/$defs/Component" },
+        "footer": { "$ref": "#/$defs/Component" },
+        "variants": { "type": "array", "items": { "$ref": "#/$defs/CardVariant" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "CarouselLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "CarouselLayout" },
+        "id": { "type": "string" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "alt": { "type": "boolean", "description": "Flips navigation position" },
+        "animating": { "type": "boolean" },
+        "auto": { "type": "boolean", "description": "Change slides automatically" },
+        "direction": { "$ref": "#/$defs/Orientation" },
+        "disabled": { "type": "boolean" },
+        "disableSwipe": { "type": "boolean" },
+        "disableKeys": { "type": "boolean" },
+        "duration": { "type": "integer", "description": "Autoplay interval in milliseconds" },
+        "dots": { "type": "boolean" },
+        "end": { "type": "boolean" },
+        "loop": { "type": "boolean" },
+        "nav": { "type": "boolean" },
+        "selected": { "type": "integer" },
+        "total": { "type": "integer" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Chart": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Chart" },
+        "chartType": { "$ref": "#/$defs/ChartType" },
+        "chartData": { "$ref": "#/$defs/ChartData" },
+        "chartOptions": { "$ref": "#/$defs/ChartOptions" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Chat": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Chat" },
+        "sseUrl": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "ConfirmDialog": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "ConfirmDialog" },
+        "header": { "type": "string" },
+        "content": { "$ref": "#/$defs/Component" },
+        "canCancel": { "type": "boolean" },
+        "canReject": { "type": "boolean" },
+        "rejectText": { "type": "string" },
+        "confirmText": { "type": "string" },
+        "openedCondition": { "type": "string" },
+        "confirmActionId": { "type": "string" },
+        "rejectActionId": { "type": "string" },
+        "cancelActionId": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Container": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Container" },
+        "content": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "ContextMenu": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "ContextMenu" },
+        "menu": { "type": "array", "items": { "$ref": "#/$defs/Actionable" } },
+        "wrapped": { "$ref": "#/$defs/Component" },
+        "activateOnLeftClick": { "type": "boolean" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "CookieConsent": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "CookieConsent" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "position": { "$ref": "#/$defs/CookieConsentPosition" },
+        "cookieName": { "type": "string" },
+        "message": { "type": "string" },
+        "theme": { "type": "string" },
+        "learnMore": { "type": "string" },
+        "learnMoreLink": { "type": "string" },
+        "dismiss": { "type": "string" }
+      }
+    },
+
+    "CustomField": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "CustomField" },
+        "label": { "type": "string" },
+        "content": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "colspan": { "type": "integer" }
+      }
+    },
+
+    "Data": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Data" },
+        "data": {},
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "newState": {}
+      }
+    },
+
+    "Details": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Details" },
+        "summary": { "$ref": "#/$defs/Component" },
+        "content": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "opened": { "type": "boolean" }
+      }
+    },
+
+    "Dialog": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Dialog" },
+        "headerTitle": { "type": "string" },
+        "header": { "$ref": "#/$defs/Component" },
+        "content": { "$ref": "#/$defs/Component" },
+        "footer": { "$ref": "#/$defs/Component" },
+        "noPadding": { "type": "boolean" },
+        "modeless": { "type": "boolean" },
+        "top": { "type": "string" },
+        "left": { "type": "string" },
+        "draggable": { "type": "boolean" },
+        "width": { "type": "string" },
+        "height": { "type": "string" },
+        "resizable": { "type": "boolean" },
+        "closeButtonOnHeader": { "type": "boolean" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Directory": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Directory" },
+        "menu": { "type": "array", "items": { "$ref": "#/$defs/Actionable" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Div": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Div" },
+        "content": { "type": "string" },
+        "children": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Element": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Element" },
+        "name": { "type": "string" },
+        "attributes": { "type": "object", "additionalProperties": { "type": "string" } },
+        "on": { "type": "object", "additionalProperties": { "type": "string" } },
+        "content": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "FormEditor": {
+      "type": "object",
+      "required": ["type"],
+      "description": "A form-definition editor component. 'value' is the JSON FormDefinition string.",
+      "properties": {
+        "type": { "type": "string", "const": "FormEditor" },
+        "value": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "FormField": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FormField" },
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "dataType": { "$ref": "#/$defs/FieldDataType" },
+        "stereotype": { "$ref": "#/$defs/FieldStereotype" },
+        "readOnly": { "type": "boolean" },
+        "required": { "type": "boolean" },
+        "autofocus": { "type": "boolean" },
+        "placeholder": { "type": "string" },
+        "description": { "type": "string" },
+        "options": { "type": "array", "items": { "$ref": "#/$defs/Option" } },
+        "remoteCoordinates": { "$ref": "#/$defs/RemoteCoordinates" },
+        "initialValue": {},
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "columns": { "type": "array", "items": { "$ref": "#/$defs/GridContent" } },
+        "onItemSelectionActionId": { "type": "string" },
+        "colspan": { "type": "integer" },
+        "formPosition": { "$ref": "#/$defs/FormPosition" },
+        "formStyle": { "type": "string" },
+        "formTheme": { "type": "string" },
+        "formColumns": { "type": "integer" },
+        "sliderMin": { "type": "integer" },
+        "sliderMax": { "type": "integer" },
+        "stepButtonsVisible": { "type": "boolean" },
+        "step": { "type": "number" },
+        "itemIdPath": { "type": "string" },
+        "attributes": { "type": "object", "additionalProperties": { "type": "string" } },
+        "detailPath": { "type": "string" },
+        "useButtonForDetail": { "type": "boolean" },
+        "minHeightWhenDetailVisible": { "type": "string" },
+        "optionsColumns": { "type": "integer" }
+      }
+    },
+
+    "FormItem": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FormItem" },
+        "id": { "type": "string" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "FormLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FormLayout" },
+        "id": { "type": "string" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "autoResponsive": { "type": "boolean" },
+        "labelsAside": { "type": "boolean" },
+        "maxColumns": { "type": "integer" },
+        "columnWidth": { "type": "string" },
+        "expandColumns": { "type": "boolean" },
+        "expandFields": { "type": "boolean" },
+        "responsiveSteps": {},
+        "itemLabelWidth": { "type": "string" },
+        "columnSpacing": { "type": "string" },
+        "itemRowSpacing": { "type": "string" },
+        "itemLabelSpacing": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "FormRow": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FormRow" },
+        "id": { "type": "string" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "FormSection": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FormSection" },
+        "title": { "type": "string" },
+        "toolbar": { "type": "array", "items": { "$ref": "#/$defs/UserTrigger" } },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "FormSubSection": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FormSubSection" },
+        "title": { "type": "string" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "FullWidth": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FullWidth" },
+        "content": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "FutureComponent": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "FutureComponent" },
+        "instance": {}
+      }
+    },
+
+    "Grid": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Grid" },
+        "id": { "type": "string" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/GridContent" } },
+        "page": { "$ref": "#/$defs/Page" },
+        "tree": { "type": "boolean" },
+        "size": { "type": "integer" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "wrapCellContent": { "type": "boolean" },
+        "compact": { "type": "boolean" },
+        "noBorder": { "type": "boolean" },
+        "noRowBorder": { "type": "boolean" },
+        "columnBorders": { "type": "boolean" },
+        "rowStripes": { "type": "boolean" },
+        "vaadinGridCellBackground": { "type": "string" },
+        "vaadinGridCellPadding": { "type": "string" }
+      }
+    },
+
+    "HorizontalLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "HorizontalLayout" },
+        "id": { "type": "string" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "spacing": { "type": "boolean" },
+        "padding": { "type": "boolean" },
+        "margin": { "type": "boolean" },
+        "spacingVariant": { "$ref": "#/$defs/SpacingVariant" },
+        "verticalAlignment": { "$ref": "#/$defs/VerticalAlignment" },
+        "justification": { "$ref": "#/$defs/HorizontalLayoutJustification" },
+        "wrap": { "type": "boolean" },
+        "flexGrows": { "type": "array", "items": { "type": "integer" } },
+        "fullWidth": { "type": "boolean" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Icon": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Icon" },
+        "icon": { "type": "string", "description": "Icon key/identifier (e.g. 'vaadin:home')" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Image": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Image" },
+        "src": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "KPI": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "KPI" },
+        "title": { "type": "string" },
+        "text": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Map": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Map" },
+        "position": { "type": "string" },
+        "zoom": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Markdown": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Markdown" },
+        "markdown": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "MasterDetailLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "MasterDetailLayout" },
+        "id": { "type": "string" },
+        "master": { "$ref": "#/$defs/Component" },
+        "detail": { "$ref": "#/$defs/Component" },
+        "orientation": { "$ref": "#/$defs/Orientation" },
+        "variant": { "$ref": "#/$defs/SplitLayoutVariant" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "MessageInput": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "MessageInput" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "MessageList": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "MessageList" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "MicroFrontend": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "MicroFrontend" },
+        "baseUrl": { "type": "string" },
+        "route": { "type": "string" },
+        "consumedRoute": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "serverSideType": { "type": "string" },
+        "appState": {},
+        "actionId": { "type": "string" }
+      }
+    },
+
+    "Notification": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Notification" },
+        "title": { "type": "string" },
+        "text": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Popover": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Popover" },
+        "content": { "$ref": "#/$defs/Component" },
+        "wrapped": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "ProgressBar": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "ProgressBar" },
+        "indeterminate": { "type": "boolean" },
+        "min": { "type": "integer" },
+        "max": { "type": "integer" },
+        "value": { "type": "number" },
+        "text": { "type": "string" },
+        "theme": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Scroller": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Scroller" },
+        "content": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "SplitLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "SplitLayout" },
+        "id": { "type": "string" },
+        "master": { "$ref": "#/$defs/Component" },
+        "detail": { "$ref": "#/$defs/Component" },
+        "orientation": { "$ref": "#/$defs/Orientation" },
+        "variant": { "$ref": "#/$defs/SplitLayoutVariant" },
+        "fullWidth": { "type": "boolean" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "State": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "State" },
+        "state": {},
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Tab": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Tab" },
+        "label": { "type": "string" },
+        "content": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "TabLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "TabLayout" },
+        "id": { "type": "string" },
+        "tabs": { "type": "array", "items": { "$ref": "#/$defs/Tab" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "orientation": { "$ref": "#/$defs/Orientation" },
+        "variant": { "$ref": "#/$defs/TabLayoutVariant" }
+      }
+    },
+
+    "Text": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Text" },
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "container": { "$ref": "#/$defs/TextContainer" },
+        "variants": { "type": "array", "items": { "$ref": "#/$defs/TextVariant" } },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" },
+        "attributes": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+
+    "Tooltip": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "Tooltip" },
+        "text": { "type": "string" },
+        "wrapped": { "$ref": "#/$defs/Component" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "VerticalLayout": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "VerticalLayout" },
+        "id": { "type": "string" },
+        "content": { "type": "array", "items": { "$ref": "#/$defs/Component" } },
+        "spacing": { "type": "boolean" },
+        "padding": { "type": "boolean" },
+        "margin": { "type": "boolean" },
+        "spacingVariant": { "$ref": "#/$defs/SpacingVariant" },
+        "horizontalAlignment": { "$ref": "#/$defs/HorizontalAlignment" },
+        "justification": { "$ref": "#/$defs/HorizontalLayoutJustification" },
+        "wrap": { "type": "boolean" },
+        "flexGrows": { "type": "array", "items": { "type": "integer" } },
+        "fullWidth": { "type": "boolean" },
+        "hiddenOverflow": { "type": "boolean" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "VirtualList": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "const": "VirtualList" },
+        "page": { "$ref": "#/$defs/Page" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "Workflow": {
+      "type": "object",
+      "required": ["type"],
+      "description": "A workflow-definition editor component. 'value' is the JSON WorkflowDefinition string.",
+      "properties": {
+        "type": { "type": "string", "const": "Workflow" },
+        "value": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    },
+
+    "WorkflowElk": {
+      "type": "object",
+      "required": ["type"],
+      "description": "A workflow-definition editor using ELK for graph layout. 'value' is the JSON WorkflowDefinition string.",
+      "properties": {
+        "type": { "type": "string", "const": "WorkflowElk" },
+        "value": { "type": "string" },
+        "style": { "type": "string" },
+        "cssClasses": { "type": "string" }
+      }
+    }
+  },
+
+  "oneOf": [
+    { "$ref": "#/$defs/Component" }
+  ]
+}

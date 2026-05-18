@@ -34,6 +34,7 @@ public class RunActionUseCase {
   private final CrudNavigationAdjuster crudNavigationAdjuster;
   private final RouteInstanceCreator routeInstanceCreator;
   private final AppMenuResolver appMenuResolver;
+  private final YamlUidlLoader yamlUidlLoader;
 
   // ── Public static helpers (used by other classes in the framework) ────────
 
@@ -179,7 +180,10 @@ public class RunActionUseCase {
       return instantiateWithKnownType(command);
     }
 
-    return routeInstanceCreator.findRouteResolver(command);
+    RunActionCommand finalCommand = command;
+    return routeInstanceCreator
+        .findRouteResolver(command)
+        .switchIfEmpty((Mono) Mono.defer(() -> yamlUidlLoader.load(finalCommand)));
   }
 
   /**

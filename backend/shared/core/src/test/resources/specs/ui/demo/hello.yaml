@@ -1,0 +1,36 @@
+type: VerticalLayout
+spacing: true
+padding: true
+content:
+  - type: Text
+    text: "Hello from YAML!"
+    container: h1
+  - type: Text
+    text: "This page was defined in a YAML file, without any Java class."
+  - type: HorizontalLayout
+    spacing: true
+    content:
+      - type: Button
+        label: "Save"
+        actionId: save
+        buttonStyle: primary
+      - type: Button
+        label: "Cancel"
+        actionId: cancel
+        buttonStyle: secondary
+  - type: FormLayout
+    content:
+      - type: FormField
+        id: name
+        label: "Name"
+        dataType: string
+        required: true
+      - type: FormField
+        id: email
+        label: "Email"
+        dataType: string
+        stereotype: email
+      - type: FormField
+        id: birthDate
+        label: "Birth date"
+        dataType: date
