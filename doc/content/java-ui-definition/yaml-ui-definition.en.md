@@ -143,14 +143,38 @@ IntelliJ will now provide autocompletion and validation for all YAML files under
 
 ---
 
+## Hybrid: YAML layout + Java logic with `@UISpec`
+
+A pure YAML file has no Java class, so it cannot run server-side logic. A pure Java `ComponentTreeSupplier` has no YAML file, so the layout is hard-coded.
+
+`@UISpec` is the middle ground: a **Java ViewModel class** whose component tree is loaded from a YAML file. The Java class provides state (fields), actions (methods), rules, and validations; the YAML file defines the layout.
+
+```java
+@Route("customer-form")
+@UISpec("specs/ui/customer-form.yaml")
+public class CustomerFormViewModel {
+
+    public String name;
+    public String email;
+
+    @Button
+    public void save() { ... }
+}
+```
+
+The YAML file at `src/main/resources/specs/ui/customer-form.yaml` defines the component tree rendered for this class. Mateu combines the two: layout from YAML, behaviour from Java.
+
+See [`@UISpec`](../annotations/uispec/) for the full reference.
+
 ## When to use YAML vs Java
 
 | Situation | Recommendation |
 |---|---|
-| Static informational page (about, help, landing) | YAML |
-| Page with server-side logic, computed fields, actions | Java class |
-| Prototype or low-code scenario | YAML |
-| Page that needs dependency injection or DB access | Java class |
-| Designer-managed content | YAML |
+| Static informational page (about, help, landing) | Pure YAML file |
+| Page with server-side logic, computed fields, actions | `@UISpec` or `ComponentTreeSupplier` |
+| Prototype or low-code scenario | Pure YAML file |
+| Page that needs dependency injection or DB access | `@UISpec` or Java class |
+| Designer-managed layout, developer-managed logic | `@UISpec` |
+| Fully dynamic / programmatic layout | `ComponentTreeSupplier` |
 
 YAML pages and Java pages can coexist freely in the same application.

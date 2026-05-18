@@ -15,6 +15,7 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 | [`@Route`](route/) | Class | Maps a class to a URL path |
 | [`@HomeRoute`](route/) | — | Declares the default home path |
 | [`@BaseRoute`](route/) | — | Sets a base path prefix |
+| [`@UISpec`](uispec/) | Class | Uses a YAML file as the component tree instead of `ComponentTreeSupplier` |
 
 ## App structure
 
