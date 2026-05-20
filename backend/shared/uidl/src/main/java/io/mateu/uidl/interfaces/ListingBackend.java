@@ -22,7 +22,7 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 
   @Override
   default List<String> supportedActions() {
-    return List.of("search", "action-on-row-*");
+    return List.of("search", "action-on-row-*", "action-on-view-*");
   }
 
   @Override

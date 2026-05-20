@@ -30,17 +30,17 @@ public abstract class AutoCrudOrchestrator<T extends Identifiable>
   }
 
   public Class viewClass() {
-    return SimpleView.class;
+    return entityClass();
   }
 
   @Override
   public Class editorClass() {
-    return SimpleView.class;
+    return entityClass();
   }
 
   @Override
   public Class creationFormClass() {
-    return SimpleView.class;
+    return entityClass();
   }
 
   @Override

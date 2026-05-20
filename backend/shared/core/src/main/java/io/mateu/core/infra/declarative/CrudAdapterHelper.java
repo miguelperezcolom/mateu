@@ -6,7 +6,6 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.uidl.annotations.PrimaryKey;
-import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
@@ -15,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 
 public class CrudAdapterHelper {
 
@@ -26,20 +26,23 @@ public class CrudAdapterHelper {
       }
     }
     reduce("", map, viewClass);
-    return MateuBeanProvider.getBean(MateuInstanceFactory.class)
-        .newInstance(viewClass, map, httpRequest);
+    return getInstance(map, viewClass, httpRequest);
   }
 
-  public static <T> T toEntity(HttpRequest httpRequest, Class<?> viewClass, Class<T> entityClass) {
-    Map<String, Object> map = new HashMap<>(httpRequest.runActionRq().componentState());
-    if (httpRequest.runActionRq().parameters() != null) {
-      if (httpRequest.runActionRq().parameters().containsKey("initiatorState")) {
-        map = (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
-      }
+  @SneakyThrows
+  private static <T> T getInstance(
+      Map<String, Object> data, Class<T> type, HttpRequest httpRequest) {
+    T value = null;
+    try {
+      value = MateuInstanceFactory.newInstance(type, data, httpRequest);
+    } catch (Exception e) {
     }
-    reduce("", map, viewClass);
-    return MateuBeanProvider.getBean(MateuInstanceFactory.class)
-        .newInstance(entityClass, map, httpRequest);
+    if (value == null) {
+      var constructor = type.getDeclaredConstructor();
+      if (!Modifier.isPublic(constructor.getModifiers())) constructor.setAccessible(true);
+      return constructor.newInstance();
+    }
+    return value;
   }
 
   public static void reduce(String prefix, Map<String, Object> map, Class<?> type) {

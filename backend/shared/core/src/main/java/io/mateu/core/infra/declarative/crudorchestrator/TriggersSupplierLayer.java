@@ -1,5 +1,8 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+
+import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.OnEnterTrigger;
 import io.mateu.uidl.fluent.OnErrorTrigger;
@@ -28,22 +31,23 @@ public abstract class TriggersSupplierLayer<
   @Override
   public List<Trigger> triggers(HttpRequest httpRequest) {
     var triggers = new ArrayList<Trigger>();
-    if (!isViewing(httpRequest)) {
-      triggers.add(new OnLoadTrigger("search"));
+    if (httpRequest.getAttribute("mediator") != null) {
+      triggers.add(new OnSuccessTrigger("search", "create", ""));
+      triggers.add(new OnSuccessTrigger("search", "delete", ""));
+      triggers.add(new OnSuccessTrigger("search", "save", ""));
+      triggers.add(new OnSuccessTrigger("search", "cancel-view", ""));
+      triggers.add(new OnSuccessTrigger("search", "cancel-create", ""));
     }
-    /*
-    triggers.add(new OnSuccessTrigger("search", "create", ""));
-    triggers.add(new OnSuccessTrigger("search", "delete", ""));
-    triggers.add(new OnSuccessTrigger("search", "save", ""));
-    triggers.add(new OnSuccessTrigger("search", "cancel-view", ""));
-    triggers.add(new OnSuccessTrigger("search", "cancel-create", ""));
-    getAllMethods(getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
-        .forEach(
-            method -> {
-              triggers.add(new OnSuccessTrigger("search", "action-on-row-" + method.getName(), ""));
-            });
-     */
+    if (httpRequest.getAttribute("list") != null) {
+      triggers.add(new OnLoadTrigger("search"));
+      getAllMethods(getClass()).stream()
+          .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
+          .forEach(
+              method -> {
+                triggers.add(
+                    new OnSuccessTrigger("search", "action-on-row-" + method.getName(), ""));
+              });
+    }
 
     for (io.mateu.uidl.annotations.Trigger annotation :
         getClass().getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class)) {

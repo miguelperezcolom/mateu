@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.crudorchestrator;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 import io.mateu.uidl.annotations.ListToolbarButton;
+import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.CrudCreationForm;
@@ -35,6 +36,7 @@ public abstract class ActionSupplierLayer<
       actions.add(Action.builder().id("cancel-view").build());
       actions.add(Action.builder().id("cancel-edit").build());
       actions.add(Action.builder().id("action-on-row-*").build());
+      actions.add(Action.builder().id("action-on-view-*").build());
     }
     if (httpRequest.getAttribute("list") != null) {
       actions.add(Action.builder().id("search").build());
@@ -60,6 +62,21 @@ public abstract class ActionSupplierLayer<
                         .build());
               });
     }
+    if (httpRequest.getAttribute("view") != null) {
+      getAllMethods(getClass()).stream()
+          .filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
+          .forEach(
+              method -> {
+                actions.add(
+                    Action.builder()
+                        .id("action-on-view-" + method.getName())
+                        .confirmationRequired(
+                            method.getAnnotation(ViewToolbarButton.class).confirmationRequired())
+                        .bubble(true)
+                        .build());
+              });
+    }
+
     return actions;
   }
 }
