@@ -22,8 +22,6 @@ import io.mateu.uidl.interfaces.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +39,6 @@ public abstract class CrudOrchestrator<
   String xx = "hola";
   String _route = "";
   String _componentRoute = "";
-  String instant = "";
 
   @Override
   public String route() {
@@ -58,7 +55,12 @@ public abstract class CrudOrchestrator<
     _componentRoute = route;
   }
 
-  public boolean oneToOne() {
+    @Override
+    public String getComponentRoute() {
+        return _componentRoute;
+    }
+
+    public boolean oneToOne() {
     return false;
   }
 
@@ -103,7 +105,7 @@ public abstract class CrudOrchestrator<
   @SneakyThrows
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
-      instant = UUID.randomUUID().toString();
+    // instant = UUID.randomUUID().toString();
     if (actionId.startsWith("action-on-row-")) {
       return handleActionOnRow(this, actionId, httpRequest);
     }
@@ -133,6 +135,11 @@ public abstract class CrudOrchestrator<
         list.addAll(result.messages());
         list.add(UICommand.pushStateToHistory(pathForHistory(result.route())));
         list.add(setWindowTitle(httpRequest));
+        if ("/list".equals(result.route())) {
+          list.add(
+              UICommand.runAction(
+                  "search", httpRequest.runActionRq().initiatorComponentId() + "_app_list"));
+        }
         return list;
       }
     }
@@ -240,18 +247,19 @@ public abstract class CrudOrchestrator<
     var consumedRoute = (String) httpRequest.getAttribute("resolvedPath");
     if (!route.equals(consumedRoute)) setRouteTo(route.substring(consumedRoute.length()));
     return wrap(
-        App.builder()
-            .homeRoute(route)
-            .serverSideType(getClass().getName())
-            .homeConsumedRoute(consumedRoute)
-            .variant(AppVariant.MEDIATOR)
-            .style("width: 100%;")
-            .build(),
-        this,
-        (String) httpRequest.getAttribute("baseUrl"),
-        consumedRoute,
-        consumedRoute,
-        null,
-        httpRequest);
+            App.builder()
+                .homeRoute(route)
+                .serverSideType(getClass().getName())
+                .homeConsumedRoute(consumedRoute)
+                .variant(AppVariant.MEDIATOR)
+                .style("width: 100%;")
+                .build(),
+            this,
+            (String) httpRequest.getAttribute("baseUrl"),
+            consumedRoute,
+            consumedRoute,
+            null,
+            httpRequest)
+        .withId(httpRequest.runActionRq().initiatorComponentId() + "_app");
   }
 }

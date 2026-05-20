@@ -6,6 +6,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.core.infra.declarative.SimpleView;
+import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.fluent.Component;
@@ -87,7 +88,7 @@ public abstract class BaseLayer<
 
   public abstract Component create(HttpRequest httpRequest);
 
-  public abstract Object wrapRoute(String route, HttpRequest httpRequest);
+  public abstract ComponentDto wrapRoute(String route, HttpRequest httpRequest);
 
   public abstract Component edit(IdType id, HttpRequest httpRequest);
 
@@ -119,4 +120,6 @@ public abstract class BaseLayer<
   public abstract void setRouteTo(String state);
 
   public abstract void setComponentRouteTo(String state);
+
+  public abstract String getComponentRoute();
 }

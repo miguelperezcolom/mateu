@@ -28,4 +28,6 @@ public interface ComponentDto {
   ComponentDto setSlot(String s);
 
   ComponentDto withChildren(List<ComponentDto> children);
+
+  ComponentDto withId(String id);
 }

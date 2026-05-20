@@ -4,6 +4,8 @@ import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.addData;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
@@ -33,7 +35,8 @@ public abstract class RouteHandlerLayer<
         // if this is a first time, we return the mediator app
         if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
           setComponentRouteTo((String) httpRequest.getAttribute("resolvedPath"));
-          return wrapRoute(route, httpRequest);
+          setRouteTo(httpRequest.runActionRq().route().substring(getConsumedRoute(httpRequest).length()));
+          return this;
         }
 
         if (route.endsWith("/list")) {
@@ -55,11 +58,11 @@ public abstract class RouteHandlerLayer<
               httpRequest);
         }
 
-        if (route.equals(httpRequest.runActionRq().consumedRoute())) {
+        if (route.equals(getConsumedRoute(httpRequest))) {
           return wrapView("list", this, list(httpRequest), httpRequest);
         }
 
-        var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
+        var id = route.substring(getConsumedRoute(httpRequest).length() + 1);
         return wrapView(
             "/" + id,
             adapter().getView(toId(id), httpRequest),
@@ -68,13 +71,24 @@ public abstract class RouteHandlerLayer<
       }
     } catch (Throwable e) {
       e.printStackTrace();
-      return "route not found:" + route;
+      return Message.builder()
+          .variant(NotificationVariant.error)
+          .title(e.getClass().getSimpleName())
+          .text(e.getMessage())
+          .build();
     }
     // action handler will be called
     return this;
   }
 
-  private Object wrapView(
+    private String getConsumedRoute(HttpRequest httpRequest) {
+      if (getComponentRoute() != null && !getComponentRoute().isEmpty()) {
+          return getComponentRoute();
+      }
+        return httpRequest.runActionRq().consumedRoute();
+    }
+
+    private Object wrapView(
       String viewName, Object modelView, Component component, HttpRequest httpRequest) {
     httpRequest.setAttribute(viewName, true);
     if (modelView instanceof AutoNamedView<?> autoNamedView) {
@@ -82,13 +96,14 @@ public abstract class RouteHandlerLayer<
     }
     addData(modelView, httpRequest);
     return wrap(
-        component,
-        modelView,
-        (String) httpRequest.getAttribute("baseUrl"),
-        httpRequest.runActionRq().consumedRoute(),
-        httpRequest.runActionRq().consumedRoute(),
-        null,
-        httpRequest);
+            component,
+            modelView,
+            (String) httpRequest.getAttribute("baseUrl"),
+            getConsumedRoute(httpRequest),
+            getConsumedRoute(httpRequest),
+            null,
+            httpRequest)
+        .withId(httpRequest.runActionRq().initiatorComponentId() + "_" + viewName);
   }
 
   public String getCrudRoute(HttpRequest httpRequest, Object id) {
@@ -123,7 +138,7 @@ public abstract class RouteHandlerLayer<
       return registeredRoute;
     }
     var route = httpRequest.runActionRq().route();
-    if (route.startsWith(httpRequest.runActionRq().consumedRoute())) {
+    if (route.startsWith(getConsumedRoute(httpRequest))) {
       route = route.substring(httpRequest.runActionRq().consumedRoute().length());
     }
     if (route.contains("/")) {

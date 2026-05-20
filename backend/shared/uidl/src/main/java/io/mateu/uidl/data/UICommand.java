@@ -13,6 +13,14 @@ public record UICommand(UICommandType type, Object data) {
     return new UICommand(UICommandType.RunAction, Map.of("actionId", actionId));
   }
 
+  public static UICommand runAction(String actionId, String targetComponentId) {
+    return new UICommand(
+        UICommandType.RunAction,
+        Map.of(
+            "actionId", actionId,
+            "targetComponentId", targetComponentId));
+  }
+
   public static UICommand pushStateToHistory(String url) {
     return new UICommand(UICommandType.PushStateToHistory, url);
   }
