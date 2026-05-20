@@ -1,6 +1,5 @@
 package io.mateu.core.infra.declarative.crudorchestrator;
 
-
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
 import io.mateu.uidl.fluent.OnEnterTrigger;
 import io.mateu.uidl.fluent.OnErrorTrigger;

@@ -35,7 +35,8 @@ public abstract class RouteHandlerLayer<
         // if this is a first time, we return the mediator app
         if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
           setComponentRouteTo((String) httpRequest.getAttribute("resolvedPath"));
-          setRouteTo(httpRequest.runActionRq().route().substring(getConsumedRoute(httpRequest).length()));
+          setRouteTo(
+              httpRequest.runActionRq().route().substring(getConsumedRoute(httpRequest).length()));
           return this;
         }
 
@@ -81,14 +82,14 @@ public abstract class RouteHandlerLayer<
     return this;
   }
 
-    private String getConsumedRoute(HttpRequest httpRequest) {
-      if (getComponentRoute() != null && !getComponentRoute().isEmpty()) {
-          return getComponentRoute();
-      }
-        return httpRequest.runActionRq().consumedRoute();
+  private String getConsumedRoute(HttpRequest httpRequest) {
+    if (getComponentRoute() != null && !getComponentRoute().isEmpty()) {
+      return getComponentRoute();
     }
+    return httpRequest.runActionRq().consumedRoute();
+  }
 
-    private Object wrapView(
+  private Object wrapView(
       String viewName, Object modelView, Component component, HttpRequest httpRequest) {
     httpRequest.setAttribute(viewName, true);
     if (modelView instanceof AutoNamedView<?> autoNamedView) {

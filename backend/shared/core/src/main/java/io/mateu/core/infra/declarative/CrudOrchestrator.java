@@ -55,12 +55,12 @@ public abstract class CrudOrchestrator<
     _componentRoute = route;
   }
 
-    @Override
-    public String getComponentRoute() {
-        return _componentRoute;
-    }
+  @Override
+  public String getComponentRoute() {
+    return _componentRoute;
+  }
 
-    public boolean oneToOne() {
+  public boolean oneToOne() {
     return false;
   }
 
