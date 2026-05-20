@@ -22,6 +22,8 @@ import io.mateu.uidl.interfaces.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +41,7 @@ public abstract class CrudOrchestrator<
   String xx = "hola";
   String _route = "";
   String _componentRoute = "";
+  String instant = "";
 
   @Override
   public String route() {
@@ -100,6 +103,7 @@ public abstract class CrudOrchestrator<
   @SneakyThrows
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
+      instant = UUID.randomUUID().toString();
     if (actionId.startsWith("action-on-row-")) {
       return handleActionOnRow(this, actionId, httpRequest);
     }

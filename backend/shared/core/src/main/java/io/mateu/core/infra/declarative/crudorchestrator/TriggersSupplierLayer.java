@@ -31,15 +31,14 @@ public abstract class TriggersSupplierLayer<
   @Override
   public List<Trigger> triggers(HttpRequest httpRequest) {
     var triggers = new ArrayList<Trigger>();
-    if (httpRequest.getAttribute("mediator") != null) {
+    if (httpRequest.getAttribute("list") != null) {
+      triggers.add(new OnLoadTrigger("search"));
+      /*
       triggers.add(new OnSuccessTrigger("search", "create", ""));
       triggers.add(new OnSuccessTrigger("search", "delete", ""));
       triggers.add(new OnSuccessTrigger("search", "save", ""));
       triggers.add(new OnSuccessTrigger("search", "cancel-view", ""));
       triggers.add(new OnSuccessTrigger("search", "cancel-create", ""));
-    }
-    if (httpRequest.getAttribute("list") != null) {
-      triggers.add(new OnLoadTrigger("search"));
       getAllMethods(getClass()).stream()
           .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
           .forEach(
@@ -47,6 +46,7 @@ public abstract class TriggersSupplierLayer<
                 triggers.add(
                     new OnSuccessTrigger("search", "action-on-row-" + method.getName(), ""));
               });
+       */
     }
 
     for (io.mateu.uidl.annotations.Trigger annotation :

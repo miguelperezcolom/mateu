@@ -165,12 +165,12 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
                               baseUrl,
                               route,
                               consumedRoute,
-                              initiatorComponentId,
+                              getInitiatorComponentId(initiatorComponentId, httpRequest),
                               httpRequest),
                           baseUrl,
                           route,
                           consumedRoute,
-                          initiatorComponentId,
+                              getInitiatorComponentId(initiatorComponentId, httpRequest),
                           httpRequest)))
           .toList();
     }
@@ -178,11 +178,11 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         serializeData(
             componentFragmentMapper.mapToFragment(
                 reflectionFragmentMapper.mapToComponent(
-                    instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
+                    instance, baseUrl, route, consumedRoute, getInitiatorComponentId(initiatorComponentId, httpRequest), httpRequest),
                 baseUrl,
                 route,
                 consumedRoute,
-                initiatorComponentId,
+                    getInitiatorComponentId(initiatorComponentId, httpRequest),
                 httpRequest)));
     /*
     return List.of(
@@ -197,7 +197,14 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
      */
   }
 
-  private UIFragmentDto serializeData(UIFragmentDto fragment) {
+    private String getInitiatorComponentId(String initiatorComponentId, HttpRequest httpRequest) {
+      if (httpRequest.getAttribute("initiatorComponentId") != null) {
+          return (String) httpRequest.getAttribute("initiatorComponentId");
+      }
+      return initiatorComponentId;
+    }
+
+    private UIFragmentDto serializeData(UIFragmentDto fragment) {
     return new UIFragmentDto(
         fragment.targetComponentId(),
         fragment.component(),
