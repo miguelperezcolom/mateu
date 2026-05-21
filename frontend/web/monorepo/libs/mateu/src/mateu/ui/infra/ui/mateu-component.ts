@@ -355,8 +355,6 @@ export class MateuComponent extends ComponentElement {
 
             if (action) {
 
-                console.log('action matched', action)
-
                 if (action && action.rowsSelectedRequired) {
                     if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {
                         this.notify('You first need to select some rows')

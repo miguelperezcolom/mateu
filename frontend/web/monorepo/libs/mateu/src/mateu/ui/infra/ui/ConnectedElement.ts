@@ -216,15 +216,36 @@ export default abstract class ConnectedElement extends LitElement {
         if ('RunAction' == command.type) {
             const data = command.data as {
                 actionId: string
+                targetComponentId: string
             }
             if (data && data.actionId) {
-                this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                    detail: {
-                        actionId: data.actionId
-                    },
-                    bubbles: true,
-                    composed: true
-                }))
+                if (data.targetComponentId) {
+                    const msg = {
+                        command: {
+                            type: 'RunAction',
+                            data: {
+                                actionId: data.actionId
+                            },
+                            targetComponentId: data.targetComponentId
+                        },
+                        fragment: undefined,
+                        ui: undefined,
+                        error: undefined,
+                        callbackToken: ''
+                    }
+                    console.log('send to upstream', msg)
+                    setTimeout(() => upstream.next(msg))
+                } else {
+                    this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                        detail: {
+                            actionId: data.actionId,
+                            parameters: {}
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }
+
             }
         }
 

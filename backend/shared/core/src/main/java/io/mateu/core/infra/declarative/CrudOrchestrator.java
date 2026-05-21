@@ -138,7 +138,7 @@ public abstract class CrudOrchestrator<
         if ("/list".equals(result.route())) {
           list.add(
               UICommand.runAction(
-                  "search", httpRequest.runActionRq().initiatorComponentId() + "_app_list"));
+                  "search", "ux_" + httpRequest.runActionRq().initiatorComponentId().substring(0, httpRequest.runActionRq().initiatorComponentId().length() - "_app".length()) + "_cs_list"));
         }
         return list;
       }
@@ -246,8 +246,10 @@ public abstract class CrudOrchestrator<
     httpRequest.setAttribute("mediator", true);
     var consumedRoute = (String) httpRequest.getAttribute("resolvedPath");
     if (!route.equals(consumedRoute)) setRouteTo(route.substring(consumedRoute.length()));
+      httpRequest.setAttribute("upstreamComponentId", httpRequest.runActionRq().initiatorComponentId() + "_app");
     return wrap(
             App.builder()
+                    .clientSideComponentId(httpRequest.runActionRq().initiatorComponentId() + "_cs")
                 .homeRoute(route)
                 .serverSideType(getClass().getName())
                 .homeConsumedRoute(consumedRoute)
@@ -258,8 +260,7 @@ public abstract class CrudOrchestrator<
             (String) httpRequest.getAttribute("baseUrl"),
             consumedRoute,
             consumedRoute,
-            null,
-            httpRequest)
-        .withId(httpRequest.runActionRq().initiatorComponentId() + "_app");
+            httpRequest.runActionRq().initiatorComponentId() + "_x",
+            httpRequest);
   }
 }
