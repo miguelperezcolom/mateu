@@ -50,7 +50,9 @@ public class ComponentStateHelper {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return new ServerSideComponentDto(
-        httpRequest.getAttribute("upstreamComponentId") != null? httpRequest.getAttribute("upstreamComponentId").toString() :UUID.randomUUID().toString(),
+        httpRequest.getAttribute("upstreamComponentId") != null
+            ? httpRequest.getAttribute("upstreamComponentId").toString()
+            : UUID.randomUUID().toString(),
         modelView.getClass().getName(),
         consumedRoute,
         components.stream()

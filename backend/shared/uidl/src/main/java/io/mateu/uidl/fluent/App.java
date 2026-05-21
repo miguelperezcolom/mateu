@@ -9,7 +9,7 @@ import lombok.With;
 @Builder
 @With
 public record App(
-        String clientSideComponentId,
+    String clientSideComponentId,
     String route,
     String homeRoute,
     String homeBaseUrl,

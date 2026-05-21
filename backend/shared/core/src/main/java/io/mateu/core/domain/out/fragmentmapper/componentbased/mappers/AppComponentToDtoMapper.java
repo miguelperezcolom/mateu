@@ -99,7 +99,9 @@ public final class AppComponentToDtoMapper {
             .build();
     return new ClientSideComponentDto(
         appDto,
-        app.clientSideComponentId() != null ? app.clientSideComponentId() : UUID.randomUUID().toString(),
+        app.clientSideComponentId() != null
+            ? app.clientSideComponentId()
+            : UUID.randomUUID().toString(),
         mapWidgets(app.widgets(), baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
         app.style(),
         app.cssClasses(),

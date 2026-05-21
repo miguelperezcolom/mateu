@@ -23,6 +23,9 @@ public class Home2 implements WidgetSupplier {
     Products products;
 
     @Menu
+    Products frfr;
+
+    @Menu
     Changes changes;
 
     @Menu

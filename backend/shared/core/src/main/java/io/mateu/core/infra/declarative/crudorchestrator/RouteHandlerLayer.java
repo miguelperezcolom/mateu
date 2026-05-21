@@ -34,9 +34,18 @@ public abstract class RouteHandlerLayer<
 
         // if this is a first time, we return the mediator app
         if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
-          setComponentRouteTo((String) httpRequest.getAttribute("resolvedPath"));
+          var componentRoute = (String) httpRequest.getAttribute("resolvedPath");
+          if (componentRoute == null) {
+            componentRoute = (String) httpRequest.getAttribute("resolvedRoute");
+          }
+          setComponentRouteTo(componentRoute);
           setRouteTo(
-              httpRequest.runActionRq().route().substring(getConsumedRoute(httpRequest).length()));
+              httpRequest.runActionRq().route().startsWith(componentRoute)
+                  ? httpRequest
+                      .runActionRq()
+                      .route()
+                      .substring(getConsumedRoute(httpRequest).length())
+                  : httpRequest.runActionRq().route());
           return this;
         }
 

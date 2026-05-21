@@ -60,6 +60,7 @@ public class AddActionHandler {
     var readOnly = false;
     return Form.builder()
         .title("New " + getLabel(field))
+        .style("width: 100%;")
         .content(
             getForm(
                     prefix,
