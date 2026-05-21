@@ -140,7 +140,7 @@ export class MateuApp extends ComponentElement {
                         effectiveRoute = this.selectedUriPrefix + effectiveRoute
                     }
                 }
-                if (effectiveRoute == '_page') {
+                if (effectiveRoute == '/_page') {
                     effectiveRoute = ''
                 }
 
