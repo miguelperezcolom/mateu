@@ -36,7 +36,7 @@ public abstract class RouteHandlerLayer<
         if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
           var componentRoute = (String) httpRequest.getAttribute("resolvedPath");
           if (componentRoute == null) {
-            componentRoute = (String) httpRequest.getAttribute("resolvedRoute");
+            componentRoute = "";
               httpRequest.setAttribute("resolvedPath", componentRoute);
           }
           setComponentRouteTo(componentRoute);
@@ -45,8 +45,8 @@ public abstract class RouteHandlerLayer<
                   ? httpRequest
                       .runActionRq()
                       .route()
-                      .substring(getConsumedRoute(httpRequest).length())
-                  : "");
+                      .substring(componentRoute.length())
+                  : httpRequest.runActionRq().route());
           return this;
         }
 
