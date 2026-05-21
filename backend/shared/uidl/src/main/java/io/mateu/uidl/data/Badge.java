@@ -8,7 +8,7 @@ public record Badge(
     String text,
     String iconOnLeft,
     String iconOnRight,
-    BadgeColor color,
+    String color,
     boolean primary,
     boolean small,
     boolean pill,
@@ -21,7 +21,7 @@ public record Badge(
   }
 
   @Override
-  public BadgeColor color() {
-    return color != null ? color : BadgeColor.normal;
+  public String color() {
+    return color != null ? color : BadgeColor.normal.name();
   }
 }

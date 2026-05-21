@@ -70,7 +70,7 @@ public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters
                 //.media(new Image("https://picsum.photos/150/100.webp?random=" + order.id()))
                 .media(new Image(order.lines().get(0).product().image(), "max-height: 100px", ""))
                 .headerSuffix(Badge.builder()
-                        .color(color(order.status()))
+                        .color(color(order.status()).name())
                         .text(order.status().name())
                         .build())
                 //.variants(List.of(CardVariant.coverMedia))

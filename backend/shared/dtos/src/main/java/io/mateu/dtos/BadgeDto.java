@@ -5,7 +5,7 @@ public record BadgeDto(
     String text,
     String iconOnLeft,
     String iconOnRight,
-    BadgeColorDto color,
+    String color,
     boolean primary,
     boolean small,
     boolean pill)

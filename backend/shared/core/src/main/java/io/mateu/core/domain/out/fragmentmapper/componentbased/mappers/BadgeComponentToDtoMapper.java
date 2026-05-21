@@ -1,6 +1,5 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
-import io.mateu.dtos.BadgeColorDto;
 import io.mateu.dtos.BadgeDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.uidl.data.Badge;
@@ -18,7 +17,7 @@ public class BadgeComponentToDtoMapper {
         badge.text(),
         badge.iconOnLeft(),
         badge.iconOnRight(),
-        BadgeColorDto.valueOf(badge.color().name()),
+        badge.color(),
         badge.primary(),
         badge.small(),
         badge.pill());

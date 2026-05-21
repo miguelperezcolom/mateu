@@ -283,7 +283,7 @@ public class ProductDetailPage implements ComponentTreeSupplier, PostHydrationHa
                 .content(VerticalLayout.builder()
                         .content(List.of(
                                 Badge.builder()
-                                        .color(color(order.status()))
+                                        .color(color(order.status()).name())
                                         .text(order.status().name())
                                         .build(),
                                 new Div("" + order.totalAmount().value() + " " + order.totalAmount().currencyCode())

@@ -20,11 +20,11 @@ public class BadgeComponentPage implements ComponentTreeSupplier {
                                 .text("Hola")
                                 .pill(true)
                                 .primary(true)
-                                .color(BadgeColor.success)
+                                .color(BadgeColor.success.name())
                                 .build(),
                         Badge.builder()
                                 .text("Hola")
-                                .color(BadgeColor.error)
+                                .color(BadgeColor.error.name())
                                 .small(true)
                                 .build()
                 ))

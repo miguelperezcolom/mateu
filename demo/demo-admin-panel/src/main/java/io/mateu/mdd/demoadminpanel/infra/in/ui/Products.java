@@ -27,6 +27,7 @@ enum ProductStatus {
     Available, OutOfStock
 }
 
+@Slf4j
 record Product(
         @NotEmpty @EditableOnlyWhenCreating String id,
                @NotEmpty
@@ -53,6 +54,11 @@ record Product(
                         new ColumnAction("setAsBlue", "Set as blue"),
                         new ColumnAction("setAsGreen", "Set as green")
                 });
+    }
+
+    @Toolbar
+    public void doNothing() {
+        log.info("do nothing");
     }
 
     @Override

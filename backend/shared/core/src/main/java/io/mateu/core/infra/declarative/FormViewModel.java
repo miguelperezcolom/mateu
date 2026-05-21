@@ -98,24 +98,15 @@ public class FormViewModel
     Object finalInstance = instance;
     return getAllEditableFields(instance.getClass()).stream()
         .filter(field -> Status.class.equals(field.getType()))
-        .map(field -> mapStatusToBadge((Status) getValue(field, finalInstance)))
+        .map(FormViewModel::mapStatusToBadge)
         .filter(Objects::nonNull)
         .toList();
   }
 
-  public static Badge mapStatusToBadge(Status value) {
-    if (value == null) {
-      return null;
-    }
+  private static Badge mapStatusToBadge(Field field) {
     return Badge.builder()
-        .text(value.message())
-        .color(
-            switch (value.type()) {
-              case SUCCESS -> BadgeColor.success;
-              case WARNING -> BadgeColor.warning;
-              case DANGER -> BadgeColor.error;
-              default -> BadgeColor.normal;
-            })
+        .text("${state." + field.getName() + ".message}")
+        .color("${state." + field.getName() + ".type}")
         .build();
   }
 

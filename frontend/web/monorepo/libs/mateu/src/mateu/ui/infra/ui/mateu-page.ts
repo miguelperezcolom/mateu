@@ -99,7 +99,7 @@ export class MateuPage extends LitElement {
                 `:nothing}                 
                 ${metadata.badges && metadata.badges.length > 0?html`
                     <vaadin-horizontal-layout>
-                        ${metadata.badges.map(badge => renderBadgeMetadata(badge))}
+                        ${metadata.badges.map(badge => renderBadgeMetadata(badge, this.state, this.data))}
                     </vaadin-horizontal-layout>
                 `:nothing}
 

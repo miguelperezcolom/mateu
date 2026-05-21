@@ -8,10 +8,7 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
-import io.mateu.uidl.annotations.ListToolbarButton;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.ViewToolbarButton;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Page;
@@ -93,6 +90,18 @@ public abstract class ViewComponentLayer<
                   new Button(
                       toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
             });
+    var entity = item;
+    if (entity instanceof AutoNamedView<?> autoNamedView) {
+        entity = autoNamedView.entity();
+    }
+      getAllMethods(entity.getClass()).stream()
+              .filter(method -> method.isAnnotationPresent(Toolbar.class))
+              .forEach(
+                      method -> {
+                          toolbar.add(
+                                  new Button(
+                                          toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
+                      });
     toolbar.add(new Button("Back to list", "cancel-view"));
     if (!readOnly(item)) {
       toolbar.add(new Button("Add another", "new"));

@@ -103,6 +103,6 @@ public class CrudAdapterHelper {
         firstField = field.getName();
       }
     }
-    return hasIdField ? "id" : firstField;
+    return hasIdField || firstField == null ? "id" : firstField;
   }
 }
