@@ -37,15 +37,12 @@ public abstract class RouteHandlerLayer<
           var componentRoute = (String) httpRequest.getAttribute("resolvedPath");
           if (componentRoute == null) {
             componentRoute = "";
-              httpRequest.setAttribute("resolvedPath", componentRoute);
+            httpRequest.setAttribute("resolvedPath", componentRoute);
           }
           setComponentRouteTo(componentRoute);
           setRouteTo(
               httpRequest.runActionRq().route().startsWith(componentRoute)
-                  ? httpRequest
-                      .runActionRq()
-                      .route()
-                      .substring(componentRoute.length())
+                  ? httpRequest.runActionRq().route().substring(componentRoute.length())
                   : httpRequest.runActionRq().route());
           return this;
         }

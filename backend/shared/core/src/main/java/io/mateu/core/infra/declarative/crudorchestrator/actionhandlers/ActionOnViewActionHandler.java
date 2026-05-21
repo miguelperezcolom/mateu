@@ -22,32 +22,32 @@ public class ActionOnViewActionHandler {
     var item = toView(httpRequest, crudOrchestrator.viewClass());
 
     for (Object subject : List.of(item, crudOrchestrator)) {
-        for (Method method : getAllMethods(subject.getClass())) {
-            if (methodName.equals(method.getName())) {
-                method.setAccessible(true);
-                List<Object> args = new ArrayList<>();
-                for (int i = 0; i < method.getParameterCount(); i++) {
-                    if (item != null && method.getParameterTypes()[i].isAssignableFrom(item.getClass())) {
-                        args.add(item);
-                    }
-                    if (method.getParameterTypes()[i].isAssignableFrom(crudOrchestrator.getClass())) {
-                        args.add(crudOrchestrator);
-                    }
-                    if (method.getParameterTypes()[i].isAssignableFrom(httpRequest.getClass())) {
-                        args.add(httpRequest);
-                    }
-                }
-                try {
-                    return method.invoke(subject, args.toArray());
-                } catch (Throwable e) {
-                    if (e instanceof InvocationTargetException invocationTargetException
-                            && invocationTargetException.getCause() != null) {
-                        throw invocationTargetException.getCause();
-                    }
-                    throw e;
-                }
+      for (Method method : getAllMethods(subject.getClass())) {
+        if (methodName.equals(method.getName())) {
+          method.setAccessible(true);
+          List<Object> args = new ArrayList<>();
+          for (int i = 0; i < method.getParameterCount(); i++) {
+            if (item != null && method.getParameterTypes()[i].isAssignableFrom(item.getClass())) {
+              args.add(item);
             }
+            if (method.getParameterTypes()[i].isAssignableFrom(crudOrchestrator.getClass())) {
+              args.add(crudOrchestrator);
+            }
+            if (method.getParameterTypes()[i].isAssignableFrom(httpRequest.getClass())) {
+              args.add(httpRequest);
+            }
+          }
+          try {
+            return method.invoke(subject, args.toArray());
+          } catch (Throwable e) {
+            if (e instanceof InvocationTargetException invocationTargetException
+                && invocationTargetException.getCause() != null) {
+              throw invocationTargetException.getCause();
+            }
+            throw e;
+          }
         }
+      }
     }
     return null;
   }

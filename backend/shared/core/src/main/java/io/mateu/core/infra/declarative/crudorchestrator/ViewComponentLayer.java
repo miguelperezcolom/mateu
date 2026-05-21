@@ -92,16 +92,16 @@ public abstract class ViewComponentLayer<
             });
     var entity = item;
     if (entity instanceof AutoNamedView<?> autoNamedView) {
-        entity = autoNamedView.entity();
+      entity = autoNamedView.entity();
     }
-      getAllMethods(entity.getClass()).stream()
-              .filter(method -> method.isAnnotationPresent(Toolbar.class))
-              .forEach(
-                      method -> {
-                          toolbar.add(
-                                  new Button(
-                                          toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
-                      });
+    getAllMethods(entity.getClass()).stream()
+        .filter(method -> method.isAnnotationPresent(Toolbar.class))
+        .forEach(
+            method -> {
+              toolbar.add(
+                  new Button(
+                      toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
+            });
     toolbar.add(new Button("Back to list", "cancel-view"));
     if (!readOnly(item)) {
       toolbar.add(new Button("Add another", "new"));
