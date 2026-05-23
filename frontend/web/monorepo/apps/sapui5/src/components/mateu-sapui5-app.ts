@@ -94,7 +94,11 @@ export class MateuSapUI5App extends MateuApp {
                     if (componentRoute) {
                         this.selectedConsumedRoute = componentRoute
                     }
-                    const effectiveConsumedRoute = componentRoute || this.selectedConsumedRoute || ''
+                    const appMetadata = (this.component as ClientSideComponent)?.metadata as App
+                    const effectiveConsumedRoute = componentRoute || chooseConsumedRoute(this, appMetadata) || ''
+                    if (!componentRoute) {
+                        this.selectedConsumedRoute = effectiveConsumedRoute || this.selectedConsumedRoute
+                    }
                     this.selectedRoute = effectiveConsumedRoute + relRoute
                     if (this.lastActionServerSideType) {
                         this.selectedServerSideType = this.lastActionServerSideType
