@@ -1,52 +1,15 @@
 ---
-title: "Action annotations"
+title: "Action Annotations"
+description: "Annotations for defining actions, buttons, and toolbar operations."
 ---
 
-These annotations add interactive buttons and actions to pages, forms, and grids.
-
----
-
-# @Button
-
-Renders a button that calls the annotated method or displays the annotated `Component` field as a button.
-
-```java
-@Target({ElementType.FIELD, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Button {}
-```
-
-## Usage on a method
-
-```java
-public class OrderForm {
-    String orderId;
-    String notes;
-
-    @Button
-    void save() {
-        // persist order
-    }
-
-    @Button
-    void cancel() { }
-}
-```
-
-## Usage on a field
-
-```java
-public class MyPage {
-    @Button
-    Component customButton = Button.builder().label("Do something").build();
-}
-```
+These annotations add interactive buttons and actions to pages, forms, and listings. They control where buttons appear, how they behave before executing (validation, confirmation), and what happens after they run.
 
 ---
 
-# @Action
+## @Action
 
-Attaches a configurable action to a class or method with fine-grained control over confirmation dialogs, validation, and navigation.
+Attaches a configurable action to a method. Repeatable via the `@Actions` container, so multiple `@Action` entries can stack on the same method.
 
 ```java
 @Repeatable(Actions.class)
@@ -73,36 +36,37 @@ public @interface Action {
 }
 ```
 
-## Attributes
+### Attributes
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `id` | String | `""` | Action ID (auto-inferred from method name if empty) |
-| `background` | boolean | `false` | Run the action in the background without blocking the UI |
-| `validationRequired` | boolean | `false` | Validate the form before executing |
-| `confirmationRequired` | boolean | `false` | Show a confirmation dialog before executing |
-| `rowsSelectedRequired` | boolean | `false` | Require at least one row selected in a grid |
-| `confirmationTitle` | String | `""` | Title of the confirmation dialog |
-| `confirmationMessage` | String | `""` | Body message of the confirmation dialog |
-| `confirmationText` | String | `""` | Confirm button label |
-| `confirmationDenialText` | String | `""` | Cancel button label |
-| `modalStyle` | String | `""` | Inline CSS for the confirmation modal |
-| `modalTitle` | String | `""` | Title of the modal |
-| `customEventName` | String | `""` | Fire a custom browser event on completion |
-| `customEventDetail` | String | `""` | Payload attached to the custom event |
-| `href` | String | `""` | Navigate to this URL instead of calling a method |
-| `js` | String | `""` | Execute JavaScript on the client side |
-| `sse` | boolean | `false` | Stream results via SSE |
-| `fieldsToValidate` | String | `""` | Comma-separated field IDs to validate |
-| `bubble` | boolean | `false` | Bubble the action result to the parent component |
+| `id` | `String` | `""` | Action ID. Auto-inferred from the method name when empty. |
+| `background` | `boolean` | `false` | Run the action without blocking the UI. |
+| `validationRequired` | `boolean` | `false` | Validate the form before executing. |
+| `confirmationRequired` | `boolean` | `false` | Show a confirmation dialog before executing. |
+| `rowsSelectedRequired` | `boolean` | `false` | Require at least one row selected in a listing. |
+| `confirmationTitle` | `String` | `""` | Title shown in the confirmation dialog. |
+| `confirmationMessage` | `String` | `""` | Body text of the confirmation dialog. |
+| `confirmationText` | `String` | `""` | Label for the confirm button. |
+| `confirmationDenialText` | `String` | `""` | Label for the cancel button. |
+| `modalStyle` | `String` | `""` | Inline CSS applied to the confirmation modal. |
+| `modalTitle` | `String` | `""` | Title of the modal wrapper. |
+| `customEventName` | `String` | `""` | Browser custom event to fire on completion. |
+| `customEventDetail` | `String` | `""` | Payload attached to the custom event. |
+| `href` | `String` | `""` | Navigate to this URL instead of calling a method. |
+| `js` | `String` | `""` | Execute JavaScript on the client side. |
+| `sse` | `boolean` | `false` | Stream results to the UI via Server-Sent Events. |
+| `fieldsToValidate` | `String` | `""` | Comma-separated field IDs to validate (subset validation). |
+| `bubble` | `boolean` | `false` | Bubble the action result to the parent component. |
 
-## Usage
+### Example
 
 ```java
 public class OrderForm {
     String orderId;
 
     @Action(
+        validationRequired = true,
         confirmationRequired = true,
         confirmationTitle = "Delete order",
         confirmationMessage = "This cannot be undone. Continue?",
@@ -110,50 +74,80 @@ public class OrderForm {
         confirmationDenialText = "Cancel"
     )
     void delete() {
-        // delete the order
-    }
-
-    @Action(validationRequired = true)
-    void submit() {
-        // submit the order
+        orderRepository.delete(orderId);
     }
 }
 ```
 
-## Repeatable
-
-Multiple `@Action` annotations can be stacked on the same method.
+`@Action` is most useful when combined with `@Toolbar` to place the button in a specific location on the screen.
 
 ---
 
-# @RowAction
+## @Button
 
-Marks a method as a row-level action in a grid. The method is called with the selected row data.
+Marks a field or method as a button rendered inline within the form body.
+
+```java
+@Target({ElementType.FIELD, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Button {}
+```
+
+No attributes. The button label is derived from the method or field name.
+
+### Example
+
+```java
+@UI("")
+@Title("Simple Form")
+public class SimpleForm {
+
+    @NotEmpty
+    String name;
+
+    @Button
+    public Message greet() {
+        return new Message("Hello " + name + "!");
+    }
+}
+```
+
+Unlike `@Toolbar`, `@Button` places the button inside the form layout alongside the fields rather than in the toolbar strip at the top.
+
+---
+
+## @RowAction
+
+Marks a method to appear as a row-level action in a listing. The method receives the selected row as its parameter.
 
 ```java
 public @interface RowAction {}
 ```
 
-## Usage
+No attributes. The action ID is derived from the method name.
+
+### Example
 
 ```java
-public class InvoiceListingPage implements ListingBackend<Filters, InvoiceRow> {
+public class InvoiceListing implements ListingBackend<Filters, InvoiceRow> {
 
     @RowAction
     void approve(InvoiceRow row) {
-        // approve the selected invoice
+        invoiceService.approve(row.id());
     }
 }
 ```
 
+Row actions are displayed inside each row (for example as a dropdown or icon button) rather than in the page toolbar.
+
 ---
 
-# @ListToolbarButton
+## @ListToolbarButton
 
-Adds a toolbar button to a listing page. Can optionally require row selection and show a confirmation dialog.
+Marks a method as a toolbar button in a listing view. The method receives the list of currently selected rows. Both `confirmationRequired` and `rowsSelectedRequired` default to `true`, making this annotation safe by default.
 
 ```java
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ListToolbarButton {
     boolean confirmationRequired() default true;
@@ -161,56 +155,75 @@ public @interface ListToolbarButton {
 }
 ```
 
-## Attributes
+### Attributes
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `confirmationRequired` | boolean | `true` | Show confirmation before executing |
-| `rowsSelectedRequired` | boolean | `true` | Require at least one row selected |
+| `confirmationRequired` | `boolean` | `true` | Show a confirmation dialog before executing. |
+| `rowsSelectedRequired` | `boolean` | `true` | Disable the button until at least one row is selected. |
 
-## Usage
+### Example
 
 ```java
-public class CustomerListing implements ListingBackend<Filters, CustomerRow> {
+// Products.java
+@UI("/products")
+@Slf4j
+public class Products extends AutoCrudOrchestrator<Product> {
 
-    @ListToolbarButton(confirmationRequired = true, rowsSelectedRequired = true)
-    void exportSelected(HttpRequest httpRequest) {
-        var selected = httpRequest.getSelectedRows(CustomerRow.class);
-        // export
+    @ListToolbarButton
+    void doSomethingOnRows(List<Product> selection) {
+        log.info("do something on {}", selection);
     }
+}
+```
+
+To skip confirmation or allow execution without row selection, set the corresponding attribute to `false`:
+
+```java
+@ListToolbarButton(confirmationRequired = false)
+public Object refresh(List<Grupo> selection) {
+    return Message.builder().text("Refreshed " + selection.size() + " items").build();
 }
 ```
 
 ---
 
-# @ViewToolbarButton
+## @ViewToolbarButton
 
-Adds a toolbar button to a detail/view page.
+Marks a method as a toolbar button on a detail or editor screen.
 
 ```java
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ViewToolbarButton {}
+public @interface ViewToolbarButton {
+    boolean confirmationRequired() default true;
+}
 ```
 
-## Usage
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `confirmationRequired` | `boolean` | `true` | Show a confirmation dialog before executing. |
+
+### Example
 
 ```java
 public class OrderDetailPage {
     String orderId;
 
-    @ViewToolbarButton
+    @ViewToolbarButton(confirmationRequired = false)
     void printOrder() {
-        // print
+        pdfService.print(orderId);
     }
 }
 ```
 
 ---
 
-# @Toolbar
+## @Toolbar
 
-Places the annotated field or method in the toolbar area of a page.
+Places a method or field in the toolbar area of the current view. Combine with `@Action` to add fine-grained behaviour (validation, confirmation, etc.).
 
 ```java
 @Target({ElementType.FIELD, ElementType.METHOD})
@@ -218,22 +231,27 @@ Places the annotated field or method in the toolbar area of a page.
 public @interface Toolbar {}
 ```
 
-## Usage
+No attributes of its own.
+
+### Example
 
 ```java
-public class DashboardPage {
-    @Toolbar
-    Component filterBar = HorizontalLayout.builder()
-        .content(List.of(new Text("Filters:")))
-        .build();
+// CreateReleaseForm.java
+@Toolbar
+@Action(validationRequired = true)
+Object create() {
+    var businessKey = UUID.randomUUID().toString();
+    return URI.create("/workflow/processes/" + businessKey + "?returnTo=/controlPlane/releases");
 }
 ```
 
+`@Toolbar` can also be placed on a field when the field holds a pre-built component that should appear in the toolbar.
+
 ---
 
-# @WizardCompletionAction
+## @WizardCompletionAction
 
-Marks a field or method as the final action in a multi-step wizard, typically rendered as a "Finish" button.
+Marks the final action in a multi-step wizard flow. When the annotated method is invoked, Mateu collects the state from all wizard steps before calling it.
 
 ```java
 @Target({ElementType.FIELD, ElementType.METHOD})
@@ -241,17 +259,53 @@ Marks a field or method as the final action in a multi-step wizard, typically re
 public @interface WizardCompletionAction {}
 ```
 
-## Usage
+No attributes.
+
+### Example
 
 ```java
-public class SetupWizard {
-    @Tab("Step 1") String name;
-    @Tab("Step 2") String plan;
-    @Tab("Step 3") String payment;
+public class SetupWizard extends WizardOrchestrator {
+    StepOne stepOne;
+    StepTwo stepTwo;
+    StepThree stepThree;
 
     @WizardCompletionAction
-    void complete() {
-        // finalize setup
+    Object finish() {
+        setupService.apply(stepOne, stepTwo, stepThree);
+        return URI.create("/dashboard");
     }
+}
+```
+
+The framework calls the `@WizardCompletionAction` method only after all steps have been filled in. It is the last visible button rendered in the wizard navigation.
+
+---
+
+## Action method return values
+
+Action methods can return different types to drive the UI after execution:
+
+| Return type | Effect |
+|---|---|
+| `void` / `null` | Nothing happens; the current view stays open. |
+| A Java object or record (a form, a listing, etc.) | Mateu navigates to that object as a new view. |
+| `URI` | The browser navigates to the given URL. |
+| `Message` | A toast notification is shown (`Message.builder().text("...").build()`). |
+
+```java
+// Navigate to a URL
+Object create() {
+    return URI.create("/workflow/processes/" + UUID.randomUUID());
+}
+
+// Open another component
+CreateReleaseForm createRelease(List<ChangeRow> selectedRows, HttpRequest httpRequest) {
+    return createReleaseForm.withUser(extractUser(httpRequest));
+}
+
+// Show a toast
+@ListToolbarButton(confirmationRequired = false)
+public Object refresh(List<Grupo> selection) {
+    return Message.builder().text("Refreshed " + selection.size() + " items").build();
 }
 ```

@@ -1,125 +1,57 @@
 ---
-title: "Navigation annotations"
+title: "Navigation Annotations"
+description: "Annotations for breadcrumbs and menu entries."
 ---
 
----
-
-# @Menu
-
-Marks a field as a navigation menu entry in a declarative app class.
+## @Breadcrumbs
 
 ```java
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Menu {
-    boolean selected() default false;
-    String description() default "";
-}
-```
-
-## Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `selected` | boolean | `false` | Whether this menu item is highlighted as active |
-| `description` | String | `""` | Description for AI assistants about this menu entry |
-
-## Usage
-
-```java
-@App(AppVariant.DRAWER)
-public class MyApplication implements MenuSupplier {
-
-    @Menu
-    Component invoices = new Text("Invoices");
-
-    @Menu(selected = true)
-    Component dashboard = new Text("Dashboard");
-}
-```
-
----
-
-# @Breadcrumb / @Breadcrumbs
-
-`@Breadcrumbs` placed on a class defines a breadcrumb trail. Each entry is a `@Breadcrumb`.
-
-```java
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Breadcrumb {
-    String label();
-    String url();
-}
-
-@Retention(RetentionPolicy.RUNTIME)
 public @interface Breadcrumbs {
-    Breadcrumb[] value();
+  Breadcrumb[] value();
 }
 ```
 
-## @Breadcrumb attributes
+Attaches a static breadcrumb trail to a page. Each entry is a `@Breadcrumb`.
 
-| Attribute | Type | Description |
-|---|---|---|
-| `label` | String | Displayed link text |
-| `url` | String | Navigation target |
-
-## Usage
+## @Breadcrumb
 
 ```java
-@UI("/invoices/detail")
+public @interface Breadcrumb {
+  String label();
+  String url();
+}
+```
+
+A single breadcrumb entry with a display label and a URL.
+
+Example:
+
+```java
 @Breadcrumbs({
     @Breadcrumb(label = "Home", url = "/"),
-    @Breadcrumb(label = "Invoices", url = "/invoices"),
-    @Breadcrumb(label = "Detail", url = "/invoices/detail")
+    @Breadcrumb(label = "Orders", url = "/orders"),
+    @Breadcrumb(label = "Detail", url = "")
 })
-public class InvoiceDetailPage implements ComponentTreeSupplier { ... }
+public class OrderDetail { ... }
 ```
 
----
-
-# @Header
-
-Places the annotated field in the page header slot.
+## @Menu (Target: FIELD)
 
 ```java
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Header {}
-```
-
-## Usage
-
-```java
-public class DashboardPage {
-    @Header
-    Component topBar = HorizontalLayout.builder()
-        .content(List.of(new Text("Welcome back")))
-        .build();
-
-    String mainContent;
+public @interface Menu {
+  boolean selected() default false;
+  String description() default "";
 }
 ```
 
----
+Marks a field as a navigation menu entry in the application sidebar. `selected` highlights it as the active entry. `description` is a hint for AI assistants explaining the menu entry's purpose.
 
-# @Footer
-
-Places the annotated field in the page footer slot.
+## @HomeRoute
 
 ```java
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Footer {}
-```
-
-## Usage
-
-```java
-public class ReportPage {
-    Component reportBody;
-
-    @Footer
-    Component disclaimer = new Text("Generated automatically. Not for legal use.");
+public @interface HomeRoute {
+  String value();
 }
 ```
+
+Declares which route is the default landing page of the application. Cross-reference: also documented in route.md.

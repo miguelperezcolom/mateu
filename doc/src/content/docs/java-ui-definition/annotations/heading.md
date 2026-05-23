@@ -1,47 +1,49 @@
 ---
-title: "@H1 – @H5"
+title: "Heading Annotations"
+description: "Annotations that render fields as H1–H5 HTML headings."
 ---
 
-Render the annotated field value as an HTML heading element (`<h1>` through `<h5>`). These annotations are typically placed on `String` fields that hold a title or section label.
+## @H1, @H2, @H3, @H4, @H5
+
+All share the same structure:
 
 ```java
 public @interface H1 { String style() default ""; }
 public @interface H2 { String style() default ""; }
-public @interface H3 { String style() default ""; }
-public @interface H4 { String style() default ""; }
-public @interface H5 { String style() default ""; }
+// ... H3, H4, H5 identical
 ```
 
-## Attributes
+Applied to a `String` field, renders its value as the corresponding HTML heading element instead of an input field.
 
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `style` | String | `""` | Inline CSS applied to the heading |
+| Annotation | HTML element | Typical use |
+|------------|-------------|-------------|
+| `@H1` | `<h1>` | Page-level heading |
+| `@H2` | `<h2>` | Section heading |
+| `@H3` | `<h3>` | Sub-section heading |
+| `@H4` | `<h4>` | Group heading |
+| `@H5` | `<h5>` | Minor heading |
 
-## Usage
+Example — inline headings between form fields:
 
 ```java
-public class ContentPage {
-    @H1
-    String pageTitle = "Getting started";
+public class ProductForm {
+    @H2
+    String basicInfo = "Basic Information";
+
+    String name;
+    String description;
 
     @H2
-    String sectionOne = "Installation";
+    String pricingInfo = "Pricing";
 
-    String installationContent;
-
-    @H2
-    String sectionTwo = "Configuration";
-
-    String configContent;
+    double price;
+    String currency;
 }
 ```
 
-## Styling
+The `style` attribute allows custom CSS on the heading element:
 
 ```java
-public class ReportPage {
-    @H1(style = "color: #2c3e50; margin-bottom: 0.5rem;")
-    String reportTitle;
-}
+@H2(style = "color: var(--primary-color);")
+String sectionTitle = "Advanced Settings";
 ```

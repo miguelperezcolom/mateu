@@ -1,92 +1,58 @@
 ---
-title: "@Style / @CssClasses / @DivStyle"
+title: "Styling Annotations"
+description: "Annotations for inline styles, CSS classes, and structural wrappers."
 ---
 
-Applies inline CSS to a class, field, or parameter.
+## @Style (Target: TYPE, FIELD, PARAMETER)
 
 ```java
-@Target({ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER})
-@Retention(RetentionPolicy.RUNTIME)
 public @interface Style {
-    String value();
+  String value();  // inline CSS string
 }
 ```
 
-## Usage on a class
+Applies inline CSS to the component's root element. Applied on a class, styles the page container.
+
+Example from the demo:
 
 ```java
-@UI("/dashboard")
-@Style("max-width: 1200px; margin: auto; padding: 1rem;")
-public class DashboardPage implements ComponentTreeSupplier { ... }
+@UI("/home")
+@Style("max-width: 900px; margin: auto;")
+public class Home { ... }
 ```
 
-## Usage on a field
+## @CssClasses (Target: TYPE, FIELD, PARAMETER)
 
 ```java
-public class InvoiceForm {
-    @Style("color: red; font-weight: bold;")
-    String status;
-}
-```
-
-## Predefined style constants
-
-Mateu ships `StyleConstants` with ready-made values:
-
-```java
-@Style(StyleConstants.CONTAINER)
-public class MyPage implements ComponentTreeSupplier { ... }
-```
-
----
-
-# @CssClasses
-
-Applies one or more CSS class names to a class, field, or parameter.
-
-```java
-@Target({ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER})
-@Retention(RetentionPolicy.RUNTIME)
 public @interface CssClasses {
-    String value();
+  String value();  // space-separated class names
 }
 ```
 
-## Usage
+Adds CSS class names to the component's root element.
+
+## @DivStyle (Target: TYPE, FIELD, PARAMETER)
 
 ```java
-@UI("/dashboard")
-@CssClasses("my-page highlight-layout")
-public class DashboardPage implements ComponentTreeSupplier { ... }
-```
-
----
-
-# @DivStyle
-
-Applies inline CSS to the wrapping `<div>` container of a class, field, or parameter. Useful when you need to style the outer wrapper independently of the component itself.
-
-```java
-@Target({ElementType.TYPE, ElementType.FIELD, ElementType.PARAMETER})
-@Retention(RetentionPolicy.RUNTIME)
 public @interface DivStyle {
-    String value();
+  String value();  // inline CSS string
 }
 ```
 
-## Usage
+Applies inline CSS to the wrapper `<div>` around the element, rather than the element itself. Useful when you need to style the layout container rather than the component.
+
+## StyleConstants
+
+Mateu provides a `StyleConstants` class with predefined style values:
 
 ```java
-public class OrderForm {
-    @DivStyle("background: #f5f5f5; padding: 1rem; border-radius: 8px;")
-    String notes;
-}
+// Common usage
+@Style(StyleConstants.CONTAINER)  // centers content with max-width
 ```
 
-## Difference from @Style
+Difference between @Style and @DivStyle:
 
 | Annotation | Styled element |
 |---|---|
-| `@Style` | The component itself |
-| `@DivStyle` | The wrapping container div |
-| `@CssClasses` | CSS classes on the component |
+| `@Style` | The component element itself |
+| `@DivStyle` | The outer wrapper div |

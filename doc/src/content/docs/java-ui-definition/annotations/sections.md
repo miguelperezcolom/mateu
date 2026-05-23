@@ -1,36 +1,37 @@
 ---
-title: "Grouping annotations"
+title: "Section Annotations"
+description: "Annotations for page structure: header, footer, toolbar and sections."
 ---
 
-These annotations group fields within a page into sections, tabs, accordions, or lists.
+These annotations control the structural slots of a page — named form sections, the header area, the footer area, and the toolbar strip. They let you organise fields and actions without writing any layout code.
 
 ---
 
-# @Section
+## @Section
 
-Groups subsequent fields under a labelled section heading within a form.
+**Target:** `FIELD`, `METHOD`
+
+Groups the annotated field and all subsequent fields under a named section heading within a form. A new section begins at each `@Section` annotation and ends at the next one. Each section can have its own column count, giving you fine-grained layout control within a single page.
 
 ```java
-@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Section {
-    String value();
+    String value();             // section title (required)
     int columns() default 1;
     String style() default "";
 }
 ```
 
-## Attributes
+### Attributes
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `value` | String | — | Section heading label |
-| `columns` | int | `1` | Number of columns inside this section |
-| `style` | String | `""` | Inline CSS for the section container |
+| `value` | `String` | — | Section heading label, displayed as a visible separator (required) |
+| `columns` | `int` | `1` | Number of form columns inside this section |
+| `style` | `String` | `""` | Inline CSS applied to the section container |
 
-## Usage
-
-A `@Section` annotation on a field starts a new section that contains that field and all subsequent fields until the next `@Section`.
+### Example
 
 ```java
 public class CustomerForm {
@@ -46,142 +47,175 @@ public class CustomerForm {
 }
 ```
 
+The `Personal data` section uses the default single-column layout. The `Contact` section switches to two columns. Fields belong to whichever section was declared most recently above them.
+
 ---
 
-# @Tabs / @Tab
+## @Header
 
-`@Tabs` placed on the class and `@Tab` on individual fields organise the form into switchable tabs.
+**Target:** `FIELD`
+
+Marks a field to be rendered in the page header area, above the main form content. Use this for prominent display components such as avatars, banners, or status summaries.
+
+No attributes.
 
 ```java
-public @interface Tabs {
-    String theme() default "";
-    String direction() default "";
-    String style() default "";
-}
-
-@Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Tab {
-    String value() default "";
-    int order() default 0;
-}
+@Target({ElementType.FIELD})
+public @interface Header {}
 ```
 
-## @Tabs attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `theme` | String | `""` | Visual theme variant |
-| `direction` | String | `""` | Tab direction (`"horizontal"` or `"vertical"`) |
-| `style` | String | `""` | Inline CSS |
-
-## @Tab attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `value` | String | `""` | Tab label |
-| `order` | int | `0` | Display order |
-
-## Usage
+### Example
 
 ```java
-@UI("/account")
-@Tabs
-public class AccountPage {
-    @Tab("Profile")
-    String firstName;
-    String lastName;
+public class UserProfilePage {
+    @Header
+    Component profileBanner;
 
-    @Tab("Security")
-    String password;
-    String mfaEnabled;
-
-    @Tab("Preferences")
-    String language;
-    String timezone;
+    String username;
+    String email;
 }
 ```
 
 ---
 
-# @Accordion / @AccordionPanel
+## @Footer
 
-`@Accordion` on the class and `@AccordionPanel` on fields render the form as collapsible panels.
+**Target:** `FIELD`
+
+Marks a field to be rendered in the page footer area, below the main form content. Suitable for summary statistics, legal notices, or secondary action areas.
+
+No attributes.
 
 ```java
-public @interface Accordion {
-    String style() default "";
-    int opened() default 0;
-}
-
-public @interface AccordionPanel {
-    String theme() default "";
-    String style() default "";
-    String summary() default "";
-    boolean disabled() default false;
-}
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD})
+public @interface Footer {}
 ```
 
-## @Accordion attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `style` | String | `""` | Inline CSS for the accordion container |
-| `opened` | int | `0` | Index of the initially opened panel |
-
-## @AccordionPanel attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `summary` | String | `""` | Panel header text |
-| `theme` | String | `""` | Visual theme variant |
-| `style` | String | `""` | Inline CSS for this panel |
-| `disabled` | boolean | `false` | Whether this panel is disabled |
-
-## Usage
+### Example
 
 ```java
-@UI("/settings")
-@Accordion(opened = 0)
-public class SettingsPage {
-    @AccordionPanel(summary = "General")
-    String language;
-    String timezone;
+public class ReportPage {
+    List<ReportRow> rows;
 
-    @AccordionPanel(summary = "Notifications")
-    boolean emailNotifications;
-    boolean smsNotifications;
+    @Footer
+    Component totalsSummary;
 }
 ```
 
 ---
 
-# @List
+## @Toolbar
 
-Renders a field as an ordered or unordered list.
+**Target:** `FIELD`, `METHOD`
+
+Places the annotated field or method in the view toolbar, the strip displayed at the top of the page. Methods annotated with `@Toolbar` become toolbar buttons; fields become toolbar components.
+
+Combine `@Toolbar` with `@Action` to add behaviour such as form validation or confirmation dialogs before the method runs.
+
+No attributes.
 
 ```java
-public @interface List {
-    String style() default "";
-    boolean ordered() default false;
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.METHOD})
+public @interface Toolbar {}
+```
+
+### Example — toolbar buttons on a form
+
+```java
+// AllTypesForm.java
+@UI("/all-types")
+@Title("All Types Form")
+public class AllTypesForm {
+
+    @NotEmpty
+    String text;
+    int count;
+    boolean active;
+
+    @Button
+    public Message save() {
+        return new Message("Saved: " + text);
+    }
+
+    @Toolbar
+    public Message refresh() {
+        return new Message("Refreshed!");
+    }
 }
 ```
 
-## Attributes
+### Example — toolbar with validation
 
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `ordered` | boolean | `false` | `true` for `<ol>`, `false` for `<ul>` |
-| `style` | String | `""` | Inline CSS |
-
-## Usage
+From the `CreateReleaseForm` demo:
 
 ```java
-public class ProductPage {
-    @List(ordered = false)
-    java.util.List<String> features;
-
-    @List(ordered = true)
-    java.util.List<String> installationSteps;
+@Toolbar
+@Action(validationRequired = true)
+Object create() {
+    var businessKey = UUID.randomUUID().toString();
+    return URI.create("/workflow/processes/" + businessKey + "?returnTo=/controlPlane/releases");
 }
 ```
+
+### Example — record with toolbar method
+
+The `Product` record in the admin-panel demo places a `doNothing` method in the detail toolbar:
+
+```java
+record Product(
+    @NotEmpty @EditableOnlyWhenCreating String id,
+    @NotEmpty String name,
+    @HiddenInList String description,
+    boolean certified,
+    ProductStatus status,
+    ColumnActionGroup action,
+    @Colspan(2) List<ProductComponent> components
+) implements Identifiable {
+
+    @Toolbar
+    public void doNothing() {
+        log.info("do nothing");
+    }
+}
+```
+
+---
+
+## Combining section annotations
+
+The annotations compose naturally. The following `OrderForm` example shows sections with different column counts, toolbar actions for save and cancel, and a footer summary component:
+
+```java
+public class OrderForm {
+
+    @Section(value = "Customer", columns = 2)
+    String customerId;
+    String customerName;
+
+    @Section(value = "Items", columns = 1)
+    List<OrderLine> lines;
+
+    @Section(value = "Totals", columns = 2)
+    double subtotal;
+    double vatAmount;
+    double total;
+
+    @Footer
+    Component paymentTerms;
+
+    @Toolbar
+    void save() { /* persist the order */ }
+
+    @Toolbar
+    void cancel() { /* discard and navigate back */ }
+}
+```
+
+- The `Customer` section renders `customerId` and `customerName` side-by-side in two columns.
+- The `Items` section stretches `lines` across the full width.
+- The `Totals` section returns to a two-column layout for the numeric fields.
+- `paymentTerms` appears in the footer slot below all sections.
+- `save` and `cancel` are rendered as buttons in the toolbar at the top of the page.

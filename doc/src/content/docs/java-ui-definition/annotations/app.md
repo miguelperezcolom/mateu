@@ -1,100 +1,203 @@
 ---
-title: "@App / @DrawerClosed / @Logo / @FavIcon"
+title: "App Annotations"
+description: "Annotations for defining the application shell, security, favicon and logo."
 ---
 
-Applies an application layout variant to a class that acts as the root application shell.
+## @UI
+
+**Target:** `TYPE`
+
+The primary annotation. Registers a class as a UI endpoint and mounts it at the given route path. Every Mateu application needs at least one `@UI`-annotated class.
 
 ```java
-@Retention(RetentionPolicy.RUNTIME)
+public @interface UI {
+    String value();                                         // required: route path e.g. "/orders"
+    String indexHtmlPath() default "/static/_index.html";
+    String frontendComponentPath() default "/assets/mateu.js";
+}
+```
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `value` | `String` | — | URL path at which this UI is mounted |
+| `indexHtmlPath` | `String` | `"/static/_index.html"` | Path to the HTML shell served for this UI |
+| `frontendComponentPath` | `String` | `"/assets/mateu.js"` | Path to the compiled frontend component |
+
+```java
+@UI("/home")
+@Title("My first Mateu app")
+public class Home {
+
+    @NotEmpty
+    String name;
+
+    @Button
+    public Message greet() {
+        return new Message("Hello " + name);
+    }
+}
+```
+
+---
+
+## @App
+
+Marks a class as the application shell and selects its navigation layout variant.
+
+```java
 public @interface App {
     AppVariant value();
 }
 ```
 
-## Attributes
-
 | Attribute | Type | Description |
 |---|---|---|
-| `value` | `AppVariant` | Layout variant: `TABS`, `DRAWER`, `TOP_MENU`, etc. |
+| `value` | `AppVariant` | Layout variant for the application shell |
 
-## Usage
+**`AppVariant` values:**
+
+| Value | Description |
+|---|---|
+| `HAMBURGUER_MENU` | Collapsible hamburger-style navigation drawer |
+| `MENU_ON_LEFT` | Persistent navigation panel on the left side |
+| `MENU_ON_TOP` | Navigation bar along the top |
+| `TABS` | Tab-based navigation |
+| `AUTO` | Framework chooses the best variant automatically |
+| `MEDIATOR` | Used for nested sub-applications acting as a mediator |
 
 ```java
-@App(AppVariant.DRAWER)
-public class MyApplication implements MenuSupplier { ... }
+@UI("/app")
+@App(AppVariant.HAMBURGUER_MENU)
+public class ShellApp implements App { ... }
 ```
 
 ---
 
-# @DrawerClosed
+## @PageTitle
 
-Starts the application with the side drawer closed by default.
+**Target:** `TYPE`
+
+Sets the browser tab title (`<title>` element in the HTML).
 
 ```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface DrawerClosed {}
+public @interface PageTitle {
+    String value();
+}
 ```
 
-## Usage
-
 ```java
-@App(AppVariant.DRAWER)
-@DrawerClosed
-public class MyApplication implements MenuSupplier { ... }
+@UI("/orders")
+@PageTitle("Orders – My App")
+public class OrdersPage { ... }
 ```
 
 ---
 
-# @Logo
+## @Title
 
-Sets the URL of the application logo displayed in the header or drawer.
+**Target:** `TYPE`
+
+Sets the visible heading rendered inside the page, above the content area.
 
 ```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
+public @interface Title {
+    String value();
+}
+```
+
+```java
+@UI("/home")
+@Title("My first Mateu app")
+public class Home { ... }
+```
+
+> `@Title` controls the heading inside the page UI. `@PageTitle` controls the browser tab. Both can be combined.
+
+---
+
+## @Subtitle
+
+**Target:** `TYPE`
+
+Sets a subtitle displayed below the page title.
+
+```java
+public @interface Subtitle {
+    String value();
+}
+```
+
+```java
+@UI("/products")
+@Title("Product Catalog")
+@Subtitle("Browse and manage all products")
+public class ProductCatalog { ... }
+```
+
+---
+
+## @Logo
+
+**Target:** `TYPE`
+
+Sets the URL of the image displayed as the application logo in the header or navigation drawer.
+
+```java
 public @interface Logo {
-    String value();
+    String value();  // URL or path to the logo image
 }
 ```
 
-## Usage
-
 ```java
+@UI("/_workflow")
 @Logo("/images/logo.svg")
-public class MyApplication implements MenuSupplier { ... }
+public class WorkflowHome { ... }
 ```
 
 ---
 
-# @FavIcon
+## @FavIcon
 
-Sets the browser favicon for the application.
+**Target:** `TYPE`
+
+Sets the browser favicon for the UI.
 
 ```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
 public @interface FavIcon {
-    String value();
+    String value();  // URL or path to the favicon
 }
 ```
 
-## Usage
-
 ```java
+@UI("/_workflow")
 @FavIcon("/images/favicon.ico")
-public class MyApplication implements MenuSupplier { ... }
+public class WorkflowHome { ... }
 ```
 
 ---
 
-# @KeycloakSecured
+## @DrawerClosed
 
-Protects a page or application with Keycloak-based authentication.
+**Target:** `TYPE`
+
+No attributes. Starts the navigation drawer in the closed (collapsed) state when the page is first loaded.
 
 ```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
+@UI("/app")
+@App(AppVariant.HAMBURGUER_MENU)
+@DrawerClosed
+public class ShellApp implements App { ... }
+```
+
+---
+
+## @KeycloakSecured
+
+**Target:** `TYPE`
+
+Integrates Keycloak authentication. The frontend will redirect unauthenticated users to the Keycloak login page before the UI is displayed.
+
+```java
 public @interface KeycloakSecured {
     String url();
     String realm();
@@ -103,49 +206,99 @@ public @interface KeycloakSecured {
 }
 ```
 
-## Attributes
-
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `url` | String | — | Keycloak server URL |
-| `realm` | String | — | Keycloak realm name |
-| `clientId` | String | — | Keycloak client ID |
-| `jsUrl` | String | `""` | Optional override for the Keycloak JS adapter URL |
-
-## Usage
+| `url` | `String` | — | Keycloak server base URL |
+| `realm` | `String` | — | Keycloak realm name |
+| `clientId` | `String` | — | Keycloak client ID |
+| `jsUrl` | `String` | `""` | Optional override for the Keycloak JS adapter URL |
 
 ```java
+@UI("/_workflow")
 @KeycloakSecured(
-    url = "https://auth.example.com",
-    realm = "myrealm",
+    url    = "https://auth.example.com",
+    realm  = "myrealm",
     clientId = "my-app"
 )
-public class SecuredApp implements ComponentTreeSupplier { ... }
+public class WorkflowHome { ... }
 ```
 
 ---
 
-# @AI
+## @UISpec
 
-Enables AI integration via SSE (Server-Sent Events) for a page or class.
+**Target:** `TYPE`
+
+Points to a YAML file that describes the UI declaratively instead of (or alongside) Java annotations.
 
 ```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface AI {
-    String sse();
+public @interface UISpec {
+    String value();  // path to a YAML UI spec file
 }
 ```
 
-## Attributes
+```java
+@UI("/dashboard")
+@UISpec("/specs/dashboard.yaml")
+public class Dashboard { ... }
+```
+
+---
+
+## @AI
+
+**Target:** `TYPE`
+
+Enables an AI assistant sidebar for the UI by wiring it to a Server-Sent Events (SSE) endpoint that streams AI responses.
+
+```java
+public @interface AI {
+    String sse();  // SSE endpoint for AI assistant streaming
+}
+```
 
 | Attribute | Type | Description |
 |---|---|---|
-| `sse` | String | SSE endpoint path for AI communication |
-
-## Usage
+| `sse` | `String` | Path to the SSE endpoint that provides AI responses |
 
 ```java
-@AI(sse = "/ai/stream")
-public class AiPage implements ComponentTreeSupplier { ... }
+@UI("/support")
+@AI(sse = "/api/ai/stream")
+public class SupportPage { ... }
+```
+
+---
+
+## Combined example
+
+```java
+@UI("/home")
+@Title("My first Mateu app")
+@Style(StyleConstants.CONTAINER)
+public class Home {
+
+    @NotEmpty
+    String name;
+
+    @Button
+    public Message greet() {
+        return new Message("Hello " + name);
+    }
+}
+```
+
+A full application shell combining several annotations:
+
+```java
+@UI("/_workflow")
+@FavIcon("/images/favicon.svg")
+@PageTitle("Workflow Engine")
+@Logo("/images/logo.svg")
+@Title("Workflow Engine")
+@KeycloakSecured(url = "https://auth.example.com", realm = "myrealm", clientId = "workflow")
+public class WorkflowHome {
+
+    @Menu
+    WorkflowMenu workflow;
+}
 ```

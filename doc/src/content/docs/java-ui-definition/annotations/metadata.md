@@ -1,89 +1,19 @@
 ---
-title: "@Title / @PageTitle / @Subtitle / @Label / @Help"
+title: "Metadata Annotations"
+description: "Annotations for labels, help text, headings and display metadata."
 ---
 
-Sets the visible title of a page, displayed in the page header.
+## @Label
+
+**Target:** `FIELD`, `METHOD`
+
+Overrides the auto-generated label for a field or action. By default Mateu derives the label from the Java field name (e.g. `dateOfBirth` becomes "Date Of Birth"). Use `@Label` when you need a different wording.
 
 ```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Title {
-    String value();
-}
-```
-
-## Usage
-
-```java
-@UI("/invoices")
-@Title("Invoice Management")
-public class InvoicePage implements ComponentTreeSupplier { ... }
-```
-
----
-
-# @PageTitle
-
-Sets the browser tab title (`<title>` element in the HTML).
-
-```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface PageTitle {
-    String value();
-}
-```
-
-## Usage
-
-```java
-@UI("/invoices")
-@PageTitle("Invoices – My App")
-public class InvoicePage implements ComponentTreeSupplier { ... }
-```
-
-## Difference from @Title
-
-- `@Title` controls the heading visible inside the page UI.
-- `@PageTitle` controls the browser tab and document title.
-
----
-
-# @Subtitle
-
-Sets the subtitle shown below the page title.
-
-```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Subtitle {
-    String value();
-}
-```
-
-## Usage
-
-```java
-@Title("Invoice Management")
-@Subtitle("All invoices for the current period")
-public class InvoicePage implements ComponentTreeSupplier { ... }
-```
-
----
-
-# @Label
-
-Overrides the display label for a field or method. By default Mateu infers the label from the field name.
-
-```java
-@Target({ElementType.FIELD, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
 public @interface Label {
     String value();
 }
 ```
-
-## Usage
 
 ```java
 public class CustomerForm {
@@ -92,31 +22,205 @@ public class CustomerForm {
 
     @Label("Date of birth")
     LocalDate dob;
+
+    @Label("Save customer")
+    @Button
+    public void save() { ... }
 }
 ```
 
 ---
 
-# @Help
+## @Help
 
-Attaches a help text or tooltip to a class, field, or action.
+**Target:** `TYPE`, `FIELD`, `METHOD`
+
+Attaches a help text to a class, field, or action. Displayed as a tooltip or helper text below the component, depending on the frontend theme.
 
 ```java
-@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
 public @interface Help {
     String value();
 }
 ```
 
-## Usage
-
 ```java
 public class CustomerForm {
     @Label("VAT number")
-    @Help("Enter the full VAT number including country prefix (e.g. ES12345678A)")
+    @Help("Enter the full VAT number including country prefix, e.g. ES12345678A")
     String vatNumber;
 }
 ```
 
-The help text is shown as a tooltip or helper text below the field, depending on the frontend theme.
+---
+
+## @H1, @H2, @H3, @H4, @H5
+
+Applied to a `String` field, these annotations render its value as an HTML heading of the corresponding level. Useful for adding section titles or dynamic headings inside a form.
+
+```java
+public @interface H1 { String style() default ""; }
+public @interface H2 { String style() default ""; }
+public @interface H3 { String style() default ""; }
+public @interface H4 { String style() default ""; }
+public @interface H5 { String style() default ""; }
+```
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `style` | `String` | `""` | Optional inline CSS applied to the heading element |
+
+```java
+public class ReportPage {
+    @H1
+    String title = "Annual Report";
+
+    @H2
+    String section = "Financial Summary";
+
+    @H3(style = "color: gray;")
+    String subsection = "Revenue";
+}
+```
+
+---
+
+## @Text
+
+**Target:** `FIELD`
+
+Displays a `String` field as static text instead of an input field. The `container` attribute controls the HTML wrapper element.
+
+```java
+public @interface Text {
+    TextContainer container() default TextContainer.p;
+}
+```
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `container` | `TextContainer` | `p` | HTML element used to wrap the text |
+
+**`TextContainer` values:** `div`, `p`, `h1`, `h2`, `h3`, `h4`, `h5`, `h6`, `span`
+
+```java
+public class ConfirmationPage {
+    @Text
+    String message = "Your order has been placed successfully.";
+
+    @Text(container = TextContainer.span)
+    String note = "A confirmation email will be sent shortly.";
+}
+```
+
+---
+
+## @Title and @Subtitle
+
+Applied at type level. See [App Annotations](./app) for full documentation.
+
+- `@Title` — sets the visible heading rendered inside the page.
+- `@Subtitle` — sets a subtitle displayed below the title.
+
+---
+
+## @Status + @StatusMapping
+
+**Target:** `FIELD`
+
+Renders an enum field as a coloured status badge instead of a plain text value. Each enum constant is mapped to a `StatusType` colour.
+
+```java
+public @interface Status {
+    StatusMapping[] mappings();
+    StatusType defaultStatus();
+}
+
+public @interface StatusMapping {
+    String from();      // enum constant name as a String
+    StatusType to();    // badge colour
+}
+```
+
+**`Status` attributes:**
+
+| Attribute | Type | Description |
+|---|---|---|
+| `mappings` | `StatusMapping[]` | Array of enum-value-to-colour mappings |
+| `defaultStatus` | `StatusType` | Colour used when no mapping matches |
+
+**`StatusMapping` attributes:**
+
+| Attribute | Type | Description |
+|---|---|---|
+| `from` | `String` | The enum constant name to match (case-sensitive) |
+| `to` | `StatusType` | The badge colour to display |
+
+**`StatusType` values:**
+
+| Value | Badge appearance |
+|---|---|
+| `NONE` | No badge (plain text) |
+| `INFO` | Blue informational badge |
+| `SUCCESS` | Green success badge |
+| `WARNING` | Yellow/orange warning badge |
+| `DANGER` | Red danger / error badge |
+
+### Example
+
+From the Products demo:
+
+```java
+enum ProductStatus {
+    Available, OutOfStock
+}
+
+record Product(
+    String id,
+    String name,
+    @NotNull
+    @Status(
+        defaultStatus = StatusType.NONE,
+        mappings = {
+            @StatusMapping(from = "Available", to = StatusType.SUCCESS),
+            @StatusMapping(from = "OutOfStock", to = StatusType.DANGER)
+        }
+    )
+    ProductStatus status
+) implements Identifiable { ... }
+```
+
+The `status` field is displayed as a green "Available" badge or a red "OutOfStock" badge in both list and detail views.
+
+From the status demo form:
+
+```java
+enum ItemStatus {
+    Active, Inactive
+}
+
+@UI("/status-demo")
+@Title("Status Demo")
+public class StatusDemoForm {
+
+    @Status(
+        defaultStatus = StatusType.NONE,
+        mappings = {
+            @StatusMapping(from = "Active",   to = StatusType.SUCCESS),
+            @StatusMapping(from = "Inactive", to = StatusType.DANGER)
+        }
+    )
+    ItemStatus status = ItemStatus.Active;
+
+    @Button
+    public Message activate() {
+        status = ItemStatus.Active;
+        return new Message("Activated!");
+    }
+
+    @Button
+    public Message deactivate() {
+        status = ItemStatus.Inactive;
+        return new Message("Deactivated!");
+    }
+}
+```

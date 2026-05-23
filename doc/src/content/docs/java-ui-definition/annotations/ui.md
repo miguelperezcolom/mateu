@@ -1,53 +1,59 @@
 ---
-title: "@UI"
+title: "UI & UISpec Annotations"
+description: "The core @UI annotation and the YAML-based @UISpec alternative."
 ---
 
-Registers a class as a Mateu UI entry point and binds it to a URL path.
+## @UI (Target: TYPE)
 
 ```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
 public @interface UI {
-    String value();
-    String indexHtmlPath() default "/static/_index.html";
-    String frontendComponentPath() default "/assets/mateu.js";
+  String value();                                           // required: URL path
+  String indexHtmlPath() default "/static/_index.html";
+  String frontendComponentPath() default "/assets/mateu.js";
 }
 ```
 
-## Attributes
+The foundational annotation of the Mateu framework. Registers a Java class as a UI endpoint accessible at the given URL path.
 
 | Attribute | Type | Default | Description |
-|---|---|---|---|
-| `value` | String | — | URL path this UI is served at (e.g. `"/app"`) |
-| `indexHtmlPath` | String | `"/static/_index.html"` | Path to the HTML shell served for SPA navigation |
-| `frontendComponentPath` | String | `"/assets/mateu.js"` | Path to the Mateu frontend JS bundle |
+|-----------|------|---------|-------------|
+| `value` | `String` | — | URL path where this UI is served (e.g. `/orders`) |
+| `indexHtmlPath` | `String` | `/static/_index.html` | Path to the HTML shell page |
+| `frontendComponentPath` | `String` | `/assets/mateu.js` | Path to the frontend JS component |
 
-## Basic usage
+How it works:
+
+1. Mateu's annotation processor scans for `@UI` at startup
+2. Registers the class as a handler for the given path
+3. When a request arrives, instantiates the class and generates the UIDL (UI Definition Language) response
+4. The frontend renders the UIDL as an interactive UI
+
+Example:
 
 ```java
-@UI("/app")
-public class MyApp implements ComponentTreeSupplier {
+@UI("/orders")
+public class Orders extends AutoCrudOrchestrator<Order> {
     @Override
-    public Component component(HttpRequest httpRequest) {
-        return new Text("Hello from MyApp");
+    public AutoCrudAdapter<Order> simpleAdapter() {
+        return new OrderAdapter();
     }
 }
 ```
 
-## With custom HTML shell
+## @UISpec (Target: TYPE)
 
 ```java
-@UI(value = "/admin", indexHtmlPath = "/static/admin.html")
-public class AdminApp implements ComponentTreeSupplier {
-    @Override
-    public Component component(HttpRequest httpRequest) {
-        return new Text("Admin area");
-    }
+public @interface UISpec {
+  String value();  // path to YAML UI specification file
 }
 ```
 
-## Notes
+Alternative to code-based UI definition. Points to a YAML file that describes the UI structure declaratively without Java annotations.
 
-- Exactly one class per URL path should carry `@UI`.
-- For route-based navigation within a UI, use [`@Route`](../route/) instead.
-- `@UI` is typically combined with `ComponentTreeSupplier` for a fully fluent setup, or placed on a declarative page class.
+Used when:
+
+- The UI is defined by a non-Java team
+- The UI structure changes frequently without code changes
+- Integrating with external tooling that generates YAML
+
+Cross-reference: see the [YAML UI Definition](/java-ui-definition/yaml-ui-definition/) guide for the full YAML format.

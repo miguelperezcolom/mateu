@@ -1,46 +1,42 @@
 ---
-title: "Display annotations"
+title: "Display Annotations"
+description: "Annotations for visual display components: avatars, KPIs, widgets and details."
 ---
 
-These annotations control how field values are presented visually.
+These annotations control how field values are presented visually — as tiles, collapsible panels, navigation entries, or custom widgets.
 
 ---
 
-# @H1 – @H5
+## @Avatar
 
-Render the annotated field value as an HTML heading of the given level.
+**Target:** `FIELD`
+
+No attributes. Renders the field as an avatar component — either an image (when the field holds a URL) or a styled initials badge (when the field holds a name string).
 
 ```java
-public @interface H1 { String style() default ""; }
-public @interface H2 { String style() default ""; }
-public @interface H3 { String style() default ""; }
-public @interface H4 { String style() default ""; }
-public @interface H5 { String style() default ""; }
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Avatar {}
 ```
 
-## Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `style` | String | `""` | Inline CSS applied to the heading element |
-
-## Usage
+### Example
 
 ```java
-public class ReportPage {
-    @H1
-    String reportTitle = "Annual Revenue Report";
+public class UserCard {
+    @Avatar
+    String profilePhotoUrl;
 
-    @H2
-    String sectionTitle = "Q1 Results";
+    String displayName;
 }
 ```
 
 ---
 
-# @KPI
+## @KPI
 
-Renders a field as a KPI (Key Performance Indicator) tile with a large numeric display.
+**Target:** `FIELD`
+
+No attributes. Renders the field as a Key Performance Indicator tile — a large numeric metric with a label, intended for dashboard pages.
 
 ```java
 @Target(ElementType.FIELD)
@@ -48,7 +44,7 @@ Renders a field as a KPI (Key Performance Indicator) tile with a large numeric d
 public @interface KPI {}
 ```
 
-## Usage
+### Example
 
 ```java
 public class DashboardPage {
@@ -65,124 +61,37 @@ public class DashboardPage {
 
 ---
 
-# @Status
+## @Widget
 
-Maps a string field value to a coloured badge based on a set of `@StatusMapping` rules.
+**Target:** `FIELD`
+
+No attributes. Marks a field as a custom widget. The field's type must implement the appropriate widget interface. Mateu delegates rendering entirely to the widget.
 
 ```java
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Status {
-    StatusMapping[] mappings();
-    StatusType defaultStatus();
-}
-
-public @interface StatusMapping {
-    String from();
-    StatusType to();
-}
+public @interface Widget {}
 ```
 
-## StatusType values
-
-| Value | Colour |
-|---|---|
-| `success` | Green |
-| `error` | Red |
-| `warning` | Yellow/orange |
-| `info` | Blue |
-| `contrast` | High-contrast |
-| `primary` | Primary theme colour |
-
-## Usage
+### Example
 
 ```java
-public class InvoiceRow {
-    String invoiceNumber;
+public class DashboardPage {
+    @Widget
+    Component salesChart;
 
-    @Status(
-        mappings = {
-            @StatusMapping(from = "DRAFT", to = StatusType.info),
-            @StatusMapping(from = "SENT", to = StatusType.warning),
-            @StatusMapping(from = "PAID", to = StatusType.success),
-            @StatusMapping(from = "OVERDUE", to = StatusType.error)
-        },
-        defaultStatus = StatusType.contrast
-    )
-    String status;
+    @Widget
+    Component revenueKpi;
 }
 ```
 
 ---
 
-# @MappedValue
+## @Details
 
-Replaces raw field values with human-readable display strings before rendering.
+**Target:** `FIELD`
 
-```java
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface MappedValue {
-    ValueMapping[] mappings();
-    String defaultValue();
-}
-
-public @interface ValueMapping {
-    String from();
-    String to();
-}
-```
-
-## Usage
-
-```java
-public class UserRow {
-    String name;
-
-    @MappedValue(
-        mappings = {
-            @ValueMapping(from = "M", to = "Male"),
-            @ValueMapping(from = "F", to = "Female"),
-            @ValueMapping(from = "X", to = "Non-binary")
-        },
-        defaultValue = "Unknown"
-    )
-    String gender;
-}
-```
-
----
-
-# @SliderMin / @SliderMax
-
-Set the minimum and maximum values for a slider field (used together with `@Representation(FieldStereotype.slider)`).
-
-```java
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface SliderMin { int value(); }
-
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface SliderMax { int value(); }
-```
-
-## Usage
-
-```java
-public class PricingForm {
-    @Representation(FieldStereotype.slider)
-    @SliderMin(0)
-    @SliderMax(100)
-    int discount;
-}
-```
-
----
-
-# @Details
-
-Renders the annotated field inside a collapsible `<details>` panel.
+Wraps the field content in a collapsible details/summary component. The `summary` attribute is the header shown in the collapsed state; set `opened` to `true` to start the panel expanded.
 
 ```java
 @Target(ElementType.FIELD)
@@ -195,16 +104,16 @@ public @interface Details {
 }
 ```
 
-## Attributes
+### Attributes
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `summary` | String | `""` | Label shown in the collapsed header |
-| `opened` | boolean | `false` | Whether the panel is initially expanded |
-| `theme` | String | `""` | Visual theme variant |
-| `style` | String | `""` | Inline CSS |
+| `summary` | `String` | `""` | Label shown in the collapsed header |
+| `opened` | `boolean` | `false` | Whether the panel is initially expanded |
+| `theme` | `String` | `""` | Visual theme variant |
+| `style` | `String` | `""` | Inline CSS applied to the details container |
 
-## Usage
+### Example
 
 ```java
 public class OrderForm {
@@ -218,24 +127,117 @@ public class OrderForm {
 
 ---
 
-# @Widget
+## @Menu
 
-Renders a field as a widget in the dashboard or widget area of a page.
+**Target:** `FIELD`
+
+Renders the field as a navigation menu entry. The `description` attribute is a hint for AI assistants to understand the purpose of the menu item.
 
 ```java
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Widget {}
-```
-
-## Usage
-
-```java
-public class DashboardPage {
-    @Widget
-    Component salesChart;
-
-    @Widget
-    Component revenueKpi;
+public @interface Menu {
+    boolean selected() default false;
+    String description() default "";
 }
 ```
+
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `selected` | `boolean` | `false` | Whether this menu entry is shown as active/selected |
+| `description` | `String` | `""` | Hint text for AI assistants describing the entry's purpose |
+
+### Example
+
+```java
+public class SidebarPage {
+    @Menu(selected = true, description = "Main overview dashboard")
+    Component dashboard;
+
+    @Menu(description = "Manage customer records")
+    Component customers;
+}
+```
+
+---
+
+## @Button
+
+**Target:** `FIELD`, `METHOD`
+
+No attributes. Renders a method as a clickable button, or a field as a button action. When placed on a method, Mateu calls that method on click. See also the [actions](../actions/) reference.
+
+```java
+public @interface Button {}
+```
+
+### Example
+
+```java
+public class OrderForm {
+    String orderId;
+
+    @Button
+    void save() {
+        // called when the button is clicked
+    }
+}
+```
+
+---
+
+## @State
+
+**Target:** `FIELD`
+
+Marks a field as part of the tracked component state. State fields can be referenced in `@Rule` conditions and `@Trigger` expressions without triggering a full server round-trip.
+
+```java
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface State {
+    String value();
+}
+```
+
+### Attributes
+
+| Attribute | Type | Description |
+|---|---|---|
+| `value` | `String` | State identifier used in rule and trigger expressions |
+
+### Example
+
+```java
+public class WizardForm {
+    @State("currentStep")
+    int step = 1;
+
+    String firstName;
+    String lastName;
+}
+```
+
+---
+
+## @Stereotype vs @Representation
+
+These two annotations are closely related but govern different rendering contexts:
+
+| Annotation | Controls |
+|---|---|
+| `@Stereotype` | The **input widget** used in edit mode |
+| `@Representation` | How the value is **displayed** in read-only / list view |
+
+Both can be combined on the same field to independently control each context.
+
+```java
+// Edit mode: textarea input; read-only mode: rendered as Markdown
+@Stereotype(FieldStereotype.textarea)
+@Representation(FieldStereotype.markdown)
+String description;
+```
+
+See [field-types](../field-types/) for the complete `FieldStereotype` enum reference.
