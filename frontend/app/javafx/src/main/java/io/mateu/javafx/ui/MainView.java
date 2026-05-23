@@ -15,8 +15,9 @@ public class MainView {
     private final StackPane root;
     private final String initialRoute;
 
-    public MainView(String baseUrl, String initialRoute) {
+    public MainView(String baseUrl, String initialRoute, java.util.Map<String, Object> config) {
         this.ctx = new AppContext(baseUrl);
+        this.ctx.appState.putAll(config);
         this.initialRoute = initialRoute;
 
         root = new StackPane();
@@ -38,7 +39,7 @@ public class MainView {
         Task<JsonNode> task = new Task<>() {
             @Override
             protected JsonNode call() throws Exception {
-                return ctx.apiClient.initialLoad(initialRoute);
+                return ctx.apiClient.initialLoad(initialRoute, ctx.appState);
             }
         };
 

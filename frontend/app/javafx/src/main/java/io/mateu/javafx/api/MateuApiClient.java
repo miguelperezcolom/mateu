@@ -84,12 +84,13 @@ public class MateuApiClient {
         return mapper.readTree(responseBody);
     }
 
-    public JsonNode initialLoad(String route) throws Exception {
-        return runAction(route, "", "", null, "ux_main", Map.of(), Map.of(), Map.of());
+    public JsonNode initialLoad(String route, Map<String, Object> appState) throws Exception {
+        return runAction(route, "", "", null, "ux_main", Map.of(), appState, Map.of());
     }
 
-    public JsonNode navigate(String route, String consumedRoute, String serverSideType) throws Exception {
+    public JsonNode navigate(String route, String consumedRoute, String serverSideType,
+                             Map<String, Object> appState) throws Exception {
         return runAction(route, consumedRoute != null ? consumedRoute : "", "",
-                serverSideType, "ux_main", Map.of(), Map.of(), Map.of());
+                serverSideType, "ux_main", Map.of(), appState, Map.of());
     }
 }

@@ -1,11 +1,14 @@
 package io.mateu.javafx;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.javafx.ui.MainView;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
 
 public class MateuApp extends Application {
@@ -23,8 +26,16 @@ public class MateuApp extends Application {
 
         String baseUrl = props.getProperty("mateu.baseUrl", "http://localhost:8080");
         String route = props.getProperty("mateu.route", "/");
+        String configJson = props.getProperty("mateu.config", "{}");
 
-        MainView mainView = new MainView(baseUrl, route);
+        Map<String, Object> config = Map.of();
+        try {
+            config = new ObjectMapper().readValue(configJson, new TypeReference<>() {});
+        } catch (Exception e) {
+            System.err.println("[Mateu] Could not parse mateu.config: " + e.getMessage());
+        }
+
+        MainView mainView = new MainView(baseUrl, route, config);
         mainView.getCtx().primaryStage = primaryStage;
 
         Scene scene = new Scene(mainView.getRoot(), 1280, 800);

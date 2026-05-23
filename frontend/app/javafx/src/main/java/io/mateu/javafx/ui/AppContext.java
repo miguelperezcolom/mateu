@@ -61,7 +61,7 @@ public class AppContext {
                             actionId, serverSideType, currentComponentId,
                             currentComponentState, appState, Map.of());
                 } else {
-                    return apiClient.navigate(route, consumedRoute, serverSideType);
+                    return apiClient.navigate(route, consumedRoute, serverSideType, appState);
                 }
             }
         };
