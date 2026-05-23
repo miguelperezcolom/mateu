@@ -2,7 +2,7 @@
 title: "Case study: SSR to SSG control plane"
 ---
 
-This case study shows Mateu used in a distributed content publishing system. It illustrates several real-world patterns that appear in large deployments.
+This case study shows Mateu used in a distributed content publishing system. A CMS, an SSG worker, and a static server are each owned by separate services; a Mateu control plane manages and monitors the pipeline. It illustrates how the patterns from the rest of the real-world section combine in a single production system.
 
 ---
 
@@ -147,5 +147,6 @@ This allows horizontal scaling with no sticky sessions.
 
 ## Next
 
-- [Distributed control plane](/java-user-manual/real-world/distributed-control-plane/)
-- [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/)
+- [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) — the federation pattern used by the shell in this case study
+- [Security](/java-user-manual/advanced/security/) — JWT forwarding and `@EyesOnly` in a multi-service setup
+- [Testing](/java-user-manual/advanced/testing/) — how to test the page classes shown here in isolation

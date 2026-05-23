@@ -4,7 +4,7 @@ title: "Action behavior"
 
 Actions are public methods on your ViewModel that are exposed to the browser as interactive triggers.
 
-Where an action appears, how it behaves, and what it returns are all controlled declaratively.
+Where an action appears, how it behaves before execution, and what it returns are all controlled declaratively.
 
 ---
 
@@ -16,8 +16,9 @@ Where an action appears, how it behaves, and what it returns are all controlled 
 
 ```java
 @Button
-public Message greet() {
-    return new Message("Hello " + name);
+public Message save() {
+    productRepository.save(id, name, status);
+    return new Message("Product saved");
 }
 ```
 
@@ -27,26 +28,24 @@ Use `@Button` for the primary actions of a form page (save, submit, check, etc.)
 
 ### @Toolbar
 
-`@Toolbar` places the action in the **toolbar** of a form or listing — more prominent than `@Button`, typically at the top of the screen.
+`@Toolbar` places the action in the **toolbar** — more prominent than `@Button`, typically at the top of the screen.
 
 ```java
 @Toolbar
 @Action(validationRequired = true)
-Object create() {
-    var businessKey = UUID.randomUUID().toString();
-    return URI.create("/workflow/processes/" + businessKey);
+public URI publish() {
+    String newId = productRepository.publish(name, status);
+    return URI.create("/products/" + newId);
 }
 ```
 
-In a listing, a `@Toolbar` method receives the currently selected rows as a parameter:
+In a listing, a `@Toolbar` method receives the currently selected rows and, optionally, the `HttpRequest`:
 
 ```java
 @Toolbar
-public CreateReleaseForm createRelease(
-        List<ChangeRow> selectedRows,
-        HttpRequest httpRequest) {
-    // ...
-    return createReleaseForm.withUser(user);
+public Message archiveSelected(List<Product> selectedRows) {
+    selectedRows.forEach(p -> productRepository.archive(p.id()));
+    return new Message("Archived " + selectedRows.size() + " products");
 }
 ```
 
@@ -58,17 +57,20 @@ public CreateReleaseForm createRelease(
 
 ```java
 @ListToolbarButton
-void doSomethingOnRows(List<Product> selection) {
-    log.info("do something on {}", selection);
+public Message markAvailable(List<Product> selection) {
+    selection.forEach(p -> productRepository.setStatus(p.id(), Status.Available));
+    return Message.builder()
+        .text("Marked " + selection.size() + " products as available")
+        .build();
 }
 ```
 
-The parameter receives whichever rows the user has selected in the list.
+Use `confirmationRequired = false` to skip the default confirmation dialog:
 
 ```java
 @ListToolbarButton(confirmationRequired = false)
-public Object refresh(List<Grupo> seleccion) {
-    return Message.builder().text("Refreshed " + seleccion.size() + " items").build();
+public Message refresh(List<Product> selection) {
+    return new Message("Refreshed " + selection.size() + " items");
 }
 ```
 
@@ -81,48 +83,51 @@ public Object refresh(List<Grupo> seleccion) {
 ### Require validation
 
 ```java
-@Toolbar
+@Button
 @Action(validationRequired = true)
-Object create() { ... }
+public URI create() {
+    String id = productRepository.create(name, status);
+    return URI.create("/products/" + id);
+}
 ```
 
-When `validationRequired = true`, Mateu validates all form fields before calling the method. If validation fails, the method is not called and errors are shown to the user.
+When `validationRequired = true`, Mateu validates all form fields before calling the method. If validation fails, the method is not called and errors are shown next to the affected fields.
 
 ### Require confirmation
 
 ```java
 @ListToolbarButton(confirmationRequired = true)
-void deleteSelected(List<Product> selection) { ... }
+public Message deleteSelected(List<Product> selection) {
+    selection.forEach(p -> productRepository.delete(p.id()));
+    return new Message("Deleted " + selection.size() + " products");
+}
 ```
 
-When `confirmationRequired = true` (or set via `@Action`), a confirmation dialog is shown before the method runs.
+A confirmation dialog is shown before the method runs. The user must confirm to proceed.
 
 ---
 
 ## Accessing the HTTP request
 
-Actions can receive the current `HttpRequest` as a parameter to access headers, authentication tokens, or other request data.
+Actions can declare `HttpRequest` as a parameter to access headers, authentication tokens, or any other request metadata.
 
 ```java
 @Toolbar
-public CreateReleaseForm createRelease(
-        List<ChangeRow> selectedRows,
-        HttpRequest httpRequest) {
-
-    var auth = httpRequest.getHeaderValue("Authorization");
-    var jwt = auth.split(" ")[1];
-    // decode JWT, extract user...
-    return createReleaseForm.withUser(user);
+public Message auditAccess(HttpRequest httpRequest) {
+    String auth = httpRequest.getHeaderValue("Authorization");
+    String token = auth.split(" ")[1];
+    auditService.log(id, token);
+    return new Message("Access logged");
 }
 ```
 
-Mateu injects `HttpRequest` automatically when you declare it as a method parameter. It does not need to be wired explicitly.
+Mateu injects `HttpRequest` automatically when it appears as a method parameter. No wiring is needed.
 
 ---
 
 ## Row-level actions (ColumnAction)
 
-Actions in a listing can also be attached to individual rows using `ColumnAction` and `ColumnActionGroup`.
+Actions in a listing can be attached to individual rows using `ColumnAction` and `ColumnActionGroup`.
 
 Define the action in the row model:
 
@@ -130,31 +135,32 @@ Define the action in the row model:
 record Product(
     String id,
     String name,
-    ColumnActionGroup action  // shown as per-row action buttons
-    // ...
+    Status status,
+    ColumnActionGroup action
 ) {
     Product {
         action = new ColumnActionGroup(new ColumnAction[]{
-            new ColumnAction("setAsBlue", "Set as blue"),
-            new ColumnAction("setAsGreen", "Set as green")
+            new ColumnAction("markAvailable", "Mark available"),
+            new ColumnAction("markOutOfStock", "Mark out of stock")
         });
     }
 }
 ```
 
-Handle it in the orchestrator with a method whose name matches the `actionId`:
+Handle each action in the orchestrator with a method whose name matches the `actionId`:
 
 ```java
 @UI("/products")
 public class Products extends AutoCrudOrchestrator<Product> {
 
-    void setAsBlue(Product row) {
-        // called when "Set as blue" is clicked for that row
+    void markAvailable(Product row) {
+        productRepository.setStatus(row.id(), Status.Available);
     }
 
-    void setAsGreen(Product row) {
-        // called when "Set as green" is clicked for that row
+    void markOutOfStock(Product row) {
+        productRepository.setStatus(row.id(), Status.OutOfStock);
     }
+
 }
 ```
 
@@ -162,17 +168,15 @@ public class Products extends AutoCrudOrchestrator<Product> {
 
 ## What actions can return
 
-The return value of an action method controls what happens in the browser. See [UI effects](/java-user-manual/concepts/ui-effects/) for the full list.
-
-Quick summary:
+The return value controls what happens in the browser. See [UI effects](/java-user-manual/concepts/ui-effects/) for the full reference.
 
 | Return type | Effect |
 |---|---|
-| `Message` | Show a toast |
+| `Message` | Show a toast notification |
 | `State(this)` | Refresh the form |
 | `URI` | Navigate to a URL |
 | `UICommand.navigateTo(...)` | Programmatic navigation |
-| Another ViewModel | Open that page |
+| Another ViewModel | Render that page |
 | `List<?>` | Multiple effects |
 | `void` / `null` | Nothing |
 
@@ -193,5 +197,5 @@ Quick summary:
 ## Next
 
 - [UI effects](/java-user-manual/concepts/ui-effects/)
-- [Listing row actions](/java-user-manual/build/listing-row-actions/)
-- [Custom listing](/java-user-manual/use-cases/custom-listing/)
+- [Validation](/java-user-manual/concepts/validation/)
+- [Field stereotypes](/java-user-manual/concepts/field-stereotypes/)

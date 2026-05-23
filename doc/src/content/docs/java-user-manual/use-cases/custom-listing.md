@@ -224,6 +224,6 @@ Changes (Listing<NoFilters, ChangeRow>)
 
 ## Next
 
-- [Listing row actions](/java-user-manual/build/listing-row-actions/)
 - [Nested CRUD](/java-user-manual/use-cases/nested-crud/)
-- [Admin panel](/java-user-manual/use-cases/admin-panel/)
+- [Listings (fluent API)](/java-user-manual/concepts/fluent-components/fluent-listings/)
+- [Listing row actions](/java-user-manual/build/listing-row-actions/)

@@ -147,7 +147,7 @@ That means the normal navigation is:
 2. open the readonly detail view
 3. continue to edit if needed
 
-👉 See [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/)
+See [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) for the full routing details.
 
 ---
 
@@ -296,8 +296,5 @@ The nested table works the same as any collection field: Mateu adds add/remove b
 ## Next
 
 - [Users CRUD with lookups](/java-user-manual/use-cases/users-crud/)
-- [Custom listing](/java-user-manual/use-cases/custom-listing/)
-- [Nested CRUD](/java-user-manual/use-cases/nested-crud/)
-- [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
-- [Validation](/java-user-manual/concepts/validation/)
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
 - [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/)

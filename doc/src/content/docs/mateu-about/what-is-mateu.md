@@ -3,140 +3,63 @@ title: "What is Mateu?"
 description: "Mateu is a backend-driven UI layer for business applications and distributed systems."
 ---
 
-Mateu is a **backend-driven UI layer for business applications**.
+Mateu is a **backend-driven UI layer** that lets Java teams build real browser UIs directly from backend code, without a separate frontend application.
 
-It lets Java teams build real backoffice and internal UIs directly from backend models, without creating a separate frontend application.
+## The shortest possible example
 
----
-
-## The short version
-
-Mateu lets you write this:
+This is enough to get a working CRUD screen in the browser:
 
 ```java
-@UI("/orders")
-public class Orders extends AutoCrudOrchestrator<Order> {}
+@UI("/products")
+public class Products extends AutoCrudOrchestrator<Product> {}
 ```
 
-and get a real browser UI:
+That single class produces:
 
-- list
-- view
-- edit
-- create
-- validation
-- navigation
+- a searchable list view at `/products`
+- a read-only detail view at `/products/:id`
+- an edit form at `/products/:id/edit`
+- a creation form at `/products/new`
+- validation, navigation, and browser interaction
 
-without building a separate SPA.
-
----
+No React. No TypeScript. No REST controller for each screen.
 
 ## The core idea
 
-Most internal business applications duplicate the same concepts several times:
+Most business applications define the same concepts twice:
 
 ```text
 backend model
-  ↓
-API contract
-  ↓
-frontend model
-  ↓
-frontend validation
-  ↓
-UI state
+  -> API contract
+  -> frontend model
+  -> frontend validation
+  -> UI state
 ```
 
-Mateu removes much of that duplication.
-
-With Mateu:
+Mateu removes most of that duplication:
 
 ```text
 backend model
-  ↓
-Mateu UI
-  ↓
-browser
+  -> Mateu UI definition
+  -> browser
 ```
 
-The backend defines the UI.
-
-The frontend renders it.
-
----
+The backend defines what the UI is. The renderer decides how it looks.
 
 ## What Mateu is not
 
 Mateu is not:
 
-- a frontend framework
-- a React replacement
-- a stateful server-side UI framework
-- a simple CRUD generator
-- a low-code platform detached from your backend
+- a frontend framework or a React alternative
+- a stateful server-side rendering framework (like JSF or Wicket)
+- a low-code platform detached from your codebase
+- a code generator you run once and abandon
 
-Mateu is closer to:
+Mateu is closer to an **inbound adapter** for your backend — the same way a REST controller exposes your application logic over HTTP, Mateu exposes it as a browser UI.
 
-> a UI adapter for your backend architecture.
+## The model
 
----
-
-## UI as an inbound adapter
-
-In hexagonal architecture, inbound adapters include:
-
-- REST controllers
-- gRPC endpoints
-- event consumers
-- scheduled jobs
-- UI adapters
-
-Mateu belongs here:
-
-```text
-Infrastructure / in
-  ├─ api
-  ├─ async
-  └─ ui  ← Mateu
-```
-
-This means the UI can call:
-
-- application use cases
-- query services
-- repositories through ports
-- gateways through ports
-
-without forcing you to build an API only for your own UI.
-
----
-
-## Stateless by design
-
-Mateu does not keep UI state on the server.
-
-Each request:
-
-1. instantiates the view model
-2. hydrates it
-3. executes the action
-4. returns the result
-
-This makes Mateu a strong fit for:
-
-- Kubernetes
-- ephemeral pods
-- horizontal scaling
-- microservices
-- no sticky sessions
-
----
-
-## Model-driven, not page-driven
-
-In Mateu, you usually start with the model.
-
-For example:
+A Mateu UI is defined by plain Java:
 
 ```java
 public record Product(
@@ -147,152 +70,59 @@ public record Product(
 ) implements Identifiable {}
 ```
 
-Then Mateu can infer:
+From this model, Mateu can infer fields, forms, list columns, validation, and navigation. You create explicit view models only when the defaults are not enough.
 
-- fields
-- forms
-- lists
-- validation
-- actions
-- routes
+## Two levels of control
 
-You create explicit pages only when the model is not enough.
-
----
-
-## CRUD when you want speed
-
-For standard business data, use:
+**AutoCrud** — use this when the model is straightforward:
 
 ```java
 @UI("/products")
 public class Products extends AutoCrudOrchestrator<Product> {}
 ```
 
-This gives you a full CRUD flow:
-
-- `/products`
-- `/products/:id`
-- `/products/:id/edit`
-- `/products/new`
-
----
-
-## Full control when you need it
-
-When the generated CRUD is not enough, Mateu lets you take control.
-
-You can use:
+**CrudOrchestrator** — use this when you need explicit control over filters, rows, view forms, edit forms, and creation forms:
 
 ```java
-CrudOrchestrator<
-    View,
-    Editor,
-    CreationForm,
-    Filters,
-    Row,
-    IdType
->
+public class ProductsCrudOrchestrator extends CrudOrchestrator<
+    ProductView,
+    ProductEditor,
+    ProductCreationForm,
+    ProductFilters,
+    ProductRow,
+    String> { ... }
 ```
 
-This lets you model:
+## Stateless by design
 
-- filters
-- list rows
-- readonly views
-- edit forms
-- creation forms
-
-explicitly.
-
----
-
-## Query-side friendly
-
-Mateu works especially well with CQRS.
-
-For listings, you can use query services and DTOs:
-
-```text
-Query service → DTO → Row → ListingData → UI
-```
-
-Rows are UI models.
-
-They can include:
-
-- formatted values
-- status badges
-- hidden ids
-- contextual actions
-
----
-
-## Actions as backend intents
-
-Mateu actions are backend intents.
-
-For example:
-
-```java
-new ColumnAction("compare", "Compare")
-```
-
-means:
-
-```text
-user click → action id → backend use case
-```
-
-The frontend does not own the business logic.
-
----
+Mateu does not keep UI state on the server. Each request instantiates the view model, hydrates it, executes the action, and returns the result. This makes Mateu a natural fit for Kubernetes, ephemeral pods, and systems with no sticky sessions.
 
 ## Frontend-agnostic
 
-Mateu separates UI definition from rendering.
-
-The backend defines what the UI is.
-
-A renderer decides how it looks.
-
-This allows different:
-
-- design systems
-- frontend implementations
-- rendering strategies
-
----
+Mateu separates UI definition from rendering. The backend produces a UI description. A renderer — the reference implementation uses web components — turns it into a working browser interface. You can swap the renderer or target different design systems without changing the UI definition.
 
 ## Backend-agnostic
 
-Mateu does not require one specific Java backend stack.
-
-It can be integrated with:
+Mateu can be integrated with:
 
 - Spring Boot MVC
 - Spring WebFlux
 - Micronaut
 - Quarkus
-- other HTTP-based Java runtimes
+- Other HTTP-based Java runtimes
 
----
+## When to reach for Mateu
 
-## Why it matters
+Mateu is especially useful for:
 
-Mateu is useful when you want to build:
+- admin panels and backoffice tools
+- internal tools and control planes
+- enterprise workflow UIs
+- distributed systems where each service owns its own UI
+- any application where building and maintaining a separate SPA is more cost than it is worth
 
-- admin panels
-- internal tools
-- distributed backoffices
-- workflow control planes
-- service-owned UIs
-- embedded business modules
+## Next
 
-without creating and maintaining a separate frontend application for each one.
-
----
-
-## One sentence
-
-Mateu is a **stateless, backend-driven UI layer** that turns Java backend models into real business UIs.
+- [Philosophy](/mateu-about/philosophy) — the accidental complexity problem Mateu solves
+- [The Mateu mental model](/mateu-about/mental-model) — how the system thinks about UI definitions
+- [Build a full backoffice in 10 minutes](/build-a-full-backoffice-in-10-minutes)

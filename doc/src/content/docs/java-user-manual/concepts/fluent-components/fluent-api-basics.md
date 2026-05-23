@@ -233,12 +233,16 @@ Use `${state.field}` for values that come from action results. Use `${data.field
 
 ## The Form container
 
-`Form` is the top-level wrapper that carries the page title and content:
+`Form` is the top-level wrapper. It carries the page title, content, and optional header, footer, toolbar, and button slots:
 
 ```java
 Form.builder()
     .title("Page title")
+    .subtitle("Optional subtitle")
     .content(List.of(component1, component2, ...))
+    .header(List.of(headerComponent))      // above content
+    .footer(List.of(footerComponent))      // below content
+    .toolbar(List.of(toolbarTrigger))      // action buttons in the header bar
     .style("max-width: 900px; margin: auto;")
     .build()
 ```
@@ -250,3 +254,5 @@ Form.builder()
 - [Layouts](/java-user-manual/concepts/fluent-components/fluent-layouts/)
 - [Form fields](/java-user-manual/concepts/fluent-components/fluent-form-fields/)
 - [Actions](/java-user-manual/concepts/fluent-components/fluent-actions/)
+- [Data contexts](/java-user-manual/concepts/fluent-components/fluent-data-contexts/)
+- [Rules](/java-user-manual/concepts/fluent-components/fluent-rules/)

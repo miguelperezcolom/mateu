@@ -1,9 +1,9 @@
 ---
-title: "SAP Fiori"
-#icon: "/images/icons/start.svg" # https://fonts.google.com/icons
-#icon_bg: ""
-description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
+title: "SAP Fiori / UI5"
+description: "Mateu renderer built on SAP UI5 and Fiori components."
 ---
+
+The SAP renderer uses UI5 web components and optionally SAP Fiori components. Use it when your UIs need to look and feel like SAP applications, or when they will be embedded inside an existing SAP Fiori launchpad.
 
 <div style="display: flex; width: 100%; align-items: center; justify-content: center;">
   <img src="../../../images/phenix_blue.svg?raw=true" width="60" style="margin-right: 10px;"/>
@@ -12,17 +12,23 @@ description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, l
 
 <p align="center"><img src="../../../images/basic-form-sapui5.png?raw=true" width="600"/></p>
 
-> DEMO: https://sapui5.mateu.io/
+**Demo:** https://sapui5.mateu.io/
 
-I have always admired the SAP Fiori design system for its clean, modern look and its suitability for enterprise applications.
+## Add to your project
 
-With Mateu, you can seamlessly integrate your UIs into any SAP web application that uses Fiori.
+```xml
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>sapui5-lit</artifactId>
+    <version>MATEU_VERSION</version>
+</dependency>
+```
 
-Please note that SAP Fiori is distributed under a proprietary license, so it can only be used if you are licensed for the SAP products that include it.
+## Licensing note
 
-That said, only a small portion of the components I rely on come directly from Fiori. Most are based on UI5, which is open source. I plan to create a fork of the current frontend implementation that is purely UI5-based, replacing the proprietary Fiori components with open-source equivalents.
+UI5 is open source and freely available. SAP Fiori components require a valid SAP license. The Mateu SAP renderer is built primarily on UI5 components, with some Fiori components for specific patterns. A fully open-source UI5-only variant is planned.
 
-This approach will give you flexibility:
+## Related
 
--	Use a **Fiori-based** frontend if you have the proper SAP license.
--	Or opt for the **UI5-based** frontend if you prefer a fully open-source solution.
+- [Design systems overview](/design-systems/)
+- [Embedded UI](/java-user-manual/use-cases/embedded-ui/)

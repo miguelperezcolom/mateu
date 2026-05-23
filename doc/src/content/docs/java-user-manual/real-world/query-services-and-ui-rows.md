@@ -2,7 +2,9 @@
 title: "Query services and UI rows"
 ---
 
-Mateu works with explicitly designed UI rows, not domain entities. This separation keeps your domain clean and gives you full control over what users see.
+Mateu listings work with explicitly designed UI row records, not domain entities. This separation keeps your domain clean and gives you full control over what users see.
+
+**Prerequisite:** this is the read side of the [CQRS pattern described in the hexagonal architecture page](/java-user-manual/real-world/mateu-in-hexagonal-architecture/). Query services and UI rows are how Mateu implements it.
 
 ---
 
@@ -123,6 +125,6 @@ var actions = switch (dto.status()) {
 
 ## Next
 
-- [Lookups backed by query services](/java-user-manual/real-world/lookups-backed-by-query-services/)
-- [Listings](/java-user-manual/concepts/fluent-components/fluent-listings/)
-- [Display components](/java-user-manual/concepts/fluent-components/fluent-display-components/)
+- [Lookups backed by query services](/java-user-manual/real-world/lookups-backed-by-query-services/) — the same query-service pattern applied to `@Lookup` fields
+- [Rules](/java-user-manual/advanced/rules/) — add `@Status` annotations to row records for colored badges
+- [Listings](/java-user-manual/concepts/fluent-components/fluent-listings/) — `ListingData` and `Pageable` reference

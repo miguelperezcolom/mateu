@@ -2,25 +2,19 @@
 title: "Mateu in hexagonal architecture"
 ---
 
-Mateu fits naturally in systems designed with:
+Mateu is an inbound adapter. It sits in `infrastructure/in/ui`, translating user gestures into application use case calls — exactly where a REST API or a message consumer would sit.
 
-- DDD tactical patterns
-- hexagonal architecture
-- CQRS
-- event-driven integration
-- microservices by bounded context
-
-The key idea is simple:
+This is the key idea:
 
 > The UI is just another inbound adapter.
 
-It belongs next to APIs, event consumers and other inbound ports.
+Everything else follows from it.
 
 ---
 
-## System structure
+## Where Mateu fits
 
-A typical system can be organized like this:
+A typical hexagonal system looks like this:
 
 ```text
 Application
@@ -38,17 +32,15 @@ Domain
 
 Infrastructure
   ├─ in
-  │   ├─ api
-  │   ├─ async consumers
-  │   └─ ui        ← Mateu
+  │   ├─ api          ← REST / gRPC
+  │   ├─ async        ← event consumers
+  │   └─ ui           ← Mateu
   └─ out
       ├─ persistence
       └─ gateways
 ```
 
-Mateu lives in `in/ui`.
-
-It adapts user interaction into application use cases and query calls.
+Mateu lives in `in/ui`. It adapts user interaction into application use cases and query calls, using the same ports as the REST API. It does not introduce a new architectural layer.
 
 ```mermaid
 flowchart LR
@@ -64,12 +56,9 @@ flowchart LR
 
 ## Why this matters
 
-In many systems, teams build APIs only because the frontend needs them.
-
-With Mateu, that is not always necessary.
+In many systems, teams build REST APIs because the frontend needs them. With Mateu, that intermediate step is often unnecessary.
 
 If the UI is an inbound adapter, it can call:
-
 - application use cases
 - query services
 - repositories through ports
@@ -79,17 +68,17 @@ directly from the backend.
 
 > If the UI is just another inbound adapter, you do not need to build an API only for your UI.
 
-This reduces duplicated contracts, duplicated models and unnecessary glue code.
+This removes duplicated contracts, duplicated models, and the glue code between them.
 
 ---
 
 ## CQRS fit
 
-Mateu works very well with CQRS.
+Mateu works naturally with CQRS. The write side uses DDD aggregates; the read side uses query services and DTOs.
 
 ### Write side
 
-Use DDD and aggregates for commands:
+Buttons and column actions express intent. They call use cases, which delegate to aggregates:
 
 ```mermaid
 flowchart TD
@@ -99,46 +88,31 @@ flowchart TD
     Repo --> Events["Domain events"]
 ```
 
-The domain protects invariants.
-
-Business rules stay as close to the domain as possible:
-
-- value object if possible
-- aggregate if needed
+Business rules stay in the domain:
+- value object when possible
+- aggregate when the rule spans multiple fields
 - domain service only when the logic exceeds one aggregate
-
----
 
 ### Read side
 
-Use queries and DTOs for listings and screens:
+Listings and forms use query services and DTOs directly. No domain entities needed on the read path:
 
 ```mermaid
 flowchart LR
-    DB["Database / API"] --> QS["Query service"]
+    DB["Database / API / Elasticsearch"] --> QS["Query service"]
     QS --> DTO["DTO / projection"]
-    DTO --> Row["Row model"]
+    DTO --> Row["UI Row record"]
     Row --> LD["ListingData"]
-    LD --> UI["Mateu UI"]
+    LD --> UI["Mateu Grid"]
 ```
 
-The read side does not need domain entities.
-
-It can use:
-
-- JDBC
-- SQL projections
-- denormalized read models
-- external APIs
-- gRPC clients
+See [Query services and UI rows](/java-user-manual/real-world/query-services-and-ui-rows/) for the full pattern.
 
 ---
 
 ## UI rows are read models
 
-A listing row is a UI read model.
-
-For example:
+A listing row is a UI read model — a record designed for display, not persistence:
 
 ```java
 public record ChangeRow(
@@ -151,31 +125,17 @@ public record ChangeRow(
 ) implements Identifiable {}
 ```
 
-This row is not a domain entity.
-
-It is a representation optimized for the UI.
-
-It can contain:
-
-- formatted values
-- status badges
-- hidden ids
-- row actions
-- derived fields
+This is not a domain entity. It can contain formatted values, status badges, hidden ids, row actions, and derived fields. The domain entity never leaks into the UI.
 
 ---
 
 ## Actions call use cases
 
-Actions should express intent.
+Action ids are a contract between the UI and the backend. The backend decides what happens:
 
 ```java
 new ColumnAction("compare", "Compare")
 ```
-
-The action id is a contract between the UI and the backend.
-
-The backend decides what happens:
 
 ```text
 compare
@@ -185,20 +145,18 @@ ComparePagesUseCase
 domain / query / workflow
 ```
 
-This keeps logic out of the frontend.
+This keeps all logic server-side. The frontend remains a thin renderer.
 
 ---
 
 ## Lookups use query services
 
-Lookups are also part of the read side:
+Lookup fields on the read path also call query services:
 
 ```java
 @Lookup(search = LabelOptionsSupplier.class, label = LabelLabelSupplier.class)
 String labelId;
 ```
-
-The suppliers can call query services:
 
 ```text
 LookupOptionsSupplier
@@ -210,81 +168,61 @@ DTOs
 Option
 ```
 
-This keeps the UI decoupled from domain entities.
+The ViewModel that uses `@Lookup` never sees the data source. See [Lookups backed by query services](/java-user-manual/real-world/lookups-backed-by-query-services/).
 
 ---
 
 ## Microservices
 
-A good default is:
-
-- one microservice per bounded context or subdomain
-- not one microservice per technical component
+A good default boundary is one microservice per bounded context or subdomain — not one per technical component.
 
 Each microservice can own:
-
-- its domain
+- its domain model
 - its database
-- its use cases
+- its use cases and query services
 - its read models
 - its Mateu UI module
 
-Mateu then allows these UI modules to be composed into a distributed backoffice.
-
----
-
-## Database strategy
-
-A common pattern is:
-
-```text
-Write side
-  → DDD aggregates
-  → repositories
-  → JPA / ORM if useful
-
-Read side
-  → query services
-  → JDBC / SQL / projections
-  → DTOs / rows
-```
-
-For cross-service joins, use a read database fed by events from the different services.
-
----
-
-## Events, outbox and inbox
-
-For reliable event-driven systems:
-
-- use an outbox to publish events atomically with state changes
-- use an inbox to avoid processing the same event twice
-
-This keeps integration reliable without coupling services tightly.
-
-Mateu does not replace these patterns.
-
-It fits on top of them as an inbound UI adapter.
+Mateu then allows these UI modules to be composed into a distributed backoffice using `RemoteMenu`. See [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/).
 
 ---
 
 ## Stateless UI
 
-Mateu does not keep UI state on the server.
+Mateu does not keep UI state on the server. Each request:
 
-Each request:
+1. Instantiates the ViewModel
+2. Hydrates it from the request payload
+3. Executes the action
+4. Returns the result
 
-1. instantiates the view model
-2. hydrates it
-3. executes the action
-4. returns the result
+This fits naturally with ephemeral pods, horizontal scaling, and no sticky sessions.
 
-This fits naturally with:
+---
 
-- ephemeral pods
-- horizontal scaling
-- microservices
-- no sticky sessions
+## Database strategy
+
+A common pattern:
+
+```text
+Write side
+  → DDD aggregates → repositories → JPA / ORM
+
+Read side
+  → query services → JDBC / SQL / projections → DTOs / rows
+```
+
+For cross-service reads, use a read database populated by events from the relevant services.
+
+---
+
+## Events, outbox, and inbox
+
+For reliable event-driven integration:
+- use an outbox to publish events atomically with state changes
+- use an inbox to prevent processing the same event twice
+
+Mateu does not replace these patterns. It sits on top of them as an inbound UI adapter. Domain events flow through the normal infrastructure; Mateu only renders their effects.
 
 ---
 
@@ -294,37 +232,34 @@ A useful rule:
 
 ```text
 Value Object
-  → never null
-  → always valid
+  → never null, always valid
 
 Field
   → decides whether the value exists
 ```
 
-This keeps domain correctness inside the domain model.
-
-The UI can expose optional fields, but once a value object exists, it should be valid.
+The UI can expose optional fields. Once a value object is constructed, it must be valid. Validation at the boundary — not inside the aggregate.
 
 ---
 
 ## Mental model
 
-Mateu is not a layer outside the architecture.
-
-It is part of the architecture:
-
 ```text
 User
   ↓
-Mateu UI adapter
+Mateu UI adapter (infrastructure/in/ui)
   ↓
 Application use cases / query services
   ↓
-Domain / read model / gateways
+Domain / read models / gateways
 ```
 
-This is why Mateu works especially well for business UIs.
+Mateu is not a layer outside the architecture. It is part of it. This is why it works especially well for business UIs: it lets your backend architecture expose a UI directly, without a separate frontend application or a separate API layer built only to serve that frontend.
 
-It does not force you to create a separate frontend application.
+---
 
-It lets your backend architecture expose a UI directly.
+## Next
+
+- [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) — how each microservice exposes and composes its UI
+- [Query services and UI rows](/java-user-manual/real-world/query-services-and-ui-rows/) — the read-side pattern in detail
+- [Security](/java-user-manual/advanced/security/) — JWT-based authorization as another inbound adapter concern

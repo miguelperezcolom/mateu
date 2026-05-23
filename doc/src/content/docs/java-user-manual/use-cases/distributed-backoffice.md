@@ -198,5 +198,6 @@ This pattern is a strong fit for:
 
 ## Next
 
-- [Application shell in Mateu](/java-user-manual/build/application-shell/)
 - [Embedded UI](/java-user-manual/use-cases/embedded-ui/)
+- [Application shell in Mateu](/java-user-manual/build/application-shell/)
+- [Nested apps](/java-user-manual/concepts/fluent-components/fluent-nested-apps/)

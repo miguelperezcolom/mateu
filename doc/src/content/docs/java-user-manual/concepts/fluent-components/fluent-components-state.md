@@ -47,3 +47,11 @@ Use this when the component supports state-based expressions directly.
 - `Component` → static content  
 - `Callable<?>` → dynamic content based on state  
 - `${state...}` → declarative binding inside components
+
+---
+
+## Next
+
+- [Data contexts](/java-user-manual/concepts/fluent-components/fluent-data-contexts/)
+- [Fluent API basics](/java-user-manual/concepts/fluent-components/fluent-api-basics/)
+- [Rules](/java-user-manual/concepts/fluent-components/fluent-rules/)

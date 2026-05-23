@@ -2,7 +2,9 @@
 title: "Lookups backed by query services"
 ---
 
-`@Lookup` fields let users search and select a related entity. The options and labels can come from any source — a query service, a remote API, or an in-memory list — without coupling the ViewModel to the domain.
+`@Lookup` fields let users search and select a related entity. The options and labels come from supplier beans — query services, remote APIs, or in-memory lists — without coupling the ViewModel to any particular data source.
+
+**Prerequisite:** lookups are part of the read side. The same query-service pattern used for [listings and UI rows](/java-user-manual/real-world/query-services-and-ui-rows/) applies here.
 
 ---
 
@@ -125,6 +127,6 @@ The options and label suppliers are Spring beans, so they can inject any service
 
 ## Next
 
-- [Users CRUD use case](/java-user-manual/use-cases/users-crud/)
-- [Admin panel](/java-user-manual/use-cases/admin-panel/)
-- [Query services and UI rows](/java-user-manual/real-world/query-services-and-ui-rows/)
+- [Query services and UI rows](/java-user-manual/real-world/query-services-and-ui-rows/) — the same pattern applied to listing rows
+- [Mateu in hexagonal architecture](/java-user-manual/real-world/mateu-in-hexagonal-architecture/) — where supplier beans fit in the architecture
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — how `@Lookup` appears in CRUD editors

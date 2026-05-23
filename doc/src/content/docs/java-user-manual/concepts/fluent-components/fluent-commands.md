@@ -182,6 +182,8 @@ Both navigate the user to the given path.
 | `SetFavicon` | Change the browser favicon | Favicon URL |
 | `RunAction` | Trigger another action | Target actionId |
 
+Alternatively, return a `URI` object or call `UICommand.navigateTo(path)` to navigate the browser to a route.
+
 ---
 
 ## Next

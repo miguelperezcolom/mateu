@@ -169,5 +169,6 @@ This pattern is especially useful for:
 
 ## Next
 
-- [Quickstart](/java-user-manual/start-here/quickstart/)
 - [Distributed backoffice](/java-user-manual/use-cases/distributed-backoffice/)
+- [Fluent components](/java-user-manual/concepts/fluent-components/)
+- [Build guides](/java-user-manual/build/)

@@ -1,21 +1,38 @@
 ---
 title: "Bring your own design system"
-#icon: "/images/icons/start.svg" # https://fonts.google.com/icons
-#icon_bg: ""
-description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
+description: "Build a custom Mateu frontend using your own design system or component library."
 ---
 
+Mateu's frontend and backend communicate through a simple, documented JSON API. Any frontend that implements this API becomes a valid Mateu renderer.
 
-You know, you just need to create a frontend which consumes the Mateu API. As easy as that.
+## How it works
 
-You can take any of the frontend project from the repository and start from there, if you want something quick.
+The Mateu backend exposes a small REST API describing the UI:
 
-E.g. this is something we did in **Wefox**, for some broker's portal stuff.
+```
+GET /mateu/uis/{uiId}          → full UI definition (routes, menus, metadata)
+GET /mateu/uis/{uiId}/steps    → component tree for the current route
+POST /mateu/uis/{uiId}/actions → execute a user action
+```
 
-<p align="center"><img src="../../../images/wefox-1.png?raw=true" width="600"/></p>
+A renderer:
+1. fetches the UI definition and component tree
+2. renders it using its own component library
+3. sends user interactions back as action requests
+4. applies the response (state updates, navigation, messages)
 
-<p align="center"><img src="../../../images/wefox-2.png?raw=true" width="600"/></p>
+## Starting point
 
-<p align="center"><img src="../../../images/wefox-3.png?raw=true" width="600"/></p>
+Clone one of the existing renderer repositories and adapt it to your component library. The [Vaadin renderer source](https://github.com/miguelperezcolom/mateu) is the most complete reference implementation.
 
-<p align="center"><img src="../../../images/wefox-4.png?raw=true" width="600"/></p>
+## When to use this
+
+- You want Mateu UIs to match your company's proprietary design system
+- You are embedding Mateu in a platform with its own mandatory component library
+- You want to render Mateu UIs in a non-browser environment (native mobile, desktop)
+
+## Related
+
+- [Design systems overview](/design-systems/)
+- [Embedded UI](/java-user-manual/use-cases/embedded-ui/)
+- [API](/mateu-about/api/)

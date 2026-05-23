@@ -2,60 +2,123 @@
 title: "Field stereotypes"
 ---
 
-Mateu infers the UI from your model.
+Mateu infers the UI control for each field from its Java type. `@Stereotype` overrides that inference when the default is not what you want.
 
-By default, it chooses how a field should be rendered from its Java type.
+---
 
-For example:
+## Default inference
 
-- `String` → text field
-- `enum` → combobox
-- `boolean` → boolean-style control
+| Java type | Default control |
+|---|---|
+| `String` | Text field |
+| `int` / `long` / `double` | Number input |
+| `boolean` | Checkbox |
+| `LocalDate` | Date picker |
+| `LocalDateTime` | Datetime picker |
+| `enum` | Combobox |
+| `List<String>` | Multi-select |
 
-This means you usually do not need to choose UI components manually.
-
-## Stereotypes (rendering type)
-
-Use `@Stereotype` when you want to override the inferred rendering.
-
-In practice, a stereotype acts as the **rendering type** for a field.
+This means a basic form requires no annotations beyond field declarations:
 
 ```java
-enum Status {
-  Draft, Published, Archived
-}
+public class ProductForm {
 
-@Stereotype(FieldStereotype.radio)
-Status status;
+    String name;
+    Status status;   // enum → combobox
+    boolean active;
+    LocalDate releaseDate;
+
+}
 ```
 
-Without `@Stereotype`, Mateu may render the enum as a combobox.
+---
 
-With `@Stereotype(FieldStereotype.radio)`, it becomes a radio button group.
+## Overriding with @Stereotype
 
-## Why the name is "stereotype"
+Use `@Stereotype` when the inferred control is not the right choice for that field's presentation intent.
 
-Mateu is not primarily asking you to pick a low-level component.
+```java
+enum Status { Available, OutOfStock }
 
-It is asking you to express **presentation intent**.
+@Stereotype(FieldStereotype.radio)
+Status status;           // radio group instead of combobox
+```
 
-That is why the concept is called a stereotype:
+```java
+@Stereotype(FieldStereotype.textarea)
+String description;      // multi-line instead of single-line
+```
 
-- the field type defines the data
-- the stereotype defines the rendering type
+```java
+@Stereotype(FieldStereotype.toggle)
+boolean active;          // toggle switch instead of checkbox
+```
+
+```java
+@Stereotype(FieldStereotype.password)
+String apiKey;           // masked input
+```
+
+```java
+@Stereotype(FieldStereotype.richText)
+String body;             // rich text editor
+```
+
+```java
+@Stereotype(FieldStereotype.markdown)
+String notes;            // markdown editor
+```
+
+```java
+@Stereotype(FieldStereotype.email)
+String contactEmail;     // email input with built-in format hint
+```
+
+```java
+@Stereotype(FieldStereotype.money)
+double price;            // currency-formatted number
+```
+
+```java
+@Stereotype(FieldStereotype.stars)
+int rating;              // star rating control
+```
+
+```java
+@Stereotype(FieldStereotype.color)
+String themeColor;       // color picker
+```
+
+---
+
+## Full list of stereotypes
+
+Defined in `io.mateu.uidl.data.FieldStereotype`:
+
+`regular`, `radio`, `checkbox`, `textarea`, `toggle`, `combobox`, `select`, `email`, `password`, `richText`, `listBox`, `html`, `markdown`, `image`, `icon`, `link`, `money`, `grid`, `color`, `choice`, `popover`, `slider`, `button`, `stars`
+
+---
+
+## Why "stereotype" and not "component"
+
+Mateu does not ask you to pick a low-level UI component. It asks you to express presentation intent.
+
+The data type says what the field holds. The stereotype says how it should be presented. The framework maps that combination to the appropriate component in the active UI technology.
+
+This separation means the same ViewModel can be rendered with different frontend technologies without changing the Java code.
+
+---
 
 ## Mental model
 
-Mateu is:
-
 > inference-first, override-when-needed
 
-You define the data.  
-Mateu chooses the UI.  
-You override only when necessary.
+Define the data. Mateu chooses the control. Override with `@Stereotype` only when the inference is wrong.
 
-## Summary
+---
 
-- Java type → default inferred control
-- `@Stereotype` → rendering type override
-- result → declarative UI without manual component selection
+## Next
+
+- [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
+- [Validation](/java-user-manual/concepts/validation/)
+- [Declarative vs fluent](/java-user-manual/concepts/declarative-vs-fluent/)

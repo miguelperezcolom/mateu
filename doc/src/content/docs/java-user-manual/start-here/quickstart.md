@@ -20,13 +20,13 @@ No frontend required.
 <dependency>
   <groupId>io.mateu</groupId>
   <artifactId>mvc-core</artifactId>
-  <version>0.0.1-MATEU</version>
+  <version>MATEU_VERSION</version>
 </dependency>
 
 <dependency>
   <groupId>io.mateu</groupId>
   <artifactId>annotation-processor-mvc</artifactId>
-  <version>0.0.1-MATEU</version>
+  <version>MATEU_VERSION</version>
 </dependency>
 ```
 

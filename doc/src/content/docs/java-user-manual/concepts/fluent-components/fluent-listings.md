@@ -351,5 +351,6 @@ Listing.builder()
 ## Next
 
 - [Nested apps](/java-user-manual/concepts/fluent-components/fluent-nested-apps/)
-- [Fluent API basics](/java-user-manual/concepts/fluent-components/fluent-api-basics/)
+- [Display components](/java-user-manual/concepts/fluent-components/fluent-display-components/)
 - [Actions](/java-user-manual/concepts/fluent-components/fluent-actions/)
+- [Custom listing (use case)](/java-user-manual/use-cases/custom-listing/)

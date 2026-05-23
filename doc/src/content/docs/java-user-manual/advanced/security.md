@@ -2,19 +2,19 @@
 title: "Security"
 ---
 
-Mateu provides two security annotations: `@KeycloakSecured` for authentication and `@EyesOnly` for authorization.
+Mateu provides two security annotations: `@KeycloakSecured` for authentication and `@EyesOnly` for role-based authorization. Both are declarative — no security filter chains or interceptor configuration required.
 
 ---
 
-## Authentication with @KeycloakSecured
+## Authentication with `@KeycloakSecured`
 
-Annotate your `@UI` class to require Keycloak login before the application loads:
+`@KeycloakSecured` is a type-level annotation. Apply it to your `@UI` class to require Keycloak login before the application loads:
 
 ```java
 @UI("")
 @KeycloakSecured(
-        url = "https://auth.example.com/auth",
-        realm = "my-realm",
+        url      = "https://auth.example.com/auth",
+        realm    = "my-realm",
         clientId = "my-client"
 )
 public class App {
@@ -30,39 +30,39 @@ public class App {
 | `clientId` | OAuth2 client ID registered in Keycloak |
 | `jsUrl` | Optional: custom URL for the Keycloak JS adapter (defaults to `{url}/js/keycloak.js`) |
 
-When the application loads, unauthenticated users are redirected to the Keycloak login page. After login, the browser receives a JWT Bearer token.
+When the application loads, unauthenticated users are redirected to the Keycloak login page. After login, the browser receives a JWT Bearer token that is sent with every subsequent request.
 
 ---
 
-## Authorization with @EyesOnly
+## Authorization with `@EyesOnly`
 
-`@EyesOnly` hides menu items, fields, or whole pages from users who do not have the required roles, groups, scopes, or permissions.
+`@EyesOnly` can be applied to fields, methods, and types. It hides the annotated element from any user who does not satisfy the required conditions.
 
 ```java
 public class App {
     @Menu
-    Products products;     // visible to all authenticated users
+    Products products;          // visible to all authenticated users
 
     @Menu
     @EyesOnly(roles = "admin")
-    AdminPanel admin;      // only visible to users with the "admin" role
+    AdminPanel admin;           // only visible to users with the "admin" role
 
     @Menu
     @EyesOnly(roles = {"editor", "admin"})
-    CmsPages pages;        // visible to "editor" OR "admin"
+    CmsPages pages;             // visible to "editor" OR "admin"
 }
 ```
 
 `@EyesOnly` can be applied to:
 - `@Menu` fields — hides the menu entry
 - `@Menu` methods — hides the menu entry
-- Classes (types) — hides the whole page/orchestrator
+- Classes (types) — hides the whole page or orchestrator
 
 ---
 
 ## How authorization works
 
-Mateu reads the JWT Bearer token from the `Authorization` request header. It decodes the payload (without a signature check — this is expected to happen at the gateway) and checks:
+Mateu reads the JWT Bearer token from the `Authorization` request header. It decodes the payload and checks the claims. Signature verification is expected to happen at the API gateway before the request reaches Mateu.
 
 | `@EyesOnly` attribute | JWT claim checked |
 |---|---|
@@ -71,41 +71,29 @@ Mateu reads the JWT Bearer token from the `Authorization` request header. It dec
 | `groups` | *(reserved for future use)* |
 | `permissions` | *(reserved for future use)* |
 
-If any required condition fails, the element is hidden from the response. The user never sees the menu entry.
+If any required condition is not met, the element is omitted from the response. The user never sees the menu entry or page.
 
 ---
 
-## Multiple conditions
+## Condition logic
 
-All specified attributes must be satisfied (AND logic):
-
-```java
-@EyesOnly(roles = "admin", scopes = "write")
-```
-
-Multiple values within a single attribute are OR logic:
+Multiple values within a single attribute use OR logic:
 
 ```java
 @EyesOnly(roles = {"admin", "superuser"})   // user must have "admin" OR "superuser"
 ```
 
----
+Multiple attributes use AND logic:
 
-## Typical setup
-
-In a distributed system where an API gateway (Nginx, Envoy, etc.) validates the JWT and injects the decoded claims:
-
+```java
+@EyesOnly(roles = "admin", scopes = "write")  // must have "admin" AND "write"
 ```
-Browser → API Gateway (validates JWT) → Mateu backend (reads claims from Bearer token)
-```
-
-Mateu trusts the token but does not re-validate the signature. The gateway is responsible for signature verification and token expiry.
 
 ---
 
-## Securing individual fields (declarative API)
+## Securing individual fields
 
-`@EyesOnly` on fields hides them from the form and listing:
+`@EyesOnly` on a record field hides it from both the form and the listing:
 
 ```java
 public record User(
@@ -115,29 +103,49 @@ public record User(
 ) {}
 ```
 
-Users without the `admin` role see the `id` and `name` fields but not `internalNote`.
+Users without the `admin` role see `id` and `name` but not `internalNote`.
+
+---
+
+## Typical deployment setup
+
+In a distributed system, an API gateway (Nginx, Envoy, Kong, etc.) validates the JWT signature and token expiry. Mateu trusts the token but does not re-validate the signature:
+
+```
+Browser → API Gateway (validates JWT signature + expiry)
+        → Mateu backend (reads claims from Bearer token, enforces @EyesOnly)
+```
+
+For common cases, the gateway can also inject identity headers (`X-User-Id`, `X-User-Email`) that action handlers read directly.
 
 ---
 
 ## Reading the current user in actions
 
-Inside action handlers, read the JWT claims from the `Authorization` header:
+Inside action handlers, read the JWT or injected headers from the `HttpRequest`:
 
 ```java
 @Override
 public Object handleAction(String actionId, HttpRequest httpRequest) {
     String authHeader = httpRequest.getHeaderValue("Authorization");
-    // parse the Bearer token to extract user identity
+    // parse the Bearer token to extract user identity, or read injected headers:
+    String userId = httpRequest.getHeaderValue("X-User-Id");
     return null;
 }
 ```
 
-For common cases, the gateway can inject identity headers (`X-User-Id`, `X-User-Email`) that you read directly.
+---
+
+## Service-owned authorization
+
+In a microservices deployment, each service enforces `@EyesOnly` independently. The shell forwards the JWT to the service backend, which applies its own rules. A user who lacks a role sees the menu entry removed in the service's response — not just hidden in the shell.
+
+See [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) for how this fits into a distributed architecture.
 
 ---
 
 ## Next
 
-- [Navigation and menus](/java-user-manual/build/navigation-and-menus/)
-- [Domain models](/java-user-manual/build/domain-models/)
-- [Advanced rules](/java-user-manual/advanced/rules/)
+- [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/) — how each service enforces its own authorization
+- [Rules](/java-user-manual/advanced/rules/) — client-side field visibility (complement to server-side `@EyesOnly`)
+- [Testing](/java-user-manual/advanced/testing/) — how to test pages that depend on authorization headers

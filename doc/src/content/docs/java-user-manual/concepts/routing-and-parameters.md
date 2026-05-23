@@ -2,83 +2,73 @@
 title: "Routing and parameters"
 ---
 
-Mateu lets you define routes declaratively and automatically bind URL parameters to your ViewModel.
+Mateu binds URL parameters directly to ViewModel fields. There are no controllers, no manual parsing, and no mapping layer.
 
-This means:
-
-- no controllers
-- no manual parsing
-- no mapping layer
-
-The URL becomes part of your UI state.
+The URL is just another input to your UI state.
 
 ---
 
 ## Path parameters
 
-You can define parameters directly in the route using placeholders.
+Define placeholders in the route using `:name` syntax. Mateu maps them to fields with matching names.
 
 ```java
-@Route("/example/:name")
-public class ExampleParametersViewModel {
+@Route("/products/:id")
+public class ProductForm {
 
-    String name;
+    String id;   // receives the value from the URL
 
 }
 ```
 
-When navigating to:
-
-```
-/example/Mateu
-```
-
-Mateu automatically sets:
-
-```java
-name = "Mateu";
-```
+Navigating to `/products/abc-123` sets `id = "abc-123"` before any action runs.
 
 ---
 
 ## Query parameters
 
-Mateu also maps query parameters automatically.
+Fields not covered by path parameters are populated from the query string automatically.
 
 ```java
-int version;
+@Route("/products/:id")
+public class ProductForm {
+
+    String id;       // from path
+    int version;     // from query string
+
+}
 ```
 
-When navigating to:
+Navigating to `/products/abc-123?version=2` sets:
 
-```
-/example/Mateu?version=1
-```
+- `id = "abc-123"`
+- `version = 2`
 
-Mateu sets:
-
-```java
-version = 1;
-```
+Mateu handles type conversion. A missing parameter uses the field's default Java value.
 
 ---
 
 ## Full example
 
 ```java
-@Route("/example/:name")
-public class ExampleParametersViewModel {
+@Route("/products/:id")
+public class ProductForm {
 
-    String name;
-
+    String id;
     int version;
 
+    @NotBlank
+    String name;
+
+    @Stereotype(FieldStereotype.radio)
+    Status status;
+
     @ReadOnly
-    String assessment;
+    String audit;
 
     @Button
-    void check() {
-        assessment = "name= " + name + ", version=" + version;
+    void inspect() {
+        audit = "id=" + id + ", version=" + version + ", name=" + name;
     }
 
 }
@@ -87,63 +77,44 @@ public class ExampleParametersViewModel {
 URL:
 
 ```
-http://localhost:8080/example/Mateu?version=1
+http://localhost:8080/products/abc-123?version=2
 ```
 
-Result:
+Result before the user acts:
 
-- `name = "Mateu"`
-- `version = 1`
+- `id = "abc-123"`
+- `version = 2`
+- `name` and `status` are populated from whatever the browser sent as form state
 
 ---
 
 ## What this enables
 
-This approach removes an entire layer from traditional architectures.
+Traditional architectures require:
 
-Instead of:
+1. Controller receives request
+2. Controller parses parameters
+3. Controller maps to a DTO
+4. DTO is passed to the UI layer
 
-- controller → parse params
-- map to DTO
-- pass to UI
+With Mateu:
 
-You get:
+1. URL maps directly to the ViewModel
 
-- URL → ViewModel (directly)
-
----
-
-## Mental model
-
-- route → defines the screen
-- path params → map to fields
-- query params → map to fields
-- ViewModel → receives everything
-
-👉 The URL is just another input to your UI state.
-
----
-
-## When to use this
-
-Use routing and parameters when:
-
-- you want shareable URLs
-- you need deep linking
-- you want to preload UI state
-- you want navigation without controllers
+No intermediate layer. No boilerplate.
 
 ---
 
 ## Notes
 
-- field names must match parameter names
-- Mateu handles type conversion automatically
-- missing parameters use default values
+- Field names must match parameter names exactly (case-sensitive)
+- Type conversion is automatic for primitives and common types (`String`, `int`, `long`, `boolean`, `LocalDate`, etc.)
+- Missing parameters leave fields at their Java default value
 
 ---
 
 ## Next
 
+- [UI vs Route](/java-user-manual/concepts/ui-vs-route/)
 - [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
 - [Action behavior](/java-user-manual/concepts/action-behavior/)

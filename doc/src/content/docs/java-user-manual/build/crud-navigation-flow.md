@@ -169,6 +169,6 @@ Use `@Route(value = "...", uis = {"/route"})` to bind any custom page into the C
 
 ## Next
 
-- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
-- [Users CRUD with lookups](/java-user-manual/use-cases/users-crud/)
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/)
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — annotations, layout, and actions for refining the default CRUD
+- [Listing row actions](/java-user-manual/build/listing-row-actions/) — per-row `ColumnAction` and `ColumnActionGroup`
+- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit control over filters, rows, views, and forms

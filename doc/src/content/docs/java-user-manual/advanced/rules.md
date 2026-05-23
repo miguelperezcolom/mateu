@@ -2,9 +2,11 @@
 title: "Rules"
 ---
 
-Mateu lets you define dynamic client-side behavior declaratively, directly on field annotations.
+Rules give fields dynamic client-side behavior — visibility, status badges, and display labels — without a round-trip to the server.
 
-Rules are evaluated in the browser and can control field visibility and value display without a round-trip to the server.
+All rules are declared as annotations directly on the field. No JavaScript is required.
+
+**When to use:** reach for rules when you need fields to react to each other in real time (e.g. show a comment field only when a checkbox is ticked), or when you want a field's stored value to appear differently in the UI.
 
 ---
 
@@ -41,6 +43,8 @@ String email;
 @Hidden("!state['special']")
 String comment;
 ```
+
+**CSP note:** expressions are evaluated in the browser's JavaScript engine. Avoid calling global functions like `String()` or `Number()` — use JS coercion operators (`!!`, `+`) instead, which work in strict CSP environments.
 
 ### Hiding on a type
 
@@ -102,6 +106,8 @@ This works with both enums and strings.
 )
 String status;
 ```
+
+For listings, `@Status` can also be applied to a row record field. Mateu renders the badge in the grid cell automatically. See [Query services and UI rows](/java-user-manual/real-world/query-services-and-ui-rows/) for how row-level status badges are typically mapped from domain enums.
 
 ---
 
@@ -171,6 +177,6 @@ public record Grupo(
 
 ## Next
 
-- [Field stereotypes](/java-user-manual/concepts/field-stereotypes/)
-- [UI effects](/java-user-manual/concepts/ui-effects/)
-- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
+- [Layout and composition](/java-user-manual/advanced/layout-and-composition/) — control field arrangement and page-level styling
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — apply rules inside listings
+- [Query services and UI rows](/java-user-manual/real-world/query-services-and-ui-rows/) — status badges in row records

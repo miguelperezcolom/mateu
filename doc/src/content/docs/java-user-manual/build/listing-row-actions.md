@@ -136,8 +136,19 @@ Use row actions when:
 
 ## Summary
 
-- `ColumnAction` → single action
-- `ColumnActionGroup` → multiple actions
-- `@Hidden id` → required for row context
-- `Status` → visual state
-- rows are UI models, not domain models
+| Type | Use when |
+|---|---|
+| `ColumnAction` | A single action applies to every row |
+| `ColumnActionGroup` | Multiple contextual actions per row |
+| `@Hidden String id` | Required so Mateu knows which row triggered the action |
+| `Status` | Render a field as a visual badge rather than plain text |
+
+Rows are UI models, not domain entities. They can include formatted data, derived fields, and UI-specific constructs alongside the action controls.
+
+---
+
+## Next
+
+- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — when you need separate models for filters, rows, views, and forms
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — the full progressive customization ladder
+- [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — a complete example showing row actions in context

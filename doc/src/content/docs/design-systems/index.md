@@ -1,26 +1,52 @@
 ---
 title: "Design Systems"
-#icon: "/images/icons/start.svg" # https://fonts.google.com/icons
-#icon_bg: ""
-description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
-
+description: "Choose a frontend renderer for your Mateu application."
 ---
 
-Mateu provides several frontends using different design systems, so you can choose he one which you like most / fits 
-your needs. This allows you to easily create your **micro frontends** which you can easily embed in existing
-**Red Hat**/**SAP**/**Oracle**/**Vaadin** user interfaces. In the end, **Mateu**'s frontends are just web components which you can embed anywhere, indeed. 
+Mateu separates UI definition (your Java backend) from UI rendering (the frontend). You choose which design system renders your UI by adding a single Maven dependency.
 
-E.g. you can use the **Redwood** frontend if you want your microfrontends to be embedded in/coexist with existing **Oracle** UIs, or choose
-the **SAP Fiori** frontend if you want your microfrontends to be embedded in/coexist with existing **SAP** UIs, 
-the **Lightning Web Components** renderer if you want your microfrontends to be embedded in/coexist with existing **SalesForce** UIs 
-choose **Red Hat** or **Vaadin** just because you like it (like I do).
+All renderers consume the same Mateu API, so you can switch or support multiple renderers without changing your Java code.
 
-I imagine I do not need to say this but, obviously, you can also serve your applications in a **standalone** mode without 
-embedding them in existing **Red Hat**/**SAP**/**Oracle**/**SalesForce**/**Vaadin** web user interfaces. In fact, changing the design system for your 
-**Mateu**-based UIs is as easy as just changing a maven dependency. 
+## Available renderers
 
-For some of the frontends I have used the components which are open source / free-to-use from each design system, and provided my own alternate 
-components when the design system ones were under a restrictive licensing model, to allow you to use Mateu wherever. I 
-will double-check before releasing the version 3 of Mateu, anyway.
+| Renderer | Design system | Dependency |
+|---|---|---|
+| [Vaadin](/design-systems/vaadin/) | Vaadin Lumo | `vaadin-lit` |
+| [Red Hat](/design-systems/redhat/) | Red Hat PatternFly | `redhat-lit` |
+| [SAP Fiori](/design-systems/sapui5/) | SAP Fiori / UI5 | `sapui5-lit` |
+| [Oracle Redwood](/design-systems/oracle-redwood/) | Oracle Redwood | `redwood-lit` |
+| [Salesforce SLDS](/design-systems/slds2/) | Salesforce Lightning | `slds2-lit` |
 
-SAP Fiori is a different case, and you will need a valid SAP license including SAP Fiori in case you want to use that frontend.
+## How to switch renderer
+
+Replace the renderer dependency in your `pom.xml`. For example, to switch from Vaadin to Red Hat:
+
+```xml
+<!-- remove -->
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>vaadin-lit</artifactId>
+    <version>MATEU_VERSION</version>
+</dependency>
+
+<!-- add -->
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>redhat-lit</artifactId>
+    <version>MATEU_VERSION</version>
+</dependency>
+```
+
+No Java code changes are needed.
+
+## Embedding in existing UIs
+
+Because each renderer is a web component, you can embed a Mateu UI inside any existing application — including React, Vue, Angular, or plain HTML pages — regardless of which design system that application uses.
+
+A Vaadin-rendered Mateu component can be embedded in an Oracle JET application. An SAP Fiori renderer can be dropped into any HTML page.
+
+See [Embedded UI](/java-user-manual/use-cases/embedded-ui/) for details.
+
+## Bring your own
+
+If none of the available renderers fit, you can build your own frontend that consumes the Mateu API. See [Bring your own design system](/design-systems/bring-your-own-design-system/).

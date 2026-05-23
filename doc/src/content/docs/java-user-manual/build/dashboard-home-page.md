@@ -269,6 +269,6 @@ Each row in `search()` returns a `CardRow` with a pre-built card component.
 
 ## Next
 
-- [Application shell](/java-user-manual/build/application-shell/)
-- [Layouts](/java-user-manual/concepts/fluent-components/fluent-layouts/)
-- [Display components](/java-user-manual/concepts/fluent-components/fluent-display-components/)
+- [Navigation and menus](/java-user-manual/build/navigation-and-menus/) — declare the sidebar entries that point to your dashboard and other pages
+- [Domain models](/java-user-manual/build/domain-models/) — how to inject repositories and services into the pages that feed the dashboard
+- [Admin panel example](/java-user-manual/use-cases/admin-panel/) — a full backoffice with a dashboard as the landing page

@@ -2,12 +2,23 @@
 title: "Advanced"
 ---
 
-These pages are useful once you already understand the main Mateu model.
+The topics here build on the core Mateu model. Read them when you encounter a specific need: client-side behavior, navigation context, custom UI elements, or production concerns like security and testing.
 
-- [Rules](/java-user-manual/advanced/rules/)
-- [Breadcrumbs](/java-user-manual/advanced/breadcrumbs/)
-- [Layout and composition](/java-user-manual/advanced/layout-and-composition/)
-- [Custom web components](/java-user-manual/advanced/custom-web-components/)
-- [Extensibility](/java-user-manual/advanced/extensibility/)
-- [Testing](/java-user-manual/advanced/testing/)
-- [Security](/java-user-manual/advanced/security/)
+## Topics
+
+- [Rules](/java-user-manual/advanced/rules/) — conditional visibility, status badges, and display mappings evaluated in the browser
+- [Breadcrumbs](/java-user-manual/advanced/breadcrumbs/) — static and dynamic navigation context for pages
+- [Layout and composition](/java-user-manual/advanced/layout-and-composition/) — control page structure, regions, and inline styling
+- [Custom web components](/java-user-manual/advanced/custom-web-components/) — embed any standard web component using `Element.builder()`
+- [Extensibility](/java-user-manual/advanced/extensibility/) — override framework internals, add micro-frontends, or plug in an alternative renderer
+- [Security](/java-user-manual/advanced/security/) — authenticate with Keycloak and restrict access with `@EyesOnly`
+- [Testing](/java-user-manual/advanced/testing/) — unit-test ViewModels, actions, and repositories with no framework overhead
+
+## Suggested reading order
+
+Start with [Rules](/java-user-manual/advanced/rules/) and [Security](/java-user-manual/advanced/security/) — they apply to nearly every production application. Add [Custom web components](/java-user-manual/advanced/custom-web-components/) and [Extensibility](/java-user-manual/advanced/extensibility/) when you need to go beyond what Mateu renders by default.
+
+## Related
+
+- [Real-world patterns](/java-user-manual/real-world/) — how these techniques apply in hexagonal and microservices architectures
+- [Concepts](/java-user-manual/concepts/) — core model reference

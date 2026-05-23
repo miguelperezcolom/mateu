@@ -2,7 +2,9 @@
 title: "Service-owned UI modules"
 ---
 
-In a microservices architecture, each service can own and expose its own UI. The shell application aggregates these into a unified interface using `RemoteMenu`.
+In a microservices architecture, each service owns and exposes its own UI. A shell application aggregates them into a unified interface using `RemoteMenu`. This is the pattern that makes Mateu a UI orchestration layer — not a monolithic frontend that all teams must coordinate.
+
+**Prerequisite:** understand [Mateu in hexagonal architecture](/java-user-manual/real-world/mateu-in-hexagonal-architecture/) — service-owned UI is the natural consequence of treating the UI as an inbound adapter per bounded context.
 
 ---
 
@@ -229,6 +231,6 @@ the library jar, and generates the controllers (`MyPageController`,
 
 ## Next
 
-- [Distributed control plane](/java-user-manual/real-world/distributed-control-plane/)
-- [Navigation and menus](/java-user-manual/build/navigation-and-menus/)
-- [Security](/java-user-manual/advanced/security/)
+- [Distributed control plane](/java-user-manual/real-world/distributed-control-plane/) — a full case study that uses this pattern across four services
+- [Security](/java-user-manual/advanced/security/) — how `@EyesOnly` is enforced independently in each service
+- [Navigation and menus](/java-user-manual/build/navigation-and-menus/) — `RemoteMenu` reference

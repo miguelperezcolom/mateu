@@ -198,6 +198,6 @@ This applies at every level: Level2 shows inside Level1's form, Level3 shows ins
 
 ## Next
 
+- [Distributed backoffice](/java-user-manual/use-cases/distributed-backoffice/)
 - [Master-detail (Process + Steps)](/java-user-manual/build/master-detail/)
 - [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/)
-- [Admin panel](/java-user-manual/use-cases/admin-panel/)

@@ -1,15 +1,34 @@
 ---
-title: "Red Hat"
-#icon: "/images/icons/start.svg" # https://fonts.google.com/icons
-#icon_bg: ""
-description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
+title: "Red Hat PatternFly"
+description: "Mateu renderer built on Red Hat's PatternFly design system."
 ---
 
+The Red Hat renderer uses PatternFly web components. It is a good choice when your team favors the Red Hat ecosystem or when the UI needs to blend into an existing PatternFly application.
 
 <p align="center"><img src="../../../images/Red_Hat_Logo_2019.svg?raw=true" width="200"/></p>
 
 <p align="center"><img src="../../../images/basic-form-redhat.png?raw=true" width="600"/></p>
 
-> DEMO: https://redhat.mateu.io/
+**Demo:** https://redhat.mateu.io/
 
-Red Hat's design system is great. It has a good balance between simplicity, clarity and nice looking.
+## Add to your project
+
+```xml
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>redhat-lit</artifactId>
+    <version>MATEU_VERSION</version>
+</dependency>
+```
+
+## Characteristics
+
+- Clean, accessible, enterprise-ready look
+- Strong visual hierarchy
+- Particularly well-suited for internal tooling and DevOps dashboards
+
+## Related
+
+- [Design systems overview](/design-systems/)
+- [Vaadin renderer](/design-systems/vaadin/)
+- [Embedded UI](/java-user-manual/use-cases/embedded-ui/)

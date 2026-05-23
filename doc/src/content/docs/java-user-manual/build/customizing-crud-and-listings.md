@@ -245,28 +245,15 @@ Callable<?> stats = () -> new HorizontalLayout(
 
 # 9. Anti-patterns
 
-## ❌ Overusing custom pages
+## Overusing custom pages
 
-Don't create pages too early.
-
-Start with:
-- model
-- CRUD
-
-Then extend only when needed.
+Do not create custom pages too early. Start with the model and the CRUD. Add custom pages only when the model-driven approach cannot express what you need.
 
 ---
 
-## ❌ Putting logic in the frontend
+## Putting logic in the frontend
 
-Mateu is backend-driven.
-
-Keep:
-- logic
-- validation
-- state
-
-in Java.
+Mateu is backend-driven. Keep logic, validation, and state in Java. The UI is a projection of the server-side model, not an independent stateful application.
 
 ---
 
@@ -284,3 +271,11 @@ Customization in Mateu follows this progression:
 Stay in the model as long as possible.
 
 Move to more advanced techniques only when needed.
+
+---
+
+## Next
+
+- [Listing row actions](/java-user-manual/build/listing-row-actions/) — add per-row contextual actions with `ColumnAction` and `ColumnActionGroup`
+- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for filters, rows, views, and forms
+- [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — see all of these techniques applied in a realistic business UI

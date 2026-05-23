@@ -27,3 +27,8 @@ Use this section when you want to answer questions like:
 - Use the manual to learn Mateu
 - Use this reference to confirm details
 - Use the Javadoc for the full API surface
+
+## Related
+
+- [Java UI Definition](/java-ui-definition/) — full component, annotation and interface reference
+- [Java User Manual](/java-user-manual/start-here/quickstart/) — learn how to use Mateu step by step

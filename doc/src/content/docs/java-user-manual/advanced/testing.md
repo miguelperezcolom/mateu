@@ -2,15 +2,15 @@
 title: "Testing"
 ---
 
-Mateu ViewModels are plain Java objects.
+Mateu ViewModels are plain Java objects. Actions are regular methods. This means you can test the entire business logic of a page with no framework setup, no browser, and no mocks of UI infrastructure.
 
-This makes them naturally easy to test: no framework setup, no mocks of UI infrastructure, no browser required.
+**Prerequisite:** prefer constructor injection in your ViewModels and Spring beans. It makes tests straightforward — pass real or fake collaborators directly, without a Spring context.
 
 ---
 
 ## Unit testing actions
 
-Test a ViewModel action by instantiating the class, calling the method, and asserting on the result.
+Instantiate the ViewModel, set its fields, call the action method, and assert on the result:
 
 ```java
 @Test
@@ -23,13 +23,13 @@ void greet_returns_message_with_name() {
 }
 ```
 
-Because actions are regular Java methods, you can test them without any Mateu-specific test infrastructure.
+Because actions are regular Java methods, this is as simple as testing any other class.
 
 ---
 
 ## Testing state mutations
 
-When an action mutates ViewModel fields and returns `State(this)`, test both the return value and the field values:
+When an action mutates ViewModel fields and returns `State(this)`, assert on both the return value and the field values after the call:
 
 ```java
 @Test
@@ -59,12 +59,12 @@ void save_updates_user_and_returns_message_and_state() {
 
 ## Testing with injected dependencies
 
-When the ViewModel is a Spring bean with injected dependencies, pass them directly via the constructor in the test:
+Pass collaborators directly via the constructor. No Spring context needed:
 
 ```java
 @Test
 void usersPage_lists_all_users() {
-    var repo = new UserRepository();         // plain class, no Spring needed
+    var repo = new UserRepository();     // plain class, no Spring
     var adapter = new UserAdapter(repo);
     var page = new UsersPage(adapter);
 
@@ -73,21 +73,20 @@ void usersPage_lists_all_users() {
 }
 ```
 
-Prefer constructor injection in production code specifically because it makes tests like this straightforward.
+Use an in-memory implementation for the repository or any other port. This keeps tests fast and deterministic.
 
 ---
 
 ## Testing CRUD repositories
 
-Test the repository in isolation:
+Test the repository in isolation to verify persistence logic independently of the UI:
 
 ```java
 @Test
 void save_and_find_by_id() {
     var repo = new UserRepository();
-    var user = new User("1", "Alice", "alice@example.com", List.of("1"));
+    repo.save(new User("1", "Alice", "alice@example.com", List.of("1")));
 
-    repo.save(user);
     var found = repo.findById("1");
 
     assertThat(found).isPresent();
@@ -107,28 +106,9 @@ void delete_removes_entity() {
 
 ---
 
-## Integration tests with Spring Boot
-
-For full context tests, use `@SpringBootTest`:
-
-```java
-@SpringBootTest
-class DemoAdminPanelApplicationTests {
-
-    @Test
-    void contextLoads() {
-        // verifies the Spring context starts without errors
-    }
-}
-```
-
-This catches wiring errors (missing beans, circular dependencies, misconfigured properties) without requiring a browser.
-
----
-
 ## Testing listings
 
-For `Listing<Filters, Row>` classes, test the `search()` method directly:
+For `Listing<Filters, Row>` classes, call `search()` directly:
 
 ```java
 @Test
@@ -146,14 +126,54 @@ void search_returns_change_rows() {
 
 ---
 
+## Testing actions with authorization headers
+
+When an action reads from the `HttpRequest` (e.g. the `Authorization` header for the current user), pass a stub request:
+
+```java
+@Test
+void save_reads_user_from_auth_header() {
+    var httpRequest = StubHttpRequest.withHeader("X-User-Id", "user-42");
+    var page = new OrderEditorPage(new InMemoryOrderRepository());
+    page.customerId = "customer-1";
+
+    var result = page.handleAction("save", httpRequest);
+
+    assertThat(result).isInstanceOf(Message.class);
+}
+```
+
+Define `StubHttpRequest` as a simple test double that implements `HttpRequest` and returns configured header values.
+
+---
+
+## Integration tests with Spring Boot
+
+For full context validation, use `@SpringBootTest`:
+
+```java
+@SpringBootTest
+class DemoAdminPanelApplicationTests {
+
+    @Test
+    void contextLoads() {
+        // verifies the Spring context starts without errors
+    }
+}
+```
+
+This catches wiring errors (missing beans, circular dependencies, misconfigured properties) without requiring a browser.
+
+---
+
 ## What to test
 
-Focus on:
-
-- **Actions**: call the method, assert the return value and side effects
-- **State transitions**: verify field values after an action runs
-- **Repository logic**: verify save, find, delete independently
-- **Business rules**: any logic inside the ViewModel or service layer
+| Focus | Why |
+|---|---|
+| Actions | Verify return values and side effects |
+| State transitions | Field values after an action runs |
+| Repository logic | Save, find, delete independently |
+| Business rules | Logic inside the ViewModel or service layer |
 
 Mateu generates the UI from your model. You do not need to test what Mateu generates.
 
@@ -163,20 +183,21 @@ Mateu generates the UI from your model. You do not need to test what Mateu gener
 
 - The generated forms and listings — Mateu handles this
 - Routing — covered by integration tests
-- UI rendering — no Mateu-specific test API required here
+- UI rendering — no Mateu-specific test API required
 
 ---
 
 ## Mental model
 
-- ViewModels are plain Java → unit tests work with no ceremony
-- Use constructor injection → test with real or fake collaborators, no mocks needed
-- Test actions as regular methods → assert return values and state
-- Integration test with `@SpringBootTest` → catches wiring errors
+- ViewModels are plain Java — unit tests work with no ceremony
+- Use constructor injection — test with real or fake collaborators, no mocks needed
+- Test actions as regular methods — assert return values and state
+- Use `@SpringBootTest` for integration tests — catches wiring errors
 
 ---
 
 ## Next
 
-- [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)
-- [Action behavior](/java-user-manual/concepts/action-behavior/)
+- [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/) — understand what actions can return
+- [Security](/java-user-manual/advanced/security/) — test pages that read authorization headers
+- [Real-world patterns](/java-user-manual/real-world/) — how testing fits in hexagonal and microservices architectures

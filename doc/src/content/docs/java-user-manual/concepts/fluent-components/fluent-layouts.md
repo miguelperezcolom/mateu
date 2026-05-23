@@ -268,4 +268,5 @@ HorizontalLayout.builder()
 ## Next
 
 - [Form fields](/java-user-manual/concepts/fluent-components/fluent-form-fields/)
+- [Display components](/java-user-manual/concepts/fluent-components/fluent-display-components/)
 - [Actions](/java-user-manual/concepts/fluent-components/fluent-actions/)

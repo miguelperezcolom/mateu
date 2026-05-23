@@ -2,97 +2,262 @@
 title: "State, actions and fields"
 ---
 
-Mateu UIs are built from a small set of concepts.
+A Mateu ViewModel is a plain Java class. Its fields are the UI state; its annotated methods are the actions.
 
 ## State (fields)
 
-Fields represent UI state.
+Each field in a ViewModel maps to a form control in the browser. Mateu infers the control type from the Java type.
 
 ```java
-String name;
-boolean active;
+public class ProductForm {
+
+    String name;           // → text field
+    boolean active;        // → checkbox
+    Status status;         // → combobox (enum)
+    int stockCount;        // → number input
+    LocalDate releaseDate; // → date picker
+
+}
 ```
 
-By default, Mateu infers the rendered control from the field type.
+The field value is hydrated from request data before any action runs and serialized back after the action completes. There is no persistent state between requests.
 
-Use `@Stereotype` when you want to override that default rendering type.
+### Field types and default controls
 
-In real applications, ViewModels often become Spring beans so they can inject repositories, services, or API clients.
+| Java type | Default control |
+|---|---|
+| `String` | Text field |
+| `int` / `long` / `double` | Number input |
+| `boolean` | Checkbox |
+| `LocalDate` / `LocalDateTime` | Date / datetime picker |
+| `enum` | Combobox |
+| `List<String>` | Multi-select |
+
+### Overriding the inferred control with @Stereotype
+
+Use `@Stereotype` when the inferred control is not what you want.
+
+```java
+enum Status { Available, OutOfStock }
+
+@Stereotype(FieldStereotype.radio)
+Status status;             // → radio button group instead of combobox
+
+@Stereotype(FieldStereotype.textarea)
+String description;        // → multi-line text area instead of single-line
+
+@Stereotype(FieldStereotype.richText)
+String body;               // → rich text editor
+
+@Stereotype(FieldStereotype.password)
+String secret;             // → password input (masked)
+
+@Stereotype(FieldStereotype.toggle)
+boolean active;            // → toggle switch instead of checkbox
+```
+
+The full list of available stereotypes is defined in `FieldStereotype`:
+`regular`, `radio`, `checkbox`, `textarea`, `toggle`, `combobox`, `select`, `email`, `password`, `richText`, `listBox`, `html`, `markdown`, `image`, `icon`, `link`, `money`, `grid`, `color`, `choice`, `popover`, `slider`, `button`, `stars`.
+
+### Read-only fields
+
+```java
+@ReadOnly
+String computedValue;
+```
+
+Read-only fields are shown in the form but cannot be edited by the user.
+
+### Hidden fields
+
+```java
+@Hidden
+String internalId;
+```
+
+Hidden fields carry state across requests but are not rendered.
+
+---
 
 ## Actions
 
-Actions represent behavior triggered by the user.
-
-They can be defined as:
-
-- methods annotated with `@Toolbar`
-- methods annotated with `@Button`
-- `Runnable` fields annotated with `@Button`
-
-## Buttons and placement
+Actions are public methods that the user can trigger from the browser.
 
 ### Toolbar actions
 
-Methods annotated with `@Toolbar` are rendered in the toolbar, typically in the top-right area.
+`@Toolbar` places the action in the toolbar, typically at the top of the screen.
 
 ```java
 @Toolbar
 public void refresh() {
-  // ...
+    // re-load data from backend
 }
 ```
 
 ### Form actions
 
-Methods annotated with `@Button` are rendered in the form action area, typically at the bottom.
+`@Button` places the action in the form footer area.
 
 ```java
 @Button
 public void save() {
-  // ...
+    productRepository.save(id, name, status);
 }
 ```
 
 ### Inline buttons
 
-`Runnable` fields annotated with `@Button` behave like regular form fields, so they can be positioned inline inside the form.
+A `Runnable` field annotated with `@Button` behaves like a regular form field, so it can be positioned inline inside the form layout.
 
 ```java
 @Button
-Runnable generate = () -> {};
+Runnable generate = () -> {
+    name = "Generated-" + System.currentTimeMillis();
+};
 ```
 
-## Action behavior
+---
 
-Actions can be configured declaratively using `@Action`.
+## What actions can return
+
+The return value of an action controls what happens in the browser after it completes.
+
+### Return nothing — state mutation only
+
+```java
+@Button
+public void normalize() {
+    name = name.trim().toUpperCase();
+}
+```
+
+When an action returns `void`, Mateu sends no explicit effect. Use `State(this)` if you want the form to reflect mutated field values.
+
+### Return a Message — show feedback
+
+```java
+@Button
+public Message check() {
+    if (status == Status.OutOfStock) {
+        return Message.builder()
+            .variant(NotificationVariant.warning)
+            .text("Product is out of stock")
+            .build();
+    }
+    return new Message("Product is available");
+}
+```
+
+`Message` shows a toast notification. The default variant is `success`.
+
+### Return State — update the form
+
+```java
+@Button
+public State validate() {
+    if (name == null || name.isBlank()) {
+        name = "(unnamed)";
+    }
+    return new State(this);
+}
+```
+
+`State(this)` pushes the current ViewModel state back to the frontend, refreshing all form fields.
+
+### Return a URI — navigate to a URL
+
+```java
+@Button
+public URI create() {
+    String id = productService.create(name, status);
+    return URI.create("/products/" + id);
+}
+```
+
+### Return another ViewModel — open a new page
+
+```java
+@Button
+public ProductDetail open() {
+    return productService.load(id);
+}
+```
+
+Returning a ViewModel instance tells Mateu to render that object as a new page.
+
+### Return a UICommand — browser-level control
+
+```java
+@Toolbar
+public UICommand closeAndRefresh() {
+    return UICommand.navigateTo("/products");
+}
+```
+
+`UICommand` gives low-level control over browser behavior: navigation, running actions, pushing history state, and more.
+
+---
 
 ## Validation
 
-Standard Bean Validation annotations are automatically enforced in the UI.
+Standard Bean Validation annotations are enforced automatically. They prevent invalid form submissions and display errors next to the affected field.
 
-## Reactions
+```java
+@NotBlank
+String name;
 
-Triggers define **when** actions run.
+@NotNull
+Status status;
 
-## Dynamic behavior
+@Size(max = 200)
+String description;
+```
 
-Rules define how the UI changes dynamically in the browser.
+See [Validation](/java-user-manual/concepts/validation/) for more detail.
 
-## UI effects
+---
 
-Actions can return:
+## Full example
 
-- `Message` → user feedback
-- `UICommand` → browser control
+```java
+@UI("/products/new")
+public class NewProductForm {
 
-## Mental model
+    @NotBlank
+    String name;
 
-- state → fields
-- inferred type → default control
-- stereotype → rendering type override
-- actions → methods or buttons
-- action behavior → `@Action`
-- reactions → triggers
-- rules → dynamic behavior
-- validation → bean validation
-- effects → messages and browser commands
+    @NotNull
+    @Stereotype(FieldStereotype.radio)
+    Status status = Status.Available;
+
+    @Stereotype(FieldStereotype.textarea)
+    String description;
+
+    @ReadOnly
+    String summary;
+
+    @Button
+    Runnable preview = () -> {
+        summary = name + " (" + status + ")";
+    };
+
+    @Button
+    @Action(validationRequired = true)
+    public Object save() {
+        String id = productRepository.save(name, status, description);
+        return List.of(
+            new Message("Product saved"),
+            URI.create("/products/" + id)
+        );
+    }
+
+}
+```
+
+---
+
+## Next
+
+- [Field stereotypes](/java-user-manual/concepts/field-stereotypes/)
+- [Validation](/java-user-manual/concepts/validation/)
+- [UI effects](/java-user-manual/concepts/ui-effects/)

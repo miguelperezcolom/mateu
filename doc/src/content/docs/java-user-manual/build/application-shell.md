@@ -221,6 +221,6 @@ See [Security](/java-user-manual/advanced/security/) for details.
 
 ## Next
 
-- [Dashboard home page](/java-user-manual/build/dashboard-home-page/)
-- [Navigation and menus](/java-user-manual/build/navigation-and-menus/)
-- [Security](/java-user-manual/advanced/security/)
+- [Dashboard home page](/java-user-manual/build/dashboard-home-page/) — build KPI cards, charts, and activity feeds as the landing page
+- [Navigation and menus](/java-user-manual/build/navigation-and-menus/) — declare menu entries, sub-menus, route links, and remote menus
+- [Security](/java-user-manual/advanced/security/) — `@KeycloakSecured` and `@EyesOnly` for authentication and role-based visibility

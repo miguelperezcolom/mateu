@@ -99,3 +99,11 @@ This prevents:
 - hidden data loading
 
 Instead, everything is explicit and composable.
+
+---
+
+## Next
+
+- [Master-detail](/java-user-manual/build/master-detail/) — step-by-step example of an embedded child CRUD with `Callable<?>`
+- [Foreign keys and options](/java-user-manual/build/foreign-keys-and-options/) — how `@Lookup` works with options suppliers and label resolution
+- [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — all three patterns in a single realistic business UI

@@ -2,9 +2,7 @@
 title: "Fluent components"
 ---
 
-The fluent API is Mateu's programmatic way to build UI.
-
-Instead of relying only on annotations and field declarations, you compose UI components in code using builders and Java objects.
+The fluent API lets you build UI programmatically — composing components in code using builders and Java objects instead of relying only on annotations and field declarations.
 
 ---
 
@@ -60,6 +58,12 @@ A class can implement as many of these as needed.
 
 ---
 
+## Reading order
+
+If you are new to the fluent API, start with [Fluent API basics](/java-user-manual/concepts/fluent-components/fluent-api-basics/), then follow the topics in order: layouts and form fields for structure, actions and triggers for behavior, then listings and nested apps for larger screens.
+
+---
+
 ## Topics
 
 ### Core
@@ -86,3 +90,11 @@ A class can implement as many of these as needed.
 - [Listings](/java-user-manual/concepts/fluent-components/fluent-listings/) — Listing.builder(), columns, filters, sorting, row actions
 - [Nested apps](/java-user-manual/concepts/fluent-components/fluent-nested-apps/) — AppSupplier, AppVariant, menu on left/top/tabs
 - [Display components](/java-user-manual/concepts/fluent-components/fluent-display-components/) — Badge, Card, Chart, Grid, Map, Dialog, Avatar, Status, Amount
+
+---
+
+## Next
+
+- [Fluent API basics](/java-user-manual/concepts/fluent-components/fluent-api-basics/)
+- [Use cases](/java-user-manual/use-cases/)
+- [Build guides](/java-user-manual/build/)

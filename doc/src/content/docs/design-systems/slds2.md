@@ -1,19 +1,35 @@
 ---
-title: "SalesForce Lightning Design System"
-#icon: "/images/icons/start.svg" # https://fonts.google.com/icons
-#icon_bg: ""
-description: "amet nisl tempus convlis quis ac lectus. Vivsdv amus mana justo, lacinia eget"
+title: "Salesforce Lightning (SLDS)"
+description: "Mateu renderer built on Salesforce Lightning Design System web components."
 ---
+
+The Salesforce renderer uses Lightning Web Components (LWC). Use it when your UIs need to look like Salesforce or when they will be embedded inside an existing Salesforce application.
 
 <div style="display: flex; width: 100%; align-items: center; justify-content: center;">
   <img src="https://a.sfdcstatic.com/shared/images/c360-nav/salesforce-with-type-logo.svg" width="120" style="margin-right: 10px;"/>
-  <img src="https://camo.githubusercontent.com/9e92da6b0442c51425e766956fba4856b873be0e52a2c5d054652bdbbd868da8/68747470733a2f2f6c77632e6465762f6173736574732f696d616765732f6769742d6865726f2e706e67" width="300" style="margin-right: 10px;"/>
 </div>
 
 <p align="center"><img src="../../../images/basic-form-slds2.png?raw=true" width="600"/></p>
 
-> DEMO: https://slds2.mateu.io/
+**Demo:** https://slds2.mateu.io/
 
-SalesForce Lightning Design System (SLDS) is a set of open-source design components that are used in the SalesForce user interface..
+## Add to your project
 
-With Mateu, you can seamlessly integrate your UIs into any SalesForce web application that uses SLDS.
+```xml
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>slds2-lit</artifactId>
+    <version>MATEU_VERSION</version>
+</dependency>
+```
+
+## Characteristics
+
+- Matches Salesforce Lightning UI patterns
+- Good choice for ISVs building on the Salesforce platform
+- LWC components are open source
+
+## Related
+
+- [Design systems overview](/design-systems/)
+- [Embedded UI](/java-user-manual/use-cases/embedded-ui/)

@@ -2,53 +2,78 @@
 title: "UI vs Route"
 ---
 
-Mateu uses `@UI` and `@Route` for different levels of routing.
+`@UI` and `@Route` serve different purposes. `@UI` publishes an application at a base URL. `@Route` defines a screen inside that application.
+
+---
 
 ## `@UI`
 
-`@UI` publishes a UI at a base URL.
-
-Think of it as the application entry point.
+`@UI` marks the entry point of a Mateu application and binds it to a base URL.
 
 ```java
-@UI("")
+@UI("/")
 public class AppHome {}
 ```
 
-## `@Route`
+A class annotated with `@UI` is the root of a UI. Mateu registers it as a publicly accessible endpoint.
 
-`@Route` defines internal routes inside that UI.
-
-It does not publish a new UI by itself.
+`@UI` takes a required base URL. Optional attributes control which HTML shell and frontend component file to serve:
 
 ```java
-@Route("/users/:id")
-public class UserDetailPage {
+@UI(value = "/admin", indexHtmlPath = "/static/admin.html", frontendComponentPath = "/assets/mateu.js")
+public class AdminApp {}
+```
+
+---
+
+## `@Route`
+
+`@Route` defines an internal route inside a UI. It does not publish a new application by itself.
+
+```java
+@Route("/products/:id")
+public class ProductForm {
     String id;
 }
 ```
 
-## Mental model
+A class annotated only with `@Route` belongs to a UI root published elsewhere. It is reachable through that UI's base URL.
 
-- `@UI` = application base URL
-- `@Route` = internal route inside that application
+---
 
-A class annotated with `@Route` but not with `@UI` always belongs to a UI root published elsewhere.
+## How they compose
 
-## Example
+The final URL of a routed screen is built from:
+
+- the base URL declared by `@UI`
+- the internal path declared by `@Route`
+
+If `@UI` is at `/admin` and a `@Route` declares `/products/:id`, the full URL becomes `/admin/products/:id`.
+
+---
+
+## Example: route with a parent
 
 ```java
-@Route(value="/use-cases/rra/orders/create", parentRoute="/use-cases/rra")
-public class CreateOrderPage extends EditOrderPage {}
+@Route(value = "/products/create", parentRoute = "/admin")
+public class CreateProductPage extends ProductForm {}
 ```
 
-This class does not publish a new UI.
+This screen does not publish a new UI. It defines a route inside the existing `/admin` UI.
 
-It defines a route inside an existing UI.
+---
 
-## Final URL
+## Mental model
 
-The final URL is built from:
+- `@UI` = application root (one per application or sub-application)
+- `@Route` = screen inside that root
 
-- the base URL published by `@UI`
-- the internal route defined by `@Route`
+A class can have both annotations if it is simultaneously an application root and its own first screen. Typically they are separate.
+
+---
+
+## Next
+
+- [Routing and parameters](/java-user-manual/concepts/routing-and-parameters/)
+- [Execution model](/java-user-manual/concepts/execution-model/)
+- [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)

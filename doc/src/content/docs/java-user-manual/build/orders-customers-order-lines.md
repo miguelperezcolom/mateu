@@ -553,3 +553,11 @@ The Mateu way for this example is:
 - child CRUD is filtered by parent context
 
 This gives you a real business UI without creating a separate frontend application.
+
+---
+
+## Next
+
+- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — when you need separate models for filters, rows, views, and forms
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — annotation-driven refinements to the default CRUD behavior
+- [Admin panel example](/java-user-manual/use-cases/admin-panel/) — a full application combining several CRUDs into a single backoffice shell

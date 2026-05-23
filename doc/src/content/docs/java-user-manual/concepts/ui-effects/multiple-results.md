@@ -2,36 +2,98 @@
 title: "Returning multiple results"
 ---
 
-Actions can return multiple results in a single response.
+An action can return a `List<?>` to apply more than one effect in a single response.
 
-## Example
+All effects in the list are processed by the frontend in the same request cycle. There is no extra round-trip.
+
+---
+
+## Basic example
 
 ```java
 @Button
-public Object save() {
-    summary = "User " + name + " saved";
+public List<?> save() {
+    productRepository.save(id, name, status);
     return List.of(
-        new Message("User saved"),
+        new Message("Product saved"),
         new State(this)
     );
 }
 ```
 
-## What happens
+What happens here:
 
-- `Message` → shows feedback to the user  
-- `State(this)` → sends the updated ViewModel state to the frontend  
-
-Both are processed in the same request.
+- `Message("Product saved")` → shows a success toast
+- `State(this)` → refreshes the form with the current ViewModel state
 
 ---
 
-## Mental model
+## Combining message, state update, and navigation
 
-An action can:
+```java
+@Button
+@Action(validationRequired = true)
+public List<?> publish() {
+    status = Status.Available;
+    productRepository.save(id, name, status);
+    return List.of(
+        new Message("Product is now available"),
+        URI.create("/products/" + id + "/detail")
+    );
+}
+```
 
-- mutate state  
-- return UI effects  
-- return updated state  
+- `Message` shows feedback before navigation starts
+- `URI` navigates to the product detail page
 
-All of these can be combined in a single response.
+---
+
+## Combining message and UICommand
+
+```java
+@Toolbar
+public List<?> closeAndNotify() {
+    auditService.log(id, "closed");
+    return List.of(
+        new Message("Session closed"),
+        UICommand.navigateTo("/dashboard")
+    );
+}
+```
+
+---
+
+## Combining State and UICommand
+
+Use this when you want to update visible state and also trigger a browser-level command:
+
+```java
+@Button
+public List<?> refresh() {
+    stockCount = inventoryService.getStock(id);
+    return List.of(
+        new State(this),
+        UICommand.pushStateToHistory("/products/" + id + "?refreshed=true")
+    );
+}
+```
+
+---
+
+## Order of effects
+
+Effects are applied in list order. In practice, the order matters only when one effect depends on another (for example, showing a message before navigating away).
+
+---
+
+## When to use a List
+
+Use a `List<?>` when a single action naturally produces more than one outcome — feedback plus navigation, state update plus history push, and so on. For a single outcome, return the effect directly.
+
+---
+
+## Next
+
+- [UI effects](/java-user-manual/concepts/ui-effects/)
+- [Action behavior](/java-user-manual/concepts/action-behavior/)
+- [State, actions and fields](/java-user-manual/concepts/state-actions-and-fields/)

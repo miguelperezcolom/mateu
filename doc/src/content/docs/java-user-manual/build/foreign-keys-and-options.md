@@ -165,3 +165,11 @@ Use:
 - an `OptionsSupplier` bean to search candidates
 - a `LabelSupplier` bean to render labels
 - a `@Stereotype` to choose how the field is presented
+
+---
+
+## Next
+
+- [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/) — when a `@Lookup` is the right tool and when you need an embedded CRUD instead
+- [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) — how lookups fit into the standard list → view → edit flow
+- [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — `@Lookup` used for the Customer reference inside an Order

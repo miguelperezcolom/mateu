@@ -2,7 +2,9 @@
 title: "Workflow and forms integration"
 ---
 
-Mateu acts as the UI layer for workflow and form-driven processes. The UI triggers workflow steps, collects user input, and displays progress — while the workflow engine handles orchestration.
+Mateu acts as the UI layer for workflow and form-driven processes. It triggers workflow steps, collects user input through forms, and displays progress — while the workflow engine handles orchestration.
+
+**Prerequisite:** understand [actions and UI effects](/java-user-manual/concepts/state-actions-and-fields/) — workflows use `URI` navigation between steps and `State` updates to reflect progress. For long-running steps, actions can stream progress via SSE.
 
 ---
 
@@ -147,6 +149,6 @@ Each step returns the user's input to the next step's page via `URI.create("/ord
 
 ## Next
 
-- [Actions](/java-user-manual/concepts/fluent-components/fluent-actions/) — SSE, background, confirmation
-- [Triggers](/java-user-manual/concepts/fluent-components/fluent-triggers/) — OnLoad, OnSuccess
-- [UI effects](/java-user-manual/concepts/ui-effects/) — URI navigation, State, Message
+- [Actions](/java-user-manual/concepts/fluent-components/fluent-actions/) — SSE, background, and confirmation dialogs
+- [Triggers](/java-user-manual/concepts/fluent-components/fluent-triggers/) — `OnLoad`, `OnSuccess`, `OnCustomEvent`
+- [Mateu in hexagonal architecture](/java-user-manual/real-world/mateu-in-hexagonal-architecture/) — where workflow integration fits in the inbound adapter model

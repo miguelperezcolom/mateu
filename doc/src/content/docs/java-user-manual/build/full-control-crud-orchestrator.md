@@ -217,3 +217,11 @@ It lets you:
 - implement complex business flows
 
 Use it when the automatic approach is not enough.
+
+---
+
+## Next
+
+- [Master-detail](/java-user-manual/build/master-detail/) — embedding a child CRUD inside a parent screen using `Callable<?>`
+- [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/) — choosing between `@Lookup`, `List<Entity>`, and an embedded orchestrator
+- [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — a complete business UI that combines orchestrators, lookups, and master-detail

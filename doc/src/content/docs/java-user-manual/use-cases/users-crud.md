@@ -277,6 +277,6 @@ UserEditorPage (@Route("/:id/edit", uis="/users"))
 
 ## Next
 
+- [Custom listing](/java-user-manual/use-cases/custom-listing/)
 - [Foreign keys and options](/java-user-manual/build/foreign-keys-and-options/)
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
-- [Custom listing](/java-user-manual/use-cases/custom-listing/)
