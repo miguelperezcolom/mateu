@@ -428,7 +428,7 @@ export class MateuSapUI5App extends MateuApp {
                     slot="header"
                     secondary-title="The Best Run SAP"
             >
-                <ui5-shellbar-branding slot="branding">${metadata.title}</ui5-shellbar-branding>
+                <ui5-shellbar-branding slot="branding" @click="${() => this.goHome()}" style="cursor: pointer;">${metadata.title}</ui5-shellbar-branding>
                 <ui5-button icon="menu" slot="startButton" id="startButton" @click="${() => this.toggle(this)}"></ui5-button>
             </ui5-shellbar>
             <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e: any) => this.selected(e, this, this.baseUrl??'', metadata)}" collapsed>
