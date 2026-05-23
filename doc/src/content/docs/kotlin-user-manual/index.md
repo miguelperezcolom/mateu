@@ -45,7 +45,7 @@ if you enable extensions for the plugin -->
                         <annotationProcessorPath>
                             <groupId>io.mateu</groupId>
                             <artifactId>annotation-processor-mvc</artifactId>
-                            <version>3.0-alpha.180</version>
+                            <version>MATEU_VERSION</version>
                         </annotationProcessorPath>
                     </annotationProcessorPaths>
                 </configuration>

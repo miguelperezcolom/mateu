@@ -14,27 +14,27 @@ dependency. Use **Java 21** and **Spring Boot 4.x**.
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>mvc-core</artifactId>
-    <version>3.0-alpha.180</version>
+    <version>MATEU_VERSION</version>
 </dependency>
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>annotation-processor-mvc</artifactId>
-    <version>3.0-alpha.180</version>
+    <version>MATEU_VERSION</version>
 </dependency>
 <!-- serves the built-in frontend (web components); choose one: vaadin-lit, redhat-lit, sapui5-lit -->
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>
-    <version>3.0-alpha.180</version>
+    <version>MATEU_VERSION</version>
 </dependency>
 ```
 
 Or, if you are using Gradle:
 
 ```kotlin
-annotationProcessor("io.mateu:annotation-processor-mvc:3.0-alpha.180")
-implementation("io.mateu:mvc-core:3.0-alpha.180")
-implementation("io.mateu:vaadin-lit:3.0-alpha.180")
+annotationProcessor("io.mateu:annotation-processor-mvc:MATEU_VERSION")
+implementation("io.mateu:mvc-core:MATEU_VERSION")
+implementation("io.mateu:vaadin-lit:MATEU_VERSION")
 ```
 
 ## Step 3: Configure the annotation processor
@@ -69,7 +69,7 @@ otherwise whichever is missing will stop working.
                             <path>
                                 <groupId>io.mateu</groupId>
                                 <artifactId>annotation-processor-mvc</artifactId>
-                                <version>3.0-alpha.180</version>
+                                <version>MATEU_VERSION</version>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
@@ -87,7 +87,7 @@ otherwise whichever is missing will stop working.
                             <path>
                                 <groupId>io.mateu</groupId>
                                 <artifactId>annotation-processor-mvc</artifactId>
-                                <version>3.0-alpha.180</version>
+                                <version>MATEU_VERSION</version>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
@@ -143,7 +143,7 @@ into the JAR so that the app module can find them later.
 
 ```xml
 <properties>
-    <mateu.version>3.0-alpha.180</mateu.version>
+    <mateu.version>MATEU_VERSION</mateu.version>
 </properties>
 
 <dependencies>

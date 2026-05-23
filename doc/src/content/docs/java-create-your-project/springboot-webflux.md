@@ -14,12 +14,12 @@ In case you are using maven:
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>annotation-processor-webflux</artifactId>
-    <version>3.0-alpha.180</version>
+    <version>MATEU_VERSION</version>
 </dependency>
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>webflux-core</artifactId>
-    <version>3.0-alpha.180</version>
+    <version>MATEU_VERSION</version>
 </dependency>
   <!-- you need the one below if you want to also serve the static content -->
 <dependency>
@@ -28,7 +28,7 @@ In case you are using maven:
   <!--
 available artifacts are: redhat-lit, sapui5-lit, redwood-lit and  vaadin-lit 
 -->
-    <version>3.0-alpha.180</version>
+    <version>MATEU_VERSION</version>
 </dependency>
 
 ```
@@ -36,9 +36,9 @@ available artifacts are: redhat-lit, sapui5-lit, redwood-lit and  vaadin-lit
 Or, in case you are using Gradle:
 
 ```kotlin
-    annotationProcessor("io.mateu:annotation-processor-webflux:3.0-alpha.180")
-    implementation("io.mateu:webflux-core:3.0-alpha.180")
-    implementation("io.mateu:vaadin-lit:3.0-alpha.180")
+    annotationProcessor("io.mateu:annotation-processor-webflux:MATEU_VERSION")
+    implementation("io.mateu:webflux-core:MATEU_VERSION")
+    implementation("io.mateu:vaadin-lit:MATEU_VERSION")
 ```
 
 
@@ -92,7 +92,7 @@ In case you are using a maven project and you are setting custom annotation proc
                         <path>
                             <groupId>io.mateu</groupId>
                             <artifactId>annotation-processor-webflux</artifactId>
-                            <version>3.0-alpha.180</version>
+                            <version>MATEU_VERSION</version>
                         </path>
                         <!-- other annotation processors -->
                     </annotationProcessorPaths>

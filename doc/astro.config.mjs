@@ -1,10 +1,14 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { remarkMateuVersion } from './src/plugins/remark-mateu-version.mjs';
 
 // https://astro.build/config
 export default defineConfig({
 	site: 'https://mateu.io',
+	markdown: {
+		remarkPlugins: [remarkMateuVersion],
+	},
 	integrations: [
 		starlight({
 			title: 'Mateu',

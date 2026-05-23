@@ -14,7 +14,7 @@ In case you are using maven:
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>micronaut-core</artifactId>
-    <version>3.0-alpha.180</version>
+    <version>MATEU_VERSION</version>
 </dependency>
   <!-- you need the one below if you want to also serve the static content -->
 <dependency>
@@ -23,7 +23,7 @@ In case you are using maven:
 <!--
 available artifacts are: redhat-lit, sapui5-lit, redwood-lit and  vaadin-lit 
 -->
-    <version>3.0-alpha.180</version>
+    <version>MATEU_VERSION</version>
 </dependency>
 
 ```
@@ -41,7 +41,7 @@ You also need to add the annotation processor:
                     <path>
                         <groupId>io.mateu</groupId>
                         <artifactId>annotation-processor-micronaut</artifactId>
-                        <version>3.0-alpha.180</version>
+                        <version>MATEU_VERSION</version>
                     </path>
                 </annotationProcessorPaths>
             </configuration>
@@ -53,9 +53,9 @@ You also need to add the annotation processor:
 Or, in case you are using Gradle:
 
 ```kotlin
-    implementation("io.mateu:micronaut-core:3.0-alpha.180")
-    implementation("io.mateu:vaadin-lit:3.0-alpha.180")
-    annotationProcessor("io.mateu:annotation-processor-micronaut:3.0-alpha.180")
+    implementation("io.mateu:micronaut-core:MATEU_VERSION")
+    implementation("io.mateu:vaadin-lit:MATEU_VERSION")
+    annotationProcessor("io.mateu:annotation-processor-micronaut:MATEU_VERSION")
 ```
 
 ## Step 3: Add some configuration
