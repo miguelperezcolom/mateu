@@ -1,0 +1,71 @@
+---
+title: Mateu
+description: Build backoffice UIs without building a frontend. Backend-driven UI for distributed systems.
+template: splash
+hero:
+  tagline: Build backoffice UIs without building a frontend. Backend-driven UI for distributed systems.
+  actions:
+    - text: Quickstart
+      link: /java-user-manual/start-here/quickstart/
+      icon: right-arrow
+      variant: primary
+    - text: What is Mateu?
+      link: /mateu-about/what-is-mateu/
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## The problem
+
+Most business applications end up with two applications:
+
+```text
+backend → API → frontend → duplicated model → duplicated validation
+```
+
+That usually means duplicated business concepts, duplicated validation, more glue code, more moving parts, and harder maintenance.
+
+## The Mateu approach
+
+```text
+backend → Mateu UI → browser
+```
+
+> The backend owns the UI.
+
+Mateu lets your backend expose real business UIs directly, without turning every internal tool into a separate frontend project.
+
+```java
+@UI("/orders")
+public class Orders extends AutoCrudOrchestrator<Order> {}
+```
+
+## What you can build
+
+<CardGrid>
+  <Card title="Admin panels" icon="document">
+    Fast CRUD-heavy backoffice screens directly from your Java model.
+  </Card>
+  <Card title="Distributed backoffices" icon="puzzle">
+    Let each microservice define its own UI and compose everything in one shell.
+  </Card>
+  <Card title="Embedded UI" icon="external">
+    Use Mateu inside React, Vue, Angular or plain HTML through a web component.
+  </Card>
+  <Card title="Real-world architectures" icon="setting">
+    Works naturally with microservices, DDD, CQRS, and hexagonal architecture.
+  </Card>
+</CardGrid>
+
+## Works with your stack
+
+Mateu works with Spring Boot MVC, Spring WebFlux, Micronaut, Quarkus, and any HTTP-based Java backend. You keep your architecture. Mateu becomes one more inbound adapter.
+
+## Recommended path
+
+1. [Quickstart](/java-user-manual/start-here/quickstart/)
+2. [Admin panel](/java-user-manual/use-cases/admin-panel/)
+3. [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
+4. [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/)
+5. [Real-world architecture](/java-user-manual/real-world/mateu-in-hexagonal-architecture/)
