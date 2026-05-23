@@ -1,54 +1,55 @@
 ---
 title: "HttpRequest"
+description: "Interface for accessing HTTP request data, headers, state and selected rows in action methods."
 ---
 
-Provides access to the current HTTP request context — URL parameters, headers, component state, app state, and selected rows. It is passed to every method that Mateu calls on your backend classes.
+`HttpRequest` is injected into any backend method that declares it as a parameter. It gives you access to every piece of contextual data available when an action is triggered: URL parameters, request headers, the serialised component state, app-level state, and the rows the user has selected or clicked.
 
 ```java
 public interface HttpRequest {
+
+    // Core HTTP
     String path();
     String getParameterValue(String name);
     List<String> getParameterValues(String name);
+    List<String> getParameterNames();
     String getHeaderValue(String key);
     List<String> getHeaderValues(String key);
-    List<String> getParameterNames();
-    Object getAttribute(String key);
-    void setAttribute(String key, Object value);
-
-    // Component state helpers
-    String getString(String key);
-    int getInt(String key);
-    double getDouble(String key);
-    List<Map<String, Object>> getListOfMaps(String key);
-
-    // Row access
-    <T> List<T> getSelectedRows(Class<T> rowType);
-    <T> List<T> getSelectedRows(String fieldName, Class<T> rowType);
-    <T> T getClickedRow(Class<T> rowType);
-
-    // Typed state
-    <T> T getParameters(Class<T> type);
-    <T> T getAppState(Class<T> appStateType);
-    <T> T getComponentState(Class<T> componentStateType);
-
-    // Internal DTO access
-    RunActionRqDto runActionRq();
-    GetUIRqDto getUiRq();
 
     // Path helpers
-    default String lastPathItem() { ... }
-    default String penultimatePathItem() { ... }
+    default String lastPathItem()          // last segment of path()
+    default String penultimatePathItem()   // second-to-last segment
+
+    // Component state
+    default String getString(String key)
+    default int getInt(String key)
+    default double getDouble(String key)
+    default List<Map<String, Object>> getListOfMaps(String key)
+
+    // Typed state
+    default <T> T getComponentState(Class<T> componentStateType)
+    default <T> T getAppState(Class<T> appStateType)
+    default <T> T getParameters(Class<T> rowType)
+
+    // Selection
+    default <T> List<T> getSelectedRows(Class<T> rowType)
+    default <T> List<T> getSelectedRows(String fieldName, Class<T> rowType)
+    default <T> T getClickedRow(Class<T> rowType)
+
+    // Low-level attribute store
+    Object getAttribute(String key);
+    void setAttribute(String key, Object value);
 }
 ```
 
-## Common methods
+## Method reference
 
 ### Path
 
 | Method | Description |
 |---|---|
 | `path()` | Full URL path of the current request |
-| `lastPathItem()` | Last segment of the path (e.g. an ID) |
+| `lastPathItem()` | Last `/`-delimited segment of the path — typically a resource ID |
 | `penultimatePathItem()` | Second-to-last segment |
 
 ### URL parameters
@@ -63,55 +64,75 @@ public interface HttpRequest {
 
 | Method | Description |
 |---|---|
-| `getHeaderValue(key)` | First value of a request header |
+| `getHeaderValue(key)` | First value of the named request header |
 | `getHeaderValues(key)` | All values of a multi-valued header |
 
 ### Component state
 
-The component state is the current in-memory form state serialised as a map. Use typed accessors for convenience:
+The component state is the current in-memory form state serialised as a `Map`. The scalar helpers are convenience wrappers around that map.
 
 | Method | Description |
 |---|---|
-| `getString(key)` | Reads a string from component state |
-| `getInt(key)` | Reads an int from component state |
-| `getDouble(key)` | Reads a double from component state |
-| `getListOfMaps(key)` | Reads a list of maps from component state |
-| `getComponentState(Class<T>)` | Deserialises the entire component state into a typed object |
+| `getString(key)` | Read a `String` field from the component state map |
+| `getInt(key)` | Read an `int` field (handles `Integer`, `Long`, and string-encoded numbers) |
+| `getDouble(key)` | Read a `double` field |
+| `getListOfMaps(key)` | Read a `List<Map<String, Object>>` field |
+| `getComponentState(Class<T>)` | Deserialise the entire component state into a typed object |
 
-### App state
-
-| Method | Description |
-|---|---|
-| `getAppState(Class<T>)` | Deserialises the shared application state into a typed object |
-
-### Selected rows
+### App and action state
 
 | Method | Description |
 |---|---|
-| `getSelectedRows(Class<T>)` | Returns the rows selected in the default grid |
-| `getSelectedRows(fieldName, Class<T>)` | Returns rows selected in a named grid field |
-| `getClickedRow(Class<T>)` | Returns the row the user clicked (for row-level actions) |
+| `getAppState(Class<T>)` | Deserialise the shared application state into a typed object |
+| `getParameters(Class<T>)` | Deserialise the action-level parameters map into a typed object; returns the raw `Map` when `rowType` is `Map.class` |
+
+### Row selection
+
+| Method | Description |
+|---|---|
+| `getSelectedRows(Class<T>)` | All rows checked in the default grid (`crud_selected_items`) |
+| `getSelectedRows(fieldName, Class<T>)` | Rows checked in a named grid field (`{fieldName}_selected_items`) |
+| `getClickedRow(Class<T>)` | The single row the user clicked for a row-level action |
+
+### Low-level attribute store
+
+| Method | Description |
+|---|---|
+| `getAttribute(key)` | Read an arbitrary object stored in the request scope |
+| `setAttribute(key, value)` | Store an arbitrary object in the request scope |
 
 ## Examples
+
+### Read a header (JWT auth)
+
+This pattern is used in the Changes demo to extract the current user from a Bearer token.
+
+```java
+@Toolbar
+public CreateReleaseForm createRelease(List<ChangeRow> selectedRows, HttpRequest httpRequest) {
+    var auth = httpRequest.getHeaderValue("Authorization");
+    var jwt = auth.split(" ")[1];
+
+    String[] chunks = jwt.split("\\.");
+    var payload = fromJson(new String(Base64.getUrlDecoder().decode(chunks[1])));
+    var user = payload.get("preferred_username").toString();
+
+    return createReleaseForm.withUser(user);
+}
+```
 
 ### Read a URL path segment
 
 ```java
-@Route("/customers/{id}")
-public class CustomerDetailPage implements ComponentTreeSupplier {
-
-    @Override
-    public Component component(HttpRequest httpRequest) {
-        var id = httpRequest.lastPathItem();
-        var customer = customerRepository.findById(id).orElseThrow();
-        return Form.builder()
-            .title(customer.getName())
-            .build();
-    }
+@Override
+public Component component(HttpRequest httpRequest) {
+    var id = httpRequest.lastPathItem();   // e.g. /customers/42  → "42"
+    var customer = customerRepository.findById(id).orElseThrow();
+    return Form.builder().title(customer.getName()).build();
 }
 ```
 
-### Read typed component state
+### Deserialise typed component state
 
 ```java
 public record SearchState(String query, String country) {}
@@ -123,7 +144,7 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 }
 ```
 
-### Read selected rows
+### Work with selected rows
 
 ```java
 @Override
@@ -136,7 +157,7 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 }
 ```
 
-### Read a URL query parameter
+### Read a query parameter
 
 ```java
 @Override

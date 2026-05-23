@@ -1,8 +1,19 @@
 ---
-title: "CrudRepository / CrudAdapter"
+title: "CrudRepository"
+description: "Interface for providing CRUD data access to AutoCrudOrchestrator."
 ---
 
-A simple CRUD interface for entities identified by a string ID. Use it when your entity management follows the standard find/save/list/delete pattern.
+`CrudRepository<T>` is the data-access contract consumed by `AutoCrudOrchestrator`. Implement it to back an automatic CRUD UI with your own storage — in-memory map, JPA repository, REST client, or anything else.
+
+The type parameter `T` must implement `Identifiable`, which requires a single method:
+
+```java
+public interface Identifiable {
+    String id();
+}
+```
+
+## Interface
 
 ```java
 public interface CrudRepository<T extends Identifiable> {
@@ -17,115 +28,111 @@ public interface CrudRepository<T extends Identifiable> {
 
 | Method | Description |
 |---|---|
-| `findById(id)` | Returns the entity with the given ID, or empty |
-| `save(entity)` | Persists the entity and returns its ID |
-| `findAll()` | Returns all entities |
-| `deleteAllById(ids)` | Deletes all entities with the given IDs |
+| `findById(id)` | Return the entity with the given string ID, or `Optional.empty()` |
+| `save(entity)` | Persist the entity and return its ID |
+| `findAll()` | Return all entities for the listing view |
+| `deleteAllById(ids)` | Delete every entity whose ID appears in the list |
 
-## Usage
+## Full example
+
+The snippet below mirrors the pattern used in the Items Catalog e2e test app. It shows the entity, repository, adapter, and orchestrator in one place.
 
 ```java
-@Service
-public class CustomerRepository implements CrudRepository<Customer> {
+// 1. Entity — must implement Identifiable
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor
+class Item implements Identifiable {
 
-    private final Map<String, Customer> store = new HashMap<>();
+    String id;
+    String name;
+    double price;
 
     @Override
-    public Optional<Customer> findById(String id) {
-        return Optional.ofNullable(store.get(id));
+    public String id() { return id; }
+
+    @Override
+    public String toString() { return name != null ? "Item " + name : "New item"; }
+}
+
+// 2. Repository — holds your storage logic
+class ItemRepository implements CrudRepository<Item> {
+
+    private static final Map<String, Item> db = new HashMap<>(Map.of(
+        "1", new Item("1", "Widget A", 9.99),
+        "2", new Item("2", "Widget B", 19.99)
+    ));
+
+    @Override
+    public Optional<Item> findById(String id) {
+        return db.containsKey(id) ? Optional.of(db.get(id)) : Optional.empty();
     }
 
     @Override
-    public String save(Customer customer) {
-        if (customer.getId() == null) customer = customer.withId(UUID.randomUUID().toString());
-        store.put(customer.getId(), customer);
-        return customer.getId();
+    public String save(Item entity) {
+        db.put(entity.getId(), entity);
+        return entity.getId();
     }
 
     @Override
-    public List<Customer> findAll() {
-        return new ArrayList<>(store.values());
+    public List<Item> findAll() {
+        return db.values().stream().toList();
     }
 
     @Override
-    public void deleteAllById(List<String> ids) {
-        ids.forEach(store::remove);
+    public void deleteAllById(List<String> selectedIds) {
+        selectedIds.forEach(db::remove);
+    }
+}
+
+// 3. Adapter — bridges the repository to AutoCrudOrchestrator
+class ItemAdapter extends AutoCrudAdapter<Item> {
+
+    @Override
+    public CrudRepository<Item> repository() {
+        return new ItemRepository();
+    }
+}
+
+// 4. Orchestrator — the UI endpoint
+@UI("/items")
+public class ItemsCatalog extends AutoCrudOrchestrator<Item> {
+
+    @Override
+    public AutoCrudAdapter<Item> simpleAdapter() {
+        return new ItemAdapter();
     }
 }
 ```
 
----
+Navigating to `/items` renders a full list-create-edit-delete UI with no additional configuration.
 
-# CrudAdapter
+## CompositionCrudRepository
 
-A richer interface that separates the list view, detail view, editor form, and creation form into distinct types. Use it when you need full control over what is shown in each CRUD mode.
+`CompositionCrudRepository` extends `CrudRepository` for child entities that belong to a parent (a foreign-key relationship expressed with `@Composition`).
 
 ```java
-public interface CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> {
+public interface CompositionCrudRepository<EntityType extends Named, ParentIdType>
+        extends CrudRepository<EntityType> {
 
-    ListingData<Row> search(
-        String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest);
-
-    void deleteAllById(List<IdType> selectedIds, HttpRequest httpRequest);
-
-    View getView(IdType id, HttpRequest httpRequest);
-
-    Editor getEditor(IdType id, HttpRequest httpRequest);
-
-    CreationForm getCreationForm(HttpRequest httpRequest);
+    ListingData<EntityType> search(
+        String searchText,
+        EntityType filters,
+        ParentIdType parentId,
+        Pageable pageable);
 }
 ```
 
-## Type parameters
+The type constraint on `EntityType` tightens to `Named`, which extends `Identifiable` and adds:
 
-| Parameter | Description |
-|---|---|
-| `View` | Read-only detail view form class |
-| `Editor` | Editable form class |
-| `CreationForm` | Form class shown when creating a new record |
-| `Filters` | Filters class for the listing |
-| `Row` | Row class for the listing grid |
-| `IdType` | Type of the entity identifier |
+```java
+public interface Named extends Identifiable {
+    String name();
+}
+```
 
-## Methods
+### Additional method
 
 | Method | Description |
 |---|---|
-| `search(...)` | Returns paginated rows for the listing |
-| `deleteAllById(ids, httpRequest)` | Deletes the selected rows |
-| `getView(id, httpRequest)` | Returns the read-only view object for the given ID |
-| `getEditor(id, httpRequest)` | Returns the editable form object for the given ID |
-| `getCreationForm(httpRequest)` | Returns a blank creation form |
+| `search(searchText, filters, parentId, pageable)` | Return a paginated list of child entities scoped to the given `parentId` |
 
-## Usage
-
-```java
-@Route("/invoices")
-public class InvoiceAdapter implements CrudAdapter<InvoiceView, InvoiceEditor, InvoiceCreation, InvoiceFilters, InvoiceRow, String> {
-
-    @Override
-    public ListingData<InvoiceRow> search(String searchText, InvoiceFilters filters, Pageable pageable, HttpRequest httpRequest) {
-        return invoiceRepository.search(searchText, filters, pageable);
-    }
-
-    @Override
-    public void deleteAllById(List<String> ids, HttpRequest httpRequest) {
-        invoiceRepository.deleteAllById(ids);
-    }
-
-    @Override
-    public InvoiceView getView(String id, HttpRequest httpRequest) {
-        return invoiceRepository.findViewById(id).orElseThrow();
-    }
-
-    @Override
-    public InvoiceEditor getEditor(String id, HttpRequest httpRequest) {
-        return invoiceRepository.findEditorById(id).orElseThrow();
-    }
-
-    @Override
-    public InvoiceCreation getCreationForm(HttpRequest httpRequest) {
-        return new InvoiceCreation();
-    }
-}
-```
+Use `CompositionCrudRepository` when an embedded child grid inside a parent form must fetch its rows from the server filtered by the parent's ID. Annotate the parent field with `@Composition` to trigger this behaviour.

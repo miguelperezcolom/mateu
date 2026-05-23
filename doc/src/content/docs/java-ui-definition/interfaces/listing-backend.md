@@ -1,8 +1,9 @@
 ---
-title: "ListingBackend / ReactiveListingBackend"
+title: "ListingBackend"
+description: "Interface for implementing paginated, searchable list views."
 ---
 
-Provides paginated, searchable, and filterable data for a `Listing` or `Grid` component. Implement this interface to wire a server-side data source to a list view.
+`ListingBackend<Filters, Row>` is the server-side contract for a grid. Implement it to supply paginated, searchable, and filterable rows to a `Listing` component. The only method you must provide is `search`; everything else has sensible defaults.
 
 ```java
 public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSupplier {
@@ -14,8 +15,7 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
         HttpRequest httpRequest);
 
     default boolean selectionEnabled() { return false; }
-
-    default Class<Filters> filtersClass() { ... }
+    default Class<Filters> filtersClass() { /* auto-inferred via generics */ }
 }
 ```
 
@@ -23,18 +23,18 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 
 | Parameter | Description |
 |---|---|
-| `Filters` | A class whose fields map to filter inputs shown above the grid |
-| `Row` | A class (or record) whose fields map to grid columns |
+| `Filters` | A class or record whose fields become the filter form rendered above the grid |
+| `Row` | A class or record whose fields become the grid columns |
 
 ## Methods
 
 | Method | Description |
 |---|---|
-| `search(searchText, filters, pageable, httpRequest)` | **Required.** Returns a page of rows matching the search parameters |
+| `search(searchText, filters, pageable, httpRequest)` | **Required.** Return a page of rows matching the search criteria |
 | `selectionEnabled()` | Return `true` to enable row checkbox selection |
-| `filtersClass()` | Returns the `Filters` class (auto-inferred via generics) |
+| `filtersClass()` | Returns the `Filters` class; auto-inferred via generics, rarely overridden |
 
-## Key types
+## Key supporting types
 
 ### Pageable
 
@@ -42,88 +42,99 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 public record Pageable(int page, int size, List<Sort> sort) {}
 ```
 
-### Sort
-
-```java
-public record Sort(String fieldId, Direction direction) {}
-```
-
-Direction is `ASC` or `DESC`.
+Mateu populates this from the grid state automatically. `sort` contains zero or more `Sort` entries, each with a `fieldId` and a `Direction` (`ASC` or `DESC`).
 
 ### ListingData
 
 ```java
-public record ListingData<Row>(Page<Row> page) {}
+public record ListingData<Row>(Page<Row> page, String emptyStateMessage) {}
 ```
+
+`emptyStateMessage` is optional; when set it is shown in the grid when there are no rows.
+
+**Factory methods:**
+
+| Method | Description |
+|---|---|
+| `ListingData.of(rows...)` | Wrap a varargs array of rows into a single-page result |
+| `ListingData.of(List<Row>)` | Wrap a list of rows into a single-page result |
+| `ListingData.from(List<Row>)` | Alias for `of(List<Row>)` |
+| `ListingData.builder()...build()` | Builder pattern — use when you need to set all `Page` fields manually |
 
 ### Page
 
 ```java
-public record Page<T>(String searchText, int size, int page, int totalPages, List<T> rows) {}
+public record Page<T>(
+    String searchSignature,
+    int pageSize,
+    int pageNumber,
+    long totalElements,
+    List<T> content) {}
 ```
 
-## Basic usage
+`searchSignature` is an opaque token (typically the search text) used by the grid to detect when the result set has changed. `totalElements` drives the pagination footer.
+
+## Full example
+
+From the Changes demo — a listing of content changes with a toolbar action that reads JWT claims from the `Authorization` header:
 
 ```java
-@Route("/customers")
-public class CustomerListingPage implements ComponentTreeSupplier, ListingBackend<CustomerFilters, CustomerRow> {
+@Title("Changes")
+@Service
+@Scope("prototype")
+@Trigger(type = TriggerType.OnLoad, actionId = "search")
+@Style("max-width:900px;margin: auto;")
+public class Changes extends Listing<NoFilters, ChangeRow> {
+
+    final ChangeQueryService queryService;
+    final CreateReleaseForm createReleaseForm;
 
     @Override
-    public Component component(HttpRequest httpRequest) {
-        return Listing.builder()
-            .title("Customers")
-            .searchable(true)
-            .build();
-    }
+    public ListingData<ChangeRow> search(
+            String searchText, NoFilters filters, Pageable pageable, HttpRequest httpRequest) {
 
-    @Override
-    public ListingData<CustomerRow> search(
-            String searchText,
-            CustomerFilters filters,
-            Pageable pageable,
-            HttpRequest httpRequest) {
-        var rows = customerRepository.findAll(searchText, filters, pageable);
-        return new ListingData<>(new Page<>(searchText, pageable.size(), pageable.page(), rows.totalPages(), rows.content()));
+        var found = queryService.findAll(searchText, filters, pageable);
+
+        return ListingData.<ChangeRow>builder()
+                .page(Page.<ChangeRow>builder()
+                        .searchSignature(found.page().searchSignature())
+                        .totalElements(found.page().totalElements())
+                        .pageSize(found.page().pageSize())
+                        .pageNumber(found.page().pageNumber())
+                        .content(found.page().content().stream()
+                                .map(dto -> new ChangeRow(
+                                        dto.pageId(), dto.page(), dto.country(), dto.language(),
+                                        new Status(mapStatus(dto.status()), dto.status().name()),
+                                        new ColumnAction("compare", "Compare")))
+                                .toList())
+                        .build())
+                .build();
     }
 }
 ```
 
-## Filters class example
+### Minimal example with factory method
+
+When all rows fit in memory and you do not need server-side pagination:
 
 ```java
-public class CustomerFilters {
-    @Filterable
-    String name;
+@Override
+public ListingData<CustomerRow> search(
+        String searchText, CustomerFilters filters,
+        Pageable pageable, HttpRequest httpRequest) {
 
-    @Filterable
-    String country;
+    var rows = repository.findAll().stream()
+        .filter(c -> searchText == null || c.name().contains(searchText))
+        .map(c -> new CustomerRow(c.id(), c.name(), c.email()))
+        .toList();
+
+    return ListingData.of(rows);
 }
 ```
 
-## Row class example
+## ReactiveListingBackend
 
-```java
-public class CustomerRow {
-    @PrimaryKey
-    String id;
-
-    String name;
-    String email;
-    String country;
-
-    @Status(
-        mappings = @StatusMapping(from = "ACTIVE", to = StatusType.success),
-        defaultStatus = StatusType.contrast
-    )
-    String status;
-}
-```
-
----
-
-# ReactiveListingBackend
-
-Reactive variant of `ListingBackend` using Project Reactor. Use when the data source is reactive (e.g. R2DBC).
+`ReactiveListingBackend<Filters, Row>` is the Project Reactor variant. Use it when your data source is reactive (R2DBC, WebClient, etc.). The contract is identical to `ListingBackend` except that `search` returns `Mono<ListingData<Row>>` and `handleAction` returns `Flux<Object>`.
 
 ```java
 public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
@@ -138,23 +149,16 @@ public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
 }
 ```
 
-## Usage
+### Usage
 
 ```java
-@Route("/products")
-public class ProductListingPage implements ComponentTreeSupplier, ReactiveListingBackend<ProductFilters, ProductRow> {
+@Override
+public Mono<ListingData<ProductRow>> search(
+        String searchText, ProductFilters filters,
+        Pageable pageable, HttpRequest httpRequest) {
 
-    @Override
-    public Component component(HttpRequest httpRequest) {
-        return Listing.builder().title("Products").searchable(true).build();
-    }
-
-    @Override
-    public Mono<ListingData<ProductRow>> search(
-            String searchText, ProductFilters filters, Pageable pageable, HttpRequest httpRequest) {
-        return productRepository.findAll(searchText, pageable)
-            .collectList()
-            .map(rows -> new ListingData<>(new Page<>(searchText, pageable.size(), pageable.page(), 1, rows)));
-    }
+    return productRepository.findAll(searchText, pageable)
+        .collectList()
+        .map(rows -> ListingData.of(rows));
 }
 ```
