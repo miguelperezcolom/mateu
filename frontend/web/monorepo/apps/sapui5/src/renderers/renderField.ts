@@ -44,6 +44,14 @@ const renderStars = (value: any, fieldId: string, disabled: boolean) => {
     </div>`
 }
 
+const renderGridCell = (item: any, col: any): TemplateResult => {
+    const value = item[col.id]
+    if (col.dataType === 'bool' || col.dataType === 'boolean') {
+        return html`<ui5-icon name="${value ? 'accept' : 'decline'}"></ui5-icon>`
+    }
+    return html`${value ?? ''}`
+}
+
 export const renderField = (component: ClientSideComponent, _baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     const metadata = component.metadata as FormField
     const fieldId = metadata?.fieldId ?? ''
@@ -228,6 +236,30 @@ export const renderField = (component: ClientSideComponent, _baseUrl: string | u
                     ?readonly="${readOnly}"
                     @change="${checkboxChanged}"
                 ></ui5-checkbox>
+            </div>`
+    }
+
+    // Inline grid table (stereotype 'grid' with columns)
+    if (metadata.stereotype === 'grid' && metadata.columns && metadata.columns.length > 0) {
+        const rows: any[] = Array.isArray(value) ? value : []
+        const cols = metadata.columns.map((c: any) => c.metadata as any)
+        return html`
+            <div style="${component.style ?? nothing}">
+                <ui5-label show-colon ?required="${required}">${label}</ui5-label>
+                <ui5-table style="width: 100%; margin-top: 0.5rem;">
+                    <ui5-table-header-row slot="headerRow">
+                        ${cols.map((col: any) => html`
+                            <ui5-table-header-cell width="${col.width ?? nothing}">${col.label}</ui5-table-header-cell>
+                        `)}
+                    </ui5-table-header-row>
+                    ${rows.map((item: any, idx: number) => html`
+                        <ui5-table-row row-key="${item._rowNumber ?? idx}">
+                            ${cols.map((col: any) => html`
+                                <ui5-table-cell>${renderGridCell(item, col)}</ui5-table-cell>
+                            `)}
+                        </ui5-table-row>
+                    `)}
+                </ui5-table>
             </div>`
     }
 
