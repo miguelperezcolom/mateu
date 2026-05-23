@@ -1,15 +1,5 @@
 import {customElement, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import "@vaadin/menu-bar"
-import '@vaadin/button'
-import '@infra/ui/mateu-field'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import {AppVariant} from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
@@ -24,6 +14,9 @@ import {nanoid} from "nanoid";
 import {MateuApp} from "@infra/ui/mateu-app.ts";
 import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode.js";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
+import {upstream} from "@domain/state";
+import {Subscription} from "rxjs";
+import Message from "@domain/Message";
 
 @customElement('mateu-sapui5-app')
 export class MateuSapUI5App extends MateuApp {
@@ -51,6 +44,75 @@ export class MateuSapUI5App extends MateuApp {
 
     @state()
     selectedParams: any | undefined = undefined
+
+    private innerFragmentSubscription: Subscription | undefined
+    private lastActionServerSideType: string | undefined = undefined
+    private lastActionInitiatorComponentId: string | undefined = undefined
+
+    private captureActionSST: EventListenerOrEventListenerObject = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        if (detail?.serverSideType) {
+            this.lastActionServerSideType = detail.serverSideType
+            this.lastActionInitiatorComponentId = detail.initiatorComponentId
+        }
+    }
+
+    private handleUnhandledAction: EventListenerOrEventListenerObject = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        e.preventDefault()
+        e.stopPropagation()
+        const innerUx = this.shadowRoot?.querySelector('#ux_' + this.id) as any
+        if (!innerUx || typeof innerUx.manageActionEvent !== 'function') return
+        this.lastActionServerSideType = this.selectedServerSideType
+        this.lastActionInitiatorComponentId = innerUx.id
+        innerUx.manageActionEvent(new CustomEvent('server-side-action-requested', {
+            detail: {
+                route: innerUx.route ?? this.selectedRoute ?? '',
+                consumedRoute: innerUx.consumedRoute ?? this.selectedConsumedRoute ?? '',
+                componentState: detail.parameters?.initiatorState ?? {},
+                parameters: detail.parameters,
+                actionId: detail.actionId,
+                serverSideType: this.selectedServerSideType ?? '',
+                initiatorComponentId: innerUx.id,
+                initiator: innerUx,
+            }
+        }))
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.addEventListener('server-side-action-requested', this.captureActionSST, true)
+        this.addEventListener('action-requested', this.handleUnhandledAction)
+        this.innerFragmentSubscription = upstream.subscribe((message: Message) => {
+            if (message.fragment) {
+                const fragment = message.fragment
+                if (this.lastActionInitiatorComponentId &&
+                    fragment.targetComponentId === this.lastActionInitiatorComponentId &&
+                    fragment.state?._route !== undefined) {
+                    const componentRoute = (fragment.state._componentRoute as string) || ''
+                    const relRoute = fragment.state._route as string
+                    if (componentRoute) {
+                        this.selectedConsumedRoute = componentRoute
+                    }
+                    const effectiveConsumedRoute = componentRoute || this.selectedConsumedRoute || ''
+                    this.selectedRoute = effectiveConsumedRoute + relRoute
+                    if (this.lastActionServerSideType) {
+                        this.selectedServerSideType = this.lastActionServerSideType
+                        this.lastActionServerSideType = undefined
+                    }
+                    this.lastActionInitiatorComponentId = undefined
+                    this.instant = nanoid()
+                }
+            }
+        })
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.removeEventListener('server-side-action-requested', this.captureActionSST, true)
+        this.removeEventListener('action-requested', this.handleUnhandledAction)
+        this.innerFragmentSubscription?.unsubscribe()
+    }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
         if (true) {
@@ -120,15 +182,12 @@ export class MateuSapUI5App extends MateuApp {
         this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix)
     }
 
-    tabSelected = (event: CustomEvent, _container: LitElement, _baseUrl: string) => {
-        this.selectRoute(
-            event.detail.tab.dataset.consumedRoute,
-        event.detail.tab.dataset.route,
-            event.detail.tab.dataset.actionId,
-        event.detail.tab.dataset.baseUrl,
-        event.detail.tab.dataset.serverSideType,
-        event.detail.tab.dataset.uriPrefix // faltan los params
-        )
+    tabSelected = (event: CustomEvent, _container: LitElement, _baseUrl: string, metadata: App) => {
+        const route = event.detail.tab.dataset.route
+        const option = metadata.menu.find(m => m.route === route || m.path === route)
+        if (option) {
+            this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)
+        }
     }
 
     mode = NavigationLayoutMode.Auto
@@ -138,28 +197,60 @@ export class MateuSapUI5App extends MateuApp {
         container.requestUpdate()
     }
 
-    selected = (event: CustomEvent, _container: LitElement, _baseUrl: string, _metadata: App) => {
-        this.selectRoute(
-            event.detail.item.dataset.consumedRoute,
-            event.detail.item.dataset.route,
-            event.detail.item.dataset.actionId,
-            event.detail.item.dataset.baseUrl,
-            event.detail.item.dataset.serverSideType,
-            event.detail.item.dataset.uriPrefix // faltan los params
-        )
+    findMenuOption = (options: MenuOption[], route: string): MenuOption | undefined => {
+        for (const opt of options) {
+            if (opt.route === route || opt.path === route || opt.consumedRoute === route) return opt
+            if (opt.submenus?.length) {
+                const found = this.findMenuOption(opt.submenus, route)
+                if (found) return found
+            }
+        }
+        return undefined
+    }
+
+    selected = (event: CustomEvent, _container: LitElement, _baseUrl: string, metadata: App) => {
+        const route = event.detail.item.dataset.route
+        const option = this.findMenuOption(metadata.menu, route)
+        if (option) {
+            this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)
+        }
     }
 
     renderSubmenu = (menu: MenuOption): TemplateResult => {
         return html`
                     ${menu.submenus && menu.submenus.length > 0?html`
-                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"  data-route="${menu.path}">
+                        <ui5-side-navigation-item text="${menu.label}" ?unselectable="${menu.submenus && menu.submenus.length > 0}"
+                                                  data-path="${menu.path}"
+                                                  data-route="${menu.route}"
+                                                  data-consumed-route="${menu.consumedRoute}"
+                                                  data-action-id="${menu.actionId}"
+                                                  data-server-side-type="${menu.serverSideType}"
+                                                  data-uri-prefix="${menu.uriPrefix}"
+                                                  data-base-url="${menu.baseUrl}"
+                        >
                             ${menu.submenus.filter(sub => !sub.separator).map(sub => html`
-                                <ui5-side-navigation-sub-item text="${sub.label}" data-route="${sub.path}"></ui5-side-navigation-sub-item>
+                                <ui5-side-navigation-sub-item text="${sub.label}"
+                                                              data-path="${sub.path}"
+                                                              data-route="${sub.route}"
+                                                              data-consumed-route="${sub.consumedRoute}"
+                                                              data-action-id="${sub.actionId}"
+                                                              data-server-side-type="${sub.serverSideType}"
+                                                              data-uri-prefix="${sub.uriPrefix}"
+                                                              data-base-url="${sub.baseUrl}"
+                                ></ui5-side-navigation-sub-item>
                             `)}
                         </ui5-side-navigation-item>
                     `:html`
 
-                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.path}"></ui5-side-navigation-item>
+                        <ui5-side-navigation-item text="${menu.label}"
+                                                  data-path="${menu.path}"
+                                                  data-route="${menu.route}"
+                                                  data-consumed-route="${menu.consumedRoute}"
+                                                  data-action-id="${menu.actionId}"
+                                                  data-server-side-type="${menu.serverSideType}"
+                                                  data-uri-prefix="${menu.uriPrefix}"
+                                                  data-base-url="${menu.baseUrl}"
+                        ></ui5-side-navigation-item>
 
                     `}
                 `
@@ -177,12 +268,11 @@ export class MateuSapUI5App extends MateuApp {
                         <ui5-side-navigation-item text="${menu.label}"
                                                   data-path="${menu.path}"
                                                   data-route="${menu.route}"
-                                                  data-consumedroute="${menu.consumedRoute}"
-                                                  data-actionid="${menu.actionId}"
-                                                  data-serversidetype="${menu.serverSideType}"
-                                                  data-uriprefix="${menu.uriPrefix}"
-                                                  data-baseurl="${menu.baseUrl}"
-                                                  .data-params="${menu.params}"
+                                                  data-consumed-route="${menu.consumedRoute}"
+                                                  data-action-id="${menu.actionId}"
+                                                  data-server-side-type="${menu.serverSideType}"
+                                                  data-uri-prefix="${menu.uriPrefix}"
+                                                  data-base-url="${menu.baseUrl}"
                                                   icon="home"
                         ></ui5-side-navigation-item>
 
@@ -219,18 +309,18 @@ export class MateuSapUI5App extends MateuApp {
             return html`
 
                 <ui5-tabcontainer
-                        @tab-select="${(e: any) => this.tabSelected(e, this, this.baseUrl ?? '')}"
+                        @tab-select="${(e: any) => this.tabSelected(e, this, this.baseUrl ?? '', metadata)}"
                 >
                     ${metadata.menu.map(menu => html`
                         <ui5-tab ?icon="${menu.icon}"
                                  text="${menu.label}"
                                  data-path="${menu.path}"
                                  data-route="${menu.route}"
-                                 data-consumedroute="${menu.consumedRoute}"
-                                 data-actionid="${menu.actionId}"
-                                 data-serversidetype="${menu.serverSideType}"
-                                 data-uriprefix="${menu.uriPrefix}"
-                                 data-baseurl="${menu.baseUrl}"
+                                 data-consumed-route="${menu.consumedRoute}"
+                                 data-action-id="${menu.actionId}"
+                                 data-server-side-type="${menu.serverSideType}"
+                                 data-uri-prefix="${menu.uriPrefix}"
+                                 data-base-url="${menu.baseUrl}"
                                  data-params="${menu.params}"
                                  ?selected="${this.selectedRoute == menu.path || (this.selectedRoute == this.selectedConsumedRoute && this.selectedRoute == metadata.homeRoute)}"
                         >
@@ -261,8 +351,8 @@ export class MateuSapUI5App extends MateuApp {
             `
         }
         if (AppVariant.MENU_ON_LEFT == metadata.variant) {
-            return html`ww
-        <vaadin-horizontal-layout style="width: 100%;">
+            return html`
+        <div style="display: flex; width: 100%; height: 100%;">
             <ui5-side-navigation id="snx"
                                  @selection-change="${(e: any) => this.selected(e, this, this.baseUrl ?? '', metadata)}"
                                  style="flex-grow: 0;">
@@ -274,31 +364,37 @@ export class MateuSapUI5App extends MateuApp {
                                                   ?unselectable="${menu.submenus && menu.submenus.length > 0}"
                                                   data-path="${menu.path}"
                                                   data-route="${menu.route}"
-                                                  data-consumedroute="${menu.consumedRoute}"
-                                                  data-actionid="${menu.actionId}"
-                                                  data-serversidetype="${menu.serverSideType}"
-                                                  data-uriprefix="${menu.uriPrefix}"
-                                                  data-baseurl="${menu.baseUrl}"
-                                                  .data-params="${menu.params}"
+                                                  data-consumed-route="${menu.consumedRoute}"
+                                                  data-action-id="${menu.actionId}"
+                                                  data-server-side-type="${menu.serverSideType}"
+                                                  data-uri-prefix="${menu.uriPrefix}"
+                                                  data-base-url="${menu.baseUrl}"
                         >
                             ${menu.submenus.map(sub => html`
                                 <ui5-side-navigation-sub-item text="${sub.label}"
                                                               data-path="${sub.path}"
                                                               data-route="${sub.route}"
-                                                              data-consumedroute="${sub.consumedRoute}"
-                                                              data-actionid="${sub.actionId}"
-                                                              data-serversidetype="${sub.serverSideType}"
-                                                              data-uriprefix="${sub.uriPrefix}"
-                                                              data-baseurl="${sub.baseUrl}"
-                                                              .data-params="${sub.params}"
+                                                              data-consumed-route="${sub.consumedRoute}"
+                                                              data-action-id="${sub.actionId}"
+                                                              data-server-side-type="${sub.serverSideType}"
+                                                              data-uri-prefix="${sub.uriPrefix}"
+                                                              data-base-url="${sub.baseUrl}"
                                 ></ui5-side-navigation-sub-item>
                             `)}
                         </ui5-side-navigation-item>
 
                     ` : html`
 
-                        <ui5-side-navigation-item text="${menu.label}" data-route="${menu.path}"
-                                                  icon="home"></ui5-side-navigation-item>
+                        <ui5-side-navigation-item text="${menu.label}"
+                                                  data-path="${menu.path}"
+                                                  data-route="${menu.route}"
+                                                  data-consumed-route="${menu.consumedRoute}"
+                                                  data-action-id="${menu.actionId}"
+                                                  data-server-side-type="${menu.serverSideType}"
+                                                  data-uri-prefix="${menu.uriPrefix}"
+                                                  data-base-url="${menu.baseUrl}"
+                                                  icon="home"
+                        ></ui5-side-navigation-item>
 
                     `}
                 `)}
@@ -323,10 +419,10 @@ export class MateuSapUI5App extends MateuApp {
                 </mateu-api-caller>
             </div>
 
-        </vaadin-horizontal-layout>
+        </div>
         `
     }
-            return html`aa
+            return html`
         <ui5-navigation-layout id="nl1" mode="${this.mode}" style="height: 100vh;">
             <ui5-shellbar
                     slot="header"

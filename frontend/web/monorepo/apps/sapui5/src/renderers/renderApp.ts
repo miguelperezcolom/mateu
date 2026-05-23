@@ -9,7 +9,7 @@ export const renderApp = (container: MateuComponent, component: ClientSideCompon
     const metadata = component.metadata as App
     return html `
         <mateu-sapui5-app
-                id="${container.id}_ux"
+                id="${container.id}_app"
                 route="${metadata.homeRoute}"
                 consumedRoute="${metadata.route}"
                 baseUrl="${baseUrl}"

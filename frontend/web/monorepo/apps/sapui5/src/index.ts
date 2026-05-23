@@ -66,4 +66,39 @@ import "@ui5/webcomponents-icons/dist/action-settings.js";
 import "@ui5/webcomponents-icons/dist/share.js";
 import "@ui5/webcomponents-icons/dist/laptop.js";
 
+// Additional components used by new renderers
+import "@ui5/webcomponents/dist/CheckBox.js";          // ui5-checkbox
+import "@ui5/webcomponents/dist/DatePicker.js";        // ui5-date-picker
+import "@ui5/webcomponents/dist/DateTimePicker.js";    // ui5-datetime-picker
+import "@ui5/webcomponents/dist/TimePicker.js";        // ui5-time-picker
+import "@ui5/webcomponents/dist/Slider.js";            // ui5-slider
+import "@ui5/webcomponents/dist/FileUploader.js";      // ui5-file-uploader
+import "@ui5/webcomponents/dist/MultiComboBox.js";     // ui5-multi-combobox
+import "@ui5/webcomponents/dist/MultiComboBoxItem.js"; // ui5-mcb-item
+import "@ui5/webcomponents/dist/ComboBoxItem.js";      // ui5-cb-item
+import "@ui5/webcomponents/dist/Option.js";            // ui5-option
+import "@ui5/webcomponents/dist/Panel.js";             // ui5-panel (accordion)
+import "@ui5/webcomponents/dist/Icon.js";              // ui5-icon
+import "@ui5/webcomponents/dist/MessageStrip.js";      // ui5-message-strip (notification)
+import "@ui5/webcomponents/dist/ProgressIndicator.js"; // ui5-progress-indicator
+import "@ui5/webcomponents/dist/SegmentedButton.js";   // ui5-segmented-button
+
+// Icons used by field and layout renderers
+import "@ui5/webcomponents-icons/dist/favorite.js";
+import "@ui5/webcomponents-icons/dist/unfavorite.js";
+import "@ui5/webcomponents-icons/dist/upload.js";
+import "@ui5/webcomponents-icons/dist/question-mark.js";
+
+// SAP UI5 Table components
+import "@ui5/webcomponents/dist/Table.js";
+import "@ui5/webcomponents/dist/TableHeaderRow.js";
+import "@ui5/webcomponents/dist/TableHeaderCell.js";
+import "@ui5/webcomponents/dist/TableRow.js";
+import "@ui5/webcomponents/dist/TableCell.js";
+import "@ui5/webcomponents/dist/TableSelection.js";
+import "@ui5/webcomponents/dist/TableGrowing.js";
+import "@ui5/webcomponents/dist/Link.js";
+import "@ui5/webcomponents-icons/dist/accept.js";
+import "@ui5/webcomponents-icons/dist/decline.js";
+
 componentRenderer.set(new SapUi5ComponentRenderer())
