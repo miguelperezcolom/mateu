@@ -52,8 +52,14 @@ public class MateuApiClient {
         body.put("appState", appState != null ? appState : Map.of());
         body.put("parameters", parameters != null ? parameters : Map.of());
 
+        // Omit null values so the JSON matches the web frontend's behaviour
+        body.entrySet().removeIf(e -> e.getValue() == null);
+
         String json = mapper.writeValueAsString(body);
         String url = baseUrl + "/mateu/v3/sync/" + urlSegment;
+
+        System.out.println("[Mateu] --> POST " + url);
+        System.out.println("[Mateu]     body: " + json);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(url))
@@ -66,11 +72,16 @@ public class MateuApiClient {
 
         HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
 
+        System.out.println("[Mateu] <-- " + response.statusCode());
+        String responseBody = response.body();
+        System.out.println("[Mateu]     response (first 500 chars): "
+                + (responseBody.length() > 500 ? responseBody.substring(0, 500) + "..." : responseBody));
+
         if (response.statusCode() >= 400) {
-            throw new RuntimeException("HTTP " + response.statusCode() + ": " + response.body());
+            throw new RuntimeException("HTTP " + response.statusCode() + ": " + responseBody);
         }
 
-        return mapper.readTree(response.body());
+        return mapper.readTree(responseBody);
     }
 
     public JsonNode initialLoad(String route) throws Exception {
