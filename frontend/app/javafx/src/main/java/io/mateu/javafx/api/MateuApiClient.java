@@ -74,8 +74,8 @@ public class MateuApiClient {
 
         System.out.println("[Mateu] <-- " + response.statusCode());
         String responseBody = response.body();
-        System.out.println("[Mateu]     response (first 500 chars): "
-                + (responseBody.length() > 500 ? responseBody.substring(0, 500) + "..." : responseBody));
+        System.out.println("[Mateu]     response (first 3000 chars): "
+                + (responseBody.length() > 3000 ? responseBody.substring(0, 3000) + "..." : responseBody));
 
         if (response.statusCode() >= 400) {
             throw new RuntimeException("HTTP " + response.statusCode() + ": " + responseBody);
@@ -85,12 +85,12 @@ public class MateuApiClient {
     }
 
     public JsonNode initialLoad(String route, Map<String, Object> appState) throws Exception {
-        return runAction(route, "", "", null, "ux_main", Map.of(), appState, Map.of());
+        return runAction(route, "_empty", "", null, "ux_main", Map.of(), appState, Map.of());
     }
 
     public JsonNode navigate(String route, String consumedRoute, String serverSideType,
                              Map<String, Object> appState) throws Exception {
-        return runAction(route, consumedRoute != null ? consumedRoute : "", "",
+        return runAction(route, consumedRoute != null ? consumedRoute : "_empty", "",
                 serverSideType, "ux_main", Map.of(), appState, Map.of());
     }
 }

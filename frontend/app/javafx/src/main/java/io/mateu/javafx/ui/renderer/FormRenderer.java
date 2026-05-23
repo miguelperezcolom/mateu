@@ -148,14 +148,14 @@ public class FormRenderer {
     }
 
     private Button buildButtonFromDto(JsonNode btn) {
-        String id = btn.path("id").asText("");
-        String label = btn.path("label").asText(id);
+        String actionId = btn.path("actionId").asText(btn.path("id").asText(""));
+        String label = btn.path("label").asText(actionId);
         Button button = new Button(label);
         button.getStyleClass().add("btn-default");
         boolean primary = "Primary".equals(btn.path("buttonStyle").asText(""))
                 || "primary".equals(btn.path("buttonStyle").asText(""));
         if (primary) button.getStyleClass().setAll("btn-primary");
-        button.setOnAction(e -> ctx.runAction(id, null));
+        button.setOnAction(e -> ctx.runAction(actionId, null));
         return button;
     }
 

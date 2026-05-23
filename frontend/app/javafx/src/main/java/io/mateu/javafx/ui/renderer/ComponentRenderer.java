@@ -35,6 +35,7 @@ public class ComponentRenderer {
 
         return switch (metaType) {
             case "App" -> new AppRenderer(ctx).render(component, metadata);
+            case "Page" -> new PageRenderer(ctx).render(component, metadata, state, data);
             case "Form" -> {
                 updateSscContext(component);
                 yield new FormRenderer(ctx).render(component, metadata, state, data);
@@ -44,6 +45,8 @@ public class ComponentRenderer {
                 yield new CrudRenderer(ctx).render(component, metadata, state, data);
             }
             case "FormField" -> new FormFieldRenderer(ctx).render(metadata, state, data);
+            case "FormLayout" -> new LayoutRenderer(ctx).renderVBox(component, metadata, state, data);
+            case "FormRow" -> new LayoutRenderer(ctx).renderHBox(component, metadata, state, data);
             case "HorizontalLayout" -> new LayoutRenderer(ctx).renderHBox(component, metadata, state, data);
             case "VerticalLayout" -> new LayoutRenderer(ctx).renderVBox(component, metadata, state, data);
             case "Button" -> {

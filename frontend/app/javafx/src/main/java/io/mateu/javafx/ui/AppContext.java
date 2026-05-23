@@ -16,6 +16,7 @@ import javafx.stage.Stage;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class AppContext {
 
@@ -34,6 +35,7 @@ public class AppContext {
     public Map<String, Object> appState = new HashMap<>();
 
     private final Map<String, Pane> registry = new HashMap<>();
+    private final Map<String, Consumer<JsonNode>> dataHandlers = new HashMap<>();
 
     public AppContext(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -43,6 +45,12 @@ public class AppContext {
     public void registerComponent(String id, Pane pane) {
         if (id != null && !id.isBlank()) {
             registry.put(id, pane);
+        }
+    }
+
+    public void registerDataHandler(String id, Consumer<JsonNode> handler) {
+        if (id != null && !id.isBlank()) {
+            dataHandlers.put(id, handler);
         }
     }
 
@@ -149,21 +157,25 @@ public class AppContext {
         JsonNode state = fragment.path("state");
         JsonNode data = fragment.path("data");
 
-        // Check if there is a _route in state (navigation hint from server)
-        if (!state.isNull() && state.isObject()) {
-            JsonNode routeNode = state.path("_route");
-            if (!routeNode.isMissingNode() && !routeNode.isNull()) {
-                String newRoute = routeNode.asText("");
-                String componentRoute = state.path("_componentRoute").asText(currentConsumedRoute);
-                Platform.runLater(() -> navigate(componentRoute + newRoute, componentRoute,
-                        currentServerSideType, ""));
-                return;
-            }
-        }
+        // _route in fragment state is used by the web frontend's inner mateu-ux components
+        // to navigate to sub-views. In JavaFX we render SSC children inline, so we never
+        // need to re-navigate based on _route — we just render the component as-is.
 
         Pane target = targetId.isBlank() ? contentPane : registry.getOrDefault(targetId, contentPane);
 
-        if (target == null || component.isNull() || component.isMissingNode()) return;
+        if (component.isNull() || component.isMissingNode()) {
+            // Data-only fragment — push to a registered data handler (e.g. Crud search results)
+            if (!data.isNull() && !data.isMissingNode()) {
+                String key = targetId.isBlank() ? "ux_main" : targetId;
+                Consumer<JsonNode> handler = dataHandlers.get(key);
+                if (handler != null) {
+                    Platform.runLater(() -> handler.accept(data));
+                }
+            }
+            return;
+        }
+
+        if (target == null) return;
 
         Platform.runLater(() -> {
             ComponentRenderer renderer = new ComponentRenderer(this);
@@ -221,6 +233,72 @@ public class AppContext {
 
         String route = sscNode.path("route").asText("");
         String serverSideType = sscNode.path("serverSideType").asText("");
+
+        JsonNode children = sscNode.path("children");
+        if (children.isArray() && !children.isEmpty()) {
+            // Children are already populated inline — use them directly.
+            JsonNode firstChild = children.get(0);
+            boolean firstChildIsApp = "ClientSide".equals(firstChild.path("type").asText(""))
+                    && "App".equals(firstChild.path("metadata").path("type").asText(""));
+
+            if (firstChildIsApp) {
+                // App (MEDIATOR or shell) inside the SSC: delegate content loading to navigate
+                // so content lands in the existing contentPane rather than creating nested panes.
+                if (!id.isBlank()) currentComponentId = id;
+                if (!serverSideType.isBlank()) currentServerSideType = serverSideType;
+                JsonNode meta = firstChild.path("metadata");
+                String homeRoute = meta.path("homeRoute").asText("");
+                String homeConsumedRoute = meta.path("homeConsumedRoute").asText("");
+                String homeSST = meta.path("homeServerSideType").asText(
+                        meta.path("serverSideType").asText(""));
+                if (!homeRoute.isBlank() || !homeSST.isBlank()) {
+                    navigate(homeRoute, homeConsumedRoute, homeSST, "");
+                }
+            } else {
+                // Non-App inline children (Page, Form, etc.) — render them directly
+                if (!id.isBlank()) currentComponentId = id;
+                if (!serverSideType.isBlank()) currentServerSideType = serverSideType;
+
+                // Seed component state from SSC initial data so OnLoad triggers have defaults
+                JsonNode initialData = sscNode.path("initialData");
+                if (initialData.isObject()) {
+                    currentComponentState = new HashMap<>();
+                    initialData.fields().forEachRemaining(entry ->
+                            currentComponentState.put(entry.getKey(), entry.getValue()));
+                }
+
+                JsonNode state = sscNode.path("initialData");
+                JsonNode triggers = sscNode.path("triggers");
+                Platform.runLater(() -> {
+                    ComponentRenderer renderer = new ComponentRenderer(this);
+                    java.util.List<Node> nodes = new java.util.ArrayList<>();
+                    for (JsonNode child : children) {
+                        nodes.add(renderer.render(child, state, state));
+                    }
+                    container.getChildren().setAll(nodes);
+
+                    // Fire OnLoad triggers (e.g. Crud "search" to populate data)
+                    if (triggers.isArray()) {
+                        for (JsonNode trigger : triggers) {
+                            if ("OnLoad".equalsIgnoreCase(trigger.path("type").asText(""))) {
+                                String triggerActionId = trigger.path("actionId").asText("");
+                                if (!triggerActionId.isBlank()) {
+                                    if ("search".equals(triggerActionId)) {
+                                        // Backend requires these pagination fields; seed defaults if absent
+                                        currentComponentState.putIfAbsent("page", 0);
+                                        currentComponentState.putIfAbsent("size", 10);
+                                        currentComponentState.putIfAbsent("sort", java.util.List.of());
+                                        currentComponentState.putIfAbsent("searchText", "");
+                                    }
+                                    runAction(triggerActionId, null);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            return container;
+        }
 
         ProgressIndicator progress = new ProgressIndicator();
         container.getChildren().add(progress);

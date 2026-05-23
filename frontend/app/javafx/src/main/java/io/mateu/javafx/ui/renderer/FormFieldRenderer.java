@@ -30,6 +30,7 @@ public class FormFieldRenderer {
         String value = rawValue.isNull() || rawValue.isMissingNode() ? "" : rawValue.asText("");
 
         VBox container = new VBox(4);
+        javafx.scene.layout.HBox.setHgrow(container, javafx.scene.layout.Priority.ALWAYS);
 
         Label lbl = new Label(label + (required ? " *" : ""));
         lbl.getStyleClass().add("field-label");

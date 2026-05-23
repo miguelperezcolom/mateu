@@ -51,7 +51,15 @@ public class CrudRenderer {
         int pageSize = data != null && !data.isNull() ? data.path("pageSize").asInt(rows.size()) : rows.size();
         int pageNumber = data != null && !data.isNull() ? data.path("pageNumber").asInt(0) : 0;
 
-        VBox center = new VBox(table);
+        VBox center = new VBox();
+        VBox.setVgrow(table, Priority.ALWAYS);
+
+        if (searchable) {
+            HBox searchBar = buildSearchBar();
+            center.getChildren().add(searchBar);
+        }
+
+        center.getChildren().add(table);
         VBox.setVgrow(table, Priority.ALWAYS);
         root.setCenter(center);
 
@@ -60,6 +68,17 @@ public class CrudRenderer {
             HBox paginationBar = buildPaginationBar(pageNumber, pageSize, totalElements);
             root.setBottom(paginationBar);
         }
+
+        // Register data handler so search responses (component=null, data=present) update the table
+        ctx.registerDataHandler("crud", searchData -> {
+            JsonNode pageData = searchData.path("crud").path("page");
+            if (pageData.isMissingNode() || pageData.isNull()) pageData = searchData;
+            items.setAll(extractRows(pageData));
+            long total = pageData.path("totalElements").asLong(0);
+            int sz = pageData.path("pageSize").asInt(0);
+            int pg = pageData.path("pageNumber").asInt(0);
+            root.setBottom(total > sz && sz > 0 ? buildPaginationBar(pg, sz, total) : null);
+        });
 
         return root;
     }
@@ -108,14 +127,25 @@ public class CrudRenderer {
         if (columns.isArray()) {
             for (JsonNode col : columns) {
                 JsonNode colMeta = col.path("metadata");
-                String fieldId = colMeta.path("fieldId").asText("");
+                // GridColumn uses "id" for the data field; FormField uses "fieldId"
+                String fieldId = colMeta.path("id").asText(col.path("id").asText(""));
                 String label = colMeta.path("label").asText(fieldId);
 
                 TableColumn<JsonNode, String> tableCol = new TableColumn<>(label);
                 tableCol.setCellValueFactory(cellData -> {
                     JsonNode row = cellData.getValue();
                     JsonNode val = row.path(fieldId);
-                    String text = val.isNull() || val.isMissingNode() ? "" : val.asText();
+                    String text;
+                    if (val.isNull() || val.isMissingNode()) {
+                        text = "";
+                    } else if (val.isObject()) {
+                        // Status/badge objects: prefer "message", then "value", then toString
+                        JsonNode msg = val.path("message");
+                        text = (!msg.isMissingNode() && !msg.isNull())
+                                ? msg.asText() : val.path("value").asText(val.toString());
+                    } else {
+                        text = val.asText();
+                    }
                     return new SimpleStringProperty(text);
                 });
                 table.getColumns().add(tableCol);
@@ -192,6 +222,34 @@ public class CrudRenderer {
         next.setOnAction(e -> ctx.runAction("nextPage", null));
 
         bar.getChildren().addAll(prev, info, next);
+        return bar;
+    }
+
+    private HBox buildSearchBar() {
+        HBox bar = new HBox(8);
+        bar.setPadding(new Insets(0, 0, 8, 0));
+
+        TextField field = new TextField();
+        field.setPromptText("Search...");
+        field.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(field, Priority.ALWAYS);
+        Object cur = ctx.currentComponentState.get("searchText");
+        if (cur != null) field.setText(cur.toString());
+
+        Runnable doSearch = () -> {
+            ctx.currentComponentState.put("searchText", field.getText());
+            ctx.currentComponentState.put("page", 0);
+            ctx.currentComponentState.putIfAbsent("size", 10);
+            ctx.currentComponentState.putIfAbsent("sort", java.util.List.of());
+            ctx.runAction("search", null);
+        };
+
+        Button btn = new Button("Search");
+        btn.getStyleClass().add("btn-primary");
+        btn.setOnAction(e -> doSearch.run());
+        field.setOnAction(e -> doSearch.run());
+
+        bar.getChildren().addAll(field, btn);
         return bar;
     }
 
