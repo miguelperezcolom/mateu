@@ -15,7 +15,7 @@ public record Option(
     this(value, label, description, "", "");
   }
 
-  public Option(Object value, String label, String description, String imageStyle) {
-    this(value, label, description, "", imageStyle);
+  public Option(Object value, String label, String description, String image) {
+    this(value, label, description, image, "");
   }
 }

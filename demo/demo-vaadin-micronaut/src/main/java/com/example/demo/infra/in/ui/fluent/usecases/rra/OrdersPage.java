@@ -56,6 +56,7 @@ record OrderRow(
 
 @Route(value="/use-cases/rra/orders", parentRoute="/use-cases/rra")
 @Singleton
+@io.mateu.uidl.annotations.Action(id="go-to-selected-order")
 public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersFilters, OrderRow>, TriggersSupplier, ActionHandler, ActionSupplier {
 
     private final OrderRepository orderRepository;

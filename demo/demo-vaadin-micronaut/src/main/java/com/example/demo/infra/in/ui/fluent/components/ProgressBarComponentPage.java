@@ -15,7 +15,7 @@ public class ProgressBarComponentPage implements ComponentTreeSupplier {
         return Form.builder()
                 .title("Progress bar")
                 .content(List.of(
-                        ProgressBar.builder().build()
+                        ProgressBar.builder().value(0.2).build()
                 ))
                 .build();
     }

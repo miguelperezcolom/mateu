@@ -819,12 +819,23 @@ public class ReflectionPageMapper {
     if (instance instanceof Form) {
       return true;
     }
-    return getAllFields(instance.getClass()).stream()
+    return (getAllFields(instance.getClass()).stream()
+                .anyMatch(
+                    field ->
+                        field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
+                            || field.isAnnotationPresent(Toolbar.class))
+            || getAllMethods(instance.getClass()).stream()
+                .anyMatch(
+                    method ->
+                        method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
+                            || method.isAnnotationPresent(Toolbar.class)))
+        && getAllFields(instance.getClass()).stream()
             .anyMatch(
                 field ->
-                    field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                        || field.isAnnotationPresent(Toolbar.class)
-                        || (!Modifier.isFinal(field.getModifiers())
+                    !(field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
+                            || field.isAnnotationPresent(Toolbar.class))
+                        && (!Modifier.isFinal(field.getModifiers())
+                            && !field.isAnnotationPresent(ReadOnly.class)
                             && !Component.class.isAssignableFrom(field.getType())
                             && !ComponentTreeSupplier.class.isAssignableFrom(field.getType())
                             && !MicroFrontend.class.isAssignableFrom(field.getType())
@@ -839,12 +850,7 @@ public class ReflectionPageMapper {
                             && !field.isAnnotationPresent(Header.class)
                             && !field.isAnnotationPresent(Footer.class)
                             && !field.isAnnotationPresent(Avatar.class)
-                            && !Status.class.isAssignableFrom(field.getType())))
-        || getAllMethods(instance.getClass()).stream()
-            .anyMatch(
-                method ->
-                    method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                        || method.isAnnotationPresent(Toolbar.class));
+                            && !Status.class.isAssignableFrom(field.getType())));
   }
 
   private static Collection<? extends Component> getHeader(

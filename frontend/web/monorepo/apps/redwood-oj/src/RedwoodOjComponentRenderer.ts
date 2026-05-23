@@ -84,7 +84,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         `
     }
 
-    renderPagination(container: MateuTableCrud, component: ClientSideComponent | undefined): TemplateResult {
+    renderPagination(container: MateuTableCrud, _component: ClientSideComponent | undefined): TemplateResult {
         const id = container.id
         return html`
             <mateu-redwood-pagination
@@ -128,7 +128,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
-    renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any): TemplateResult {
-        return renderApp(container, component!, baseUrl, state, data)
+    renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult {
+        return renderApp(container, component!, baseUrl, state, data, appState, appData)
     }
 }

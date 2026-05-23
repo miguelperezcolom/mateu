@@ -7,6 +7,7 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.ActionSupplier;
@@ -31,7 +32,7 @@ record Person(String name, int age) {
 }
 
 @Route(value="/components/high-level/forms/with-grid1", parentRoute="")
-public class WithGridForm1 implements ComponentTreeSupplier, ActionHandler, ActionSupplier, TriggersSupplier {
+public class WithGridForm1 implements ComponentTreeSupplier, ActionHandler, ActionSupplier {
 
     String name = "Mateu";
     int age = 17;
@@ -110,13 +111,4 @@ public class WithGridForm1 implements ComponentTreeSupplier, ActionHandler, Acti
         return Flux.just(this);
     }
 
-    @Override
-    public List<Action> actions(HttpRequest httpRequest) {
-        return List.of(Action.builder().id("action_id").build());
-    }
-
-    @Override
-    public List<Trigger> triggers(HttpRequest httpRequest) {
-        return List.of(new OnLoadTrigger("onload_action"));
-    }
 }

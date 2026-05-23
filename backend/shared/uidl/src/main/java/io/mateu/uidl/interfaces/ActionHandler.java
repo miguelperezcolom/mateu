@@ -5,7 +5,7 @@ import java.util.List;
 public interface ActionHandler {
 
   default List<String> supportedActions() {
-    return List.of();
+    return List.of("*");
   }
 
   default boolean supportsAction(String actionId) {

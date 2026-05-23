@@ -10,6 +10,7 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
+import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.Form;
@@ -132,7 +133,7 @@ public class RowSelectedRequiredActionPage implements ComponentTreeSupplier, Rea
     public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
         if ("xx".equals(actionId)) {
             log.info("selected rows are {}", httpRequest.getSelectedRows(Row.class));
-            return Flux.empty();
+            return Flux.just(new State(this));
         }
         return ReactiveListingBackend.super.handleAction(actionId, httpRequest);
     }

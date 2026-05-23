@@ -5,5 +5,7 @@ import java.util.List;
 
 public interface ActionSupplier {
 
-  List<Action> actions(HttpRequest httpRequest);
+  default List<Action> actions(HttpRequest httpRequest) {
+    return List.of(Action.builder().id("*").build());
+  }
 }

@@ -1,5 +1,6 @@
 package com.example.demo.infra.in.ui.fluent.rules;
 
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Data;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Route(value="/logic/rules/visibility-from-backend", parentRoute="")
+@Action(id = "toggle")
 public class HideFromBackendPage implements ComponentTreeSupplier {
 
     boolean hidden = false;

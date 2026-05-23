@@ -18,6 +18,7 @@ import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.data.State;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
@@ -26,13 +27,19 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 
 import java.util.List;
 import java.util.Map;
 
+import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToPageComponent;
+
 @Route(value="/components/high-level/forms/editable-grid-fields", parentRoute="")
-@Singleton
+@Named
 public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
 
     private final ProductRepository productRepository;
@@ -167,9 +174,25 @@ public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplie
                 edit_quantity = line.quantity();
             });
             var product = productRepository.findById(edit_product).get();
-            return List.of(new State(this), new Data(Map.of("edit_product",
-                    new io.mateu.uidl.data.Page<>("xxxx", 1, 0, 1,
-                            List.of(new Option(product.id(), product.name()))))));
+            return List.of(new State(this), wrap(
+                    getForm(product,
+                            (String) httpRequest.getAttribute("baseUrl"),
+                            httpRequest.runActionRq().route(),
+                            httpRequest.runActionRq().consumedRoute(),
+                            httpRequest.runActionRq().initiatorComponentId(),
+                            httpRequest,
+                            false,
+                            false,
+                            3
+                            ).stream().findFirst().orElseThrow(),
+                    product,
+                    (String) httpRequest.getAttribute("baseUrl"),
+                    httpRequest.runActionRq().route(),
+                    httpRequest.runActionRq().consumedRoute(),
+                    httpRequest.runActionRq().initiatorComponentId(),
+                    httpRequest)
+                    .withContainerId("lines" + "-container")
+                    .withInitialData(product));
         }
         if ("lines-add".equals(actionId)) {
             lines_show_detail = true;

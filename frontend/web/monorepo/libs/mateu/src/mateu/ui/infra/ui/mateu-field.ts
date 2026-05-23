@@ -174,7 +174,7 @@ export class MateuField extends LitElement {
 
     valueChanged = (e: CustomEvent) => {
         if (this.rendered) {
-            if (e.detail.value != this.state[this.field!.fieldId]) {
+            if (e.detail.value !== undefined && e.detail.value != this.state[this.field!.fieldId]) {
                 this.dispatchEvent(new CustomEvent('value-changed', {
                     detail: {
                         value: this.convert(e.detail.value),

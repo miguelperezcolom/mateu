@@ -29,8 +29,8 @@ public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSu
     public Form component(HttpRequest httpRequest) {
         return Form.builder() // vertical layout as default container for children
                 .id("form_id")
-                .title(name + " " + age)
-                .subtitle("subtitle")
+                .title("${state.calculated} title")
+                .subtitle("${state.calculated} subtitle")
                 .toolbar(
                         List.of(
                                 Button.builder()
@@ -83,11 +83,6 @@ public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSu
     }
 
     @Override
-    public boolean supportsAction(String actionId) {
-        return !"".equals(actionId);
-    }
-
-    @Override
     public Object handleAction(String actionId, HttpRequest httpRequest) {
 
         System.out.println("received action: " + actionId);
@@ -95,11 +90,6 @@ public class BasicForm implements ComponentTreeSupplier, ActionHandler, ActionSu
         calculated = "Hello " + name + ", " + age;
 
         return new State(this);
-    }
-
-    @Override
-    public List<Action> actions(HttpRequest httpRequest) {
-        return List.of(Action.builder().id("action_id").build());
     }
 
     @Override

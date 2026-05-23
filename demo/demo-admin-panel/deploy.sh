@@ -1,6 +1,6 @@
 docker login
 docker buildx build --platform=linux/amd64 -t miguelperezcolom/demo-admin-panel .
-export VERSION=0.0.2
+export VERSION=0.0.4
 docker image tag miguelperezcolom/demo-admin-panel miguelperezcolom/demo-admin-panel:latest
 docker image tag miguelperezcolom/demo-admin-panel miguelperezcolom/demo-admin-panel:$VERSION
 echo "pushing latest"

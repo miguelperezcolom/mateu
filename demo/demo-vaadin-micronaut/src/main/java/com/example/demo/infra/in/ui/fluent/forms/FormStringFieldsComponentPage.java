@@ -81,7 +81,7 @@ public class FormStringFieldsComponentPage implements ComponentTreeSupplier {
                                                 FormRow.builder()
                                                         .content(List.of(
                                                                 FormField.builder()
-                                                                        .id("name")
+                                                                        .id("icon")
                                                                         .label("String/Icon")
                                                                         .dataType(FieldDataType.string)
                                                                         .stereotype(FieldStereotype.icon)

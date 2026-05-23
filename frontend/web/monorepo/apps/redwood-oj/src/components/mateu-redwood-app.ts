@@ -139,14 +139,20 @@ export class MateuRedwoodApp extends MateuApp {
     }
 
     selected = (event: CustomEvent, _container: LitElement, _baseUrl: string, _metadata: App) => {
-        this.selectRoute(
-            event.detail.item.dataset.consumedRoute,
-            event.detail.item.dataset.route,
-            event.detail.item.dataset.actionId,
-            event.detail.item.dataset.baseUrl,
-            event.detail.item.dataset.serverSideType,
-            event.detail.item.dataset.uriPrefix // faltan los params
-        )
+        console.log('selected', event, event.target, event.detail.value)
+        const item = this.renderRoot.querySelector('[data-path = "' + event.detail.value + '"]') as HTMLElement
+        if (item) {
+            this.selectRoute(
+                item.dataset.consumedRoute,
+                item.dataset.route,
+                item.dataset.actionId,
+                item.dataset.baseUrl,
+                item.dataset.serverSideType,
+                item.dataset.uriPrefix // faltan los params
+            )
+        } else {
+            console.error('No item found for selected route', event.detail.value)
+        }
     }
 
     render() {
@@ -200,6 +206,9 @@ export class MateuRedwoodApp extends MateuApp {
                     .selection="${data[0].itemKey}"
                     @ojSelectionAction="${(e: any) => this.selected(e, this, this.baseUrl??'', metadata)}"
                     edge="top"
+                    
+                    
+                    
                     layout="condense"
                     display="standard"
                     aria-label="Basic TabBar"
@@ -258,8 +267,6 @@ export class MateuRedwoodApp extends MateuApp {
                 this.data.activeConsumedRoute = activeSubmenu?.consumedRoute ?? activeTopMenu?.consumedRoute ?? metadata.homeConsumedRoute ?? ''
                 this.data.activeServerSideType = activeSubmenu?.serverSideType ?? activeTopMenu?.serverSideType ?? metadata.homeServerSideType ?? ''
             }
-            const activeConsumedRoute: string = this.data.activeConsumedRoute
-            const activeServerSideType: string = this.data.activeServerSideType ?? ''
 
             const selectTop = (event: CustomEvent) => {
                 const route = event.detail.value
@@ -324,10 +331,6 @@ export class MateuRedwoodApp extends MateuApp {
                 </mateu-api-caller>
             </div>
         </div>`
-        }
-
-        if (AppVariant.MENU_ON_LEFT == metadata.variant) {
-            return html`<p>menu on left</p>`
         }
 
         return html`
@@ -444,11 +447,34 @@ export class MateuRedwoodApp extends MateuApp {
                         >
                             <ul>
                                 ${metadata.menu.map(menu => html`
-                                    <li data-route="${menu.route}" id="${menu.route}"><a href="#">${menu.label}</a>
+                                    <li
+
+                                            data-path="${menu.path}"
+                                            data-route="${menu.route}"
+                                            data-consumedroute="${menu.consumedRoute}"
+                                            data-actionid="${menu.actionId}"
+                                            data-serversidetype="${menu.serverSideType}"
+                                            data-uriprefix="${menu.uriPrefix}"
+                                            data-baseurl="${menu.baseUrl}"
+                                            .data-params="${menu.params}"
+                                            
+                                            id="${menu.path}"><a href="#"
+                                    
+                                    >${menu.label}</a>
                                         ${menu.submenus && menu.submenus.length > 0?html`
                                         <ul>
                                             ${menu.submenus.map(sub => html`
-                                                <li data-route="${sub.route}" id="${sub.route}"><a href="#">${sub.label}</a></li>
+                                                <li
+                                                        data-path="${sub.path}"
+                                                        data-route="${sub.route}"
+                                                        data-consumedroute="${sub.consumedRoute}"
+                                                        data-actionid="${sub.actionId}"
+                                                        data-serversidetype="${sub.serverSideType}"
+                                                        data-uriprefix="${sub.uriPrefix}"
+                                                        data-baseurl="${sub.baseUrl}"
+                                                        .data-params="${sub.params}"
+                                                        
+                                                        id="${sub.path}"><a href="#">${sub.label}</a></li>
                                             `)}
                                         </ul>
                                         `:nothing}

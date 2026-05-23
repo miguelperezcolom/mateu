@@ -89,7 +89,9 @@ public class RouteInstanceCreator {
                 .map(
                     app ->
                         (app instanceof AppSupplier appSupplier)
-                            ? appSupplier.getApp(command.httpRequest())
+                            ? appSupplier
+                                .getApp(command.httpRequest())
+                                .withServerSideType(instanceTypeName)
                             : app);
         log.info("app {} → {}", route, instanceTypeName);
         return instance.flatMap(

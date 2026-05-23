@@ -29,7 +29,7 @@ require([
 
                 const container = document.getElementById("ui-container");
                 const ui = document.createElement('mateu-ui');
-                ui.setAttribute("baseUrl", "https://demo.mateu.io");
+                ui.setAttribute("baseUrl", "");
                 ui.setAttribute("urlPrefix", "");
                 ui.setAttribute("config", '{"tenantId": "1111","profile": "dev"}');
                 ui.setAttribute("style", "display: block; width: 100%; height: calc(100vh - 100px);");

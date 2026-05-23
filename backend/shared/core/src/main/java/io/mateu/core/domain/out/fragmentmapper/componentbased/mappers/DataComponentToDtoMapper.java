@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.Status;
@@ -76,6 +77,9 @@ public class DataComponentToDtoMapper {
     Map<String, Object> map = new HashMap<>();
     for (Field field : getAllFields(item.getClass())) {
       if (!item.getClass().isRecord() && Modifier.isFinal(field.getModifiers())) {
+        continue;
+      }
+      if (field.isAnnotationPresent(JsonIgnore.class)) {
         continue;
       }
       if (field.isAnnotationPresent(Status.class)) {

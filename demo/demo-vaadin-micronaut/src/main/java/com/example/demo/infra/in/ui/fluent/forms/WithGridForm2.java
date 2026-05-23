@@ -90,11 +90,6 @@ public class WithGridForm2 implements ComponentTreeSupplier, ActionHandler, Acti
     }
 
     @Override
-    public boolean supportsAction(String actionId) {
-        return !"".equals(actionId);
-    }
-
-    @Override
     public Flux<Object> handleAction(String actionId, HttpRequest httpRequest) {
 
         System.out.println("received action: " + actionId + " " + toJson(this));
@@ -102,11 +97,6 @@ public class WithGridForm2 implements ComponentTreeSupplier, ActionHandler, Acti
         people.add(new Person(name, age));
 
         return Flux.just(new State(this));
-    }
-
-    @Override
-    public List<Action> actions(HttpRequest httpRequest) {
-        return List.of(Action.builder().id("action_id").build());
     }
 
     @Override

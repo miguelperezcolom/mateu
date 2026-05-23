@@ -84,8 +84,14 @@ export class MateuRedwoodTable extends LitElement {
             const gcol = col.metadata as GridColumn
             if (gcol.stereotype === 'button') {
                 const label = escAttr(gcol.text ?? gcol.label ?? 'View')
+                const actionId = escAttr(gcol.actionId ?? gcol.id ?? '')
                 slots += `<template slot="${gcol.id}Template" data-oj-as="cell">`
-                slots += `<oj-c-button data-oj-binding-provider="preact" label="${label}" chroming="borderless"></oj-c-button>`
+                slots += `<span>`
+                slots += `<oj-c-button
+ data-mateu-row-key="[[cell.item.data._rowNumber]]" 
+ data-mateu-action-id="${actionId}"
+data-oj-binding-provider="preact" label="${label}" chroming="borderless"></oj-c-button>`
+                slots += `</span>`
                 slots += `</template>`
             } else if (gcol.dataType === 'status') {
                 slots += `<template slot="${gcol.id}Template" data-oj-as="cell">`
@@ -104,12 +110,13 @@ export class MateuRedwoodTable extends LitElement {
                 slots += `></oj-c-menu-button>`
                 slots += `</template>`
             } else if (gcol.dataType === 'action') {
+                const fallbackId = gcol.actionId || gcol.id
                 slots += `<template slot="${gcol.id}Template" data-oj-as="cell">`
                 slots += `<oj-c-menu-button`
                 slots += ` data-oj-binding-provider="preact"`
                 slots += ` label="···"`
                 slots += ` chroming="borderless"`
-                slots += ` :items="[[cell.data && cell.data.methodNameInCrud ? [{label:cell.data.label||cell.data.text||'Action',key:(cell.item.key+'')+'|'+cell.data.methodNameInCrud,disabled:!!cell.data.disabled}] : []]]"`
+                slots += ` :items="[[cell.data ? [{label:cell.data.label||cell.data.text||'${fallbackId}',key:(cell.item.key+'')+'|'+(cell.data.methodNameInCrud||'${fallbackId}'),disabled:!!cell.data.disabled}] : []]]"`
                 slots += `></oj-c-menu-button>`
                 slots += `</template>`
             }
@@ -139,7 +146,9 @@ export class MateuRedwoodTable extends LitElement {
     }
 
     private handleRowAction(e: CustomEvent) {
-        const item = e.detail.context.item.data
+        console.log('handleRowAction', e)
+        const item = e.detail?.context?.item?.data
+        if (!item) return
         const btnCol = this.metadata?.columns?.find(c => {
             const gcol = c.metadata as GridColumn
             return gcol.stereotype === 'button' && gcol.actionId
@@ -154,7 +163,37 @@ export class MateuRedwoodTable extends LitElement {
         }
     }
 
+    private handleCellButtonAction(e: CustomEvent) {
+        console.log('handleCellButtonAction', e)
+        const path = e.composedPath()
+        let rowKey: string | null = null
+        let actionId: string | null = null
+        for (const node of path) {
+            const el = node as Element
+            console.log('el', el)
+            if (el.getAttribute('data-mateu-row-key')) {
+                const k = el.getAttribute('data-mateu-row-key')
+                console.log('k', k)
+                if (k !== null) {
+                    rowKey = k
+                    actionId = el.getAttribute('data-mateu-action-id')
+                    break
+                }
+            }
+        }
+        if (rowKey === null) return
+        const rows: any[] = this.data[this.id]?.page?.content ?? []
+        const rowData = rows.find((row, _index) => row['_rowNumber'] == rowKey) ?? {}
+        console.log('rowData', rowKey, rows, rowData)
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: actionId ?? '', parameters: rowData },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
     private handleMenuAction(e: CustomEvent) {
+        console.log('handleMenuAction', e)
         const rawKey = e.detail?.key as string
         if (!rawKey) return
         const sep = rawKey.indexOf('|')
@@ -171,6 +210,7 @@ export class MateuRedwoodTable extends LitElement {
     }
 
     private handleSelectedChanged(e: CustomEvent) {
+        console.log('handleSelectedChanged', e)
         const selectedKeys = e.detail.value?.row
         if (!selectedKeys) return
         const rows = this.data[this.id]?.page?.content ?? []
@@ -196,9 +236,10 @@ export class MateuRedwoodTable extends LitElement {
                 .selectionMode="${selectionMode}"
                 layout="contents"
                 @ojRowAction="${(e: CustomEvent) => this.handleRowAction(e)}"
+                @ojAction="${(e: CustomEvent) => this.handleCellButtonAction(e)}"
                 @selectedChanged="${(e: CustomEvent) => this.handleSelectedChanged(e)}"
                 @ojMenuAction="${(e: CustomEvent) => this.handleMenuAction(e)}"
-                aria-label="${this.metadata?.title ?? 'Data table'}"
+                aria-label="Data table"
                 style="width: 100%;"
             >${unsafeHTML(this.getTemplateSlots())}</oj-c-table>
             <slot></slot>

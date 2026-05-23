@@ -1,6 +1,7 @@
 package com.example.demo.infra.in.ui.fluent.usecases.rra;
 
 import com.example.demo.domain.TrainingRepository;
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.NoFilters;
@@ -40,6 +41,7 @@ record TrainingRow(
 
 @Route(value="/use-cases/rra/training", parentRoute="/use-cases/rra")
 @Singleton
+@Action(id="go-to-selected-training")
 public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFilters, TrainingRow>, TriggersSupplier {
 
     private final TrainingRepository trainingRepository;
