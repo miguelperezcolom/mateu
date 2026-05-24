@@ -381,7 +381,7 @@ export class MateuChat extends LitElement {
 
     render() {
         return html`
-            <div class="scroll-container" style="height: 37rem; overflow: auto;">
+            <div class="scroll-container" style="height: 35rem; overflow: auto;">
                 <vaadin-message-list .items="${this.items}" markdown style="--lumo-font-size-m: 12px;"></vaadin-message-list>
             </div>
             ${this.tokenUsage ? html`
