@@ -40,7 +40,13 @@ These endpoints are registered automatically by the Mateu integration for your r
 
 The reference renderer is a JavaScript web component (`<mateu-ui>`). It loads the UI description from the API, renders it using a configurable design system, and handles browser interactions — field binding, validation display, button clicks, navigation.
 
-Because the renderer consumes an abstract UI description, it can be replaced. Different design systems (Oracle JET, Vaadin, SAP UI5, Red Hat PatternFly) can render the same ViewModel definition differently.
+Because the renderer consumes an abstract UI description, it can be replaced. Any client that speaks HTTP and understands the Mateu component tree can serve as a renderer:
+
+- **Web renderers** — JavaScript web components built on different design systems: Vaadin Lumo, SAP Fiori, Red Hat PatternFly, Oracle Redwood, Salesforce Lightning.
+- **Desktop renderer** — a JavaFX application that renders native controls on Windows, macOS, and Linux.
+- **Mobile renderer** — an Expo / React Native application that renders native components on iOS and Android.
+
+All renderers consume the same API. The same backend serves web, desktop, and mobile clients simultaneously.
 
 ## Stateless request cycle
 

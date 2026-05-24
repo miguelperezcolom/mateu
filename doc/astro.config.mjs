@@ -241,6 +241,12 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Native',
+					items: [
+						{ slug: 'native', label: 'Desktop & Mobile' },
+					],
+				},
+				{
 					label: 'Reference',
 					items: [
 						{ slug: 'reference/key-annotations' },

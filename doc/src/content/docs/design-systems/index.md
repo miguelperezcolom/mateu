@@ -47,6 +47,19 @@ A Vaadin-rendered Mateu component can be embedded in an Oracle JET application. 
 
 See [Embedded UI](/java-user-manual/use-cases/embedded-ui/) for details.
 
+## Native renderers
+
+Beyond the browser, Mateu also supports native renderers for desktop and mobile:
+
+| Renderer | Platform | Technology |
+|---|---|---|
+| [Desktop (JavaFX)](/native/) | Windows, macOS, Linux | JavaFX |
+| [Mobile (React Native)](/native/) | iOS, Android | Expo / React Native |
+
+Both native renderers consume the same Mateu API as the web renderers. The same backend serves web, desktop, and mobile clients simultaneously with no code changes.
+
+See [Native Renderers](/native/) for details.
+
 ## Bring your own
 
 If none of the available renderers fit, you can build your own frontend that consumes the Mateu API. See [Bring your own design system](/design-systems/bring-your-own-design-system/).
