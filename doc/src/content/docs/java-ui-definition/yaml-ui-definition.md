@@ -83,11 +83,11 @@ Use the exact class name as the `type` value.
 **Navigation:** `RouteLink`, `Menu`, `Directory`, `Breadcrumbs`, …
 
 The complete list of types and their fields is in the JSON Schema:
-`backend/shared/uidl/uidl-schema.json`
+`https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/uidl-schema.json`
 
 ## IntelliSense setup
 
-The project ships a JSON Schema at `backend/shared/uidl/uidl-schema.json`.
+The project ships a JSON Schema at `https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/uidl-schema.json`.
 Connecting your editor to it gives you **autocompletion**, **field validation**, and **documentation tooltips** while editing YAML files.
 
 ---
@@ -113,7 +113,7 @@ This activates IntelliSense for every `*.yaml` file under any `specs/ui/` direct
 Add this comment at the top of any individual YAML file:
 
 ```yaml
-# yaml-language-server: $schema=../../../backend/shared/uidl/uidl-schema.json
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/uidl-schema.json
 type: VerticalLayout
 ...
 ```
@@ -129,7 +129,7 @@ Adjust the relative path so it points to `uidl-schema.json` from the YAML file's
 3. Click **+** to add a new mapping.
 4. Fill in:
    - **Name:** `Mateu UIDL`
-   - **Schema file or URL:** click the folder icon and select `backend/shared/uidl/uidl-schema.json`
+   - **Schema file or URL:** click the folder icon and select `https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/uidl-schema.json`
    - **Schema version:** `JSON Schema version 7`
 5. Under **File path pattern**, click **+** and enter: `specs/ui/**/*.yaml`
 6. Click **OK**.
