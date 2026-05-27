@@ -1,6 +1,6 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
-import static io.mateu.core.infra.declarative.CrudOrchestrator.getIndex;
+import static io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator.getIndex;
 
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;

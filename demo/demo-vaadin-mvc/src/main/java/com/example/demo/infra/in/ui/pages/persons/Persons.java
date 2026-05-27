@@ -1,6 +1,6 @@
 package com.example.demo.infra.in.ui.pages.persons;
 
-import io.mateu.core.infra.declarative.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator;
 import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.interfaces.CrudAdapter;
 import lombok.RequiredArgsConstructor;

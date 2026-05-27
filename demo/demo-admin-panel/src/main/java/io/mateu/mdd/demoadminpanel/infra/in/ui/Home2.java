@@ -20,6 +20,9 @@ import java.util.List;
 public class Home2 implements WidgetSupplier {
 
     @Menu
+    Products2 xxxx;
+
+    @Menu
     Products products;
 
     @Menu

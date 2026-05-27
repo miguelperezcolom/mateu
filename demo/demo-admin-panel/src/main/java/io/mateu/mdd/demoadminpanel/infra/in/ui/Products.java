@@ -1,7 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
-import io.mateu.core.infra.declarative.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudOrchestrator;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
@@ -16,7 +16,6 @@ import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.List;

@@ -4,7 +4,7 @@ import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.*;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper.mapPojo;
-import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
+import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper;

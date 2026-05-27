@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.pages.countries;
 
-import io.mateu.core.infra.declarative.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudOrchestrator;
 import io.mateu.uidl.interfaces.CrudRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

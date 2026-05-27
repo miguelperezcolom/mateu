@@ -1,13 +1,9 @@
 package com.example.demo.infra.in.ui.pages.processes;
 
-import io.mateu.core.infra.declarative.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudOrchestrator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

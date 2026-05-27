@@ -7,7 +7,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.mateu.core.infra.declarative.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.CrudActionResult;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.DeleteActionHandler;
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;

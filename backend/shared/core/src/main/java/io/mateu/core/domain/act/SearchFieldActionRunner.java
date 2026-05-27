@@ -1,7 +1,7 @@
 package io.mateu.core.domain.act;
 
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
-import static io.mateu.core.infra.declarative.crudorchestrator.DataLayer.getLookupOptionsSupplier;
+import static io.mateu.core.infra.declarative.orchestrators.crudorchestrator.DataLayer.getLookupOptionsSupplier;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 

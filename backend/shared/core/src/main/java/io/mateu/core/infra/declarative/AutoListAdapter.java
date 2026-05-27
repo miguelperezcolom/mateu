@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative;
 
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudAdapter;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.CrudRepository;

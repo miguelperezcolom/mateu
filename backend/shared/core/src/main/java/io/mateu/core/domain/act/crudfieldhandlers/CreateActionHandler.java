@@ -2,7 +2,7 @@ package io.mateu.core.domain.act.crudfieldhandlers;
 
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
-import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
+import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.data.State;

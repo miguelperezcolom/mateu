@@ -14,9 +14,9 @@ import static io.mateu.core.domain.act.crudfieldhandlers.SelectedActionHandler.h
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 
 import io.mateu.core.application.runaction.RunActionCommand;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
-import io.mateu.core.infra.declarative.CrudOrchestrator;
 import io.mateu.core.infra.declarative.FormViewModel;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.HashMap;

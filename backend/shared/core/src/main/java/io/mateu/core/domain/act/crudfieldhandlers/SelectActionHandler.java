@@ -4,7 +4,7 @@ import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.*;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getFieldId;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
-import static io.mateu.core.infra.declarative.WizardOrchestrator.addRowNumber;
+import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.data.Button;

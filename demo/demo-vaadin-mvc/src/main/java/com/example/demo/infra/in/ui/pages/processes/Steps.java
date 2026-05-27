@@ -1,20 +1,11 @@
 package com.example.demo.infra.in.ui.pages.processes;
 
-import io.mateu.core.infra.declarative.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
 import io.mateu.core.infra.declarative.AutoListAdapter;
-import io.mateu.core.infra.declarative.AutoListOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoListOrchestrator;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.data.NoFilters;
-import io.mateu.uidl.interfaces.CrudRepository;
-import io.mateu.uidl.interfaces.ListAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

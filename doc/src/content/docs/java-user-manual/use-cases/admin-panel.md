@@ -37,8 +37,8 @@ Together they generate a complete CRUD UI.
 ```java
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
-import io.mateu.core.infra.declarative.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudOrchestrator;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.Status;

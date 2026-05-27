@@ -1,29 +1,22 @@
 package com.example.demo.infra.in.ui.pages.tests;
 
-import io.mateu.core.infra.declarative.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
-import io.mateu.core.infra.declarative.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudOrchestrator;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.Routes;
 import io.mateu.uidl.annotations.Status;
 import io.mateu.uidl.annotations.StatusMapping;
-import io.mateu.uidl.annotations.Trigger;
-import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.annotations.ValueMapping;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.StatusType;
-import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.interfaces.CrudRepository;
-import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.SneakyThrows;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
