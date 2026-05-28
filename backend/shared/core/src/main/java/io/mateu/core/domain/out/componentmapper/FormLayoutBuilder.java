@@ -152,7 +152,7 @@ class FormLayoutBuilder {
                               io.mateu.uidl.data.Tab.builder()
                                   .label(getTabName(pair))
                                   .content(
-                                      toFormLayout(
+                                      TabFormLayoutBuilder.toFormLayout(
                                           new TabFields(
                                               pair.first().value(), pair.second(), maxColumns),
                                           prefix,
@@ -169,43 +169,5 @@ class FormLayoutBuilder {
               .build());
     }
     return VerticalLayout.builder().content(content).style("width: 100%;").build();
-  }
-
-  private static Component toFormLayout(
-      TabFields tab,
-      String prefix,
-      Object instance,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest,
-      boolean forCreationForm,
-      boolean readOnly) {
-    var fields =
-        tab.fields().stream()
-            .map(
-                field ->
-                    (Component)
-                        getFormField(
-                            prefix,
-                            field,
-                            Class.class.equals(instance.getClass()) ? null : instance,
-                            baseUrl,
-                            route,
-                            consumedRoute,
-                            initiatorComponentId,
-                            httpRequest,
-                            readOnly
-                                || PageFormBuilder.isReadOnly(field, instance, forCreationForm),
-                            forCreationForm,
-                            tab.columns()))
-            .toList();
-    return FormLayout.builder()
-        .maxColumns(tab.columns())
-        .autoResponsive(true)
-        .expandColumns(true)
-        .content(buildRows(fields, tab.columns()))
-        .build();
   }
 }
