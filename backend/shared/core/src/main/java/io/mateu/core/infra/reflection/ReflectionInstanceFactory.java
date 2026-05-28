@@ -15,8 +15,6 @@ import jakarta.inject.Singleton;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -128,10 +126,13 @@ public class ReflectionInstanceFactory implements InstanceFactory {
           }
           o = (T) builder.getClass().getMethod("build").invoke(builder);
         } else {
-          Constructor con = getConstructor(c);
+          Constructor con = ConstructorResolver.getConstructor(c);
           if (con != null) {
             if (con.getParameterCount() > 0) {
-              o = (T) con.newInstance(buildConstructorParams(con, data, httpRequest));
+              o =
+                  (T)
+                      con.newInstance(
+                          ConstructorResolver.buildConstructorParams(con, data, this, httpRequest));
             } else {
               o = (T) con.newInstance();
               hydrate(o, data, this, httpRequest);
@@ -145,63 +146,8 @@ public class ReflectionInstanceFactory implements InstanceFactory {
     return (T) o;
   }
 
-  private Object[] buildConstructorParams(
-      Constructor con, Map<String, Object> data, HttpRequest httpRequest)
-      throws InvocationTargetException,
-          IllegalAccessException,
-          InstantiationException,
-          NoSuchMethodException {
-    List<Object> params = new ArrayList<>();
-    for (Parameter parameter : con.getParameters()) {
-      params.add(
-          createInstance(
-              parameter.getType(),
-              data.get(parameter.getName()),
-              httpRequest,
-              getGenericClass(parameter.getParameterizedType())));
-    }
-    return params.toArray();
-  }
-
   private Object createInstance(
       Class type, Object data, HttpRequest httpRequest, Class genericType) {
     return ReflectionTypeCoercer.coerce(type, data, httpRequest, genericType, this);
-  }
-
-  private Constructor getConstructor(Class type) {
-    Constructor con = null;
-    int minParams = Integer.MAX_VALUE;
-    // look for public constructors
-    for (Constructor x : type.getConstructors()) // public constructors
-    if (Modifier.isPublic(x.getModifiers())) {
-        if (x.getParameterCount() < minParams) {
-          con = x;
-          minParams = con.getParameterCount();
-        }
-      }
-    // look for protected constructors
-    if (con == null) {
-      for (Constructor x : type.getDeclaredConstructors()) // public, protected and private
-      if (Modifier.isProtected(x.getModifiers())) {
-          if (x.getParameterCount() < minParams) {
-            con = x;
-            minParams = con.getParameterCount();
-          }
-        }
-    }
-    // look for private constructors
-    if (con == null) {
-      for (Constructor x : type.getDeclaredConstructors()) // public, protected and private
-      if (x.getParameterCount() < minParams) {
-          con = x;
-          minParams = con.getParameterCount();
-        }
-    }
-    if (con != null) {
-      if (!Modifier.isPublic(con.getModifiers())) {
-        con.setAccessible(true);
-      }
-    }
-    return con;
   }
 }
