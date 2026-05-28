@@ -236,61 +236,7 @@ public abstract class CrudOrchestrator<
 
   @Override
   public List<Action> actions(HttpRequest httpRequest) {
-    var actions = new ArrayList<Action>();
-    if (httpRequest.getAttribute("mediator") != null) {
-      actions.add(Action.builder().id("delete").build());
-      actions.add(Action.builder().id("save").build());
-      actions.add(Action.builder().id("create").build());
-      actions.add(Action.builder().id("new").build());
-      actions.add(Action.builder().id("view").build());
-      actions.add(Action.builder().id("edit").build());
-      actions.add(Action.builder().id("cancel-create").build());
-      actions.add(Action.builder().id("cancel-view").build());
-      actions.add(Action.builder().id("cancel-edit").build());
-      actions.add(Action.builder().id("cancel-new").build());
-      actions.add(Action.builder().id("action-on-row-*").build());
-      actions.add(Action.builder().id("action-on-view-*").build());
-    }
-    if (httpRequest.getAttribute("list") != null) {
-      actions.add(Action.builder().id("search").build());
-      actions.add(
-          Action.builder()
-              .id("delete")
-              .confirmationRequired(true)
-              .rowsSelectedRequired(true)
-              .bubble(true)
-              .build());
-      getAllMethods(getClass()).stream()
-          .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
-          .forEach(
-              method -> {
-                actions.add(
-                    Action.builder()
-                        .id("action-on-row-" + method.getName())
-                        .confirmationRequired(
-                            method.getAnnotation(ListToolbarButton.class).confirmationRequired())
-                        .rowsSelectedRequired(
-                            method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
-                        .bubble(true)
-                        .build());
-              });
-    }
-    if (httpRequest.getAttribute("view") != null) {
-      getAllMethods(getClass()).stream()
-          .filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
-          .forEach(
-              method -> {
-                actions.add(
-                    Action.builder()
-                        .id("action-on-view-" + method.getName())
-                        .confirmationRequired(
-                            method.getAnnotation(ViewToolbarButton.class).confirmationRequired())
-                        .bubble(true)
-                        .build());
-              });
-    }
-
-    return actions;
+    return CrudActionsBuilder.buildActions(this, httpRequest);
   }
 
   public abstract Object search(
