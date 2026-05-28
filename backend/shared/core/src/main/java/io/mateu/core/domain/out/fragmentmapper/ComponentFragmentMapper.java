@@ -1,7 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper;
 
-import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToFragment;
 import static io.mateu.core.domain.out.fragmentmapper.ReflectionObjectMapper.mapObjectToFragment;
+import static io.mateu.core.domain.out.fragmentmapper.UIFragmentAssembler.mapComponentToFragment;
 
 import io.mateu.core.domain.out.FragmentMapper;
 import io.mateu.dtos.UIFragmentDto;

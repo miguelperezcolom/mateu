@@ -1,6 +1,5 @@
 package io.mateu.core.domain.out.fragmentmapper;
 
-import static io.mateu.core.application.runaction.RunActionUseCase.getState;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AccordionLayoutMapper.mapAccordionLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AccordionPanelMapper.mapAccordionPanelToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AnchorMapper.mapAnchorToDto;
@@ -25,7 +24,6 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ContextMenuMapper.
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CookieConsentMapper.mapCookieConsentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CrudlMapper.mapCrudlToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CustomFieldMapper.mapCustomFieldToDto;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.DataMapper.mapDataToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DetailsMapper.mapDetailsToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DialogMapper.mapDialogToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DirectoryMapper.mapDirectoryToDto;
@@ -61,7 +59,6 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.PopoverMapper.mapP
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ScrollerMapper.mapScrollerToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.SplitLayoutMapper.mapSplitLayoutToDto;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.StateMapper.mapStateToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TabLayoutMapper.mapTabLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TabMapper.mapTabToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TextMapper.mapTextToDto;
@@ -70,76 +67,18 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.VerticalLayoutMapp
 import static io.mateu.core.domain.out.fragmentmapper.mappers.VirtualListMapper.mapVirtualListToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.WorkflowElkMapper.mapWorkflowElkToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.WorkflowMapper.mapWorkflowToDto;
-import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.createData;
 
 import io.mateu.dtos.*;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
-import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.DtoSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 public final class ComponentToFragmentDtoMapper {
-
-  public static UIFragmentDto mapComponentToFragment(
-      ComponentTreeSupplier componentSupplier,
-      Component component,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest) {
-    if (component instanceof State state) {
-      return mapStateToDto(state, initiatorComponentId);
-    }
-    if (component instanceof Data data) {
-      return mapDataToDto(data, initiatorComponentId, componentSupplier);
-    }
-    if (component != null && component.containerId() != null) {
-      initiatorComponentId = component.containerId();
-    }
-    return new UIFragmentDto(
-        initiatorComponentId,
-        mapComponentToDto(
-            componentSupplier,
-            component,
-            baseUrl,
-            route,
-            consumedRoute,
-            initiatorComponentId,
-            httpRequest),
-        getState(componentSupplier, httpRequest),
-        getData(httpRequest, componentSupplier),
-        UIFragmentActionDto.Replace,
-        component != null ? component.containerId() : null);
-  }
-
-  public static Object getData(HttpRequest httpRequest, Object instance) {
-    if (instance instanceof DataSupplier dataSupplier) {
-      return dataSupplier.data(httpRequest);
-    }
-    var data = getData(httpRequest);
-    if (data == null && instance != null) {
-      return createData(instance, httpRequest);
-    }
-    return data;
-  }
-
-  public static Object getData(HttpRequest httpRequest) {
-    if (httpRequest == null) {
-      return null;
-    }
-    var data = httpRequest.getAttribute("data");
-    if (data instanceof Optional<?>) {
-      data = ((Optional<?>) data).orElse(null);
-    }
-    return data;
-  }
 
   public static ComponentDto mapComponentToDto(
       ComponentTreeSupplier componentSupplier,
