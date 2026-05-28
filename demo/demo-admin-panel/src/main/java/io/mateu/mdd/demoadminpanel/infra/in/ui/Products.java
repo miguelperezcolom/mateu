@@ -1,7 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;

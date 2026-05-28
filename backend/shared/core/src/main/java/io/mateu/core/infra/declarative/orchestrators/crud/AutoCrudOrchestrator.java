@@ -1,6 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
-import static io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudAdapterHelper.getIdField;
+import static io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper.getIdField;
 
 import io.mateu.core.infra.declarative.SimpleView;
 import io.mateu.uidl.data.Pageable;

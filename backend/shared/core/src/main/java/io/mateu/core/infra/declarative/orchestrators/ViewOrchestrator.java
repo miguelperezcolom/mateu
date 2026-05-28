@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
-import static io.mateu.core.infra.declarative.orchestrators.crudorchestrator.DataLayer.addData;
+import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.addData;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.dtos.ComponentDto;

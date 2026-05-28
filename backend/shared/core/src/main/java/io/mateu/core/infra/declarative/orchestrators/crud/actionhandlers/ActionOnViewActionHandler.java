@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.CrudActionResult;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.SneakyThrows;
@@ -10,9 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import static io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudAdapterHelper.toView;
+import static io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper.toView;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 

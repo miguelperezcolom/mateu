@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.CrudActionResult;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 import java.util.Map;

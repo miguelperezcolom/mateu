@@ -21,7 +21,6 @@ import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SaveAct
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SearchActionHandler;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.ViewActionHandler;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.CrudActionResult;
 import io.mateu.dtos.*;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
@@ -158,7 +157,7 @@ public abstract class CrudOrchestrator<
   public Class<?> viewClass() {
     return getGenericClass(
         this.getClass(),
-        io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator.class,
+        CrudOrchestrator.class,
         "View");
   }
 
@@ -191,14 +190,14 @@ public abstract class CrudOrchestrator<
   public Class<Filters> filtersClass() {
     return getGenericClass(
         this.getClass(),
-        io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator.class,
+        CrudOrchestrator.class,
         "Filters");
   }
 
   public Class<Row> rowClass() {
     return getGenericClass(
         this.getClass(),
-        io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator.class,
+        CrudOrchestrator.class,
         "Row");
   }
 

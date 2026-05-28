@@ -1,6 +1,6 @@
 package io.mateu.core.application.runaction;
 
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import lombok.SneakyThrows;

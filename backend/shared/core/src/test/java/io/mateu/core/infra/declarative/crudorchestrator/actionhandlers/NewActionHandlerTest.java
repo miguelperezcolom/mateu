@@ -3,7 +3,7 @@ package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.CrudActionResult;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
 import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.NewActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.junit.jupiter.api.Test;

@@ -1,7 +1,5 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
-import static io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator.getIndex;
-
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
@@ -36,4 +34,14 @@ public class SelectedActionHandler {
     newState.put("_editing", _editing);
     return new State(newState);
   }
+
+  public static int getIndex(List<Map<String, Object>> list, Object rowNumber) {
+    for (int i = 0; i < list.size(); i++) {
+      if (rowNumber.equals(list.get(i).get("_rowNumber"))) {
+        return i;
+      }
+    }
+    throw new RuntimeException("Item with row number " + rowNumber + " not found");
+  }
+
 }
