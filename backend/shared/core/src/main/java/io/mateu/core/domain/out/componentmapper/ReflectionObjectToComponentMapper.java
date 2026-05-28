@@ -5,10 +5,10 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapTo
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToPageComponent;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.getData;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapActions;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapRules;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapTriggers;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.mapValidations;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ActionMapper.mapActions;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.RuleMapper.mapRules;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.TriggerMapper.mapTriggers;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ValidationMapper.mapValidations;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 

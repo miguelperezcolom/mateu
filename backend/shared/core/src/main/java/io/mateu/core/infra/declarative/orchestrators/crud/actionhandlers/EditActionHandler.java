@@ -1,9 +1,8 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
 import io.mateu.uidl.interfaces.HttpRequest;
-
 import java.util.Map;
 
 public class EditActionHandler implements CrudOrchestratorActionHandler {
@@ -22,7 +21,7 @@ public class EditActionHandler implements CrudOrchestratorActionHandler {
     }
     if (savedId == null) {
       var initiatorState =
-              (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+          (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
       if (initiatorState != null) {
         savedId = initiatorState.get(idField);
       }

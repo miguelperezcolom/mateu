@@ -50,20 +50,19 @@ public abstract class CrudOrchestrator<
           new ListRouteResolver(),
           new ViewRouteResolver());
   private final List<CrudOrchestratorActionHandler> actionHandlers =
-      List.of(new SearchActionHandler(),
-              new ViewActionHandler(),
-              new CancelViewActionHandler(),
-              new NewActionHandler(),
-              new CancelEditActionHandler(),
-              new CancelNewActionHandler(),
-              new CreateActionHandler(),
-              new DeleteEditActionHandler(),
-              new EditActionHandler(),
-              new SaveActionHandler(),
-              new ActionOnRowActionHandler(),
-              new ActionOnViewActionHandler()
-
-      );
+      List.of(
+          new SearchActionHandler(),
+          new ViewActionHandler(),
+          new CancelViewActionHandler(),
+          new NewActionHandler(),
+          new CancelEditActionHandler(),
+          new CancelNewActionHandler(),
+          new CreateActionHandler(),
+          new DeleteEditActionHandler(),
+          new EditActionHandler(),
+          new SaveActionHandler(),
+          new ActionOnRowActionHandler(),
+          new ActionOnViewActionHandler());
 
   @Override
   protected OrchestrationResult resolveInternalRoute(String route, HttpRequest httpRequest) {
@@ -97,7 +96,12 @@ public abstract class CrudOrchestrator<
           }
           list.addAll(result.messages());
           if (result.actionToRun() != null) {
-            list.add(UICommand.runAction(result.actionToRun(), result.targetComponentId() != null?result.targetComponentId():httpRequest.runActionRq().initiatorComponentId()));
+            list.add(
+                UICommand.runAction(
+                    result.actionToRun(),
+                    result.targetComponentId() != null
+                        ? result.targetComponentId()
+                        : httpRequest.runActionRq().initiatorComponentId()));
           }
           list.add(UICommand.pushStateToHistory(pathForHistory(result.route())));
           list.add(setWindowTitle(httpRequest));
@@ -155,10 +159,7 @@ public abstract class CrudOrchestrator<
   }
 
   public Class<?> viewClass() {
-    return getGenericClass(
-        this.getClass(),
-        CrudOrchestrator.class,
-        "View");
+    return getGenericClass(this.getClass(), CrudOrchestrator.class, "View");
   }
 
   public String title() {
@@ -188,17 +189,11 @@ public abstract class CrudOrchestrator<
   public abstract CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> adapter();
 
   public Class<Filters> filtersClass() {
-    return getGenericClass(
-        this.getClass(),
-        CrudOrchestrator.class,
-        "Filters");
+    return getGenericClass(this.getClass(), CrudOrchestrator.class, "Filters");
   }
 
   public Class<Row> rowClass() {
-    return getGenericClass(
-        this.getClass(),
-        CrudOrchestrator.class,
-        "Row");
+    return getGenericClass(this.getClass(), CrudOrchestrator.class, "Row");
   }
 
   public Class<?> entityClass() {

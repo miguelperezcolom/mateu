@@ -4,7 +4,7 @@ import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getLabel;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getFormColumns;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper.getValidations;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ValidationMapper.getValidations;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
@@ -14,7 +14,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ComponentTreeSupplierToDtoMapper;
+import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ValidationMapper;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Toolbar;
@@ -329,7 +329,7 @@ public abstract class WizardOrchestrator
             fieldLevelValidations.stream(),
             Arrays.stream(
                     stepClass.getAnnotationsByType(io.mateu.uidl.annotations.Validation.class))
-                .map(ComponentTreeSupplierToDtoMapper::mapToValidation))
+                .map(ValidationMapper::mapToValidation))
         .toList();
   }
 

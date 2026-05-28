@@ -1,19 +1,18 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import static io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper.toView;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
-import lombok.SneakyThrows;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper.toView;
-import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import lombok.SneakyThrows;
 
 public class ActionOnViewActionHandler implements CrudOrchestratorActionHandler {
   @Override
@@ -51,12 +50,22 @@ public class ActionOnViewActionHandler implements CrudOrchestratorActionHandler 
             if (result != null) {
               return result;
             }
-            return CrudActionResult.of(actionId).withRoute("/" + savedId)
-                    .withState(new State(item))
-                    .withTargetComponentId("ux_" + httpRequest.runActionRq().initiatorComponentId().substring(0, httpRequest.runActionRq().initiatorComponentId().length() - "_app".length()) + "_cs_view");
+            return CrudActionResult.of(actionId)
+                .withRoute("/" + savedId)
+                .withState(new State(item))
+                .withTargetComponentId(
+                    "ux_"
+                        + httpRequest
+                            .runActionRq()
+                            .initiatorComponentId()
+                            .substring(
+                                0,
+                                httpRequest.runActionRq().initiatorComponentId().length()
+                                    - "_app".length())
+                        + "_cs_view");
           } catch (Throwable e) {
             if (e instanceof InvocationTargetException invocationTargetException
-                    && invocationTargetException.getCause() != null) {
+                && invocationTargetException.getCause() != null) {
               throw invocationTargetException.getCause();
             }
             throw e;
@@ -64,8 +73,17 @@ public class ActionOnViewActionHandler implements CrudOrchestratorActionHandler 
         }
       }
     }
-    return CrudActionResult.of(actionId).withRoute("/" + savedId)
-            .withState(new State(item))
-            .withTargetComponentId("ux_" + httpRequest.runActionRq().initiatorComponentId().substring(0, httpRequest.runActionRq().initiatorComponentId().length() - "_app".length()) + "_cs_view");
+    return CrudActionResult.of(actionId)
+        .withRoute("/" + savedId)
+        .withState(new State(item))
+        .withTargetComponentId(
+            "ux_"
+                + httpRequest
+                    .runActionRq()
+                    .initiatorComponentId()
+                    .substring(
+                        0,
+                        httpRequest.runActionRq().initiatorComponentId().length() - "_app".length())
+                + "_cs_view");
   }
 }
