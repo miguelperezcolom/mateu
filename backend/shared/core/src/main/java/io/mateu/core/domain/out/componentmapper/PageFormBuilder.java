@@ -3,41 +3,19 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.*;
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
-import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
-import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
-import io.mateu.dtos.ComponentDto;
-import io.mateu.uidl.annotations.Avatar;
-import io.mateu.uidl.annotations.Composition;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
-import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.GeneratedValue;
-import io.mateu.uidl.annotations.Header;
-import io.mateu.uidl.annotations.Hidden;
-import io.mateu.uidl.annotations.HiddenInCreate;
-import io.mateu.uidl.annotations.HiddenInEditor;
-import io.mateu.uidl.annotations.HiddenInView;
-import io.mateu.uidl.annotations.KPI;
-import io.mateu.uidl.annotations.Lookup;
-import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Section;
-import io.mateu.uidl.annotations.Stereotype;
-import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.*;
-import io.mateu.uidl.data.FieldStereotype;
-import io.mateu.uidl.data.MicroFrontend;
-import io.mateu.uidl.data.Status;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.*;
-import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map;
 
@@ -120,9 +98,9 @@ public class PageFormBuilder {
     SectionFields sectionFields = null;
     for (Field field :
         getFormFields(instance).stream()
-            .filter(field -> filterField(field, forCreationForm, readOnly))
-            .filter(field -> readOnly || !hiddenInEditor(field, forCreationForm))
-            .filter(field -> !readOnly || !hiddenInView(field))
+            .filter(field -> FormFieldFilter.filterField(field, forCreationForm, readOnly))
+            .filter(field -> readOnly || !FormFieldFilter.hiddenInEditor(field, forCreationForm))
+            .filter(field -> !readOnly || !FormFieldFilter.hiddenInView(field))
             .toList()) {
       if (sectionFields == null || field.isAnnotationPresent(Section.class)) {
         if (sectionFields != null) {
@@ -215,17 +193,6 @@ public class PageFormBuilder {
         .toList();
   }
 
-  private static boolean hiddenInView(Field field) {
-    return field.isAnnotationPresent(HiddenInView.class);
-  }
-
-  private static boolean hiddenInEditor(Field field, boolean forCreationForm) {
-    if (forCreationForm) {
-      return field.isAnnotationPresent(HiddenInCreate.class);
-    }
-    return field.isAnnotationPresent(HiddenInEditor.class);
-  }
-
   private static Collection<Field> getFormFields(Object instance) {
     if (instance instanceof EditableFieldsProvider editableFieldsProvider) {
       return editableFieldsProvider.allEditableFields();
@@ -250,34 +217,6 @@ public class PageFormBuilder {
     return instance.getClass();
   }
 
-  private static boolean filterField(Field field, boolean forCreationForm, boolean readOnly) {
-    if (ComponentDto.class.isAssignableFrom(field.getType())) {
-      return false;
-    }
-    if (Status.class.equals(field.getType())) {
-      return false;
-    }
-    if (field.isAnnotationPresent(Hidden.class)
-        && field.getAnnotation(Hidden.class).value().isEmpty()) {
-      return false;
-    }
-    if (field.isAnnotationPresent(KPI.class)) {
-      return false;
-    }
-    if (field.isAnnotationPresent(Menu.class)) {
-      return false;
-    }
-    if (field.isAnnotationPresent(Lookup.class)) {
-      return true;
-    }
-    if (Collection.class.isAssignableFrom(field.getType())
-        && field.isAnnotationPresent(Composition.class)) {
-      return readOnly;
-    }
-    if (forCreationForm) {}
-    return true;
-  }
-
   public static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
     return (instance != null && instance.getClass().isAnnotationPresent(ReadOnly.class))
         || field.isAnnotationPresent(ReadOnly.class)
@@ -286,40 +225,6 @@ public class PageFormBuilder {
   }
 
   public static boolean isForm(Object instance) {
-    if (instance instanceof Form) {
-      return true;
-    }
-    return (getAllFields(instance.getClass()).stream()
-                .anyMatch(
-                    field ->
-                        field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                            || field.isAnnotationPresent(Toolbar.class))
-            || getAllMethods(instance.getClass()).stream()
-                .anyMatch(
-                    method ->
-                        method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                            || method.isAnnotationPresent(Toolbar.class)))
-        && getAllFields(instance.getClass()).stream()
-            .anyMatch(
-                field ->
-                    !(field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                            || field.isAnnotationPresent(Toolbar.class))
-                        && (!Modifier.isFinal(field.getModifiers())
-                            && !field.isAnnotationPresent(ReadOnly.class)
-                            && !Component.class.isAssignableFrom(field.getType())
-                            && !ComponentTreeSupplier.class.isAssignableFrom(field.getType())
-                            && !MicroFrontend.class.isAssignableFrom(field.getType())
-                            && !(String.class.equals(field.getType())
-                                && field.isAnnotationPresent(Stereotype.class)
-                                && field
-                                    .getAnnotation(Stereotype.class)
-                                    .value()
-                                    .equals(FieldStereotype.html))
-                            && !field.isAnnotationPresent(KPI.class)
-                            && !field.isAnnotationPresent(Menu.class)
-                            && !field.isAnnotationPresent(Header.class)
-                            && !field.isAnnotationPresent(Footer.class)
-                            && !field.isAnnotationPresent(Avatar.class)
-                            && !Status.class.isAssignableFrom(field.getType())));
+    return FormDetector.isForm(instance);
   }
 }
