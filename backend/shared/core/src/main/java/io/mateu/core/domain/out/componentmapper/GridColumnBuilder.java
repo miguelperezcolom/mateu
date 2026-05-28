@@ -17,7 +17,6 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.List;
 
 public class GridColumnBuilder {
 
@@ -109,31 +108,19 @@ public class GridColumnBuilder {
   }
 
   private static String getFormTheme(Field field) {
-    if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-      return field.getAnnotation(DetailFormCustomisation.class).theme();
-    }
-    return null;
+    return DetailFormCustomisationExtractor.getFormTheme(field);
   }
 
   private static String getFormStyle(Field field) {
-    if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-      return field.getAnnotation(DetailFormCustomisation.class).style();
-    }
-    return null;
+    return DetailFormCustomisationExtractor.getFormStyle(field);
   }
 
   private static FormPosition getFormPosition(Field field) {
-    if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-      return field.getAnnotation(DetailFormCustomisation.class).position();
-    }
-    return FormPosition.right;
+    return DetailFormCustomisationExtractor.getFormPosition(field);
   }
 
   private static String getMinHeightWhenDetailVisible(Field field) {
-    if (field.isAnnotationPresent(MasterDetail.class)) {
-      return field.getAnnotation(MasterDetail.class).minHeightWhenDetailVisible();
-    }
-    return "16rem;";
+    return DetailFormCustomisationExtractor.getMinHeightWhenDetailVisible(field);
   }
 
   private static String getStyleForArray(Field field) {

@@ -1,11 +1,6 @@
 package io.mateu.core.infra.declarative;
 
-import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
-import static io.mateu.core.infra.JsonSerializer.fromJson;
-import static io.mateu.core.infra.JsonSerializer.toJson;
-import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.dtos.ValidationDto;
@@ -14,10 +9,8 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.interfaces.*;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -106,33 +99,6 @@ public class FormViewModel
   }
 
   public static Map<String, Object> toMap(Object instance) {
-    var map = fromJson(toJson(instance));
-    getAllFields(instance.getClass()).stream()
-        .filter(
-            field ->
-                !isBasic(field.getType())
-                    && !field.getType().isEnum()
-                    && !Collection.class.isAssignableFrom(field.getType())
-                    && !Map.class.isAssignableFrom(field.getType())
-                    && (instance.getClass().isRecord() || !Modifier.isFinal(field.getModifiers())))
-        .forEach(
-            field -> {
-              var value = getValue(field, instance);
-              if (value != null) {
-                if (value instanceof Class || isBasic(value)) {
-                  map.put(field.getName(), value);
-                } else {
-                  var nestedMap =
-                      toMap(value).entrySet().stream()
-                          .filter(entry -> entry.getValue() != null)
-                          .collect(
-                              Collectors.toMap(
-                                  entry -> field.getName() + "-" + entry.getKey(),
-                                  Map.Entry::getValue));
-                  map.putAll(nestedMap);
-                }
-              }
-            });
-    return map;
+    return FormViewSerializer.toMap(instance);
   }
 }

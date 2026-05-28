@@ -1,7 +1,6 @@
 package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.infra.reflection.write.Hydrater.hydrate;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import static java.lang.Thread.currentThread;
 
 import io.mateu.core.domain.ports.BeanProvider;
@@ -14,7 +13,6 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -100,32 +98,8 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         cons.setAccessible(true);
         o = (T) cons.newInstance(p);
       } else {
-        Method builderMethod = null;
-        try {
-          builderMethod = c.getMethod("builder");
-        } catch (Exception ignored) {
-
-        }
-        if (builderMethod != null) {
-          Object builder = c.getMethod("builder").invoke(null);
-          for (String key : data.keySet()) {
-            var found =
-                Arrays.stream(builder.getClass().getMethods())
-                    .filter(m -> m.getName().equals(key))
-                    .findFirst();
-            if (found.isPresent()) {
-              Method setter = found.get();
-              setter.invoke(
-                  builder,
-                  createInstance(
-                      setter.getParameterTypes()[0],
-                      data.get(key),
-                      httpRequest,
-                      getGenericClass(setter.getGenericParameterTypes()[0])));
-            }
-          }
-          o = (T) builder.getClass().getMethod("build").invoke(builder);
-        } else {
+        o = BuilderInstantiator.tryInstantiate(c, data, httpRequest, this);
+        if (o == null) {
           Constructor con = ConstructorResolver.getConstructor(c);
           if (con != null) {
             if (con.getParameterCount() > 0) {
