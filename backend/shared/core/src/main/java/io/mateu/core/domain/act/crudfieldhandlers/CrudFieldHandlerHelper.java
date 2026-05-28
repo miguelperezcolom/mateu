@@ -7,6 +7,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -43,7 +44,7 @@ class CrudFieldHandlerHelper {
       HttpRequest httpRequest,
       boolean isNew,
       List<Component> header,
-      List<Component> toolbar) {
+      List<UserTrigger> toolbar) {
     var builder =
         Form.builder()
             .title(title)

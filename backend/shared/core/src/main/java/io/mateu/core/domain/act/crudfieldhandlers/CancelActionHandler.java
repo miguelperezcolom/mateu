@@ -1,6 +1,5 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
-import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.Map;

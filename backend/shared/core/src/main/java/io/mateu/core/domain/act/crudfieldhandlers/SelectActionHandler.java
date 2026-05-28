@@ -8,6 +8,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
@@ -66,7 +67,7 @@ public class SelectActionHandler {
                     httpRequest,
                     false,
                     List.of(Text.builder().text("${state['_position']}").build()),
-                    List.of(
+                    List.<UserTrigger>of(
                         Button.builder().label("Prev").actionId(fid + "_prev").build(),
                         Button.builder().label("Next").actionId(fid + "_next").build(),
                         Button.builder().label("Cancel").actionId(fid + "_cancel").build(),

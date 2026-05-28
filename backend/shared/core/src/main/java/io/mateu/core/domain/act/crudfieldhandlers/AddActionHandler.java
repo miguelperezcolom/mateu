@@ -3,10 +3,10 @@ package io.mateu.core.domain.act.crudfieldhandlers;
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.*;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
@@ -46,7 +46,7 @@ public class AddActionHandler {
                     httpRequest,
                     true,
                     null,
-                    List.of(
+                    List.<UserTrigger>of(
                         Button.builder().label("Cancel").actionId(fid + "_cancel").build(),
                         Button.builder().label("Save").actionId(fid + "_create").build(),
                         Button.builder()

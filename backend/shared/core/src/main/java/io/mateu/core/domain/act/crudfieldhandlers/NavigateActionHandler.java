@@ -39,8 +39,7 @@ public class NavigateActionHandler {
         (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
     var rowNumber = initiatorState.get("_rowNumber");
 
-    var items =
-        (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
+    var items = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
     var currentPosition = CrudFieldHandlerHelper.findPositionByRowNumber(items, rowNumber);
 
     if (direction < 0 && currentPosition <= 0) {
