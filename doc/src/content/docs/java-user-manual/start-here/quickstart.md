@@ -17,15 +17,24 @@ No frontend required.
 ## 1. Add Mateu to your project
 
 ```xml
+<!-- Core framework -->
 <dependency>
   <groupId>io.mateu</groupId>
   <artifactId>mvc-core</artifactId>
   <version>MATEU_VERSION</version>
 </dependency>
 
+<!-- Annotation processor (generates wiring at compile time) -->
 <dependency>
   <groupId>io.mateu</groupId>
   <artifactId>annotation-processor-mvc</artifactId>
+  <version>MATEU_VERSION</version>
+</dependency>
+
+<!-- Frontend web component (Vaadin + Lit) -->
+<dependency>
+  <groupId>io.mateu</groupId>
+  <artifactId>vaadin-lit</artifactId>
   <version>MATEU_VERSION</version>
 </dependency>
 ```
