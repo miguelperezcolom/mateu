@@ -2,7 +2,6 @@ package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.domain.out.CommandMapper.mapToCommandDtos;
 import static io.mateu.core.domain.out.MessageMapper.mapToMessageDtos;
-import static io.mateu.core.infra.reflection.FragmentDataSerializer.serializeData;
 
 import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
@@ -13,15 +12,10 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.AppState;
-import io.mateu.uidl.data.Message;
-import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MapsToDto;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import java.net.URI;
-import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -110,95 +104,14 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    if (instance instanceof UIFragmentDto uiFragmentDto) {
-      return List.of(uiFragmentDto);
-    }
-    if (instance instanceof AppState) {
-      return List.of();
-    }
-    if (instance instanceof AppData) {
-      return List.of();
-    }
-    if (instance instanceof Message) {
-      return List.of();
-    }
-    if (instance instanceof UICommand) {
-      return List.of();
-    }
-    if (instance instanceof URI || instance instanceof URL) {
-      return List.of();
-    }
-    if (instance instanceof Collection<?> collection) {
-      return collection.stream()
-          .filter(
-              object -> {
-                if (object instanceof AppState) {
-                  return false;
-                }
-                if (object instanceof AppData) {
-                  return false;
-                }
-                if (object instanceof Message) {
-                  return false;
-                }
-                if (object instanceof UICommand) {
-                  return false;
-                }
-                if (object instanceof URI || object instanceof URL) {
-                  return false;
-                }
-                return true;
-              })
-          .map(
-              object ->
-                  serializeData(
-                      componentFragmentMapper.mapToFragment(
-                          reflectionFragmentMapper.mapToComponent(
-                              object,
-                              baseUrl,
-                              route,
-                              consumedRoute,
-                              getInitiatorComponentId(initiatorComponentId, httpRequest),
-                              httpRequest),
-                          baseUrl,
-                          route,
-                          consumedRoute,
-                          getInitiatorComponentId(initiatorComponentId, httpRequest),
-                          httpRequest)))
-          .toList();
-    }
-    return List.of(
-        serializeData(
-            componentFragmentMapper.mapToFragment(
-                reflectionFragmentMapper.mapToComponent(
-                    instance,
-                    baseUrl,
-                    route,
-                    consumedRoute,
-                    getInitiatorComponentId(initiatorComponentId, httpRequest),
-                    httpRequest),
-                baseUrl,
-                route,
-                consumedRoute,
-                getInitiatorComponentId(initiatorComponentId, httpRequest),
-                httpRequest)));
-    /*
-    return List.of(
-        serializeData(
-            reflectionFragmentMapper.mapToFragment(
-                componentFragmentMapper.mapToFragment(
-                    instance, baseUrl, route, initiatorComponentId, httpRequest),
-                baseUrl,
-                route,
-                initiatorComponentId,
-                httpRequest)));
-     */
-  }
-
-  private String getInitiatorComponentId(String initiatorComponentId, HttpRequest httpRequest) {
-    if (httpRequest.getAttribute("initiatorComponentId") != null) {
-      return (String) httpRequest.getAttribute("initiatorComponentId");
-    }
-    return initiatorComponentId;
+    return FragmentListMapper.mapToFragments(
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        componentFragmentMapper,
+        reflectionFragmentMapper);
   }
 }

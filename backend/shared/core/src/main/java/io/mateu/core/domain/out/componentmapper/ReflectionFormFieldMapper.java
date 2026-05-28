@@ -5,7 +5,6 @@ import static io.mateu.core.domain.BasicTypeChecker.isBasicArray;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.*;
 import static io.mateu.core.domain.out.componentmapper.FieldTypeMapper.*;
 import static io.mateu.core.domain.out.componentmapper.GridColumnBuilder.createCrudForField;
-import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
@@ -170,13 +169,6 @@ public class ReflectionFormFieldMapper {
         .build();
   }
 
-  private static String getLabelForNonBasic(Field field) {
-    if (Runnable.class.isAssignableFrom(field.getType())) {
-      return "";
-    }
-    return getLabel(field);
-  }
-
   private static boolean isReadOnly(Field field, Object instance) {
     return instance.getClass().isAnnotationPresent(ReadOnly.class)
         || field.isAnnotationPresent(ReadOnly.class)
@@ -205,29 +197,17 @@ public class ReflectionFormFieldMapper {
       boolean forCreationForm,
       boolean readOnly,
       int maxColumns) {
-    if (instance instanceof ModelSupplier modelSupplier) {
-      instance = modelSupplier.model();
-    }
-    var value = instance instanceof Class ? null : getValue(field, instance);
-    return CustomField.builder()
-        .label(getLabelForNonBasic(field))
-        .content(
-            getForm(
-                    ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
-                    value != null ? value : field.getType(),
-                    baseUrl,
-                    route,
-                    consumedRoute,
-                    initiatorComponentId,
-                    httpRequest,
-                    forCreationForm,
-                    readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm),
-                    maxColumns)
-                .stream()
-                .findFirst()
-                .orElse(null))
-        .colspan(maxColumns)
-        .style("width: 100%;")
-        .build();
+    return NestedFormFieldBuilder.build(
+        prefix,
+        field,
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        forCreationForm,
+        readOnly,
+        maxColumns);
   }
 }
