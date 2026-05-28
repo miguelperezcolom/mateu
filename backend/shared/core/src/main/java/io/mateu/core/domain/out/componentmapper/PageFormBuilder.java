@@ -1,6 +1,5 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.*;
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 
@@ -8,16 +7,13 @@ import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.Map;
 
 public class PageFormBuilder {
 
@@ -92,56 +88,15 @@ public class PageFormBuilder {
       boolean forCreationForm,
       boolean readOnly,
       int maxColumns) {
-    Map<Section, SectionFields> fieldsPerSection = new HashMap<>();
-    List<Section> sections = new ArrayList<>();
-    Section sectionAnnotation = null;
-    SectionFields sectionFields = null;
-    for (Field field :
+    var filteredFields =
         getFormFields(instance).stream()
             .filter(field -> FormFieldFilter.filterField(field, forCreationForm, readOnly))
             .filter(field -> readOnly || !FormFieldFilter.hiddenInEditor(field, forCreationForm))
             .filter(field -> !readOnly || !FormFieldFilter.hiddenInView(field))
-            .toList()) {
-      if (sectionFields == null || field.isAnnotationPresent(Section.class)) {
-        if (sectionFields != null) {
-          fieldsPerSection.put(sectionAnnotation, sectionFields);
-          sections.add(sectionAnnotation);
-        }
-        if (field.isAnnotationPresent(Section.class)) {
-          sectionAnnotation = field.getAnnotation(Section.class);
-        } else {
-          sectionAnnotation =
-              new Section() {
-                @Override
-                public Class<? extends Annotation> annotationType() {
-                  return null;
-                }
-
-                @Override
-                public String value() {
-                  return "";
-                }
-
-                @Override
-                public int columns() {
-                  return maxColumns;
-                }
-
-                @Override
-                public String style() {
-                  return "";
-                }
-              };
-        }
-        sectionFields =
-            new SectionFields(getLabel(field), new ArrayList<>(), sectionAnnotation.columns());
-      }
-      sectionFields.fields.add(field);
-    }
-    if (sectionFields != null) {
-      sections.add(sectionAnnotation);
-      fieldsPerSection.put(sectionAnnotation, sectionFields);
-    }
+            .toList();
+    var grouping = FormSectionGrouper.group(filteredFields, maxColumns);
+    var sections = grouping.sections();
+    var fieldsPerSection = grouping.fieldsPerSection();
     if (sections.size() > 1) {
       return List.of(
           io.mateu.uidl.data.HorizontalLayout.builder()
