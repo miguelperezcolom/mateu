@@ -25,6 +25,6 @@ public class DeleteActionHandler implements CrudActionHandler {
           selection.stream().map(map -> ((Map<String, Object>) map).get(idField)).toList();
       orchestrator.adapter().deleteAllById(selectedIds, httpRequest);
     }
-    return current.withRoute("/list");
+    return current.withRoute("/list").withActionToRun("search");
   }
 }

@@ -62,8 +62,9 @@ public abstract class AutoCrudOrchestrator<T extends Identifiable>
     return getIdField(entityClass());
   }
 
-    @Override
-    public Object search(String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
-        return adapter().search(searchText, (T) filters, pageable, httpRequest);
-    }
+  @Override
+  public Object search(
+      String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
+    return adapter().search(searchText, (T) filters, pageable, httpRequest);
+  }
 }

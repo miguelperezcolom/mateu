@@ -16,9 +16,8 @@ import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class ViewOrchestrator
@@ -118,14 +117,14 @@ public abstract class ViewOrchestrator
             null,
             httpRequest)
         .withId(httpRequest.runActionRq().initiatorComponentId() + "_" + viewName)
-            .withTriggers(triggers(viewName, httpRequest));
+        .withTriggers(triggers(viewName, httpRequest));
   }
 
-    public List<TriggerDto> triggers(String viewName, HttpRequest httpRequest) {
-      return List.of();
-    }
+  public List<TriggerDto> triggers(String viewName, HttpRequest httpRequest) {
+    return List.of();
+  }
 
-    public String getConsumedRoute(HttpRequest httpRequest) {
+  public String getConsumedRoute(HttpRequest httpRequest) {
     if (getComponentRoute() != null && !getComponentRoute().isEmpty()) {
       return getComponentRoute();
     }
@@ -160,16 +159,14 @@ public abstract class ViewOrchestrator
         httpRequest);
   }
 
-
-
-    public String pathForHistory(String route) {
-        if ("/list".equals(route)) {
-            return _componentRoute;
-        }
-        return _componentRoute + route;
+  public String pathForHistory(String route) {
+    if ("/list".equals(route)) {
+      return _componentRoute;
     }
+    return _componentRoute + route;
+  }
 
-    public UICommand setWindowTitle(HttpRequest httpRequest) {
-        return new UICommand(UICommandType.SetWindowTitle, httpRequest.getAttribute("windowTitle"));
-    }
+  public UICommand setWindowTitle(HttpRequest httpRequest) {
+    return new UICommand(UICommandType.SetWindowTitle, httpRequest.getAttribute("windowTitle"));
+  }
 }

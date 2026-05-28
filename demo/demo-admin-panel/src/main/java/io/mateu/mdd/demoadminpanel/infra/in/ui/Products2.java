@@ -53,7 +53,8 @@ record Product2(
 
     @Toolbar
     public void doNothing() {
-        log.info("do nothing");
+        log.info("do nothing on " + name);
+        components.add(new ProductComponent("xx", 1, null, false, "yyy"));
     }
 
     @Override

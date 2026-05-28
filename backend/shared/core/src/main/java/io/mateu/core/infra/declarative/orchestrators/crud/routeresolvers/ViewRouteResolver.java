@@ -31,7 +31,7 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public OrchestrationResult resolve(
       String route, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
-      var id = route.substring(orchestrator.getConsumedRoute(httpRequest).length() + 1);
+    var id = route.substring(orchestrator.getConsumedRoute(httpRequest).length() + 1);
     var view = orchestrator.view(orchestrator.toId(id), httpRequest);
     httpRequest.setAttribute("selectedItem", view);
     return new OrchestrationResult(

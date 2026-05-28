@@ -24,9 +24,9 @@ public class EditRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public OrchestrationResult resolve(
       String route, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
-      route = route.substring(0, route.lastIndexOf("/edit"));
-      var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
-      var editor = orchestrator.edit(orchestrator.toId(id), httpRequest);
+    route = route.substring(0, route.lastIndexOf("/edit"));
+    var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
+    var editor = orchestrator.edit(orchestrator.toId(id), httpRequest);
     httpRequest.setAttribute("selectedItem", editor);
     return new OrchestrationResult(
         "edit", editor, createEditorComponent(httpRequest, editor, orchestrator));

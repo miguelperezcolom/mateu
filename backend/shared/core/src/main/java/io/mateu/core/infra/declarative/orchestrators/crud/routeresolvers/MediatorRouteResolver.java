@@ -13,8 +13,8 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public class MediatorRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public boolean supports(String route, HttpRequest httpRequest, ViewOrchestrator orchestrator) {
-      // if this is a first time, we return the mediator app
-      return !orchestrator.getClass().getName().equals(httpRequest.runActionRq().serverSideType());
+    // if this is a first time, we return the mediator app
+    return !orchestrator.getClass().getName().equals(httpRequest.runActionRq().serverSideType());
   }
 
   @Override

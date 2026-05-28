@@ -31,6 +31,10 @@ public class ComponentFragmentMapper implements FragmentMapper {
       return uiFragmentDto;
     }
 
+    if (httpRequest.getAttribute("targetComponentId") != null) {
+      initiatorComponentId = httpRequest.getAttribute("targetComponentId").toString();
+    }
+
     if (instance instanceof ComponentTreeSupplier componentTreeSupplier) {
       return mapComponentToFragment(
           componentTreeSupplier,

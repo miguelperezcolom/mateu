@@ -3,22 +3,18 @@ package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
 import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.CrudActionResult;
 import io.mateu.uidl.interfaces.HttpRequest;
+
 import java.util.Map;
 
-public class ViewActionHandler implements CrudOrchestratorActionHandler {
+public class NewActionHandler implements CrudOrchestratorActionHandler {
   @Override
   public boolean supports(String actionId, HttpRequest httpRequest) {
-    return "view".equals(actionId);
+    return "new".equals(actionId);
   }
 
   @Override
   public Object handleAction(
       String actionId, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
-    var idField = orchestrator.getIdFieldForRow();
-    var savedId = httpRequest.getComponentState(Map.class).get(idField);
-    if (savedId == null) {
-      savedId = httpRequest.runActionRq().parameters().get(idField);
-    }
-    return CrudActionResult.of(actionId).withSavedId(savedId).withRoute("/" + savedId);
+    return CrudActionResult.of(actionId).withRoute("/new");
   }
 }

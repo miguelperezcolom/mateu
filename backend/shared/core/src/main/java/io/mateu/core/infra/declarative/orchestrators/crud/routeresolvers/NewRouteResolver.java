@@ -18,7 +18,7 @@ import java.util.List;
 public class NewRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public boolean supports(String route, HttpRequest httpRequest, ViewOrchestrator orchestrator) {
-    return route.endsWith("/list");
+    return route.endsWith("/new");
   }
 
   @Override
@@ -27,7 +27,7 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
     var editor = orchestrator.adapter().getCreationForm(httpRequest);
     httpRequest.setAttribute("selectedItem", editor);
     return new OrchestrationResult(
-        "edit", editor, createEditorComponent(httpRequest, editor, orchestrator));
+        "new", editor, createEditorComponent(httpRequest, editor, orchestrator));
   }
 
   private Component createEditorComponent(
@@ -49,10 +49,10 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
                     httpRequest.runActionRq().initiatorComponentId(),
                     httpRequest,
                     false,
-                    false)
+                    true)
                 .stream()
                 .toList())
-        .toolbar(List.of(new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
+        .toolbar(List.of(new Button("Cancel", "cancel-new"), new Button("Save", "create")))
         .actions(List.of(Action.builder().id("save").validationRequired(true).bubble(true).build()))
         .build();
   }

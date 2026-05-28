@@ -132,9 +132,7 @@ public class ValueProvider {
             getter = null;
           }
           if (getter != null) {
-            if (!Modifier.isPublic(getter.getModifiers())) {
-              getter.setAccessible(true);
-            }
+            getter.setAccessible(true);
           }
         } catch (Exception e) {
 
@@ -155,15 +153,11 @@ public class ValueProvider {
         Method getter = null;
         try {
           getter = o.getClass().getMethod(getGetter(f));
-          if (!Modifier.isPublic(getter.getModifiers())) {
-            getter.setAccessible(true);
-          }
+          getter.setAccessible(true);
         } catch (Exception e) {
           try {
             getter = o.getClass().getMethod(f.getName());
-            if (!Modifier.isPublic(getter.getModifiers())) {
-              getter.setAccessible(true);
-            }
+            getter.setAccessible(true);
           } catch (Exception e1) {
 
           }
@@ -171,6 +165,12 @@ public class ValueProvider {
         try {
           if (getter != null) v = getter.invoke(o);
         } catch (IllegalAccessException e) {
+          try {
+            f.setAccessible(true);
+            v = f.get(o);
+          } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+          }
           e.printStackTrace();
         } catch (InvocationTargetException e) {
           e.printStackTrace();
