@@ -3,7 +3,6 @@ package io.mateu.core.domain.act.crudfieldhandlers;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,15 +31,10 @@ public class RemoveActionHandler {
                               .findAny()
                               .isEmpty())
                   .toList();
-      var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+      var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
       newState.put(fieldId, list);
-      newState.put("_show_detail", _show_detail);
-      newState.put("_editing", _editing);
       return new State(newState);
     }
-    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-    newState.put("_show_detail", _show_detail);
-    newState.put("_editing", _editing);
-    return new State(newState);
+    return CrudFieldHandlerHelper.buildState(httpRequest, _show_detail, _editing);
   }
 }

@@ -2,15 +2,12 @@ package io.mateu.core.domain.act.crudfieldhandlers;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.*;
-import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getFieldId;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;
-import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Form;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
@@ -46,11 +43,8 @@ public class SelectActionHandler {
       position++;
     }
 
-    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+    var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
     data.put("_position", "" + (position + 1) + "/" + items.size());
-
-    newState.put("_show_detail", _show_detail);
-    newState.put("_editing", _editing);
 
     String rowClassName =
         httpRequest.runActionRq().componentState().get(fieldId + "_rowClass").toString();
@@ -62,10 +56,21 @@ public class SelectActionHandler {
     var item = MateuInstanceFactory.newInstance(rowClass, filteredState, null);
     addRowNumber(rowClass, data);
 
+    String fid = getFieldId(field, "", false);
     return List.of(
         new State(newState),
         wrap(
-                createForm(field, httpRequest),
+                CrudFieldHandlerHelper.buildDetailForm(
+                    "Update " + getLabel(field),
+                    field,
+                    httpRequest,
+                    false,
+                    List.of(Text.builder().text("${state['_position']}").build()),
+                    List.of(
+                        Button.builder().label("Prev").actionId(fid + "_prev").build(),
+                        Button.builder().label("Next").actionId(fid + "_next").build(),
+                        Button.builder().label("Cancel").actionId(fid + "_cancel").build(),
+                        Button.builder().label("Save").actionId(fid + "_save").build())),
                 item,
                 (String) httpRequest.getAttribute("baseUrl"),
                 httpRequest.runActionRq().route(),
@@ -74,47 +79,5 @@ public class SelectActionHandler {
                 httpRequest)
             .withContainerId(fieldId + "-container")
             .withInitialData(data));
-  }
-
-  private static Component createForm(Field field, HttpRequest httpRequest) {
-    var prefix = "";
-    var readOnly = false;
-    return Form.builder()
-        .title("Update " + getLabel(field))
-        .style("width: 100%;")
-        .content(
-            getForm(
-                    prefix,
-                    getGenericClass(field, field.getType(), "E"),
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest,
-                    false,
-                    readOnly,
-                    getDetailFormColumns(field))
-                .stream()
-                .toList())
-        .header(List.of(io.mateu.uidl.data.Text.builder().text("${state['_position']}").build()))
-        .toolbar(
-            List.of(
-                Button.builder()
-                    .label("Prev")
-                    .actionId(getFieldId(field, prefix, readOnly) + "_prev")
-                    .build(),
-                Button.builder()
-                    .label("Next")
-                    .actionId(getFieldId(field, prefix, readOnly) + "_next")
-                    .build(),
-                Button.builder()
-                    .label("Cancel")
-                    .actionId(getFieldId(field, prefix, readOnly) + "_cancel")
-                    .build(),
-                Button.builder()
-                    .label("Save")
-                    .actionId(getFieldId(field, prefix, readOnly) + "_save")
-                    .build()))
-        .build();
   }
 }

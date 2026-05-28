@@ -5,8 +5,8 @@ import static io.mateu.core.domain.act.crudfieldhandlers.CancelActionHandler.han
 import static io.mateu.core.domain.act.crudfieldhandlers.CreateActionHandler.handleCreate;
 import static io.mateu.core.domain.act.crudfieldhandlers.MoveDownActionHandler.handleMoveDown;
 import static io.mateu.core.domain.act.crudfieldhandlers.MoveUpActionHandler.handleMoveUp;
-import static io.mateu.core.domain.act.crudfieldhandlers.NextActionHandler.handleNext;
-import static io.mateu.core.domain.act.crudfieldhandlers.PrevActionHandler.handlePrev;
+import static io.mateu.core.domain.act.crudfieldhandlers.NavigateActionHandler.handleNext;
+import static io.mateu.core.domain.act.crudfieldhandlers.NavigateActionHandler.handlePrev;
 import static io.mateu.core.domain.act.crudfieldhandlers.RemoveActionHandler.handleRemove;
 import static io.mateu.core.domain.act.crudfieldhandlers.SaveActionHandler.handleSave;
 import static io.mateu.core.domain.act.crudfieldhandlers.SelectActionHandler.handleSelect;

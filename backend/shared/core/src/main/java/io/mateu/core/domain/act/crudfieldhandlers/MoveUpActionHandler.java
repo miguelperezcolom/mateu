@@ -4,7 +4,6 @@ import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,21 +25,15 @@ public class MoveUpActionHandler {
     var fullList = (List) httpRequest.runActionRq().componentState().get(fieldId);
 
     if (selectedLines != null && fullList != null) {
-      // 1. Creamos una copia mutable de la lista actual
       var mutableList = new ArrayList<>(fullList);
 
-      // 2. Aplicamos la lógica de "burbujeo" hacia arriba
-      // Empezamos en 1 porque el elemento en 0 no puede subir más
+      // Bubble upward: start at 1 because index 0 cannot move higher
       for (int i = 1; i < mutableList.size(); i++) {
         var currentItem = mutableList.get(i);
-
-        // Si el elemento está seleccionado, intentamos moverlo
         if (selectedLines.contains(currentItem)) {
           int targetIndex = i - 1;
           var itemAbove = mutableList.get(targetIndex);
-
-          // Solo intercambiamos si el de arriba NO está seleccionado
-          // Esto permite que grupos de filas seleccionadas suban juntos
+          // Only swap if the item above is not also selected, so groups move together
           if (!selectedLines.contains(itemAbove)) {
             mutableList.set(targetIndex, currentItem);
             mutableList.set(i, itemAbove);
@@ -48,17 +41,10 @@ public class MoveUpActionHandler {
         }
       }
 
-      // 3. Construimos el nuevo estado con la lista reordenada
-      var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+      var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
       newState.put(fieldId, mutableList);
-      newState.put("_show_detail", _show_detail);
-      newState.put("_editing", _editing);
-
       return new State(newState);
     }
-    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-    newState.put("_show_detail", _show_detail);
-    newState.put("_editing", _editing);
-    return new State(newState);
+    return CrudFieldHandlerHelper.buildState(httpRequest, _show_detail, _editing);
   }
 }

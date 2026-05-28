@@ -3,7 +3,6 @@ package io.mateu.core.domain.act.crudfieldhandlers;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -22,26 +21,17 @@ public class SelectedActionHandler {
         ((List<Map<String, Object>>)
                 httpRequest.runActionRq().componentState().get(fieldId + "_selected_items"))
             .get(0);
-    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+    var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
     for (String key : values.keySet()) {
       newState.put(fieldId + "-" + key, values.get(key));
     }
     var items = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
-    var position = getIndex(items, new HashMap<>(values).get("_rowNumber"));
+    var position = getIndex(items, values.get("_rowNumber"));
     newState.put("" + fieldId + "_position", "" + (position + 1) + "/" + items.size());
-
-    newState.put("_show_detail", _show_detail);
-    newState.put("_editing", _editing);
     return new State(newState);
   }
 
   public static int getIndex(List<Map<String, Object>> list, Object rowNumber) {
-    for (int i = 0; i < list.size(); i++) {
-      if (rowNumber.equals(list.get(i).get("_rowNumber"))) {
-        return i;
-      }
-    }
-    throw new RuntimeException("Item with row number " + rowNumber + " not found");
+    return CrudFieldHandlerHelper.findPositionByRowNumber(list, rowNumber);
   }
-
 }

@@ -38,7 +38,6 @@ public class CreateActionHandler {
     var item = MateuInstanceFactory.newInstance(rowClass, filteredState, null);
 
     var list = (List<Map<String, Object>>) httpRequest.runActionRq().componentState().get(fieldId);
-    ;
     if (list == null) {
       list = List.of(fromJson(toJson(item)));
     } else {
@@ -51,11 +50,9 @@ public class CreateActionHandler {
             map.put("_rowNumber", UUID.randomUUID().toString());
           }
         });
-    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+    var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
     newState.put(fieldId, list);
     addRowNumber(getGenericClass(field, List.class, "E"), newState);
-    newState.put("_show_detail", _show_detail);
-    newState.put("_editing", _editing);
     return new State(newState);
   }
 }

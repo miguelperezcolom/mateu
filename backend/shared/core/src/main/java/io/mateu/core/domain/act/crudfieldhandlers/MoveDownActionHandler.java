@@ -4,7 +4,6 @@ import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,17 +28,13 @@ public class MoveDownActionHandler {
       var mutableList = new ArrayList<>(fullList);
       int size = mutableList.size();
 
-      // 1. Iteramos de abajo hacia arriba
-      // Empezamos en size - 2 porque el último elemento (size - 1) no puede bajar más
+      // Bubble downward: start at size-2 because the last element cannot move lower
       for (int i = size - 2; i >= 0; i--) {
         var currentItem = mutableList.get(i);
-
-        // 2. Si el elemento está seleccionado...
         if (selectedLines.contains(currentItem)) {
           int targetIndex = i + 1;
           var itemBelow = mutableList.get(targetIndex);
-
-          // 3. ...y el de abajo NO está seleccionado, los intercambiamos
+          // Only swap if the item below is not also selected, so groups move together
           if (!selectedLines.contains(itemBelow)) {
             mutableList.set(targetIndex, currentItem);
             mutableList.set(i, itemBelow);
@@ -47,16 +42,10 @@ public class MoveDownActionHandler {
         }
       }
 
-      var newState = new HashMap<>(httpRequest.runActionRq().componentState());
+      var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
       newState.put(fieldId, mutableList);
-      newState.put("_show_detail", _show_detail);
-      newState.put("_editing", _editing);
-
       return new State(newState);
     }
-    var newState = new HashMap<>(httpRequest.runActionRq().componentState());
-    newState.put("_show_detail", _show_detail);
-    newState.put("_editing", _editing);
-    return new State(newState);
+    return CrudFieldHandlerHelper.buildState(httpRequest, _show_detail, _editing);
   }
 }
