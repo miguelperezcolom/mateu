@@ -3,17 +3,14 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
-import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.Status;
-import io.mateu.uidl.annotations.StatusMapping;
 import io.mateu.uidl.annotations.ValueMapping;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.fluent.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -83,23 +80,7 @@ public class DataMapper {
         continue;
       }
       if (field.isAnnotationPresent(Status.class)) {
-        var ann = field.getAnnotation(Status.class);
-        Map<String, StatusType> mapping = new HashMap<>();
-        for (StatusMapping statusMapping : ann.mappings()) {
-          mapping.put(statusMapping.from(), statusMapping.to());
-        }
-        StatusType defaultType = ann.defaultStatus();
-        var fieldValue = getValue(field, item);
-        if (fieldValue == null) {
-          map.put(field.getName(), null);
-        } else {
-          var value = "" + getValue(field, item);
-          var message = toUpperCaseFirst("" + getValue(field, item));
-          map.put(
-              field.getName(),
-              new io.mateu.uidl.data.Status(
-                  mapping.getOrDefault(value, defaultType), message, value));
-        }
+        map.put(field.getName(), StatusFieldMapper.mapStatusValue(field, item));
       } else if (field.isAnnotationPresent(MappedValue.class)) {
         var ann = field.getAnnotation(MappedValue.class);
         Map<String, String> mapping = new HashMap<>();
