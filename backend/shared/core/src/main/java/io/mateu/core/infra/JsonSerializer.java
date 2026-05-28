@@ -23,7 +23,6 @@ public final class JsonSerializer {
     mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    // mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
     mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.NON_PRIVATE);
     mapper.setVisibility(
         new VisibilityChecker.Std(JsonAutoDetect.Visibility.NON_PRIVATE) {

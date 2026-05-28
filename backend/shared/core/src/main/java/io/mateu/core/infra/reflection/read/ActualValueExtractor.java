@@ -149,20 +149,6 @@ public class ActualValueExtractor {
           }
           return t;
         }
-        //                if (ExternalReference.class.equals(getGenericClass(f.getGenericType()))) {
-        //                    List t = new ArrayList();
-        //                    List l = (List) entry.getValue();
-        //                    for (Object o : l) {
-        //                        if (o instanceof String) {
-        //                            t.add(new ExternalReference(o, ""));
-        //                            continue;
-        //                        }
-        //                        Map<String, Object> m = (Map<String, Object>) o;
-        //                        t.add(new ExternalReference(m.get("initialValue"), (String)
-        // m.get("key")));
-        //                    }
-        //                    return t;
-        //                }
         if (Integer.class.equals(getGenericClass(f.getGenericType()))) {
           List t = new ArrayList();
           List l = (List) entry.getValue();
@@ -198,7 +184,7 @@ public class ActualValueExtractor {
                       return Enum.valueOf(
                           (Class<? extends Enum>) getGenericClass(f.getGenericType()), m);
                     } catch (Exception e) {
-                      e.printStackTrace();
+                      log.error("Failed to convert enum value {}", m, e);
                     }
                     return null;
                   })
@@ -215,7 +201,7 @@ public class ActualValueExtractor {
                     try {
                       return new URL(m);
                     } catch (Exception e) {
-                      e.printStackTrace();
+                      log.error("Failed to convert URL {}", m, e);
                     }
                     return null;
                   })
@@ -232,7 +218,7 @@ public class ActualValueExtractor {
                     try {
                       return pojoFromJson(toJson(m), getGenericClass(f.getGenericType()));
                     } catch (Exception e) {
-                      e.printStackTrace();
+                      log.error("Failed to convert pojo for field {}", f.getName(), e);
                     }
                     return null;
                   })
@@ -281,15 +267,6 @@ public class ActualValueExtractor {
           if (String[].class.equals(f.getType())) {
             return l.toArray(new String[0]);
           }
-          //                    if (ExternalReference[].class.equals(f.getType())) {
-          //                        List t = new ArrayList();
-          //                        for (int i = 0; i < l.size(); i++) {
-          //                            Map<String, Object> v = (Map<String, Object>) l.get(i);
-          //                            t.add(new ExternalReference(v.get("initialValue"), (String)
-          // v.get("key")));
-          //                        }
-          //                        return t.toArray(new ExternalReference[0]);
-          //                    }
           if (f.getType().getComponentType().isEnum()) {
             List t = new ArrayList();
             for (int i = 0; i < l.size(); i++) {
@@ -315,12 +292,6 @@ public class ActualValueExtractor {
             Class<?> genericType = f.getType();
             targetValue = toFile(f, genericType, value);
           }
-          //                } else if (ExternalReference.class.isAssignableFrom(f.getType())) {
-          //                    Map<String, Object> initialValue = (Map<String, Object>)
-          // entry.getValue();
-          //                    targetValue = new
-          // ExternalReference(initialValue.get("initialValue"), (String)
-          // initialValue.get("key"));
         } else if (entry.getValue() instanceof String) {
           targetValue = getActualValue(f.getType(), entry.getValue(), instanceFactory, httpRequest);
         } else if (entry.getValue() instanceof Map) {
@@ -363,29 +334,6 @@ public class ActualValueExtractor {
   }
 
   private static Object toFile(Field f, Class<?> genericType, Map<String, Object> value) {
-    Object targetValue = null;
-    /*
-    if (String.class.equals(genericType)) {
-        targetValue = storageService.getUrl((String) initialValue.get("id"), (String) initialValue.get("name"));
-        // targetValue =  initialValue.get("targetUrl") + "/" + initialValue.get("name");
-    } else if (java.io.File.class.equals(genericType)) {
-        try {
-            targetValue =
-                    storageService
-                            .loadAsResource((String) initialValue.get("id"), (String) initialValue.get("name"))
-                            .getFile();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    } else {
-        log.warn(
-                "field "
-                        + f.getName()
-                        + " from "
-                        + f.getDeclaringClass().getName()
-                        + " is not valid for a file type");
-    }
-     */
-    return targetValue;
+    return null;
   }
 }

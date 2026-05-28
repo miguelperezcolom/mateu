@@ -38,7 +38,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public abstract class WizardOrchestrator
     implements ActionHandler,
         RouteHandler,
@@ -133,7 +135,7 @@ public abstract class WizardOrchestrator
           this,
           instanceFactory.newInstance(currentStepField().getType(), state, httpRequest));
     } catch (Exception e) {
-      e.printStackTrace();
+      log.error("Failed to hydrate wizard step", e);
     }
   }
 
@@ -232,14 +234,6 @@ public abstract class WizardOrchestrator
                     .text(getLabel(currentStepField()))
                     .style("width: 100%;")
                     .build(),
-                /*
-                getContent(getStep(),
-                        "base_url",
-                        httpRequest.runActionRq().route(),
-                        httpRequest.runActionRq().consumedRoute(),
-                        httpRequest.runActionRq().initiatorComponentId(),
-                        httpRequest)
-                 */
                 getForm(
                         getStep(),
                         "base_url",

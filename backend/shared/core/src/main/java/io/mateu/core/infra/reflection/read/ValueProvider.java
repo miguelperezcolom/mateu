@@ -169,11 +169,11 @@ public class ValueProvider {
             f.setAccessible(true);
             v = f.get(o);
           } catch (IllegalAccessException e1) {
-            e1.printStackTrace();
+            log.error("Cannot access field {}", f.getName(), e1);
           }
-          e.printStackTrace();
+          log.error("Cannot invoke getter for field {}", f.getName(), e);
         } catch (InvocationTargetException e) {
-          e.printStackTrace();
+          log.error("Getter threw exception for field {}", f.getName(), e);
         }
       }
     }

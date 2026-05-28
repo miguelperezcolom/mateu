@@ -19,7 +19,6 @@ public class FieldByNameProvider {
         break;
       }
     }
-    // if (field == null) log.warn("No field " + methodName + " at " + sourceClass);
     return field;
   }
 }
