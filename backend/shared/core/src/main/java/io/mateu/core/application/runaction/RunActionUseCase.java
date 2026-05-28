@@ -99,50 +99,32 @@ public class RunActionUseCase {
                             command.route(),
                             command.httpRequest())
                         .run(instance, command)))
-        .flatMap(
-            result ->
-                uiIncrementMapperProvider
-                    .get(result)
-                    .map(
-                        result,
-                        command.baseUrl(),
-                        command.route(),
-                        command.consumedRoute(),
-                        command.initiatorComponentId(),
-                        command.httpRequest()))
+        .flatMap(result -> mapToUiIncrement(result, command))
         .doOnError(e -> log.error("Error handling action {}", command.actionId(), e))
         .onErrorResume(
             error ->
-                Mono.just(
-                        Message.builder()
-                            .variant(NotificationVariant.error)
-                            .title(error.getClass().getSimpleName())
-                            .text(error.getClass().getSimpleName() + ": " + error.getMessage())
-                            .build())
-                    .flatMap(
-                        result ->
-                            uiIncrementMapperProvider
-                                .get(result)
-                                .map(
-                                    result,
-                                    command.baseUrl(),
-                                    command.route(),
-                                    command.consumedRoute(),
-                                    command.initiatorComponentId(),
-                                    command.httpRequest())))
+                mapToUiIncrement(
+                    Message.builder()
+                        .variant(NotificationVariant.error)
+                        .title(error.getClass().getSimpleName())
+                        .text(error.getClass().getSimpleName() + ": " + error.getMessage())
+                        .build(),
+                    command))
         .switchIfEmpty(
-            Mono.just(Text.builder().text("Not found.").style("color: red;").build())
-                .flatMap(
-                    result ->
-                        uiIncrementMapperProvider
-                            .get(result)
-                            .map(
-                                result,
-                                command.baseUrl(),
-                                command.route(),
-                                command.consumedRoute(),
-                                command.initiatorComponentId(),
-                                command.httpRequest())));
+            mapToUiIncrement(
+                Text.builder().text("Not found.").style("color: red;").build(), command));
+  }
+
+  private Mono<UIIncrementDto> mapToUiIncrement(Object result, RunActionCommand command) {
+    return uiIncrementMapperProvider
+        .get(result)
+        .map(
+            result,
+            command.baseUrl(),
+            command.route(),
+            command.consumedRoute(),
+            command.initiatorComponentId(),
+            command.httpRequest());
   }
 
   // ── Instance creation ─────────────────────────────────────────────────────
