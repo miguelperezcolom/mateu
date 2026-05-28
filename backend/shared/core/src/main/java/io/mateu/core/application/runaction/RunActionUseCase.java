@@ -110,7 +110,7 @@ public class RunActionUseCase {
                         command.consumedRoute(),
                         command.initiatorComponentId(),
                         command.httpRequest()))
-        .doOnError(Throwable::printStackTrace)
+        .doOnError(e -> log.error("Error handling action {}", command.actionId(), e))
         .onErrorResume(
             error ->
                 Mono.just(

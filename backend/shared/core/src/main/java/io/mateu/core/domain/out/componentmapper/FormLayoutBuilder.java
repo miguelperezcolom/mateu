@@ -263,26 +263,11 @@ class FormLayoutBuilder {
                             forCreationForm,
                             tab.columns()))
             .toList();
-    var rows = new ArrayList<Component>();
-    int col = 0;
-    var pendingRow = new ArrayList<Component>();
-    for (Component field : fields) {
-      pendingRow.add(field);
-      col += (field instanceof FormField formField) ? formField.colspan() : 1;
-      if (col == tab.columns()) {
-        rows.add(FormRow.builder().content(pendingRow).build());
-        pendingRow = new ArrayList<>();
-        col = 0;
-      }
-    }
-    if (!pendingRow.isEmpty()) {
-      rows.add(FormRow.builder().content(pendingRow).build());
-    }
     return FormLayout.builder()
         .maxColumns(tab.columns())
         .autoResponsive(true)
         .expandColumns(true)
-        .content(rows)
+        .content(buildRows(fields, tab.columns()))
         .build();
   }
 }
