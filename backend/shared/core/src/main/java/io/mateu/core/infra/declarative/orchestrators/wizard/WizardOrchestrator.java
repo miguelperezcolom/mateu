@@ -3,13 +3,9 @@ package io.mateu.core.infra.declarative.orchestrators.wizard;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.getValidations;
-import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
-import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.data.*;
@@ -22,11 +18,8 @@ import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
@@ -154,27 +147,11 @@ public abstract class WizardOrchestrator
   }
 
   public Object getStep() {
-    return getValueOrClass(position);
-  }
-
-  private Object getValueOrClass(int position) {
-    var steps = getStepFields();
-    var field = steps.get(position);
-    var value = getValue(field, this);
-    if (value != null) {
-      return value;
-    }
-    return field.getType();
-  }
-
-  private List<Field> getStepFields() {
-    return getAllFields(this.getClass()).stream()
-        .filter(field -> WizardStep.class.isAssignableFrom(field.getType()))
-        .toList();
+    return WizardStepInspector.getValueOrClass(this, position);
   }
 
   public int numberOfSteps() {
-    return getStepFields().size();
+    return WizardStepInspector.numberOfSteps(this);
   }
 
   public int currentStepNumber() {
@@ -182,23 +159,12 @@ public abstract class WizardOrchestrator
   }
 
   public Field currentStepField() {
-    return getStepFields().get(position);
+    return WizardStepInspector.currentStepField(this);
   }
 
   @Override
   public List<ValidationDto> validationDtos() {
-    List<ValidationDto> fieldLevelValidations = new ArrayList<>();
-    var stepClass = getStepFields().get(currentStepNumber()).getType();
-    getAllFields(stepClass).stream()
-        .flatMap(field -> getValidations(field).stream())
-        .filter(Objects::nonNull)
-        .forEach(fieldLevelValidations::add);
-    return Stream.concat(
-            fieldLevelValidations.stream(),
-            Arrays.stream(
-                    stepClass.getAnnotationsByType(io.mateu.uidl.annotations.Validation.class))
-                .map(ValidationMapper::mapToValidation))
-        .toList();
+    return WizardStepInspector.validationDtos(this);
   }
 
   @Override
