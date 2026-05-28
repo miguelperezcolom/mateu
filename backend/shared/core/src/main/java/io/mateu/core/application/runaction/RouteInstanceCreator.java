@@ -1,5 +1,7 @@
 package io.mateu.core.application.runaction;
 
+import static io.mateu.core.application.runaction.RouteSegmentUtils.addParameterValues;
+import static io.mateu.core.application.runaction.RouteSegmentUtils.createRoutes;
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
 import static io.mateu.core.infra.reflection.ReflectionUiIncrementMapper.removeQueryParamsFromRoute;
@@ -9,15 +11,11 @@ import io.mateu.core.application.RoutedClassResolver;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.uidl.RouteConstants;
 import io.mateu.uidl.fluent.AppSupplier;
-import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -192,64 +190,5 @@ public class RouteInstanceCreator {
             addParameterValues(
                 command.componentState(), route, routedClass.get(), command.httpRequest()),
             command.httpRequest());
-  }
-
-  private Map<String, Object> addParameterValues(
-      Map<String, Object> data,
-      String route,
-      ResolvedRoute matchingRoute,
-      HttpRequest httpRequest) {
-    var newData = new HashMap<>(data != null ? data : Map.of());
-    var tokens = matchingRoute.pattern().split("/");
-    var slugs = route.split("/");
-    for (int i = 0; i < tokens.length && i < slugs.length; i++) {
-      var token = tokens[i];
-      var slug = slugs[i];
-      if (token.startsWith(":")) {
-        var fieldName = token.substring(1);
-        try {
-          if (!newData.containsKey(fieldName)) {
-            newData.put(fieldName, slug);
-          }
-        } catch (Exception ignored) {
-        }
-      }
-    }
-    if (httpRequest != null) {
-      httpRequest
-          .getParameterNames()
-          .forEach(
-              fieldName -> {
-                try {
-                  if (!newData.containsKey(fieldName)) {
-                    newData.put(fieldName, httpRequest.getParameterValue(fieldName));
-                  }
-                } catch (Exception ignored) {
-                }
-              });
-    }
-    return newData;
-  }
-
-  List<String> createRoutes(RunActionCommand command) {
-    List<String> routes = new ArrayList<>();
-    StringBuilder currentRoute = new StringBuilder();
-    var completeRoute = command.route();
-    if ("/".equals(completeRoute)) {
-      return List.of("");
-    }
-    for (String token : completeRoute.split("/")) {
-      var nextRoute = currentRoute + token;
-      if ("_empty".equals(command.consumedRoute())
-          || (!nextRoute.isEmpty() && nextRoute.length() >= command.consumedRoute().length())) {
-        if (!command.baseUrl().equals(command.consumedRoute()) || !"".equals(nextRoute)) {
-          if (!nextRoute.equals(command.consumedRoute())) {
-            routes.add(nextRoute);
-          }
-        }
-      }
-      currentRoute.append(token).append("/");
-    }
-    return routes;
   }
 }
