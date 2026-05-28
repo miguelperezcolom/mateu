@@ -2,14 +2,12 @@ package io.mateu.core.application.runaction;
 
 import io.mateu.core.domain.act.ActionRunnerProvider;
 import io.mateu.core.domain.out.UiIncrementMapperProvider;
-import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.PostHydrationHandler;
 import io.mateu.uidl.interfaces.ReactiveRouteHandler;
 import io.mateu.uidl.interfaces.RouteHandler;
 import jakarta.inject.Inject;
@@ -17,7 +15,6 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -28,13 +25,9 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class RunActionUseCase {
 
-  private final InstanceFactoryProvider instanceFactoryProvider;
   private final ActionRunnerProvider actionRunnerProvider;
   private final UiIncrementMapperProvider uiIncrementMapperProvider;
-  private final CrudNavigationAdjuster crudNavigationAdjuster;
-  private final RouteInstanceCreator routeInstanceCreator;
-  private final AppMenuResolver appMenuResolver;
-  private final YamlUidlLoader yamlUidlLoader;
+  private final ActionInstanceCreator actionInstanceCreator;
 
   // ── Public static helpers (used by other classes in the framework) ────────
 
@@ -87,7 +80,7 @@ public class RunActionUseCase {
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
     log.info("run action {}", command.actionId());
     return (Mono.just(command)
-            .flatMap(ignored -> createInstance(command))
+            .flatMap(ignored -> actionInstanceCreator.createInstance(command))
             .flatMap(instance -> routeIfNeeded(command, instance))
             .flatMapMany(
                 instance ->
@@ -125,94 +118,6 @@ public class RunActionUseCase {
             command.consumedRoute(),
             command.initiatorComponentId(),
             command.httpRequest());
-  }
-
-  // ── Instance creation ─────────────────────────────────────────────────────
-
-  @SneakyThrows
-  private Mono<?> createInstance(RunActionCommand command) {
-    log.info("createInstance {}", command);
-
-    try {
-      var adjusted = crudNavigationAdjuster.adjust(command);
-      command = adjusted.command();
-
-      if (adjusted.routeFirst()) {
-        RunActionCommand finalCommand = command;
-        return routeInstanceCreator
-            .findRouteResolver(command)
-            .switchIfEmpty(
-                (Mono)
-                    Mono.defer(
-                        () -> {
-                          finalCommand.httpRequest().setAttribute("updateUrl", "_no_update");
-                          var restoredCommand =
-                              finalCommand.withRoute(
-                                  (String) finalCommand.httpRequest().getAttribute("oldRoute"));
-                          return instantiateWithKnownType(restoredCommand);
-                        }));
-      }
-
-    } catch (Throwable e) {
-      log.info(e.getClass().getSimpleName() + ": " + e.getMessage());
-      return Mono.just(UIIncrementDto.builder().build());
-    }
-
-    if (command.serverSideType() != null && !command.serverSideType().isEmpty()) {
-      return instantiateWithKnownType(command);
-    }
-
-    RunActionCommand finalCommand = command;
-    return routeInstanceCreator
-        .findRouteResolver(command)
-        .switchIfEmpty((Mono) Mono.defer(() -> yamlUidlLoader.load(finalCommand)));
-  }
-
-  /**
-   * Path 2: we already know the serverSideType. Instantiate it and, unless the route is terminal,
-   * try to resolve deeper navigation (menu/route) from the resulting instance.
-   */
-  private Mono<?> instantiateWithKnownType(RunActionCommand command) {
-    if (command.serverSideType() == null || command.serverSideType().isEmpty()) {
-      return Mono.empty();
-    }
-    setResolvedRoute(command.httpRequest(), command.consumedRoute());
-    if (command.httpRequest().getAttribute("resolvedPath") == null) {
-      setResolvedPath(command.httpRequest(), command.route());
-    }
-    var mono =
-        createInstanceAndPostHydrate(command.serverSideType(), command)
-            .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
-    if (isTerminalRoute(command.route())) {
-      return mono;
-    }
-    RunActionCommand finalCommand = command;
-    return mono.flatMap(
-        app ->
-            appMenuResolver
-                .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
-                .switchIfEmpty((Mono) routeInstanceCreator.findRouteResolver(finalCommand)));
-  }
-
-  private boolean isTerminalRoute(String route) {
-    return route.endsWith("_page") || route.endsWith("_no_home_route");
-  }
-
-  private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {
-    return createInstance(className, command).map(object -> postHydrate(command, object));
-  }
-
-  private static Object postHydrate(RunActionCommand command, Object object) {
-    if (object instanceof PostHydrationHandler postHydrationHandler) {
-      postHydrationHandler.onHydrated(command.httpRequest());
-    }
-    return object;
-  }
-
-  private Mono<?> createInstance(String className, RunActionCommand command) {
-    var instanceFactory = instanceFactoryProvider.get(className);
-    return instanceFactory.createInstance(
-        className, command.componentState(), command.httpRequest());
   }
 
   // ── Routing ───────────────────────────────────────────────────────────────

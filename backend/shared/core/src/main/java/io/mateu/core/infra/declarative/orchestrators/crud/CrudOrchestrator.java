@@ -1,6 +1,5 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
-import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapToTrigger;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
@@ -23,7 +22,6 @@ import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SearchA
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.ViewActionHandler;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
 import io.mateu.dtos.*;
-import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Button;
@@ -110,13 +108,7 @@ public abstract class CrudOrchestrator<
   }
 
   public boolean readOnly() {
-    if (getClass().isAnnotationPresent(ReadOnly.class)) {
-      return true;
-    }
-    if (viewClass().isAnnotationPresent(ReadOnly.class)) {
-      return true;
-    }
-    return false;
+    return CrudOrchestratorMetadata.readOnly(this);
   }
 
   public Class<?> viewClass() {
@@ -124,17 +116,11 @@ public abstract class CrudOrchestrator<
   }
 
   public String title() {
-    if (getClass().isAnnotationPresent(Title.class)) {
-      return getClass().getAnnotation(Title.class).value();
-    }
-    return toUpperCaseFirst(getClass().getSimpleName());
+    return CrudOrchestratorMetadata.title(this);
   }
 
   public String getStyleForList(List<GridContent> columns) {
-    if (getClass().isAnnotationPresent(Style.class)) {
-      return getClass().getAnnotation(Style.class).value();
-    }
-    return columns.size() > 5 ? "width: 100%;" : StyleConstants.CONTAINER;
+    return CrudOrchestratorMetadata.getStyleForList(this, columns);
   }
 
   public boolean searchable() {
@@ -166,13 +152,7 @@ public abstract class CrudOrchestrator<
   }
 
   public String getStyleForView() {
-    if (viewClass().isAnnotationPresent(Style.class)) {
-      return viewClass().getAnnotation(Style.class).value();
-    }
-    if (getClass().isAnnotationPresent(Style.class)) {
-      return getClass().getAnnotation(Style.class).value();
-    }
-    return getFormColumns(viewClass()) > 2 ? "width: 100%;" : "max-width:900px;margin: auto;";
+    return CrudOrchestratorMetadata.getStyleForView(this);
   }
 
   public Object edit(IdType id, HttpRequest httpRequest) {
