@@ -9,7 +9,6 @@ import static io.mateu.core.infra.reflection.ReflectionUiIncrementMapper.removeQ
 import io.mateu.core.application.ResolvedRoute;
 import io.mateu.core.application.RoutedClassResolver;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
-import io.mateu.uidl.RouteConstants;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.RouteResolver;
 import jakarta.inject.Inject;
@@ -100,82 +99,9 @@ public class RouteInstanceCreator {
     return Mono.empty();
   }
 
-  /**
-   * Resolves a route segment to a non-app (terminal) class. Checks exact @Route matches first, then
-   * generic resolve, then global RouteResolvers — all restricted to non-app types.
-   */
-  @SneakyThrows
   private Mono<?> resolveAsDirectClass(String rawRoute, RunActionCommand command) {
-    if ("".equals(rawRoute)) {
-      rawRoute = command.baseUrl();
-    }
-    var route = removeQueryParamsFromRoute(rawRoute);
-
-    // Exact @Route annotation match (no parent context needed)
-    var routedClass = routedClassResolver.resolveAbsolute(route, command);
-    if (routedClass.isPresent()) {
-      var instanceTypeName = routedClass.get().resolvedClass().getName();
-      if (!isApp(Class.forName(instanceTypeName), route)) {
-        setResolvedRoute(command.httpRequest(), route);
-        log.info("direct class (absolute) {} → {}", route, instanceTypeName);
-        return createInstance(
-            command,
-            instanceTypeName,
-            instanceFactoryProvider.get(instanceTypeName),
-            route,
-            routedClass);
-      }
-    }
-
-    // Generic resolve restricted to non-app classes
-    routedClass = routedClassResolver.resolve(route, command);
-    if (routedClass.isPresent()) {
-      var instanceTypeName = routedClass.get().resolvedClass().getName();
-      if (!isApp(Class.forName(instanceTypeName), route)) {
-        setResolvedRoute(command.httpRequest(), route);
-        log.info("direct class (resolve) {} → {}", route, instanceTypeName);
-        return createInstance(
-            command,
-            instanceTypeName,
-            instanceFactoryProvider.get(instanceTypeName),
-            route,
-            routedClass);
-      }
-    }
-
-    // Global RouteResolvers — try without parent context first, then with consumedRoute
-    if (routeResolvers != null) {
-      for (var parentRoute : List.of(RouteConstants.NO_PARENT_ROUTE, command.consumedRoute())) {
-        var found =
-            routeResolvers.stream().filter(r -> r.supportsRoute(route, parentRoute)).findFirst();
-        if (found.isPresent()) {
-          var resolvedClass = found.get().resolveRoute(route, parentRoute, command.httpRequest());
-          if (resolvedClass != null) {
-            setResolvedRoute(command.httpRequest(), route);
-            var instanceTypeName = resolvedClass.getName();
-            log.info("direct class (routeResolver) {} → {}", route, instanceTypeName);
-            return createInstance(
-                command,
-                instanceTypeName,
-                instanceFactoryProvider.get(instanceTypeName),
-                route,
-                Optional.of(
-                    new ResolvedRoute(
-                        route,
-                        found
-                            .get()
-                            .matchingPattern(route, parentRoute)
-                            .get()
-                            .routeRegex()
-                            .pattern(),
-                        resolvedClass)));
-          }
-        }
-      }
-    }
-
-    log.info("no direct class matched {}", route);
-    return Mono.empty();
+    return DirectClassResolver.resolve(
+        rawRoute, command, routedClassResolver, instanceFactoryProvider, routeResolvers);
   }
 
   private Mono<Object> createInstance(
