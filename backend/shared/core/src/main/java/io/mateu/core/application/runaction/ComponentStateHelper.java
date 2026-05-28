@@ -8,14 +8,10 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRule
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
-import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
-import io.mateu.core.domain.out.fragmentmapper.mappers.DataMapper;
 import io.mateu.dtos.ServerSideComponentDto;
-import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.StateSupplier;
@@ -91,23 +87,8 @@ public class ComponentStateHelper {
             : modelView;
     if (!(state instanceof Map<?, ?>)) {
       var newState = mapPojo(state);
-      if (Boolean.TRUE.equals(httpRequest.getAttribute("new"))) {
-        getAllFields(getViewModelClass(modelView, httpRequest)).stream()
-            .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
-            .forEach(
-                field -> {
-                  var generator =
-                      MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
-                  var value = generator.generate();
-                  if (value != null && List.class.isAssignableFrom(value.getClass())) {
-                    var list = (List<?>) value;
-                    var mappedList = list.stream().map(DataMapper::mapItem).toList();
-                    newState.put(field.getName(), mappedList);
-                  } else {
-                    newState.put(field.getName(), value);
-                  }
-                });
-      }
+      GeneratedValueInitializer.initialize(
+          getViewModelClass(modelView, httpRequest), newState, httpRequest);
       addRowNumber(modelView.getClass(), newState);
       return newState;
     }
