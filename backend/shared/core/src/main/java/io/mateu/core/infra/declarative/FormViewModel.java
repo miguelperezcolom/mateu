@@ -1,11 +1,9 @@
 package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
-import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
@@ -18,7 +16,6 @@ import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.interfaces.*;
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.Map;
@@ -74,39 +71,11 @@ public class FormViewModel
   }
 
   public static List<KPI> createKpis(Object instance) {
-    if (instance instanceof ModelSupplier modelSupplier) {
-      instance = modelSupplier.model();
-    }
-    return getAllEditableFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.KPI.class))
-        .map(field -> KPI.builder().title(getLabel(field)).text(getKpiText(field)).build())
-        .toList();
-  }
-
-  private static String getKpiText(Field field) {
-    if (Amount.class.equals(field.getType())) {
-      return "${state." + field.getName() + ".value} ${state." + field.getName() + ".currency}";
-    }
-    return "${state." + field.getName() + "}";
+    return FormViewBadgesBuilder.createKpis(instance);
   }
 
   public static List<Badge> createBadges(Object instance) {
-    if (instance instanceof ModelSupplier modelSupplier) {
-      instance = modelSupplier.model();
-    }
-    Object finalInstance = instance;
-    return getAllEditableFields(instance.getClass()).stream()
-        .filter(field -> Status.class.equals(field.getType()))
-        .map(FormViewModel::mapStatusToBadge)
-        .filter(Objects::nonNull)
-        .toList();
-  }
-
-  private static Badge mapStatusToBadge(Field field) {
-    return Badge.builder()
-        .text("${state." + field.getName() + ".message}")
-        .color("${state." + field.getName() + ".type}")
-        .build();
+    return FormViewBadgesBuilder.createBadges(instance);
   }
 
   @Override
