@@ -27,7 +27,6 @@ import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.*;
@@ -83,46 +82,7 @@ public abstract class CrudOrchestrator<
         var output = actionHandler.handleAction(actionId, httpRequest, this);
 
         if (output instanceof CrudActionResult result) {
-          var list = new ArrayList<>();
-          setRouteTo(result.route()); // aquí controlamos la navegación
-          list.add(new State(this));
-          if (result.targetComponentId() != null) {
-            httpRequest.setAttribute("targetComponentId", result.targetComponentId());
-          }
-          if (result.data() != null) {
-            list.add(result.data());
-          }
-          if (result.state() != null) {
-            list.add(result.state());
-          }
-          list.addAll(result.messages());
-          if (result.actionToRun() != null) {
-            list.add(
-                UICommand.runAction(
-                    result.actionToRun(),
-                    result.targetComponentId() != null
-                        ? result.targetComponentId()
-                        : httpRequest.runActionRq().initiatorComponentId()));
-          }
-          list.add(UICommand.pushStateToHistory(pathForHistory(result.route())));
-          list.add(setWindowTitle(httpRequest));
-          /*
-          if ("/list".equals(result.route())) {
-              list.add(
-                      UICommand.runAction(
-                              "search",
-                              "ux_"
-                                      + httpRequest
-                                      .runActionRq()
-                                      .initiatorComponentId()
-                                      .substring(
-                                              0,
-                                              httpRequest.runActionRq().initiatorComponentId().length()
-                                                      - "_app".length())
-                                      + "_cs_list"));
-          }
-           */
-          return list;
+          return CrudActionResultAssembler.assemble(result, this, httpRequest);
         }
 
         return output;
@@ -136,7 +96,7 @@ public abstract class CrudOrchestrator<
     return this;
   }
 
-  public void addButtonsToList(ArrayList<UserTrigger> toolbar) {
+  public void addButtonsToList(List<UserTrigger> toolbar) {
     getAllMethods(getClass()).stream()
         .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
         .forEach(
