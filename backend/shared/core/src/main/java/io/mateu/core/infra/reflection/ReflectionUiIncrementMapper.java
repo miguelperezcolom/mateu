@@ -1,19 +1,14 @@
 package io.mateu.core.infra.reflection;
 
-import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.CommandMapper.mapToCommandDtos;
 import static io.mateu.core.domain.out.MessageMapper.mapToMessageDtos;
-import static io.mateu.core.infra.JsonSerializer.fromJson;
-import static io.mateu.core.infra.JsonSerializer.toJson;
+import static io.mateu.core.infra.reflection.FragmentDataSerializer.serializeData;
 
 import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
-import io.mateu.dtos.ClientSideComponentDto;
-import io.mateu.dtos.DialogDto;
 import io.mateu.dtos.MessageDto;
 import io.mateu.dtos.UICommandDto;
-import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.data.AppData;
@@ -28,9 +23,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import reactor.core.publisher.Mono;
 
 @Named
@@ -207,35 +200,5 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       return (String) httpRequest.getAttribute("initiatorComponentId");
     }
     return initiatorComponentId;
-  }
-
-  private UIFragmentDto serializeData(UIFragmentDto fragment) {
-    return new UIFragmentDto(
-        fragment.targetComponentId(),
-        fragment.component(),
-        toMap(fragment.state()),
-        toMap(fragment.data()),
-        isDialog(fragment) ? UIFragmentActionDto.Add : UIFragmentActionDto.Replace,
-        fragment.containerId());
-  }
-
-  private boolean isDialog(UIFragmentDto fragment) {
-    return fragment.component() != null
-        && fragment.component() instanceof ClientSideComponentDto
-        && ((ClientSideComponentDto) fragment.component()).metadata() instanceof DialogDto;
-  }
-
-  @SneakyThrows
-  private Object toMap(Object data) {
-    if (data == null) {
-      return null;
-    }
-    if (data instanceof Map) {
-      return data;
-    }
-    if (isBasic(data)) {
-      return data;
-    }
-    return fromJson(toJson(data));
   }
 }
