@@ -4,21 +4,14 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
-import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
-import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Toolbar;
-import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.ModelSupplier;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
@@ -67,45 +60,6 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   private List<UserTrigger> createViewToolbar(Object item, CrudOrchestrator orchestrator) {
-    var toolbar = new ArrayList<UserTrigger>();
-    getAllMethods(orchestrator.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
-        .forEach(
-            method -> {
-              toolbar.add(
-                  new Button(
-                      toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
-            });
-    var entity = item;
-    if (entity instanceof AutoNamedView<?> autoNamedView) {
-      entity = autoNamedView.entity();
-    }
-    getAllMethods(entity.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(Toolbar.class))
-        .forEach(
-            method -> {
-              toolbar.add(
-                  new Button(
-                      toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName()));
-            });
-    toolbar.add(new Button("Back to list", "cancel-view"));
-    if (!readOnly(item, orchestrator)) {
-      toolbar.add(new Button("Add another", "new"));
-      toolbar.add(new Button("Edit", "edit"));
-    }
-    return toolbar;
-  }
-
-  private boolean readOnly(Object item, CrudOrchestrator orchestrator) {
-    if (orchestrator.readOnly()) {
-      return true;
-    }
-    if (orchestrator.viewClass().isAnnotationPresent(ReadOnly.class)) {
-      return true;
-    }
-    if (item instanceof ModelSupplier modelSupplier) {
-      return modelSupplier.model().getClass().isAnnotationPresent(ReadOnly.class);
-    }
-    return false;
+    return ViewToolbarBuilder.createViewToolbar(item, orchestrator);
   }
 }

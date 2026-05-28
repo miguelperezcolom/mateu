@@ -2,13 +2,9 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
-import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
-import io.mateu.uidl.annotations.PrimaryKey;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
@@ -70,39 +66,10 @@ public class CrudAdapterHelper {
   }
 
   public static String getEntityName(Object item) {
-    if (item == null) {
-      return "No item found";
-    }
-    Object name = null;
-    try {
-      name = getValue(getFieldByName(item.getClass(), "name"), item);
-      if (name != null) {
-        return "" + name;
-      }
-    } catch (Exception ignored) {
-    }
-    try {
-      name = getValue(getFieldByName(item.getClass(), getIdField(item.getClass())), item);
-      if (name != null) {
-        return "" + name;
-      }
-    } catch (Exception ignored) {
-    }
-    return item.toString();
+    return EntityFieldInspector.getEntityName(item);
   }
 
   public static String getIdField(Class<?> entityClass) {
-    boolean hasIdField = false;
-    String firstField = null;
-    for (Field field : getAllFields(entityClass)) {
-      if (field.isAnnotationPresent(PrimaryKey.class)) {
-        return field.getName();
-      }
-      hasIdField |= "id".equals(field.getName());
-      if (firstField == null) {
-        firstField = field.getName();
-      }
-    }
-    return hasIdField || firstField == null ? "id" : firstField;
+    return EntityFieldInspector.getIdField(entityClass);
   }
 }

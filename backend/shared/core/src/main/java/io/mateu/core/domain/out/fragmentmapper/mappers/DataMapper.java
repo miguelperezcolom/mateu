@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.Status;
-import io.mateu.uidl.annotations.ValueMapping;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.fluent.Component;
@@ -82,14 +81,7 @@ public class DataMapper {
       if (field.isAnnotationPresent(Status.class)) {
         map.put(field.getName(), StatusFieldMapper.mapStatusValue(field, item));
       } else if (field.isAnnotationPresent(MappedValue.class)) {
-        var ann = field.getAnnotation(MappedValue.class);
-        Map<String, String> mapping = new HashMap<>();
-        for (ValueMapping statusMapping : ann.mappings()) {
-          mapping.put(statusMapping.from(), statusMapping.to());
-        }
-        String defaultType = ann.defaultValue();
-        var value = "" + getValue(field, item);
-        map.put(field.getName(), mapping.getOrDefault(value, defaultType));
+        map.put(field.getName(), MappedValueFieldMapper.mapMappedValue(field, item));
       } else {
         var value = getValue(field, item);
         if (!(value instanceof Component)) {
