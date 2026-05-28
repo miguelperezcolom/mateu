@@ -1,0 +1,45 @@
+package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
+
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+
+import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.MasterDetailLayoutDto;
+import io.mateu.uidl.data.MasterDetailLayout;
+import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
+
+public class MasterDetailLayoutMapper {
+
+  public static ClientSideComponentDto mapMasterDetailLayoutToDto(
+      MasterDetailLayout masterDetailLayout,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    var metadataDto = MasterDetailLayoutDto.builder().build();
+    return new ClientSideComponentDto(
+        metadataDto,
+        masterDetailLayout.id(),
+        List.of(
+            mapComponentToDto(
+                null,
+                masterDetailLayout.master(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest),
+            mapComponentToDto(
+                null,
+                masterDetailLayout.detail(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
+        masterDetailLayout.style(),
+        masterDetailLayout.cssClasses(),
+        null);
+  }
+}

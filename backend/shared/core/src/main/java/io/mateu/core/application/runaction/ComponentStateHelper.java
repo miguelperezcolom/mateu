@@ -3,14 +3,14 @@ package io.mateu.core.application.runaction;
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ActionMapper.mapActions;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper.mapPojo;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataMapper.mapPojo;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.RuleMapper.mapRules;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ValidationMapper.mapValidations;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
-import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataComponentToDtoMapper;
+import io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.DataMapper;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.Route;
@@ -101,7 +101,7 @@ public class ComponentStateHelper {
                   var value = generator.generate();
                   if (value != null && List.class.isAssignableFrom(value.getClass())) {
                     var list = (List<?>) value;
-                    var mappedList = list.stream().map(DataComponentToDtoMapper::mapItem).toList();
+                    var mappedList = list.stream().map(DataMapper::mapItem).toList();
                     newState.put(field.getName(), mappedList);
                   } else {
                     newState.put(field.getName(), value);
