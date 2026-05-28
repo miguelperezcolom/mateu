@@ -1,8 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper;
 
 import io.mateu.dtos.MenuOptionDto;
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.CompiledRouteValue;
@@ -57,46 +55,14 @@ public class AppMappingUtils {
               .map(CompiledRouteValue::routeRegex)
               .orElse(null);
     }
-    if (pattern == null && instance != null) {
-      if (instanceClass.isAnnotationPresent(Route.class)) {
-        for (Route routeAnnotation : instanceClass.getAnnotationsByType(Route.class)) {
-          String patternString = routeAnnotation.value();
-          pattern = returnPatternIfMatches(patternString, route);
-        }
-      }
-    }
-    if (pattern == null && componentSupplier != null) {
-      if (componentSupplier.getClass().isAnnotationPresent(Route.class)) {
-        for (Route routeAnnotation :
-            componentSupplier.getClass().getAnnotationsByType(Route.class)) {
-          String patternString = routeAnnotation.value();
-          pattern = returnPatternIfMatches(patternString, route);
-        }
-      }
-    }
-    if (pattern == null && instance != null) {
-      if (instance.getClass().isAnnotationPresent(UI.class)) {
-        for (UI routeAnnotation : instance.getClass().getAnnotationsByType(UI.class)) {
-          String patternString = routeAnnotation.value();
-          pattern = returnPatternIfMatches(patternString, route);
-        }
-      }
+    if (pattern == null) {
+      pattern =
+          AnnotationPatternFinder.findPattern(instance, instanceClass, componentSupplier, route);
     }
     if (pattern != null) {
       return RoutePatternAccumulator.accumulate(pattern, route);
     }
     return "/";
-  }
-
-  private static Pattern returnPatternIfMatches(String patternString, String route) {
-    if (!patternString.endsWith(".*")) {
-      patternString += ".*";
-    }
-    var pattern = Pattern.compile(patternString);
-    if (pattern.matcher(route).matches()) {
-      return pattern;
-    }
-    return null;
   }
 
   public static boolean isSelected(Actionable actionable, String appRoute, String route) {

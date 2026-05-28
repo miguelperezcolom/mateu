@@ -1,8 +1,5 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
-import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.uidl.Humanizer;
@@ -15,13 +12,10 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.PageTitleSupplier;
 import io.mateu.uidl.interfaces.SubtitleSupplier;
 import io.mateu.uidl.interfaces.TitleSupplier;
-import io.mateu.uidl.interfaces.WidgetSupplier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Objects;
 import jdk.jfr.Label;
-import lombok.SneakyThrows;
 
 class AppMetadataExtractor {
 
@@ -80,28 +74,8 @@ class AppMetadataExtractor {
       String route,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    if (instance instanceof WidgetSupplier widgetSupplier) {
-      return widgetSupplier.widgets(httpRequest);
-    }
-    return getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Widget.class))
-        .map(
-            field ->
-                mapToWidget(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
-        .filter(Objects::nonNull)
-        .toList();
-  }
-
-  @SneakyThrows
-  private static Component mapToWidget(
-      Field field,
-      Object instance,
-      String baseUrl,
-      String route,
-      String initiatorComponentId,
-      HttpRequest httpRequest) {
-    return mapToComponent(
-        getValue(field, instance), baseUrl, route, initiatorComponentId, httpRequest);
+    return AppWidgetExtractor.getWidgets(
+        instance, baseUrl, route, initiatorComponentId, httpRequest);
   }
 
   static String getTitle(Object instance) {
