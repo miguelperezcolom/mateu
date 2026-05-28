@@ -1,0 +1,12 @@
+package io.mateu.core.domain.out.fragmentmapper.mappers;
+
+import io.mateu.dtos.BindingDto;
+import io.mateu.dtos.BindingSourceDto;
+import io.mateu.uidl.data.Binding;
+
+public class BindingMapper {
+
+  public static BindingDto mapBindingToDto(Binding binding) {
+    return new BindingDto(BindingSourceDto.valueOf(binding.source().name()), binding.propertyId());
+  }
+}

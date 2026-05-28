@@ -1,0 +1,44 @@
+package io.mateu.core.domain.out.fragmentmapper.mappers;
+
+import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
+
+import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.PopoverDto;
+import io.mateu.uidl.data.Popover;
+import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
+
+public class PopoverMapper {
+
+  public static ClientSideComponentDto mapPopoverToDto(
+      Popover popover,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    return new ClientSideComponentDto(
+        new PopoverDto(
+            mapComponentToDto(
+                null,
+                popover.content(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest),
+            mapComponentToDto(
+                null,
+                popover.wrapped(),
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest)),
+        "fieldId",
+        List.of(),
+        popover.style(),
+        popover.cssClasses(),
+        null);
+  }
+}

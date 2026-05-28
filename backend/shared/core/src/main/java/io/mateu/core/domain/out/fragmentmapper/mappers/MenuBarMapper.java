@@ -1,0 +1,40 @@
+package io.mateu.core.domain.out.fragmentmapper.mappers;
+
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ContextMenuMapper.buildMenu;
+
+import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.MenuBarDto;
+import io.mateu.uidl.fluent.MenuBar;
+import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
+import java.util.UUID;
+
+public final class MenuBarMapper {
+
+  public static ClientSideComponentDto mapMenuBarToDto(
+      MenuBar menuBar,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    var menuDto =
+        MenuBarDto.builder()
+            .options(
+                buildMenu(
+                    menuBar.options(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest))
+            .build();
+    return new ClientSideComponentDto(
+        menuDto,
+        UUID.randomUUID().toString(),
+        List.of(),
+        menuBar.style(),
+        menuBar.cssClasses(),
+        null);
+  }
+}

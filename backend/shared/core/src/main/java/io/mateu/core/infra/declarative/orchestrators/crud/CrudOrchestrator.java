@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.TriggerMapper.mapToTrigger;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapToTrigger;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;

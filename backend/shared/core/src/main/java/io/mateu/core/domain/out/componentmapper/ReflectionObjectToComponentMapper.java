@@ -3,12 +3,12 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToPageComponent;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.getData;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ActionMapper.mapActions;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.RuleMapper.mapRules;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.TriggerMapper.mapTriggers;
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ValidationMapper.mapValidations;
+import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.getData;
+import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper.mapActions;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRules;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
