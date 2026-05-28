@@ -6,7 +6,7 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.isForm;
 import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getCrud;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
-import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
+import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 

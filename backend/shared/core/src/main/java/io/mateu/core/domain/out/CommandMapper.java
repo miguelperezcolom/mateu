@@ -1,7 +1,7 @@
 package io.mateu.core.domain.out;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isPage;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
+import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isPage;
 
 import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UICommandTypeDto;

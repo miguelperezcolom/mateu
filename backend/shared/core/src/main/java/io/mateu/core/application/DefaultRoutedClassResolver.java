@@ -1,6 +1,6 @@
 package io.mateu.core.application;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
+import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.uidl.RouteConstants;

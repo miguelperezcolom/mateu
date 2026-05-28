@@ -1,0 +1,73 @@
+package io.mateu.core.domain.out.componentmapper;
+
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+
+import io.mateu.dtos.ComponentDto;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.AppData;
+import io.mateu.uidl.data.AppState;
+import io.mateu.uidl.data.Data;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.State;
+import io.mateu.uidl.fluent.AppSupplier;
+import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.interfaces.App;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.interfaces.ListingBackend;
+import io.mateu.uidl.interfaces.Page;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
+public final class ViewTypeClassifier {
+
+  public static boolean isApp(Class<?> instanceType, String route) {
+    if (route.endsWith("_page") || route.endsWith("_no_home_route")) {
+      return false;
+    }
+    if (instanceType.isAnnotationPresent(HomeRoute.class)) return true;
+    if (AppSupplier.class.isAssignableFrom(instanceType)) return true;
+    if (App.class.isAssignableFrom(instanceType)) return true;
+    if (getAllFields(instanceType).stream()
+        .anyMatch(field -> field.isAnnotationPresent(Menu.class))) return true;
+    return false;
+  }
+
+  public static boolean isPage(Object instance, String route) {
+    if (instance instanceof Data) return false;
+    if (instance instanceof Message) return false;
+    if (instance instanceof State) return false;
+    if (instance instanceof AppData) return false;
+    if (instance instanceof AppState) return false;
+    if (route != null && (route.endsWith("_page") || route.endsWith("_no_home_route"))) {
+      return true;
+    }
+    if (instance instanceof ComponentTreeSupplier
+        || instance instanceof Component
+        || instance instanceof ComponentDto) {
+      return false;
+    }
+    return instance instanceof Page
+        || instance instanceof ListingBackend<?, ?>
+        || instance.getClass().isAnnotationPresent(UI.class)
+        || instance.getClass().isAnnotationPresent(Route.class)
+        || instance.getClass().isRecord()
+        || (!isBasic(instance) && hasSomething(instance));
+  }
+
+  private static boolean hasSomething(Object instance) {
+    for (Method method : getAllMethods(instance.getClass())) {
+      if (method.isAnnotationPresent(Toolbar.class)) return true;
+      if (method.isAnnotationPresent(Button.class)) return true;
+    }
+    for (Field field : getAllFields(instance.getClass())) {
+      if (field.isAnnotationPresent(Toolbar.class)) return true;
+      if (field.isAnnotationPresent(Button.class)) return true;
+      if (field.isAnnotationPresent(KPI.class)) return true;
+      if (!Modifier.isFinal(field.getModifiers())) return true;
+    }
+    return false;
+  }
+}

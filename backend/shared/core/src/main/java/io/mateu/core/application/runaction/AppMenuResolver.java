@@ -4,7 +4,7 @@ import static io.mateu.core.application.runaction.ComponentStateHelper.getAppRou
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
 import static io.mateu.core.domain.out.componentmapper.HomeRouteResolver.getSelectedOption;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
-import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
+import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 import static io.mateu.core.infra.reflection.ReflectionUiIncrementMapper.removeQueryParamsFromRoute;
 
 import io.mateu.core.domain.ports.BeanProvider;
