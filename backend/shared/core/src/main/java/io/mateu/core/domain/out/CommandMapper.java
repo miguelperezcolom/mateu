@@ -1,4 +1,4 @@
-package io.mateu.core.domain.out.commandmapper;
+package io.mateu.core.domain.out;
 
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isPage;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;

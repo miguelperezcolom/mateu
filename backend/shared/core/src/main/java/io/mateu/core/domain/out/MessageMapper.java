@@ -1,4 +1,4 @@
-package io.mateu.core.domain.out.messagemapper;
+package io.mateu.core.domain.out;
 
 import io.mateu.dtos.MessageDto;
 import io.mateu.dtos.NotificationPositionDto;

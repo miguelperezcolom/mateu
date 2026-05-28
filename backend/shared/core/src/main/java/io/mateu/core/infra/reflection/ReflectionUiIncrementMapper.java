@@ -1,8 +1,8 @@
-package io.mateu.core.infra.reflection.mappers;
+package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.domain.out.commandmapper.CommandMapper.mapToCommandDtos;
-import static io.mateu.core.domain.out.messagemapper.MessageMapper.mapToMessageDtos;
+import static io.mateu.core.domain.out.CommandMapper.mapToCommandDtos;
+import static io.mateu.core.domain.out.MessageMapper.mapToMessageDtos;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
