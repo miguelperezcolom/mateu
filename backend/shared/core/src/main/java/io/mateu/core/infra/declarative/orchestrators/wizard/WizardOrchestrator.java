@@ -3,11 +3,9 @@ package io.mateu.core.infra.declarative.orchestrators.wizard;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
-import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.dtos.ValidationDto;
-import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -16,7 +14,6 @@ import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -61,51 +58,7 @@ public abstract class WizardOrchestrator
   @SneakyThrows
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
-    if (actionId.startsWith("search-")) {
-      return WizardLookupHandler.handleSearch(actionId, this, httpRequest);
-    }
-    if ("next".equals(actionId)) {
-
-      var stepField = currentStepField();
-      setValue(
-          stepField,
-          this,
-          MateuBeanProvider.getBean(InstanceFactory.class)
-              .newInstance(
-                  stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
-
-      position++;
-    }
-    if ("back".equals(actionId)) {
-      position--;
-    }
-    if (!"".equals(actionId)) {
-      var found =
-          getAllMethods(getClass()).stream()
-              .filter(method -> method.isAnnotationPresent(WizardCompletionAction.class))
-              .filter(method -> actionId.equals(method.getName()))
-              .findFirst();
-      if (found.isPresent()) {
-
-        var stepField = currentStepField();
-        setValue(
-            stepField,
-            this,
-            MateuBeanProvider.getBean(InstanceFactory.class)
-                .newInstance(
-                    stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
-
-        var method = found.get();
-        if (!Modifier.isPublic(method.getModifiers())) {
-          method.setAccessible(true);
-        }
-        var result = method.invoke(this);
-        if (result != null) {
-          return result;
-        }
-      }
-    }
-    return this;
+    return WizardActionDispatcher.dispatch(actionId, this, httpRequest);
   }
 
   @Override
