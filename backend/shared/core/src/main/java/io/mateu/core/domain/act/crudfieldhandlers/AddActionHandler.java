@@ -1,7 +1,7 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
-import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.*;
+import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.*;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
 
 import io.mateu.uidl.data.Button;

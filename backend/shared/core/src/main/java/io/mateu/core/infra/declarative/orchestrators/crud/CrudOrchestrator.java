@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getFormColumns;
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.TriggerMapper.mapToTrigger;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
@@ -318,31 +319,7 @@ public abstract class CrudOrchestrator<
 
     for (io.mateu.uidl.annotations.Trigger annotation :
         getClass().getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class)) {
-      triggers.add(
-          switch (annotation.type()) {
-            case OnLoad ->
-                new OnLoadTriggerDto(
-                    annotation.actionId(),
-                    annotation.timeoutMillis(),
-                    annotation.times(),
-                    annotation.condition());
-            case OnSuccess ->
-                new OnSuccessTriggerDto(
-                    annotation.actionId(),
-                    annotation.calledActionId(),
-                    annotation.condition(),
-                    annotation.timeoutMillis());
-            case OnError ->
-                new OnErrorTriggerDto(
-                    annotation.actionId(), annotation.calledActionId(), annotation.condition());
-            case OnValueChange ->
-                new OnValueChangeTriggerDto(
-                    annotation.actionId(), annotation.calledActionId(), annotation.condition());
-            case OnCustomEvent ->
-                new OnCustomEventTriggerDto(
-                    annotation.actionId(), annotation.eventName(), annotation.condition());
-            case OnEnter -> new OnEnterTriggerDto(annotation.actionId(), annotation.condition());
-          });
+      triggers.add(mapToTrigger(annotation));
     }
 
     return triggers;

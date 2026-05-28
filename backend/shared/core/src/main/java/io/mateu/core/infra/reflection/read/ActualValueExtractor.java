@@ -20,9 +20,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,74 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ActualValueExtractor {
-
-  public static Object getActualValue(
-      Class targetType, Object value, InstanceFactory instanceFactory, HttpRequest httpRequest)
-      throws Exception {
-    Object targetValue = value;
-    if (value == null) {
-      if (int.class.equals(targetType)) {
-        return 0;
-      }
-      if (long.class.equals(targetType)) {
-        return 0l;
-      }
-      if (float.class.equals(targetType)) {
-        return 0f;
-      }
-      if (double.class.equals(targetType)) {
-        return 0.0;
-      }
-      if (boolean.class.equals(targetType)) {
-        return false;
-      }
-      return null;
-    }
-    if (!targetType.equals(value.getClass())) {
-      if (int.class.equals(targetType)) {
-        targetValue = Integer.parseInt("" + value);
-      } else if (long.class.equals(targetType)) {
-        targetValue = Long.parseLong("" + value);
-      } else if (double.class.equals(targetType)) {
-        targetValue = Double.parseDouble("" + value);
-      } else if (float.class.equals(targetType)) {
-        targetValue = Float.parseFloat("" + value);
-      } else if (boolean.class.equals(targetType)) {
-        targetValue = Boolean.parseBoolean("" + value);
-      } else if (Integer.class.equals(targetType)) {
-        targetValue = Integer.parseInt("" + value);
-      } else if (Long.class.equals(targetType)) {
-        targetValue = Long.parseLong("" + value);
-      } else if (Double.class.equals(targetType)) {
-        targetValue = Double.parseDouble("" + value);
-      } else if (Float.class.equals(targetType)) {
-        targetValue = Float.parseFloat("" + value);
-      } else if (BigDecimal.class.equals(targetType)) {
-        targetValue = new BigDecimal("" + value);
-      } else if (Boolean.class.equals(targetType)) {
-        targetValue = Boolean.parseBoolean("" + value);
-      } else if (LocalDate.class.equals(targetType)) {
-        targetValue = LocalDate.parse("" + value);
-      } else if (LocalDateTime.class.equals(targetType)) {
-        targetValue = LocalDateTime.parse("" + value);
-      } else if (LocalTime.class.equals(targetType)) {
-        targetValue = LocalTime.parse("" + value);
-      } else if (targetType.isEnum()) {
-        targetValue = Enum.valueOf(targetType, "" + value);
-      } else if (Class.class.equals(targetType)) {
-        targetValue = Class.forName("" + value);
-        //            } else if (IconChooser.class.equals(targetType)) {
-        //                targetValue = new IconChooser(Icon.valueOf("" + initialValue));
-      } else if (Map.class.isAssignableFrom(value.getClass())) {
-        targetValue =
-            instanceFactory
-                .createInstance(targetType.getName(), (Map<String, Object>) value, httpRequest)
-                .toFuture()
-                .get();
-      }
-    }
-    return targetValue;
-  }
 
   private static boolean checkInjected(Object viewInstance, String fieldName) {
     Field field = getFieldByName(viewInstance.getClass(), fieldName);
@@ -278,7 +207,9 @@ public class ActualValueExtractor {
           List t = new ArrayList();
           for (int i = 0; i < l.size(); i++) {
             Object v = l.get(i);
-            t.add(getActualValue(f.getType().getComponentType(), v, instanceFactory, httpRequest));
+            t.add(
+                TypeCoercionHelper.getActualValue(
+                    f.getType().getComponentType(), v, instanceFactory, httpRequest));
           }
           return t.toArray((Object[]) Array.newInstance(f.getType().getComponentType(), 0));
         }
@@ -293,7 +224,9 @@ public class ActualValueExtractor {
             targetValue = toFile(f, genericType, value);
           }
         } else if (entry.getValue() instanceof String) {
-          targetValue = getActualValue(f.getType(), entry.getValue(), instanceFactory, httpRequest);
+          targetValue =
+              TypeCoercionHelper.getActualValue(
+                  f.getType(), entry.getValue(), instanceFactory, httpRequest);
         } else if (entry.getValue() instanceof Map) {
           targetValue = fromMap((Map<String, Object>) entry.getValue(), f.getType());
         } else if (float.class.equals(f.getType())) {

@@ -3,7 +3,7 @@ package io.mateu.core.application.runaction;
 import static io.mateu.core.application.runaction.ComponentStateHelper.getAppRoute;
 import static io.mateu.core.application.runaction.ComponentStateHelper.invoke;
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
-import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.getSelectedOption;
+import static io.mateu.core.domain.out.componentmapper.HomeRouteResolver.getSelectedOption;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isApp;
 import static io.mateu.core.infra.reflection.mappers.ReflectionUiIncrementMapper.removeQueryParamsFromRoute;
@@ -11,13 +11,8 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
-import io.mateu.core.application.out.MateuHttpClient;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
-import io.mateu.dtos.AppDto;
-import io.mateu.dtos.ClientSideComponentDto;
-import io.mateu.dtos.RunActionRqDto;
-import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppSupplier;
@@ -46,7 +41,7 @@ public class AppMenuResolver {
 
   private final BeanProvider beanProvider;
   private final InstanceFactoryProvider instanceFactoryProvider;
-  private final MateuHttpClient mateuHttpClient;
+  private final RemoteMenuHandler remoteMenuHandler;
   private final List<RouteResolver> routeResolvers;
 
   // ── Public static: used by RunActionUseCase ──────────────────────────────
@@ -142,7 +137,7 @@ public class AppMenuResolver {
             httpRequest);
 
     if (actionable instanceof RemoteMenu remoteMenu) {
-      return handleRemoteMenuActionable(remoteMenu, app, httpRequest, command);
+      return remoteMenuHandler.handleRemoteMenuActionable(remoteMenu, app, httpRequest, command);
     }
 
     if ("_empty".equals(consumedRoute) || "/_page".equals(route) || "_page".equals(route)) {
@@ -247,8 +242,6 @@ public class AppMenuResolver {
     return Mono.empty();
   }
 
-  // ── Remote menu ──────────────────────────────────────────────────────────
-
   Mono<?> resolveRemoteMenuForRoute(
       RunActionCommand command, Object potentialApp, HttpRequest httpRequest) {
     var app =
@@ -280,75 +273,10 @@ public class AppMenuResolver {
             httpRequest);
 
     if (actionable instanceof RemoteMenu remoteMenu) {
-      return handleRemoteMenuActionable(remoteMenu, app, httpRequest, command);
+      return remoteMenuHandler.handleRemoteMenuActionable(remoteMenu, app, httpRequest, command);
     }
 
     return Mono.just(potentialApp);
-  }
-
-  private Mono<?> handleRemoteMenuActionable(
-      RemoteMenu remoteMenu, App app, HttpRequest httpRequest, RunActionCommand command) {
-    return resolveRemoteMenu(remoteMenu, httpRequest, command)
-        .map(
-            result -> {
-              if (result instanceof MicroFrontend microFrontend) {
-                return app.withHomeRoute(microFrontend.route())
-                    .withHomeBaseUrl(microFrontend.baseUrl())
-                    .withHomeServerSideType(microFrontend.serverSideType())
-                    .withHomeConsumedRoute(microFrontend.consumedRoute())
-                    .withHomeUriPrefix("");
-              }
-              return result;
-            })
-        .switchIfEmpty((Mono) Mono.just(Text.builder().text("Remote menu not resolved").build()));
-  }
-
-  private Mono<?> resolveRemoteMenu(
-      RemoteMenu remoteMenu, HttpRequest httpRequest, RunActionCommand command) {
-    RunActionRqDto request =
-        RunActionRqDto.builder()
-            .actionId("")
-            .consumedRoute(remoteMenu.consumedRoute())
-            .route(remoteMenu.route())
-            .serverSideType(remoteMenu.serverSideType())
-            .initiatorComponentId(httpRequest.runActionRq().initiatorComponentId())
-            .build();
-
-    var baseUrl = remoteMenu.baseUrl();
-    if (!baseUrl.startsWith("http")) {
-      baseUrl = httpRequest.getHeaderValue("origin") + baseUrl;
-    }
-
-    var remoteBaseUrl = remoteMenu.baseUrl();
-    if (remoteBaseUrl.startsWith("http")) {
-      remoteBaseUrl = remoteBaseUrl.substring(remoteBaseUrl.indexOf("/") + 1);
-      remoteBaseUrl = remoteBaseUrl.substring(remoteBaseUrl.indexOf("/") + 1);
-      remoteBaseUrl = remoteBaseUrl.substring(remoteBaseUrl.indexOf("/"));
-    }
-
-    return Mono.fromFuture(mateuHttpClient.send(baseUrl, request))
-        .flatMap(
-            uiIncrementDto ->
-                Mono.justOrEmpty(
-                        uiIncrementDto.fragments().stream()
-                            .filter(fragment -> fragment.component() != null)
-                            .map(UIFragmentDto::component)
-                            .filter(componentDto -> componentDto instanceof ClientSideComponentDto)
-                            .map(componentDto -> (ClientSideComponentDto) componentDto)
-                            .map(ClientSideComponentDto::metadata)
-                            .filter(metadata -> metadata instanceof AppDto)
-                            .map(metadata -> (AppDto) metadata)
-                            .findFirst())
-                    .map(app -> (AppDto) app)
-                    .map(
-                        app ->
-                            MicroFrontend.builder()
-                                .route(command.route())
-                                .consumedRoute(app.homeConsumedRoute())
-                                .actionId("")
-                                .baseUrl(remoteMenu.baseUrl())
-                                .serverSideType(app.homeServerSideType())
-                                .build()));
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────

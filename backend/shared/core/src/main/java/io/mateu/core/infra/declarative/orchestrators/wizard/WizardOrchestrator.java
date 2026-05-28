@@ -1,9 +1,9 @@
 package io.mateu.core.infra.declarative.orchestrators.wizard;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getLabel;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getFormColumns;
+import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ValidationMapper.getValidations;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;

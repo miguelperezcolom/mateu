@@ -2,52 +2,20 @@ package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ActionMapper.mapActions;
-import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.RuleMapper.mapRules;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.TriggerMapper.mapTriggers;
+import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ValidationMapper.mapValidations;
 
 import io.mateu.dtos.ComponentDto;
-import io.mateu.dtos.OnCustomEventTriggerDto;
-import io.mateu.dtos.OnEnterTriggerDto;
-import io.mateu.dtos.OnErrorTriggerDto;
-import io.mateu.dtos.OnLoadTriggerDto;
-import io.mateu.dtos.OnSuccessTriggerDto;
-import io.mateu.dtos.OnValueChangeTriggerDto;
-import io.mateu.dtos.RuleActionDto;
-import io.mateu.dtos.RuleDto;
-import io.mateu.dtos.RuleFieldAttributeDto;
-import io.mateu.dtos.RuleResultDto;
 import io.mateu.dtos.ServerSideComponentDto;
-import io.mateu.dtos.TriggerDto;
-import io.mateu.dtos.ValidationDto;
-import io.mateu.uidl.annotations.Rule;
-import io.mateu.uidl.annotations.Validation;
 import io.mateu.uidl.data.FutureComponent;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.OnCustomEventTrigger;
-import io.mateu.uidl.fluent.OnEnterTrigger;
-import io.mateu.uidl.fluent.OnErrorTrigger;
-import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.fluent.OnSuccessTrigger;
-import io.mateu.uidl.fluent.OnValueChangeTrigger;
-import io.mateu.uidl.fluent.Page;
-import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.RuleSupplier;
-import io.mateu.uidl.interfaces.ValidationDtoSupplier;
-import io.mateu.uidl.interfaces.ValidationSupplier;
 import io.mateu.uidl.reflection.ComponentMapper;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 public class FutureComponentToDtoMapper {
 
@@ -83,7 +51,7 @@ public class FutureComponentToDtoMapper {
         mapActions(futureComponent.instance(), httpRequest),
         mapTriggers(futureComponent.instance(), httpRequest),
         mapRules(futureComponent.instance()),
-        mapValidations(futureComponent.instance()),
+        mapValidations(futureComponent.instance(), route),
         null,
         null);
   }
@@ -103,248 +71,5 @@ public class FutureComponentToDtoMapper {
       return resolvedComponents.iterator().next();
     }
     return new VerticalLayout((List<Component>) resolvedComponents.stream().toList());
-  }
-
-  public static List<ValidationDto> mapValidations(Object serverSideObject) {
-    if (serverSideObject instanceof ValidationDtoSupplier validationSupplier) {
-      return validationSupplier.validationDtos();
-    }
-    if (serverSideObject instanceof ValidationSupplier validationSupplier) {
-      return validationSupplier.validations().stream()
-          .map(
-              validation ->
-                  ValidationDto.builder()
-                      .condition(validation.condition())
-                      .fieldId(validation.fieldId())
-                      .message(validation.message())
-                      .build())
-          .toList();
-    }
-    List<ValidationDto> fieldLevelValidations = new ArrayList<>();
-    if (serverSideObject instanceof Page page) {
-      getAllFields(page.getClass()).stream()
-          .flatMap(field -> getValidations(field).stream())
-          .filter(Objects::nonNull)
-          .forEach(fieldLevelValidations::add);
-    }
-    return Stream.concat(
-            fieldLevelValidations.stream(),
-            Arrays.stream(serverSideObject.getClass().getAnnotationsByType(Validation.class))
-                .map(FutureComponentToDtoMapper::mapToValidation))
-        .toList();
-  }
-
-  private static List<ValidationDto> getValidations(Field field) {
-    List<ValidationDto> validations = new ArrayList<>();
-    if (field.isAnnotationPresent(Size.class)) {
-      Arrays.stream(field.getAnnotationsByType(Size.class))
-          .forEach(
-              annotation -> {
-                if (annotation.min() > 0) {
-                  validations.add(
-                      ValidationDto.builder()
-                          .fieldId(field.getName())
-                          .condition(
-                              "state."
-                                  + field.getName()
-                                  + " && state."
-                                  + field.getName()
-                                  + ".length < "
-                                  + annotation.min())
-                          .message(annotation.message())
-                          .build());
-                }
-                if (annotation.max() < Integer.MAX_VALUE) {
-                  validations.add(
-                      ValidationDto.builder()
-                          .fieldId(field.getName())
-                          .condition(
-                              "state."
-                                  + field.getName()
-                                  + " && state."
-                                  + field.getName()
-                                  + ".length > "
-                                  + annotation.max())
-                          .message(annotation.message())
-                          .build());
-                }
-              });
-    }
-    if (field.isAnnotationPresent(Min.class)) {
-      validations.add(
-          ValidationDto.builder()
-              .fieldId(field.getName())
-              .condition(
-                  "state." + field.getName() + " < " + field.getAnnotation(Min.class).value())
-              .message(field.getAnnotation(Min.class).message())
-              .build());
-    }
-    if (field.isAnnotationPresent(Max.class)) {
-      validations.add(
-          ValidationDto.builder()
-              .fieldId(field.getName())
-              .condition(
-                  "state." + field.getName() + " > " + field.getAnnotation(Max.class).value())
-              .message(field.getAnnotation(Max.class).message())
-              .build());
-    }
-    if (field.isAnnotationPresent(Pattern.class)) {
-      validations.add(
-          ValidationDto.builder()
-              .fieldId(field.getName())
-              .condition(
-                  "/"
-                      + field.getAnnotation(Pattern.class).regexp()
-                      + "/.test(state."
-                      + field.getName()
-                      + ")")
-              .message(field.getAnnotation(Pattern.class).message())
-              .build());
-    }
-    return validations;
-  }
-
-  private static ValidationDto mapToValidation(Validation annotation) {
-    return ValidationDto.builder()
-        .fieldId(annotation.fieldId())
-        .condition(annotation.condition())
-        .message(annotation.message())
-        .build();
-  }
-
-  public static List<RuleDto> mapRules(Object serverSideObject) {
-    if (serverSideObject instanceof RuleSupplier ruleSupplier) {
-      return ruleSupplier.rules().stream()
-          .map(
-              rule ->
-                  RuleDto.builder()
-                      .filter(rule.filter())
-                      .action(RuleActionDto.valueOf(rule.action().name()))
-                      .fieldAttribute(
-                          rule.fieldAttribute() != null
-                              ? RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name())
-                              : null)
-                      .fieldName(rule.fieldName())
-                      .value(rule.value())
-                      .expression(rule.expression())
-                      .result(RuleResultDto.valueOf(rule.result().name()))
-                      .actionId(rule.actionId())
-                      .build())
-          .toList();
-    }
-    return Arrays.stream(serverSideObject.getClass().getAnnotationsByType(Rule.class))
-        .map(annotation -> mapToRule(annotation))
-        .toList();
-  }
-
-  private static RuleDto mapToRule(Rule annotation) {
-    return RuleDto.builder()
-        .filter(annotation.filter())
-        .action(
-            annotation.action() != null
-                ? RuleActionDto.valueOf(annotation.action().name())
-                : RuleActionDto.RunAction)
-        .fieldName(annotation.fieldName())
-        .fieldAttribute(
-            annotation.fieldAttribute() != null
-                ? RuleFieldAttributeDto.valueOf(annotation.fieldAttribute().name())
-                : null)
-        .value(annotation.value())
-        .expression(annotation.expression())
-        .result(
-            annotation.result() != null ? RuleResultDto.valueOf(annotation.result().name()) : null)
-        .actionId(annotation.actionId())
-        .build();
-  }
-
-  public static List<TriggerDto> mapTriggers(Object serverSideObject, HttpRequest httpRequest) {
-    if (serverSideObject instanceof TriggersSupplier hasTriggers) {
-      return hasTriggers.triggers(httpRequest).stream()
-          .map(
-              trigger ->
-                  switch (trigger) {
-                    case OnLoadTrigger onLoadTrigger ->
-                        new OnLoadTriggerDto(
-                            onLoadTrigger.actionId(),
-                            onLoadTrigger.timeoutMillis(),
-                            onLoadTrigger.times(),
-                            onLoadTrigger.condition());
-                    case OnCustomEventTrigger onCustomEventTrigger ->
-                        new OnCustomEventTriggerDto(
-                            onCustomEventTrigger.actionId(),
-                            onCustomEventTrigger.eventName(),
-                            onCustomEventTrigger.condition());
-                    case OnSuccessTrigger onSuccessTrigger ->
-                        new OnSuccessTriggerDto(
-                            onSuccessTrigger.actionId(),
-                            onSuccessTrigger.calledActionId(),
-                            onSuccessTrigger.condition(),
-                            onSuccessTrigger.timeoutMillis());
-                    case OnErrorTrigger onErrorTrigger ->
-                        new OnErrorTriggerDto(
-                            onErrorTrigger.actionId(),
-                            onErrorTrigger.calledActionId(),
-                            onErrorTrigger.condition());
-                    case OnValueChangeTrigger onValueChangeTrigger ->
-                        new OnValueChangeTriggerDto(
-                            onValueChangeTrigger.actionId(),
-                            onValueChangeTrigger.propertyName(),
-                            onValueChangeTrigger.condition());
-                    case OnEnterTrigger onEnterTrigger ->
-                        new OnEnterTriggerDto(
-                            onEnterTrigger.actionId(), onEnterTrigger.condition());
-                    default -> new OnLoadTriggerDto("", 0, 0, null);
-                  })
-          .map(trigger -> (TriggerDto) trigger)
-          .toList();
-    }
-    return Arrays.stream(
-            serverSideObject
-                .getClass()
-                .getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class))
-        .map(FutureComponentToDtoMapper::mapToTrigger)
-        .toList();
-  }
-
-  private static TriggerDto mapToTrigger(io.mateu.uidl.annotations.Trigger annotation) {
-    return switch (annotation.type()) {
-      case OnCustomEvent ->
-          OnCustomEventTriggerDto.builder()
-              .actionId(annotation.actionId())
-              .condition(annotation.condition())
-              .eventName(annotation.eventName())
-              .actionId(annotation.actionId())
-              .build();
-      case OnSuccess ->
-          OnSuccessTriggerDto.builder()
-              .actionId(annotation.actionId())
-              .calledActionId(annotation.calledActionId())
-              .condition(annotation.condition())
-              .build();
-      case OnError ->
-          OnErrorTriggerDto.builder()
-              .actionId(annotation.actionId())
-              .calledActionId(annotation.calledActionId())
-              .condition(annotation.condition())
-              .build();
-      case OnValueChange ->
-          OnValueChangeTriggerDto.builder()
-              .actionId(annotation.actionId())
-              .propertyName(annotation.propertyName())
-              .condition(annotation.condition())
-              .build();
-      case OnEnter ->
-          OnEnterTriggerDto.builder()
-              .actionId(annotation.actionId())
-              .condition(annotation.condition())
-              .build();
-      case OnLoad ->
-          OnLoadTriggerDto.builder()
-              .actionId(annotation.actionId())
-              .condition(annotation.condition())
-              .timeoutMillis(annotation.timeoutMillis())
-              .times(annotation.times())
-              .build();
-    };
   }
 }

@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.getSelectedOption;
+import static io.mateu.core.domain.out.componentmapper.HomeRouteResolver.getSelectedOption;
 import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.isSelected;
 import static io.mateu.core.domain.out.fragmentmapper.reflectionbased.ReflectionAppMapper.totalMenuOptions;

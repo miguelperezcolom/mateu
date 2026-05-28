@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getColumns;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getFilters;
+import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getColumns;
+import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getFilters;
 
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;

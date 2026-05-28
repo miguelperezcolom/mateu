@@ -1,8 +1,8 @@
 package io.mateu.core.infra.declarative;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
-import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getLabel;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getView;
+import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;

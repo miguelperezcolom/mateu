@@ -1,7 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.componentbased.mappers;
 
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.isForm;
 import static io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper.isPage;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.isForm;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.dtos.ValidationDto;

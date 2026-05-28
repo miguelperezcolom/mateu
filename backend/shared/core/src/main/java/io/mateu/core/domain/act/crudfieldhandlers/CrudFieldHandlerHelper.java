@@ -1,7 +1,7 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getDetailFormColumns;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
+import static io.mateu.core.domain.out.componentmapper.GridColumnBuilder.getDetailFormColumns;
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.data.State;

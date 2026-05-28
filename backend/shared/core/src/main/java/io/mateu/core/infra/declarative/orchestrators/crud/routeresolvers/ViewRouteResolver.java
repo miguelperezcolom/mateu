@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.*;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getView;
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
