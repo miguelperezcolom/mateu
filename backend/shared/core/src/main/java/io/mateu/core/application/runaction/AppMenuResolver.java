@@ -1,7 +1,6 @@
 package io.mateu.core.application.runaction;
 
 import static io.mateu.core.application.runaction.ComponentStateHelper.getAppRoute;
-import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
 import static io.mateu.core.domain.out.componentmapper.HomeRouteResolver.getSelectedOption;
 import static io.mateu.core.domain.out.componentmapper.ReflectionAppMapper.mapToAppComponent;
 import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
@@ -137,22 +136,17 @@ public class AppMenuResolver {
       return Mono.just(potentialApp);
     }
 
-    if (routeResolvers != null) {
-      var found =
-          routeResolvers.stream()
-              .filter(resolver -> resolver.supportsRoute(route, resolvedRoute))
-              .findFirst();
-      if (found.isPresent()) {
-        var resolvedClass = found.get().resolveRoute(route, resolvedRoute, httpRequest);
-        if (resolvedClass != null) {
-          setResolvedRoute(httpRequest, route);
-          var instanceTypeName = resolvedClass.getName();
-          log.info("absolute {} resolved to {}", route, instance);
-          return instanceFactoryProvider
-              .get(instanceTypeName)
-              .createInstance(instanceTypeName, data, httpRequest);
-        }
-      }
+    var resolved =
+        AbsoluteRouteDispatcher.tryResolve(
+            routeResolvers,
+            route,
+            resolvedRoute,
+            instance,
+            data,
+            instanceFactoryProvider,
+            httpRequest);
+    if (resolved != null) {
+      return resolved;
     }
 
     if (actionable == null) {

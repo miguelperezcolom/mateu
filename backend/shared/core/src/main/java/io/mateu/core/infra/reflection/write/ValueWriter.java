@@ -8,15 +8,8 @@ import static io.mateu.core.infra.reflection.write.FieldValueConverter.convert;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,51 +53,7 @@ public class ValueWriter {
         log.error("when setting initialValue for field " + f.getName(), e);
       }
     } catch (NoSuchMethodException ignored) {
-      if (!Modifier.isPublic(f.getModifiers())) {
-        f.setAccessible(true);
-      }
-      try {
-        if (v != null && "".equals(v.toString())) {
-          if (!String.class.equals(f.getType())) {
-            v = null;
-          }
-        }
-        if (v != null && !"".equals(v.toString())) {
-          if (Integer.class.equals(f.getType())) {
-            v = Integer.valueOf(v.toString());
-          }
-          if (Long.class.equals(f.getType())) {
-            v = Long.valueOf(v.toString());
-          }
-          if (Double.class.equals(f.getType())) {
-            v = Double.valueOf(v.toString());
-          }
-          if (BigInteger.class.equals(f.getType())) {
-            v = new BigInteger(v.toString());
-          }
-          if (BigDecimal.class.equals(f.getType())) {
-            v = new BigDecimal(v.toString());
-          }
-          if (java.sql.Date.class.equals(f.getType())) {
-            v =
-                new java.sql.Date(
-                    LocalDateTime.parse(v.toString())
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()
-                        .toEpochMilli());
-          } else if (Date.class.equals(f.getType())) {
-            v =
-                Date.from(
-                    LocalDateTime.parse(v.toString()).atZone(ZoneId.systemDefault()).toInstant());
-          }
-          if (ZonedDateTime.class.equals(f.getType())) {
-            v = LocalDateTime.parse(v.toString()).atZone(ZoneId.systemDefault());
-          }
-        }
-        f.set(o, v);
-      } catch (Exception ignoredAgain) {
-        f.set(o, null);
-      }
+      FallbackFieldSetter.set(f, o, v);
     }
   }
 
