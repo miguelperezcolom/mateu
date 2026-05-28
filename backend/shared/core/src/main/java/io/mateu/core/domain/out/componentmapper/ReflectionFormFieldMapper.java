@@ -13,15 +13,10 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.FormField;
-import io.mateu.uidl.data.FutureComponent;
-import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Status;
-import io.mateu.uidl.data.VerticalLayout;
-import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
-import io.mateu.uidl.reflection.ComponentMapper;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -130,30 +125,18 @@ public class ReflectionFormFieldMapper {
         && !Amount.class.equals(fieldType)
         && !Status.class.equals(fieldType)
         && !isBasicArray(fieldType)) {
-      if (instance instanceof ModelSupplier modelSupplier) {
-        instance = modelSupplier.model();
-      }
-      var value = instance instanceof Class ? null : getValue(field, instance);
-      return CustomField.builder()
-          .label(getLabelForNonBasic(field))
-          .content(
-              getForm(
-                      ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
-                      value != null ? value : fieldType,
-                      baseUrl,
-                      route,
-                      consumedRoute,
-                      initiatorComponentId,
-                      httpRequest,
-                      forCreationForm,
-                      readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm),
-                      maxColumns)
-                  .stream()
-                  .findFirst()
-                  .orElse(null))
-          .colspan(maxColumns)
-          .style("width: 100%;")
-          .build();
+      return buildNestedFormField(
+          prefix,
+          field,
+          instance,
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest,
+          forCreationForm,
+          readOnly,
+          maxColumns);
     }
     if (field.isAnnotationPresent(Text.class)) {
       var colspan = getColspan(field);
@@ -210,46 +193,41 @@ public class ReflectionFormFieldMapper {
     return new io.mateu.uidl.data.Text(field.getName(), "Pending");
   }
 
-  private static Component resolveFutureComponents(
-      Component component,
+  private static Component buildNestedFormField(
+      String prefix,
+      Field field,
+      Object instance,
       String baseUrl,
       String route,
       String consumedRoute,
       String initiatorComponentId,
-      HttpRequest httpRequest) {
-    if (component instanceof FutureComponent futureComponent) {
-      ComponentMapper componentMapper = MateuBeanProvider.getBean(ComponentMapper.class);
-      var resolvedComponents =
-          componentMapper.mapToComponents(
-              futureComponent.instance(),
-              baseUrl,
-              route,
-              consumedRoute,
-              initiatorComponentId,
-              httpRequest);
-      if (resolvedComponents.size() == 1) {
-        return resolvedComponents.iterator().next();
-      }
-      return new VerticalLayout((List<Component>) resolvedComponents.stream().toList());
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly,
+      int maxColumns) {
+    if (instance instanceof ModelSupplier modelSupplier) {
+      instance = modelSupplier.model();
     }
-    if (component instanceof VerticalLayout verticalLayout) {
-      return new VerticalLayout(
-          verticalLayout.content().stream()
-              .map(
-                  child ->
-                      resolveFutureComponents(
-                          child, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))
-              .toList());
-    }
-    if (component instanceof HorizontalLayout horizontalLayout) {
-      return new HorizontalLayout(
-          horizontalLayout.content().stream()
-              .map(
-                  child ->
-                      resolveFutureComponents(
-                          child, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))
-              .toList());
-    }
-    return component;
+    var value = instance instanceof Class ? null : getValue(field, instance);
+    return CustomField.builder()
+        .label(getLabelForNonBasic(field))
+        .content(
+            getForm(
+                    ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
+                    value != null ? value : field.getType(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest,
+                    forCreationForm,
+                    readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm),
+                    maxColumns)
+                .stream()
+                .findFirst()
+                .orElse(null))
+        .colspan(maxColumns)
+        .style("width: 100%;")
+        .build();
   }
 }
