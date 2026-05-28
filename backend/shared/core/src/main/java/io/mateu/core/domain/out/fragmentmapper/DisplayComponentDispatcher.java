@@ -1,0 +1,80 @@
+package io.mateu.core.domain.out.fragmentmapper;
+
+import static io.mateu.core.domain.out.fragmentmapper.mappers.AnchorMapper.mapAnchorToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.AvatarGroupMapper.mapAvatarGroupToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.AvatarMapper.mapAvatarToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.BadgeMapper.mapBadgeToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.BreadcrumbsMapper.mapBreadcrumbsToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ButtonMapper.mapButtonToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.CardMapper.mapCardToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ChatMapper.mapChatToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapElementToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.IconMapper.mapIconToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ImageMapper.mapImageToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.KPIMapper.mapKPIToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.mapMarkdownToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.TextMapper.mapTextToDto;
+
+import io.mateu.dtos.ComponentDto;
+import io.mateu.uidl.data.*;
+import io.mateu.uidl.fluent.*;
+import io.mateu.uidl.interfaces.HttpRequest;
+
+final class DisplayComponentDispatcher {
+
+  static ComponentDto dispatch(
+      io.mateu.uidl.fluent.Component component,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    if (component instanceof Element element) {
+      return mapElementToDto(element);
+    }
+    if (component instanceof Text text) {
+      return mapTextToDto(text);
+    }
+    if (component instanceof Chat chat) {
+      return mapChatToDto(chat);
+    }
+    if (component instanceof Avatar avatar) {
+      return mapAvatarToDto(avatar);
+    }
+    if (component instanceof AvatarGroup avatarGroup) {
+      return mapAvatarGroupToDto(avatarGroup);
+    }
+    if (component instanceof Badge badge) {
+      return mapBadgeToDto(badge);
+    }
+    if (component instanceof KPI kpi) {
+      return mapKPIToDto(kpi);
+    }
+    if (component instanceof Anchor anchor) {
+      return mapAnchorToDto(anchor);
+    }
+    if (component instanceof Button button) {
+      return mapButtonToDto(button);
+    }
+    if (component instanceof Card card) {
+      return mapCardToDto(card, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof Icon icon) {
+      return mapIconToDto(icon);
+    }
+    if (component instanceof Image image) {
+      return mapImageToDto(image);
+    }
+    if (component instanceof Markdown markdown) {
+      return mapMarkdownToDto(markdown);
+    }
+    if (component instanceof ProgressBar progressBar) {
+      return mapProgressBarToDto(progressBar);
+    }
+    if (component instanceof Breadcrumbs breadcrumbs) {
+      return mapBreadcrumbsToDto(breadcrumbs);
+    }
+    return null;
+  }
+}
