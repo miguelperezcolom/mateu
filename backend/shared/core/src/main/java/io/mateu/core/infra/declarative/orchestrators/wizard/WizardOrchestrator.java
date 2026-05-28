@@ -1,22 +1,16 @@
 package io.mateu.core.infra.declarative.orchestrators.wizard;
 
-import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.getValidations;
-import static io.mateu.core.infra.JsonSerializer.fromJson;
-import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
-import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
 import io.mateu.dtos.ValidationDto;
-import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.data.*;
@@ -28,14 +22,11 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -54,75 +45,11 @@ public abstract class WizardOrchestrator
 
   @Override
   public Object state(HttpRequest httpRequest) {
-    var step = getValueOrClass(position);
-    Class<?> stepClass = step instanceof Class ? (Class<?>) step : step.getClass();
-    var data = toMap();
-    if (!(step instanceof Class)) {
-      data.putAll(toMap(step));
-    }
-    addRowNumber(stepClass, data);
-    return data;
+    return WizardStateSerializer.buildState(this);
   }
 
-  protected Map<String, Object> toMap() {
-    return toMap(this);
-  }
-
-  protected Map<String, Object> toMap(Object instance) {
-    var map = fromJson(toJson(instance));
-    getAllFields(instance.getClass()).stream()
-        .filter(
-            field ->
-                !isBasic(field.getType())
-                    && !Collection.class.isAssignableFrom(field.getType())
-                    && !Map.class.isAssignableFrom(field.getType())
-                    && !Modifier.isFinal(field.getModifiers()))
-        .forEach(
-            field -> {
-              var value = getValue(field, instance);
-              if (value != null) {
-                if (value instanceof Class || isBasic(value)) {
-                  map.put(field.getName(), value);
-                } else {
-                  var nestedMap =
-                      toMap(value).entrySet().stream()
-                          .filter(entry -> entry.getValue() != null)
-                          .collect(Collectors.toMap(entry -> entry.getKey(), Map.Entry::getValue));
-                  map.putAll(nestedMap);
-                }
-              }
-            });
-    return map;
-  }
-
-  public static void addRowNumber(Class type, Map<String, Object> data) {
-    addRowNumber(type, "", data, data);
-  }
-
-  public static void addRowNumber(
-      Class type, String prefix, Map<String, Object> data, Map<String, Object> parentData) {
-    getAllFields(type).stream()
-        .filter(field -> Collection.class.isAssignableFrom(field.getType()))
-        .forEach(
-            field -> {
-              var rowType =
-                  getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
-              parentData.put(prefix + field.getName() + "_rowClass", rowType.getName());
-              var list = (List<?>) data.get(field.getName());
-              if (list != null) {
-                for (int i = 0; i < list.size(); i++) {
-                  if (list.get(i) instanceof Map map) {
-                    map.put("_rowNumber", i);
-                    changeRowData(rowType, map);
-                    addRowNumber(rowType, prefix + field.getName() + "-", map, parentData);
-                  }
-                }
-              }
-            });
-  }
-
-  public static void changeRowData(Class rowType, Map map) {
-    map.put("nombre", "xxxx");
+  public static void addRowNumber(Class<?> type, Map<String, Object> data) {
+    WizardStateSerializer.addRowNumber(type, data);
   }
 
   @Override
@@ -143,35 +70,7 @@ public abstract class WizardOrchestrator
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
     if (actionId.startsWith("search-")) {
-      // search-field-childfield
-      String fieldName = actionId.substring(actionId.indexOf('-') + 1);
-      LookupOptionsSupplier optionsSupplier = null;
-      if (fieldName.contains("-")) {
-        var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
-        var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
-        var rowClass =
-            getGenericClass(
-                (ParameterizedType)
-                    getFieldByName(currentStepField().getType(), parentFieldName).getGenericType(),
-                List.class,
-                "E");
-        var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(Lookup.class);
-        optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
-      } else {
-        var fkAnnotation =
-            getFieldByName(currentStepField().getType(), fieldName).getAnnotation(Lookup.class);
-        optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
-      }
-
-      Pageable pageable = httpRequest.getParameters(Pageable.class);
-      String searchText = (String) httpRequest.runActionRq().parameters().get("searchText");
-      if (searchText == null) {
-        searchText = "";
-      }
-
-      var listingData = optionsSupplier.search(fieldName, searchText, pageable, httpRequest);
-
-      return new Data(Map.of(fieldName, listingData.page()));
+      return WizardLookupHandler.handleSearch(actionId, this, httpRequest);
     }
     if ("next".equals(actionId)) {
 
