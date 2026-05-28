@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import lombok.SneakyThrows;
 
-public class ReflectionAppMapper {
+public class AppMappingUtils {
 
   public static int totalMenuOptions(List<MenuOptionDto> menu) {
     int total = 0;

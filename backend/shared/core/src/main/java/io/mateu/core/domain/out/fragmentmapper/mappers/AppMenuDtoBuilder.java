@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
-import static io.mateu.core.domain.out.fragmentmapper.ReflectionAppMapper.isSelected;
+import static io.mateu.core.domain.out.fragmentmapper.AppMappingUtils.isSelected;
 import static io.mateu.uidl.Humanizer.toCamelCase;
 
 import io.mateu.dtos.MenuOptionDto;

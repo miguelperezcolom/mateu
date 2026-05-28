@@ -3,7 +3,7 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.core.domain.out.componentmapper.AppMenuBuilder.getMenu;
 import static io.mateu.core.domain.out.componentmapper.AppMetadataExtractor.*;
 import static io.mateu.core.domain.out.componentmapper.HomeRouteResolver.*;
-import static io.mateu.core.domain.out.fragmentmapper.ReflectionAppMapper.getRoute;
+import static io.mateu.core.domain.out.fragmentmapper.AppMappingUtils.getRoute;
 
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.HttpRequest;
