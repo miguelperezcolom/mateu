@@ -17,7 +17,6 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
-import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -50,7 +49,7 @@ public class FormViewModel
 
   @Override
   public Component component(HttpRequest httpRequest) {
-    return Page.builder()
+    return PageView.builder()
         .title(title())
         // .header(List.of(new Text("This in header")))
         .badges(createBadges(this))

@@ -16,7 +16,6 @@ import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
-import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
 import java.util.ArrayList;
@@ -45,7 +44,7 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));
     var page =
-        Page.builder()
+        PageView.builder()
             .title(title)
             .style(orchestrator.getStyleForView())
             .badges(createBadges(viewModel))

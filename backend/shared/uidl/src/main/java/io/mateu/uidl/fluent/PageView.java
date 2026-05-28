@@ -9,7 +9,7 @@ import lombok.Builder;
 import lombok.Singular;
 
 @Builder
-public record Page(
+public record PageView(
     String id,
     String pageTitle,
     String favicon,

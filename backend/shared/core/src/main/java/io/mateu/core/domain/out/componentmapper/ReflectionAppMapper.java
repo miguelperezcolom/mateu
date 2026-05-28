@@ -5,12 +5,12 @@ import static io.mateu.core.domain.out.componentmapper.AppMetadataExtractor.*;
 import static io.mateu.core.domain.out.componentmapper.HomeRouteResolver.*;
 import static io.mateu.core.domain.out.fragmentmapper.ReflectionAppMapper.getRoute;
 
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 public class ReflectionAppMapper {
 
-  public static App mapToAppComponent(
+  public static AppShell mapToAppComponent(
       Object instance,
       String baseUrl,
       String route,
@@ -20,7 +20,7 @@ public class ReflectionAppMapper {
     var appRoute = getRoute(instance, instance, httpRequest, route, consumedRoute);
     var menu = getMenu(appRoute, instance, route, httpRequest);
     var selectedOption = getSelectedOption(appRoute, route, menu, httpRequest);
-    return App.builder()
+    return AppShell.builder()
         .route(appRoute)
         .homeRoute(getHomeRoute(instance, selectedOption, httpRequest))
         .homeBaseUrl(getHomeBaseUrl(baseUrl, selectedOption))

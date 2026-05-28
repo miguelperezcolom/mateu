@@ -3,7 +3,7 @@ package io.mateu.core.domain.out.fragmentmapper;
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.CompiledRouteValue;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -44,7 +44,7 @@ public class ReflectionAppMapper {
     }
     Class<?> instanceClass = instance.getClass();
     if (componentSupplier == null) {
-      if (instance instanceof App app) {
+      if (instance instanceof AppShell app) {
         if (app.serverSideType() != null && !"".equals(app.serverSideType())) {
           instanceClass = Class.forName(app.serverSideType());
         }

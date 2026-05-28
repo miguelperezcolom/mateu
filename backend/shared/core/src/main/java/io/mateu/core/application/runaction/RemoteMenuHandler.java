@@ -8,7 +8,7 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.MicroFrontend;
 import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.data.Text;
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -24,7 +24,7 @@ class RemoteMenuHandler {
   private final MateuHttpClient mateuHttpClient;
 
   Mono<?> handleRemoteMenuActionable(
-      RemoteMenu remoteMenu, App app, HttpRequest httpRequest, RunActionCommand command) {
+      RemoteMenu remoteMenu, AppShell app, HttpRequest httpRequest, RunActionCommand command) {
     return resolveRemoteMenu(remoteMenu, httpRequest, command)
         .map(
             result -> {

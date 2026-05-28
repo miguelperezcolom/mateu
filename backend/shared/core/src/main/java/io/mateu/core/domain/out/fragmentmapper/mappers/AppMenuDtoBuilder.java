@@ -11,18 +11,18 @@ import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.MethodLink;
 import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.Actionable;
 import java.util.List;
 
 final class AppMenuDtoBuilder {
 
-  static List<MenuOptionDto> buildMenu(App app, String route, String appRoute) {
+  static List<MenuOptionDto> buildMenu(AppShell app, String route, String appRoute) {
     return buildMenu(app, app.menu(), route, appRoute, "");
   }
 
   private static List<MenuOptionDto> buildMenu(
-      App app, List<Actionable> menu, String route, String appRoute, String prefix) {
+      AppShell app, List<Actionable> menu, String route, String appRoute, String prefix) {
     return menu.stream()
         .map(
             option -> {

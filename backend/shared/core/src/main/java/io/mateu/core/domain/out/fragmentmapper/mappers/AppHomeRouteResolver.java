@@ -2,7 +2,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.data.RemoteMenu;
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -14,7 +14,7 @@ final class AppHomeRouteResolver {
 
   @SneakyThrows
   static String getHomeRoute(
-      App app,
+      AppShell app,
       String route,
       String appRoute,
       HttpRequest httpRequest,
@@ -58,7 +58,7 @@ final class AppHomeRouteResolver {
   }
 
   static String getHomeConsumedRoute(
-      App app,
+      AppShell app,
       String route,
       String appRoute,
       HttpRequest httpRequest,
@@ -67,7 +67,7 @@ final class AppHomeRouteResolver {
   }
 
   static String getHomeBaseUrl(
-      App app,
+      AppShell app,
       String route,
       String appRoute,
       HttpRequest httpRequest,
@@ -78,7 +78,7 @@ final class AppHomeRouteResolver {
   }
 
   static String getHomeServerSideType(
-      App app,
+      AppShell app,
       String route,
       String appRoute,
       HttpRequest httpRequest,
@@ -95,7 +95,7 @@ final class AppHomeRouteResolver {
   }
 
   static String getHomeUriPrefix(
-      App app,
+      AppShell app,
       String route,
       String appRoute,
       HttpRequest httpRequest,
@@ -105,7 +105,7 @@ final class AppHomeRouteResolver {
 
   static String getAppServerSideType(
       ComponentTreeSupplier componentSupplier,
-      App app,
+      AppShell app,
       String route,
       String appRoute,
       HttpRequest httpRequest,

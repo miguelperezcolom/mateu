@@ -8,7 +8,7 @@ import lombok.With;
 
 @Builder
 @With
-public record App(
+public record AppShell(
     String clientSideComponentId,
     String route,
     String homeRoute,
@@ -30,7 +30,7 @@ public record App(
     String logo)
     implements Component, PageMainContent {
 
-  public App {
+  public AppShell {
     variant = variant != null ? variant : AppVariant.TABS;
     menu = menu != null ? menu : List.of();
     route = route != null ? route : "";

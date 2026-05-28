@@ -10,5 +10,5 @@ public interface AppSupplier extends ComponentTreeSupplier {
     return getApp(httpRequest);
   }
 
-  App getApp(HttpRequest httpRequest);
+  AppShell getApp(HttpRequest httpRequest);
 }

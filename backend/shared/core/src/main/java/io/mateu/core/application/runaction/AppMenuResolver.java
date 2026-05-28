@@ -14,7 +14,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewIns
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.uidl.data.*;
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.Actionable;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -32,7 +32,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
-/** Resolves App/menu actionables and remote menus from a route. */
+/** Resolves AppShell/menu actionables and remote menus from a route. */
 @Slf4j
 @Named
 @Singleton
@@ -71,7 +71,7 @@ public class AppMenuResolver {
     var rawRoute = command.route();
     var route = removeQueryParamsFromRoute(rawRoute);
 
-    if (instance instanceof App app) {
+    if (instance instanceof AppShell app) {
       return resolveInApp(command, route, app, instance, true, findRouteResolverFn);
     }
     if (instance instanceof AppSupplier appSupplier) {
@@ -282,13 +282,13 @@ public class AppMenuResolver {
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   @SneakyThrows
-  App toApp(
+  AppShell toApp(
       Object potentialApp,
       String baseUrl,
       String consumedRoute,
       String initialComponentId,
       HttpRequest httpRequest) {
-    if (potentialApp instanceof App app) {
+    if (potentialApp instanceof AppShell app) {
       return app;
     }
     return mapToAppComponent(

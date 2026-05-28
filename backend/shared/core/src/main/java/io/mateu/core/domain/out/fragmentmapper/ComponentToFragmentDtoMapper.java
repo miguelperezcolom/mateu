@@ -75,7 +75,6 @@ import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.creat
 import io.mateu.dtos.*;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
-import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.DataSupplier;
 import io.mateu.uidl.interfaces.DtoSupplier;
@@ -171,7 +170,7 @@ public final class ComponentToFragmentDtoMapper {
       return mapComponentTreeSupplierToDto(
           componentTreeSupplier, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
-    if (component instanceof Page page) {
+    if (component instanceof PageView page) {
       return mapPageToDto(
           page,
           componentSupplier,
@@ -181,7 +180,7 @@ public final class ComponentToFragmentDtoMapper {
           initiatorComponentId,
           httpRequest);
     }
-    if (component instanceof App app) {
+    if (component instanceof AppShell app) {
       return mapAppToDto(
           componentSupplier, app, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }

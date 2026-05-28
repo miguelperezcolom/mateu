@@ -12,7 +12,7 @@ import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -25,7 +25,7 @@ public final class AppMapper {
   @SneakyThrows
   public static ClientSideComponentDto mapAppToDto(
       ComponentTreeSupplier componentSupplier,
-      App app,
+      AppShell app,
       String baseUrl,
       String route,
       String consumedRoute,
@@ -95,7 +95,7 @@ public final class AppMapper {
   }
 
   @SneakyThrows
-  private static String getSseUrl(App app) {
+  private static String getSseUrl(AppShell app) {
     if (app.serverSideType() == null) return null;
     var appClass = Class.forName(app.serverSideType());
     if (appClass.isAnnotationPresent(AI.class)) {

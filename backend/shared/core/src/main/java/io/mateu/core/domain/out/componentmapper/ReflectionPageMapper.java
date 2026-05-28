@@ -23,7 +23,8 @@ import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.ContentSupplier;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
@@ -37,14 +38,14 @@ import lombok.SneakyThrows;
 
 public class ReflectionPageMapper {
 
-  public static Page mapToPageComponent(
+  public static PageView mapToPageComponent(
       Object instance,
       String baseUrl,
       String route,
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return Page.builder()
+    return PageView.builder()
         .pageTitle(getPageTitle(instance))
         .breadcrumbs(getBreadcrumbs(instance, httpRequest))
         .title(getTitle(instance))

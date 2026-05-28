@@ -6,14 +6,14 @@ import io.mateu.dtos.BreadcrumbDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.PageDto;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 public class PageMapper {
 
   public static ComponentDto mapPageToDto(
-      Page page,
+      PageView page,
       ComponentTreeSupplier componentSupplier,
       String baseUrl,
       String route,

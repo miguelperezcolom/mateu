@@ -10,7 +10,6 @@ import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
-import io.mateu.uidl.fluent.Page;
 import io.mateu.uidl.interfaces.Deleteable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
@@ -75,7 +74,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                 .toList();
     String title;
     httpRequest.setAttribute("windowTitle", title = orchestrator.title());
-    return Page.builder()
+    return PageView.builder()
         .title(title)
         .style(orchestrator.getStyleForList(columns))
         .content(

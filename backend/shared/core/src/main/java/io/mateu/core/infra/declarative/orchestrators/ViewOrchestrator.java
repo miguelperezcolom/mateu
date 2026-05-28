@@ -12,7 +12,7 @@ import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.ActionSupplier;
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
@@ -143,7 +143,7 @@ public abstract class ViewOrchestrator
     httpRequest.setAttribute(
         "upstreamComponentId", httpRequest.runActionRq().initiatorComponentId() + "_app");
     return wrap(
-        App.builder()
+        AppShell.builder()
             .clientSideComponentId(httpRequest.runActionRq().initiatorComponentId() + "_cs")
             .homeRoute(route)
             .serverSideType(getClass().getName())

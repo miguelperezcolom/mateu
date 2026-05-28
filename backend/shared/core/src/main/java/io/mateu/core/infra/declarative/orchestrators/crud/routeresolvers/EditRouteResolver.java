@@ -11,7 +11,7 @@ import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class EditRouteResolver implements CrudOrchestratorRouteResolver {
         editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));
-    return Page.builder()
+    return PageView.builder()
         .title(title)
         .style(orchestrator.getStyleForView())
         .badges(createBadges(viewModel))

@@ -36,7 +36,7 @@ public class MediatorRouteResolver implements CrudOrchestratorRouteResolver {
     httpRequest.setAttribute(
         "upstreamComponentId", httpRequest.runActionRq().initiatorComponentId() + "_app");
     return wrap(
-        App.builder()
+        AppShell.builder()
             .clientSideComponentId(httpRequest.runActionRq().initiatorComponentId() + "_cs")
             .homeRoute(route)
             .serverSideType(orchestrator.getClass().getName())
