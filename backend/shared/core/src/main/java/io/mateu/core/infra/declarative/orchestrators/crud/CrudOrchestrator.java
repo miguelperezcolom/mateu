@@ -1,6 +1,5 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
-import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapToTrigger;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
@@ -28,7 +27,6 @@ import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class CrudOrchestrator<
@@ -184,30 +182,6 @@ public abstract class CrudOrchestrator<
 
   @Override
   public List<TriggerDto> triggers(String viewName, HttpRequest httpRequest) {
-    var triggers = new ArrayList<TriggerDto>();
-    if (httpRequest.getAttribute("list") != null) {
-      triggers.add(new OnLoadTriggerDto("search", 0, 1, null));
-      /*
-      triggers.add(new OnSuccessTrigger("search", "create", ""));
-      triggers.add(new OnSuccessTrigger("search", "delete", ""));
-      triggers.add(new OnSuccessTrigger("search", "save", ""));
-      triggers.add(new OnSuccessTrigger("search", "cancel-view", ""));
-      triggers.add(new OnSuccessTrigger("search", "cancel-create", ""));
-      getAllMethods(getClass()).stream()
-          .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
-          .forEach(
-              method -> {
-                triggers.add(
-                    new OnSuccessTrigger("search", "action-on-row-" + method.getName(), ""));
-              });
-       */
-    }
-
-    for (io.mateu.uidl.annotations.Trigger annotation :
-        getClass().getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class)) {
-      triggers.add(mapToTrigger(annotation));
-    }
-
-    return triggers;
+    return CrudTriggersBuilder.build(this, viewName, httpRequest);
   }
 }

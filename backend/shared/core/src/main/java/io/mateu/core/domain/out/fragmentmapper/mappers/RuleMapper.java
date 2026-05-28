@@ -1,7 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
@@ -53,45 +52,7 @@ public class RuleMapper {
                         .expression(field.getAnnotation(Hidden.class).value())
                         .result(RuleResultDto.Continue)
                         .build()));
-    getAllFields(viewClass).stream()
-        .filter(field -> List.class.isAssignableFrom(field.getType()))
-        .forEach(
-            collectionField -> {
-              var rowClass = getGenericClass(collectionField, List.class, "E");
-              rules.addAll(
-                  Arrays.stream(viewClass.getAnnotationsByType(Rule.class))
-                      .map(RuleMapper::mapToRule)
-                      .toList());
-              getAllFields(rowClass).stream()
-                  .filter(field -> field.isAnnotationPresent(Disabled.class))
-                  .forEach(
-                      field ->
-                          rules.add(
-                              RuleDto.builder()
-                                  .filter("true")
-                                  .action(RuleActionDto.SetDataValue)
-                                  .fieldName(collectionField.getName() + "-" + field.getName())
-                                  .fieldAttribute(RuleFieldAttributeDto.disabled)
-                                  .expression("true")
-                                  .result(RuleResultDto.Continue)
-                                  .build()));
-              getAllFields(rowClass).stream()
-                  .filter(
-                      field ->
-                          field.isAnnotationPresent(Hidden.class)
-                              && !field.getAnnotation(Hidden.class).value().isEmpty())
-                  .forEach(
-                      field ->
-                          rules.add(
-                              RuleDto.builder()
-                                  .filter("true")
-                                  .action(RuleActionDto.SetDataValue)
-                                  .fieldName(collectionField.getName() + "-" + field.getName())
-                                  .fieldAttribute(RuleFieldAttributeDto.hidden)
-                                  .expression(field.getAnnotation(Hidden.class).value())
-                                  .result(RuleResultDto.Continue)
-                                  .build()));
-            });
+    ListFieldRuleCollector.addListFieldRules(viewClass, rules);
     if (serverSideObject instanceof RuleSupplier ruleSupplier) {
       rules.addAll(
           ruleSupplier.rules().stream()
