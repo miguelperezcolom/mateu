@@ -115,18 +115,7 @@ public class AppMenuResolver {
         httpRequest.getAttribute("resolvedRoute") != null
             ? (String) httpRequest.getAttribute("resolvedRoute")
             : app.route();
-
-    var cleanRoute = route;
-    if (route.startsWith(consumedRoute)) {
-      cleanRoute = route.substring(consumedRoute.length());
-    }
-    var actionable =
-        resolveMenu(
-            resolvedRoute,
-            app.menu(),
-            cleanRoute,
-            ("_empty".equals(consumedRoute) ? app.route() : "") + route,
-            httpRequest);
+    var actionable = AppMenuActionableFinder.find(app, route, consumedRoute, httpRequest);
 
     if (actionable instanceof RemoteMenu remoteMenu) {
       return remoteMenuHandler.handleRemoteMenuActionable(remoteMenu, app, httpRequest, command);
@@ -175,22 +164,8 @@ public class AppMenuResolver {
       return Mono.just(potentialApp);
     }
 
-    var resolvedRoute =
-        httpRequest.getAttribute("resolvedRoute") != null
-            ? (String) httpRequest.getAttribute("resolvedRoute")
-            : app.route();
-
-    var cleanRoute = command.route();
-    if (command.route().startsWith(command.consumedRoute())) {
-      cleanRoute = command.route().substring(command.consumedRoute().length());
-    }
     var actionable =
-        resolveMenu(
-            resolvedRoute,
-            app.menu(),
-            cleanRoute,
-            ("_empty".equals(command.consumedRoute()) ? app.route() : "") + command.route(),
-            httpRequest);
+        AppMenuActionableFinder.find(app, command.route(), command.consumedRoute(), httpRequest);
 
     if (actionable instanceof RemoteMenu remoteMenu) {
       return remoteMenuHandler.handleRemoteMenuActionable(remoteMenu, app, httpRequest, command);
