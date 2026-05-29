@@ -53,16 +53,7 @@ public class ActionOnViewActionHandler implements CrudOrchestratorActionHandler 
             return CrudActionResult.of(actionId)
                 .withRoute("/" + savedId)
                 .withState(new State(item))
-                .withTargetComponentId(
-                    "ux_"
-                        + httpRequest
-                            .runActionRq()
-                            .initiatorComponentId()
-                            .substring(
-                                0,
-                                httpRequest.runActionRq().initiatorComponentId().length()
-                                    - "_app".length())
-                        + "_cs_view");
+                .withTargetComponentId(CrudTargetComponentId.view(httpRequest));
           } catch (Throwable e) {
             if (e instanceof InvocationTargetException invocationTargetException
                 && invocationTargetException.getCause() != null) {
