@@ -45,6 +45,7 @@ final class NestedFormFieldBuilder {
                 .badges(createBadges(value))
                 .content(
                         getView(
+                                ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
                                 value,
                                 "base_url",
                                 httpRequest.runActionRq().route(),

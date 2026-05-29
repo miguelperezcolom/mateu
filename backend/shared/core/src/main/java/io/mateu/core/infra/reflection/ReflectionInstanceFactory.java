@@ -48,8 +48,10 @@ public class ReflectionInstanceFactory implements InstanceFactory {
               }
             });
 
+    var unflattenedData = unflatten(newData);
+
     return Mono.just(loadClass(className))
-        .map(uiClass -> newInstance(uiClass, newData, httpRequest))
+        .map(uiClass -> newInstance(uiClass, unflattenedData, httpRequest))
         .map(uiInstance -> hydrateIfNeeded(uiInstance, httpRequest))
         .map(uiInstance -> postHydrateIfNeeded(uiInstance, httpRequest));
   }
@@ -123,5 +125,26 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   private Object createInstance(
       Class type, Object data, HttpRequest httpRequest, Class genericType) {
     return ReflectionTypeCoercer.coerce(type, data, httpRequest, genericType, this);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> unflatten(Map<String, Object> flatMap) {
+    Map<String, Object> result = new LinkedHashMap<>();
+    for (Map.Entry<String, Object> entry : flatMap.entrySet()) {
+      String key = entry.getKey();
+      int dashIdx = key.indexOf('-');
+      if (dashIdx < 0) {
+        result.put(key, entry.getValue());
+      } else {
+        String prefix = key.substring(0, dashIdx);
+        String rest = key.substring(dashIdx + 1);
+        Map<String, Object> nested =
+            (Map<String, Object>) result.computeIfAbsent(prefix, k -> new LinkedHashMap<>());
+        nested.put(rest, entry.getValue());
+      }
+    }
+    result.replaceAll(
+        (k, v) -> (v instanceof Map) ? unflatten((Map<String, Object>) v) : v);
+    return result;
   }
 }

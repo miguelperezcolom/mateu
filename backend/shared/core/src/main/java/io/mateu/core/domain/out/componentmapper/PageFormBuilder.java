@@ -14,7 +14,20 @@ import java.util.*;
 
 public class PageFormBuilder {
 
-  public static Collection<? extends Component> getView(
+    public static Collection<? extends Component> getView(
+            Object instance,
+            String baseUrl,
+            String route,
+            String consumedRoute,
+            String initiatorComponentId,
+            HttpRequest httpRequest,
+            boolean readOnly,
+            boolean forCreationForm) {
+        return getView("", instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest, readOnly, forCreationForm);
+    }
+
+    public static Collection<? extends Component> getView(
+            String prefix,
       Object instance,
       String baseUrl,
       String route,
@@ -29,6 +42,7 @@ public class PageFormBuilder {
     var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
     int maxColumns = getFormColumns(instanceType);
     return getForm(
+            prefix,
         instance,
         baseUrl,
         route,
