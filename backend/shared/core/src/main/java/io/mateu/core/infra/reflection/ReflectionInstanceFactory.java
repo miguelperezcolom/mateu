@@ -134,7 +134,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
       String key = entry.getKey();
       int dashIdx = key.indexOf('-');
       if (dashIdx < 0) {
-        result.put(key, entry.getValue());
+        result.putIfAbsent(key, entry.getValue());
       } else {
         String prefix = key.substring(0, dashIdx);
         String rest = key.substring(dashIdx + 1);

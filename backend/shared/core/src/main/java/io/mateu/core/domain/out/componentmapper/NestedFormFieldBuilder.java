@@ -39,13 +39,14 @@ final class NestedFormFieldBuilder {
         if (value == null) {
             value = getValueOrNewInstance(field, instance, httpRequest);
         }
+        var newPrefix = ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-";
         return PageView.builder()
                 .title(labelForNonBasic(field))
                 //.style(orchestrator.getStyleForView())
                 .badges(createBadges(value))
                 .content(
                         getView(
-                                ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-",
+                                newPrefix,
                                 value,
                                 "base_url",
                                 httpRequest.runActionRq().route(),
@@ -56,8 +57,8 @@ final class NestedFormFieldBuilder {
                                 false)
                                 .stream()
                                 .toList())
-                .toolbar(createToolbar(value))
-                .buttons(createButtons(value))
+                .toolbar(createToolbar("nested-form-action-" + newPrefix, value))
+                .buttons(createButtons("nested-form-action-" + newPrefix, value))
                 .build();
     }
     return CustomField.builder()
