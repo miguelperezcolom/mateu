@@ -16,6 +16,7 @@ import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.UISpec;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
@@ -54,34 +55,8 @@ public class ReflectionObjectToComponentMapper {
       var uiSpec = instance.getClass().getAnnotation(UISpec.class);
       var component = yamlUidlLoader.loadFromSpec(uiSpec.value());
       if (component != null) {
-        return new UIFragmentDto(
-            initiatorComponentId,
-            new ServerSideComponentDto(
-                UUID.randomUUID().toString(),
-                instance.getClass().getName(),
-                consumedRoute,
-                List.of(
-                    mapComponentToDto(
-                        null,
-                        component,
-                        baseUrl,
-                        route,
-                        consumedRoute,
-                        initiatorComponentId,
-                        httpRequest)),
-                instance,
-                "",
-                "",
-                mapActions(instance, httpRequest),
-                mapTriggers(instance, httpRequest),
-                mapRules(instance),
-                mapValidations(instance, route),
-                null,
-                null),
-            instance,
-            getData(httpRequest, instance),
-            UIFragmentActionDto.Replace,
-            null);
+        return buildPageUIFragment(
+            instance, component, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
       }
     }
     if (isApp(instance.getClass(), route)) {
@@ -89,41 +64,54 @@ public class ReflectionObjectToComponentMapper {
           instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (isPage(instance, route)) {
-      return new UIFragmentDto(
-          initiatorComponentId,
-          new ServerSideComponentDto(
-              UUID.randomUUID().toString(),
-              instance.getClass().getName(),
-              consumedRoute,
-              List.of(
-                  mapComponentToDto(
-                      null,
-                      mapToPageComponent(
-                          instance,
-                          baseUrl,
-                          route,
-                          consumedRoute,
-                          initiatorComponentId,
-                          httpRequest),
-                      baseUrl,
-                      route,
-                      consumedRoute,
-                      initiatorComponentId,
-                      httpRequest)),
-              instance,
-              "",
-              "",
-              mapActions(instance, httpRequest),
-              mapTriggers(instance, httpRequest),
-              mapRules(instance),
-              mapValidations(instance, route),
-              null,
-              null),
+      return buildPageUIFragment(
           instance,
-          getData(httpRequest, instance),
-          UIFragmentActionDto.Replace,
-          null);
+          mapToPageComponent(
+              instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest),
+          baseUrl,
+          route,
+          consumedRoute,
+          initiatorComponentId,
+          httpRequest);
     }
     return instance;
+  }
+
+  private UIFragmentDto buildPageUIFragment(
+      Object instance,
+      Component component,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
+    return new UIFragmentDto(
+        initiatorComponentId,
+        new ServerSideComponentDto(
+            UUID.randomUUID().toString(),
+            instance.getClass().getName(),
+            consumedRoute,
+            List.of(
+                mapComponentToDto(
+                    null,
+                    component,
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest)),
+            instance,
+            "",
+            "",
+            mapActions(instance, httpRequest),
+            mapTriggers(instance, httpRequest),
+            mapRules(instance),
+            mapValidations(instance, route),
+            null,
+            null),
+        instance,
+        getData(httpRequest, instance),
+        UIFragmentActionDto.Replace,
+        null);
   }
 }
