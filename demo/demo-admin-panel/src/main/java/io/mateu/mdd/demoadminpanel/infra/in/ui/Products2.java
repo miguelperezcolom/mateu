@@ -13,10 +13,9 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 enum Product2Status {
     Available, OutOfStock
@@ -49,6 +48,7 @@ record Product2(
                         new ColumnAction("setAsBlue", "Set as blue"),
                         new ColumnAction("setAsGreen", "Set as green")
                 });
+        components = components != null? components: new ArrayList<>();
     }
 
     @Toolbar

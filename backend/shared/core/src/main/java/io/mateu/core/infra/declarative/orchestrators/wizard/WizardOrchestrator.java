@@ -63,7 +63,7 @@ public abstract class WizardOrchestrator
 
   @Override
   public Object handleRoute(String route, HttpRequest httpRequest) {
-    return new Text("route was " + route);
+    return this;
   }
 
   @Override

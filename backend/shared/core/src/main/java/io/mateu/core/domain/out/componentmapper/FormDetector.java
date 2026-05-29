@@ -21,26 +21,28 @@ import java.lang.reflect.Modifier;
 
 public final class FormDetector {
 
-  public static boolean isForm(Object instance) {
-    if (instance instanceof Form) {
-      return true;
+    public static boolean isForm(Object instance) {
+        return instance instanceof Form || isForm(instance.getClass());
     }
-    return (getAllFields(instance.getClass()).stream()
+
+
+    public static boolean isForm(Class<?> type) {
+    return (getAllFields(type).stream()
                 .anyMatch(
                     field ->
                         field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
                             || field.isAnnotationPresent(Toolbar.class))
-            || getAllMethods(instance.getClass()).stream()
+            || getAllMethods(type).stream()
                 .anyMatch(
                     method ->
                         method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
                             || method.isAnnotationPresent(Toolbar.class)))
-        && getAllFields(instance.getClass()).stream()
+        && getAllFields(type).stream()
             .anyMatch(
                 field ->
                     !(field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
                             || field.isAnnotationPresent(Toolbar.class))
-                        && (!Modifier.isFinal(field.getModifiers())
+                        && ((!Modifier.isFinal(field.getModifiers()) || field.getDeclaringClass().isRecord())
                             && !field.isAnnotationPresent(ReadOnly.class)
                             && !Component.class.isAssignableFrom(field.getType())
                             && !ComponentTreeSupplier.class.isAssignableFrom(field.getType())

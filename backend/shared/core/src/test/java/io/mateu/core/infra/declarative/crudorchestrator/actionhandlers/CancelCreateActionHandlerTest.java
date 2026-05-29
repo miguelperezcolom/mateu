@@ -3,8 +3,8 @@ package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.CancelCreateActionHandler;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CancelNewActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,29 +17,25 @@ class CancelCreateActionHandlerTest {
   @Mock CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator;
   @Mock HttpRequest httpRequest;
 
-  private final CancelCreateActionHandler handler = new CancelCreateActionHandler();
+  private final CancelNewActionHandler handler = new CancelNewActionHandler();
 
   @Test
-  void supportsOnlyCancelCreateAction() {
-    assertThat(handler.supports("cancel-create")).isTrue();
-    assertThat(handler.supports("cancel-edit")).isFalse();
-    assertThat(handler.supports("cancel-view")).isFalse();
+  void supportsOnlyCancelNewAction() {
+    assertThat(handler.supports("cancel-new", httpRequest)).isTrue();
+    assertThat(handler.supports("cancel-edit", httpRequest)).isFalse();
+    assertThat(handler.supports("cancel-view", httpRequest)).isFalse();
   }
 
   @Test
   void alwaysRedirectsToList() {
-    var initial = CrudActionResult.of("cancel-create");
-
-    var result = handler.handle(orchestrator, initial, httpRequest);
+    var result = (CrudActionResult) handler.handleAction("cancel-new", httpRequest, orchestrator);
 
     assertThat(result.route()).isEqualTo("/list");
   }
 
   @Test
   void noMessages() {
-    var initial = CrudActionResult.of("cancel-create");
-
-    var result = handler.handle(orchestrator, initial, httpRequest);
+    var result = (CrudActionResult) handler.handleAction("cancel-new", httpRequest, orchestrator);
 
     assertThat(result.messages()).isEmpty();
   }

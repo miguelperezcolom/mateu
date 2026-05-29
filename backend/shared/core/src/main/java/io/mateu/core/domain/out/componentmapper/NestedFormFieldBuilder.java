@@ -1,15 +1,20 @@
 package io.mateu.core.domain.out.componentmapper;
 
-import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
-import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
-import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.isReadOnly;
-import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
-
 import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
+
 import java.lang.reflect.Field;
+
+import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.*;
+import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
+import static io.mateu.core.infra.declarative.FormViewToolbarBuilder.createButtons;
+import static io.mateu.core.infra.declarative.FormViewToolbarBuilder.createToolbar;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
 final class NestedFormFieldBuilder {
 
@@ -29,6 +34,31 @@ final class NestedFormFieldBuilder {
       instance = modelSupplier.model();
     }
     var value = instance instanceof Class ? null : getValue(field, instance);
+    var type = value != null ? value.getClass() : field.getType();
+    if (FormDetector.isForm(type)) {
+        if (value == null) {
+            value = getValueOrNewInstance(field, instance, httpRequest);
+        }
+        return PageView.builder()
+                .title(labelForNonBasic(field))
+                //.style(orchestrator.getStyleForView())
+                .badges(createBadges(value))
+                .content(
+                        getView(
+                                value,
+                                "base_url",
+                                httpRequest.runActionRq().route(),
+                                httpRequest.runActionRq().consumedRoute(),
+                                httpRequest.runActionRq().initiatorComponentId(),
+                                httpRequest,
+                                false,
+                                false)
+                                .stream()
+                                .toList())
+                .toolbar(createToolbar(value))
+                .buttons(createButtons(value))
+                .build();
+    }
     return CustomField.builder()
         .label(labelForNonBasic(field))
         .content(

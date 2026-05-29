@@ -9,9 +9,9 @@ import io.mateu.uidl.fluent.UserTrigger;
 import java.util.ArrayList;
 import java.util.List;
 
-final class FormViewToolbarBuilder {
+public final class FormViewToolbarBuilder {
 
-  static List<UserTrigger> createToolbar(Object instance) {
+  public static List<UserTrigger> createToolbar(Object instance) {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(Toolbar.class))
@@ -21,7 +21,7 @@ final class FormViewToolbarBuilder {
     return toolbar;
   }
 
-  static List<UserTrigger> createButtons(Object instance) {
+  public static List<UserTrigger> createButtons(Object instance) {
     var buttons = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))

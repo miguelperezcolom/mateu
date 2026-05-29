@@ -53,9 +53,8 @@ public class RouteAnnotationProcessorTest {
   @Test
   public void parseIndexFileReturnsTwoEntries() throws IOException {
     URL url = getClass().getResource("/route-registrations-sample.txt");
-    var processor = new RouteAnnotationProcessor();
 
-    List<Map<String, String>> entries = processor.parseIndexFile(url);
+    List<Map<String, String>> entries = IndexedUIProcessor.parseIndexFile(url);
 
     assertThat(entries).hasSize(2);
   }
@@ -63,9 +62,8 @@ public class RouteAnnotationProcessorTest {
   @Test
   public void parseIndexFileParsesSingleRoute() throws IOException {
     URL url = getClass().getResource("/route-registrations-sample.txt");
-    var processor = new RouteAnnotationProcessor();
 
-    List<Map<String, String>> entries = processor.parseIndexFile(url);
+    List<Map<String, String>> entries = IndexedUIProcessor.parseIndexFile(url);
 
     Map<String, String> first = entries.get(0);
     assertThat(first.get("class")).isEqualTo("com.example.ProductsPage");
@@ -76,9 +74,8 @@ public class RouteAnnotationProcessorTest {
   @Test
   public void parseIndexFileParsesMultipleRoutes() throws IOException {
     URL url = getClass().getResource("/route-registrations-sample.txt");
-    var processor = new RouteAnnotationProcessor();
 
-    List<Map<String, String>> entries = processor.parseIndexFile(url);
+    List<Map<String, String>> entries = IndexedUIProcessor.parseIndexFile(url);
 
     Map<String, String> second = entries.get(1);
     assertThat(second.get("class")).isEqualTo("com.example.OrderDetailPage");

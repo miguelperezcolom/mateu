@@ -1,6 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.mdd.demoadminpanel.infra.in.ui.changes.Changes;
+import io.mateu.mdd.demoadminpanel.infra.in.ui.wizard.Wizard1;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Button;
@@ -18,6 +19,9 @@ import java.util.List;
 @Style(StyleConstants.CONTAINER)
 @AI(sse = "http://localhost:8095/ai/api/agent/stream")
 public class Home2 implements WidgetSupplier {
+
+    @Menu
+    Wizard1 wizard1;
 
     @Menu
     Products2 xxxx;

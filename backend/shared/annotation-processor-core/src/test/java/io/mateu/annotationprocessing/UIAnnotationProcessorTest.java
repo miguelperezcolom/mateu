@@ -30,9 +30,8 @@ public class UIAnnotationProcessorTest {
   @Test
   public void parseIndexFileReturnsSingleEntry() throws IOException {
     URL url = getClass().getResource("/ui-registrations-sample.txt");
-    var processor = new MateuUIAnnotationProcessor();
 
-    List<Map<String, String>> entries = processor.parseIndexFile(url);
+    List<Map<String, String>> entries = IndexedUIProcessor.parseIndexFile(url);
 
     assertThat(entries).hasSize(2);
 
@@ -48,9 +47,8 @@ public class UIAnnotationProcessorTest {
   @Test
   public void parseIndexFileHandlesMultipleEntries() throws IOException {
     URL url = getClass().getResource("/ui-registrations-sample.txt");
-    var processor = new MateuUIAnnotationProcessor();
 
-    List<Map<String, String>> entries = processor.parseIndexFile(url);
+    List<Map<String, String>> entries = IndexedUIProcessor.parseIndexFile(url);
 
     assertThat(entries).hasSize(2);
 
@@ -65,9 +63,8 @@ public class UIAnnotationProcessorTest {
   public void parseIndexFileHandlesValueWithEqualsSign() throws IOException {
     // Values that contain '=' (e.g., URLs) should be preserved correctly
     URL url = getClass().getResource("/ui-registrations-sample.txt");
-    var processor = new MateuUIAnnotationProcessor();
 
-    List<Map<String, String>> entries = processor.parseIndexFile(url);
+    List<Map<String, String>> entries = IndexedUIProcessor.parseIndexFile(url);
 
     assertThat(entries.get(1).get("keycloakJsUrl")).isEqualTo("https://esm.sh/keycloak-js@26.2.2");
   }

@@ -37,6 +37,10 @@ final class WizardActionDispatcher {
               .filter(method -> actionId.equals(method.getName()))
               .findFirst();
       if (found.isPresent()) {
+
+
+
+
         var stepField = wizard.currentStepField();
         setValue(
             stepField,

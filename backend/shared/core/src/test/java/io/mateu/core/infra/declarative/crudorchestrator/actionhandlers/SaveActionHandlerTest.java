@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.SaveActionHandler;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SaveActionHandler;
 import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.junit.jupiter.api.Test;
@@ -23,18 +23,17 @@ class SaveActionHandlerTest {
 
   @Test
   void supportsOnlySaveAction() {
-    assertThat(handler.supports("save")).isTrue();
-    assertThat(handler.supports("create")).isFalse();
-    assertThat(handler.supports("delete")).isFalse();
-    assertThat(handler.supports("edit")).isFalse();
+    assertThat(handler.supports("save", httpRequest)).isTrue();
+    assertThat(handler.supports("create", httpRequest)).isFalse();
+    assertThat(handler.supports("delete", httpRequest)).isFalse();
+    assertThat(handler.supports("edit", httpRequest)).isFalse();
   }
 
   @Test
   void routeContainsSavedId() {
     when(orchestrator.save(httpRequest)).thenReturn("abc-123");
-    var initial = CrudActionResult.of("save");
 
-    var result = handler.handle(orchestrator, initial, httpRequest);
+    var result = (CrudActionResult) handler.handleAction("save", httpRequest, orchestrator);
 
     assertThat(result.route()).isEqualTo("/abc-123");
   }
@@ -42,9 +41,8 @@ class SaveActionHandlerTest {
   @Test
   void savedIdIsPopulated() {
     when(orchestrator.save(httpRequest)).thenReturn("abc-123");
-    var initial = CrudActionResult.of("save");
 
-    var result = handler.handle(orchestrator, initial, httpRequest);
+    var result = (CrudActionResult) handler.handleAction("save", httpRequest, orchestrator);
 
     assertThat(result.savedId()).isEqualTo("abc-123");
   }
@@ -52,9 +50,8 @@ class SaveActionHandlerTest {
   @Test
   void addsSuccessMessage() {
     when(orchestrator.save(httpRequest)).thenReturn("abc-123");
-    var initial = CrudActionResult.of("save");
 
-    var result = handler.handle(orchestrator, initial, httpRequest);
+    var result = (CrudActionResult) handler.handleAction("save", httpRequest, orchestrator);
 
     assertThat(result.messages()).hasSize(1);
     assertThat(result.messages().get(0).variant()).isEqualTo(NotificationVariant.success);

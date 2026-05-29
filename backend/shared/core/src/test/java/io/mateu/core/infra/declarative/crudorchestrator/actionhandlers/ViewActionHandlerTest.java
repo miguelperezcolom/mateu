@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.CrudOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.actionhandlers.ViewActionHandler;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.ViewActionHandler;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
@@ -33,16 +33,16 @@ class ViewActionHandlerTest {
 
   @Test
   void supportsOnlyViewAction() {
-    assertThat(handler.supports("view")).isTrue();
-    assertThat(handler.supports("edit")).isFalse();
-    assertThat(handler.supports("save")).isFalse();
+    assertThat(handler.supports("view", httpRequest)).isTrue();
+    assertThat(handler.supports("edit", httpRequest)).isFalse();
+    assertThat(handler.supports("save", httpRequest)).isFalse();
   }
 
   @Test
   void usesIdFromComponentState() {
     when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of("id", "view-id-1"));
 
-    var result = handler.handle(orchestrator, CrudActionResult.of("view"), httpRequest);
+    var result = (CrudActionResult) handler.handleAction("view", httpRequest, orchestrator);
 
     assertThat(result.route()).isEqualTo("/view-id-1");
     assertThat(result.savedId()).isEqualTo("view-id-1");
@@ -54,7 +54,7 @@ class ViewActionHandlerTest {
     var rq = RunActionRqDto.builder().parameters(Map.of("id", "param-id-2")).build();
     when(httpRequest.runActionRq()).thenReturn(rq);
 
-    var result = handler.handle(orchestrator, CrudActionResult.of("view"), httpRequest);
+    var result = (CrudActionResult) handler.handleAction("view", httpRequest, orchestrator);
 
     assertThat(result.route()).isEqualTo("/param-id-2");
     assertThat(result.savedId()).isEqualTo("param-id-2");
@@ -64,7 +64,7 @@ class ViewActionHandlerTest {
   void noMessages() {
     when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of("id", "x"));
 
-    var result = handler.handle(orchestrator, CrudActionResult.of("view"), httpRequest);
+    var result = (CrudActionResult) handler.handleAction("view", httpRequest, orchestrator);
 
     assertThat(result.messages()).isEmpty();
   }
