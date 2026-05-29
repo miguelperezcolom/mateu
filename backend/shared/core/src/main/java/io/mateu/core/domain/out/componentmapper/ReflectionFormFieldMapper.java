@@ -11,7 +11,6 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.CustomField;
-import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -150,23 +149,8 @@ public class ReflectionFormFieldMapper {
           .attributes(attributes)
           .build();
     }
-    return FormField.builder()
-        .id(getFieldId(field, prefix, readOnly))
-        .label(getLabel(field))
-        .dataType(getDataType(field))
-        .style(getStyle(field))
-        .stereotype(getStereotype(field))
-        .required(isRequired(field))
-        .sliderMin(getSliderMin(field))
-        .sliderMax(getSliderMax(field))
-        .remoteCoordinates(getRemoteCoordinates(prefix, field))
-        .readOnly(readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm))
-        .options(getOptions(field, instance, httpRequest))
-        .colspan(getColspan(field))
-        .description(getDescription(field))
-        .attributes(getAttributes(field))
-        .optionsColumns(getOptionsColumns(field))
-        .build();
+    return StandardFormFieldBuilder.build(
+        prefix, field, instance, httpRequest, readOnly, forCreationForm);
   }
 
   private static boolean isReadOnly(Field field, Object instance) {
