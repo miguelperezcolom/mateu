@@ -7,9 +7,6 @@ import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.data.*;
-import io.mateu.uidl.data.Text;
-import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
@@ -95,57 +92,18 @@ public class PageFormBuilder {
             .filter(field -> !readOnly || !FormFieldFilter.hiddenInView(field))
             .toList();
     var grouping = FormSectionGrouper.group(filteredFields, maxColumns);
-    var sections = grouping.sections();
-    var fieldsPerSection = grouping.fieldsPerSection();
-    if (sections.size() > 1) {
-      return List.of(
-          io.mateu.uidl.data.HorizontalLayout.builder()
-              .spacing(true)
-              .content(
-                  sections.stream()
-                      .map(
-                          section ->
-                              (Component)
-                                  VerticalLayout.builder()
-                                      .style(section.style())
-                                      .content(
-                                          List.of(
-                                              Text.builder()
-                                                  .text(section.value())
-                                                  .container(TextContainer.h4)
-                                                  .build(),
-                                              FormLayoutBuilder.toFormLayout(
-                                                  fieldsPerSection.get(section),
-                                                  prefix,
-                                                  instance,
-                                                  baseUrl,
-                                                  route,
-                                                  consumedRoute,
-                                                  initiatorComponentId,
-                                                  httpRequest,
-                                                  forCreationForm,
-                                                  readOnly,
-                                                  section.columns())))
-                                      .build())
-                      .toList())
-              .build());
-    }
-    return sections.stream()
-        .map(
-            section ->
-                FormLayoutBuilder.toFormLayout(
-                    fieldsPerSection.get(section),
-                    prefix,
-                    instance,
-                    baseUrl,
-                    route,
-                    consumedRoute,
-                    initiatorComponentId,
-                    httpRequest,
-                    forCreationForm,
-                    readOnly,
-                    section.columns()))
-        .toList();
+    return SectionFormRenderer.render(
+        grouping.sections(),
+        grouping.fieldsPerSection(),
+        prefix,
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        forCreationForm,
+        readOnly);
   }
 
   private static Collection<Field> getFormFields(Object instance) {
