@@ -129,8 +129,7 @@ data-oj-binding-provider="preact" label="${label}" chroming="borderless"></oj-c-
         if (MateuRedwoodTable._ADP) {
             this.dataProvider = new MateuRedwoodTable._ADP(rows, { keyAttributes: '@index' })
         } else {
-            // @ts-ignore
-            require(['ojs/ojarraydataprovider'], (ADP: any) => {
+            (require as any)(['ojs/ojarraydataprovider'], (ADP: any) => {
                 MateuRedwoodTable._ADP = ADP.default ?? ADP
                 if (!this.isConnected) return
                 this.dataProvider = new MateuRedwoodTable._ADP(rows, { keyAttributes: '@index' })

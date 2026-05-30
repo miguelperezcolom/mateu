@@ -40,13 +40,13 @@ import {
     renderImage
 } from "@/renderers/renderDisplayComponents.ts";
 import { MateuComponent } from "@infra/ui/mateu-component.ts";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 
 export const changed = (event: Event) => {
     const element = event.target as HTMLInputElement
     element.dispatchEvent(new CustomEvent('value-changed', {
         detail: {
             value: element.value,
-            //@ts-ignore
             fieldId: element.id
         },
         bubbles: true,
@@ -59,7 +59,6 @@ export const checkboxChanged = (event: Event) => {
     element.dispatchEvent(new CustomEvent('value-changed', {
         detail: {
             value: element.checked,
-            //@ts-ignore
             fieldId: element.id
         },
         bubbles: true,
@@ -80,8 +79,7 @@ export const handleButtonClick = (event: Event) => {
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
 
-    // @ts-ignore
-    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
+    renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult {
 
         if (ComponentMetadataType.App == component?.metadata?.type) {
             return renderApp(container as MateuComponent, component, baseUrl, state, data)

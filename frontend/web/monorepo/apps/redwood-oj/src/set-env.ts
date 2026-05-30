@@ -20,8 +20,7 @@ componentRenderer.setAfterRenderHook((element: HTMLElement) => {
                 "oj-c/table/table",
                 "ojs/ojarraydataprovider"
             ],
-            // @ts-ignore
-            function (require, exports, ko, ojbootstrap_1) {
+            function (_req: any, _exports: any, ko: any, _ojbootstrap_1: any) {
                 "use strict";
 
                 // THIS IS NEEDED FOR RENDERING NEW CONTENT
