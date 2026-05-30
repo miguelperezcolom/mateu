@@ -61,6 +61,7 @@ export default defineConfig({
 					label: 'UX Patterns',
 					items: [
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
+						{ slug: 'ux-patterns/navigation', label: 'Navigation & Menus' },
 						{ slug: 'ux-patterns/split-view' },
 						{ slug: 'ux-patterns/filters-and-listing' },
 						{ slug: 'ux-patterns/wizard' },

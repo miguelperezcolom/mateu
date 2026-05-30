@@ -25,6 +25,7 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 
 | Pattern | Status | Key primitive |
 |---------|--------|---------------|
+| [Navigation & Menus](./navigation) | ✅ / 🔲 Partial | `@App(AppVariant.*)` |
 | [Split View](./split-view) | ✅ Implemented | `@SplitCrud` |
 | [Filters & Listing](./filters-and-listing) | ✅ Implemented | `@List`, `@Filterable`, `@RowAction` |
 | [Wizard](./wizard) | ✅ Implemented | `@WizardCompletionAction` |
