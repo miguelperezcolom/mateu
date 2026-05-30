@@ -291,6 +291,7 @@ Use it for application authentication.
 
 These are also part of the public DSL and are worth knowing:
 
+- `@AutoSave`
 - `@Icon`
 - `@PageTitle`
 - `@Title`

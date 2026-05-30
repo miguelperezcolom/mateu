@@ -249,6 +249,74 @@ Object create() {
 
 ---
 
+## @AutoSave
+
+**Target:** `TYPE`
+
+Automatically triggers a save action whenever the user changes a field value, without requiring them to click a button. The action is debounced: the framework waits until the user has stopped making changes for at least `debounceMillis` milliseconds before dispatching the call.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE})
+public @interface AutoSave {
+    int debounceMillis() default 800;
+    String action() default "save";
+}
+```
+
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `debounceMillis` | `int` | `800` | Milliseconds to wait after the last field change before calling the action. Resets on each new change. |
+| `action` | `String` | `"save"` | ID of the action method to invoke. Matches the method name (or `@Action(id = ...)` if set). |
+
+### Example
+
+```java
+@UI("/settings")
+@AutoSave                          // debounceMillis=800, action="save" by default
+public class SettingsForm {
+
+    String displayName;
+    String email;
+
+    @Toolbar
+    public Message save() {
+        settingsService.update(displayName, email);
+        return new Message("Saved");
+    }
+}
+```
+
+With a longer debounce and a custom action name:
+
+```java
+@AutoSave(debounceMillis = 1500, action = "persist")
+public class DraftEditor {
+
+    @Stereotype(FieldStereotype.richText)
+    String content;
+
+    @Toolbar
+    public void persist() {
+        draftService.save(content);
+    }
+}
+```
+
+### How debounce works
+
+Every time the user edits a field, a timer starts counting down `debounceMillis` ms. If the user edits another field before the timer expires, it resets. The action fires only once the user has been idle for the full debounce window.
+
+| `debounceMillis` | Typical use |
+|---|---|
+| 500–800 ms | Settings screens, short fields |
+| 1000–1500 ms | Rich text editors, longer inputs |
+| 2000+ ms | High-latency backends or expensive saves |
+
+---
+
 ## @WizardCompletionAction
 
 Marks the final action in a multi-step wizard flow. When the annotated method is invoked, Mateu collects the state from all wizard steps before calling it.

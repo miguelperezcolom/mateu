@@ -10,5 +10,8 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface AutoSave {
 
-  String value();
+  int debounceMillis() default 800;
+
+  String action() default "save";
+
 }

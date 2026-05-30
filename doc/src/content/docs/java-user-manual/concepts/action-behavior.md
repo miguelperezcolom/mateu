@@ -107,6 +107,46 @@ A confirmation dialog is shown before the method runs. The user must confirm to 
 
 ---
 
+## Automatic save: @AutoSave
+
+`@AutoSave` on a class tells Mateu to call a save action automatically whenever the user changes a field, without requiring a button click. The call is debounced so it fires once the user has been idle for `debounceMillis` milliseconds (default 800).
+
+```java
+@UI("/settings")
+@AutoSave
+public class SettingsForm {
+
+    String displayName;
+    String email;
+
+    @Toolbar
+    public Message save() {
+        settingsService.update(displayName, email);
+        return new Message("Saved");
+    }
+}
+```
+
+Use `debounceMillis` and `action` to tune the behaviour:
+
+```java
+@AutoSave(debounceMillis = 1500, action = "persist")
+public class DraftEditor {
+
+    @Stereotype(FieldStereotype.richText)
+    String content;
+
+    @Toolbar
+    public void persist() {
+        draftService.save(content);
+    }
+}
+```
+
+`@AutoSave` is a good fit for settings screens, draft editors, and any form where saving should feel invisible to the user.
+
+---
+
 ## Accessing the HTTP request
 
 Actions can declare `HttpRequest` as a parameter to access headers, authentication tokens, or any other request metadata.

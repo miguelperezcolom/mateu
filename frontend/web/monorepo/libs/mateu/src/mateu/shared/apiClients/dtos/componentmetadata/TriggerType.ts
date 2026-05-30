@@ -5,5 +5,6 @@ export enum TriggerType {
     OnError = "OnError",
     OnValueChange = "OnValueChange",
     OnCustomEvent = "OnCustomEvent",
+    AutoSave = "AutoSave",
 
 }

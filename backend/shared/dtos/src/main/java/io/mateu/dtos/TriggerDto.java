@@ -12,5 +12,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
   @JsonSubTypes.Type(value = OnSuccessTriggerDto.class, name = "OnSuccess"),
   @JsonSubTypes.Type(value = OnErrorTriggerDto.class, name = "OnError"),
   @JsonSubTypes.Type(value = OnValueChangeTriggerDto.class, name = "OnValueChange"),
+  @JsonSubTypes.Type(value = AutoSaveTriggerDto.class, name = "AutoSave"),
 })
 public interface TriggerDto {}

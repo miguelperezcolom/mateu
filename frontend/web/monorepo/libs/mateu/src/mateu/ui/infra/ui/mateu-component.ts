@@ -274,6 +274,8 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    private _autoSaveTimers: Map<string, ReturnType<typeof setTimeout>> = new Map()
+
     onChange = () => {
         this.applyRules()
     }
@@ -319,6 +321,21 @@ export class MateuComponent extends ComponentElement {
                                 composed: true
                             }))
                         }
+                    })
+
+                serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.AutoSave)
+                    .forEach(trigger => {
+                        const timerId = trigger.actionId
+                        const existing = this._autoSaveTimers.get(timerId)
+                        if (existing !== undefined) clearTimeout(existing)
+                        this._autoSaveTimers.set(timerId, setTimeout(() => {
+                            this._autoSaveTimers.delete(timerId)
+                            this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                                detail: { actionId: trigger.actionId },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        }, trigger.debounceMillis ?? 800))
                     })
 
                 /*

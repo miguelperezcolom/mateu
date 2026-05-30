@@ -9,5 +9,6 @@ export default interface Trigger {
     propertyName: string
     calledActionId: string
     timeoutMillis: number
+    debounceMillis: number
 
 }
