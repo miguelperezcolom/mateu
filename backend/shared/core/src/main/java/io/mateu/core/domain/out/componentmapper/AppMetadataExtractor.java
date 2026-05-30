@@ -30,10 +30,23 @@ class AppMetadataExtractor {
     }
     for (Actionable actionable : menu) {
       if (actionable instanceof Menu) {
-        return AppVariant.MENU_ON_TOP;
+        return hasDeepMenu(menu) ? AppVariant.TILES : AppVariant.MENU_ON_TOP;
       }
     }
     return AppVariant.TABS;
+  }
+
+  private static boolean hasDeepMenu(Collection<? extends Actionable> menu) {
+    for (Actionable actionable : menu) {
+      if (actionable instanceof Menu m) {
+        for (Actionable child : m.submenu()) {
+          if (child instanceof Menu) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   static String getLogo(Object instance) {

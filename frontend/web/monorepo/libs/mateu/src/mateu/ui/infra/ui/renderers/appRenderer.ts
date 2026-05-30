@@ -196,6 +196,56 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 
             `:nothing}
 
+            ${metadata.variant == AppVariant.TILES?html`
+                <vaadin-vertical-layout style="width: 100%;">
+                    <vaadin-horizontal-layout
+                            style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);"
+                            theme="spacing"
+                            @navigation-requested="${container.updateRoute}">
+                        <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" style="text-decoration: none; color: inherit;">
+                        <vaadin-horizontal-layout style="align-items: center;">
+                            ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
+                            ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px;">${metadata.title}</h2>`:nothing}
+                        </vaadin-horizontal-layout>
+                        </a>
+                        <vaadin-menu-bar
+                                .items="${container.mapItemsForTiles(metadata.menu)}"
+                                @item-selected="${container.itemSelectedTiles}"
+                                theme="dropdown-indicators"
+                                style="flex-grow: 1; margin-left: 4rem; margin-top: 1.3rem;"
+                                class="menu"
+                        >
+                        </vaadin-menu-bar>
+                        <vaadin-horizontal-layout>
+                            <slot name="widgets"></slot>
+                            ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
+                        </vaadin-horizontal-layout>
+                    </vaadin-horizontal-layout>
+                    <div class="app-content">
+                        ${container.tilesMenuOption ? container.renderTilesHub(container.tilesMenuOption) : html`
+                        <vaadin-master-detail-layout>
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        route="${chooseRoute(_state, container, metadata)}"
+                                        id="ux_${container.id}"
+                                        baseUrl="${chooseBaseUrl(container, metadata)}"
+                                        consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                        serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                        uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                        style="width: 100%;"
+                                        .appState="${appState}"
+                                        .appData="${appData}"
+                                        instant="${container.instant}"
+                                        @navigation-requested="${container.updateRoute}"
+                                ></mateu-ux>
+                            </mateu-api-caller>
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                        </vaadin-master-detail-layout>
+                        `}
+                    </div>
+                </vaadin-vertical-layout>
+            `:nothing}
+
             ${metadata.variant == AppVariant.MENU_ON_LEFT?html`
 
                 <vaadin-horizontal-layout>

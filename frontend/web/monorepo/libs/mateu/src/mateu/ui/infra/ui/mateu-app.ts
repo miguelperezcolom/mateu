@@ -1,5 +1,5 @@
 import { customElement, query, state } from "lit/decorators.js";
-import {css, html, nothing, PropertyValues} from "lit";
+import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -60,6 +60,9 @@ export class MateuApp extends ComponentElement {
     @state()
     selectedParams: any | undefined = undefined
 
+    @state()
+    tilesMenuOption: MenuOption | null = null
+
     @query("mateu-chat")
     chat: MateuChat | undefined
 
@@ -88,6 +91,56 @@ export class MateuApp extends ComponentElement {
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         // @ts-ignore
         this.selectRoute(e.detail.value.consumedRoute, e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.serverSideType, e.detail.value.uriPrefix)
+    }
+
+    itemSelectedTiles = (e: MenuBarItemSelectedEvent) => {
+        const option: MenuOption = (e.detail.value as any)._menuOption
+        if (option.submenus && option.submenus.length > 0) {
+            this.tilesMenuOption = option
+        } else {
+            this.tilesMenuOption = null
+            this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)
+        }
+    }
+
+    mapItemsForTiles = (options: MenuOption[]): any => {
+        return options.map(option => ({
+            text: option.label,
+            consumedRoute: option.consumedRoute,
+            route: option.route,
+            baseUrl: option.baseUrl,
+            serverSideType: option.serverSideType,
+            uriPrefix: option.uriPrefix,
+            actionId: option.actionId,
+            selected: option.selected,
+            _menuOption: option,
+        }))
+    }
+
+    renderTilesHub = (option: MenuOption): TemplateResult => {
+        return html`
+            <div style="padding: 2rem;">
+                <h2 style="margin-top: 0; margin-bottom: 1.5rem;">${option.label}</h2>
+                <div class="tiles-hub-grid">
+                    ${option.submenus.map(sub => html`
+                        <div class="nav-tile"
+                            @click=${() => {
+                                if (sub.submenus && sub.submenus.length > 0) {
+                                    this.tilesMenuOption = sub
+                                } else {
+                                    this.tilesMenuOption = null
+                                    this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix)
+                                }
+                            }}
+                        >
+                            ${sub.icon ? html`<vaadin-icon icon="${sub.icon}" style="font-size: 2rem; color: var(--lumo-primary-color); display: block; margin-bottom: 0.75rem;"></vaadin-icon>` : nothing}
+                            <div class="nav-tile-title">${sub.label}</div>
+                            ${sub.description ? html`<div class="nav-tile-desc">${sub.description}</div>` : nothing}
+                        </div>
+                    `)}
+                </div>
+            </div>
+        `
     }
 
     goHome = () => {
@@ -324,11 +377,41 @@ export class MateuApp extends ComponentElement {
             width: calc(100% - 4rem);
             height: calc(100vh - 6rem);
         }
-        
+
         .menu vaadin-menu-bar-button {
             background-color: var(--lumo-base-color);
         }
-        
+
+        .tiles-hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .nav-tile {
+            border: 1px solid var(--lumo-contrast-10pct);
+            border-radius: var(--lumo-border-radius-l);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .nav-tile:hover {
+            box-shadow: 0 4px 12px var(--lumo-contrast-20pct);
+            border-color: var(--lumo-primary-color-50pct);
+        }
+
+        .nav-tile-title {
+            font-size: var(--lumo-font-size-l);
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .nav-tile-desc {
+            color: var(--lumo-secondary-text-color);
+            font-size: var(--lumo-font-size-s);
+        }
+
   `
 }
 
