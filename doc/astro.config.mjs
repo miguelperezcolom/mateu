@@ -58,6 +58,20 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
+					label: 'UX Patterns',
+					items: [
+						{ slug: 'ux-patterns', label: 'Overview & Principles' },
+						{ slug: 'ux-patterns/split-view' },
+						{ slug: 'ux-patterns/filters-and-listing' },
+						{ slug: 'ux-patterns/wizard' },
+						{ slug: 'ux-patterns/entity-picker' },
+						{ slug: 'ux-patterns/workspace' },
+						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },
+						{ slug: 'ux-patterns/long-running-jobs' },
+						{ slug: 'ux-patterns/autosave' },
+					],
+				},
+				{
 					label: 'About Mateu',
 					items: [
 						{ slug: 'mateu-about/what-is-mateu' },
