@@ -61,7 +61,7 @@ final class CrudActionsBuilder {
         actions.add(Action.builder().id("save").build());
         actions.add(Action.builder().id("create").build());
         actions.add(Action.builder().id("action-on-view-*").build());
-        actions.add(Action.builder().id("delete-edit").build());
+        actions.add(Action.builder().id("delete-edit").confirmationRequired(true).build());
       }
     }
     if (httpRequest.getAttribute("view") != null) {
