@@ -7,6 +7,7 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import { appData, appState } from "@domain/state.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import type { MenuBarItem } from "@vaadin/menu-bar";
 export const renderContextMenu = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as ContextMenu
 
@@ -38,7 +39,7 @@ const createItem = (container: LitElement, component: Component, baseUrl: string
     return item
 }
 
-const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): any => {
+const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): MenuBarItem[] => {
     return options.map(option => {
         if (option.submenus) {
             return {

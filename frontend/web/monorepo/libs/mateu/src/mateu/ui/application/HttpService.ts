@@ -7,6 +7,7 @@ import {Service} from "@application/service.ts";
 import {Notification, NotificationPosition} from '@vaadin/notification';
 import {LitElement} from "lit";
 import {nanoid} from "nanoid";
+import {ComponentState} from "@infra/ui/renderers/types.ts";
 
 export class HttpService implements Service {
 
@@ -78,13 +79,13 @@ export class HttpService implements Service {
                     consumedRoute: string,
                     actionId: string,
                     initiatorComponentId: string,
-                    _appState: any,
+                    _appState: ComponentState,
                     serverSideType: string,
-                    componentState: any,
-                    parameters: any,
+                    componentState: ComponentState,
+                    parameters: Record<string, unknown>,
                     initiator: HTMLElement,
                     background: boolean,
-    callback: any, callbackonly: boolean, callbackToken: string) {
+    callback: ((result?: unknown) => void) | undefined, callbackonly: boolean, callbackToken: string) {
         try {
             const uiIncrement = await runActionCommandHandler.handle(mateuApiClient, {
                 baseUrl,
@@ -149,8 +150,8 @@ export class HttpService implements Service {
             }
     }
 
-    private serialize(reason: any) {
-        if (reason.message) {
+    private serialize(reason: unknown) {
+        if ((reason as Error)?.message) {
             return reason
         }
         return JSON.stringify(reason)

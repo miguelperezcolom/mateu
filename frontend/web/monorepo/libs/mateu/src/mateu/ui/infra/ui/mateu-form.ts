@@ -10,6 +10,7 @@ import './mateu-field'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-content-header'
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 export { possiblyHtml } from './mateu-content-header'
 
@@ -17,16 +18,16 @@ export { possiblyHtml } from './mateu-content-header'
 export class MateuForm extends MetadataDrivenElement {
 
     @property()
-    state: any
+    state: ComponentState = {}
 
     @property()
-    data: any
+    data: ComponentData = {}
 
     @property()
-    appState: Record<string, any> = {}
+    appState: ComponentState = {}
 
     @property()
-    appData: Record<string, any> = {}
+    appData: ComponentData = {}
 
     render(): TemplateResult {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form

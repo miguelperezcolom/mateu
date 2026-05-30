@@ -354,10 +354,10 @@ export class MateuComponent extends ComponentElement {
     manageActionRequestedEvent = (e: CustomEvent) => {
         const detail = e.detail as {
             actionId: string,
-            parameters: any,
-            callback: any,
+            parameters: Record<string, unknown>,
+            callback: (() => void) | undefined,
             callbackonly: boolean,
-            initiatorComponentId: any,
+            initiatorComponentId: string,
             callbackToken: string
         }
         if (e.type == 'action-requested') {
@@ -450,10 +450,10 @@ export class MateuComponent extends ComponentElement {
 
     requestActionCallToServerOrBubble = (detail: {
         actionId: string,
-        parameters: any,
-        callback: any,
+        parameters: Record<string, unknown>,
+        callback: (() => void) | undefined,
         callbackonly: boolean,
-        initiatorComponentId: any,
+        initiatorComponentId: string,
         callbackToken: string
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
         if (action && action.bubble) {
@@ -476,10 +476,10 @@ export class MateuComponent extends ComponentElement {
 
     requestActionCallToServer = (detail: {
         actionId: string,
-        parameters: any,
-        callback: any,
+        parameters: Record<string, unknown>,
+        callback: (() => void) | undefined,
         callbackonly: boolean,
-        initiatorComponentId: any,
+        initiatorComponentId: string,
         callbackToken: string
     }, serverSideComponent: ServerSideComponent, action: Action | undefined) => {
 

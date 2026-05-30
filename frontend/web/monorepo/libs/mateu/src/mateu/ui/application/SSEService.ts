@@ -5,10 +5,11 @@ import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
 import { appData, appState, upstream } from "@domain/state.ts";
 import { Notification, NotificationPosition } from "@vaadin/notification";
 import { LitElement } from "lit";
+import { ComponentState } from "@infra/ui/renderers/types.ts";
 
 export class SSEService implements Service {
 
-    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: any, serverSideType: string, componentState: any, parameters: any, initiator: HTMLElement, background: boolean, callback: any, callbackonly: boolean, callbackToken: string): Promise<void> {
+    async runAction(mateuApiClient: AxiosMateuApiClient, baseUrl: string, route: string, consumedRoute: string, actionId: string, initiatorComponentId: string, _appState: ComponentState, serverSideType: string, componentState: ComponentState, parameters: Record<string, unknown>, initiator: HTMLElement, background: boolean, callback: ((result?: unknown) => void) | undefined, callbackonly: boolean, callbackToken: string): Promise<void> {
         //throw new Error('oops')
         //console.log(actionId)
 
@@ -149,8 +150,8 @@ export class SSEService implements Service {
         }
     }
 
-    private serialize(reason: any) {
-        if (reason.message) {
+    private serialize(reason: unknown) {
+        if ((reason as Error)?.message) {
             return reason
         }
         return JSON.stringify(reason)

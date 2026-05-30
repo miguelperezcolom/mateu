@@ -10,7 +10,7 @@ export default interface MenuOption {
     className: string
     disabled: boolean
     disabledOnClick: boolean
-    itemData: any
+    itemData: unknown
     icon: string,
 
     remote: boolean
@@ -21,7 +21,7 @@ export default interface MenuOption {
     route: string
     consumedRoute: string
     serverSideType: string | undefined
-    params: any
+    params: Record<string, unknown>
     explode: boolean
     uriPrefix: string | undefined
     description: string | undefined

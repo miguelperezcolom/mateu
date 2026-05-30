@@ -82,7 +82,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
             if (fragment.data) {
                 for (const key in fragment.data) {
-                    const page = fragment.data[key].page as Page
+                    const page = (fragment.data[key] as Record<string, unknown>)?.page as Page
                     if (page?.pageNumber > 0) {
                         if (this.data[key] && this.data[key].page.content) {
                             if (page.content) {
@@ -105,8 +105,9 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 .forEach(trigger => {
                     this.addEventListener(trigger.eventName, this.customEventManager)
                 })
-            if (componentRenderer.getAfterRenderHook()) {
-                setTimeout(componentRenderer.getAfterRenderHook()(this))
+            const afterRenderHook = componentRenderer.getAfterRenderHook()
+            if (afterRenderHook) {
+                setTimeout(() => afterRenderHook(this))
             }
 
             this.requestUpdate()

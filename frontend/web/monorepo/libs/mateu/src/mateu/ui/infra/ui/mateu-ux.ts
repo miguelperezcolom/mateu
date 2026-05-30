@@ -22,10 +22,12 @@ import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata.ts";
 import {sseService} from "@application/SSEService.ts";
+import {ComponentState, ComponentData} from "@infra/ui/renderers/types.ts";
+import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
-    manageActionRequestedEvent(event: CustomEvent<any>): void {
+    manageActionRequestedEvent(event: CustomEvent<unknown>): void {
         console.log('manageActionRequestedEvent', event)
         throw new Error("Method not implemented.");
     }
@@ -53,11 +55,11 @@ export class MateuUx extends ConnectedElement {
     @property()
     top: boolean | undefined = undefined;
     @property()
-    instant: any
+    instant: string | undefined
     @property()
-    appState: any
+    appState: ComponentState = {}
     @property()
-    appData: any
+    appData: ComponentData = {}
 
     preventNavigation = false
 
@@ -129,8 +131,9 @@ export class MateuUx extends ConnectedElement {
                             content: "Not found"
                         } as ComponentMetadata,
                         "id": "fieldId"
-                    },
-                    action: UIFragmentAction.Replace
+                    } as ClientSideComponent,
+                    action: UIFragmentAction.Replace,
+                    containerId: undefined
                 }
             }
         }
@@ -139,15 +142,15 @@ export class MateuUx extends ConnectedElement {
     private detail1: {
         route: string
         consumedRoute: string
-        parameters: any
-        componentState: any
+        parameters: Record<string, unknown>
+        componentState: Record<string, unknown>
         actionId: string
         serverSideType: string
         initiatorComponentId: string
         initiator: HTMLElement
         background: boolean
         sse: boolean
-        callback: any
+        callback: ((result?: unknown) => void) | undefined
         callbackonly: boolean
         callbackToken: string
     } | undefined = undefined
@@ -158,15 +161,15 @@ export class MateuUx extends ConnectedElement {
         this.detail1 = e.detail as {
             route: string
             consumedRoute: string
-            parameters: any
-            componentState: any
+            parameters: Record<string, unknown>
+            componentState: Record<string, unknown>
             actionId: string
             serverSideType: string
             initiatorComponentId: string
             initiator: HTMLElement
             background: boolean
             sse: boolean
-            callback: any
+            callback: ((result?: unknown) => void) | undefined
             callbackonly: boolean
             callbackToken: string
         };

@@ -8,7 +8,7 @@ export default interface ServerSideComponent extends Component {
 
     serverSideType: string | undefined
     route: string | undefined
-    initialData: any | undefined
+    initialData: unknown
     triggers: Trigger[] | undefined
     actions: Action[] | undefined
     rules: Rule[]

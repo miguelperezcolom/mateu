@@ -20,7 +20,7 @@ export default interface FormLayout extends ComponentMetadata {
     expandColumns: boolean
     expandFields: boolean
 
-    responsiveSteps: any
+    responsiveSteps: unknown
     itemLabelWidth: string | undefined
 
     columnSpacing: string | undefined

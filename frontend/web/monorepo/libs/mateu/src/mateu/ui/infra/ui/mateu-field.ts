@@ -630,9 +630,9 @@ export class MateuField extends LitElement {
                                         sort: undefined
                                     },
                                     callback: (uiIncrement: UIIncrement) => {
-                                        const data = uiIncrement.fragments![0].data[this.id]
-                                        this.comboData = data.content
-                                        callback(data.content, data.totalElements);
+                                        const data = uiIncrement.fragments![0].data?.[this.id] as Record<string, unknown>
+                                        this.comboData = data?.content as Option[]
+                                        callback(data?.content as Option[], data?.totalElements as number);
                                     },
                                     callbackonly: true
                                 },
@@ -1433,9 +1433,9 @@ export class MateuField extends LitElement {
                                             this.comboData = []
                                             callback([], 0);
                                         } else {
-                                            const data = uiIncrement.fragments![0].data[this.id]
-                                            this.comboData = data.content
-                                            callback(data.content, data.totalElements);
+                                            const data = uiIncrement.fragments![0].data?.[this.id] as Record<string, unknown>
+                                            this.comboData = data?.content as Option[]
+                                            callback(data?.content as Option[], data?.totalElements as number);
                                         }
                                     },
                                     callbackonly: true

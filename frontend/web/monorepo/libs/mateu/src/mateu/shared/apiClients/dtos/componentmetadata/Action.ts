@@ -11,7 +11,7 @@ export default interface Action {
     modalTitle: string
     customEvent: {
         name: string,
-        detail: any
+        detail: unknown
     }
     href: string
     runOnEnter: boolean

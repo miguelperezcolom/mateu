@@ -10,18 +10,22 @@ import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata.ts";
+import type Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
+import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 
 export const possiblyHtml = (
     text: string | undefined,
-    state: any,
-    data: any
+    state: ComponentState,
+    data: ComponentData
 ): string | undefined => {
     void state; void data;  // captured by eval template literal
     if (text && text.indexOf("${") >= 0) {
         try {
             return eval('`' + text + '`')
-        } catch (e: any) {
-            return e.message
+        } catch (e) {
+            return (e as Error).message
         }
     }
     return text;
@@ -41,22 +45,22 @@ export const isNavButton = (id: string | undefined): boolean =>
 export class MateuContentHeader extends LitElement {
 
     @property()
-    metadata?: any
+    metadata?: ComponentMetadata
 
     @property()
     baseUrl?: string
 
     @property()
-    state?: any
+    state?: ComponentState
 
     @property()
-    data?: any
+    data?: ComponentData
 
     @property()
-    appState: Record<string, any> = {}
+    appState: ComponentState = {}
 
     @property()
-    appData: Record<string, any> = {}
+    appData: ComponentData = {}
 
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -76,7 +80,7 @@ export class MateuContentHeader extends LitElement {
     `
 
     render(): TemplateResult {
-        const metadata = this.metadata
+        const metadata = this.metadata as Form | undefined
         if (!metadata) return html``
 
         const toolbar: Button[] = metadata.toolbar ?? []
@@ -91,7 +95,7 @@ export class MateuContentHeader extends LitElement {
         return html`
             ${metadata.breadcrumbs && metadata.breadcrumbs.length > 0 ? html`
                 <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="breadcrumbs-bar">
-                    ${metadata.breadcrumbs.map((breadcrumb: any, index: number) => html`
+                    ${metadata.breadcrumbs.map((breadcrumb, index: number) => html`
                         ${index > 0 ? html`<span>/</span>` : nothing}
                         ${breadcrumb.link
                             ? html`<vaadin-button theme="tertiary" @click="${() => window.location.href = `${breadcrumb.link}`}">${breadcrumb.text}</vaadin-button>`
@@ -101,26 +105,26 @@ export class MateuContentHeader extends LitElement {
             ` : nothing}
             ${metadata.noHeader ? html`
                 <vaadin-horizontal-layout theme="spacing">
-                    ${metadata?.header?.map((component: any) => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                    ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
                     ${navButtons.map(this.renderBtn)}
                     ${divider}
                     ${actionButtons.map(this.renderBtn)}
                 </vaadin-horizontal-layout>
             ` : hasMainHeader ? html`
                 <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
-                    ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data, this.appState, this.appData) : nothing}
+                    ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
                     <vaadin-vertical-layout style="flex: 1">
-                        <h2 style="margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state, this.data))}</h2>
-                        <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
+                        <h2 style="margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>
+                        <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>
                     </vaadin-vertical-layout>
                     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
-                        ${metadata?.kpis?.map((kpi: any) => html`
+                        ${metadata?.kpis?.map((kpi) => html`
                             <vaadin-vertical-layout style="align-items: center">
                                 <div>${kpi.title}</div>
-                                <div>${unsafeHTML(possiblyHtml(kpi.text, this.state, this.data))}</div>
+                                <div>${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</div>
                             </vaadin-vertical-layout>
                         `)}
-                        ${metadata?.header?.map((component: any) => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                        ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
                         ${navButtons.map(this.renderBtn)}
                         ${divider}
                         ${actionButtons.map(this.renderBtn)}
@@ -129,7 +133,7 @@ export class MateuContentHeader extends LitElement {
             ` : nothing}
             ${metadata.badges && metadata.badges.length > 0 ? html`
                 <vaadin-horizontal-layout>
-                    ${metadata.badges.map((b: any) => renderBadgeMetadata(b, this.state, this.data))}
+                    ${metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))}
                 </vaadin-horizontal-layout>
             ` : nothing}
         `

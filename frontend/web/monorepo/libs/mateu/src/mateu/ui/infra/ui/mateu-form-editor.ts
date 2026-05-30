@@ -217,10 +217,10 @@ export class MateuFormEditor extends LitElement {
                 <div class="meta-grid">
                     <label>Name</label>
                     <input class="inp" .value="${f.name}"
-                           @change="${(e: any) => this.updateForm({name: e.target.value})}"/>
+                           @change="${(e: Event) => this.updateForm({name: (e.target as HTMLInputElement).value})}"/>
                     <label>Description</label>
                     <textarea class="inp" rows="2"
-                              @change="${(e: any) => this.updateForm({description: e.target.value})}">${f.description ?? ""}</textarea>
+                              @change="${(e: Event) => this.updateForm({description: (e.target as HTMLTextAreaElement).value})}">${f.description ?? ""}</textarea>
                 </div>
             </div>
         `;
@@ -285,27 +285,27 @@ export class MateuFormEditor extends LitElement {
                     ${field("ID", html`<input class="inp" readonly .value="${f.id}"/>`)}
                     ${field("Label", html`
                         <input class="inp" .value="${f.label}"
-                               @change="${(e: any) => this.updateField(f.id, {label: e.target.value})}"/>`)}
+                               @change="${(e: Event) => this.updateField(f.id, {label: (e.target as HTMLInputElement).value})}"/>`)}
                     ${field("Data type", html`
                         <select class="inp"
-                                @change="${(e: any) => this.updateField(f.id, {dataType: e.target.value})}">
+                                @change="${(e: Event) => this.updateField(f.id, {dataType: (e.target as HTMLSelectElement).value as DataType})}">
                             ${DATA_TYPES.map(t => html`
                                 <option value="${t}" ?selected="${f.dataType === t}">${t}</option>`)}
                         </select>`)}
                     ${field("Stereotype", html`
                         <select class="inp"
-                                @change="${(e: any) => this.updateField(f.id, {stereotype: e.target.value || undefined})}">
+                                @change="${(e: Event) => this.updateField(f.id, {stereotype: ((e.target as HTMLSelectElement).value || undefined) as Stereotype | undefined})}">
                             ${STEREOTYPES.map(s => html`
                                 <option value="${s}" ?selected="${(f.stereotype ?? "regular") === s}">${s}</option>`)}
                         </select>`)}
                     <div class="prop-field row">
                         <label class="prop-label">Required</label>
                         <input type="checkbox" ?checked="${f.required}"
-                               @change="${(e: any) => this.updateField(f.id, {required: e.target.checked})}"/>
+                               @change="${(e: Event) => this.updateField(f.id, {required: (e.target as HTMLInputElement).checked})}"/>
                     </div>
                     ${field("Description / hint", html`
                         <textarea class="inp" rows="3"
-                                  @change="${(e: any) => this.updateField(f.id, {description: e.target.value || undefined})}">${f.description ?? ""}</textarea>`)}
+                                  @change="${(e: Event) => this.updateField(f.id, {description: (e.target as HTMLTextAreaElement).value || undefined})}">${f.description ?? ""}</textarea>`)}
                 </div>
             </div>
         `;

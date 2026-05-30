@@ -1,5 +1,6 @@
 import { AxiosMateuApiClient } from "@infra/http/AxiosMateuApiClient";
 import { httpService } from "@application/HttpService.ts";
+import { ComponentState } from "@infra/ui/renderers/types.ts";
 
 export interface Service {
 
@@ -9,13 +10,13 @@ export interface Service {
                     consumedRoute: string,
                     actionId: string,
                     initiatorComponentId: string,
-                    appState: any,
+                    appState: ComponentState,
                     serverSideType: string,
-                    componentState: any,
-                    parameters: any,
+                    componentState: ComponentState,
+                    parameters: Record<string, unknown>,
                     initiator: HTMLElement,
                     background: boolean,
-    callback: any, callbackonly: boolean, callbackToken: string): void
+    callback: ((result?: unknown) => void) | undefined, callbackonly: boolean, callbackToken: string): void
 
 }
 

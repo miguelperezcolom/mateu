@@ -22,6 +22,7 @@ import '@vaadin/icon';
 import '@vaadin/icons';
 import {dialogRenderer} from "@vaadin/dialog/lit";
 import {nanoid} from "nanoid";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 @customElement('mateu-grid')
 export class MateuGrid extends MetadataDrivenElement {
@@ -30,16 +31,16 @@ export class MateuGrid extends MetadataDrivenElement {
     field: FormField | undefined
 
     @property()
-    state: any
+    state: ComponentState = {}
 
     @property()
-    data: any
+    data: ComponentData = {}
 
     @property()
-    appState: Record<string, any> = {}
+    appState: ComponentState = {}
 
     @property()
-    appData: Record<string, any> = {}
+    appData: ComponentData = {}
 
     @property()
     selectedItems: any[] | undefined

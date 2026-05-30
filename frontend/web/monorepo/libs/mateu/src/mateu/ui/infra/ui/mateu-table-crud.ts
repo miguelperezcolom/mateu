@@ -82,7 +82,7 @@ export class MateuTableCrud extends LitElement {
         this.handleSearchRequested(undefined)
     }
 
-    handleSearchRequested = (callback: any) => {
+    handleSearchRequested = (callback: (() => void) | undefined) => {
         this.state['crud_selected_items'] = []
         if (!(this.component?.metadata as Crud).infiniteScrolling) {
             this.data[this.id].page.content = []

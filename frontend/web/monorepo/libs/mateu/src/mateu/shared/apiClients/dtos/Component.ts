@@ -8,6 +8,6 @@ export default interface Component {
     style: string
     cssClasses: string
     slot: string
-    initialData: any
+    initialData: unknown
 
 }

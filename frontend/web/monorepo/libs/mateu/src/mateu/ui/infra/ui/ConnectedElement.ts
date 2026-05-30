@@ -168,7 +168,7 @@ export default abstract class ConnectedElement extends LitElement {
         if ('DispatchEvent' == command.type) {
             const data = command.data as {
                 eventName: string
-                payload: any
+                payload: unknown
             }
             if (data && data.eventName) {
                 console.log('dispatching event', this, data)

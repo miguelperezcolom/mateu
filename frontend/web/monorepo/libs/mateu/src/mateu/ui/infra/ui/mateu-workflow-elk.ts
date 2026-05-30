@@ -172,8 +172,8 @@ export class MateuWorkflowElk extends LitElement {
             this.positions = newPositions;
             this.layoutReady = true;
             this.layoutError = null;
-        } catch (e: any) {
-            this.layoutError = e?.message ?? "ELK layout failed";
+        } catch (e) {
+            this.layoutError = (e as Error)?.message ?? "ELK layout failed";
             this.layoutReady = true;
         }
     }
@@ -366,27 +366,27 @@ export class MateuWorkflowElk extends LitElement {
                 <div class="meta-grid">
                     <label>Name</label>
                     <input class="inp" .value="${wf.name}"
-                           @change="${(e: any) => this.updateWf({name: e.target.value})}"/>
+                           @change="${(e: Event) => this.updateWf({name: (e.target as HTMLInputElement).value})}"/>
                     <label>Description</label>
                     <textarea class="inp" rows="2"
-                              @change="${(e: any) => this.updateWf({description: e.target.value})}">${wf.description ?? ""}</textarea>
+                              @change="${(e: Event) => this.updateWf({description: (e.target as HTMLTextAreaElement).value})}">${wf.description ?? ""}</textarea>
                     <label>Status</label>
                     <select class="inp"
-                            @change="${(e: any) => this.updateWf({status: e.target.value})}">
+                            @change="${(e: Event) => this.updateWf({status: (e.target as HTMLSelectElement).value as WorkflowStatus})}">
                         ${(["DRAFT", "ACTIVE", "DISABLED", "ARCHIVED"] as WorkflowStatus[]).map(s => html`
                             <option value="${s}" ?selected="${wf.status === s}">${s}</option>`)}
                     </select>
                     <label>Limit concurrent</label>
                     <input type="checkbox" ?checked="${wf.limitConcurrentExecutions}"
-                           @change="${(e: any) => this.updateWf({limitConcurrentExecutions: e.target.checked})}"/>
+                           @change="${(e: Event) => this.updateWf({limitConcurrentExecutions: (e.target as HTMLInputElement).checked})}"/>
                     ${wf.limitConcurrentExecutions ? html`
                         <label>Max concurrent</label>
                         <input class="inp" type="number" min="0"
                                .value="${String(wf.maxConcurrentExecutions ?? 0)}"
-                               @change="${(e: any) => this.updateWf({maxConcurrentExecutions: Number(e.target.value)})}"/>
+                               @change="${(e: Event) => this.updateWf({maxConcurrentExecutions: Number((e.target as HTMLInputElement).value)})}"/>
                         <label>Enqueue on limit</label>
                         <input type="checkbox" ?checked="${wf.enqueueOnLimit}"
-                               @change="${(e: any) => this.updateWf({enqueueOnLimit: e.target.checked})}"/>
+                               @change="${(e: Event) => this.updateWf({enqueueOnLimit: (e.target as HTMLInputElement).checked})}"/>
                     ` : ""}
                 </div>
             </div>
@@ -471,18 +471,18 @@ export class MateuWorkflowElk extends LitElement {
                 <div class="prop-body">
                     ${field("ID", html`<input class="inp" readonly .value="${step.id}"/>`)}
                     ${field("Name", html`<input class="inp" .value="${step.name}"
-                        @change="${(e: any) => this.updateStep(step.id, {name: e.target.value})}"/>`)}
+                        @change="${(e: Event) => this.updateStep(step.id, {name: (e.target as HTMLInputElement).value})}"/>`)}
                     ${field("Type", html`
                         <select class="inp"
-                                @change="${(e: any) => this.updateStep(step.id, {type: e.target.value})}">
+                                @change="${(e: Event) => this.updateStep(step.id, {type: (e.target as HTMLSelectElement).value as StepType})}">
                             ${STEP_TYPES.map(t => html`
                                 <option value="${t}" ?selected="${step.type === t}">${t}</option>`)}
                         </select>`)}
                     ${field("Description", html`<textarea class="inp" rows="2"
-                        @change="${(e: any) => this.updateStep(step.id, {description: e.target.value})}">${step.description ?? ""}</textarea>`)}
+                        @change="${(e: Event) => this.updateStep(step.id, {description: (e.target as HTMLTextAreaElement).value})}">${step.description ?? ""}</textarea>`)}
                     ${field("Precondition step", html`
                         <select class="inp"
-                                @change="${(e: any) => this.updateStep(step.id, {preconditionStepId: e.target.value || undefined})}">
+                                @change="${(e: Event) => this.updateStep(step.id, {preconditionStepId: (e.target as HTMLSelectElement).value || undefined})}">
                             <option value="">— none —</option>
                             ${others.map(s => html`
                                 <option value="${s.id}" ?selected="${step.preconditionStepId === s.id}">
@@ -492,28 +492,28 @@ export class MateuWorkflowElk extends LitElement {
                     ${field("Precondition expression", html`
                         <input class="inp" placeholder="JEXL expression"
                                .value="${step.preconditionExpression ?? ""}"
-                               @change="${(e: any) => this.updateStep(step.id, {preconditionExpression: e.target.value || undefined})}"/>`)}
+                               @change="${(e: Event) => this.updateStep(step.id, {preconditionExpression: (e.target as HTMLInputElement).value || undefined})}"/>`)}
                     <div class="field row">
                         <label class="field-label">Parallel</label>
                         <input type="checkbox" ?checked="${step.parallel}"
-                               @change="${(e: any) => this.updateStep(step.id, {parallel: e.target.checked})}"/>
+                               @change="${(e: Event) => this.updateStep(step.id, {parallel: (e.target as HTMLInputElement).checked})}"/>
                     </div>
                     ${field("Timeout (ms)", html`
                         <input class="inp" type="number" min="0"
                                .value="${String(step.timeout ?? 0)}"
-                               @change="${(e: any) => this.updateStep(step.id, {timeout: Number(e.target.value)})}"/>`)}
+                               @change="${(e: Event) => this.updateStep(step.id, {timeout: Number((e.target as HTMLInputElement).value)})}"/>`)}
                     ${field("Retries", html`
                         <input class="inp" type="number" min="0"
                                .value="${String(step.retries ?? 0)}"
-                               @change="${(e: any) => this.updateStep(step.id, {retries: Number(e.target.value)})}"/>`)}
+                               @change="${(e: Event) => this.updateStep(step.id, {retries: Number((e.target as HTMLInputElement).value)})}"/>`)}
                     <div class="field row">
                         <label class="field-label">Rollbackable</label>
                         <input type="checkbox" ?checked="${step.rollbackable}"
-                               @change="${(e: any) => this.updateStep(step.id, {rollbackable: e.target.checked})}"/>
+                               @change="${(e: Event) => this.updateStep(step.id, {rollbackable: (e.target as HTMLInputElement).checked})}"/>
                     </div>
                     ${step.rollbackable ? field("Compensation step", html`
                         <select class="inp"
-                                @change="${(e: any) => this.updateStep(step.id, {compensationStepId: e.target.value || undefined})}">
+                                @change="${(e: Event) => this.updateStep(step.id, {compensationStepId: (e.target as HTMLSelectElement).value || undefined})}">
                             <option value="">— none —</option>
                             ${others.map(s => html`
                                 <option value="${s.id}" ?selected="${step.compensationStepId === s.id}">
@@ -523,13 +523,13 @@ export class MateuWorkflowElk extends LitElement {
                     ${step.type === "ACTION" ? field("Topic", html`
                         <input class="inp" placeholder="kafka.topic.name"
                                .value="${step.topic ?? ""}"
-                               @change="${(e: any) => this.updateStep(step.id, {topic: e.target.value || undefined})}"/>`) : ""}
+                               @change="${(e: Event) => this.updateStep(step.id, {topic: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
                     ${step.type === "USER_TASK" ? field("Form ID", html`
                         <input class="inp" .value="${step.formId ?? ""}"
-                               @change="${(e: any) => this.updateStep(step.id, {formId: e.target.value || undefined})}"/>`) : ""}
+                               @change="${(e: Event) => this.updateStep(step.id, {formId: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
                     ${step.type === "PROCESS" ? field("Child workflow ID", html`
                         <input class="inp" .value="${step.childWorkflowDefinitionId ?? ""}"
-                               @change="${(e: any) => this.updateStep(step.id, {childWorkflowDefinitionId: e.target.value || undefined})}"/>`) : ""}
+                               @change="${(e: Event) => this.updateStep(step.id, {childWorkflowDefinitionId: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
                 </div>
             </div>
         `;

@@ -1,6 +1,7 @@
 import UI from "../../shared/apiClients/dtos/UI";
 import { Subject } from "rxjs";
 import Message from "@domain/Message";
+import { ComponentState } from "@infra/ui/renderers/types.ts";
 
 export class State {
     ui: UI | undefined = undefined
@@ -23,7 +24,7 @@ export const store: Store = {
 export const upstream = new Subject<Message>()
 
 interface AppState {
-    value: any
+    value: ComponentState
 }
 
 export const appState: AppState = {
@@ -31,7 +32,7 @@ export const appState: AppState = {
 }
 
 interface AppData {
-    value: any
+    value: ComponentState
 }
 
 export const appData: AppData = {

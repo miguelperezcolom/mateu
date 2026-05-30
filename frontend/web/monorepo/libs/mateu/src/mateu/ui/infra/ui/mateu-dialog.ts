@@ -18,6 +18,7 @@ import Dialog from "@mateu/shared/apiClients/dtos/componentmetadata/Dialog";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { dialogFooterRenderer, dialogHeaderRenderer, dialogRenderer } from "@vaadin/dialog/lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 
 @customElement('mateu-dialog')
@@ -30,16 +31,16 @@ export class MateuDialog extends LitElement {
     baseUrl?: string
 
     @property()
-    state?: any
+    state?: ComponentState
 
     @property()
-    data?: any
+    data?: ComponentData
 
     @property()
-    appState: Record<string, any> = {}
+    appState: ComponentState = {}
 
     @property()
-    appData: Record<string, any> = {}
+    appData: ComponentData = {}
 
     @state()
     opened = true
@@ -79,7 +80,7 @@ export class MateuDialog extends LitElement {
                 width="${metadata.width??nothing}"
                 height="${metadata.height??nothing}"
                 ${metadata.header || metadata.closeButtonOnHeader?dialogHeaderRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${metadata.header?renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData):nothing}${metadata.closeButtonOnHeader?html`
+            () => html`<mateu-event-interceptor .target="${this}">${metadata.header?renderComponent(this, metadata.header, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData):nothing}${metadata.closeButtonOnHeader?html`
                             <vaadin-button theme="tertiary" @click="${this.close}">
                                 <vaadin-icon icon="lumo:cross"></vaadin-icon>
                             </vaadin-button>
@@ -87,11 +88,11 @@ export class MateuDialog extends LitElement {
             []
         ):nothing}
                 ${metadata.footer?dialogFooterRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.footer, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
+            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.footer, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData)}</mateu-event-interceptor>`,
             []
         ):nothing}
                 ${metadata.content?dialogRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.content, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
+            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.content, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData)}</mateu-event-interceptor>`,
             []
         ):nothing}
                 style="${this.component?.style}" 

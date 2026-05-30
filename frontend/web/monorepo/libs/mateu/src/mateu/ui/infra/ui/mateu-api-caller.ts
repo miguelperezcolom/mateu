@@ -31,7 +31,7 @@ export class MateuApiCaller extends LitElement {
     notificationOpened = false
 
     @state()
-    error: any
+    error: unknown
 
     fetchStarted: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
@@ -80,7 +80,7 @@ export class MateuApiCaller extends LitElement {
 
     notificationRenderer: NotificationLitRenderer = () => html`
     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
-      <div>${this.error}</div>
+      <div>${(this.error as Error)?.message ?? String(this.error)}</div>
       <vaadin-button theme="tertiary-inline" @click="${this.closeNotification}" aria-label="Close">
         <vaadin-icon icon="lumo:cross"></vaadin-icon>
       </vaadin-button>

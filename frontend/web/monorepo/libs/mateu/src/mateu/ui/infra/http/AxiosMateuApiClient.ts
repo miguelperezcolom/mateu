@@ -2,6 +2,7 @@ import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios"
 import {nanoid} from "nanoid"
 import {MateuApiClient} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
+import {ComponentState} from "@infra/ui/renderers/types.ts";
 
 let abortControllers: AbortController[] = []
 
@@ -51,8 +52,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
                 }
             }))
             return response
-        }).catch((reason) => {
-            if (reason.code == 'ERR_CANCELED') {
+        }).catch((reason: unknown) => {
+            if ((reason as { code?: string })?.code == 'ERR_CANCELED') {
                 initiator.dispatchEvent(new CustomEvent('backend-cancelled-event', {
                     bubbles: true,
                     composed: true,
@@ -73,8 +74,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
         })
     }
 
-    private serialize(reason: any) {
-        if (reason.message) {
+    private serialize(reason: unknown) {
+        if ((reason as Error)?.message) {
             return reason
         }
         return JSON.stringify(reason)
@@ -105,10 +106,10 @@ export class AxiosMateuApiClient implements MateuApiClient {
     async runAction(baseUrl: string, route: string, consumedRoute: string,
                     actionId: string,
                     initiatorComponentId: string,
-                    appState: any,
+                    appState: ComponentState | undefined,
                     serverSideType: string | undefined,
-                    componentState: any,
-                    parameters: any,
+                    componentState: ComponentState | undefined,
+                    parameters: Record<string, unknown> | undefined,
                     initiator: HTMLElement,
                     background: boolean): Promise<UIIncrement> {
         if (route && route.startsWith('/')) {

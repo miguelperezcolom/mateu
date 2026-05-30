@@ -58,7 +58,7 @@ export class MateuApp extends ComponentElement {
     selectedServerSideType: string | undefined = undefined
 
     @state()
-    selectedParams: any | undefined = undefined
+    selectedParams: unknown = undefined
 
     @state()
     tilesMenuOption: MenuOption | null = null
@@ -141,7 +141,7 @@ export class MateuApp extends ComponentElement {
         }
     }
 
-    mapItemsForTiles = (options: MenuOption[]): any => {
+    mapItemsForTiles = (options: MenuOption[]): MenuBarItem[] => {
         return options.map(option => ({
             text: option.label,
             consumedRoute: option.consumedRoute,
@@ -387,8 +387,8 @@ export class MateuApp extends ComponentElement {
         }
     }
 
-    mapItems = (options: MenuOption[], filter: string): any => {
-        return options.map(option => {
+    mapItems = (options: MenuOption[], filter: string): MenuBarItem[] => {
+        return (options.map(option => {
             if (option.submenus && option.submenus.length > 0) {
                 let children = this.mapItems(option.submenus, filter)
                 if (filter && option.label.toLowerCase().includes(filter)) {
@@ -426,7 +426,7 @@ export class MateuApp extends ComponentElement {
                     selected: filter || option.selected,
                 }
             } else return undefined
-        }).filter(option => option)
+        }) as Array<MenuBarItem | undefined>).filter((option): option is MenuBarItem => option != null)
     }
 
     getSelectedIndex = (menu: MenuOption[] | null) => {
@@ -439,7 +439,7 @@ export class MateuApp extends ComponentElement {
         return NaN
     }
 
-    renderOptionOnLeftMenu = (option: MenuOption): any => {
+    renderOptionOnLeftMenu = (option: MenuOption): TemplateResult => {
         if (option.submenus && option.submenus.length > 0) {
             return html`
                 <vaadin-details summary="${option.label}" theme="reverse">
@@ -481,30 +481,32 @@ export class MateuApp extends ComponentElement {
         }
     }
 
-    renderSideNav = (items: any, slot: string | undefined) => {
+    renderSideNav = (items: Array<MenuBarItem> | undefined, slot: string | undefined): TemplateResult | typeof nothing => {
         return items?html`
-            ${items.map((item: MenuBarItem & {
-            route: string | undefined
-            icon: string | undefined
-                selected: boolean | undefined
-        }) => html`
+            ${items.map((rawItem) => {
+                const item = rawItem as MenuBarItem & {
+                    route: string | undefined
+                    icon: string | undefined
+                    selected: boolean | undefined
+                }
+                return html`
 
                         ${item.component == 'hr'?html`<hr slot="children"/>`:html`
-                                <vaadin-side-nav-item 
+                                <vaadin-side-nav-item
                                 .path="${(item.route && !item.children)?item.route:undefined}"
                                 .pathAliases="${[this.baseUrl + (item.route?item.route:'')]}"
-                                slot="${slot}"             
+                                slot="${slot}"
                                 ?expanded="${item.selected}"
                                 >
                                     ${item.icon?html`
                                         <vaadin-icon icon="vaadin:dashboard" slot="prefix"></vaadin-icon>
                                     `:nothing}
                                     ${item.text}
-                                    ${this.renderSideNav(item.children, 'children')}
+                                    ${this.renderSideNav(item.children as MenuBarItem[] | undefined, 'children')}
                                 </vaadin-side-nav-item>
                         `}
 
-                            `)}`:nothing
+                            `})}`:nothing
     }
 
     updateRoute: EventListenerOrEventListenerObject = (e: Event) => {

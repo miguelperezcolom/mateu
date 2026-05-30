@@ -14,6 +14,7 @@ import "@vaadin/grid"
 import "@vaadin/card"
 import { customElement, property } from 'lit/decorators.js';
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 
 @customElement('mateu-choice')
@@ -26,23 +27,24 @@ export class MateuChoice extends LitElement {
     baseUrl?: string
 
     @property()
-    state?: any
+    state?: ComponentState
 
     @property()
-    data?: any
+    data?: ComponentData
 
     @property()
-    value?: any
+    value?: unknown
 
-    getNewValue = (optionValue: any): any => {
+    getNewValue = (optionValue: unknown): unknown => {
         if (this.field?.dataType == 'array') {
             if (!this.value) {
                 return [optionValue]
             }
-            if (this.value.indexOf(optionValue) >= 0) {
-                return this.value.filter((obj: any) => obj !== optionValue)
+            const valueArr = this.value as unknown[]
+            if (valueArr.indexOf(optionValue) >= 0) {
+                return valueArr.filter((obj) => obj !== optionValue)
             }
-            return [...this.value, optionValue]
+            return [...valueArr, optionValue]
         }
         return optionValue
     }
@@ -52,7 +54,7 @@ export class MateuChoice extends LitElement {
         if (this.field?.remoteCoordinates) {
             const coords = this.field.remoteCoordinates;
 
-            if (this.data[this.field.fieldId]
+            if (this.data?.[this.field.fieldId]
                 && this.data[this.field.fieldId].content
                 && this.data[this.field.fieldId].totalElements) {
                 options = this.data[this.field.fieldId].content

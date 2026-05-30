@@ -8,6 +8,18 @@ import {MessageInput} from "@vaadin/message-input";
 import {nanoid} from "nanoid";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 
+/** Minimal interface for the browser SpeechRecognition API (not universally typed in lib.dom). */
+interface SpeechRecognitionLike {
+    lang: string;
+    continuous?: boolean;
+    interimResults?: boolean;
+    onend: (() => void) | null;
+    onresult: ((event: Event) => void) | null;
+    onerror: ((event: Event) => void) | null;
+    start(): void;
+    stop(): void;
+}
+
 /** A flattened, LLM-friendly entry describing one navigable screen. */
 interface MenuContextEntry {
     /** Breadcrumb path, e.g. ["Bookings", "List"] */
@@ -48,7 +60,7 @@ export class MateuChat extends LitElement {
     messageInputElement?: MessageInput;
 
     @state()
-    recognition: any
+    recognition: SpeechRecognitionLike | undefined
 
     @state()
     listening: boolean = false
@@ -81,11 +93,12 @@ export class MateuChat extends LitElement {
         }
     }
 
-    onSpeechResult = (event: any) => {
+    onSpeechResult = (event: Event) => {
         if (this.recognition) {
             // Obtener el texto procesado
-            console.log("Resultados del reconocimiento:", event.results);
-            const transcript = event.results[event.results[0].length - 1][0].transcript;
+            const speechEvent = event as Event & { results: SpeechRecognitionResultList }
+            console.log("Resultados del reconocimiento:", speechEvent.results);
+            const transcript = speechEvent.results[speechEvent.results[0].length - 1][0].transcript;
             console.log("Resultado del reconocimiento:", transcript);
             if (this.messageInputElement) {
                 this.messageInputElement.value = transcript; // Poner el texto en el input
@@ -110,19 +123,20 @@ export class MateuChat extends LitElement {
 
         if (SpeechRecognition) {
             console.log('SpeechRecognition available');
-            this.recognition = new SpeechRecognition();
-            this.recognition.lang = 'es-ES'; // Configuramos el idioma a español
-            //this.recognition.continuous = true;
-            //this.recognition.interimResults = true;
+            const recognition: SpeechRecognitionLike = new SpeechRecognition() as SpeechRecognitionLike;
+            this.recognition = recognition;
+            recognition.lang = 'es-ES'; // Configuramos el idioma a español
+            //recognition.continuous = true;
+            //recognition.interimResults = true;
 
-            this.recognition.onend = () => {
+            recognition.onend = () => {
                 console.log("El reconocimiento ha terminado.");
                 setTimeout(() => {
-                    if (this.listening) {
+                    if (this.listening && this.recognition) {
                         try {
                             this.recognition.start();
-                        } catch (e: any) {
-                            console.log('Error al iniciar el reconocimiento:', e.message);
+                        } catch (e) {
+                            console.log('Error al iniciar el reconocimiento:', (e as Error).message);
                         }
                     }
                 }, 250)
@@ -130,13 +144,13 @@ export class MateuChat extends LitElement {
 
             this.recognitionAvailable = true;
 
-            this.recognition.onresult = this.onSpeechResult;
+            recognition.onresult = this.onSpeechResult;
 
-            this.recognition.onerror = (event: any) => {
-                console.error("Error de reconocimiento: " + event.error);
-                if (this.listening) {
+            recognition.onerror = (event: Event) => {
+                console.error("Error de reconocimiento: " + (event as Event & { error: string }).error);
+                if (this.listening && this.recognition) {
                     setTimeout(() => {
-                        this.recognition.start();
+                        this.recognition!.start();
                     }, 250)
                 }
             };
@@ -181,7 +195,7 @@ export class MateuChat extends LitElement {
      * Returns {event, detail} if the payload is a JSON object with an "event" string field,
      * otherwise null. The "detail" field is optional and defaults to {}.
      */
-    private tryParseCustomEvent(payload: string): { event: string; detail: any } | null {
+    private tryParseCustomEvent(payload: string): { event: string; detail: unknown } | null {
         const trimmed = payload.trim();
         if (!trimmed.startsWith('{')) return null;
         try {
@@ -311,7 +325,7 @@ export class MateuChat extends LitElement {
                             this.tokenUsage = { ...this.tokenUsage, ...usage };
                         } else if (customEvent) {
                             if (customEvent.event === 'agent-error') {
-                                accumulatedText = '⚠️ ' + (customEvent.detail?.message ?? 'Error desconocido del agente');
+                                accumulatedText = '⚠️ ' + ((customEvent.detail as Record<string, unknown>)?.message ?? 'Error desconocido del agente');
                                 this.updateMessage(agentIdx, accumulatedText);
                             } else {
                                 this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
@@ -339,7 +353,7 @@ export class MateuChat extends LitElement {
                             this.tokenUsage = { ...this.tokenUsage, ...usage };
                         } else if (customEvent) {
                             if (customEvent.event === 'agent-error') {
-                                accumulatedText = '⚠️ ' + (customEvent.detail?.message ?? 'Error desconocido del agente');
+                                accumulatedText = '⚠️ ' + ((customEvent.detail as Record<string, unknown>)?.message ?? 'Error desconocido del agente');
                                 this.updateMessage(agentIdx, accumulatedText);
                             } else {
                                 this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
@@ -358,13 +372,14 @@ export class MateuChat extends LitElement {
             if (!accumulatedText) {
                 this.updateMessage(agentIdx, '⚠️ El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).');
             }
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error en el flujo SSE:', error);
-            const isNetworkError = error.message === 'Failed to fetch' || error.message === 'network error' || error.message === 'Load failed';
+            const errorMessage = (error as Error)?.message ?? String(error)
+            const isNetworkError = errorMessage === 'Failed to fetch' || errorMessage === 'network error' || errorMessage === 'Load failed';
             if (isNetworkError && !accumulatedText) {
                 this.updateMessage(agentIdx, '⚠️ No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible.');
             } else {
-                this.updateMessage(agentIdx, '⚠️ Error: ' + error.message);
+                this.updateMessage(agentIdx, '⚠️ Error: ' + errorMessage);
             }
         } finally {
                 this.stopLoading();

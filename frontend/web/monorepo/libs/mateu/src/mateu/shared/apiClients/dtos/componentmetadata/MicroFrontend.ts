@@ -1,4 +1,5 @@
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
+import { ComponentState } from "@infra/ui/renderers/types.ts";
 
 export default interface MicroFrontend extends ComponentMetadata {
     baseUrl: string
@@ -7,6 +8,6 @@ export default interface MicroFrontend extends ComponentMetadata {
     style: string
     cssClasses: string
     serverSideType: string
-    appState: any
+    appState: ComponentState
     actionId: string
 }

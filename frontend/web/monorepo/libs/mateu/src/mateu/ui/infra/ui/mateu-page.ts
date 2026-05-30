@@ -7,6 +7,7 @@ import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageC
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import './mateu-content-header'
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 @customElement('mateu-page')
 export class MateuPage extends LitElement {
@@ -18,19 +19,19 @@ export class MateuPage extends LitElement {
     baseUrl?: string
 
     @property()
-    state?: any
+    state?: ComponentState
 
     @property()
-    data?: any
+    data?: ComponentData
 
     @property()
-    appState: Record<string, any> = {}
+    appState: ComponentState = {}
 
     @property()
-    appData: Record<string, any> = {}
+    appData: ComponentData = {}
 
     @property()
-    value?: any
+    value?: unknown
 
     @property({ type: Boolean })
     standalone = false
@@ -53,7 +54,7 @@ export class MateuPage extends LitElement {
                 </vaadin-horizontal-layout>
             </div>
             <div class="form-footer">
-                ${metadata?.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                ${metadata?.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
             </div>
         `
         return this.standalone

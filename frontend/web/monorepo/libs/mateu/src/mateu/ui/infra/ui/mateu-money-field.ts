@@ -14,6 +14,7 @@ import "@vaadin/grid"
 import "@vaadin/card"
 import { customElement, property } from 'lit/decorators.js';
 import {Amount} from "@mateu/shared/apiClients/dtos/Amount.ts";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
 
 @customElement('mateu-money-field')
@@ -26,10 +27,10 @@ export class MateuMoneyField extends LitElement {
     label?: string
 
     @property()
-    state?: any
+    state?: ComponentState
 
     @property()
-    data?: any
+    data?: ComponentData
 
     @property()
     value?: Amount

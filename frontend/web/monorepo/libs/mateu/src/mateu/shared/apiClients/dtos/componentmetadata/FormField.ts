@@ -21,7 +21,7 @@ export default interface FormField extends ComponentMetadata {
     colspan?: number | undefined
     rightAligned?: boolean | undefined
     bold?: boolean | undefined
-    initialValue?: any
+    initialValue?: unknown
     options?: Option[] | undefined
     remoteCoordinates: RemoteCoordinates | undefined
     charLimit?: string

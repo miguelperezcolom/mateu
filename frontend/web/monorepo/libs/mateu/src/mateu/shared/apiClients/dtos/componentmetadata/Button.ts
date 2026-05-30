@@ -17,6 +17,6 @@ export default interface Button extends ComponentMetadata {
     color: ButtonColor
     buttonStyle: ButtonStyle
     size: ButtonSize
-    parameters: any
+    parameters: Record<string, unknown>
 
 }
