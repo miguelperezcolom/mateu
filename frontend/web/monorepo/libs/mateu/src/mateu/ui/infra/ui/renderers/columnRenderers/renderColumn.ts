@@ -21,6 +21,7 @@ import {
 import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
 import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
 import { GridSortColumn } from "@vaadin/grid/all-imports";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 
 const headerRenderer = (label: string) =>
     columnHeaderRenderer(() => html`<span title="${label}" style="white-space:normal;overflow-wrap:break-word;">${label}</span>`, [label])
@@ -41,10 +42,10 @@ const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
 export const renderGroup = (group: GridGroupColumn,
                             container: LitElement,
                             baseUrl: string | undefined,
-                            state: any,
-                            data: any,
-                            appState: any,
-                            appData: any) => {
+                            state: ComponentState,
+                            data: ComponentData,
+                            appState: ComponentState,
+                            appData: ComponentData) => {
     return html`
 <vaadin-grid-column-group header="${group.label}">
     ${group.columns.map(column => renderColumn(column.metadata as GridColumn,
@@ -61,10 +62,10 @@ export const renderGroup = (group: GridGroupColumn,
 export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent,
                                     container: LitElement,
                                     baseUrl: string | undefined,
-                                    state: any,
-                                    data: any,
-                                    appState: any,
-                                    appData: any) => {
+                                    state: ComponentState,
+                                    data: ComponentData,
+                                    appState: ComponentState,
+                                    appData: ComponentData) => {
     if (ComponentMetadataType.GridGroupColumn == columnOrGroup.metadata?.type) {
         return renderGroup(columnOrGroup.metadata as GridGroupColumn,
             container,
@@ -87,10 +88,10 @@ export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent,
 export const renderColumn = (mateuColumn: GridColumn,
                              container: LitElement,
                              baseUrl: string | undefined,
-                             state: any,
-                             data: any,
-                             appState: any,
-                             appData: any) => {
+                             state: ComponentState,
+                             data: ComponentData,
+                             appState: ComponentState,
+                             appData: ComponentData) => {
     if (mateuColumn.sortable) {
         return html`
                         <vaadin-grid-sort-column
@@ -198,10 +199,10 @@ export const columnRenderer = (item: any,
                                column: GridColumn,
                                                                 container: LitElement,
                                                                 baseUrl: string | undefined,
-                                                                state: any,
-                                                                data: any,
-                               appState: any,
-                               appData: any) => {
+                                                                state: ComponentState,
+                                                                data: ComponentData,
+                               appState: ComponentState,
+                               appData: ComponentData) => {
     const type = vaadinColumn.dataset.dataType??''
     const stereotype = vaadinColumn.dataset.stereotype??''
     if ('status' == type) {

@@ -46,6 +46,9 @@ import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {Notification, NotificationPosition} from "@vaadin/notification";
 import {evalIfNecessary} from "@infra/ui/renderers/avatarRenderer.ts";
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+
+type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
 interface FileLike {
     id: string
@@ -66,16 +69,16 @@ export class MateuField extends LitElement {
     baseUrl: string | undefined = undefined
 
     @property()
-    state: any | undefined = undefined
+    state: ComponentState = {}
 
     @property()
-    data: any | undefined = undefined
+    data: ComponentData = {}
 
     @property()
-    appState: any | undefined = undefined
+    appState: ComponentState = {}
 
     @property()
-    appData: any | undefined = undefined
+    appData: ComponentData = {}
 
     @property()
     labelAlreadyRendered: boolean | undefined
@@ -86,7 +89,7 @@ export class MateuField extends LitElement {
     @state()
     colorPickerValue : string | undefined = undefined
 
-    comboData: any[] = []
+    comboData: Option[] = []
 
     rendered = false
 
@@ -99,10 +102,9 @@ export class MateuField extends LitElement {
     }
 
     saveColor = () => {
-        this.dispatchEvent(new CustomEvent('value-changed', {
+        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
             detail: {
                 value: this.colorPickerValue,
-                //@ts-ignore
                 fieldId: this.field!.fieldId
             },
             bubbles: true,
@@ -118,10 +120,9 @@ export class MateuField extends LitElement {
 
     checked = (e:Event) => {
         const input = e.target as HTMLInputElement;
-        this.dispatchEvent(new CustomEvent('value-changed', {
+        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
             detail: {
                 value: input.checked,
-                //@ts-ignore
                 fieldId: this.field!.fieldId
             },
             bubbles: true,
@@ -159,10 +160,9 @@ export class MateuField extends LitElement {
                     }
                 }
             }
-            if (!this.compareArrays(value, oldValue)) this.dispatchEvent(new CustomEvent('value-changed', {
+            if (!this.compareArrays(value, oldValue)) this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                 detail: {
                     value: value,
-                    //@ts-ignore
                     fieldId: this.field?.fieldId
                 },
                 bubbles: true,
@@ -174,10 +174,9 @@ export class MateuField extends LitElement {
     valueChanged = (e: CustomEvent) => {
         if (this.rendered) {
             if (e.detail.value !== undefined && e.detail.value != this.state[this.field!.fieldId]) {
-                this.dispatchEvent(new CustomEvent('value-changed', {
+                this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                     detail: {
                         value: this.convert(e.detail.value),
-                        //@ts-ignore
                         fieldId: this.field?.fieldId
                     },
                     bubbles: true,
@@ -271,10 +270,9 @@ export class MateuField extends LitElement {
                 }
             }
             if (!this.compareArrays(value, oldValue)) {
-                this.dispatchEvent(new CustomEvent('value-changed', {
+                this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                     detail: {
                         value,
-                        //@ts-ignore
                         fieldId: this.field?.fieldId
                     },
                     bubbles: true,
@@ -302,10 +300,9 @@ export class MateuField extends LitElement {
                 }
             }
         }
-        this.dispatchEvent(new CustomEvent('value-changed', {
+        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
             detail: {
                 value,
-                //@ts-ignore
                 fieldId: this.field?.fieldId
             },
             bubbles: true,
@@ -355,7 +352,7 @@ export class MateuField extends LitElement {
             name: e.detail.file.name
         })
 
-        this.dispatchEvent(new CustomEvent('value-changed', {
+        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
             detail: {
                 value,
                 fieldId: this.field?.fieldId
@@ -376,7 +373,7 @@ export class MateuField extends LitElement {
                     name: file.name
                 }
             })
-            this.dispatchEvent(new CustomEvent('value-changed', {
+            this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                 detail: {
                     value: newValues,
                     fieldId: this.field?.fieldId
@@ -606,7 +603,7 @@ export class MateuField extends LitElement {
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
 
-                    let selectedItem:any = undefined
+                    let selectedItem: Option | undefined = undefined
                     if (this.data[this.id] && this.data[this.id].content) {
                         selectedItem = this.data[this.id].content.find((item:any) => item.value == value)
                     }
@@ -617,10 +614,10 @@ export class MateuField extends LitElement {
                         selectedItem = {
                             value: value,
                             label: this.data[this.id + '-label']??value
-                        }
+                        } as Option
                     }
 
-                    const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
+                    const dataProvider: ComboBoxDataProvider<Option> = (params, callback) => {
                         const { filter, page, pageSize } = params;
                         this.dispatchEvent(new CustomEvent('action-requested', {
                                 detail: {
@@ -664,8 +661,7 @@ export class MateuField extends LitElement {
                                     const input = combo.inputElement as HTMLInputElement
                                     const filter = input.value
                                     if (!filter) {
-                                        // @ts-ignore
-                                        combo.value = undefined
+                                        combo.value = ''
                                     }
                                 }
                             }}"
@@ -775,9 +771,6 @@ export class MateuField extends LitElement {
                         ${this.field.options?.map(option => html`
                             <vaadin-item>${option.description || option.image || option.icon?html`
                                 <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
-                                    ${option.icon?html`
-                                        <vaadin-icon icon="${option.icon}"></vaadin-icon>
-                                    `:nothing}
                                     ${option.icon?html`
                                         <vaadin-icon icon="${option.icon}"></vaadin-icon>
                                     `:nothing}
@@ -954,24 +947,6 @@ export class MateuField extends LitElement {
                     </vaadin-custom-field>
                     `
             }
-            if (this.field?.stereotype == 'popover') {
-                return html`
-                    <vaadin-radio-group
-                            id="${this.field.fieldId}"
-                            label="${label}"
-                            @value-changed="${this.valueChanged}"
-                            .value="${value}"
-                            theme="vertical"
-                            ?autofocus="${this.field.wantsFocus}"
-                            required="${this.field.required || nothing}"
-                            data-colspan="${this.field.colspan}"
-                    >
-                        ${this.field.options?.map(option => html`
-                            <vaadin-radio-button value="${option.value}" label="${option.label}"></vaadin-radio-button>
-                        `)}
-</vaadin-radio-group>
-                    `
-            }
             if (this.field?.stereotype == 'richText') {
                 return html`
                     <vaadin-custom-field
@@ -1117,10 +1092,9 @@ export class MateuField extends LitElement {
                             label="${label}"
                     >
                         <input type="color" @input="${(e: Event) => {
-                            this.dispatchEvent(new CustomEvent('value-changed', {
+                            this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                                 detail: {
                                     value: (e.target as HTMLInputElement).value,
-                                    //@ts-ignore
                                     fieldId: this.field!.fieldId
                                 },
                                 bubbles: true,
@@ -1189,10 +1163,9 @@ export class MateuField extends LitElement {
                     <vaadin-icon 
                             icon="vaadin:star" 
                             style="cursor: pointer; color: var(${index <= renderValue?'--lumo-warning-color':'--lumo-shade-30pct'});"
-                            @click="${() => this.dispatchEvent(new CustomEvent('value-changed', {
+                            @click="${() => this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                                 detail: {
                                     value: index,
-                                    //@ts-ignore
                                     fieldId: this.field!.fieldId
                                 },
                                 bubbles: true,
@@ -1213,10 +1186,9 @@ export class MateuField extends LitElement {
                             label="${label}"
                             data-colspan="${this.field.colspan}"
                     ><input type="range" @input="${(e: Event) => {
-                        this.dispatchEvent(new CustomEvent('value-changed', {
+                        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                             detail: {
                                 value: (e.target as HTMLInputElement).value,
-                                //@ts-ignore
                                 fieldId: this.field!.fieldId
                             },
                             bubbles: true,
@@ -1437,7 +1409,7 @@ export class MateuField extends LitElement {
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
 
-                    const dataProvider: ComboBoxDataProvider<any> = (params, callback) => {
+                    const dataProvider: ComboBoxDataProvider<Option> = (params, callback) => {
                         const { filter, page, pageSize } = params;
                             this.dispatchEvent(new CustomEvent('action-requested', {
                                 detail: {
@@ -1659,13 +1631,12 @@ export class MateuField extends LitElement {
                                            startValue: number
                                            endValue: number
                                        }
-                                       this.dispatchEvent(new CustomEvent('value-changed', {
+                                       this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                                            detail: {
                                                value: {
                                                    from: values.startValue,
                                                    to: values.endValue
                                                },
-                                               //@ts-ignore
                                                fieldId: this.field!.fieldId
                                            },
                                            bubbles: true,

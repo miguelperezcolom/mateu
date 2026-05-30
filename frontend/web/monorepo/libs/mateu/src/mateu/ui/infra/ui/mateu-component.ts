@@ -101,16 +101,12 @@ export class MateuComponent extends ComponentElement {
     applyRules = () => {
         const rules = (this.component as ServerSideComponent).rules
         if (rules && rules.length > 0) {
-            // @ts-ignore
-            const state = this.state
-            // @ts-ignore
-            const data = this.data
-            // @ts-ignore
-            const appState = this.appState
-            // @ts-ignore
-            const appData = this.appData
-            // @ts-ignore
+            const state = this.state       // available to eval() in rule filters
+            const data = this.data          // available to eval() in rule filters
+            const appState = this.appState  // available to eval() in rule filters
+            const appData = this.appData    // available to eval() in rule filters
             const component = this.component
+            void state; void data; void appState; void appData; void component;
             const newState = {...this.state}
             const newData = {...this.data}
             let stateUpdated = false;
