@@ -10,11 +10,23 @@ import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import '@vaadin/button'
 import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import './mateu-field'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+
+const buttonTheme = (button: Button): string | undefined => {
+    const parts: string[] = []
+    if (button.color && button.color !== 'normal') {
+        parts.push(button.color)
+    }
+    if (button.buttonStyle) {
+        parts.push(button.buttonStyle === 'tertiaryInline' ? 'tertiary-inline' : button.buttonStyle)
+    }
+    return parts.length ? parts.join(' ') : undefined
+}
 
 export const possiblyHtml = (
     text: string | undefined,
@@ -68,6 +80,7 @@ export class MateuForm extends MetadataDrivenElement {
                         ${metadata?.toolbar?.map(button => html`
                 <vaadin-button
                         data-action-id="${button.id}"
+                        theme="${buttonTheme(button) || nothing}"
                         @click="${() => this.handleButtonClick(button.actionId)}"
                         ?disabled="${button.disabled}"
                 >${button.iconOnLeft?html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>`:nothing}${button.label}${button.iconOnRight?html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>
@@ -85,6 +98,7 @@ export class MateuForm extends MetadataDrivenElement {
                             ${metadata?.toolbar?.map(button => html`
                 <vaadin-button
                         data-action-id="${button.id}"
+                        theme="${buttonTheme(button) || nothing}"
                         @click="${() => this.handleButtonClick(button.actionId)}"
                         ?disabled="${button.disabled}"
                 >${button.iconOnLeft?html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>`:nothing}${button.label}${button.iconOnRight?html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>

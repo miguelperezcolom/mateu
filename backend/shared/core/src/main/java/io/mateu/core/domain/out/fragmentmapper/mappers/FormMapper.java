@@ -2,11 +2,15 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
+import io.mateu.dtos.ButtonColorDto;
 import io.mateu.dtos.ButtonDto;
+import io.mateu.dtos.ButtonStyleDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonColor;
+import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -102,7 +106,35 @@ public class FormMapper {
           .iconOnRight(button.iconOnRight())
           .disabled(button.disabled())
           .shortcut(button.shortcut())
+          .color(resolveColor(button))
+          .buttonStyle(resolveStyle(button))
           .build();
+    }
+    return null;
+  }
+
+  private static ButtonColorDto resolveColor(Button button) {
+    if (button.color() != null && button.color() != ButtonColor.normal) {
+      return ButtonColorDto.valueOf(button.color().name());
+    }
+    String id = button.getActionId();
+    if (id != null && (id.equals("delete") || id.equals("delete-edit") || id.startsWith("delete-"))) {
+      return ButtonColorDto.error;
+    }
+    return null;
+  }
+
+  private static ButtonStyleDto resolveStyle(Button button) {
+    if (button.buttonStyle() != null) {
+      return ButtonStyleDto.valueOf(button.buttonStyle().name());
+    }
+    String id = button.getActionId();
+    if (id == null) return null;
+    if (id.equals("save") || id.equals("create")) {
+      return ButtonStyleDto.primary;
+    }
+    if (id.startsWith("cancel") || id.equals("back") || id.equals("backToList")) {
+      return ButtonStyleDto.tertiary;
     }
     return null;
   }
