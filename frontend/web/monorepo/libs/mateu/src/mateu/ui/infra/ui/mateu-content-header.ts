@@ -13,11 +13,10 @@ import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 
 export const possiblyHtml = (
     text: string | undefined,
-    // @ts-ignore
     state: any,
-    // @ts-ignore
     data: any
 ): string | undefined => {
+    void state; void data;  // captured by eval template literal
     if (text && text.indexOf("${") >= 0) {
         try {
             return eval('`' + text + '`')

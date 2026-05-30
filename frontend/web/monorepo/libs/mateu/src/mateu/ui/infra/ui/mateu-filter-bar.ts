@@ -66,7 +66,6 @@ export class MateuFilterBar extends LitElement {
             this.dispatchEvent(new CustomEvent('value-changed', {
                 detail: {
                     value: undefined,
-                    //@ts-ignore
                     fieldId: filter.fieldId
                 },
                 bubbles: true,
@@ -109,8 +108,7 @@ export class MateuFilterBar extends LitElement {
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
                 value: e.detail.value,
-                //@ts-ignore
-                fieldId: e.target.id
+                fieldId: (e.target as HTMLElement).id
             },
             bubbles: true,
             composed: true

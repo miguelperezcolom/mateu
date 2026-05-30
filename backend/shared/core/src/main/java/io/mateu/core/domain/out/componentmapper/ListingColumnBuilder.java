@@ -52,6 +52,7 @@ final class ListingColumnBuilder {
         .dataType(getDataTypeForColumn(field))
         .stereotype(getStereotypeForColumn(field))
         .style(getColumnStyle(field))
+        .resizable(true)
         .build();
   }
 

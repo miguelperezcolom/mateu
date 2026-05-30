@@ -3,7 +3,6 @@ import CookieConsent from "@mateu/shared/apiClients/dtos/componentmetadata/Cooki
 import { html, nothing } from "lit";
 
 export const renderCookieConsent = (component: ClientSideComponent) => {
-    // @ts-ignore
     const metadata = component.metadata as CookieConsent
     let position = undefined
     if (metadata.position) {

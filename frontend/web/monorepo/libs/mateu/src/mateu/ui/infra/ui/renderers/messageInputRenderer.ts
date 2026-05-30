@@ -3,7 +3,6 @@ import MessageInput from "@mateu/shared/apiClients/dtos/componentmetadata/Messag
 import { html, nothing } from "lit";
 
 export const renderMessageInput = (component: ClientSideComponent) => {
-    // @ts-ignore
     const metadata = component.metadata as MessageInput
     return html`
         <vaadin-message-input style="${component.style}" class="${component.cssClasses}"

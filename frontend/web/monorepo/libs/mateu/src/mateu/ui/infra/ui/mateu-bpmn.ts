@@ -24,7 +24,6 @@ export class MateuBpmn extends LitElement {
     xml: string | undefined
 
     @queryAssignedElements({slot: ''})
-    // @ts-ignore
     private scriptElements!: Array<HTMLElement>;
 
     @query('#canvas')

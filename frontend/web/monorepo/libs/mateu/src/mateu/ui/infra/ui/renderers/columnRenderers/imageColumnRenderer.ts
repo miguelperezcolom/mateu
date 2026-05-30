@@ -11,12 +11,10 @@ export const renderImageCell = (item: any,
                                 metadata: GridColumn
 ) => {
     if (type == 'string') {
-        // @ts-ignore
-        const src = item[column.path]
+        const src = item[column.path!]
         const style = 'max-height: 40px; ' + (metadata.style??'')
         return html`<img src="${src}" style="${style}">`;
     }
-    // @ts-ignore
-    const img = item[column.path]
+    const img = item[column.path!]
     return html`<img src="${img.src}" style="${metadata.style??''}">`;
 }

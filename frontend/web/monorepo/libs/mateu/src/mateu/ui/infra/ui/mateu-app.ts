@@ -127,8 +127,8 @@ export class MateuApp extends ComponentElement {
     }
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
-        // @ts-ignore
-        this.selectRoute(e.detail.value.consumedRoute, e.detail.value.route, e.detail.value.actionId, e.detail.value.baseUrl, e.detail.value.serverSideType, e.detail.value.uriPrefix)
+        const v = e.detail.value as any
+        this.selectRoute(v.consumedRoute, v.route, v.actionId, v.baseUrl, v.serverSideType, v.uriPrefix)
     }
 
     itemSelectedTiles = (e: MenuBarItemSelectedEvent) => {
@@ -523,14 +523,12 @@ export class MateuApp extends ComponentElement {
             if (metadata) {
                 const app = metadata as App
                 if (app.favicon) {
-                    let link = document.querySelector("link[rel~='icon']")
+                    let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {
-                        link = document.createElement('link')
-                        // @ts-ignore
+                        link = document.createElement('link') as HTMLLinkElement
                         link.rel = 'icon'
                         document.head.appendChild(link)
                     }
-                    // @ts-ignore
                     link.href = app.favicon
                 }
                 if (_changedProperties.has('component')) {

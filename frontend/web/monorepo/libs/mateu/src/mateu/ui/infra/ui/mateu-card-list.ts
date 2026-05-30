@@ -18,6 +18,7 @@ import '@vaadin/grid/vaadin-grid-filter-column.js';
 import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import { GridDataProvider } from "@vaadin/grid/all-imports";
+import type { GridDataProviderParams, GridDataProviderCallback } from "@vaadin/grid/src/vaadin-grid-data-provider-mixin.js";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
@@ -52,8 +53,7 @@ export class MateuCardList extends LitElement {
     emptyStateMessage?: string
 
 
-    // @ts-ignore
-    dataProvider:GridDataProvider<unknown> = (params, callback) => {
+    dataProvider: GridDataProvider<unknown> = (_params: GridDataProviderParams<unknown>, callback: GridDataProviderCallback<unknown>) => {
         const page = this.data[this.id]?.page
         callback(page?.content??[], page?.content?.length??0);
     }

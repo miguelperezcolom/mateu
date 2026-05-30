@@ -17,10 +17,9 @@ export const renderAvatar = (component: ClientSideComponent, state: ComponentSta
 
 export const evalIfNecessary = (value: string, _state: ComponentState, _data: ComponentData) => {
     if (value && value.includes && value.includes('${')) {
-        // @ts-ignore
         const state = _state
-        // @ts-ignore
         const data = _data
+        void state; void data;  // captured by eval template literal
         try {
             return eval('`' + value + '`')
         } catch (e) {

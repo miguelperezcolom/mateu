@@ -26,6 +26,7 @@ import {
     GridEventContext,
     GridSelectedItemsChangedEvent
 } from "@vaadin/grid/all-imports";
+import type { GridDataProviderParams, GridDataProviderCallback } from "@vaadin/grid/src/vaadin-grid-data-provider-mixin.js";
 import { columnBodyRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
@@ -75,8 +76,7 @@ export class MateuTable extends LitElement {
         return false
     }
 
-    // @ts-ignore
-    dataProvider:GridDataProvider<unknown> = (params, callback) => {
+    dataProvider: GridDataProvider<unknown> = (params: GridDataProviderParams<unknown>, callback: GridDataProviderCallback<unknown>) => {
         const page = this.data[this.id]?.page
         if (this.metadata?.infiniteScrolling && params.page > 0) {
             let satisfied = false

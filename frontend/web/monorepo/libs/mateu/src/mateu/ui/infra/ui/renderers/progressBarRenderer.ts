@@ -3,7 +3,6 @@ import ProgressBar from "@mateu/shared/apiClients/dtos/componentmetadata/Progres
 import { html, nothing } from "lit";
 
 export const renderProgressBar = (component: ClientSideComponent) => {
-    // @ts-ignore
     const metadata = component.metadata as ProgressBar
 
     return html`

@@ -5,10 +5,19 @@ import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColu
 import '@vaadin/icon';
 import '@vaadin/icons';
 
+type XColumn = VaadinGridColumn & { xcolumn?: GridColumn }
+type RowTarget = EventTarget & { row: unknown }
+type ActionTarget = EventTarget & { action: ActionItem }
+interface ActionItem {
+    methodNameInCrud: string
+    label: string
+    icon: string
+    disabled: boolean
+}
+
 const itemSelected = (e: CustomEvent) => {
     const obj = {
-        // @ts-ignore
-        _clickedRow: e.target.row
+        _clickedRow: (e.target as RowTarget).row
     };
     e.target?.dispatchEvent(new CustomEvent('action-requested', {
         detail: {
@@ -22,16 +31,9 @@ const itemSelected = (e: CustomEvent) => {
 
 const clicked = (e: CustomEvent) => {
     const obj = {
-        // @ts-ignore
-        _clickedRow: e.target.row
+        _clickedRow: (e.target as RowTarget).row
     };
-    const action : {
-        methodNameInCrud: string
-        label: string
-        icon: string
-        disabled: boolean
-        //@ts-ignore
-    } = e.target.action
+    const action: ActionItem = (e.target as ActionTarget).action
     e.target?.dispatchEvent(new CustomEvent('action-requested', {
         detail: {
             actionId: 'action-on-row-' + action.methodNameInCrud,
@@ -63,8 +65,7 @@ export const renderMenuCell = (item: any,
                                  _model: GridItemModel<any>,
                                  column: VaadinGridColumn
 ) => {
-    // @ts-ignore
-    const actions = item[column.path]?.actions?.map(a => {
+    const actions = item[column.path!]?.actions?.map((a: any) => {
         if (a.icon) {
             return {
                 component: createItem(a),
@@ -93,13 +94,9 @@ export const renderActionCell = (item: any,
                                _model: GridItemModel<any>,
                                _column: VaadinGridColumn
 ) => {
-    // @ts-ignore
-    const action: {
-        methodNameInCrud: string
-        label: string
-        icon: string
-        disabled: boolean
-    } = _column.path && item[_column.path].methodNameInCrud?item[_column.path]:item.action
+    const action: ActionItem = _column.path && item[_column.path].methodNameInCrud
+        ? item[_column.path]
+        : (item as any).action
     const iconOnly = action.icon && !action.label
     return html`
          <vaadin-button theme="tertiary${iconOnly ? ' icon' : ''}" title="${action.label || nothing}" @click="${clicked}" .row="${item}" .action="${action}">
@@ -128,9 +125,7 @@ export const renderButtonCell = (item: any,
                                  _stereotype: string,
                                  _column: GridColumn
 ) => {
-    // @ts-ignore
-    // @ts-ignore
-    const column = vaadinColumn.xcolumn??_column
+    const column = (vaadinColumn as XColumn).xcolumn ?? _column
     if (column.text) {
         if (column.actionId) {
             return html`
@@ -139,11 +134,9 @@ export const renderButtonCell = (item: any,
                 </vaadin-button>
             `
         }
-        // @ts-ignore
-        const href = item[vaadinColumn.path]
+        const href = item[vaadinColumn.path!]
         return html`<a href="${href}">${column.text}</a>`;
     }
-    // @ts-ignore
-    const href = item[vaadinColumn.path]
+    const href = item[vaadinColumn.path!]
     return html`<a href="${href}">${column.text}</a>`;
 }

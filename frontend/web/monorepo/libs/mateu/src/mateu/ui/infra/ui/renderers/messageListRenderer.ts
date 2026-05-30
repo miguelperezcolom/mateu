@@ -3,7 +3,6 @@ import MessageList from "@mateu/shared/apiClients/dtos/componentmetadata/Message
 import { html, nothing } from "lit";
 
 export const renderMessageList = (component: ClientSideComponent) => {
-    // @ts-ignore
     const metadata = component.metadata as MessageList
     return html`
         <vaadin-message-list

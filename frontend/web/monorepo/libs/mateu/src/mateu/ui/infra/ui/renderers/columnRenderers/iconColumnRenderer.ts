@@ -9,11 +9,9 @@ export const renderIconCell = (item: any,
                                 _stereotype: string
 ) => {
     if (type == 'string') {
-        // @ts-ignore
-        const icons = item[column.path]
+        const icons = item[column.path!]
         return icons.split(',').map((icon: any) => html`<vaadin-icon icon="${icon}" style="width: 16px;"></vaadin-icon>`);
     }
-    // @ts-ignore
-    const icons = item[column.path]
+    const icons = item[column.path!]
     return icons.split(',').map((icon: any) => html`<vaadin-icon icon="${icon.icon}" style="width: 16px;"></vaadin-icon>`);
 }

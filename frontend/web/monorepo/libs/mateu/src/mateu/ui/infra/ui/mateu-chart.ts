@@ -34,7 +34,6 @@ export class MateuChart extends LitElement {
     private chartElement!: HTMLCanvasElement;
 
     @queryAssignedElements({slot: ''})
-    // @ts-ignore
     private scriptElements!: Array<HTMLElement>;
 
     private chart: Chart | undefined;

@@ -5,8 +5,7 @@ import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-co
 export const renderBooleanCell = (item: any,
                                  _model: GridItemModel<any>,
                                  column: VaadinGridColumn) => {
-    // @ts-ignore
-    const value = item[column.path]
+    const value = item[column.path!]
     //const icon = value?'vaadin:check-circle':'vaadin:close-circle'
     //const icon = value?'vaadin:check-square-o':'vaadin:minus-square-o'
     const icon = value?'vaadin:check':'vaadin:minus'

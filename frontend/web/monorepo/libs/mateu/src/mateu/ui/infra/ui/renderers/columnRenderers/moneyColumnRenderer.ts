@@ -8,8 +8,7 @@ export const renderMoneyCell = (item: any,
                                 type: string,
                                 stereotype: string
 ) => {
-    // @ts-ignore
-    const amount = item[column.path]
+    const amount = item[column.path!]
     let formatted = amount
     if ('money' == type && amount && amount.locale && amount.currency) {
         formatted = new Intl.NumberFormat(amount.locale, { style: "currency", currency: amount.currency }).format(

@@ -104,8 +104,7 @@ export class MateuChat extends LitElement {
         super.connectedCallback();
 
 // Comprobar si el navegador es compatible
-        // @ts-ignore
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
         console.log('SpeechRecognition', SpeechRecognition);
 

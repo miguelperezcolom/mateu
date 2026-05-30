@@ -3,7 +3,6 @@ import { html, nothing } from "lit";
 import Bpmn from "@mateu/shared/apiClients/dtos/componentmetadata/Bpmn.ts";
 
 export const renderBpmn = (component: ClientSideComponent) => {
-    // @ts-ignore
     const metadata = component.metadata as Bpmn
 
     //console.log('metadata', metadata)

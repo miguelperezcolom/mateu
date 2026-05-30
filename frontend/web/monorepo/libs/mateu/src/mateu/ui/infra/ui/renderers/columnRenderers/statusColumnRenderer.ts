@@ -6,8 +6,7 @@ import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-co
 export const renderStatusCell = (item: any,
                                  _model: GridItemModel<any>,
                                  column: VaadinGridColumn) => {
-    // @ts-ignore
-    const status = item[column.path]
+    const status = item[column.path!]
     return status?html`<span theme="badge pill ${getThemeForBadgetType(status.type)}">${status.message}</span>`:html``
 }
 

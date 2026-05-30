@@ -97,8 +97,7 @@ export class MateuCookieConsent extends LitElement {
     __updatePopup() {
         this.__closePopup();
 
-        // @ts-ignore
-        window.cookieconsent.initialise({
+        (window as any).cookieconsent.initialise({
             palette: {
                 popup: {
                     background: '#000',

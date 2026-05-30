@@ -20,6 +20,7 @@ import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {UIFragmentAction} from "@mateu/shared/apiClients/dtos/UIFragmentAction.ts";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata.ts";
 import {sseService} from "@application/SSEService.ts";
 
 @customElement('mateu-ux')
@@ -122,12 +123,11 @@ export class MateuUx extends ConnectedElement {
                     state: {},
                     component: {
                         type: ComponentType.ClientSide,
-                        // @ts-ignore
                         metadata: {
                             type: ComponentMetadataType.Element,
                             name: "div",
                             content: "Not found"
-                        },
+                        } as ComponentMetadata,
                         "id": "fieldId"
                     },
                     action: UIFragmentAction.Replace
@@ -210,8 +210,7 @@ export class MateuUx extends ConnectedElement {
         this.addEventListener('history-pushed', this.historyPushed)
         this.addEventListener('route-changed', this.routeChangedListener)
 
-        // @ts-ignore
-        window.Vaadin.featureFlags.masterDetailLayoutComponent = true
+        (window as any).Vaadin.featureFlags.masterDetailLayoutComponent = true
 
     }
 
