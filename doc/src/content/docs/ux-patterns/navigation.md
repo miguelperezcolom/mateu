@@ -12,7 +12,7 @@ By default, Mateu applies this inference chain:
 ```
 Menu has no submenus           →  Tabs
 Menu has submenus (≤ 2 levels) →  Top navigation bar
-Menu has submenus (> 2 levels) →  Top navigation bar + Tiles hub for deep sections  (proposed)
+Menu has submenus (> 2 levels) →  Tiles hub (top nav + card grid at the depth boundary)
 ```
 
 You can override the inference at any point with `@App`:
@@ -116,9 +116,9 @@ Navigation is hidden behind a hamburger icon and slides in as a drawer. Maximise
 
 ### Navigation rail
 
-**Status:** 🔲 Proposed — `AppVariant.RAIL`
+**Status:** ✅ Implemented — `AppVariant.RAIL`
 
-A slim vertical strip with icons and short labels. Narrower than the full sidebar; wider than pure icons. Common in Material Design-style applications and modern productivity tools.
+A slim 72px vertical strip with icon and short label per item. Items with children open a 200px secondary panel listing their children. Narrower than the full sidebar; ideal for users who know the sections well.
 
 ```
 ┌────┬─────────────────────────────┐
@@ -133,98 +133,115 @@ A slim vertical strip with icons and short labels. Narrower than the full sideba
 └────┴─────────────────────────────┘
 ```
 
+With a parent item open:
+
+```
+┌────┬────────────┬────────────────┐
+│ 🏠 │ Operations │                │
+│Home│ ────────── │  Content area  │
+│    │ Orders     │                │
+│ 📦 │ Shipments  │                │
+│Cat.│ Returns    │                │
+│    │            │                │
+│ 🛒 │            │                │
+│Ops │            │                │
+└────┴────────────┴────────────────┘
+```
+
 **When to use:** Apps targeting users who know the sections well and want compact navigation; hybrid desktop/tablet layouts.
 
-**Proposed primitive:** `@App(AppVariant.RAIL)`
+```java
+@App(AppVariant.RAIL)
+public class MyAdminApp { ... }
+```
+
+Items without an `icon` field show the first letter of the label in a circle as fallback.
 
 ---
 
 ### Tiles hub
 
-**Status:** 🔲 Proposed — `AppVariant.TILES`
+**Status:** ✅ Implemented — `AppVariant.TILES` (also auto-inferred for depth > 2)
 
-A landing page that presents navigation options as a grid of cards, each with an icon, title, and optional description. Used as a top-level entry point or as an intermediate page for a section that would otherwise require 3+ navigation levels.
-
-```
-┌──────────────────────────────────────────────┐
-│  Operations                                  │
-│                                              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  📦      │  │  🚚      │  │  ↩       │   │
-│  │ Orders   │  │Shipments │  │ Returns  │   │
-│  │          │  │          │  │          │   │
-│  │ Manage   │  │ Track &  │  │ Process  │   │
-│  │ purchase │  │ dispatch │  │ refunds  │   │
-│  └──────────┘  └──────────┘  └──────────┘   │
-└──────────────────────────────────────────────┘
-```
-
-**When to use:** Home/dashboard pages; any section with 3+ levels of depth where a dropdown or nested sidebar would be unwieldy.
-
-**Proposed primitive:** `@App(AppVariant.TILES)` and `@Menu(description = "...")` on items to populate tile descriptions.
-
----
-
-### Deep-menu rule (> 2 levels)
-
-**Status:** 🔲 Proposed
-
-When a menu exceeds two levels of depth, neither a top-bar dropdown nor a sidebar renders well. The proposed rule:
-
-1. The top two levels are rendered in the main navigation (top-bar or sidebar).
-2. Any section at level 2 that itself has children navigates to a **Tiles hub page** instead of expanding inline.
-3. The tiles hub renders the level-3 items as cards with their descriptions.
+A top nav bar where clicking an item with children shows a responsive card grid instead of a dropdown. Each card displays the section's label and optional description. Clicking a card navigates into that section; if the card itself has children, another tiles hub is shown.
 
 ```
-Top nav:   Home  |  Catalogue ▾  |  Operations ▾  |  …
+[Logo]  Catalogue   Operations   Reports   Settings
 
-Click "Operations" →  navigates to /operations
+  Operations
 
-/operations  (Tiles hub page):
-  ┌──────────┐  ┌──────────┐  ┌──────────┐
-  │  Orders  │  │Shipments │  │ Returns  │
-  │          │  │          │  │          │
-  └──────────┘  └──────────┘  └──────────┘
+  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+  │   Orders     │  │  Shipments   │  │   Returns    │
+  │              │  │              │  │              │
+  │ Manage and   │  │ Track and    │  │ Process      │
+  │ search POs   │  │ dispatch     │  │ refunds      │
+  └──────────────┘  └──────────────┘  └──────────────┘
 ```
 
-This avoids three-level dropdowns and gives each deep section a proper entry point that can include descriptions and icons.
+**When to use:** Apps with 3+ levels of menu depth where dropdowns become unwieldy; home/dashboard landing pages.
 
-**Proposed inference rule addition:**
-```
-depth > 2  →  MENU_ON_TOP (or MENU_ON_LEFT) + TILES hub at level 2→3 boundary
-```
+Tile descriptions are populated via `@Menu(description = "...")`:
 
-**Populate tile descriptions via `@Menu(description = ...)`:**
 ```java
-@Menu(description = "Create, search and manage purchase orders.")
+@Menu(description = "Manage and search purchase orders.")
 private OrdersSection orders;
 
 @Menu(description = "Track dispatched shipments and update delivery status.")
 private ShipmentsSection shipments;
 ```
 
+**Automatic inference:** when Mateu detects that any top-level menu item has grandchildren (depth > 2), it automatically selects `TILES` without any annotation.
+
+---
+
+### Deep-menu rule (> 2 levels)
+
+**Status:** ✅ Implemented
+
+When a menu exceeds two levels of depth, Mateu automatically switches to the `TILES` variant. The top-level items appear in the nav bar as flat (no dropdowns); clicking one with children shows a tiles hub in the content area.
+
+```
+Top nav:   Home  |  Catalogue  |  Operations  |  …
+
+Click "Operations" →  shows tiles hub in content area
+
+  ┌──────────┐  ┌──────────┐  ┌──────────┐
+  │  Orders  │  │Shipments │  │ Returns  │
+  └──────────┘  └──────────┘  └──────────┘
+```
+
+The inference happens in `AppMetadataExtractor`: if any `Menu` item contains children that are also `Menu` items (i.e. submenu depth ≥ 3), the variant is set to `TILES`.
+
 ---
 
 ### Command palette
 
-**Status:** 🔲 Proposed
+**Status:** ✅ Implemented — `⌘K` / `Ctrl+K`, available in all variants
 
-A keyboard-triggered overlay (typically `⌘K` / `Ctrl+K`) that lets users search and jump to any section or action by typing. The fastest possible navigation for expert users who know what they want but not where it lives.
+A keyboard-triggered overlay that lets users search and jump to any section by typing. Results show the item label and its breadcrumb path (e.g. `Operations › Shipments`). Always active — no opt-in required.
 
 ```
-┌─────────────────────────────────────┐
-│ 🔍  Go to…                          │
-│ ─────────────────────────────────── │
-│ 📦  Orders                          │
-│ 👤  Customers                       │
-│ ⚙   Settings → Notifications        │
-│ ✚   New order                       │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│ 🔍  Go to…                                  │
+│ ─────────────────────────────────────────── │
+│  Orders            Operations               │
+│  Shipments         Operations               │
+│  Returns           Operations               │
+│  Products          Catalogue                │
+└─────────────────────────────────────────────┘
 ```
 
-**When to use:** Any application. Always beneficial as a secondary navigation layer; essential for power users.
+**Keyboard controls:**
 
-**Proposed primitive:** `@App(commandPalette = true)` — opt-in per app. Items are sourced from the same menu tree used for the main navigation.
+| Key | Action |
+|---|---|
+| `⌘K` / `Ctrl+K` | Open / close |
+| Type | Filter results |
+| `↑` `↓` | Move selection |
+| `Enter` | Navigate to selected item |
+| `Escape` | Close |
+
+Results are sourced from the same menu tree used for the main navigation, flattened to leaf items only.
 
 ---
 
@@ -237,14 +254,13 @@ A keyboard-triggered overlay (typically `⌘K` / `Ctrl+K`) that lets users searc
 | Frequent cross-section jumps, data-dense | Sidebar |
 | Mobile-first or navigation is secondary | Hamburger/Drawer |
 | Compact, icon-familiar users | Rail |
-| Deep menu (> 2 levels) | Top/Sidebar + Tiles hub at boundary |
-| Power users, keyboard-heavy | Add command palette to any of the above |
+| Deep menu (> 2 levels) | Tiles hub (auto-inferred) |
+| Power users, keyboard-heavy | Command palette (always available) |
 
 ## Combining patterns
 
-Patterns are not mutually exclusive. The most productive configurations layer them:
+All variants include the command palette automatically — there is nothing to configure. For the main navigation, patterns are mutually exclusive (one `AppVariant` per app), but they compose naturally with other UX patterns:
 
-- **Top nav + Tiles hub** for deep content hierarchies
-- **Sidebar + Command palette** for complex apps with many sections
-- **Top nav + Command palette** for the typical backoffice with keyboard-first users
-
+- **Tiles hub + Command palette** — deep apps where some users prefer keyboard, others prefer scanning cards
+- **Sidebar + Command palette** — complex apps where the sidebar gives orientation and the palette gives speed
+- **Rail + Command palette** — compact apps for expert users who want maximum content space
