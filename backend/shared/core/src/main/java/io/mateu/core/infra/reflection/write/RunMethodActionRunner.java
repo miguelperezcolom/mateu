@@ -31,8 +31,8 @@ public class RunMethodActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-    return actionId.startsWith("nested-form-action-") ||
-            (getMethod(instance.getClass(), actionId) != null
+    return actionId.startsWith("nested-form-action-")
+        || (getMethod(instance.getClass(), actionId) != null
             || getFieldByName(instance.getClass(), actionId) != null);
   }
 
@@ -49,9 +49,7 @@ public class RunMethodActionRunner implements ActionRunner {
         if (!Modifier.isPublic(field.getModifiers())) field.setAccessible(true);
         Object nestedForm = getValue(field, instance);
         if (nestedForm == null) {
-          nestedForm =
-              getValueOrNewInstance(field, instance, command.httpRequest());
-
+          nestedForm = getValueOrNewInstance(field, instance, command.httpRequest());
         }
         instance = nestedForm;
       }

@@ -172,13 +172,17 @@ export const renderSplitLayout = (container: LitElement, component: Component, b
 }
 
 export const renderMasterDetailLayout = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
+    const staticDetail = component.children && component.children.length > 1 ? component.children[1] : null
+    const dynamicDetail = data?.detailComponent ?? null
+    const hasDetail = !!(data?.hasDetail) || !!staticDetail
+    const detailContent = dynamicDetail ?? staticDetail
     return html`
-               <vaadin-master-detail-layout has-detail 
-                                            style="${component.style}" 
+               <vaadin-master-detail-layout ?has-detail="${hasDetail}"
+                                            style="${component.style}"
                                             class="${component.cssClasses}"
                                             slot="${component.slot??nothing}">
                    <div>${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</div>
-                   <div slot="detail">${renderComponent(container, component.children![1], baseUrl, state, data, appState, appData)}</div>
+                   ${hasDetail && detailContent ? html`<div slot="detail">${renderComponent(container, detailContent, baseUrl, state, data, appState, appData)}</div>` : nothing}
                </vaadin-master-detail-layout>
             `
 }

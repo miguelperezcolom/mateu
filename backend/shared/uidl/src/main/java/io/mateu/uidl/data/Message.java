@@ -14,10 +14,7 @@ public record Message(
     this(NotificationVariant.success, NotificationPosition.middle, "", text, 5000);
   }
 
-    public static Message success(String message) {
-        return Message.builder()
-                .variant(NotificationVariant.success)
-                .text(message)
-                .build();
-    }
+  public static Message success(String message) {
+    return Message.builder().variant(NotificationVariant.success).text(message).build();
+  }
 }

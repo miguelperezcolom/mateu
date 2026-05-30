@@ -5,10 +5,10 @@ import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.interfaces.IconKey;
 
 public enum Sex {
-    @Label("H")
+    @Label("")
             @Icon(IconKey.Male)
     Male,
-    @Label("M")
+    @Label("")
             @Icon(IconKey.Female)
     Female
 }

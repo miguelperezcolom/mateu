@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 import io.mateu.uidl.annotations.ListToolbarButton;
+import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -50,6 +51,18 @@ final class CrudActionsBuilder {
                               method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
                           .bubble(true)
                           .build()));
+      if (orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
+        actions.add(Action.builder().id("view").build());
+        actions.add(Action.builder().id("new").build());
+        actions.add(Action.builder().id("edit").build());
+        actions.add(Action.builder().id("cancel-view").build());
+        actions.add(Action.builder().id("cancel-new").build());
+        actions.add(Action.builder().id("cancel-edit").build());
+        actions.add(Action.builder().id("save").build());
+        actions.add(Action.builder().id("create").build());
+        actions.add(Action.builder().id("action-on-view-*").build());
+        actions.add(Action.builder().id("delete-edit").build());
+      }
     }
     if (httpRequest.getAttribute("view") != null) {
       getAllMethods(orchestrator.getClass()).stream()

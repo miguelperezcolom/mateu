@@ -18,6 +18,9 @@ import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.EditAct
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.NewActionHandler;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SaveActionHandler;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SearchActionHandler;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SplitCancelActionHandler;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SplitNewActionHandler;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SplitViewActionHandler;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.ViewActionHandler;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
 import io.mateu.dtos.*;
@@ -43,11 +46,15 @@ public abstract class CrudOrchestrator<
           new MediatorRouteResolver(),
           new NewRouteResolver(),
           new EditRouteResolver(),
+          new SplitListRouteResolver(),
           new ListRouteResolver(),
           new ViewRouteResolver());
   private final List<CrudOrchestratorActionHandler> actionHandlers =
       List.of(
           new SearchActionHandler(),
+          new SplitViewActionHandler(),
+          new SplitNewActionHandler(),
+          new SplitCancelActionHandler(),
           new ViewActionHandler(),
           new CancelViewActionHandler(),
           new NewActionHandler(),
@@ -74,7 +81,7 @@ public abstract class CrudOrchestrator<
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
     for (CrudOrchestratorActionHandler actionHandler : actionHandlers) {
-      if (actionHandler.supports(actionId, httpRequest)) {
+      if (actionHandler.supports(actionId, httpRequest, this)) {
         var output = actionHandler.handleAction(actionId, httpRequest, this);
 
         if (output instanceof CrudActionResult result) {

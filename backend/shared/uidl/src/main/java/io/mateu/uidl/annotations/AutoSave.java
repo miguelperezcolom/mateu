@@ -13,5 +13,4 @@ public @interface AutoSave {
   int debounceMillis() default 800;
 
   String action() default "save";
-
 }

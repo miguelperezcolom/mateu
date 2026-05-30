@@ -30,7 +30,7 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
         "new", editor, createEditorComponent(httpRequest, editor, orchestrator));
   }
 
-  private Component createEditorComponent(
+  public static Component createEditorComponent(
       HttpRequest httpRequest, Object editor, CrudOrchestrator orchestrator) {
     Object viewModel =
         editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;

@@ -1,4 +1,5 @@
 export enum UIFragmentAction {
     Add = "Add",
-    Replace = "Replace"
+    Replace = "Replace",
+    ReplaceKeepData = "ReplaceKeepData"
 }

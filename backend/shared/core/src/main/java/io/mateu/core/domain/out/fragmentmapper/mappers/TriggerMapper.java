@@ -47,13 +47,14 @@ public class TriggerMapper {
           .map(trigger -> (TriggerDto) trigger)
           .toList();
     }
-    var triggers = new ArrayList<TriggerDto>(
-        Arrays.stream(
-                serverSideObject
-                    .getClass()
-                    .getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class))
-            .map(TriggerMapper::mapToTrigger)
-            .toList());
+    var triggers =
+        new ArrayList<TriggerDto>(
+            Arrays.stream(
+                    serverSideObject
+                        .getClass()
+                        .getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class))
+                .map(TriggerMapper::mapToTrigger)
+                .toList());
     var autoSave = serverSideObject.getClass().getAnnotation(AutoSave.class);
     if (autoSave != null) {
       triggers.add(new AutoSaveTriggerDto(autoSave.action(), autoSave.debounceMillis()));

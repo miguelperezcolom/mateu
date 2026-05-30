@@ -69,8 +69,10 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                             this.component.children = children
                         }
                     }
-                    this.state = { }
-                    this.data = { }
+                    if (fragment.action !== UIFragmentAction.ReplaceKeepData) {
+                        this.state = { }
+                        this.data = { }
+                    }
                 }
             }
 

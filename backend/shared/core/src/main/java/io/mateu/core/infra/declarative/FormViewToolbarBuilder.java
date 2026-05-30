@@ -23,8 +23,11 @@ public final class FormViewToolbarBuilder {
         .forEach(
             method -> {
               var action = method.getAnnotation(Action.class);
-              var shortcut = action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
-              toolbar.add(new Button(toUpperCaseFirst(method.getName()), prefix + method.getName(), shortcut));
+              var shortcut =
+                  action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
+              toolbar.add(
+                  new Button(
+                      toUpperCaseFirst(method.getName()), prefix + method.getName(), shortcut));
             });
     return toolbar;
   }
@@ -40,8 +43,11 @@ public final class FormViewToolbarBuilder {
         .forEach(
             method -> {
               var action = method.getAnnotation(Action.class);
-              var shortcut = action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
-              buttons.add(new Button(toUpperCaseFirst(method.getName()), prefix + method.getName(), shortcut));
+              var shortcut =
+                  action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
+              buttons.add(
+                  new Button(
+                      toUpperCaseFirst(method.getName()), prefix + method.getName(), shortcut));
             });
     return buttons;
   }

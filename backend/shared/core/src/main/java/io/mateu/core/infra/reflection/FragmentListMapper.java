@@ -49,16 +49,20 @@ final class FragmentListMapper {
                       && !(object instanceof URI)
                       && !(object instanceof URL))
           .map(
-              object ->
-                  serializeData(
-                      componentFragmentMapper.mapToFragment(
-                          reflectionFragmentMapper.mapToComponent(
-                              object, baseUrl, route, consumedRoute, effectiveId, httpRequest),
-                          baseUrl,
-                          route,
-                          consumedRoute,
-                          effectiveId,
-                          httpRequest)))
+              object -> {
+                if (object instanceof UIFragmentDto dto) {
+                  return dto;
+                }
+                return serializeData(
+                    componentFragmentMapper.mapToFragment(
+                        reflectionFragmentMapper.mapToComponent(
+                            object, baseUrl, route, consumedRoute, effectiveId, httpRequest),
+                        baseUrl,
+                        route,
+                        consumedRoute,
+                        effectiveId,
+                        httpRequest));
+              })
           .toList();
     }
     return List.of(

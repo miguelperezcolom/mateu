@@ -37,7 +37,7 @@ public class FieldMapper {
                                 option.description(),
                                 option.image(),
                                 option.imageStyle(),
-                                    option.icon()))
+                                option.icon()))
                     .toList())
             .remoteCoordinates(mapRemoteCoordinates(formField.remoteCoordinates()))
             .initialValue(formField.initialValue())

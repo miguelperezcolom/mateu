@@ -106,6 +106,7 @@ class Product2Adapter extends AutoCrudAdapter<Product2> {
 }
 
 @UI("/productszzz")
+@SplitCrud
 @Slf4j
 public class Products2 extends AutoCrudOrchestrator<Product2> {
 
