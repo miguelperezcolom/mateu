@@ -13,12 +13,25 @@ import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
+import { ButtonColor } from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonColor";
+import { ButtonStyle } from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonStyle";
 import { dialogFooterRenderer, dialogRenderer } from "@vaadin/dialog/lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 
+
+const buttonTheme = (button: Button): string | undefined => {
+    const parts: string[] = []
+    if (button.color && button.color !== ButtonColor.normal) parts.push(button.color)
+    if (button.buttonStyle) parts.push(button.buttonStyle === ButtonStyle.tertiaryInline ? 'tertiary-inline' : button.buttonStyle)
+    return parts.length ? parts.join(' ') : undefined
+}
+
+const isNavButton = (id: string | undefined): boolean =>
+    id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
 
 @customElement('mateu-filter-bar')
 export class MateuFilterBar extends LitElement {
@@ -121,33 +134,41 @@ export class MateuFilterBar extends LitElement {
     }
 
     render(): TemplateResult {
+        const toolbar = this.metadata?.toolbar ?? []
+        const navButtons = toolbar.filter(b => isNavButton(b.actionId))
+        const actionButtons = toolbar.filter(b => !isNavButton(b.actionId))
+        const hasDivider = navButtons.length > 0 && actionButtons.length > 0
         return html`
-            <vaadin-horizontal-layout theme="spacing">
-                ${this.metadata?.searchable
-                        || this.metadata?.filters?html`
-                `:nothing}
-                ${this.metadata?.searchable?html`
+            <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;">
+                ${this.metadata?.title ? html`
+                    <h3 style="margin: 0; white-space: nowrap; flex-shrink: 0;">${this.metadata.title}</h3>
+                ` : nothing}
+                ${this.metadata?.searchable ? html`
                     <vaadin-text-field
                             id="searchText"
                             @value-changed="${this.valueChanged}"
                             value="${this.state.searchText}"
-                            autofocus="${this.metadata?.autoFocusOnSearchText?true:nothing}"
-                            style="flex-grow: 1;"
+                            autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
+                            style="flex: 1;"
                     ></vaadin-text-field>
-                    ${this.metadata.filters && this.metadata.filters.length > 0?html`
+                    ${this.metadata.filters && this.metadata.filters.length > 0 ? html`
                         <vaadin-button @click="${this.clickedOnFilters}">Filters</vaadin-button>
                         <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
-                    `:nothing}
-                    <vaadin-button 
-                            @click="${() => this.handleButtonClick()}"
-                            theme="primary"
-                    >Search</vaadin-button>
-                `:nothing}
-                ${this.metadata?.filters?html`
-                `:nothing}
-                ${this.metadata?.toolbar?.map(button => html`
+                    ` : nothing}
+                    <vaadin-button @click="${() => this.handleButtonClick()}" theme="primary">Search</vaadin-button>
+                ` : nothing}
+                ${navButtons.map(button => html`
                     <vaadin-button
                             data-action-id="${button.id}"
+                            theme="${buttonTheme(button) || nothing}"
+                            @click="${() => this.handleToolbarButtonClick(button.actionId)}"
+                    >${button.label}</vaadin-button>
+                `)}
+                ${hasDivider ? html`<span class="toolbar-divider"></span>` : nothing}
+                ${actionButtons.map(button => html`
+                    <vaadin-button
+                            data-action-id="${button.id}"
+                            theme="${buttonTheme(button) || nothing}"
                             @click="${() => this.handleToolbarButtonClick(button.actionId)}"
                     >${button.label}</vaadin-button>
                 `)}
@@ -191,7 +212,18 @@ export class MateuFilterBar extends LitElement {
     }
 
     static styles = css`
-  `
+        :host {
+            width: 100%;
+        }
+        .toolbar-divider {
+            display: inline-block;
+            width: 1px;
+            height: 1.5rem;
+            background-color: var(--lumo-contrast-20pct);
+            align-self: center;
+            margin: 0 4px;
+        }
+    `
 }
 
 declare global {

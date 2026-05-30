@@ -107,7 +107,7 @@ public class SplitListRouteResolver implements CrudOrchestratorRouteResolver {
             List.of(
                 Listing.builder()
                     .listingType(ListingType.table)
-                    .title("Xxx")
+                    .toolbar(toolbar)
                     .searchable(orchestrator.searchable())
                     .rowsSelectionEnabled(orchestrator.selectionEnabled())
                     .columns(columns)
@@ -122,7 +122,6 @@ public class SplitListRouteResolver implements CrudOrchestratorRouteResolver {
                             httpRequest))
                     .style("min-width: 30rem; display: block;")
                     .build()))
-        .toolbar(toolbar)
         .build();
   }
 

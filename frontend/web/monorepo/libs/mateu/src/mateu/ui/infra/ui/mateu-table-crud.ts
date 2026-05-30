@@ -132,12 +132,10 @@ export class MateuTableCrud extends LitElement {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         metadata.serverSideOrdering = true
         return html`
-            <div style="display: flex; justify-content: end; width: 100%;">
-                ${metadata.infiniteScrolling ? html`
-                    <div>${this.data[this.id]?.page?.totalElements} items found.</div>
-                ` : nothing}
-                ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
-            </div>
+            ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
+            ${metadata.infiniteScrolling ? html`
+                <div>${this.data[this.id]?.page?.totalElements} items found.</div>
+            ` : nothing}
             ${metadata?.crudlType == 'table'?componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
             :html`
                         

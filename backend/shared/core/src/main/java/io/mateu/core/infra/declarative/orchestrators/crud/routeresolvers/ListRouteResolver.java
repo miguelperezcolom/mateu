@@ -75,13 +75,13 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     String title;
     httpRequest.setAttribute("windowTitle", title = orchestrator.title());
     return PageView.builder()
-        .title(title)
         .style(orchestrator.getStyleForList(columns))
         .content(
             List.of(
                 Listing.builder()
                     .listingType(ListingType.table)
-                    .title("Xxx")
+                    .title(title)
+                    .toolbar(toolbar)
                     .searchable(orchestrator.searchable())
                     .rowsSelectionEnabled(orchestrator.selectionEnabled())
                     .columns(columns)
@@ -96,7 +96,6 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                             httpRequest))
                     .style("min-width: 30rem; display: block;")
                     .build()))
-        .toolbar(toolbar)
         .build();
   }
 }
