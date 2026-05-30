@@ -235,7 +235,7 @@ export class MateuGrid extends MetadataDrivenElement {
         )}`):undefined)}
                     ?all-rows-visible=${items?.length < 10}
             >
-                <span slot="empty-state">Empty list.</span>
+                <span slot="empty-state">${this.field?.label ? `No ${this.field.label.toLowerCase()} added yet.` : 'No items added yet.'}</span>
                 ${(this.field?.readOnly)?nothing:html`
                     <vaadin-grid-selection-column drag-select></vaadin-grid-selection-column>
                 `}

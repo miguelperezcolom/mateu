@@ -3,7 +3,7 @@ import { html, LitElement, nothing } from "lit";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
-import { columnBodyRenderer } from "@vaadin/grid/lit";
+import { columnBodyRenderer, columnHeaderRenderer } from "@vaadin/grid/lit";
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";
 import { renderStatusCell } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
@@ -21,6 +21,9 @@ import {
 import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/componentColumnRenderer.ts";
 import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
 import { GridSortColumn } from "@vaadin/grid/all-imports";
+
+const headerRenderer = (label: string) =>
+    columnHeaderRenderer(() => html`<span title="${label}" style="white-space:normal;overflow-wrap:break-word;">${label}</span>`, [label])
 
 const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
     event.preventDefault()
@@ -92,7 +95,6 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-sort-column
                                 path="${mateuColumn.id}"
-                                header="${mateuColumn.label}"
                                 text-align="${mateuColumn.align??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
@@ -103,6 +105,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 @direction-changed="${directionChanged}"
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
+                                ${headerRenderer(mateuColumn.label)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -125,7 +128,6 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-filter-column
                                 path="${mateuColumn.id}"
-                                header="${mateuColumn.label}"
                                 text-align="${mateuColumn.align??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
@@ -135,6 +137,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 width="${mateuColumn.width??nothing}"
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
+                                ${headerRenderer(mateuColumn.label)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -157,7 +160,6 @@ export const renderColumn = (mateuColumn: GridColumn,
         return html`
                         <vaadin-grid-column
                                 path="${mateuColumn.id}"
-                                header="${mateuColumn.label}"
                                 text-align="${mateuColumn.align??nothing}"
                                 ?frozen="${mateuColumn.frozen}"
                                 ?frozen-to-end="${mateuColumn.frozenToEnd}"
@@ -168,6 +170,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
                                 .xcolumn="${mateuColumn}"
+                                ${headerRenderer(mateuColumn.label)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
