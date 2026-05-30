@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import io.mateu.dtos.ActionDto;
+import io.mateu.uidl.annotations.AutoSave;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
@@ -16,6 +17,9 @@ public class ActionMapper {
   public static List<ActionDto> mapActions(Object serverSideObject, HttpRequest httpRequest) {
     List<ActionDto> actions = new ArrayList<>();
     actions.add(ActionDto.builder().id("nested-form-action-*").build());
+    if (serverSideObject.getClass().isAnnotationPresent(AutoSave.class)) {
+      actions.add(ActionDto.builder().id("*").build());
+    }
     if (serverSideObject instanceof ActionSupplier hasActions) {
       actions.addAll(
           hasActions.actions(httpRequest).stream().map(ActionMapper::mapAction).toList());

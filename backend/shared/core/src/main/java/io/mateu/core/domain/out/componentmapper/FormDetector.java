@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.uidl.annotations.AutoSave;
 import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.Header;
@@ -26,7 +27,8 @@ public final class FormDetector {
   }
 
   public static boolean isForm(Class<?> type) {
-    return (getAllFields(type).stream()
+    return (type.isAnnotationPresent(AutoSave.class)
+            || getAllFields(type).stream()
                 .anyMatch(
                     field ->
                         field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
