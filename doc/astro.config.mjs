@@ -70,6 +70,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },
 						{ slug: 'ux-patterns/long-running-jobs' },
 						{ slug: 'ux-patterns/autosave' },
+						{ slug: 'ux-patterns/keyboard-shortcuts' },
 					],
 				},
 				{

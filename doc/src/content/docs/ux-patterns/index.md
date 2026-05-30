@@ -34,6 +34,7 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Task-centric page](./task-centric) | Composition | `@Action`, `@MainAction` |
 | [Long-running jobs](./long-running-jobs) | ✅ Implemented | `@Action(background, sse)`, `@Trigger` |
 | [Autosave](./autosave) | ✅ Implemented | `@AutoSave` |
+| [Keyboard Shortcuts](./keyboard-shortcuts) | ✅ Implemented | `@Action(shortcut = ...)`, `@Trigger(OnEnter)` |
 
 ## Anti-patterns
 
@@ -45,4 +46,4 @@ Each anti-pattern has a name so it can be recognised quickly — and a pattern t
 | **Modal Hell** | Nested modals that destroy orientation. | [Split View](./split-view), [Task-centric page](./task-centric) |
 | **Spinner Prison** | Freezing the entire screen while something loads. | [Long-running jobs](./long-running-jobs) |
 | **Filter Amnesia** | Losing filters when navigating away. | Deep linking via `@Route`, Saved Views (planned) |
-| **Desktop Denial** | Ignoring the keyboard and penalising the expert user. | Keyboard shortcuts via `@Action(shortcut=...)` |
+| **Desktop Denial** | Ignoring the keyboard and penalising the expert user. | [Keyboard Shortcuts](./keyboard-shortcuts) — `@Action(shortcut = ...)` |
