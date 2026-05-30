@@ -17,6 +17,8 @@ Mateu infers the UI control for each field from its Java type. `@Stereotype` ove
 | `LocalDateTime` | Datetime picker |
 | `enum` | Combobox |
 | `List<String>` | Multi-select |
+| Class / record (no actions) | Embedded field group (fields rendered inline) |
+| Class / record (with `@Button` / `@Toolbar`) | Subform with its own toolbar and button bar |
 
 This means a basic form requires no annotations beyond field declarations:
 

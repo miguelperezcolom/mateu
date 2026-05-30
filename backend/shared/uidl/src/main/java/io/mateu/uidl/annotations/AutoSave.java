@@ -7,8 +7,8 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD})
-public @interface Label {
+@Target({ElementType.TYPE})
+public @interface AutoSave {
 
   String value();
 }

@@ -59,6 +59,40 @@ boolean active;            // → toggle switch instead of checkbox
 The full list of available stereotypes is defined in `FieldStereotype`:
 `regular`, `radio`, `checkbox`, `textarea`, `toggle`, `combobox`, `select`, `email`, `password`, `richText`, `listBox`, `html`, `markdown`, `image`, `icon`, `link`, `money`, `grid`, `color`, `choice`, `popover`, `slider`, `button`, `stars`.
 
+### Complex fields and subforms
+
+A field whose type is a class or record embeds the nested type's fields inline in the parent form.
+
+```java
+public record Address(String street, String city, String zip) {}
+
+public class CustomerForm {
+    String name;
+    Address address;   // → street, city, zip appear inline
+}
+```
+
+If the nested type also declares methods annotated with `@Button` or `@Toolbar`, Mateu automatically renders it as a **subform**: a self-contained panel with its own title, toolbar, and button bar. Actions in the subform are dispatched to the nested object independently of the parent.
+
+```java
+public record ShippingDetails(String address, String city) {
+
+    @Toolbar
+    Object saveShipping() {
+        return new Message("Shipping saved");
+    }
+}
+
+public class OrderForm {
+    String orderRef;
+    ShippingDetails shipping;   // → rendered as a subform with its own toolbar
+}
+```
+
+See [Subform](/java-ui-definition/components/subform/) for full details.
+
+---
+
 ### Read-only fields
 
 ```java
