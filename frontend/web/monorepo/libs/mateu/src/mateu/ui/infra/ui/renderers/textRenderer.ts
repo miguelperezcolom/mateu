@@ -4,8 +4,8 @@ import { TextContainer } from "@mateu/shared/apiClients/dtos/componentmetadata/T
 import { html, nothing } from "lit";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {ifDefined} from "lit/directives/if-defined.js";
-
-export const renderText = (component: ClientSideComponent, state: any, data: any, appState: any, appData: any) => {
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+export const renderText = (component: ClientSideComponent, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as Text
     let content = metadata.text
     const colspan = metadata.attributes?.['data-colspan']

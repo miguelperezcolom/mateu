@@ -58,13 +58,14 @@ import { renderFormSection } from "@infra/ui/renderers/formSectionRenderer.ts";
 import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderPage } from "@infra/ui/renderers/pageRenderer.ts";
+import { renderCrud } from "@infra/ui/renderers/crudRenderer.ts";
 import {renderBpmn} from "@infra/ui/renderers/bpmnRenderer.ts";
 import {renderChat} from "@infra/ui/renderers/chatRenderer.ts";
 import {renderWorkflow} from "@infra/ui/renderers/workflowRenderer.ts";
 import {renderWorkflowElk} from "@infra/ui/renderers/workflowElkRenderer.ts";
 import {renderFormEditor} from "@infra/ui/renderers/formEditorRenderer.ts";
-
-export const updateStyle = (component: ClientSideComponent, data: any): string => {
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
         if (style && !style.endsWith(';')) {
@@ -80,7 +81,7 @@ export const updateStyle = (component: ClientSideComponent, data: any): string =
     return style
 }
 
-export const updateMedata = (component: ClientSideComponent, data: any): ComponentMetadata | undefined => {
+export const updateMedata = (component: ClientSideComponent, data: ComponentData): ComponentMetadata | undefined => {
     let metadata = { ...component.metadata} as ComponentMetadata
     if (component.id && metadata) {
         if (metadata.type == ComponentMetadataType.Button) {
@@ -100,7 +101,7 @@ export const updateMedata = (component: ClientSideComponent, data: any): Compone
     return metadata
 }
 
-export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult => {
+export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {
     if (component?.metadata) {
 
         const type = component.metadata.type
@@ -188,7 +189,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                     metadata: button,
                     type: ComponentType.ClientSide,
                        slot: 'buttons'
-                } as unknown as ClientSideComponent, undefined, undefined, appState, appData, undefined)}
+                } as unknown as ClientSideComponent, undefined, state, data, appState, appData)}
 `)}
 
                 </mateu-form>`
@@ -209,20 +210,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                 </mateu-table>`
         }
         if (type == ComponentMetadataType.Crud) {
-            return html`<mateu-table-crud
-                            id="${component.id}"
-                            baseUrl="${baseUrl}"
-                            .component="${component}"
-                            .metadata="${component.metadata}"
-                            .state="${state}"
-                            .data="${data}"
-                            .appState="${appState}"
-                            .appdata="${appData}"
-                            style="${component.style}" class="${component.cssClasses}"
-                            slot="${component.slot??nothing}"
-                >
-                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-             </mateu-table-crud>`
+            return renderCrud(container, component, baseUrl, state, data, appState, appData)
         }
 
         if (type == ComponentMetadataType.App) {

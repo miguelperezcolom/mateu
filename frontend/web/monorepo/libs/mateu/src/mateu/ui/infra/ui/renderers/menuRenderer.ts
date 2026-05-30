@@ -6,8 +6,8 @@ import ContextMenu from "@mateu/shared/apiClients/dtos/componentmetadata/Context
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import { appData, appState } from "@domain/state.ts";
-
-export const renderContextMenu = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+export const renderContextMenu = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as ContextMenu
 
     return html`
@@ -21,7 +21,7 @@ export const renderContextMenu = (container: LitElement, component: ClientSideCo
             `
 }
 
-export const renderMenuBar = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderMenuBar = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData) => {
     const metadata = component.metadata as MenuBar
 
     return html`
@@ -32,13 +32,13 @@ export const renderMenuBar = (container: LitElement, component: ClientSideCompon
             `
 }
 
-const createItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
+const createItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const item = document.createElement('vaadin-context-menu-item');
     render(renderComponent(container, component, baseUrl, state, data, appState, appData), item)
     return item
 }
 
-const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): any => {
+const mapItems = (container: LitElement, options: MenuOption[], baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): any => {
     return options.map(option => {
         if (option.submenus) {
             return {

@@ -2,8 +2,8 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Card from "@mateu/shared/apiClients/dtos/componentmetadata/Card";
 import { html, LitElement, nothing } from "lit";
 import { renderComponent, renderComponentInSlot } from "@infra/ui/renderers/renderComponent.ts";
-
-export const renderCard = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+export const renderCard = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as Card
 
     if (!metadata) {

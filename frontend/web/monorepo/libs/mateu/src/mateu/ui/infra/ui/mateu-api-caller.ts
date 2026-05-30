@@ -91,7 +91,7 @@ export class MateuApiCaller extends LitElement {
         return html`<div class="loader-container"><vaadin-vertical-layout>
                 <slot></slot>
             <!--<vaadin-progress-bar indeterminate style="visibility: ${this.loading?'visible':'hidden'}; margin: 0;max-width: 2rem;"></vaadin-progress-bar>-->
-            <div class="loader-frame ${this.loading?'delayed-show':''}" style="${this.loading?'':'display: none;'}"><div class="loader"></div></div>    
+            <div class="loader-frame ${this.loading?'delayed-show':''}" style="${this.loading?'pointer-events: all;':'display: none;'}"><div class="loader"></div></div>
         </vaadin-vertical-layout></div>
         <vaadin-notification
                 theme="error"
@@ -124,10 +124,9 @@ export class MateuApiCaller extends LitElement {
             align-items: center;
             justify-content: center;
 
-            background: rgba(255, 255, 255, 0.6); /* opcional: overlay */
+            background: rgba(255, 255, 255, 0.6);
 
             opacity: 0;
-            pointer-events: none;
         }
 
         .delayed-show {

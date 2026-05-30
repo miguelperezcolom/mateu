@@ -85,10 +85,8 @@ export class MateuCardList extends LitElement {
     protected firstUpdated(_changedProperties: PropertyValues) {
         super.firstUpdated(_changedProperties);
         this.respondToVisibility(this.askForMore, (x:any) => {
-            console.log('askForMore visible? ' + x);
             this.keepAsking = x
             if (x) {
-                console.log('asking for more...');
                 this.askToUpper()
             }
         })
@@ -104,7 +102,6 @@ export class MateuCardList extends LitElement {
                     pageSize: this.metadata?.pageSize
                 },
                 callback: () => {
-                    console.log('callback', this.keepAsking);
                     if (this.keepAsking) {
                         this.askToUpper()
                     }
@@ -170,7 +167,7 @@ export class MateuCardList extends LitElement {
         return html`
             <div class="card-container">
                 ${page?.content?.map((item:any) => html`<div @click="${() => this.clickedOnCard(item)}" class="car-container">${this.renderItem(item)}</div>`)}
-                <div id="ask-for-more" style="display: ${this.hasMore?'':'none'};">xx</div>
+                <div id="ask-for-more" style="display: ${this.hasMore?'flex':'none'}; width: 100%; justify-content: center; padding: var(--lumo-space-m); color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Loading more…</div>
             </div>
 
             <slot></slot>

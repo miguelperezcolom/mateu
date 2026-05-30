@@ -1,38 +1,12 @@
-import { css, html, LitElement, TemplateResult, nothing } from "lit";
+import { css, html, LitElement, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/grid"
-import "@vaadin/card"
+import '@vaadin/card'
 import { customElement, property } from 'lit/decorators.js';
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
-import { possiblyHtml } from "@infra/ui/mateu-form.ts";
-import {renderBadgeMetadata} from "@infra/ui/renderers/badgeRenderer.ts";
-import { badge } from "@vaadin/vaadin-lumo-styles";
-import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
-
-const buttonTheme = (button: Button): string | undefined => {
-    const parts: string[] = []
-    if (button.color && button.color !== 'normal') parts.push(button.color)
-    if (button.buttonStyle) parts.push(button.buttonStyle === 'tertiaryInline' ? 'tertiary-inline' : button.buttonStyle)
-    return parts.length ? parts.join(' ') : undefined
-}
-
-const isNavButton = (id: string | undefined): boolean =>
-    id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
-
-
+import './mateu-content-header'
 
 @customElement('mateu-page')
 export class MateuPage extends LitElement {
@@ -58,105 +32,43 @@ export class MateuPage extends LitElement {
     @property()
     value?: any
 
-    handleButtonClick = (actionId: string) => {
-        this.dispatchEvent(new CustomEvent('action-requested', {
-            detail: {
-                actionId,
-            },
-            bubbles: true,
-            composed: true
-        }))
-    }
+    @property({ type: Boolean })
+    standalone = false
 
     render(): TemplateResult {
         const metadata = this.component?.metadata as PageComponent
-        const toolbar = metadata?.toolbar ?? []
-        const navButtons = toolbar.filter(b => isNavButton(b.actionId))
-        const actionButtons = toolbar.filter(b => !isNavButton(b.actionId))
-        const divider = navButtons.length > 0 && actionButtons.length > 0
-            ? html`<span class="toolbar-divider"></span>`
-            : nothing
-        const renderBtn = (button: Button) => html`
-            <vaadin-button
-                    data-action-id="${button.id}"
-                    theme="${buttonTheme(button) || nothing}"
-                    @click="${() => this.handleButtonClick(button.actionId)}"
-                    ?disabled="${button.disabled}"
-            >${button.iconOnLeft ? html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>` : nothing}${button.label}${button.iconOnRight ? html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>` : nothing}</vaadin-button>
+        const inner = html`
+            <mateu-content-header
+                .metadata="${metadata}"
+                .baseUrl="${this.baseUrl}"
+                .state="${this.state}"
+                .data="${this.data}"
+                .appState="${this.appState}"
+                .appData="${this.appData}"
+            ></mateu-content-header>
+            <div class="form-content">
+                <slot></slot>
+                <vaadin-horizontal-layout theme="spacing" class="form-buttons">
+                    <slot name="buttons"></slot>
+                </vaadin-horizontal-layout>
+            </div>
+            <div class="form-footer">
+                ${metadata?.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+            </div>
         `
-
-        return html`
-            <vaadin-vertical-layout style="width: 100%;">
-                ${metadata.breadcrumbs && metadata.breadcrumbs.length > 0 ? html`
-                    <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
-                        ${metadata.breadcrumbs.map((breadcrumb, index) => html`
-                            ${index > 0 ? html`<span>/</span>` : nothing}
-                            ${breadcrumb.link ? html`<vaadin-button theme="tertiary"
-                                                                   @click="${() => window.location.href = `${breadcrumb.link}`}">${breadcrumb.text}</vaadin-button>` : html`
-                            <span>${breadcrumb.text}</span>`}
-                        `)}
-                    </vaadin-horizontal-layout>
-                ` : nothing}
-                ${(metadata.avatar || metadata.title || metadata.subtitle || metadata.kpis?.length > 0 || metadata.header?.length > 0 || toolbar.length > 0) ? html`
-                    <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
-                        ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data, this.appState, this.appData) : nothing}
-                        <vaadin-vertical-layout style="flex: 1">
-                            <h2 style="margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state, this.data))}</h2>
-                            <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
-                        </vaadin-vertical-layout>
-                        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
-                            ${metadata?.kpis?.map(kpi => html`
-                                <vaadin-vertical-layout style="align-items: center">
-                                    <div>${kpi.title}</div>
-                                    <div>${unsafeHTML(possiblyHtml(kpi.text, this.state, this.data))}</div>
-                                </vaadin-vertical-layout>
-                            `)}
-                            ${metadata?.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                            ${navButtons.map(renderBtn)}
-                            ${divider}
-                            ${actionButtons.map(renderBtn)}
-                        </vaadin-horizontal-layout>
-                    </vaadin-horizontal-layout>
-                ` : nothing}
-                ${metadata.badges && metadata.badges.length > 0?html`
-                    <vaadin-horizontal-layout>
-                        ${metadata.badges.map(badge => renderBadgeMetadata(badge, this.state, this.data))}
-                    </vaadin-horizontal-layout>
-                `:nothing}
-
-                <div class="form-content">
-                    <slot></slot>
-                    <vaadin-horizontal-layout theme="spacing" class="form-buttons">
-                        <slot name="buttons"></slot>
-                    </vaadin-horizontal-layout>
-                </div>
-                
-                <div class="form-footer">
-                    ${metadata.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                </div>
-            </vaadin-vertical-layout>            `
+        return this.standalone
+            ? html`<vaadin-card theme="elevated" style="width: 100%;">${inner}</vaadin-card>`
+            : html`<vaadin-vertical-layout style="width: 100%;">${inner}</vaadin-vertical-layout>`
     }
 
     static styles = css`
         :host {
             width: 100%;
         }
-        
+
         .form-content {
             width: 100%;
         }
-
-        .toolbar-divider {
-            display: inline-block;
-            width: 1px;
-            height: 1.5rem;
-            background-color: var(--lumo-contrast-20pct);
-            align-self: center;
-            margin: 0 4px;
-        }
-
-        ${badge}
-
     `
 }
 
@@ -165,5 +77,3 @@ declare global {
         'mateu-page': MateuPage
     }
 }
-
-

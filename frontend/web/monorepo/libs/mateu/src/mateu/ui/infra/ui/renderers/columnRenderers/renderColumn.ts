@@ -240,5 +240,6 @@ export const columnRenderer = (item: any,
     if ('button' == stereotype) {
         return renderButtonCell(item, model, vaadinColumn, type, stereotype, column)
     }
-    return html`${item[vaadinColumn.path!]}`
+    const cellValue = item[vaadinColumn.path!]
+    return html`<span title="${cellValue}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${cellValue}</span>`
 }

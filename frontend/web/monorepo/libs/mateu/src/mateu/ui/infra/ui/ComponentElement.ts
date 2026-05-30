@@ -104,7 +104,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
                 .forEach(trigger => {
-                    console.log('adding listener for ' + trigger.eventName)
                     this.addEventListener(trigger.eventName, this.customEventManager)
                 })
             if (componentRenderer.getAfterRenderHook()) {
@@ -117,9 +116,9 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
 
     triggerOnLoad = () => {
-        const state = this.state
-        const data = this.data
-        if (state === data) console.log(state, data)
+        const state = this.state    // available to eval() in trigger conditions
+        const data = this.data      // available to eval() in trigger conditions
+        void state; void data;
         const serverSideComponent = this.component as ServerSideComponent
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)

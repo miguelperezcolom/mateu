@@ -1,9 +1,10 @@
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { html, nothing, TemplateResult } from "lit";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import Directory from "@mateu/shared/apiClients/dtos/componentmetadata/Directory";
 
-export const renderDirectory = (component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any) => {
+export const renderDirectory = (component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData) => {
     const metadata = component.metadata as Directory
 
     console.log(baseUrl, state, data)

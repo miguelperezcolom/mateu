@@ -55,6 +55,9 @@ export class MateuFilterBar extends LitElement {
     @property()
     appData: Record<string, any> = {}
 
+    @property({ type: Boolean })
+    searchOnly = false
+
     @state()
     filtersOpened = false
 
@@ -133,82 +136,103 @@ export class MateuFilterBar extends LitElement {
         }))
     }
 
+    renderSearchBar = () => html`
+        <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;">
+            <vaadin-text-field
+                    id="searchText"
+                    @value-changed="${this.valueChanged}"
+                    value="${this.state.searchText}"
+                    autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
+                    style="flex: 1;"
+                    placeholder="Search..."
+            ></vaadin-text-field>
+            ${this.metadata?.filters && this.metadata.filters.length > 0 ? html`
+                <vaadin-button @click="${this.clickedOnFilters}">Filters</vaadin-button>
+                <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
+            ` : nothing}
+            <vaadin-button @click="${() => this.handleButtonClick()}" theme="primary">Search</vaadin-button>
+        </vaadin-horizontal-layout>
+    `
+
+    renderFiltersDialog = () => html`
+        <vaadin-dialog
+                header-title="Filters"
+                .opened="${this.filtersOpened}"
+                @closed="${() => this.filtersOpened = false}"
+                ${dialogRenderer(() => html`
+                    <mateu-event-interceptor .target="${this}">
+                        <vaadin-form-layout max-columns="2" @keydown="${this.handleKey}">
+                            <vaadin-form-row>
+                                ${this.metadata?.filters?.map(filter => renderComponent(this, {
+                                    id: '',
+                                    metadata: {...(filter as unknown as FormField), wantsFocus: true },
+                                    type: ComponentType.ClientSide,
+                                    style: '',
+                                    children: [],
+                                    slot: '',
+                                    cssClasses: '',
+                                    initialData: {}
+                                } as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                            </vaadin-form-row>
+                        </vaadin-form-layout>
+                    </mateu-event-interceptor>
+                `, [])}
+                ${dialogFooterRenderer(() => html`
+                    <vaadin-button theme="tertiary" @click="${() => this.filtersOpened = false}" data-testid="dialog-cancel">Cancel</vaadin-button>
+                    <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;" data-testid="dialog-confirm">Search</vaadin-button>
+                `, [])}
+        ></vaadin-dialog>
+    `
+
     render(): TemplateResult {
         const toolbar = this.metadata?.toolbar ?? []
         const navButtons = toolbar.filter(b => isNavButton(b.actionId))
         const actionButtons = toolbar.filter(b => !isNavButton(b.actionId))
         const hasDivider = navButtons.length > 0 && actionButtons.length > 0
+        const hasHeader = !!this.metadata?.title || !!this.metadata?.subtitle || toolbar.length > 0
+
+        if (this.searchOnly) {
+            return html`
+                ${this.metadata?.searchable ? this.renderSearchBar() : nothing}
+                ${this.renderFiltersDialog()}
+            `
+        }
+
         return html`
-            <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;">
-                ${this.metadata?.title ? html`
-                    <h3 style="margin: 0; white-space: nowrap; flex-shrink: 0;">${this.metadata.title}</h3>
+            <vaadin-vertical-layout style="width: 100%;">
+                ${hasHeader ? html`
+                    <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: flex-end; padding-bottom: var(--lumo-space-m);">
+                        <div style="flex: 1;">
+                            ${this.metadata?.title ? html`
+                                <h2 style="margin: 0; font-size: var(--lumo-font-size-xxl); font-weight: 700; color: var(--lumo-header-text-color);">${this.metadata.title}</h2>
+                            ` : nothing}
+                            ${this.metadata?.subtitle ? html`
+                                <span style="display: block; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); margin-top: var(--lumo-space-xs);">${this.metadata.subtitle}</span>
+                            ` : nothing}
+                        </div>
+                        ${navButtons.map(button => html`
+                            <vaadin-button
+                                    data-action-id="${button.id}"
+                                    theme="${buttonTheme(button) || nothing}"
+                                    @click="${() => this.handleToolbarButtonClick(button.actionId)}"
+                            >${button.label}</vaadin-button>
+                        `)}
+                        ${hasDivider ? html`<span class="toolbar-divider"></span>` : nothing}
+                        ${actionButtons.map(button => html`
+                            <vaadin-button
+                                    data-action-id="${button.id}"
+                                    theme="${buttonTheme(button) || nothing}"
+                                    @click="${() => this.handleToolbarButtonClick(button.actionId)}"
+                            >${button.label}</vaadin-button>
+                        `)}
+                        <slot></slot>
+                    </vaadin-horizontal-layout>
                 ` : nothing}
-                ${this.metadata?.searchable ? html`
-                    <vaadin-text-field
-                            id="searchText"
-                            @value-changed="${this.valueChanged}"
-                            value="${this.state.searchText}"
-                            autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
-                            style="flex: 1;"
-                    ></vaadin-text-field>
-                    ${this.metadata.filters && this.metadata.filters.length > 0 ? html`
-                        <vaadin-button @click="${this.clickedOnFilters}">Filters</vaadin-button>
-                        <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
-                    ` : nothing}
-                    <vaadin-button @click="${() => this.handleButtonClick()}" theme="primary">Search</vaadin-button>
-                ` : nothing}
-                ${navButtons.map(button => html`
-                    <vaadin-button
-                            data-action-id="${button.id}"
-                            theme="${buttonTheme(button) || nothing}"
-                            @click="${() => this.handleToolbarButtonClick(button.actionId)}"
-                    >${button.label}</vaadin-button>
-                `)}
-                ${hasDivider ? html`<span class="toolbar-divider"></span>` : nothing}
-                ${actionButtons.map(button => html`
-                    <vaadin-button
-                            data-action-id="${button.id}"
-                            theme="${buttonTheme(button) || nothing}"
-                            @click="${() => this.handleToolbarButtonClick(button.actionId)}"
-                    >${button.label}</vaadin-button>
-                `)}
-                <slot></slot>
-            </vaadin-horizontal-layout>
-
-            <vaadin-dialog
-                    header-title="Filters"
-                    .opened="${this.filtersOpened}"
-                    @closed="${() => this.filtersOpened = false}"
-                    ${dialogRenderer(() => html`
-                        <mateu-event-interceptor .target="${this}">
-                <vaadin-form-layout max-columns="2" @keydown="${this.handleKey}">
-                    <vaadin-form-row>
-                        ${this.metadata?.filters?.map(filter => renderComponent(this, {
-                            id: '',
-                            metadata: {...(filter as unknown as FormField), wantsFocus: true },
-                            type: ComponentType.ClientSide,
-                            style: '',
-                            children: [],
-                            slot: '',
-                            cssClasses: '',
-                            initialData: {}
-        } as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                    </vaadin-form-row>
-                </vaadin-form-layout>
-                        </mateu-event-interceptor>
-          `, [])}
-                    ${dialogFooterRenderer(
-                            () => html`
-                <vaadin-button theme="tertiary" @click="${() => this.filtersOpened = false}" data-testid="dialog-cancel">Cancel</vaadin-button>
-                <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;" data-testid="dialog-confirm">
-                    Search
-                </vaadin-button>
-              `,
-                            []
-                    )}
-            ></vaadin-dialog>
-
-       `
+                ${this.metadata?.searchable ? this.renderSearchBar()
+                    : !hasHeader ? html`<span style="flex: 1;"></span>` : nothing}
+            </vaadin-vertical-layout>
+            ${this.renderFiltersDialog()}
+        `
     }
 
     static styles = css`

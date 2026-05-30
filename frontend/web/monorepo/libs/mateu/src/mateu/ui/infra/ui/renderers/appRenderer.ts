@@ -2,14 +2,14 @@ import { html, nothing } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
-
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 export const filterMenu = (e: CustomEvent, container: MateuApp) => {
     if (container.filter != e.detail.value) {
         container.filter = e.detail.value
     }
 }
 
-export const chooseRoute = (state: any, container: MateuApp, metadata: App) => {
+export const chooseRoute = (state: ComponentState, container: MateuApp, metadata: App) => {
     if (state && state._route != undefined) {
         return chooseConsumedRoute(container, metadata) + state._route
     }
@@ -43,7 +43,7 @@ export const chooseUriPrefix = (container: MateuApp, metadata: App) => {
     return metadata.homeUriPrefix
 }
 
-export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: any, _data: any, appState: any, appData: any) => {
+export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData) => {
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
@@ -132,65 +132,24 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
-                        ${false?html`
-                            container.selectedBaseUrl:${container.selectedBaseUrl}
-                            <br/>
-                            container.selectedRoute:${container.selectedRoute}
-                            <br/>
-                            container.selectedConsumedRoute:${container.selectedConsumedRoute}
-                            <br/>
-                            container.selectedServerSideType:${container.selectedServerSideType}
-                            <br/>
-                            container.selectedUriPrefix:${container.selectedUriPrefix}
-                            <hr>
-                            metadata.baseUrl:${metadata.baseUrl}
-                            <br/>
-                            metadata.route:${metadata.route}
-                            <br/>
-                            metadata.consumedRoute: no field metadata.consumedRoute
-                            <br/>
-                            metadata.serverSideType:${metadata.serverSideType}
-                            <br/>
-                            metadata.uriPrefix:${metadata.uriPrefix}
-                            <hr>
-                            metadata.homeBaseUrl:${metadata.homeBaseUrl}
-                            <br/>
-                            metadata.homeRoute:${metadata.homeRoute}
-                            <br/>
-                            metadata.homeConsumedRoute:${metadata.homeConsumedRoute}
-                            <br/>
-                            metadata.homeServerSideType:${metadata.homeServerSideType}
-                            <br/>
-                            metadata.homeUriPrefix:${metadata.homeUriPrefix}
-                            <hr>
-                            chosen.baseUrl:${chooseBaseUrl(container, metadata)}
-                            <br/>
-                            chosen.route:${chooseRoute(_state, container, metadata)}
-                            <br/>
-                            chosen.consumedRoute:${chooseConsumedRoute(container, metadata)}
-                            <br/>
-                            chosen.serverSideType:${chooseAppServerSideType(container, metadata)}
-                            <br/>
-                            chosen.uriPrefix:${chooseUriPrefix(container, metadata)}
-                            <hr>                              `:nothing}
-                   <vaadin-master-detail-layout>
-                    <mateu-api-caller>
-                        <mateu-ux
-                                route="${chooseRoute(_state, container, metadata)}"
-                                id="ux_${container.id}"
-                                baseUrl="${chooseBaseUrl(container, metadata)}"
-                                consumedRoute="${chooseConsumedRoute(container, metadata)}"
-                                serverSideType="${chooseAppServerSideType(container, metadata)}"
-                                uriPrefix="${chooseUriPrefix(container, metadata)}"
-                                style="width: 100%;"
-                                .appState="${appState}"
-                                .appData="${appData}"
-                                instant="${container.instant}"
-                                @navigation-requested="${container.updateRoute}"
-                        ></mateu-ux>
-                    </mateu-api-caller>
-                        ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
-                   </vaadin-master-detail-layout>
+                        <vaadin-master-detail-layout>
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        route="${chooseRoute(_state, container, metadata)}"
+                                        id="ux_${container.id}"
+                                        baseUrl="${chooseBaseUrl(container, metadata)}"
+                                        consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                        serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                        uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                        style="width: 100%;"
+                                        .appState="${appState}"
+                                        .appData="${appData}"
+                                        instant="${container.instant}"
+                                        @navigation-requested="${container.updateRoute}"
+                                ></mateu-ux>
+                            </mateu-api-caller>
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                        </vaadin-master-detail-layout>
                     </div>
                 </vaadin-vertical-layout>
                 
@@ -250,7 +209,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <div style="display: flex; width: 100%; height: 100vh; overflow: hidden;">
                     ${container.renderRail(metadata.menu)}
                     ${container.railOpenOption ? container.renderRailSubPanel(container.railOpenOption) : nothing}
-                    <div style="flex: 1; overflow: auto; padding: 2rem; height: 100vh; box-sizing: border-box;">
+                    <div style="flex: 1; overflow: auto; padding: 2rem 2rem 0; height: 100vh; box-sizing: border-box; background-color: var(--lumo-contrast-10pct);">
                         <vaadin-master-detail-layout>
                             <mateu-api-caller>
                                 <mateu-ux
@@ -346,7 +305,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     </div>
                     <div class="app-content">
                         <vaadin-master-detail-layout>
-                            <vaadin-scroller>
+                            <vaadin-scroller style="background-color: var(--lumo-contrast-10pct); min-height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             route="${chooseRoute(_state, container, metadata)}"

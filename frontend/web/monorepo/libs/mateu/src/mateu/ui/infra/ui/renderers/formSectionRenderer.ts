@@ -2,14 +2,16 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import FormSection from "@mateu/shared/apiClients/dtos/componentmetadata/FormSection.ts";
-
-export const renderFormSection = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any) => {
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+export const renderFormSection = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as FormSection
-    return html`<div
+    return html`<vaadin-card theme="elevated"
                 slot="${component.slot??nothing}"
-                style="${component.style}" class="${component.cssClasses}"
+                style="width: 100%; margin-bottom: var(--lumo-space-m); ${component.style}"
+                class="${component.cssClasses}"
         >
-        <h3>${metadata.title}</h3>
-        ${component.children?.map(content => renderComponent(container, content, baseUrl, state, data, appState, appData))}</div>
+        ${metadata.title ? html`<div slot="title" style="font-size: var(--lumo-font-size-l); font-weight: 600; color: var(--lumo-header-text-color);">${metadata.title}</div>` : nothing}
+        ${component.children?.map(content => renderComponent(container, content, baseUrl, state, data, appState, appData))}
+    </vaadin-card>
     `
 }

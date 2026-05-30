@@ -1,9 +1,10 @@
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Avatar from "@mateu/shared/apiClients/dtos/componentmetadata/Avatar";
 import {html, nothing} from "lit";
 import AvatarGroup from "@mateu/shared/apiClients/dtos/componentmetadata/AvatarGroup";
 
-export const renderAvatar = (component: ClientSideComponent, state: any, data: any) => {
+export const renderAvatar = (component: ClientSideComponent, state: ComponentState, data: ComponentData) => {
     const metadata = component.metadata as Avatar
     return html`<vaadin-avatar
             img="${metadata.image}"
@@ -14,7 +15,7 @@ export const renderAvatar = (component: ClientSideComponent, state: any, data: a
     ></vaadin-avatar>`
 }
 
-export const evalIfNecessary = (value: string, _state: any, _data: any) => {
+export const evalIfNecessary = (value: string, _state: ComponentState, _data: ComponentData) => {
     if (value && value.includes && value.includes('${')) {
         // @ts-ignore
         const state = _state

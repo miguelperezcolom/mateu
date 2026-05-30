@@ -182,6 +182,7 @@ export class MateuTable extends LitElement {
                     .items="${page?.content}"
                     item-id-path="_rowNumber"
                     .selectedItems="${selectedItems}"
+                    ?data-clickable-rows="${this.metadata?.detailPath && !this.metadata?.useButtonForDetail}"
                     ?all-rows-visible="${this.metadata?.allRowsVisible}"
                     column-rendering="${this.metadata?.lazyColumnRendering?'lazy':nothing}"
                     ?column-reordering-allowed="${this.metadata?.columnReorderingAllowed}"
@@ -232,12 +233,13 @@ export class MateuTable extends LitElement {
                 ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                 ${this.metadata?.useButtonForDetail?html`
                     <vaadin-grid-column
-                            width="80px"
+                            width="44px"
                             flex-grow="0"
                             ${columnBodyRenderer<any>(
                                     (person, { detailsOpened }) => html`
               <vaadin-button
                 theme="tertiary icon"
+                title="${detailsOpened ? 'Collapse' : 'Expand'}"
                 aria-label="Toggle details"
                 aria-expanded="${detailsOpened ? 'true' : 'false'}"
                 @click="${() => {
@@ -255,7 +257,7 @@ export class MateuTable extends LitElement {
                             )}
                     ></vaadin-grid-column>
                 `:nothing}
-                <span slot="empty-state">${this.emptyStateMessage??this.metadata?.emptyStateMessage??'No data.'}</span>
+                <span slot="empty-state">${this.emptyStateMessage??this.metadata?.emptyStateMessage??'No results found.'}</span>
                 ${this.metadata?.columns?.find(column => (column.metadata as GridColumn).tooltipPath)?html`<vaadin-tooltip slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>`:nothing}
             </vaadin-grid>
             <slot></slot>
@@ -264,6 +266,12 @@ export class MateuTable extends LitElement {
 
     static styles = css`
         ${badge}
+        vaadin-grid[data-clickable-rows]::part(row) {
+            cursor: pointer;
+        }
+        vaadin-grid[data-clickable-rows]::part(row):hover {
+            background-color: var(--lumo-primary-color-10pct);
+        }
   `
 }
 

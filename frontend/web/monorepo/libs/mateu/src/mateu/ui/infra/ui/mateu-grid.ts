@@ -18,6 +18,8 @@ import {GridActiveItemChangedEvent, GridItemToggleEvent, GridSelectedItemsChange
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import {ifDefined} from "lit/directives/if-defined.js";
 import {columnBodyRenderer, gridRowDetailsRenderer} from "@vaadin/grid/lit";
+import '@vaadin/icon';
+import '@vaadin/icons';
 import {dialogRenderer} from "@vaadin/dialog/lit";
 import {nanoid} from "nanoid";
 
@@ -185,7 +187,8 @@ export class MateuGrid extends MetadataDrivenElement {
     public renderMaster(items: any) {
         const selectedItems = this.selectedItems || []
 
-        return html`<vaadin-vertical-layout>
+        return html`<vaadin-vertical-layout style="width: 100%;">
+            ${this.field?.label ? html`<label style="font-size: var(--lumo-font-size-s); font-weight: 500; color: var(--lumo-secondary-text-color);">${this.field.label}</label>` : nothing}
             <vaadin-grid
                     style="${this.field?.style}"
                     class="${this.field?.cssClasses}"
@@ -244,12 +247,13 @@ export class MateuGrid extends MetadataDrivenElement {
 
                 ${this.field?.useButtonForDetail?html`
                     <vaadin-grid-column
-                            width="80px"
+                            width="44px"
                             flex-grow="0"
                             ${columnBodyRenderer<any>(
             (person, { detailsOpened }) => html`
               <vaadin-button
                 theme="tertiary icon"
+                title="${detailsOpened ? 'Collapse' : 'Expand'}"
                 aria-label="Toggle details"
                 aria-expanded="${detailsOpened ? 'true' : 'false'}"
                 @click="${() => {
@@ -270,34 +274,22 @@ export class MateuGrid extends MetadataDrivenElement {
             </vaadin-grid>
             ${(this.field?.readOnly)?nothing:html`
                     <vaadin-horizontal-layout theme="spacing">
-                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
-            detail: {
-                actionId: this.id + '_add'
-            },
-            bubbles: true,
-            composed: true
+                        <vaadin-button theme="primary" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: this.id + '_add' },
+            bubbles: true, composed: true
         }))}">Add</vaadin-button>
-                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
-            detail: {
-                actionId: this.id + '_remove'
-            },
-            bubbles: true,
-            composed: true
+                        <vaadin-button theme="tertiary error" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: this.id + '_remove' },
+            bubbles: true, composed: true
         }))}">Remove</vaadin-button>
-                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: this.id + '_move-up'
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))}">Move up</vaadin-button>
-                        <vaadin-button @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: this.id + '_move-down'
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))}">Move down</vaadin-button>
+                        <vaadin-button theme="tertiary icon" title="Move up" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: { actionId: this.id + '_move-up' },
+                            bubbles: true, composed: true
+                        }))}"><vaadin-icon icon="vaadin:arrow-up"></vaadin-icon></vaadin-button>
+                        <vaadin-button theme="tertiary icon" title="Move down" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: { actionId: this.id + '_move-down' },
+                            bubbles: true, composed: true
+                        }))}"><vaadin-icon icon="vaadin:arrow-down"></vaadin-icon></vaadin-button>
                     </vaadin-horizontal-layout>
                 `}
         </vaadin-vertical-layout>`;

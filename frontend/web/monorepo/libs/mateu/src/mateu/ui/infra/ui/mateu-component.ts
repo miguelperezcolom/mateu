@@ -61,6 +61,9 @@ import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/Trigg
 import Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action";
 import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
+import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
+import {renderPage} from "@infra/ui/renderers/pageRenderer.ts";
+import {renderCrud} from "@infra/ui/renderers/crudRenderer.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import './mateu-chart'
 import './mateu-bpmn'
@@ -171,7 +174,7 @@ export class MateuComponent extends ComponentElement {
                         }
                     }
                 } catch (e) {
-                    console.log('rule failed', rule, e, state, data, appState, appData, component)
+                    console.error('rule failed', rule, e)
                 }
             }
             if (stateUpdated) {
@@ -197,9 +200,9 @@ export class MateuComponent extends ComponentElement {
         let valid = true
         let dataUpdated = false
         const data = this.data??{}
-        const state = this.state??{}
+        const state = this.state??{}    // available to eval() in validation conditions
+        void state;
         const newData: Record<string, any> = {...this.data??{}, errors: {}}
-        console.log('state', state)
         if (validatons) {
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
                 const validation = validatons[validationIndex]
@@ -221,7 +224,6 @@ export class MateuComponent extends ComponentElement {
                     const result = (validation.condition && validation.condition.includes('${'))?eval('`' + validation.condition + '`'):eval('' + validation.condition + '')
                     const failed = validation.condition && !result
                     if (failed) {
-                        console.log('validation failed', validation, validation.fieldId, state, data, (this.component as ServerSideComponent).serverSideType)
                         valid = false
                         const fieldNames = (validation.fieldId??'_component').split(',')
                         for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
@@ -339,7 +341,6 @@ export class MateuComponent extends ComponentElement {
                     })
 
                 /*
-                console.log(e)
                 this.onChange()
                  */
             }
@@ -402,7 +403,6 @@ export class MateuComponent extends ComponentElement {
                 if (!parameters['initiatorState']) {
                     parameters['initiatorState'] = this.state
                 }
-                console.log('bubbling up', e.detail.actionId, this.state)
                 this.dispatchEvent(new CustomEvent(e.type, {
                     detail: {
                         ...e.detail,
@@ -465,7 +465,6 @@ export class MateuComponent extends ComponentElement {
             if (!parameters['initiatorState']) {
                 parameters['initiatorState'] = this.state
             }
-            console.log('bubbling up', detail.actionId)
             this.dispatchEvent(new CustomEvent('action-requested', {
                 detail: {
                     ...detail,
@@ -507,7 +506,6 @@ export class MateuComponent extends ComponentElement {
         }
 
         if (action && action.customEvent) {
-            console.log('custom event', action.customEvent)
             this.dispatchEvent(new CustomEvent(action.customEvent.name, {
                 detail: action.customEvent.detail,
                 bubbles: true,
@@ -556,9 +554,9 @@ export class MateuComponent extends ComponentElement {
 
     handleBackendSucceeded = (e: Event) => {
         const customEvent = e as CustomEvent
-        const state = this.state
-        const data = this.data
-        if (state === data) console.log(state, data)
+        const state = this.state    // available to eval() in trigger conditions
+        const data = this.data      // available to eval() in trigger conditions
+        void state; void data;
         if (customEvent.detail.actionId) {
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnSuccess)
@@ -595,7 +593,6 @@ export class MateuComponent extends ComponentElement {
 
     handleBackendFailed = (e: Event) => {
         const customEvent = e as CustomEvent
-        console.log('backend failed', customEvent)
         if (customEvent.detail.actionId) {
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnError)
@@ -702,11 +699,29 @@ export class MateuComponent extends ComponentElement {
 
     _render(): TemplateResult {
         if (this.component?.type == ComponentType.ClientSide) {
-            return componentRenderer.get()?.renderClientSideComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData, false) as TemplateResult
+            const comp = this.component as ClientSideComponent
+            if (comp.metadata?.type == ComponentMetadataType.Page) {
+                return renderPage(this, comp, this.baseUrl, this.state, this.data, this.appState, this.appData, true) as TemplateResult
+            }
+            if (comp.metadata?.type == ComponentMetadataType.Crud) {
+                return renderCrud(this, comp, this.baseUrl, this.state, this.data, this.appState, this.appData, true) as TemplateResult
+            }
+            return componentRenderer.get()?.renderClientSideComponent(this, comp, this.baseUrl, this.state, this.data, this.appState, this.appData, false) as TemplateResult
         }
         return html`
             <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(child => renderComponent(this, child, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+            ${this.component?.children?.map(child => {
+                if (child.type == ComponentType.ClientSide) {
+                    const clientChild = child as ClientSideComponent
+                    if (clientChild.metadata?.type == ComponentMetadataType.Page) {
+                        return renderPage(this, clientChild, this.baseUrl, this.state, this.data, this.appState, this.appData, true)
+                    }
+                    if (clientChild.metadata?.type == ComponentMetadataType.Crud) {
+                        return renderCrud(this, clientChild, this.baseUrl, this.state, this.data, this.appState, this.appData, true)
+                    }
+                }
+                return renderComponent(this, child, this.baseUrl, this.state, this.data, this.appState, this.appData)
+            })}
             </mateu-api-caller>
         `
     }

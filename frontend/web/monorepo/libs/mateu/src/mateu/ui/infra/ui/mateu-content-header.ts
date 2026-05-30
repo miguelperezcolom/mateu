@@ -1,0 +1,162 @@
+import { customElement, property } from "lit/decorators.js";
+import { css, html, LitElement, nothing, TemplateResult } from "lit";
+import '@vaadin/horizontal-layout'
+import '@vaadin/vertical-layout'
+import '@vaadin/button'
+import '@vaadin/icon'
+import '@vaadin/icons'
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
+import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+import { badge } from "@vaadin/vaadin-lumo-styles";
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
+
+export const possiblyHtml = (
+    text: string | undefined,
+    // @ts-ignore
+    state: any,
+    // @ts-ignore
+    data: any
+): string | undefined => {
+    if (text && text.indexOf("${") >= 0) {
+        try {
+            return eval('`' + text + '`')
+        } catch (e: any) {
+            return e.message
+        }
+    }
+    return text;
+}
+
+export const buttonTheme = (button: Button): string | undefined => {
+    const parts: string[] = []
+    if (button.color && button.color !== 'normal') parts.push(button.color)
+    if (button.buttonStyle) parts.push(button.buttonStyle === 'tertiaryInline' ? 'tertiary-inline' : button.buttonStyle)
+    return parts.length ? parts.join(' ') : undefined
+}
+
+export const isNavButton = (id: string | undefined): boolean =>
+    id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
+
+@customElement('mateu-content-header')
+export class MateuContentHeader extends LitElement {
+
+    @property()
+    metadata?: any
+
+    @property()
+    baseUrl?: string
+
+    @property()
+    state?: any
+
+    @property()
+    data?: any
+
+    @property()
+    appState: Record<string, any> = {}
+
+    @property()
+    appData: Record<string, any> = {}
+
+    handleButtonClick = (actionId: string) => {
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+    renderBtn = (button: Button) => html`
+        <vaadin-button
+                data-action-id="${button.id}"
+                theme="${buttonTheme(button) || nothing}"
+                @click="${() => this.handleButtonClick(button.actionId)}"
+                ?disabled="${button.disabled}"
+        >${button.iconOnLeft ? html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>` : nothing}${button.label}${button.iconOnRight ? html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>` : nothing}</vaadin-button>
+    `
+
+    render(): TemplateResult {
+        const metadata = this.metadata
+        if (!metadata) return html``
+
+        const toolbar: Button[] = metadata.toolbar ?? []
+        const navButtons = toolbar.filter((b: Button) => isNavButton(b.actionId))
+        const actionButtons = toolbar.filter((b: Button) => !isNavButton(b.actionId))
+        const divider = navButtons.length > 0 && actionButtons.length > 0
+            ? html`<span class="toolbar-divider"></span>`
+            : nothing
+        const hasMainHeader = metadata.avatar || metadata.title || metadata.subtitle
+            || (metadata.kpis?.length > 0) || (metadata.header?.length > 0) || toolbar.length > 0
+
+        return html`
+            ${metadata.breadcrumbs && metadata.breadcrumbs.length > 0 ? html`
+                <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="breadcrumbs-bar">
+                    ${metadata.breadcrumbs.map((breadcrumb: any, index: number) => html`
+                        ${index > 0 ? html`<span>/</span>` : nothing}
+                        ${breadcrumb.link
+                            ? html`<vaadin-button theme="tertiary" @click="${() => window.location.href = `${breadcrumb.link}`}">${breadcrumb.text}</vaadin-button>`
+                            : html`<span>${breadcrumb.text}</span>`}
+                    `)}
+                </vaadin-horizontal-layout>
+            ` : nothing}
+            ${metadata.noHeader ? html`
+                <vaadin-horizontal-layout theme="spacing">
+                    ${metadata?.header?.map((component: any) => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                    ${navButtons.map(this.renderBtn)}
+                    ${divider}
+                    ${actionButtons.map(this.renderBtn)}
+                </vaadin-horizontal-layout>
+            ` : hasMainHeader ? html`
+                <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
+                    ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data, this.appState, this.appData) : nothing}
+                    <vaadin-vertical-layout style="flex: 1">
+                        <h2 style="margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state, this.data))}</h2>
+                        <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
+                    </vaadin-vertical-layout>
+                    <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+                        ${metadata?.kpis?.map((kpi: any) => html`
+                            <vaadin-vertical-layout style="align-items: center">
+                                <div>${kpi.title}</div>
+                                <div>${unsafeHTML(possiblyHtml(kpi.text, this.state, this.data))}</div>
+                            </vaadin-vertical-layout>
+                        `)}
+                        ${metadata?.header?.map((component: any) => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                        ${navButtons.map(this.renderBtn)}
+                        ${divider}
+                        ${actionButtons.map(this.renderBtn)}
+                    </vaadin-horizontal-layout>
+                </vaadin-horizontal-layout>
+            ` : nothing}
+            ${metadata.badges && metadata.badges.length > 0 ? html`
+                <vaadin-horizontal-layout>
+                    ${metadata.badges.map((b: any) => renderBadgeMetadata(b, this.state, this.data))}
+                </vaadin-horizontal-layout>
+            ` : nothing}
+        `
+    }
+
+    static styles = css`
+        :host {
+            display: block;
+            width: 100%;
+        }
+
+        .toolbar-divider {
+            display: inline-block;
+            width: 1px;
+            height: 1.5rem;
+            background-color: var(--lumo-contrast-20pct);
+            align-self: center;
+            margin: 0 4px;
+        }
+
+        ${badge}
+    `
+}
+
+declare global {
+    interface HTMLElementTagNameMap {
+        'mateu-content-header': MateuContentHeader
+    }
+}

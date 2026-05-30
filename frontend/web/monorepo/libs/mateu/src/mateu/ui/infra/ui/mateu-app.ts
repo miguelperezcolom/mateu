@@ -559,8 +559,10 @@ export class MateuApp extends ComponentElement {
         .app-content {
             padding-left: 2rem;
             padding-right: 2rem;
+            padding-top: 1.5rem;
             width: calc(100% - 4rem);
             height: calc(100vh - 6rem);
+            background-color: var(--lumo-contrast-10pct);
         }
 
         .menu vaadin-menu-bar-button {

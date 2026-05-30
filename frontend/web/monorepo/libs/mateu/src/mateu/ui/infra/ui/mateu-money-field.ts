@@ -43,6 +43,9 @@ export class MateuMoneyField extends LitElement {
     @property()
     colspan?: string
 
+    @property()
+    helperText?: string
+
     currencyChanged = (e: CustomEvent) => {
         if (!this.value) {
             this.value = {
@@ -87,6 +90,7 @@ export class MateuMoneyField extends LitElement {
                     label="${this.label}"
                     @value-changed="${this.valueChanged}"
                     .value="${this.value?.value}"
+                    .helperText="${this.helperText}"
                     ?autofocus="${this.autofocus}"
                     ?required="${this.required || nothing}"
                     theme="align-right"

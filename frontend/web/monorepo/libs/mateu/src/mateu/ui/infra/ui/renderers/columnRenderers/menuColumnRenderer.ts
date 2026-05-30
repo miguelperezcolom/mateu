@@ -1,7 +1,9 @@
-import { html } from "lit";
+import { html, nothing } from "lit";
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from '@vaadin/grid/vaadin-grid-column';
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
+import '@vaadin/icon';
+import '@vaadin/icons';
 
 const itemSelected = (e: CustomEvent) => {
     const obj = {
@@ -98,9 +100,11 @@ export const renderActionCell = (item: any,
         icon: string
         disabled: boolean
     } = _column.path && item[_column.path].methodNameInCrud?item[_column.path]:item.action
+    const iconOnly = action.icon && !action.label
     return html`
-         <vaadin-button theme="tertiary" @click="${clicked}" .row="${item}" .action="${action}">
-             ${action.label}
+         <vaadin-button theme="tertiary${iconOnly ? ' icon' : ''}" title="${action.label || nothing}" @click="${clicked}" .row="${item}" .action="${action}">
+             ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+             ${action.label ? action.label : nothing}
          </vaadin-button>
     `
 }

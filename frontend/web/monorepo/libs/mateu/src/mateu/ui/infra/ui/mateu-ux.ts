@@ -289,8 +289,11 @@ export class MateuUx extends ConnectedElement {
 
     static styles = css`
         :host {
+            display: block;
+            background-color: var(--lumo-contrast-10pct);
+            min-height: 100%;
         }
-        
+
         .container {
             padding-left: 0; padding-right: 0;
             width:100%;

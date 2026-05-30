@@ -1,3 +1,4 @@
+import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Grid from "@mateu/shared/apiClients/dtos/componentmetadata/Grid";
 import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
@@ -16,10 +17,10 @@ export const renderGrid = (
                             component: ClientSideComponent,
 
                            baseUrl: string | undefined,
-                           state: any,
-                           data: any,
-                            appState: any,
-                            appData: any) => {
+                           state: ComponentState,
+                           data: ComponentData,
+                            appState: ComponentState,
+                            appData: ComponentData) => {
     const metadata = component.metadata as Grid
 
 

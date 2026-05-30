@@ -12,7 +12,9 @@ import '@vaadin/integer-field'
 import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
+import "@vaadin/card"
 import './mateu-filter-bar'
+import './mateu-content-header'
 import './mateu-pagination'
 import './mateu-table'
 import './mateu-card-list'
@@ -36,6 +38,9 @@ export class MateuTableCrud extends LitElement {
 
     @property()
     baseUrl: string | undefined
+
+    @property({ type: Boolean })
+    standalone = false
 
     @property()
     state: Record<string, any> = {}
@@ -94,7 +99,6 @@ export class MateuTableCrud extends LitElement {
     }
 
     fetchMoreElements = (e: CustomEvent) => {
-        console.log('fetchMoreElements', e.detail)
         const {params, callback} = e.detail
         this.state.size = params.pageSize
         this.state.page = params.page
@@ -131,55 +135,73 @@ export class MateuTableCrud extends LitElement {
         }
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         metadata.serverSideOrdering = true
-        return html`
-            ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
+        const tableAndPagination = html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             ` : nothing}
-            ${metadata?.crudlType == 'table'?componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
-            :html`
-                        
-                        ${metadata.contentHeight?html`
-                        <vaadin-scroller style="width: 100%; height: ${metadata.contentHeight};">
-                                            <mateu-card-list id="${this.id}"
+            ${metadata?.crudlType == 'table' ? componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
+            : html`
+                ${metadata.contentHeight ? html`
+                    <vaadin-scroller style="width: 100%; height: ${metadata.contentHeight};">
+                        <mateu-card-list id="${this.id}"
                             .metadata="${metadata}"
                             .data="${this.data}"
                             .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
                             @sort-direction-changed="${this.directionChanged}"
-                                 @fetch-more-elements="${this.fetchMoreElements}"
+                            @fetch-more-elements="${this.fetchMoreElements}"
                             .state="${this.state}"
-                                                             .appState="${this.appState}"
-                                                             .appdata="${this.appData}"
+                            .appState="${this.appState}"
+                            .appdata="${this.appData}"
                             baseUrl="${this.baseUrl}"
-                ></mateu-card-list>
-
-                        </vaadin-scroller>
-                        `:html `
-                <mateu-card-list id="${this.id}"
-                            .metadata="${metadata}"
-                            .data="${this.data}"
-                            .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
-                            @sort-direction-changed="${this.directionChanged}"
-                                 @fetch-more-elements="${this.fetchMoreElements}"
-                            .state="${this.state}"
-                                 .appState="${this.appState}"
-                                 .appdata="${this.appData}"
-                            baseUrl="${this.baseUrl}"
-                ></mateu-card-list>
-                        `}
-                        
+                        ></mateu-card-list>
+                    </vaadin-scroller>
+                ` : html`
+                    <mateu-card-list id="${this.id}"
+                        .metadata="${metadata}"
+                        .data="${this.data}"
+                        .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
+                        @sort-direction-changed="${this.directionChanged}"
+                        @fetch-more-elements="${this.fetchMoreElements}"
+                        .state="${this.state}"
+                        .appState="${this.appState}"
+                        .appdata="${this.appData}"
+                        baseUrl="${this.baseUrl}"
+                    ></mateu-card-list>
+                `}
             `}
             <slot></slot>
-            ${metadata.infiniteScrolling?nothing:componentRenderer.get()?.renderPagination(this, this.component)}
-       `
+            ${metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)}
+        `
+
+        if (this.standalone) {
+            return html`
+                <vaadin-card theme="elevated" style="width: 100%;">
+                    <mateu-content-header
+                        .metadata="${metadata}"
+                        .baseUrl="${this.baseUrl}"
+                        .state="${this.state}"
+                        .data="${this.data}"
+                        .appState="${this.appState}"
+                        .appData="${this.appData}"
+                    ></mateu-content-header>
+                    <div style="border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-l); overflow: hidden; margin-top: var(--lumo-space-m);">
+                        ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}
+                        ${tableAndPagination}
+                    </div>
+                </vaadin-card>
+            `
+        }
+        return html`
+            ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
+            ${tableAndPagination}
+        `
     }
 
     protected createRenderRoot(): HTMLElement | DocumentFragment {
         return componentRenderer.mustUseShadowRoot() ? super.createRenderRoot() : this
     }
 
-    static styles = css`
-  `
+    static styles = css``
 }
 
 declare global {
