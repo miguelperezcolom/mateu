@@ -370,6 +370,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             
             `:nothing}
 
+            ${container.renderCommandPalette()}
             <slot></slot>
        `
 }
