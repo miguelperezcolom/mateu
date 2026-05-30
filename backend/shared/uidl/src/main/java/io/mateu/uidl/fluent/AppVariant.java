@@ -6,6 +6,7 @@ public enum AppVariant {
   MENU_ON_TOP,
   TABS,
   TILES,
+  RAIL,
   AUTO,
   MEDIATOR
 }

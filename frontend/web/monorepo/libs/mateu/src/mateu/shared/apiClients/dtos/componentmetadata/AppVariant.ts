@@ -4,6 +4,7 @@ export enum AppVariant {
     MENU_ON_TOP = "MENU_ON_TOP",
     TABS = "TABS",
     TILES = "TILES",
+    RAIL = "RAIL",
     AUTO = "AUTO",
     MEDIATOR = "MEDIATOR"
 }

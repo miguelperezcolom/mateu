@@ -246,6 +246,33 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 </vaadin-vertical-layout>
             `:nothing}
 
+            ${metadata.variant == AppVariant.RAIL?html`
+                <div style="display: flex; width: 100%; height: 100vh; overflow: hidden;">
+                    ${container.renderRail(metadata.menu)}
+                    ${container.railOpenOption ? container.renderRailSubPanel(container.railOpenOption) : nothing}
+                    <div style="flex: 1; overflow: auto; padding: 2rem; height: 100vh; box-sizing: border-box;">
+                        <vaadin-master-detail-layout>
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        route="${chooseRoute(_state, container, metadata)}"
+                                        id="ux_${container.id}"
+                                        baseUrl="${chooseBaseUrl(container, metadata)}"
+                                        consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                        serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                        uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                        style="width: 100%;"
+                                        .appState="${appState}"
+                                        .appData="${appData}"
+                                        instant="${container.instant}"
+                                        @navigation-requested="${container.updateRoute}"
+                                ></mateu-ux>
+                            </mateu-api-caller>
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                        </vaadin-master-detail-layout>
+                    </div>
+                </div>
+            `:nothing}
+
             ${metadata.variant == AppVariant.MENU_ON_LEFT?html`
 
                 <vaadin-horizontal-layout>

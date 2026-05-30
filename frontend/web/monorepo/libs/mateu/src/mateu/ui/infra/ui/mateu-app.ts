@@ -63,6 +63,9 @@ export class MateuApp extends ComponentElement {
     @state()
     tilesMenuOption: MenuOption | null = null
 
+    @state()
+    railOpenOption: MenuOption | null = null
+
     @query("mateu-chat")
     chat: MateuChat | undefined
 
@@ -115,6 +118,57 @@ export class MateuApp extends ComponentElement {
             selected: option.selected,
             _menuOption: option,
         }))
+    }
+
+    renderRail = (menu: MenuOption[]): TemplateResult => {
+        return html`
+            <div class="nav-rail">
+                ${menu.map(option => this.renderRailItem(option))}
+            </div>
+        `
+    }
+
+    renderRailItem = (option: MenuOption): TemplateResult => {
+        const isActive = option.submenus?.length > 0
+            ? this.railOpenOption?.label === option.label
+            : option.selected
+        return html`
+            <div class="rail-item ${isActive ? 'rail-item--active' : ''}"
+                @click=${() => {
+                    if (option.submenus && option.submenus.length > 0) {
+                        this.railOpenOption = this.railOpenOption?.label === option.label ? null : option
+                    } else {
+                        this.railOpenOption = null
+                        this.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix)
+                    }
+                }}
+            >
+                ${option.icon
+                    ? html`<vaadin-icon icon="${option.icon}" class="rail-icon"></vaadin-icon>`
+                    : html`<div class="rail-icon-placeholder">${option.label.charAt(0).toUpperCase()}</div>`
+                }
+                <span class="rail-label">${option.label}</span>
+            </div>
+        `
+    }
+
+    renderRailSubPanel = (option: MenuOption): TemplateResult => {
+        return html`
+            <div class="rail-sub-panel">
+                <div class="rail-sub-title">${option.label}</div>
+                ${option.submenus.map(sub => html`
+                    <div class="rail-sub-item ${sub.selected ? 'rail-sub-item--active' : ''}"
+                        @click=${() => {
+                            if (sub.submenus && sub.submenus.length > 0) {
+                                this.railOpenOption = sub
+                            } else {
+                                this.selectRoute(sub.consumedRoute, sub.route, sub.actionId, sub.baseUrl, sub.serverSideType, sub.uriPrefix)
+                            }
+                        }}
+                    >${sub.label}</div>
+                `)}
+            </div>
+        `
     }
 
     renderTilesHub = (option: MenuOption): TemplateResult => {
@@ -410,6 +464,101 @@ export class MateuApp extends ComponentElement {
         .nav-tile-desc {
             color: var(--lumo-secondary-text-color);
             font-size: var(--lumo-font-size-s);
+        }
+
+        .nav-rail {
+            width: 72px;
+            min-height: 100vh;
+            border-right: 1px solid var(--lumo-contrast-10pct);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 0.75rem;
+            gap: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .rail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 64px;
+            padding: 0.5rem 0;
+            cursor: pointer;
+            border-radius: var(--lumo-border-radius-m);
+            transition: background-color 0.2s;
+            gap: 0.2rem;
+        }
+
+        .rail-item:hover {
+            background-color: var(--lumo-contrast-5pct);
+        }
+
+        .rail-item--active {
+            background-color: var(--lumo-primary-color-10pct);
+            color: var(--lumo-primary-color);
+        }
+
+        .rail-icon {
+            font-size: 1.4rem;
+        }
+
+        .rail-icon-placeholder {
+            width: 1.6rem;
+            height: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 50%;
+            background-color: var(--lumo-contrast-10pct);
+        }
+
+        .rail-label {
+            font-size: 0.6rem;
+            text-align: center;
+            max-width: 64px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .rail-sub-panel {
+            width: 200px;
+            min-height: 100vh;
+            border-right: 1px solid var(--lumo-contrast-10pct);
+            padding: 0.75rem 0;
+            flex-shrink: 0;
+        }
+
+        .rail-sub-title {
+            font-size: var(--lumo-font-size-xs);
+            font-weight: 600;
+            color: var(--lumo-secondary-text-color);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.25rem 1rem 0.5rem;
+        }
+
+        .rail-sub-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: var(--lumo-border-radius-m);
+            margin: 0.1rem 0.5rem;
+            transition: background-color 0.2s;
+            font-size: var(--lumo-font-size-s);
+        }
+
+        .rail-sub-item:hover {
+            background-color: var(--lumo-contrast-5pct);
+        }
+
+        .rail-sub-item--active {
+            background-color: var(--lumo-primary-color-10pct);
+            color: var(--lumo-primary-color);
+            font-weight: 600;
         }
 
   `
