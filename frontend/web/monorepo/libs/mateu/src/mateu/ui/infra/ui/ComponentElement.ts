@@ -97,10 +97,9 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             }
 
             const serverSideComponent = this.component as ServerSideComponent
-            // @ts-ignore
-            const state = this.state
-            // @ts-ignore
-            const data = this.data
+            const state = this.state  // available to eval() in trigger conditions
+            const data = this.data    // available to eval() in trigger conditions
+            void state; void data;
 
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
                 .forEach(trigger => {

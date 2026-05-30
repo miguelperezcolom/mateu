@@ -5,6 +5,11 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 
+interface RoutedContainer extends LitElement {
+    route: string
+    consumedRoute: string
+}
+
 export const renderComponentInSlot = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, slot: string, labelAlreadyRendered: boolean | undefined): TemplateResult => {
     component.slot = slot
     return renderComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
@@ -17,10 +22,8 @@ export const renderComponent = (container: LitElement, component: Component, bas
     if (component.type == ComponentType.ClientSide ) {
         return componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
-    //@ts-ignore
-    const route = container.route
-    //@ts-ignore
-    const consumedRoute = container.consumedRoute
+    const route = (container as RoutedContainer).route
+    const consumedRoute = (container as RoutedContainer).consumedRoute
     return html`
         <mateu-component id="${component.id}"
                          .component="${component}"

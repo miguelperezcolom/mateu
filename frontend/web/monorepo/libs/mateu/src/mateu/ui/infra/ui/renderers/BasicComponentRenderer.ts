@@ -1,7 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { html, LitElement, TemplateResult } from "lit";
 import { ComponentRenderer } from "./ComponentRenderer.ts";
-import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
+import { renderClientSideComponent as _renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { renderApp } from "@infra/ui/renderers/appRenderer.ts";
@@ -57,9 +57,8 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
         ></mateu-table>
         `
     }
-    // @ts-ignore
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult {
-        return renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
+        return _renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
     renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult {

@@ -279,7 +279,6 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         if (type == ComponentMetadataType.Button) {
             return renderButton(component)
         }
-        // @ts-ignore
         if (type == ComponentMetadataType.Card) {
             return renderCard(container, component, baseUrl, state, data, appState, appData)
         }
