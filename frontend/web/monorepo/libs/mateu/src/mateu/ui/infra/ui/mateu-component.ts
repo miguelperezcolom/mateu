@@ -616,16 +616,80 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    private _shortcutMatchesEvent(shortcut: string, e: KeyboardEvent): boolean {
+        const parts = shortcut.toLowerCase().split('+')
+        const key = parts[parts.length - 1]
+        const ctrl = parts.includes('ctrl')
+        const alt = parts.includes('alt')
+        const shift = parts.includes('shift')
+        const meta = parts.includes('meta')
+        return e.key.toLowerCase() === key
+            && e.ctrlKey === ctrl
+            && e.altKey === alt
+            && e.shiftKey === shift
+            && e.metaKey === meta
+    }
+
+    private _collectButtonShortcuts(component: any): {shortcut: string, actionId: string}[] {
+        if (!component) return []
+        const results: {shortcut: string, actionId: string}[] = []
+        const meta = component.metadata
+        if (meta) {
+            for (const btn of [...(meta.toolbar ?? []), ...(meta.buttons ?? [])]) {
+                if (btn?.shortcut && btn?.actionId) results.push({shortcut: btn.shortcut, actionId: btn.actionId})
+            }
+        }
+        for (const child of (component.children ?? [])) {
+            results.push(...this._collectButtonShortcuts(child))
+        }
+        return results
+    }
+
+    private _keydownListener = (e: KeyboardEvent) => {
+        const serverSideComponent = this.component as ServerSideComponent
+        if (!serverSideComponent) return
+
+        // actions declaradas directamente en el ServerSideComponent
+        for (const action of (serverSideComponent.actions ?? [])) {
+            const shortcut = action.shortcut || (action.runOnEnter ? 'enter' : null)
+            if (!shortcut) continue
+            if (this._shortcutMatchesEvent(shortcut, e)) {
+                e.preventDefault()
+                this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                    detail: { actionId: action.id },
+                    bubbles: true,
+                    composed: true
+                }))
+                return
+            }
+        }
+
+        // botones con shortcut en ClientSideComponents anidados (subformularios)
+        for (const {shortcut, actionId} of this._collectButtonShortcuts(this.component)) {
+            if (this._shortcutMatchesEvent(shortcut, e)) {
+                e.preventDefault()
+                this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                    detail: { actionId },
+                    bubbles: true,
+                    composed: true
+                }))
+                return
+            }
+        }
+    }
+
     connectedCallback() {
         super.connectedCallback();
         this.addEventListener('backend-call-succeeded', this.handleBackendSucceeded)
         this.addEventListener('backend-call-failed', this.handleBackendFailed)
+        document.addEventListener('keydown', this._keydownListener)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         this.removeEventListener('backend-call-succeeded', this.handleBackendSucceeded)
         this.removeEventListener('backend-call-failed', this.handleBackendFailed)
+        document.removeEventListener('keydown', this._keydownListener)
     }
 
     render() {

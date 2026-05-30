@@ -107,6 +107,29 @@ A confirmation dialog is shown before the method runs. The user must confirm to 
 
 ---
 
+## Keyboard shortcuts
+
+Any action can declare a keyboard shortcut via `@Action(shortcut = "...")`. When the user presses the combination, the action fires as if the button had been clicked — including validation and confirmation if configured.
+
+```java
+@Toolbar
+@Action(shortcut = "ctrl+s", validationRequired = true)
+public Message save() {
+    productRepository.save(name, status);
+    return new Message("Saved");
+}
+
+@Button
+@Action(shortcut = "ctrl+enter")
+public URI create() {
+    return URI.create("/products/" + productRepository.create(name));
+}
+```
+
+Shortcuts use a `+`-separated format: `ctrl`, `alt`, `shift`, `meta` as modifiers, followed by the key name (e.g. `"ctrl+s"`, `"alt+f4"`, `"enter"`). They also work on buttons inside nested types (subforms).
+
+---
+
 ## Automatic save: @AutoSave
 
 `@AutoSave` on a class tells Mateu to call a save action automatically whenever the user changes a field, without requiring a button click. The call is debounced so it fires once the user has been idle for `debounceMillis` milliseconds (default 800).

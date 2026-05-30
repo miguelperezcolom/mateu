@@ -11,6 +11,7 @@ export default interface Button extends ComponentMetadata {
     iconOnRight: string
     image: string
     actionId: string
+    shortcut: string
     autofocus: boolean
     disabled: boolean
     color: ButtonColor

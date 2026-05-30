@@ -16,5 +16,6 @@ public record ButtonDto(
     boolean autofocus,
     boolean disabled,
     String actionId,
-    Object parameters)
+    Object parameters,
+    String shortcut)
     implements ComponentMetadataDto {}

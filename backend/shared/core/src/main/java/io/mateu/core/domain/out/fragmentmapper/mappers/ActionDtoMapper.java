@@ -38,6 +38,7 @@ final class ActionDtoMapper {
         .js(annotation.js())
         .background(annotation.background())
         .sse(annotation.sse())
+        .shortcut(annotation.shortcut().isEmpty() ? null : annotation.shortcut())
         .build();
   }
 

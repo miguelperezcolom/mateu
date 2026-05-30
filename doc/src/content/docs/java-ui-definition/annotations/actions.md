@@ -249,6 +249,51 @@ Object create() {
 
 ---
 
+## Keyboard shortcuts
+
+Any action annotated with `@Action(shortcut = "...")` is triggered automatically when the user presses the configured key combination. No button click is required.
+
+```java
+@Toolbar
+@Action(shortcut = "ctrl+s")
+Object save() { ... }
+
+@Button
+@Action(shortcut = "ctrl+t", validationRequired = true)
+Object test() { ... }
+```
+
+### Shortcut format
+
+Shortcuts are expressed as a `+`-separated string. Modifier keys (`ctrl`, `alt`, `shift`, `meta`) can appear in any order before the main key. The main key is the last segment and must match the browser's `KeyboardEvent.key` value (case-insensitive).
+
+| Example | Triggers on |
+|---|---|
+| `"ctrl+s"` | Ctrl + S |
+| `"ctrl+shift+z"` | Ctrl + Shift + Z |
+| `"alt+f4"` | Alt + F4 |
+| `"enter"` | Enter (no modifier) |
+| `"meta+s"` | Cmd + S (macOS) |
+
+### Shortcuts in subforms
+
+Shortcuts also work on buttons inside nested types (subforms). Mateu propagates the shortcut through the `ButtonDto` and the parent component picks it up by scanning the component tree.
+
+```java
+public record ShippingDetails(String address, String city) {
+
+    @Button
+    @Action(shortcut = "ctrl+t")
+    Object confirm() { ... }
+}
+```
+
+### runOnEnter
+
+`runOnEnter = true` on an `Action` is equivalent to `shortcut = "enter"`. Both use the same keyboard listener mechanism.
+
+---
+
 ## @AutoSave
 
 **Target:** `TYPE`

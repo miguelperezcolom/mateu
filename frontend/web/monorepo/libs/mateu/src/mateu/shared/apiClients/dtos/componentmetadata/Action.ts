@@ -22,4 +22,5 @@ export default interface Action {
     sse: boolean
     fieldsToValidate: string
     bubble: boolean
+    shortcut: string
 }

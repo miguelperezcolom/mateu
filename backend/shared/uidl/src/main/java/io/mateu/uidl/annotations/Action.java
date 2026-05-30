@@ -43,4 +43,6 @@ public @interface Action {
   String fieldsToValidate() default "";
 
   boolean bubble() default false;
+
+  String shortcut() default "";
 }

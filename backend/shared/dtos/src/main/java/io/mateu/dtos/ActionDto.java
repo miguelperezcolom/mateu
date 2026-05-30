@@ -32,4 +32,5 @@ public record ActionDto(
     boolean background,
     boolean sse,
     String fieldsToValidate,
-    boolean bubble) {}
+    boolean bubble,
+    String shortcut) {}
