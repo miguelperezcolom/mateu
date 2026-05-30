@@ -15,6 +15,7 @@ public class ActionMapper {
 
   public static List<ActionDto> mapActions(Object serverSideObject, HttpRequest httpRequest) {
     List<ActionDto> actions = new ArrayList<>();
+    actions.add(ActionDto.builder().id("nested-form-action-*").build());
     if (serverSideObject instanceof ActionSupplier hasActions) {
       actions.addAll(
           hasActions.actions(httpRequest).stream().map(ActionMapper::mapAction).toList());

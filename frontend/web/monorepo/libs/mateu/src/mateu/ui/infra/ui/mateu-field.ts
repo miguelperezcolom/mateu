@@ -404,8 +404,10 @@ export class MateuField extends LitElement {
 `;
 
     comboRenderer: ComboBoxLitRenderer<Option> = (option) => html`
-        ${option.description || option.image?html`
+        ${option.description || option.image || option.icon?html`
             <vaadin-horizontal-layout theme="spacing">
+                ${option.icon?html`<div><vaadin-icon icon="${option.icon}"></vaadin-icon></div>
+                                    `:nothing}
                 ${option.image?html`
                     <div>
                     <img
@@ -728,8 +730,11 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.data[this.id]?.content?.map((option: any) => html`
-                            <vaadin-item>${option.description || option.image?html`
+                            <vaadin-item>${option.description || option.image || option.icon?html`
                                 <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                    ${option.icon?html`
+                                        <vaadin-icon icon="${option.icon}"></vaadin-icon>
+                                    `:nothing}
                                     ${option.image?html`
                                             <img src="${option.image}" alt="${option.label}" style="width: 2rem;" />
                                         `:nothing}
@@ -760,8 +765,14 @@ export class MateuField extends LitElement {
                             ?autofocus="${this.field.wantsFocus}"
                     >
                         ${this.field.options?.map(option => html`
-                            <vaadin-item>${option.description || option.image?html`
+                            <vaadin-item>${option.description || option.image || option.icon?html`
                                 <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                    ${option.icon?html`
+                                        <vaadin-icon icon="${option.icon}"></vaadin-icon>
+                                    `:nothing}
+                                    ${option.icon?html`
+                                        <vaadin-icon icon="${option.icon}"></vaadin-icon>
+                                    `:nothing}
                                     ${option.image?html`
                                             <img src="${option.image}" alt="${option.label}" style="width: 2rem;" />
                                         `:nothing}
@@ -826,9 +837,12 @@ export class MateuField extends LitElement {
                     >
                         ${this.data[this.id]?.content?.map((option: any) => html`
                             <vaadin-radio-button value="${option.value}" label="${option.label}" ?checked="${option && value && option.value === value}">
-                                ${option.description || option.image?html`
+                                ${option.description || option.image || option.icon?html`
                                     <label slot="label">
                                         <vaadin-horizontal-layout theme="spacing">
+                                            ${option.icon?html`
+                                                <vaadin-icon icon="${option.icon}"></vaadin-icon>
+                                            `:nothing}
                                             ${option.image?html`
                                                 <img src="${option.image}" alt="${option.label}" style="height: 1rem;" />
                                             `:nothing}
@@ -856,9 +870,12 @@ export class MateuField extends LitElement {
                     >
                         ${this.field.options?.map(option => html`
                             <vaadin-radio-button value="${option.value}" label="${option.label}">
-                                ${option.description || option.image?html`
+                                ${option.description || option.image || option.icon?html`
                                     <label slot="label">
                                         <vaadin-horizontal-layout theme="spacing">
+                                            ${option.icon?html`
+                                                <vaadin-icon icon="${option.icon}"></vaadin-icon>
+                                            `:nothing}
                                             ${option.image?html`
                                                 <img src="${option.image}" alt="${option.label}" style="height: 1rem;" />
                                             `:nothing}

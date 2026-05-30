@@ -102,7 +102,12 @@ public class FieldMetadataExtractor {
           Field enumField = field.getType().getField(enumConstant.toString());
           Label label = enumField.getAnnotation(Label.class);
           String labelValue = label != null ? label.value() : enumConstant.toString();
-          options.add(new Option(enumConstant.toString(), labelValue));
+          Icon icon = enumField.getAnnotation(Icon.class);
+          options.add(Option.builder()
+                          .value(enumConstant.toString())
+                          .label(labelValue)
+                          .icon(icon != null? icon.value().iconName:null)
+                  .build());
         } catch (NoSuchFieldException e) {
           throw new RuntimeException(e);
         }

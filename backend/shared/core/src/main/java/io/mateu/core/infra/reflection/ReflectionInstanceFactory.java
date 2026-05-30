@@ -143,8 +143,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
         nested.put(rest, entry.getValue());
       }
     }
-    result.replaceAll(
-        (k, v) -> (v instanceof Map) ? unflatten((Map<String, Object>) v) : v);
+    result.replaceAll((k, v) -> (v instanceof Map) ? unflatten((Map<String, Object>) v) : v);
     return result;
   }
 }

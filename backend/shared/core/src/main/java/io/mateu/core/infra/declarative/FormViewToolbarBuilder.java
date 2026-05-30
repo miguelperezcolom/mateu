@@ -11,31 +11,33 @@ import java.util.List;
 
 public final class FormViewToolbarBuilder {
 
-    public static List<UserTrigger> createToolbar(Object instance) {
-        return createToolbar("", instance);
-    }
+  public static List<UserTrigger> createToolbar(Object instance) {
+    return createToolbar("", instance);
+  }
 
-    public static List<UserTrigger> createToolbar(String prefix, Object instance) {
+  public static List<UserTrigger> createToolbar(String prefix, Object instance) {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(Toolbar.class))
         .forEach(
             method ->
-                toolbar.add(new Button(toUpperCaseFirst(method.getName()), prefix + method.getName())));
+                toolbar.add(
+                    new Button(toUpperCaseFirst(method.getName()), prefix + method.getName())));
     return toolbar;
   }
 
-    public static List<UserTrigger> createButtons(Object instance) {
-        return createButtons("", instance);
-    }
+  public static List<UserTrigger> createButtons(Object instance) {
+    return createButtons("", instance);
+  }
 
-    public static List<UserTrigger> createButtons(String prefix, Object instance) {
+  public static List<UserTrigger> createButtons(String prefix, Object instance) {
     var buttons = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
         .forEach(
             method ->
-                buttons.add(new Button(toUpperCaseFirst(method.getName()), prefix + method.getName())));
+                buttons.add(
+                    new Button(toUpperCaseFirst(method.getName()), prefix + method.getName())));
     return buttons;
   }
 

@@ -1,10 +1,12 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.Toolbar;
+import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Message;
 
-public record Subform2(Sex sex, Religion religion) {
+public record Subform2(@Stereotype(FieldStereotype.radio) Sex sex, Religion religion) {
 
     @Button
     Object test2() {

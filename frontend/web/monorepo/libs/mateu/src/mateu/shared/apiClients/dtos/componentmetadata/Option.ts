@@ -5,5 +5,6 @@ export default interface Option {
     description: string
     image: string
     imageStyle: string
+    icon: string
 
 }

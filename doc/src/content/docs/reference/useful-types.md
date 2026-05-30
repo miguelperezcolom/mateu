@@ -136,6 +136,17 @@ Useful for:
 - radio/checkbox style choices
 - lookup results
 
+| Field | Type | Description |
+|---|---|---|
+| `value` | `Object` | The underlying data value |
+| `label` | `String` | Display text shown to the user |
+| `description` | `String` | Optional secondary text |
+| `image` | `String` | Optional image URL |
+| `imageStyle` | `String` | Optional CSS style for the image |
+| `icon` | `String` | Optional icon identifier (e.g. `"vaadin:male"`) shown next to the label in radio/checkbox groups |
+
+The `icon` field is populated automatically when `@Icon` is placed on an enum constant. It can also be set manually when building options programmatically. Icons are not displayed in `select` or `combobox` controls.
+
 ### `RemoteCoordinates`
 
 Represents how a field can resolve remote data.

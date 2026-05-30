@@ -4,6 +4,7 @@ import static io.mateu.core.domain.act.DefaultActionRunnerProvider.asFlux;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.application.runaction.RunActionCommand;
@@ -30,20 +31,38 @@ public class RunMethodActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-    return getMethod(instance.getClass(), actionId) != null
-        || getFieldByName(instance.getClass(), actionId) != null;
+    return actionId.startsWith("nested-form-action-") ||
+            (getMethod(instance.getClass(), actionId) != null
+            || getFieldByName(instance.getClass(), actionId) != null);
   }
 
   @SneakyThrows
   @Override
   public Flux<?> run(Object instance, RunActionCommand command) {
-    Method m = getMethod(instance.getClass(), command.actionId());
+    var methodName = command.actionId();
+    if (command.actionId().startsWith("nested-form-action-")) {
+      var fieldAndMethod = command.actionId().substring("nested-form-action-".length());
+      var fieldId = fieldAndMethod.substring(0, fieldAndMethod.indexOf('-'));
+      methodName = fieldAndMethod.substring(fieldId.length() + 1);
+      var field = getFieldByName(instance.getClass(), fieldId);
+      if (field != null) {
+        if (!Modifier.isPublic(field.getModifiers())) field.setAccessible(true);
+        Object nestedForm = getValue(field, instance);
+        if (nestedForm == null) {
+          nestedForm =
+              getValueOrNewInstance(field, instance, command.httpRequest());
+
+        }
+        instance = nestedForm;
+      }
+    }
+    Method m = getMethod(instance.getClass(), methodName);
     if (m != null) {
       if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
       Object result = invoke(m, instance, command);
       return asFlux(result, instance);
     }
-    Field f = getFieldByName(instance.getClass(), command.actionId());
+    Field f = getFieldByName(instance.getClass(), methodName);
     if (f != null) {
       if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
       Object result = getValue(f, instance);

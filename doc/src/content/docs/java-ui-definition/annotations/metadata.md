@@ -123,6 +123,49 @@ Applied at type level. See [App Annotations](./app) for full documentation.
 
 ---
 
+## @Icon
+
+**Target:** `FIELD`, `METHOD`
+
+Assigns an icon to an enum constant. When an enum field is rendered as a **radio group** or **checkbox group**, each option displays its icon next to the label.
+
+> **Note:** Icons on enum values do **not** appear in `select` or `combobox` controls due to a Vaadin limitation. They only work with `radio` and `checkbox` stereotypes.
+
+```java
+public @interface Icon {
+    IconKey value();
+}
+```
+
+Icons are specified using the `IconKey` enum from `io.mateu.uidl.interfaces.IconKey`, which maps named constants to Vaadin icon identifiers (e.g. `IconKey.Male` → `"vaadin:male"`).
+
+### Example
+
+```java
+import io.mateu.uidl.annotations.Icon;
+import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.interfaces.IconKey;
+
+public enum Sex {
+    @Label("Male")
+    @Icon(IconKey.Male)
+    Male,
+
+    @Label("Female")
+    @Icon(IconKey.Female)
+    Female
+}
+```
+
+```java
+public class PersonForm {
+    @Stereotype(FieldStereotype.radio)
+    Sex sex;   // renders as a radio group with ♂/♀ icons next to each option
+}
+```
+
+---
+
 ## @Status + @StatusMapping
 
 **Target:** `FIELD`
