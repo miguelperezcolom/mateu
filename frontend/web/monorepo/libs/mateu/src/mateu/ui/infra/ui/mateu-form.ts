@@ -28,6 +28,18 @@ const buttonTheme = (button: Button): string | undefined => {
     return parts.length ? parts.join(' ') : undefined
 }
 
+const isNavButton = (id: string | undefined): boolean =>
+    id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
+
+const renderBtn = (button: Button, handler: (id: string) => void) => html`
+    <vaadin-button
+            data-action-id="${button.id}"
+            theme="${buttonTheme(button) || nothing}"
+            @click="${() => handler(button.actionId)}"
+            ?disabled="${button.disabled}"
+    >${button.iconOnLeft ? html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>` : nothing}${button.label}${button.iconOnRight ? html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>` : nothing}</vaadin-button>
+`
+
 export const possiblyHtml = (
     text: string | undefined,
     // @ts-ignore
@@ -72,37 +84,34 @@ export class MateuForm extends MetadataDrivenElement {
 
     render(): TemplateResult {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
+        const toolbar = metadata?.toolbar ?? []
+        const navButtons = toolbar.filter(b => isNavButton(b.actionId))
+        const actionButtons = toolbar.filter(b => !isNavButton(b.actionId))
+        const divider = navButtons.length > 0 && actionButtons.length > 0
+            ? html`<span class="toolbar-divider"></span>`
+            : nothing
+        const renderToolbar = () => html`
+            ${navButtons.map(b => renderBtn(b, this.handleButtonClick))}
+            ${divider}
+            ${actionButtons.map(b => renderBtn(b, this.handleButtonClick))}
+        `
         return html`
             <vaadin-vertical-layout theme="spacing" class="${this.component?.cssClasses}">
-                ${metadata.noHeader?html`
-                    <vaadin-horizontal-layout theme="spacing" slot="end">
-                        ${metadata?.header.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                        ${metadata?.toolbar?.map(button => html`
-                <vaadin-button
-                        data-action-id="${button.id}"
-                        theme="${buttonTheme(button) || nothing}"
-                        @click="${() => this.handleButtonClick(button.actionId)}"
-                        ?disabled="${button.disabled}"
-                >${button.iconOnLeft?html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>`:nothing}${button.label}${button.iconOnRight?html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>
-`)}
+                ${metadata.noHeader ? html`
+                    <vaadin-horizontal-layout theme="spacing">
+                        ${metadata?.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                        ${renderToolbar()}
                     </vaadin-horizontal-layout>
-            `:html`
+                ` : html`
                     <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
-                        ${metadata.avatar?renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data, this.appState, this.appData):nothing}
-                        <vaadin-vertical-layout>
+                        ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state, this.data, this.appState, this.appData) : nothing}
+                        <vaadin-vertical-layout style="flex: 1">
                             <h2 style="margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state, this.data))}</h2>
                             <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state, this.data))}</span>
                         </vaadin-vertical-layout>
-                        <vaadin-horizontal-layout theme="spacing" slot="end">
+                        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                             ${metadata?.header?.map(component => renderComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                            ${metadata?.toolbar?.map(button => html`
-                <vaadin-button
-                        data-action-id="${button.id}"
-                        theme="${buttonTheme(button) || nothing}"
-                        @click="${() => this.handleButtonClick(button.actionId)}"
-                        ?disabled="${button.disabled}"
-                >${button.iconOnLeft?html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>`:nothing}${button.label}${button.iconOnRight?html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>
-`)}
+                            ${renderToolbar()}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                 `}
@@ -130,6 +139,15 @@ export class MateuForm extends MetadataDrivenElement {
 
         .form-content {
             padding-bottom: 3rem;
+        }
+
+        .toolbar-divider {
+            display: inline-block;
+            width: 1px;
+            height: 1.5rem;
+            background-color: var(--lumo-contrast-20pct);
+            align-self: center;
+            margin: 0 4px;
         }
 
     `
