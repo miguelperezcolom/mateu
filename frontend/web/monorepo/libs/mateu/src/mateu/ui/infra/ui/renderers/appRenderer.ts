@@ -109,7 +109,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
                 <vaadin-vertical-layout style="width: 100%;">
                     <vaadin-horizontal-layout 
-                            style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color);" 
+                            style="width: 100%; height: 4rem; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);" 
                             theme="spacing"
                             @navigation-requested="${container.updateRoute}">
                         <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">

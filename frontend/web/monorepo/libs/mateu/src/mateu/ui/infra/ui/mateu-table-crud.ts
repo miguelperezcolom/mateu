@@ -22,6 +22,9 @@ import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import {Notification} from "@vaadin/notification";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
+import {ButtonColor} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonColor.ts";
+import {ButtonStyle} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonStyle.ts";
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -129,12 +132,44 @@ export class MateuTableCrud extends LitElement {
         }
     }
 
+    handleToolbarButtonClick = (actionId: string) => {
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: {
+                actionId,
+            },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+
+
     render(): TemplateResult {
+
+        const buttonTheme = (button: Button): string | undefined => {
+            const parts: string[] = []
+            if (button.color && button.color !== ButtonColor.normal) parts.push(button.color)
+            if (button.buttonStyle) parts.push(button.buttonStyle === ButtonStyle.tertiaryInline ? 'tertiary-inline' : button.buttonStyle)
+            return parts.length ? parts.join(' ') : undefined
+        }
+
+        const isNavButton = (id: string | undefined): boolean =>
+            id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
+
+
         if (!this.component) {
             return html`no component`
         }
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         metadata.serverSideOrdering = true
+
+        const toolbar = metadata?.toolbar ?? []
+        const navButtons = toolbar.filter(b => isNavButton(b.actionId))
+        const actionButtons = toolbar.filter(b => !isNavButton(b.actionId))
+        const hasDivider = navButtons.length > 0 && actionButtons.length > 0
+        const hasHeader = !!metadata?.title || !!metadata?.subtitle || toolbar.length > 0
+
+
         const tableAndPagination = html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
@@ -172,10 +207,9 @@ export class MateuTableCrud extends LitElement {
             <slot></slot>
             ${metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)}
         `
-
         if (this.standalone) {
             return html`
-                <vaadin-card theme="elevated" style="width: 100%;">
+                <vaadin-card theme="outlined" style="width: 100%;">
                     <mateu-content-header
                         .metadata="${metadata}"
                         .baseUrl="${this.baseUrl}"
@@ -192,8 +226,38 @@ export class MateuTableCrud extends LitElement {
             `
         }
         return html`
+            ${hasHeader ? html`
+                    <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: flex-end; padding-bottom: var(--lumo-space-m);">
+                        <div style="flex: 1;">
+                            ${metadata?.title ? html`
+                                <h2 style="margin: 0; font-size: var(--lumo-font-size-xxl); font-weight: 700; color: var(--lumo-header-text-color);">${metadata.title}</h2>
+                            ` : nothing}
+                            ${metadata?.subtitle ? html`
+                                <span style="display: block; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); margin-top: var(--lumo-space-xs);">${metadata.subtitle}</span>
+                            ` : nothing}
+                        </div>
+                        ${navButtons.map(button => html`
+                            <vaadin-button
+                                    data-action-id="${button.id}"
+                                    theme="${buttonTheme(button) || nothing}"
+                                    @click="${() => this.handleToolbarButtonClick(button.actionId)}"
+                            >${button.label}</vaadin-button>
+                        `)}
+                        ${hasDivider ? html`<span class="toolbar-divider"></span>` : nothing}
+                        ${actionButtons.map(button => html`
+                            <vaadin-button
+                                    data-action-id="${button.id}"
+                                    theme="${buttonTheme(button) || nothing}"
+                                    @click="${() => this.handleToolbarButtonClick(button.actionId)}"
+                            >${button.label}</vaadin-button>
+                        `)}
+                        <slot></slot>
+                    </vaadin-horizontal-layout>
+                ` : nothing}
+            <vaadin-card theme="outlined">
             ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
             ${tableAndPagination}
+            </vaadin-card>
         `
     }
 

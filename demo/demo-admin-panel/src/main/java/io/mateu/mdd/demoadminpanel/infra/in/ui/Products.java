@@ -28,6 +28,7 @@ enum ProductStatus {
 
 @Slf4j
 record Product(
+        @Section("Product information")
         @NotEmpty @EditableOnlyWhenCreating String id,
                @NotEmpty
                String name,
@@ -45,6 +46,8 @@ record Product(
                )
                ProductStatus status,
         ColumnActionGroup action,
+        @Section("Components")
+        @Label("")
         @Colspan(2)
         List<ProductComponent> components) implements Identifiable, LookupOptionsSupplier {
 

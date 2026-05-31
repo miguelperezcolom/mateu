@@ -562,7 +562,6 @@ export class MateuApp extends ComponentElement {
             padding-top: 1.5rem;
             width: calc(100% - 4rem);
             height: calc(100vh - 6rem);
-            background-color: var(--lumo-contrast-10pct);
         }
 
         .menu vaadin-menu-bar-button {

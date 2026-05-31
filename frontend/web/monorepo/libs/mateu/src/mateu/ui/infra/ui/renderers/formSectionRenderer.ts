@@ -5,7 +5,7 @@ import FormSection from "@mateu/shared/apiClients/dtos/componentmetadata/FormSec
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 export const renderFormSection = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as FormSection
-    return html`<vaadin-card theme="elevated"
+    return html`<vaadin-card
                 slot="${component.slot??nothing}"
                 style="width: 100%; margin-bottom: var(--lumo-space-m); ${component.style}"
                 class="${component.cssClasses}"

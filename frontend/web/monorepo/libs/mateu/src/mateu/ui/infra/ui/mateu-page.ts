@@ -2,6 +2,7 @@ import { css, html, LitElement, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/card'
+import '@vaadin/master-detail-layout'
 import { customElement, property } from 'lit/decorators.js';
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
@@ -57,8 +58,8 @@ export class MateuPage extends LitElement {
                 ${metadata?.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
             </div>
         `
-        return this.standalone
-            ? html`<vaadin-card theme="elevated" style="width: 100%;">${inner}</vaadin-card>`
+        return (false && this.standalone)
+            ? html`<vaadin-card style="width: 100%;">${inner}</vaadin-card>`
             : html`<vaadin-vertical-layout style="width: 100%;">${inner}</vaadin-vertical-layout>`
     }
 

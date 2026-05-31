@@ -213,8 +213,9 @@ export class MateuUx extends ConnectedElement {
         this.addEventListener('history-pushed', this.historyPushed)
         this.addEventListener('route-changed', this.routeChangedListener)
 
-        (window as any).Vaadin.featureFlags.masterDetailLayoutComponent = true
-
+        {
+            (window as any).Vaadin.featureFlags.masterDetailLayoutComponent = true
+        }
     }
 
     disconnectedCallback() {
@@ -292,7 +293,6 @@ export class MateuUx extends ConnectedElement {
     static styles = css`
         :host {
             display: block;
-            background-color: var(--lumo-contrast-10pct);
             min-height: 100%;
         }
 
