@@ -10,6 +10,10 @@ public class Home {
 
     String content = "Hello world";
 
+    int age;
+
+    boolean active;
+
 
     @Button
     void addContent() {
