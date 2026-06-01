@@ -115,7 +115,7 @@ public abstract class ViewOrchestrator
             httpRequest)
         .withId(httpRequest.runActionRq().initiatorComponentId() + "_" + viewName)
         .withTriggers(triggers(viewName, httpRequest))
-            .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"));
+        .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"));
   }
 
   public List<TriggerDto> triggers(String viewName, HttpRequest httpRequest) {
@@ -147,7 +147,7 @@ public abstract class ViewOrchestrator
             .serverSideType(getClass().getName())
             .homeConsumedRoute(consumedRoute)
             .variant(AppVariant.MEDIATOR)
-                .layout(layout())
+            .layout(layout())
             .style("width: 100%;")
             .build(),
         this,
@@ -158,11 +158,11 @@ public abstract class ViewOrchestrator
         httpRequest);
   }
 
-    protected AppLayout layout() {
-      return AppLayout.SINGLE_SLOT;
-    }
+  protected AppLayout layout() {
+    return AppLayout.SINGLE_SLOT;
+  }
 
-    public String pathForHistory(String route) {
+  public String pathForHistory(String route) {
     if ("/list".equals(route)) {
       return _componentRoute;
     }

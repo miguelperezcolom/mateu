@@ -24,7 +24,7 @@ export const renderForm = (container: LitElement, component: ClientSideComponent
                     metadata: button,
                     type: ComponentType.ClientSide,
                     slot: 'header'
-                } as unknown as ClientSideComponent, undefined, undefined, undefined, appState, appData)}
+                } as unknown as ClientSideComponent, undefined, {}, {}, appState, appData)}
             `)}
             
                     ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
@@ -33,7 +33,7 @@ export const renderForm = (container: LitElement, component: ClientSideComponent
         metadata: button,
         type: ComponentType.ClientSide,
         slot: 'buttons'
-    } as unknown as ClientSideComponent, undefined, undefined, undefined, appState, appData)}
+    } as unknown as ClientSideComponent, undefined, {}, {}, appState, appData)}
 `)}
 
                 </mateu-redwood-form>

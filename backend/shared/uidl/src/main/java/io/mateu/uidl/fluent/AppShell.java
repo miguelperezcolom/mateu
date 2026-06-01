@@ -33,7 +33,7 @@ public record AppShell(
 
   public AppShell {
     variant = variant != null ? variant : AppVariant.TABS;
-      layout = layout != null ? layout : AppLayout.SINGLE_SLOT;
+    layout = layout != null ? layout : AppLayout.SINGLE_SLOT;
     menu = menu != null ? menu : List.of();
     route = route != null ? route : "";
   }

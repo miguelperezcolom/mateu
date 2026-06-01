@@ -146,7 +146,8 @@ export class MateuFilterBar extends LitElement {
                                     children: [],
                                     slot: '',
                                     cssClasses: '',
-                                    initialData: {}
+                                    initialData: {},
+                                    confirmOnNavigationIfDirty: false
                                 } as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData))}
                             </vaadin-form-row>
                         </vaadin-form-layout>

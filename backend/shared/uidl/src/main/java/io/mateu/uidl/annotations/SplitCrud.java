@@ -11,10 +11,11 @@ import java.lang.annotation.Target;
  * right, both visible at the same time.
  *
  * <p>Differences from the default (full-page) CRUD layout:
+ *
  * <ul>
- *   <li>The app layout is set to {@code SPLIT} automatically.</li>
- *   <li>The <em>Cancel</em> button is hidden in the create form (navigation back is implicit).</li>
- *   <li>After saving a record the list is refreshed automatically so it stays in sync.</li>
+ *   <li>The app layout is set to {@code SPLIT} automatically.
+ *   <li>The <em>Cancel</em> button is hidden in the create form (navigation back is implicit).
+ *   <li>After saving a record the list is refreshed automatically so it stays in sync.
  * </ul>
  *
  * <pre>{@code

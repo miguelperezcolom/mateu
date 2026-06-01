@@ -3,7 +3,8 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 
 componentRenderer.set(new RedwoodOjComponentRenderer())
 componentRenderer.setUseShadowRoot(false)
-componentRenderer.setAfterRenderHook((element: HTMLElement) => {
+componentRenderer.setAfterRenderHook((_element: HTMLElement) => {
+    /*
         require([
                 "require",
                 "exports",
@@ -32,4 +33,6 @@ componentRenderer.setAfterRenderHook((element: HTMLElement) => {
                 ko.applyBindings({}, element);
             }
         );
+
+     */
 })

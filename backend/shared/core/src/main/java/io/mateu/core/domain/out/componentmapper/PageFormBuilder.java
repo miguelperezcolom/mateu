@@ -61,7 +61,7 @@ public class PageFormBuilder {
         forCreationForm,
         readOnly,
         maxColumns,
-            0);
+        0);
   }
 
   public static int getFormColumns(Class<?> instanceType) {
@@ -93,7 +93,7 @@ public class PageFormBuilder {
         forCreationForm,
         readOnly,
         maxColumns,
-            level);
+        level);
   }
 
   public record SectionFields(String label, List<Field> fields, int columns) {}
@@ -131,7 +131,7 @@ public class PageFormBuilder {
         httpRequest,
         forCreationForm,
         readOnly,
-            level);
+        level);
   }
 
   private static Collection<Field> getFormFields(Object instance) {

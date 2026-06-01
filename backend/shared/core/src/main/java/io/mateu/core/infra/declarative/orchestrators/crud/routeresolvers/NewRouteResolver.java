@@ -15,7 +15,6 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,12 +60,12 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
         .build();
   }
 
-    private static List<UserTrigger> createToolbar(CrudOrchestrator orchestrator) {
-        List<UserTrigger> buttons = new ArrayList<>();
-        if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
-            buttons.add(new Button("Cancel", "cancel-new"));
-        }
-        buttons.add(new Button("Save", "create"));
-        return buttons;
+  private static List<UserTrigger> createToolbar(CrudOrchestrator orchestrator) {
+    List<UserTrigger> buttons = new ArrayList<>();
+    if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
+      buttons.add(new Button("Cancel", "cancel-new"));
     }
+    buttons.add(new Button("Save", "create"));
+    return buttons;
+  }
 }

@@ -45,7 +45,7 @@ public class ReflectionFormFieldMapper {
         isReadOnly(field, instance),
         forCreationForm,
         maxColumns,
-            level);
+        level);
   }
 
   public static Component getFormField(
@@ -72,7 +72,7 @@ public class ReflectionFormFieldMapper {
         readOnly,
         forCreationForm,
         maxColumns,
-            level);
+        level);
   }
 
   public static Component getFormField(
@@ -140,7 +140,7 @@ public class ReflectionFormFieldMapper {
           forCreationForm,
           readOnly,
           maxColumns,
-              level + 1);
+          level + 1);
     }
     if (field.isAnnotationPresent(Text.class)) {
       var colspan = getColspan(field);
@@ -200,6 +200,6 @@ public class ReflectionFormFieldMapper {
         forCreationForm,
         readOnly,
         maxColumns,
-            level);
+        level);
   }
 }

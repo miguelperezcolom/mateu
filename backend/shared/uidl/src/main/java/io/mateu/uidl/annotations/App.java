@@ -8,5 +8,6 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface App {
   AppVariant value();
+
   AppLayout layout() default AppLayout.SINGLE_SLOT;
 }

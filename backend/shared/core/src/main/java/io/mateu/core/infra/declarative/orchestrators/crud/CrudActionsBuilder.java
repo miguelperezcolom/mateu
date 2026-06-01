@@ -1,14 +1,13 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.HttpRequest;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 final class CrudActionsBuilder {
 

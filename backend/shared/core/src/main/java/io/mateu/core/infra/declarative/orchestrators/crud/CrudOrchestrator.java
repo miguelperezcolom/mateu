@@ -1,5 +1,9 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
+
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.*;
@@ -17,12 +21,7 @@ import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.CrudCreationForm;
 import io.mateu.uidl.interfaces.CrudEditorForm;
 import io.mateu.uidl.interfaces.HttpRequest;
-
 import java.util.List;
-
-import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
-import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 public abstract class CrudOrchestrator<
         View,
@@ -180,11 +179,11 @@ public abstract class CrudOrchestrator<
     return CrudTriggersBuilder.build(this, viewName, httpRequest);
   }
 
-    @Override
-    protected AppLayout layout() {
-      if (getClass().isAnnotationPresent(SplitCrud.class)) {
-          return AppLayout.SPLIT;
-      }
-        return super.layout();
+  @Override
+  protected AppLayout layout() {
+    if (getClass().isAnnotationPresent(SplitCrud.class)) {
+      return AppLayout.SPLIT;
     }
+    return super.layout();
+  }
 }

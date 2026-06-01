@@ -40,7 +40,7 @@ final class TabFormLayoutBuilder {
                             readOnly || isReadOnly(field, instance, forCreationForm),
                             forCreationForm,
                             tab.columns(),
-                                level))
+                            level))
             .toList();
     return FormLayout.builder()
         .maxColumns(tab.columns())

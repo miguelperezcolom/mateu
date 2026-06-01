@@ -1,5 +1,7 @@
 :root {
-
+    --vaadin-card-background: none;
+    --vaadin-card-border-color: none;
+    --lumo-base-color: unset;
 }
 
 oj-c-input-text, oj-c-input-number {

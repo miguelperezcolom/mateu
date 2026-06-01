@@ -78,20 +78,22 @@ public abstract class WizardOrchestrator
                     .text(getLabel(currentStepField()))
                     .style("width: 100%;")
                     .build(),
-                    Div.builder()
-                            .style("width: 100%;")
-                            .children((List<Component>) getForm(
-                                    getStep(),
-                                    "base_url",
-                                    httpRequest.runActionRq().route(),
-                                    httpRequest.runActionRq().consumedRoute(),
-                                    httpRequest.runActionRq().initiatorComponentId(),
-                                    httpRequest,
-                                    false,
-                                    false,
-                                    getFormColumns(getStep().getClass()),
-                                    0))
-                            .build(),
+                Div.builder()
+                    .style("width: 100%;")
+                    .children(
+                        (List<Component>)
+                            getForm(
+                                getStep(),
+                                "base_url",
+                                httpRequest.runActionRq().route(),
+                                httpRequest.runActionRq().consumedRoute(),
+                                httpRequest.runActionRq().initiatorComponentId(),
+                                httpRequest,
+                                false,
+                                false,
+                                getFormColumns(getStep().getClass()),
+                                0))
+                    .build(),
                 HorizontalLayout.builder()
                     .justification(HorizontalLayoutJustification.END)
                     .spacing(true)

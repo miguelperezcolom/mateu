@@ -11,7 +11,6 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewIns
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CardVariant;
 import io.mateu.uidl.data.CustomField;
-import io.mateu.uidl.data.Div;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -45,30 +44,31 @@ final class NestedFormFieldBuilder {
       }
       var newPrefix = ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-";
       return Card.builder()
-              .variants(List.of(CardVariant.outlined))
-              .style("width: 100%;")
-              .content(PageView.builder()
-                      .title(labelForNonBasic(field))
-                              .level(level)
-                      // .style(orchestrator.getStyleForView())
-                      .badges(createBadges(value))
-                      .content(
-                              getView(
-                                      newPrefix,
-                                      value,
-                                      "base_url",
-                                      httpRequest.runActionRq().route(),
-                                      httpRequest.runActionRq().consumedRoute(),
-                                      httpRequest.runActionRq().initiatorComponentId(),
-                                      httpRequest,
-                                      false,
-                                      false)
-                                      .stream()
-                                      .toList())
-                      .toolbar(createToolbar("nested-form-action-" + newPrefix, value))
-                      .buttons(createButtons("nested-form-action-" + newPrefix, value))
-                      .build())
-              .build();
+          .variants(List.of(CardVariant.outlined))
+          .style("width: 100%;")
+          .content(
+              PageView.builder()
+                  .title(labelForNonBasic(field))
+                  .level(level)
+                  // .style(orchestrator.getStyleForView())
+                  .badges(createBadges(value))
+                  .content(
+                      getView(
+                              newPrefix,
+                              value,
+                              "base_url",
+                              httpRequest.runActionRq().route(),
+                              httpRequest.runActionRq().consumedRoute(),
+                              httpRequest.runActionRq().initiatorComponentId(),
+                              httpRequest,
+                              false,
+                              false)
+                          .stream()
+                          .toList())
+                  .toolbar(createToolbar("nested-form-action-" + newPrefix, value))
+                  .buttons(createButtons("nested-form-action-" + newPrefix, value))
+                  .build())
+          .build();
     }
     return CustomField.builder()
         .label(labelForNonBasic(field))

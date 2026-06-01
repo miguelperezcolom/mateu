@@ -48,12 +48,12 @@ public record AppDto(
     return variant != null ? variant : AppVariantDto.TABS;
   }
 
-    @Override
-    public AppLayoutDto layout() {
-        return layout != null ? layout : AppLayoutDto.SINGLE_SLOT;
-    }
+  @Override
+  public AppLayoutDto layout() {
+    return layout != null ? layout : AppLayoutDto.SINGLE_SLOT;
+  }
 
-    @Override
+  @Override
   public List<MenuOptionDto> menu() {
     return Collections.unmodifiableList(menu != null ? menu : List.of());
   }

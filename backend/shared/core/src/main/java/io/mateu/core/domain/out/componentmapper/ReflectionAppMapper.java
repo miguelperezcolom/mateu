@@ -29,7 +29,7 @@ public class ReflectionAppMapper {
         .homeUriPrefix(getHomeUriPrefix(selectedOption))
         .serverSideType(instance.getClass().getName())
         .variant(getVariant(instance, menu))
-            .layout(getLayout(instance, menu))
+        .layout(getLayout(instance, menu))
         .pageTitle(getPageTitle(instance))
         .title(getTitle(instance))
         .favicon(getFavicon(instance))

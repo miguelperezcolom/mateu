@@ -10,8 +10,8 @@ public enum UICommandType {
   AddContentToBody,
   PushStateToHistory,
   DispatchEvent,
-    /** Marks the component as having unsaved changes, triggering a navigation-away confirmation. */
-    MarkAsDirty,
-    /** Clears the dirty state (e.g. after a successful save), suppressing the confirmation dialog. */
-    MarkAsClean
+  /** Marks the component as having unsaved changes, triggering a navigation-away confirmation. */
+  MarkAsDirty,
+  /** Clears the dirty state (e.g. after a successful save), suppressing the confirmation dialog. */
+  MarkAsClean
 }

@@ -72,7 +72,7 @@ export const renderPage = (
                         metadata: button,
                         type: ComponentType.ClientSide,
                         slot: ''
-                    } as unknown as ClientSideComponent, undefined, undefined, undefined, appState, appData))}
+                    } as unknown as ClientSideComponent, undefined, {}, {}, appState, appData))}
                 </div>
             </div>
             ${metadata.footer?.length ? html`

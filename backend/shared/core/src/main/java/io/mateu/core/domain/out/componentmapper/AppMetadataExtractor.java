@@ -20,17 +20,17 @@ import jdk.jfr.Label;
 
 class AppMetadataExtractor {
 
-    static AppLayout getLayout(Object instance, Collection<? extends Actionable> menu) {
-        if (instance != null
-                && instance.getClass().isAnnotationPresent(io.mateu.uidl.annotations.App.class)) {
-            var appLayout =
-                    instance.getClass().getAnnotation(io.mateu.uidl.annotations.App.class).layout();
-            if (appLayout != AppLayout.SINGLE_SLOT) {
-                return appLayout;
-            }
-        }
-        return AppLayout.SINGLE_SLOT;
+  static AppLayout getLayout(Object instance, Collection<? extends Actionable> menu) {
+    if (instance != null
+        && instance.getClass().isAnnotationPresent(io.mateu.uidl.annotations.App.class)) {
+      var appLayout =
+          instance.getClass().getAnnotation(io.mateu.uidl.annotations.App.class).layout();
+      if (appLayout != AppLayout.SINGLE_SLOT) {
+        return appLayout;
+      }
     }
+    return AppLayout.SINGLE_SLOT;
+  }
 
   static AppVariant getVariant(Object instance, Collection<? extends Actionable> menu) {
     if (instance != null

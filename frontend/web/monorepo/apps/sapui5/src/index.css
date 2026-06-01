@@ -11,7 +11,11 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
+
+        --vaadin-card-background: none;
+        --vaadin-card-border-color: none;
+        --lumo-base-color: unset;
+    }
 
 .content {
   padding-left: 2rem;

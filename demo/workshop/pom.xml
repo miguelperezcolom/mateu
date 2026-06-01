@@ -21,6 +21,7 @@
       <module>backs/demo1</module>
       <module>fronts/vaadin</module>
       <module>fronts/redwood</module>
+      <module>fronts/sapui5</module>
   </modules>
 
 </project>

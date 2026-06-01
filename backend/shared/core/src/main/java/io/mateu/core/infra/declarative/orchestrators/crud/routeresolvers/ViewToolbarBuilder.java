@@ -37,7 +37,7 @@ final class ViewToolbarBuilder {
                     new Button(
                         toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName())));
     if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
-        toolbar.add(new Button("Back to list", "cancel-view"));
+      toolbar.add(new Button("Back to list", "cancel-view"));
     }
     if (!readOnly(item, orchestrator)) {
       toolbar.add(new Button("Add another", "new"));

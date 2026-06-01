@@ -57,7 +57,7 @@ public final class AppMapper {
             .favicon(app.favicon())
             .title(app.title())
             .subtitle(app.subtitle())
-                .layout(AppLayoutDto.valueOf(app.layout().name()))
+            .layout(AppLayoutDto.valueOf(app.layout().name()))
             .logo(app.logo())
             .route(app.route())
             .rootRoute(appRoute)

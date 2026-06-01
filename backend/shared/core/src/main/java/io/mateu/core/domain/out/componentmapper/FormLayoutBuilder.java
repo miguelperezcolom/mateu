@@ -65,7 +65,7 @@ class FormLayoutBuilder {
         forCreationForm,
         readOnly,
         PageFormBuilder.getFormColumns(instanceType),
-            level);
+        level);
   }
 
   static Component toFormLayout(
@@ -94,7 +94,7 @@ class FormLayoutBuilder {
         readOnly,
         maxColumns,
         "",
-            level);
+        level);
   }
 
   static Component toFormLayout(
@@ -140,7 +140,7 @@ class FormLayoutBuilder {
                                           readOnly,
                                           forCreationForm,
                                           maxColumns,
-                                              level))
+                                          level))
                           .toList(),
                       maxColumns))
               .style(style)
@@ -170,7 +170,7 @@ class FormLayoutBuilder {
                                           httpRequest,
                                           forCreationForm,
                                           readOnly,
-                                              level))
+                                          level))
                                   .build())
                       .toList())
               .build());

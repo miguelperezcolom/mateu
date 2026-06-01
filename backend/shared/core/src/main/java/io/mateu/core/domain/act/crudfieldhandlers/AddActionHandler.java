@@ -52,7 +52,8 @@ public class AddActionHandler {
                         Button.builder()
                             .label("Save and Add Another")
                             .actionId(fid + "_create-and-stay")
-                            .build()), 0),
+                            .build()),
+                    0),
                 item,
                 (String) httpRequest.getAttribute("baseUrl"),
                 httpRequest.runActionRq().route(),

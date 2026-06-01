@@ -23,7 +23,7 @@ public class PageMapper {
     var formMetadataDto =
         PageDto.builder()
             .pageTitle(page.pageTitle())
-                .level(page.level())
+            .level(page.level())
             .favicon(page.favicon())
             .title(page.title())
             .subtitle(page.subtitle())

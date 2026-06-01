@@ -10,7 +10,6 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonColor;
-import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -118,7 +117,8 @@ public class FormMapper {
       return ButtonColorDto.valueOf(button.color().name());
     }
     String id = button.getActionId();
-    if (id != null && (id.equals("delete") || id.equals("delete-edit") || id.startsWith("delete-"))) {
+    if (id != null
+        && (id.equals("delete") || id.equals("delete-edit") || id.startsWith("delete-"))) {
       return ButtonColorDto.error;
     }
     return null;

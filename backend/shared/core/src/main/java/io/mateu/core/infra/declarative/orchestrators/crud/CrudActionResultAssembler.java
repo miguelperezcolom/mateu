@@ -37,9 +37,10 @@ final class CrudActionResultAssembler {
     list.add(UICommand.pushStateToHistory(orchestrator.pathForHistory(result.route())));
     list.add(orchestrator.setWindowTitle(httpRequest));
     if (orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
-        //ux_ux_b6d4da9d-4ebe-454a-b2e3-b2489cc4fb31_cs_list
-        var initiatorId = httpRequest.runActionRq().initiatorComponentId();
-        list.add(UICommand.runAction("search", "ux_" + initiatorId.replaceAll("_app", "") + "_cs_list"));
+      // ux_ux_b6d4da9d-4ebe-454a-b2e3-b2489cc4fb31_cs_list
+      var initiatorId = httpRequest.runActionRq().initiatorComponentId();
+      list.add(
+          UICommand.runAction("search", "ux_" + initiatorId.replaceAll("_app", "") + "_cs_list"));
     }
     return list;
   }

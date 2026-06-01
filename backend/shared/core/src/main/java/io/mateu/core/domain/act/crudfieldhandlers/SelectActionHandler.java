@@ -72,7 +72,7 @@ public class SelectActionHandler {
                         Button.builder().label("Next").actionId(fid + "_next").build(),
                         Button.builder().label("Cancel").actionId(fid + "_cancel").build(),
                         Button.builder().label("Save").actionId(fid + "_save").build()),
-                        0),
+                    0),
                 item,
                 (String) httpRequest.getAttribute("baseUrl"),
                 httpRequest.runActionRq().route(),
