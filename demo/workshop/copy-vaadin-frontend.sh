@@ -11,4 +11,5 @@ fi
 
 rm -rf "$DEST"/*
 cp -r "$SRC"/. "$DEST"/
+sed -i 's|<mateu-ui baseUrl=""|<mateu-ui baseUrl="http://localhost:8301"|g' "$DEST/index.html"
 echo "Copied $SRC -> $DEST"

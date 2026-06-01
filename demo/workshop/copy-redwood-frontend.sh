@@ -11,4 +11,5 @@ fi
 
 rm -rf "$DEST"/*
 cp -r "$SRC"/. "$DEST"/
+sed -i 's|ui.setAttribute("baseUrl", "");|ui.setAttribute("baseUrl", "http://localhost:8301");|g' "$DEST/js/demo.js"
 echo "Copied $SRC -> $DEST"
