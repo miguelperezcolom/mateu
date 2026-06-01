@@ -113,7 +113,8 @@ public class PageListingBuilder {
                         initiatorComponentId,
                         httpRequest,
                         false,
-                        2))
+                        2,
+                            0))
         .toList();
   }
 }

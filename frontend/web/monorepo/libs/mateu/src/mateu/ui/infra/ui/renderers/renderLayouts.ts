@@ -272,7 +272,7 @@ export const renderAccordionLayout = (container: LitElement, component: Componen
     let opened = 0;
     if (component.children) {
         for (let i = 0; i < component.children.length; i++) {
-            if ((component.children[i].metadata as any)?.active) {
+            if (((component.children[i] as ClientSideComponent).metadata as any)?.active) {
                 opened = i;
                 break;
             }

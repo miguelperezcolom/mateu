@@ -6,10 +6,7 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AppHomeRouteResolver.*;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AppMenuDtoBuilder.buildMenu;
 
-import io.mateu.dtos.AppDto;
-import io.mateu.dtos.AppVariantDto;
-import io.mateu.dtos.ClientSideComponentDto;
-import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.fluent.AppShell;
@@ -60,6 +57,7 @@ public final class AppMapper {
             .favicon(app.favicon())
             .title(app.title())
             .subtitle(app.subtitle())
+                .layout(AppLayoutDto.valueOf(app.layout().name()))
             .logo(app.logo())
             .route(app.route())
             .rootRoute(appRoute)

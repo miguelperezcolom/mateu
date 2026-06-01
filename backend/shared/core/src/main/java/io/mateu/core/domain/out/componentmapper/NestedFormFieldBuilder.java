@@ -32,7 +32,8 @@ final class NestedFormFieldBuilder {
       HttpRequest httpRequest,
       boolean forCreationForm,
       boolean readOnly,
-      int maxColumns) {
+      int maxColumns,
+      int level) {
     if (instance instanceof ModelSupplier modelSupplier) {
       instance = modelSupplier.model();
     }
@@ -45,8 +46,10 @@ final class NestedFormFieldBuilder {
       var newPrefix = ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-";
       return Card.builder()
               .variants(List.of(CardVariant.outlined))
+              .style("width: 100%;")
               .content(PageView.builder()
                       .title(labelForNonBasic(field))
+                              .level(level)
                       // .style(orchestrator.getStyleForView())
                       .badges(createBadges(value))
                       .content(
@@ -80,7 +83,8 @@ final class NestedFormFieldBuilder {
                     httpRequest,
                     forCreationForm,
                     readOnly || isReadOnly(field, instance, forCreationForm),
-                    maxColumns)
+                    maxColumns,
+                    level + 1)
                 .stream()
                 .findFirst()
                 .orElse(null))

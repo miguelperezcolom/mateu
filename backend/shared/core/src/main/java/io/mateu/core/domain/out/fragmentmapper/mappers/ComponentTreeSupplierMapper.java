@@ -40,6 +40,7 @@ public class ComponentTreeSupplierMapper {
         RuleMapper.mapRules(componentTreeSupplier),
         ValidationMapper.mapValidations(componentTreeSupplier, route),
         null,
-        null);
+        null,
+        false);
   }
 }

@@ -61,7 +61,8 @@ final class PageContentBuilder {
           httpRequest,
           false,
           false,
-          getFormColumns(instance.getClass()));
+          getFormColumns(instance.getClass()),
+              0);
     }
     return getAllFields(instance.getClass()).stream()
         .filter(field -> !Modifier.isFinal(field.getModifiers()))

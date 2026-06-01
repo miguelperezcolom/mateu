@@ -4,39 +4,22 @@ import com.example.demo.domain.OrderRepository;
 import com.example.demo.domain.ProductRepository;
 import com.example.demo.infra.in.ui.fluent.usecases.rra.OrderDetailLine;
 import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.data.Amount;
-import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.Data;
-import io.mateu.uidl.data.FieldDataType;
-import io.mateu.uidl.data.FieldStereotype;
-import io.mateu.uidl.data.FormField;
-import io.mateu.uidl.data.FormLayout;
-import io.mateu.uidl.data.FormPosition;
-import io.mateu.uidl.data.FormRow;
-import io.mateu.uidl.data.GridColumn;
-import io.mateu.uidl.data.Option;
-import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.data.RemoteCoordinates;
-import io.mateu.uidl.data.State;
-import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
 import io.mateu.uidl.fluent.Trigger;
-import io.mateu.uidl.interfaces.ComponentTreeSupplier;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
+import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import java.util.List;
 import java.util.Map;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
-import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getForm;
-import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.mapToPageComponent;
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 
 @Route(value="/components/high-level/forms/editable-grid-fields", parentRoute="")
 @Named
@@ -183,7 +166,8 @@ public class FormEditableGridFieldsComponentPage implements ComponentTreeSupplie
                             httpRequest,
                             false,
                             false,
-                            3
+                            3,
+                            0
                             ).stream().findFirst().orElseThrow(),
                     product,
                     (String) httpRequest.getAttribute("baseUrl"),

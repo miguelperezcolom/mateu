@@ -249,6 +249,22 @@ export default abstract class ConnectedElement extends LitElement {
             }
         }
 
+        if ('MarkAsDirty' == command.type) {
+            this.dispatchEvent(new CustomEvent('dirty', {
+                detail: {},
+                bubbles: true,
+                composed: true
+            }))
+        }
+        if ('MarkAsClean' == command.type) {
+            this.dispatchEvent(new CustomEvent('clean', {
+                detail: {},
+                bubbles: true,
+                composed: true
+            }))
+        }
+
+
         if ('CloseModal' == command.type) {
             this.closeModal()
         }

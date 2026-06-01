@@ -60,7 +60,8 @@ public class PageFormBuilder {
         httpRequest,
         forCreationForm,
         readOnly,
-        maxColumns);
+        maxColumns,
+            0);
   }
 
   public static int getFormColumns(Class<?> instanceType) {
@@ -79,7 +80,8 @@ public class PageFormBuilder {
       HttpRequest httpRequest,
       boolean forCreationForm,
       boolean readOnly,
-      int maxColumns) {
+      int maxColumns,
+      int level) {
     return getForm(
         "",
         instance,
@@ -90,7 +92,8 @@ public class PageFormBuilder {
         httpRequest,
         forCreationForm,
         readOnly,
-        maxColumns);
+        maxColumns,
+            level);
   }
 
   public record SectionFields(String label, List<Field> fields, int columns) {}
@@ -107,7 +110,8 @@ public class PageFormBuilder {
       HttpRequest httpRequest,
       boolean forCreationForm,
       boolean readOnly,
-      int maxColumns) {
+      int maxColumns,
+      int level) {
     var filteredFields =
         getFormFields(instance).stream()
             .filter(field -> FormFieldFilter.filterField(field, forCreationForm, readOnly))
@@ -126,7 +130,8 @@ public class PageFormBuilder {
         initiatorComponentId,
         httpRequest,
         forCreationForm,
-        readOnly);
+        readOnly,
+            level);
   }
 
   private static Collection<Field> getFormFields(Object instance) {

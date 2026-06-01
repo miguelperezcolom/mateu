@@ -21,7 +21,8 @@ final class TabFormLayoutBuilder {
       String initiatorComponentId,
       HttpRequest httpRequest,
       boolean forCreationForm,
-      boolean readOnly) {
+      boolean readOnly,
+      int level) {
     var fields =
         tab.fields().stream()
             .map(
@@ -38,7 +39,8 @@ final class TabFormLayoutBuilder {
                             httpRequest,
                             readOnly || isReadOnly(field, instance, forCreationForm),
                             forCreationForm,
-                            tab.columns()))
+                            tab.columns(),
+                                level))
             .toList();
     return FormLayout.builder()
         .maxColumns(tab.columns())

@@ -23,6 +23,7 @@ enum Product2Status {
 
 @Slf4j
 record Product2(
+        @Section(value = "Product information", columns = 4)
         @NotEmpty @EditableOnlyWhenCreating String id,
                @NotEmpty
                String name,
@@ -39,15 +40,12 @@ record Product2(
                        }
                )
                Product2Status status,
-        ColumnActionGroup action,
+        @Section("Components")
+        @Label("")
         @Colspan(2)
         List<ProductComponent> components) implements Identifiable, LookupOptionsSupplier {
 
     Product2 {
-        action = new ColumnActionGroup(new ColumnAction[]{
-                        new ColumnAction("setAsBlue", "Set as blue"),
-                        new ColumnAction("setAsGreen", "Set as green")
-                });
         components = components != null? components: new ArrayList<>();
     }
 
@@ -70,7 +68,7 @@ record Product2(
 
 class Product2Repository implements CrudRepository<Product2> {
 
-    private static final Map<String, Product2> db = new HashMap<>(Map.of("1", new Product2("1", "Producto 1", "xxx", true, Product2Status.Available, null, List.of(
+    private static final Map<String, Product2> db = new HashMap<>(Map.of("1", new Product2("1", "Producto 1", "xxx", true, Product2Status.Available, List.of(
             new ProductComponent("x", 1, null, false, "yyy"),
             new ProductComponent("y", 2, null, true, "xxx")
     ))));

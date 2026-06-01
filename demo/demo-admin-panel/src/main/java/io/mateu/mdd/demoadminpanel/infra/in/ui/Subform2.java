@@ -10,7 +10,7 @@ import io.mateu.uidl.data.Message;
 public record Subform2(@Stereotype(FieldStereotype.radio) Sex sex, Religion religion) {
 
     @Button
-    @Action(shortcut = "ctrl+t")
+    @Action(shortcut = "ctrl+f1", confirmationRequired = true)
     Object test2() {
         return Message.builder()
                 .text("test2 on " + this)

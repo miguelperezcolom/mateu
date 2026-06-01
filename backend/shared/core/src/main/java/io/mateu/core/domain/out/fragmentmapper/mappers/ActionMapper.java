@@ -2,21 +2,28 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import io.mateu.dtos.ActionDto;
 import io.mateu.uidl.annotations.AutoSave;
+import io.mateu.uidl.data.Amount;
+import io.mateu.uidl.data.Status;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+
+import java.util.*;
 import java.util.stream.Stream;
+
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.domain.BasicTypeChecker.isBasicArray;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
 public class ActionMapper {
 
   public static List<ActionDto> mapActions(Object serverSideObject, HttpRequest httpRequest) {
     List<ActionDto> actions = new ArrayList<>();
-    actions.add(ActionDto.builder().id("nested-form-action-*").build());
+    //actions.add(ActionDto.builder().id("nested-form-action-*").build());
+      actions.addAll(addNestedFormsActions("nested-form-action-", serverSideObject.getClass(), serverSideObject, httpRequest));
     if (serverSideObject.getClass().isAnnotationPresent(AutoSave.class)) {
       actions.add(ActionDto.builder().id("*").build());
     }
@@ -78,7 +85,71 @@ public class ActionMapper {
     return actions;
   }
 
-  private static ActionDto mapToAction(io.mateu.uidl.annotations.Action annotation) {
+    private static List<? extends ActionDto> addNestedFormsActions(String prefix, Class<?> serverSideObjectType, Object serverSideObject, HttpRequest httpRequest) {
+        List<ActionDto> actions = new ArrayList<>();
+        getAllFields(serverSideObjectType).stream()
+                .filter(field -> !isBasic(field.getType())
+                        && !field.getType().isEnum()
+                        && !List.class.isAssignableFrom(field.getType())
+                        && !Map.class.isAssignableFrom(field.getType())
+                        && !Amount.class.equals(field.getType())
+                        && !Status.class.equals(field.getType())
+                        && !isBasicArray(field.getType()))
+                .forEach(field -> {
+                    List<ActionDto> nestedFormActions = new ArrayList<>();
+
+                    var nestedForm = getValueOrNewInstance(field, serverSideObject, httpRequest);
+                    var nestedFormType = field.getType();
+
+                    if (nestedForm instanceof ActionSupplier hasActions) {
+                        nestedFormActions.addAll(
+                                hasActions.actions(httpRequest).stream().map(ActionMapper::mapAction).toList());
+                    }
+                    if (nestedForm instanceof ActionHandler hasActions) {
+                        nestedFormActions.addAll(
+                                hasActions.supportedActions().stream()
+                                        .filter(
+                                                actionId -> nestedFormActions.stream().noneMatch(action -> action.id().equals(actionId)))
+                                        .map(actionId -> ActionDto.builder().id(actionId).build())
+                                        .toList());
+                    }
+                    nestedFormActions.addAll(
+                            Arrays.stream(
+                                            nestedFormType
+                                                    .getAnnotationsByType(io.mateu.uidl.annotations.Action.class))
+                                    .map(ActionMapper::mapToAction)
+                                    .toList());
+
+                    List<ActionDto> fieldActions = FieldActionCollector.collect(nestedForm);
+
+                    if (nestedForm instanceof LookupOptionsSupplier) {
+                        nestedFormActions.add(ActionDto.builder().id("search-*").build());
+                    }
+
+                    nestedFormActions.addAll(
+                            Stream.concat(
+                                            fieldActions.stream(),
+                                            Arrays.stream(
+                                                            nestedFormType
+                                                                    .getAnnotationsByType(io.mateu.uidl.annotations.Action.class))
+                                                    .map(ActionMapper::mapToAction))
+                                    .filter(method -> nestedFormActions.stream().noneMatch(action -> action.id().equals(action.id())))
+                                    .toList());
+
+                    if (nestedForm instanceof ActionHandler actionHandler) {
+                        nestedFormActions.addAll(
+                                actionHandler.supportedActions().stream()
+                                        .filter(
+                                                actionId -> nestedFormActions.stream().noneMatch(action -> action.id().equals(actionId)))
+                                        .map(actionId -> ActionDto.builder().id(actionId).build())
+                                        .toList());
+                    }
+                    actions.addAll(nestedFormActions.stream().map(action -> action.withId(field.getName() + "-" + action.id())).toList());
+        });
+        return actions.stream().map(action -> action.withId(prefix + action.id())).toList();
+    }
+
+    private static ActionDto mapToAction(io.mateu.uidl.annotations.Action annotation) {
     return ActionDtoMapper.mapToAction(annotation);
   }
 

@@ -4,6 +4,7 @@ import { html, nothing } from "lit";
 
 export const renderMessageInput = (component: ClientSideComponent) => {
     const metadata = component.metadata as MessageInput
+    void metadata
     return html`
         <vaadin-message-input style="${component.style}" class="${component.cssClasses}"
                               slot="${component.slot??nothing}"></vaadin-message-input>

@@ -4,6 +4,7 @@ import { html, nothing } from "lit";
 
 export const renderMessageList = (component: ClientSideComponent) => {
     const metadata = component.metadata as MessageList
+    void metadata
     return html`
         <vaadin-message-list
                 style="${component.style}" class="${component.cssClasses}"

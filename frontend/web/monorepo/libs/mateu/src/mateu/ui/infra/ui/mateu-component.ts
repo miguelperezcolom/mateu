@@ -96,6 +96,7 @@ export class MateuComponent extends ComponentElement {
     @property()
     consumedRoute = ''
 
+    formerState: Record<string, any> = {}
 
 
     applyRules = () => {
@@ -285,6 +286,7 @@ export class MateuComponent extends ComponentElement {
             this.onChange()
         }
         if (_changedProperties.has('component')) {
+            this.formerState = {...this.state}
             if (this.component?.id != _changedProperties.get('component')?.id
             || (this.component as ServerSideComponent)?.route != _changedProperties.get('component')?.route) {
                 setTimeout(() => this.triggerOnLoad())
@@ -304,6 +306,17 @@ export class MateuComponent extends ComponentElement {
                 const newState = {...this.state}
                 newState[detail.fieldId] = detail.value
                 this.state = newState
+
+                //console.log('value changed?', this.state[detail.fieldId], this.formerState[detail.fieldId])
+                if ((this.state[detail.fieldId] || this.formerState[detail.fieldId])  && this.state[detail.fieldId] != this.formerState[detail.fieldId]) {
+                    if (this.component?.confirmOnNavigationIfDirty) {
+                        this.dispatchEvent(new CustomEvent('dirty', {
+                            detail: (e as CustomEvent).detail,
+                            bubbles: true,
+                            composed: true
+                        }))
+                    }
+                }
 
                 const serverSideComponent = this.component as ServerSideComponent
 
@@ -623,20 +636,6 @@ export class MateuComponent extends ComponentElement {
             && e.metaKey === meta
     }
 
-    private _collectButtonShortcuts(component: any): {shortcut: string, actionId: string}[] {
-        if (!component) return []
-        const results: {shortcut: string, actionId: string}[] = []
-        const meta = component.metadata
-        if (meta) {
-            for (const btn of [...(meta.toolbar ?? []), ...(meta.buttons ?? [])]) {
-                if (btn?.shortcut && btn?.actionId) results.push({shortcut: btn.shortcut, actionId: btn.actionId})
-            }
-        }
-        for (const child of (component.children ?? [])) {
-            results.push(...this._collectButtonShortcuts(child))
-        }
-        return results
-    }
 
     private _keydownListener = (e: KeyboardEvent) => {
         const serverSideComponent = this.component as ServerSideComponent
@@ -650,19 +649,6 @@ export class MateuComponent extends ComponentElement {
                 e.preventDefault()
                 this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                     detail: { actionId: action.id },
-                    bubbles: true,
-                    composed: true
-                }))
-                return
-            }
-        }
-
-        // botones con shortcut en ClientSideComponents anidados (subformularios)
-        for (const {shortcut, actionId} of this._collectButtonShortcuts(this.component)) {
-            if (this._shortcutMatchesEvent(shortcut, e)) {
-                e.preventDefault()
-                this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                    detail: { actionId },
                     bubbles: true,
                     composed: true
                 }))

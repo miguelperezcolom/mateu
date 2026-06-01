@@ -6,6 +6,7 @@ export default interface App extends ComponentMetadata {
 
     route: string
     variant: AppVariant
+    layout: string
     title: string | undefined
     subtitle: string | undefined
     logo: string | undefined

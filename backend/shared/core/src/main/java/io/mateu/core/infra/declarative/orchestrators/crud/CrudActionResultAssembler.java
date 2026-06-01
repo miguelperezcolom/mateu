@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -35,6 +36,11 @@ final class CrudActionResultAssembler {
     }
     list.add(UICommand.pushStateToHistory(orchestrator.pathForHistory(result.route())));
     list.add(orchestrator.setWindowTitle(httpRequest));
+    if (orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
+        //ux_ux_b6d4da9d-4ebe-454a-b2e3-b2489cc4fb31_cs_list
+        var initiatorId = httpRequest.runActionRq().initiatorComponentId();
+        list.add(UICommand.runAction("search", "ux_" + initiatorId.replaceAll("_app", "") + "_cs_list"));
+    }
     return list;
   }
 }

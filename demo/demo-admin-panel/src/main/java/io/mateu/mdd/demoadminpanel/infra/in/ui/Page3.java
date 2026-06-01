@@ -1,14 +1,18 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.Section;
-import io.mateu.uidl.annotations.Toolbar;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.NotificationVariant;
+import io.mateu.uidl.data.UICommand;
 import lombok.ToString;
+
+import java.util.List;
 
 @Route(value = "/page3", parentRoute = "/home2")
 @ToString
+@FoldedLayout
+@Action(shortcut = "ctrl+f2", id = "save")
+@ConfirmOnNavigationIfDirty
 public class Page3 {
 
     String name;
@@ -26,10 +30,11 @@ public class Page3 {
 
     @Toolbar
     Object save() {
-        return Message.builder()
+        return List.of(Message.builder()
                 .variant(NotificationVariant.success)
                 .text("Saved " + this)
-                .build();
+                .build(),
+                UICommand.markAsClean());
     }
 
 }

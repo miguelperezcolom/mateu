@@ -2,7 +2,6 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import io.mateu.dtos.AutoSaveTriggerDto;
 import io.mateu.dtos.OnCustomEventTriggerDto;
-import io.mateu.dtos.OnEnterTriggerDto;
 import io.mateu.dtos.OnErrorTriggerDto;
 import io.mateu.dtos.OnLoadTriggerDto;
 import io.mateu.dtos.OnSuccessTriggerDto;
@@ -10,7 +9,6 @@ import io.mateu.dtos.OnValueChangeTriggerDto;
 import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.annotations.AutoSave;
 import io.mateu.uidl.fluent.OnCustomEventTrigger;
-import io.mateu.uidl.fluent.OnEnterTrigger;
 import io.mateu.uidl.fluent.OnErrorTrigger;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.OnSuccessTrigger;
@@ -41,7 +39,6 @@ public class TriggerMapper {
                         new OnErrorTriggerDto(t.actionId(), t.calledActionId(), t.condition());
                     case OnValueChangeTrigger t ->
                         new OnValueChangeTriggerDto(t.actionId(), t.propertyName(), t.condition());
-                    case OnEnterTrigger t -> new OnEnterTriggerDto(t.actionId(), t.condition());
                     default -> new OnLoadTriggerDto("", 0, 0, null);
                   })
           .map(trigger -> (TriggerDto) trigger)
@@ -87,11 +84,6 @@ public class TriggerMapper {
           OnValueChangeTriggerDto.builder()
               .actionId(annotation.actionId())
               .propertyName(annotation.propertyName())
-              .condition(annotation.condition())
-              .build();
-      case OnEnter ->
-          OnEnterTriggerDto.builder()
-              .actionId(annotation.actionId())
               .condition(annotation.condition())
               .build();
       case OnLoad ->

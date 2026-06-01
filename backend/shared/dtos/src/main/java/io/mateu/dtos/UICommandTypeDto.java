@@ -9,5 +9,7 @@ public enum UICommandTypeDto {
   AddContentToHead,
   AddContentToBody,
   PushStateToHistory,
-  DispatchEvent
+  DispatchEvent,
+    MarkAsDirty,
+    MarkAsClean
 }

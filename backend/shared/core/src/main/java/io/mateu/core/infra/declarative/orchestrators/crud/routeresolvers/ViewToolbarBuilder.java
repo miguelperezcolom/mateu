@@ -5,6 +5,7 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.Button;
@@ -35,7 +36,9 @@ final class ViewToolbarBuilder {
                 toolbar.add(
                     new Button(
                         toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName())));
-    toolbar.add(new Button("Back to list", "cancel-view"));
+    if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
+        toolbar.add(new Button("Back to list", "cancel-view"));
+    }
     if (!readOnly(item, orchestrator)) {
       toolbar.add(new Button("Add another", "new"));
       toolbar.add(new Button("Edit", "edit"));

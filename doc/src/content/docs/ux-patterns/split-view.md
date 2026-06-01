@@ -45,14 +45,16 @@ The URL still updates (`/orders/42`, `/orders/new`) so deep linking and browser 
 
 The split layout wires up these actions automatically:
 
-| Action | Description |
-|--------|-------------|
-| `view` | Opens selected row in detail panel |
-| `new` | Opens creation form in detail panel |
-| `edit` | Switches detail panel to edit mode |
-| `save` / `create` | Saves changes, stays in layout |
-| `cancel-view` / `cancel-new` / `cancel-edit` | Closes detail panel, returns to list |
-| `delete-edit` | Deletes from within the detail panel |
+| Action | Available | Description |
+|--------|-----------|-------------|
+| `view` | always | Opens selected row in detail panel |
+| `new` | always | Opens creation form in detail panel |
+| `edit` | always | Switches detail panel to edit mode |
+| `save` / `create` | always | Saves changes; list refreshes automatically |
+| `cancel-edit` | always | Cancels the current edit, reverts to view mode |
+| `delete-edit` | always | Deletes the record from within the detail panel |
+| `cancel-view` | **not shown** | Hidden — the list is already visible, no need to go back |
+| `cancel-new` | **not shown** | Hidden — click another row or elsewhere to leave |
 
 ## Principles served
 

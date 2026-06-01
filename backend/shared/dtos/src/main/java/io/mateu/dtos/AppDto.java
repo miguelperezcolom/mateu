@@ -10,6 +10,7 @@ import lombok.With;
 public record AppDto(
     String route,
     AppVariantDto variant,
+    AppLayoutDto layout,
     String icon,
     String logo,
     String title,
@@ -37,6 +38,7 @@ public record AppDto(
 
   public AppDto {
     variant = variant != null ? variant : AppVariantDto.TABS;
+    layout = layout != null ? layout : AppLayoutDto.SINGLE_SLOT;
     menu = Collections.unmodifiableList(menu != null ? menu : List.of());
     apps = Collections.unmodifiableList(apps != null ? apps : List.of());
   }
@@ -46,7 +48,12 @@ public record AppDto(
     return variant != null ? variant : AppVariantDto.TABS;
   }
 
-  @Override
+    @Override
+    public AppLayoutDto layout() {
+        return layout != null ? layout : AppLayoutDto.SINGLE_SLOT;
+    }
+
+    @Override
   public List<MenuOptionDto> menu() {
     return Collections.unmodifiableList(menu != null ? menu : List.of());
   }

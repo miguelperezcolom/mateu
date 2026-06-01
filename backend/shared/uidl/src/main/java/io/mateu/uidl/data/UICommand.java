@@ -24,4 +24,14 @@ public record UICommand(UICommandType type, Object data) {
   public static UICommand pushStateToHistory(String url) {
     return new UICommand(UICommandType.PushStateToHistory, url);
   }
+
+    /** Marks the current component as dirty so the frontend warns on navigation. */
+    public static UICommand markAsDirty() {
+        return new UICommand(UICommandType.MarkAsDirty, null);
+    }
+
+    /** Clears the dirty state; return this from a save action after persisting changes. */
+    public static UICommand markAsClean() {
+        return new UICommand(UICommandType.MarkAsClean, null);
+    }
 }

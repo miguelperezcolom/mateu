@@ -114,7 +114,12 @@ export class MateuContentHeader extends LitElement {
                 <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
                     <vaadin-vertical-layout style="flex: 1">
-                        <h2 style="margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>
+                        ${metadata.level == 0?html`<h2 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>`:nothing}
+                        ${metadata.level == 1?html`<h3 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
+                        ${metadata.level == 2?html`<h4 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h4>`:nothing}
+                        ${metadata.level == 3?html`<h5 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h5>`:nothing}
+                        ${metadata.level > 3?html`<h6 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h6>`:nothing}
+
                         <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>
                     </vaadin-vertical-layout>
                     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">

@@ -6,7 +6,7 @@ import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.MenuSeparator;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.data.Text;
-import io.mateu.uidl.fluent.App;
+import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -17,8 +17,8 @@ import java.util.List;
 public class FluentApp implements AppSupplier {
 
     @Override
-    public App getApp(HttpRequest httpRequest) {
-        return App.builder()
+    public AppShell getApp(HttpRequest httpRequest) {
+        return AppShell.builder()
                 .pageTitle("Fluent Demo App")
                 .title("Fluent Demo App")
                 .subtitle("This is the subtitle bla, bla, bla")

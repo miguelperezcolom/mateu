@@ -11,6 +11,7 @@ public record PageDto(
     String pageTitle,
     String icon,
     String title,
+    int level,
     boolean readOnly,
     String subtitle,
     StatusDto status,

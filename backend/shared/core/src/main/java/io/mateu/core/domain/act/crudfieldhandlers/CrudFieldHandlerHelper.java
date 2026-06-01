@@ -44,7 +44,8 @@ class CrudFieldHandlerHelper {
       HttpRequest httpRequest,
       boolean isNew,
       List<Component> header,
-      List<UserTrigger> toolbar) {
+      List<UserTrigger> toolbar,
+      int level) {
     var builder =
         Form.builder()
             .title(title)
@@ -60,7 +61,8 @@ class CrudFieldHandlerHelper {
                         httpRequest,
                         isNew,
                         false,
-                        getDetailFormColumns(field))
+                        getDetailFormColumns(field),
+                        level)
                     .stream()
                     .toList())
             .toolbar(toolbar);

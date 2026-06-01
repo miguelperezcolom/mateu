@@ -15,6 +15,7 @@ import io.mateu.core.application.runaction.YamlUidlLoader;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
+import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
 import io.mateu.uidl.annotations.UISpec;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -108,7 +109,8 @@ public class ReflectionObjectToComponentMapper {
             mapRules(instance),
             mapValidations(instance, route),
             null,
-            null),
+            null,
+            instance.getClass().isAnnotationPresent(ConfirmOnNavigationIfDirty.class)),
         instance,
         getData(httpRequest, instance),
         UIFragmentActionDto.Replace,

@@ -173,16 +173,50 @@ Both navigate the user to the given path.
 
 ---
 
+## Mark form as dirty / clean
+
+When a component has `@ConfirmOnNavigationIfDirty` (or is a CRUD create/edit view), the frontend tracks unsaved changes. Return `UICommand.markAsDirty()` or `UICommand.markAsClean()` from any action to control that state programmatically:
+
+```java
+@ConfirmOnNavigationIfDirty
+public class MyForm {
+    String name;
+
+    @Toolbar
+    Object save() {
+        // persist ...
+        return List.of(
+            Message.builder().text("Saved").build(),
+            UICommand.markAsClean()   // clears the dirty flag
+        );
+    }
+
+    @Toolbar
+    Object generateDraft() {
+        // populate fields without saving
+        return UICommand.markAsDirty();  // warn user if they navigate away
+    }
+}
+```
+
+CRUD create and edit views activate dirty-state tracking automatically — no annotation needed on the orchestrator.
+
+---
+
 ## UICommand summary
 
-| `UICommandType` | Effect | `data` field |
-|---|---|---|
-| `CloseModal` | Close the current open dialog | — |
-| `SetWindowTitle` | Set the browser tab title | New title string |
-| `SetFavicon` | Change the browser favicon | Favicon URL |
-| `RunAction` | Trigger another action | Target actionId |
+| `UICommandType` | Shorthand | Effect | `data` field |
+|---|---|---|---|
+| `CloseModal` | — | Close the current open dialog | — |
+| `SetWindowTitle` | — | Set the browser tab title | New title string |
+| `SetFavicon` | — | Change the browser favicon | Favicon URL |
+| `RunAction` | `UICommand.runAction(id)` | Trigger another action | Target actionId |
+| `NavigateTo` | `UICommand.navigateTo(path)` | Navigate the browser to a route | Route string |
+| `PushStateToHistory` | `UICommand.pushStateToHistory(url)` | Update browser URL without navigation | URL string |
+| `MarkAsDirty` | `UICommand.markAsDirty()` | Mark the component as having unsaved changes | — |
+| `MarkAsClean` | `UICommand.markAsClean()` | Clear the dirty flag after a successful save | — |
 
-Alternatively, return a `URI` object or call `UICommand.navigateTo(path)` to navigate the browser to a route.
+Alternatively, return a `URI` object to navigate the browser to a route.
 
 ---
 

@@ -80,6 +80,24 @@ export class MateuApp extends ComponentElement {
     @query("mateu-chat")
     chat: MateuChat | undefined
 
+    dirty: boolean = false
+
+    markAsDirty(): void {
+        this.dirty = true
+    }
+    markAsClean(): void {
+        this.dirty = false
+    }
+
+
+    private dirtyEventHandler = (_e: Event) => {
+        this.markAsDirty()
+    }
+
+    private cleanEventHandler = (_e: Event) => {
+        this.markAsClean()
+    }
+
     connectedCallback() {
         super.connectedCallback()
         this._commandPaletteHandler = (e: KeyboardEvent) => {
@@ -95,12 +113,20 @@ export class MateuApp extends ComponentElement {
             }
         }
         document.addEventListener('keydown', this._commandPaletteHandler)
+        document.addEventListener('dirty', this.dirtyEventHandler)
+        document.addEventListener('clean', this.cleanEventHandler)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         if (this._commandPaletteHandler) {
             document.removeEventListener('keydown', this._commandPaletteHandler)
+        }
+        if (this.dirtyEventHandler) {
+            document.removeEventListener('dirty', this.dirtyEventHandler)
+        }
+        if (this.cleanEventHandler) {
+            document.removeEventListener('clean', this.cleanEventHandler)
         }
     }
 
@@ -328,6 +354,17 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
+        if (this.dirty) {
+            if (window.confirm('You are gonna loose your changes. Are you sure?')) {
+                this.dirty = false
+                this._selectRoute(consumedRoute, route, _actionId, _baseUrl, serverSideType, uriPrefix)
+            }
+        } else {
+            this._selectRoute(consumedRoute, route, _actionId, _baseUrl, serverSideType, uriPrefix)
+        }
+    }
+
+    _selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
         if (true) {
             this.selectedConsumedRoute = consumedRoute
             this.selectedBaseUrl = _baseUrl

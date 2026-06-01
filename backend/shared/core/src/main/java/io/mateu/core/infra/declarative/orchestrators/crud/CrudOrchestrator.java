@@ -1,36 +1,28 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
+import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.*;
+import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
+import io.mateu.dtos.TriggerDto;
+import io.mateu.uidl.annotations.ListToolbarButton;
+import io.mateu.uidl.annotations.SplitCrud;
+import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.GridContent;
+import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.fluent.AppLayout;
+import io.mateu.uidl.fluent.UserTrigger;
+import io.mateu.uidl.interfaces.CrudAdapter;
+import io.mateu.uidl.interfaces.CrudCreationForm;
+import io.mateu.uidl.interfaces.CrudEditorForm;
+import io.mateu.uidl.interfaces.HttpRequest;
+
+import java.util.List;
+
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
-
-import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
-import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.ActionOnRowActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.ActionOnViewActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CancelEditActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CancelNewActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CancelViewActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CreateActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CrudOrchestratorActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.DeleteEditActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.EditActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.NewActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SaveActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SearchActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SplitCancelActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SplitNewActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SplitViewActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.ViewActionHandler;
-import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
-import io.mateu.dtos.*;
-import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.data.*;
-import io.mateu.uidl.data.Button;
-import io.mateu.uidl.fluent.*;
-import io.mateu.uidl.fluent.Action;
-import io.mateu.uidl.interfaces.*;
-import java.util.List;
 
 public abstract class CrudOrchestrator<
         View,
@@ -46,15 +38,11 @@ public abstract class CrudOrchestrator<
           new MediatorRouteResolver(),
           new NewRouteResolver(),
           new EditRouteResolver(),
-          new SplitListRouteResolver(),
           new ListRouteResolver(),
           new ViewRouteResolver());
   private final List<CrudOrchestratorActionHandler> actionHandlers =
       List.of(
           new SearchActionHandler(),
-          new SplitViewActionHandler(),
-          new SplitNewActionHandler(),
-          new SplitCancelActionHandler(),
           new ViewActionHandler(),
           new CancelViewActionHandler(),
           new NewActionHandler(),
@@ -191,4 +179,12 @@ public abstract class CrudOrchestrator<
   public List<TriggerDto> triggers(String viewName, HttpRequest httpRequest) {
     return CrudTriggersBuilder.build(this, viewName, httpRequest);
   }
+
+    @Override
+    protected AppLayout layout() {
+      if (getClass().isAnnotationPresent(SplitCrud.class)) {
+          return AppLayout.SPLIT;
+      }
+        return super.layout();
+    }
 }

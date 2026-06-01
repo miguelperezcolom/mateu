@@ -12,6 +12,7 @@ export default interface Form extends ComponentMetadata {
 
     icon: string
     title: string
+    level: number
     readOnly: boolean
     subtitle: string
     breadcrumbs: Breadcrumb[]

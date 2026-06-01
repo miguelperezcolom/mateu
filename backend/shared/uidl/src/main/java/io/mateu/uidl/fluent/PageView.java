@@ -12,6 +12,7 @@ import lombok.Singular;
 public record PageView(
     String id,
     String pageTitle,
+    int level,
     String favicon,
     String title,
     String subtitle,

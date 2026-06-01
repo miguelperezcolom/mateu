@@ -287,6 +287,41 @@ Use it for application authentication.
 
 ---
 
+## `@SplitCrud`
+
+Switches a `CrudOrchestrator` to a split-panel layout: the record list stays on the left and the create/edit form opens on the right. No page transition occurs when the user selects a row.
+
+```java
+@UI("/orders")
+@SplitCrud
+public class OrdersCrud extends AutoCrudOrchestrator<Order> {}
+```
+
+The framework hides the *Cancel* button in the create form and automatically refreshes the list after saving. See [Split View](/ux-patterns/split-view/) for the full behaviour.
+
+---
+
+## `@ConfirmOnNavigationIfDirty`
+
+Enables dirty-state tracking on a form. When the user modifies any field, the frontend shows a confirmation dialog if they try to navigate away before saving.
+
+```java
+@ConfirmOnNavigationIfDirty
+public class MyForm {
+    String name;
+
+    @Toolbar
+    Object save() {
+        // persist ...
+        return UICommand.markAsClean();  // clear dirty flag after save
+    }
+}
+```
+
+CRUD create and edit views activate this behaviour automatically — the annotation is only needed on standalone forms. Use `UICommand.markAsClean()` in save actions and `UICommand.markAsDirty()` to set the flag programmatically.
+
+---
+
 ## Other useful annotations
 
 These are also part of the public DSL and are worth knowing:

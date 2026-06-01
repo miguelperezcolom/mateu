@@ -1,4 +1,4 @@
-import { css, html, LitElement, PropertyValues } from "lit";
+import {css, html, LitElement, PropertyValues} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -12,10 +12,10 @@ import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import "@vaadin/card"
-import { customElement, property, query, queryAssignedElements } from 'lit/decorators.js';
-import Chart, { type ChartConfiguration, ChartTypeRegistry } from 'chart.js/auto';
+import {customElement, property, query} from 'lit/decorators.js';
+import Chart, {type ChartConfiguration, ChartTypeRegistry} from 'chart.js/auto';
 import 'chartjs-adapter-date-fns';
-import { ChartData, ChartOptions } from "chart.js";
+import {ChartData, ChartOptions} from "chart.js";
 
 
 @customElement('mateu-chart')
@@ -33,8 +33,6 @@ export class MateuChart extends LitElement {
     @query('#chart')
     private chartElement!: HTMLCanvasElement;
 
-    @queryAssignedElements({slot: ''})
-    private scriptElements!: Array<HTMLElement>;
 
     private chart: Chart | undefined;
 

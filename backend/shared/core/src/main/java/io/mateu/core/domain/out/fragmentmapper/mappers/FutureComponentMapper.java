@@ -8,6 +8,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.m
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
+import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
 import io.mateu.uidl.data.FutureComponent;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -53,7 +54,8 @@ public class FutureComponentMapper {
         mapRules(futureComponent.instance()),
         mapValidations(futureComponent.instance(), route),
         null,
-        null);
+        null,
+            futureComponent.instance().getClass().isAnnotationPresent(ConfirmOnNavigationIfDirty.class));
   }
 
   private static Component createComponent(

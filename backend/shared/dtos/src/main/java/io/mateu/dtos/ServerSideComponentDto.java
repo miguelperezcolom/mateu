@@ -17,7 +17,11 @@ public record ServerSideComponentDto(
     List<RuleDto> rules,
     List<ValidationDto> validations,
     String slot,
-    String containerId)
+    String containerId,
+    /** When true, the frontend tracks field changes and shows a confirmation dialog if the user
+     *  navigates away without saving. Set via {@code @ConfirmOnNavigationIfDirty} or automatically
+     *  for CRUD create/edit views. */
+    boolean confirmOnNavigationIfDirty)
     implements ComponentDto {
 
   @Override
@@ -35,7 +39,8 @@ public record ServerSideComponentDto(
         rules,
         validations,
         slot,
-        containerId);
+        containerId,
+        confirmOnNavigationIfDirty);
   }
 
   @Override
@@ -55,7 +60,8 @@ public record ServerSideComponentDto(
         rules,
         validations,
         slot,
-        containerId);
+        containerId,
+        confirmOnNavigationIfDirty);
   }
 
   @Override
@@ -73,7 +79,8 @@ public record ServerSideComponentDto(
         rules,
         validations,
         slot,
-        containerId);
+        containerId,
+        confirmOnNavigationIfDirty);
   }
 
   @Override
@@ -91,6 +98,7 @@ public record ServerSideComponentDto(
         rules,
         validations,
         slot,
-        containerId);
+        containerId,
+        confirmOnNavigationIfDirty);
   }
 }

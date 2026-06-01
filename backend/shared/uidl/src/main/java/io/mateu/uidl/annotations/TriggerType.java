@@ -5,6 +5,5 @@ public enum TriggerType {
   OnSuccess,
   OnError,
   OnValueChange,
-  OnCustomEvent,
-  OnEnter
+  OnCustomEvent
 }

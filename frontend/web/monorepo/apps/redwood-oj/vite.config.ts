@@ -32,12 +32,12 @@ export default defineConfig({
   server: {
     proxy: {
       // string shorthand: http://localhost:5173/foo -> http://localhost:4567/foo
-      '/fluent/mateu': 'http://localhost:8091',
-      '/mateu': 'http://localhost:8091',
-      //'/images': 'http://localhost:8091',
-      '/myassets': 'http://localhost:8091',
-      '/sse': 'http://localhost:8091',
-      '/upload': 'http://localhost:8091',
+      '/fluent/mateu': 'http://localhost:8092',
+      '/mateu': 'http://localhost:8092',
+      //'/images': 'http://localhost:8092',
+      '/myassets': 'http://localhost:8092',
+      '/sse': 'http://localhost:8092',
+      '/upload': 'http://localhost:8092',
     },
   },
 })

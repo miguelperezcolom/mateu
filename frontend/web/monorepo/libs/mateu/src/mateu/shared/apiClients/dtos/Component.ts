@@ -9,5 +9,6 @@ export default interface Component {
     cssClasses: string
     slot: string
     initialData: unknown
+    confirmOnNavigationIfDirty: boolean
 
 }

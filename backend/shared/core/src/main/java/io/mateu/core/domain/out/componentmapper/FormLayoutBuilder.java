@@ -50,7 +50,8 @@ class FormLayoutBuilder {
       String initiatorComponentId,
       HttpRequest httpRequest,
       boolean forCreationForm,
-      boolean readOnly) {
+      boolean readOnly,
+      int level) {
     var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
     return toFormLayout(
         section,
@@ -63,34 +64,8 @@ class FormLayoutBuilder {
         httpRequest,
         forCreationForm,
         readOnly,
-        PageFormBuilder.getFormColumns(instanceType));
-  }
-
-  static Component toFormLayout(
-      SectionFields section,
-      String prefix,
-      Object instance,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest,
-      boolean forCreationForm,
-      boolean readOnly,
-      int maxColumns) {
-    return toFormLayout(
-        section,
-        prefix,
-        instance,
-        baseUrl,
-        route,
-        consumedRoute,
-        initiatorComponentId,
-        httpRequest,
-        forCreationForm,
-        readOnly,
-        maxColumns,
-        "");
+        PageFormBuilder.getFormColumns(instanceType),
+            level);
   }
 
   static Component toFormLayout(
@@ -105,7 +80,37 @@ class FormLayoutBuilder {
       boolean forCreationForm,
       boolean readOnly,
       int maxColumns,
-      String style) {
+      int level) {
+    return toFormLayout(
+        section,
+        prefix,
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        forCreationForm,
+        readOnly,
+        maxColumns,
+        "",
+            level);
+  }
+
+  static Component toFormLayout(
+      SectionFields section,
+      String prefix,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly,
+      int maxColumns,
+      String style,
+      int level) {
     List<Pair<Tab, List<Field>>> fieldsPerTab = new ArrayList<>();
     List<Field> noTabFields = new ArrayList<>();
     arrangeInTabs(section.fields(), fieldsPerTab, noTabFields, readOnly, forCreationForm);
@@ -134,7 +139,8 @@ class FormLayoutBuilder {
                                           httpRequest,
                                           readOnly,
                                           forCreationForm,
-                                          maxColumns))
+                                          maxColumns,
+                                              level))
                           .toList(),
                       maxColumns))
               .style(style)
@@ -163,7 +169,8 @@ class FormLayoutBuilder {
                                           initiatorComponentId,
                                           httpRequest,
                                           forCreationForm,
-                                          readOnly))
+                                          readOnly,
+                                              level))
                                   .build())
                       .toList())
               .build());

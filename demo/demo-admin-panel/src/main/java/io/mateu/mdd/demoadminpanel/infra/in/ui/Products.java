@@ -28,13 +28,10 @@ enum ProductStatus {
 
 @Slf4j
 record Product(
-        @Section("Product information")
+        @Section(value = "Product information", columns = 4)
         @NotEmpty @EditableOnlyWhenCreating String id,
                @NotEmpty
                String name,
-               @Stereotype(FieldStereotype.textarea)
-               @HiddenInList
-               String description,
                boolean certified,
                @NotNull
                @Status(
@@ -45,6 +42,9 @@ record Product(
                        }
                )
                ProductStatus status,
+        @Stereotype(FieldStereotype.textarea)
+        @HiddenInList
+        String description,
         ColumnActionGroup action,
         @Section("Components")
         @Label("")
@@ -76,7 +76,7 @@ record Product(
 
 class ProductRepository implements CrudRepository<Product> {
 
-    private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", "xxx", true, ProductStatus.Available, null, List.of(
+    private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", true, ProductStatus.Available, "xxx", null, List.of(
             new ProductComponent("x", 1, null, false, "yyy"),
             new ProductComponent("y", 2, null, true, "xxx")
     ))));

@@ -8,11 +8,15 @@ import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.PageView;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class EditRouteResolver implements CrudOrchestratorRouteResolver {
@@ -54,8 +58,15 @@ public class EditRouteResolver implements CrudOrchestratorRouteResolver {
                     false)
                 .stream()
                 .toList())
-        .toolbar(List.of(new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
+        .toolbar(createToolbar(orchestrator))
         .actions(List.of(Action.builder().id("save").validationRequired(true).bubble(true).build()))
         .build();
   }
+
+    private static List<UserTrigger> createToolbar(CrudOrchestrator orchestrator) {
+        List<UserTrigger> buttons = new ArrayList<>();
+        buttons.add(new Button("Cancel", "cancel-edit"));
+        buttons.add(new Button("Save", "create"));
+        return buttons;
+    }
 }

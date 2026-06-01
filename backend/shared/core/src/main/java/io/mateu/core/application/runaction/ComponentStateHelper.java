@@ -74,7 +74,8 @@ public class ComponentStateHelper {
         mapRules(modelView),
         mapValidations(modelView, route),
         null,
-        null);
+        null,
+        false);
   }
 
   public static Object getState(Object modelView, HttpRequest httpRequest) {

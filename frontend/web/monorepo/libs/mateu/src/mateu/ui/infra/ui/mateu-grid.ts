@@ -275,14 +275,14 @@ export class MateuGrid extends MetadataDrivenElement {
             </vaadin-grid>
             ${(this.field?.readOnly)?nothing:html`
                     <vaadin-horizontal-layout theme="spacing">
-                        <vaadin-button theme="primary" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                        <vaadin-button theme="tertiary icon" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId: this.id + '_add' },
             bubbles: true, composed: true
-        }))}">Add</vaadin-button>
-                        <vaadin-button theme="tertiary error" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+        }))}"><vaadin-icon icon="vaadin:plus"></vaadin-icon></vaadin-button>
+                        <vaadin-button theme="tertiary icon error" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId: this.id + '_remove' },
             bubbles: true, composed: true
-        }))}">Remove</vaadin-button>
+        }))}"><vaadin-icon icon="vaadin:minus"></vaadin-icon></vaadin-button>
                         <vaadin-button theme="tertiary icon" title="Move up" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
                             detail: { actionId: this.id + '_move-up' },
                             bubbles: true, composed: true

@@ -32,7 +32,8 @@ public class ReflectionFormFieldMapper {
       String initiatorComponentId,
       HttpRequest httpRequest,
       boolean forCreationForm,
-      int maxColumns) {
+      int maxColumns,
+      int level) {
     return getFormField(
         field,
         instance,
@@ -43,7 +44,8 @@ public class ReflectionFormFieldMapper {
         httpRequest,
         isReadOnly(field, instance),
         forCreationForm,
-        maxColumns);
+        maxColumns,
+            level);
   }
 
   public static Component getFormField(
@@ -56,7 +58,8 @@ public class ReflectionFormFieldMapper {
       HttpRequest httpRequest,
       boolean readOnly,
       boolean forCreationForm,
-      int maxColumns) {
+      int maxColumns,
+      int level) {
     return getFormField(
         "",
         field,
@@ -68,7 +71,8 @@ public class ReflectionFormFieldMapper {
         httpRequest,
         readOnly,
         forCreationForm,
-        maxColumns);
+        maxColumns,
+            level);
   }
 
   public static Component getFormField(
@@ -82,7 +86,8 @@ public class ReflectionFormFieldMapper {
       HttpRequest httpRequest,
       boolean readOnly,
       boolean forCreationForm,
-      int maxColumns) {
+      int maxColumns,
+      int level) {
     if (instance instanceof ModelSupplier modelSupplier) {
       instance = modelSupplier.model();
     }
@@ -134,7 +139,8 @@ public class ReflectionFormFieldMapper {
           httpRequest,
           forCreationForm,
           readOnly,
-          maxColumns);
+          maxColumns,
+              level + 1);
     }
     if (field.isAnnotationPresent(Text.class)) {
       var colspan = getColspan(field);
@@ -180,7 +186,8 @@ public class ReflectionFormFieldMapper {
       HttpRequest httpRequest,
       boolean forCreationForm,
       boolean readOnly,
-      int maxColumns) {
+      int maxColumns,
+      int level) {
     return NestedFormFieldBuilder.build(
         prefix,
         field,
@@ -192,6 +199,7 @@ public class ReflectionFormFieldMapper {
         httpRequest,
         forCreationForm,
         readOnly,
-        maxColumns);
+        maxColumns,
+            level);
   }
 }
