@@ -1,11 +1,9 @@
 package io.mateu.workflow.demo1.infra.ui;
 
-import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.ReadOnly;
-import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.annotations.*;
 
 @UI("")
+@FormLayout(columns = 1)
 public class Home {
 
     String content = "Hello world";
