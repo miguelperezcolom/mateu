@@ -10,12 +10,16 @@ import io.mateu.dtos.RuleResultDto;
 import io.mateu.uidl.annotations.Disabled;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Rule;
+import io.mateu.uidl.data.RuleAction;
+import io.mateu.uidl.data.RuleFieldAttribute;
+import io.mateu.uidl.data.RuleResult;
+
 import java.util.Arrays;
 import java.util.List;
 
 final class ListFieldRuleCollector {
 
-  static void addListFieldRules(Class<?> viewClass, List<RuleDto> rules) {
+  static void addListFieldRules(Class<?> viewClass, List<io.mateu.uidl.data.Rule> rules) {
     getAllFields(viewClass).stream()
         .filter(field -> List.class.isAssignableFrom(field.getType()))
         .forEach(
@@ -30,13 +34,13 @@ final class ListFieldRuleCollector {
                   .forEach(
                       field ->
                           rules.add(
-                              RuleDto.builder()
+                              io.mateu.uidl.data.Rule.builder()
                                   .filter("true")
-                                  .action(RuleActionDto.SetDataValue)
+                                  .action(RuleAction.SetDataValue)
                                   .fieldName(collectionField.getName() + "-" + field.getName())
-                                  .fieldAttribute(RuleFieldAttributeDto.disabled)
+                                  .fieldAttribute(RuleFieldAttribute.disabled)
                                   .expression("true")
-                                  .result(RuleResultDto.Continue)
+                                  .result(RuleResult.Continue)
                                   .build()));
               getAllFields(rowClass).stream()
                   .filter(
@@ -46,13 +50,13 @@ final class ListFieldRuleCollector {
                   .forEach(
                       field ->
                           rules.add(
-                              RuleDto.builder()
+                              io.mateu.uidl.data.Rule.builder()
                                   .filter("true")
-                                  .action(RuleActionDto.SetDataValue)
+                                  .action(RuleAction.SetDataValue)
                                   .fieldName(collectionField.getName() + "-" + field.getName())
-                                  .fieldAttribute(RuleFieldAttributeDto.hidden)
+                                  .fieldAttribute(RuleFieldAttribute.hidden)
                                   .expression(field.getAnnotation(Hidden.class).value())
-                                  .result(RuleResultDto.Continue)
+                                  .result(RuleResult.Continue)
                                   .build()));
             });
   }

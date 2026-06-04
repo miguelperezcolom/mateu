@@ -1,2 +1,0 @@
-define(['exports', '../useCurrentBgColor-4326d3d6', 'preact/hooks', '../LayerHost-7d4aa6d3', '../index-f7ad24df', 'preact', 'preact/jsx-runtime', 'preact/compat', '../UNSAFE_Layer/themes/LayerHostStyles.css', 'css!./../LayerHostStyles.styles.css'], (function(e,r,t,s,o,a,u,c,d,n){"use strict";e.useCurrentBgColor=r.useCurrentBgColor,Object.defineProperty(e,"__esModule",{value:!0})}));
-//# sourceMappingURL=UNSAFE_useCurrentBgColor.js.map

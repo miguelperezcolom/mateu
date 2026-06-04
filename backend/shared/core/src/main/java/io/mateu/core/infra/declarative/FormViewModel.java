@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FormViewModel
     implements TriggersSupplier,
         ActionSupplier,
-        ValidationDtoSupplier,
+        ValidationSupplier,
         ComponentTreeSupplier,
         RuleSupplier {
 
@@ -75,7 +75,7 @@ public class FormViewModel
   }
 
   @Override
-  public List<ValidationDto> validationDtos() {
+  public List<Validation> validations() {
     return List.of();
   }
 

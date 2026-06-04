@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import io.mateu.dtos.ValidationDto;
+import io.mateu.uidl.data.Validation;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -14,15 +15,15 @@ import java.util.List;
 
 final class ConstraintValidationMapper {
 
-  static List<ValidationDto> getValidationsWithFieldPrefix(String prefix, Field field) {
-    List<ValidationDto> validations = new ArrayList<>();
+  static List<Validation> getValidationsWithFieldPrefix(String prefix, Field field) {
+    List<Validation> validations = new ArrayList<>();
     if (field.isAnnotationPresent(Size.class)) {
       Arrays.stream(field.getAnnotationsByType(Size.class))
           .forEach(
               annotation -> {
                 if (annotation.min() > 0) {
                   validations.add(
-                      ValidationDto.builder()
+                      Validation.builder()
                           .fieldId(prefix + field.getName())
                           .condition(
                               "state['"
@@ -38,7 +39,7 @@ final class ConstraintValidationMapper {
                 }
                 if (annotation.max() < Integer.MAX_VALUE) {
                   validations.add(
-                      ValidationDto.builder()
+                      Validation.builder()
                           .fieldId(prefix + field.getName())
                           .condition(
                               "state['"
@@ -56,7 +57,7 @@ final class ConstraintValidationMapper {
     }
     if (field.isAnnotationPresent(Min.class)) {
       validations.add(
-          ValidationDto.builder()
+          Validation.builder()
               .fieldId(prefix + field.getName())
               .condition(
                   "state['"
@@ -69,7 +70,7 @@ final class ConstraintValidationMapper {
     }
     if (field.isAnnotationPresent(Max.class)) {
       validations.add(
-          ValidationDto.builder()
+          Validation.builder()
               .fieldId(prefix + field.getName())
               .condition(
                   "state['"
@@ -82,7 +83,7 @@ final class ConstraintValidationMapper {
     }
     if (field.isAnnotationPresent(Pattern.class)) {
       validations.add(
-          ValidationDto.builder()
+          Validation.builder()
               .fieldId(prefix + field.getName())
               .condition(
                   "/"
@@ -96,7 +97,7 @@ final class ConstraintValidationMapper {
     }
     if (field.isAnnotationPresent(NotEmpty.class)) {
       validations.add(
-          ValidationDto.builder()
+          Validation.builder()
               .fieldId(prefix + field.getName())
               .condition("state['" + prefix + field.getName() + "']")
               .message(
@@ -109,7 +110,7 @@ final class ConstraintValidationMapper {
     }
     if (field.isAnnotationPresent(NotNull.class)) {
       validations.add(
-          ValidationDto.builder()
+          Validation.builder()
               .fieldId(prefix + field.getName())
               .condition("state['" + prefix + field.getName() + "']")
               .message(

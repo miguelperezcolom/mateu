@@ -24,5 +24,6 @@ public enum FieldStereotype {
   popover,
   slider,
   button,
-  stars
+  stars,
+    searchable
 }

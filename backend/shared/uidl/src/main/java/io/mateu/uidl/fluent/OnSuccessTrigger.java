@@ -1,5 +1,8 @@
 package io.mateu.uidl.fluent;
 
+import lombok.Builder;
+
+@Builder
 public record OnSuccessTrigger(
     String actionId, String calledActionId, String condition, int timeoutMillis)
     implements Trigger {

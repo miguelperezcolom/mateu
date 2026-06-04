@@ -354,7 +354,7 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
-        if (this.dirty) {
+        if (false && this.dirty) {
             if (window.confirm('You are gonna loose your changes. Are you sure?')) {
                 this.dirty = false
                 this._selectRoute(consumedRoute, route, _actionId, _baseUrl, serverSideType, uriPrefix)

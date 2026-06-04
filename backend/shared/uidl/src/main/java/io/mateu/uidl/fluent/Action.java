@@ -1,8 +1,10 @@
 package io.mateu.uidl.fluent;
 
 import lombok.Builder;
+import lombok.With;
 
 @Builder
+@With
 public record Action(
     String id,
     boolean background,
@@ -17,4 +19,5 @@ public record Action(
     String js,
     boolean sse,
     String fieldsToValidate,
-    boolean bubble) {}
+    boolean bubble,
+    String shortcut) {}

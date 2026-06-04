@@ -3,10 +3,10 @@ package io.mateu.core.infra.declarative.orchestrators;
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.addData;
 
+import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
-import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.UICommand;
@@ -114,11 +114,11 @@ public abstract class ViewOrchestrator
             null,
             httpRequest)
         .withId(httpRequest.runActionRq().initiatorComponentId() + "_" + viewName)
-        .withTriggers(triggers(viewName, httpRequest))
+        .withTriggers(triggers(viewName, httpRequest).stream().map(TriggerMapper::mapTrigger).toList())
         .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"));
   }
 
-  public List<TriggerDto> triggers(String viewName, HttpRequest httpRequest) {
+  public List<Trigger> triggers(String viewName, HttpRequest httpRequest) {
     return List.of();
   }
 

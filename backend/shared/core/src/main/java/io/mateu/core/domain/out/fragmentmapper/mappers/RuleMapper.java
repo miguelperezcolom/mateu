@@ -9,6 +9,9 @@ import io.mateu.dtos.RuleResultDto;
 import io.mateu.uidl.annotations.Disabled;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Rule;
+import io.mateu.uidl.data.RuleAction;
+import io.mateu.uidl.data.RuleFieldAttribute;
+import io.mateu.uidl.data.RuleResult;
 import io.mateu.uidl.interfaces.RuleSupplier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,9 +19,14 @@ import java.util.List;
 
 public class RuleMapper {
 
-  public static List<RuleDto> mapRules(Object serverSideObject) {
+    public static List<RuleDto> mapRules(Object serverSideObject) {
+        return createRules(serverSideObject).stream().map(RuleMapper::mapToRule).toList();
+    }
+
+
+    public static List<io.mateu.uidl.data.Rule> createRules(Object serverSideObject) {
     var viewClass = serverSideObject.getClass();
-    List<RuleDto> rules = new ArrayList<>();
+    List<io.mateu.uidl.data.Rule> rules = new ArrayList<>();
     rules.addAll(
         Arrays.stream(viewClass.getAnnotationsByType(Rule.class))
             .map(RuleMapper::mapToRule)
@@ -28,13 +36,13 @@ public class RuleMapper {
         .forEach(
             field ->
                 rules.add(
-                    RuleDto.builder()
+                    io.mateu.uidl.data.Rule.builder()
                         .filter("true")
-                        .action(RuleActionDto.SetDataValue)
+                        .action(RuleAction.SetDataValue)
                         .fieldName(field.getName())
-                        .fieldAttribute(RuleFieldAttributeDto.disabled)
+                        .fieldAttribute(RuleFieldAttribute.disabled)
                         .expression("true")
-                        .result(RuleResultDto.Continue)
+                        .result(RuleResult.Continue)
                         .build()));
     getAllFields(viewClass).stream()
         .filter(
@@ -44,13 +52,13 @@ public class RuleMapper {
         .forEach(
             field ->
                 rules.add(
-                    RuleDto.builder()
+                    io.mateu.uidl.data.Rule.builder()
                         .filter("true")
-                        .action(RuleActionDto.SetDataValue)
+                        .action(RuleAction.SetDataValue)
                         .fieldName(field.getName())
-                        .fieldAttribute(RuleFieldAttributeDto.hidden)
+                        .fieldAttribute(RuleFieldAttribute.hidden)
                         .expression(field.getAnnotation(Hidden.class).value())
-                        .result(RuleResultDto.Continue)
+                        .result(RuleResult.Continue)
                         .build()));
     ListFieldRuleCollector.addListFieldRules(viewClass, rules);
     if (serverSideObject instanceof RuleSupplier ruleSupplier) {
@@ -58,17 +66,14 @@ public class RuleMapper {
           ruleSupplier.rules().stream()
               .map(
                   rule ->
-                      RuleDto.builder()
+                      io.mateu.uidl.data.Rule.builder()
                           .filter(rule.filter())
-                          .action(RuleActionDto.valueOf(rule.action().name()))
-                          .fieldAttribute(
-                              rule.fieldAttribute() != null
-                                  ? RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name())
-                                  : null)
+                          .action(RuleAction.valueOf(rule.action().name()))
+                          .fieldAttribute(rule.fieldAttribute())
                           .fieldName(rule.fieldName())
                           .value(rule.value())
                           .expression(rule.expression())
-                          .result(RuleResultDto.valueOf(rule.result().name()))
+                          .result(rule.result())
                           .actionId(rule.actionId())
                           .build())
               .toList());
@@ -80,23 +85,37 @@ public class RuleMapper {
     return rules;
   }
 
-  public static RuleDto mapToRule(Rule annotation) {
-    return RuleDto.builder()
+  public static io.mateu.uidl.data.Rule mapToRule(Rule annotation) {
+    return io.mateu.uidl.data.Rule.builder()
         .filter(annotation.filter())
-        .action(
-            annotation.action() != null
-                ? RuleActionDto.valueOf(annotation.action().name())
-                : RuleActionDto.RunAction)
+        .action(annotation.action())
         .fieldName(annotation.fieldName())
-        .fieldAttribute(
-            annotation.fieldAttribute() != null
-                ? RuleFieldAttributeDto.valueOf(annotation.fieldAttribute().name())
-                : null)
+        .fieldAttribute(annotation.fieldAttribute())
         .value(annotation.value())
         .expression(annotation.expression())
-        .result(
-            annotation.result() != null ? RuleResultDto.valueOf(annotation.result().name()) : null)
+        .result(annotation.result())
         .actionId(annotation.actionId())
         .build();
   }
-}
+
+    public static RuleDto mapToRule(io.mateu.uidl.data.Rule rule) {
+        return RuleDto.builder()
+                .filter(rule.filter())
+                .action(
+                        rule.action() != null
+                                ? RuleActionDto.valueOf(rule.action().name())
+                                : RuleActionDto.RunAction)
+                .fieldName(rule.fieldName())
+                .fieldAttribute(
+                        rule.fieldAttribute() != null
+                                ? RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name())
+                                : null)
+                .value(rule.value())
+                .expression(rule.expression())
+                .result(
+                        rule.result() != null ? RuleResultDto.valueOf(rule.result().name()) : null)
+                .actionId(rule.actionId())
+                .build();
+    }
+
+    }

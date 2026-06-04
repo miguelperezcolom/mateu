@@ -5,11 +5,12 @@ import io.mateu.dtos.ConfirmationTextsDto;
 import io.mateu.dtos.CustomEventDto;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ConfirmationTexts;
+import io.mateu.uidl.fluent.CustomEvent;
 
 final class ActionDtoMapper {
 
-  static ActionDto mapToAction(io.mateu.uidl.annotations.Action annotation) {
-    return ActionDto.builder()
+  static Action mapToAction(io.mateu.uidl.annotations.Action annotation) {
+    return Action.builder()
         .id(annotation.id())
         .validationRequired(annotation.validationRequired())
         .bubble(annotation.bubble())
@@ -18,7 +19,7 @@ final class ActionDtoMapper {
         .rowsSelectedRequired(annotation.rowsSelectedRequired())
         .confirmationTexts(
             isConfirmationTextNeeded(annotation)
-                ? ConfirmationTextsDto.builder()
+                ? ConfirmationTexts.builder()
                     .title(annotation.confirmationTitle())
                     .message(annotation.confirmationMessage())
                     .confirmationText(annotation.confirmationText())
@@ -29,7 +30,7 @@ final class ActionDtoMapper {
         .modalTitle(annotation.modalTitle())
         .customEvent(
             isCustomEventNeeded(annotation)
-                ? CustomEventDto.builder()
+                ? CustomEvent.builder()
                     .name(annotation.customEventName())
                     .detail(annotation.customEventDetail())
                     .build()
@@ -59,6 +60,7 @@ final class ActionDtoMapper {
                 ? new CustomEventDto(action.customEvent().name(), action.customEvent().detail())
                 : null)
         .sse(action.sse())
+            .shortcut(action.shortcut())
         .build();
   }
 

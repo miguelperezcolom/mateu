@@ -1,26 +1,58 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Lookup;
+import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import java.lang.reflect.Field;
+
+import io.mateu.uidl.interfaces.Selector;
 import lombok.SneakyThrows;
 
 final class LookupSupplierResolver {
 
+    @SneakyThrows
+    static Selector getSelector(Object instance, Field field) {
+        Class<? extends Selector> supplierType = null;
+        if (field.isAnnotationPresent(Searchable.class)) {
+            var lookup = field.getAnnotation(Searchable.class);
+            supplierType = lookup.selector();
+        }
+        if (LabelSupplier.class.equals(supplierType)) {
+            if (instance instanceof Selector supplier) {
+                return supplier;
+            }
+            return null;
+        }
+        var supplier = MateuBeanProvider.getBean(supplierType);
+        if (supplier == null) {
+            return supplierType.getConstructor().newInstance();
+        }
+        return supplier;
+    }
+
   @SneakyThrows
   static LabelSupplier getLabelSupplier(Object instance, Field field) {
-    var lookup = field.getAnnotation(Lookup.class);
-    if (LabelSupplier.class.equals(lookup.label())) {
-      if (instance instanceof LabelSupplier supplier) {
-        return supplier;
+      Class<? extends LabelSupplier> supplierType = null;
+      if (field.isAnnotationPresent(Lookup.class)) {
+          var lookup = field.getAnnotation(Lookup.class);
+          supplierType = lookup.label();
       }
-      return null;
-    }
-    var supplier = MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).label());
+      if (field.isAnnotationPresent(Searchable.class)) {
+          var lookup = field.getAnnotation(Searchable.class);
+          supplierType = lookup.label();
+      }
+      if (LabelSupplier.class.equals(supplierType)) {
+          if (instance instanceof LabelSupplier supplier) {
+              return supplier;
+          }
+          return null;
+      }
+      var supplier = MateuBeanProvider.getBean(supplierType);
     if (supplier == null) {
-      return field.getAnnotation(Lookup.class).label().getConstructor().newInstance();
+      return supplierType.getConstructor().newInstance();
     }
     return supplier;
   }

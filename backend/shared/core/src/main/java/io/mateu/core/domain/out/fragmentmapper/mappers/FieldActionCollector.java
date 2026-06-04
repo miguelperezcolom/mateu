@@ -1,12 +1,14 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
+import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Lookup;
+import io.mateu.uidl.annotations.Searchable;
+import io.mateu.uidl.annotations.Toolbar;
+import io.mateu.uidl.fluent.Action;
+
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
-import io.mateu.dtos.ActionDto;
-import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Lookup;
-import io.mateu.uidl.annotations.Toolbar;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,8 +16,8 @@ import java.util.stream.Stream;
 
 final class FieldActionCollector {
 
-  static List<ActionDto> collect(Object serverSideObject) {
-    List<ActionDto> fieldActions = new ArrayList<>();
+  static List<Action> collect(Object serverSideObject) {
+    List<Action> fieldActions = new ArrayList<>();
 
     getAllFields(serverSideObject.getClass()).stream()
         .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
@@ -55,14 +57,27 @@ final class FieldActionCollector {
                     .map(action -> fieldName + action)
                     .toList())
         .flatMap(List::stream)
-        .map(actionId -> ActionDto.builder().id(actionId).build())
+        .map(actionId -> Action.builder().id(actionId).build())
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Lookup.class))
+        .filter(field -> field.isAnnotationPresent(
+                Lookup.class))
         .filter(field -> !field.getAnnotation(Lookup.class).bubble())
-        .map(field -> ActionDto.builder().id("search-" + field.getName()).build())
+        .map(field -> Action.builder().id("search-" + field.getName()).build())
         .forEach(fieldActions::add);
+
+      getAllFields(serverSideObject.getClass()).stream()
+              .filter(field -> field.isAnnotationPresent(Searchable.class))
+              .filter(field -> !field.getAnnotation(Searchable.class).bubble())
+              .map(field -> Action.builder().id("code-" + field.getName()).build())
+              .forEach(fieldActions::add);
+
+      getAllFields(serverSideObject.getClass()).stream()
+              .filter(field -> field.isAnnotationPresent(Searchable.class))
+              .filter(field -> !field.getAnnotation(Searchable.class).bubble())
+              .map(field -> Action.builder().id("codesearch-" + field.getName()).build())
+              .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
         .filter(
@@ -70,7 +85,7 @@ final class FieldActionCollector {
                 !field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
                     && (field.isAnnotationPresent(Button.class)
                         || field.isAnnotationPresent(Toolbar.class)))
-        .map(field -> ActionDto.builder().id(field.getName()).validationRequired(true).build())
+        .map(field -> Action.builder().id(field.getName()).validationRequired(true).build())
         .forEach(fieldActions::add);
     getAllMethods(serverSideObject.getClass()).stream()
         .filter(
@@ -78,7 +93,7 @@ final class FieldActionCollector {
                 !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
                     && (method.isAnnotationPresent(Button.class)
                         || method.isAnnotationPresent(Toolbar.class)))
-        .map(method -> ActionDto.builder().id(method.getName()).validationRequired(true).build())
+        .map(method -> Action.builder().id(method.getName()).validationRequired(true).build())
         .forEach(fieldActions::add);
 
     return fieldActions;

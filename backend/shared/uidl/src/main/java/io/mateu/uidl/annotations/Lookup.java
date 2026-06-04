@@ -17,4 +17,5 @@ public @interface Lookup {
   Class<? extends LabelSupplier> label() default LabelSupplier.class;
 
   boolean bubble() default false;
+
 }

@@ -52,6 +52,12 @@ public class Home2 implements WidgetSupplier {
 //    RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
 
 
+    @Menu
+    Page5 page5;
+
+    @Menu
+    HotelSelector hotelSelector;
+
 
     @NotEmpty
     String name;

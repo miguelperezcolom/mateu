@@ -15,6 +15,7 @@ import java.util.List;
 @ConfirmOnNavigationIfDirty
 public class Page3 {
 
+    @Section("sf0")
     String name;
 
     int age;

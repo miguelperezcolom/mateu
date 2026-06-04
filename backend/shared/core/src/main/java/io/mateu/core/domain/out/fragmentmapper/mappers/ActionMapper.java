@@ -19,25 +19,29 @@ import java.util.stream.Stream;
 
 public class ActionMapper {
 
-  public static List<ActionDto> mapActions(Object serverSideObject, HttpRequest httpRequest) {
-    List<ActionDto> actions = new ArrayList<>();
+    public static List<ActionDto> mapActions(Object serverSideObject, HttpRequest httpRequest) {
+        return createActions(serverSideObject, httpRequest).stream().map(ActionMapper::mapAction).toList();
+    }
+
+    public static List<Action> createActions(Object serverSideObject, HttpRequest httpRequest) {
+    List<Action> actions = new ArrayList<>();
     // actions.add(ActionDto.builder().id("nested-form-action-*").build());
     actions.addAll(
         addNestedFormsActions(
             "nested-form-action-", serverSideObject.getClass(), serverSideObject, httpRequest));
     if (serverSideObject.getClass().isAnnotationPresent(AutoSave.class)) {
-      actions.add(ActionDto.builder().id("*").build());
+      actions.add(Action.builder().id("*").build());
     }
     if (serverSideObject instanceof ActionSupplier hasActions) {
       actions.addAll(
-          hasActions.actions(httpRequest).stream().map(ActionMapper::mapAction).toList());
+          hasActions.actions(httpRequest));
     }
     if (serverSideObject instanceof ActionHandler hasActions) {
       actions.addAll(
           hasActions.supportedActions().stream()
               .filter(
                   actionId -> actions.stream().noneMatch(action -> action.id().equals(actionId)))
-              .map(actionId -> ActionDto.builder().id(actionId).build())
+                  .map(actionId -> Action.builder().id(actionId).build())
               .toList());
     }
     actions.addAll(
@@ -48,10 +52,10 @@ public class ActionMapper {
             .map(ActionMapper::mapToAction)
             .toList());
 
-    List<ActionDto> fieldActions = FieldActionCollector.collect(serverSideObject);
+    List<Action> fieldActions = FieldActionCollector.collect(serverSideObject);
 
     if (serverSideObject instanceof LookupOptionsSupplier) {
-      actions.add(ActionDto.builder().id("search-*").build());
+      actions.add(Action.builder().id("search-*").build());
     }
 
     actions.addAll(
@@ -70,15 +74,15 @@ public class ActionMapper {
           actionHandler.supportedActions().stream()
               .filter(
                   actionId -> actions.stream().noneMatch(action -> action.id().equals(actionId)))
-              .map(actionId -> ActionDto.builder().id(actionId).build())
+              .map(actionId -> Action.builder().id(actionId).build())
               .toList());
     }
 
     if (Boolean.TRUE.equals(httpRequest.getAttribute("new"))) {
-      actions.add(ActionDto.builder().id("create").validationRequired(true).bubble(true).build());
+      actions.add(Action.builder().id("create").validationRequired(true).bubble(true).build());
     }
     if (Boolean.TRUE.equals(httpRequest.getAttribute("edit"))) {
-      actions.add(ActionDto.builder().id("save").validationRequired(true).bubble(true).build());
+      actions.add(Action.builder().id("save").validationRequired(true).bubble(true).build());
     }
 
     actions.addAll(fieldActions);
@@ -86,12 +90,12 @@ public class ActionMapper {
     return actions;
   }
 
-  private static List<? extends ActionDto> addNestedFormsActions(
+  private static List<? extends Action> addNestedFormsActions(
       String prefix,
       Class<?> serverSideObjectType,
       Object serverSideObject,
       HttpRequest httpRequest) {
-    List<ActionDto> actions = new ArrayList<>();
+    List<Action> actions = new ArrayList<>();
     getAllFields(serverSideObjectType).stream()
         .filter(
             field ->
@@ -104,14 +108,14 @@ public class ActionMapper {
                     && !isBasicArray(field.getType()))
         .forEach(
             field -> {
-              List<ActionDto> nestedFormActions = new ArrayList<>();
+              List<Action> nestedFormActions = new ArrayList<>();
 
               var nestedForm = getValueOrNewInstance(field, serverSideObject, httpRequest);
               var nestedFormType = field.getType();
 
               if (nestedForm instanceof ActionSupplier hasActions) {
                 nestedFormActions.addAll(
-                    hasActions.actions(httpRequest).stream().map(ActionMapper::mapAction).toList());
+                    hasActions.actions(httpRequest));
               }
               if (nestedForm instanceof ActionHandler hasActions) {
                 nestedFormActions.addAll(
@@ -120,7 +124,7 @@ public class ActionMapper {
                             actionId ->
                                 nestedFormActions.stream()
                                     .noneMatch(action -> action.id().equals(actionId)))
-                        .map(actionId -> ActionDto.builder().id(actionId).build())
+                        .map(actionId -> Action.builder().id(actionId).build())
                         .toList());
               }
               nestedFormActions.addAll(
@@ -130,10 +134,10 @@ public class ActionMapper {
                       .map(ActionMapper::mapToAction)
                       .toList());
 
-              List<ActionDto> fieldActions = FieldActionCollector.collect(nestedForm);
+              List<Action> fieldActions = FieldActionCollector.collect(nestedForm);
 
               if (nestedForm instanceof LookupOptionsSupplier) {
-                nestedFormActions.add(ActionDto.builder().id("search-*").build());
+                nestedFormActions.add(Action.builder().id("search-*").build());
               }
 
               nestedFormActions.addAll(
@@ -156,7 +160,7 @@ public class ActionMapper {
                             actionId ->
                                 nestedFormActions.stream()
                                     .noneMatch(action -> action.id().equals(actionId)))
-                        .map(actionId -> ActionDto.builder().id(actionId).build())
+                        .map(actionId -> Action.builder().id(actionId).build())
                         .toList());
               }
               actions.addAll(
@@ -167,7 +171,7 @@ public class ActionMapper {
     return actions.stream().map(action -> action.withId(prefix + action.id())).toList();
   }
 
-  private static ActionDto mapToAction(io.mateu.uidl.annotations.Action annotation) {
+  private static Action mapToAction(io.mateu.uidl.annotations.Action annotation) {
     return ActionDtoMapper.mapToAction(annotation);
   }
 

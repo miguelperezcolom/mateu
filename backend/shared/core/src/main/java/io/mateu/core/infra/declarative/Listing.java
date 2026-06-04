@@ -4,7 +4,10 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.write.RunMethodActionRunner.invoke;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.uidl.interfaces.Selector;
 import io.mateu.uidl.annotations.Toolbar;
+import io.mateu.uidl.data.UICommand;
+import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -33,6 +36,12 @@ public abstract class Listing<Filters, Row>
   @SneakyThrows
   @Override
   public Object handleActionOnRow(String methodName, HttpRequest httpRequest) {
+      if (methodName.equals("select") && this instanceof Selector<?> selector) {
+          selector.selected(httpRequest);
+          return UICommand.builder()
+                  .type(UICommandType.CloseModal)
+                  .build();
+      }
     for (Method method : getAllMethods(getClass()).reversed()) {
       if (methodName.equals(method.getName())) {
         method.setAccessible(true);

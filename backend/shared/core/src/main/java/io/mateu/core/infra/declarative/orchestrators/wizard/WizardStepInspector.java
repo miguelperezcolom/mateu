@@ -6,6 +6,8 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
 import io.mateu.dtos.ValidationDto;
+import io.mateu.uidl.data.Validation;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,8 +41,8 @@ final class WizardStepInspector {
     return field.getType();
   }
 
-  static List<ValidationDto> validationDtos(WizardOrchestrator wizard) {
-    List<ValidationDto> fieldLevelValidations = new ArrayList<>();
+  static List<Validation> validations(WizardOrchestrator wizard) {
+    List<Validation> fieldLevelValidations = new ArrayList<>();
     var stepClass = getStepFields(wizard).get(wizard.position).getType();
     getAllFields(stepClass).stream()
         .flatMap(field -> getValidations(field).stream())

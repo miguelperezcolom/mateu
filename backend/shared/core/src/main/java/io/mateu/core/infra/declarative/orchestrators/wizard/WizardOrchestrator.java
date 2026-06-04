@@ -26,7 +26,7 @@ public abstract class WizardOrchestrator
         RouteHandler,
         ComponentTreeSupplier,
         StateSupplier,
-        ValidationDtoSupplier,
+        ValidationSupplier,
         ActionSupplier,
         PostHydrationHandler {
 
@@ -120,8 +120,8 @@ public abstract class WizardOrchestrator
   }
 
   @Override
-  public List<ValidationDto> validationDtos() {
-    return WizardStepInspector.validationDtos(this);
+  public List<Validation> validations() {
+    return WizardStepInspector.validations(this);
   }
 
   @Override

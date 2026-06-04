@@ -8,7 +8,6 @@ import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.*;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
-import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
@@ -16,6 +15,7 @@ import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.AppLayout;
+import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.CrudCreationForm;
@@ -175,7 +175,7 @@ public abstract class CrudOrchestrator<
       String searchText, Object filters, Pageable pageable, HttpRequest httpRequest);
 
   @Override
-  public List<TriggerDto> triggers(String viewName, HttpRequest httpRequest) {
+  public List<Trigger> triggers(String viewName, HttpRequest httpRequest) {
     return CrudTriggersBuilder.build(this, viewName, httpRequest);
   }
 

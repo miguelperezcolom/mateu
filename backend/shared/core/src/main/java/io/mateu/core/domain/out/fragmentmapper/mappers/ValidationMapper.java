@@ -1,13 +1,9 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
-import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.isForm;
-import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isPage;
-import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
-
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Validation;
-import io.mateu.uidl.interfaces.ValidationDtoSupplier;
 import io.mateu.uidl.interfaces.ValidationSupplier;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,24 +11,21 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.isForm;
+import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isPage;
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+
 public class ValidationMapper {
 
-  public static List<ValidationDto> mapValidations(Object serverSideObject, String route) {
-    if (serverSideObject instanceof ValidationDtoSupplier validationSupplier) {
-      return validationSupplier.validationDtos();
+    public static List<ValidationDto> mapValidations(Object serverSideObject, String route) {
+        return createValidations(serverSideObject, route).stream().map(ValidationMapper::mapToValidation).toList();
     }
+
+    public static List<io.mateu.uidl.data.Validation> createValidations(Object serverSideObject, String route) {
     if (serverSideObject instanceof ValidationSupplier validationSupplier) {
-      return validationSupplier.validations().stream()
-          .map(
-              validation ->
-                  ValidationDto.builder()
-                      .condition(validation.condition())
-                      .fieldId(validation.fieldId())
-                      .message(validation.message())
-                      .build())
-          .toList();
+      return validationSupplier.validations();
     }
-    List<ValidationDto> fieldLevelValidations = new ArrayList<>();
+    List<io.mateu.uidl.data.Validation> fieldLevelValidations = new ArrayList<>();
     if (isPage(serverSideObject, route) || isForm(serverSideObject)) {
       getAllFields(serverSideObject.getClass()).stream()
           .flatMap(field -> getValidations(field).stream())
@@ -46,19 +39,27 @@ public class ValidationMapper {
         .toList();
   }
 
-  public static List<ValidationDto> getValidations(Field field) {
+  public static List<io.mateu.uidl.data.Validation> getValidations(Field field) {
     return getValidationsWithFieldPrefix("", field);
   }
 
-  public static List<ValidationDto> getValidationsWithFieldPrefix(String prefix, Field field) {
+  public static List<io.mateu.uidl.data.Validation> getValidationsWithFieldPrefix(String prefix, Field field) {
     return ConstraintValidationMapper.getValidationsWithFieldPrefix(prefix, field);
   }
 
-  public static ValidationDto mapToValidation(Validation annotation) {
-    return ValidationDto.builder()
+  public static io.mateu.uidl.data.Validation mapToValidation(Validation annotation) {
+    return io.mateu.uidl.data.Validation.builder()
         .fieldId(annotation.fieldId())
         .condition(annotation.condition())
         .message(annotation.message())
         .build();
   }
+
+    public static ValidationDto mapToValidation(io.mateu.uidl.data.Validation annotation) {
+        return ValidationDto.builder()
+                .fieldId(annotation.fieldId())
+                .condition(annotation.condition())
+                .message(annotation.message())
+                .build();
+    }
 }

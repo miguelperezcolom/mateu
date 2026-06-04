@@ -47,6 +47,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import {Notification, NotificationPosition} from "@vaadin/notification";
 import {evalIfNecessary} from "@infra/ui/renderers/avatarRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import {TextField} from "@vaadin/text-field";
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -516,6 +517,49 @@ export class MateuField extends LitElement {
             `
         }
         if (this.field?.dataType == 'string') {
+            if (this.field?.stereotype == 'searchable') {
+
+                const searchCode = (e: CustomEvent) => {
+                    this.dispatchEvent(new CustomEvent('action-requested', {
+                        detail: {
+                            actionId: 'code-' + this.field?.fieldId,
+                            parameters: {
+                                code: (e.currentTarget as TextField).value
+                            }
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }
+
+                const search = (e: CustomEvent) => {
+                    this.dispatchEvent(new CustomEvent('action-requested', {
+                        detail: {
+                            actionId: 'codesearch-' + this.field?.fieldId,
+                            parameters: {
+                            }
+                        },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }
+
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            required="${this.field.required || nothing}"
+                            .helperText="${this.field.description}"
+                            data-colspan="${this.field.colspan}"
+                    >
+                        <vaadin-horizontal-layout theme="spacing" style="--lumo-space-m: 0.33rem;">
+                            <vaadin-text-field style="width: 4rem;" @change="${searchCode}"></vaadin-text-field>
+                            <vaadin-text-field readonly="" value="${this.data[this.field.fieldId + '-label']}"></vaadin-text-field>
+                            <vaadin-button theme="icon" @click="${search}"><vaadin-icon icon="lumo:search"></vaadin-icon></vaadin-button>
+                        </vaadin-horizontal-layout>
+                    </vaadin-custom-field>
+                `
+            }
             if (this.field?.stereotype == 'select') {
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
