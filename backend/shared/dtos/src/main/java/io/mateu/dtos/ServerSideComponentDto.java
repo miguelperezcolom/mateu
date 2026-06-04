@@ -1,9 +1,12 @@
 package io.mateu.dtos;
 
 import java.util.List;
+
+import lombok.Builder;
 import lombok.With;
 
 @With
+@Builder
 public record ServerSideComponentDto(
     String id,
     String serverSideType,
