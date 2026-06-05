@@ -13,6 +13,7 @@ The topics here build on the core Mateu model. Read them when you encounter a sp
 - [Extensibility](/java-user-manual/advanced/extensibility/) — override framework internals, add micro-frontends, or plug in an alternative renderer
 - [Security](/java-user-manual/advanced/security/) — authenticate with Keycloak and restrict access with `@EyesOnly`
 - [Internacionalización (i18n)](/java-user-manual/advanced/i18n/) — translate labels, titles and messages via the `Translator` interface
+- [Accessibility (WCAG)](/java-user-manual/advanced/accessibility/) — how WCAG compliance is inherited from the design system and where developer responsibility begins
 - [Testing](/java-user-manual/advanced/testing/) — unit-test ViewModels, actions, and repositories with no framework overhead
 
 ## Suggested reading order
