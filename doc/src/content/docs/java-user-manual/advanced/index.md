@@ -15,6 +15,7 @@ The topics here build on the core Mateu model. Read them when you encounter a sp
 - [Internacionalización (i18n)](/java-user-manual/advanced/i18n/) — translate labels, titles and messages via the `Translator` interface
 - [Accessibility (WCAG)](/java-user-manual/advanced/accessibility/) — how WCAG compliance is inherited from the design system and where developer responsibility begins
 - [Printing](/java-user-manual/advanced/printing/) — control print output with browser `@media print` CSS and a programmatic print action
+- [Audit / Change History](/java-user-manual/advanced/audit/) — add a history button to any page by implementing `Auditable`
 - [Testing](/java-user-manual/advanced/testing/) — unit-test ViewModels, actions, and repositories with no framework overhead
 
 ## Suggested reading order
