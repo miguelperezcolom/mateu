@@ -47,5 +47,5 @@ Each anti-pattern has a name so it can be recognised quickly — and a pattern t
 | **CRUD Tunnel** | List → detail → back, breaking the flow on every row visit. | [Split View](./split-view) |
 | **Modal Hell** | Nested modals that destroy orientation. | [Split View](./split-view), [Task-centric page](./task-centric) |
 | **Spinner Prison** | Freezing the entire screen while something loads. | [Long-running jobs](./long-running-jobs) |
-| **Filter Amnesia** | Losing filters when navigating away. | Deep linking via `@Route`, Saved Views (planned) |
+| **Filter Amnesia** | Losing filters when navigating away. | Filter state synced to URL — browser bookmarks become saved views |
 | **Desktop Denial** | Ignoring the keyboard and penalising the expert user. | [Keyboard Shortcuts](./keyboard-shortcuts) — `@Action(shortcut = ...)` |

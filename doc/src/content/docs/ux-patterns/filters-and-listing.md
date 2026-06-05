@@ -73,7 +73,25 @@ public class ProductsListing extends Listing<ProductFilters, ProductRow> {
 }
 ```
 
+## URL sync and saved views
+
+Every time the user triggers a search, the listing updates the browser URL with the current filter values as query parameters. On page load the framework reads those parameters, pre-populates the filter fields, and triggers the search automatically.
+
+This gives three capabilities for free:
+
+- **Saved views** — bookmark any filtered URL in the browser; opening the bookmark restores the exact filter state.
+- **Shareable links** — paste the URL in a chat or email; the recipient lands with the same filters applied.
+- **Browser history** — the back button returns to the previous filter state.
+
+```
+/products?name=widget&category=Electronics&active=true
+           ↑ filter state is in the URL — bookmarkable, shareable
+```
+
+No server-side persistence of views is needed. The browser's native bookmark manager is the saved-views feature.
+
 ## Principles served
 
 - **Workflow over screens** — act on data without leaving the list
 - **Keyboard-first** — filters respond to Enter via `@Trigger(type = OnEnter)`
+- **Recoverability** — filter state survives navigation via URL sync; no Filter Amnesia
