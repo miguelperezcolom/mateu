@@ -27,7 +27,8 @@ public class ExportActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-    return instance instanceof ListingBackend<?, ?>
+    return (instance instanceof ListingBackend<?, ?>
+            || instance instanceof ReactiveListingBackend<?, ?>)
         && actionId != null
         && actionId.startsWith("export-");
   }
@@ -39,14 +40,12 @@ public class ExportActionRunner implements ActionRunner {
 
   @SneakyThrows
   @Override
-  @SuppressWarnings("unchecked")
   public Flux<?> run(Object instance, RunActionCommand command) {
-    var listing = (ListingBackend<Object, Object>) instance;
     var actionId = command.actionId();
     var httpRequest = command.httpRequest();
 
-    var rows = fetchAllRows(listing, httpRequest);
-    var columns = buildExportColumns(listing.rowClass());
+    var rows = fetchAllRows(instance, httpRequest);
+    var columns = buildExportColumns(rowClass(instance));
 
     byte[] bytes;
     String filename;
@@ -82,18 +81,37 @@ public class ExportActionRunner implements ActionRunner {
                 .build()));
   }
 
-  private List<?> fetchAllRows(ListingBackend<Object, Object> listing, HttpRequest httpRequest) {
+  @SuppressWarnings("unchecked")
+  private List<?> fetchAllRows(Object instance, HttpRequest httpRequest) {
     var searchText = httpRequest.getString("searchText");
-    var filters =
-        MateuInstanceFactory.newInstance(
-            listing.filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
-    var data =
-        listing.search(
-            searchText != null ? searchText : "",
-            filters,
-            new Pageable(0, 10_000, List.of()),
-            httpRequest);
-    return data != null && data.page() != null ? data.page().content() : List.of();
+    var pageable = new Pageable(0, 10_000, List.of());
+
+    if (instance instanceof ListingBackend<?, ?> listing) {
+      var filters =
+          MateuInstanceFactory.newInstance(
+              listing.filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
+      var data =
+          ((ListingBackend<Object, Object>) listing)
+              .search(searchText != null ? searchText : "", filters, pageable, httpRequest);
+      return data != null && data.page() != null ? data.page().content() : List.of();
+    }
+    if (instance instanceof ReactiveListingBackend<?, ?> listing) {
+      var filters =
+          MateuInstanceFactory.newInstance(
+              listing.filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
+      var data =
+          ((ReactiveListingBackend<Object, Object>) listing)
+              .search(searchText != null ? searchText : "", filters, pageable, httpRequest)
+              .block();
+      return data != null && data.page() != null ? data.page().content() : List.of();
+    }
+    return List.of();
+  }
+
+  private Class<?> rowClass(Object instance) {
+    if (instance instanceof ListingBackend<?, ?> listing) return listing.rowClass();
+    if (instance instanceof ReactiveListingBackend<?, ?> listing) return listing.rowClass();
+    return Object.class;
   }
 
   private List<ExportColumn> buildExportColumns(Class<?> rowClass) {

@@ -45,7 +45,11 @@ public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
   }
 
   default Class<Filters> filtersClass() {
-    return getGenericClass(this.getClass(), ListingBackend.class, "Filters");
+    return getGenericClass(this.getClass(), ReactiveListingBackend.class, "Filters");
+  }
+
+  default Class<Row> rowClass() {
+    return getGenericClass(this.getClass(), ReactiveListingBackend.class, "Row");
   }
 
   Mono<ListingData<Row>> search(
