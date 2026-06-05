@@ -1,44 +1,40 @@
 ## bugs
 - algunas veces arrastra componentes de otros formularios (cuando sucede un error)
-- mateu.js:13689 Uncaught (in promise) TypeError: this.component.setLabel is not a function
-  at MateuField.setupComponent (mateu.js:13689:1218)
-  at MateuField.updated (mateu.js:13689:1122)
-- validaciones en lado cliente (min, max) y en lado servidor
-- exportar
-- do not support file type --> only string
+- mateu.js: Uncaught TypeError: this.component.setLabel is not a function (MateuField.setupComponent)
+
 ## missing features
-- buscador con columnas, filtros, etc. Tipo listado
-- pasar request en cada método. Ej. en readonlypojo
-- anotar cada pantalla para generar código en lugar de utilizar reflection. @Form, @List, @View(path="")
-- anotar una pantalla para saber que puede leer el id de la url
-- abrir en modal
 - secciones remotas
-- parámetros opciones menú?
-- links en formularios
-- tablas en formularios
-- colecciones complejas (terminar)
-- mapas
-- grabar y permanecer
-- link al detalle al grabar
-- formularios parciales / secciones con actions
-- buscar por texto + filtros
-- mensajes
 - captcha
 - captcha for files
+
 ## improvements
-- 1 sola petición 
-- journey al cliente? pasar --> meter en store --> devolver
+- 1 sola petición
 - ir a vista solo lectura si hay campos con relaciones @xtomany
 - inferir crud para entidad jpa cuando @xtomany
-- pensar edición con objeto pinned
-- error messages / static code validation
+
 ## tasks
 - clean unused classes / code
 - add/recover tests
-- refactor where advisable
-- make more extensible
-- recover docs
-- doc api
-- add readmes to every module
 - add javadoc to public classes and interfaces
+- add readmes to every module
 
+## done (para referencia)
+- exportar CSV / Excel / PDF (módulos opcionales export-excel, export-pdf)
+- buscador con columnas, filtros, etc. (@Searchable / Selector)
+- do not support file type → file upload en campos de formulario
+- validaciones lado cliente (min, max) via ConstraintValidationMapper
+- abrir en modal (Dialog + ServerSideComponent)
+- links en formularios (stereotype link)
+- tablas en formularios (stereotype grid / colecciones complejas)
+- mapas (@vaadin/map)
+- grabar y permanecer (_create-and-stay)
+- link al detalle al grabar (UICommand.navigateTo)
+- formularios parciales / secciones con actions (FormSection)
+- buscar por texto + filtros con URL sync (filtros, página, orden)
+- mensajes (Message)
+- pasar request en cada método (HttpRequest en todos los métodos)
+- i18n / Translator
+- UploadEnabled (Import en listados)
+- Auditable (historial de cambios)
+- ReactiveListingBackend
+- docs actualizadas
