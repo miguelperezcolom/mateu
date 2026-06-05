@@ -532,7 +532,7 @@ export class MateuField extends LitElement {
                     }))
                 }
 
-                const search = (e: CustomEvent) => {
+                const search = (_e: CustomEvent) => {
                     this.dispatchEvent(new CustomEvent('action-requested', {
                         detail: {
                             actionId: 'codesearch-' + this.field?.fieldId,
