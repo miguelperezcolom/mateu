@@ -48,6 +48,9 @@ public class PageListingBuilder {
                     httpRequest))
             .style(getStyle(instance, httpRequest));
 
+    if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {
+      builder.toolbarItem(new Button("Import", "import"));
+    }
     if (instance instanceof io.mateu.core.infra.declarative.Listing<?, ?> listing) {
       if (listing.csvExportable() && ExporterContext.isCsvAvailable()) {
         builder.toolbarItem(new Button("Export CSV", "export-csv"));

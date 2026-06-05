@@ -1,4 +1,4 @@
-import {customElement, property} from "lit/decorators.js";
+import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -11,6 +11,9 @@ import '@vaadin/text-field'
 import '@vaadin/integer-field'
 import '@vaadin/number-field'
 import "@vaadin/menu-bar"
+import "@vaadin/dialog"
+import "@vaadin/upload"
+import { dialogRenderer, dialogFooterRenderer } from "@vaadin/dialog/lit"
 import "@vaadin/grid"
 import "@vaadin/card"
 import './mateu-filter-bar'
@@ -56,6 +59,9 @@ export class MateuTableCrud extends LitElement {
 
     @property()
     appData: Record<string, any> = {}
+
+    @state()
+    showImportDialog = false
 
     search = () => {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
@@ -133,9 +139,26 @@ export class MateuTableCrud extends LitElement {
     }
 
     handleToolbarButtonClick = (actionId: string) => {
+        if (actionId === 'import') {
+            this.showImportDialog = true
+            return
+        }
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId,
+            },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+    handleImportUploadSuccess = (e: CustomEvent) => {
+        const fileId = e.detail.xhr.responseText
+        this.showImportDialog = false
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: {
+                actionId: 'process-import',
+                parameters: { fileId }
             },
             bubbles: true,
             composed: true
@@ -207,8 +230,27 @@ export class MateuTableCrud extends LitElement {
             <slot></slot>
             ${metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)}
         `
+        const importDialog = html`
+            <vaadin-dialog
+                .opened="${this.showImportDialog}"
+                header-title="Import"
+                @opened-changed="${(e: CustomEvent) => { this.showImportDialog = e.detail.value }}"
+                ${dialogRenderer(() => html`
+                    <vaadin-upload
+                        target="/upload"
+                        max-files="1"
+                        @upload-success="${this.handleImportUploadSuccess}"
+                    ></vaadin-upload>
+                `, [this.showImportDialog])}
+                ${dialogFooterRenderer(() => html`
+                    <vaadin-button @click="${() => { this.showImportDialog = false }}">Cancel</vaadin-button>
+                `, [])}
+            ></vaadin-dialog>
+        `
+
         if (this.standalone) {
             return html`
+                ${importDialog}
                 <vaadin-card theme="outlined" style="width: 100%;">
                     <mateu-content-header
                         .metadata="${metadata}"
@@ -226,6 +268,7 @@ export class MateuTableCrud extends LitElement {
             `
         }
         return html`
+            ${importDialog}
             ${hasHeader ? html`
                     <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: flex-end; padding-bottom: var(--lumo-space-m);">
                         <div style="flex: 1;">
