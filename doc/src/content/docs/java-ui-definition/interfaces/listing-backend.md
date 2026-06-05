@@ -36,44 +36,56 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 
 ## Export support
 
-When extending the `Listing<Filters, Row>` abstract class, you can enable export buttons by overriding any of three boolean methods. The framework reuses `search()` to gather the data and produces the file on the server.
+When extending the `Listing<Filters, Row>` abstract class, you can enable export buttons by overriding any of three boolean methods. The framework reuses `search()` to gather the data and produces the file on the server — no extra query code needed.
 
 | Method | Default | Effect when `true` |
 |---|---|---|
-| `pdfExportable()` | `false` | Shows a "Export PDF" button in the listing toolbar |
-| `excelExportable()` | `false` | Shows a "Export Excel" button in the listing toolbar |
-| `csvExportable()` | `false` | Shows a "Export CSV" button in the listing toolbar |
+| `pdfExportable()` | `false` | Shows an "Export PDF" button in the listing toolbar |
+| `excelExportable()` | `false` | Shows an "Export Excel" button in the listing toolbar |
+| `csvExportable()` | `false` | Shows an "Export CSV" button in the listing toolbar |
 
 Override one or more to enable the corresponding button:
 
 ```java
 public class OrdersListing extends Listing<OrderFilters, OrderRow> {
 
-    @Override
-    public boolean pdfExportable() { return true; }
-
-    @Override
-    public boolean excelExportable() { return true; }
-
-    @Override
-    public boolean csvExportable() { return true; }
+    @Override public boolean pdfExportable()   { return true; }
+    @Override public boolean excelExportable() { return true; }
+    @Override public boolean csvExportable()   { return true; }
 
     @Override
     public ListingData<OrderRow> search(String searchText, OrderFilters filters,
                                         Pageable pageable, HttpRequest httpRequest) {
-        // same method used for both display and export
         return ListingData.of(repository.findAll(searchText, filters, pageable));
     }
 }
 ```
 
-You can also return `true` from all three to offer all formats at once:
+### Required dependencies
 
-```java
-@Override public boolean pdfExportable()   { return true; }
-@Override public boolean excelExportable() { return true; }
-@Override public boolean csvExportable()   { return true; }
+**CSV** is built into the `core` module — no extra dependency needed.
+
+**Excel** and **PDF** are in separate optional modules. A button is shown only when its module is on the classpath; if the dependency is absent the button is hidden automatically.
+
+Add the modules you need to `pom.xml`:
+
+```xml
+<!-- Excel export via Apache POI -->
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>export-excel</artifactId>
+    <version>${mateu.version}</version>
+</dependency>
+
+<!-- PDF export via Apache PDFBox -->
+<dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>export-pdf</artifactId>
+    <version>${mateu.version}</version>
+</dependency>
 ```
+
+Both libraries are Apache 2.0 licensed. If you need a different library (e.g. iText for PDF) you can implement the `PdfExporter` or `ExcelExporter` interface yourself and register it as a CDI bean — the framework will pick it up instead.
 
 ## Key supporting types
 
