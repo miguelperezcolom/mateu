@@ -63,11 +63,14 @@ export class MateuTableCrud extends LitElement {
     @state()
     showImportDialog = false
 
+    private _urlInitialized = false
+
     search = () => {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state.size = metadata.pageSize
         this.state.page = 0
         this.state['crud_selected_items'] = []
+        this._syncStateToUrl(metadata)
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',
@@ -76,6 +79,44 @@ export class MateuTableCrud extends LitElement {
             bubbles: true,
             composed: true
         }))
+    }
+
+    private _filterIds(metadata: Crud): Set<string> {
+        return new Set([
+            'searchText',
+            ...(metadata.filters ?? []).map(f => f.fieldId)
+        ])
+    }
+
+    private _syncStateToUrl(metadata: Crud) {
+        const filterIds = this._filterIds(metadata)
+        const params = new URLSearchParams(window.location.search)
+        filterIds.forEach(id => params.delete(id))
+        filterIds.forEach(id => {
+            const value = this.state[id]
+            if (value !== undefined && value !== null && value !== '') {
+                params.set(id, String(value))
+            }
+        })
+        const search = params.toString()
+        const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname
+        if (window.location.pathname + window.location.search !== newUrl) {
+            history.replaceState(null, '', newUrl)
+        }
+    }
+
+    private _initStateFromUrl(metadata: Crud) {
+        const params = new URLSearchParams(window.location.search)
+        const filterIds = this._filterIds(metadata)
+        params.forEach((value, key) => {
+            if (filterIds.has(key)) {
+                this.dispatchEvent(new CustomEvent('value-changed', {
+                    detail: { value, fieldId: key },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        })
     }
 
     notify = (message: string) => {
@@ -127,14 +168,15 @@ export class MateuTableCrud extends LitElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
-        if (_changedProperties.size > 1 || !_changedProperties.has('data')) {
-            //this.search()
-        }
         if (_changedProperties.has("component")) {
             const metadata = this.component?.metadata as Crud
             this.state.size = metadata.pageSize
             this.state.page = 0
             this.state.sort = []
+            if (!this._urlInitialized) {
+                this._urlInitialized = true
+                this._initStateFromUrl(metadata)
+            }
         }
     }
 
