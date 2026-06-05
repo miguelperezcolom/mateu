@@ -12,6 +12,7 @@ The topics here build on the core Mateu model. Read them when you encounter a sp
 - [Custom web components](/java-user-manual/advanced/custom-web-components/) — embed any standard web component using `Element.builder()`
 - [Extensibility](/java-user-manual/advanced/extensibility/) — override framework internals, add micro-frontends, or plug in an alternative renderer
 - [Security](/java-user-manual/advanced/security/) — authenticate with Keycloak and restrict access with `@EyesOnly`
+- [Internacionalización (i18n)](/java-user-manual/advanced/i18n/) — translate labels, titles and messages via the `Translator` interface
 - [Testing](/java-user-manual/advanced/testing/) — unit-test ViewModels, actions, and repositories with no framework overhead
 
 ## Suggested reading order

@@ -147,6 +147,34 @@ Combine with `LabelSupplier` on the same class so the same bean handles both sel
 
 ---
 
+## `Translator`
+
+Centralises all user-visible string translation. Mateu calls `translate()` for every label, title, validation message, button text, and alert before sending them to the frontend.
+
+```java
+public interface Translator {
+    String translate(String text, HttpRequest httpRequest);
+}
+```
+
+The `core` module provides a default implementation backed by Java i18n (`ResourceBundle`). To override it, register a bean with higher priority (e.g., `@Primary` in Spring Boot):
+
+```java
+@Component
+@Primary
+public class DatabaseTranslator implements Translator {
+    @Override
+    public String translate(String text, HttpRequest httpRequest) {
+        String locale = httpRequest.getHeaderValue("Accept-Language");
+        return repo.findTranslation(text, locale).orElse(text);
+    }
+}
+```
+
+See [i18n](/java-user-manual/advanced/i18n/) for the full guide including caching strategies and multi-tenant patterns.
+
+---
+
 ## `BeanProvider`
 
 Abstraction for dependency lookup.
