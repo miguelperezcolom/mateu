@@ -34,6 +34,47 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 | `selectionEnabled()` | Return `true` to enable row checkbox selection |
 | `filtersClass()` | Returns the `Filters` class; auto-inferred via generics, rarely overridden |
 
+## Export support
+
+When extending the `Listing<Filters, Row>` abstract class, you can enable export buttons by overriding any of three boolean methods. The framework reuses `search()` to gather the data and produces the file on the server.
+
+| Method | Default | Effect when `true` |
+|---|---|---|
+| `pdfExportable()` | `false` | Shows a "Export PDF" button in the listing toolbar |
+| `excelExportable()` | `false` | Shows a "Export Excel" button in the listing toolbar |
+| `csvExportable()` | `false` | Shows a "Export CSV" button in the listing toolbar |
+
+Override one or more to enable the corresponding button:
+
+```java
+public class OrdersListing extends Listing<OrderFilters, OrderRow> {
+
+    @Override
+    public boolean pdfExportable() { return true; }
+
+    @Override
+    public boolean excelExportable() { return true; }
+
+    @Override
+    public boolean csvExportable() { return true; }
+
+    @Override
+    public ListingData<OrderRow> search(String searchText, OrderFilters filters,
+                                        Pageable pageable, HttpRequest httpRequest) {
+        // same method used for both display and export
+        return ListingData.of(repository.findAll(searchText, filters, pageable));
+    }
+}
+```
+
+You can also return `true` from all three to offer all formats at once:
+
+```java
+@Override public boolean pdfExportable()   { return true; }
+@Override public boolean excelExportable() { return true; }
+@Override public boolean csvExportable()   { return true; }
+```
+
 ## Key supporting types
 
 ### Pageable

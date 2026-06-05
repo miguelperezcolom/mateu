@@ -101,4 +101,16 @@ public abstract class Listing<Filters, Row>
       _fieldId = fieldId;
       return (Selector) this;
     }
+
+    public boolean pdfExportable() {
+        return false;
+    }
+
+    public boolean excelExportable() {
+        return false;
+    }
+
+    public boolean csvExportable() {
+        return false;
+    }
 }

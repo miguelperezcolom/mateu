@@ -49,16 +49,28 @@ public class Product {
 ## Structure
 
 ```
-┌──────────────────────────────────────────────────────┐
-│  Name [_________]  Category [___▼]   [Search]        │
-├──────────────────────────────────────────────────────┤
-│ ☐  Name            Category     Active   [Actions]   │
-│ ☑  Product A       Electronics  ✓        [Edit] [▼]  │
-│ ☑  Product B       Clothing     ✓        [Edit] [▼]  │
-│ ☐  Product C       Electronics  ✗        [Edit] [▼]  │
-├──────────────────────────────────────────────────────┤
-│  [Deactivate selected]  [New]                        │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│  Name [_________]  Category [___▼]   [Search]                │
+├──────────────────────────────────────────────────────────────┤
+│ ☐  Name            Category     Active   [Actions]           │
+│ ☑  Product A       Electronics  ✓        [Edit] [▼]          │
+│ ☑  Product B       Clothing     ✓        [Edit] [▼]          │
+│ ☐  Product C       Electronics  ✗        [Edit] [▼]          │
+├──────────────────────────────────────────────────────────────┤
+│  [Deactivate selected]  [New]  [Export PDF] [Excel] [CSV]    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+## Export
+
+Override `pdfExportable()`, `excelExportable()`, or `csvExportable()` in your `Listing` subclass to show the corresponding export button. The framework reuses `search()` with the active filters to collect the data — no extra code needed.
+
+```java
+public class ProductsListing extends Listing<ProductFilters, ProductRow> {
+
+    @Override public boolean excelExportable() { return true; }
+    @Override public boolean csvExportable()   { return true; }
+}
 ```
 
 ## Principles served

@@ -211,6 +211,29 @@ Changes (Listing<NoFilters, ChangeRow>)
 
 ---
 
+## 4. Enabling export
+
+Override `pdfExportable()`, `excelExportable()`, or `csvExportable()` to show export buttons in the toolbar. The framework calls `search()` with the current filters and produces the file.
+
+```java
+public class Changes extends Listing<NoFilters, ChangeRow> {
+
+    @Override
+    public boolean csvExportable() { return true; }
+
+    @Override
+    public boolean excelExportable() { return true; }
+
+    // search() is reused for export — no extra method needed
+    @Override
+    public ListingData<ChangeRow> search(...) { ... }
+}
+```
+
+All three methods default to `false`; override only the formats you want to expose.
+
+---
+
 ## Mental model
 
 - `Listing<Filters, Row>` = custom list, you control the data
@@ -219,6 +242,7 @@ Changes (Listing<NoFilters, ChangeRow>)
 - `@Toolbar` on a method = button in the list toolbar (receives selected rows)
 - Row action methods are matched by the `actionId` in `ColumnAction`
 - `HttpRequest` in action parameters gives access to headers
+- `pdfExportable()` / `excelExportable()` / `csvExportable()` = add export buttons, reuse `search()` data
 
 ---
 
