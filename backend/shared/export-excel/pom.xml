@@ -13,6 +13,16 @@
   <name>Export Excel</name>
   <description>Apache POI-based Excel exporter for Mateu listings. Add this module to your project to enable Excel export.</description>
 
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>commons-io</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>2.18.0</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
   <dependencies>
     <dependency>
       <groupId>io.mateu</groupId>
