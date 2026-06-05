@@ -97,14 +97,14 @@ public class PageListingBuilder {
 
   private static Class getRowClass(Object instance) {
     if (instance instanceof ReactiveListingBackend<?, ?>) {
-      getGenericClass(instance.getClass(), ReactiveListingBackend.class, "Row");
+      return getGenericClass(instance.getClass(), ReactiveListingBackend.class, "Row");
     }
     return getGenericClass(instance.getClass(), ListingBackend.class, "Row");
   }
 
   private static Class getFiltersClass(Object instance) {
     if (instance instanceof ReactiveListingBackend<?, ?>) {
-      getGenericClass(instance.getClass(), ReactiveListingBackend.class, "Filters");
+      return getGenericClass(instance.getClass(), ReactiveListingBackend.class, "Filters");
     }
     return getGenericClass(instance.getClass(), ListingBackend.class, "Filters");
   }
@@ -129,7 +129,7 @@ public class PageListingBuilder {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return getAllFields(filtersClass).stream()
-        .filter(field -> false)
+        .filter(field -> FormFieldFilter.filterField(field, false, false))
         .map(
             field ->
                 (FormField)
