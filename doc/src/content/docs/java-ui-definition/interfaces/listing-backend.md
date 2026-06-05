@@ -173,6 +173,52 @@ public ListingData<CustomerRow> search(
 }
 ```
 
+## Bulk import — `UploadEnabled`
+
+If your `Listing` subclass also implements `UploadEnabled`, the framework adds an "Import" button to the listing toolbar. Clicking it opens an upload widget; the file is sent to `POST /upload` (the same endpoint used by file fields) and, once the upload completes, the framework calls `processUpload()` with the returned file id.
+
+```java
+public interface UploadEnabled {
+    Object processUpload(String fileId, HttpRequest httpRequest);
+}
+```
+
+The return value follows the same conventions as any action: a `Message` for a summary, a background job for large imports, or a `ListingData` to refresh the grid immediately.
+
+### Example — synchronous CSV import
+
+```java
+public class ProductsListing extends Listing<ProductFilters, ProductRow>
+        implements UploadEnabled {
+
+    final ProductImportService importService;
+
+    @Override
+    public Object processUpload(String fileId, HttpRequest httpRequest) {
+        var result = importService.importCsv(fileId);
+        return Message.success(result.imported() + " records imported, "
+                             + result.errors() + " errors.");
+    }
+
+    @Override
+    public ListingData<ProductRow> search(...) { ... }
+}
+```
+
+### Example — background import for large files
+
+```java
+@Override
+@Action(background = true, sse = true)
+public Object processUpload(String fileId, HttpRequest httpRequest) {
+    return importService.startAsyncImport(fileId);
+}
+```
+
+The `/upload` endpoint must be provided by your application — see [File Upload](/java-ui-definition/components/file-upload/) for Spring Boot, Micronaut, and Quarkus examples.
+
+---
+
 ## ReactiveListingBackend
 
 `ReactiveListingBackend<Filters, Row>` is the Project Reactor variant. Use it when your data source is reactive (R2DBC, WebClient, etc.). The contract is identical to `ListingBackend` except that `search` returns `Mono<ListingData<Row>>` and `handleAction` returns `Flux<Object>`.

@@ -147,6 +147,20 @@ Combine with `LabelSupplier` on the same class so the same bean handles both sel
 
 ---
 
+## `UploadEnabled`
+
+Adds a bulk-import button to a `Listing` toolbar. The uploaded file is sent to `POST /upload`; on completion the framework calls `processUpload()` with the file id returned by that endpoint.
+
+```java
+public interface UploadEnabled {
+    Object processUpload(String fileId, HttpRequest httpRequest);
+}
+```
+
+Return a `Message` for a synchronous summary, or use `@Action(background = true)` for large file processing. See [ListingBackend — Bulk import](/java-ui-definition/interfaces/listing-backend/#bulk-import----uploadenabled) for full examples.
+
+---
+
 ## `Translator`
 
 Centralises all user-visible string translation. Mateu calls `translate()` for every label, title, validation message, button text, and alert before sending them to the frontend.
