@@ -36,6 +36,7 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Autosave](./autosave) | ✅ Implemented | `@AutoSave` |
 | [Keyboard Shortcuts](./keyboard-shortcuts) | ✅ Implemented | `@Action(shortcut = ...)`, `@Trigger(OnEnter)` |
 | [Push Notifications](./notifications) | ✅ Implemented | `@Trigger(OnLoad + OnSuccess)`, `Hydratable`, `MicroFrontend` |
+| [Partial Forms](./partial-forms) | ✅ Implemented | `@FoldedLayout`, `@Section`, nested subform records |
 
 ## Anti-patterns
 

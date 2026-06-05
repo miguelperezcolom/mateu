@@ -7,6 +7,44 @@ These annotations are placed on a class or field to control how its content is a
 
 ---
 
+## @FoldedLayout
+
+Renders each `@Section` of the page as a collapsible panel. The user can expand or collapse individual sections independently, reducing visual noise on forms with many fields.
+
+No attributes.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+public @interface FoldedLayout {}
+```
+
+### Example
+
+```java
+@Route("/customer/:id")
+@FoldedLayout
+@ConfirmOnNavigationIfDirty
+public class CustomerForm {
+
+    @Section("Personal data")
+    String firstName;
+    String lastName;
+
+    @Section("Contact")
+    ContactDetails contact;   // subform with its own @Toolbar actions
+
+    @Section("Billing")
+    BillingDetails billing;
+
+    @Toolbar
+    Object save() { /* persist everything */ }
+}
+```
+
+Each `@Section` becomes a collapsible panel. Subform fields (nested records/classes) can carry their own `@Toolbar` or `@Button` methods scoped to that panel. See [Partial Forms](/ux-patterns/partial-forms/) for the full pattern.
+
+---
+
 ## @FormLayout
 
 Renders the page fields in a responsive multi-column grid. This is the standard layout for data-entry forms.
