@@ -35,6 +35,7 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Long-running jobs](./long-running-jobs) | ✅ Implemented | `@Action(background, sse)`, `@Trigger` |
 | [Autosave](./autosave) | ✅ Implemented | `@AutoSave` |
 | [Keyboard Shortcuts](./keyboard-shortcuts) | ✅ Implemented | `@Action(shortcut = ...)`, `@Trigger(OnEnter)` |
+| [Push Notifications](./notifications) | ✅ Implemented | `@Trigger(OnLoad + OnSuccess)`, `Hydratable`, `MicroFrontend` |
 
 ## Anti-patterns
 
