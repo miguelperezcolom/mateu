@@ -64,7 +64,7 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
   }
 
   default Object handleActionOnRow(String methodName, HttpRequest httpRequest) {
-      return null;
+    return null;
   }
 
   default String getCrudId(HttpRequest httpRequest) {
@@ -79,9 +79,9 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
     return getGenericClass(this.getClass(), ListingBackend.class, "Filters");
   }
 
-    default Class<Row> rowClass() {
-        return getGenericClass(this.getClass(), ListingBackend.class, "Row");
-    }
+  default Class<Row> rowClass() {
+    return getGenericClass(this.getClass(), ListingBackend.class, "Row");
+  }
 
   ListingData<Row> search(
       String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest);

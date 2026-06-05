@@ -3,17 +3,12 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.dtos.RuleActionDto;
-import io.mateu.dtos.RuleDto;
-import io.mateu.dtos.RuleFieldAttributeDto;
-import io.mateu.dtos.RuleResultDto;
 import io.mateu.uidl.annotations.Disabled;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Rule;
 import io.mateu.uidl.data.RuleAction;
 import io.mateu.uidl.data.RuleFieldAttribute;
 import io.mateu.uidl.data.RuleResult;
-
 import java.util.Arrays;
 import java.util.List;
 

@@ -10,8 +10,10 @@ import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
+import io.mateu.uidl.interfaces.Auditable;
 import io.mateu.uidl.interfaces.Deleteable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.UploadEnabled;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -32,6 +34,12 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   private Component createListComponent(HttpRequest httpRequest, CrudOrchestrator orchestrator) {
     var toolbar = new ArrayList<UserTrigger>();
     orchestrator.addButtonsToList(toolbar);
+    if (orchestrator instanceof UploadEnabled) {
+      toolbar.add(new Button("Import", "import"));
+    }
+    if (orchestrator instanceof Auditable) {
+      toolbar.add(new Button("History", "history"));
+    }
     if (!orchestrator.readOnly()) {
       toolbar.add(new Button("New", "new"));
       if (orchestrator instanceof AutoCrudOrchestrator

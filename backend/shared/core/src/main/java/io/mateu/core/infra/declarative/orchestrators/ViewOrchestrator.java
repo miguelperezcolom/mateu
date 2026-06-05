@@ -114,7 +114,8 @@ public abstract class ViewOrchestrator
             null,
             httpRequest)
         .withId(httpRequest.runActionRq().initiatorComponentId() + "_" + viewName)
-        .withTriggers(triggers(viewName, httpRequest).stream().map(TriggerMapper::mapTrigger).toList())
+        .withTriggers(
+            triggers(viewName, httpRequest).stream().map(TriggerMapper::mapTrigger).toList())
         .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"));
   }
 

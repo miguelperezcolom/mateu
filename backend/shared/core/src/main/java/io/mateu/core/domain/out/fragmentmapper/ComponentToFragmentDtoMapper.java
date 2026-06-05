@@ -1,8 +1,5 @@
 package io.mateu.core.domain.out.fragmentmapper;
 
-import static io.mateu.core.application.runaction.ComponentStateHelper.getState;
-import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper.mapToComponent;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper.createActions;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AppMapper.mapAppToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ComponentTreeSupplierMapper.mapComponentTreeSupplierToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CrudlMapper.mapCrudlToDto;
@@ -10,9 +7,6 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.FieldMapper.mapFor
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormMapper.mapFormToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FutureComponentMapper.mapFutureComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PageMapper.mapPageToDto;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.createRules;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.createTriggers;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.createValidations;
 
 import io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper;
@@ -45,21 +39,36 @@ public final class ComponentToFragmentDtoMapper {
       return mapComponentTreeSupplierToDto(
           componentSupplier, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
-      if (component instanceof ServerSideComponent serverSideComponent) {
-          return ServerSideComponentDto.builder()
-                  .id(serverSideComponent.id())
-                  .serverSideType(serverSideComponent.serverSideType())
-                  .route(serverSideComponent.route())
-                  .initialData(serverSideComponent.initialData())
-                  .style(serverSideComponent.style())
-                  .cssClasses(serverSideComponent.cssClasses())
-                  .actions(serverSideComponent.actions().stream().map(ActionMapper::mapAction).toList())
-                  .triggers(serverSideComponent.triggers().stream().map(TriggerMapper::mapTrigger).toList())
-                  .rules(serverSideComponent.rules().stream().map(RuleMapper::mapToRule).toList())
-                  .validations(serverSideComponent.validations().stream().map(ValidationMapper::mapToValidation).toList())
-                  .children(serverSideComponent.children().stream().map(child -> mapComponentToDto(null, child, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest)).toList())
-                  .build();
-      }
+    if (component instanceof ServerSideComponent serverSideComponent) {
+      return ServerSideComponentDto.builder()
+          .id(serverSideComponent.id())
+          .serverSideType(serverSideComponent.serverSideType())
+          .route(serverSideComponent.route())
+          .initialData(serverSideComponent.initialData())
+          .style(serverSideComponent.style())
+          .cssClasses(serverSideComponent.cssClasses())
+          .actions(serverSideComponent.actions().stream().map(ActionMapper::mapAction).toList())
+          .triggers(serverSideComponent.triggers().stream().map(TriggerMapper::mapTrigger).toList())
+          .rules(serverSideComponent.rules().stream().map(RuleMapper::mapToRule).toList())
+          .validations(
+              serverSideComponent.validations().stream()
+                  .map(ValidationMapper::mapToValidation)
+                  .toList())
+          .children(
+              serverSideComponent.children().stream()
+                  .map(
+                      child ->
+                          mapComponentToDto(
+                              null,
+                              child,
+                              baseUrl,
+                              route,
+                              consumedRoute,
+                              initiatorComponentId,
+                              httpRequest))
+                  .toList())
+          .build();
+    }
     if (component == null) {
       return null;
     }

@@ -5,9 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
-import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.data.Validation;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;

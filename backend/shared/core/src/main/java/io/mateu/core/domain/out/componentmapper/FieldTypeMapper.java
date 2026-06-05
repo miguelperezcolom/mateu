@@ -107,9 +107,9 @@ public class FieldTypeMapper {
     if (field.isAnnotationPresent(Lookup.class)) {
       return FieldStereotype.combobox;
     }
-      if (field.isAnnotationPresent(Searchable.class)) {
-          return FieldStereotype.searchable;
-      }
+    if (field.isAnnotationPresent(Searchable.class)) {
+      return FieldStereotype.searchable;
+    }
     if (field.isAnnotationPresent(Representation.class)) {
       return field.getAnnotation(Representation.class).value();
     }

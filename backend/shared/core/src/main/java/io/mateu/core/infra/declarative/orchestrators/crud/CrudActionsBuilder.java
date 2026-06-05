@@ -5,7 +5,9 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.interfaces.Auditable;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.UploadEnabled;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +39,13 @@ final class CrudActionsBuilder {
               .rowsSelectedRequired(true)
               .bubble(true)
               .build());
+      if (orchestrator instanceof UploadEnabled) {
+        actions.add(Action.builder().id("import").build());
+        actions.add(Action.builder().id("process-import").build());
+      }
+      if (orchestrator instanceof Auditable) {
+        actions.add(Action.builder().id("history").build());
+      }
       getAllMethods(orchestrator.getClass()).stream()
           .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
           .forEach(

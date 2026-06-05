@@ -2,9 +2,9 @@ package io.mateu.uidl.interfaces;
 
 public interface Selector<IdType> {
 
-    SelectedItem<IdType> selected(HttpRequest httpRequest);
+  SelectedItem<IdType> selected(HttpRequest httpRequest);
 
-    String fieldId();
+  String fieldId();
 
-    Selector withFieldId(String name);
+  Selector withFieldId(String name);
 }

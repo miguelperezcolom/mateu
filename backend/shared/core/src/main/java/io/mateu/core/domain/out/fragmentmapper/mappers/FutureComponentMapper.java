@@ -62,12 +62,12 @@ public class FutureComponentMapper {
   }
 
   public static Component createComponent(
-          Object instance,
-          String baseUrl,
-          String route,
-          String consumedRoute,
-          String initiatorComponentId,
-          HttpRequest httpRequest) {
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest) {
     ComponentMapper componentMapper = MateuBeanProvider.getBean(ComponentMapper.class);
     var resolvedComponents =
         componentMapper.mapToComponents(

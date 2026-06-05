@@ -5,7 +5,6 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
-import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.di.MateuBeanProvider;

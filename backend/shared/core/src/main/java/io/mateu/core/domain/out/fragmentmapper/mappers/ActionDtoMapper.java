@@ -57,10 +57,11 @@ final class ActionDtoMapper {
         .js(action.js())
         .customEvent(
             action.customEvent() != null
-                ? new CustomEventDto(action.customEvent().eventName(), action.customEvent().detail())
+                ? new CustomEventDto(
+                    action.customEvent().eventName(), action.customEvent().detail())
                 : null)
         .sse(action.sse())
-            .shortcut(action.shortcut())
+        .shortcut(action.shortcut())
         .build();
   }
 

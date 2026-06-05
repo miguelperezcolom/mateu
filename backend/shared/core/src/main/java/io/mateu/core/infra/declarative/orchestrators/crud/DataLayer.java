@@ -4,12 +4,10 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.annotations.Lookup;
-import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import io.mateu.uidl.interfaces.Selector;
-
 import java.lang.reflect.Field;
 import java.util.HashMap;
 
@@ -49,7 +47,7 @@ public class DataLayer {
   }
 
   public static Selector getSelector(Object instance, Field field) {
-      return LookupSupplierResolver.getSelector(instance, field).withFieldId(field.getName());
+    return LookupSupplierResolver.getSelector(instance, field).withFieldId(field.getName());
   }
 
   public static LookupOptionsSupplier getLookupOptionsSupplier(Object instance, Field field) {

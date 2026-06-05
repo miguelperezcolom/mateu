@@ -1,31 +1,22 @@
 package io.mateu.core.domain.act;
 
+import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
+import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.getLabelSupplier;
+import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
+import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
+
 import io.mateu.core.application.runaction.RunActionCommand;
-import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.data.Data;
-import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.State;
-import io.mateu.uidl.data.UICommand;
-import io.mateu.uidl.data.UICommandType;
-import io.mateu.uidl.fluent.CustomEvent;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LabelSupplier;
-import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import jakarta.inject.Named;
-import lombok.SneakyThrows;
-import reactor.core.publisher.Flux;
-
-import javax.swing.text.LabelView;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
-
-import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
-import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.getLabelSupplier;
-import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.getLookupOptionsSupplier;
-import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
-import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
+import lombok.SneakyThrows;
+import reactor.core.publisher.Flux;
 
 @Named
 public class CodeFieldActionRunner implements ActionRunner {
@@ -60,8 +51,7 @@ public class CodeFieldActionRunner implements ActionRunner {
                         .getGenericType(),
                 List.class,
                 "E");
-        optionsSupplier =
-            getLabelSupplier(instance, getFieldByName(rowClass, childFieldName));
+        optionsSupplier = getLabelSupplier(instance, getFieldByName(rowClass, childFieldName));
       } else {
         optionsSupplier =
             getLabelSupplier(
@@ -75,13 +65,13 @@ public class CodeFieldActionRunner implements ActionRunner {
       var label = "Not found";
       var code = command.httpRequest().getParameters(Map.class).get("code");
       try {
-          label = optionsSupplier.label(fieldName, code, command.httpRequest());
+        label = optionsSupplier.label(fieldName, code, command.httpRequest());
       } catch (Throwable e) {
-          e.printStackTrace();
+        e.printStackTrace();
       }
-      return Flux.just(List.of(
-              new State(Map.of(fieldName, code)),
-              new Data(Map.of(fieldName + "-label", label))));
+      return Flux.just(
+          List.of(
+              new State(Map.of(fieldName, code)), new Data(Map.of(fieldName + "-label", label))));
     }
     return null;
   }

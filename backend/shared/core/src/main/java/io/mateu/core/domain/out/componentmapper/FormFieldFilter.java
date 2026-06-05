@@ -28,9 +28,9 @@ final class FormFieldFilter {
     if (field.isAnnotationPresent(Lookup.class)) {
       return true;
     }
-      if (field.isAnnotationPresent(Searchable.class)) {
-          return true;
-      }
+    if (field.isAnnotationPresent(Searchable.class)) {
+      return true;
+    }
     if (Collection.class.isAssignableFrom(field.getType())
         && field.isAnnotationPresent(Composition.class)) {
       return readOnly;

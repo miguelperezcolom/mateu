@@ -19,12 +19,11 @@ import java.util.List;
 
 public class RuleMapper {
 
-    public static List<RuleDto> mapRules(Object serverSideObject) {
-        return createRules(serverSideObject).stream().map(RuleMapper::mapToRule).toList();
-    }
+  public static List<RuleDto> mapRules(Object serverSideObject) {
+    return createRules(serverSideObject).stream().map(RuleMapper::mapToRule).toList();
+  }
 
-
-    public static List<io.mateu.uidl.data.Rule> createRules(Object serverSideObject) {
+  public static List<io.mateu.uidl.data.Rule> createRules(Object serverSideObject) {
     var viewClass = serverSideObject.getClass();
     List<io.mateu.uidl.data.Rule> rules = new ArrayList<>();
     rules.addAll(
@@ -98,24 +97,22 @@ public class RuleMapper {
         .build();
   }
 
-    public static RuleDto mapToRule(io.mateu.uidl.data.Rule rule) {
-        return RuleDto.builder()
-                .filter(rule.filter())
-                .action(
-                        rule.action() != null
-                                ? RuleActionDto.valueOf(rule.action().name())
-                                : RuleActionDto.RunAction)
-                .fieldName(rule.fieldName())
-                .fieldAttribute(
-                        rule.fieldAttribute() != null
-                                ? RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name())
-                                : null)
-                .value(rule.value())
-                .expression(rule.expression())
-                .result(
-                        rule.result() != null ? RuleResultDto.valueOf(rule.result().name()) : null)
-                .actionId(rule.actionId())
-                .build();
-    }
-
-    }
+  public static RuleDto mapToRule(io.mateu.uidl.data.Rule rule) {
+    return RuleDto.builder()
+        .filter(rule.filter())
+        .action(
+            rule.action() != null
+                ? RuleActionDto.valueOf(rule.action().name())
+                : RuleActionDto.RunAction)
+        .fieldName(rule.fieldName())
+        .fieldAttribute(
+            rule.fieldAttribute() != null
+                ? RuleFieldAttributeDto.valueOf(rule.fieldAttribute().name())
+                : null)
+        .value(rule.value())
+        .expression(rule.expression())
+        .result(rule.result() != null ? RuleResultDto.valueOf(rule.result().name()) : null)
+        .actionId(rule.actionId())
+        .build();
+  }
+}

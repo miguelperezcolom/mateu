@@ -3,7 +3,6 @@ package io.mateu.core.infra.declarative;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
-import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.*;

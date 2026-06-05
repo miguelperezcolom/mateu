@@ -19,11 +19,13 @@ import java.util.stream.Stream;
 
 public class ActionMapper {
 
-    public static List<ActionDto> mapActions(Object serverSideObject, HttpRequest httpRequest) {
-        return createActions(serverSideObject, httpRequest).stream().map(ActionMapper::mapAction).toList();
-    }
+  public static List<ActionDto> mapActions(Object serverSideObject, HttpRequest httpRequest) {
+    return createActions(serverSideObject, httpRequest).stream()
+        .map(ActionMapper::mapAction)
+        .toList();
+  }
 
-    public static List<Action> createActions(Object serverSideObject, HttpRequest httpRequest) {
+  public static List<Action> createActions(Object serverSideObject, HttpRequest httpRequest) {
     List<Action> actions = new ArrayList<>();
     // actions.add(ActionDto.builder().id("nested-form-action-*").build());
     actions.addAll(
@@ -33,15 +35,14 @@ public class ActionMapper {
       actions.add(Action.builder().id("*").build());
     }
     if (serverSideObject instanceof ActionSupplier hasActions) {
-      actions.addAll(
-          hasActions.actions(httpRequest));
+      actions.addAll(hasActions.actions(httpRequest));
     }
     if (serverSideObject instanceof ActionHandler hasActions) {
       actions.addAll(
           hasActions.supportedActions().stream()
               .filter(
                   actionId -> actions.stream().noneMatch(action -> action.id().equals(actionId)))
-                  .map(actionId -> Action.builder().id(actionId).build())
+              .map(actionId -> Action.builder().id(actionId).build())
               .toList());
     }
     actions.addAll(
@@ -114,8 +115,7 @@ public class ActionMapper {
               var nestedFormType = field.getType();
 
               if (nestedForm instanceof ActionSupplier hasActions) {
-                nestedFormActions.addAll(
-                    hasActions.actions(httpRequest));
+                nestedFormActions.addAll(hasActions.actions(httpRequest));
               }
               if (nestedForm instanceof ActionHandler hasActions) {
                 nestedFormActions.addAll(

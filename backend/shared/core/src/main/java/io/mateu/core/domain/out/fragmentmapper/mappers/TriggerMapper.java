@@ -9,9 +9,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class TriggerMapper {
-    public static List<TriggerDto> mapTriggers(Object serverSideObject, HttpRequest httpRequest) {
-        return createTriggers(serverSideObject, httpRequest).stream().map(TriggerMapper::mapTrigger).toList();
-    }
+  public static List<TriggerDto> mapTriggers(Object serverSideObject, HttpRequest httpRequest) {
+    return createTriggers(serverSideObject, httpRequest).stream()
+        .map(TriggerMapper::mapTrigger)
+        .toList();
+  }
 
   public static List<Trigger> createTriggers(Object serverSideObject, HttpRequest httpRequest) {
     if (serverSideObject instanceof TriggersSupplier hasTriggers) {
@@ -88,52 +90,56 @@ public class TriggerMapper {
     };
   }
 
-    public static TriggerDto mapTrigger(Trigger trigger) {
-        if (trigger instanceof AutoSaveTrigger(String actionId, int debounceMillis)) {
-            return AutoSaveTriggerDto.builder()
-                    .actionId(actionId)
-                    .debounceMillis(debounceMillis)
-                    .build();
-        }
-        if (trigger instanceof OnCustomEventTrigger(String actionId, String eventName, String condition)) {
-            return OnCustomEventTriggerDto.builder()
-                    .actionId(actionId)
-                    .eventName(eventName)
-                    .condition(condition)
-                    .build();
-        }
-        if (trigger instanceof OnSuccessTrigger(
-                String actionId, String calledActionId, String condition, int timeoutMillis
-        )) {
-            return OnSuccessTriggerDto.builder()
-                    .actionId(actionId)
-                    .calledActionId(calledActionId)
-                    .condition(condition)
-                    .timeoutMillis(timeoutMillis)
-                    .build();
-        }
-        if (trigger instanceof OnErrorTrigger(String actionId, String calledActionId, String condition)) {
-            return OnErrorTriggerDto.builder()
-                    .actionId(actionId)
-                    .calledActionId(calledActionId)
-                    .condition(condition)
-                    .build();
-        }
-        if (trigger instanceof OnValueChangeTrigger(String actionId, String propertyName, String condition)) {
-            return OnValueChangeTriggerDto.builder()
-                    .actionId(actionId)
-                    .condition(condition)
-                    .propertyName(propertyName)
-                    .build();
-        }
-        if (trigger instanceof OnLoadTrigger onLoadTrigger) {
-            return OnLoadTriggerDto.builder()
-                    .actionId(onLoadTrigger.actionId())
-                    .condition(onLoadTrigger.condition())
-                    .timeoutMillis(onLoadTrigger.timeoutMillis())
-                    .timeoutMillis(onLoadTrigger.timeoutMillis())
-                    .build();
-        }
-        throw new RuntimeException("not supported trigger: " + trigger.getClass().getName());
+  public static TriggerDto mapTrigger(Trigger trigger) {
+    if (trigger instanceof AutoSaveTrigger(String actionId, int debounceMillis)) {
+      return AutoSaveTriggerDto.builder().actionId(actionId).debounceMillis(debounceMillis).build();
     }
+    if (trigger
+        instanceof OnCustomEventTrigger(String actionId, String eventName, String condition)) {
+      return OnCustomEventTriggerDto.builder()
+          .actionId(actionId)
+          .eventName(eventName)
+          .condition(condition)
+          .build();
+    }
+    if (trigger
+        instanceof
+        OnSuccessTrigger(
+            String actionId,
+            String calledActionId,
+            String condition,
+            int timeoutMillis)) {
+      return OnSuccessTriggerDto.builder()
+          .actionId(actionId)
+          .calledActionId(calledActionId)
+          .condition(condition)
+          .timeoutMillis(timeoutMillis)
+          .build();
+    }
+    if (trigger
+        instanceof OnErrorTrigger(String actionId, String calledActionId, String condition)) {
+      return OnErrorTriggerDto.builder()
+          .actionId(actionId)
+          .calledActionId(calledActionId)
+          .condition(condition)
+          .build();
+    }
+    if (trigger
+        instanceof OnValueChangeTrigger(String actionId, String propertyName, String condition)) {
+      return OnValueChangeTriggerDto.builder()
+          .actionId(actionId)
+          .condition(condition)
+          .propertyName(propertyName)
+          .build();
+    }
+    if (trigger instanceof OnLoadTrigger onLoadTrigger) {
+      return OnLoadTriggerDto.builder()
+          .actionId(onLoadTrigger.actionId())
+          .condition(onLoadTrigger.condition())
+          .timeoutMillis(onLoadTrigger.timeoutMillis())
+          .timeoutMillis(onLoadTrigger.timeoutMillis())
+          .build();
+    }
+    throw new RuntimeException("not supported trigger: " + trigger.getClass().getName());
+  }
 }

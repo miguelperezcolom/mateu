@@ -2,8 +2,6 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapToTrigger;
 
-import io.mateu.dtos.OnLoadTriggerDto;
-import io.mateu.dtos.TriggerDto;
 import io.mateu.uidl.fluent.OnLoadTrigger;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.HttpRequest;
