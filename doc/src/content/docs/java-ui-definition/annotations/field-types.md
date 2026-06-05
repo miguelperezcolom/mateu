@@ -140,6 +140,31 @@ int progress;
 
 ---
 
+## File fields
+
+A field of type `io.mateu.uidl.data.File[]` is automatically rendered as an upload widget — no annotation needed. Mateu infers `dataType = file` from the field type.
+
+```java
+import io.mateu.uidl.data.File;
+
+public class ContractForm {
+
+    File[] documents;   // → upload widget, stores { id, name } per file
+
+    @Button
+    Object save() {
+        for (File f : documents) {
+            persist(f.id(), f.name());
+        }
+        return Message.success("Saved");
+    }
+}
+```
+
+The upload widget POSTs each file to the fixed path `POST /upload`. Your application must expose that endpoint; it must return the file identifier as plain text. See [File Upload](/java-ui-definition/components/file-upload/) for the full guide including Spring Boot, Micronaut, and Quarkus examples.
+
+---
+
 ## @Searchable
 
 **Target:** `FIELD`

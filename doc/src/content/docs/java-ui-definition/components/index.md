@@ -32,6 +32,7 @@ Each page covers what the component does, its properties, and a working code exa
 | [Form](form/) | High-level form with title, toolbar, content and buttons |
 | [FormField](form-field/) | Individual typed input field |
 | [Button](button/) | Clickable action button |
+| [File Upload](file-upload/) | Upload one or more files from a form field |
 
 ## Data display
 
