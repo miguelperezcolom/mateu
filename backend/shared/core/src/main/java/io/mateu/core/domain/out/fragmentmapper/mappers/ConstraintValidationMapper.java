@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
-import io.mateu.dtos.ValidationDto;
+import io.mateu.core.domain.out.componentmapper.TranslatorContext;
 import io.mateu.uidl.data.Validation;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -34,7 +34,7 @@ final class ConstraintValidationMapper {
                                   + field.getName()
                                   + "'].length < "
                                   + annotation.min())
-                          .message(annotation.message())
+                          .message(TranslatorContext.translate(annotation.message()))
                           .build());
                 }
                 if (annotation.max() < Integer.MAX_VALUE) {
@@ -50,7 +50,7 @@ final class ConstraintValidationMapper {
                                   + field.getName()
                                   + "'].length > "
                                   + annotation.max())
-                          .message(annotation.message())
+                          .message(TranslatorContext.translate(annotation.message()))
                           .build());
                 }
               });
@@ -65,7 +65,7 @@ final class ConstraintValidationMapper {
                       + field.getName()
                       + "'] > "
                       + field.getAnnotation(Min.class).value())
-              .message(field.getAnnotation(Min.class).message())
+              .message(TranslatorContext.translate(field.getAnnotation(Min.class).message()))
               .build());
     }
     if (field.isAnnotationPresent(Max.class)) {
@@ -78,7 +78,7 @@ final class ConstraintValidationMapper {
                       + field.getName()
                       + "'] < "
                       + field.getAnnotation(Max.class).value())
-              .message(field.getAnnotation(Max.class).message())
+              .message(TranslatorContext.translate(field.getAnnotation(Max.class).message()))
               .build());
     }
     if (field.isAnnotationPresent(Pattern.class)) {
@@ -92,7 +92,7 @@ final class ConstraintValidationMapper {
                       + prefix
                       + field.getName()
                       + "'])")
-              .message(field.getAnnotation(Pattern.class).message())
+              .message(TranslatorContext.translate(field.getAnnotation(Pattern.class).message()))
               .build());
     }
     if (field.isAnnotationPresent(NotEmpty.class)) {
@@ -101,11 +101,13 @@ final class ConstraintValidationMapper {
               .fieldId(prefix + field.getName())
               .condition("state['" + prefix + field.getName() + "']")
               .message(
-                  field
-                      .getAnnotation(NotEmpty.class)
-                      .message()
-                      .replace(
-                          "{jakarta.validation.constraints.NotEmpty.message}", "Cannot be empty"))
+                  TranslatorContext.translate(
+                      field
+                          .getAnnotation(NotEmpty.class)
+                          .message()
+                          .replace(
+                              "{jakarta.validation.constraints.NotEmpty.message}",
+                              "Cannot be empty")))
               .build());
     }
     if (field.isAnnotationPresent(NotNull.class)) {
@@ -114,11 +116,13 @@ final class ConstraintValidationMapper {
               .fieldId(prefix + field.getName())
               .condition("state['" + prefix + field.getName() + "']")
               .message(
-                  field
-                      .getAnnotation(NotNull.class)
-                      .message()
-                      .replace(
-                          "{jakarta.validation.constraints.NotNull.message}", "Cannot be empty"))
+                  TranslatorContext.translate(
+                      field
+                          .getAnnotation(NotNull.class)
+                          .message()
+                          .replace(
+                              "{jakarta.validation.constraints.NotNull.message}",
+                              "Cannot be empty")))
               .build());
     }
     return validations;

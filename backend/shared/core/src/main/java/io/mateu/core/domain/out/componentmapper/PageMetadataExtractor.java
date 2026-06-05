@@ -9,26 +9,27 @@ final class PageMetadataExtractor {
 
   static String getPageTitle(Object instance) {
     if (instance instanceof PageTitleSupplier pageTitleSupplier) {
-      return pageTitleSupplier.pageTitle();
+      return TranslatorContext.translate(pageTitleSupplier.pageTitle());
     }
     if (instance.getClass().isAnnotationPresent(PageTitle.class)) {
-      return instance.getClass().getAnnotation(PageTitle.class).value();
+      return TranslatorContext.translate(
+          instance.getClass().getAnnotation(PageTitle.class).value());
     }
-    return toUpperCaseFirst(instance.getClass().getSimpleName());
+    return TranslatorContext.translate(toUpperCaseFirst(instance.getClass().getSimpleName()));
   }
 
   static String getTitle(Object instance) {
     if (instance instanceof TitleSupplier titleSupplier) {
-      return titleSupplier.title();
+      return TranslatorContext.translate(titleSupplier.title());
     }
     if (instance.getClass().isAnnotationPresent(Title.class)) {
-      return instance.getClass().getAnnotation(Title.class).value();
+      return TranslatorContext.translate(instance.getClass().getAnnotation(Title.class).value());
     }
     if (instance instanceof NamedView namedView) {
-      return namedView.name();
+      return TranslatorContext.translate(namedView.name());
     }
     if (instance instanceof Named named) {
-      return named.name();
+      return TranslatorContext.translate(named.name());
     }
     if (instance != null) {
       try {
@@ -37,17 +38,17 @@ final class PageMetadataExtractor {
         }
       } catch (NoSuchMethodException ignored) {
       }
-      return instance.toString();
+      return TranslatorContext.translate(instance.toString());
     }
     return null;
   }
 
   static String getSubtitle(Object instance) {
     if (instance instanceof SubtitleSupplier subtitleSupplier) {
-      return subtitleSupplier.subtitle();
+      return TranslatorContext.translate(subtitleSupplier.subtitle());
     }
     if (instance.getClass().isAnnotationPresent(Subtitle.class)) {
-      return instance.getClass().getAnnotation(Subtitle.class).value();
+      return TranslatorContext.translate(instance.getClass().getAnnotation(Subtitle.class).value());
     }
     return null;
   }

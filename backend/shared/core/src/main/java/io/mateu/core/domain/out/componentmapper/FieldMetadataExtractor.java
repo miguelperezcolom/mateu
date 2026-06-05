@@ -20,13 +20,13 @@ public class FieldMetadataExtractor {
 
   public static String getLabel(AnnotatedElement fieldOrMethod) {
     if (fieldOrMethod.isAnnotationPresent(Label.class)) {
-      return fieldOrMethod.getAnnotation(Label.class).value();
+      return TranslatorContext.translate(fieldOrMethod.getAnnotation(Label.class).value());
     }
     if (fieldOrMethod instanceof Field field) {
-      return toUpperCaseFirst(field.getName());
+      return TranslatorContext.translate(toUpperCaseFirst(field.getName()));
     }
     if (fieldOrMethod instanceof Method method) {
-      return toUpperCaseFirst(method.getName());
+      return TranslatorContext.translate(toUpperCaseFirst(method.getName()));
     }
     return "Not a field nor a method";
   }
@@ -35,9 +35,9 @@ public class FieldMetadataExtractor {
     if (readOnly && field.isAnnotationPresent(Lookup.class)) {
       return prefix + field.getName() + "-label";
     }
-      if (readOnly && field.isAnnotationPresent(Searchable.class)) {
-          return prefix + field.getName() + "-label";
-      }
+    if (readOnly && field.isAnnotationPresent(Searchable.class)) {
+      return prefix + field.getName() + "-label";
+    }
     return prefix + field.getName();
   }
 
