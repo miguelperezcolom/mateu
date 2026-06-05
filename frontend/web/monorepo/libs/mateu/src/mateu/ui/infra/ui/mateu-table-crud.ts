@@ -91,13 +91,30 @@ export class MateuTableCrud extends LitElement {
     private _syncStateToUrl(metadata: Crud) {
         const filterIds = this._filterIds(metadata)
         const params = new URLSearchParams(window.location.search)
+
         filterIds.forEach(id => params.delete(id))
+        params.delete('page')
+        params.delete('sort')
+
         filterIds.forEach(id => {
             const value = this.state[id]
             if (value !== undefined && value !== null && value !== '') {
                 params.set(id, String(value))
             }
         })
+
+        const page = this.state.page as number | undefined
+        if (page && page > 0) params.set('page', String(page))
+
+        const sort = this.state.sort as Array<{fieldId: string, direction: string}> | undefined
+        if (sort && sort.length > 0) {
+            const sortStr = sort
+                .filter(s => s.fieldId && s.direction)
+                .map(s => `${s.fieldId}:${s.direction}`)
+                .join(',')
+            if (sortStr) params.set('sort', sortStr)
+        }
+
         const search = params.toString()
         const newUrl = search ? `${window.location.pathname}?${search}` : window.location.pathname
         if (window.location.pathname + window.location.search !== newUrl) {
@@ -108,6 +125,7 @@ export class MateuTableCrud extends LitElement {
     private _initStateFromUrl(metadata: Crud) {
         const params = new URLSearchParams(window.location.search)
         const filterIds = this._filterIds(metadata)
+
         params.forEach((value, key) => {
             if (filterIds.has(key)) {
                 this.dispatchEvent(new CustomEvent('value-changed', {
@@ -117,6 +135,32 @@ export class MateuTableCrud extends LitElement {
                 }))
             }
         })
+
+        const pageParam = params.get('page')
+        if (pageParam !== null) {
+            const page = parseInt(pageParam, 10)
+            if (!isNaN(page) && page > 0) {
+                this.dispatchEvent(new CustomEvent('value-changed', {
+                    detail: { value: page, fieldId: 'page' },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        }
+
+        const sortParam = params.get('sort')
+        if (sortParam) {
+            const sort = sortParam.split(',')
+                .map(s => { const [fieldId, direction] = s.split(':'); return fieldId && direction ? {fieldId, direction} : null })
+                .filter(Boolean)
+            if (sort.length > 0) {
+                this.dispatchEvent(new CustomEvent('value-changed', {
+                    detail: { value: sort, fieldId: 'sort' },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        }
     }
 
     notify = (message: string) => {
@@ -134,7 +178,9 @@ export class MateuTableCrud extends LitElement {
 
     handleSearchRequested = (callback: (() => void) | undefined) => {
         this.state['crud_selected_items'] = []
-        if (!(this.component?.metadata as Crud).infiniteScrolling) {
+        const metadata = (this.component as ClientSideComponent).metadata as Crud
+        this._syncStateToUrl(metadata)
+        if (!metadata.infiniteScrolling) {
             this.data[this.id].page.content = []
         }
         this.dispatchEvent(new CustomEvent('action-requested', {
