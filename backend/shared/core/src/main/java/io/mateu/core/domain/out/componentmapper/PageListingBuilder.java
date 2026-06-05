@@ -7,6 +7,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Component;
@@ -24,7 +25,7 @@ public class PageListingBuilder {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    return List.of(
+    var builder =
         Listing.builder()
             .searchable(isSearchable(instance))
             .rowsSelectionEnabled(isRowSelectionEnabled(instance))
@@ -45,8 +46,21 @@ public class PageListingBuilder {
                     route,
                     initiatorComponentId,
                     httpRequest))
-            .style(getStyle(instance, httpRequest))
-            .build());
+            .style(getStyle(instance, httpRequest));
+
+    if (instance instanceof io.mateu.core.infra.declarative.Listing<?, ?> listing) {
+      if (listing.csvExportable() && ExporterContext.isCsvAvailable()) {
+        builder.toolbarItem(new Button("Export CSV", "export-csv"));
+      }
+      if (listing.excelExportable() && ExporterContext.isExcelAvailable()) {
+        builder.toolbarItem(new Button("Export Excel", "export-excel"));
+      }
+      if (listing.pdfExportable() && ExporterContext.isPdfAvailable()) {
+        builder.toolbarItem(new Button("Export PDF", "export-pdf"));
+      }
+    }
+
+    return List.of(builder.build());
   }
 
   private static String getStyle(Object instance, HttpRequest httpRequest) {
