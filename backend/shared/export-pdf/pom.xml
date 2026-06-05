@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>shared</artifactId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+  <artifactId>export-pdf</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Export PDF</name>
+  <description>Apache PDFBox-based PDF exporter for Mateu listings. Add this module to your project to enable PDF export.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>uidl</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <version>3.0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <version>2.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.40</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+</project>

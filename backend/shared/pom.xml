@@ -20,6 +20,7 @@
     <module>annotation-processor-indexer</module>
     <module>core</module>
     <module>export-excel</module>
+    <module>export-pdf</module>
     <module>frontend</module>
     <module>integration-tests</module>
   </modules>
