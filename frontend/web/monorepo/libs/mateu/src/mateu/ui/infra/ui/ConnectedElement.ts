@@ -168,12 +168,11 @@ export default abstract class ConnectedElement extends LitElement {
         if ('DispatchEvent' == command.type) {
             const data = command.data as {
                 eventName: string
-                payload: unknown
+                detail: unknown
             }
             if (data && data.eventName) {
-                console.log('dispatching event', this, data)
                 this.dispatchEvent(new CustomEvent(data.eventName, {
-                    detail: data.payload,
+                    detail: data.detail,
                     bubbles: true,
                     composed: true
                 }))

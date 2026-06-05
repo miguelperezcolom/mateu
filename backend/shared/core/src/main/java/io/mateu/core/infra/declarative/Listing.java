@@ -4,6 +4,7 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.write.RunMethodActionRunner.invoke;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.uidl.fluent.CustomEvent;
 import io.mateu.uidl.interfaces.Selector;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.UICommand;
@@ -15,10 +16,14 @@ import io.mateu.uidl.interfaces.ListingBackend;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import lombok.SneakyThrows;
 
 public abstract class Listing<Filters, Row>
     implements ListingBackend<Filters, Row>, ActionSupplier {
+
+    private String _fieldId;
 
   @Override
   public List<Action> actions(HttpRequest httpRequest) {
@@ -30,6 +35,9 @@ public abstract class Listing<Filters, Row>
             method -> {
               actions.add(Action.builder().id(method.getName()).build());
             });
+    if (this instanceof Selector<?>) {
+        actions.add(Action.builder().id("action-on-row-select").build());
+    }
     return actions;
   }
 
@@ -37,10 +45,26 @@ public abstract class Listing<Filters, Row>
   @Override
   public Object handleActionOnRow(String methodName, HttpRequest httpRequest) {
       if (methodName.equals("select") && this instanceof Selector<?> selector) {
-          selector.selected(httpRequest);
-          return UICommand.builder()
-                  .type(UICommandType.CloseModal)
-                  .build();
+          var selectedItem = selector.selected(httpRequest);
+          return List.of(UICommand.builder()
+                  .type(UICommandType.DispatchEvent)
+                  .data(CustomEvent.builder().eventName("value-changed").detail(Map.of(
+                          "fieldId", selector.fieldId(),
+                          "value", selectedItem.id()
+                  )).build())
+                  .build(),
+                  UICommand.builder()
+                          .type(UICommandType.DispatchEvent)
+                          .data(CustomEvent.builder().eventName("data-changed").detail(Map.of(
+                                  "key", selector.fieldId() + "-label",
+                                  "value", selectedItem.label()
+                          )).build())
+                          .build(),
+          UICommand.builder()
+                  .type(UICommandType.DispatchEvent)
+                  .data(CustomEvent.builder().eventName("close-modal-requested").build())
+                  .build()
+          );
       }
     for (Method method : getAllMethods(getClass()).reversed()) {
       if (methodName.equals(method.getName())) {
@@ -68,4 +92,13 @@ public abstract class Listing<Filters, Row>
     }
     return null;
   }
+
+    public String fieldId() {
+        return _fieldId;
+    }
+
+    public Selector withFieldId(String fieldId) {
+      _fieldId = fieldId;
+      return (Selector) this;
+    }
 }

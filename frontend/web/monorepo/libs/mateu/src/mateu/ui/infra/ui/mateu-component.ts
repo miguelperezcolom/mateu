@@ -294,6 +294,30 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    closeModalRequestedListener: EventListenerOrEventListenerObject = (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e instanceof CustomEvent) {
+            this.closeModal()
+        }
+    }
+
+    dataChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e instanceof CustomEvent) {
+            const detail = e.detail as {
+                value: any,
+                key: string
+            }
+            const change = {} as any
+            change[detail.key] = detail.value
+            if (e.type == 'data-changed') {
+                this.data = {...this.data, ...change}
+            }
+        }
+    }
+
     valueChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
@@ -412,6 +436,7 @@ export class MateuComponent extends ComponentElement {
                 if (!parameters['initiatorState']) {
                     parameters['initiatorState'] = this.state
                 }
+                console.log('bubbling up', e.type, e, this)
                 this.dispatchEvent(new CustomEvent(e.type, {
                     detail: {
                         ...e.detail,
@@ -691,7 +716,11 @@ export class MateuComponent extends ComponentElement {
             return componentRenderer.get()?.renderClientSideComponent(this, comp, this.baseUrl, this.state, this.data, this.appState, this.appData, false) as TemplateResult
         }
         return html`
-            <mateu-api-caller @value-changed="${this.valueChangedListener}" @action-requested="${this.actionRequestedListener}">
+            <mateu-api-caller 
+                    @value-changed="${this.valueChangedListener}"
+                    @data-changed="${this.dataChangedListener}"
+                    @close-modal-requested="${this.closeModalRequestedListener}"
+                    @action-requested="${this.actionRequestedListener}">
             ${this.component?.children?.map(child => {
                 if (child.type == ComponentType.ClientSide) {
                     const clientChild = child as ClientSideComponent

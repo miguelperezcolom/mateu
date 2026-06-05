@@ -553,7 +553,7 @@ export class MateuField extends LitElement {
                             data-colspan="${this.field.colspan}"
                     >
                         <vaadin-horizontal-layout theme="spacing" style="--lumo-space-m: 0.33rem;">
-                            <vaadin-text-field style="width: 4rem;" @change="${searchCode}"></vaadin-text-field>
+                            <vaadin-text-field style="width: 4rem;" @change="${searchCode}" value="${value}"></vaadin-text-field>
                             <vaadin-text-field readonly="" value="${this.data[this.field.fieldId + '-label']}"></vaadin-text-field>
                             <vaadin-button theme="icon" @click="${search}"><vaadin-icon icon="lumo:search"></vaadin-icon></vaadin-button>
                         </vaadin-horizontal-layout>

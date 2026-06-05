@@ -94,6 +94,20 @@ export const renderActionCell = (item: any,
                                _model: GridItemModel<any>,
                                _column: VaadinGridColumn
 ) => {
+    if (_column.path == 'select') {
+        const action = {
+            actionId: _column.path,
+            icon: '',
+            label: 'Select',
+            disabled: false,
+            methodNameInCrud: 'select'
+        } as ActionItem
+        return html`
+         <vaadin-button theme="tertiary" title="Select" @click="${clicked}" .row="${item}" .action="${action}">
+             Select
+         </vaadin-button>
+    `
+    }
     const action: ActionItem = _column.path && item[_column.path].methodNameInCrud
         ? item[_column.path]
         : (item as any).action

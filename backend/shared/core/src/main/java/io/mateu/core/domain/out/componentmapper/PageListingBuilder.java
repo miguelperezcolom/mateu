@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
@@ -44,8 +45,16 @@ public class PageListingBuilder {
                     route,
                     initiatorComponentId,
                     httpRequest))
-            .style("min-width: 30rem; display: block;")
+            .style(getStyle(instance, httpRequest))
             .build());
+  }
+
+  private static String getStyle(Object instance, HttpRequest httpRequest) {
+    var style = "min-width: 30rem; display: block;";
+    if (instance.getClass().isAnnotationPresent(Style.class)) {
+      style += instance.getClass().getAnnotation(Style.class).value();
+    }
+    return style;
   }
 
   private static boolean isRowSelectionEnabled(Object instance) {

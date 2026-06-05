@@ -5,6 +5,10 @@ import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.State;
+import io.mateu.uidl.data.UICommand;
+import io.mateu.uidl.data.UICommandType;
+import io.mateu.uidl.fluent.CustomEvent;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
@@ -69,12 +73,15 @@ public class CodeFieldActionRunner implements ActionRunner {
       }
 
       var label = "Not found";
+      var code = command.httpRequest().getParameters(Map.class).get("code");
       try {
-          label = optionsSupplier.label(fieldName, command.httpRequest().getParameters(Map.class).get("code"), command.httpRequest());
+          label = optionsSupplier.label(fieldName, code, command.httpRequest());
       } catch (Throwable e) {
           e.printStackTrace();
       }
-      return Flux.just(new Data(Map.of(fieldName + "-label", label)));
+      return Flux.just(List.of(
+              new State(Map.of(fieldName, code)),
+              new Data(Map.of(fieldName + "-label", label))));
     }
     return null;
   }

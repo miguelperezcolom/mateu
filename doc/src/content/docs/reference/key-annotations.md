@@ -147,6 +147,26 @@ Use it when a field depends on remote or dynamic options.
 
 ---
 
+## `@Searchable`
+
+Adds a "Search" button to a field. Clicking it opens a modal containing the `selector()` class — typically a `Listing` that also implements `Selector`. When the user selects a row, the modal closes and the field is populated with the chosen id; `label()` resolves the display text for a stored id.
+
+```java
+@Searchable(selector = HotelSelector.class, label = HotelSelector.class)
+String hotelId;
+```
+
+Use it when picking the related entity requires a filterable grid, row actions, or CRUD capabilities — anything beyond a simple dropdown (see `@Lookup`).
+
+### Key fields
+
+- `selector()` → `Selector` implementation (usually a `Listing` subclass) opened in the modal
+- `label()` → `LabelSupplier` to display the stored id as text
+- `editableCode()` → allow the user to type the id directly
+- `showCode()` → show the raw id alongside the label
+
+---
+
 ## `@Stereotype`
 
 Overrides the default inferred rendering type of a field.

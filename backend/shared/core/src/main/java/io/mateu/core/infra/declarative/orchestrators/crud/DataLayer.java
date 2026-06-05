@@ -49,7 +49,7 @@ public class DataLayer {
   }
 
   public static Selector getSelector(Object instance, Field field) {
-      return LookupSupplierResolver.getSelector(instance, field);
+      return LookupSupplierResolver.getSelector(instance, field).withFieldId(field.getName());
   }
 
   public static LookupOptionsSupplier getLookupOptionsSupplier(Object instance, Field field) {

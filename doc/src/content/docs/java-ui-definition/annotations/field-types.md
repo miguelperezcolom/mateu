@@ -137,3 +137,100 @@ public @interface SliderMax {
 @SliderMax(100)
 int progress;
 ```
+
+---
+
+## @Searchable
+
+**Target:** `FIELD`
+
+Marks a field so the UI renders a "Search" button next to it. Clicking the button opens a modal containing the class referenced by `selector()` — typically a `Listing` that also implements `Selector`. When the user picks a row the modal closes and the field is populated with the selected id; the `label()` supplier provides the human-readable display text.
+
+Use `@Searchable` instead of `@Lookup` when the selection screen needs filters, sortable columns, row actions, or even CRUD capabilities — anything more complex than a simple dropdown.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Searchable {
+    Class<? extends Selector>     selector()     default Selector.class;
+    Class<? extends LabelSupplier> label()       default LabelSupplier.class;
+    boolean bubble()        default false;
+    boolean editableCode()  default false;
+    boolean showCode()      default false;
+}
+```
+
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `selector` | `Class<? extends Selector>` | `Selector.class` | Screen opened in the modal. Must implement `Selector<IdType>`. Typically also extends `Listing`. |
+| `label` | `Class<? extends LabelSupplier>` | `LabelSupplier.class` | Resolves the display text for a stored id. |
+| `bubble` | `boolean` | `false` | Propagates the selection event to the parent component. |
+| `editableCode` | `boolean` | `false` | Allows the user to type the code/id directly in the field. |
+| `showCode` | `boolean` | `false` | Shows the raw id alongside the resolved label. |
+
+### Implementing the Selector
+
+The selector class must:
+
+1. Implement `Selector<IdType>` — `selected()` is called when the user clicks a row and must return a `SelectedItem` containing the `id` and a `label`.
+2. Optionally implement `LabelSupplier` — resolves a stored id back to its display text (reused in `label()`).
+3. Typically extend `Listing<Filters, Row>` to get a full filterable, pageable table inside the modal.
+
+```java
+@Trigger(type = TriggerType.OnLoad, actionId = "search")
+@Style("min-width: 40rem;")
+public class HotelSelector extends Listing<Filters, Row>
+        implements Selector<String>, LabelSupplier {
+
+    String _fieldId;   // injected by the framework
+
+    @Override
+    public ListingData<Row> search(String searchText, Filters filters,
+                                   Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(
+            rows.stream()
+                .filter(r -> r.name().contains(searchText))
+                .toList()
+        );
+    }
+
+    @Override
+    public SelectedItem<String> selected(HttpRequest httpRequest) {
+        Row row = httpRequest.getClickedRow(rowClass());
+        return new SelectedItem<>(row.id(), row.name());
+    }
+
+    @Override
+    public String label(String fieldName, Object id, HttpRequest httpRequest) {
+        return rows.stream()
+            .filter(r -> r.id().equals(id))
+            .findFirst().orElseThrow().name();
+    }
+}
+```
+
+### Example
+
+```java
+public class BookingForm {
+
+    @Searchable(selector = HotelSelector.class, label = HotelSelector.class)
+    @NotEmpty
+    String hotelId;
+
+    @Button
+    Object save() {
+        return Message.success("Saved " + hotelId);
+    }
+}
+```
+
+### `@Searchable` vs `@Lookup`
+
+| | `@Lookup` | `@Searchable` |
+|---|---|---|
+| UI widget | Incremental-search dropdown (inline) | Text display + "Search" button → modal |
+| Selector class | `LookupOptionsSupplier` (list of `Option`) | `Listing` + `Selector` (full screen) |
+| Suitable for | Simple option lists, fast lookups | Complex grids with filters, actions, or CRUD |

@@ -2,6 +2,9 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 
 import io.mateu.core.infra.declarative.Listing;
+import io.mateu.uidl.annotations.Style;
+import io.mateu.uidl.annotations.Trigger;
+import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.SelectedItem;
 import io.mateu.uidl.interfaces.Selector;
@@ -14,7 +17,11 @@ import java.util.List;
 record Filters() {}
 record Row(String id, String name, String address) {}
 
+@Trigger(type = TriggerType.OnLoad, actionId = "search")
+@Style("min-width: 40rem;")
 public class HotelSelector extends Listing<Filters, Row> implements Selector<String>, LabelSupplier {
+
+    String _fieldId;
 
     static final List<Row> rows = List.of(
             new Row("1", "Hotel 1", "Calle 1"),
@@ -32,7 +39,7 @@ public class HotelSelector extends Listing<Filters, Row> implements Selector<Str
 
     @Override
     public SelectedItem<String> selected(HttpRequest httpRequest) {
-        Row row = httpRequest.getSelectedRows(rowClass()).getFirst();
+        Row row = httpRequest.getClickedRow(rowClass());
         return new SelectedItem<>(row.id(), row.name());
     }
 
@@ -40,4 +47,5 @@ public class HotelSelector extends Listing<Filters, Row> implements Selector<Str
     public String label(String fieldName, Object id, HttpRequest httpRequest) {
         return rows.stream().filter(r -> r.id().equals(id)).findFirst().orElseThrow().name();
     }
+
 }

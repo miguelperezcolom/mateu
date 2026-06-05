@@ -125,9 +125,25 @@ Typical use cases:
 
 Defines how Mateu resolves the display label for a selected id/value.
 
-Use it with `@Lookup` when the raw value is not enough for UI rendering.
+Use it with `@Lookup` or `@Searchable` when the raw value is not enough for UI rendering.
 
 In real applications, this is usually a Spring bean.
+
+---
+
+## `Selector<IdType>`
+
+Extension point for `@Searchable` fields. Implement this (typically alongside `Listing`) to define what happens when the user clicks a row in the search modal.
+
+```java
+public interface Selector<IdType> {
+    SelectedItem<IdType> selected(HttpRequest httpRequest);
+}
+```
+
+`selected()` must return a `SelectedItem` record containing the `id` and a `label`. The framework closes the modal and updates the annotated field with the returned id.
+
+Combine with `LabelSupplier` on the same class so the same bean handles both selection and label resolution.
 
 ---
 
@@ -152,5 +168,5 @@ Mateu interfaces mostly define extension points in four categories:
 
 - fluent UI composition
 - CRUD integration
-- dynamic option/label resolution
+- dynamic option/label/selection resolution (`LookupOptionsSupplier`, `LabelSupplier`, `Selector`)
 - dependency and runtime integration

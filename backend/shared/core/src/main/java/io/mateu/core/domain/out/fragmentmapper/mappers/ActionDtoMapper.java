@@ -31,7 +31,7 @@ final class ActionDtoMapper {
         .customEvent(
             isCustomEventNeeded(annotation)
                 ? CustomEvent.builder()
-                    .name(annotation.customEventName())
+                    .eventName(annotation.customEventName())
                     .detail(annotation.customEventDetail())
                     .build()
                 : null)
@@ -57,7 +57,7 @@ final class ActionDtoMapper {
         .js(action.js())
         .customEvent(
             action.customEvent() != null
-                ? new CustomEventDto(action.customEvent().name(), action.customEvent().detail())
+                ? new CustomEventDto(action.customEvent().eventName(), action.customEvent().detail())
                 : null)
         .sse(action.sse())
             .shortcut(action.shortcut())

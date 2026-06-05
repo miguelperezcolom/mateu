@@ -3,7 +3,7 @@ title: Entity Picker
 description: Select relationships and manage child collections without leaving the form.
 ---
 
-**Status:** ✅ Implemented — `@Lookup`, `@Composition`
+**Status:** ✅ Implemented — `@Lookup`, `@Searchable`, `@Composition`
 
 ## Intent
 
@@ -17,7 +17,7 @@ Picking a customer from thousands, or managing order lines inline, typically pus
 
 ### Selecting a relation — `@Lookup`
 
-Use `@Lookup` when a field references a single entity. Provide a `LookupOptionsSupplier` for the search and a `LabelSupplier` for display.
+Use `@Lookup` when a field references a single entity and a simple filterable dropdown is enough.
 
 ```java
 public class Order {
@@ -36,6 +36,54 @@ public class CustomerLookup implements LookupOptionsSupplier {
 ```
 
 The field renders as an incremental-search input with results inline — no modal, no navigation.
+
+### Selecting via a full search screen — `@Searchable`
+
+Use `@Searchable` when selecting the entity requires a richer experience: a listing with multiple columns, filter fields, row actions, or even inline CRUD to create new records before selecting them.
+
+Clicking the "Search" button opens the selector class in a modal. When the user clicks a row, the modal closes and the field is updated.
+
+```java
+public class BookingForm {
+
+    @Searchable(selector = HotelSelector.class, label = HotelSelector.class)
+    @NotEmpty
+    String hotelId;
+}
+```
+
+The selector class extends `Listing` and implements `Selector` (and optionally `LabelSupplier`):
+
+```java
+@Trigger(type = TriggerType.OnLoad, actionId = "search")
+@Style("min-width: 40rem;")
+public class HotelSelector extends Listing<Filters, Row>
+        implements Selector<String>, LabelSupplier {
+
+    @Override
+    public ListingData<Row> search(String searchText, Filters filters,
+                                   Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(
+            hotels.stream()
+                .filter(h -> h.name().contains(searchText))
+                .toList()
+        );
+    }
+
+    @Override
+    public SelectedItem<String> selected(HttpRequest httpRequest) {
+        Row row = httpRequest.getClickedRow(rowClass());
+        return new SelectedItem<>(row.id(), row.name());
+    }
+
+    @Override
+    public String label(String fieldName, Object id, HttpRequest httpRequest) {
+        return hotels.stream()
+            .filter(h -> h.id().equals(id))
+            .findFirst().orElseThrow().name();
+    }
+}
+```
 
 ### Inline child collection — `@Composition`
 
@@ -57,9 +105,10 @@ public class Order {
 
 ```
 Order form
-  Customer  [Acme Corp ×]  ← lookup, searchable in place
+  Customer  [Acme Corp ×]      ← @Lookup: incremental search inline
+  Hotel     [Hotel Paris] [Search]  ← @Searchable: opens modal listing
   Date      [2024-03-15]
-  
+
   Lines
   ┌──────────────────────────────┐
   │ Product        Qty   Price   │
@@ -67,9 +116,17 @@ Order form
   │ Widget B        1    34.50   │
   │                   [+ Add]   │
   └──────────────────────────────┘
-  
+
   [Save]
 ```
+
+## Choosing between `@Lookup` and `@Searchable`
+
+| | `@Lookup` | `@Searchable` |
+|---|---|---|
+| UI | Inline dropdown | "Search" button → modal |
+| Selector | `LookupOptionsSupplier` | `Listing` + `Selector` |
+| Best for | Simple option lists | Complex grids, filters, row actions, CRUD |
 
 ## Principles served
 
