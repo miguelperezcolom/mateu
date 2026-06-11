@@ -136,7 +136,11 @@ export class MateuFilterBar extends LitElement {
                 @closed="${() => this.filtersOpened = false}"
                 ${dialogRenderer(() => html`
                     <mateu-event-interceptor .target="${this}">
-                        <vaadin-form-layout max-columns="2" @keydown="${this.handleKey}">
+                        <vaadin-form-layout 
+                                max-columns="1" 
+                                @keydown="${this.handleKey}"
+                                auto-responsive
+                        >
                             <vaadin-form-row>
                                 ${this.metadata?.filters?.map(filter => renderComponent(this, {
                                     id: '',

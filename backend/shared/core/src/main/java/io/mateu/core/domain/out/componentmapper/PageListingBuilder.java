@@ -8,6 +8,7 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Component;
@@ -130,6 +131,10 @@ public class PageListingBuilder {
       HttpRequest httpRequest) {
     return getAllFields(filtersClass).stream()
         .filter(field -> FormFieldFilter.filterField(field, false, false))
+            .filter(field -> !ColumnActionGroup.class.equals(field.getType())
+            && !ColumnActionGroup.class.equals(field.getType())
+                    && !Collection.class.isAssignableFrom(field.getType())
+            )
         .map(
             field ->
                 (FormField)
