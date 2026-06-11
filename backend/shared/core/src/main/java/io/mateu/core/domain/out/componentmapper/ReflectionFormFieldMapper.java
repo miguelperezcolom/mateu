@@ -9,8 +9,8 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.data.Amount;
-import io.mateu.uidl.data.CustomField;
+import io.mateu.uidl.annotations.Text;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -128,6 +128,8 @@ public class ReflectionFormFieldMapper {
         && !Map.class.isAssignableFrom(fieldType)
         && !Amount.class.equals(fieldType)
         && !Status.class.equals(fieldType)
+            && !ColumnActionGroup.class.equals(fieldType)
+            && !ColumnAction.class.equals(fieldType)
         && !isBasicArray(fieldType)) {
       return buildNestedFormField(
           prefix,
