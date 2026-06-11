@@ -47,6 +47,10 @@ public abstract class ViewOrchestrator
     log.info("route is {}, action is {}", route, httpRequest.runActionRq().actionId());
     try {
 
+        if (route.contains("?")) {
+            route = route.substring(0, route.indexOf("?"));
+        }
+
       // hande route if no action
       if (httpRequest.runActionRq().actionId() == null
           || "".equals(httpRequest.runActionRq().actionId())) {

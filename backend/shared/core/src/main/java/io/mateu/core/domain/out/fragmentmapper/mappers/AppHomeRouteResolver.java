@@ -54,6 +54,9 @@ final class AppHomeRouteResolver {
     if (effectiveRoute.endsWith("_no_home_route")) {
       effectiveRoute = "_page";
     }
+    if (httpRequest.runActionRq().route().contains("?")) {
+        effectiveRoute = addQueryParams(effectiveRoute, httpRequest);
+    }
     return effectiveRoute;
   }
 

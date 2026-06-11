@@ -49,16 +49,13 @@ export class MateuFilterBar extends LitElement {
     filtersOpened = false
 
     clickedOnClearFilters = () => {
-        this.metadata?.filters.forEach(filter => {
-            this.dispatchEvent(new CustomEvent('value-changed', {
-                detail: {
-                    value: undefined,
-                    fieldId: filter.fieldId
-                },
-                bubbles: true,
-                composed: true
-            }))
-        })
+        this.dispatchEvent(new CustomEvent('filter-reset-requested', {
+            detail: {
+                fieldIds: this.metadata?.filters.map(filter => (filter as unknown as FormField).fieldId)
+            },
+            bubbles: true,
+            composed: true
+        }))
         this.handleButtonClick()
     }
     clickedOnFilters = () => {

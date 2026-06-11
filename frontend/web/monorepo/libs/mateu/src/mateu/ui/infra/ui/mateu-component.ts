@@ -302,6 +302,21 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    resetFilters: EventListenerOrEventListenerObject = (e: Event) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (e instanceof CustomEvent) {
+            const detail = e.detail as {
+                fieldIds: string[]
+            }
+            const resetedFilters = {} as Record<any, any>
+            detail.fieldIds.forEach(fieldId => {resetedFilters[fieldId] = undefined})
+            resetedFilters['searchText'] = undefined
+            this.state = {...this.state, ...resetedFilters}
+            console.log('reset filters', e, this.state)
+        }
+    }
+
     dataChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
@@ -720,6 +735,7 @@ export class MateuComponent extends ComponentElement {
                     @value-changed="${this.valueChangedListener}"
                     @data-changed="${this.dataChangedListener}"
                     @close-modal-requested="${this.closeModalRequestedListener}"
+                    @filter-reset-requested="${this.resetFilters}"
                     @action-requested="${this.actionRequestedListener}">
             ${this.component?.children?.map(child => {
                 if (child.type == ComponentType.ClientSide) {
