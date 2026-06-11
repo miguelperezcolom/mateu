@@ -313,7 +313,6 @@ export class MateuComponent extends ComponentElement {
             detail.fieldIds.forEach(fieldId => {resetedFilters[fieldId] = undefined})
             resetedFilters['searchText'] = undefined
             this.state = {...this.state, ...resetedFilters}
-            console.log('reset filters', e, this.state)
         }
     }
 
