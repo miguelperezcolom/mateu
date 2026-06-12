@@ -5,6 +5,7 @@ import lombok.Builder;
 /** Metadata for a html element */
 @Builder
 public record DialogDto(
+        String id,
     String headerTitle,
     ComponentDto header,
     ComponentDto content,
@@ -17,5 +18,6 @@ public record DialogDto(
     String width,
     String height,
     boolean resizable,
-    boolean closeButtonOnHeader)
+    boolean closeButtonOnHeader,
+        Object initialData)
     implements ComponentMetadataDto {}

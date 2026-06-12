@@ -1,4 +1,4 @@
-import { css, html, LitElement, nothing, TemplateResult } from "lit";
+import {css, html, nothing, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -12,35 +12,17 @@ import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import "@vaadin/card"
-import { customElement, property, state } from 'lit/decorators.js';
+import {customElement, state} from 'lit/decorators.js';
 import 'chartjs-adapter-date-fns';
 import Dialog from "@mateu/shared/apiClients/dtos/componentmetadata/Dialog";
-import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
-import { dialogFooterRenderer, dialogHeaderRenderer, dialogRenderer } from "@vaadin/dialog/lit";
-import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
+import {dialogFooterRenderer, dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
+import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
+import ComponentElement from "@infra/ui/ComponentElement.ts";
+import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 
 
 @customElement('mateu-dialog')
-export class MateuDialog extends LitElement {
-
-    @property()
-    component?: ClientSideComponent
-
-    @property()
-    baseUrl?: string
-
-    @property()
-    state?: ComponentState
-
-    @property()
-    data?: ComponentData
-
-    @property()
-    appState: ComponentState = {}
-
-    @property()
-    appData: ComponentData = {}
+export class MateuDialog extends ComponentElement {
 
     @state()
     opened = true
@@ -50,9 +32,19 @@ export class MateuDialog extends LitElement {
         setTimeout(() => this.parentElement?.removeChild(this), 500)
     }
 
+    updated(_changedProperties: any) {
+        super.updated(_changedProperties);
+        if (_changedProperties.has('component') && this.component) {
+            const metadata = (this.component as ClientSideComponent).metadata as Dialog
+            this.state = metadata.initialData
+        }
+    }
+
     render(): TemplateResult {
 
-        const metadata = this.component?.metadata as Dialog
+        console.log('render dialog', this.state)
+
+        const metadata = (this.component as ClientSideComponent).metadata as Dialog
 
         let theme = '';
         if (metadata.noPadding) {
@@ -64,10 +56,38 @@ export class MateuDialog extends LitElement {
                 this.dialogOpened = event.detail.value;
             }}"
  */
+        const data = this.data
+        const state = this.state
+        const appState = this.appState
+        const appData = this.appData
+        void state
+        void data
+        void appState
+        void appData
+
+        let content = metadata.headerTitle
+        if (content) {
+            try {
+                content = eval('`' + metadata.headerTitle + '`')
+                if (content.includes('${')) {
+                    try {
+                        content = eval('`' + content + '`')
+                    } catch (e) {
+                        content = 'when evaluating nested ' + metadata.headerTitle + ' :' +  e + ', where data is ' + data
+                            + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
+                        console.error(e, content, state, data, appState, appData)
+                    }
+                }
+            } catch (e) {
+                content = 'when evaluating ' + metadata.headerTitle + ' :' +  e + ', where data is ' + data
+                    + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
+                console.error(e, content, state, data, appState, appData)
+            }
+        }
 
         return html`
         <vaadin-dialog
-                header-title="${metadata.headerTitle}"
+                header-title="${content}"
                 .opened="${this.opened}"
                 slot="${this.component?.slot??nothing}"
                 theme="${theme}"
@@ -80,20 +100,20 @@ export class MateuDialog extends LitElement {
                 width="${metadata.width??nothing}"
                 height="${metadata.height??nothing}"
                 ${metadata.header || metadata.closeButtonOnHeader?dialogHeaderRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${metadata.header?renderComponent(this, metadata.header, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData):nothing}${metadata.closeButtonOnHeader?html`
+            () => html`<mateu-event-interceptor .target="${this}">${metadata.header?renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData):nothing}${metadata.closeButtonOnHeader?html`
                             <vaadin-button theme="tertiary" @click="${this.close}">
                                 <vaadin-icon icon="lumo:cross"></vaadin-icon>
                             </vaadin-button>
                         `:nothing}</mateu-event-interceptor>`,
-            []
+            [this.state, this.data]
         ):nothing}
                 ${metadata.footer?dialogFooterRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.footer, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData)}</mateu-event-interceptor>`,
-            []
+            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.footer, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
+            [this.state, this.data]
         ):nothing}
                 ${metadata.content?dialogRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.content, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData)}</mateu-event-interceptor>`,
-            []
+            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.content, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
+            [this.state, this.data]
         ):nothing}
                 style="${this.component?.style}" 
                 class="${this.component?.cssClasses}"

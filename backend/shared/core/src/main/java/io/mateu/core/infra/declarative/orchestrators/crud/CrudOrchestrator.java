@@ -14,13 +14,11 @@ import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.data.Pageable;
-import io.mateu.uidl.data.State;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.AppLayout;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
-
 import java.util.List;
 
 public abstract class CrudOrchestrator<
@@ -187,19 +185,19 @@ public abstract class CrudOrchestrator<
     return super.layout();
   }
 
-    @Override
-    public Object state(HttpRequest httpRequest) {
-            var map = toMap(this);
-            var route = httpRequest.runActionRq().route();
-            if (route.contains("?")) {
-                var params = route.substring(route.indexOf("?") + 1);
-                var tokens = params.split("&");
-                for (var token : tokens) {
-                    var key = token.substring(0, token.indexOf("="));
-                    var value = token.substring(token.indexOf("=") + 1);
-                    map.put(key, value);
-                }
-            }
-        return map;
+  @Override
+  public Object state(HttpRequest httpRequest) {
+    var map = toMap(this);
+    var route = httpRequest.runActionRq().route();
+    if (route.contains("?")) {
+      var params = route.substring(route.indexOf("?") + 1);
+      var tokens = params.split("&");
+      for (var token : tokens) {
+        var key = token.substring(0, token.indexOf("="));
+        var value = token.substring(token.indexOf("=") + 1);
+        map.put(key, value);
+      }
     }
+    return map;
+  }
 }

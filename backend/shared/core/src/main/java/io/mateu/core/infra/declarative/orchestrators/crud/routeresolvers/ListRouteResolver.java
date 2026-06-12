@@ -2,7 +2,6 @@ package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 
 import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getColumns;
 import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getFilters;
-import static io.mateu.core.infra.declarative.FormViewModel.toMap;
 
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
@@ -107,5 +106,4 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                     .build()))
         .build();
   }
-
 }

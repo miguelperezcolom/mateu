@@ -1,13 +1,16 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
+import io.mateu.dtos.UIFragmentDto;
+import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Searchable;
-import io.mateu.uidl.data.Dialog;
-import io.mateu.uidl.data.Message;
-import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.*;
 import jakarta.validation.constraints.NotEmpty;
 import reactor.core.publisher.Flux;
+
+import java.util.List;
+import java.util.Map;
 
 public class Page5 {
 
@@ -28,14 +31,26 @@ public class Page5 {
     Flux<?> doSomethingLong() {
         return Flux.concat(
                 Flux.just(Dialog.builder()
-                        .headerTitle("Procesando...")
-                        .content(new Text("La operación está en curso."))
-                        .closeButtonOnHeader(true)
-                        .build()),
+                        .id("progress")
+                                        .headerTitle("${state.title}")
+                                        .content(new Text("${state.progressText}"))
+                                        .closeButtonOnHeader(true)
+                        .initialData(Map.of(
+                                "progressText", "Iniciando...",
+                                "title", "Procesando..."
+                        ))
+                                        .build()),
                 Flux.range(1, 10)
-                        .delayElements(java.time.Duration.ofMillis(500))
-                        .map(i -> Message.success("Mensaje " + i)),
-                Flux.just(Message.success("Hecho"))
+                        .delayElements(java.time.Duration.ofMillis(100))
+                        .map(i -> UIFragmentDto.builder()
+                                .targetComponentId("progress")
+                                .state(Map.of("progressText", "Mensajes procesados: " + i + ""))
+                                .build()),
+                Flux.just(UIFragmentDto.builder()
+                        .targetComponentId("progress")
+                        .state(Map.of("progressText", "Hecho",
+                                "title", "Terminado"))
+                        .build())
         );
     }
 

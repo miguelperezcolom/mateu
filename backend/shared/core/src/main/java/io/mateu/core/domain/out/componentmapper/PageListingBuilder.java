@@ -131,10 +131,11 @@ public class PageListingBuilder {
       HttpRequest httpRequest) {
     return getAllFields(filtersClass).stream()
         .filter(field -> FormFieldFilter.filterField(field, false, false))
-            .filter(field -> !ColumnActionGroup.class.equals(field.getType())
-            && !ColumnActionGroup.class.equals(field.getType())
-                    && !Collection.class.isAssignableFrom(field.getType())
-            )
+        .filter(
+            field ->
+                !ColumnActionGroup.class.equals(field.getType())
+                    && !ColumnActionGroup.class.equals(field.getType())
+                    && !Collection.class.isAssignableFrom(field.getType()))
         .map(
             field ->
                 (FormField)

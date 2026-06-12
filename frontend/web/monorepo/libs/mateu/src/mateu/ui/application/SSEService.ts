@@ -63,46 +63,53 @@ export class SSEService implements Service {
             }).then(async response => {
                 const reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()
                 if (reader) {
+                    let buffer = ''
                     while (true) {
                         const {value, done} = await reader.read();
                         if (done) break;
-                        if (value.startsWith('data:')) {
-                            const uiIncrement = JSON.parse(value.substring('data:'.length));
+                        buffer += value
+                        const events = buffer.split('\n\n')
+                        buffer = events.pop() ?? ''
+                        for (const event of events) {
+                            const line = event.trim()
+                            if (!line) continue
+                            if (line.startsWith('data:')) {
+                                const uiIncrement = JSON.parse(line.substring('data:'.length).trim())
 
-                            if (callback) {
-                                callback(uiIncrement)
-                            }
-
-                            if (!callbackonly) {
-                                this.handleUIIncrement(uiIncrement, initiator, callbackToken)
-                            }
-
-                            if (uiIncrement.messages && uiIncrement.messages.length == 1) {
-                                if (uiIncrement.messages[0].variant == 'error') {
-                                    initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {
-                                        detail: {
-                                            actionId
-                                        },
-                                        bubbles: true,
-                                        composed: true
-                                    }))
+                                if (callback) {
+                                    callback(uiIncrement)
                                 }
-                            }
 
-                        } else {
-                            let message = value;
-                            try {
-                                const error = JSON.parse(value);
-                                message = error.message;
-                                if (error._embedded?.errors?.length > 0) {
-                                    if (error._embedded.errors[0].message) {
-                                        message = error._embedded.errors[0].message
+                                if (!callbackonly) {
+                                    this.handleUIIncrement(uiIncrement, initiator, callbackToken)
+                                }
+
+                                if (uiIncrement.messages && uiIncrement.messages.length == 1) {
+                                    if (uiIncrement.messages[0].variant == 'error') {
+                                        initiator.shadowRoot?.dispatchEvent(new CustomEvent('backend-call-failed', {
+                                            detail: {
+                                                actionId
+                                            },
+                                            bubbles: true,
+                                            composed: true
+                                        }))
                                     }
                                 }
-                            } catch (ignored) {
+                            } else {
+                                let message = line;
+                                try {
+                                    const error = JSON.parse(line);
+                                    message = error.message;
+                                    if (error._embedded?.errors?.length > 0) {
+                                        if (error._embedded.errors[0].message) {
+                                            message = error._embedded.errors[0].message
+                                        }
+                                    }
+                                } catch (ignored) {
 
+                                }
+                                throw new Error(message)
                             }
-                            throw new Error(message)
                         }
                     }
                 }

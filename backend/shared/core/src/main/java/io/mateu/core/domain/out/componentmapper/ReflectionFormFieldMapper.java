@@ -128,8 +128,8 @@ public class ReflectionFormFieldMapper {
         && !Map.class.isAssignableFrom(fieldType)
         && !Amount.class.equals(fieldType)
         && !Status.class.equals(fieldType)
-            && !ColumnActionGroup.class.equals(fieldType)
-            && !ColumnAction.class.equals(fieldType)
+        && !ColumnActionGroup.class.equals(fieldType)
+        && !ColumnAction.class.equals(fieldType)
         && !isBasicArray(fieldType)) {
       return buildNestedFormField(
           prefix,
