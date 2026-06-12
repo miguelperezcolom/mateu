@@ -32,7 +32,7 @@ public class Page5 {
                 .closeAfter(3)
                 .withCommand(UICommand.navigateTo("/xxxx"))
                 .run(progress -> Flux.range(1, 10)
-                        .delayElements(java.time.Duration.ofMillis(2000))
+                        .delayElements(java.time.Duration.ofMillis(100))
                         .map(i -> progress.step("Mensajes procesados: " + i, i / 10d)));
     }
 
