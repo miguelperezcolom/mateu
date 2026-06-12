@@ -5,7 +5,7 @@ import lombok.Builder;
 
 @Builder
 public record Dialog(
-        String id,
+    String id,
     String headerTitle,
     Component header,
     Component content,
@@ -21,5 +21,5 @@ public record Dialog(
     boolean closeButtonOnHeader,
     String style,
     String cssClasses,
-        Object initialData)
+    Object initialData)
     implements Component {}

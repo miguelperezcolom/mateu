@@ -24,24 +24,28 @@ public record ServerSideComponent(
     String containerId,
     boolean confirmOnNavigationIfDirty)
     implements Component {
-    @Override
-    public List<Component> children() {
-        return children != null ? children : List.of();
-    }
-    @Override
-    public List<Action> actions() {
-        return actions != null ? actions : List.of();
-    }
-    @Override
-    public List<Trigger> triggers() {
-        return triggers != null ? triggers : List.of();
-    }
-    @Override
-    public List<Rule> rules() {
-        return rules != null ? rules : List.of();
-    }
-    @Override
-    public List<Validation> validations() {
-        return validations != null ? validations : List.of();
-    }
+  @Override
+  public List<Component> children() {
+    return children != null ? children : List.of();
+  }
+
+  @Override
+  public List<Action> actions() {
+    return actions != null ? actions : List.of();
+  }
+
+  @Override
+  public List<Trigger> triggers() {
+    return triggers != null ? triggers : List.of();
+  }
+
+  @Override
+  public List<Rule> rules() {
+    return rules != null ? rules : List.of();
+  }
+
+  @Override
+  public List<Validation> validations() {
+    return validations != null ? validations : List.of();
+  }
 }

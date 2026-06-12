@@ -19,8 +19,8 @@ public class DialogMapper {
       HttpRequest httpRequest) {
     return new ClientSideComponentDto(
         DialogDto.builder()
-                .id(dialog.id())
-                .initialData(dialog.initialData())
+            .id(dialog.id())
+            .initialData(dialog.initialData())
             .left(dialog.left())
             .top(dialog.top())
             .content(
