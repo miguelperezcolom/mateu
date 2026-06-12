@@ -9,9 +9,11 @@ import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.fluent.Action;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
+import reactor.core.publisher.Flux;
 
 final class FieldActionCollector {
 
@@ -29,10 +31,13 @@ final class FieldActionCollector {
     getAllMethods(serverSideObject.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
         .map(
-            method ->
-                ActionDtoMapper.mapToAction(
-                        method.getAnnotation(io.mateu.uidl.annotations.Action.class))
-                    .withId(method.getName()))
+            method -> {
+              Action action =
+                  ActionDtoMapper.mapToAction(
+                          method.getAnnotation(io.mateu.uidl.annotations.Action.class))
+                      .withId(method.getName());
+              return isFluxReturning(method) ? action.withSse(true) : action;
+            })
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
@@ -91,10 +96,20 @@ final class FieldActionCollector {
                 !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
                     && (method.isAnnotationPresent(Button.class)
                         || method.isAnnotationPresent(Toolbar.class)))
-        .map(method -> Action.builder().id(method.getName()).validationRequired(true).build())
+        .map(
+            method ->
+                Action.builder()
+                    .id(method.getName())
+                    .validationRequired(true)
+                    .sse(isFluxReturning(method))
+                    .build())
         .forEach(fieldActions::add);
 
     return fieldActions;
+  }
+
+  private static boolean isFluxReturning(Method method) {
+    return Flux.class.isAssignableFrom(method.getReturnType());
   }
 
   private FieldActionCollector() {}
