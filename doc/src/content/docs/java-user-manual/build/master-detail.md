@@ -77,12 +77,10 @@ record Step(
 
 Inside the Process screen:
 
-- list of steps
-- create step
-- edit step
-- delete step
+- list of steps (scoped by `processId`)
+- readonly detail view per step
 
-All scoped by `processId`
+If you need create/edit/delete on the child, extend `AutoCrudOrchestrator` instead.
 
 ---
 
@@ -108,7 +106,7 @@ Because:
 flowchart TD
     P["ProcessPage\nid · name · Callable&lt;?&gt; steps"]
     P -->|resolves after hydration| S["Steps\nextends AutoListOrchestrator&lt;Step&gt;\nscoped by processId"]
-    S --> CR["Full CRUD on Step\nlist · create · edit · delete"]
+    S --> CR["Read-only on Step\nlist · view"]
 ```
 
 - parent → state + composition

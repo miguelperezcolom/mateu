@@ -68,9 +68,11 @@ public class Steps extends AutoListOrchestrator<Step> { ... }
 
 This gives you:
 
-- full CRUD behavior
+- list + readonly detail view (no edit or create)
 - independent lifecycle
 - master-detail UI
+
+For full CRUD on the child (create/edit/delete), use `AutoCrudOrchestrator` instead.
 
 ---
 
@@ -81,7 +83,8 @@ flowchart TD
     Q{What do you need?}
     Q -->|Select & display a related entity| L["@Lookup\nreference — lightweight, decoupled"]
     Q -->|Editable embedded structure| S["List&lt;Entity&gt;\nstructure — not a relationship"]
-    Q -->|Full CRUD for child entities| E["Embedded orchestrator\nCallable&lt;?&gt; → AutoListOrchestrator"]
+    Q -->|Read-only child list + view| E["AutoListOrchestrator\nCallable&lt;?&gt; — list · view only"]
+    Q -->|Full CRUD for child entities| F["AutoCrudOrchestrator\nCallable&lt;?&gt; — list · view · edit · create"]
 ```
 
 - `@Lookup` → reference (lightweight, decoupled)

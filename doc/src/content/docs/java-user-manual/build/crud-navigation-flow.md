@@ -157,9 +157,43 @@ Use `@Route(value = "...", uis = {"/route"})` to bind any custom page into the C
 
 ---
 
+## Read-only variant: AutoListOrchestrator
+
+If you only need list + detail view (no editing or creating), extend `AutoListOrchestrator` instead:
+
+```java
+@Service
+@UI("/products")
+public class ProductsPage extends AutoListOrchestrator<Product> {
+
+    final ProductListAdapter productAdapter;
+
+    public ProductsPage(ProductListAdapter productAdapter) {
+        this.productAdapter = productAdapter;
+    }
+
+    @Override
+    public AutoListAdapter<Product> simpleAdapter() {
+        return productAdapter;
+    }
+}
+```
+
+Routes generated:
+
+| Route | Purpose |
+|---|---|
+| `/products` | List (no New / Delete buttons) |
+| `/products/:id` | Readonly detail view |
+
+There is no edit or create route. `readOnly()` returns `true` automatically.
+
+---
+
 ## Mental model
 
 - `AutoCrudOrchestrator` generates the full flow: list, view, edit, create
+- `AutoListOrchestrator` generates a read-only subset: list + view only
 - Default navigation goes: list → readonly detail → edit (not directly to edit)
 - Custom pages bind into the flow with `@Route(uis = "/route")`
 - URL parameters are mapped to same-named fields automatically
