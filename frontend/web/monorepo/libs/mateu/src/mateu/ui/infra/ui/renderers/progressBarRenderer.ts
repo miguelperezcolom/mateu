@@ -5,7 +5,6 @@ import { html, nothing } from "lit";
 export const renderProgressBar = (component: ClientSideComponent, state: Record<string, unknown> = {}) => {
     const metadata = component.metadata as ProgressBar
     const value = metadata.valueKey ? state[metadata.valueKey] as number : metadata.value
-
     return html`
         <div style="${component.style}">
         <vaadin-progress-bar

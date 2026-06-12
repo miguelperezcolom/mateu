@@ -57,7 +57,11 @@ public class LongTask {
                 .content(
                     List.of(
                         new Text("${state.progressText}"),
-                        ProgressBar.builder().valueKey(PROGRESS_VALUE_KEY).build()))
+                        ProgressBar.builder()
+                                .valueKey(PROGRESS_VALUE_KEY)
+                                .style("width: 100%;")
+                                .build()))
+                .style("width: 100%;")
                 .build()
             : new Text("${state.progressText}");
 

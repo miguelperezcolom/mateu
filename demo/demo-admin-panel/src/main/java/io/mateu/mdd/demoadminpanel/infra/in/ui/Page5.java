@@ -26,10 +26,11 @@ public class Page5 {
     @Action(validationRequired = false)
     Flux<?> doSomethingLong() {
         return LongTask.create("Procesando...")
+                .withProgressBar()
                 .done("Terminado", "Hecho")
                 .run(progress -> Flux.range(1, 10)
-                        .delayElements(java.time.Duration.ofMillis(100))
-                        .map(i -> progress.step("Mensajes procesados: " + i)));
+                        .delayElements(java.time.Duration.ofMillis(2000))
+                        .map(i -> progress.step("Mensajes procesados: " + i, i / 10d)));
     }
 
 }

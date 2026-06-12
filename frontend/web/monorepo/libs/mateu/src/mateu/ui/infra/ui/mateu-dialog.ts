@@ -100,7 +100,7 @@ export class MateuDialog extends ComponentElement {
                 width="${metadata.width??nothing}"
                 height="${metadata.height??nothing}"
                 ${metadata.header || metadata.closeButtonOnHeader?dialogHeaderRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${metadata.header?renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData):nothing}${metadata.closeButtonOnHeader?html`
+            () => html`<mateu-event-interceptor .target="${this}" style="width: 100%;">${metadata.header?renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData):nothing}${metadata.closeButtonOnHeader?html`
                             <vaadin-button theme="tertiary" @click="${this.close}">
                                 <vaadin-icon icon="lumo:cross"></vaadin-icon>
                             </vaadin-button>
@@ -108,11 +108,11 @@ export class MateuDialog extends ComponentElement {
             [this.state, this.data]
         ):nothing}
                 ${metadata.footer?dialogFooterRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.footer, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
+            () => html`<mateu-event-interceptor .target="${this}" style="width: 100%;">${renderComponent(this, metadata.footer, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
             [this.state, this.data]
         ):nothing}
                 ${metadata.content?dialogRenderer(
-            () => html`<mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.content, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
+            () => html`<mateu-event-interceptor .target="${this}" style="width: 100%;">${renderComponent(this, metadata.content, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
             [this.state, this.data]
         ):nothing}
                 style="${this.component?.style}" 
