@@ -36,6 +36,28 @@ public Flux<?> generateReport() {
 
 To also update the dialog title during progress, use `progress.step(text, title)`.
 
+#### With a progress bar
+
+Add `.withProgressBar()` to show a determinate progress bar inside the dialog. Pass a `double` between `0.0` and `1.0` as the second argument to `step()`:
+
+```java
+@Button
+@Action(validationRequired = false)
+public Flux<?> importData() {
+    return LongTask.create("Importing data...")
+            .withProgressBar()
+            .done("Done", "Import complete")
+            .run(progress -> importService.rows()
+                    .map(row -> progress.step(
+                            "Imported: " + row.name(),
+                            row.index() / (double) row.total())));
+}
+```
+
+You can also update the dialog title at the same time: `progress.step(text, title, progress)`.
+
+When the flux completes, the bar automatically fills to 1.0.
+
 If the action reads form fields, validation runs before the method is called by default. Add `@Action(validationRequired = false)` to skip it.
 
 ### Non-blocking launch
@@ -82,11 +104,12 @@ Generate report
 
   [Start report]
 
-  ─────────────────────────────────
-  ████████████████░░░░  67%
-  Processing 1,234 of 1,841 records…
-
-  [Cancel]
+  ┌─────────────────────────────────────┐
+  │ Generating report...                │
+  │                                     │
+  │ Processing record 1,234 of 1,841    │
+  │ ████████████████░░░░░░░░░░░  67%   │
+  └─────────────────────────────────────┘
 ```
 
 After completion:
