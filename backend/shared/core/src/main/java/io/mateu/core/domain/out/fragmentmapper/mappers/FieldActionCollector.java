@@ -88,7 +88,7 @@ final class FieldActionCollector {
                 !field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
                     && (field.isAnnotationPresent(Button.class)
                         || field.isAnnotationPresent(Toolbar.class)))
-        .map(field -> Action.builder().id(field.getName()).build())
+        .map(field -> Action.builder().id(field.getName()).validationRequired(true).build())
         .forEach(fieldActions::add);
     getAllMethods(serverSideObject.getClass()).stream()
         .filter(
@@ -96,7 +96,13 @@ final class FieldActionCollector {
                 !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
                     && (method.isAnnotationPresent(Button.class)
                         || method.isAnnotationPresent(Toolbar.class)))
-        .map(method -> Action.builder().id(method.getName()).sse(isFluxReturning(method)).build())
+        .map(
+            method ->
+                Action.builder()
+                    .id(method.getName())
+                    .validationRequired(true)
+                    .sse(isFluxReturning(method))
+                    .build())
         .forEach(fieldActions::add);
 
     return fieldActions;
