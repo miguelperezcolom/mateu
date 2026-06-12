@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.pages.tests;
 
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.orchestrators.crudorchestrator.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.ListToolbarButton;
