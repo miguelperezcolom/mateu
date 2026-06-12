@@ -120,6 +120,29 @@ If you mutate fields but return `void`, those mutations are lost because the for
 
 ---
 
+## Flux — stream progress via SSE
+
+Returning a `Flux<?>` opens a Server-Sent Events stream. Each emitted value is sent to the client as it is produced, so long-running operations can push real-time progress without blocking.
+
+Use `LongTask` to show a progress dialog with minimal boilerplate:
+
+```java
+@Button
+@Action(validationRequired = false)
+public Flux<?> importData() {
+    return LongTask.create("Importing...")
+            .done("Done", "Import complete")
+            .run(progress -> dataService.importRows()
+                    .map(row -> progress.step("Imported: " + row.name())));
+}
+```
+
+The framework infers SSE automatically from the `Flux` return type — no `@Action(sse = true)` needed.
+
+See [Long-Running Jobs](/ux-patterns/long-running-jobs/) for the full pattern.
+
+---
+
 ## Combining effects — return a List
 
 Return a `List<?>` to apply multiple effects in a single response. See [Returning multiple results](./multiple-results/) for details.
@@ -146,6 +169,7 @@ public List<?> save() {
 | `URI` | Navigate to URL |
 | Another ViewModel | Render new page |
 | `UICommand` | Low-level browser command |
+| `Flux<?>` | Stream progress via SSE |
 | `List<?>` | Multiple effects |
 | `void` / `null` | Nothing |
 
