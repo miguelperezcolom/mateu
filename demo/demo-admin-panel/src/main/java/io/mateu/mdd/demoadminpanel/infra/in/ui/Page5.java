@@ -1,5 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.data.LongTask;
@@ -22,6 +23,7 @@ public class Page5 {
 
 
     @Button
+    @Action(validationRequired = false)
     Flux<?> doSomethingLong() {
         return LongTask.create("Procesando...")
                 .done("Terminado", "Hecho")
