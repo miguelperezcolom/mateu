@@ -41,7 +41,7 @@ public class ProgressReporter {
   /**
    * Updates both the dialog body text and the header title.
    *
-   * @param text  new status message
+   * @param text new status message
    * @param title new dialog header title
    */
   public Object step(String text, String title) {
@@ -56,7 +56,7 @@ public class ProgressReporter {
    *
    * <p>Has no effect on the bar if {@link LongTask#withProgressBar()} was not called.
    *
-   * @param text     new status message
+   * @param text new status message
    * @param progress value between {@code 0.0} (empty) and {@code 1.0} (full)
    */
   public Object step(String text, double progress) {
@@ -71,8 +71,8 @@ public class ProgressReporter {
    *
    * <p>Has no effect on the bar if {@link LongTask#withProgressBar()} was not called.
    *
-   * @param text     new status message
-   * @param title    new dialog header title
+   * @param text new status message
+   * @param title new dialog header title
    * @param progress value between {@code 0.0} (empty) and {@code 1.0} (full)
    */
   public Object step(String text, String title, double progress) {

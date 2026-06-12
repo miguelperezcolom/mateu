@@ -15,16 +15,16 @@ import reactor.core.publisher.Flux;
 /**
  * Fluent builder for long-running operations that stream progress to the UI via SSE.
  *
- * <p>{@code LongTask} opens a modal progress dialog when the action starts, keeps it updated as
- * the underlying {@link Flux} emits items, and optionally closes it or runs follow-up commands when
- * the flux completes. Internally it composes a {@code Flux.concat} of three segments:
+ * <p>{@code LongTask} opens a modal progress dialog when the action starts, keeps it updated as the
+ * underlying {@link Flux} emits items, and optionally closes it or runs follow-up commands when the
+ * flux completes. Internally it composes a {@code Flux.concat} of three segments:
  *
  * <ol>
  *   <li><b>Opening event</b> — sends a {@link Dialog} component to the frontend, creating the
  *       progress dialog with an initial title and status text.
- *   <li><b>Work flux</b> — the caller's flux, whose items must be produced via
- *       {@link ProgressReporter#step}. Each step updates the dialog text (and optionally the
- *       progress bar value) in real time.
+ *   <li><b>Work flux</b> — the caller's flux, whose items must be produced via {@link
+ *       ProgressReporter#step}. Each step updates the dialog text (and optionally the progress bar
+ *       value) in real time.
  *   <li><b>Closing event</b> — updates the dialog to its final state, then dispatches any
  *       configured {@link UICommand}s and schedules auto-close if requested.
  * </ol>
@@ -78,8 +78,8 @@ public class LongTask {
    * Creates a new {@code LongTask} with the given dialog title.
    *
    * <p>The title is shown in the dialog header while the task is running. It can be changed during
-   * execution via {@link ProgressReporter#step(String, String)} or
-   * {@link ProgressReporter#step(String, String, double)}.
+   * execution via {@link ProgressReporter#step(String, String)} or {@link
+   * ProgressReporter#step(String, String, double)}.
    *
    * @param title initial title displayed in the progress dialog header
    */
@@ -94,7 +94,7 @@ public class LongTask {
    * {@link ProgressReporter#step} call.
    *
    * @param doneTitle header text to display on completion
-   * @param doneText  body text to display on completion
+   * @param doneText body text to display on completion
    */
   public LongTask done(String doneTitle, String doneText) {
     this.doneTitle = doneTitle;
