@@ -9,6 +9,7 @@ public record ProgressBar(
     int min,
     int max,
     double value,
+    String valueKey,
     String text,
     String theme,
     String style,

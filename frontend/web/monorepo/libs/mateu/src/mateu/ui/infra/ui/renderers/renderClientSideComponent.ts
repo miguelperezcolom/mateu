@@ -319,7 +319,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderNotification(component)
         }
         if (type == ComponentMetadataType.ProgressBar) {
-            return renderProgressBar(component)
+            return renderProgressBar(component, state)
         }
         if (type == ComponentMetadataType.Popover) {
             return renderPopover(container, component, baseUrl, state, data, appState, appData)

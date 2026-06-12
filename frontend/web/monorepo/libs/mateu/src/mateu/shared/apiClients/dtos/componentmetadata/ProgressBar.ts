@@ -6,6 +6,7 @@ export default interface ProgressBar extends ComponentMetadata {
     min: number
     max: number
     value: number
+    valueKey: string
     text: string
     theme: string
 

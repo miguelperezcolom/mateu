@@ -14,6 +14,7 @@ public class ProgressBarMapper {
             progressBar.min(),
             progressBar.max(),
             progressBar.value(),
+            progressBar.valueKey(),
             progressBar.text(),
             progressBar.theme()),
         "fieldId",
