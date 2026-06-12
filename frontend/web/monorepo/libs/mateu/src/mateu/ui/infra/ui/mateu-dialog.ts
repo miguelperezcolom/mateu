@@ -19,6 +19,7 @@ import {dialogFooterRenderer, dialogHeaderRenderer, dialogRenderer} from "@vaadi
 import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
 import ComponentElement from "@infra/ui/ComponentElement.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 
 
 @customElement('mateu-dialog')
@@ -30,6 +31,14 @@ export class MateuDialog extends ComponentElement {
     close = () => {
         this.opened = false
         setTimeout(() => this.parentElement?.removeChild(this), 500)
+    }
+
+    applyFragment(fragment: UIFragment) {
+        super.applyFragment(fragment)
+        const millis = fragment.state?.['_closeAfterMillis'] as number | undefined
+        if (millis) {
+            setTimeout(() => this.close(), millis)
+        }
     }
 
     updated(_changedProperties: any) {

@@ -11,15 +11,26 @@ Give asynchronous processes a dignified UX without freezing the interface.
 
 ## Problem
 
-A process that takes seconds or minutes and blocks the entire screen is the *Spinner Prison*: the user cannot do anything and does not know if the system is still alive. Long operations must be launched, tracked, and reacted to without a hard block.
+A process that takes seconds or minutes and blocks the entire screen is the *Spinner Prison*: the
+user cannot do anything and does not know if the system is still alive. Long operations must be
+launched, tracked, and reacted to without a hard block.
 
 ## Solution
 
-### Live progress via SSE
+Mateu offers three strategies depending on how much feedback the operation can provide:
 
-Return a `Flux<?>` from a `@Button` method. Mateu automatically streams the emitted values to the client via SSE — no extra annotation needed.
+| Strategy | When to use |
+|---|---|
+| `LongTask` + `Flux<?>` | Operation emits incremental steps; show a live progress dialog |
+| `Flux<?>` (low-level) | Need full control over what is streamed to the client |
+| `@Action(background = true)` | Fire-and-forget; the UI stays interactive, no progress shown |
 
-Use `LongTask` to open a progress dialog without dealing with SSE internals:
+---
+
+## `LongTask` — live progress dialog
+
+`LongTask` is the high-level API for streaming progress to a modal dialog. Return the result of
+`LongTask.run(...)` directly from a `@Button` method:
 
 ```java
 @Button
@@ -32,13 +43,47 @@ public Flux<?> generateReport() {
 }
 ```
 
-`LongTask.create(title)` opens a progress dialog. Each call to `progress.step(text)` updates the dialog text. The optional `.done(title, text)` call sets the final state when the flux completes.
+Internally, `LongTask` composes a `Flux.concat` of three segments:
 
-To also update the dialog title during progress, use `progress.step(text, title)`.
+1. **Opening event** — sends a dialog component to the frontend, showing the progress dialog.
+2. **Work flux** — your flux, streamed live as each `progress.step(...)` is emitted.
+3. **Closing event** — updates the dialog to its final state and dispatches any configured commands.
 
-#### With a progress bar
+### `LongTask` builder methods
 
-Add `.withProgressBar()` to show a determinate progress bar inside the dialog. Pass a `double` between `0.0` and `1.0` as the second argument to `step()`:
+| Method | Description |
+|---|---|
+| `LongTask.create(title)` | Opens the dialog with the given header title |
+| `.done(doneTitle, doneText)` | Sets the header and body shown when the flux completes |
+| `.withProgressBar()` | Adds a determinate progress bar to the dialog |
+| `.closeAfter(seconds)` | Auto-closes the dialog N seconds after completion |
+| `.withCommand(commands…)` | Dispatches `UICommand`s when the task completes |
+| `.run(work)` | Builds the flux; returns this to the `@Button` method |
+
+### Updating progress with `ProgressReporter`
+
+The `work` lambda receives a `ProgressReporter`. Each call to `step(...)` returns the SSE payload
+that must be emitted by the flux — it is not a side-effect:
+
+```java
+.run(progress -> items
+        .map(item -> progress.step("Processing: " + item.name())))
+```
+
+`ProgressReporter` offers four overloads:
+
+| Signature | Updates |
+|---|---|
+| `step(text)` | Dialog body text |
+| `step(text, title)` | Dialog body text + header title |
+| `step(text, progress)` | Dialog body text + progress bar (0.0 – 1.0) |
+| `step(text, title, progress)` | Dialog body text + header title + progress bar |
+
+### Progress bar
+
+Add `.withProgressBar()` to show a determinate progress bar. Pass a `double` between `0.0` and
+`1.0` as the progress argument to `step()`. The bar automatically fills to `1.0` when the flux
+completes.
 
 ```java
 @Button
@@ -54,15 +99,85 @@ public Flux<?> importData() {
 }
 ```
 
-You can also update the dialog title at the same time: `progress.step(text, title, progress)`.
+### Auto-closing the dialog
 
-When the flux completes, the bar automatically fills to 1.0.
+Add `.closeAfter(seconds)` to close the dialog automatically once the task finishes, without
+requiring the user to dismiss it manually. Useful for fire-and-forget operations where the final
+message is informational:
 
-If the action reads form fields, validation runs before the method is called by default. Add `@Action(validationRequired = false)` to skip it.
+```java
+LongTask.create("Importing data...")
+        .withProgressBar()
+        .done("Done", "Import complete")
+        .closeAfter(3)
+        .run(progress -> ...);
+```
 
-### Non-blocking launch
+### Running a command on completion
 
-Set `background = true` on the action. The server starts the job and returns immediately; the UI remains interactive.
+Add `.withCommand(UICommand...)` to execute one or more UI commands when the task finishes.
+Commands run immediately after the dialog is updated to its final state, before any auto-close
+timer fires. Multiple commands are supported:
+
+```java
+LongTask.create("Importing data...")
+        .withProgressBar()
+        .done("Done", "Import complete")
+        .closeAfter(2)
+        .withCommand(UICommand.navigateTo("/results"))
+        .run(progress -> ...);
+```
+
+Available commands and their behaviour from a dialog element:
+
+| Command | Works | Notes |
+|---|---|---|
+| `UICommand.navigateTo(url)` | ✅ | Changes `window.location.href`; relative and absolute URLs |
+| `UICommand.pushStateToHistory(url)` | ✅ | Pushes a history entry without full reload |
+| `UICommand.dispatchEvent(name, detail)` | ✅ | Dispatches a custom DOM event that bubbles up |
+| `UICommand.runAction(actionId, targetId)` | ✅ | Triggers an action on a specific component |
+| `UICommand.runAction(actionId)` | ⚠️ | Requires the dialog to handle action events; prefer the two-arg form |
+| `CloseModal` | ❌ | Use `.closeAfter(seconds)` instead |
+
+### Validation
+
+If the action reads form fields, validation runs before the method is called by default. Add
+`@Action(validationRequired = false)` to skip it — common for operations that don't depend on
+the current form values:
+
+```java
+@Button
+@Action(validationRequired = false)
+public Flux<?> doSomethingLong() { ... }
+```
+
+---
+
+## Low-level `Flux<?>` streaming
+
+When you need full control over what is streamed, return a `Flux<?>` directly and emit any
+supported UI effect type. The framework maps each emitted value to an SSE event and sends it to
+the client:
+
+```java
+@Button
+public Flux<?> streamResults() {
+    return service.processItems()
+            .map(item -> Message.info("Processed: " + item.name()))
+            .concatWith(Flux.just(Message.success("All done")));
+}
+```
+
+Supported emit types include `Message`, `UICommand`, `UIFragmentDto`, `UIIncrementDto`, and any
+object that the reflection mapper can convert to a component.
+
+---
+
+## Non-blocking launch
+
+Set `background = true` to start the job and return immediately. The UI stays interactive; no
+progress dialog is shown. Use this for operations where the outcome is reported separately (e.g.
+via email, a refresh, or polling).
 
 ```java
 @Button
@@ -72,13 +187,11 @@ public void generateReport() {
 }
 ```
 
-### Live progress via SSE (low-level)
+---
 
-When you need full control over what gets streamed, return a `Flux<?>` directly and emit any supported UI effect type. The framework streams each emitted value to the client as an SSE event.
+## Polling with `@Trigger`
 
-### Polling with `@Trigger`
-
-When push is not available, use `@Trigger` to poll for state:
+When push is not available, use `@Trigger` to poll for state at regular intervals:
 
 ```java
 @Trigger(type = TriggerType.OnLoad, times = 20, timeoutMillis = 3000)
@@ -87,40 +200,37 @@ public JobStatus checkStatus() {
 }
 ```
 
-### Reacting to outcome
-
-```java
-@Trigger(type = TriggerType.OnSuccess)
-public View onJobSuccess() { ... }
-
-@Trigger(type = TriggerType.OnError)
-public View onJobError() { ... }
-```
+---
 
 ## Structure
 
-```
-Generate report
-
-  [Start report]
-
-  ┌─────────────────────────────────────┐
-  │ Generating report...                │
-  │                                     │
-  │ Processing record 1,234 of 1,841    │
-  │ ████████████████░░░░░░░░░░░  67%   │
-  └─────────────────────────────────────┘
-```
-
-After completion:
+Progress dialog while running:
 
 ```
-  ✓ Report ready — 1,841 records processed in 4.2 s
-  [Download]  [View online]
+  ┌──────────────────────────────────────┐
+  │ Generating report...              ✕  │
+  ├──────────────────────────────────────┤
+  │ Processing record 1,234 of 1,841     │
+  │ ████████████████░░░░░░░░░░  67%     │
+  └──────────────────────────────────────┘
 ```
+
+Dialog after completion (with `.done()`):
+
+```
+  ┌──────────────────────────────────────┐
+  │ Done                              ✕  │
+  ├──────────────────────────────────────┤
+  │ Report generated                     │
+  │ ██████████████████████████  100%    │
+  └──────────────────────────────────────┘
+```
+
+---
 
 ## Principles served
 
-- **Recoverability** — the user can cancel; errors surface as actionable feedback
 - **Preserve context** — the rest of the UI stays usable while the job runs
+- **Feedback** — the user sees live progress rather than a frozen screen
+- **Recoverability** — the user can close the dialog; errors surface as actionable feedback
 - **Consistency** — progress and outcome feedback follow the same pattern everywhere

@@ -5,6 +5,7 @@ import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.data.LongTask;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.UICommand;
 import jakarta.validation.constraints.NotEmpty;
 import reactor.core.publisher.Flux;
 
@@ -28,6 +29,8 @@ public class Page5 {
         return LongTask.create("Procesando...")
                 .withProgressBar()
                 .done("Terminado", "Hecho")
+                .closeAfter(3)
+                .withCommand(UICommand.navigateTo("/xxxx"))
                 .run(progress -> Flux.range(1, 10)
                         .delayElements(java.time.Duration.ofMillis(2000))
                         .map(i -> progress.step("Mensajes procesados: " + i, i / 10d)));
