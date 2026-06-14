@@ -1,228 +1,301 @@
 ---
 title: "Full control with CrudOrchestrator"
+description: "Explicit separate models for filters, rows, view, editor, and creation form."
 ---
 
-Mateu provides different levels of CRUD abstraction.
+`CrudOrchestrator` is the most flexible CRUD base class in Mateu. It lets you define a separate type for every screen — filters, grid rows, read-only detail, edit form, and creation form — while the framework still handles all routing and navigation automatically.
 
-Most applications start with:
+Use it when `AutoCrudOrchestrator<T>` or `FilteredAutoCrudOrchestrator<F,R>` are not enough because different screens need genuinely different models.
 
-- `AutoCrudOrchestrator<T>`
+---
 
-But when you need full control over:
-
-- filters
-- listing rows
-- view forms
-- edit forms
-- creation forms
-
-you should use:
+## Class signature
 
 ```java
-CrudOrchestrator<
+public abstract class CrudOrchestrator<
     View,
     Editor extends CrudEditorForm<IdType>,
     CreationForm extends CrudCreationForm<IdType>,
     Filters,
     Row,
-    IdType
->
+    IdType>
 ```
 
----
-
-## When to use CrudOrchestrator
-
-Use it when:
-
-- filters need a custom model
-- listing rows differ from the domain model
-- creation form differs from edit form
-- view form differs from edit form
-- you need full control over layout and behavior
-
----
-
-## Type parameters explained
+### Type parameters
 
 | Type | Meaning |
-|------|--------|
-| `View` | Readonly detail representation |
-| `Editor` | Edit form |
-| `CreationForm` | Creation form |
-| `Filters` | Filters / search state |
-| `Row` | Row representation in list |
-| `IdType` | Identifier type |
+|---|---|
+| `View` | The object rendered in the read-only detail screen |
+| `Editor` | The form shown in the edit screen — must implement `CrudEditorForm<IdType>` |
+| `CreationForm` | The form shown in the create screen — must implement `CrudCreationForm<IdType>` |
+| `Filters` | The filter bar DTO |
+| `Row` | The DTO shown as a grid row in the listing |
+| `IdType` | The type of the entity identifier (usually `String`) |
 
 ---
 
-## Example
+## Routes generated
+
+| Route | Screen |
+|---|---|
+| `/your-route` | Listing with filter bar |
+| `/your-route/:id` | Read-only detail (`View`) |
+| `/your-route/:id/edit` | Edit form (`Editor`) |
+| `/your-route/new` | Create form (`CreationForm`) |
+
+---
+
+## Abstract methods to implement
+
+### On the orchestrator
+
+| Method | Return type | Purpose |
+|---|---|---|
+| `adapter()` | `CrudAdapter<View,Editor,CreationForm,Filters,Row,IdType>` | The data layer that backs all operations |
+| `editorClass()` | `Class<Editor>` | Class of the editor form |
+| `creationFormClass()` | `Class<CreationForm>` | Class of the creation form |
+| `toId(String id)` | `IdType` | Converts the URL string id to the actual `IdType` |
+| `getIdFieldForRow()` | `String` | Field name in `Row` that holds the identifier |
+| `search(searchText, filters, pageable, httpRequest)` | `Object` | Executes the filtered search and returns `ListingData<Row>` |
+| `save(httpRequest)` | `Object` | Persists the edit form |
+| `saveNew(httpRequest)` | `Object` | Persists the creation form |
+
+### On the adapter (`CrudAdapter`)
+
+| Method | Purpose |
+|---|---|
+| `search(searchText, filters, pageable, httpRequest)` | Returns `ListingData<Row>` |
+| `getView(id, httpRequest)` | Returns the `View` object |
+| `getEditor(id, httpRequest)` | Returns the `Editor` object |
+| `getCreationForm(httpRequest)` | Returns a blank `CreationForm` |
+| `deleteAllById(ids, httpRequest)` | Deletes selected rows |
+
+---
+
+## Required interfaces
+
+### CrudEditorForm&lt;IdType&gt;
+
+The editor must implement this interface:
 
 ```java
-@UI("/products")
-public class Products extends CrudOrchestrator<
-        ProductView,
-        ProductEditor,
-        ProductCreationForm,
-        ProductFilters,
-        ProductRow,
-        String> {
-
-    final ProductService service;
-
-    public Products(ProductService service) {
-        this.service = service;
-    }
-
-    @Override
-    public List<ProductRow> list(ProductFilters filters) {
-        return service.search(filters);
-    }
-
-    @Override
-    public ProductView view(String id) {
-        return service.findView(id);
-    }
-
-    @Override
-    public ProductEditor edit(String id) {
-        return service.findEditor(id);
-    }
-
-    @Override
-    public ProductCreationForm create() {
-        return new ProductCreationForm();
-    }
-
-    @Override
-    public String save(ProductEditor editor) {
-        return service.save(editor);
-    }
-
-    @Override
-    public String create(ProductCreationForm form) {
-        return service.create(form);
-    }
+public interface CrudEditorForm<IdType> {
+    void save(HttpRequest httpRequest);
+    IdType id();
 }
 ```
 
----
+`save()` is called when the user submits the edit form. `id()` is used to navigate back to the detail view after saving.
 
-## Example models
+### CrudCreationForm&lt;IdType&gt;
 
-### Row (listing)
+The creation form must implement this interface:
 
 ```java
-public record ProductRow(
-    String id,
-    String name,
-    BigDecimal price
-) {}
+public interface CrudCreationForm<IdType> {
+    IdType create(HttpRequest httpRequest);
+}
 ```
+
+`create()` is called when the user submits the creation form. It returns the id of the newly created entity.
 
 ---
 
-### Filters
+## Full example
+
+### Models
 
 ```java
 public record ProductFilters(
-    String searchText,
+    String name,
     ProductStatus status
 ) {}
 ```
 
----
-
-### View
+```java
+public record ProductRow(
+    @PrimaryKey String id,
+    String name,
+    BigDecimal price,
+    ProductStatus status
+) implements Identifiable {}
+```
 
 ```java
 public record ProductView(
     String id,
     String name,
+    String description,
     BigDecimal price,
     ProductStatus status
 ) {}
 ```
 
----
-
-### Editor
-
 ```java
-public class ProductEditor extends CrudEditorForm<String> {
+public class ProductEditor implements CrudEditorForm<String> {
 
     public String id;
+
+    @NotEmpty
     public String name;
+
+    public String description;
+
+    @NotNull
     public BigDecimal price;
+
+    public ProductStatus status;
+
+    @Override
+    public String id() { return id; }
+
+    @Override
+    public void save(HttpRequest httpRequest) {
+        // persist changes — inject services via constructor or Spring
+    }
 }
 ```
-
----
-
-### Creation form
 
 ```java
-public class ProductCreationForm extends CrudCreationForm<String> {
+public class ProductCreationForm implements CrudCreationForm<String> {
 
+    @NotEmpty
     public String name;
+
+    @NotNull
     public BigDecimal price;
+
+    @Override
+    public String create(HttpRequest httpRequest) {
+        // create and persist — return the new entity's id
+        return UUID.randomUUID().toString();
+    }
+}
+```
+
+### Adapter
+
+```java
+@Service
+public class ProductCrudAdapter
+    implements CrudAdapter<ProductView, ProductEditor, ProductCreationForm, ProductFilters, ProductRow, String> {
+
+    private final ProductService service;
+
+    public ProductCrudAdapter(ProductService service) {
+        this.service = service;
+    }
+
+    @Override
+    public ListingData<ProductRow> search(
+            String searchText, ProductFilters filters, Pageable pageable, HttpRequest httpRequest) {
+        return service.search(searchText, filters, pageable);
+    }
+
+    @Override
+    public ProductView getView(String id, HttpRequest httpRequest) {
+        return service.findView(id);
+    }
+
+    @Override
+    public ProductEditor getEditor(String id, HttpRequest httpRequest) {
+        return service.findEditor(id);
+    }
+
+    @Override
+    public ProductCreationForm getCreationForm(HttpRequest httpRequest) {
+        return new ProductCreationForm();
+    }
+
+    @Override
+    public void deleteAllById(List<String> ids, HttpRequest httpRequest) {
+        service.deleteAll(ids);
+    }
+}
+```
+
+### Orchestrator
+
+```java
+@Service
+@UI("/products")
+public class ProductOrchestrator
+    extends CrudOrchestrator<ProductView, ProductEditor, ProductCreationForm, ProductFilters, ProductRow, String> {
+
+    private final ProductCrudAdapter adapter;
+
+    public ProductOrchestrator(ProductCrudAdapter adapter) {
+        this.adapter = adapter;
+    }
+
+    @Override
+    public CrudAdapter<ProductView, ProductEditor, ProductCreationForm, ProductFilters, ProductRow, String> adapter() {
+        return adapter;
+    }
+
+    @Override
+    public Class<ProductEditor> editorClass() { return ProductEditor.class; }
+
+    @Override
+    public Class<ProductCreationForm> creationFormClass() { return ProductCreationForm.class; }
+
+    @Override
+    public String toId(String id) { return id; }
+
+    @Override
+    public String getIdFieldForRow() { return "id"; }
+
+    @Override
+    public Object search(String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
+        return adapter.search(searchText, (ProductFilters) filters, pageable, httpRequest);
+    }
+
+    @Override
+    public Object save(HttpRequest httpRequest) {
+        var editor = httpRequest.getComponentState(ProductEditor.class);
+        editor.save(httpRequest);
+        return editor.id();
+    }
+
+    @Override
+    public Object saveNew(HttpRequest httpRequest) {
+        var form = httpRequest.getComponentState(ProductCreationForm.class);
+        return form.create(httpRequest);
+    }
 }
 ```
 
 ---
 
-## Why this exists
+## Optional overrides
 
-`AutoCrudOrchestrator` works best when:
-
-- domain model ≈ UI model
-
-But in real systems:
-
-- view != edit model
-- list != domain model
-- filters are complex
-- creation differs from editing
-
-`CrudOrchestrator` gives full control over these concerns.
+| Method | Default | Override to… |
+|---|---|---|
+| `readOnly()` | `false` | make the whole orchestrator read-only |
+| `view(id, httpRequest)` | calls `adapter().getView()` | customize the view before rendering |
+| `edit(id, httpRequest)` | calls `adapter().getEditor()` | customize the editor before rendering |
+| `searchable()` | `true` | hide the search bar |
+| `selectionEnabled()` | `true` | disable row selection |
+| `title()` | class name | override the page title |
 
 ---
 
-## Relationship with AutoCrudOrchestrator
+## Progression
 
-| Approach | Use case |
-|---------|--------|
-| `AutoCrudOrchestrator<T>` | Fast CRUD from domain model |
-| `FilteredAutoCrudOrchestrator<F,R>` | Custom filter model, same entity for forms |
-| `CrudOrchestrator<...>` | Full control |
+| Orchestrator | Filter type | Row type | Write | Separate forms |
+|---|---|---|---|---|
+| `AutoListOrchestrator<T>` | T | T | — | — |
+| `FilteredAutoListOrchestrator<F,R>` | F | R | — | — |
+| `AutoCrudOrchestrator<T>` | T | T | ✓ | — |
+| `FilteredAutoCrudOrchestrator<F,R>` | F | R | ✓ | — |
+| `CrudOrchestrator<V,E,C,F,R,Id>` | F | R | ✓ | ✓ |
 
----
-
-## Recommended progression
-
-1. Start with `AutoCrudOrchestrator`
-2. Customize using annotations
-3. Add a custom filter model with `FilteredAutoCrudOrchestrator`
-4. Move to `CrudOrchestrator` only when view/editor/creation forms must differ
-
----
-
-## Summary
-
-`CrudOrchestrator` is the most flexible way to build CRUD UIs in Mateu.
-
-It lets you:
-
-- decouple UI from domain model
-- model each UI layer explicitly
-- implement complex business flows
-
-Use it when the automatic approach is not enough.
+Move to `CrudOrchestrator` only when the view/editor/creation forms must differ from each other or from the row model. The simpler variants cover most real-world cases.
 
 ---
 
 ## Next
 
-- [Master-detail](/java-user-manual/build/master-detail/) — embedding a child CRUD inside a parent screen using `Callable<?>`
+- [Master-detail](/java-user-manual/build/master-detail/) — embedding a child CRUD inside a parent screen
 - [Relationships vs embedded CRUDs](/java-user-manual/build/relationships-vs-embedded-cruds/) — choosing between `@Lookup`, `List<Entity>`, and an embedded orchestrator
-- [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — a complete business UI that combines orchestrators, lookups, and master-detail
+- [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — a complete business UI combining all of the above
