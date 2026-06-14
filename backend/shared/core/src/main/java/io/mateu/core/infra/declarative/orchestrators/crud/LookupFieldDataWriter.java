@@ -4,7 +4,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.LabelSupplier;
+import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +17,7 @@ final class LookupFieldDataWriter {
   static void writeField(
       Field field,
       Object item,
-      LabelSupplier labelSupplier,
+      LookupLabelSupplier labelSupplier,
       Map<String, Object> data,
       HttpRequest httpRequest) {
     if (Collection.class.isAssignableFrom(field.getType())) {

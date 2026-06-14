@@ -19,7 +19,7 @@ final class StandardFormFieldBuilder {
       boolean forCreationForm) {
     return FormField.builder()
         .id(getFieldId(field, prefix, readOnly))
-        .label(getLabel(field))
+        .label(getLabel(field, instance, httpRequest))
         .dataType(getDataType(field))
         .style(getStyle(field, instance, httpRequest))
         .stereotype(getStereotype(field))

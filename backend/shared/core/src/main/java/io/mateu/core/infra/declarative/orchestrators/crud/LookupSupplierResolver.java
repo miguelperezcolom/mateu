@@ -3,7 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.di.MateuBeanProvider;
-import io.mateu.uidl.interfaces.LabelSupplier;
+import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import io.mateu.uidl.interfaces.Selector;
 import java.lang.reflect.Field;
@@ -18,7 +18,7 @@ final class LookupSupplierResolver {
       var lookup = field.getAnnotation(Searchable.class);
       supplierType = lookup.selector();
     }
-    if (LabelSupplier.class.equals(supplierType)) {
+    if (LookupLabelSupplier.class.equals(supplierType)) {
       if (instance instanceof Selector supplier) {
         return supplier;
       }
@@ -32,8 +32,8 @@ final class LookupSupplierResolver {
   }
 
   @SneakyThrows
-  static LabelSupplier getLabelSupplier(Object instance, Field field) {
-    Class<? extends LabelSupplier> supplierType = null;
+  static LookupLabelSupplier getLookupLabelSupplier(Object instance, Field field) {
+    Class<? extends LookupLabelSupplier> supplierType = null;
     if (field.isAnnotationPresent(Lookup.class)) {
       var lookup = field.getAnnotation(Lookup.class);
       supplierType = lookup.label();
@@ -42,8 +42,8 @@ final class LookupSupplierResolver {
       var lookup = field.getAnnotation(Searchable.class);
       supplierType = lookup.label();
     }
-    if (LabelSupplier.class.equals(supplierType)) {
-      if (instance instanceof LabelSupplier supplier) {
+    if (LookupLabelSupplier.class.equals(supplierType)) {
+      if (instance instanceof LookupLabelSupplier supplier) {
         return supplier;
       }
       return null;

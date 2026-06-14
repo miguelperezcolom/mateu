@@ -5,7 +5,7 @@ import io.mateu.core.infra.declarative.Listing;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
-import io.mateu.uidl.interfaces.LabelSupplier;
+import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import io.mateu.uidl.interfaces.SelectedItem;
 import io.mateu.uidl.interfaces.Selector;
 import io.mateu.uidl.data.ListingData;
@@ -19,7 +19,7 @@ record Row(String id, String name, String address) {}
 
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style("min-width: 40rem;")
-public class HotelSelector extends Listing<Filters, Row> implements Selector<String>, LabelSupplier {
+public class HotelSelector extends Listing<Filters, Row> implements Selector<String>, LookupLabelSupplier {
 
     String _fieldId;
 

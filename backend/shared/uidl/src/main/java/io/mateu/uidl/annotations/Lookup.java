@@ -1,6 +1,6 @@
 package io.mateu.uidl.annotations;
 
-import io.mateu.uidl.interfaces.LabelSupplier;
+import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -14,7 +14,7 @@ public @interface Lookup {
 
   Class<? extends LookupOptionsSupplier> search() default LookupOptionsSupplier.class;
 
-  Class<? extends LabelSupplier> label() default LabelSupplier.class;
+  Class<? extends LookupLabelSupplier> label() default LookupLabelSupplier.class;
 
   boolean bubble() default false;
 }

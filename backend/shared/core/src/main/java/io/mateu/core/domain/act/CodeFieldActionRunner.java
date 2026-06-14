@@ -1,7 +1,7 @@
 package io.mateu.core.domain.act;
 
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
-import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.getLabelSupplier;
+import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.getLookupLabelSupplier;
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
@@ -10,7 +10,7 @@ import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.LabelSupplier;
+import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import jakarta.inject.Named;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -39,7 +39,7 @@ public class CodeFieldActionRunner implements ActionRunner {
       var httpRequest = command.httpRequest();
       // search-field-childfield
       String fieldName = actionId.substring(actionId.indexOf('-') + 1);
-      LabelSupplier optionsSupplier = null;
+      LookupLabelSupplier optionsSupplier = null;
       Searchable fkAnnotation = null;
       if (fieldName.contains("-")) {
         var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
@@ -51,10 +51,11 @@ public class CodeFieldActionRunner implements ActionRunner {
                         .getGenericType(),
                 List.class,
                 "E");
-        optionsSupplier = getLabelSupplier(instance, getFieldByName(rowClass, childFieldName));
+        optionsSupplier =
+            getLookupLabelSupplier(instance, getFieldByName(rowClass, childFieldName));
       } else {
         optionsSupplier =
-            getLabelSupplier(
+            getLookupLabelSupplier(
                 instance, getFieldByName(getViewModelClass(instance, httpRequest), fieldName));
       }
 

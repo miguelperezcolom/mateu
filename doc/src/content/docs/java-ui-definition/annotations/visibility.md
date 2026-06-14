@@ -347,6 +347,49 @@ record CustomerRow(
 
 ---
 
+## LabelSupplier
+
+**Interface** — `io.mateu.uidl.interfaces.LabelSupplier`
+
+When a ViewModel implements `LabelSupplier`, Mateu calls `label()` on the server for every field before building the UIDL. A non-empty return value overrides any `@Label` annotation on the field; returning `null` or an empty string falls back to the annotation or to the humanized field name.
+
+```java
+public interface LabelSupplier {
+    String label(String memberName, HttpRequest httpRequest);
+}
+```
+
+### Example
+
+```java
+@UI("/invoices/{id}")
+public class InvoiceForm implements LabelSupplier {
+
+    public String type;
+    public String counterpart;
+
+    @Override
+    public String label(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "counterpart" -> "business".equals(type) ? "Company name" : "Full name";
+            default            -> null;
+        };
+    }
+}
+```
+
+### Comparison with @Label
+
+| | `@Label` | `LabelSupplier` |
+|---|---|---|
+| Evaluated | Server (static) | Server only |
+| Condition | Fixed text | Any Java logic |
+| Scope | Per field or method | Per ViewModel, all fields |
+
+> **Note:** `LabelSupplier` controls form field labels. For resolving the display text of a lookup value (given an id), use `LookupLabelSupplier` instead.
+
+---
+
 ## DescriptionSupplier
 
 **Interface** — `io.mateu.uidl.interfaces.DescriptionSupplier`

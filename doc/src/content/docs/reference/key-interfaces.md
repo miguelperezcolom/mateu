@@ -121,13 +121,21 @@ Typical use cases:
 
 ---
 
-## `LabelSupplier`
+## `LookupLabelSupplier`
 
 Defines how Mateu resolves the display label for a selected id/value.
 
 Use it with `@Lookup` or `@Searchable` when the raw value is not enough for UI rendering.
 
 In real applications, this is usually a Spring bean.
+
+---
+
+## `LabelSupplier`
+
+Provides field label text dynamically at request time, overriding any `@Label` annotation on the field. Return `null` or an empty string to fall back to the annotation or the humanized field name.
+
+Use it when field labels depend on runtime state (e.g., the same field shows different labels depending on the value of another field).
 
 ---
 
@@ -143,7 +151,7 @@ public interface Selector<IdType> {
 
 `selected()` must return a `SelectedItem` record containing the `id` and a `label`. The framework closes the modal and updates the annotated field with the returned id.
 
-Combine with `LabelSupplier` on the same class so the same bean handles both selection and label resolution.
+Combine with `LookupLabelSupplier` on the same class so the same bean handles both selection and label resolution.
 
 ---
 
@@ -210,5 +218,6 @@ Mateu interfaces mostly define extension points in four categories:
 
 - fluent UI composition
 - CRUD integration
-- dynamic option/label/selection resolution (`LookupOptionsSupplier`, `LabelSupplier`, `Selector`)
+- dynamic option/label/selection resolution (`LookupOptionsSupplier`, `LookupLabelSupplier`, `Selector`)
+- dynamic field metadata (`LabelSupplier`, `DescriptionSupplier`, `StyleSupplier`, `RequiredSupplier`, `ReadOnlySupplier`, `DisabledSupplier`, `VisibilitySupplier`)
 - dependency and runtime integration

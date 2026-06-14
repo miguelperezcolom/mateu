@@ -5,7 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.LabelSupplier;
+import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import io.mateu.uidl.interfaces.Selector;
 import java.lang.reflect.Field;
@@ -27,7 +27,7 @@ public class DataLayer {
 
   public static HashMap<String, Object> createData(Object item, HttpRequest httpRequest) {
     var data = new HashMap<String, Object>();
-    if (item instanceof LabelSupplier labelSupplier) {
+    if (item instanceof LookupLabelSupplier labelSupplier) {
       getAllFields(item.getClass())
           .forEach(
               field ->
@@ -38,12 +38,12 @@ public class DataLayer {
         .forEach(
             field ->
                 LookupFieldDataWriter.writeField(
-                    field, item, getLabelSupplier(item, field), data, httpRequest));
+                    field, item, getLookupLabelSupplier(item, field), data, httpRequest));
     return data;
   }
 
-  public static LabelSupplier getLabelSupplier(Object instance, Field field) {
-    return LookupSupplierResolver.getLabelSupplier(instance, field);
+  public static LookupLabelSupplier getLookupLabelSupplier(Object instance, Field field) {
+    return LookupSupplierResolver.getLookupLabelSupplier(instance, field);
   }
 
   public static Selector getSelector(Object instance, Field field) {

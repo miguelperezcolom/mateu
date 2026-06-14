@@ -7,6 +7,7 @@ import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.interfaces.DescriptionSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import io.mateu.uidl.interfaces.RequiredSupplier;
 import io.mateu.uidl.interfaces.StyleSupplier;
@@ -32,6 +33,16 @@ public class FieldMetadataExtractor {
       return TranslatorContext.translate(toUpperCaseFirst(method.getName()));
     }
     return "Not a field nor a method";
+  }
+
+  public static String getLabel(Field field, Object instance, HttpRequest httpRequest) {
+    if (instance instanceof LabelSupplier labelSupplier) {
+      var supplied = labelSupplier.label(field.getName(), httpRequest);
+      if (supplied != null && !supplied.isEmpty()) {
+        return supplied;
+      }
+    }
+    return getLabel((AnnotatedElement) field);
   }
 
   public static String getFieldId(Field field, String prefix, boolean readOnly) {
