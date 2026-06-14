@@ -347,6 +347,59 @@ record CustomerRow(
 
 ---
 
+## DisabledSupplier
+
+**Interface** — `io.mateu.uidl.interfaces.DisabledSupplier`
+
+When a ViewModel implements `DisabledSupplier`, Mateu calls `isDisabled()` on the server for every field, button, and toolbar item before building the UIDL. Members for which `isDisabled()` returns `true` are rendered as disabled — visible but non-interactive — exactly as if they were annotated with `@Disabled`.
+
+Use this when the disabled state depends on runtime state that cannot be expressed as a static annotation or a client-side expression.
+
+```java
+public interface DisabledSupplier {
+    boolean isDisabled(String memberName, HttpRequest httpRequest);
+}
+```
+
+The `memberName` parameter is the Java field name or method name of the member being evaluated.
+
+### Example
+
+```java
+@UI("/orders/{id}")
+public class OrderForm implements DisabledSupplier {
+
+    public String status;
+    public String notes;
+
+    @Button
+    public void submit() { ... }
+
+    @Button
+    public void cancel() { ... }
+
+    @Override
+    public boolean isDisabled(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "notes"   -> !"draft".equals(status);
+            case "submit"  -> !"draft".equals(status);
+            case "cancel"  -> "cancelled".equals(status) || "completed".equals(status);
+            default        -> false;
+        };
+    }
+}
+```
+
+### Comparison with @Disabled
+
+| | `@Disabled` | `DisabledSupplier` |
+|---|---|---|
+| Evaluated | Client (always or via expression) | Server only |
+| Condition | Static or client expression | Any Java logic |
+| Scope | Per field or method | Per ViewModel, all members |
+
+---
+
 ## VisibilitySupplier
 
 **Interface** — `io.mateu.uidl.interfaces.VisibilitySupplier`

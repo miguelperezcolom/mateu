@@ -111,7 +111,7 @@ public class CodeSearchFieldActionRunner implements ActionRunner {
         .cssClasses("")
         .actions(createActions(serverSideComponent, httpRequest))
         .triggers(createTriggers(serverSideComponent, httpRequest))
-        .rules(createRules(serverSideComponent))
+        .rules(createRules(serverSideComponent, httpRequest))
         .validations(createValidations(serverSideComponent, route))
         .children(List.of(clientSideComponent))
         .build();

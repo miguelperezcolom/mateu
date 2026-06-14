@@ -37,7 +37,7 @@ public class ComponentTreeSupplierMapper {
         componentTreeSupplier.cssClasses(),
         ActionMapper.mapActions(componentTreeSupplier, httpRequest),
         TriggerMapper.mapTriggers(componentTreeSupplier, httpRequest),
-        RuleMapper.mapRules(componentTreeSupplier),
+        RuleMapper.mapRules(componentTreeSupplier, httpRequest),
         ValidationMapper.mapValidations(componentTreeSupplier, route),
         null,
         null,

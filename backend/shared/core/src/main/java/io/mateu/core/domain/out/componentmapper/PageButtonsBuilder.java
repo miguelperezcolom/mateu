@@ -10,6 +10,7 @@ import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ButtonsSupplier;
+import io.mateu.uidl.interfaces.DisabledSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ToolbarSupplier;
 import io.mateu.uidl.interfaces.VisibilitySupplier;
@@ -31,7 +32,12 @@ final class PageButtonsBuilder {
                     field ->
                         !(instance instanceof VisibilitySupplier vs)
                             || !vs.isHidden(field.getName(), httpRequest))
-                .map(field -> getButton(field)),
+                .map(
+                    field ->
+                        getButton(
+                            field,
+                            instance instanceof DisabledSupplier ds
+                                && ds.isDisabled(field.getName(), httpRequest))),
             getAllMethods(instance.getClass()).stream()
                 .filter(
                     method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
@@ -39,7 +45,12 @@ final class PageButtonsBuilder {
                     method ->
                         !(instance instanceof VisibilitySupplier vs)
                             || !vs.isHidden(method.getName(), httpRequest))
-                .map(method -> getButton(method)))
+                .map(
+                    method ->
+                        getButton(
+                            method,
+                            instance instanceof DisabledSupplier ds
+                                && ds.isDisabled(method.getName(), httpRequest))))
         .toList();
   }
 
@@ -54,23 +65,41 @@ final class PageButtonsBuilder {
                     field ->
                         !(instance instanceof VisibilitySupplier vs)
                             || !vs.isHidden(field.getName(), httpRequest))
-                .map(field -> getButton(field)),
+                .map(
+                    field ->
+                        getButton(
+                            field,
+                            instance instanceof DisabledSupplier ds
+                                && ds.isDisabled(field.getName(), httpRequest))),
             getAllMethods(instance.getClass()).stream()
                 .filter(method -> method.isAnnotationPresent(Toolbar.class))
                 .filter(
                     method ->
                         !(instance instanceof VisibilitySupplier vs)
                             || !vs.isHidden(method.getName(), httpRequest))
-                .map(method -> getButton(method)))
+                .map(
+                    method ->
+                        getButton(
+                            method,
+                            instance instanceof DisabledSupplier ds
+                                && ds.isDisabled(method.getName(), httpRequest))))
         .toList();
   }
 
-  private static Button getButton(Method method) {
-    return Button.builder().label(getLabelForMethod(method)).actionId(method.getName()).build();
+  private static Button getButton(Method method, boolean disabled) {
+    return Button.builder()
+        .label(getLabelForMethod(method))
+        .actionId(method.getName())
+        .disabled(disabled)
+        .build();
   }
 
-  private static Button getButton(Field field) {
-    return Button.builder().label(getLabel(field)).actionId(field.getName()).build();
+  private static Button getButton(Field field, boolean disabled) {
+    return Button.builder()
+        .label(getLabel(field))
+        .actionId(field.getName())
+        .disabled(disabled)
+        .build();
   }
 
   private static String getLabelForMethod(Method method) {

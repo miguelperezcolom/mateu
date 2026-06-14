@@ -12,6 +12,8 @@ import io.mateu.uidl.annotations.Rule;
 import io.mateu.uidl.data.RuleAction;
 import io.mateu.uidl.data.RuleFieldAttribute;
 import io.mateu.uidl.data.RuleResult;
+import io.mateu.uidl.interfaces.DisabledSupplier;
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.RuleSupplier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,11 +21,12 @@ import java.util.List;
 
 public class RuleMapper {
 
-  public static List<RuleDto> mapRules(Object serverSideObject) {
-    return createRules(serverSideObject).stream().map(RuleMapper::mapToRule).toList();
+  public static List<RuleDto> mapRules(Object serverSideObject, HttpRequest httpRequest) {
+    return createRules(serverSideObject, httpRequest).stream().map(RuleMapper::mapToRule).toList();
   }
 
-  public static List<io.mateu.uidl.data.Rule> createRules(Object serverSideObject) {
+  public static List<io.mateu.uidl.data.Rule> createRules(
+      Object serverSideObject, HttpRequest httpRequest) {
     var viewClass = serverSideObject.getClass();
     List<io.mateu.uidl.data.Rule> rules = new ArrayList<>();
     rules.addAll(
@@ -43,6 +46,21 @@ public class RuleMapper {
                         .expression("true")
                         .result(RuleResult.Continue)
                         .build()));
+    if (serverSideObject instanceof DisabledSupplier disabledSupplier) {
+      getAllFields(viewClass).stream()
+          .filter(field -> disabledSupplier.isDisabled(field.getName(), httpRequest))
+          .forEach(
+              field ->
+                  rules.add(
+                      io.mateu.uidl.data.Rule.builder()
+                          .filter("true")
+                          .action(RuleAction.SetDataValue)
+                          .fieldName(field.getName())
+                          .fieldAttribute(RuleFieldAttribute.disabled)
+                          .expression("true")
+                          .result(RuleResult.Continue)
+                          .build()));
+    }
     getAllFields(viewClass).stream()
         .filter(
             field ->

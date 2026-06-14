@@ -51,7 +51,7 @@ public class FutureComponentMapper {
         "",
         mapActions(futureComponent.instance(), httpRequest),
         mapTriggers(futureComponent.instance(), httpRequest),
-        mapRules(futureComponent.instance()),
+        mapRules(futureComponent.instance(), httpRequest),
         mapValidations(futureComponent.instance(), route),
         null,
         null,
