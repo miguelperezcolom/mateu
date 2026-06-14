@@ -19,6 +19,51 @@ Methods = actions.
 
 ---
 
+## ActionSupplier
+
+**Interface** — `io.mateu.uidl.fluent.ActionSupplier`
+
+When a ViewModel implements `ActionSupplier`, Mateu calls `actions()` to obtain the list of `Action` objects that define which named actions the component exposes. The default implementation returns a wildcard action (`id = "*"`), which means all actions are allowed.
+
+```java
+public interface ActionSupplier {
+    default List<Action> actions(HttpRequest httpRequest) {
+        return List.of(Action.builder().id("*").build());
+    }
+}
+```
+
+Use this to restrict or dynamically configure the set of actions available on a component — for example, to expose only certain actions depending on user role or entity state.
+
+### Example
+
+```java
+@UI("/orders/{id}")
+public class OrderForm implements ActionSupplier {
+
+    public String status;
+
+    @Override
+    public List<Action> actions(HttpRequest httpRequest) {
+        if ("draft".equals(status)) {
+            return List.of(
+                Action.builder().id("submit").build(),
+                Action.builder().id("discard").build());
+        }
+        if ("pending".equals(status)) {
+            return List.of(
+                Action.builder().id("approve").build(),
+                Action.builder().id("reject").build());
+        }
+        return List.of();
+    }
+}
+```
+
+> **Note:** `ActionSupplier` controls which actions are exposed at the component level. For hiding or disabling individual buttons in the UI, use `VisibilitySupplier` or `DisabledSupplier` instead.
+
+---
+
 ## ButtonsSupplier
 
 **Interface** — `io.mateu.uidl.interfaces.ButtonsSupplier`

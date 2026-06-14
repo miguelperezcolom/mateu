@@ -39,6 +39,7 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 | [`ActionHandler`](action-handler/) | Handles named actions triggered from the UI |
 | [`RouteHandler`](route-handler/) | Handles navigation requests for a route |
 | [`HttpRequest`](http-request/) | Provides access to request context, parameters, and state |
+| `ActionSupplier` | Provides the list of named actions exposed by a component, controlling which actions are available |
 | `ButtonsSupplier` | Provides the full list of page buttons, replacing annotation-based button discovery |
 | `ToolbarSupplier` | Provides the full list of toolbar items, replacing annotation-based toolbar discovery |
 
