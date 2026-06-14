@@ -32,6 +32,7 @@ If you are building something new, read the pages in order. If you are solving a
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
 - [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the contracts for edit and create forms in a CrudOrchestrator
 - [NamedView](/java-user-manual/build/named-view/) — the interface wrapping an entity as a view, editor, or creation form
+- [SimpleView](/java-user-manual/build/simple-view/) — the type placeholder used by auto orchestrators in the CrudOrchestrator signature
 - [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository contract consumed by the auto adapters, with Spring Data JPA integration
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — visibility, layout, actions, and adapter customization
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
