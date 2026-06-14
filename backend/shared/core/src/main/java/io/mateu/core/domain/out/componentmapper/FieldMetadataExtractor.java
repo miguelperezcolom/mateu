@@ -7,6 +7,7 @@ import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.OptionsSupplier;
+import io.mateu.uidl.interfaces.RequiredSupplier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.AnnotatedElement;
@@ -69,8 +70,10 @@ public class FieldMetadataExtractor {
     return Map.of();
   }
 
-  static boolean isRequired(Field field) {
-    return field.isAnnotationPresent(NotNull.class) || field.isAnnotationPresent(NotEmpty.class);
+  static boolean isRequired(Field field, Object instance, HttpRequest httpRequest) {
+    return field.isAnnotationPresent(NotNull.class)
+        || field.isAnnotationPresent(NotEmpty.class)
+        || (instance instanceof RequiredSupplier rs && rs.isRequired(field.getName(), httpRequest));
   }
 
   static int getSliderMin(Field field) {

@@ -347,6 +347,51 @@ record CustomerRow(
 
 ---
 
+## RequiredSupplier
+
+**Interface** — `io.mateu.uidl.interfaces.RequiredSupplier`
+
+When a ViewModel implements `RequiredSupplier`, Mateu calls `isRequired()` on the server for every field before building the UIDL. Fields for which `isRequired()` returns `true` are marked as required — equivalent to annotating the field with `@NotNull` or `@NotEmpty`.
+
+Use this when the required state depends on runtime conditions that cannot be expressed statically.
+
+```java
+public interface RequiredSupplier {
+    boolean isRequired(String memberName, HttpRequest httpRequest);
+}
+```
+
+### Example
+
+```java
+@UI("/orders/{id}")
+public class OrderForm implements RequiredSupplier {
+
+    public String type;
+    public String vatNumber;
+    public String personalId;
+
+    @Override
+    public boolean isRequired(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "vatNumber"   -> "business".equals(type);
+            case "personalId"  -> "individual".equals(type);
+            default            -> false;
+        };
+    }
+}
+```
+
+### Comparison with @NotNull / @NotEmpty
+
+| | `@NotNull` / `@NotEmpty` | `RequiredSupplier` |
+|---|---|---|
+| Evaluated | Server (static) | Server only |
+| Condition | Always required | Any Java logic |
+| Scope | Per field | Per ViewModel, all fields |
+
+---
+
 ## ReadOnlySupplier
 
 **Interface** — `io.mateu.uidl.interfaces.ReadOnlySupplier`

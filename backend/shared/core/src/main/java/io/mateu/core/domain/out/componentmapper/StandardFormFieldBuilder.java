@@ -23,7 +23,7 @@ final class StandardFormFieldBuilder {
         .dataType(getDataType(field))
         .style(getStyle(field))
         .stereotype(getStereotype(field))
-        .required(isRequired(field))
+        .required(isRequired(field, instance, httpRequest))
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
         .remoteCoordinates(getRemoteCoordinates(prefix, field))
