@@ -28,6 +28,7 @@ If you are building something new, read the pages in order. If you are solving a
 - [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) — the list → view → edit flow and how to customize it
 - [AutoListOrchestrator and AutoCrudOrchestrator](/java-user-manual/build/auto-orchestrators/) — the two simplest orchestrators for read-only listings and full CRUD
 - [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — the data layer behind the auto orchestrators
+- [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — visibility, layout, actions, and adapter customization
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
 - [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit models for filters, rows, views, editors, and creation forms
