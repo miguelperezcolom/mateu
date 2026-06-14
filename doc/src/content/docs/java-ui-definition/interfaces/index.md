@@ -66,3 +66,4 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 | `DescriptionSupplier` | Provides field-level help/description text dynamically at request time, overriding `@Help` |
 | `LabelSupplier` | Provides field-level label text dynamically at request time, overriding `@Label` |
 | `ColspanSupplier` | Provides field-level colspan dynamically at request time, overriding `@Colspan` |
+| `StereotypeSupplier` | Provides field-level stereotype dynamically at request time, overriding `@Stereotype` |

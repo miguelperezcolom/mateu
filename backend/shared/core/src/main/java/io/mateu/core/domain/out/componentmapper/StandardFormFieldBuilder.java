@@ -22,7 +22,7 @@ final class StandardFormFieldBuilder {
         .label(getLabel(field, instance, httpRequest))
         .dataType(getDataType(field))
         .style(getStyle(field, instance, httpRequest))
-        .stereotype(getStereotype(field))
+        .stereotype(getStereotype(field, instance, httpRequest))
         .required(isRequired(field, instance, httpRequest))
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))

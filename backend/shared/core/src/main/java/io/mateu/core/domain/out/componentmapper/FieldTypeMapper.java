@@ -11,6 +11,8 @@ import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.data.Range;
 import io.mateu.uidl.data.Status;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.StereotypeSupplier;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -120,6 +122,17 @@ public class FieldTypeMapper {
       return FieldStereotype.money;
     }
     return FieldStereotype.regular;
+  }
+
+  public static FieldStereotype getStereotype(
+      Field field, Object instance, HttpRequest httpRequest) {
+    if (instance instanceof StereotypeSupplier stereotypeSupplier) {
+      var supplied = stereotypeSupplier.stereotype(field.getName(), httpRequest);
+      if (supplied != null) {
+        return supplied;
+      }
+    }
+    return getStereotype(field);
   }
 
   public static FieldStereotype getStereotypeForColumn(Field columnField) {

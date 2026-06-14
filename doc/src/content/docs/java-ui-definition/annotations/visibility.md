@@ -347,6 +347,49 @@ record CustomerRow(
 
 ---
 
+## StereotypeSupplier
+
+**Interface** — `io.mateu.uidl.interfaces.StereotypeSupplier`
+
+When a ViewModel implements `StereotypeSupplier`, Mateu calls `stereotype()` on the server for every field before building the UIDL. A non-null return value overrides any `@Stereotype` annotation or the inferred stereotype for the field; returning `null` falls back to the annotation or inference.
+
+```java
+public interface StereotypeSupplier {
+    FieldStereotype stereotype(String memberName, HttpRequest httpRequest);
+}
+```
+
+### Example
+
+```java
+@UI("/products/{id}")
+public class ProductForm implements StereotypeSupplier {
+
+    public String category;
+    public String description;
+
+    @Override
+    public FieldStereotype stereotype(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "description" -> "long".equals(category)
+                ? FieldStereotype.textarea
+                : FieldStereotype.regular;
+            default -> null;
+        };
+    }
+}
+```
+
+### Comparison with @Stereotype
+
+| | `@Stereotype` | `StereotypeSupplier` |
+|---|---|---|
+| Evaluated | Server (static) | Server only |
+| Condition | Fixed stereotype | Any Java logic |
+| Scope | Per field | Per ViewModel, all fields |
+
+---
+
 ## ColspanSupplier
 
 **Interface** — `io.mateu.uidl.interfaces.ColspanSupplier`
