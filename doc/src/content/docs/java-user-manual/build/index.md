@@ -29,8 +29,8 @@ If you are building something new, read the pages in order. If you are solving a
 - [AutoListOrchestrator and AutoCrudOrchestrator](/java-user-manual/build/auto-orchestrators/) — the two simplest orchestrators for read-only listings and full CRUD
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — visibility, layout, actions, and adapter customization
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
-- [Listing row actions](/java-user-manual/build/listing-row-actions/) — per-row actions using `ColumnAction` and `ColumnActionGroup`
 - [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit models for filters, rows, views, editors, and creation forms
+- [Listing&lt;Filters, Row&gt;](/java-user-manual/build/listing/) — standalone filterable listing with toolbar actions, export, and selector support
 
 ### Composition
 
