@@ -105,6 +105,85 @@ public class ItemsCatalog extends AutoCrudOrchestrator<Item> {
 
 Navigating to `/items` renders a full list-create-edit-delete UI with no additional configuration.
 
+## Spring Data JPA integration
+
+`CrudRepository` is a plain Java interface, not a Spring Data one. The most common pattern in Spring Boot applications is to wrap a Spring Data `JpaRepository` in a thin adapter:
+
+```java
+// Spring Data JPA repository
+public interface ProductJpaRepository extends JpaRepository<Product, String> {
+    List<Product> findByNameContainingIgnoreCase(String name);
+}
+```
+
+```java
+// Mateu CrudRepository — wraps the JPA repo
+@Service
+public class ProductRepository implements CrudRepository<Product> {
+
+    private final ProductJpaRepository jpa;
+
+    public ProductRepository(ProductJpaRepository jpa) {
+        this.jpa = jpa;
+    }
+
+    @Override
+    public Optional<Product> findById(String id) {
+        return jpa.findById(id);
+    }
+
+    @Override
+    public String save(Product entity) {
+        return jpa.save(entity).id();
+    }
+
+    @Override
+    public List<Product> findAll() {
+        return jpa.findAll();
+    }
+
+    @Override
+    public void deleteAllById(List<String> selectedIds) {
+        jpa.deleteAllById(selectedIds);
+    }
+}
+```
+
+The adapter decouples Mateu's API from Spring Data so the rest of your code is not tied to the framework.
+
+---
+
+## Filtering in findAll vs custom search
+
+`CrudRepository.findAll()` returns all rows, and the auto adapters apply search text filtering in memory. This is fine for small datasets. For large tables, override `search()` in the adapter to push filtering to the database:
+
+```java
+@Service
+public class ProductAdapter extends AutoCrudAdapter<Product> {
+
+    private final ProductJpaRepository jpa;
+
+    public ProductAdapter(ProductJpaRepository jpa) {
+        this.jpa = jpa;
+    }
+
+    @Override
+    public CrudRepository<Product> repository() {
+        return productRepository; // used for save/delete/view
+    }
+
+    @Override
+    public ListingData<Product> search(
+            String searchText, Product filters,
+            Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(jpa.findByNameContainingIgnoreCase(
+            searchText != null ? searchText : ""));
+    }
+}
+```
+
+---
+
 ## CompositionCrudRepository
 
 `CompositionCrudRepository` extends `CrudRepository` for child entities that belong to a parent (a foreign-key relationship expressed with `@Composition`).
@@ -136,3 +215,11 @@ public interface Named extends Identifiable {
 | `search(searchText, filters, parentId, pageable)` | Return a paginated list of child entities scoped to the given `parentId` |
 
 Use `CompositionCrudRepository` when an embedded child grid inside a parent form must fetch its rows from the server filtered by the parent's ID. Annotate the parent field with `@Composition` to trigger this behaviour.
+
+---
+
+## Next
+
+- [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — pre-built adapters that consume a `CrudRepository`
+- [CrudAdapter](/java-user-manual/build/crud-adapter/) — the lower-level interface for full control over each operation
+- [AutoCrudOrchestrator and AutoListOrchestrator](/java-user-manual/build/auto-orchestrators/) — the orchestrators that use this repository indirectly
