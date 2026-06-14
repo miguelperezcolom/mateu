@@ -347,6 +347,56 @@ record CustomerRow(
 
 ---
 
+## OptionsSupplier
+
+**Interface** — `io.mateu.uidl.interfaces.OptionsSupplier`
+
+When a ViewModel implements `OptionsSupplier`, Mateu calls `options()` to populate the selectable options for any field that renders as a list (select, radio group, checkbox group, etc.). This overrides the options that would otherwise be inferred from the field type (e.g., enum constants).
+
+```java
+public interface OptionsSupplier {
+
+  default boolean supports(Class<?> fieldType, String fieldName, Class<?> formType) {
+    return true;
+  }
+
+  List<Option> options(String fieldName, HttpRequest httpRequest);
+}
+```
+
+Override `supports()` to limit which fields the supplier applies to. The default implementation returns `true` for all fields.
+
+### Example
+
+```java
+@UI("/products/{id}")
+public class ProductForm implements OptionsSupplier {
+
+    public String category;
+    public String subcategory;
+
+    @Override
+    public boolean supports(Class<?> fieldType, String fieldName, Class<?> formType) {
+        return "subcategory".equals(fieldName);
+    }
+
+    @Override
+    public List<Option> options(String fieldName, HttpRequest httpRequest) {
+        return switch (category) {
+            case "electronics" -> List.of(
+                new Option("phones", "Phones"),
+                new Option("laptops", "Laptops"));
+            case "clothing" -> List.of(
+                new Option("shirts", "Shirts"),
+                new Option("shoes", "Shoes"));
+            default -> List.of();
+        };
+    }
+}
+```
+
+---
+
 ## StereotypeSupplier
 
 **Interface** — `io.mateu.uidl.interfaces.StereotypeSupplier`
