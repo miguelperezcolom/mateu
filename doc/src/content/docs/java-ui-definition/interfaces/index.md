@@ -62,3 +62,4 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 | `DisabledSupplier` | Controls server-side disabled state of fields, buttons, and toolbar items dynamically at request time |
 | `ReadOnlySupplier` | Controls server-side read-only state of fields dynamically at request time |
 | `RequiredSupplier` | Controls server-side required state of fields dynamically at request time |
+| `StyleSupplier` | Provides field-level CSS styles dynamically at request time, overriding `@Style` |

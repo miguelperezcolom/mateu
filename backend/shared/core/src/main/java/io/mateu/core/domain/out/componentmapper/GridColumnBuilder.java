@@ -124,7 +124,7 @@ public class GridColumnBuilder {
   }
 
   private static String getStyleForArray(Field field) {
-    var style = getStyle(field);
+    var style = getStyle(field, null, null);
     if (style != null && !style.isEmpty()) {
       return style;
     }

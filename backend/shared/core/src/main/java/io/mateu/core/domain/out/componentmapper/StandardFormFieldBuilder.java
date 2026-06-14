@@ -21,7 +21,7 @@ final class StandardFormFieldBuilder {
         .id(getFieldId(field, prefix, readOnly))
         .label(getLabel(field))
         .dataType(getDataType(field))
-        .style(getStyle(field))
+        .style(getStyle(field, instance, httpRequest))
         .stereotype(getStereotype(field))
         .required(isRequired(field, instance, httpRequest))
         .sliderMin(getSliderMin(field))

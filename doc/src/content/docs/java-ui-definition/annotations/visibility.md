@@ -347,6 +347,47 @@ record CustomerRow(
 
 ---
 
+## StyleSupplier
+
+**Interface** — `io.mateu.uidl.interfaces.StyleSupplier`
+
+When a ViewModel implements `StyleSupplier`, Mateu calls `style()` on the server for every field before building the UIDL. A non-empty return value overrides any `@Style` annotation on the field; returning `null` or an empty string falls back to the annotation.
+
+```java
+public interface StyleSupplier {
+    String style(String memberName, HttpRequest httpRequest);
+}
+```
+
+### Example
+
+```java
+@UI("/orders/{id}")
+public class OrderForm implements StyleSupplier {
+
+    public String status;
+    public double total;
+
+    @Override
+    public String style(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "total" -> total < 0 ? "color: red;" : "";
+            default      -> null;
+        };
+    }
+}
+```
+
+### Comparison with @Style
+
+| | `@Style` | `StyleSupplier` |
+|---|---|---|
+| Evaluated | Server (static) | Server only |
+| Condition | Fixed CSS string | Any Java logic |
+| Scope | Per field | Per ViewModel, all fields |
+
+---
+
 ## RequiredSupplier
 
 **Interface** — `io.mateu.uidl.interfaces.RequiredSupplier`

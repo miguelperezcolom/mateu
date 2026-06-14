@@ -8,6 +8,7 @@ import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import io.mateu.uidl.interfaces.RequiredSupplier;
+import io.mateu.uidl.interfaces.StyleSupplier;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.AnnotatedElement;
@@ -49,7 +50,13 @@ public class FieldMetadataExtractor {
     return 1;
   }
 
-  static String getStyle(Field field) {
+  static String getStyle(Field field, Object instance, HttpRequest httpRequest) {
+    if (instance instanceof StyleSupplier styleSupplier) {
+      var supplied = styleSupplier.style(field.getName(), httpRequest);
+      if (supplied != null && !supplied.isEmpty()) {
+        return supplied;
+      }
+    }
     if (field.isAnnotationPresent(Style.class)) {
       return field.getAnnotation(Style.class).value();
     }
