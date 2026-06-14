@@ -31,8 +31,8 @@ public class ReflectionPageMapper {
         .style(getStyle(instance))
         .cssClasses(getCssClasses(instance))
         .avatar(getAvatar(instance, baseUrl, route, initiatorComponentId, httpRequest))
-        .toolbar(getToolbar(instance))
-        .buttons(getButtons(instance))
+        .toolbar(getToolbar(instance, httpRequest))
+        .buttons(getButtons(instance, httpRequest))
         .header(getHeader(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .content(
             getContent(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))

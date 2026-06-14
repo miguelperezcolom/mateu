@@ -15,6 +15,7 @@ import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Selector;
+import io.mateu.uidl.interfaces.VisibilitySupplier;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ final class ListingColumnBuilder {
     var columns = new ArrayList<GridColumn>();
     columns.addAll(
         getAllFields(rowClass).stream()
-            .filter(ListingColumnBuilder::filterColumn)
+            .filter(field -> filterColumn(field, instance, httpRequest))
             .map(
                 field ->
                     getColumn(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
@@ -51,7 +52,9 @@ final class ListingColumnBuilder {
     return columns;
   }
 
-  private static boolean filterColumn(Field field) {
+  private static boolean filterColumn(Field field, Object instance, HttpRequest httpRequest) {
+    if (instance instanceof VisibilitySupplier visibilitySupplier
+        && visibilitySupplier.isHidden(field.getName(), httpRequest)) return false;
     if (field.isAnnotationPresent(Hidden.class)) return false;
     if (field.isAnnotationPresent(HiddenInList.class)) return false;
     if (field.isAnnotationPresent(Menu.class)) return false;

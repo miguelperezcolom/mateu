@@ -3,12 +3,23 @@ package io.mateu.core.domain.out.componentmapper;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Status;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.VisibilitySupplier;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
 final class FormFieldFilter {
 
-  static boolean filterField(Field field, boolean forCreationForm, boolean readOnly) {
+  static boolean filterField(
+      Field field,
+      boolean forCreationForm,
+      boolean readOnly,
+      Object instance,
+      HttpRequest httpRequest) {
+    if (instance instanceof VisibilitySupplier visibilitySupplier
+        && visibilitySupplier.isHidden(field.getName(), httpRequest)) {
+      return false;
+    }
     if (ComponentDto.class.isAssignableFrom(field.getType())) {
       return false;
     }

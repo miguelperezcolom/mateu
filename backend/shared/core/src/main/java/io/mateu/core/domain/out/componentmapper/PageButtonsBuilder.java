@@ -10,7 +10,9 @@ import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ButtonsSupplier;
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ToolbarSupplier;
+import io.mateu.uidl.interfaces.VisibilitySupplier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -18,31 +20,47 @@ import java.util.stream.Stream;
 
 final class PageButtonsBuilder {
 
-  static Collection<? extends UserTrigger> getButtons(Object instance) {
+  static Collection<? extends UserTrigger> getButtons(Object instance, HttpRequest httpRequest) {
     if (instance instanceof ButtonsSupplier buttonsSupplier) {
       return buttonsSupplier.buttons();
     }
     return Stream.concat(
             getAllFields(instance.getClass()).stream()
                 .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
+                .filter(
+                    field ->
+                        !(instance instanceof VisibilitySupplier vs)
+                            || !vs.isHidden(field.getName(), httpRequest))
                 .map(field -> getButton(field)),
             getAllMethods(instance.getClass()).stream()
                 .filter(
                     method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
+                .filter(
+                    method ->
+                        !(instance instanceof VisibilitySupplier vs)
+                            || !vs.isHidden(method.getName(), httpRequest))
                 .map(method -> getButton(method)))
         .toList();
   }
 
-  static Collection<? extends UserTrigger> getToolbar(Object instance) {
+  static Collection<? extends UserTrigger> getToolbar(Object instance, HttpRequest httpRequest) {
     if (instance instanceof ToolbarSupplier toolbarSupplier) {
       return toolbarSupplier.toolbar();
     }
     return Stream.concat(
             getAllFields(instance.getClass()).stream()
                 .filter(field -> field.isAnnotationPresent(Toolbar.class))
+                .filter(
+                    field ->
+                        !(instance instanceof VisibilitySupplier vs)
+                            || !vs.isHidden(field.getName(), httpRequest))
                 .map(field -> getButton(field)),
             getAllMethods(instance.getClass()).stream()
                 .filter(method -> method.isAnnotationPresent(Toolbar.class))
+                .filter(
+                    method ->
+                        !(instance instanceof VisibilitySupplier vs)
+                            || !vs.isHidden(method.getName(), httpRequest))
                 .map(method -> getButton(method)))
         .toList();
   }

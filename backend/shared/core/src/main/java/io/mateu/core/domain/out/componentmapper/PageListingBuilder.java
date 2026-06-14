@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.getFormField;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
@@ -14,6 +15,7 @@ import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.interfaces.*;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 
@@ -130,7 +132,7 @@ public class PageListingBuilder {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     return getAllFields(filtersClass).stream()
-        .filter(field -> FormFieldFilter.filterField(field, false, false))
+        .filter(field -> filterFilterField(field, instance, httpRequest))
         .filter(
             field ->
                 !ColumnActionGroup.class.equals(field.getType())
@@ -151,5 +153,15 @@ public class PageListingBuilder {
                         2,
                         0))
         .toList();
+  }
+
+  private static boolean filterFilterField(Field field, Object instance, HttpRequest httpRequest) {
+    var valid = FormFieldFilter.filterField(field, false, false, instance, httpRequest);
+    if (valid) {
+      if (!isBasic(field.getType())) {
+        return false;
+      }
+    }
+    return valid;
   }
 }

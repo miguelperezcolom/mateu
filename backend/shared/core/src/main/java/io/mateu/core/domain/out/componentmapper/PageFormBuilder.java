@@ -114,7 +114,10 @@ public class PageFormBuilder {
       int level) {
     var filteredFields =
         getFormFields(instance).stream()
-            .filter(field -> FormFieldFilter.filterField(field, forCreationForm, readOnly))
+            .filter(
+                field ->
+                    FormFieldFilter.filterField(
+                        field, forCreationForm, readOnly, instance, httpRequest))
             .filter(field -> readOnly || !FormFieldFilter.hiddenInEditor(field, forCreationForm))
             .filter(field -> !readOnly || !FormFieldFilter.hiddenInView(field))
             .toList();
