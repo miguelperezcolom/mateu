@@ -21,6 +21,7 @@ If you are building something new, read the pages in order. If you are solving a
 ### Domain and data
 
 - [Domain models](/java-user-manual/build/domain-models/) — how ViewModels relate to your backend architecture
+- [Identifiable, Named, and Searchable](/java-user-manual/build/entity-interfaces/) — the marker interfaces entities must implement to work with the CRUD machinery
 - [Foreign keys and options](/java-user-manual/build/foreign-keys-and-options/) — `@Lookup`, options suppliers, and label resolution
 
 ### CRUD
