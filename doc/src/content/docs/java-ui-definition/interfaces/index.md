@@ -31,6 +31,7 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 | [`DataSupplier`](data-supplier/) | Provides arbitrary data to the component |
 | [`CommandSupplier`](data-supplier/) | Provides UI commands to execute on the client side |
 | [`PostHydrationHandler`](post-hydration/) | Called after the server re-hydrates component state |
+| [`StateSupplier`](state-supplier/) | Provides a custom object as the component state sent to the client, overriding the default (the ViewModel itself) |
 
 ## Action handling
 
