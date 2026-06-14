@@ -27,7 +27,8 @@ final class StandardFormFieldBuilder {
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
         .remoteCoordinates(getRemoteCoordinates(prefix, field))
-        .readOnly(readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm))
+        .readOnly(
+            readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm, httpRequest))
         .options(getOptions(field, instance, httpRequest))
         .colspan(getColspan(field))
         .description(getDescription(field))

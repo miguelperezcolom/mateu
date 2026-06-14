@@ -82,7 +82,7 @@ final class NestedFormFieldBuilder {
                     initiatorComponentId,
                     httpRequest,
                     forCreationForm,
-                    readOnly || isReadOnly(field, instance, forCreationForm),
+                    readOnly || isReadOnly(field, instance, forCreationForm, httpRequest),
                     maxColumns,
                     level + 1)
                 .stream()

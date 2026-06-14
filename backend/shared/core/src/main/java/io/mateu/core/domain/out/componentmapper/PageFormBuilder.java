@@ -161,11 +161,14 @@ public class PageFormBuilder {
     return instance.getClass();
   }
 
-  public static boolean isReadOnly(Field field, Object instance, boolean forCreationForm) {
+  public static boolean isReadOnly(
+      Field field, Object instance, boolean forCreationForm, HttpRequest httpRequest) {
     return (instance != null && instance.getClass().isAnnotationPresent(ReadOnly.class))
         || field.isAnnotationPresent(ReadOnly.class)
         || field.isAnnotationPresent(GeneratedValue.class)
-        || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class));
+        || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class))
+        || (instance instanceof ReadOnlySupplier ros
+            && ros.isReadOnly(field.getName(), httpRequest));
   }
 
   public static boolean isForm(Object instance) {

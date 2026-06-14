@@ -60,3 +60,4 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 |---|---|
 | `VisibilitySupplier` | Controls server-side visibility of fields, columns, buttons, and toolbar items dynamically at request time |
 | `DisabledSupplier` | Controls server-side disabled state of fields, buttons, and toolbar items dynamically at request time |
+| `ReadOnlySupplier` | Controls server-side read-only state of fields dynamically at request time |

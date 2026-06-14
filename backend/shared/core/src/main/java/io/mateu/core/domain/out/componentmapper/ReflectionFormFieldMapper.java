@@ -15,6 +15,7 @@ import io.mateu.uidl.data.Status;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
+import io.mateu.uidl.interfaces.ReadOnlySupplier;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +43,7 @@ public class ReflectionFormFieldMapper {
         consumedRoute,
         initiatorComponentId,
         httpRequest,
-        isReadOnly(field, instance),
+        isReadOnly(field, instance, httpRequest),
         forCreationForm,
         maxColumns,
         level);
@@ -119,7 +120,7 @@ public class ReflectionFormFieldMapper {
       return createCrudForField(
           field,
           prefix,
-          readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm),
+          readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm, httpRequest),
           httpRequest);
     }
     if (!isBasic(fieldType)
@@ -162,10 +163,12 @@ public class ReflectionFormFieldMapper {
         prefix, field, instance, httpRequest, readOnly, forCreationForm);
   }
 
-  private static boolean isReadOnly(Field field, Object instance) {
+  private static boolean isReadOnly(Field field, Object instance, HttpRequest httpRequest) {
     return instance.getClass().isAnnotationPresent(ReadOnly.class)
         || field.isAnnotationPresent(ReadOnly.class)
-        || field.isAnnotationPresent(GeneratedValue.class);
+        || field.isAnnotationPresent(GeneratedValue.class)
+        || (instance instanceof ReadOnlySupplier ros
+            && ros.isReadOnly(field.getName(), httpRequest));
   }
 
   private static Component createEditorForCompositionField(

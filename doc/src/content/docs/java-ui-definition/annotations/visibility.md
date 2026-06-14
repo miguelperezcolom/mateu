@@ -347,6 +347,53 @@ record CustomerRow(
 
 ---
 
+## ReadOnlySupplier
+
+**Interface** — `io.mateu.uidl.interfaces.ReadOnlySupplier`
+
+When a ViewModel implements `ReadOnlySupplier`, Mateu calls `isReadOnly()` on the server for every field before building the UIDL. Fields for which `isReadOnly()` returns `true` are rendered as read-only — displayed but not editable — exactly as if they were annotated with `@ReadOnly`.
+
+Use this when the read-only state depends on runtime state that cannot be expressed as a static annotation.
+
+```java
+public interface ReadOnlySupplier {
+    boolean isReadOnly(String memberName, HttpRequest httpRequest);
+}
+```
+
+The `memberName` parameter is the Java field name of the field being evaluated.
+
+### Example
+
+```java
+@UI("/orders/{id}")
+public class OrderForm implements ReadOnlySupplier {
+
+    public String status;
+    public String customerId;
+    public double total;
+
+    @Override
+    public boolean isReadOnly(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "customerId" -> !"draft".equals(status);
+            case "total"      -> true;  // always computed, never editable
+            default           -> false;
+        };
+    }
+}
+```
+
+### Comparison with @ReadOnly
+
+| | `@ReadOnly` | `ReadOnlySupplier` |
+|---|---|---|
+| Evaluated | Server (static) | Server only |
+| Condition | Always read-only | Any Java logic |
+| Scope | Per field or class | Per ViewModel, all fields |
+
+---
+
 ## DisabledSupplier
 
 **Interface** — `io.mateu.uidl.interfaces.DisabledSupplier`

@@ -37,7 +37,7 @@ final class TabFormLayoutBuilder {
                             consumedRoute,
                             initiatorComponentId,
                             httpRequest,
-                            readOnly || isReadOnly(field, instance, forCreationForm),
+                            readOnly || isReadOnly(field, instance, forCreationForm, httpRequest),
                             forCreationForm,
                             tab.columns(),
                             level))
