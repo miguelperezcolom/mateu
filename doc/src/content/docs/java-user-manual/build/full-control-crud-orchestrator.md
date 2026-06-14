@@ -193,6 +193,7 @@ But in real systems:
 | Approach | Use case |
 |---------|--------|
 | `AutoCrudOrchestrator<T>` | Fast CRUD from domain model |
+| `FilteredAutoCrudOrchestrator<F,R>` | Custom filter model, same entity for forms |
 | `CrudOrchestrator<...>` | Full control |
 
 ---
@@ -201,8 +202,8 @@ But in real systems:
 
 1. Start with `AutoCrudOrchestrator`
 2. Customize using annotations
-3. Customize adapter if needed
-4. Move to `CrudOrchestrator` only when necessary
+3. Add a custom filter model with `FilteredAutoCrudOrchestrator`
+4. Move to `CrudOrchestrator` only when view/editor/creation forms must differ
 
 ---
 

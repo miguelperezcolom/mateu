@@ -277,5 +277,6 @@ Move to more advanced techniques only when needed.
 ## Next
 
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — add per-row contextual actions with `ColumnAction` and `ColumnActionGroup`
+- [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
 - [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for filters, rows, views, and forms
 - [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — see all of these techniques applied in a realistic business UI
