@@ -63,3 +63,4 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 | `ReadOnlySupplier` | Controls server-side read-only state of fields dynamically at request time |
 | `RequiredSupplier` | Controls server-side required state of fields dynamically at request time |
 | `StyleSupplier` | Provides field-level CSS styles dynamically at request time, overriding `@Style` |
+| `DescriptionSupplier` | Provides field-level help/description text dynamically at request time, overriding `@Help` |

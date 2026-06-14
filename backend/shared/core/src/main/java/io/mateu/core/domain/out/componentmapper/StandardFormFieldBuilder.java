@@ -31,7 +31,7 @@ final class StandardFormFieldBuilder {
             readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm, httpRequest))
         .options(getOptions(field, instance, httpRequest))
         .colspan(getColspan(field))
-        .description(getDescription(field))
+        .description(getDescription(field, instance, httpRequest))
         .attributes(getAttributes(field))
         .optionsColumns(getOptionsColumns(field))
         .build();

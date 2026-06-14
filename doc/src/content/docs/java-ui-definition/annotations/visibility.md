@@ -347,6 +347,49 @@ record CustomerRow(
 
 ---
 
+## DescriptionSupplier
+
+**Interface** — `io.mateu.uidl.interfaces.DescriptionSupplier`
+
+When a ViewModel implements `DescriptionSupplier`, Mateu calls `description()` on the server for every field before building the UIDL. A non-empty return value overrides any `@Help` annotation on the field; returning `null` or an empty string falls back to the annotation.
+
+```java
+public interface DescriptionSupplier {
+    String description(String memberName, HttpRequest httpRequest);
+}
+```
+
+### Example
+
+```java
+@UI("/products/{id}")
+public class ProductForm implements DescriptionSupplier {
+
+    public String category;
+    public double price;
+
+    @Override
+    public String description(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "price" -> "business".equals(category)
+                ? "Net price excluding VAT"
+                : "Consumer price including VAT";
+            default      -> null;
+        };
+    }
+}
+```
+
+### Comparison with @Help
+
+| | `@Help` | `DescriptionSupplier` |
+|---|---|---|
+| Evaluated | Server (static) | Server only |
+| Condition | Fixed help text | Any Java logic |
+| Scope | Per field | Per ViewModel, all fields |
+
+---
+
 ## StyleSupplier
 
 **Interface** — `io.mateu.uidl.interfaces.StyleSupplier`

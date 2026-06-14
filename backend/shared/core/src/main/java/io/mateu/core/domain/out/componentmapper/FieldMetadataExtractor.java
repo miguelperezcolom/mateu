@@ -5,6 +5,7 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.RemoteCoordinates;
+import io.mateu.uidl.interfaces.DescriptionSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import io.mateu.uidl.interfaces.RequiredSupplier;
@@ -63,7 +64,13 @@ public class FieldMetadataExtractor {
     return "";
   }
 
-  static String getDescription(Field field) {
+  static String getDescription(Field field, Object instance, HttpRequest httpRequest) {
+    if (instance instanceof DescriptionSupplier descriptionSupplier) {
+      var supplied = descriptionSupplier.description(field.getName(), httpRequest);
+      if (supplied != null && !supplied.isEmpty()) {
+        return supplied;
+      }
+    }
     if (field.isAnnotationPresent(Help.class)) {
       return field.getAnnotation(Help.class).value();
     }
