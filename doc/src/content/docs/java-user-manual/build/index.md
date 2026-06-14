@@ -29,6 +29,7 @@ If you are building something new, read the pages in order. If you are solving a
 - [AutoListOrchestrator and AutoCrudOrchestrator](/java-user-manual/build/auto-orchestrators/) — the two simplest orchestrators for read-only listings and full CRUD
 - [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — the data layer behind the auto orchestrators
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
+- [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the contracts for edit and create forms in a CrudOrchestrator
 - [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository contract consumed by the auto adapters, with Spring Data JPA integration
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — visibility, layout, actions, and adapter customization
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants

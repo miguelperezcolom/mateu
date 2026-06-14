@@ -114,4 +114,4 @@ public class ProductCrudAdapter
 
 - [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — pre-built adapters for the common single-type case
 - [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — the orchestrator that consumes this adapter
-- [CrudEditorForm and CrudCreationForm](/java-ui-definition/interfaces/crud-repository/) — the interfaces your editor and creation form must implement
+- [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the interfaces your editor and creation form must implement
