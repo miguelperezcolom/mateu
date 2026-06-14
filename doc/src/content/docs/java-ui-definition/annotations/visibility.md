@@ -347,6 +347,49 @@ record CustomerRow(
 
 ---
 
+## ColspanSupplier
+
+**Interface** — `io.mateu.uidl.interfaces.ColspanSupplier`
+
+When a ViewModel implements `ColspanSupplier`, Mateu calls `colspan()` on the server for every field before building the UIDL. A positive return value overrides any `@Colspan` annotation on the field; returning `0` or negative falls back to the annotation or the default of `1`.
+
+```java
+public interface ColspanSupplier {
+    int colspan(String memberName, HttpRequest httpRequest);
+}
+```
+
+### Example
+
+```java
+@UI("/orders/{id}")
+public class OrderForm implements ColspanSupplier {
+
+    public String type;
+    public String notes;
+    public String address;
+
+    @Override
+    public int colspan(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "notes"   -> 2;  // always full-width
+            case "address" -> "international".equals(type) ? 2 : 1;
+            default        -> 0;  // use annotation or default
+        };
+    }
+}
+```
+
+### Comparison with @Colspan
+
+| | `@Colspan` | `ColspanSupplier` |
+|---|---|---|
+| Evaluated | Server (static) | Server only |
+| Condition | Fixed number of columns | Any Java logic |
+| Scope | Per field | Per ViewModel, all fields |
+
+---
+
 ## LabelSupplier
 
 **Interface** — `io.mateu.uidl.interfaces.LabelSupplier`

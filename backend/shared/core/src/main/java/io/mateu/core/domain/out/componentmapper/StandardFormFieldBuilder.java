@@ -30,7 +30,7 @@ final class StandardFormFieldBuilder {
         .readOnly(
             readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm, httpRequest))
         .options(getOptions(field, instance, httpRequest))
-        .colspan(getColspan(field))
+        .colspan(getColspan(field, instance, httpRequest))
         .description(getDescription(field, instance, httpRequest))
         .attributes(getAttributes(field))
         .optionsColumns(getOptionsColumns(field))

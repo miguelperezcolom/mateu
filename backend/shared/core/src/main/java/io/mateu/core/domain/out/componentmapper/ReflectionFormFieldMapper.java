@@ -102,7 +102,7 @@ public class ReflectionFormFieldMapper {
       return CustomField.builder()
           .label(getLabel(field))
           .content(component)
-          .colspan(getColspan(field))
+          .colspan(getColspan(field, instance, httpRequest))
           .style(component.style())
           .build();
     }
@@ -147,7 +147,7 @@ public class ReflectionFormFieldMapper {
           level + 1);
     }
     if (field.isAnnotationPresent(Text.class)) {
-      var colspan = getColspan(field);
+      var colspan = getColspan(field, instance, httpRequest);
       var attributes = new HashMap<String, String>();
       if (colspan > 1) {
         attributes.put("data-colspan", "" + colspan);

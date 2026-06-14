@@ -5,6 +5,7 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.RemoteCoordinates;
+import io.mateu.uidl.interfaces.ColspanSupplier;
 import io.mateu.uidl.interfaces.DescriptionSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LabelSupplier;
@@ -60,6 +61,16 @@ public class FieldMetadataExtractor {
       return field.getAnnotation(Colspan.class).value();
     }
     return 1;
+  }
+
+  static int getColspan(Field field, Object instance, HttpRequest httpRequest) {
+    if (instance instanceof ColspanSupplier colspanSupplier) {
+      var supplied = colspanSupplier.colspan(field.getName(), httpRequest);
+      if (supplied > 0) {
+        return supplied;
+      }
+    }
+    return getColspan(field);
   }
 
   static String getStyle(Field field, Object instance, HttpRequest httpRequest) {

@@ -64,7 +64,7 @@ public class GridColumnBuilder {
         .label(getLabel(field))
         .columns(columns)
         .style(getStyleForArray(field))
-        .colspan(getColspan(field))
+        .colspan(getColspan(field, null, null))
         .itemIdPath("_rowNumber")
         .onItemSelectionActionId(
             readOnly ? null : getFieldId(field, prefix, readOnly) + "_selected")
