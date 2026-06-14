@@ -53,3 +53,9 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 |---|---|
 | [`ValidationSupplier`](validation-supplier/) | Provides cross-field validations programmatically |
 | [`RuleSupplier`](validation-supplier/) | Provides conditional UI rules programmatically |
+
+## Visibility
+
+| Interface | Description |
+|---|---|
+| `VisibilitySupplier` | Controls server-side visibility of fields, columns, buttons, and toolbar items dynamically at request time |

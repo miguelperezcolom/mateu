@@ -347,6 +347,62 @@ record CustomerRow(
 
 ---
 
+## VisibilitySupplier
+
+**Interface** — `io.mateu.uidl.interfaces.VisibilitySupplier`
+
+When a ViewModel implements `VisibilitySupplier`, Mateu calls `isHidden()` on the server for every field, listing column, filter field, button, and toolbar item before building the UIDL. Members for which `isHidden()` returns `true` are excluded from the response entirely, exactly as if they were annotated with `@Hidden`.
+
+Use this when visibility depends on runtime state — fetched data, user context, or business rules — that cannot be expressed as a static annotation or a client-side expression.
+
+```java
+public interface VisibilitySupplier {
+    boolean isHidden(String memberName, HttpRequest httpRequest);
+}
+```
+
+The `memberName` parameter is the Java field name or method name of the member being evaluated.
+
+### Example
+
+```java
+@UI("/orders/{id}")
+public class OrderForm implements VisibilitySupplier {
+
+    public String status;
+    public String internalNote;
+    public double discount;
+
+    @Button
+    public void approve() { ... }
+
+    @Override
+    public boolean isHidden(String memberName, HttpRequest httpRequest) {
+        return switch (memberName) {
+            case "internalNote" -> !httpRequest.isUserInRole("ADMIN");
+            case "discount"     -> !"draft".equals(status);
+            case "approve"      -> !"pending".equals(status);
+            default             -> false;
+        };
+    }
+}
+```
+
+In this example:
+- `internalNote` is only sent to admins.
+- `discount` is only sent when the order is in draft.
+- The `approve` button is only sent when the order is pending.
+
+### Comparison with @Hidden
+
+| | `@Hidden` | `VisibilitySupplier` |
+|---|---|---|
+| Evaluated | Server (annotation) or client (expression) | Server only |
+| Condition | Static or client expression | Any Java logic |
+| Scope | Per field or class | Per ViewModel, all members |
+
+---
+
 ## Combining visibility annotations
 
 Annotations compose freely. A common pattern is using `@HiddenInList` together with `@HiddenInCreate` for a computed or derived field that only makes sense in the edit and view forms:
