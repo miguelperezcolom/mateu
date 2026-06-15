@@ -22,7 +22,7 @@ public abstract class FilteredAutoListOrchestrator<Filters, T extends Identifiab
   }
 
   @Override
-  public CrudAdapter<SimpleView<T>, SimpleView<T>, SimpleView<T>, Filters, T, String> adapter() {
+  public CrudAdapter<SimpleView<T>, SimpleView<T>, Filters, T, String> adapter() {
     return (CrudAdapter) simpleAdapter();
   }
 

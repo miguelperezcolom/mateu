@@ -22,7 +22,7 @@ public class Persons extends CrudOrchestrator<
     final PersonsCrudAdapter adapter;
 
     @Override
-    public CrudAdapter<PersonDetailView, PersonEditorView, PersonCreationForm, NoFilters, PersonRow, String> adapter() {
+    public CrudAdapter<PersonEditorView, PersonCreationForm, NoFilters, PersonRow, String> adapter() {
         return adapter;
     }
 

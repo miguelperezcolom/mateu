@@ -12,7 +12,7 @@ import java.util.List;
 
 @Service
 @Slf4j
-public class PersonsCrudAdapter implements CrudAdapter<PersonDetailView, PersonEditorView, PersonCreationForm, NoFilters, PersonRow, String> {
+public class PersonsCrudAdapter implements CrudAdapter<PersonEditorView, PersonCreationForm, NoFilters, PersonRow, String> {
     @Override
     public ListingData<PersonRow> search(String searchText, NoFilters noFilters, Pageable pageable, HttpRequest httpRequest) {
         return ListingData.of(List.of(new PersonRow("1", "Mateu", 17)));

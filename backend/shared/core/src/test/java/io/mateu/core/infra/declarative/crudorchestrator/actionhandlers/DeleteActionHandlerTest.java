@@ -28,7 +28,7 @@ import org.mockito.quality.Strictness;
 class DeleteActionHandlerTest {
 
   @Mock CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator;
-  @Mock CrudAdapter<?, ?, ?, ?, ?, ?> adapter;
+  @Mock CrudAdapter<?, ?, ?, ?, ?> adapter;
   @Mock HttpRequest httpRequest;
 
   private final DeleteEditActionHandler handler = new DeleteEditActionHandler();

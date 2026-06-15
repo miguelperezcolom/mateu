@@ -9,7 +9,7 @@ import io.mateu.uidl.interfaces.*;
 import java.util.List;
 
 public abstract class AutoListAdapter<T extends Identifiable>
-    implements CrudAdapter<NamedView<T>, NamedView<T>, NamedView<T>, T, T, String> {
+    implements CrudAdapter<NamedView<T>, NamedView<T>, T, T, String> {
 
   @Override
   public ListingData<T> search(String searchText, T t, Pageable pageable, HttpRequest httpRequest) {

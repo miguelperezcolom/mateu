@@ -123,7 +123,7 @@ public abstract class CrudOrchestrator<
 
   public abstract String toId(String id);
 
-  public abstract CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> adapter();
+  public abstract CrudAdapter<Editor, CreationForm, Filters, Row, IdType> adapter();
 
   public Class<Filters> filtersClass() {
     return getGenericClass(this.getClass(), CrudOrchestrator.class, "Filters");
