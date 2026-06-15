@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface ListToolbarButton {
 
-  boolean confirmationRequired() default true;
+  boolean confirmationRequired() default false;
 
   boolean rowsSelectedRequired() default true;
 }

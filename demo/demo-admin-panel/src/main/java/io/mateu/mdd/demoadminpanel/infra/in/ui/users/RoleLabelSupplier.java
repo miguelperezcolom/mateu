@@ -5,7 +5,7 @@ import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import org.springframework.stereotype.Service;
 
 @Service
-public class RoleLookupLabelSupplier implements LookupLabelSupplier {
+public class RoleLabelSupplier implements LookupLabelSupplier {
 
     @Override
     public String label(String fieldName, Object id, HttpRequest httpRequest) {

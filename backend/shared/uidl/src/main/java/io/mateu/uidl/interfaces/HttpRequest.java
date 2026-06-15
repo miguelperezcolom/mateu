@@ -8,6 +8,14 @@ import java.util.Optional;
 
 public interface HttpRequest {
 
+  default String getBaseUrl() {
+    return (String) getAttribute("baseUrl");
+  }
+
+  default String getUriPrefix() {
+    return (String) getAttribute("uriPrefix");
+  }
+
   default RunActionRqDto runActionRq() {
     var value = getAttribute("payload_run_action_rq");
     if (value instanceof Optional<?> optional) {
