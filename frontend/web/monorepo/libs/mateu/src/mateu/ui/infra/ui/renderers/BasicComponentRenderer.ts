@@ -34,10 +34,10 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
         <mateu-pagination
                 @page-changed="${container.pageChanged}"
                 @fetch-more-elements="${container.fetchMoreElements}"
-                totalElements="${container.data[component?.id!]?.page?.totalElements}"
-                pageSize="${container.data[component?.id!]?.page?.pageSize}"
+                .totalElements="${container.data[component?.id!]?.page?.totalElements ?? 0}"
+                .pageSize="${container.data[component?.id!]?.page?.pageSize ?? 10}"
                 data-testid="pagination"
-                pageNumber="${container.data[component?.id!]?.page?.pageNumber}"
+                .pageNumber="${container.data[component?.id!]?.page?.pageNumber ?? 0}"
         ></mateu-pagination>
         `
     }

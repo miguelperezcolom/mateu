@@ -20,12 +20,22 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
     String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
     Pageable pageable =
         new Pageable(
-            (Integer) httpRequest.runActionRq().componentState().get("page"),
-            (Integer) httpRequest.runActionRq().componentState().get("size"),
+            toInt(httpRequest.runActionRq().componentState().get("page"), 0),
+            toInt(httpRequest.runActionRq().componentState().get("size"), 20),
             (List<Sort>) httpRequest.runActionRq().componentState().get("sort"));
     if (searchText == null) {
       searchText = "";
     }
     return new Data(Map.of("crud", orchestrator.search(searchText, null, pageable, httpRequest)));
+  }
+
+  private int toInt(Object value, int defaultValue) {
+    if (value == null) return defaultValue;
+    if (value instanceof Integer i) return i;
+    try {
+      return Integer.parseInt(value.toString());
+    } catch (NumberFormatException e) {
+      return defaultValue;
+    }
   }
 }

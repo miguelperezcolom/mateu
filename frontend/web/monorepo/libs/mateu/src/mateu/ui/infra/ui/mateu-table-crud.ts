@@ -128,11 +128,7 @@ export class MateuTableCrud extends LitElement {
 
         params.forEach((value, key) => {
             if (filterIds.has(key)) {
-                this.dispatchEvent(new CustomEvent('value-changed', {
-                    detail: { value, fieldId: key },
-                    bubbles: true,
-                    composed: true
-                }))
+                this.state[key] = value
             }
         })
 
@@ -140,11 +136,7 @@ export class MateuTableCrud extends LitElement {
         if (pageParam !== null) {
             const page = parseInt(pageParam, 10)
             if (!isNaN(page) && page > 0) {
-                this.dispatchEvent(new CustomEvent('value-changed', {
-                    detail: { value: page, fieldId: 'page' },
-                    bubbles: true,
-                    composed: true
-                }))
+                this.state.page = page
             }
         }
 
@@ -154,11 +146,7 @@ export class MateuTableCrud extends LitElement {
                 .map(s => { const [fieldId, direction] = s.split(':'); return fieldId && direction ? {fieldId, direction} : null })
                 .filter(Boolean)
             if (sort.length > 0) {
-                this.dispatchEvent(new CustomEvent('value-changed', {
-                    detail: { value: sort, fieldId: 'sort' },
-                    bubbles: true,
-                    composed: true
-                }))
+                this.state.sort = sort
             }
         }
     }

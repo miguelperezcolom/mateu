@@ -21,7 +21,11 @@ import java.util.stream.Stream;
 public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
   public boolean supports(String route, HttpRequest httpRequest, ViewOrchestrator orchestrator) {
-    return route.endsWith("/list") || route.equals(orchestrator.getConsumedRoute(httpRequest));
+    if (route.endsWith("/list")) return true;
+    var pathPart = route.contains("?") ? route.substring(0, route.indexOf('?')) : route;
+    var cleanPath =
+        pathPart.endsWith("/") ? pathPart.substring(0, pathPart.length() - 1) : pathPart;
+    return cleanPath.equals(orchestrator.getConsumedRoute(httpRequest));
   }
 
   @Override

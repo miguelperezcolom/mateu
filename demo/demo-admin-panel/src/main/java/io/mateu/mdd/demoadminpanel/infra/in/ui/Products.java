@@ -76,10 +76,23 @@ record Product(
 
 class ProductRepository implements CrudRepository<Product> {
 
-    private static final Map<String, Product> db = new HashMap<>(Map.of("1", new Product("1", "Producto 1", true, ProductStatus.Available, "xxx", null, List.of(
-            new ProductComponent("x", 1, null, false, "yyy"),
-            new ProductComponent("y", 2, null, true, "xxx")
-    ))));
+    private static final Map<String, Product> db = createDb();
+
+    private static Map<String, Product> createDb() {
+        Map<String, Product> map = new HashMap<>();
+        for (int i = 1; i <= 200; i++) {
+            String id = String.format("%04d", i);
+            map.put(id, new Product(id, "Producto " + i,
+                    i % 2 == 0,
+                    i % 3 == 0 ? ProductStatus.OutOfStock : ProductStatus.Available,
+                    "Descripción del producto " + i, null,
+                    List.of(
+                            new ProductComponent("x" + i, i, null, false, "yyy"),
+                            new ProductComponent("y" + i, i + 1, null, true, "xxx")
+                    )));
+        }
+        return map;
+    }
 
     @Override
     public Optional<Product> findById(String id) {

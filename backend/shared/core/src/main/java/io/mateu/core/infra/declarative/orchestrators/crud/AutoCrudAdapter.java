@@ -16,7 +16,7 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
 
   @Override
   public ListingData<T> search(String searchText, T t, Pageable pageable, HttpRequest httpRequest) {
-    return ListingData.of(
+    var filtered =
         repository().findAll().stream()
             .filter(
                 item ->
@@ -27,7 +27,14 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
                                 : item.toString())
                             .toLowerCase()
                             .contains(searchText.toLowerCase()))
-            .toList());
+            .toList();
+    int pageSize = pageable != null && pageable.size() > 0 ? pageable.size() : filtered.size();
+    int pageNumber = pageable != null ? pageable.page() : 0;
+    int from = Math.min(pageNumber * pageSize, filtered.size());
+    int to = Math.min(from + pageSize, filtered.size());
+    var pageContent = filtered.subList(from, to);
+    return new ListingData<>(
+        new io.mateu.uidl.data.Page<>("", pageSize, pageNumber, filtered.size(), pageContent));
   }
 
   @Override
