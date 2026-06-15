@@ -33,7 +33,7 @@ public abstract class AutoListAdapter<T extends Identifiable>
   }
 
   @Override
-  public NamedView<T> getView(String id, HttpRequest httpRequest) {
+  public Object getView(String id, HttpRequest httpRequest) {
     var entity = repository().findById(id).orElseThrow();
     return new AutoNamedView<>(entityClass(), entity, null);
   }

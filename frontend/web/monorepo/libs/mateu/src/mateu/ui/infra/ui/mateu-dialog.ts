@@ -51,8 +51,6 @@ export class MateuDialog extends ComponentElement {
 
     render(): TemplateResult {
 
-        console.log('render dialog', this.state)
-
         const metadata = (this.component as ClientSideComponent).metadata as Dialog
 
         let theme = '';

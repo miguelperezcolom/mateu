@@ -10,8 +10,6 @@ export const renderText = (component: ClientSideComponent, state: ComponentState
     let content = metadata.text
     const colspan = metadata.attributes?.['data-colspan']
 
-    console.log('renderText', metadata, content, colspan)
-
     if (content) {
         try {
             content = eval('`' + metadata.text + '`')

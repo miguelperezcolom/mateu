@@ -7,8 +7,6 @@ import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 export const renderPage = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
     const metadata = component.metadata as Form
 
-    console.log('render form', metadata)
-
     return html`
         
         <mateu-sapui5-form 
