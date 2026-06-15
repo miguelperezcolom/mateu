@@ -102,12 +102,21 @@ export class MateuComponent extends ComponentElement {
     applyRules = () => {
         const rules = (this.component as ServerSideComponent).rules
         if (rules && rules.length > 0) {
-            const state = this.state       // available to eval() in rule filters
-            const data = this.data          // available to eval() in rule filters
-            const appState = this.appState  // available to eval() in rule filters
-            const appData = this.appData    // available to eval() in rule filters
+            const state = this.state
+            const data = this.data
+            const appState = this.appState
+            const appData = this.appData
             const component = this.component
-            void state; void data; void appState; void appData; void component;
+            // Use new Function instead of eval so minifier cannot rename the parameter names,
+            // which would break rule expressions that reference state/data/appState/appData/component by name.
+            const ctxArgs: [string, string, string, string, string] = ['state', 'data', 'appState', 'appData', 'component']
+            const ctxVals = [state, data, appState, appData, component]
+            const evalExpr = (expr: string) =>
+                new Function(...ctxArgs, `return (${expr})`)(...ctxVals)
+            const evalTemplate = (tmpl: string) => {
+                const interpolated = new Function(...ctxArgs, 'return `' + tmpl + '`')(...ctxVals)
+                return new Function(...ctxArgs, `return (${interpolated})`)(...ctxVals)
+            }
             const newState = {...this.state}
             const newData = {...this.data}
             let stateUpdated = false;
@@ -115,14 +124,14 @@ export class MateuComponent extends ComponentElement {
             for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex++) {
                 const rule = rules[ruleIndex]
                 try {
-                    if (eval(rule.filter)) {
+                    if (evalExpr(rule.filter)) {
                         if (RuleAction.SetStateValue == rule.action || RuleAction.SetDataValue == rule.action) {
                             const target = RuleAction.SetStateValue == rule.action?newState:newData
                             const fieldNames = rule.fieldName.split(',')
                             for (let fieldIndex = 0; fieldIndex < fieldNames.length; fieldIndex++) {
                                 const fieldName = fieldNames[fieldIndex]
                                 if (!target[fieldName] || target[fieldName] != rule.value) {
-                                    const value = rule.expression?eval(eval('`' + rule.expression + '`')):rule.value
+                                    const value = rule.expression?evalTemplate(rule.expression):rule.value
                                     const propertyName =  RuleFieldAttribute.none == rule.fieldAttribute?fieldName:fieldName + '.' + rule.fieldAttribute
                                     if (value != target[propertyName]) {
                                         target[propertyName] = value
@@ -146,10 +155,10 @@ export class MateuComponent extends ComponentElement {
                             }))
                         }
                         if (RuleAction.RunJS == rule.action) {
-                            eval(rule.value as string)
+                            new Function(...ctxArgs, rule.value as string)(...ctxVals)
                         }
                         if (RuleAction.SetAttributeValue == rule.action) {
-                            const value = rule.expression?eval(rule.expression):rule.value
+                            const value = rule.expression?evalExpr(rule.expression):rule.value
                             if ('disabled' == rule.fieldAttribute) {
                                 if (value) {
                                     this.shadowRoot?.getElementById(rule.fieldName)?.setAttribute(rule.fieldAttribute, 'disabled')
