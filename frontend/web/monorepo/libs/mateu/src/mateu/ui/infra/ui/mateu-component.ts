@@ -207,8 +207,6 @@ export class MateuComponent extends ComponentElement {
         let valid = true
         let dataUpdated = false
         const data = this.data??{}
-        const state = this.state??{}    // available to eval() in validation conditions
-        void state;
         const newData: Record<string, any> = {...this.data??{}, errors: {}}
         if (validatons) {
             for (let validationIndex = 0; validationIndex < validatons.length; validationIndex++) {
@@ -228,7 +226,7 @@ export class MateuComponent extends ComponentElement {
                     continue
                 }
                 try {
-                    const result = (validation.condition && validation.condition.includes('${'))?eval('`' + validation.condition + '`'):eval('' + validation.condition + '')
+                    const result = (validation.condition && validation.condition.includes('${'))?this._evalTemplate(validation.condition):this._evalExpr(validation.condition)
                     const failed = validation.condition && !result
                     if (failed) {
                         valid = false
@@ -243,7 +241,7 @@ export class MateuComponent extends ComponentElement {
                             if (!data[fieldName]) {
                                 let message = validation.message
                                 try {
-                                    message = eval('`'  + validation.message + '`')
+                                    message = this._evalTemplate(validation.message)
                                 } catch (ignored) {
 
                                 }
@@ -371,7 +369,7 @@ export class MateuComponent extends ComponentElement {
                 serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnValueChange)
                     .filter(trigger => !trigger.propertyName || detail.fieldId == trigger.propertyName)
                     .forEach(trigger => {
-                        if (!trigger.condition || eval(trigger.condition)) {
+                        if (!trigger.condition || this._evalExpr(trigger.condition)) {
                             this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                                 detail: {
                                     actionId: trigger.actionId
@@ -551,15 +549,16 @@ export class MateuComponent extends ComponentElement {
         }
 
         if (action && action.js) {
-            const data = this.data
-            const state = this.state
-            const component = this.component
             try {
-                eval(action.js)
+                new Function('state', 'data', 'appState', 'appData', 'component',
+                    action.js).call(this,
+                        this.state ?? {}, this.data ?? {},
+                        this.appState ?? {}, this.appData ?? {},
+                        this.component)
                 this.state = { ...this.state}
                 this.data = { ...this.data}
             } catch (e) {
-                console.error('when evaluating ' + action.js, e, component, state, data )
+                console.error('when evaluating ' + action.js, e, this.component, this.state, this.data)
             }
         }
 
@@ -612,15 +611,12 @@ export class MateuComponent extends ComponentElement {
 
     handleBackendSucceeded = (e: Event) => {
         const customEvent = e as CustomEvent
-        const state = this.state    // available to eval() in trigger conditions
-        const data = this.data      // available to eval() in trigger conditions
-        void state; void data;
         if (customEvent.detail.actionId) {
             const serverSideComponent = this.component as ServerSideComponent
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnSuccess)
                 .filter(trigger => (e as CustomEvent).detail.actionId == trigger.calledActionId)
                 .forEach(trigger => {
-                    if (!trigger.condition || eval(trigger.condition)) {
+                    if (!trigger.condition || this._evalExpr(trigger.condition)) {
                         e.preventDefault()
                         e.stopPropagation()
                         if (trigger.timeoutMillis > 0) {
@@ -656,7 +652,7 @@ export class MateuComponent extends ComponentElement {
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnError)
                 .filter(trigger => (e as CustomEvent).detail.actionId == trigger.calledActionId)
                 .forEach(trigger => {
-                    if (!trigger.condition || eval(trigger.condition)) {
+                    if (!trigger.condition || this._evalExpr(trigger.condition)) {
                         e.preventDefault()
                         e.stopPropagation()
                         this.manageActionRequestedEvent(new CustomEvent('action-requested', {

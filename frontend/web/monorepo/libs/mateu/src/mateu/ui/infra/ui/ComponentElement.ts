@@ -12,6 +12,26 @@ import {nanoid} from "nanoid";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
+    protected _evalExpr(expr: string): any {
+        const state = this.state ?? {}
+        const data = this.data ?? {}
+        const appState = this.appState ?? {}
+        const appData = this.appData ?? {}
+        const component = this.component
+        return new Function('state', 'data', 'appState', 'appData', 'component',
+            `return (${expr})`)(state, data, appState, appData, component)
+    }
+
+    protected _evalTemplate(tmpl: string): string {
+        const state = this.state ?? {}
+        const data = this.data ?? {}
+        const appState = this.appState ?? {}
+        const appData = this.appData ?? {}
+        const component = this.component
+        return new Function('state', 'data', 'appState', 'appData', 'component',
+            'return `' + tmpl + '`')(state, data, appState, appData, component)
+    }
+
     // public properties
     @property()
     state: Record<string, any> = {}
@@ -97,9 +117,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             }
 
             const serverSideComponent = this.component as ServerSideComponent
-            const state = this.state  // available to eval() in trigger conditions
-            const data = this.data    // available to eval() in trigger conditions
-            void state; void data;
 
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
                 .forEach(trigger => {
@@ -116,9 +133,6 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
 
     triggerOnLoad = () => {
-        const state = this.state    // available to eval() in trigger conditions
-        const data = this.data      // available to eval() in trigger conditions
-        void state; void data;
         const serverSideComponent = this.component as ServerSideComponent
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
@@ -129,7 +143,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
-                if (!trigger.condition || eval(trigger.condition) && !((trigger as OnLoadTrigger).triggered)) {
+                if (!trigger.condition || this._evalExpr(trigger.condition) && !((trigger as OnLoadTrigger).triggered)) {
                     const onloadTrigger = trigger as OnLoadTrigger
                     onloadTrigger.triggered = true
                     var times = onloadTrigger.times - 1;
@@ -175,7 +189,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
             serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
                 .filter(trigger => trigger.eventName == customEvent.type)
                 .forEach(trigger => {
-                    if (!trigger.condition || eval(trigger.condition)) {
+                    if (!trigger.condition || this._evalExpr(trigger.condition)) {
                         this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                             detail: {
                                 actionId: trigger.actionId,
