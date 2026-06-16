@@ -116,6 +116,7 @@ public class CrudlMapper {
             .detailPath(crudl.detailPath())
             .onRowSelectionChangedActionId(crudl.onRowSelectionChangedActionId())
             .contentHeight(crudl.contentHeight())
+            .initialPage(crudl.initialPage())
             .build();
     return new ClientSideComponentDto(
         crudlDto,

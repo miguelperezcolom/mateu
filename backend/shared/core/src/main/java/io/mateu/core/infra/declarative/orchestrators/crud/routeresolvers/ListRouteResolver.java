@@ -35,6 +35,22 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
         "list", orchestrator.list(httpRequest), createListComponent(httpRequest, orchestrator));
   }
 
+  private int parseInitialPage(String route) {
+    if (route == null || !route.contains("?")) return 0;
+    var query = route.substring(route.indexOf('?') + 1);
+    for (var param : query.split("&")) {
+      var parts = param.split("=", 2);
+      if (parts.length == 2 && "page".equals(parts[0])) {
+        try {
+          return Integer.parseInt(parts[1]);
+        } catch (NumberFormatException ignored) {
+          return 0;
+        }
+      }
+    }
+    return 0;
+  }
+
   private Component createListComponent(HttpRequest httpRequest, CrudOrchestrator orchestrator) {
     var toolbar = new ArrayList<UserTrigger>();
     orchestrator.addButtonsToList(toolbar);
@@ -107,6 +123,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                             httpRequest.runActionRq().initiatorComponentId(),
                             httpRequest))
                     .style("min-width: 30rem; display: block;")
+                    .initialPage(parseInitialPage(httpRequest.runActionRq().route()))
                     .build()))
         .build();
   }

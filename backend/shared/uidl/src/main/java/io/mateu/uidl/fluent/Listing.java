@@ -44,7 +44,8 @@ public record Listing(
     String gridStyle,
     String detailPath,
     String onRowSelectionChangedActionId,
-    String contentHeight)
+    String contentHeight,
+    int initialPage)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

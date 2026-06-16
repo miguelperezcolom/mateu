@@ -63,8 +63,6 @@ export class MateuTableCrud extends LitElement {
     @state()
     showImportDialog = false
 
-    private _urlInitialized = false
-
     search = () => {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this.state.size = metadata.pageSize
@@ -205,12 +203,9 @@ export class MateuTableCrud extends LitElement {
         if (_changedProperties.has("component")) {
             const metadata = this.component?.metadata as Crud
             this.state.size = metadata.pageSize
-            this.state.page = 0
+            this.state.page = (metadata.initialPage && metadata.initialPage > 0) ? metadata.initialPage : 0
             this.state.sort = []
-            if (!this._urlInitialized) {
-                this._urlInitialized = true
-                this._initStateFromUrl(metadata)
-            }
+            this._initStateFromUrl(metadata)
         }
     }
 

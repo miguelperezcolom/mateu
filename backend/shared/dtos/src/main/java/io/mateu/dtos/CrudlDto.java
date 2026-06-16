@@ -54,7 +54,8 @@ public record CrudlDto(
     String gridStyle,
     String detailPath,
     String onRowSelectionChangedActionId,
-    String contentHeight)
+    String contentHeight,
+    int initialPage)
     implements ComponentMetadataDto {
 
   public CrudlDto {

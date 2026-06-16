@@ -14,5 +14,6 @@ export default interface Crud extends Table {
     clientSidePagination: boolean
     searchOnEnter: boolean
     autoFocusOnSearchText: boolean
+    initialPage: number
 
 }
