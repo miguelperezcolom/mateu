@@ -4,8 +4,10 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.UserTrigger;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,14 +22,24 @@ public final class FormViewToolbarBuilder {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(Toolbar.class))
+        .filter(
+            method ->
+                !method.isAnnotationPresent(Hidden.class)
+                    || !method.getAnnotation(Hidden.class).value().isEmpty())
         .forEach(
             method -> {
               var action = method.getAnnotation(Action.class);
               var shortcut =
                   action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
+              var ann = method.getAnnotation(Toolbar.class);
+              var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
               toolbar.add(
-                  new Button(
-                      toUpperCaseFirst(method.getName()), prefix + method.getName(), shortcut));
+                  Button.builder()
+                      .label(toUpperCaseFirst(method.getName()))
+                      .actionId(prefix + method.getName())
+                      .shortcut(shortcut)
+                      .buttonStyle(buttonStyle)
+                      .build());
             });
     return toolbar;
   }
@@ -40,6 +52,10 @@ public final class FormViewToolbarBuilder {
     var buttons = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
+        .filter(
+            method ->
+                !method.isAnnotationPresent(Hidden.class)
+                    || !method.getAnnotation(Hidden.class).value().isEmpty())
         .forEach(
             method -> {
               var action = method.getAnnotation(Action.class);

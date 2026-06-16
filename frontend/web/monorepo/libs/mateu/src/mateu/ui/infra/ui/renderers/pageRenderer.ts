@@ -21,6 +21,7 @@ export const renderPage = (container: LitElement, component: ClientSideComponent
         ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         ${metadata?.buttons?.map(button => html`
                    ${renderComponent(container, {
+            id: button.actionId,
             metadata: button,
             type: ComponentType.ClientSide,
             slot: 'buttons'

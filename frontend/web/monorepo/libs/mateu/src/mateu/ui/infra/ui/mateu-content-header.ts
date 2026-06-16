@@ -70,7 +70,9 @@ export class MateuContentHeader extends LitElement {
         }))
     }
 
-    renderBtn = (button: Button) => html`
+    renderBtn = (button: Button) => {
+        if ((this.data ?? {})[button.actionId + '.hidden']) return nothing
+        return html`
         <vaadin-button
                 data-action-id="${button.id}"
                 theme="${buttonTheme(button) || nothing}"
@@ -78,6 +80,7 @@ export class MateuContentHeader extends LitElement {
                 ?disabled="${button.disabled}"
         >${button.iconOnLeft ? html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>` : nothing}${button.label}${button.iconOnRight ? html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>` : nothing}</vaadin-button>
     `
+    }
 
     render(): TemplateResult {
         const metadata = this.metadata as Form | undefined

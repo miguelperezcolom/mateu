@@ -5,9 +5,11 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ButtonsSupplier;
 import io.mateu.uidl.interfaces.DisabledSupplier;
@@ -30,6 +32,10 @@ final class PageButtonsBuilder {
                 .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
                 .filter(
                     field ->
+                        !field.isAnnotationPresent(Hidden.class)
+                            || !field.getAnnotation(Hidden.class).value().isEmpty())
+                .filter(
+                    field ->
                         !(instance instanceof VisibilitySupplier vs)
                             || !vs.isHidden(field.getName(), httpRequest))
                 .map(
@@ -41,6 +47,10 @@ final class PageButtonsBuilder {
             getAllMethods(instance.getClass()).stream()
                 .filter(
                     method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
+                .filter(
+                    method ->
+                        !method.isAnnotationPresent(Hidden.class)
+                            || !method.getAnnotation(Hidden.class).value().isEmpty())
                 .filter(
                     method ->
                         !(instance instanceof VisibilitySupplier vs)
@@ -63,6 +73,10 @@ final class PageButtonsBuilder {
                 .filter(field -> field.isAnnotationPresent(Toolbar.class))
                 .filter(
                     field ->
+                        !field.isAnnotationPresent(Hidden.class)
+                            || !field.getAnnotation(Hidden.class).value().isEmpty())
+                .filter(
+                    field ->
                         !(instance instanceof VisibilitySupplier vs)
                             || !vs.isHidden(field.getName(), httpRequest))
                 .map(
@@ -73,6 +87,10 @@ final class PageButtonsBuilder {
                                 && ds.isDisabled(field.getName(), httpRequest))),
             getAllMethods(instance.getClass()).stream()
                 .filter(method -> method.isAnnotationPresent(Toolbar.class))
+                .filter(
+                    method ->
+                        !method.isAnnotationPresent(Hidden.class)
+                            || !method.getAnnotation(Hidden.class).value().isEmpty())
                 .filter(
                     method ->
                         !(instance instanceof VisibilitySupplier vs)
@@ -87,18 +105,26 @@ final class PageButtonsBuilder {
   }
 
   private static Button getButton(Method method, boolean disabled) {
+    var ann = method.getAnnotation(Toolbar.class);
+    var buttonStyle =
+        ann != null && ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
     return Button.builder()
         .label(getLabelForMethod(method))
         .actionId(method.getName())
         .disabled(disabled)
+        .buttonStyle(buttonStyle)
         .build();
   }
 
   private static Button getButton(Field field, boolean disabled) {
+    var ann = field.getAnnotation(Toolbar.class);
+    var buttonStyle =
+        ann != null && ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
     return Button.builder()
         .label(getLabel(field))
         .actionId(field.getName())
         .disabled(disabled)
+        .buttonStyle(buttonStyle)
         .build();
   }
 

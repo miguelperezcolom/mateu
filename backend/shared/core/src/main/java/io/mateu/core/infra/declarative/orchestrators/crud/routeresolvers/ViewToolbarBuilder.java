@@ -5,10 +5,12 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ModelSupplier;
 import java.util.ArrayList;
@@ -31,9 +33,21 @@ final class ViewToolbarBuilder {
     }
     getAllMethods(entity.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(Toolbar.class))
-        .forEach(
+        .filter(
             method ->
-                toolbar.add(new Button(toUpperCaseFirst(method.getName()), method.getName())));
+                !method.isAnnotationPresent(Hidden.class)
+                    || !method.getAnnotation(Hidden.class).value().isEmpty())
+        .forEach(
+            method -> {
+              var ann = method.getAnnotation(Toolbar.class);
+              var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
+              toolbar.add(
+                  Button.builder()
+                      .label(toUpperCaseFirst(method.getName()))
+                      .actionId(method.getName())
+                      .buttonStyle(buttonStyle)
+                      .build());
+            });
     if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
       toolbar.add(new Button("Back to list", "cancel-view"));
     }

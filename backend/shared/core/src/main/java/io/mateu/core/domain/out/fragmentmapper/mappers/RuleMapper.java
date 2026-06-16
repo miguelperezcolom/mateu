@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
 import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
@@ -75,6 +76,22 @@ public class RuleMapper {
                         .fieldName(field.getName())
                         .fieldAttribute(RuleFieldAttribute.hidden)
                         .expression(field.getAnnotation(Hidden.class).value())
+                        .result(RuleResult.Continue)
+                        .build()));
+    getAllMethods(viewClass).stream()
+        .filter(
+            method ->
+                method.isAnnotationPresent(Hidden.class)
+                    && !method.getAnnotation(Hidden.class).value().isEmpty())
+        .forEach(
+            method ->
+                rules.add(
+                    io.mateu.uidl.data.Rule.builder()
+                        .filter("true")
+                        .action(RuleAction.SetDataValue)
+                        .fieldName(method.getName())
+                        .fieldAttribute(RuleFieldAttribute.hidden)
+                        .expression(method.getAnnotation(Hidden.class).value())
                         .result(RuleResult.Continue)
                         .build()));
     ListFieldRuleCollector.addListFieldRules(viewClass, rules);

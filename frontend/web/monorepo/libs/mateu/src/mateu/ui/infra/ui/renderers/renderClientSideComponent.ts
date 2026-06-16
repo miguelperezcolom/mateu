@@ -186,6 +186,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
                     ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                 ${metadata?.buttons?.map(button => html`
                    ${renderComponent(container, {
+                    id: button.actionId,
                     metadata: button,
                     type: ComponentType.ClientSide,
                        slot: 'buttons'

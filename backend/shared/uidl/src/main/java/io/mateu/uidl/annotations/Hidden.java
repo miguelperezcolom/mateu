@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 public @interface Hidden {
 
   String value() default "";
