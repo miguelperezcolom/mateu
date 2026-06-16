@@ -1,5 +1,5 @@
 import {customElement, property} from "lit/decorators.js";
-import {css, html, nothing, PropertyValues, TemplateResult, unsafeCSS} from "lit";
+import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@vaadin/vaadin-lumo-styles/badge.js';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -439,7 +439,7 @@ export class MateuComponent extends ComponentElement {
                 if (action && action.validationRequired) {
                     this.checkValidations(action.fieldsToValidate)
                     if (!this.data._valid) {
-                        this.notify('There are validation errors')
+                        this.notifyValidationErrors()
                         return
                     }
                 }
@@ -470,6 +470,39 @@ export class MateuComponent extends ComponentElement {
             }
 
         }
+    }
+
+    notifyValidationErrors = () => {
+        const errors = (this.data?.errors ?? {}) as Record<string, string[]>
+        const messages: string[] = []
+        Object.values(errors).forEach(fieldErrors => {
+            if (Array.isArray(fieldErrors)) {
+                fieldErrors.forEach(msg => {
+                    if (msg && !messages.includes(msg)) messages.push(msg)
+                })
+            }
+        })
+        if (messages.length === 0) {
+            this.notify('There are validation errors')
+            return
+        }
+        const notification = document.createElement('vaadin-notification') as any
+        notification.position = 'bottom-end'
+        notification.setAttribute('theme', 'error')
+        notification.duration = Math.max(5000, 3000 + messages.length * 1500)
+        notification.renderer = (root: HTMLElement) => {
+            render(html`
+                <vaadin-vertical-layout style="gap: var(--lumo-space-xs);">
+                    <strong>There are validation errors</strong>
+                    ${messages.map(m => html`<span>• ${m}</span>`)}
+                </vaadin-vertical-layout>
+            `, root)
+        }
+        document.body.appendChild(notification)
+        notification.opened = true
+        notification.addEventListener('opened-changed', (e: any) => {
+            if (!e.detail.value) document.body.removeChild(notification)
+        })
     }
 
     notify = (message: string) => {
