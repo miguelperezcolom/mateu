@@ -25,6 +25,16 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 | [`@KeycloakSecured`](app/) | Class | Protects a page with Keycloak authentication |
 | [`@AI`](app/) | Class | Enables AI/SSE integration |
 
+## HTML head injection
+
+These annotations inject tags into the `<head>` of the generated HTML page at compile time. All three are repeatable and can be combined on the same `@UI` class.
+
+| Annotation | Target | Description |
+|---|---|---|
+| [`@Script`](ui/) | Class | Injects a `<script>` tag (supports `type`, `defer`, `async`, `crossorigin`) |
+| [`@Link`](ui/) | Class | Injects a `<link>` tag (stylesheets, preloads, fonts…) |
+| [`@Meta`](ui/) | Class | Injects a `<meta>` tag (`name`, `http-equiv`, `charset`) |
+
 ## Page metadata
 
 | Annotation | Target | Description |
