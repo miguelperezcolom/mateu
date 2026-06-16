@@ -13,6 +13,8 @@ import io.mateu.uidl.interfaces.RouteHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
+
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -99,8 +101,8 @@ public class RunActionUseCase {
                 mapToUiIncrement(
                     Message.builder()
                         .variant(NotificationVariant.error)
-                        .title(error.getClass().getSimpleName())
-                        .text(error.getClass().getSimpleName() + ": " + error.getMessage())
+                        .title(extractTitle(error))
+                        .text(extractText(error))
                         .build(),
                     command))
         .switchIfEmpty(
@@ -108,7 +110,29 @@ public class RunActionUseCase {
                 Text.builder().text("Not found.").style("color: red;").build(), command));
   }
 
-  private Mono<UIIncrementDto> mapToUiIncrement(Object result, RunActionCommand command) {
+    private String extractTitle(Throwable e) {
+      return getSourceException(e).getClass().getSimpleName();
+    }
+
+    private Throwable getSourceException(Throwable e) {
+      if (e instanceof InvocationTargetException ite) {
+          return ite.getTargetException();
+      }
+      if (e.getCause() != null) {
+          return e.getCause();
+      }
+      return e;
+    }
+
+    private String extractText(Throwable e) {
+      var sourceException = getSourceException(e);
+      if (sourceException.getMessage() != null) {
+          return sourceException.getMessage();
+      }
+        return sourceException.getClass().getSimpleName();
+    }
+
+    private Mono<UIIncrementDto> mapToUiIncrement(Object result, RunActionCommand command) {
     return uiIncrementMapperProvider
         .get(result)
         .map(

@@ -56,7 +56,8 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
                 .stream()
                 .toList())
         .toolbar(createToolbar(orchestrator))
-        .actions(List.of(Action.builder().id("save").validationRequired(true).bubble(true).build()))
+        .actions(
+            List.of(Action.builder().id("create").validationRequired(true).bubble(true).build()))
         .build();
   }
 

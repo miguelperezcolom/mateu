@@ -39,12 +39,12 @@ public abstract class AutoListAdapter<T extends Identifiable>
   }
 
   @Override
-  public NamedView<T> getEditor(String id, HttpRequest httpRequest) {
+  public Object getEditor(String id, HttpRequest httpRequest) {
     throw new UnsupportedOperationException("Read-only adapter");
   }
 
   @Override
-  public NamedView<T> getCreationForm(HttpRequest httpRequest) {
+  public Object getCreationForm(HttpRequest httpRequest) {
     throw new UnsupportedOperationException("Read-only adapter");
   }
 

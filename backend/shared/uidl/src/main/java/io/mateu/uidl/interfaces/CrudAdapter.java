@@ -13,7 +13,7 @@ public interface CrudAdapter<Editor, CreationForm, Filters, Row, IdType> {
 
   Object getView(IdType id, HttpRequest httpRequest);
 
-  Editor getEditor(IdType id, HttpRequest httpRequest);
+  Object getEditor(IdType id, HttpRequest httpRequest);
 
-  CreationForm getCreationForm(HttpRequest httpRequest);
+  Object getCreationForm(HttpRequest httpRequest);
 }

@@ -72,6 +72,7 @@ public class Changes extends Listing<NoFilters, ChangeRow>  {
         log.info("create release {}", selectedRows);
 
         var auth = httpRequest.getHeaderValue("Authorization");
+        if (auth == null) throw new RuntimeException("no auth header");
         var jwt = auth.split(" ")[1];
 
         String[] chunks = jwt.split("\\.");
@@ -82,6 +83,13 @@ public class Changes extends Listing<NoFilters, ChangeRow>  {
         var user = payload.get("preferred_username").toString();
 
         return createReleaseForm.withUser(user);
+    }
+
+    @Toolbar
+    public CreateReleaseForm createReleaseNoAuth(List<ChangeRow> selectedRows, HttpRequest httpRequest) {
+        log.info("create release {}", selectedRows);
+
+        return createReleaseForm.withUser("no_user");
     }
 
 }
