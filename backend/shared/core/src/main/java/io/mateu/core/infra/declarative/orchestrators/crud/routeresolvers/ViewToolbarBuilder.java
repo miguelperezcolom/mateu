@@ -12,13 +12,16 @@ import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.UserTrigger;
+import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ModelSupplier;
+import io.mateu.uidl.interfaces.VisibilitySupplier;
 import java.util.ArrayList;
 import java.util.List;
 
 final class ViewToolbarBuilder {
 
-  static List<UserTrigger> createViewToolbar(Object item, CrudOrchestrator orchestrator) {
+  static List<UserTrigger> createViewToolbar(
+      Object item, CrudOrchestrator orchestrator, HttpRequest httpRequest) {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(orchestrator.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
@@ -31,12 +34,17 @@ final class ViewToolbarBuilder {
     if (entity instanceof AutoNamedView<?> autoNamedView) {
       entity = autoNamedView.entity();
     }
+    final var finalEntity = entity;
     getAllMethods(entity.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(Toolbar.class))
         .filter(
             method ->
                 !method.isAnnotationPresent(Hidden.class)
                     || !method.getAnnotation(Hidden.class).value().isEmpty())
+        .filter(
+            method ->
+                !(finalEntity instanceof VisibilitySupplier vs)
+                    || !vs.isHidden(method.getName(), httpRequest))
         .forEach(
             method -> {
               var ann = method.getAnnotation(Toolbar.class);

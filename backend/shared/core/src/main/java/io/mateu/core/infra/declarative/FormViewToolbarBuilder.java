@@ -9,16 +9,19 @@ import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.UserTrigger;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.VisibilitySupplier;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class FormViewToolbarBuilder {
 
-  public static List<UserTrigger> createToolbar(Object instance) {
-    return createToolbar("", instance);
+  public static List<UserTrigger> createToolbar(Object instance, HttpRequest httpRequest) {
+    return createToolbar("", instance, httpRequest);
   }
 
-  public static List<UserTrigger> createToolbar(String prefix, Object instance) {
+  public static List<UserTrigger> createToolbar(
+      String prefix, Object instance, HttpRequest httpRequest) {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(Toolbar.class))
@@ -26,6 +29,10 @@ public final class FormViewToolbarBuilder {
             method ->
                 !method.isAnnotationPresent(Hidden.class)
                     || !method.getAnnotation(Hidden.class).value().isEmpty())
+        .filter(
+            method ->
+                !(instance instanceof VisibilitySupplier vs)
+                    || !vs.isHidden(method.getName(), httpRequest))
         .forEach(
             method -> {
               var action = method.getAnnotation(Action.class);
@@ -44,11 +51,12 @@ public final class FormViewToolbarBuilder {
     return toolbar;
   }
 
-  public static List<UserTrigger> createButtons(Object instance) {
-    return createButtons("", instance);
+  public static List<UserTrigger> createButtons(Object instance, HttpRequest httpRequest) {
+    return createButtons("", instance, httpRequest);
   }
 
-  public static List<UserTrigger> createButtons(String prefix, Object instance) {
+  public static List<UserTrigger> createButtons(
+      String prefix, Object instance, HttpRequest httpRequest) {
     var buttons = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
@@ -56,6 +64,10 @@ public final class FormViewToolbarBuilder {
             method ->
                 !method.isAnnotationPresent(Hidden.class)
                     || !method.getAnnotation(Hidden.class).value().isEmpty())
+        .filter(
+            method ->
+                !(instance instanceof VisibilitySupplier vs)
+                    || !vs.isHidden(method.getName(), httpRequest))
         .forEach(
             method -> {
               var action = method.getAnnotation(Action.class);

@@ -55,8 +55,8 @@ public class FormViewModel
                     false)
                 .stream()
                 .toList())
-        .toolbar(createToolbar())
-        .buttons(createButtons())
+        .toolbar(createToolbar(httpRequest))
+        .buttons(createButtons(httpRequest))
         .build();
   }
 
@@ -85,12 +85,12 @@ public class FormViewModel
     return toUpperCaseFirst(getClass().getSimpleName());
   }
 
-  private List<UserTrigger> createToolbar() {
-    return FormViewToolbarBuilder.createToolbar(this);
+  private List<UserTrigger> createToolbar(HttpRequest httpRequest) {
+    return FormViewToolbarBuilder.createToolbar(this, httpRequest);
   }
 
-  private List<UserTrigger> createButtons() {
-    return FormViewToolbarBuilder.createButtons(this);
+  private List<UserTrigger> createButtons(HttpRequest httpRequest) {
+    return FormViewToolbarBuilder.createButtons(this, httpRequest);
   }
 
   public Class<?> entityClass() {

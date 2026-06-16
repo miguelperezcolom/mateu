@@ -65,8 +65,8 @@ final class NestedFormFieldBuilder {
                               false)
                           .stream()
                           .toList())
-                  .toolbar(createToolbar("nested-form-action-" + newPrefix, value))
-                  .buttons(createButtons("nested-form-action-" + newPrefix, value))
+                  .toolbar(createToolbar("nested-form-action-" + newPrefix, value, httpRequest))
+                  .buttons(createButtons("nested-form-action-" + newPrefix, value, httpRequest))
                   .build())
           .build();
     }

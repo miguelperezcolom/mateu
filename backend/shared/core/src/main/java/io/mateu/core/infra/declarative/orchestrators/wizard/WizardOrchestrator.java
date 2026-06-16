@@ -67,7 +67,7 @@ public abstract class WizardOrchestrator
 
   @Override
   public Component component(HttpRequest httpRequest) {
-    var buttons = WizardButtonBuilder.createButtons(this);
+    var buttons = WizardButtonBuilder.createButtons(this, httpRequest);
     return VerticalLayout.builder()
         .content(
             List.of(

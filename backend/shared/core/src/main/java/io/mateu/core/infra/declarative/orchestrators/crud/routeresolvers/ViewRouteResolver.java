@@ -33,7 +33,7 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
   private Component createViewComponent(
       HttpRequest httpRequest, Object view, CrudOrchestrator orchestrator) {
     Object viewModel = view instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : view;
-    var toolbar = createViewToolbar(viewModel, orchestrator);
+    var toolbar = createViewToolbar(viewModel, orchestrator, httpRequest);
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));
     var page =
@@ -59,7 +59,8 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
     return page;
   }
 
-  private List<UserTrigger> createViewToolbar(Object item, CrudOrchestrator orchestrator) {
-    return ViewToolbarBuilder.createViewToolbar(item, orchestrator);
+  private List<UserTrigger> createViewToolbar(
+      Object item, CrudOrchestrator orchestrator, HttpRequest httpRequest) {
+    return ViewToolbarBuilder.createViewToolbar(item, orchestrator, httpRequest);
   }
 }
