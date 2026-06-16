@@ -7,6 +7,8 @@ import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonColor;
+import io.mateu.uidl.data.ButtonSize;
 import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -52,11 +54,15 @@ final class WizardButtonBuilder {
             method -> {
               var ann = method.getAnnotation(Toolbar.class);
               var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
+              var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
+              var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
               buttons.add(
                   Button.builder()
                       .actionId(method.getName())
                       .label(getLabel(method))
                       .buttonStyle(buttonStyle)
+                      .color(buttonColor)
+                      .size(buttonSize)
                       .build());
             });
     return buttons;

@@ -9,6 +9,8 @@ import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonColor;
+import io.mateu.uidl.data.ButtonSize;
 import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ButtonsSupplier;
@@ -108,11 +110,17 @@ final class PageButtonsBuilder {
     var ann = method.getAnnotation(Toolbar.class);
     var buttonStyle =
         ann != null && ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
+    var buttonColor =
+        ann != null && ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
+    var buttonSize =
+        ann != null && ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
     return Button.builder()
         .label(getLabelForMethod(method))
         .actionId(method.getName())
         .disabled(disabled)
         .buttonStyle(buttonStyle)
+        .color(buttonColor)
+        .size(buttonSize)
         .build();
   }
 
@@ -120,11 +128,17 @@ final class PageButtonsBuilder {
     var ann = field.getAnnotation(Toolbar.class);
     var buttonStyle =
         ann != null && ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
+    var buttonColor =
+        ann != null && ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
+    var buttonSize =
+        ann != null && ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
     return Button.builder()
         .label(getLabel(field))
         .actionId(field.getName())
         .disabled(disabled)
         .buttonStyle(buttonStyle)
+        .color(buttonColor)
+        .size(buttonSize)
         .build();
   }
 

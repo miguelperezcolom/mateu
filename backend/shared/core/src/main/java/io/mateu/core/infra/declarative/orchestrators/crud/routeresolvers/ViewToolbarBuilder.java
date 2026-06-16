@@ -10,6 +10,8 @@ import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonColor;
+import io.mateu.uidl.data.ButtonSize;
 import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -49,11 +51,15 @@ final class ViewToolbarBuilder {
             method -> {
               var ann = method.getAnnotation(Toolbar.class);
               var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
+              var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
+              var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
               toolbar.add(
                   Button.builder()
                       .label(toUpperCaseFirst(method.getName()))
                       .actionId(method.getName())
                       .buttonStyle(buttonStyle)
+                      .color(buttonColor)
+                      .size(buttonSize)
                       .build());
             });
     if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {

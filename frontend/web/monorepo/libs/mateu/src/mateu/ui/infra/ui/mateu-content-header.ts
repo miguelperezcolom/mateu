@@ -33,8 +33,9 @@ export const possiblyHtml = (
 
 export const buttonTheme = (button: Button): string | undefined => {
     const parts: string[] = []
-    if (button.color && button.color !== 'normal') parts.push(button.color)
-    if (button.buttonStyle) parts.push(button.buttonStyle === 'tertiaryInline' ? 'tertiary-inline' : button.buttonStyle)
+    if (button.color && button.color !== 'normal' && button.color !== 'none') parts.push(button.color)
+    if (button.buttonStyle && button.buttonStyle !== 'none') parts.push(button.buttonStyle === 'tertiaryInline' ? 'tertiary-inline' : button.buttonStyle)
+    if (button.size && button.size !== 'none' && button.size !== 'normal') parts.push(button.size)
     return parts.length ? parts.join(' ') : undefined
 }
 
