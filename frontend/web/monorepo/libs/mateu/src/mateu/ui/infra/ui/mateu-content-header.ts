@@ -141,7 +141,7 @@ export class MateuContentHeader extends LitElement {
                 </vaadin-horizontal-layout>
             ` : nothing}
             ${metadata.badges && metadata.badges.length > 0 ? html`
-                <vaadin-horizontal-layout>
+                <vaadin-horizontal-layout style="padding-bottom: var(--lumo-space-s);">
                     ${metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))}
                 </vaadin-horizontal-layout>
             ` : nothing}
