@@ -112,8 +112,7 @@ final class PageButtonsBuilder {
         ann != null && ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
     var buttonColor =
         ann != null && ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
-    var buttonSize =
-        ann != null && ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
+    var buttonSize = ann != null && ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
     return Button.builder()
         .label(getLabelForMethod(method))
         .actionId(method.getName())
@@ -130,8 +129,7 @@ final class PageButtonsBuilder {
         ann != null && ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
     var buttonColor =
         ann != null && ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
-    var buttonSize =
-        ann != null && ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
+    var buttonSize = ann != null && ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
     return Button.builder()
         .label(getLabel(field))
         .actionId(field.getName())

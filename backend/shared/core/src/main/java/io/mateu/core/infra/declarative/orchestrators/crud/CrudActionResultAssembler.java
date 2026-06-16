@@ -35,7 +35,10 @@ final class CrudActionResultAssembler {
                   : httpRequest.runActionRq().initiatorComponentId()));
     }
     list.add(UICommand.pushStateToHistory(orchestrator.pathForHistory(result.route())));
-    list.add(orchestrator.setWindowTitle(httpRequest));
+    var windowTitleCommand = orchestrator.setWindowTitle(httpRequest);
+    if (windowTitleCommand != null) {
+      list.add(windowTitleCommand);
+    }
     if (orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
       // ux_ux_b6d4da9d-4ebe-454a-b2e3-b2489cc4fb31_cs_list
       var initiatorId = httpRequest.runActionRq().initiatorComponentId();

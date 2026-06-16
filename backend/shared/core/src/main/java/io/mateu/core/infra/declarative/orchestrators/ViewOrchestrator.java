@@ -175,6 +175,10 @@ public abstract class ViewOrchestrator
   }
 
   public UICommand setWindowTitle(HttpRequest httpRequest) {
-    return new UICommand(UICommandType.SetWindowTitle, httpRequest.getAttribute("windowTitle"));
+    var windowTitle = httpRequest.getAttribute("windowTitle");
+    if (windowTitle == null) {
+      return null;
+    }
+    return new UICommand(UICommandType.SetWindowTitle, windowTitle);
   }
 }
