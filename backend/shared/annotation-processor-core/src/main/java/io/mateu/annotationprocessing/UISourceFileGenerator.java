@@ -3,10 +3,15 @@ package io.mateu.annotationprocessing;
 import com.google.common.base.Strings;
 import freemarker.template.TemplateException;
 import io.mateu.uidl.annotations.KeycloakSecured;
+import io.mateu.uidl.annotations.Link;
+import io.mateu.uidl.annotations.Meta;
+import io.mateu.uidl.annotations.Script;
 import io.mateu.uidl.annotations.UI;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import javax.annotation.processing.Filer;
 import javax.lang.model.element.Element;
@@ -58,6 +63,9 @@ class UISourceFileGenerator {
                   "frontendPath", frontendPath,
                   "indexHtmlPath", indexHtmlPath));
       model.put("favicon", "");
+      model.put("scripts", extractScripts(e));
+      model.put("links", extractLinks(e));
+      model.put("metas", extractMetas(e));
 
       KeycloakSecured keycloakAnnotation = e.getAnnotation(KeycloakSecured.class);
       if (keycloakAnnotation != null) {
@@ -97,6 +105,9 @@ class UISourceFileGenerator {
       String keycloakRealm,
       String keycloakClientId,
       String keycloakJsUrl,
+      List<Map<String, Object>> scripts,
+      List<Map<String, Object>> links,
+      List<Map<String, Object>> metas,
       Filer filer)
       throws IOException {
     JavaFileObject builderFile = filer.createSourceFile(generatedFullClassName);
@@ -119,6 +130,9 @@ class UISourceFileGenerator {
                   "frontendPath", frontendPath,
                   "indexHtmlPath", indexHtmlPath));
       model.put("favicon", "");
+      model.put("scripts", scripts);
+      model.put("links", links);
+      model.put("metas", metas);
       if (!keycloakUrl.isEmpty()) {
         String jsUrl =
             keycloakJsUrl.isEmpty() ? "https://esm.sh/keycloak-js@26.2.2" : keycloakJsUrl;
@@ -199,6 +213,47 @@ class UISourceFileGenerator {
         ex.printStackTrace();
       }
     }
+  }
+
+  static List<Map<String, Object>> extractScripts(Element e) {
+    List<Map<String, Object>> list = new ArrayList<>();
+    for (Script s : e.getAnnotationsByType(Script.class)) {
+      Map<String, Object> m = new HashMap<>();
+      m.put("src", s.src());
+      m.put("type", s.type());
+      m.put("crossorigin", s.crossorigin());
+      m.put("defer", s.defer());
+      m.put("async", s.async());
+      list.add(m);
+    }
+    return list;
+  }
+
+  static List<Map<String, Object>> extractLinks(Element e) {
+    List<Map<String, Object>> list = new ArrayList<>();
+    for (Link l : e.getAnnotationsByType(Link.class)) {
+      Map<String, Object> m = new HashMap<>();
+      m.put("rel", l.rel());
+      m.put("href", l.href());
+      m.put("type", l.type());
+      m.put("as", l.as());
+      m.put("crossorigin", l.crossorigin());
+      list.add(m);
+    }
+    return list;
+  }
+
+  static List<Map<String, Object>> extractMetas(Element e) {
+    List<Map<String, Object>> list = new ArrayList<>();
+    for (Meta mt : e.getAnnotationsByType(Meta.class)) {
+      Map<String, Object> m = new HashMap<>();
+      m.put("name", mt.name());
+      m.put("content", mt.content());
+      m.put("httpEquiv", mt.httpEquiv());
+      m.put("charset", mt.charset());
+      list.add(m);
+    }
+    return list;
   }
 
   private UISourceFileGenerator() {}

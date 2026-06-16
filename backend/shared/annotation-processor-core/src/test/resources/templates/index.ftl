@@ -110,6 +110,19 @@ public class ${simpleClassName}Controller {
                                     "<script src='http://localhost:35729/livereload.js'></script>":""));
     html = html.replaceAll("<!-- AQUIUI -->", "<mateu-ui baseUrl='${path}' contextData='" + getContextData(request) + "' style=\"width:100%;height:100vh;\"></mateu-ui>");
 </#if>
+<#if metas?has_content || links?has_content || scripts?has_content>
+        StringBuilder extraHead = new StringBuilder();
+<#list metas as m>
+        extraHead.append("<meta<#if m.name?has_content> name=\"${m.name}\"</#if><#if m.httpEquiv?has_content> http-equiv=\"${m.httpEquiv}\"</#if><#if m.charset?has_content> charset=\"${m.charset}\"</#if> content=\"${m.content}\">");
+</#list>
+<#list links as l>
+        extraHead.append("<link rel=\"${l.rel}\" href=\"${l.href}\"<#if l.type?has_content> type=\"${l.type}\"</#if><#if l.as?has_content> as=\"${l.as}\"</#if><#if l.crossorigin> crossorigin</#if>>");
+</#list>
+<#list scripts as s>
+        extraHead.append("<script<#if s.type?has_content> type=\"${s.type}\"</#if> src=\"${s.src}\"<#if s.crossorigin> crossorigin</#if><#if s.defer> defer</#if><#if s.async> async</#if></script>");
+</#list>
+        html = html.replace("</head>", extraHead + "</head>");
+</#if>
         return html;
     }
 

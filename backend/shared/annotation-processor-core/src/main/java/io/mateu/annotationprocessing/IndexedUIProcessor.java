@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.*;
+import java.util.HashMap;
 import javax.annotation.processing.Filer;
 
 class IndexedUIProcessor {
@@ -40,6 +41,9 @@ class IndexedUIProcessor {
     String keycloakRealm = entry.getOrDefault("keycloakRealm", "");
     String keycloakClientId = entry.getOrDefault("keycloakClientId", "");
     String keycloakJsUrl = entry.getOrDefault("keycloakJsUrl", "");
+    List<Map<String, Object>> scripts = parseIndexedScripts(entry);
+    List<Map<String, Object>> links = parseIndexedLinks(entry);
+    List<Map<String, Object>> metas = parseIndexedMetas(entry);
 
     System.out.println("MateuUIAnnotationProcessor processing indexed UI: " + simpleClassName);
 
@@ -69,6 +73,9 @@ class IndexedUIProcessor {
           keycloakRealm,
           keycloakClientId,
           keycloakJsUrl,
+          scripts,
+          links,
+          metas,
           filer);
       UISourceFileGenerator.createController(
           className + "MateuController",
@@ -138,6 +145,51 @@ class IndexedUIProcessor {
       }
     }
     return result;
+  }
+
+  private static List<Map<String, Object>> parseIndexedScripts(Map<String, String> entry) {
+    List<Map<String, Object>> list = new ArrayList<>();
+    for (int i = 0; entry.containsKey("script." + i + ".src"); i++) {
+      Map<String, Object> m = new HashMap<>();
+      m.put("src", entry.get("script." + i + ".src"));
+      m.put("type", entry.getOrDefault("script." + i + ".type", ""));
+      m.put(
+          "crossorigin",
+          Boolean.parseBoolean(entry.getOrDefault("script." + i + ".crossorigin", "false")));
+      m.put("defer", Boolean.parseBoolean(entry.getOrDefault("script." + i + ".defer", "false")));
+      m.put("async", Boolean.parseBoolean(entry.getOrDefault("script." + i + ".async", "false")));
+      list.add(m);
+    }
+    return list;
+  }
+
+  private static List<Map<String, Object>> parseIndexedLinks(Map<String, String> entry) {
+    List<Map<String, Object>> list = new ArrayList<>();
+    for (int i = 0; entry.containsKey("link." + i + ".rel"); i++) {
+      Map<String, Object> m = new HashMap<>();
+      m.put("rel", entry.get("link." + i + ".rel"));
+      m.put("href", entry.getOrDefault("link." + i + ".href", ""));
+      m.put("type", entry.getOrDefault("link." + i + ".type", ""));
+      m.put("as", entry.getOrDefault("link." + i + ".as", ""));
+      m.put(
+          "crossorigin",
+          Boolean.parseBoolean(entry.getOrDefault("link." + i + ".crossorigin", "false")));
+      list.add(m);
+    }
+    return list;
+  }
+
+  private static List<Map<String, Object>> parseIndexedMetas(Map<String, String> entry) {
+    List<Map<String, Object>> list = new ArrayList<>();
+    for (int i = 0; entry.containsKey("meta." + i + ".content"); i++) {
+      Map<String, Object> m = new HashMap<>();
+      m.put("name", entry.getOrDefault("meta." + i + ".name", ""));
+      m.put("content", entry.getOrDefault("meta." + i + ".content", ""));
+      m.put("httpEquiv", entry.getOrDefault("meta." + i + ".httpEquiv", ""));
+      m.put("charset", entry.getOrDefault("meta." + i + ".charset", ""));
+      list.add(m);
+    }
+    return list;
   }
 
   private IndexedUIProcessor() {}

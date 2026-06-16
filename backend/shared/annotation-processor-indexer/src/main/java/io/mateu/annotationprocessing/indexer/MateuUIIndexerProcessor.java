@@ -2,6 +2,9 @@ package io.mateu.annotationprocessing.indexer;
 
 import com.google.auto.service.AutoService;
 import io.mateu.uidl.annotations.KeycloakSecured;
+import io.mateu.uidl.annotations.Link;
+import io.mateu.uidl.annotations.Meta;
+import io.mateu.uidl.annotations.Script;
 import io.mateu.uidl.annotations.UI;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -62,6 +65,44 @@ public class MateuUIIndexerProcessor extends AbstractProcessor {
           sb.append("keycloakRealm=\n");
           sb.append("keycloakClientId=\n");
           sb.append("keycloakJsUrl=\n");
+        }
+
+        Script[] scripts = e.getAnnotationsByType(Script.class);
+        for (int i = 0; i < scripts.length; i++) {
+          sb.append("script.").append(i).append(".src=").append(scripts[i].src()).append("\n");
+          sb.append("script.").append(i).append(".type=").append(scripts[i].type()).append("\n");
+          sb.append("script.")
+              .append(i)
+              .append(".crossorigin=")
+              .append(scripts[i].crossorigin())
+              .append("\n");
+          sb.append("script.").append(i).append(".defer=").append(scripts[i].defer()).append("\n");
+          sb.append("script.").append(i).append(".async=").append(scripts[i].async()).append("\n");
+        }
+
+        Link[] links = e.getAnnotationsByType(Link.class);
+        for (int i = 0; i < links.length; i++) {
+          sb.append("link.").append(i).append(".rel=").append(links[i].rel()).append("\n");
+          sb.append("link.").append(i).append(".href=").append(links[i].href()).append("\n");
+          sb.append("link.").append(i).append(".type=").append(links[i].type()).append("\n");
+          sb.append("link.").append(i).append(".as=").append(links[i].as()).append("\n");
+          sb.append("link.")
+              .append(i)
+              .append(".crossorigin=")
+              .append(links[i].crossorigin())
+              .append("\n");
+        }
+
+        Meta[] metas = e.getAnnotationsByType(Meta.class);
+        for (int i = 0; i < metas.length; i++) {
+          sb.append("meta.").append(i).append(".name=").append(metas[i].name()).append("\n");
+          sb.append("meta.").append(i).append(".content=").append(metas[i].content()).append("\n");
+          sb.append("meta.")
+              .append(i)
+              .append(".httpEquiv=")
+              .append(metas[i].httpEquiv())
+              .append("\n");
+          sb.append("meta.").append(i).append(".charset=").append(metas[i].charset()).append("\n");
         }
 
         entries.put(className, sb.toString());
