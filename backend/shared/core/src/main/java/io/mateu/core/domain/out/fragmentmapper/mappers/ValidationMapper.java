@@ -52,14 +52,13 @@ public class ValidationMapper {
         ConstraintValidationMapper.getValidationsWithFieldPrefix(prefix, field);
     Hidden hidden = field.getAnnotation(Hidden.class);
     if (hidden != null && !hidden.value().isBlank()) {
-      String visibleCondition = "!(" + hidden.value() + ")";
       validations =
           validations.stream()
               .map(
                   v ->
                       io.mateu.uidl.data.Validation.builder()
                           .fieldId(v.fieldId())
-                          .condition(visibleCondition + " && (" + v.condition() + ")")
+                          .condition("(" + hidden.value() + ") || (" + v.condition() + ")")
                           .message(v.message())
                           .build())
               .toList();
