@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isPage
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.dtos.ValidationDto;
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Validation;
 import io.mateu.uidl.interfaces.ValidationSupplier;
 import java.lang.reflect.Field;
@@ -47,7 +48,23 @@ public class ValidationMapper {
 
   public static List<io.mateu.uidl.data.Validation> getValidationsWithFieldPrefix(
       String prefix, Field field) {
-    return ConstraintValidationMapper.getValidationsWithFieldPrefix(prefix, field);
+    List<io.mateu.uidl.data.Validation> validations =
+        ConstraintValidationMapper.getValidationsWithFieldPrefix(prefix, field);
+    Hidden hidden = field.getAnnotation(Hidden.class);
+    if (hidden != null && !hidden.value().isBlank()) {
+      String visibleCondition = "!(" + hidden.value() + ")";
+      validations =
+          validations.stream()
+              .map(
+                  v ->
+                      io.mateu.uidl.data.Validation.builder()
+                          .fieldId(v.fieldId())
+                          .condition(visibleCondition + " && (" + v.condition() + ")")
+                          .message(v.message())
+                          .build())
+              .toList();
+    }
+    return validations;
   }
 
   public static io.mateu.uidl.data.Validation mapToValidation(Validation annotation) {
