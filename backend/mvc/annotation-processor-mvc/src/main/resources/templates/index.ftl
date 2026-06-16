@@ -19,6 +19,9 @@ public class ${simpleClassName}Controller {
     @Value("${r"${spring.devtools.livereload.enabled:false}"}")
     private boolean liveReloadEnabled;
 
+    @Value("${r"${mateu.debug:false}"}")
+    private boolean debug;
+
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex() {
         String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
@@ -126,7 +129,7 @@ html = html.replaceAll(
 "");
 <#else >
     html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-    + "<mateu-ui baseUrl=\"${path}\" pathPrefix=\"${path}\" style=\"width:100%;height:100vh;\"></mateu-ui>"
+    + "<mateu-ui baseUrl=\"${path}\" pathPrefix=\"${path}\"" + (debug ? " debug=\"true\"" : "") + " style=\"width:100%;height:100vh;\"></mateu-ui>"
     + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
 </#if>
         return html;

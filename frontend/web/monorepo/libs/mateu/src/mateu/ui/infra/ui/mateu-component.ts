@@ -70,6 +70,7 @@ import './mateu-bpmn'
 import './mateu-workflow'
 import './mateu-workflow-elk'
 import './mateu-form-editor'
+import './mateu-debug-overlay'
 import {Notification} from "@vaadin/notification"
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";

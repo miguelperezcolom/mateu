@@ -1,9 +1,10 @@
 import {customElement, property, state} from "lit/decorators.js";
-import {css, html, LitElement} from "lit";
+import {css, html, LitElement, nothing} from "lit";
 import '@vaadin/vertical-layout'
 import {appData, appState} from "@domain/state";
 import './mateu-ux'
 import './mateu-api-caller'
+import './mateu-debug-overlay'
 import {Subscription} from "rxjs";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {nanoid} from "nanoid";
@@ -42,6 +43,9 @@ export class MateuUi extends LitElement {
 
     @state()
     instant: string | undefined
+
+    @property({ type: Boolean })
+    debug = false
 
     private upstreamSubscription: Subscription | undefined;
 
@@ -205,8 +209,8 @@ export class MateuUi extends LitElement {
     render() {
        return html`
            <mateu-api-caller>
-                <mateu-ux id="_ux" 
-                          baseurl="${this.baseUrl}" 
+                <mateu-ux id="_ux"
+                          baseurl="${this.baseUrl}"
                           route="${this.route}"
                           consumedRoute="${this.consumedRoute}"
                           instant="${this.instant}"
@@ -217,6 +221,12 @@ export class MateuUi extends LitElement {
                           .appState="${appState.value}"
                 ></mateu-ux>
            </mateu-api-caller>
+           ${this.debug ? html`
+               <mateu-debug-overlay
+                   .appState="${appState.value}"
+                   .appData="${appData.value}"
+               ></mateu-debug-overlay>
+           ` : nothing}
        `
     }
 

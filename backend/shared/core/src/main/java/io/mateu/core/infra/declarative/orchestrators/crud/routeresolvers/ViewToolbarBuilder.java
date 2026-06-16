@@ -33,9 +33,7 @@ final class ViewToolbarBuilder {
         .filter(method -> method.isAnnotationPresent(Toolbar.class))
         .forEach(
             method ->
-                toolbar.add(
-                    new Button(
-                        toUpperCaseFirst(method.getName()), "action-on-view-" + method.getName())));
+                toolbar.add(new Button(toUpperCaseFirst(method.getName()), method.getName())));
     if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
       toolbar.add(new Button("Back to list", "cancel-view"));
     }
