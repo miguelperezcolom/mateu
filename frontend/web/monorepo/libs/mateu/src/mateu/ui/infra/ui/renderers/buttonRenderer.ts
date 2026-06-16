@@ -20,7 +20,10 @@ export const renderButton = (component: ClientSideComponent) => {
     if (metadata.buttonStyle) {
         theme += ' ' + metadata.buttonStyle
     }
-    if (metadata.size) {
+    if (metadata.color && metadata.color !== 'none' && metadata.color !== 'normal') {
+        theme += ' ' + metadata.color
+    }
+    if (metadata.size && metadata.size !== 'none' && metadata.size !== 'normal') {
         theme += ' ' + metadata.size
     }
     return html`<vaadin-button

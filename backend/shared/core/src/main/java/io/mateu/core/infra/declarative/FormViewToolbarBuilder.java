@@ -7,6 +7,8 @@ import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonColor;
+import io.mateu.uidl.data.ButtonSize;
 import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -40,12 +42,16 @@ public final class FormViewToolbarBuilder {
                   action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
               var ann = method.getAnnotation(Toolbar.class);
               var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
+              var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
+              var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
               toolbar.add(
                   Button.builder()
                       .label(toUpperCaseFirst(method.getName()))
                       .actionId(prefix + method.getName())
                       .shortcut(shortcut)
                       .buttonStyle(buttonStyle)
+                      .color(buttonColor)
+                      .size(buttonSize)
                       .build());
             });
     return toolbar;
@@ -73,9 +79,19 @@ public final class FormViewToolbarBuilder {
               var action = method.getAnnotation(Action.class);
               var shortcut =
                   action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
+              var ann = method.getAnnotation(io.mateu.uidl.annotations.Button.class);
+              var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
+              var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
+              var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
               buttons.add(
-                  new Button(
-                      toUpperCaseFirst(method.getName()), prefix + method.getName(), shortcut));
+                  Button.builder()
+                      .label(toUpperCaseFirst(method.getName()))
+                      .actionId(prefix + method.getName())
+                      .shortcut(shortcut)
+                      .buttonStyle(buttonStyle)
+                      .color(buttonColor)
+                      .size(buttonSize)
+                      .build());
             });
     return buttons;
   }
