@@ -18,6 +18,17 @@ public class SpringBeanProvider implements BeanProvider {
 
   @Override
   public <T> T getBean(Class<T> clazz) {
+    // Try by exact bean name first to avoid NoUniqueBeanDefinitionException
+    // when a subclass is also registered as a bean.
+    String beanName =
+        Character.toLowerCase(clazz.getSimpleName().charAt(0)) + clazz.getSimpleName().substring(1);
+    try {
+      Object candidate = applicationContext.getBean(beanName);
+      if (candidate.getClass() == clazz) {
+        return clazz.cast(candidate);
+      }
+    } catch (Exception ignored) {
+    }
     try {
       return applicationContext.getBean(clazz);
     } catch (Exception ignored) {
