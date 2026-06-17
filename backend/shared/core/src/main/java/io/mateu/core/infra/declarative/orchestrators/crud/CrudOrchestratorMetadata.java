@@ -24,8 +24,7 @@ final class CrudOrchestratorMetadata {
     return toUpperCaseFirst(orchestrator.getClass().getSimpleName());
   }
 
-  static String getStyleForList(
-      Crud<?, ?, ?, ?, ?, ?> orchestrator, List<GridContent> columns) {
+  static String getStyleForList(Crud<?, ?, ?, ?, ?, ?> orchestrator, List<GridContent> columns) {
     if (orchestrator.getClass().isAnnotationPresent(Style.class)) {
       return orchestrator.getClass().getAnnotation(Style.class).value();
     }

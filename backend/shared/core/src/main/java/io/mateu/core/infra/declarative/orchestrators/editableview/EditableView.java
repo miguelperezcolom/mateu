@@ -44,7 +44,10 @@ public abstract class EditableView<V, E> extends MultiView {
         yield navigate(
             "/view",
             httpRequest,
-            Message.builder().variant(NotificationVariant.success).text("Saved successfully").build());
+            Message.builder()
+                .variant(NotificationVariant.success)
+                .text("Saved successfully")
+                .build());
       }
       case "cancel-edit" -> navigate("/view", httpRequest, null);
       default -> throw new UnsupportedOperationException(actionId + " not supported");
@@ -129,8 +132,7 @@ public abstract class EditableView<V, E> extends MultiView {
                 .stream()
                 .toList())
         .toolbar(List.of(new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
-        .actions(
-            List.of(Action.builder().id("save").validationRequired(true).bubble(true).build()))
+        .actions(List.of(Action.builder().id("save").validationRequired(true).bubble(true).build()))
         .build();
   }
 }

@@ -5,8 +5,8 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getT
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
-import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Action;
@@ -24,8 +24,7 @@ public class EditRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   @Override
-  public OrchestrationResult resolve(
-      String route, HttpRequest httpRequest, Crud orchestrator) {
+  public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
     route = route.substring(0, route.lastIndexOf("/edit"));
     var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
     var editor = orchestrator.edit(orchestrator.toId(id), httpRequest);

@@ -6,8 +6,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 public interface CrudOrchestratorActionHandler {
   boolean supports(String actionId, HttpRequest httpRequest);
 
-  default boolean supports(
-      String actionId, HttpRequest httpRequest, Crud orchestrator) {
+  default boolean supports(String actionId, HttpRequest httpRequest, Crud orchestrator) {
     return supports(actionId, httpRequest);
   }
 

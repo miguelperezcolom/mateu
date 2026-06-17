@@ -3,8 +3,8 @@ package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getColumns;
 import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getFilters;
 
-import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.annotations.NotCreatable;
@@ -32,8 +32,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   @Override
-  public OrchestrationResult resolve(
-      String route, HttpRequest httpRequest, Crud orchestrator) {
+  public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
     return new OrchestrationResult(
         "list", orchestrator.list(httpRequest), createListComponent(httpRequest, orchestrator));
   }
@@ -80,11 +79,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
         && (orchestrator instanceof AutoCrud
             || Deleteable.class.isAssignableFrom(orchestrator.viewClass()))) {
       toolbar.add(
-          Button.builder()
-              .label("Delete")
-              .actionId("delete")
-              .variant(ButtonVariant.error)
-              .build());
+          Button.builder().label("Delete").actionId("delete").variant(ButtonVariant.error).build());
     }
     List<GridContent> columns =
         getClass().isAnnotationPresent(ReadOnly.class)

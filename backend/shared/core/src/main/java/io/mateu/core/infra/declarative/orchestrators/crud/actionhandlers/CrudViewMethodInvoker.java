@@ -13,8 +13,7 @@ import lombok.SneakyThrows;
 final class CrudViewMethodInvoker {
 
   @SneakyThrows
-  static Object invoke(
-      String methodName, Object item, Crud orchestrator, HttpRequest httpRequest) {
+  static Object invoke(String methodName, Object item, Crud orchestrator, HttpRequest httpRequest) {
     for (Object subject : List.of(item, orchestrator)) {
       for (Method method : getAllMethods(subject.getClass())) {
         if (methodName.equals(method.getName())) {

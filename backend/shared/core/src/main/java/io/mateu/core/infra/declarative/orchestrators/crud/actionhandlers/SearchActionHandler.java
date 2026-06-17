@@ -15,8 +15,7 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
   }
 
   @Override
-  public Object handleAction(
-      String actionId, HttpRequest httpRequest, Crud orchestrator) {
+  public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
     String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
     Pageable pageable =
         new Pageable(

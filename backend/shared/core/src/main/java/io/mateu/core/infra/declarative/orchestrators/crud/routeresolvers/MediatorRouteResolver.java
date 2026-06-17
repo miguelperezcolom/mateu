@@ -2,8 +2,8 @@ package io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 
-import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
@@ -18,8 +18,7 @@ public class MediatorRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   @Override
-  public OrchestrationResult resolve(
-      String route, HttpRequest httpRequest, Crud orchestrator) {
+  public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
     return new OrchestrationResult("mediator", orchestrator, dto(httpRequest, orchestrator));
   }
 

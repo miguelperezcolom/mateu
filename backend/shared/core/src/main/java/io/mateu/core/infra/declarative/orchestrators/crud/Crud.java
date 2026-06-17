@@ -4,8 +4,8 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
-import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.*;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
 import io.mateu.uidl.annotations.ListToolbarButton;

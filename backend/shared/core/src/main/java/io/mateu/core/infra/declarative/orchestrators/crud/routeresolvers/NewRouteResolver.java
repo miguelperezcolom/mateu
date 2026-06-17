@@ -5,8 +5,8 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getT
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
-import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
@@ -25,8 +25,7 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   @Override
-  public OrchestrationResult resolve(
-      String route, HttpRequest httpRequest, Crud orchestrator) {
+  public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
     var editor = orchestrator.adapter().getCreationForm(httpRequest);
     httpRequest.setAttribute("selectedItem", editor);
     return new OrchestrationResult(

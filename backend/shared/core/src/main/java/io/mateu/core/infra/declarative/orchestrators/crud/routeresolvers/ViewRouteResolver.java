@@ -6,8 +6,8 @@ import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
-import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
@@ -21,8 +21,7 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   @Override
-  public OrchestrationResult resolve(
-      String route, HttpRequest httpRequest, Crud orchestrator) {
+  public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
     var id = route.substring(orchestrator.getConsumedRoute(httpRequest).length() + 1);
     var view = orchestrator.view(orchestrator.toId(id), httpRequest);
     httpRequest.setAttribute("selectedItem", view);
@@ -30,8 +29,7 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
         "view", view, createViewComponent(httpRequest, view, orchestrator));
   }
 
-  private Component createViewComponent(
-      HttpRequest httpRequest, Object view, Crud orchestrator) {
+  private Component createViewComponent(HttpRequest httpRequest, Object view, Crud orchestrator) {
     Object viewModel = view instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : view;
     var toolbar = createViewToolbar(viewModel, orchestrator, httpRequest);
     String title;

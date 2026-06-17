@@ -13,9 +13,9 @@ public class CrudNavigationAdjuster {
   public record AdjustedCommand(RunActionCommand command, boolean routeFirst) {}
 
   /**
-   * When a Crud handles a "view", "edit", "new", or "cancel-view" action, the route
-   * must be pre-adjusted so the correct sub-route resolves. Returns routeFirst=true to signal that
-   * route resolution should be attempted before falling back to the known serverSideType.
+   * When a Crud handles a "view", "edit", "new", or "cancel-view" action, the route must be
+   * pre-adjusted so the correct sub-route resolves. Returns routeFirst=true to signal that route
+   * resolution should be attempted before falling back to the known serverSideType.
    */
   @SneakyThrows
   AdjustedCommand adjust(RunActionCommand command) {

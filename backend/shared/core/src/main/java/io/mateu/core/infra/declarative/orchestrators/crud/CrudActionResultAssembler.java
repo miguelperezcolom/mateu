@@ -10,9 +10,7 @@ import java.util.List;
 final class CrudActionResultAssembler {
 
   static List<Object> assemble(
-      CrudActionResult result,
-      Crud<?, ?, ?, ?, ?, ?> orchestrator,
-      HttpRequest httpRequest) {
+      CrudActionResult result, Crud<?, ?, ?, ?, ?, ?> orchestrator, HttpRequest httpRequest) {
     var list = new ArrayList<>();
     orchestrator.setRouteTo(result.route());
     list.add(new State(orchestrator));
