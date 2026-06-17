@@ -23,6 +23,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Stream;
@@ -37,7 +38,8 @@ final class PageButtonsBuilder {
       ButtonColor buttonColor,
       ButtonSize buttonSize,
       String group,
-      boolean separatorBefore) {}
+      boolean separatorBefore,
+      int order) {}
 
   static Collection<? extends UserTrigger> getButtons(Object instance, HttpRequest httpRequest) {
     if (instance instanceof ButtonsSupplier buttonsSupplier) {
@@ -129,8 +131,9 @@ final class PageButtonsBuilder {
   }
 
   private static Collection<? extends UserTrigger> groupRawButtons(List<RawButton> rawButtons) {
+    var sorted = rawButtons.stream().sorted(Comparator.comparingInt(RawButton::order)).toList();
     var grouped = new LinkedHashMap<String, List<RawButton>>();
-    for (var raw : rawButtons) {
+    for (var raw : sorted) {
       String key = raw.group().isEmpty() ? "__solo__" + raw.actionId() : raw.group();
       grouped.computeIfAbsent(key, k -> new ArrayList<>()).add(raw);
     }
@@ -180,6 +183,7 @@ final class PageButtonsBuilder {
       Method method, Class<?> annotationClass, boolean disabled) {
     String group = "";
     boolean separatorBefore = false;
+    int order = 0;
     ButtonStyle buttonStyle = null;
     ButtonColor buttonColor = null;
     ButtonSize buttonSize = null;
@@ -192,6 +196,7 @@ final class PageButtonsBuilder {
         buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
         group = ann.group();
         separatorBefore = ann.separatorBefore();
+        order = ann.order();
       }
     } else {
       var ann = method.getAnnotation(io.mateu.uidl.annotations.Button.class);
@@ -201,6 +206,7 @@ final class PageButtonsBuilder {
         buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
         group = ann.group();
         separatorBefore = ann.separatorBefore();
+        order = ann.order();
       }
     }
 
@@ -212,12 +218,14 @@ final class PageButtonsBuilder {
         buttonColor,
         buttonSize,
         group,
-        separatorBefore);
+        separatorBefore,
+        order);
   }
 
   private static RawButton getRawButtonFromField(Field field, boolean disabled) {
     String group = "";
     boolean separatorBefore = false;
+    int order = 0;
     ButtonStyle buttonStyle = null;
     ButtonColor buttonColor = null;
     ButtonSize buttonSize = null;
@@ -231,12 +239,14 @@ final class PageButtonsBuilder {
       buttonSize = toolbarAnn.buttonSize() != ButtonSize.none ? toolbarAnn.buttonSize() : null;
       group = toolbarAnn.group();
       separatorBefore = toolbarAnn.separatorBefore();
+      order = toolbarAnn.order();
     } else if (buttonAnn != null) {
       buttonStyle = buttonAnn.buttonStyle() != ButtonStyle.none ? buttonAnn.buttonStyle() : null;
       buttonColor = buttonAnn.buttonColor() != ButtonColor.none ? buttonAnn.buttonColor() : null;
       buttonSize = buttonAnn.buttonSize() != ButtonSize.none ? buttonAnn.buttonSize() : null;
       group = buttonAnn.group();
       separatorBefore = buttonAnn.separatorBefore();
+      order = buttonAnn.order();
     }
 
     return new RawButton(
@@ -247,7 +257,8 @@ final class PageButtonsBuilder {
         buttonColor,
         buttonSize,
         group,
-        separatorBefore);
+        separatorBefore,
+        order);
   }
 
   private static String getLabelForMethod(Method method) {

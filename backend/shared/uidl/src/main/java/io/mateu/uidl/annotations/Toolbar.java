@@ -20,4 +20,6 @@ public @interface Toolbar {
   String group() default "";
 
   boolean separatorBefore() default false;
+
+  int order() default 0;
 }
