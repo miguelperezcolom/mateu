@@ -53,10 +53,11 @@ record Product(
 ) implements Identifiable {}
 ```
 
-## 3. Connect Mateu to your data
+## 3. Create the UI
 
 ```java
-class ProductAdapter extends AutoCrudAdapter<Product> {
+@UI("/products")
+public class Products extends AutoCrud<Product> {
   @Override
   public CrudRepository<Product> repository() {
     return new ProductRepository();
@@ -64,19 +65,7 @@ class ProductAdapter extends AutoCrudAdapter<Product> {
 }
 ```
 
-## 4. Create the UI
-
-```java
-@UI("/products")
-public class Products extends AutoCrud<Product> {
-  @Override
-  public AutoCrudAdapter<Product> simpleAdapter() {
-    return new ProductAdapter();
-  }
-}
-```
-
-## 5. Run
+## 4. Run
 
 ```bash
 mvn spring-boot:run
