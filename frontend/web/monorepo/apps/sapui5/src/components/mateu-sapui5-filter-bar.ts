@@ -57,6 +57,43 @@ export class MateuSapUI5FilterBar extends LitElement {
         this.triggerSearch()
     }
 
+    private clearSingleFilter(fieldId: string) {
+        this.dispatchEvent(new CustomEvent('value-changed', {
+            detail: { value: undefined, fieldId },
+            bubbles: true, composed: true
+        }))
+        this.triggerSearch()
+    }
+
+    private getFilterDisplayValue(field: FormField, value: any): string {
+        if ((field as any).options?.length) {
+            const opt = (field as any).options.find((o: any) => o.value === String(value))
+            if (opt) return opt.label
+        }
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+        return String(value)
+    }
+
+    private renderActiveFilterBadges() {
+        const active = (this.metadata?.filters ?? [])
+            .map(f => f as unknown as FormField)
+            .filter(field => {
+                const v = this.state[field.fieldId]
+                return v !== undefined && v !== null && v !== ''
+            })
+        if (active.length === 0) return nothing
+        return html`
+            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem 0;">
+                ${active.map(field => html`
+                    <ui5-token
+                        text="${field.label}: ${this.getFilterDisplayValue(field, this.state[field.fieldId])}"
+                        @ui5-delete="${() => this.clearSingleFilter(field.fieldId)}"
+                    ></ui5-token>
+                `)}
+            </div>
+        `
+    }
+
     private dispatchToolbarAction(actionId: string) {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId },
@@ -116,6 +153,8 @@ export class MateuSapUI5FilterBar extends LitElement {
 
                 <slot></slot>
             </div>
+
+            ${this.renderActiveFilterBadges()}
 
             ${this.filtersOpen && hasFilters ? html`
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; padding: 0.75rem 0;">

@@ -108,6 +108,48 @@ export class MateuFilterBar extends LitElement {
         }))
     }
 
+    private getFilterDisplayValue(field: FormField, value: any): string {
+        if (field.options?.length) {
+            const opt = field.options.find(o => o.value === String(value))
+            if (opt) return opt.label
+        }
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+        return String(value)
+    }
+
+    private clearFilter(fieldId: string) {
+        this.dispatchEvent(new CustomEvent('value-changed', {
+            detail: { value: undefined, fieldId },
+            bubbles: true,
+            composed: true
+        }))
+        this.handleButtonClick()
+    }
+
+    renderActiveFilterBadges = () => {
+        const active = (this.metadata?.filters ?? [])
+            .map(f => f as unknown as FormField)
+            .filter(field => {
+                const v = this.state[field.fieldId]
+                return v !== undefined && v !== null && v !== ''
+            })
+        if (active.length === 0) return nothing
+        return html`
+            <div class="active-filters">
+                ${active.map(field => html`
+                    <span theme="badge contrast pill" class="active-filter-badge">
+                        <span>${field.label}: ${this.getFilterDisplayValue(field, this.state[field.fieldId])}</span>
+                        <button
+                            class="active-filter-remove"
+                            @click="${() => this.clearFilter(field.fieldId)}"
+                            aria-label="Remove filter"
+                        >✕</button>
+                    </span>
+                `)}
+            </div>
+        `
+    }
+
     renderSearchBar = () => html`
         <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;">
             <vaadin-text-field
@@ -168,6 +210,7 @@ export class MateuFilterBar extends LitElement {
         if (this.searchOnly) {
             return html`
                 ${this.metadata?.searchable ? this.renderSearchBar() : nothing}
+                ${this.renderActiveFilterBadges()}
                 ${this.renderFiltersDialog()}
             `
         }
@@ -176,6 +219,7 @@ export class MateuFilterBar extends LitElement {
             <vaadin-vertical-layout style="width: 100%;">
                 ${this.metadata?.searchable ? this.renderSearchBar()
                     : !hasHeader ? html`<span style="flex: 1;"></span>` : nothing}
+                ${this.renderActiveFilterBadges()}
             </vaadin-vertical-layout>
             ${this.renderFiltersDialog()}
         `
@@ -192,6 +236,30 @@ export class MateuFilterBar extends LitElement {
             background-color: var(--lumo-contrast-20pct);
             align-self: center;
             margin: 0 4px;
+        }
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.25rem 0;
+        }
+        .active-filter-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .active-filter-remove {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 0 0 2px;
+            line-height: 1;
+            font-size: 0.7rem;
+            color: inherit;
+            opacity: 0.7;
+        }
+        .active-filter-remove:hover {
+            opacity: 1;
         }
     `
 }

@@ -1,6 +1,7 @@
 import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing, TemplateResult } from "lit";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
+import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 
 @customElement('mateu-redwood-filter-bar')
 export class MateuRedwoodFilterBar extends LitElement {
@@ -64,6 +65,42 @@ export class MateuRedwoodFilterBar extends LitElement {
         }
     }
 
+    private getFilterDisplayValue(field: FormField, value: any): string {
+        if (field.options?.length) {
+            const opt = field.options.find(o => o.value === String(value))
+            if (opt) return opt.label
+        }
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+        return String(value)
+    }
+
+    private clearSingleFilter(fieldId: string) {
+        this.dispatchValueChanged(undefined as any, fieldId)
+        this.dispatchSearchRequested()
+    }
+
+    private renderActiveFilterBadges() {
+        const active = (this.metadata?.filters ?? [])
+            .map(f => f as unknown as FormField)
+            .filter(field => {
+                const v = this.state[field.fieldId]
+                return v !== undefined && v !== null && v !== ''
+            })
+        if (active.length === 0) return nothing
+        return html`
+            <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.25rem 0;">
+                ${active.map(field => html`
+                    <oj-c-chip
+                        data-oj-binding-provider="preact"
+                        label="${field.label}: ${this.getFilterDisplayValue(field, this.state[field.fieldId])}"
+                        removable
+                        @ojRemove="${() => this.clearSingleFilter(field.fieldId)}"
+                    ></oj-c-chip>
+                `)}
+            </div>
+        `
+    }
+
     connectedCallback() {
         super.connectedCallback()
         this.addEventListener('keydown', (e: Event) => this.handleKey(e as KeyboardEvent))
@@ -103,6 +140,7 @@ export class MateuRedwoodFilterBar extends LitElement {
                 `)}
                 <slot></slot>
             </div>
+            ${this.renderActiveFilterBadges()}
         `
     }
 }
