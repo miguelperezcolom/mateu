@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.EditActionHandler;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -21,7 +21,7 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class EditActionHandlerTest {
 
-  @Mock CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator;
+  @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
   @Mock HttpRequest httpRequest;
 
   private final EditActionHandler handler = new EditActionHandler();

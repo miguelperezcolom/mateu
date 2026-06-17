@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SaveActionHandler;
 import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class SaveActionHandlerTest {
 
-  @Mock CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator;
+  @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
   @Mock HttpRequest httpRequest;
 
   private final SaveActionHandler handler = new SaveActionHandler();

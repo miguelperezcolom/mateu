@@ -6,8 +6,8 @@ import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
-import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
@@ -19,13 +19,13 @@ import java.util.List;
 
 public class EditRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
-  public boolean supports(String route, HttpRequest httpRequest, ViewOrchestrator orchestrator) {
+  public boolean supports(String route, HttpRequest httpRequest, MultiView orchestrator) {
     return route.endsWith("/edit");
   }
 
   @Override
   public OrchestrationResult resolve(
-      String route, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
+      String route, HttpRequest httpRequest, Crud orchestrator) {
     route = route.substring(0, route.lastIndexOf("/edit"));
     var id = route.substring(httpRequest.runActionRq().consumedRoute().length() + 1);
     var editor = orchestrator.edit(orchestrator.toId(id), httpRequest);
@@ -35,7 +35,7 @@ public class EditRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   private Component createEditorComponent(
-      HttpRequest httpRequest, Object editor, CrudOrchestrator orchestrator) {
+      HttpRequest httpRequest, Object editor, Crud orchestrator) {
     Object viewModel =
         editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
     String title;
@@ -61,7 +61,7 @@ public class EditRouteResolver implements CrudOrchestratorRouteResolver {
         .build();
   }
 
-  private static List<UserTrigger> createToolbar(CrudOrchestrator orchestrator) {
+  private static List<UserTrigger> createToolbar(Crud orchestrator) {
     List<UserTrigger> buttons = new ArrayList<>();
     buttons.add(new Button("Cancel", "cancel-edit"));
     buttons.add(new Button("Save", "create"));

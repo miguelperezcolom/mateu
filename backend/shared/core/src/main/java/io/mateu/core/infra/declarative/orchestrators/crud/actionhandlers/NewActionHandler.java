@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 public class NewActionHandler implements CrudOrchestratorActionHandler {
@@ -12,7 +12,7 @@ public class NewActionHandler implements CrudOrchestratorActionHandler {
 
   @Override
   public Object handleAction(
-      String actionId, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
+      String actionId, HttpRequest httpRequest, Crud orchestrator) {
     return CrudActionResult.of(actionId).withRoute("/new");
   }
 }

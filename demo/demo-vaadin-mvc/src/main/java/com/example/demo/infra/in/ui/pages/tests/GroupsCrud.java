@@ -1,7 +1,7 @@
 package com.example.demo.infra.in.ui.pages.tests;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.ListToolbarButton;
@@ -83,7 +83,7 @@ class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
 
 @Route(value = "/home/grupos")
 //@Trigger(type = TriggerType.OnLoad, route = "search", timeoutMillis = 4000, times = -1)
-public class GroupsCrud extends AutoCrudOrchestrator<Grupo> {
+public class GroupsCrud extends AutoCrud<Grupo> {
     @Override
     public AutoCrudAdapter<Grupo> simpleAdapter() {
         return new Adapter();

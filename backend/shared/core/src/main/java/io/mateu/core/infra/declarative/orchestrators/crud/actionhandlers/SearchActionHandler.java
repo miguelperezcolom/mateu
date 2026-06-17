@@ -1,6 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
@@ -16,7 +16,7 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
 
   @Override
   public Object handleAction(
-      String actionId, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
+      String actionId, HttpRequest httpRequest, Crud orchestrator) {
     String searchText = (String) httpRequest.runActionRq().componentState().get("searchText");
     Pageable pageable =
         new Pageable(

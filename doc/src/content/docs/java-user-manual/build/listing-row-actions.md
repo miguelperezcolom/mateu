@@ -149,6 +149,6 @@ Rows are UI models, not domain entities. They can include formatted data, derive
 
 ## Next
 
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — when you need separate models for filters, rows, views, and forms
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — when you need separate models for filters, rows, views, and forms
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — the full progressive customization ladder
 - [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — a complete example showing row actions in context

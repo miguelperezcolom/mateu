@@ -144,7 +144,7 @@ The shell defines the entry points and composes remote modules.
 
 ```java
 @UI("/users")
-public class Users extends AutoCrudOrchestrator<User> {
+public class Users extends AutoCrud<User> {
 
   @Override
   public AutoCrudAdapter<User> simpleAdapter() {

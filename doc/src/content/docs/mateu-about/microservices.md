@@ -23,7 +23,7 @@ Each service exposes a UI root:
 public class OrdersServiceRoot {
 
     @Menu
-    OrdersCrudOrchestrator orders;
+    OrdersCrud orders;
 
     @Menu
     OrderLinesOrchestrator lines;
@@ -36,7 +36,7 @@ public class OrdersServiceRoot {
 public class ProductsServiceRoot {
 
     @Menu
-    ProductsCrudOrchestrator products;
+    ProductsCrud products;
 
     @Menu
     CategoriesOrchestrator categories;

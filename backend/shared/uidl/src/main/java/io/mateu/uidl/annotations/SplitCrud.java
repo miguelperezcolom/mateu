@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Switches a {@link io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator} to a
+ * Switches a {@link io.mateu.core.infra.declarative.orchestrators.crud.Crud} to a
  * split-panel layout: the record list is displayed on the left and the create/edit form on the
  * right, both visible at the same time.
  *
@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
  * <pre>{@code
  * @UI("/products")
  * @SplitCrud
- * public class ProductsCrud extends AutoCrudOrchestrator<Product> { ... }
+ * public class ProductsCrud extends AutoCrud<Product> { ... }
  * }</pre>
  */
 @Retention(RetentionPolicy.RUNTIME)

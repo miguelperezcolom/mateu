@@ -1,135 +1,34 @@
 ---
-title: "AutoListOrchestrator and AutoCrudOrchestrator"
-description: "The two simplest orchestrators for read-only listings and full CRUD with a single entity type."
+title: "AutoCrud<T>"
+description: "The simplest way to get a working CRUD or read-only listing on screen, with a single entity type."
 ---
 
-Both classes use a single type parameter `T` for everything — filters, rows, view, and edit forms. They are the fastest way to get a working listing or CRUD on screen.
+`AutoCrud<T>` uses a single type parameter `T` for filters, rows, view, and edit forms. It is the fastest way to get a working CRUD on screen. Capability annotations let you strip write operations one by one — turning the same class into a listing, a read-only catalogue, or any combination in between.
 
 ---
 
-## AutoListOrchestrator&lt;T extends Identifiable&gt;
-
-A read-only listing with detail view. No create, edit, or delete. The user provides an `AutoListAdapter<T>` that supplies data from a `CrudRepository<T>`.
+## Class signature
 
 ```java
-public abstract class AutoListOrchestrator<T extends Identifiable>
+public abstract class AutoCrud<T extends Identifiable>
+    extends FilteredAutoCrud<T, T>
 ```
-
-### Routes generated
-
-| Route | Purpose |
-|---|---|
-| `/your-route` | Listing (no New / Delete buttons) |
-| `/your-route/:id` | Read-only detail view |
 
 ### Methods to implement
 
 | Method | Where | Purpose |
 |---|---|---|
-| `simpleAdapter()` | Orchestrator | Return your `AutoListAdapter<T>` |
-| `repository()` | Adapter | Return the `CrudRepository<T>` used to load data |
-
-### Minimal example
-
-```java
-@Service
-@UI("/products")
-public class ProductListing extends AutoListOrchestrator<Product> {
-
-    private final ProductAdapter adapter;
-
-    public ProductListing(ProductAdapter adapter) {
-        this.adapter = adapter;
-    }
-
-    @Override
-    public AutoListAdapter<Product> simpleAdapter() {
-        return adapter;
-    }
-}
-```
-
-```java
-@Service
-public class ProductAdapter extends AutoListAdapter<Product> {
-
-    private final ProductRepository repository;
-
-    public ProductAdapter(ProductRepository repository) {
-        this.repository = repository;
-    }
-
-    @Override
-    public CrudRepository<Product> repository() {
-        return repository;
-    }
-}
-```
-
-```java
-public record Product(
-    @PrimaryKey String id,
-    String name,
-    BigDecimal price,
-    ProductStatus status
-) implements Identifiable {}
-```
-
-### Default search behaviour
-
-`AutoListAdapter` filters by calling `item.toString().toLowerCase().contains(searchText)`, or by using `Searchable.searchableText()` if `T` implements `Searchable`. Override `search()` in the adapter to replace this with a database query.
-
-```java
-@Service
-public class ProductAdapter extends AutoListAdapter<Product> {
-
-    @Override
-    public ListingData<Product> search(
-            String searchText, Product filters, Pageable pageable, HttpRequest httpRequest) {
-        return ListingData.of(repository().findAll().stream()
-            .filter(p -> p.name().toLowerCase().contains(searchText.toLowerCase()))
-            .toList());
-    }
-
-    @Override
-    public CrudRepository<Product> repository() {
-        return productRepository;
-    }
-}
-```
-
----
-
-## AutoCrudOrchestrator&lt;T extends Identifiable&gt;
-
-Full CRUD with list, view, edit, and create. Uses the same entity type `T` for all four screens. The user provides an `AutoCrudAdapter<T>` that supplies a `CrudRepository<T>`.
-
-```java
-public abstract class AutoCrudOrchestrator<T extends Identifiable>
-```
-
-### Routes generated
-
-| Route | Purpose |
-|---|---|
-| `/your-route` | Listing |
-| `/your-route/:id` | Read-only detail view |
-| `/your-route/:id/edit` | Edit form |
-| `/your-route/new` | Create form |
-
-### Methods to implement
-
-| Method | Where | Purpose |
-|---|---|---|
-| `simpleAdapter()` | Orchestrator | Return your `AutoCrudAdapter<T>` |
+| `simpleAdapter()` | AutoCrud | Return your `AutoCrudAdapter<T>` |
 | `repository()` | Adapter | Return the `CrudRepository<T>` used for all operations |
 
-### Minimal example
+---
+
+## Minimal example — full CRUD
 
 ```java
 @Service
 @UI("/products")
-public class ProductCrud extends AutoCrudOrchestrator<Product> {
+public class ProductCrud extends AutoCrud<Product> {
 
     private final ProductAdapter adapter;
 
@@ -170,7 +69,67 @@ public record Product(
 ) implements Identifiable {}
 ```
 
-### What AutoCrudAdapter provides out of the box
+This gives you:
+
+| Route | Screen |
+|---|---|
+| `/products` | Listing with New and Delete buttons |
+| `/products/:id` | Read-only detail view with Edit button |
+| `/products/:id/edit` | Edit form |
+| `/products/new` | Create form |
+
+---
+
+## Controlling capabilities with annotations
+
+Add any combination of these class-level annotations to restrict what users can do:
+
+| Annotation | Effect |
+|---|---|
+| `@ReadOnly` | Shorthand for `@NotCreatable @NotEditable @NotDeletable` |
+| `@NotCreatable` | Hides the New button in the list |
+| `@NotEditable` | Hides the Edit button in the detail view |
+| `@NotDeletable` | Hides the Delete button in the list |
+| `@NotNavigable` | Hides the View button column — rows are not clickable |
+
+These combine freely. A few common patterns:
+
+| Intent | Annotations |
+|---|---|
+| Full CRUD | *(nothing)* |
+| Read-only with detail view | `@ReadOnly` |
+| Simple read-only list (no detail) | `@ReadOnly @NotNavigable` |
+| List you can add to, but not click into | `@NotNavigable` |
+| List you can edit but not create | `@NotCreatable` |
+| List you can edit but not delete | `@NotDeletable` |
+
+### Read-only listing example
+
+```java
+@Service
+@UI("/audit-log")
+@ReadOnly
+@NotNavigable
+public class AuditLog extends AutoCrud<AuditEntry> {
+
+    private final AuditAdapter adapter;
+
+    public AuditLog(AuditAdapter adapter) {
+        this.adapter = adapter;
+    }
+
+    @Override
+    public AutoCrudAdapter<AuditEntry> simpleAdapter() {
+        return adapter;
+    }
+}
+```
+
+The adapter for a read-only `AutoCrud` is still `AutoCrudAdapter<T>`. The write operations are simply never invoked.
+
+---
+
+## What AutoCrudAdapter provides out of the box
 
 | Operation | Behaviour |
 |---|---|
@@ -182,28 +141,34 @@ public record Product(
 
 Override any of these in the adapter to customise individual operations.
 
----
+### Custom search behaviour
 
-## Choosing between the two
+`AutoCrudAdapter` filters by calling `item.toString().toLowerCase().contains(searchText)`, or by using `Searchable.searchableText()` if `T` implements `Searchable`. Override `search()` in the adapter to replace this with a database query.
 
-| | `AutoListOrchestrator<T>` | `AutoCrudOrchestrator<T>` |
-|---|---|---|
-| List | ✓ | ✓ |
-| Read-only detail | ✓ | ✓ |
-| Edit | — | ✓ |
-| Create | — | ✓ |
-| Delete | — | ✓ |
-| Adapter base class | `AutoListAdapter<T>` | `AutoCrudAdapter<T>` |
+```java
+@Service
+public class ProductAdapter extends AutoCrudAdapter<Product> {
 
-Use `AutoListOrchestrator` for reference data, audit logs, reporting, or any listing where users should not modify records.
+    @Override
+    public ListingData<Product> search(
+            String searchText, Product filters, Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(repository().findAll().stream()
+            .filter(p -> p.name().toLowerCase().contains(searchText.toLowerCase()))
+            .toList());
+    }
 
-Use `AutoCrudOrchestrator` whenever the listing needs full create / edit / delete capability.
+    @Override
+    public CrudRepository<Product> repository() {
+        return productRepository;
+    }
+}
+```
 
 ---
 
 ## Limitations of the single-type approach
 
-Both orchestrators use `T` for every screen, which means:
+`AutoCrud<T>` uses `T` for every screen, which means:
 
 - The filter bar shows the same fields as the grid rows.
 - The edit form shows the same fields as the detail view.
@@ -211,9 +176,8 @@ Both orchestrators use `T` for every screen, which means:
 
 When this is too restrictive, move to:
 
-- [`FilteredAutoListOrchestrator<Filters, Row>`](/java-user-manual/build/filtered-orchestrators/) — separate filter and row types, read-only.
-- [`FilteredAutoCrudOrchestrator<Filters, Row>`](/java-user-manual/build/filtered-orchestrators/) — separate filter and row types, full CRUD.
-- [`CrudOrchestrator<V,E,C,F,R,Id>`](/java-user-manual/build/full-control-crud-orchestrator/) — full control over every screen.
+- [`FilteredAutoCrud<Filters, T>`](/java-user-manual/build/filtered-orchestrators/) — separate filter type, same entity for everything else.
+- [`Crud<View,Editor,CreationForm,Filters,Row,Id>`](/java-user-manual/build/full-control-crud-orchestrator/) — full control over every screen.
 
 ---
 
@@ -221,4 +185,5 @@ When this is too restrictive, move to:
 
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — annotations and layout adjustments before reaching for a custom adapter
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — when each screen needs a separate model
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — when each screen needs a separate model
+- [EditableView](/java-user-manual/build/editable-view/) — single-entity view with an Edit button, no list

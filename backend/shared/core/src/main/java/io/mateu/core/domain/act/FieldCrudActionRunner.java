@@ -4,8 +4,8 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.infra.declarative.FormViewModel;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
 import java.util.List;
@@ -49,13 +49,13 @@ public class FieldCrudActionRunner implements ActionRunner {
   }
 
   public static Class getViewModelClass(Object instance, HttpRequest httpRequest) {
-    if (instance instanceof AutoCrudOrchestrator<?> autoCrudOrchestrator) {
-      return autoCrudOrchestrator.entityClass();
+    if (instance instanceof AutoCrud<?> autoCrud) {
+      return autoCrud.entityClass();
     }
     if (instance instanceof FormViewModel formViewModel) {
       return formViewModel.entityClass();
     }
-    if (instance instanceof CrudOrchestrator<?, ?, ?, ?, ?, ?> crudOrchestrator) {
+    if (instance instanceof Crud<?, ?, ?, ?, ?, ?> crudOrchestrator) {
       var _state = httpRequest.runActionRq().componentState().get("_state");
       if ("create".equals(_state)) {
         return crudOrchestrator.creationFormClass();

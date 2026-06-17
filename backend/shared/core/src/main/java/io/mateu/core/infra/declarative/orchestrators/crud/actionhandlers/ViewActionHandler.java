@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
 
@@ -13,7 +13,7 @@ public class ViewActionHandler implements CrudOrchestratorActionHandler {
 
   @Override
   public Object handleAction(
-      String actionId, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
+      String actionId, HttpRequest httpRequest, Crud orchestrator) {
     var idField = orchestrator.getIdFieldForRow();
     var savedId = httpRequest.getComponentState(Map.class).get(idField);
     if (savedId == null) {

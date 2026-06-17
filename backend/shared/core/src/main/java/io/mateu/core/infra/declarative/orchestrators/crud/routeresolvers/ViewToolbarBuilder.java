@@ -4,8 +4,9 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.annotations.Hidden;
+import io.mateu.uidl.annotations.NotEditable;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.ViewToolbarButton;
@@ -23,7 +24,7 @@ import java.util.List;
 final class ViewToolbarBuilder {
 
   static List<UserTrigger> createViewToolbar(
-      Object item, CrudOrchestrator orchestrator, HttpRequest httpRequest) {
+      Object item, Crud orchestrator, HttpRequest httpRequest) {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(orchestrator.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
@@ -74,8 +75,9 @@ final class ViewToolbarBuilder {
     return toolbar;
   }
 
-  private static boolean viewReadOnly(Object item, CrudOrchestrator orchestrator) {
+  private static boolean viewReadOnly(Object item, Crud orchestrator) {
     if (orchestrator.readOnly()) return true;
+    if (orchestrator.getClass().isAnnotationPresent(NotEditable.class)) return true;
     if (orchestrator.viewClass().isAnnotationPresent(io.mateu.uidl.annotations.ReadOnly.class))
       return true;
     if (item != null

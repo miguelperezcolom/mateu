@@ -84,7 +84,7 @@ Because Mateu ViewModels are Spring beans (when annotated with `@Service`), you 
 ```java
 @Service
 @UI("/users")
-public class UsersPage extends AutoCrudOrchestrator<User> {
+public class UsersPage extends AutoCrud<User> {
 
     final UserAdapter userAdapter;
 
@@ -222,5 +222,5 @@ Use `@Service` only when the class needs dependencies injected. Otherwise keep i
 ## Next
 
 - [Foreign keys and options](/java-user-manual/build/foreign-keys-and-options/) — how to declare relationships with `@Lookup` and backend-supplied options
-- [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) — how `AutoCrudOrchestrator` generates list, view, edit, and create routes
+- [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) — how `AutoCrud` generates list, view, edit, and create routes
 - [Mateu in hexagonal architecture](/java-user-manual/real-world/mateu-in-hexagonal-architecture/) — how the UI layer fits into a ports & adapters design

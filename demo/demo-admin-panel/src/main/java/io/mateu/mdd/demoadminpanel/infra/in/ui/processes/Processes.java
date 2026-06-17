@@ -1,24 +1,18 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.processes;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoListAdapter;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoListOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class Processes extends AutoListOrchestrator<ProcessRow> {
+public class Processes extends AutoCrud<ProcessRow> {
 
     final ProcessCrudAdapter adapter;
 
-
     @Override
-    public AutoListAdapter<ProcessRow> simpleAdapter() {
+    public AutoCrudAdapter<ProcessRow> simpleAdapter() {
         return adapter;
-    }
-
-    @Override
-    public boolean readOnly() {
-        return false;
     }
 }

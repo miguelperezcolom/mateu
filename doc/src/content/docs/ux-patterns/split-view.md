@@ -15,12 +15,12 @@ The list → detail → back flow forces users to lose their position in the lis
 
 ## Solution
 
-Annotate the `CrudOrchestrator` with `@SplitCrud`. The framework renders the list on the left and the detail on the right, in a master-detail split layout. Selecting a row loads the detail panel in place instead of navigating to a new route.
+Annotate the `Crud` with `@SplitCrud`. The framework renders the list on the left and the detail on the right, in a master-detail split layout. Selecting a row loads the detail panel in place instead of navigating to a new route.
 
 ```java
 @UI("/orders")
 @SplitCrud
-public class OrdersCrud extends AutoCrudOrchestrator<Order> {
+public class OrdersCrud extends AutoCrud<Order> {
     // nothing else needed
 }
 ```

@@ -5,7 +5,7 @@ import static io.mateu.core.infra.reflection.write.RunMethodActionRunner.invoke;
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Method;
 import lombok.SneakyThrows;
@@ -19,7 +19,7 @@ public class ActionOnRowActionHandler implements CrudOrchestratorActionHandler {
   @SneakyThrows
   @Override
   public Object handleAction(
-      String actionId, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
+      String actionId, HttpRequest httpRequest, Crud orchestrator) {
     String methodName = actionId.substring("action-on-row-".length());
     for (Method method : getAllMethods(orchestrator.getClass()).reversed()) {
       if (methodName.equals(method.getName())) {

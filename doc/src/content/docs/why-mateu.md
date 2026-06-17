@@ -36,7 +36,7 @@ The backend owns the UI. There is no separate frontend application to maintain.
 
 ```java
 @UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {}
+public class Products extends AutoCrud<Product> {}
 ```
 
 **Validation in one place.** Standard Bean Validation annotations on your model enforce constraints in the UI automatically. No frontend validation to write or keep in sync.

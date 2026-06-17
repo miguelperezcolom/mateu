@@ -1,108 +1,75 @@
 ---
-title: "Filtered orchestrators"
-description: "Add a dedicated filter model to your listing or CRUD without switching to the full CrudOrchestrator."
+title: "FilteredAutoCrud"
+description: "Add a dedicated filter model to your CRUD without switching to the full Crud class."
 ---
 
-`AutoListOrchestrator<T>` and `AutoCrudOrchestrator<T>` use the same type `T` for everything — including the filter bar. This works when the entity fields are a reasonable filter form, but breaks down when you need:
+`AutoCrud<T>` uses the same type `T` for everything — including the filter bar. This works when the entity fields are a reasonable filter form, but breaks down when you need:
 
 - A dedicated filter DTO with fewer or different fields.
 - Computed or derived filter parameters that don't exist on the entity.
 - A clean separation between what the grid shows and what the filter bar exposes.
 
-Mateu provides two intermediate orchestrators that add a separate `Filters` type while keeping the simplicity of the auto variants.
+`FilteredAutoCrud<Filters, T>` adds a separate `Filters` type while keeping the simplicity of `AutoCrud`.
 
 ---
 
-## FilteredAutoListOrchestrator&lt;Filters, Row&gt;
+## FilteredAutoCrud&lt;Filters, T&gt;
 
-A read-only listing with separate filter and row types. The user implements `doSearch()` for the listing and `view()` for the detail panel.
+Separate filter and entity types. Everything else — view, edit form, creation form, and row — still uses `T`.
 
 ```java
-public abstract class FilteredAutoListOrchestrator<Filters, Row extends Identifiable>
+public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
+    extends Crud<SimpleView<T>, SimpleView<T>, SimpleView<T>, Filters, T, String>
 ```
 
-### Methods to implement
+### What to implement
 
-| Method | Purpose |
-|---|---|
-| `doSearch(searchText, filters, pageable, httpRequest)` | Return the matching rows |
-| `view(id, httpRequest)` | Return the object shown in the detail panel when a row is clicked |
-
-### Example
+Override `filtersClass()` to tell Mateu which class to use for the filter bar, then provide an `AutoCrudAdapter<T>` whose `search()` accepts the `Filters` type:
 
 ```java
-@UI("/orders")
-public class OrderListing extends FilteredAutoListOrchestrator<OrderFilters, OrderRow> {
+@Service
+@UI("/products")
+public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
 
-    @Override
-    public ListingData<OrderRow> doSearch(
-            String searchText, OrderFilters filters, Pageable pageable, HttpRequest httpRequest) {
-        return orderService.search(searchText, filters, pageable);
+    private final ProductAdapter adapter;
+
+    public ProductCrud(ProductAdapter adapter) {
+        this.adapter = adapter;
     }
 
     @Override
-    public Object view(String id, HttpRequest httpRequest) {
-        return orderService.findDetail(id);
+    public Class filtersClass() {
+        return ProductFilters.class;
+    }
+
+    @Override
+    public AutoCrudAdapter<Product> simpleAdapter() {
+        return adapter;
     }
 }
 ```
 
 ```java
-public record OrderFilters(
-    OrderStatus status,
-    LocalDate from,
-    LocalDate to
-) {}
-```
+@Service
+public class ProductAdapter extends AutoCrudAdapter<Product> {
 
-```java
-public record OrderRow(
-    @PrimaryKey String id,
-    String customer,
-    LocalDate date,
-    OrderStatus status,
-    BigDecimal total
-) implements Identifiable {}
-```
+    private final ProductRepository repository;
 
----
-
-## FilteredAutoCrudOrchestrator&lt;Filters, Row&gt;
-
-Full CRUD with separate filter and row types. The user implements `doSearch()` for the listing and provides a `repository()` for create, edit, delete, and view operations. The row type is reused as the view and edit form.
-
-```java
-public abstract class FilteredAutoCrudOrchestrator<Filters, Row extends Identifiable>
-```
-
-### Methods to implement
-
-| Method | Purpose |
-|---|---|
-| `doSearch(searchText, filters, pageable, httpRequest)` | Return the matching rows |
-| `repository()` | Provides the `CrudRepository<Row>` used for load, save, and delete |
-
-### Example
-
-```java
-@UI("/products")
-public class ProductCrud extends FilteredAutoCrudOrchestrator<ProductFilters, Product> {
-
-    private final ProductRepository productRepository;
-
-    public ProductCrud(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
-
-    @Override
-    public ListingData<Product> doSearch(
-            String searchText, ProductFilters filters, Pageable pageable, HttpRequest httpRequest) {
-        return productRepository.search(searchText, filters.category(), filters.active(), pageable);
+    public ProductAdapter(ProductRepository repository) {
+        this.repository = repository;
     }
 
     @Override
     public CrudRepository<Product> repository() {
-        return productRepository;
+        return repository;
+    }
+
+    @Override
+    public ListingData<Product> search(
+            String searchText, Product ignored, Pageable pageable, HttpRequest httpRequest) {
+        // read filters from httpRequest.getComponentState(ProductFilters.class)
+        var filters = httpRequest.getComponentState(ProductFilters.class);
+        return repository.search(searchText, filters.category(), filters.active(), pageable);
     }
 }
 ```
@@ -126,28 +93,42 @@ public record Product(
 
 ---
 
-## Choosing the right orchestrator
+## Read-only filtered listing
 
-| Orchestrator | Filter type | Row type | Write operations |
+Add `@ReadOnly` (and optionally `@NotNavigable`) to make the listing read-only:
+
+```java
+@Service
+@UI("/audit-log")
+@ReadOnly
+public class AuditLog extends FilteredAutoCrud<AuditFilters, AuditEntry> {
+
+    @Override
+    public Class filtersClass() { return AuditFilters.class; }
+
+    @Override
+    public AutoCrudAdapter<AuditEntry> simpleAdapter() { return adapter; }
+}
+```
+
+---
+
+## Choosing the right class
+
+| Class | Filter type | Row type | Write operations |
 |---|---|---|---|
-| `AutoListOrchestrator<T>` | T | T | — |
-| `FilteredAutoListOrchestrator<F,R>` | F | R | — |
-| `AutoCrudOrchestrator<T>` | T | T | ✓ |
-| `FilteredAutoCrudOrchestrator<F,R>` | F | R | ✓ |
-| `CrudOrchestrator<V,E,C,F,R,Id>` | F | R | ✓ (full control) |
+| `AutoCrud<T>` | T | T | ✓ (or `@ReadOnly`) |
+| `FilteredAutoCrud<Filters,T>` | Filters | T | ✓ (or `@ReadOnly`) |
+| `Crud<V,E,C,F,R,Id>` | F | R | ✓ (or `@ReadOnly`, full control) |
 
-Use `FilteredAutoListOrchestrator` when:
-- You need a dedicated filter model but no write operations.
-- The row DTO differs from the entity (e.g., a projection from a query).
-
-Use `FilteredAutoCrudOrchestrator` when:
-- You need a dedicated filter model and full CRUD.
-- The entity itself is the right form for view and edit.
-- You don't need separate view/editor/creation forms (use `CrudOrchestrator` for that).
+Use `FilteredAutoCrud` when:
+- The entity itself is the right form for view, edit, and create.
+- You need a dedicated filter model (separate DTO with different fields).
+- You don't need separate view/editor/creation form types (use `Crud` for that).
 
 ---
 
 ## Next
 
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for view, editor, creation form, filters, and rows
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for view, editor, creation form, filters, and rows
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — add per-row contextual actions

@@ -1,9 +1,9 @@
 ---
 title: "CrudEditorForm and CrudCreationForm"
-description: "The interfaces that give edit and create forms their save and create behaviour in a CrudOrchestrator."
+description: "The interfaces that give edit and create forms their save and create behaviour in a Crud."
 ---
 
-When using `CrudOrchestrator` directly, the `Editor` and `CreationForm` type parameters must implement these two interfaces. They are the contract between the form object and the framework's save/create actions.
+When using `Crud` directly, the `Editor` and `CreationForm` type parameters must implement these two interfaces. They are the contract between the form object and the framework's save/create actions.
 
 ---
 
@@ -149,7 +149,7 @@ The orchestrator then uses this class for both `Editor` and `CreationForm`:
 
 ```java
 public class ProductOrchestrator
-    extends CrudOrchestrator<ProductView, ProductForm, ProductForm, ProductFilters, ProductRow, String> {
+    extends Crud<ProductView, ProductForm, ProductForm, ProductFilters, ProductRow, String> {
     ...
     @Override public Class<ProductForm> editorClass()       { return ProductForm.class; }
     @Override public Class<ProductForm> creationFormClass() { return ProductForm.class; }
@@ -164,12 +164,12 @@ When the entity itself is the form (no separate editor class), use `AutoNamedVie
 
 This is what `AutoCrudAdapter` does internally — it wraps the entity in `AutoNamedView` so you never have to write the form interfaces yourself.
 
-See [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) for the full pattern.
+See [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) for the full pattern.
 
 ---
 
 ## Next
 
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — how these interfaces fit into the six-type-parameter orchestrator
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — how these interfaces fit into the six-type-parameter orchestrator
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — where `getEditor()` and `getCreationForm()` return instances of these interfaces
-- [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — the pre-built alternative using `AutoNamedView`
+- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — the pre-built alternative using `AutoNamedView`

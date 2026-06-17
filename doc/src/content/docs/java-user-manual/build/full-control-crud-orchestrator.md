@@ -1,18 +1,18 @@
 ---
-title: "Full control with CrudOrchestrator"
+title: "Full control with Crud"
 description: "Explicit separate models for filters, rows, view, editor, and creation form."
 ---
 
-`CrudOrchestrator` is the most flexible CRUD base class in Mateu. It lets you define a separate type for every screen — filters, grid rows, read-only detail, edit form, and creation form — while the framework still handles all routing and navigation automatically.
+`Crud` is the most flexible CRUD base class in Mateu. It lets you define a separate type for every screen — filters, grid rows, read-only detail, edit form, and creation form — while the framework still handles all routing and navigation automatically.
 
-Use it when `AutoCrudOrchestrator<T>` or `FilteredAutoCrudOrchestrator<F,R>` are not enough because different screens need genuinely different models.
+Use it when `AutoCrud<T>` or `FilteredAutoCrud<Filters,T>` are not enough because different screens need genuinely different models.
 
 ---
 
 ## Class signature
 
 ```java
-public abstract class CrudOrchestrator<
+public abstract class Crud<
     View,
     Editor extends CrudEditorForm<IdType>,
     CreationForm extends CrudCreationForm<IdType>,
@@ -220,7 +220,7 @@ public class ProductCrudAdapter
 @Service
 @UI("/products")
 public class ProductOrchestrator
-    extends CrudOrchestrator<ProductView, ProductEditor, ProductCreationForm, ProductFilters, ProductRow, String> {
+    extends Crud<ProductView, ProductEditor, ProductCreationForm, ProductFilters, ProductRow, String> {
 
     private final ProductCrudAdapter adapter;
 
@@ -267,11 +267,25 @@ public class ProductOrchestrator
 
 ---
 
+## Capability annotations
+
+All capability annotations available on `AutoCrud<T>` also work on `Crud`:
+
+| Annotation | Effect |
+|---|---|
+| `@ReadOnly` | Hides New, Edit, and Delete — shorthand for `@NotCreatable @NotEditable @NotDeletable` |
+| `@NotCreatable` | Hides the New button |
+| `@NotEditable` | Hides the Edit button in the detail view |
+| `@NotDeletable` | Hides the Delete button |
+| `@NotNavigable` | Hides the View button column — rows are not clickable |
+
+---
+
 ## Optional overrides
 
 | Method | Default | Override to… |
 |---|---|---|
-| `readOnly()` | `false` | make the whole orchestrator read-only |
+| `readOnly()` | `false` | make the whole orchestrator read-only programmatically |
 | `view(id, httpRequest)` | calls `adapter().getView()` | customize the view before rendering |
 | `edit(id, httpRequest)` | calls `adapter().getEditor()` | customize the editor before rendering |
 | `searchable()` | `true` | hide the search bar |
@@ -282,15 +296,13 @@ public class ProductOrchestrator
 
 ## Progression
 
-| Orchestrator | Filter type | Row type | Write | Separate forms |
+| Class | Filter type | Row type | Write | Separate forms |
 |---|---|---|---|---|
-| `AutoListOrchestrator<T>` | T | T | — | — |
-| `FilteredAutoListOrchestrator<F,R>` | F | R | — | — |
-| `AutoCrudOrchestrator<T>` | T | T | ✓ | — |
-| `FilteredAutoCrudOrchestrator<F,R>` | F | R | ✓ | — |
-| `CrudOrchestrator<V,E,C,F,R,Id>` | F | R | ✓ | ✓ |
+| `AutoCrud<T>` | T | T | ✓ (or `@ReadOnly`) | — |
+| `FilteredAutoCrud<Filters,T>` | Filters | T | ✓ (or `@ReadOnly`) | — |
+| `Crud<V,E,C,F,R,Id>` | F | R | ✓ (or `@ReadOnly`) | ✓ |
 
-Move to `CrudOrchestrator` only when the view/editor/creation forms must differ from each other or from the row model. The simpler variants cover most real-world cases.
+Move to `Crud` only when the view, editor, or creation forms must differ from each other or from the row model. The simpler variants cover most real-world cases.
 
 ---
 

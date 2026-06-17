@@ -117,21 +117,21 @@ String productId;
 
 ## AutoCrud
 
-For standard business entities, `AutoCrudOrchestrator` gives you a full CRUD flow from a single class:
+For standard business entities, `AutoCrud` gives you a full CRUD flow from a single class:
 
 ```java
 @UI("/orders")
-public class Orders extends AutoCrudOrchestrator<Order> {}
+public class Orders extends AutoCrud<Order> {}
 ```
 
 This produces list, view, edit, and create screens automatically. The entity type must implement `Identifiable`.
 
-## CrudOrchestrator
+## Crud
 
-When you need explicit control, `CrudOrchestrator` lets you define each part separately:
+When you need explicit control, `Crud` lets you define each part separately:
 
 ```java
-public class OrdersOrchestrator extends CrudOrchestrator<
+public class OrdersOrchestrator extends Crud<
     OrderView,
     OrderEditor,
     OrderCreationForm,

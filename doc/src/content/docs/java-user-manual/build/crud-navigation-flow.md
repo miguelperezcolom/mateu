@@ -2,7 +2,7 @@
 title: "CRUD navigation flow"
 ---
 
-When you use `AutoCrudOrchestrator`, Mateu generates a complete navigation flow around your resource — not just a table.
+When you use `AutoCrud`, Mateu generates a complete navigation flow around your resource — not just a table.
 
 ---
 
@@ -13,7 +13,7 @@ For a CRUD published at `/users`:
 ```java
 @Service
 @UI("/users")
-public class UsersPage extends AutoCrudOrchestrator<User> {
+public class UsersPage extends AutoCrud<User> {
 
     final UserAdapter userAdapter;
 
@@ -157,23 +157,24 @@ Use `@Route(value = "...", uis = {"/route"})` to bind any custom page into the C
 
 ---
 
-## Read-only variant: AutoListOrchestrator
+## Read-only variant: AutoCrud + @ReadOnly
 
-If you only need list + detail view (no editing or creating), extend `AutoListOrchestrator` instead:
+If you only need list + detail view (no editing or creating), annotate `AutoCrud` with `@ReadOnly`:
 
 ```java
 @Service
 @UI("/products")
-public class ProductsPage extends AutoListOrchestrator<Product> {
+@ReadOnly
+public class ProductsPage extends AutoCrud<Product> {
 
-    final ProductListAdapter productAdapter;
+    final ProductAdapter productAdapter;
 
-    public ProductsPage(ProductListAdapter productAdapter) {
+    public ProductsPage(ProductAdapter productAdapter) {
         this.productAdapter = productAdapter;
     }
 
     @Override
-    public AutoListAdapter<Product> simpleAdapter() {
+    public AutoCrudAdapter<Product> simpleAdapter() {
         return productAdapter;
     }
 }
@@ -184,16 +185,16 @@ Routes generated:
 | Route | Purpose |
 |---|---|
 | `/products` | List (no New / Delete buttons) |
-| `/products/:id` | Readonly detail view |
+| `/products/:id` | Readonly detail view (no Edit button) |
 
-There is no edit or create route. `readOnly()` returns `true` automatically.
+Add `@NotNavigable` to remove the View button too, for a plain flat list with no detail screen.
 
 ---
 
 ## Mental model
 
-- `AutoCrudOrchestrator` generates the full flow: list, view, edit, create
-- `AutoListOrchestrator` generates a read-only subset: list + view only
+- `AutoCrud` generates the full flow: list, view, edit, create
+- `AutoCrud + @ReadOnly` generates a read-only subset: list + view only
 - Default navigation goes: list → readonly detail → edit (not directly to edit)
 - Custom pages bind into the flow with `@Route(uis = "/route")`
 - URL parameters are mapped to same-named fields automatically
@@ -205,4 +206,4 @@ There is no edit or create route. `readOnly()` returns `true` automatically.
 
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — annotations, layout, and actions for refining the default CRUD
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — per-row `ColumnAction` and `ColumnActionGroup`
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit control over filters, rows, views, and forms
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — explicit control over filters, rows, views, and forms

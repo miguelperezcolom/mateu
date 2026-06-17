@@ -20,7 +20,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class WizardOrchestrator
+public abstract class Wizard
     implements ActionHandler,
         RouteHandler,
         ComponentTreeSupplier,

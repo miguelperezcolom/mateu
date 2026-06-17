@@ -47,7 +47,7 @@ public class ProcessPage {
 ## Steps (child CRUD)
 
 ```java
-public class Steps extends AutoListOrchestrator<Step> {
+public class Steps extends AutoCrud<Step> {
 
     String processId;
 
@@ -80,7 +80,7 @@ Inside the Process screen:
 - list of steps (scoped by `processId`)
 - readonly detail view per step
 
-If you need create/edit/delete on the child, extend `AutoCrudOrchestrator` instead.
+If you need create/edit/delete on the child, extend `AutoCrud` instead.
 
 ---
 
@@ -105,7 +105,7 @@ Because:
 ```mermaid
 flowchart TD
     P["ProcessPage\nid · name · Callable&lt;?&gt; steps"]
-    P -->|resolves after hydration| S["Steps\nextends AutoListOrchestrator&lt;Step&gt;\nscoped by processId"]
+    P -->|resolves after hydration| S["Steps\nextends AutoCrud&lt;Step&gt;\nscoped by processId"]
     S --> CR["Read-only on Step\nlist · view"]
 ```
 

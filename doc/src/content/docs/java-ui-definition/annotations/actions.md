@@ -168,7 +168,7 @@ public @interface ListToolbarButton {
 // Products.java
 @UI("/products")
 @Slf4j
-public class Products extends AutoCrudOrchestrator<Product> {
+public class Products extends AutoCrud<Product> {
 
     @ListToolbarButton
     void doSomethingOnRows(List<Product> selection) {
@@ -377,7 +377,7 @@ No attributes.
 ### Example
 
 ```java
-public class SetupWizard extends WizardOrchestrator {
+public class SetupWizard extends Wizard {
     StepOne stepOne;
     StepTwo stepTwo;
     StepThree stepThree;

@@ -32,7 +32,7 @@ Example:
 
 ```java
 @UI("/orders")
-public class Orders extends AutoCrudOrchestrator<Order> {
+public class Orders extends AutoCrud<Order> {
     @Override
     public AutoCrudAdapter<Order> simpleAdapter() {
         return new OrderAdapter();
@@ -165,7 +165,7 @@ The three annotations can be combined freely on the same `@UI` class:
 @Link(rel = "stylesheet", href = "/assets/store-theme.css")
 @Link(rel = "preload", href = "/assets/fonts/brand.woff2", as = "font", crossorigin = true)
 @Script(src = "https://cdn.example.com/analytics.js", defer = true)
-public class Store extends AutoCrudOrchestrator<Product> { ... }
+public class Store extends AutoCrud<Product> { ... }
 ```
 
 ---

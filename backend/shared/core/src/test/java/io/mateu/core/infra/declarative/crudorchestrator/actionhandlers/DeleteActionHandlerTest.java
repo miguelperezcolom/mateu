@@ -8,7 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.DeleteEditActionHandler;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.interfaces.CrudAdapter;
@@ -27,7 +27,7 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class DeleteActionHandlerTest {
 
-  @Mock CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator;
+  @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
   @Mock CrudAdapter<?, ?, ?, ?, ?> adapter;
   @Mock HttpRequest httpRequest;
 

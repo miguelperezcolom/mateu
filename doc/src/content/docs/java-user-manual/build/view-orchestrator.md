@@ -1,16 +1,16 @@
 ---
-title: "ViewOrchestrator"
+title: "MultiView"
 description: "The base class that handles route resolution and screen wrapping for all CRUD orchestrators."
 ---
 
-`ViewOrchestrator` is the root base class of the orchestrator hierarchy. It handles the routing contract — deciding which sub-screen to render for a given URL — and wraps each resolved view in the component shell that drives the navigation flow.
+`MultiView` is the root base class of the orchestrator hierarchy. It handles the routing contract — deciding which sub-screen to render for a given URL — and wraps each resolved view in the component shell that drives the navigation flow.
 
 ```java
-public abstract class ViewOrchestrator
+public abstract class MultiView
     implements ActionHandler, ActionSupplier, RouteHandler, DtoSupplier
 ```
 
-You never extend `ViewOrchestrator` directly. Extend `CrudOrchestrator` or one of its derivatives instead. `ViewOrchestrator` is documented here so you can understand what `CrudOrchestrator` inherits.
+You never extend `MultiView` directly. Extend `Crud`, `AutoCrud`, `EditableView`, or `Wizard` instead. `MultiView` is documented here so you can understand what those classes inherit.
 
 ---
 
@@ -30,10 +30,10 @@ You never extend `ViewOrchestrator` directly. Extend `CrudOrchestrator` or one o
 When a request arrives at an orchestrated route (e.g. `/products`), Mateu calls `handleRoute()` on the orchestrator. The orchestrator:
 
 1. On **first load** — renders itself as a mediator shell that hosts the sub-screens.
-2. On **subsequent navigation** — calls the abstract `resolveInternalRoute()` to determine which sub-screen to show (list, view, edit, or new).
+2. On **subsequent navigation** — calls the abstract `resolveInternalRoute()` to determine which sub-screen to show.
 3. Wraps the resolved component in a `ServerSideComponentDto` with the correct state, triggers, and dirty-state tracking.
 
-The subclass (`CrudOrchestrator`) provides the concrete `resolveInternalRoute()` that maps URL patterns to list/view/edit/new screens.
+The subclass (`Crud`) provides the concrete `resolveInternalRoute()` that maps URL patterns to list/view/edit/new screens. `EditableView` provides its own implementation for the view/edit pattern.
 
 ---
 
@@ -43,8 +43,6 @@ The subclass (`CrudOrchestrator`) provides the concrete `resolveInternalRoute()`
 protected abstract OrchestrationResult resolveInternalRoute(
     String route, HttpRequest httpRequest);
 ```
-
-`CrudOrchestrator` implements this with a chain of `CrudOrchestratorRouteResolver` objects — one per URL pattern (`/list`, `/:id`, `/:id/edit`, `/new`).
 
 ---
 
@@ -60,21 +58,23 @@ protected abstract OrchestrationResult resolveInternalRoute(
 ## Orchestrator hierarchy
 
 ```
-ViewOrchestrator
-└── CrudOrchestrator<View, Editor, CreationForm, Filters, Row, IdType>
-    ├── AutoCrudOrchestrator<T>
-    │   └── (your class)
-    ├── AutoListOrchestrator<T>
-    │   └── (your class)
-    ├── FilteredAutoCrudOrchestrator<Filters, Row>
-    │   └── (your class)
-    └── FilteredAutoListOrchestrator<Filters, Row>
-        └── (your class)
+MultiView
+├── Crud<View, Editor, CreationForm, Filters, Row, IdType>
+│   ├── FilteredAutoCrud<Filters, T>
+│   │   └── AutoCrud<T>
+│   │       └── (your class)
+│   └── (your class)
+├── EditableView<V, E>
+│   └── AutoEditableView<T>
+│       └── (your class)
+└── Wizard
+    └── (your class)
 ```
 
 ---
 
 ## Next
 
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — the direct subclass that most applications use
-- [AutoListOrchestrator and AutoCrudOrchestrator](/java-user-manual/build/auto-orchestrators/) — the simplest entry points built on top of `CrudOrchestrator`
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — the direct subclass used for explicit multi-screen CRUD
+- [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the simplest entry point built on top of `Crud`
+- [EditableView](/java-user-manual/build/editable-view/) — single-entity view with an Edit button, no list

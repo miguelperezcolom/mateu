@@ -309,15 +309,82 @@ Use it for application authentication.
 
 ## `@SplitCrud`
 
-Switches a `CrudOrchestrator` to a split-panel layout: the record list stays on the left and the create/edit form opens on the right. No page transition occurs when the user selects a row.
+Switches a `Crud` (or `AutoCrud`) to a split-panel layout: the record list stays on the left and the create/edit form opens on the right. No page transition occurs when the user selects a row.
 
 ```java
 @UI("/orders")
 @SplitCrud
-public class OrdersCrud extends AutoCrudOrchestrator<Order> {}
+public class OrdersCrud extends AutoCrud<Order> {}
 ```
 
 The framework hides the *Cancel* button in the create form and automatically refreshes the list after saving. See [Split View](/ux-patterns/split-view/) for the full behaviour.
+
+---
+
+## `@ReadOnly`
+
+Applied to an `AutoCrud`, `FilteredAutoCrud`, or `Crud` class, hides the New, Edit, and Delete buttons. Shorthand for applying `@NotCreatable @NotEditable @NotDeletable` together.
+
+```java
+@UI("/audit-log")
+@ReadOnly
+public class AuditLog extends AutoCrud<AuditEntry> { ... }
+```
+
+Applied to a field or an `EditableView` class, makes that field or the entire view non-editable.
+
+---
+
+## `@NotNavigable`
+
+Applied to a `Crud` class. Hides the View button column in the listing — rows are not clickable and do not navigate to the detail screen.
+
+```java
+@UI("/products")
+@NotNavigable
+public class ProductList extends AutoCrud<Product> { ... }
+```
+
+Combine with `@ReadOnly` for a plain read-only list with no detail view:
+
+```java
+@ReadOnly
+@NotNavigable
+public class AuditLog extends AutoCrud<AuditEntry> { ... }
+```
+
+---
+
+## `@NotCreatable`
+
+Applied to a `Crud` class. Hides the New button in the listing toolbar.
+
+```java
+@NotCreatable
+public class OrderLines extends AutoCrud<OrderLine> { ... }
+```
+
+---
+
+## `@NotEditable`
+
+Applied to a `Crud` class. Hides the Edit button in the detail view toolbar.
+
+```java
+@NotEditable
+public class ArchivedOrders extends AutoCrud<Order> { ... }
+```
+
+---
+
+## `@NotDeletable`
+
+Applied to a `Crud` class. Hides the Delete button in the listing toolbar.
+
+```java
+@NotDeletable
+public class Invoices extends AutoCrud<Invoice> { ... }
+```
 
 ---
 
@@ -358,7 +425,6 @@ These are also part of the public DSL and are worth knowing:
 - `@Header`
 - `@Section`
 - `@Colspan`
-- `@ReadOnly`
 - `@HiddenInList`
 - `@HiddenInView`
 - `@HiddenInEditor`

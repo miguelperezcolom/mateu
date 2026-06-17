@@ -6,8 +6,8 @@ import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
-import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Action;
@@ -20,13 +20,13 @@ import java.util.List;
 
 public class NewRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
-  public boolean supports(String route, HttpRequest httpRequest, ViewOrchestrator orchestrator) {
+  public boolean supports(String route, HttpRequest httpRequest, MultiView orchestrator) {
     return route.endsWith("/new");
   }
 
   @Override
   public OrchestrationResult resolve(
-      String route, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
+      String route, HttpRequest httpRequest, Crud orchestrator) {
     var editor = orchestrator.adapter().getCreationForm(httpRequest);
     httpRequest.setAttribute("selectedItem", editor);
     return new OrchestrationResult(
@@ -34,7 +34,7 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   public static Component createEditorComponent(
-      HttpRequest httpRequest, Object editor, CrudOrchestrator orchestrator) {
+      HttpRequest httpRequest, Object editor, Crud orchestrator) {
     Object viewModel =
         editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
     String title;
@@ -61,7 +61,7 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
         .build();
   }
 
-  private static List<UserTrigger> createToolbar(CrudOrchestrator orchestrator) {
+  private static List<UserTrigger> createToolbar(Crud orchestrator) {
     List<UserTrigger> buttons = new ArrayList<>();
     if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
       buttons.add(new Button("Cancel", "cancel-new"));

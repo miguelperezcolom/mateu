@@ -68,7 +68,7 @@ class ProductAdapter extends AutoCrudAdapter<Product> {
 
 ```java
 @UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {
+public class Products extends AutoCrud<Product> {
   @Override
   public AutoCrudAdapter<Product> simpleAdapter() {
     return new ProductAdapter();

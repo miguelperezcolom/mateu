@@ -12,12 +12,12 @@ import java.util.List;
 
 final class CrudOrchestratorMetadata {
 
-  static boolean readOnly(CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator) {
+  static boolean readOnly(Crud<?, ?, ?, ?, ?, ?> orchestrator) {
     if (orchestrator.getClass().isAnnotationPresent(ReadOnly.class)) return true;
     return orchestrator.viewClass().isAnnotationPresent(ReadOnly.class);
   }
 
-  static String title(CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator) {
+  static String title(Crud<?, ?, ?, ?, ?, ?> orchestrator) {
     if (orchestrator.getClass().isAnnotationPresent(Title.class)) {
       return orchestrator.getClass().getAnnotation(Title.class).value();
     }
@@ -25,14 +25,14 @@ final class CrudOrchestratorMetadata {
   }
 
   static String getStyleForList(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator, List<GridContent> columns) {
+      Crud<?, ?, ?, ?, ?, ?> orchestrator, List<GridContent> columns) {
     if (orchestrator.getClass().isAnnotationPresent(Style.class)) {
       return orchestrator.getClass().getAnnotation(Style.class).value();
     }
     return columns.size() > 5 ? "width: 100%;" : StyleConstants.CONTAINER;
   }
 
-  static String getStyleForView(CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator) {
+  static String getStyleForView(Crud<?, ?, ?, ?, ?, ?> orchestrator) {
     var viewClass = orchestrator.viewClass();
     if (viewClass.isAnnotationPresent(Style.class)) {
       return viewClass.getAnnotation(Style.class).value();

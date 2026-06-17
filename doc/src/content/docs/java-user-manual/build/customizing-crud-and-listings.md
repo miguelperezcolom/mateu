@@ -9,6 +9,7 @@ Most real applications need to **refine that default UI**:
 - adjust layouts
 - customize lists
 - add actions
+- restrict what users can do
 
 This section shows how to do that **progressively**, without breaking the model-driven approach.
 
@@ -24,7 +25,7 @@ This section shows how to do that **progressively**, without breaking the model-
 
 ```java
 @UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {
+public class Products extends AutoCrud<Product> {
 
     final ProductAdapter adapter;
 
@@ -57,7 +58,36 @@ This already gives you:
 
 ---
 
-# 2. Control visibility
+# 2. Restrict capabilities
+
+Add class-level annotations to `AutoCrud` (or any `Crud` subclass) to remove capabilities:
+
+| Annotation | Effect |
+|---|---|
+| `@ReadOnly` | Shorthand for `@NotCreatable @NotEditable @NotDeletable` — removes all write operations |
+| `@NotCreatable` | Hides the New button |
+| `@NotEditable` | Hides the Edit button in the detail view |
+| `@NotDeletable` | Hides the Delete button |
+| `@NotNavigable` | Hides the View button column — list rows are not clickable |
+
+Common combinations:
+
+| Intent | Annotations |
+|---|---|
+| Read-only catalogue with detail view | `@ReadOnly` |
+| Simple read-only list (no detail) | `@ReadOnly @NotNavigable` |
+| List you can add to but not click into | `@NotNavigable` |
+| List you can edit but not create | `@NotCreatable` |
+
+```java
+@UI("/products")
+@ReadOnly
+public class ProductCatalogue extends AutoCrud<Product> { ... }
+```
+
+---
+
+# 3. Control field visibility
 
 Hide fields depending on context.
 
@@ -82,11 +112,11 @@ public record Product(
 - `@HiddenInList`
 - `@HiddenInView`
 - `@HiddenInEditor`
-- `@ReadOnly`
+- `@ReadOnly` — on a field: makes that field read-only in forms
 
 ---
 
-# 3. Control editing
+# 4. Control editing
 
 ```java
 @EditableOnlyWhenCreating
@@ -106,7 +136,7 @@ Mateu uses standard validation annotations:
 
 ---
 
-# 4. Improve list rendering
+# 5. Improve list rendering
 
 ## Status as badge
 
@@ -135,7 +165,7 @@ Used in:
 
 ---
 
-# 5. Customize forms
+# 6. Customize forms
 
 ## Layout
 
@@ -171,7 +201,7 @@ public class Products {}
 
 ---
 
-# 6. Add actions
+# 7. Add actions
 
 ## Page-level action
 
@@ -196,7 +226,7 @@ public Object discount() {
 
 ---
 
-# 7. Customize list behavior
+# 8. Customize list behavior
 
 At this level, customization moves to the adapter.
 
@@ -224,7 +254,7 @@ Typical customizations:
 
 ---
 
-# 8. When the model is not enough
+# 9. When the model is not enough
 
 Use:
 
@@ -243,7 +273,7 @@ Callable<?> stats = () -> new HorizontalLayout(
 
 ---
 
-# 9. Anti-patterns
+# 10. Anti-patterns
 
 ## Overusing custom pages
 
@@ -257,16 +287,17 @@ Mateu is backend-driven. Keep logic, validation, and state in Java. The UI is a 
 
 ---
 
-# 10. Summary
+# 11. Summary
 
 Customization in Mateu follows this progression:
 
 1. Model (annotations)
-2. Validation
-3. Layout
-4. Actions
-5. Adapter
-6. Custom UI (Callable / Route)
+2. Capability restrictions (`@ReadOnly`, `@NotNavigable`, `@NotCreatable`, `@NotEditable`, `@NotDeletable`)
+3. Validation
+4. Layout
+5. Actions
+6. Adapter
+7. Custom UI (Callable / Route)
 
 Stay in the model as long as possible.
 
@@ -278,5 +309,5 @@ Move to more advanced techniques only when needed.
 
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — add per-row contextual actions with `ColumnAction` and `ColumnActionGroup`
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for filters, rows, views, and forms
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for filters, rows, views, and forms
 - [Golden example: Orders, Customers and Order lines](/java-user-manual/build/orders-customers-order-lines/) — see all of these techniques applied in a realistic business UI

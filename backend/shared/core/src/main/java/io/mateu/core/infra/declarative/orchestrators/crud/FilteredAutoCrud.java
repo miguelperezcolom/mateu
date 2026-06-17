@@ -8,13 +8,8 @@ import io.mateu.uidl.interfaces.CrudAdapter;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 
-public abstract class FilteredAutoListOrchestrator<Filters, T extends Identifiable>
-    extends CrudOrchestrator<SimpleView<T>, SimpleView<T>, SimpleView<T>, Filters, T, String> {
-
-  @Override
-  public boolean readOnly() {
-    return true;
-  }
+public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
+    extends Crud<SimpleView<T>, SimpleView<T>, SimpleView<T>, Filters, T, String> {
 
   @Override
   public String toId(String id) {
@@ -26,7 +21,7 @@ public abstract class FilteredAutoListOrchestrator<Filters, T extends Identifiab
     return (CrudAdapter) simpleAdapter();
   }
 
-  public abstract AutoListAdapter<T> simpleAdapter();
+  public abstract AutoCrudAdapter<T> simpleAdapter();
 
   public Class filtersClass() {
     return entityClass();
@@ -52,12 +47,14 @@ public abstract class FilteredAutoListOrchestrator<Filters, T extends Identifiab
 
   @Override
   public Object save(HttpRequest httpRequest) {
-    throw new UnsupportedOperationException("Read-only orchestrator");
+    var entity = simpleAdapter().toEntity(httpRequest);
+    simpleAdapter().getEditor(entity.id(), httpRequest).save(httpRequest);
+    return entity.id();
   }
 
   @Override
   public Object saveNew(HttpRequest httpRequest) {
-    throw new UnsupportedOperationException("Read-only orchestrator");
+    return simpleAdapter().getCreationForm(httpRequest).create(httpRequest);
   }
 
   @Override

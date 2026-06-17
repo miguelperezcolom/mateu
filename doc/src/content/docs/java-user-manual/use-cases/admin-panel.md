@@ -38,7 +38,7 @@ Together they generate a complete CRUD UI.
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.Status;
@@ -117,7 +117,7 @@ class ProductAdapter extends AutoCrudAdapter<Product> {
 }
 
 @UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {
+public class Products extends AutoCrud<Product> {
 
     @Override
     public AutoCrudAdapter<Product> simpleAdapter() {
@@ -130,7 +130,7 @@ public class Products extends AutoCrudOrchestrator<Product> {
 
 ## What Mateu generates by default
 
-With `AutoCrudOrchestrator`, Mateu generates more than a listing.
+With `AutoCrud`, Mateu generates more than a listing.
 
 The default CRUD flow is:
 
@@ -225,7 +225,7 @@ Then add handler methods with matching names in the orchestrator:
 
 ```java
 @UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {
+public class Products extends AutoCrud<Product> {
 
     @Override
     public AutoCrudAdapter<Product> simpleAdapter() {

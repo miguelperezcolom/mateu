@@ -214,7 +214,7 @@ Handle each action in the orchestrator with a method whose name matches the `act
 
 ```java
 @UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {
+public class Products extends AutoCrud<Product> {
 
     void markAvailable(Product row) {
         productRepository.setStatus(row.id(), Status.Available);

@@ -2,7 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers;
 
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -14,7 +14,7 @@ final class CrudViewMethodInvoker {
 
   @SneakyThrows
   static Object invoke(
-      String methodName, Object item, CrudOrchestrator orchestrator, HttpRequest httpRequest) {
+      String methodName, Object item, Crud orchestrator, HttpRequest httpRequest) {
     for (Object subject : List.of(item, orchestrator)) {
       for (Method method : getAllMethods(subject.getClass())) {
         if (methodName.equals(method.getName())) {

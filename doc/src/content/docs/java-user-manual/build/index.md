@@ -27,17 +27,18 @@ If you are building something new, read the pages in order. If you are solving a
 ### CRUD
 
 - [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) — the list → view → edit flow and how to customize it
-- [AutoListOrchestrator and AutoCrudOrchestrator](/java-user-manual/build/auto-orchestrators/) — the two simplest orchestrators for read-only listings and full CRUD
-- [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — the data layer behind the auto orchestrators
+- [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — the simplest way to get a CRUD or read-only listing, with capability annotations
+- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — the data layer behind AutoCrud
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
-- [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the contracts for edit and create forms in a CrudOrchestrator
+- [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the contracts for edit and create forms in a `Crud`
 - [NamedView](/java-user-manual/build/named-view/) — the interface wrapping an entity as a view, editor, or creation form
-- [SimpleView](/java-user-manual/build/simple-view/) — the type placeholder used by auto orchestrators in the CrudOrchestrator signature
+- [SimpleView](/java-user-manual/build/simple-view/) — the type placeholder used by auto orchestrators in the Crud signature
 - [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository contract consumed by the auto adapters, with Spring Data JPA integration
-- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — visibility, layout, actions, and adapter customization
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — visibility, layout, actions, and capability annotations
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — explicit models for filters, rows, views, editors, and creation forms
-- [ViewOrchestrator](/java-user-manual/build/view-orchestrator/) — the root base class that handles routing and screen wrapping for all orchestrators
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — explicit models for filters, rows, views, editors, and creation forms
+- [EditableView](/java-user-manual/build/editable-view/) — single-entity view with an Edit button, no list
+- [MultiView](/java-user-manual/build/view-orchestrator/) — the root base class that handles routing and screen wrapping for all orchestrators
 - [Listing&lt;Filters, Row&gt;](/java-user-manual/build/listing/) — standalone filterable listing with toolbar actions, export, and selector support
 
 ### Composition

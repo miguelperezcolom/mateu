@@ -1,9 +1,9 @@
 ---
 title: "CrudRepository"
-description: "Interface for providing CRUD data access to AutoCrudOrchestrator."
+description: "Interface for providing CRUD data access to AutoCrud."
 ---
 
-`CrudRepository<T>` is the data-access contract consumed by `AutoCrudOrchestrator`. Implement it to back an automatic CRUD UI with your own storage — in-memory map, JPA repository, REST client, or anything else.
+`CrudRepository<T>` is the data-access contract consumed by `AutoCrud`. Implement it to back an automatic CRUD UI with your own storage — in-memory map, JPA repository, REST client, or anything else.
 
 The type parameter `T` must implement `Identifiable`, which requires a single method:
 
@@ -83,7 +83,7 @@ class ItemRepository implements CrudRepository<Item> {
     }
 }
 
-// 3. Adapter — bridges the repository to AutoCrudOrchestrator
+// 3. Adapter — bridges the repository to AutoCrud
 class ItemAdapter extends AutoCrudAdapter<Item> {
 
     @Override
@@ -94,7 +94,7 @@ class ItemAdapter extends AutoCrudAdapter<Item> {
 
 // 4. Orchestrator — the UI endpoint
 @UI("/items")
-public class ItemsCatalog extends AutoCrudOrchestrator<Item> {
+public class ItemsCatalog extends AutoCrud<Item> {
 
     @Override
     public AutoCrudAdapter<Item> simpleAdapter() {
@@ -220,6 +220,6 @@ Use `CompositionCrudRepository` when an embedded child grid inside a parent form
 
 ## Next
 
-- [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — pre-built adapters that consume a `CrudRepository`
+- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — pre-built adapters that consume a `CrudRepository`
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — the lower-level interface for full control over each operation
-- [AutoCrudOrchestrator and AutoListOrchestrator](/java-user-manual/build/auto-orchestrators/) — the orchestrators that use this repository indirectly
+- [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrators that use this repository indirectly

@@ -11,7 +11,7 @@ This is enough to get a working CRUD screen in the browser:
 
 ```java
 @UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {}
+public class Products extends AutoCrud<Product> {}
 ```
 
 That single class produces:
@@ -78,13 +78,13 @@ From this model, Mateu can infer fields, forms, list columns, validation, and na
 
 ```java
 @UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {}
+public class Products extends AutoCrud<Product> {}
 ```
 
-**CrudOrchestrator** — use this when you need explicit control over filters, rows, view forms, edit forms, and creation forms:
+**Crud** — use this when you need explicit control over filters, rows, view forms, edit forms, and creation forms:
 
 ```java
-public class ProductsCrudOrchestrator extends CrudOrchestrator<
+public class ProductsCrud extends Crud<
     ProductView,
     ProductEditor,
     ProductCreationForm,

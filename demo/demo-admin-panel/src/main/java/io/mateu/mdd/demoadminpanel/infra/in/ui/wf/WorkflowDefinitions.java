@@ -2,7 +2,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.wf;
 
 import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.mdd.demoadminpanel.infra.in.ui.Home2;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.ListToolbarButton;
@@ -20,7 +20,7 @@ import static io.mateu.uidl.fluent.Component.createComponent;
 @Service
 @Scope("prototype")
 @RequiredArgsConstructor
-public class WorkflowDefinitions extends AutoCrudOrchestrator<WorkflowDefinition> {
+public class WorkflowDefinitions extends AutoCrud<WorkflowDefinition> {
 
     final WorkflowDefinitionEditor graphEditor;
     final WorkflowDefinitionCrudAdapter adapter;

@@ -1,7 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Status;
 import io.mateu.uidl.data.*;
@@ -106,7 +106,7 @@ class Product2Adapter extends AutoCrudAdapter<Product2> {
 @UI("/productszzz")
 @SplitCrud
 @Slf4j
-public class Products2 extends AutoCrudOrchestrator<Product2> {
+public class Products2 extends AutoCrud<Product2> {
 
     @Override
     public AutoCrudAdapter<Product2> simpleAdapter() {

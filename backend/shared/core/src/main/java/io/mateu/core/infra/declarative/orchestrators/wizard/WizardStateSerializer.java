@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 final class WizardStateSerializer {
 
-  static Map<String, Object> buildState(WizardOrchestrator orchestrator) {
+  static Map<String, Object> buildState(Wizard orchestrator) {
     var step = orchestrator.getStep();
     Class<?> stepClass = step instanceof Class ? (Class<?>) step : step.getClass();
     var data = toMap(orchestrator);

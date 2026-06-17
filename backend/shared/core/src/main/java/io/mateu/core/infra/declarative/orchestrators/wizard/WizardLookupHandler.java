@@ -15,7 +15,7 @@ final class WizardLookupHandler {
 
   @SneakyThrows
   static Data handleSearch(
-      String actionId, WizardOrchestrator orchestrator, HttpRequest httpRequest) {
+      String actionId, Wizard orchestrator, HttpRequest httpRequest) {
     String fieldName = actionId.substring(actionId.indexOf('-') + 1);
     LookupOptionsSupplier optionsSupplier;
     if (fieldName.contains("-")) {

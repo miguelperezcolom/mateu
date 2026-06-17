@@ -38,7 +38,7 @@ Use this manual as a guided path.
 - [Foreign keys and options](/java-user-manual/build/foreign-keys-and-options/)
 - [Working with domain models](/java-user-manual/build/domain-models/)
 - [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/)
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/)
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/)
 
 ## 5. Advanced
 

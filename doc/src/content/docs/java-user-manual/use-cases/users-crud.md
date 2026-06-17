@@ -132,7 +132,7 @@ This is the recommended pattern for real applications: all the pieces are Spring
 ```java
 @Service
 @UI("/users")
-public class UsersPage extends AutoCrudOrchestrator<User> {
+public class UsersPage extends AutoCrud<User> {
 
     final UserAdapter userAdapter;
 

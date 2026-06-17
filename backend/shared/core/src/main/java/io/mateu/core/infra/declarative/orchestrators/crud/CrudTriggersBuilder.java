@@ -11,7 +11,7 @@ import java.util.List;
 final class CrudTriggersBuilder {
 
   static List<Trigger> build(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> crud, String viewName, HttpRequest httpRequest) {
+      Crud<?, ?, ?, ?, ?, ?> crud, String viewName, HttpRequest httpRequest) {
     var triggers = new ArrayList<Trigger>();
     if (httpRequest.getAttribute("list") != null) {
       triggers.add(new OnLoadTrigger("search", 0, 1, null));

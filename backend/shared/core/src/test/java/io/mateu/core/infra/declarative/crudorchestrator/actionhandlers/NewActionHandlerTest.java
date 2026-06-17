@@ -3,7 +3,7 @@ package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.NewActionHandler;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.junit.jupiter.api.Test;
@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class NewActionHandlerTest {
 
-  @Mock CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator;
+  @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
   @Mock HttpRequest httpRequest;
 
   private final NewActionHandler handler = new NewActionHandler();

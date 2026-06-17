@@ -13,7 +13,7 @@ import lombok.SneakyThrows;
 final class WizardActionDispatcher {
 
   @SneakyThrows
-  static Object dispatch(String actionId, WizardOrchestrator wizard, HttpRequest httpRequest) {
+  static Object dispatch(String actionId, Wizard wizard, HttpRequest httpRequest) {
     if (actionId.startsWith("search-")) {
       return WizardLookupHandler.handleSearch(actionId, wizard, httpRequest);
     }

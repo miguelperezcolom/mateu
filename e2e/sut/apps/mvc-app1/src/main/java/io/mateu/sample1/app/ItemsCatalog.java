@@ -1,7 +1,7 @@
 package io.mateu.sample1.app;
 
 import io.mateu.core.infra.declarative.AutoCrudAdapter;
-import io.mateu.core.infra.declarative.AutoCrudOrchestrator;
+import io.mateu.core.infra.declarative.AutoCrud;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.CrudRepository;
 import io.mateu.uidl.interfaces.Identifiable;
@@ -79,7 +79,7 @@ class ItemAdapter extends AutoCrudAdapter<Item> {
 }
 
 @UI("/items")
-public class ItemsCatalog extends AutoCrudOrchestrator<Item> {
+public class ItemsCatalog extends AutoCrud<Item> {
 
     @Override
     public AutoCrudAdapter<Item> simpleAdapter() {

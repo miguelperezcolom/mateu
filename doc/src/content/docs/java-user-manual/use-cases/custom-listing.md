@@ -202,11 +202,11 @@ Changes (Listing<NoFilters, ChangeRow>)
 
 ---
 
-## When to use `Listing` vs `AutoCrudOrchestrator`
+## When to use `Listing` vs `AutoCrud`
 
 | Pattern | When to use |
 |---------|-------------|
-| `AutoCrudOrchestrator<T>` | Data fits a single model; standard CRUD operations |
+| `AutoCrud<T>` | Data fits a single model; standard CRUD operations |
 | `Listing<Filters, Row>` | Custom data source, rows differ from domain model, no standard CRUD |
 
 ---

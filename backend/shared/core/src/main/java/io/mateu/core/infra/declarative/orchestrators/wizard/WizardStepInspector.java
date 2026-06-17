@@ -15,21 +15,21 @@ import java.util.stream.Stream;
 
 final class WizardStepInspector {
 
-  static List<Field> getStepFields(WizardOrchestrator wizard) {
+  static List<Field> getStepFields(Wizard wizard) {
     return getAllFields(wizard.getClass()).stream()
         .filter(field -> WizardStep.class.isAssignableFrom(field.getType()))
         .toList();
   }
 
-  static int numberOfSteps(WizardOrchestrator wizard) {
+  static int numberOfSteps(Wizard wizard) {
     return getStepFields(wizard).size();
   }
 
-  static Field currentStepField(WizardOrchestrator wizard) {
+  static Field currentStepField(Wizard wizard) {
     return getStepFields(wizard).get(wizard.position);
   }
 
-  static Object getValueOrClass(WizardOrchestrator wizard, int position) {
+  static Object getValueOrClass(Wizard wizard, int position) {
     var steps = getStepFields(wizard);
     var field = steps.get(position);
     var value = getValue(field, wizard);
@@ -39,7 +39,7 @@ final class WizardStepInspector {
     return field.getType();
   }
 
-  static List<Validation> validations(WizardOrchestrator wizard) {
+  static List<Validation> validations(Wizard wizard) {
     List<Validation> fieldLevelValidations = new ArrayList<>();
     var stepClass = getStepFields(wizard).get(wizard.position).getType();
     getAllFields(stepClass).stream()

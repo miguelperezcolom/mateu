@@ -1,6 +1,6 @@
 package io.mateu.core.application.runaction;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import lombok.SneakyThrows;
@@ -13,7 +13,7 @@ public class CrudNavigationAdjuster {
   public record AdjustedCommand(RunActionCommand command, boolean routeFirst) {}
 
   /**
-   * When a CrudOrchestrator handles a "view", "edit", "new", or "cancel-view" action, the route
+   * When a Crud handles a "view", "edit", "new", or "cancel-view" action, the route
    * must be pre-adjusted so the correct sub-route resolves. Returns routeFirst=true to signal that
    * route resolution should be attempted before falling back to the known serverSideType.
    */
@@ -23,7 +23,7 @@ public class CrudNavigationAdjuster {
       return new AdjustedCommand(command, false);
     }
     var type = Class.forName(command.serverSideType());
-    if (!CrudOrchestrator.class.isAssignableFrom(type)) {
+    if (!Crud.class.isAssignableFrom(type)) {
       return new AdjustedCommand(command, false);
     }
 

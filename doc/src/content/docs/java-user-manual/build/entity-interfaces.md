@@ -9,7 +9,7 @@ These three interfaces are the minimum contracts that entities and row DTOs must
 
 ## Identifiable
 
-Every entity used with `AutoCrudOrchestrator`, `AutoListOrchestrator`, or any `CrudRepository` must implement `Identifiable`.
+Every entity used with `AutoCrud`, `AutoCrud`, or any `CrudRepository` must implement `Identifiable`.
 
 ```java
 public interface Identifiable {
@@ -102,7 +102,7 @@ public interface Searchable {
 }
 ```
 
-`AutoListAdapter` and `AutoCrudAdapter` filter rows in memory using this priority:
+`AutoCrudAdapter` and `AutoCrudAdapter` filter rows in memory using this priority:
 1. If `T` implements `Searchable` → use `searchableText()`.
 2. Otherwise → use `toString()`.
 
@@ -129,14 +129,14 @@ This is only relevant when you rely on in-memory filtering. If you override `sea
 
 | Interface | Required by | Purpose |
 |---|---|---|
-| `Identifiable` | `CrudRepository<T>`, `AutoCrudAdapter<T>`, `AutoListAdapter<T>`, `FilteredAutoCrudOrchestrator<F,T>` | Identifies each entity so the framework can navigate, select, and delete rows |
+| `Identifiable` | `CrudRepository<T>`, `AutoCrudAdapter<T>`, `AutoCrudAdapter<T>`, `FilteredAutoCrud<F,T>` | Identifies each entity so the framework can navigate, select, and delete rows |
 | `Named` | `CompositionCrudRepository<T, P>`, `AutoNamedView` (optional) | Provides a human-readable title for detail views and breadcrumbs |
-| `Searchable` | `AutoListAdapter<T>`, `AutoCrudAdapter<T>` (optional) | Controls which text is matched during in-memory free-text search |
+| `Searchable` | `AutoCrudAdapter<T>`, `AutoCrudAdapter<T>` (optional) | Controls which text is matched during in-memory free-text search |
 
 ---
 
 ## Next
 
-- [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — where `Identifiable` and `Searchable` are consumed
+- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — where `Identifiable` and `Searchable` are consumed
 - [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository that requires `T extends Identifiable`
-- [AutoListOrchestrator and AutoCrudOrchestrator](/java-user-manual/build/auto-orchestrators/) — the orchestrators that put it all together
+- [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrators that put it all together

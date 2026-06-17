@@ -18,7 +18,7 @@ import java.util.List;
 
 final class WizardButtonBuilder {
 
-  static List<Component> createButtons(WizardOrchestrator wizard, HttpRequest httpRequest) {
+  static List<Component> createButtons(Wizard wizard, HttpRequest httpRequest) {
     List<Component> buttons = new ArrayList<>();
     buttons.add(Button.builder().id("back").label("Back").disabled(wizard.position == 0).build());
     if (wizard.position < wizard.numberOfSteps() - 1) {

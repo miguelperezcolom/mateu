@@ -1,15 +1,17 @@
 package com.example.demo.infra.in.ui.pages.processes;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoListAdapter;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoListOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
+import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@ReadOnly
 @Style("width: 100%;")
-public class Messages extends AutoListOrchestrator<Message> {
+public class Messages extends AutoCrud<Message> {
 
     private String processId;
 
@@ -18,10 +20,10 @@ public class Messages extends AutoListOrchestrator<Message> {
         return this;
     }
 
-    final AutoListAdapter<Message> adapter;
+    final AutoCrudAdapter<Message> adapter;
 
     @Override
-    public AutoListAdapter<Message> simpleAdapter() {
+    public AutoCrudAdapter<Message> simpleAdapter() {
         return adapter;
     }
 }

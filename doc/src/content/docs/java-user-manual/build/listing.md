@@ -145,12 +145,12 @@ String productId;
 
 ---
 
-## Listing vs orchestrators
+## Listing vs AutoCrud
 
-| | `Listing<F,R>` | `FilteredAutoListOrchestrator<F,R>` |
+| | `Listing<F,R>` | `AutoCrud<T>` |
 |---|---|---|
 | Filter bar | ✓ | ✓ |
-| Custom row type | ✓ | ✓ |
+| Custom row type | ✓ | with `FilteredAutoCrud<F,T>` |
 | Toolbar actions (`@Toolbar`) | ✓ | — |
 | Navigation to detail on row click | — | ✓ |
 | Export (PDF/Excel/CSV) | ✓ | — |
@@ -162,7 +162,7 @@ Use `Listing` when:
 - The listing is used as a lookup selector for a `@Searchable` field.
 - The listing is embedded inside a form via a `Callable<?>` field.
 
-Use `FilteredAutoListOrchestrator` when you need the same filter flexibility but also want row-click navigation to a detail view.
+Use `AutoCrud<T> + @ReadOnly` (or `FilteredAutoCrud<Filters,T> + @ReadOnly`) when you need the same filter flexibility but also want row-click navigation to a detail view.
 
 ---
 
@@ -174,6 +174,6 @@ Implement `UploadEnabled` to add an import button to the toolbar. See [ListingBa
 
 ## Next
 
-- [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — when you need both separate filter types and detail navigation
+- [FilteredAutoCrud](/java-user-manual/build/filtered-orchestrators/) — when you need both separate filter types and detail navigation
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — per-row `ColumnAction` and `ColumnActionGroup`
 - [ListingBackend reference](/java-ui-definition/interfaces/listing-backend/) — full API reference for `ListingData`, `Pageable`, `Page`, and export modules

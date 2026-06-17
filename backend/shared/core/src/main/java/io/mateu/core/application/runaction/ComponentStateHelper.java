@@ -7,7 +7,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.DataMapper.mapPojo
 import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRules;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
-import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
+import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
 
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.Route;

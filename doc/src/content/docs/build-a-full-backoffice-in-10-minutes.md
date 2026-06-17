@@ -51,7 +51,7 @@ public class AdminHome {
 public class AdminMenu {
 
   @Menu
-  RolesCrudOrchestrator roles;
+  RolesCrud roles;
 
 }
 ```
@@ -228,11 +228,11 @@ public class RoleCrudAdapter implements CrudAdapter<
 
 ## Step 5 — Expose the CRUD
 
-Now expose it through a `CrudOrchestrator`.
+Now expose it through a `Crud`.
 
 ```java
 @Title("Roles")
-public class RolesCrudOrchestrator extends CrudOrchestrator<
+public class RolesCrud extends Crud<
         RoleViewModel,
         RoleViewModel,
         RoleViewModel,
@@ -242,7 +242,7 @@ public class RolesCrudOrchestrator extends CrudOrchestrator<
 
   final RoleCrudAdapter adapter;
 
-  public RolesCrudOrchestrator(RoleCrudAdapter adapter) {
+  public RolesCrud(RoleCrudAdapter adapter) {
     this.adapter = adapter;
   }
 

@@ -19,7 +19,7 @@ Use `@List` for the collection class, `@Filterable` on filter fields, `@RowActio
 
 ```java
 @UI("/products")
-public class ProductsListing extends AutoCrudOrchestrator<Product> {
+public class ProductsListing extends AutoCrud<Product> {
 
     @ListToolbarButton(rowsSelectedRequired = true, confirmationRequired = true)
     public void deactivateSelected(List<Product> selected) {

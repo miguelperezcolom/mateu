@@ -14,7 +14,7 @@ import java.util.List;
 final class CrudActionsBuilder {
 
   static List<Action> buildActions(
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator, HttpRequest httpRequest) {
+      Crud<?, ?, ?, ?, ?, ?> orchestrator, HttpRequest httpRequest) {
     var actions = new ArrayList<Action>();
     if (httpRequest.getAttribute("mediator") != null) {
       actions.add(Action.builder().id("delete").build());

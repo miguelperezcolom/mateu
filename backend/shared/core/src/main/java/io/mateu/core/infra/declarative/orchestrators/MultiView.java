@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public abstract class ViewOrchestrator
+public abstract class MultiView
     implements ActionHandler, ActionSupplier, RouteHandler, DtoSupplier {
 
   String _route = "";
@@ -40,9 +40,6 @@ public abstract class ViewOrchestrator
     return _componentRoute;
   }
 
-  /*
-  first handling
-   */
   @Override
   public Object handleRoute(String route, HttpRequest httpRequest) {
     log.info("route is {}, action is {}", route, httpRequest.runActionRq().actionId());
@@ -52,11 +49,9 @@ public abstract class ViewOrchestrator
         route = route.substring(0, route.indexOf("?"));
       }
 
-      // hande route if no action
       if (httpRequest.runActionRq().actionId() == null
           || "".equals(httpRequest.runActionRq().actionId())) {
 
-        // if this is a first time, we return the mediator app
         if (!getClass().getName().equals(httpRequest.runActionRq().serverSideType())) {
           var componentRoute = (String) httpRequest.getAttribute("resolvedPath");
           if (componentRoute == null) {
@@ -95,7 +90,6 @@ public abstract class ViewOrchestrator
           .text(e.getMessage())
           .build();
     }
-    // action handler will be called
     return this;
   }
 

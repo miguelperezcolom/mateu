@@ -76,7 +76,7 @@ The integration registers the Mateu API endpoints and handles DI for ViewModel c
 
 ## Orchestrators
 
-Orchestrators are the entry points for structured UI patterns. `AutoCrudOrchestrator` and `CrudOrchestrator` are orchestrators for CRUD flows. An orchestrator coordinates:
+Orchestrators are the entry points for structured UI patterns. `AutoCrud` and `Crud` are orchestrators for CRUD flows. An orchestrator coordinates:
 
 - which ViewModel to use for listing
 - which ViewModel to use for viewing

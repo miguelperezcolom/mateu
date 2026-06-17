@@ -1,9 +1,9 @@
 ---
 title: "CrudAdapter"
-description: "The interface that connects a CrudOrchestrator to its data source."
+description: "The interface that connects a Crud to its data source."
 ---
 
-`CrudAdapter` is the data layer interface for `CrudOrchestrator`. It defines five methods — one for each data operation — and is the only seam between the orchestrator and your persistence layer.
+`CrudAdapter` is the data layer interface for `Crud`. It defines five methods — one for each data operation — and is the only seam between the orchestrator and your persistence layer.
 
 ```java
 public interface CrudAdapter<View, Editor, CreationForm, Filters, Row, IdType> {
@@ -95,7 +95,7 @@ public class ProductCrudAdapter
 
 ## Relation to the auto adapters
 
-`AutoListAdapter<T>` and `AutoCrudAdapter<T>` are pre-built implementations of `CrudAdapter` that cover the common case where the entity type is used for every screen. Implement `CrudAdapter` directly when:
+`AutoCrudAdapter<T>` and `AutoCrudAdapter<T>` are pre-built implementations of `CrudAdapter` that cover the common case where the entity type is used for every screen. Implement `CrudAdapter` directly when:
 
 - `View`, `Editor`, and `CreationForm` are genuinely different types.
 - The search requires a custom query that the auto adapters cannot express.
@@ -112,6 +112,6 @@ public class ProductCrudAdapter
 
 ## Next
 
-- [AutoListAdapter and AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — pre-built adapters for the common single-type case
-- [Full control with CrudOrchestrator](/java-user-manual/build/full-control-crud-orchestrator/) — the orchestrator that consumes this adapter
+- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — pre-built adapters for the common single-type case
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — the orchestrator that consumes this adapter
 - [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the interfaces your editor and creation form must implement

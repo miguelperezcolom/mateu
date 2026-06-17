@@ -1,12 +1,11 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
-import static io.mateu.core.infra.declarative.FormViewModel.toMap;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
-import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.*;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
 import io.mateu.uidl.annotations.ListToolbarButton;
@@ -21,14 +20,14 @@ import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
 
-public abstract class CrudOrchestrator<
+public abstract class Crud<
         View,
         Editor extends CrudEditorForm<IdType>,
         CreationForm extends CrudCreationForm<IdType>,
         Filters,
         Row,
         IdType>
-    extends ViewOrchestrator implements StateSupplier {
+    extends MultiView implements StateSupplier {
 
   private final List<CrudOrchestratorRouteResolver> routeResolvers =
       List.of(
@@ -102,7 +101,7 @@ public abstract class CrudOrchestrator<
   }
 
   public Class<?> viewClass() {
-    return getGenericClass(this.getClass(), CrudOrchestrator.class, "View");
+    return getGenericClass(this.getClass(), Crud.class, "View");
   }
 
   public String title() {
@@ -126,15 +125,15 @@ public abstract class CrudOrchestrator<
   public abstract CrudAdapter<Editor, CreationForm, Filters, Row, IdType> adapter();
 
   public Class<Filters> filtersClass() {
-    return getGenericClass(this.getClass(), CrudOrchestrator.class, "Filters");
+    return getGenericClass(this.getClass(), Crud.class, "Filters");
   }
 
   public Class<Row> rowClass() {
-    return getGenericClass(this.getClass(), CrudOrchestrator.class, "Row");
+    return getGenericClass(this.getClass(), Crud.class, "Row");
   }
 
   public Class<?> entityClass() {
-    return getGenericClass(this.getClass(), CrudOrchestrator.class, "EntityType");
+    return getGenericClass(this.getClass(), Crud.class, "EntityType");
   }
 
   public Object view(IdType id, HttpRequest httpRequest) {
@@ -187,7 +186,7 @@ public abstract class CrudOrchestrator<
 
   @Override
   public Object state(HttpRequest httpRequest) {
-    var map = toMap(this);
+    var map = io.mateu.core.infra.declarative.FormViewModel.toMap(this);
     var route = httpRequest.runActionRq().route();
     if (route.contains("?")) {
       var params = route.substring(route.indexOf("?") + 1);

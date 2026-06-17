@@ -1,6 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.processes;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoListAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.uidl.interfaces.CrudRepository;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +10,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class ProcessCrudAdapter extends AutoListAdapter<ProcessRow> {
+public class ProcessCrudAdapter extends AutoCrudAdapter<ProcessRow> {
 
     final CreateProcesForm createProcesForm;
     final ProcessView processView;

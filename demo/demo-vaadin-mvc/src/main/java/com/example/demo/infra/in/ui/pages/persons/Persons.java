@@ -1,6 +1,6 @@
 package com.example.demo.infra.in.ui.pages.persons;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.uidl.data.NoFilters;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.CrudAdapter;
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class Persons extends CrudOrchestrator<
+public class Persons extends Crud<
         PersonDetailView,
         PersonEditorView,
         PersonCreationForm,

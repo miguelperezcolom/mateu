@@ -4,9 +4,12 @@ import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getCol
 import static io.mateu.core.domain.out.componentmapper.PageListingBuilder.getFilters;
 
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
-import io.mateu.core.infra.declarative.orchestrators.ViewOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
-import io.mateu.core.infra.declarative.orchestrators.crud.CrudOrchestrator;
+import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
+import io.mateu.uidl.annotations.NotCreatable;
+import io.mateu.uidl.annotations.NotDeletable;
+import io.mateu.uidl.annotations.NotNavigable;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
@@ -20,7 +23,7 @@ import java.util.stream.Stream;
 
 public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
-  public boolean supports(String route, HttpRequest httpRequest, ViewOrchestrator orchestrator) {
+  public boolean supports(String route, HttpRequest httpRequest, MultiView orchestrator) {
     if (route.endsWith("/list")) return true;
     var pathPart = route.contains("?") ? route.substring(0, route.indexOf('?')) : route;
     var cleanPath =
@@ -30,9 +33,19 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
 
   @Override
   public OrchestrationResult resolve(
-      String route, HttpRequest httpRequest, CrudOrchestrator orchestrator) {
+      String route, HttpRequest httpRequest, Crud orchestrator) {
     return new OrchestrationResult(
         "list", orchestrator.list(httpRequest), createListComponent(httpRequest, orchestrator));
+  }
+
+  private static boolean notCreatable(Crud orchestrator) {
+    return orchestrator.readOnly()
+        || orchestrator.getClass().isAnnotationPresent(NotCreatable.class);
+  }
+
+  private static boolean notDeletable(Crud orchestrator) {
+    return orchestrator.readOnly()
+        || orchestrator.getClass().isAnnotationPresent(NotDeletable.class);
   }
 
   private int parseInitialPage(String route) {
@@ -51,7 +64,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     return 0;
   }
 
-  private Component createListComponent(HttpRequest httpRequest, CrudOrchestrator orchestrator) {
+  private Component createListComponent(HttpRequest httpRequest, Crud orchestrator) {
     var toolbar = new ArrayList<UserTrigger>();
     orchestrator.addButtonsToList(toolbar);
     if (orchestrator instanceof UploadEnabled) {
@@ -60,17 +73,18 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     if (orchestrator instanceof Auditable) {
       toolbar.add(new Button("History", "history"));
     }
-    if (!orchestrator.readOnly()) {
+    if (!notCreatable(orchestrator)) {
       toolbar.add(new Button("New", "new"));
-      if (orchestrator instanceof AutoCrudOrchestrator
-          || Deleteable.class.isAssignableFrom(orchestrator.viewClass())) {
-        toolbar.add(
-            Button.builder()
-                .label("Delete")
-                .actionId("delete")
-                .variant(ButtonVariant.error)
-                .build());
-      }
+    }
+    if (!notDeletable(orchestrator)
+        && (orchestrator instanceof AutoCrud
+            || Deleteable.class.isAssignableFrom(orchestrator.viewClass()))) {
+      toolbar.add(
+          Button.builder()
+              .label("Delete")
+              .actionId("delete")
+              .variant(ButtonVariant.error)
+              .build());
     }
     List<GridContent> columns =
         getClass().isAnnotationPresent(ReadOnly.class)
@@ -82,7 +96,8 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().initiatorComponentId(),
                     httpRequest)
-            : Stream.concat(
+            : orchestrator.getClass().isAnnotationPresent(NotNavigable.class)
+                ? (List<GridContent>)
                     getColumns(
                         orchestrator.rowClass(),
                         this,
@@ -90,16 +105,24 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                         httpRequest.runActionRq().route(),
                         httpRequest.runActionRq().initiatorComponentId(),
                         httpRequest)
-                        .stream(),
-                    Stream.of(
-                        GridColumn.builder()
-                            .label("Action")
-                            .id("_action")
-                            .stereotype(FieldStereotype.button)
-                            .actionId("view")
-                            .text("View")
-                            .build()))
-                .toList();
+                : Stream.concat(
+                        getColumns(
+                            orchestrator.rowClass(),
+                            this,
+                            "base_url",
+                            httpRequest.runActionRq().route(),
+                            httpRequest.runActionRq().initiatorComponentId(),
+                            httpRequest)
+                            .stream(),
+                        Stream.of(
+                            GridColumn.builder()
+                                .label("Action")
+                                .id("_action")
+                                .stereotype(FieldStereotype.button)
+                                .actionId("view")
+                                .text("View")
+                                .build()))
+                    .toList();
     String title;
     httpRequest.setAttribute("windowTitle", title = orchestrator.title());
     return PageView.builder()

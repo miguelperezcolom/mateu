@@ -140,7 +140,7 @@ public class NestedCrudAdapter extends AutoCrudAdapter<Level1View> {
 @Service
 @UI("/nested-crud")
 @RequiredArgsConstructor
-public class NestedCrudOrchestrator extends AutoCrudOrchestrator<Level1View> {
+public class NestedCrud extends AutoCrud<Level1View> {
 
     final NestedCrudAdapter adapter;
 

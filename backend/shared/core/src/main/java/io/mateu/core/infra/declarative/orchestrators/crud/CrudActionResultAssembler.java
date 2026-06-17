@@ -11,7 +11,7 @@ final class CrudActionResultAssembler {
 
   static List<Object> assemble(
       CrudActionResult result,
-      CrudOrchestrator<?, ?, ?, ?, ?, ?> orchestrator,
+      Crud<?, ?, ?, ?, ?, ?> orchestrator,
       HttpRequest httpRequest) {
     var list = new ArrayList<>();
     orchestrator.setRouteTo(result.route());

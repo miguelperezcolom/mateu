@@ -2,14 +2,14 @@ package com.example.demo.infra.in.ui.adapters;
 
 import com.example.demo.infra.in.ui.pages.processes.Error;
 import com.example.demo.infra.out.persistence.ErrorCrudRepository;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoListAdapter;
+import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.uidl.interfaces.CrudRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class ErrorCrudAdapter extends AutoListAdapter<Error> {
+public class ErrorCrudAdapter extends AutoCrudAdapter<Error> {
 
     final ErrorCrudRepository repository;
 
