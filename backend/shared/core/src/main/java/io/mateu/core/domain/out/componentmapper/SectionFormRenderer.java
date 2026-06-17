@@ -26,7 +26,8 @@ final class SectionFormRenderer {
       boolean readOnly,
       int level) {
     if (sections.size() > 1) {
-      if (instance.getClass().isAnnotationPresent(FoldedLayout.class)) {
+      var instanceClass = instance instanceof Class ? (Class) instance : instance.getClass();
+      if (instanceClass.isAnnotationPresent(FoldedLayout.class)) {
         return List.of(
             HorizontalLayout.builder()
                 .spacing(true)

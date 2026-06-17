@@ -3,6 +3,7 @@ package io.mateu.core.domain.act.crudfieldhandlers;
 import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.*;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
+import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.uidl.data.Button;
@@ -62,7 +63,9 @@ public class SelectActionHandler {
         new State(newState),
         wrap(
                 CrudFieldHandlerHelper.buildDetailForm(
-                    "Update " + getLabel(field),
+                    "Update "
+                        + toUpperCaseFirst(
+                            getGenericClass(field, field.getType(), "E").getSimpleName()),
                     field,
                     httpRequest,
                     false,
