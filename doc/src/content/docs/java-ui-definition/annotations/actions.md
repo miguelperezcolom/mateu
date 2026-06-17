@@ -85,15 +85,33 @@ public class OrderForm {
 
 ## @Button
 
-Marks a field or method as a button rendered inline within the form body.
+Marks a field or method as a button rendered at the bottom of the form body.
 
 ```java
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Button {}
+public @interface Button {
+    ButtonStyle buttonStyle() default ButtonStyle.none;
+    ButtonColor buttonColor() default ButtonColor.none;
+    ButtonSize buttonSize() default ButtonSize.none;
+    String group() default "";
+    boolean separatorBefore() default false;
+    int order() default 0;
+}
 ```
 
-No attributes. The button label is derived from the method or field name.
+The button label is derived from the method or field name (unless overridden with `@Label`).
+
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `buttonStyle` | `ButtonStyle` | `none` | Visual style (`primary`, `secondary`, `tertiary`, `tertiaryInline`). |
+| `buttonColor` | `ButtonColor` | `none` | Color theme (`success`, `error`, `warning`, `contrast`, `normal`). |
+| `buttonSize` | `ButtonSize` | `none` | Size (`small`, `normal`, `large`). |
+| `group` | `String` | `""` | Group name. Methods sharing the same group are merged into a single dropdown button. The group label is derived from the group name. |
+| `separatorBefore` | `boolean` | `false` | Renders a visual separator before this button (or group). |
+| `order` | `int` | `0` | Explicit position in the button bar. Lower values appear first. Use this to guarantee ordering because Java reflection does not preserve declaration order. |
 
 ### Example
 
@@ -112,7 +130,32 @@ public class SimpleForm {
 }
 ```
 
-Unlike `@Toolbar`, `@Button` places the button inside the form layout alongside the fields rather than in the toolbar strip at the top.
+### Button groups
+
+Methods sharing the same `group` value are collapsed into a single dropdown button:
+
+```java
+@Button(group = "exports", order = 10)
+void exportCsv() { ... }
+
+@Button(group = "exports", order = 11)
+void exportExcel() { ... }
+
+@Button(group = "exports", order = 12)
+void exportPdf() { ... }
+```
+
+### Separators
+
+```java
+@Button(order = 1)
+void save() { ... }
+
+@Button(order = 2, separatorBefore = true)
+void delete() { ... }
+```
+
+Unlike `@Toolbar`, `@Button` places the button at the bottom of the form rather than in the toolbar strip at the top.
 
 ---
 
@@ -228,10 +271,26 @@ Places a method or field in the toolbar area of the current view. Combine with `
 ```java
 @Target({ElementType.FIELD, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Toolbar {}
+public @interface Toolbar {
+    ButtonStyle buttonStyle() default ButtonStyle.none;
+    ButtonColor buttonColor() default ButtonColor.none;
+    ButtonSize buttonSize() default ButtonSize.none;
+    String group() default "";
+    boolean separatorBefore() default false;
+    int order() default 0;
+}
 ```
 
-No attributes of its own.
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `buttonStyle` | `ButtonStyle` | `none` | Visual style (`primary`, `secondary`, `tertiary`, `tertiaryInline`). |
+| `buttonColor` | `ButtonColor` | `none` | Color theme (`success`, `error`, `warning`, `contrast`, `normal`). |
+| `buttonSize` | `ButtonSize` | `none` | Size (`small`, `normal`, `large`). |
+| `group` | `String` | `""` | Group name. Methods sharing the same group are merged into a single dropdown button. The group label is derived from the group name. |
+| `separatorBefore` | `boolean` | `false` | Renders a visual separator before this button (or group). |
+| `order` | `int` | `0` | Explicit position in the toolbar. Lower values appear first. Use this to guarantee ordering because Java reflection does not preserve declaration order. |
 
 ### Example
 
@@ -243,6 +302,28 @@ Object create() {
     var businessKey = UUID.randomUUID().toString();
     return URI.create("/workflow/processes/" + businessKey + "?returnTo=/controlPlane/releases");
 }
+```
+
+### Button groups
+
+Methods sharing the same `group` value are collapsed into a single dropdown button in the toolbar:
+
+```java
+@Toolbar(group = "exports", order = 10)
+void exportCsv() { ... }
+
+@Toolbar(group = "exports", order = 11)
+void exportExcel() { ... }
+```
+
+### Separators
+
+```java
+@Toolbar(order = 1)
+void save() { ... }
+
+@Toolbar(order = 2, separatorBefore = true)
+void dangerousAction() { ... }
 ```
 
 `@Toolbar` can also be placed on a field when the field holds a pre-built component that should appear in the toolbar.
