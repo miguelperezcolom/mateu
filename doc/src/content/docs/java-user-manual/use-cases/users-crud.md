@@ -24,11 +24,10 @@ This case adds several real-world patterns on top of the basic CRUD:
 
 ## The pieces
 
-This case has six pieces:
+This case has five pieces:
 
 - `User` — the model
 - `UserRepository` — the persistence layer
-- `UserAdapter` — connects adapter to repository
 - `UsersPage` — the CRUD orchestrator
 - `UserEditorPage` — a standalone editor bound to the CRUD
 - `RoleOptionsSupplier` / `RoleLabelSupplier` — lookup support
@@ -102,15 +101,16 @@ The repository is a `@Service` bean. This allows it to be injected wherever need
 
 ---
 
-## 3. The adapter
+## 3. The orchestrator
 
 ```java
 @Service
-public class UserAdapter extends AutoCrudAdapter<User> {
+@UI("/users")
+public class UsersPage extends AutoCrud<User> {
 
     final UserRepository userRepository;
 
-    public UserAdapter(UserRepository userRepository) {
+    public UsersPage(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -121,39 +121,13 @@ public class UserAdapter extends AutoCrudAdapter<User> {
 }
 ```
 
-The adapter is also a `@Service` bean, with the repository injected via constructor.
+`UsersPage` is a `@Service` bean. The repository is injected via constructor, and `repository()` is the only method that needs to be overridden.
 
-This is the recommended pattern for real applications: all the pieces are Spring beans, and dependencies flow through constructors.
-
----
-
-## 4. The orchestrator
-
-```java
-@Service
-@UI("/users")
-public class UsersPage extends AutoCrud<User> {
-
-    final UserAdapter userAdapter;
-
-    public UsersPage(UserAdapter userAdapter) {
-        this.userAdapter = userAdapter;
-    }
-
-    @Override
-    public AutoCrudAdapter<User> simpleAdapter() {
-        return userAdapter;
-    }
-}
-```
-
-`UsersPage` is also a `@Service`. The adapter is injected via constructor.
-
-Compare this to the Products example, where both the adapter and repository were plain classes with no injection. In this case, `@Service` is required because the classes hold injected dependencies.
+Compare this to the Products example, where the repository was a plain class with no injection. In this case, `@Service` is required because the class holds an injected dependency.
 
 ---
 
-## 5. The lookup support
+## 4. The lookup support
 
 ### Options supplier
 
@@ -200,7 +174,7 @@ public class RoleLabelSupplier implements LabelSupplier {
 
 ---
 
-## 6. The custom editor page
+## 5. The custom editor page
 
 ```java
 @Service
@@ -252,9 +226,8 @@ Key points:
 
 ```
 UsersPage (@UI("/users"))
-  └── UserAdapter
-        └── UserRepository
-              └── User (model)
+  └── UserRepository
+        └── User (model)
 
 UserEditorPage (@Route("/:id/edit", uis="/users"))
   └── UserRepository

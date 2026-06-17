@@ -102,7 +102,7 @@ public interface Searchable {
 }
 ```
 
-`AutoCrudAdapter` and `AutoCrudAdapter` filter rows in memory using this priority:
+`AutoCrud<T>` and `FilteredAutoCrud<F,T>` filter rows in memory using this priority:
 1. If `T` implements `Searchable` → use `searchableText()`.
 2. Otherwise → use `toString()`.
 
@@ -129,14 +129,14 @@ This is only relevant when you rely on in-memory filtering. If you override `sea
 
 | Interface | Required by | Purpose |
 |---|---|---|
-| `Identifiable` | `CrudRepository<T>`, `AutoCrudAdapter<T>`, `AutoCrudAdapter<T>`, `FilteredAutoCrud<F,T>` | Identifies each entity so the framework can navigate, select, and delete rows |
+| `Identifiable` | `CrudRepository<T>`, `AutoCrud<T>`, `FilteredAutoCrud<F,T>` | Identifies each entity so the framework can navigate, select, and delete rows |
 | `Named` | `CompositionCrudRepository<T, P>`, `AutoNamedView` (optional) | Provides a human-readable title for detail views and breadcrumbs |
-| `Searchable` | `AutoCrudAdapter<T>`, `AutoCrudAdapter<T>` (optional) | Controls which text is matched during in-memory free-text search |
+| `Searchable` | `AutoCrud<T>`, `FilteredAutoCrud<F,T>` (optional) | Controls which text is matched during in-memory free-text search |
 
 ---
 
 ## Next
 
-- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — where `Identifiable` and `Searchable` are consumed
+- [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — where `Identifiable` and `Searchable` are consumed
 - [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository that requires `T extends Identifiable`
 - [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrators that put it all together

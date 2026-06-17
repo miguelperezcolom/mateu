@@ -3,7 +3,7 @@ title: "NamedView"
 description: "The interface that wraps an entity for use as a view, editor, or creation form in a CrudAdapter."
 ---
 
-`NamedView<T>` is the return type of `AutoCrudAdapter`'s `getView()`, `getEditor()`, and `getCreationForm()` methods. It combines all the contracts a CRUD screen needs into one interface: it knows its title, its id, how to render its fields, how to provide its state to the client, and how to save or create the underlying entity.
+`NamedView<T>` is the return type of the `CrudAdapter` methods `getView()`, `getEditor()`, and `getCreationForm()`. It combines all the contracts a CRUD screen needs into one interface: it knows its title, its id, how to render its fields, how to provide its state to the client, and how to save or create the underlying entity.
 
 ```java
 public interface NamedView<T extends Identifiable>
@@ -34,7 +34,7 @@ public interface NamedView<T extends Identifiable>
 
 ## AutoNamedView — the built-in implementation
 
-You rarely implement `NamedView` directly. `AutoNamedView<T>` is the pre-built implementation used by `AutoCrudAdapter` and `FilteredAutoCrudAdapter`. It wraps any `T extends Identifiable` and wires all the contracts to the entity and the repository:
+You rarely implement `NamedView` directly. `AutoNamedView<T>` is the pre-built implementation used internally by `AutoCrud<T>` and `FilteredAutoCrud<F,T>`. It wraps any `T extends Identifiable` and wires all the contracts to the entity and the repository:
 
 ```java
 new AutoNamedView<>(entityClass, entity, repository)

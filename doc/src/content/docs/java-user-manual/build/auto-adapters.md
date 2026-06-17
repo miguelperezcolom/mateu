@@ -1,9 +1,29 @@
 ---
 title: "AutoCrudAdapter<T>"
-description: "The data layer behind AutoCrud. Provides full CRUD out of the box from a single CrudRepository."
+description: "Advanced customisation layer for AutoCrud. Use when you need custom search, pre-populated forms, or custom delete logic."
 ---
 
-`AutoCrudAdapter<T>` implements the `CrudAdapter` interface and backs `AutoCrud<T>` (and `FilteredAutoCrud<Filters,T>`). It provides default implementations for every operation so you only have to supply a `CrudRepository<T>`. Override individual methods to customise specific operations without touching the rest.
+For the common case — supplying a repository — you do **not** need `AutoCrudAdapter`. Just override `repository()` directly in your `AutoCrud<T>` subclass:
+
+```java
+@Service
+@UI("/products")
+public class ProductCrud extends AutoCrud<Product> {
+
+    private final ProductRepository repository;
+
+    public ProductCrud(ProductRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public CrudRepository<Product> repository() {
+        return repository;
+    }
+}
+```
+
+Use `AutoCrudAdapter<T>` when you need to customise individual CRUD operations (search, view, editor, creation form, or delete) without implementing the full `CrudAdapter` interface.
 
 ```java
 public abstract class AutoCrudAdapter<T extends Identifiable>
@@ -12,15 +32,7 @@ public abstract class AutoCrudAdapter<T extends Identifiable>
 
 ---
 
-## The one required method
-
-```java
-public abstract CrudRepository<T> repository();
-```
-
----
-
-## Default operation behaviour
+## Overridable operations
 
 | Operation | Default behaviour | Override to… |
 |---|---|---|
@@ -31,27 +43,6 @@ public abstract CrudRepository<T> repository();
 | `deleteAllById` | Delegates to `repository().deleteAllById(ids)` | Add custom pre/post delete logic |
 
 When `@ReadOnly` (or `@NotEditable`, `@NotCreatable`, `@NotDeletable`) is applied to the orchestrator, the framework simply never calls the corresponding write operations — the adapter does not need to do anything special.
-
----
-
-## Example — repository only
-
-```java
-@Service
-public class ProductAdapter extends AutoCrudAdapter<Product> {
-
-    private final ProductRepository repository;
-
-    public ProductAdapter(ProductRepository repository) {
-        this.repository = repository;
-    }
-
-    @Override
-    public CrudRepository<Product> repository() {
-        return repository;
-    }
-}
-```
 
 ---
 

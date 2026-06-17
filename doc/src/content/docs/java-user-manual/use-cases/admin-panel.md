@@ -15,17 +15,16 @@ This case is meant to do two things at once:
 
 - model → form + list
 - validation → UI
-- repository + adapter + orchestrator → CRUD
+- repository + orchestrator → CRUD
 
 ---
 
 ## Quick read
 
-This example has four pieces:
+This example has three pieces:
 
 - a `Product` model
 - a `ProductRepository`
-- a `ProductAdapter`
 - a `Products` UI class
 
 Together they generate a complete CRUD UI.
@@ -37,7 +36,6 @@ Together they generate a complete CRUD UI.
 ```java
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.HiddenInList;
@@ -108,20 +106,12 @@ class ProductRepository implements CrudRepository<Product> {
     }
 }
 
-class ProductAdapter extends AutoCrudAdapter<Product> {
-
-    @Override
-    public CrudRepository<Product> repository() {
-        return new ProductRepository();
-    }
-}
-
 @UI("/products")
 public class Products extends AutoCrud<Product> {
 
     @Override
-    public AutoCrudAdapter<Product> simpleAdapter() {
-        return new ProductAdapter();
+    public CrudRepository<Product> repository() {
+        return new ProductRepository();
     }
 }
 ```
@@ -228,8 +218,8 @@ Then add handler methods with matching names in the orchestrator:
 public class Products extends AutoCrud<Product> {
 
     @Override
-    public AutoCrudAdapter<Product> simpleAdapter() {
-        return new ProductAdapter();
+    public CrudRepository<Product> repository() {
+        return new ProductRepository();
     }
 
     void setAsBlue(Product row) {
@@ -285,7 +275,6 @@ The nested table works the same as any collection field: Mateu adds add/remove b
 - model → data + UI definition
 - annotations → behavior and rendering hints
 - repository → persistence
-- adapter → connection point
 - orchestrator → full CRUD flow
 - `ColumnAction` / `ColumnActionGroup` → per-row actions; handler methods go in the orchestrator
 - `@ListToolbarButton` → batch action on selected rows

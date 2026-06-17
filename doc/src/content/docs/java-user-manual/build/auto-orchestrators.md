@@ -16,10 +16,9 @@ public abstract class AutoCrud<T extends Identifiable>
 
 ### Methods to implement
 
-| Method | Where | Purpose |
-|---|---|---|
-| `simpleAdapter()` | AutoCrud | Return your `AutoCrudAdapter<T>` |
-| `repository()` | Adapter | Return the `CrudRepository<T>` used for all operations |
+| Method | Purpose |
+|---|---|
+| `repository()` | Return the `CrudRepository<T>` used for all operations |
 
 ---
 
@@ -30,26 +29,9 @@ public abstract class AutoCrud<T extends Identifiable>
 @UI("/products")
 public class ProductCrud extends AutoCrud<Product> {
 
-    private final ProductAdapter adapter;
-
-    public ProductCrud(ProductAdapter adapter) {
-        this.adapter = adapter;
-    }
-
-    @Override
-    public AutoCrudAdapter<Product> simpleAdapter() {
-        return adapter;
-    }
-}
-```
-
-```java
-@Service
-public class ProductAdapter extends AutoCrudAdapter<Product> {
-
     private final ProductRepository repository;
 
-    public ProductAdapter(ProductRepository repository) {
+    public ProductCrud(ProductRepository repository) {
         this.repository = repository;
     }
 
@@ -112,24 +94,24 @@ These combine freely. A few common patterns:
 @NotNavigable
 public class AuditLog extends AutoCrud<AuditEntry> {
 
-    private final AuditAdapter adapter;
+    private final AuditRepository repository;
 
-    public AuditLog(AuditAdapter adapter) {
-        this.adapter = adapter;
+    public AuditLog(AuditRepository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public AutoCrudAdapter<AuditEntry> simpleAdapter() {
-        return adapter;
+    public CrudRepository<AuditEntry> repository() {
+        return repository;
     }
 }
 ```
 
-The adapter for a read-only `AutoCrud` is still `AutoCrudAdapter<T>`. The write operations are simply never invoked.
+The write operations are simply never invoked for a read-only `AutoCrud`.
 
 ---
 
-## What AutoCrudAdapter provides out of the box
+## What AutoCrud provides out of the box
 
 | Operation | Behaviour |
 |---|---|
@@ -139,30 +121,7 @@ The adapter for a read-only `AutoCrud` is still `AutoCrudAdapter<T>`. The write 
 | `getCreationForm` | Instantiates a new T and wraps in `AutoNamedView` |
 | `deleteAllById` | Delegates to `repository().deleteAllById()` |
 
-Override any of these in the adapter to customise individual operations.
-
-### Custom search behaviour
-
-`AutoCrudAdapter` filters by calling `item.toString().toLowerCase().contains(searchText)`, or by using `Searchable.searchableText()` if `T` implements `Searchable`. Override `search()` in the adapter to replace this with a database query.
-
-```java
-@Service
-public class ProductAdapter extends AutoCrudAdapter<Product> {
-
-    @Override
-    public ListingData<Product> search(
-            String searchText, Product filters, Pageable pageable, HttpRequest httpRequest) {
-        return ListingData.of(repository().findAll().stream()
-            .filter(p -> p.name().toLowerCase().contains(searchText.toLowerCase()))
-            .toList());
-    }
-
-    @Override
-    public CrudRepository<Product> repository() {
-        return productRepository;
-    }
-}
-```
+For most use cases `repository()` is the only method you need to implement. To customise individual operations (custom search, pre-populated creation forms, etc.) use [`AutoCrudAdapter`](/java-user-manual/build/auto-adapters/).
 
 ---
 

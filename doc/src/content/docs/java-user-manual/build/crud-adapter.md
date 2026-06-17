@@ -95,16 +95,16 @@ public class ProductCrudAdapter
 
 ## Relation to the auto adapters
 
-`AutoCrudAdapter<T>` and `AutoCrudAdapter<T>` are pre-built implementations of `CrudAdapter` that cover the common case where the entity type is used for every screen. Implement `CrudAdapter` directly when:
+`AutoCrud<T>` and `FilteredAutoCrud<F,T>` cover the common case where the entity type is used for every screen — implement `repository()` and you're done. Implement `CrudAdapter` directly when:
 
 - `View`, `Editor`, and `CreationForm` are genuinely different types.
-- The search requires a custom query that the auto adapters cannot express.
+- The search requires a custom query.
 - You need full control over delete behaviour (auditing, soft-delete, etc.).
 
-| | `AutoCrudAdapter<T>` | `CrudAdapter` (direct) |
+| | `AutoCrud<T>` / `FilteredAutoCrud<F,T>` | `CrudAdapter` (direct) |
 |---|---|---|
 | View / Editor / CreationForm types | All `T` | Separate types |
-| Search | In-memory (override to customise) | Fully custom |
+| Search | In-memory (override via `AutoCrudAdapter` to customise) | Fully custom |
 | Save / Create | Via `AutoNamedView` + `repository()` | Fully custom |
 | Boilerplate | Minimal | Full |
 

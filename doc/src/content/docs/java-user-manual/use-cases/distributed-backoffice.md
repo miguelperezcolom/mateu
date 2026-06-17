@@ -147,8 +147,8 @@ The shell defines the entry points and composes remote modules.
 public class Users extends AutoCrud<User> {
 
   @Override
-  public AutoCrudAdapter<User> simpleAdapter() {
-    return new UsersAdapter();
+  public CrudRepository<User> repository() {
+    return new UsersRepository();
   }
 
 }

@@ -15,15 +15,15 @@ For a CRUD published at `/users`:
 @UI("/users")
 public class UsersPage extends AutoCrud<User> {
 
-    final UserAdapter userAdapter;
+    final UserRepository userRepository;
 
-    public UsersPage(UserAdapter userAdapter) {
-        this.userAdapter = userAdapter;
+    public UsersPage(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @Override
-    public AutoCrudAdapter<User> simpleAdapter() {
-        return userAdapter;
+    public CrudRepository<User> repository() {
+        return userRepository;
     }
 }
 ```
@@ -167,15 +167,15 @@ If you only need list + detail view (no editing or creating), annotate `AutoCrud
 @ReadOnly
 public class ProductsPage extends AutoCrud<Product> {
 
-    final ProductAdapter productAdapter;
+    final ProductRepository productRepository;
 
-    public ProductsPage(ProductAdapter productAdapter) {
-        this.productAdapter = productAdapter;
+    public ProductsPage(ProductRepository productRepository) {
+        this.productRepository = productRepository;
     }
 
     @Override
-    public AutoCrudAdapter<Product> simpleAdapter() {
-        return productAdapter;
+    public CrudRepository<Product> repository() {
+        return productRepository;
     }
 }
 ```

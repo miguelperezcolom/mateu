@@ -14,7 +14,7 @@ This case shows how to embed nested editable collections inside a CRUD form, wit
 - how `@DetailFormCustomisation` controls how nested collections are edited
 - how `@Colspan` spans a field across multiple columns
 - how deeply nested structures (4 levels here) are handled the same way at each level
-- the Spring injection pattern for CRUD orchestrators
+- the Spring injection pattern for CRUD orchestrators with `repository()`
 
 ---
 
@@ -118,22 +118,6 @@ public class Level1ViewRepository implements CrudRepository<Level1View> {
 }
 ```
 
-### Adapter
-
-```java
-@Service
-@RequiredArgsConstructor
-public class NestedCrudAdapter extends AutoCrudAdapter<Level1View> {
-
-    final Level1ViewRepository repo;
-
-    @Override
-    public CrudRepository<Level1View> repository() {
-        return repo;
-    }
-}
-```
-
 ### Orchestrator
 
 ```java
@@ -142,11 +126,11 @@ public class NestedCrudAdapter extends AutoCrudAdapter<Level1View> {
 @RequiredArgsConstructor
 public class NestedCrud extends AutoCrud<Level1View> {
 
-    final NestedCrudAdapter adapter;
+    final Level1ViewRepository repo;
 
     @Override
-    public AutoCrudAdapter<Level1View> simpleAdapter() {
-        return adapter;
+    public CrudRepository<Level1View> repository() {
+        return repo;
     }
 }
 ```

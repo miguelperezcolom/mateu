@@ -65,10 +65,9 @@ Pass collaborators directly via the constructor. No Spring context needed:
 @Test
 void usersPage_lists_all_users() {
     var repo = new UserRepository();     // plain class, no Spring
-    var adapter = new UserAdapter(repo);
-    var page = new UsersPage(adapter);
+    var page = new UsersPage(repo);
 
-    var result = page.simpleAdapter().repository().findAll();
+    var result = page.repository().findAll();
     assertThat(result).isNotEmpty();
 }
 ```

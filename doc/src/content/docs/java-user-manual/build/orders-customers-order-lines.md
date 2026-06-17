@@ -51,15 +51,15 @@ The main entry point is a standard CRUD UI.
 @UI("/orders")
 public class Orders extends AutoCrud<Order> {
 
-    final OrderAdapter adapter;
+    final OrderRepository orderRepository;
 
-    public Orders(OrderAdapter adapter) {
-        this.adapter = adapter;
+    public Orders(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
     }
 
     @Override
-    public AutoCrudAdapter<Order> simpleAdapter() {
-        return adapter;
+    public CrudRepository<Order> repository() {
+        return orderRepository;
     }
 }
 ```
@@ -199,24 +199,7 @@ public class CustomerLabelSupplier implements LabelSupplier {
 
 ---
 
-# 4. Order adapter and repository
-
-```java
-@Service
-public class OrderAdapter extends AutoCrudAdapter<Order> {
-
-    final OrderRepository repository;
-
-    public OrderAdapter(OrderRepository repository) {
-        this.repository = repository;
-    }
-
-    @Override
-    public CrudRepository<Order> repository() {
-        return repository;
-    }
-}
-```
+# 4. Order repository
 
 ```java
 @Service
@@ -356,46 +339,15 @@ public record OrderLine(
 @Service
 public class OrderLines extends AutoCrud<OrderLine> {
 
-    final OrderLineAdapter adapter;
+    final OrderLineRepository orderLineRepository;
 
     String orderId;
 
-    public OrderLines(OrderLineAdapter adapter) {
-        this.adapter = adapter;
+    public OrderLines(OrderLineRepository orderLineRepository) {
+        this.orderLineRepository = orderLineRepository;
     }
 
     public OrderLines withOrderId(String orderId) {
-        this.orderId = orderId;
-        adapter.withOrderId(orderId);
-        return this;
-    }
-
-    @Override
-    public AutoCrudAdapter<OrderLine> simpleAdapter() {
-        return adapter;
-    }
-}
-```
-
----
-
-# 9. Filtering the child CRUD by parent id
-
-The important part is that the child adapter receives the parent context.
-
-```java
-@Service
-public class OrderLineAdapter extends AutoCrudAdapter<OrderLine> {
-
-    final OrderLineRepository repository;
-
-    String orderId;
-
-    public OrderLineAdapter(OrderLineRepository repository) {
-        this.repository = repository;
-    }
-
-    public OrderLineAdapter withOrderId(String orderId) {
         this.orderId = orderId;
         return this;
     }
@@ -406,12 +358,12 @@ public class OrderLineAdapter extends AutoCrudAdapter<OrderLine> {
 
             @Override
             public Optional<OrderLine> findById(String id) {
-                return repository.findById(id);
+                return orderLineRepository.findById(id);
             }
 
             @Override
             public String save(OrderLine entity) {
-                return repository.save(new OrderLine(
+                return orderLineRepository.save(new OrderLine(
                         entity.id(),
                         orderId,
                         entity.productName(),
@@ -422,17 +374,23 @@ public class OrderLineAdapter extends AutoCrudAdapter<OrderLine> {
 
             @Override
             public List<OrderLine> findAll() {
-                return repository.findByOrderId(orderId);
+                return orderLineRepository.findByOrderId(orderId);
             }
 
             @Override
             public void deleteAllById(List<String> selectedIds) {
-                repository.deleteAllById(selectedIds);
+                orderLineRepository.deleteAllById(selectedIds);
             }
         };
     }
 }
 ```
+
+---
+
+# 9. Filtering the child CRUD by parent id
+
+The important part is that the child CRUD receives the parent context via `withOrderId()`. The `repository()` method captures `orderId` from the outer class — new lines are automatically assigned to the current order, and the listing only returns lines for that order.
 
 ---
 
@@ -546,9 +504,9 @@ Create explicit pages only when you need custom composition or custom flows.
 
 The Mateu way for this example is:
 
-- `Orders extends AutoCrud<Order>`
+- `Orders extends AutoCrud<Order>` — overrides `repository()` directly
 - `Order.customerId` uses `@Lookup`
-- `OrderLines extends AutoCrud<OrderLine>`
+- `OrderLines extends AutoCrud<OrderLine>` — `repository()` captures `orderId` from the outer class
 - parent detail embeds child CRUD with `Callable<?>`
 - child CRUD is filtered by parent context
 
