@@ -1,4 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.processes;
 
-public record ProcessRow() {
+import io.mateu.uidl.interfaces.Identifiable;
+
+public record ProcessRow(String id, String name) implements Identifiable {
 }

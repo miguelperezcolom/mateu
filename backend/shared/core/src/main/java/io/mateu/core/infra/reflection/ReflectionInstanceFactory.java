@@ -134,10 +134,19 @@ public class ReflectionInstanceFactory implements InstanceFactory {
       String key = entry.getKey();
       int dashIdx = key.indexOf('-');
       if (dashIdx < 0) {
-        result.putIfAbsent(key, entry.getValue());
+        // Full values override any dash-derived Map already created for this key
+        Object existing = result.get(key);
+        if (existing == null || existing instanceof Map) {
+          result.put(key, entry.getValue());
+        }
       } else {
         String prefix = key.substring(0, dashIdx);
         String rest = key.substring(dashIdx + 1);
+        Object existing = result.get(prefix);
+        // Skip dash-derived sub-entries when a full value (e.g. a List) already exists
+        if (existing != null && !(existing instanceof Map)) {
+          continue;
+        }
         Map<String, Object> nested =
             (Map<String, Object>) result.computeIfAbsent(prefix, k -> new LinkedHashMap<>());
         nested.put(rest, entry.getValue());

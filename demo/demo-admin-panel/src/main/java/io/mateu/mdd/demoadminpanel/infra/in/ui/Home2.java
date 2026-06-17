@@ -34,6 +34,9 @@ public class Home2 implements WidgetSupplier {
     Products frfr;
 
     @Menu
+    WorkflowMenu workflow;
+
+    @Menu
     Changes changes;
 
     @Menu

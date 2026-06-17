@@ -372,6 +372,9 @@ export class MateuApp extends ComponentElement {
             this.selectedServerSideType = serverSideType
             this.selectedUriPrefix = uriPrefix;
             this.instant = nanoid()
+            if (this.state && this.state._route != undefined) {
+                this.state._route = undefined
+            }
             let baseUrl = this.baseUrl??''
             if (baseUrl.indexOf('://') < 0) {
                 if (!baseUrl.startsWith('/')) {

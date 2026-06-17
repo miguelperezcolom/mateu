@@ -14,6 +14,7 @@ import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -119,7 +120,10 @@ public abstract class ViewOrchestrator
             httpRequest)
         .withId(httpRequest.runActionRq().initiatorComponentId() + "_" + viewName)
         .withTriggers(
-            triggers(viewName, httpRequest).stream().map(TriggerMapper::mapTrigger).toList())
+            Stream.concat(
+                    triggers(viewName, httpRequest).stream().map(TriggerMapper::mapTrigger),
+                    TriggerMapper.mapTriggers(modelView, httpRequest).stream())
+                .toList())
         .withConfirmOnNavigationIfDirty(viewName.equals("edit") || viewName.equals("new"));
   }
 

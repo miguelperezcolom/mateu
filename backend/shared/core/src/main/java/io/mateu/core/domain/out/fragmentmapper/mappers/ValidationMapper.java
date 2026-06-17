@@ -29,7 +29,9 @@ public class ValidationMapper {
       return validationSupplier.validations();
     }
     List<io.mateu.uidl.data.Validation> fieldLevelValidations = new ArrayList<>();
-    if (isPage(serverSideObject, route) || isForm(serverSideObject)) {
+    if (isPage(serverSideObject, route)
+        || isForm(serverSideObject)
+        || serverSideObject.getClass().isRecord()) {
       getAllFields(serverSideObject.getClass()).stream()
           .flatMap(field -> getValidations(field).stream())
           .filter(Objects::nonNull)

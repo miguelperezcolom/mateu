@@ -8,9 +8,17 @@ import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.fluent.Action;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import reactor.core.publisher.Flux;
@@ -42,26 +50,36 @@ final class FieldActionCollector {
 
     getAllFields(serverSideObject.getClass()).stream()
         .filter(field -> List.class.isAssignableFrom(field.getType()))
-        .map(Field::getName)
-        .map(
-            fieldName ->
-                Stream.of(
-                        "_create",
-                        "_create-and-stay",
-                        "_add",
-                        "_select",
-                        "_selected",
-                        "_prev",
-                        "_next",
-                        "_save",
-                        "_remove",
-                        "_move-up",
-                        "_move-down",
-                        "_cancel")
-                    .map(action -> fieldName + action)
-                    .toList())
-        .flatMap(List::stream)
-        .map(actionId -> Action.builder().id(actionId).build())
+        .flatMap(
+            field -> {
+              String fieldName = field.getName();
+              String fieldsToValidate = getConstrainedFieldNames(field);
+              return Stream.of(
+                      "_create",
+                      "_create-and-stay",
+                      "_add",
+                      "_select",
+                      "_selected",
+                      "_prev",
+                      "_next",
+                      "_save",
+                      "_remove",
+                      "_move-up",
+                      "_move-down",
+                      "_cancel")
+                  .map(
+                      suffix -> {
+                        boolean needsValidation =
+                            suffix.equals("_create")
+                                || suffix.equals("_create-and-stay")
+                                || suffix.equals("_save");
+                        return Action.builder()
+                            .id(fieldName + suffix)
+                            .validationRequired(needsValidation)
+                            .fieldsToValidate(needsValidation ? fieldsToValidate : null)
+                            .build();
+                      });
+            })
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
@@ -106,6 +124,32 @@ final class FieldActionCollector {
         .forEach(fieldActions::add);
 
     return fieldActions;
+  }
+
+  private static String getConstrainedFieldNames(Field listField) {
+    if (!(listField.getGenericType() instanceof ParameterizedType pt)) {
+      return null;
+    }
+    var typeArg = pt.getActualTypeArguments()[0];
+    if (!(typeArg instanceof Class<?> elementClass)) {
+      return null;
+    }
+    String names =
+        Arrays.stream(elementClass.getDeclaredFields())
+            .filter(FieldActionCollector::hasValidationConstraint)
+            .map(Field::getName)
+            .reduce((a, b) -> a + "," + b)
+            .orElse(null);
+    return names;
+  }
+
+  private static boolean hasValidationConstraint(Field field) {
+    return field.isAnnotationPresent(NotEmpty.class)
+        || field.isAnnotationPresent(NotNull.class)
+        || field.isAnnotationPresent(Min.class)
+        || field.isAnnotationPresent(Max.class)
+        || field.isAnnotationPresent(Size.class)
+        || field.isAnnotationPresent(Pattern.class);
   }
 
   private static boolean isFluxReturning(Method method) {

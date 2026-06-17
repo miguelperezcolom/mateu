@@ -2,8 +2,6 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.wf;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.uidl.interfaces.CrudRepository;
-import io.mateu.workflow.application.out.WorkflowDefinitionRepository;
-import io.mateu.workflow.domain.aggregates.WorkflowDefinition;
 import lombok.AllArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.stereotype.Service;

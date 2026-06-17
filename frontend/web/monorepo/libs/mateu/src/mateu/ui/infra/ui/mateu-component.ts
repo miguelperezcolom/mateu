@@ -78,6 +78,8 @@ import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadat
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
 
+let _pendingInitiatorComponent: MateuComponent | null = null
+
 @customElement('mateu-component')
 export class MateuComponent extends ComponentElement {
 
@@ -437,12 +439,15 @@ export class MateuComponent extends ComponentElement {
                 }
 
                 if (action && action.validationRequired) {
-                    this.checkValidations(action.fieldsToValidate)
-                    if (!this.data._valid) {
-                        this.notifyValidationErrors()
+                    const initiatorComponent = _pendingInitiatorComponent ?? this
+                    _pendingInitiatorComponent = null
+                    initiatorComponent.checkValidations(action.fieldsToValidate)
+                    if (!initiatorComponent.data._valid) {
+                        initiatorComponent.notifyValidationErrors()
                         return
                     }
                 }
+                _pendingInitiatorComponent = null
                 const finalDetail = {
                     ...detail,
                     initiatorComponentId: this.id
@@ -457,6 +462,9 @@ export class MateuComponent extends ComponentElement {
                 const parameters = {...detail.parameters}
                 if (!parameters['initiatorState']) {
                     parameters['initiatorState'] = this.state
+                }
+                if (!_pendingInitiatorComponent) {
+                    _pendingInitiatorComponent = this
                 }
                 console.log('bubbling up', e.type, e, this)
                 this.dispatchEvent(new CustomEvent(e.type, {
@@ -624,7 +632,7 @@ export class MateuComponent extends ComponentElement {
                 route: this.route,
                 consumedRoute: this.consumedRoute,
                 componentState: {...this.state},
-                parameters: detail.parameters,
+                parameters: detail.parameters ?? {},
                 actionId: detail.actionId,
                 serverSideType: serverSideComponent.serverSideType,
                 serverSideComponentRoute: serverSideComponent.route,

@@ -20,11 +20,14 @@ export const chooseRouteForDetail = (state: ComponentState, container: MateuApp,
 
 export const chooseRoute = (state: ComponentState, container: MateuApp, metadata: App) => {
     if (state && state._route != undefined) {
+        console.log('cogemos ruta de state._route', state._route)
         return chooseConsumedRoute(container, metadata) + state._route
     }
     if (container.selectedRoute) {
+        console.log('cogemos ruta de container.selectedRoute', container.selectedRoute)
         return container.selectedRoute
     }
+    console.log('cogemos ruta de metadata.homeRoute', metadata.homeRoute)
     return metadata.homeRoute
 }
 export const chooseConsumedRoute = (container: MateuApp, metadata: App) => {
