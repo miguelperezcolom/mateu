@@ -1,11 +1,16 @@
 package io.mateu.core.domain.act.crudfieldhandlers;
 
+import static io.mateu.core.application.runaction.RunActionUseCase.wrap;
+import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getFieldId;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.WizardOrchestrator.addRowNumber;
+import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.State;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.lang.reflect.Field;
@@ -53,6 +58,38 @@ public class CreateActionHandler {
     var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
     newState.put(fieldId, list);
     addRowNumber(getGenericClass(field, List.class, "E"), newState);
+
+    if (actionId.endsWith("_create-and-stay")) {
+      var newItem = MateuInstanceFactory.newInstance(rowClass, Map.of(), httpRequest);
+      String fid = getFieldId(field, "", false);
+      return List.of(
+          new State(newState),
+          wrap(
+                  CrudFieldHandlerHelper.buildDetailForm(
+                      "New "
+                          + toUpperCaseFirst(
+                              getGenericClass(field, field.getType(), "E").getSimpleName()),
+                      field,
+                      httpRequest,
+                      true,
+                      null,
+                      List.<UserTrigger>of(
+                          Button.builder().label("Cancel").actionId(fid + "_cancel").build(),
+                          Button.builder().label("Save").actionId(fid + "_create").build(),
+                          Button.builder()
+                              .label("Save and Add Another")
+                              .actionId(fid + "_create-and-stay")
+                              .build()),
+                      0),
+                  newItem,
+                  (String) httpRequest.getAttribute("baseUrl"),
+                  httpRequest.runActionRq().route(),
+                  httpRequest.runActionRq().consumedRoute(),
+                  httpRequest.runActionRq().initiatorComponentId(),
+                  httpRequest)
+              .withContainerId(fieldId + "-container"));
+    }
+
     return new State(newState);
   }
 }
