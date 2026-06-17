@@ -26,7 +26,8 @@ public record Button(
     String style,
     String cssClasses,
     Object parameters,
-    String shortcut)
+    String shortcut,
+    boolean separatorBefore)
     implements Component, UserTrigger {
 
   @Override
@@ -37,13 +38,13 @@ public record Button(
   public Button(String label, String actionId) {
     this(
         actionId, label, null, null, null, null, null, null, null, false, false, actionId, null,
-        null, null, null, null, null, null);
+        null, null, null, null, null, null, false);
   }
 
   public Button(String label, String actionId, String shortcut) {
     this(
         actionId, label, null, null, null, null, null, null, null, false, false, actionId, null,
-        null, null, null, null, null, shortcut);
+        null, null, null, null, null, shortcut, false);
   }
 
   public Button(String label, Runnable runnable) {
@@ -66,7 +67,8 @@ public record Button(
         null,
         null,
         null,
-        null);
+        null,
+        false);
   }
 
   public Button(String label, Callable<?> callable) {
@@ -89,7 +91,8 @@ public record Button(
         null,
         null,
         null,
-        null);
+        null,
+        false);
   }
 
   private static String camelcasize(String s) {
@@ -144,7 +147,8 @@ public record Button(
         null,
         null,
         null,
-        null);
+        null,
+        false);
   }
 
   public String getActionId() {

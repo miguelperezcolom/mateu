@@ -11,6 +11,7 @@ import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FormDto;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonColor;
+import io.mateu.uidl.data.ButtonGroup;
 import io.mateu.uidl.data.ButtonSize;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.UserTrigger;
@@ -99,6 +100,15 @@ public class FormMapper {
 
   static ButtonDto mapToButtonDto(UserTrigger userTrigger) {
     if (userTrigger == null) return null;
+    if (userTrigger instanceof ButtonGroup group) {
+      return ButtonDto.builder()
+          .label(group.label())
+          .iconOnLeft(group.iconOnLeft())
+          .iconOnRight(group.iconOnRight())
+          .separatorBefore(group.separatorBefore())
+          .children(group.buttons().stream().map(FormMapper::mapToButtonDto).toList())
+          .build();
+    }
     if (userTrigger instanceof Button button) {
       return ButtonDto.builder()
           .actionId(button.getActionId())
@@ -110,9 +120,14 @@ public class FormMapper {
           .color(resolveColor(button))
           .buttonStyle(resolveStyle(button))
           .size(resolveSize(button))
+          .separatorBefore(button.separatorBefore())
           .build();
     }
     return null;
+  }
+
+  static ButtonDto mapToButtonDto(Button button) {
+    return mapToButtonDto((UserTrigger) button);
   }
 
   private static ButtonColorDto resolveColor(Button button) {

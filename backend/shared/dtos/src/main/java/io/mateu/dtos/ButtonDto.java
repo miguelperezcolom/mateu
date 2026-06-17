@@ -1,5 +1,6 @@
 package io.mateu.dtos;
 
+import java.util.List;
 import lombok.Builder;
 
 /** A button */
@@ -17,5 +18,7 @@ public record ButtonDto(
     boolean disabled,
     String actionId,
     Object parameters,
-    String shortcut)
+    String shortcut,
+    boolean separatorBefore,
+    List<ButtonDto> children)
     implements ComponentMetadataDto {}

@@ -67,7 +67,19 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                         @ojAction="${doSearch}"
                     ></oj-c-button>
                 ` : nothing}
-                ${metadata?.toolbar?.map(btn => html`
+                ${metadata?.toolbar?.map(btn => btn.children?.length > 0 ? html`
+                    ${btn.separatorBefore ? html`<span style="border-left: 1px solid var(--oj-core-text-color-secondary, #888); height: 1.5rem; display: inline-block; align-self: center;"></span>` : nothing}
+                    <oj-c-menu-button
+                        data-oj-binding-provider="preact"
+                        label="${btn.label}"
+                        .items="${btn.children.map((child: any) => ({ key: child.actionId, label: child.label, disabled: child.disabled ?? false }))}"
+                        @ojMenuAction="${(e: CustomEvent) => container.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: { actionId: e.detail.key },
+                            bubbles: true, composed: true
+                        }))}"
+                    ></oj-c-menu-button>
+                ` : html`
+                    ${btn.separatorBefore ? html`<span style="border-left: 1px solid var(--oj-core-text-color-secondary, #888); height: 1.5rem; display: inline-block; align-self: center;"></span>` : nothing}
                     <oj-c-button
                         data-oj-binding-provider="preact"
                         label="${btn.label}"

@@ -2,6 +2,7 @@ import { html, LitElement, nothing, TemplateResult } from "lit"
 import { unsafeHTML } from "lit/directives/unsafe-html.js"
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent"
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button"
 import { renderComponent } from "@infra/ui/renderers/renderComponent"
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType"
 import { possiblyHtml } from "@infra/ui/mateu-form.ts"
@@ -17,14 +18,6 @@ export const renderPage = (
     appData: any
 ): TemplateResult => {
     const metadata = component.metadata as PageComponent
-
-    const dispatchAction = (actionId: string) => {
-        container.dispatchEvent(new CustomEvent('action-requested', {
-            detail: { actionId },
-            bubbles: true,
-            composed: true
-        }))
-    }
 
     const hasHeader = metadata.title || metadata.subtitle || metadata.toolbar?.length || metadata.header?.length || metadata.avatar
 
@@ -53,22 +46,18 @@ export const renderPage = (
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                         ${metadata.header?.map(comp => renderComponent(container, comp as ClientSideComponent, baseUrl, state, data, appState, appData))}
-                        ${metadata.toolbar?.map(button => html`
-                            <oj-c-button
-                                data-oj-binding-provider="preact"
-                                label="${button.label}"
-                                chroming="outlined"
-                                ?disabled="${button.disabled}"
-                                @ojAction="${() => dispatchAction(button.actionId)}"
-                            ></oj-c-button>
-                        `)}
+                        ${metadata.toolbar?.map((button: Button) => renderComponent(container, {
+                            metadata: button,
+                            type: ComponentType.ClientSide,
+                            slot: ''
+                        } as unknown as ClientSideComponent, undefined, {}, {}, appState, appData))}
                     </div>
                 </div>
             ` : nothing}
             <div style="width: 100%;">
                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 0.5rem 0;">
-                    ${metadata.buttons?.map(button => renderComponent(container, {
+                    ${metadata.buttons?.map((button: Button) => renderComponent(container, {
                         metadata: button,
                         type: ComponentType.ClientSide,
                         slot: ''

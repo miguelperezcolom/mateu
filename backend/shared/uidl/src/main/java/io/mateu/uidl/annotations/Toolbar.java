@@ -16,4 +16,8 @@ public @interface Toolbar {
   ButtonColor buttonColor() default ButtonColor.none;
 
   ButtonSize buttonSize() default ButtonSize.none;
+
+  String group() default "";
+
+  boolean separatorBefore() default false;
 }

@@ -34,6 +34,7 @@ public class ButtonMapper {
             .iconOnRight(button.iconOnRight())
             .disabled(button.disabled())
             .parameters(mapParameters(button.parameters()))
+            .separatorBefore(button.separatorBefore())
             .build(),
         button.id() != null ? button.id() : UUID.randomUUID().toString(),
         List.of(),

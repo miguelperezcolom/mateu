@@ -3,15 +3,45 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { html, nothing, TemplateResult } from "lit";
 import { handleButtonClick } from "@/RedwoodOjComponentRenderer.ts";
 
+const separatorStyle = "border-left: 1px solid var(--oj-core-text-color-secondary, #888); height: 1.5rem; display: inline-block; align-self: center;"
+
 export const renderButton = (component: ClientSideComponent, _baseUrl: string | undefined, _state: any, _data: any): TemplateResult => {
     const metadata = component.metadata as Button
-    return html`<oj-c-button
-                    data-oj-binding-provider="preact"
-                    data-action-id="${metadata.actionId}"
-                    label="${metadata.label}"
-                    @ojAction=${handleButtonClick}
-                    slot="${component.slot??nothing}"
-            >
-               <!-- <span slot='startIcon' class='oj-ux-ico-information'></span> -->
-            </oj-c-button>`
+    const slot = component.slot ?? nothing
+
+    if (metadata.children && metadata.children.length > 0) {
+        const items = metadata.children.map(child => ({
+            key: child.actionId,
+            label: child.label,
+            disabled: child.disabled ?? false
+        }))
+        return html`
+            ${metadata.separatorBefore ? html`<span slot="${slot}" style="${separatorStyle}"></span>` : nothing}
+            <oj-c-menu-button
+                data-oj-binding-provider="preact"
+                label="${metadata.label}"
+                .items="${items}"
+                slot="${slot}"
+                @ojMenuAction="${(e: CustomEvent) => {
+                    const actionId = e.detail.key
+                    e.target?.dispatchEvent(new CustomEvent('action-requested', {
+                        detail: { actionId },
+                        bubbles: true,
+                        composed: true
+                    }))
+                }}"
+            ></oj-c-menu-button>
+        `
+    }
+
+    return html`
+        ${metadata.separatorBefore ? html`<span slot="${slot}" style="${separatorStyle}"></span>` : nothing}
+        <oj-c-button
+            data-oj-binding-provider="preact"
+            data-action-id="${metadata.actionId}"
+            label="${metadata.label}"
+            @ojAction=${handleButtonClick}
+            slot="${slot}"
+        ></oj-c-button>
+    `
 }

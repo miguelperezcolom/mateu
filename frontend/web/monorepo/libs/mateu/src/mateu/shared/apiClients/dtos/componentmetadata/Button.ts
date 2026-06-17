@@ -18,5 +18,7 @@ export default interface Button extends ComponentMetadata {
     buttonStyle: ButtonStyle
     size: ButtonSize
     parameters: Record<string, unknown>
+    separatorBefore: boolean
+    children: Button[]
 
 }
