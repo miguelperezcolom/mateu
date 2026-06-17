@@ -6,6 +6,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import io.mateu.uidl.annotations.KeycloakSecured;
+import io.mateu.uidl.annotations.Link;
+import io.mateu.uidl.annotations.Meta;
+import io.mateu.uidl.annotations.Script;
 import io.mateu.uidl.annotations.UI;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -54,6 +57,9 @@ public class MateuUIIndexerProcessorTest {
     when(element.getAnnotation(any())).thenReturn(null);
     when(element.getAnnotation(UI.class)).thenReturn(uiAnnotation);
     when(element.getAnnotation(KeycloakSecured.class)).thenReturn(keycloak);
+    when(element.getAnnotationsByType(Script.class)).thenReturn(new Script[0]);
+    when(element.getAnnotationsByType(Link.class)).thenReturn(new Link[0]);
+    when(element.getAnnotationsByType(Meta.class)).thenReturn(new Meta[0]);
 
     var annotation = mock(TypeElement.class);
     Set<TypeElement> annotations = Set.of(annotation);
@@ -244,6 +250,9 @@ public class MateuUIIndexerProcessorTest {
     when(element.getAnnotation(any())).thenReturn(null);
     when(element.getAnnotation(UI.class)).thenReturn(ui);
     when(element.getAnnotation(KeycloakSecured.class)).thenReturn(keycloak);
+    when(element.getAnnotationsByType(Script.class)).thenReturn(new Script[0]);
+    when(element.getAnnotationsByType(Link.class)).thenReturn(new Link[0]);
+    when(element.getAnnotationsByType(Meta.class)).thenReturn(new Meta[0]);
     return element;
   }
 
