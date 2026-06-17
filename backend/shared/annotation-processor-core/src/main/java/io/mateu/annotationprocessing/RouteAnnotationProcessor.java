@@ -19,6 +19,7 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 
 @SupportedAnnotationTypes({"io.mateu.uidl.annotations.Route", "io.mateu.uidl.annotations.Routes"})
@@ -72,7 +73,15 @@ public class RouteAnnotationProcessor extends AbstractProcessor {
               routes,
               getFiler());
         } catch (IOException ex) {
-          ex.printStackTrace();
+          processingEnv
+              .getMessager()
+              .printMessage(
+                  Kind.ERROR,
+                  "[Mateu] Failed to generate RouteResolver for "
+                      + simpleClassName
+                      + ": "
+                      + ex.getMessage(),
+                  e);
         }
       }
     }

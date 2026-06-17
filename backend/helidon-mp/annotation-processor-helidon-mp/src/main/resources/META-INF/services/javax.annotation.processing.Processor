@@ -1,2 +1,3 @@
 io.mateu.annotationprocessing.MateuUIAnnotationProcessor
 io.mateu.annotationprocessing.RouteAnnotationProcessor
+io.mateu.annotationprocessing.MateuLintAnnotationProcessor

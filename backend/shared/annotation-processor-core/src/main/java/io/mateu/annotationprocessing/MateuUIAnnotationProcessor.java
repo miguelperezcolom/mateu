@@ -12,6 +12,7 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic.Kind;
 
 @SupportedAnnotationTypes({"io.mateu.uidl.annotations.UI"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
@@ -98,7 +99,15 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
               routes,
               getFiler());
         } catch (IOException ex) {
-          ex.printStackTrace();
+          processingEnv
+              .getMessager()
+              .printMessage(
+                  Kind.ERROR,
+                  "[Mateu] Failed to generate controller for "
+                      + simpleClassName
+                      + ": "
+                      + ex.getMessage(),
+                  e);
         }
       }
     }
