@@ -19,6 +19,6 @@ public class WorkflowElkPage {
                 { "id": "step4", "type": "END", "name": "End", "preconditionStepId": "step3" }
               ]
             }
-            """, "width: 100%; height: 600px;", "");
+            """, false, "width: 100%; height: 600px;", "");
 
 }

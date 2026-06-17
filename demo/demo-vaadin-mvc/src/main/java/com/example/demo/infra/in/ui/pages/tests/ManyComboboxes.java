@@ -17,7 +17,7 @@ import java.util.List;
         @Breadcrumb(label = "Users", url = "/users"),
         @Breadcrumb(label = "Detail", url = "/users/123")
 })
-public class ManyComboboxes implements OptionsSupplier, BreadcrumbsSupplier, LookupOptionsSupplier, LabelSupplier {
+public class ManyComboboxes implements OptionsSupplier, BreadcrumbsSupplier, LookupOptionsSupplier, LookupLabelSupplier {
 
     //@OptionsLayout(columns = 3)
     @Stereotype(FieldStereotype.combobox)

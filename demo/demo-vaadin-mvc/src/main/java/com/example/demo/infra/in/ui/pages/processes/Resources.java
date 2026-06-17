@@ -2,6 +2,7 @@ package com.example.demo.infra.in.ui.pages.processes;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
+import io.mateu.uidl.interfaces.CrudRepository;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class Resources extends AutoCrud<Resource> {
     final AutoCrudAdapter<Resource> adapter;
 
     @Override
-    public AutoCrudAdapter<Resource> simpleAdapter() {
-        return adapter;
+    public CrudRepository<Resource> repository() {
+        return adapter.repository();
     }
 }
