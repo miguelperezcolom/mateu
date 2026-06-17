@@ -65,16 +65,21 @@ final class ViewToolbarBuilder {
     if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
       toolbar.add(new Button("Back to list", "cancel-view"));
     }
-    if (!readOnly(item, orchestrator)) {
+    if (!orchestrator.readOnly()) {
       toolbar.add(new Button("Add another", "new"));
+    }
+    if (!viewReadOnly(item, orchestrator)) {
       toolbar.add(new Button("Edit", "edit"));
     }
     return toolbar;
   }
 
-  private static boolean readOnly(Object item, CrudOrchestrator orchestrator) {
+  private static boolean viewReadOnly(Object item, CrudOrchestrator orchestrator) {
     if (orchestrator.readOnly()) return true;
     if (orchestrator.viewClass().isAnnotationPresent(io.mateu.uidl.annotations.ReadOnly.class))
+      return true;
+    if (item != null
+        && item.getClass().isAnnotationPresent(io.mateu.uidl.annotations.ReadOnly.class))
       return true;
     if (item instanceof ModelSupplier modelSupplier) {
       return modelSupplier

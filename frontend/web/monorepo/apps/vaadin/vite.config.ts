@@ -1,5 +1,11 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
+import type { IncomingMessage } from 'node:http'
+
+// Return Vite's own index.html for browser navigation requests so the SPA
+// router handles them, instead of letting the backend serve its static HTML.
+const bypassHtml = (req: IncomingMessage) =>
+    req.headers.accept?.includes('text/html') ? '/index.html' : undefined
 
 export default defineConfig({
     resolve: {
@@ -43,38 +49,38 @@ export default defineConfig({
             // Permitir que Vite lea archivos fuera de apps/vaadin (necesario en monorepos)
             allow: ['..', '../../node_modules']
         },
-        proxy: {
-            '/fluent/mateu': 'http://localhost:8592',
-            '/declarative/mateu': 'http://localhost:8592',
-            '/counter/mateu': 'http://localhost:8592',
-            '/anothercounter/mateu': 'http://localhost:8592',
-            '/mateu': 'http://localhost:8592',
-            '/images': 'http://localhost:8592',
-            '/assets': 'http://localhost:8592',
-            '/myassets': 'http://localhost:8592',
-            '/sse': 'http://localhost:8592',
-            '/upload': 'http://localhost:8592',
-            '/master-data': 'http://localhost:8592',
-            '/call-center': 'http://localhost:8592',
-            '/_product': 'http://localhost:8592',
-            '/_crm': 'http://localhost:8592',
-            '/_financial': 'http://localhost:8592',
-            '/control-plane': 'http://localhost:8592',
-            '/workflow': 'http://localhost:8592',
-            '/_users': 'http://localhost:8592',
-            '/_shell': 'http://localhost:8592',
-            '/_content': 'http://localhost:8592',
-            '/_booking': 'http://localhost:8592',
-            '/_cp-data': 'http://localhost:8592',
-            '/_control-plane': 'http://localhost:8592',
-            '/_workflow': 'http://localhost:8592',
-            '/_forms': 'http://localhost:8592',
-        '/home2/mateu': 'http://localhost:8592',
-            '/nested-crud/mateu': 'http://localhost:8592',
-            '/users/mateu': 'http://localhost:8592',
-            '/chat/mateu': 'http://localhost:8592',
-            '/ai': 'http://localhost:8592',
-        },
+        proxy: Object.fromEntries([
+            '/fluent/mateu',
+            '/declarative/mateu',
+            '/counter/mateu',
+            '/anothercounter/mateu',
+            '/mateu',
+            '/images',
+            '/assets',
+            '/myassets',
+            '/sse',
+            '/upload',
+            '/master-data',
+            '/call-center',
+            '/_product',
+            '/_crm',
+            '/_financial',
+            '/control-plane',
+            '/workflow',
+            '/_users',
+            '/_shell',
+            '/_content',
+            '/_booking',
+            '/_cp-data',
+            '/_control-plane',
+            '/_workflow',
+            '/_forms',
+            '/home2/mateu',
+            '/nested-crud/mateu',
+            '/users/mateu',
+            '/chat/mateu',
+            '/ai',
+        ].map(path => [path, { target: 'http://localhost:8592', bypass: bypassHtml }])),
     },
     optimizeDeps: {
         // Excluimos el componente problemático para evitar que analice sus propios node_modules internos

@@ -1,5 +1,5 @@
 import {customElement, property, state} from "lit/decorators.js";
-import {css, html, LitElement, svg} from "lit";
+import {css, html, LitElement, nothing, svg} from "lit";
 import ELK, {ElkNode, ElkExtendedEdge} from "elkjs/lib/elk.bundled.js";
 import "@vaadin/button";
 import "@vaadin/icon";
