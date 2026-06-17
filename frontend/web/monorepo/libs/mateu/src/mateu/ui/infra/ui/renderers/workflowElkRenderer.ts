@@ -3,6 +3,7 @@ import {html, nothing} from "lit";
 
 interface WorkflowElkMetadata {
     value?: string;
+    readOnly?: boolean;
 }
 
 export const renderWorkflowElk = (component: ClientSideComponent) => {
@@ -13,6 +14,7 @@ export const renderWorkflowElk = (component: ClientSideComponent) => {
                 class="${component.cssClasses ?? nothing}"
                 slot="${component.slot ?? nothing}"
                 value="${metadata.value ?? '{"name":"New Workflow","steps":[]}'}"
+                ?readOnly="${metadata.readOnly ?? false}"
         ></mateu-workflow-elk>
     `;
 };

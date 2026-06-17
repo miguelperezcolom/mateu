@@ -81,6 +81,9 @@ export class MateuWorkflowElk extends LitElement {
     /** JSON string of the WorkflowDefinition. */
     @property() value = '{"name":"New Workflow","steps":[]}';
 
+    /** When true, all editing interactions are disabled. */
+    @property({type: Boolean}) readOnly = false;
+
     @state() private wf: WorkflowDefinition = {name: "New Workflow", steps: []};
     @state() private positions: Record<string, NodePos> = {};
     @state() private layoutReady = false;
@@ -240,6 +243,7 @@ export class MateuWorkflowElk extends LitElement {
     // ── Drag & drop ───────────────────────────────────────────────────────────
 
     private onNodeMouseDown(e: MouseEvent, id: string) {
+        if (this.readOnly) return;
         e.preventDefault();
         this.draggingId = id;
         const pos = this.positions[id] ?? {x: 0, y: 0};
@@ -343,14 +347,16 @@ export class MateuWorkflowElk extends LitElement {
                     <vaadin-icon icon="vaadin:sitemap" slot="prefix"></vaadin-icon>
                     Re-layout
                 </vaadin-button>
-                <vaadin-button theme="tertiary small" @click="${() => this.showMeta = !this.showMeta}">
-                    <vaadin-icon icon="vaadin:cog" slot="prefix"></vaadin-icon>
-                    Settings
-                </vaadin-button>
-                <vaadin-button theme="primary small" @click="${() => this.addStep()}">
-                    <vaadin-icon icon="vaadin:plus" slot="prefix"></vaadin-icon>
-                    Add Step
-                </vaadin-button>
+                ${!this.readOnly ? html`
+                    <vaadin-button theme="tertiary small" @click="${() => this.showMeta = !this.showMeta}">
+                        <vaadin-icon icon="vaadin:cog" slot="prefix"></vaadin-icon>
+                        Settings
+                    </vaadin-button>
+                    <vaadin-button theme="primary small" @click="${() => this.addStep()}">
+                        <vaadin-icon icon="vaadin:plus" slot="prefix"></vaadin-icon>
+                        Add Step
+                    </vaadin-button>
+                ` : nothing}
                 <vaadin-button theme="tertiary small" @click="${() => this.exportJson()}">
                     <vaadin-icon icon="vaadin:download" slot="prefix"></vaadin-icon>
                     Export
@@ -451,6 +457,7 @@ export class MateuWorkflowElk extends LitElement {
         const step = this.wf.steps.find(s => s.id === this.selectedId);
         if (!step) return "";
         const others = this.wf.steps.filter(s => s.id !== step.id);
+        const ro = this.readOnly;
 
         const field = (label: string, body: unknown) => html`
             <div class="field">
@@ -463,26 +470,26 @@ export class MateuWorkflowElk extends LitElement {
             <div class="properties">
                 <div class="prop-header">
                     <span>Step Properties</span>
-                    <button class="del-btn" title="Delete step"
-                            @click="${() => this.deleteStep(step.id)}">🗑</button>
+                    ${!ro ? html`<button class="del-btn" title="Delete step"
+                            @click="${() => this.deleteStep(step.id)}">🗑</button>` : nothing}
                     <button class="close-btn"
                             @click="${() => this.selectedId = null}">✕</button>
                 </div>
                 <div class="prop-body">
                     ${field("ID", html`<input class="inp" readonly .value="${step.id}"/>`)}
-                    ${field("Name", html`<input class="inp" .value="${step.name}"
-                        @change="${(e: Event) => this.updateStep(step.id, {name: (e.target as HTMLInputElement).value})}"/>`)}
+                    ${field("Name", html`<input class="inp" ?readonly="${ro}" .value="${step.name}"
+                        @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {name: (e.target as HTMLInputElement).value})}"/>`)}
                     ${field("Type", html`
-                        <select class="inp"
-                                @change="${(e: Event) => this.updateStep(step.id, {type: (e.target as HTMLSelectElement).value as StepType})}">
+                        <select class="inp" ?disabled="${ro}"
+                                @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {type: (e.target as HTMLSelectElement).value as StepType})}">
                             ${STEP_TYPES.map(t => html`
                                 <option value="${t}" ?selected="${step.type === t}">${t}</option>`)}
                         </select>`)}
-                    ${field("Description", html`<textarea class="inp" rows="2"
-                        @change="${(e: Event) => this.updateStep(step.id, {description: (e.target as HTMLTextAreaElement).value})}">${step.description ?? ""}</textarea>`)}
+                    ${field("Description", html`<textarea class="inp" rows="2" ?readonly="${ro}"
+                        @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {description: (e.target as HTMLTextAreaElement).value})}">${step.description ?? ""}</textarea>`)}
                     ${field("Precondition step", html`
-                        <select class="inp"
-                                @change="${(e: Event) => this.updateStep(step.id, {preconditionStepId: (e.target as HTMLSelectElement).value || undefined})}">
+                        <select class="inp" ?disabled="${ro}"
+                                @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {preconditionStepId: (e.target as HTMLSelectElement).value || undefined})}">
                             <option value="">— none —</option>
                             ${others.map(s => html`
                                 <option value="${s.id}" ?selected="${step.preconditionStepId === s.id}">
@@ -490,30 +497,30 @@ export class MateuWorkflowElk extends LitElement {
                                 </option>`)}
                         </select>`)}
                     ${field("Precondition expression", html`
-                        <input class="inp" placeholder="JEXL expression"
+                        <input class="inp" placeholder="JEXL expression" ?readonly="${ro}"
                                .value="${step.preconditionExpression ?? ""}"
-                               @change="${(e: Event) => this.updateStep(step.id, {preconditionExpression: (e.target as HTMLInputElement).value || undefined})}"/>`)}
+                               @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {preconditionExpression: (e.target as HTMLInputElement).value || undefined})}"/>`)}
                     <div class="field row">
                         <label class="field-label">Parallel</label>
-                        <input type="checkbox" ?checked="${step.parallel}"
-                               @change="${(e: Event) => this.updateStep(step.id, {parallel: (e.target as HTMLInputElement).checked})}"/>
+                        <input type="checkbox" ?checked="${step.parallel}" ?disabled="${ro}"
+                               @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {parallel: (e.target as HTMLInputElement).checked})}"/>
                     </div>
                     ${field("Timeout (ms)", html`
-                        <input class="inp" type="number" min="0"
+                        <input class="inp" type="number" min="0" ?readonly="${ro}"
                                .value="${String(step.timeout ?? 0)}"
-                               @change="${(e: Event) => this.updateStep(step.id, {timeout: Number((e.target as HTMLInputElement).value)})}"/>`)}
+                               @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {timeout: Number((e.target as HTMLInputElement).value)})}"/>`)}
                     ${field("Retries", html`
-                        <input class="inp" type="number" min="0"
+                        <input class="inp" type="number" min="0" ?readonly="${ro}"
                                .value="${String(step.retries ?? 0)}"
-                               @change="${(e: Event) => this.updateStep(step.id, {retries: Number((e.target as HTMLInputElement).value)})}"/>`)}
+                               @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {retries: Number((e.target as HTMLInputElement).value)})}"/>`)}
                     <div class="field row">
                         <label class="field-label">Rollbackable</label>
-                        <input type="checkbox" ?checked="${step.rollbackable}"
-                               @change="${(e: Event) => this.updateStep(step.id, {rollbackable: (e.target as HTMLInputElement).checked})}"/>
+                        <input type="checkbox" ?checked="${step.rollbackable}" ?disabled="${ro}"
+                               @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {rollbackable: (e.target as HTMLInputElement).checked})}"/>
                     </div>
                     ${step.rollbackable ? field("Compensation step", html`
-                        <select class="inp"
-                                @change="${(e: Event) => this.updateStep(step.id, {compensationStepId: (e.target as HTMLSelectElement).value || undefined})}">
+                        <select class="inp" ?disabled="${ro}"
+                                @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {compensationStepId: (e.target as HTMLSelectElement).value || undefined})}">
                             <option value="">— none —</option>
                             ${others.map(s => html`
                                 <option value="${s.id}" ?selected="${step.compensationStepId === s.id}">
@@ -521,15 +528,15 @@ export class MateuWorkflowElk extends LitElement {
                                 </option>`)}
                         </select>`) : ""}
                     ${step.type === "ACTION" ? field("Topic", html`
-                        <input class="inp" placeholder="kafka.topic.name"
+                        <input class="inp" placeholder="kafka.topic.name" ?readonly="${ro}"
                                .value="${step.topic ?? ""}"
-                               @change="${(e: Event) => this.updateStep(step.id, {topic: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
+                               @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {topic: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
                     ${step.type === "USER_TASK" ? field("Form ID", html`
-                        <input class="inp" .value="${step.formId ?? ""}"
-                               @change="${(e: Event) => this.updateStep(step.id, {formId: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
+                        <input class="inp" ?readonly="${ro}" .value="${step.formId ?? ""}"
+                               @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {formId: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
                     ${step.type === "PROCESS" ? field("Child workflow ID", html`
-                        <input class="inp" .value="${step.childWorkflowDefinitionId ?? ""}"
-                               @change="${(e: Event) => this.updateStep(step.id, {childWorkflowDefinitionId: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
+                        <input class="inp" ?readonly="${ro}" .value="${step.childWorkflowDefinitionId ?? ""}"
+                               @change="${ro ? nothing : (e: Event) => this.updateStep(step.id, {childWorkflowDefinitionId: (e.target as HTMLInputElement).value || undefined})}"/>`) : ""}
                 </div>
             </div>
         `;

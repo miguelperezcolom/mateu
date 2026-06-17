@@ -9,7 +9,10 @@ public class WorkflowElkMapper {
 
   public static ClientSideComponentDto mapWorkflowElkToDto(WorkflowElk workflowElk) {
     return new ClientSideComponentDto(
-        WorkflowElkDto.builder().value(workflowElk.value()).build(),
+        WorkflowElkDto.builder()
+            .value(workflowElk.value())
+            .readOnly(workflowElk.readOnly())
+            .build(),
         "fieldId",
         List.of(),
         workflowElk.style(),

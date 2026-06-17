@@ -8,4 +8,5 @@ import lombok.Builder;
  * WorkflowDefinition string.
  */
 @Builder
-public record WorkflowElk(String value, String style, String cssClasses) implements Component {}
+public record WorkflowElk(String value, boolean readOnly, String style, String cssClasses)
+    implements Component {}
