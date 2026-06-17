@@ -8,6 +8,8 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.FormMapper.mapForm
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FutureComponentMapper.mapFutureComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PageMapper.mapPageToDto;
 
+import io.mateu.core.domain.out.componentmapper.ReflectionPageMapper;
+import io.mateu.core.domain.out.componentmapper.ViewTypeClassifier;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
@@ -71,6 +73,20 @@ public final class ComponentToFragmentDtoMapper {
     }
     if (component == null) {
       return null;
+    }
+    if (component instanceof ModelViewComponent modelViewComponent) {
+      var view = modelViewComponent.modelView();
+      if (view instanceof Component c) {
+        return mapComponentToDto(
+            null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      }
+      if (view != null && ViewTypeClassifier.isPage(view, route)) {
+        var pageView =
+            ReflectionPageMapper.mapToPageComponent(
+                view, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+        return mapPageToDto(
+            pageView, null, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      }
     }
     if (component instanceof FutureComponent futureComponent) {
       return mapFutureComponentToDto(

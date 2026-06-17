@@ -1,24 +1,20 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.wf;
 
+import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudOrchestrator;
+import io.mateu.mdd.demoadminpanel.infra.in.ui.Home2;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ViewToolbarButton;
-import io.mateu.uidl.data.DispatchEventData;
-import io.mateu.uidl.data.NavigationRequestedPayload;
-import io.mateu.uidl.data.UICommand;
-import io.mateu.uidl.data.UICommandType;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.workflow.application.usecases.workingcopy.CreateWorkingCopyUseCase;
-import io.mateu.workflow.application.usecases.workingcopy.PromoteWorkingCopyUseCase;
-import io.mateu.workflow.domain.aggregates.WorkflowDefinition;
-import io.mateu.workflow.infra.in.ui.WorkflowHome;
-import io.mateu.workflow.infra.in.ui.adapters.WorkflowDefinitionCrudAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+
+import static io.mateu.uidl.fluent.Component.createComponent;
 
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @Service
@@ -28,8 +24,6 @@ public class WorkflowDefinitions extends AutoCrudOrchestrator<WorkflowDefinition
 
     final WorkflowDefinitionEditor graphEditor;
     final WorkflowDefinitionCrudAdapter adapter;
-    final CreateWorkingCopyUseCase createWorkingCopyUseCase;
-    final PromoteWorkingCopyUseCase promoteWorkingCopyUseCase;
 
     @Override
     public AutoCrudAdapter<WorkflowDefinition> simpleAdapter() {
@@ -47,10 +41,12 @@ public class WorkflowDefinitions extends AutoCrudOrchestrator<WorkflowDefinition
     }
 
     @ViewToolbarButton
-    public WorkflowDefinitionEditor graphEditor(WorkflowDefinition definition) {
-        return graphEditor.load(definition.id());
+    public Object graphEditor(WorkflowDefinition definition, HttpRequest httpRequest) {
+        return Dialog.builder()
+                .content(createComponent(graphEditor.load(definition.id())))
+                .build();
     }
-
+/*
     @ViewToolbarButton
     public UICommand createWorkingCopy(WorkflowDefinition definition, HttpRequest httpRequest) {
         return UICommand.builder()
@@ -62,7 +58,7 @@ public class WorkflowDefinitions extends AutoCrudOrchestrator<WorkflowDefinition
                                 .consumedRoute("")
                                 .baseUrl(httpRequest.getBaseUrl())
                                 .uriPrefix("")
-                                .serverSideType(WorkflowHome.class.getName())
+                                .serverSideType(Home2.class.getName())
                                 .build()
                 ))
                 .build();
@@ -85,5 +81,5 @@ public class WorkflowDefinitions extends AutoCrudOrchestrator<WorkflowDefinition
                 ))
                 .build();
     }
-
+*/
 }
