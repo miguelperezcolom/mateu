@@ -27,15 +27,15 @@ This section shows how to do that **progressively**, without breaking the model-
 @UI("/products")
 public class Products extends AutoCrud<Product> {
 
-    final ProductAdapter adapter;
+    final ProductRepository repository;
 
-    public Products(ProductAdapter adapter) {
-        this.adapter = adapter;
+    public Products(ProductRepository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public AutoCrudAdapter<Product> simpleAdapter() {
-        return adapter;
+    public CrudRepository<Product> repository() {
+        return repository;
     }
 }
 ```
@@ -228,20 +228,31 @@ public Object discount() {
 
 # 8. Customize list behavior
 
-At this level, customization moves to the adapter.
+Override `fetchRows()` directly on your `AutoCrud` subclass to control how the listing is populated — push filtering to the database, sort server-side, or apply pagination:
 
 ```java
-public class ProductAdapter extends AutoCrudAdapter<Product> {
+@UI("/products")
+public class Products extends AutoCrud<Product> {
 
     final ProductRepository repository;
+    final ProductJpaRepository jpa;
 
-    public ProductAdapter(ProductRepository repository) {
+    public Products(ProductRepository repository, ProductJpaRepository jpa) {
         this.repository = repository;
+        this.jpa = jpa;
     }
 
     @Override
     public CrudRepository<Product> repository() {
         return repository;
+    }
+
+    @Override
+    public ListingData<Product> fetchRows(
+            String searchText, Product filters,
+            Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(jpa.findByNameContainingIgnoreCase(
+            searchText != null ? searchText : ""));
     }
 }
 ```

@@ -86,26 +86,9 @@ Because Mateu ViewModels are Spring beans (when annotated with `@Service`), you 
 @UI("/users")
 public class UsersPage extends AutoCrud<User> {
 
-    final UserAdapter userAdapter;
-
-    public UsersPage(UserAdapter userAdapter) {
-        this.userAdapter = userAdapter;
-    }
-
-    @Override
-    public AutoCrudAdapter<User> simpleAdapter() {
-        return userAdapter;
-    }
-}
-```
-
-```java
-@Service
-public class UserAdapter extends AutoCrudAdapter<User> {
-
     final UserRepository userRepository;
 
-    public UserAdapter(UserRepository userRepository) {
+    public UsersPage(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
@@ -123,8 +106,7 @@ public class UserRepository implements CrudRepository<User> {
 }
 ```
 
-The UI layer only knows about `UserAdapter`.  
-`UserAdapter` knows about `UserRepository`.  
+The UI layer only knows about `UserRepository`.  
 `UserRepository` knows about the database.
 
 ---

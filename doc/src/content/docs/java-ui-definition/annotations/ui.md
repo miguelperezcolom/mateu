@@ -34,8 +34,8 @@ Example:
 @UI("/orders")
 public class Orders extends AutoCrud<Order> {
     @Override
-    public AutoCrudAdapter<Order> simpleAdapter() {
-        return new OrderAdapter();
+    public CrudRepository<Order> repository() {
+        return new OrderRepository();
     }
 }
 ```

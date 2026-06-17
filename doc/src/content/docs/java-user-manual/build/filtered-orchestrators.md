@@ -24,17 +24,17 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
 ### What to implement
 
-Override `filtersClass()` to tell Mateu which class to use for the filter bar, then provide an `AutoCrudAdapter<T>` whose `search()` accepts the `Filters` type:
+Override `filtersClass()` to tell Mateu which class to use for the filter bar, provide a `repository()` for save/delete/view operations, and override `fetchRows()` to apply the custom filters:
 
 ```java
 @Service
 @UI("/products")
 public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
 
-    private final ProductAdapter adapter;
+    private final ProductRepository repository;
 
-    public ProductCrud(ProductAdapter adapter) {
-        this.adapter = adapter;
+    public ProductCrud(ProductRepository repository) {
+        this.repository = repository;
     }
 
     @Override
@@ -43,32 +43,14 @@ public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
     }
 
     @Override
-    public AutoCrudAdapter<Product> simpleAdapter() {
-        return adapter;
-    }
-}
-```
-
-```java
-@Service
-public class ProductAdapter extends AutoCrudAdapter<Product> {
-
-    private final ProductRepository repository;
-
-    public ProductAdapter(ProductRepository repository) {
-        this.repository = repository;
-    }
-
-    @Override
     public CrudRepository<Product> repository() {
         return repository;
     }
 
     @Override
-    public ListingData<Product> search(
-            String searchText, Product ignored, Pageable pageable, HttpRequest httpRequest) {
-        // read filters from httpRequest.getComponentState(ProductFilters.class)
-        var filters = httpRequest.getComponentState(ProductFilters.class);
+    public ListingData<Product> fetchRows(
+            String searchText, ProductFilters filters,
+            Pageable pageable, HttpRequest httpRequest) {
         return repository.search(searchText, filters.category(), filters.active(), pageable);
     }
 }
@@ -103,11 +85,15 @@ Add `@ReadOnly` (and optionally `@NotNavigable`) to make the listing read-only:
 @ReadOnly
 public class AuditLog extends FilteredAutoCrud<AuditFilters, AuditEntry> {
 
+    private final AuditRepository repository;
+
+    public AuditLog(AuditRepository repository) { this.repository = repository; }
+
     @Override
     public Class filtersClass() { return AuditFilters.class; }
 
     @Override
-    public AutoCrudAdapter<AuditEntry> simpleAdapter() { return adapter; }
+    public CrudRepository<AuditEntry> repository() { return repository; }
 }
 ```
 

@@ -35,7 +35,7 @@ public interface CrudRepository<T extends Identifiable> {
 
 ## Full example
 
-The snippet below mirrors the pattern used in the Items Catalog e2e test app. It shows the entity, repository, adapter, and orchestrator in one place.
+The snippet below mirrors the pattern used in the Items Catalog e2e test app. It shows the entity, repository, and orchestrator in one place.
 
 ```java
 // 1. Entity — must implement Identifiable
@@ -83,22 +83,13 @@ class ItemRepository implements CrudRepository<Item> {
     }
 }
 
-// 3. Adapter — bridges the repository to AutoCrud
-class ItemAdapter extends AutoCrudAdapter<Item> {
-
-    @Override
-    public CrudRepository<Item> repository() {
-        return new ItemRepository();
-    }
-}
-
-// 4. Orchestrator — the UI endpoint
+// 3. Orchestrator — the UI endpoint
 @UI("/items")
 public class ItemsCatalog extends AutoCrud<Item> {
 
     @Override
-    public AutoCrudAdapter<Item> simpleAdapter() {
-        return new ItemAdapter();
+    public CrudRepository<Item> repository() {
+        return new ItemRepository();
     }
 }
 ```
@@ -155,16 +146,19 @@ The adapter decouples Mateu's API from Spring Data so the rest of your code is n
 
 ## Filtering in findAll vs custom search
 
-`CrudRepository.findAll()` returns all rows, and the auto adapters apply search text filtering in memory. This is fine for small datasets. For large tables, override `search()` in the adapter to push filtering to the database:
+`CrudRepository.findAll()` returns all rows, and `AutoCrud` applies search text filtering in memory. This is fine for small datasets. For large tables, override `fetchRows()` directly in your `AutoCrud` subclass to push filtering to the database:
 
 ```java
 @Service
-public class ProductAdapter extends AutoCrudAdapter<Product> {
+@UI("/products")
+public class Products extends AutoCrud<Product> {
 
     private final ProductJpaRepository jpa;
+    private final ProductRepository productRepository;
 
-    public ProductAdapter(ProductJpaRepository jpa) {
+    public Products(ProductJpaRepository jpa, ProductRepository productRepository) {
         this.jpa = jpa;
+        this.productRepository = productRepository;
     }
 
     @Override
@@ -173,7 +167,7 @@ public class ProductAdapter extends AutoCrudAdapter<Product> {
     }
 
     @Override
-    public ListingData<Product> search(
+    public ListingData<Product> fetchRows(
             String searchText, Product filters,
             Pageable pageable, HttpRequest httpRequest) {
         return ListingData.of(jpa.findByNameContainingIgnoreCase(
@@ -220,6 +214,5 @@ Use `CompositionCrudRepository` when an embedded child grid inside a parent form
 
 ## Next
 
-- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — pre-built adapters that consume a `CrudRepository`
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — the lower-level interface for full control over each operation
-- [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrators that use this repository indirectly
+- [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrator that consumes this repository
