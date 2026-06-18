@@ -28,6 +28,12 @@ import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import {ButtonColor} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonColor.ts";
 import {ButtonStyle} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonStyle.ts";
+import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
+import {
+    ResolvedGridLayout,
+    compactColumns,
+    selectColumnLayout,
+} from "@infra/ui/layout/weightEngine.ts";
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -62,6 +68,46 @@ export class MateuTableCrud extends LitElement {
 
     @state()
     showImportDialog = false
+
+    @state()
+    private availableWidthPx = 1024
+
+    @state()
+    private selectedItem: any = null
+
+    private resizeObserver?: ResizeObserver
+
+    private get cols(): GridColumn[] {
+        const metadata = this.component?.metadata as Crud | undefined
+        return metadata?.columns?.map(c => c.metadata as GridColumn) ?? []
+    }
+
+    private get effectiveGridLayout(): ResolvedGridLayout {
+        const metadata = this.component?.metadata as Crud | undefined
+        const raw = metadata?.gridLayout ?? 'auto'
+        if (raw === 'auto') {
+            const type = metadata?.crudlType
+            if (type === 'card') return 'cards'
+            return selectColumnLayout(this.cols, this.availableWidthPx)
+        }
+        return raw as ResolvedGridLayout
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.resizeObserver = new ResizeObserver(entries => {
+            const w = entries[0]?.contentRect.width
+            if (w && Math.abs(w - this.availableWidthPx) > 10) {
+                this.availableWidthPx = w
+            }
+        })
+        this.resizeObserver.observe(this)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.resizeObserver?.disconnect()
+    }
 
     search = () => {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
@@ -264,40 +310,112 @@ export class MateuTableCrud extends LitElement {
         const hasHeader = !!metadata?.title || !!metadata?.subtitle || toolbar.length > 0
 
 
+        const gridLayout = this.effectiveGridLayout
+        const allCols = this.cols
+        const compact = compactColumns(allCols)
+        const rows: any[] = this.data[this.id]?.page?.content ?? []
+        const emptyMsg = this.state[this.component?.id!]?.emptyStateMessage
+
+        const renderTwoLineList = () => {
+            const idCol = compact.find(c => c.identifier) ?? compact[0]
+            const secCols = compact.filter(c => c !== idCol)
+            return html`
+                <vaadin-list-box style="width: 100%;">
+                    ${rows.length === 0 ? html`<vaadin-item disabled>${emptyMsg ?? 'No data.'}</vaadin-item>` : nothing}
+                    ${rows.map(item => html`
+                        <vaadin-item
+                            @click="${() => this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: '_rowClick', parameters: item }, bubbles: true, composed: true }))}"
+                            style="cursor: pointer;"
+                        >
+                            <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
+                            <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color);">
+                                ${secCols.map(c => html`<span>${c.label}: ${item[c.id] ?? ''}</span>&nbsp;`)}
+                            </div>
+                        </vaadin-item>
+                    `)}
+                </vaadin-list-box>`
+        }
+
+        const renderCards = () => {
+            const visibleCols = allCols.slice(0, 6)
+            const imageCols = visibleCols.filter(c => c.stereotype === 'image')
+            const titleCol = visibleCols.find(c => c.identifier) ?? visibleCols[0]
+            const bodyCols = visibleCols.filter(c => c !== titleCol && !imageCols.includes(c))
+            return html`
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--lumo-space-m); padding: var(--lumo-space-s) 0;">
+                    ${rows.length === 0 ? html`<p>${emptyMsg ?? 'No data.'}</p>` : nothing}
+                    ${rows.map(item => html`
+                        <vaadin-card
+                            style="cursor: pointer;"
+                            @click="${() => this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: '_rowClick', parameters: item }, bubbles: true, composed: true }))}"
+                        >
+                            ${imageCols.length ? html`<img slot="media" src="${item[imageCols[0].id] ?? ''}" alt="" style="width: 100%; max-height: 160px; object-fit: cover;" />` : nothing}
+                            ${titleCol ? html`<div slot="title">${item[titleCol.id] ?? ''}</div>` : nothing}
+                            <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs); padding: var(--lumo-space-s) 0;">
+                                ${bodyCols.map(col => html`
+                                    <div style="display: flex; gap: var(--lumo-space-s); font-size: var(--lumo-font-size-s);">
+                                        <span style="color: var(--lumo-secondary-text-color); min-width: 80px;">${col.label}</span>
+                                        <span>${item[col.id] ?? ''}</span>
+                                    </div>
+                                `)}
+                            </div>
+                        </vaadin-card>
+                    `)}
+                </div>`
+        }
+
+        const renderMasterDetail = () => {
+            const idCol = compact.find(c => c.identifier) ?? compact[0]
+            const secCols = compact.filter(c => c !== idCol)
+            return html`
+                <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
+                    <div style="width: 260px; flex-shrink: 0; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
+                        <vaadin-list-box style="width: 100%;">
+                            ${rows.length === 0 ? html`<vaadin-item disabled>${emptyMsg ?? 'No data.'}</vaadin-item>` : nothing}
+                            ${rows.map(item => html`
+                                <vaadin-item
+                                    ?selected="${this.selectedItem === item}"
+                                    @click="${() => { this.selectedItem = item }}"
+                                    style="cursor: pointer;"
+                                >
+                                    <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
+                                    <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color);">
+                                        ${secCols.map(c => html`${item[c.id] ?? ''} `)}
+                                    </div>
+                                </vaadin-item>
+                            `)}
+                        </vaadin-list-box>
+                    </div>
+                    <div style="flex: 1; padding: var(--lumo-space-m); overflow-y: auto;">
+                        ${this.selectedItem ? html`
+                            <vaadin-form-layout>
+                                ${allCols.map(col => html`
+                                    <vaadin-text-field
+                                        label="${col.label}"
+                                        .value="${String(this.selectedItem[col.id] ?? '')}"
+                                        readonly
+                                    ></vaadin-text-field>
+                                `)}
+                            </vaadin-form-layout>
+                        ` : html`
+                            <p style="color: var(--lumo-secondary-text-color);">Select a row to view details.</p>
+                        `}
+                    </div>
+                </div>`
+        }
+
         const tableAndPagination = html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             ` : nothing}
-            ${metadata?.crudlType == 'table' ? componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)
-            : html`
-                ${metadata.contentHeight ? html`
-                    <vaadin-scroller style="width: 100%; height: ${metadata.contentHeight};">
-                        <mateu-card-list id="${this.id}"
-                            .metadata="${metadata}"
-                            .data="${this.data}"
-                            .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
-                            @sort-direction-changed="${this.directionChanged}"
-                            @fetch-more-elements="${this.fetchMoreElements}"
-                            .state="${this.state}"
-                            .appState="${this.appState}"
-                            .appdata="${this.appData}"
-                            baseUrl="${this.baseUrl}"
-                        ></mateu-card-list>
-                    </vaadin-scroller>
-                ` : html`
-                    <mateu-card-list id="${this.id}"
-                        .metadata="${metadata}"
-                        .data="${this.data}"
-                        .emptyStateMessage="${this.state[this.component?.id!]?.emptyStateMessage}"
-                        @sort-direction-changed="${this.directionChanged}"
-                        @fetch-more-elements="${this.fetchMoreElements}"
-                        .state="${this.state}"
-                        .appState="${this.appState}"
-                        .appdata="${this.appData}"
-                        baseUrl="${this.baseUrl}"
-                    ></mateu-card-list>
-                `}
-            `}
+            ${gridLayout === 'list' ? renderTwoLineList()
+            : gridLayout === 'cards' ? (metadata.contentHeight ? html`
+                <vaadin-scroller style="width: 100%; height: ${metadata.contentHeight};">
+                    ${renderCards()}
+                </vaadin-scroller>
+            ` : renderCards())
+            : gridLayout === 'masterDetail' ? renderMasterDetail()
+            : componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)}
             <slot></slot>
             ${metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)}
         `

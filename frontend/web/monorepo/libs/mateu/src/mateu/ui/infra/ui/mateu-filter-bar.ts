@@ -18,6 +18,7 @@ import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
+import {ResolvedFiltersLayout, selectFiltersLayout} from "@infra/ui/layout/weightEngine.ts";
 
 
 @customElement('mateu-filter-bar')
@@ -47,6 +48,12 @@ export class MateuFilterBar extends LitElement {
 
     @state()
     filtersOpened = false
+
+    private get effectiveFiltersLayout(): ResolvedFiltersLayout {
+        const raw = this.metadata?.filtersLayout ?? 'auto'
+        if (raw === 'auto') return selectFiltersLayout(this.metadata?.filters ?? [])
+        return raw as ResolvedFiltersLayout
+    }
 
     clickedOnClearFilters = () => {
         this.dispatchEvent(new CustomEvent('filter-reset-requested', {
@@ -150,92 +157,139 @@ export class MateuFilterBar extends LitElement {
         `
     }
 
+    private wrapFilter(filter: any): ClientSideComponent {
+        return {
+            id: '',
+            metadata: { ...(filter as unknown as FormField), wantsFocus: true },
+            type: ComponentType.ClientSide,
+            style: '',
+            children: [],
+            slot: '',
+            cssClasses: '',
+            initialData: {},
+            confirmOnNavigationIfDirty: false
+        } as ClientSideComponent
+    }
+
+    private renderFilterControls() {
+        return html`
+            <mateu-event-interceptor .target="${this}">
+                <vaadin-form-layout max-columns="1" @keydown="${this.handleKey}" auto-responsive>
+                    <vaadin-form-row>
+                        ${this.metadata?.filters?.map(filter =>
+                            renderComponent(this, this.wrapFilter(filter), this.baseUrl, this.state, this.data, this.appState, this.appData)
+                        )}
+                    </vaadin-form-row>
+                </vaadin-form-layout>
+            </mateu-event-interceptor>`
+    }
+
+    private renderFilterActionButtons() {
+        return html`
+            <vaadin-button theme="tertiary" @click="${() => { this.filtersOpened = false; this.clickedOnClearFilters() }}">Clear</vaadin-button>
+            <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;">Search</vaadin-button>`
+    }
+
     renderSearchBar = () => html`
         <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;">
-            <vaadin-text-field
-                    id="searchText"
-                    @value-changed="${this.valueChanged}"
-                    value="${this.state.searchText}"
-                    autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
-                    style="flex: 1;"
-                    placeholder="Search..."
-            ></vaadin-text-field>
-            ${this.metadata?.filters && this.metadata.filters.length > 0 ? html`
+            ${this.metadata?.searchable ? html`
+                <vaadin-text-field
+                        id="searchText"
+                        @value-changed="${this.valueChanged}"
+                        value="${this.state.searchText}"
+                        autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
+                        style="flex: 1;"
+                        placeholder="Search..."
+                ></vaadin-text-field>
+            ` : nothing}
+
+            ${this.effectiveFiltersLayout === 'inline' ? html`
+                ${this.metadata?.filters?.map(filter =>
+                    renderComponent(this, this.wrapFilter(filter), this.baseUrl, this.state, this.data, this.appState, this.appData)
+                )}
+            ` : nothing}
+
+            ${(this.effectiveFiltersLayout === 'popover' || this.effectiveFiltersLayout === 'drawer' || this.effectiveFiltersLayout === 'dialog')
+                && this.metadata?.filters && this.metadata.filters.length > 0 ? html`
                 <vaadin-button @click="${this.clickedOnFilters}">Filters</vaadin-button>
                 <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
             ` : nothing}
+
             <vaadin-button @click="${() => this.handleButtonClick()}" theme="primary">Search</vaadin-button>
         </vaadin-horizontal-layout>
     `
 
+    /** Popover: inline panel below the search bar. */
+    private renderPopover() {
+        if (!this.filtersOpened) return nothing
+        return html`
+            <div class="filter-popover">
+                ${this.renderFilterControls()}
+                <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-end; padding-top: var(--lumo-space-s);">
+                    ${this.renderFilterActionButtons()}
+                </vaadin-horizontal-layout>
+            </div>`
+    }
+
+    /** Side drawer sliding in from the right. */
+    private renderDrawer() {
+        return html`
+            <div class="filter-drawer ${this.filtersOpened ? 'filter-drawer--open' : ''}">
+                <vaadin-horizontal-layout theme="spacing" style="align-items: center; margin-bottom: var(--lumo-space-m);">
+                    <span style="font-size: var(--lumo-font-size-l); font-weight: 600; flex: 1;">Filters</span>
+                    <vaadin-button theme="icon tertiary" @click="${() => this.filtersOpened = false}" aria-label="Close">✕</vaadin-button>
+                </vaadin-horizontal-layout>
+                ${this.renderFilterControls()}
+                <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-end; margin-top: var(--lumo-space-m);">
+                    ${this.renderFilterActionButtons()}
+                </vaadin-horizontal-layout>
+            </div>
+            ${this.filtersOpened ? html`
+                <div class="filter-drawer-overlay" @click="${() => this.filtersOpened = false}"></div>
+            ` : nothing}`
+    }
+
+    /** Modal dialog (existing Vaadin behavior). */
     renderFiltersDialog = () => html`
         <vaadin-dialog
                 header-title="Filters"
                 .opened="${this.filtersOpened}"
                 @closed="${() => this.filtersOpened = false}"
-                ${dialogRenderer(() => html`
-                    <mateu-event-interceptor .target="${this}">
-                        <vaadin-form-layout 
-                                max-columns="1" 
-                                @keydown="${this.handleKey}"
-                                auto-responsive
-                        >
-                            <vaadin-form-row>
-                                ${this.metadata?.filters?.map(filter => renderComponent(this, {
-                                    id: '',
-                                    metadata: {...(filter as unknown as FormField), wantsFocus: true },
-                                    type: ComponentType.ClientSide,
-                                    style: '',
-                                    children: [],
-                                    slot: '',
-                                    cssClasses: '',
-                                    initialData: {},
-                                    confirmOnNavigationIfDirty: false
-                                } as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData))}
-                            </vaadin-form-row>
-                        </vaadin-form-layout>
-                    </mateu-event-interceptor>
-                `, [])}
+                ${dialogRenderer(() => this.renderFilterControls(), [])}
                 ${dialogFooterRenderer(() => html`
-                    <vaadin-button theme="tertiary" @click="${() => this.filtersOpened = false}" data-testid="dialog-cancel">Cancel</vaadin-button>
-                    <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;" data-testid="dialog-confirm">Search</vaadin-button>
+                    <vaadin-button theme="tertiary" @click="${() => this.filtersOpened = false}">Cancel</vaadin-button>
+                    <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;">Search</vaadin-button>
                 `, [])}
         ></vaadin-dialog>
     `
 
     render(): TemplateResult {
-        const toolbar = this.metadata?.toolbar ?? []
-        const hasHeader = !!this.metadata?.title || !!this.metadata?.subtitle || toolbar.length > 0
+        const layout = this.effectiveFiltersLayout
 
         if (this.searchOnly) {
             return html`
                 ${this.metadata?.searchable ? this.renderSearchBar() : nothing}
                 ${this.renderActiveFilterBadges()}
-                ${this.renderFiltersDialog()}
+                ${layout === 'dialog' ? this.renderFiltersDialog() : nothing}
+                ${layout === 'drawer' ? this.renderDrawer() : nothing}
+                ${layout === 'popover' ? this.renderPopover() : nothing}
             `
         }
 
         return html`
-            <vaadin-vertical-layout style="width: 100%;">
-                ${this.metadata?.searchable ? this.renderSearchBar()
-                    : !hasHeader ? html`<span style="flex: 1;"></span>` : nothing}
+            <vaadin-vertical-layout style="width: 100%; position: relative;">
+                ${this.metadata?.searchable ? this.renderSearchBar() : nothing}
                 ${this.renderActiveFilterBadges()}
+                ${layout === 'popover' ? this.renderPopover() : nothing}
             </vaadin-vertical-layout>
-            ${this.renderFiltersDialog()}
+            ${layout === 'dialog' ? this.renderFiltersDialog() : nothing}
+            ${layout === 'drawer' ? this.renderDrawer() : nothing}
         `
     }
 
     static styles = css`
         :host {
             width: 100%;
-        }
-        .toolbar-divider {
-            display: inline-block;
-            width: 1px;
-            height: 1.5rem;
-            background-color: var(--lumo-contrast-20pct);
-            align-self: center;
-            margin: 0 4px;
         }
         .active-filters {
             display: flex;
@@ -261,6 +315,37 @@ export class MateuFilterBar extends LitElement {
         .active-filter-remove:hover {
             opacity: 1;
         }
+        .filter-popover {
+            border: 1px solid var(--lumo-contrast-20pct);
+            border-radius: var(--lumo-border-radius-l);
+            padding: var(--lumo-space-m);
+            background: var(--lumo-base-color);
+            box-shadow: var(--lumo-box-shadow-m);
+            margin-top: var(--lumo-space-xs);
+        }
+        .filter-drawer {
+            position: fixed;
+            inset: 0 0 0 auto;
+            width: min(360px, 90vw);
+            background: var(--lumo-base-color);
+            box-shadow: var(--lumo-box-shadow-xl);
+            z-index: 200;
+            padding: var(--lumo-space-l);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transform: translateX(100%);
+            transition: transform 0.2s ease;
+        }
+        .filter-drawer--open {
+            transform: translateX(0);
+        }
+        .filter-drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.32);
+            z-index: 199;
+        }
     `
 }
 
@@ -269,5 +354,3 @@ declare global {
         'mateu-filter-bar': MateuFilterBar
     }
 }
-
-

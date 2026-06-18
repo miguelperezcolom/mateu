@@ -35,6 +35,9 @@ public class GridColumnMapper {
             .actionId(gridColumn.actionId())
             .text(gridColumn.text())
             .style(gridColumn.style())
+            .priority(gridColumn.priority() != Integer.MAX_VALUE ? gridColumn.priority() : null)
+            .identifier(gridColumn.identifier())
+            .weight(gridColumn.weight())
             .build(),
         gridColumn.id(),
         List.of(),

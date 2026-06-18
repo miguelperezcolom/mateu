@@ -9,7 +9,7 @@ import {
     ResolvedGridLayout,
     compactColumns,
     selectColumnLayout,
-} from "../layout/weightEngine.ts";
+} from "@infra/ui/layout/weightEngine.ts";
 
 @customElement('mateu-sapui5-table')
 export class MateuSapUI5Table extends LitElement {

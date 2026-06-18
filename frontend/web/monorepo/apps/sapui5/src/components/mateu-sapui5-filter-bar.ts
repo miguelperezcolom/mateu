@@ -5,7 +5,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
-import { ResolvedFiltersLayout, selectFiltersLayout } from "../layout/weightEngine.ts";
+import { ResolvedFiltersLayout, selectFiltersLayout } from "@infra/ui/layout/weightEngine.ts";
 
 @customElement('mateu-sapui5-filter-bar')
 export class MateuSapUI5FilterBar extends LitElement {

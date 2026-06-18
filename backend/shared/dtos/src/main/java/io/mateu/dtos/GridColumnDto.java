@@ -23,5 +23,8 @@ public record GridColumnDto(
     String width,
     String tooltipPath,
     String actionId,
-    String text)
+    String text,
+    Integer priority,
+    boolean identifier,
+    Double weight)
     implements ComponentMetadataDto {}
