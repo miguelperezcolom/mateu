@@ -413,6 +413,7 @@ export class MateuTableCrud extends LitElement {
                     ${rows.length === 0 ? html`<p>${emptyMsg ?? 'No data.'}</p>` : nothing}
                     ${rows.map(item => html`
                         <vaadin-card
+                            clickable
                             style="cursor: pointer;"
                             @click="${(e: Event) => isSelector
                                 ? dispatchRowAction(e, 'action-on-row-select', item)
@@ -510,7 +511,7 @@ export class MateuTableCrud extends LitElement {
         if (this.standalone) {
             return html`
                 ${importDialog}
-                <vaadin-card theme="outlined" style="width: 100%;">
+                <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow-x: hidden; overflow-y: auto; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--lumo-space-m);">
                     <mateu-content-header
                         .metadata="${metadata}"
                         .baseUrl="${this.baseUrl}"
@@ -519,11 +520,9 @@ export class MateuTableCrud extends LitElement {
                         .appState="${this.appState}"
                         .appData="${this.appData}"
                     ></mateu-content-header>
-                    <div style="border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-l); overflow: hidden; margin-top: var(--lumo-space-m);">
-                        ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}
-                        ${tableAndPagination}
-                    </div>
-                </vaadin-card>
+                    ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}
+                    ${tableAndPagination}
+                </div>
             `
         }
         return html`
@@ -556,10 +555,10 @@ export class MateuTableCrud extends LitElement {
                         <slot></slot>
                     </vaadin-horizontal-layout>
                 ` : nothing}
-            <vaadin-card theme="outlined">
-            ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
-            ${tableAndPagination}
-            </vaadin-card>
+            <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow-x: hidden; overflow-y: auto; max-height: calc(100dvh - 12rem); padding: var(--lumo-space-m);">
+                ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
+                ${tableAndPagination}
+            </div>
         `
     }
 
@@ -567,7 +566,19 @@ export class MateuTableCrud extends LitElement {
         return componentRenderer.mustUseShadowRoot() ? super.createRenderRoot() : this
     }
 
-    static styles = css``
+    static styles = css`
+        vaadin-card[clickable] {
+            transition: box-shadow 0.15s, transform 0.15s;
+        }
+        vaadin-card[clickable]:hover {
+            box-shadow: var(--lumo-box-shadow-m);
+            transform: translateY(-2px);
+        }
+        vaadin-card[clickable]:active {
+            box-shadow: none;
+            transform: translateY(0);
+        }
+    `
 }
 
 declare global {

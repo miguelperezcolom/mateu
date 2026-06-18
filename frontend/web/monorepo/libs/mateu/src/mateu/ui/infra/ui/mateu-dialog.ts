@@ -119,7 +119,7 @@ export class MateuDialog extends ComponentElement {
             [this.state, this.data]
         ):nothing}
                 ${metadata.content?dialogRenderer(
-            () => html`<mateu-event-interceptor .target="${this}" style="width: 100%;">${renderComponent(this, metadata.content, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
+            () => html`<mateu-event-interceptor .target="${this}" style="--mateu-section-border: none; width: 100%;">${renderComponent(this, metadata.content, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>`,
             [this.state, this.data]
         ):nothing}
                 style="${this.component?.style}" 
