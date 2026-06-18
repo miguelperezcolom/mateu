@@ -46,7 +46,7 @@ public class RunMethodActionRunner implements ActionRunner {
       methodName = fieldAndMethod.substring(fieldId.length() + 1);
       var field = getFieldByName(instance.getClass(), fieldId);
       if (field != null) {
-        if (!Modifier.isPublic(field.getModifiers())) field.setAccessible(true);
+        if (!field.canAccess(instance)) field.setAccessible(true);
         Object nestedForm = getValue(field, instance);
         if (nestedForm == null) {
           nestedForm = getValueOrNewInstance(field, instance, command.httpRequest());
@@ -56,13 +56,13 @@ public class RunMethodActionRunner implements ActionRunner {
     }
     Method m = getMethod(instance.getClass(), methodName);
     if (m != null) {
-      if (!Modifier.isPublic(m.getModifiers())) m.setAccessible(true);
+      if (!m.canAccess(instance)) m.setAccessible(true);
       Object result = invoke(m, instance, command);
       return asFlux(result, instance);
     }
     Field f = getFieldByName(instance.getClass(), methodName);
     if (f != null) {
-      if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
+      if (!f.canAccess(instance)) f.setAccessible(true);
       Object result = getValue(f, instance);
       if (result == null) {
         result =
