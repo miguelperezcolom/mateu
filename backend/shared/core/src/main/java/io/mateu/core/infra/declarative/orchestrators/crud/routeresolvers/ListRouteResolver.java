@@ -18,6 +18,7 @@ import io.mateu.uidl.interfaces.Deleteable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.UploadEnabled;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ListRouteResolver implements CrudOrchestratorRouteResolver {
@@ -46,13 +47,13 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
         || orchestrator.getClass().isAnnotationPresent(NotDeletable.class);
   }
 
-  private List<GridContent> withViewOnFirstColumn(List<GridContent> rawColumns) {
-    if (rawColumns.isEmpty() || !(rawColumns.get(0) instanceof GridColumn first)) {
-      return rawColumns;
+  private List<GridContent> withViewOnFirstColumn(Collection<? extends GridContent> rawColumns) {
+    var list = new ArrayList<GridContent>(rawColumns);
+    if (list.isEmpty() || !(list.get(0) instanceof GridColumn first)) {
+      return list;
     }
-    var modified = new ArrayList<GridContent>(rawColumns);
-    modified.set(0, first.toBuilder().actionId("view").build());
-    return modified;
+    list.set(0, first.toBuilder().actionId("view").build());
+    return list;
   }
 
   private int parseInitialPage(String route) {
