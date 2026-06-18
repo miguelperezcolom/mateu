@@ -238,7 +238,7 @@ export const columnRenderer = (item: any,
     if ('actionGroup' == type) {
         return renderMenuCell(item, model, vaadinColumn)
     }
-    if ('button' == stereotype) {
+    if ('button' == stereotype || column.actionId) {
         return renderButtonCell(item, model, vaadinColumn, type, stereotype, column)
     }
     const cellValue = item[vaadinColumn.path!]

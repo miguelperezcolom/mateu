@@ -19,7 +19,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.UploadEnabled;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   @Override
@@ -45,6 +44,15 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   private static boolean notDeletable(Crud orchestrator) {
     return orchestrator.readOnly()
         || orchestrator.getClass().isAnnotationPresent(NotDeletable.class);
+  }
+
+  private List<GridContent> withViewOnFirstColumn(List<GridContent> rawColumns) {
+    if (rawColumns.isEmpty() || !(rawColumns.get(0) instanceof GridColumn first)) {
+      return rawColumns;
+    }
+    var modified = new ArrayList<GridContent>(rawColumns);
+    modified.set(0, first.toBuilder().actionId("view").build());
+    return modified;
   }
 
   private int parseInitialPage(String route) {
@@ -100,24 +108,14 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                         httpRequest.runActionRq().route(),
                         httpRequest.runActionRq().initiatorComponentId(),
                         httpRequest)
-                : Stream.concat(
-                        getColumns(
-                            orchestrator.rowClass(),
-                            this,
-                            "base_url",
-                            httpRequest.runActionRq().route(),
-                            httpRequest.runActionRq().initiatorComponentId(),
-                            httpRequest)
-                            .stream(),
-                        Stream.of(
-                            GridColumn.builder()
-                                .label("Action")
-                                .id("_action")
-                                .stereotype(FieldStereotype.button)
-                                .actionId("view")
-                                .text("View")
-                                .build()))
-                    .toList();
+                : withViewOnFirstColumn(
+                    getColumns(
+                        orchestrator.rowClass(),
+                        this,
+                        "base_url",
+                        httpRequest.runActionRq().route(),
+                        httpRequest.runActionRq().initiatorComponentId(),
+                        httpRequest));
     String title;
     httpRequest.setAttribute("windowTitle", title = orchestrator.title());
     return PageView.builder()

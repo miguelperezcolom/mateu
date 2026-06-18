@@ -140,17 +140,14 @@ export const renderButtonCell = (item: any,
                                  _column: GridColumn
 ) => {
     const column = (vaadinColumn as XColumn).xcolumn ?? _column
-    if (column.text) {
-        if (column.actionId) {
-            return html`
-                <vaadin-button theme="tertiary" @click="${(_e: any) => handleButtonColumnClick(vaadinColumn, column, item)}" .row="${item}">
-                    ${column.text}
-                </vaadin-button>
-            `
-        }
-        const href = item[vaadinColumn.path!]
-        return html`<a href="${href}">${column.text}</a>`;
+    if (column.actionId) {
+        const label = column.text || item[vaadinColumn.path!]
+        return html`
+            <vaadin-button theme="tertiary" @click="${(_e: any) => handleButtonColumnClick(vaadinColumn, column, item)}" .row="${item}">
+                ${label}
+            </vaadin-button>
+        `
     }
     const href = item[vaadinColumn.path!]
-    return html`<a href="${href}">${column.text}</a>`;
+    return html`<a href="${href}">${column.text || href}</a>`;
 }

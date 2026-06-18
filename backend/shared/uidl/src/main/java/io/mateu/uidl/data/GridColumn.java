@@ -2,7 +2,7 @@ package io.mateu.uidl.data;
 
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record GridColumn(
     String id,
     String label,
