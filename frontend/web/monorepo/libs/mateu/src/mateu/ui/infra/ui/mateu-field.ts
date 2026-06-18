@@ -478,6 +478,7 @@ export class MateuField extends LitElement {
                 ><vaadin-icon icon="${valueToDisplay?'vaadin:check':'vaadin:minus'}" style="height: 20px;"></vaadin-icon>
                 </vaadin-custom-field>`
             }
+            const strValue = valueToDisplay != null ? String(valueToDisplay) : ''
             return html`
                 <vaadin-text-field
                         id="${this.field.fieldId}"
@@ -487,7 +488,13 @@ export class MateuField extends LitElement {
                         style="${this.field.style}"
                         .helperText="${this.field.description ?? ''}"
                         data-colspan="${this.field.colspan}"
-                ></vaadin-text-field>
+                >${strValue.length > 15 ? html`<vaadin-icon
+                        slot="suffix"
+                        icon="vaadin:copy"
+                        title="Copiar"
+                        style="cursor: pointer; color: var(--lumo-secondary-text-color);"
+                        @click="${() => navigator.clipboard.writeText(strValue).catch(() => {})}"
+                ></vaadin-icon>` : nothing}</vaadin-text-field>
 `
         }
 

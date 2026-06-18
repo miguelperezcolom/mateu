@@ -52,6 +52,17 @@ const renderGridCell = (item: any, col: any): TemplateResult => {
     return html`${value ?? ''}`
 }
 
+const copyIcon = (value: any, readOnly: boolean): TemplateResult | typeof nothing => {
+    const str = value != null ? String(value) : ''
+    if (!readOnly || str.length <= 15) return nothing
+    return html`<ui5-icon
+        slot="icon"
+        name="copy"
+        style="cursor: pointer;"
+        @click="${() => navigator.clipboard.writeText(str).catch(() => {})}"
+    ></ui5-icon>`
+}
+
 export const renderField = (component: ClientSideComponent, _baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     const metadata = component.metadata as FormField
     const fieldId = metadata?.fieldId ?? ''
@@ -166,7 +177,7 @@ export const renderField = (component: ClientSideComponent, _baseUrl: string | u
                     value="${value ?? ''}"
                     @change="${changed}"
                     style="width: 100%;"
-                ></ui5-input>
+                >${copyIcon(value, readOnly)}</ui5-input>
             </div>`
     }
 
@@ -208,7 +219,7 @@ export const renderField = (component: ClientSideComponent, _baseUrl: string | u
                     value="${value ?? ''}"
                     @change="${changed}"
                     style="width: 100%;"
-                ></ui5-input>
+                >${copyIcon(value, readOnly)}</ui5-input>
             </div>`
     }
 
@@ -376,7 +387,7 @@ export const renderField = (component: ClientSideComponent, _baseUrl: string | u
                     value="${value ?? ''}"
                     @change="${changed}"
                     style="width: 100%;"
-                ></ui5-input>
+                >${copyIcon(value, readOnly)}</ui5-input>
             </div>`
     }
 
@@ -423,6 +434,6 @@ export const renderField = (component: ClientSideComponent, _baseUrl: string | u
                 @change="${changed}"
                 placeholder="${metadata.placeholder ?? nothing}"
                 style="width: 100%;"
-            ></ui5-input>
+            >${copyIcon(value, readOnly)}</ui5-input>
         </div>`
 }
