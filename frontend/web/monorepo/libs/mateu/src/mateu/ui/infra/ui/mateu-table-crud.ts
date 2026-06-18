@@ -34,6 +34,7 @@ import {
     compactColumns,
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
+import {Card} from "@vaadin/card";
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -336,29 +337,98 @@ export class MateuTableCrud extends LitElement {
                 </vaadin-list-box>`
         }
 
+        const handleCardClick = (dispatcher: Card, actionId: string, item: any) => {
+            dispatcher.dispatchEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId: actionId,
+                    parameters: item
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
+
         const renderCards = () => {
             const visibleCols = allCols.slice(0, 6)
             const imageCols = visibleCols.filter(c => c.stereotype === 'image')
             const titleCol = visibleCols.find(c => c.identifier) ?? visibleCols[0]
-            const bodyCols = visibleCols.filter(c => c !== titleCol && !imageCols.includes(c))
+            const isNavCol = (c: GridColumn) => !!c.actionId
+            const isActionButtonCol = (c: GridColumn) =>
+                c.dataType === 'action' || c.dataType === 'actionGroup' || c.dataType === 'menu' || c.stereotype === 'button'
+            const selectCol = visibleCols.find(c => c.id === 'select' && c.dataType === 'action')
+            const isSelector = !!selectCol
+            const dataCols = visibleCols.filter(c => c !== titleCol && !imageCols.includes(c) && !isNavCol(c) && !isActionButtonCol(c))
+            const actionCols = visibleCols.filter(c => isActionButtonCol(c) && !(isSelector && c === selectCol))
+
+            const cardValue = (col: GridColumn, item: any) => {
+                const val = item[col.id]
+                if (val === null || val === undefined) return ''
+                if (col.dataType === 'status') return val.message ?? ''
+                if (col.dataType === 'bool') return val ? '✓' : '✗'
+                if (typeof val === 'object') return val.label ?? val.name ?? val.message ?? ''
+                return val
+            }
+
+            const dispatchRowAction = (e: Event, actionId: string, item: any) => {
+                e.stopPropagation()
+                ;(e.currentTarget as Element).dispatchEvent(new CustomEvent('action-requested', {
+                    detail: { actionId, parameters: { _clickedRow: item } },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+
+            const renderCardActionButtons = (item: any) => {
+                const buttons: TemplateResult[] = []
+                for (const col of actionCols) {
+                    const val = item[col.id]
+                    if (col.dataType === 'action') {
+                        const action = val?.methodNameInCrud ? val
+                            : (item as any).action?.methodNameInCrud ? (item as any).action
+                            : { methodNameInCrud: col.id, label: col.label, icon: null, disabled: false }
+                        buttons.push(html`
+                            <vaadin-button theme="tertiary" title="${action.label || nothing}"
+                                @click="${(e: Event) => dispatchRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
+                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${action.label ?? nothing}
+                            </vaadin-button>`)
+                    } else if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
+                        const actions: any[] = val?.actions ?? []
+                        actions.forEach(action => buttons.push(html`
+                            <vaadin-button theme="tertiary" title="${action.label || nothing}"
+                                @click="${(e: Event) => dispatchRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
+                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${action.label ?? nothing}
+                            </vaadin-button>`))
+                    }
+                }
+                return buttons.length ? html`
+                    <div style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); padding-top: var(--lumo-space-s); border-top: 1px solid var(--lumo-contrast-10pct);">
+                        ${buttons}
+                    </div>` : nothing
+            }
+
             return html`
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--lumo-space-m); padding: var(--lumo-space-s) 0;">
                     ${rows.length === 0 ? html`<p>${emptyMsg ?? 'No data.'}</p>` : nothing}
                     ${rows.map(item => html`
                         <vaadin-card
                             style="cursor: pointer;"
-                            @click="${() => this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: '_rowClick', parameters: item }, bubbles: true, composed: true }))}"
+                            @click="${(e: Event) => isSelector
+                                ? dispatchRowAction(e, 'action-on-row-select', item)
+                                : handleCardClick(e.target as Card, 'view', item)}"
                         >
                             ${imageCols.length ? html`<img slot="media" src="${item[imageCols[0].id] ?? ''}" alt="" style="width: 100%; max-height: 160px; object-fit: cover;" />` : nothing}
                             ${titleCol ? html`<div slot="title">${item[titleCol.id] ?? ''}</div>` : nothing}
                             <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs); padding: var(--lumo-space-s) 0;">
-                                ${bodyCols.map(col => html`
+                                ${dataCols.map(col => html`
                                     <div style="display: flex; gap: var(--lumo-space-s); font-size: var(--lumo-font-size-s);">
                                         <span style="color: var(--lumo-secondary-text-color); min-width: 80px;">${col.label}</span>
-                                        <span>${item[col.id] ?? ''}</span>
+                                        <span>${cardValue(col, item)}</span>
                                     </div>
                                 `)}
                             </div>
+                            ${renderCardActionButtons(item)}
                         </vaadin-card>
                     `)}
                 </div>`
