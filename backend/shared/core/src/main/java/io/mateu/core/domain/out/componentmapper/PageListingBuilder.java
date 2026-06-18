@@ -13,13 +13,17 @@ import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.FiltersLayout;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.interfaces.*;
+import io.mateu.uidl.layout.FilterLayoutSelector;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 
 public class PageListingBuilder {
+
+  private static final FilterLayoutSelector FILTER_LAYOUT_SELECTOR = new FilterLayoutSelector();
 
   static Collection<? extends Component> getCrud(
       Object instance,
@@ -28,19 +32,22 @@ public class PageListingBuilder {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    var filters =
+        getFilters(
+            getFiltersClass(instance),
+            instance,
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest);
+    FiltersLayout filtersLayout =
+        FILTER_LAYOUT_SELECTOR.selectLayout(isSearchable(instance), filters.stream().toList(), 0);
     var builder =
         Listing.builder()
             .searchable(isSearchable(instance))
             .rowsSelectionEnabled(isRowSelectionEnabled(instance))
-            .filters(
-                getFilters(
-                    getFiltersClass(instance),
-                    instance,
-                    baseUrl,
-                    route,
-                    consumedRoute,
-                    initiatorComponentId,
-                    httpRequest))
+            .filters(filters)
             .columns(
                 getColumns(
                     getRowClass(instance),
@@ -49,6 +56,7 @@ public class PageListingBuilder {
                     route,
                     initiatorComponentId,
                     httpRequest))
+            .filtersLayout(filtersLayout)
             .style(getStyle(instance, httpRequest));
 
     if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {

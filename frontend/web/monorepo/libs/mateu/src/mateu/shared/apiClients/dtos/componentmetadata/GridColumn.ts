@@ -19,5 +19,8 @@ export default interface GridColumn extends ComponentMetadata {
     actionId: string
     text: string
     style: string
+    priority: number
+    identifier: boolean
+    weight: number | null
 
 }

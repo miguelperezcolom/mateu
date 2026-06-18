@@ -87,7 +87,7 @@ public class WeightEstimator {
     return base(dataType, stereotype);
   }
 
-  double parsePx(String value) {
+  public double parsePx(String value) {
     if (value == null) return 3.0;
     String s = value.trim().toLowerCase().replace("px", "").trim();
     try {

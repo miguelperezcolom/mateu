@@ -15,5 +15,7 @@ export default interface Crud extends Table {
     searchOnEnter: boolean
     autoFocusOnSearchText: boolean
     initialPage: number
+    filtersLayout: 'auto' | 'inline' | 'popover' | 'drawer' | 'dialog'
+    gridLayout: 'auto' | 'table' | 'list' | 'cards' | 'masterDetail'
 
 }
