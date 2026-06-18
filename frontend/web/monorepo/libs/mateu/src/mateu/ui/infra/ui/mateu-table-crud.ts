@@ -324,6 +324,8 @@ export class MateuTableCrud extends LitElement {
         const emptyMsg = this.state[this.component?.id!]?.emptyStateMessage
 
         const renderTwoLineList = () => {
+            const idField = this.identifierFieldName
+            const selectedId = this.state._selectedId ?? this.appState?._splitDetailId
             const idCol = compact.find(c => c.identifier) ?? compact[0]
             const secCols = compact.filter(c => c !== idCol)
             return html`
@@ -331,7 +333,13 @@ export class MateuTableCrud extends LitElement {
                     ${rows.length === 0 ? html`<vaadin-item disabled>${emptyMsg ?? 'No data.'}</vaadin-item>` : nothing}
                     ${rows.map(item => html`
                         <vaadin-item
-                            @click="${() => this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: '_rowClick', parameters: item }, bubbles: true, composed: true }))}"
+                            ?selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
+                            @click="${() => {
+                                if (idField && item[idField] !== undefined) {
+                                    this.state = { ...this.state, _selectedId: String(item[idField]) }
+                                }
+                                this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: '_rowClick', parameters: item }, bubbles: true, composed: true }))
+                            }}"
                             style="cursor: pointer;"
                         >
                             <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
