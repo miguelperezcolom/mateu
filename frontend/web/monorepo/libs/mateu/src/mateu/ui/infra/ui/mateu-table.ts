@@ -122,8 +122,50 @@ export class MateuTable extends LitElement {
         }
     }
 
+    private get identifierFieldName(): string | undefined {
+        const annotated = this.metadata?.columns?.find(col => (col.metadata as GridColumn)?.identifier)
+        if (annotated) return (annotated.metadata as GridColumn)?.id
+        const idCol = this.metadata?.columns?.find(col => (col.metadata as GridColumn)?.id === 'id')
+        if (idCol) return 'id'
+        return undefined
+    }
+
+    private _applyCellPartNameGenerator() {
+        if (!this.grid) return
+        const idField = this.identifierFieldName
+        const selectedId = this.state?._selectedId ?? this.appState?._splitDetailId
+        if (idField && selectedId !== undefined) {
+            this.grid.cellPartNameGenerator = (_col, model) =>
+                String((model.item as any)[idField]) === String(selectedId) ? 'selected-row' : ''
+        } else {
+            this.grid.cellPartNameGenerator = null
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.addEventListener('action-requested', this._onActionRequested)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.removeEventListener('action-requested', this._onActionRequested)
+    }
+
+    private _onActionRequested = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        const idField = this.identifierFieldName
+        if (!idField || !detail.parameters || detail.actionId?.startsWith('action-on-row-')) return
+        const rowId = detail.parameters[idField]
+        if (rowId === undefined) return
+        this.state._selectedId = String(rowId)
+        this._applyCellPartNameGenerator()
+        this.grid?.requestContentUpdate()
+    }
+
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
+        this._applyCellPartNameGenerator()
         this.grid?.clearCache()
         this.grid?.recalculateColumnWidths()
         this.pagesRequested = []
@@ -270,6 +312,9 @@ export class MateuTable extends LitElement {
             cursor: pointer;
         }
         vaadin-grid[data-clickable-rows]::part(row):hover {
+            background-color: var(--lumo-primary-color-10pct);
+        }
+        vaadin-grid::part(selected-row) {
             background-color: var(--lumo-primary-color-10pct);
         }
   `

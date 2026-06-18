@@ -59,9 +59,15 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
+    const _splitConsumedRoute = chooseConsumedRoute(container, metadata)
+    const _splitDetailRoute = chooseRouteForDetail(_state, container, metadata)
+    const _splitDetailId = (_splitDetailRoute && _splitDetailRoute !== 'new' && _splitDetailRoute.startsWith(_splitConsumedRoute + '/'))
+        ? _splitDetailRoute.substring(_splitConsumedRoute.length + 1).split('/')[0]
+        : undefined
+
     return html`
                     ${metadata.variant == AppVariant.MEDIATOR?html`
-                        
+
                         ${metadata.layout == 'SPLIT'?html`
                             <vaadin-master-detail-layout>
                                 <mateu-api-caller>
@@ -74,7 +80,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                             serverSideType="${chooseAppServerSideType(container, metadata)}"
                                             uriPrefix="${chooseUriPrefix(container, metadata)}"
                                             style="width: 100%;"
-                                            .appState="${appState}"
+                                            .appState="${{...appState, _splitDetailId}}"
                                             .appData="${appData}"
                                             instant="${container.instant}"
                                             @navigation-requested="${container.updateRoute}"

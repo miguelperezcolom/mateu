@@ -1,5 +1,5 @@
 import {customElement, property, state} from "lit/decorators.js";
-import {css, html, LitElement, nothing, TemplateResult} from "lit";
+import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -50,6 +50,15 @@ export class MateuFilterBar extends LitElement {
 
     @state()
     filtersOpened = false
+
+    protected updated(_changedProperties: PropertyValues) {
+        super.updated(_changedProperties)
+        const btn = this.renderRoot?.querySelector('#filters-toggle-btn')
+        const popover = this.renderRoot?.querySelector('vaadin-popover') as any
+        if (btn && popover && popover.target !== btn) {
+            popover.target = btn
+        }
+    }
 
     private get effectiveFiltersLayout(): ResolvedFiltersLayout {
         const raw = this.metadata?.filtersLayout ?? 'auto'
@@ -220,7 +229,7 @@ export class MateuFilterBar extends LitElement {
 
             ${(this.effectiveFiltersLayout === 'popover' || this.effectiveFiltersLayout === 'drawer' || this.effectiveFiltersLayout === 'dialog')
                 && this.metadata?.filters && this.metadata.filters.length > 0 ? html`
-                <vaadin-button id="filters-toggle-btn">Filters</vaadin-button>
+                <vaadin-button id="filters-toggle-btn" @click="${() => { this.filtersOpened = !this.filtersOpened }}">Filters</vaadin-button>
                 <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
             ` : nothing}
 
@@ -232,8 +241,8 @@ export class MateuFilterBar extends LitElement {
     private renderPopover() {
         return html`
             <vaadin-popover
-                for="filters-toggle-btn"
                 position="bottom-start"
+                .trigger="${([] as string[])}"
                 .opened="${this.filtersOpened}"
                 @opened-changed="${(e: CustomEvent) => { this.filtersOpened = e.detail.value }}"
                 content-width="400px"
