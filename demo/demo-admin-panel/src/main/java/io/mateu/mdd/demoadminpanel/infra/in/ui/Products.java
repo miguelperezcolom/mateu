@@ -61,6 +61,7 @@ record Product(
     @Toolbar
     public void doNothing() {
         log.info("do nothing");
+        components.add(new ProductComponent("xx", 1, null, false, "yyy"));
     }
 
     @Override

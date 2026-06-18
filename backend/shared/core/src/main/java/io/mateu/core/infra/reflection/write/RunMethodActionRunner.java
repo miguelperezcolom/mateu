@@ -7,9 +7,12 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.application.runaction.ComponentStateHelper;
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
+import io.mateu.dtos.UIFragmentActionDto;
+import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -58,6 +61,10 @@ public class RunMethodActionRunner implements ActionRunner {
     if (m != null) {
       if (!m.canAccess(instance)) m.setAccessible(true);
       Object result = invoke(m, instance, command);
+      if (result == null) {
+        var state = ComponentStateHelper.getState(instance, command.httpRequest());
+        return Flux.just(new UIFragmentDto(command.initiatorComponentId(), null, state, null, UIFragmentActionDto.Replace, null));
+      }
       return asFlux(result, instance);
     }
     Field f = getFieldByName(instance.getClass(), methodName);
