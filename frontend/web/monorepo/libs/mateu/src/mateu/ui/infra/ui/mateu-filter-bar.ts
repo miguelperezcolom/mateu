@@ -14,6 +14,8 @@ import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import {dialogFooterRenderer, dialogRenderer} from "@vaadin/dialog/lit";
+import {popoverRenderer} from "@vaadin/popover/lit";
+import '@vaadin/popover';
 import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
@@ -56,6 +58,12 @@ export class MateuFilterBar extends LitElement {
     }
 
     clickedOnClearFilters = () => {
+        const cleared: Record<string, any> = {}
+        this.metadata?.filters.forEach(filter => {
+            cleared[(filter as unknown as FormField).fieldId] = undefined
+        })
+        cleared['searchText'] = undefined
+        this.state = { ...this.state, ...cleared }
         this.dispatchEvent(new CustomEvent('filter-reset-requested', {
             detail: {
                 fieldIds: this.metadata?.filters.map(filter => (filter as unknown as FormField).fieldId)
@@ -125,6 +133,7 @@ export class MateuFilterBar extends LitElement {
     }
 
     private clearFilter(fieldId: string) {
+        this.state = { ...this.state, [fieldId]: undefined }
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: { value: undefined, fieldId },
             bubbles: true,
@@ -211,7 +220,7 @@ export class MateuFilterBar extends LitElement {
 
             ${(this.effectiveFiltersLayout === 'popover' || this.effectiveFiltersLayout === 'drawer' || this.effectiveFiltersLayout === 'dialog')
                 && this.metadata?.filters && this.metadata.filters.length > 0 ? html`
-                <vaadin-button @click="${this.clickedOnFilters}">Filters</vaadin-button>
+                <vaadin-button id="filters-toggle-btn">Filters</vaadin-button>
                 <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
             ` : nothing}
 
@@ -219,16 +228,24 @@ export class MateuFilterBar extends LitElement {
         </vaadin-horizontal-layout>
     `
 
-    /** Popover: inline panel below the search bar. */
+    /** Popover: Vaadin popover anchored to the Filters button. */
     private renderPopover() {
-        if (!this.filtersOpened) return nothing
         return html`
-            <div class="filter-popover">
-                ${this.renderFilterControls()}
-                <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-end; padding-top: var(--lumo-space-s);">
-                    ${this.renderFilterActionButtons()}
-                </vaadin-horizontal-layout>
-            </div>`
+            <vaadin-popover
+                for="filters-toggle-btn"
+                position="bottom-start"
+                .opened="${this.filtersOpened}"
+                @opened-changed="${(e: CustomEvent) => { this.filtersOpened = e.detail.value }}"
+                content-width="400px"
+                ${popoverRenderer(() => html`
+                    <div style="padding: var(--lumo-space-m);">
+                        ${this.renderFilterControls()}
+                        <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-end; padding-top: var(--lumo-space-s);">
+                            ${this.renderFilterActionButtons()}
+                        </vaadin-horizontal-layout>
+                    </div>
+                `, [this.state])}
+            ></vaadin-popover>`
     }
 
     /** Side drawer sliding in from the right. */
@@ -315,15 +332,7 @@ export class MateuFilterBar extends LitElement {
         .active-filter-remove:hover {
             opacity: 1;
         }
-        .filter-popover {
-            border: 1px solid var(--lumo-contrast-20pct);
-            border-radius: var(--lumo-border-radius-l);
-            padding: var(--lumo-space-m);
-            background: var(--lumo-base-color);
-            box-shadow: var(--lumo-box-shadow-m);
-            margin-top: var(--lumo-space-xs);
-        }
-        .filter-drawer {
+.filter-drawer {
             position: fixed;
             inset: 0 0 0 auto;
             width: min(360px, 90vw);

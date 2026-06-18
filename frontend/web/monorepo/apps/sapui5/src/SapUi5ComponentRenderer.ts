@@ -169,15 +169,28 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
 
     renderFilterBar(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult {
         const metadata = component?.metadata as Crud
+        const onValueChanged = (e: CustomEvent) => {
+            const { fieldId, value } = e.detail
+            container.state = { ...container.state, [fieldId]: value }
+        }
+        const onFilterResetRequested = (e: CustomEvent) => {
+            const { fieldIds } = e.detail as { fieldIds: string[] }
+            const reset: Record<string, any> = {}
+            fieldIds?.forEach((id: string) => { reset[id] = undefined })
+            reset['searchText'] = undefined
+            container.state = { ...container.state, ...reset }
+        }
         return html`
             <mateu-sapui5-filter-bar
                 .metadata="${metadata}"
-                .state="${state}"
+                .state="${container.state}"
                 .data="${data}"
                 .appState="${appState}"
                 .appData="${appData}"
                 baseUrl="${baseUrl ?? ''}"
                 @search-requested="${container.search}"
+                @value-changed="${onValueChanged}"
+                @filter-reset-requested="${onFilterResetRequested}"
                 @action-requested="${(e: CustomEvent) => {
                     e.stopPropagation()
                     container.dispatchEvent(new CustomEvent('action-requested', {

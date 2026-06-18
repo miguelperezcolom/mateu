@@ -55,6 +55,12 @@ export class MateuSapUI5FilterBar extends LitElement {
     }
 
     private clearFilters() {
+        const cleared: Record<string, any> = {}
+        this.metadata?.filters?.forEach((filter: any) => {
+            cleared[filter.fieldId ?? filter.id] = undefined
+        })
+        cleared['searchText'] = undefined
+        this.state = { ...this.state, ...cleared }
         this.metadata?.filters?.forEach((filter: any) => {
             this.dispatchEvent(new CustomEvent('value-changed', {
                 detail: { value: undefined, fieldId: filter.fieldId ?? filter.id },
@@ -65,6 +71,7 @@ export class MateuSapUI5FilterBar extends LitElement {
     }
 
     private clearSingleFilter(fieldId: string) {
+        this.state = { ...this.state, [fieldId]: undefined }
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: { value: undefined, fieldId },
             bubbles: true, composed: true

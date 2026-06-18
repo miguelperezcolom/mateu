@@ -14,11 +14,24 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
 
     renderFilterBar(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, searchOnly?: boolean): TemplateResult {
         const metadata = component?.metadata as Crud
+        const onValueChanged = (e: CustomEvent) => {
+            const { fieldId, value } = e.detail
+            container.state = { ...container.state, [fieldId]: value }
+        }
+        const onFilterResetRequested = (e: CustomEvent) => {
+            const { fieldIds } = e.detail as { fieldIds: string[] }
+            const reset: Record<string, any> = {}
+            fieldIds.forEach((id: string) => { reset[id] = undefined })
+            reset['searchText'] = undefined
+            container.state = { ...container.state, ...reset }
+        }
         return html`
             <mateu-filter-bar
                 .metadata="${metadata}"
                 @search-requested="${container.search}"
-                .state="${state}"
+                @value-changed="${onValueChanged}"
+                @filter-reset-requested="${onFilterResetRequested}"
+                .state="${container.state}"
                 .data="${data}"
                 .appState="${appState}"
                 .appData="${appData}"
