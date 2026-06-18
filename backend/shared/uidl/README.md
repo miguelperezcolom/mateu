@@ -104,3 +104,34 @@ Available values: `auto` (default) · `inline/table` · `popover/list` · `drawe
 
 `@Priority` and `@Weight` target both `FIELD` and `RECORD_COMPONENT` so they work on Java
 records directly.
+
+---
+
+## Renderer integration
+
+The weight engine is wired into both renderers:
+
+### Backend wire-up (shared, both renderers)
+
+| Class | Responsibility |
+|---|---|
+| `ListingColumnBuilder` | Reads `@Priority` / `@Weight` / `@ColumnWidth` from row fields → populates `GridColumn.priority`, `identifier`, `weight` |
+| `PageListingBuilder` | Calls `FilterLayoutSelector` at build time → resolves `Listing.filtersLayout` from `auto` to a concrete value |
+| `GridColumnMapper` | Serialises `priority`, `identifier`, `weight` to `GridColumnDto` |
+| `CrudlMapper` | Serialises `filtersLayout` and `gridLayout` enum names to `CrudlDto` |
+
+### SAP UI5 renderer (`apps/sapui5`)
+
+| File | Responsibility |
+|---|---|
+| `layout/weightEngine.ts` (shared lib) | TypeScript mirror of the Java weight table + selectors |
+| `mateu-sapui5-filter-bar` | Reads `filtersLayout`; resolves `'auto'` with `selectFiltersLayout`; renders inline / popover panel / CSS slide-in drawer / ui5-dialog |
+| `mateu-sapui5-table` | `ResizeObserver` measures container width; resolves `gridLayout` with `selectColumnLayout`; renders ui5-table / ui5-list / card grid / split-panel master-detail |
+
+### Vaadin renderer (`libs/mateu`)
+
+| File | Responsibility |
+|---|---|
+| `layout/weightEngine.ts` (same shared lib) | Same TypeScript weight engine used by both renderers |
+| `mateu-filter-bar` | Reads `filtersLayout`; resolves `'auto'`; renders inline / popover (CSS shadow panel) / Lumo drawer / vaadin-dialog |
+| `mateu-table-crud` | `ResizeObserver`; resolves `gridLayout`; renders vaadin-list-box two-line / vaadin-card grid / split-panel master-detail / existing vaadin-grid table |

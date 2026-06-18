@@ -20,6 +20,8 @@
 
 ## done (para referencia)
 - layout adaptativo de listados: motor de pesos compartido (WeightEstimator), selector de columnas (table/twoLineList/cards/masterDetail) y selector de filtros (inline/popover/drawer/dialog) según ancho real. Nuevas anotaciones @Priority + @Weight + RECORD_COMPONENT target. Nuevos campos GridColumn.priority/identifier/weight y Listing.filtersLayout/gridLayout.
+- motor implementado en renderer SAP UI5: weightEngine.ts (lib compartida), mateu-sapui5-table (ResizeObserver + layouts adaptativos), mateu-sapui5-filter-bar (inline/popover/drawer/dialog).
+- motor implementado en renderer Vaadin: DTOs actualizados (CrudlDto + GridColumnDto), mateu-filter-bar (inline/popover/drawer/dialog con Lumo tokens), mateu-table-crud (ResizeObserver + list/cards/masterDetail/table).
 - exportar CSV / Excel / PDF (módulos opcionales export-excel, export-pdf)
 - buscador con columnas, filtros, etc. (@Searchable / Selector)
 - do not support file type → file upload en campos de formulario
