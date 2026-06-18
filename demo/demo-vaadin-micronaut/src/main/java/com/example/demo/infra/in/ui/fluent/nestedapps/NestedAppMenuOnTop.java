@@ -3,7 +3,6 @@ package com.example.demo.infra.in.ui.fluent.nestedapps;
 import io.mateu.uidl.annotations.HomeRoute;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.RouteLink;
-import io.mateu.uidl.fluent.App;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.AppVariant;

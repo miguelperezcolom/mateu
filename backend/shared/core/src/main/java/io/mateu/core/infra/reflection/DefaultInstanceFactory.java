@@ -3,6 +3,7 @@ package io.mateu.core.infra.reflection;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.InstanceFactory;
 import io.mateu.uidl.interfaces.MateuInstanceFactory;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.lang.reflect.InvocationTargetException;
@@ -15,6 +16,7 @@ public class DefaultInstanceFactory implements InstanceFactory {
   private final ReflectionInstanceFactory reflectionInstanceFactory;
   private static DefaultInstanceFactory _instance;
 
+  @Inject
   public DefaultInstanceFactory(ReflectionInstanceFactory reflectionInstanceFactory) {
     this.reflectionInstanceFactory = reflectionInstanceFactory;
     MateuInstanceFactory.setInstanceFactory(this);

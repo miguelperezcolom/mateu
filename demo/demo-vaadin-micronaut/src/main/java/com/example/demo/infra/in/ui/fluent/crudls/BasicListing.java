@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.mappers.ButtonComponentToDtoMapper.mapButtonToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ButtonMapper.mapButtonToDto;
 
 record Filters(int age) {}
 @Serdeable

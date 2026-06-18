@@ -21,7 +21,7 @@ import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.ListingType;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ListingBackend;
@@ -31,7 +31,7 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
 @Route(value="/use-cases/rra/home", parentRoute="/use-cases/rra")
 @Singleton
@@ -46,7 +46,7 @@ public class HomePage implements ComponentTreeSupplier, ListingBackend<NoFilters
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Page.builder()
+        return PageView.builder()
                 .title("Welcome to the Redwood Reference App")
                 .subtitle("Create and submit orders and review information about inventory.")
                 .content(List.of(Listing.builder()

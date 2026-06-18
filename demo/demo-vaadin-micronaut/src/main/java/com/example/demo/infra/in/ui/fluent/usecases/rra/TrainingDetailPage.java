@@ -13,7 +13,7 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
@@ -42,7 +42,7 @@ public class TrainingDetailPage implements ComponentTreeSupplier, PostHydrationH
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Page.builder()
+        return PageView.builder()
                 .title(training.name())
                 .content(List.of(Form.builder()
                         .header(List.of(ProgressBar.builder()

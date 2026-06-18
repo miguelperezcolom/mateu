@@ -23,7 +23,7 @@ import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ListingBackend;
@@ -70,7 +70,7 @@ public class OrdersPage implements ComponentTreeSupplier, ListingBackend<OrdersF
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Page.builder()
+        return PageView.builder()
                 .title("Orders")
                 .toolbar(List.of(new Button("Create", "create")))
                 .content(List.of(Listing.builder()

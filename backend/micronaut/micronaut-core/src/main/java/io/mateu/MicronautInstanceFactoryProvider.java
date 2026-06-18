@@ -3,6 +3,7 @@ package io.mateu;
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.micronaut.context.annotation.Primary;
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import java.util.Comparator;
 import java.util.List;
@@ -13,6 +14,7 @@ public class MicronautInstanceFactoryProvider implements InstanceFactoryProvider
 
   private final List<InstanceFactory> factories;
 
+  @Inject
   public MicronautInstanceFactoryProvider(List<InstanceFactory> factories) {
     this.factories = factories;
   }

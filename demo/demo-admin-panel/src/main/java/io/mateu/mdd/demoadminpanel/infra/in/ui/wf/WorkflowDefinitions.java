@@ -1,7 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.wf;
 
 import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.mdd.demoadminpanel.infra.in.ui.Home2;
 import io.mateu.uidl.StyleConstants;
@@ -26,8 +25,8 @@ public class WorkflowDefinitions extends AutoCrud<WorkflowDefinition> {
     final WorkflowDefinitionCrudAdapter adapter;
 
     @Override
-    public AutoCrudAdapter<WorkflowDefinition> simpleAdapter() {
-        return adapter;
+    public io.mateu.uidl.interfaces.CrudRepository<WorkflowDefinition> repository() {
+        return adapter.repository();
     }
 
     @Override

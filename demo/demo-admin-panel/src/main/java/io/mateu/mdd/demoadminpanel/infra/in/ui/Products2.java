@@ -109,8 +109,8 @@ class Product2Adapter extends AutoCrudAdapter<Product2> {
 public class Products2 extends AutoCrud<Product2> {
 
     @Override
-    public AutoCrudAdapter<Product2> simpleAdapter() {
-        return new Product2Adapter();
+    public CrudRepository<Product2> repository() {
+        return new Product2Repository();
     }
 
     void setAsBlue(Product2 row) {

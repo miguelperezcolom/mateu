@@ -16,7 +16,7 @@ import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.fluent.ListingType;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ListingBackend;
@@ -28,7 +28,7 @@ import jakarta.inject.Singleton;
 
 import java.util.List;
 
-import static io.mateu.core.domain.out.fragmentmapper.componentbased.ComponentToFragmentDtoMapper.mapComponentToDto;
+import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
 record ProductInventoryFilters() {
 
@@ -56,7 +56,7 @@ public class ProductInventoryPage implements ComponentTreeSupplier, ListingBacke
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Page.builder()
+        return PageView.builder()
                 .title("Product Inventory")
                 .content(List.of(
                         Listing.builder()

@@ -15,7 +15,7 @@ import io.mateu.uidl.fluent.ListingType;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnLoadTrigger;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ListingBackend;
@@ -53,7 +53,7 @@ public class TrainingPage implements ComponentTreeSupplier, ListingBackend<NoFil
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Page.builder()
+        return PageView.builder()
                 .title("Training and Development")
                 .content(List.of(Form.builder()
                         .content(List.of(Listing.builder()

@@ -27,7 +27,7 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.fluent.OnValueChangeTrigger;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
@@ -95,7 +95,7 @@ public class EditOrderPage implements ComponentTreeSupplier, ActionHandler, Trig
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Page.builder()
+        return PageView.builder()
                 .title(getTitle())
                 .subtitle("${state.customerName} ${state.date} Total Amount: ${state.totalAmount}")
                 .content(List.of(Form.builder()

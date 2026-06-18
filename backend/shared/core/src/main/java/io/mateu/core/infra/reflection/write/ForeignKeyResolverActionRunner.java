@@ -26,7 +26,7 @@ public class ForeignKeyResolverActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
-    if (actionId.startsWith("search-")) {
+    if (actionId != null && actionId.startsWith("search-")) {
       var field = getFieldByName(instance.getClass(), actionId.substring("search-".length()));
       if (field != null) {
         return field.isAnnotationPresent(Lookup.class);

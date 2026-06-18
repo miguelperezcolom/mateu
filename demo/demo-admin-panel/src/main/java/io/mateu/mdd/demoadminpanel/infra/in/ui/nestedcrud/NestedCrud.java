@@ -3,6 +3,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.nestedcrud;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.interfaces.CrudRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,10 +12,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class NestedCrud extends AutoCrud<Level1View> {
 
-    final NestedCrudAdapter adapter;
+    final Level1ViewRepository repo;
+
 
     @Override
-    public AutoCrudAdapter<Level1View> simpleAdapter() {
-        return adapter;
+    public CrudRepository<Level1View> repository() {
+        return repo;
     }
 }

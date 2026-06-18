@@ -3,6 +3,7 @@ package io.mateu;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.micronaut.context.ApplicationContext;
+import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.util.Collection;
 import java.util.List;
@@ -12,6 +13,7 @@ public class MicronautBeanProvider implements BeanProvider {
 
   private final ApplicationContext applicationContext;
 
+  @Inject
   public MicronautBeanProvider(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
     MateuBeanProvider.setBeanProvider(this);

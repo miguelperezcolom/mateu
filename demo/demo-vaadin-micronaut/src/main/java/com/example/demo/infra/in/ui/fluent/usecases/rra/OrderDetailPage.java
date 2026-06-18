@@ -13,7 +13,7 @@ import io.mateu.uidl.data.FormSubSection;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Form;
-import io.mateu.uidl.fluent.Page;
+import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.ActionHandler;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
@@ -48,7 +48,7 @@ public class OrderDetailPage implements ComponentTreeSupplier, PostHydrationHand
 
     @Override
     public Component component(HttpRequest httpRequest) {
-        return Page.builder()
+        return PageView.builder()
                 .title("Order " + orderId)
                 .subtitle("${state.name} &nbsp;&nbsp;&nbsp; ${state.date} &nbsp;&nbsp;&nbsp; Total Amount: ${state.totalAmount}")
                 .content(List.of(Form.builder()

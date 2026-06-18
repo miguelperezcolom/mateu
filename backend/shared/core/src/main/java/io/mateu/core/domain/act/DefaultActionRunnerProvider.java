@@ -31,6 +31,19 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
     if (instance == null) {
       throw new NoSuchMethodException("No method with name " + actionId + " on null");
     }
+    if (actionId == null) {
+      return new ActionRunner() {
+        @Override
+        public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
+          return false;
+        }
+
+        @Override
+        public Flux<?> run(Object instance, RunActionCommand command) {
+          return Flux.just(instance);
+        }
+      };
+    }
     if (instance instanceof ActionHandler handlesActions) {
       if (handlesActions.supportsAction(actionId)) {
         return new ActionRunner() {
