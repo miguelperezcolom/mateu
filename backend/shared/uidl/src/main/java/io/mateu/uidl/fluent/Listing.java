@@ -45,7 +45,9 @@ public record Listing(
     String detailPath,
     String onRowSelectionChangedActionId,
     String contentHeight,
-    int initialPage)
+    int initialPage,
+    FiltersLayout filtersLayout,
+    GridLayout gridLayout)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {
@@ -84,5 +86,13 @@ public record Listing(
   @Override
   public int pageSize() {
     return pageSize > 0 ? pageSize : 10;
+  }
+
+  public FiltersLayout filtersLayout() {
+    return filtersLayout != null ? filtersLayout : FiltersLayout.auto;
+  }
+
+  public GridLayout gridLayout() {
+    return gridLayout != null ? gridLayout : GridLayout.auto;
   }
 }

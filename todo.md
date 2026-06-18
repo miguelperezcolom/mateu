@@ -19,6 +19,7 @@
 - add readmes to every module
 
 ## done (para referencia)
+- layout adaptativo de listados: motor de pesos compartido (WeightEstimator), selector de columnas (table/twoLineList/cards/masterDetail) y selector de filtros (inline/popover/drawer/dialog) según ancho real. Nuevas anotaciones @Priority + @Weight + RECORD_COMPONENT target. Nuevos campos GridColumn.priority/identifier/weight y Listing.filtersLayout/gridLayout.
 - exportar CSV / Excel / PDF (módulos opcionales export-excel, export-pdf)
 - buscador con columnas, filtros, etc. (@Searchable / Selector)
 - do not support file type → file upload en campos de formulario
