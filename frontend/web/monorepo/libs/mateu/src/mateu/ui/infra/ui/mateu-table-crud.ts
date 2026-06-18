@@ -83,6 +83,12 @@ export class MateuTableCrud extends LitElement {
         return metadata?.columns?.map(c => c.metadata as GridColumn) ?? []
     }
 
+    private get identifierFieldName(): string | undefined {
+        const annotated = this.cols.find(c => c.identifier)
+        if (annotated) return annotated.id
+        return this.cols.find(c => c.id === 'id')?.id
+    }
+
     private get effectiveGridLayout(): ResolvedGridLayout {
         const metadata = this.component?.metadata as Crud | undefined
         const raw = metadata?.gridLayout ?? 'auto'
@@ -338,6 +344,10 @@ export class MateuTableCrud extends LitElement {
         }
 
         const handleCardClick = (dispatcher: Card, actionId: string, item: any) => {
+            const idField = this.identifierFieldName
+            if (idField && item[idField] !== undefined) {
+                this.state = { ...this.state, _selectedId: String(item[idField]) }
+            }
             dispatcher.dispatchEvent(new CustomEvent('action-requested', {
                 detail: {
                     actionId: actionId,
@@ -349,6 +359,8 @@ export class MateuTableCrud extends LitElement {
         }
 
         const renderCards = () => {
+            const idField = this.identifierFieldName
+            const selectedId = this.state._selectedId ?? this.appState?._splitDetailId
             const visibleCols = allCols.slice(0, 6)
             const imageCols = visibleCols.filter(c => c.stereotype === 'image')
             const titleCol = visibleCols.find(c => c.identifier) ?? visibleCols[0]
@@ -414,6 +426,7 @@ export class MateuTableCrud extends LitElement {
                     ${rows.map(item => html`
                         <vaadin-card
                             clickable
+                            ?data-selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
                             style="cursor: pointer;"
                             @click="${(e: Event) => isSelector
                                 ? dispatchRowAction(e, 'action-on-row-select', item)
@@ -577,6 +590,10 @@ export class MateuTableCrud extends LitElement {
         vaadin-card[clickable]:active {
             box-shadow: none;
             transform: translateY(0);
+        }
+        vaadin-card[data-selected] {
+            outline: 2px solid var(--lumo-primary-color);
+            outline-offset: -2px;
         }
     `
 }
