@@ -6,6 +6,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.uidl.annotations.MainFilter;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
@@ -147,19 +148,25 @@ public class PageListingBuilder {
                     && !ColumnActionGroup.class.equals(field.getType())
                     && !Collection.class.isAssignableFrom(field.getType()))
         .map(
-            field ->
-                (FormField)
-                    getFormField(
-                        field,
-                        instance,
-                        baseUrl,
-                        route,
-                        consumedRoute,
-                        initiatorComponentId,
-                        httpRequest,
-                        false,
-                        2,
-                        0))
+            field -> {
+              var formField =
+                  (FormField)
+                      getFormField(
+                          field,
+                          instance,
+                          baseUrl,
+                          route,
+                          consumedRoute,
+                          initiatorComponentId,
+                          httpRequest,
+                          false,
+                          2,
+                          0);
+              if (field.isAnnotationPresent(MainFilter.class)) {
+                return formField.toBuilder().mainFilter(true).build();
+              }
+              return formField;
+            })
         .toList();
   }
 

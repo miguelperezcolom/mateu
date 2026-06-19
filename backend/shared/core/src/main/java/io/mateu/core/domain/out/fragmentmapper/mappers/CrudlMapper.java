@@ -63,6 +63,7 @@ public class CrudlMapper {
                                     .sliderMax(filter.sliderMax())
                                     .stepButtonsVisible(filter.stepButtonsVisible())
                                     .step(filter.step())
+                                    .mainFilter(filter.mainFilter())
                                     .build())
                         .toList()
                     : List.of())

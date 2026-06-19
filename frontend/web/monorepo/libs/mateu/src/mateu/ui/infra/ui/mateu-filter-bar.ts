@@ -60,9 +60,17 @@ export class MateuFilterBar extends LitElement {
         }
     }
 
+    private get mainFilters(): FormField[] {
+        return (this.metadata?.filters ?? []).filter(f => f.mainFilter)
+    }
+
+    private get secondaryFilters(): FormField[] {
+        return (this.metadata?.filters ?? []).filter(f => !f.mainFilter)
+    }
+
     private get effectiveFiltersLayout(): ResolvedFiltersLayout {
         const raw = this.metadata?.filtersLayout ?? 'auto'
-        if (raw === 'auto') return selectFiltersLayout(this.metadata?.filters ?? [])
+        if (raw === 'auto') return selectFiltersLayout(this.secondaryFilters)
         return raw as ResolvedFiltersLayout
     }
 
@@ -194,7 +202,7 @@ export class MateuFilterBar extends LitElement {
             <mateu-event-interceptor .target="${this}">
                 <vaadin-form-layout max-columns="1" @keydown="${this.handleKey}" auto-responsive>
                     <vaadin-form-row>
-                        ${this.metadata?.filters?.map(filter =>
+                        ${this.secondaryFilters.map(filter =>
                             renderComponent(this, this.wrapFilter(filter), this.baseUrl, this.state, this.data, this.appState, this.appData)
                         )}
                     </vaadin-form-row>
@@ -221,14 +229,20 @@ export class MateuFilterBar extends LitElement {
                 ></vaadin-text-field>
             ` : nothing}
 
+            ${this.mainFilters.length > 0 ? html`
+                ${this.mainFilters.map(filter =>
+                    renderComponent(this, this.wrapFilter(filter), this.baseUrl, this.state, this.data, this.appState, this.appData)
+                )}
+            ` : nothing}
+
             ${this.effectiveFiltersLayout === 'inline' ? html`
-                ${this.metadata?.filters?.map(filter =>
+                ${this.secondaryFilters.map(filter =>
                     renderComponent(this, this.wrapFilter(filter), this.baseUrl, this.state, this.data, this.appState, this.appData)
                 )}
             ` : nothing}
 
             ${(this.effectiveFiltersLayout === 'popover' || this.effectiveFiltersLayout === 'drawer' || this.effectiveFiltersLayout === 'dialog')
-                && this.metadata?.filters && this.metadata.filters.length > 0 ? html`
+                && this.secondaryFilters.length > 0 ? html`
                 <vaadin-button id="filters-toggle-btn" @click="${() => { this.filtersOpened = !this.filtersOpened }}">Filters</vaadin-button>
                 <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
             ` : nothing}

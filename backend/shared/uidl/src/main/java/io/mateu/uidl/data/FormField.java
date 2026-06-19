@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record FormField(
     String id,
     String label,
@@ -37,7 +37,8 @@ public record FormField(
     String detailPath,
     boolean useButtonForDetail,
     String minHeightWhenDetailVisible,
-    int optionsColumns)
+    int optionsColumns,
+    boolean mainFilter)
     implements Component {
 
   public FormField {
