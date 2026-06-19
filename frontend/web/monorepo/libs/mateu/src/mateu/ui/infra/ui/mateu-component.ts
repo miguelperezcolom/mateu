@@ -480,29 +480,51 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    buildFieldLabelMap = (): Record<string, string> => {
+        const map: Record<string, string> = {}
+        const traverse = (nodes: any[] | undefined) => {
+            if (!nodes) return
+            for (const node of nodes) {
+                const meta = (node as ClientSideComponent).metadata
+                if (meta?.type === ComponentMetadataType.FormField) {
+                    const field = meta as any
+                    if (field.fieldId && field.label) map[field.fieldId] = field.label
+                }
+                traverse(node.children)
+            }
+        }
+        traverse(this.component?.children)
+        return map
+    }
+
     notifyValidationErrors = () => {
         const errors = (this.data?.errors ?? {}) as Record<string, string[]>
-        const messages: string[] = []
-        Object.values(errors).forEach(fieldErrors => {
-            if (Array.isArray(fieldErrors)) {
-                fieldErrors.forEach(msg => {
-                    if (msg && !messages.includes(msg)) messages.push(msg)
-                })
-            }
+        const labelMap = this.buildFieldLabelMap()
+        const lines: Array<{label: string | undefined, msg: string}> = []
+        Object.entries(errors).forEach(([fieldId, fieldErrors]) => {
+            if (!Array.isArray(fieldErrors)) return
+            const label = fieldId === '_component' ? undefined : (labelMap[fieldId] ?? fieldId)
+            fieldErrors.forEach(msg => {
+                if (msg && !lines.some(l => l.label === label && l.msg === msg)) {
+                    lines.push({label, msg})
+                }
+            })
         })
-        if (messages.length === 0) {
+        if (lines.length === 0) {
             this.notify('There are validation errors')
             return
         }
         const notification = document.createElement('vaadin-notification') as any
         notification.position = 'bottom-end'
         notification.setAttribute('theme', 'error')
-        notification.duration = Math.max(5000, 3000 + messages.length * 1500)
+        notification.duration = Math.max(5000, 3000 + lines.length * 1500)
         notification.renderer = (root: HTMLElement) => {
             render(html`
                 <vaadin-vertical-layout style="gap: var(--lumo-space-xs);">
                     <strong>There are validation errors</strong>
-                    ${messages.map(m => html`<span>• ${m}</span>`)}
+                    ${lines.map(({label, msg}) => label
+                        ? html`<span>• <b>${label}:</b> ${msg}</span>`
+                        : html`<span>• ${msg}</span>`)}
                 </vaadin-vertical-layout>
             `, root)
         }
