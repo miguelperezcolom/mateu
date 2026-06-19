@@ -35,6 +35,8 @@ import {
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
 import {Card} from "@vaadin/card";
+import { badge } from "@vaadin/vaadin-lumo-styles";
+import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -332,11 +334,66 @@ export class MateuTableCrud extends LitElement {
         const rows: any[] = this.data[this.id]?.page?.content ?? []
         const emptyMsg = this.state[this.component?.id!]?.emptyStateMessage
 
+        const formatListValue = (col: GridColumn, item: any) => {
+            const val = item[col.id]
+            if (val === null || val === undefined) return html``
+            if (col.dataType === 'status') {
+                const theme = getThemeForBadgetType(val.type)
+                return html`<span theme="badge pill ${theme}">${val.message}</span>`
+            }
+            if (col.dataType === 'bool') return html`${val ? '✓' : '✗'}`
+            if (typeof val === 'object') return html`${val.label ?? val.name ?? val.message ?? ''}`
+            return html`${val}`
+        }
+
         const renderTwoLineList = () => {
             const idField = this.identifierFieldName
             const selectedId = this.state._selectedId ?? this.appState?._splitDetailId
             const idCol = compact.find(c => c.identifier) ?? compact[0]
-            const secCols = compact.filter(c => c !== idCol)
+            const isActionButtonCol = (c: GridColumn) =>
+                c.dataType === 'action' || c.dataType === 'actionGroup' || c.dataType === 'menu' || c.stereotype === 'button'
+            const secCols = compact.filter(c => c !== idCol && !isActionButtonCol(c))
+            const actionCols = allCols.filter(c => isActionButtonCol(c))
+
+            const dispatchListRowAction = (e: Event, actionId: string, item: any) => {
+                e.stopPropagation()
+                ;(e.currentTarget as Element).dispatchEvent(new CustomEvent('action-requested', {
+                    detail: { actionId, parameters: { _clickedRow: item } },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+
+            const renderListActionButtons = (item: any) => {
+                const buttons: TemplateResult[] = []
+                for (const col of actionCols) {
+                    const val = item[col.id]
+                    if (col.dataType === 'action') {
+                        const action = val?.methodNameInCrud ? val
+                            : (item as any).action?.methodNameInCrud ? (item as any).action
+                            : { methodNameInCrud: col.id, label: col.label, icon: null, disabled: false }
+                        buttons.push(html`
+                            <vaadin-button theme="tertiary small" title="${action.label || nothing}"
+                                @click="${(e: Event) => dispatchListRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
+                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${action.label ?? nothing}
+                            </vaadin-button>`)
+                    } else if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
+                        const actions: any[] = val?.actions ?? []
+                        actions.forEach(action => buttons.push(html`
+                            <vaadin-button theme="tertiary small" title="${action.label || nothing}"
+                                @click="${(e: Event) => dispatchListRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
+                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${action.label ?? nothing}
+                            </vaadin-button>`))
+                    }
+                }
+                return buttons.length ? html`
+                    <div style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); margin-top: var(--lumo-space-xs);">
+                        ${buttons}
+                    </div>` : nothing
+            }
+
             return html`
                 <vaadin-list-box style="width: 100%;">
                     ${rows.length === 0 ? html`<vaadin-item disabled>${emptyMsg ?? 'No data.'}</vaadin-item>` : nothing}
@@ -352,9 +409,10 @@ export class MateuTableCrud extends LitElement {
                             style="cursor: pointer;"
                         >
                             <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
-                            <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color);">
-                                ${secCols.map(c => html`<span>${c.label}: ${item[c.id] ?? ''}</span>&nbsp;`)}
+                            <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
+                                ${secCols.map(c => html`<span>${c.label}: ${formatListValue(c, item)}</span>`)}
                             </div>
+                            ${renderListActionButtons(item)}
                         </vaadin-item>
                     `)}
                 </vaadin-list-box>`
@@ -388,15 +446,6 @@ export class MateuTableCrud extends LitElement {
             const isSelector = !!selectCol
             const dataCols = visibleCols.filter(c => c !== titleCol && !imageCols.includes(c) && !isNavCol(c) && !isActionButtonCol(c))
             const actionCols = visibleCols.filter(c => isActionButtonCol(c) && !(isSelector && c === selectCol))
-
-            const cardValue = (col: GridColumn, item: any) => {
-                const val = item[col.id]
-                if (val === null || val === undefined) return ''
-                if (col.dataType === 'status') return val.message ?? ''
-                if (col.dataType === 'bool') return val ? '✓' : '✗'
-                if (typeof val === 'object') return val.label ?? val.name ?? val.message ?? ''
-                return val
-            }
 
             const dispatchRowAction = (e: Event, actionId: string, item: any) => {
                 e.stopPropagation()
@@ -455,7 +504,7 @@ export class MateuTableCrud extends LitElement {
                                 ${dataCols.map(col => html`
                                     <div style="display: flex; gap: var(--lumo-space-s); font-size: var(--lumo-font-size-s);">
                                         <span style="color: var(--lumo-secondary-text-color); min-width: 80px;">${col.label}</span>
-                                        <span>${cardValue(col, item)}</span>
+                                        <span>${formatListValue(col, item)}</span>
                                     </div>
                                 `)}
                             </div>
@@ -480,8 +529,8 @@ export class MateuTableCrud extends LitElement {
                                     style="cursor: pointer;"
                                 >
                                     <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
-                                    <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color);">
-                                        ${secCols.map(c => html`${item[c.id] ?? ''} `)}
+                                    <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
+                                        ${secCols.map(c => html`${formatListValue(c, item)} `)}
                                     </div>
                                 </vaadin-item>
                             `)}
@@ -602,6 +651,7 @@ export class MateuTableCrud extends LitElement {
     }
 
     static styles = css`
+        ${badge}
         vaadin-card[clickable] {
             transition: box-shadow 0.15s, transform 0.15s;
         }
