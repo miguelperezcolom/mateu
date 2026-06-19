@@ -625,6 +625,7 @@ export class MateuApp extends ComponentElement {
             padding-top: 1.5rem;
             width: calc(100% - 4rem);
             height: calc(100vh - 6rem);
+            overflow-y: auto;
         }
 
         .menu vaadin-menu-bar-button {
