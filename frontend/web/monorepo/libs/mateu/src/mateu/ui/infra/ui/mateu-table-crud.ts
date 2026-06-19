@@ -496,7 +496,7 @@ export class MateuTableCrud extends LitElement {
                 </div>`
         }
 
-        const tableAndPagination = html`
+        const contentHtml = html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             ` : nothing}
@@ -509,8 +509,9 @@ export class MateuTableCrud extends LitElement {
             : gridLayout === 'masterDetail' ? renderMasterDetail()
             : componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)}
             <slot></slot>
-            ${metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)}
         `
+
+        const paginationHtml = metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)
         const importDialog = html`
             <vaadin-dialog
                 .opened="${this.showImportDialog}"
@@ -532,17 +533,20 @@ export class MateuTableCrud extends LitElement {
         if (this.standalone) {
             return html`
                 ${importDialog}
-                <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow-x: hidden; overflow-y: auto; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--lumo-space-m);">
-                    <mateu-content-header
-                        .metadata="${metadata}"
-                        .baseUrl="${this.baseUrl}"
-                        .state="${this.state}"
-                        .data="${this.data}"
-                        .appState="${this.appState}"
-                        .appData="${this.appData}"
-                    ></mateu-content-header>
-                    ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}
-                    ${tableAndPagination}
+                <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--lumo-space-m); display: flex; flex-direction: column;">
+                    <div style="flex-shrink: 0;">
+                        <mateu-content-header
+                            .metadata="${metadata}"
+                            .baseUrl="${this.baseUrl}"
+                            .state="${this.state}"
+                            .data="${this.data}"
+                            .appState="${this.appState}"
+                            .appData="${this.appData}"
+                        ></mateu-content-header>
+                    </div>
+                    <div style="flex-shrink: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}</div>
+                    <div style="flex: 1; overflow-y: auto; min-height: 0;">${contentHtml}</div>
+                    <div style="flex-shrink: 0;">${paginationHtml}</div>
                 </div>
             `
         }
@@ -576,9 +580,10 @@ export class MateuTableCrud extends LitElement {
                         <slot></slot>
                     </vaadin-horizontal-layout>
                 ` : nothing}
-            <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow-x: hidden; overflow-y: auto; max-height: calc(100dvh - 12rem); padding: var(--lumo-space-m);">
-                ${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
-                ${tableAndPagination}
+            <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--lumo-space-m); display: flex; flex-direction: column;">
+                <div style="flex-shrink: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
+                <div style="flex: 1; overflow-y: auto; min-height: 0;">${contentHtml}</div>
+                <div style="flex-shrink: 0;">${paginationHtml}</div>
             </div>
         `
     }
