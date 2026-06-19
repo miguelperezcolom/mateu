@@ -117,10 +117,12 @@ export class MateuPage extends LitElement {
 
         .page-banner {
             width: 100%;
+            color: #1a1a1a;
         }
 
         .page-banner p {
             margin: 0;
+            color: #1a1a1a;
         }
 
         .page-banner--info {
