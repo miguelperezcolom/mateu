@@ -318,6 +318,7 @@ Move to more advanced techniques only when needed.
 
 ## Next
 
+- [Listing layout](/java-user-manual/build/listing-layout/) — understand how Mateu picks between table, list, cards, and master-detail, and how to override it
 - [Listing row actions](/java-user-manual/build/listing-row-actions/) — add per-row contextual actions with `ColumnAction` and `ColumnActionGroup`
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — explicit separate models for filters, rows, views, and forms

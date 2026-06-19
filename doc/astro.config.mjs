@@ -168,6 +168,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/domain-models' },
 								{ slug: 'java-user-manual/build/crud-navigation-flow' },
 								{ slug: 'java-user-manual/build/customizing-crud-and-listings' },
+								{ slug: 'java-user-manual/build/listing-layout' },
 								{ slug: 'java-user-manual/build/listing-row-actions' },
 								{ slug: 'java-user-manual/build/full-control-crud-orchestrator' },
 								{ slug: 'java-user-manual/build/master-detail' },
