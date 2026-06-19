@@ -9,6 +9,12 @@ import io.mateu.uidl.data.State;
 public class StateMapper {
 
   public static UIFragmentDto mapStateToDto(State state, String targetComponentId) {
-    return new UIFragmentDto(targetComponentId, null, mapItem(state.state()), null, UIFragmentActionDto.ReplaceKeepData, null);
+    return new UIFragmentDto(
+        targetComponentId,
+        null,
+        mapItem(state.state()),
+        null,
+        UIFragmentActionDto.ReplaceKeepData,
+        null);
   }
 }

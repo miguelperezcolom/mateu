@@ -1196,7 +1196,9 @@ export class MateuField extends LitElement {
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
                         step="${this.field.step || nothing}"
-                        step-buttons-visible="${this.field.stepButtonsVisible || nothing}"
+                        ?step-buttons-visible="${this.field.stepButtonsVisible}"
+                        min="${this.field.min != null ? this.field.min : nothing}"
+                        max="${this.field.max != null ? this.field.max : nothing}"
             ></vaadin-number-field>`
         }
         if (this.field?.dataType == 'integer') {
@@ -1259,7 +1261,9 @@ export class MateuField extends LitElement {
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
                         step="${this.field.step || nothing}"
-                        step-buttons-visible="${this.field.stepButtonsVisible || nothing}"
+                        ?step-buttons-visible="${this.field.stepButtonsVisible}"
+                        min="${this.field.min != null ? this.field.min : nothing}"
+                        max="${this.field.max != null ? this.field.max : nothing}"
                 ></vaadin-integer-field>
             `
         }

@@ -118,9 +118,7 @@ export class MateuTableCrud extends LitElement {
 
     search = () => {
         const metadata = (this.component as ClientSideComponent).metadata as Crud
-        this.state.size = metadata.pageSize
-        this.state.page = 0
-        this.state['crud_selected_items'] = []
+        this.state = { ...this.state, size: metadata.pageSize, page: 0, crud_selected_items: [] }
         this._syncStateToUrl(metadata)
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
@@ -173,13 +171,14 @@ export class MateuTableCrud extends LitElement {
         }
     }
 
-    private _initStateFromUrl(metadata: Crud) {
+    private _initStateFromUrl(metadata: Crud, base: Record<string, any>): Record<string, any> {
         const params = new URLSearchParams(window.location.search)
         const filterIds = this._filterIds(metadata)
+        const result = { ...base }
 
         params.forEach((value, key) => {
             if (filterIds.has(key)) {
-                this.state[key] = value
+                result[key] = value
             }
         })
 
@@ -187,7 +186,7 @@ export class MateuTableCrud extends LitElement {
         if (pageParam !== null) {
             const page = parseInt(pageParam, 10)
             if (!isNaN(page) && page > 0) {
-                this.state.page = page
+                result.page = page
             }
         }
 
@@ -197,9 +196,11 @@ export class MateuTableCrud extends LitElement {
                 .map(s => { const [fieldId, direction] = s.split(':'); return fieldId && direction ? {fieldId, direction} : null })
                 .filter(Boolean)
             if (sort.length > 0) {
-                this.state.sort = sort
+                result.sort = sort
             }
         }
+
+        return result
     }
 
     notify = (message: string) => {
@@ -211,12 +212,12 @@ export class MateuTableCrud extends LitElement {
     }
 
     pageChanged(e: CustomEvent) {
-        this.state.page = e.detail.page;
+        this.state = { ...this.state, page: e.detail.page }
         this.handleSearchRequested(undefined)
     }
 
     handleSearchRequested = (callback: (() => void) | undefined) => {
-        this.state['crud_selected_items'] = []
+        this.state = { ...this.state, crud_selected_items: [] }
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this._syncStateToUrl(metadata)
         if (!metadata.infiniteScrolling) {
@@ -235,30 +236,38 @@ export class MateuTableCrud extends LitElement {
 
     fetchMoreElements = (e: CustomEvent) => {
         const {params, callback} = e.detail
-        this.state.size = params.pageSize
-        this.state.page = params.page
+        this.state = { ...this.state, size: params.pageSize, page: params.page }
         this.handleSearchRequested(callback)
     }
 
     directionChanged = (e: CustomEvent) => {
         const sorters = (e.detail.grid as any)._sorters as any[]
-        this.state.sort = sorters.map(sorter =>
-            ({
+        this.state = {
+            ...this.state,
+            sort: sorters.map(sorter => ({
                 fieldId: sorter.__data.path,
-                direction: sorter.__data.direction?directions[sorter.__data.direction as string]:undefined
-            })
-        );
+                direction: sorter.__data.direction ? directions[sorter.__data.direction as string] : undefined
+            }))
+        }
         this.handleSearchRequested(undefined)
     }
+
+    private _initializedForComponentId: string | undefined = undefined
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         if (_changedProperties.has("component")) {
-            const metadata = this.component?.metadata as Crud
-            this.state.size = metadata.pageSize
-            this.state.page = (metadata.initialPage && metadata.initialPage > 0) ? metadata.initialPage : 0
-            this.state.sort = []
-            this._initStateFromUrl(metadata)
+            const componentId = this.component?.id
+            if (componentId !== this._initializedForComponentId) {
+                this._initializedForComponentId = componentId
+                const metadata = this.component?.metadata as Crud
+                this.state = this._initStateFromUrl(metadata, {
+                    ...this.state,
+                    size: metadata.pageSize,
+                    page: (metadata.initialPage && metadata.initialPage > 0) ? metadata.initialPage : 0,
+                    sort: []
+                })
+            }
         }
     }
 
@@ -338,7 +347,7 @@ export class MateuTableCrud extends LitElement {
                                 if (idField && item[idField] !== undefined) {
                                     this.state = { ...this.state, _selectedId: String(item[idField]) }
                                 }
-                                this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: '_rowClick', parameters: item }, bubbles: true, composed: true }))
+                                this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: 'view', parameters: item }, bubbles: true, composed: true }))
                             }}"
                             style="cursor: pointer;"
                         >

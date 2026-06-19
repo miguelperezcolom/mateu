@@ -23,6 +23,7 @@ public record WorkflowDefinition(
         @HiddenInEditor
         String id,
         @NotEmpty
+        @MainFilter
         String name,
         @Hidden
         int version,

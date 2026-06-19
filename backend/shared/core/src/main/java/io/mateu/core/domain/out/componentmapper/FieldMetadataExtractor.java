@@ -12,11 +12,14 @@ import io.mateu.uidl.interfaces.LabelSupplier;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import io.mateu.uidl.interfaces.RequiredSupplier;
 import io.mateu.uidl.interfaces.StyleSupplier;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +113,28 @@ public class FieldMetadataExtractor {
     return field.isAnnotationPresent(NotNull.class)
         || field.isAnnotationPresent(NotEmpty.class)
         || (instance instanceof RequiredSupplier rs && rs.isRequired(field.getName(), httpRequest));
+  }
+
+  static Double getMin(Field field) {
+    if (field.isAnnotationPresent(Min.class)) {
+      return (double) field.getAnnotation(Min.class).value();
+    }
+    return null;
+  }
+
+  static Double getMax(Field field) {
+    if (field.isAnnotationPresent(Max.class)) {
+      return (double) field.getAnnotation(Max.class).value();
+    }
+    return null;
+  }
+
+  static boolean getStepButtonsVisible(Field field) {
+    return int.class.equals(field.getType())
+        || Integer.class.equals(field.getType())
+        || long.class.equals(field.getType())
+        || Long.class.equals(field.getType())
+        || BigInteger.class.equals(field.getType());
   }
 
   static int getSliderMin(Field field) {

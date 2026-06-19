@@ -124,10 +124,11 @@ export class MateuFilterBar extends LitElement {
     valueChanged = (e: CustomEvent) => {
         const value = e.detail.value
         if (typeof value === 'number' && Number.isNaN(value)) return
+        const fieldId = (e.target as HTMLElement).id
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
                 value,
-                fieldId: (e.target as HTMLElement).id
+                fieldId
             },
             bubbles: true,
             composed: true
@@ -220,13 +221,14 @@ export class MateuFilterBar extends LitElement {
             <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;">Search</vaadin-button>`
     }
 
-    renderSearchBar = () => html`
+    renderSearchBar = () => {
+        return html`
         <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: baseline;">
             ${this.metadata?.searchable ? html`
                 <vaadin-text-field
                         id="searchText"
                         @value-changed="${this.valueChanged}"
-                        value="${this.state.searchText}"
+                        .value="${this.state.searchText ?? ''}"
                         autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
                         style="flex: 1;"
                         placeholder="Search..."
@@ -252,7 +254,8 @@ export class MateuFilterBar extends LitElement {
 
             <vaadin-button @click="${() => this.handleButtonClick()}" theme="primary">Search</vaadin-button>
         </vaadin-horizontal-layout>
-    `
+        `
+    }
 
     /** Popover: Vaadin popover anchored to the Filters button. */
     private renderPopover() {

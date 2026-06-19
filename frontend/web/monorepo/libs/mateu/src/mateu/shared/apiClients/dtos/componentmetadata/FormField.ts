@@ -41,6 +41,8 @@ export default interface FormField extends ComponentMetadata {
     sliderMax: number
     stepButtonsVisible: boolean
     step: number
+    min?: number | undefined
+    max?: number | undefined
     itemIdPath: string | undefined
     detailPath: string
     useButtonForDetail: boolean

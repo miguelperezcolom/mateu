@@ -517,7 +517,7 @@ export class MateuComponent extends ComponentElement {
         const notification = document.createElement('vaadin-notification') as any
         notification.position = 'bottom-end'
         notification.setAttribute('theme', 'error')
-        notification.duration = Math.max(5000, 3000 + lines.length * 1500)
+        notification.duration = Math.max(3000, 1500 + lines.length * 1000)
         notification.renderer = (root: HTMLElement) => {
             render(html`
                 <vaadin-vertical-layout style="gap: var(--lumo-space-xs);">
@@ -639,13 +639,7 @@ export class MateuComponent extends ComponentElement {
 
         if ('search' == detail.actionId) {
             if (!this.state.size) {
-                this.state.size = 10
-                this.state.page = 0
-                this.state.sort = []
-            }
-            if (this.state.page == 0) {
-                // miguel
-                //this.data = {...this.data, crud: {}}
+                this.state = { ...this.state, size: 10, page: 0, sort: [] }
             }
         }
 

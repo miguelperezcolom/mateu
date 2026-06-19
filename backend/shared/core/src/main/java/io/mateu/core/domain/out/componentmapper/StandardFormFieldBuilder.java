@@ -26,6 +26,9 @@ final class StandardFormFieldBuilder {
         .required(isRequired(field, instance, httpRequest))
         .sliderMin(getSliderMin(field))
         .sliderMax(getSliderMax(field))
+        .min(getMin(field))
+        .max(getMax(field))
+        .stepButtonsVisible(getStepButtonsVisible(field))
         .remoteCoordinates(getRemoteCoordinates(prefix, field))
         .readOnly(
             readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm, httpRequest))

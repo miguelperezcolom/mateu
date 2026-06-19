@@ -15,6 +15,7 @@ import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.AppLayout;
+import io.mateu.uidl.fluent.GridLayout;
 import io.mateu.uidl.fluent.Trigger;
 import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.*;
@@ -130,6 +131,10 @@ public abstract class Crud<
 
   public Class<Row> rowClass() {
     return getGenericClass(this.getClass(), Crud.class, "Row");
+  }
+
+  public GridLayout gridLayout() {
+    return GridLayout.auto;
   }
 
   public Class<?> entityClass() {

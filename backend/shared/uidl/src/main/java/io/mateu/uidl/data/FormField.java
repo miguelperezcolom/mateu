@@ -32,6 +32,8 @@ public record FormField(
     int sliderMax,
     boolean stepButtonsVisible,
     double step,
+    Double min,
+    Double max,
     String itemIdPath,
     Map<String, String> attributes,
     String detailPath,

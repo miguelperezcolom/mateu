@@ -141,6 +141,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                             httpRequest))
                     .style("min-width: 30rem; display: block;")
                     .initialPage(parseInitialPage(httpRequest.runActionRq().route()))
+                    .gridLayout(orchestrator.gridLayout())
                     .build()))
         .build();
   }
