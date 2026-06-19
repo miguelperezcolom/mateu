@@ -276,6 +276,45 @@ public class OrderRow {
 
 ---
 
+## @PlainText
+
+**Target:** `FIELD`, `METHOD`
+
+No attributes. Renders the field's value as plain, read-only text instead of an input control — denser and unmistakably display-only. Typically combined with [`@ReadOnly`](../visibility/) on information-heavy screens. Booleans render as a check / dash icon.
+
+It is opt-in and orthogonal: it does not change the default rendering of any field that is not annotated, so existing forms are unaffected.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.METHOD})
+public @interface PlainText {}
+```
+
+### Example
+
+```java
+public class CheckInForm {
+    @ReadOnly @PlainText String hotel;
+    @ReadOnly @PlainText LocalDate arrival;
+    @ReadOnly @PlainText boolean guaranteed;   // shown as ✓ / —
+}
+```
+
+Pairs well with [`@Compact`](../layout/#compact) and [`@Zones`](../layout/#zones--zone) for dense, single-screen layouts.
+
+---
+
+## Boolean badges — `FieldStereotype.badge`
+
+Annotating a boolean with `@Stereotype(FieldStereotype.badge)` renders it as a coloured chip whose text is the field label — lit (green) when `true`, muted when `false`. Useful for flag rows where many on/off indicators must be scannable at a glance.
+
+```java
+@ReadOnly @Stereotype(FieldStereotype.badge) @Label("Guaranteed") boolean guaranteed;
+@ReadOnly @Stereotype(FieldStereotype.badge) @Label("VIP")        boolean vip;
+```
+
+---
+
 ## @Stereotype vs @Representation
 
 These two annotations are closely related but govern different rendering contexts:

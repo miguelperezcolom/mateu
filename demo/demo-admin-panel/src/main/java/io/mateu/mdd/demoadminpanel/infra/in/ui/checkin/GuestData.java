@@ -1,5 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
+import io.mateu.uidl.annotations.ColumnWidth;
 import io.mateu.uidl.annotations.Label;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,14 +17,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuestData {
-    @Label("Apellidos") String lastName;
-    @Label("Nombre") String firstName;
-    @Label("Pax") PaxType paxType;
-    @Label("Régimen") MealPlan mealPlan;
-    @Label("Nac.") String nationality;
-    @Label("Estado habitación") RoomState roomState;
-    @Label("Cardex") boolean hasCardex;
-    @Label("Int.") boolean internal;
-    @Label("Aviso") boolean aviso;
+    @ColumnWidth("9rem") @Label("Apellidos") String lastName;
+    @ColumnWidth("7rem") @Label("Nombre") String firstName;
+    @ColumnWidth("4rem") @Label("Pax") PaxType paxType;
+    @ColumnWidth("5.5rem") @Label("Régimen") MealPlan mealPlan;
+    @ColumnWidth("4rem") @Label("Nac.") String nationality;
+    @ColumnWidth("9rem") @Label("Estado habitación") RoomState roomState;
+    @ColumnWidth("5rem") @Label("Cardex") boolean hasCardex;
+    @ColumnWidth("4rem") @Label("Int.") boolean internal;
+    @ColumnWidth("4rem") @Label("Aviso") boolean aviso;
+    // No @ColumnWidth → this column flex-grows to fill the remaining space.
     @Label("Observaciones hotel") String hotelObservations;
 }

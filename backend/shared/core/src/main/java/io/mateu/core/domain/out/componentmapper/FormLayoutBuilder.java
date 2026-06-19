@@ -40,6 +40,19 @@ class FormLayoutBuilder {
     return rows;
   }
 
+  /**
+   * On {@code @Compact} pages, shrink the auto-responsive minimum column width so the layout can
+   * actually pack the requested number of columns (Vaadin's default is ~13em). Null elsewhere so
+   * non-compact forms keep the standard behaviour.
+   */
+  private static String compactColumnWidth(Object instance) {
+    if (instance == null) {
+      return null;
+    }
+    var type = instance instanceof Class ? (Class<?>) instance : instance.getClass();
+    return type.isAnnotationPresent(io.mateu.uidl.annotations.Compact.class) ? "7em" : null;
+  }
+
   static Component toFormLayout(
       SectionFields section,
       String prefix,
@@ -122,6 +135,7 @@ class FormLayoutBuilder {
               .expandColumns(true)
               .maxColumns(maxColumns)
               .autoResponsive(true)
+              .columnWidth(compactColumnWidth(instance))
               .content(
                   buildRows(
                       noTabFields.stream()

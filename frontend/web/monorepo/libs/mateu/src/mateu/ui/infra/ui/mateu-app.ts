@@ -13,6 +13,7 @@ import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import '@vaadin/details'
+import '@vaadin/scroller'
 import '@vaadin/side-nav';
 import ComponentElement from "@infra/ui/ComponentElement";
 import "./mateu-ux"

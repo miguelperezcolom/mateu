@@ -100,6 +100,9 @@ public class FieldTypeMapper {
   }
 
   public static FieldStereotype getStereotype(Field field) {
+    if (field.isAnnotationPresent(PlainText.class)) {
+      return FieldStereotype.plainText;
+    }
     if (field.isAnnotationPresent(Stereotype.class)) {
       return field.getAnnotation(Stereotype.class).value();
     }

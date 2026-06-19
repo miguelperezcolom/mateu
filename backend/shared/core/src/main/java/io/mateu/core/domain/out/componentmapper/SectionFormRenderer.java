@@ -109,7 +109,8 @@ final class SectionFormRenderer {
                                         initiatorComponentId,
                                         httpRequest,
                                         forCreationForm,
-                                        readOnly)))
+                                        readOnly,
+                                        level)))
                             .build())
                     .build())
         .toList();
@@ -128,6 +129,13 @@ final class SectionFormRenderer {
       boolean forCreationForm,
       boolean readOnly,
       int level) {
+    var compact =
+        (instance instanceof Class ? (Class) instance : instance.getClass())
+            .isAnnotationPresent(io.mateu.uidl.annotations.Compact.class);
+    var titleStyle =
+        compact
+            ? "margin: 0 0 0.25rem 0; font-size: var(--lumo-font-size-l); line-height: 1.15;"
+            : "";
     return sections.stream()
         .map(
             section ->
@@ -143,6 +151,7 @@ final class SectionFormRenderer {
                                         Text.builder()
                                             .text(section.value())
                                             .container(getSectionHeaderContainer(level))
+                                            .style(titleStyle)
                                             .build(),
                                         buildFormLayout(
                                             section,
@@ -155,7 +164,8 @@ final class SectionFormRenderer {
                                             initiatorComponentId,
                                             httpRequest,
                                             forCreationForm,
-                                            readOnly)))
+                                            readOnly,
+                                            level)))
                                 .build())
                         .build())
         .toList();
@@ -179,7 +189,13 @@ final class SectionFormRenderer {
       String initiatorComponentId,
       HttpRequest httpRequest,
       boolean forCreationForm,
-      boolean readOnly) {
+      boolean readOnly,
+      int level) {
+    var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
+    // @Section(columns=N) drives the column count when set above the default (1); otherwise fall
+    // back to the form-level column count so forms that don't set it keep their previous behaviour.
+    int columns =
+        section.columns() > 1 ? section.columns() : PageFormBuilder.getFormColumns(instanceType);
     return FormLayoutBuilder.toFormLayout(
         fieldsPerSection.get(section),
         prefix,
@@ -191,7 +207,8 @@ final class SectionFormRenderer {
         httpRequest,
         forCreationForm,
         readOnly,
-        section.columns());
+        columns,
+        level);
   }
 
   /**

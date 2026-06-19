@@ -453,6 +453,35 @@ export class MateuField extends LitElement {
         const labelText = this.field?.label + ''
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
+        if (this.field?.stereotype == 'badge') {
+            const on = value === true || value === 'true'
+            return html`<vaadin-custom-field
+                    id="${this.field.fieldId}"
+                    data-colspan="${this.field?.colspan}"
+                    style="${this.field?.style}"
+            ><span theme="badge ${on ? 'success' : ''} pill" style="${on ? '' : 'opacity: 0.4;'}">${labelText}</span>
+            </vaadin-custom-field>`
+        }
+
+        if (this.field?.stereotype == 'plainText') {
+            let v = evalIfNecessary(value, this.state, this.data)
+            if (v && (v as any).value) v = (v as any).value
+            const isBool = this.field?.dataType == 'bool' || v === true || v === false
+            const body = isBool
+                ? html`<vaadin-icon icon="${(v === true || v === 'true') ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
+                : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(v !== null && v !== undefined && v !== '') ? String(v) : '—'}</span>`
+            // Rendered as a tight block (no vaadin-custom-field chrome) so read-only fields are dense.
+            // mateu-field itself is the form-layout column item, so this does not affect column layout.
+            return html`<div
+                    id="${this.field.fieldId}"
+                    data-colspan="${this.field?.colspan}"
+                    style="display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.2; padding: 2px 0; ${this.field?.style}"
+            >
+                <span style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); line-height: 1.1;">${label === nothing ? '' : label}</span>
+                ${body}
+            </div>`
+        }
+
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) {
             let valueToDisplay = evalIfNecessary(value, this.state, this.data) || this.data[fieldId]
             if (valueToDisplay && (valueToDisplay as any).value) {
@@ -1707,13 +1736,28 @@ export class MateuField extends LitElement {
 
     static styles = css`
         ${badge}
-        
+
         .mateu-checkbox-group-multi-column::part(group-field) {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0.5rem 3rem;
         }
-        
+
+        /* Field-label density. Defaults reproduce the standard look; a page can compress all of
+           them at once by setting the --mateu-label-* variables (e.g. via the @Compact preset). */
+        vaadin-text-field::part(label),
+        vaadin-text-area::part(label),
+        vaadin-combo-box::part(label),
+        vaadin-date-picker::part(label),
+        vaadin-time-picker::part(label),
+        vaadin-number-field::part(label),
+        vaadin-email-field::part(label),
+        vaadin-password-field::part(label),
+        vaadin-custom-field::part(label) {
+            font-size: var(--mateu-label-font-size, var(--lumo-font-size-s));
+            padding-bottom: var(--mateu-label-padding-bottom, 7px);
+            line-height: var(--mateu-label-line-height, 1);
+        }
   `
 }
 

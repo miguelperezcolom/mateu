@@ -2,9 +2,11 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
@@ -18,6 +20,8 @@ import io.mateu.uidl.annotations.Zone;
 import io.mateu.uidl.annotations.Zones;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.di.MateuBeanProvider;
+import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.interfaces.HeaderSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -26,6 +30,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -42,12 +47,13 @@ import java.util.List;
 @Trigger(type = TriggerType.OnLoad, actionId = "load")
 @ConfirmOnNavigationIfDirty
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
+@Compact
 @Title("Check-in")
 @Zones({
     @Zone(name = "left", width = "64%"),
     @Zone(name = "right", width = "36%")
 })
-public class CheckInForm {
+public class CheckInForm implements HeaderSupplier {
 
     final ReservationLineRepository repository;
 
@@ -56,40 +62,43 @@ public class CheckInForm {
     }
 
     @Hidden String id;
+    @Hidden String currency;
 
     // ===================== Información general de la reserva =====================
-    @Section(value = "Información general de la reserva", columns = 4, zone = "left")
-    @ReadOnly @Label("Localizador") String localizador;
-    @ReadOnly @Label("Agencia") String agencia;
-    @ReadOnly @Label("Hotel") String hotel;
-    @ReadOnly @Label("Régimen") MealPlan mealPlan;
-    @ReadOnly @Label("Tipo cobro") String chargeType;
-    @ReadOnly @Label("Llegada") LocalDate arrivalDate;
-    @ReadOnly @Label("Noches") int nights;
-    @ReadOnly @Label("Salida") LocalDate departureDate;
-    @ReadOnly @Label("Tiempo esperando") String waitingTime;
-    @ReadOnly @Label("Adultos") int adults;
-    @ReadOnly @Label("Niños") int children;
-    @ReadOnly @Label("Bebés") int babies;
-    @ReadOnly @Label("Estado") String reservationStatus;
-    @ReadOnly @Label("Ref. tarifa") String tarifaRef;
-    @ReadOnly @Label("Tipo tarifa") String tarifaType;
-    @ReadOnly @Label("Grupo res.") String grupoRes;
-    @ReadOnly @Label("Grupo op.") String grupoOp;
-    @ReadOnly @Label("Garantizada") boolean garantizada;
-    @ReadOnly @Label("Terceros") boolean terceros;
-    @ReadOnly @Label("Pdte. Int.") boolean pdteInt;
-    @ReadOnly @Label("Exp.") boolean exp;
-    @ReadOnly @Label("Múltiple") boolean multiple;
-    @ReadOnly @Label("VIP") boolean vip;
-    @ReadOnly @Label("Riu Class") String riuClass;
-    @ReadOnly @Label("Requiere") String requiere;
+    // These are already shown in the page context header, so they are hidden from the form body.
+    @Hidden String localizador;
+    @Hidden String agencia;
+    @Hidden String hotel;
+    @Hidden MealPlan mealPlan;
+    @Hidden String chargeType;
+    @Hidden LocalDate arrivalDate;
+    @Hidden int nights;
+    @Hidden LocalDate departureDate;
+    @Hidden int adults;
+    @Hidden int children;
+    @Hidden int babies;
+    @Hidden String reservationStatus;
+
+    @Section(value = "Información general de la reserva", columns = 8, zone = "left")
+    @ReadOnly @PlainText @Label("Tiempo esperando") String waitingTime;
+    @ReadOnly @PlainText @Label("Ref. tarifa") String tarifaRef;
+    @ReadOnly @PlainText @Label("Tipo tarifa") String tarifaType;
+    @ReadOnly @PlainText @Label("Grupo res.") String grupoRes;
+    @ReadOnly @PlainText @Label("Grupo op.") String grupoOp;
+    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Garantizada") boolean garantizada;
+    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Terceros") boolean terceros;
+    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Pdte. Int.") boolean pdteInt;
+    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Exp.") boolean exp;
+    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Múltiple") boolean multiple;
+    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("VIP") boolean vip;
+    @ReadOnly @PlainText @Label("Riu Class") String riuClass;
+    @ReadOnly @PlainText @Label("Requiere") String requiere;
 
     // ===================== Check-in =====================
     @Section(value = "Check-in", columns = 4, zone = "left")
     @Label("Nº habitación") String assignedRoom;
-    @ReadOnly @Label("Tipo hab. física") String roomTypePhysical;
-    @ReadOnly @Label("Tipo hab. contratada") String roomType;
+    @ReadOnly @PlainText @Label("Tipo hab. física") String roomTypePhysical;
+    @ReadOnly @PlainText @Label("Tipo hab. contratada") String roomType;
     @Label("Upgrade") boolean upgrade;
     @Label("Espera") boolean espera;
     @Stereotype(FieldStereotype.textarea) @Label("Deseos") String deseos;
@@ -98,11 +107,13 @@ public class CheckInForm {
 
     // ===================== Detalle de estancia (PAX) =====================
     @Section(value = "Detalle de estancia (huéspedes)", columns = 1, zone = "left")
+    @ReadOnly
+    @Label("")
     @Stereotype(FieldStereotype.grid)
     List<GuestData> guests = new ArrayList<>();
 
     // ===================== Información cliente (tabs) =====================
-    @Section(value = "Información cliente", zone = "left")
+    @Section(value = "Información cliente", columns = 5, zone = "left")
     @Tab("Info Cardex")
     @Label("Apellidos") String leadLastName;
     @Label("Nombre") String leadFirstName;
@@ -129,20 +140,21 @@ public class CheckInForm {
     @Label("Cardex provisional") boolean leadProvisionalCardex;
 
     @Tab("Datos Empresa")
-    @ReadOnly @Label("Razón social") String companyName;
-    @ReadOnly @Label("CIF") String cif;
-    @ReadOnly @Label("Email facturación") String billingEmail;
-    @ReadOnly @Label("Dirección fiscal") String fiscalAddress;
-    @ReadOnly @Label("Forma de pago") String paymentTerms;
+    @ReadOnly @PlainText @Label("Razón social") String companyName;
+    @ReadOnly @PlainText @Label("CIF") String cif;
+    @ReadOnly @PlainText @Label("Email facturación") String billingEmail;
+    @ReadOnly @PlainText @Label("Dirección fiscal") String fiscalAddress;
+    @ReadOnly @PlainText @Label("Forma de pago") String paymentTerms;
 
     @Tab("Datos Tarjeta")
-    @ReadOnly @Label("Tipo tarjeta") String cardTypeName;
-    @ReadOnly @Label("4 últimos dígitos") String cardLast4Tab;
-    @ReadOnly @Label("Caducidad") String cardExpiry;
-    @ReadOnly @Label("Titular") String cardHolder;
-    @ReadOnly @Label("Garantía validada") boolean cardValidated;
+    @ReadOnly @PlainText @Label("Tipo tarjeta") String cardTypeName;
+    @ReadOnly @PlainText @Label("4 últimos dígitos") String cardLast4Tab;
+    @ReadOnly @PlainText @Label("Caducidad") String cardExpiry;
+    @ReadOnly @PlainText @Label("Titular") String cardHolder;
+    @ReadOnly @PlainText @Label("Garantía validada") boolean cardValidated;
 
     @Tab("Histórico cliente")
+    @ReadOnly
     @Stereotype(FieldStereotype.grid)
     List<HistoryStay> historyStays = new ArrayList<>();
 
@@ -151,38 +163,40 @@ public class CheckInForm {
 
     // ===================== Importes =====================
     @Section(value = "Importes", columns = 1, zone = "right")
+    @ReadOnly
+    @Label("")
     @Stereotype(FieldStereotype.grid)
     List<ImporteLine> importes = new ArrayList<>();
 
     // ===================== Información habitación =====================
-    @Section(value = "Información habitación", columns = 2, zone = "right")
-    @ReadOnly @Label("Nº habitación") String roomInfoNumber;
-    @ReadOnly @Label("Dobles / Individuales") String beds;
-    @ReadOnly @Label("Estado") RoomState roomState;
+    @Section(value = "Información habitación", columns = 3, zone = "right")
+    @ReadOnly @PlainText @Label("Nº habitación") String roomInfoNumber;
+    @ReadOnly @PlainText @Label("Dobles / Individuales") String beds;
+    @ReadOnly @PlainText @Label("Estado") RoomState roomState;
     @Label("Checkout") boolean checkout;
-    @ReadOnly @Label("Observaciones") String roomObservations;
+    @ReadOnly @PlainText @Label("Observaciones") String roomObservations;
     @Stereotype(FieldStereotype.textarea) @Label("Averías") String averias;
 
     // ===================== Historial cliente =====================
-    @Section(value = "Historial cliente", columns = 2, zone = "right")
-    @ReadOnly @Label("Tipo Riu Class") String riuClassType;
-    @ReadOnly @Label("Último hotel") String lastHotel;
-    @ReadOnly @Label("RPC") boolean rpc;
-    @ReadOnly @Label("Repetido") int repeated;
-    @ReadOnly @Label("Tipo cliente") String clientType;
-    @ReadOnly @Label("Nº Attn H") int attnH;
-    @ReadOnly @Label("Última habitación") String lastRoom;
+    @Section(value = "Historial cliente", columns = 3, zone = "right")
+    @ReadOnly @PlainText @Label("Tipo Riu Class") String riuClassType;
+    @ReadOnly @PlainText @Label("Último hotel") String lastHotel;
+    @ReadOnly @PlainText @Label("RPC") boolean rpc;
+    @ReadOnly @PlainText @Label("Repetido") int repeated;
+    @ReadOnly @PlainText @Label("Tipo cliente") String clientType;
+    @ReadOnly @PlainText @Label("Nº Attn H") int attnH;
+    @ReadOnly @PlainText @Label("Última habitación") String lastRoom;
     @Stereotype(FieldStereotype.textarea) @Label("Preferencias") String historialPreferences;
 
     // ===================== Folios / Anticipos =====================
-    @Section(value = "Folios / Anticipos", columns = 2, zone = "right")
+    @Section(value = "Folios / Anticipos", columns = 3, zone = "right")
     @Label("Crédito cancelado") boolean creditCancelled;
     @Label("Imprimir recibo") boolean printReceipt;
     @Label("Límite crédito") BigDecimal creditLimit;
-    @ReadOnly @Label("Tipo tarjeta") String cardType;
-    @ReadOnly @Label("4 últimos dígitos") String cardLast4;
+    @ReadOnly @PlainText @Label("Tipo tarjeta") String cardType;
+    @ReadOnly @PlainText @Label("4 últimos dígitos") String cardLast4;
     @Label("Entrega a cuenta") BigDecimal deposit;
-    @ReadOnly @Label("Saldo pendiente") BigDecimal saldoPendiente;
+    @ReadOnly @PlainText @Label("Saldo pendiente") BigDecimal saldoPendiente;
 
     Object load(HttpRequest httpRequest) {
         return populate() ? (Object) new State(this) : Message.success("Reservation not found");
@@ -198,6 +212,7 @@ public class CheckInForm {
         {
             // Reservation
             localizador = line.getLocalizador();
+            currency = line.getCurrency();
             agencia = line.getAgencia();
             hotel = line.getHotel();
             mealPlan = line.getMealPlan();
@@ -308,6 +323,75 @@ public class CheckInForm {
             saldoPendiente = line.getSaldoPendiente();
         }
         return true;
+    }
+
+    /** Context strip shown above the two columns: reservation identity + active-flag badges. */
+    @Override
+    public Collection<Component> header() {
+        var info = HorizontalLayout.builder()
+                .spacing(true)
+                .style("flex-wrap: wrap; align-items: baseline; gap: 2px 1.75rem; width: 100%;")
+                .content(List.of(
+                        item("Localizador", localizador),
+                        item("Hotel", hotel),
+                        item("Agencia", agencia),
+                        item("Estado", reservationStatus),
+                        item("Estancia", arrivalDate + " → " + departureDate + " · " + nights + "N"),
+                        item("Ocupación", adults + " AD · " + children + " CH · " + babies + " BB"),
+                        item("Régimen", mealPlan != null ? mealPlan.name() : "—"),
+                        item("Tipo cobro", chargeType),
+                        item("Saldo", (saldoPendiente != null ? saldoPendiente.toPlainString() : "0")
+                                + " " + nz(currency))))
+                .build();
+
+        var flags = new ArrayList<Component>();
+        if (garantizada) flags.add(badge("Garantizada", "success"));
+        if (vip) flags.add(badge("VIP", "contrast"));
+        if (riuClass != null && !riuClass.isBlank()) flags.add(badge("Riu Class " + riuClass, "success"));
+        if (multiple) flags.add(badge("Múltiple", "normal"));
+        if (espera) flags.add(badge("Espera", "warning"));
+        if (terceros) flags.add(badge("Terceros", "normal"));
+        if (pdteInt) flags.add(badge("Pdte. Int.", "normal"));
+        if (exp) flags.add(badge("Exp.", "normal"));
+        if (saldoPendiente != null && saldoPendiente.signum() > 0)
+            flags.add(badge("Saldo pendiente", "error"));
+
+        var badgesRow = HorizontalLayout.builder()
+                .spacing(true)
+                .style("flex-wrap: wrap; gap: 6px; width: 100%;")
+                .content(flags)
+                .build();
+
+        return List.of(
+                VerticalLayout.builder()
+                        .spacing(true)
+                        .style("width: 100%;")
+                        .content(List.of(info, badgesRow))
+                        .build());
+    }
+
+    private static Component item(String label, String value) {
+        return VerticalLayout.builder()
+                .spacing(false)
+                .padding(false)
+                .style("min-width: 0; line-height: 1.15;")
+                .content(List.of(
+                        Text.builder().text(label).container(TextContainer.div)
+                                .style("font-size: 10px; text-transform: uppercase; letter-spacing: .3px;"
+                                        + " color: var(--lumo-secondary-text-color);")
+                                .build(),
+                        Text.builder().text(nz(value)).container(TextContainer.div)
+                                .style("font-size: 13px; font-weight: 600;")
+                                .build()))
+                .build();
+    }
+
+    private static Component badge(String text, String color) {
+        return Badge.builder().text(text).color(color).pill(true).small(true).build();
+    }
+
+    private static String nz(String s) {
+        return s == null || s.isBlank() ? "—" : s;
     }
 
     private ReservationLine apply(ReservationLine line) {

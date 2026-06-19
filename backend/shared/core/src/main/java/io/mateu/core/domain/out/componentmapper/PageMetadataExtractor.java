@@ -73,10 +73,14 @@ final class PageMetadataExtractor {
   }
 
   static String getStyle(Object instance) {
-    if (instance.getClass().isAnnotationPresent(Style.class)) {
-      return instance.getClass().getAnnotation(Style.class).value();
+    var style =
+        instance.getClass().isAnnotationPresent(Style.class)
+            ? instance.getClass().getAnnotation(Style.class).value()
+            : "";
+    if (instance.getClass().isAnnotationPresent(io.mateu.uidl.annotations.Compact.class)) {
+      style = style + ";" + io.mateu.uidl.StyleConstants.COMPACT;
     }
-    return null;
+    return style.isBlank() ? null : style;
   }
 
   @SneakyThrows
