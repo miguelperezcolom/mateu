@@ -1,6 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.mdd.demoadminpanel.infra.in.ui.changes.Changes;
+import io.mateu.mdd.demoadminpanel.infra.in.ui.checkin.CheckInListing;
 import io.mateu.mdd.demoadminpanel.infra.in.ui.reservations.Reservations;
 import io.mateu.mdd.demoadminpanel.infra.in.ui.wizard.Wizard1;
 import io.mateu.uidl.StyleConstants;
@@ -21,6 +22,9 @@ import java.util.List;
 @AI(sse = "http://localhost:8095/ai/api/agent/stream")
 @App(AppVariant.TILES)
 public class Home2 implements WidgetSupplier {
+
+    @Menu
+    CheckInListing checkInListing;
 
     @Menu
     Reservations reservations;
@@ -64,6 +68,9 @@ public class Home2 implements WidgetSupplier {
 
     @Menu
     HotelSelector hotelSelector;
+
+    @Menu
+    BannerDemoPage bannerDemo;
 
 
     @NotEmpty
