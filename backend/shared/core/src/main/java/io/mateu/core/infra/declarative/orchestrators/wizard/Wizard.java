@@ -72,13 +72,13 @@ public abstract class Wizard
         .content(
             List.of(
                 ProgressBar.builder()
-                    .value(position + 1)
+                    .value(position == numberOfSteps() - 1 ? numberOfSteps() : position)
                     .max(numberOfSteps())
                     .text(getLabel(currentStepField()))
                     .style("width: 100%;")
                     .build(),
                 Div.builder()
-                    .style("width: 100%;")
+                    .style("width: 100%; margin-top: 1rem;")
                     .children(
                         (List<Component>)
                             getForm(

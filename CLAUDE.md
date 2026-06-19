@@ -138,3 +138,4 @@ Response is `UIIncrementDto` (see `backend/shared/dtos`).
 - `HttpRequest` can be added to any method signature; Mateu injects it automatically.
 - i18n: implement `Translator` or rely on the default `DefaultTranslator`.
 - The `uidl` module is the **only** dependency needed for writing `@UI` classes in a framework-agnostic module.
+- **Wizards**: extend `Wizard` and declare fields implementing `WizardStep` for each step. The **penultimate** step shows the `@WizardCompletionAction` button; the **last** step is a read-only result screen shown after the action executes. The last step is instantiated automatically if null (preserving field defaults), or the wizard can set it explicitly inside the completion method. The progress bar starts at 0 and shows 100% on the result step. No navigation buttons are shown on the result step.

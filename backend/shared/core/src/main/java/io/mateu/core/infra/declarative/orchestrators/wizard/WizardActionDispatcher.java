@@ -53,6 +53,7 @@ final class WizardActionDispatcher {
         if (result != null) {
           return result;
         }
+        wizard.position = wizard.numberOfSteps() - 1;
       }
     }
     return wizard;

@@ -36,7 +36,11 @@ final class WizardStepInspector {
     if (value != null) {
       return value;
     }
-    return field.getType();
+    try {
+      return field.getType().getDeclaredConstructor().newInstance();
+    } catch (Exception e) {
+      return field.getType();
+    }
   }
 
   static List<Validation> validations(Wizard wizard) {
