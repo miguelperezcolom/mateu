@@ -297,10 +297,7 @@ export class MateuComponent extends ComponentElement {
         }
         if (_changedProperties.has('component')) {
             this.formerState = {...this.state}
-            if (this.component?.id != _changedProperties.get('component')?.id
-            || (this.component as ServerSideComponent)?.route != _changedProperties.get('component')?.route) {
-                setTimeout(() => this.triggerOnLoad())
-            }
+            setTimeout(() => this.triggerOnLoad())
         }
     }
 
