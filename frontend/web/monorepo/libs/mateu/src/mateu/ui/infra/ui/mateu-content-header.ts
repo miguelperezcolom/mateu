@@ -118,15 +118,15 @@ export class MateuContentHeader extends LitElement {
             ` : hasMainHeader ? html`
                 <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
-                    <vaadin-vertical-layout style="flex: 1">
-                        ${level == 0?html`<h2 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>`:nothing}
-                        ${level == 1?html`<h3 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
-                        ${level == 2?html`<h4 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h4>`:nothing}
-                        ${level == 3?html`<h5 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h5>`:nothing}
-                        ${level > 3?html`<h6 style="margin: 0; margin-block-end: 0px;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h6>`:nothing}
+                    <div style="flex: 1; min-width: 0; overflow: hidden;">
+                        ${level == 0?html`<h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>`:nothing}
+                        ${level == 1?html`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
+                        ${level == 2?html`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h4>`:nothing}
+                        ${level == 3?html`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h5>`:nothing}
+                        ${level > 3?html`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h6>`:nothing}
 
-                        <span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>
-                    </vaadin-vertical-layout>
+                        ${metadata?.subtitle ? html`<span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
+                    </div>
                     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                         ${metadata?.kpis?.map((kpi) => html`
                             <vaadin-vertical-layout style="align-items: center">
@@ -153,6 +153,7 @@ export class MateuContentHeader extends LitElement {
         :host {
             display: block;
             width: 100%;
+            padding-top: var(--lumo-space-m);
         }
 
         .toolbar-divider {
