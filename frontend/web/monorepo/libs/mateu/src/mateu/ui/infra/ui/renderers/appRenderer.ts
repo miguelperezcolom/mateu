@@ -130,7 +130,6 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <vaadin-app-layout style="${metadata?.style}" class="${metadata?.cssClasses}" .drawerOpened=${!metadata.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
-                    ${metadata.sseUrl ? html`<vaadin-button slot="navbar" @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
                     <vaadin-scroller slot="drawer" class="p-s"
                                      @navigation-requested="${container.updateRoute}">
                         ${metadata.menu && metadata.totalMenuOptions > 10?html`
@@ -160,7 +159,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                     </div>
                 </vaadin-app-layout>
@@ -189,7 +188,6 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
-                            ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
@@ -209,7 +207,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                     </div>
                 </vaadin-vertical-layout>
@@ -238,7 +236,6 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
-                            ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
@@ -259,7 +256,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                         `}
                     </div>
@@ -287,7 +284,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                     </div>
                 </div>
@@ -300,8 +297,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <vaadin-vertical-layout
                                 @navigation-requested="${container.updateRoute}">
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}
-                            ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin: 1rem;">IA</vaadin-button>` : nothing}
-                        </vaadin-vertical-layout>
+                                                    </vaadin-vertical-layout>
                     </vaadin-scroller>
                     <div class="app-content">
                         <vaadin-master-detail-layout>
@@ -320,7 +316,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                     </div>
                 </vaadin-horizontal-layout>
@@ -360,7 +356,6 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             </vaadin-tabs>
                             <vaadin-horizontal-layout>
                                 <slot name="widgets"></slot>
-                                ${metadata.sseUrl ? html`<vaadin-button @click="${container.showHideIa}" theme="tertiary-inline" style="margin-left: 1rem; margin-right: 1rem;">IA</vaadin-button>` : nothing}
                             </vaadin-horizontal-layout>
                         </vaadin-horizontal-layout>
                     </div>
@@ -383,13 +378,18 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                     ></mateu-ux>
                                 </mateu-api-caller>
                             </vaadin-scroller>
-                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
+                            ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .menu="${metadata.menu}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" class="" @navigation-requested="${container.updateRoute}"></mateu-chat>` : nothing}
                         </vaadin-master-detail-layout>
                     </div>
                 </div>
             
             `:nothing}
 
+            ${metadata.sseUrl ? html`
+                <button class="ai-fab" @click="${container.showHideIa}" title="Asistente IA">
+                    <vaadin-icon icon="vaadin:comments-o"></vaadin-icon>
+                </button>
+            ` : nothing}
             ${container.renderCommandPalette()}
             <slot></slot>
        `

@@ -813,6 +813,31 @@ export class MateuApp extends ComponentElement {
             font-size: var(--lumo-font-size-s);
         }
 
+        .ai-fab {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: var(--lumo-primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            z-index: 900;
+            transition: background 0.2s, transform 0.1s;
+            font-size: 1.4rem;
+        }
+
+        .ai-fab:hover {
+            background: var(--lumo-primary-color-50pct);
+            transform: scale(1.08);
+        }
+
   `
 }
 
