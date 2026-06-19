@@ -830,7 +830,7 @@ export class MateuApp extends ComponentElement {
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
             z-index: 900;
             transition: background 0.2s, transform 0.1s;
-            font-size: 1.4rem;
+            font-size: 1rem;
         }
 
         .ai-fab:hover {
