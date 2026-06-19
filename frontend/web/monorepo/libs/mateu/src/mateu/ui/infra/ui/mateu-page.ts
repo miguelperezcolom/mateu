@@ -76,7 +76,7 @@ export class MateuPage extends LitElement {
                 <div class="page-banners">
                     ${banners.map(banner => html`
                         <vaadin-card class="page-banner page-banner--${this.bannerThemeClass(banner)}">
-                            ${banner.title ? html`<span slot="title">${banner.title}</span>` : nothing}
+                            ${banner.title ? html`<span slot="title" style="color: #1a1a1a;">${banner.title}</span>` : nothing}
                             ${banner.description ? html`<p>${banner.description}</p>` : nothing}
                         </vaadin-card>
                     `)}
