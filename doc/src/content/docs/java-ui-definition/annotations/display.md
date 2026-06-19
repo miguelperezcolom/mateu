@@ -222,6 +222,60 @@ public class WizardForm {
 
 ---
 
+## @Status
+
+**Target:** `FIELD`
+
+Renders an enum or String field as a coloured status badge in listings and detail views. Requires two mandatory attributes — `mappings` (enum value → badge colour) and `defaultStatus` (fallback colour for unmapped values).
+
+```java
+public @interface Status {
+    StatusMapping[] mappings();
+    StatusType defaultStatus();
+}
+```
+
+```java
+public @interface StatusMapping {
+    String from();   // enum constant name or string value
+    StatusType to(); // badge colour
+}
+```
+
+### `StatusType` values
+
+| Value | Colour |
+|---|---|
+| `SUCCESS` | Green |
+| `WARNING` | Orange / yellow |
+| `DANGER` | Red |
+| `CONTRAST` | High-contrast (dark) |
+| `NONE` | Default / neutral |
+
+### Example
+
+```java
+public enum OrderStatus { PENDING, CONFIRMED, CANCELLED, NO_SHOW }
+
+public class OrderRow {
+
+    @Status(
+        defaultStatus = StatusType.NONE,
+        mappings = {
+            @StatusMapping(from = "PENDING",   to = StatusType.WARNING),
+            @StatusMapping(from = "CONFIRMED", to = StatusType.SUCCESS),
+            @StatusMapping(from = "CANCELLED", to = StatusType.DANGER),
+            @StatusMapping(from = "NO_SHOW",   to = StatusType.CONTRAST)
+        }
+    )
+    OrderStatus status;
+}
+```
+
+> **Note:** Both `mappings` and `defaultStatus` are mandatory — `@Status` alone does not compile. The `from` string must match the enum constant name exactly (case-sensitive).
+
+---
+
 ## @Stereotype vs @Representation
 
 These two annotations are closely related but govern different rendering contexts:

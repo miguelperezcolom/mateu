@@ -49,6 +49,32 @@ public record Product(
 ) implements Identifiable {}
 ```
 
+### Records vs classes for `Identifiable`
+
+`Identifiable` requires a single method `String id()`. Java records satisfy this automatically — the compiler generates `id()` from the record component. Regular classes with Lombok's `@Data` do **not**: Lombok generates `getId()`, not `id()`. If you use a class, add the override explicitly:
+
+```java
+// ✅ record — id() generated automatically
+public record Product(String id, String name) implements Identifiable {}
+
+// ✅ class — must add id() manually
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Product implements Identifiable {
+    String id;
+    String name;
+
+    @Override
+    public String id() { return id; }
+}
+```
+
+Prefer records for row/entity types when they are immutable. Use classes when you need Lombok's `@Builder` combined with `@NoArgsConstructor` (e.g. for JPA or in-memory stores that mutate the entity after construction).
+
+---
+
 This already gives you:
 
 - list

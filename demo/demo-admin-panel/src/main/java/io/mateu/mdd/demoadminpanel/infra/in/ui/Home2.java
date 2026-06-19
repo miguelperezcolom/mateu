@@ -1,6 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
 import io.mateu.mdd.demoadminpanel.infra.in.ui.changes.Changes;
+import io.mateu.mdd.demoadminpanel.infra.in.ui.reservations.Reservations;
 import io.mateu.mdd.demoadminpanel.infra.in.ui.wizard.Wizard1;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
@@ -20,6 +21,9 @@ import java.util.List;
 @AI(sse = "http://localhost:8095/ai/api/agent/stream")
 @App(AppVariant.TILES)
 public class Home2 implements WidgetSupplier {
+
+    @Menu
+    Reservations reservations;
 
     @Menu
     Wizard1 wizard1;
