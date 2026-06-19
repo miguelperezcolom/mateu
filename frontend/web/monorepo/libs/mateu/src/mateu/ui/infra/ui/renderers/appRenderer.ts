@@ -5,8 +5,10 @@ import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 const renderThemeToggle = (metadata: App, container: MateuApp) =>
     metadata.themeToggle ? html`
-        <vaadin-button theme="icon tertiary" @click="${container.toggleTheme}" title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}">
-            <vaadin-icon icon="${container.isDark ? 'vaadin:sun-o' : 'vaadin:moon'}"></vaadin-icon>
+        <vaadin-button theme="icon" @click="${container.toggleTheme}"
+            title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}"
+            style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
+            <vaadin-icon icon="${container.isDark ? 'vaadin:sun-o' : 'vaadin:moon'}" style="color: var(--lumo-body-text-color);"></vaadin-icon>
         </vaadin-button>
     ` : nothing
 
