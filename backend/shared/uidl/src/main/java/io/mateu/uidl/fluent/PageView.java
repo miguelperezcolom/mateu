@@ -3,6 +3,7 @@ package io.mateu.uidl.fluent;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Breadcrumb;
 import io.mateu.uidl.data.KPI;
+import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import lombok.Builder;
@@ -25,6 +26,7 @@ public record PageView(
     @Singular List<UserTrigger> buttons,
     @Singular("badgeItem") List<Badge> badges,
     @Singular("kpiItem") List<KPI> kpis,
+    @Singular("bannerItem") List<PageBanner> banners,
     String style,
     String cssClasses,
     @Singular("actionItem") List<Action> actions,

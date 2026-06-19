@@ -1,9 +1,14 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.BannerTheme;
+import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.interfaces.*;
+import java.util.List;
+import lombok.SneakyThrows;
 
 final class PageMetadataExtractor {
 
@@ -72,5 +77,28 @@ final class PageMetadataExtractor {
       return instance.getClass().getAnnotation(Style.class).value();
     }
     return null;
+  }
+
+  @SneakyThrows
+  static List<PageBanner> getBanners(Object instance, HttpRequest httpRequest) {
+    return getAllMethods(instance.getClass()).stream()
+        .filter(method -> method.isAnnotationPresent(Banner.class))
+        .map(
+            method -> {
+              var ann = method.getAnnotation(Banner.class);
+              String description = null;
+              if (method.getReturnType() == String.class) {
+                try {
+                  method.setAccessible(true);
+                  description = (String) method.invoke(instance);
+                } catch (Exception ignored) {
+                }
+              }
+              String title =
+                  ann.title().isEmpty() ? FieldMetadataExtractor.getLabel(method) : ann.title();
+              BannerTheme theme = ann.theme() != null ? ann.theme() : BannerTheme.INFO;
+              return new PageBanner(theme, title, description);
+            })
+        .toList();
   }
 }
