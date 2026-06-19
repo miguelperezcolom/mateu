@@ -21,6 +21,7 @@ import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import {ResolvedFiltersLayout, selectFiltersLayout} from "@infra/ui/layout/weightEngine.ts";
+import { badge } from "@vaadin/vaadin-lumo-styles";
 
 
 @customElement('mateu-filter-bar')
@@ -121,9 +122,11 @@ export class MateuFilterBar extends LitElement {
     }
 
     valueChanged = (e: CustomEvent) => {
+        const value = e.detail.value
+        if (typeof value === 'number' && Number.isNaN(value)) return
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
-                value: e.detail.value,
+                value,
                 fieldId: (e.target as HTMLElement).id
             },
             bubbles: true,
@@ -164,7 +167,7 @@ export class MateuFilterBar extends LitElement {
             .map(f => f as unknown as FormField)
             .filter(field => {
                 const v = this.state[field.fieldId]
-                return v !== undefined && v !== null && v !== ''
+                return v !== undefined && v !== null && v !== '' && !Number.isNaN(v)
             })
         if (active.length === 0) return nothing
         return html`
@@ -179,6 +182,7 @@ export class MateuFilterBar extends LitElement {
                         >✕</button>
                     </span>
                 `)}
+                <vaadin-button theme="tertiary small" style="margin-left: 0.5rem;" @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
             </div>
         `
     }
@@ -217,7 +221,7 @@ export class MateuFilterBar extends LitElement {
     }
 
     renderSearchBar = () => html`
-        <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;">
+        <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: baseline;">
             ${this.metadata?.searchable ? html`
                 <vaadin-text-field
                         id="searchText"
@@ -244,7 +248,6 @@ export class MateuFilterBar extends LitElement {
             ${(this.effectiveFiltersLayout === 'popover' || this.effectiveFiltersLayout === 'drawer' || this.effectiveFiltersLayout === 'dialog')
                 && this.secondaryFilters.length > 0 ? html`
                 <vaadin-button id="filters-toggle-btn" @click="${() => { this.filtersOpened = !this.filtersOpened }}">Filters</vaadin-button>
-                <vaadin-button @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
             ` : nothing}
 
             <vaadin-button @click="${() => this.handleButtonClick()}" theme="primary">Search</vaadin-button>
@@ -328,6 +331,7 @@ export class MateuFilterBar extends LitElement {
     }
 
     static styles = css`
+        ${badge}
         :host {
             width: 100%;
         }
