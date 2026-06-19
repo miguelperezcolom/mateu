@@ -63,7 +63,7 @@ final class ConstraintValidationMapper {
                   "state['"
                       + prefix
                       + field.getName()
-                      + "'] > "
+                      + "'] >= "
                       + field.getAnnotation(Min.class).value())
               .message(TranslatorContext.translate(field.getAnnotation(Min.class).message()))
               .build());
@@ -76,7 +76,7 @@ final class ConstraintValidationMapper {
                   "state['"
                       + prefix
                       + field.getName()
-                      + "'] < "
+                      + "'] <= "
                       + field.getAnnotation(Max.class).value())
               .message(TranslatorContext.translate(field.getAnnotation(Max.class).message()))
               .build());
