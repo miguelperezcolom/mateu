@@ -228,6 +228,21 @@ export class MateuUx extends ConnectedElement {
 
 
 
+    protected override shouldUpdate(_changedProperties: PropertyValues): boolean {
+        if (this.fragment?.component) {
+            const appOnlyChange = [..._changedProperties.keys()].every(k => k === 'appState' || k === 'appData')
+            if (appOnlyChange) {
+                const child = this.renderRoot.querySelector('mateu-component') as any
+                if (child) {
+                    if (_changedProperties.has('appState')) child.appState = this.appState
+                    if (_changedProperties.has('appData')) child.appData = this.appData
+                    return false
+                }
+            }
+        }
+        return true
+    }
+
     protected updated(_changedProperties: PropertyValues) {
         //super.updated(_changedProperties);
         // if (_changedProperties.has('homeRoute')) {

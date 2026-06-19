@@ -17,7 +17,8 @@ public final class ReflectionObjectMapper {
       Object object, String baseUrl, String initiatorComponentId, HttpRequest httpRequest) {
     if (!BasicTypeChecker.isBasic(object)) {
       var state = ComponentStateHelper.getState(object, httpRequest);
-      return new UIFragmentDto(initiatorComponentId, null, state, null, UIFragmentActionDto.Replace, null);
+      return new UIFragmentDto(
+          initiatorComponentId, null, state, null, UIFragmentActionDto.Replace, null);
     }
     var elementDto =
         new ElementDto("p", Map.of(), Map.of(), object != null ? object.toString() : "-");

@@ -90,6 +90,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         }
                     }
                     if (fragment.action !== UIFragmentAction.ReplaceKeepData) {
+                        console.log('resetting state and data ', this)
                         this.state = { }
                         this.data = { }
                     }

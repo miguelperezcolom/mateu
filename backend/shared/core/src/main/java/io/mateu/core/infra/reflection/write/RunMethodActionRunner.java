@@ -63,7 +63,14 @@ public class RunMethodActionRunner implements ActionRunner {
       Object result = invoke(m, instance, command);
       if (result == null) {
         var state = ComponentStateHelper.getState(instance, command.httpRequest());
-        return Flux.just(new UIFragmentDto(command.initiatorComponentId(), null, state, null, UIFragmentActionDto.Replace, null));
+        return Flux.just(
+            new UIFragmentDto(
+                command.initiatorComponentId(),
+                null,
+                state,
+                null,
+                UIFragmentActionDto.Replace,
+                null));
       }
       return asFlux(result, instance);
     }

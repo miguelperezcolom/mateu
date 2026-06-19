@@ -37,7 +37,8 @@ final class CrudActionResultAssembler {
     if (windowTitleCommand != null) {
       list.add(windowTitleCommand);
     }
-    if (orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
+    if (orchestrator.getClass().isAnnotationPresent(SplitCrud.class)
+        && !"view".equals(httpRequest.runActionRq().actionId())) {
       // ux_ux_b6d4da9d-4ebe-454a-b2e3-b2489cc4fb31_cs_list
       var initiatorId = httpRequest.runActionRq().initiatorComponentId();
       list.add(
