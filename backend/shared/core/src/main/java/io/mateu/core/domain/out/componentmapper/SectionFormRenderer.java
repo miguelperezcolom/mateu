@@ -3,10 +3,14 @@ package io.mateu.core.domain.out.componentmapper;
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
 import io.mateu.uidl.annotations.FoldedLayout;
 import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.annotations.Zone;
+import io.mateu.uidl.annotations.Zones;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +31,23 @@ final class SectionFormRenderer {
       int level) {
     if (sections.size() > 1) {
       var instanceClass = instance instanceof Class ? (Class) instance : instance.getClass();
+      if (instanceClass.isAnnotationPresent(Zones.class)) {
+        return List.of(
+            renderZones(
+                (Zones) instanceClass.getAnnotation(Zones.class),
+                sections,
+                fieldsPerSection,
+                prefix,
+                instance,
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest,
+                forCreationForm,
+                readOnly,
+                level));
+      }
       if (instanceClass.isAnnotationPresent(FoldedLayout.class)) {
         return List.of(
             HorizontalLayout.builder()
@@ -171,6 +192,122 @@ final class SectionFormRenderer {
         forCreationForm,
         readOnly,
         section.columns());
+  }
+
+  /**
+   * Distributes sections into the zones declared by {@link Zones} and lays the zones out side by
+   * side. Each zone is a vertical column (a {@link VerticalLayout}) stacking its sections; the
+   * column width comes from {@link Zone#width()}. Sections whose zone is not declared fall back
+   * into a trailing flexible column so nothing is ever dropped.
+   */
+  private static Component renderZones(
+      Zones zones,
+      List<Section> sections,
+      Map<Section, SectionFields> fieldsPerSection,
+      String prefix,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly,
+      int level) {
+
+    Map<String, List<Section>> sectionsByZone = new LinkedHashMap<>();
+    for (Section section : sections) {
+      sectionsByZone.computeIfAbsent(section.zone(), k -> new ArrayList<>()).add(section);
+    }
+
+    List<Component> columns = new ArrayList<>();
+    for (Zone zone : zones.value()) {
+      var zoneSections = sectionsByZone.remove(zone.name());
+      if (zoneSections == null || zoneSections.isEmpty()) {
+        continue;
+      }
+      columns.add(
+          zoneColumn(
+              zoneSections,
+              widthStyle(zone.width()),
+              fieldsPerSection,
+              prefix,
+              instance,
+              baseUrl,
+              route,
+              consumedRoute,
+              initiatorComponentId,
+              httpRequest,
+              forCreationForm,
+              readOnly,
+              level));
+    }
+
+    if (!sectionsByZone.isEmpty()) {
+      var leftover = new ArrayList<Section>();
+      sectionsByZone.values().forEach(leftover::addAll);
+      columns.add(
+          zoneColumn(
+              leftover,
+              widthStyle(""),
+              fieldsPerSection,
+              prefix,
+              instance,
+              baseUrl,
+              route,
+              consumedRoute,
+              initiatorComponentId,
+              httpRequest,
+              forCreationForm,
+              readOnly,
+              level));
+    }
+
+    return HorizontalLayout.builder()
+        .spacing(true)
+        .style("width: 100%; align-items: flex-start;")
+        .content(columns)
+        .build();
+  }
+
+  private static Component zoneColumn(
+      List<Section> zoneSections,
+      String widthStyle,
+      Map<Section, SectionFields> fieldsPerSection,
+      String prefix,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly,
+      int level) {
+    return VerticalLayout.builder()
+        .spacing(true)
+        .style(widthStyle)
+        .content(
+            renderSections(
+                zoneSections,
+                fieldsPerSection,
+                prefix,
+                instance,
+                baseUrl,
+                route,
+                consumedRoute,
+                initiatorComponentId,
+                httpRequest,
+                forCreationForm,
+                readOnly,
+                level))
+        .build();
+  }
+
+  private static String widthStyle(String width) {
+    return width == null || width.isBlank()
+        ? "flex: 1; min-width: 0;"
+        : "flex: 0 0 " + width + "; min-width: 0;";
   }
 
   private SectionFormRenderer() {}

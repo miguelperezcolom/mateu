@@ -5,8 +5,12 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.annotations.UI;
-import io.mateu.uidl.data.*;
+import io.mateu.uidl.data.ColumnAction;
+import io.mateu.uidl.data.ColumnActionGroup;
+import io.mateu.uidl.data.ListingData;
+import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
+import io.mateu.uidl.fluent.GridLayout;
 import io.mateu.uidl.interfaces.HttpRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Scope;
@@ -23,24 +27,32 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
     final ReservationLineRepository repository;
 
     @Override
+    public GridLayout gridLayout() {
+        return GridLayout.table;
+    }
+
+    @Override
     public ListingData<CheckInRow> search(
             String searchText, CheckInFilters filters, Pageable pageable, HttpRequest httpRequest) {
 
         var rows = repository.findAll(searchText, filters.getArrivalDate(), filters.getStatus())
                 .stream()
-                .map(line -> new CheckInRow(
-                        line.getId(),
-                        line.getLocalizador(),
-                        line.getTitular(),
-                        line.getAgencia(),
-                        line.getRoomType(),
-                        line.getAssignedRoom() != null ? line.getAssignedRoom() : "—",
-                        line.getPax(),
-                        line.getArrivalDate(),
-                        line.getDepartureDate(),
-                        mapStatus(line.getStatus()),
-                        new ColumnAction("checkin", "Check-in")
-                ))
+                .map(line -> CheckInRow.builder()
+                        .id(line.getId())
+                        .titular(line.getTitular())
+                        .localizador(line.getLocalizador())
+                        .agencia(line.getAgencia())
+                        .roomType(line.getRoomType())
+                        .assignedRoom(line.getAssignedRoom() != null && !line.getAssignedRoom().isBlank()
+                                ? line.getAssignedRoom() : "—")
+                        .pax(line.getPax())
+                        .arrivalDate(line.getArrivalDate())
+                        .departureDate(line.getDepartureDate())
+                        .status(line.getStatus())
+                        .actions(new ColumnActionGroup(new ColumnAction[]{
+                                new ColumnAction("checkin", "Check-in")
+                        }))
+                        .build())
                 .toList();
 
         return ListingData.of(rows);
@@ -49,14 +61,7 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
     public Object checkin(CheckInRow row) {
         var form = MateuBeanProvider.getBean(CheckInForm.class);
         form.id = row.id();
+        form.populate();
         return form;
-    }
-
-    private Status mapStatus(CheckInStatus status) {
-        return switch (status) {
-            case PENDING -> new Status(StatusType.WARNING, "Pending");
-            case CHECKED_IN -> new Status(StatusType.SUCCESS, "Checked in");
-            case CHECKED_OUT -> new Status(StatusType.NONE, "Checked out");
-        };
     }
 }
