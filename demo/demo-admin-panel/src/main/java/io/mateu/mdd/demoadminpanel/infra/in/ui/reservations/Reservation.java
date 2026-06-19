@@ -76,7 +76,7 @@ public class Reservation implements Identifiable {
             @StatusMapping(from = "PENDING",    to = StatusType.WARNING),
             @StatusMapping(from = "CONFIRMED",  to = StatusType.SUCCESS),
             @StatusMapping(from = "CANCELLED",  to = StatusType.DANGER),
-            @StatusMapping(from = "NO_SHOW",    to = StatusType.CONTRAST)
+            @StatusMapping(from = "NO_SHOW",    to = StatusType.INFO)
         }
     )
     @Filterable

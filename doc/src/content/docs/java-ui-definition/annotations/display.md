@@ -249,7 +249,7 @@ public @interface StatusMapping {
 | `SUCCESS` | Green |
 | `WARNING` | Orange / yellow |
 | `DANGER` | Red |
-| `CONTRAST` | High-contrast (dark) |
+| `INFO` | Blue / informational |
 | `NONE` | Default / neutral |
 
 ### Example
@@ -265,7 +265,7 @@ public class OrderRow {
             @StatusMapping(from = "PENDING",   to = StatusType.WARNING),
             @StatusMapping(from = "CONFIRMED", to = StatusType.SUCCESS),
             @StatusMapping(from = "CANCELLED", to = StatusType.DANGER),
-            @StatusMapping(from = "NO_SHOW",   to = StatusType.CONTRAST)
+            @StatusMapping(from = "NO_SHOW",   to = StatusType.INFO)
         }
     )
     OrderStatus status;
