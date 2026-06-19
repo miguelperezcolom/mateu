@@ -29,17 +29,20 @@
   <!-- HASTAAQUIUI -->
 
   <script>
-    if (window.matchMedia) {
-      if(window.matchMedia('(prefers-color-scheme: dark)').matches){
-        document.documentElement.setAttribute('theme', 'dark')
-      } else {
-        document.documentElement.setAttribute('theme', 'light')
+    (function () {
+      var saved = localStorage.getItem('mateu-theme');
+      if (saved) {
+        document.documentElement.setAttribute('theme', saved);
+      } else if (window.matchMedia) {
+        document.documentElement.setAttribute('theme',
+          window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+          if (!localStorage.getItem('mateu-theme')) {
+            document.documentElement.setAttribute('theme', e.matches ? 'dark' : 'light');
+          }
+        });
       }
-
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-        document.documentElement.setAttribute('theme', e.matches?'dark':'light')
-      });
-    }
+    })();
   </script>
 
   </body>
