@@ -81,6 +81,9 @@ final class PageMetadataExtractor {
 
   @SneakyThrows
   static List<PageBanner> getBanners(Object instance, HttpRequest httpRequest) {
+    if (instance instanceof BannerSupplier bannerSupplier) {
+      return bannerSupplier.banners();
+    }
     return getAllMethods(instance.getClass()).stream()
         .filter(method -> method.isAnnotationPresent(Banner.class))
         .map(
