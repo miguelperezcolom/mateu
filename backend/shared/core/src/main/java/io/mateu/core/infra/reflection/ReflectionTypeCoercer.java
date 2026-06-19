@@ -39,6 +39,7 @@ final class ReflectionTypeCoercer {
         if ("".equals(data)) return null;
         return LocalDateTime.parse(convert(data));
       } else {
+        if ("".equals(data) && !type.equals(String.class)) return null;
         return convert(data, type);
       }
     } else if (type.isEnum()) {
