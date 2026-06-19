@@ -85,6 +85,7 @@ public final class AppMapper {
             .home(null)
             .sseUrl(getSseUrl(app))
             .fabs(getAppFabs(app))
+            .themeToggle(getThemeToggle(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -121,6 +122,16 @@ public final class AppMapper {
         .actionId(method.getName())
         .buttonStyle(ann.buttonStyle().name())
         .build();
+  }
+
+  @SneakyThrows
+  private static boolean getThemeToggle(AppShell app) {
+    if (app.serverSideType() == null) return false;
+    var appClass = Class.forName(app.serverSideType());
+    if (appClass.isAnnotationPresent(io.mateu.uidl.annotations.App.class)) {
+      return appClass.getAnnotation(io.mateu.uidl.annotations.App.class).themeToggle();
+    }
+    return false;
   }
 
   @SneakyThrows

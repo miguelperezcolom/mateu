@@ -10,4 +10,6 @@ public @interface App {
   AppVariant value();
 
   AppLayout layout() default AppLayout.SINGLE_SLOT;
+
+  boolean themeToggle() default false;
 }

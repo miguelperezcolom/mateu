@@ -28,5 +28,6 @@ export default interface App extends ComponentMetadata {
     baseUrl: string
     sseUrl: string | undefined
     fabs: Fab[] | undefined
+    themeToggle: boolean
 
 }

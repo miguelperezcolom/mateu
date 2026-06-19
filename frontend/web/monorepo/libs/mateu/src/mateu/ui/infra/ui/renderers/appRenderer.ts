@@ -3,6 +3,13 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+const renderThemeToggle = (metadata: App, container: MateuApp) =>
+    metadata.themeToggle ? html`
+        <vaadin-button theme="icon tertiary" @click="${container.toggleTheme}" title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}">
+            <vaadin-icon icon="${container.isDark ? 'vaadin:sun-o' : 'vaadin:moon'}"></vaadin-icon>
+        </vaadin-button>
+    ` : nothing
+
 export const filterMenu = (e: CustomEvent, container: MateuApp) => {
     if (container.filter != e.detail.value) {
         container.filter = e.detail.value
@@ -130,6 +137,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <vaadin-app-layout style="${metadata?.style}" class="${metadata?.cssClasses}" .drawerOpened=${!metadata.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
+                    ${renderThemeToggle(metadata, container)}
                     <vaadin-scroller slot="drawer" class="p-s"
                                      @navigation-requested="${container.updateRoute}">
                         ${metadata.menu && metadata.totalMenuOptions > 10?html`
@@ -188,6 +196,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
+                            ${renderThemeToggle(metadata, container)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
@@ -236,6 +245,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
+                            ${renderThemeToggle(metadata, container)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div class="app-content">
@@ -297,7 +307,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <vaadin-vertical-layout
                                 @navigation-requested="${container.updateRoute}">
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}
-                                                    </vaadin-vertical-layout>
+                            ${renderThemeToggle(metadata, container)}
+                        </vaadin-vertical-layout>
                     </vaadin-scroller>
                     <div class="app-content">
                         <vaadin-master-detail-layout>

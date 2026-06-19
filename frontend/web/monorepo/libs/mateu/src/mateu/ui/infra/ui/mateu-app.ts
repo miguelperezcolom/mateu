@@ -100,6 +100,14 @@ export class MateuApp extends ComponentElement {
 
     connectedCallback() {
         super.connectedCallback()
+        const saved = localStorage.getItem('mateu-theme')
+        if (saved === 'dark') {
+            document.documentElement.setAttribute('theme', 'dark')
+            this.isDark = true
+        } else if (saved === 'light') {
+            document.documentElement.removeAttribute('theme')
+            this.isDark = false
+        }
         this._commandPaletteHandler = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault()
@@ -128,6 +136,19 @@ export class MateuApp extends ComponentElement {
         if (this.cleanEventHandler) {
             document.removeEventListener('clean', this.cleanEventHandler)
         }
+    }
+
+    @state()
+    isDark: boolean = document.documentElement.getAttribute('theme') === 'dark'
+
+    toggleTheme = () => {
+        this.isDark = !this.isDark
+        if (this.isDark) {
+            document.documentElement.setAttribute('theme', 'dark')
+        } else {
+            document.documentElement.removeAttribute('theme')
+        }
+        localStorage.setItem('mateu-theme', this.isDark ? 'dark' : 'light')
     }
 
     showHideIa = () => {
