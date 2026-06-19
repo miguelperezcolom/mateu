@@ -24,5 +24,6 @@ public record PageDto(
     List<ButtonDto> buttons,
     ComponentDto avatar,
     List<ComponentDto> header,
-    List<ComponentDto> footer)
+    List<ComponentDto> footer,
+    List<FabDto> fabs)
     implements ComponentMetadataDto {}

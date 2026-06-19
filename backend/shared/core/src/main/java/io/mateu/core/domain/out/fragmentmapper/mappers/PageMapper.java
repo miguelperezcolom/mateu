@@ -5,12 +5,28 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 import io.mateu.dtos.BreadcrumbDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.FabDto;
 import io.mateu.dtos.PageDto;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.PageView;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
 public class PageMapper {
+
+  private static FabDto mapToFabDto(UserTrigger trigger) {
+    if (trigger instanceof Button b) {
+      return FabDto.builder()
+          .id(b.actionId())
+          .label(b.label())
+          .icon(b.iconOnLeft())
+          .actionId(b.actionId())
+          .buttonStyle(b.buttonStyle() != null ? b.buttonStyle().name() : "primary")
+          .build();
+    }
+    return null;
+  }
 
   public static ComponentDto mapPageToDto(
       PageView page,
@@ -90,6 +106,10 @@ public class PageMapper {
             .buttons(
                 page.buttons() != null
                     ? page.buttons().stream().map(FormMapper::mapToButtonDto).toList()
+                    : null)
+            .fabs(
+                page.fabs() != null
+                    ? page.fabs().stream().map(PageMapper::mapToFabDto).toList()
                     : null)
             .build();
     return new ClientSideComponentDto(

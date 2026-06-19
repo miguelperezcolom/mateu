@@ -27,7 +27,8 @@ public record PageView(
     @Singular("kpiItem") List<KPI> kpis,
     String style,
     String cssClasses,
-    @Singular("actionItem") List<Action> actions)
+    @Singular("actionItem") List<Action> actions,
+    @Singular("fabItem") List<UserTrigger> fabs)
     implements Component, ActionSupplier {
   @Override
   public List<Action> actions(HttpRequest httpRequest) {

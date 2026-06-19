@@ -1,6 +1,7 @@
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant";
+import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab";
 
 export default interface App extends ComponentMetadata {
 
@@ -26,5 +27,6 @@ export default interface App extends ComponentMetadata {
     uriPrefix: string
     baseUrl: string
     sseUrl: string | undefined
+    fabs: Fab[] | undefined
 
 }

@@ -33,7 +33,8 @@ public record AppDto(
     String cssClasses,
     ComponentDto home,
     String rootRoute,
-    String sseUrl)
+    String sseUrl,
+    List<FabDto> fabs)
     implements ComponentMetadataDto {
 
   public AppDto {
