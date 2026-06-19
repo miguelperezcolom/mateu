@@ -638,7 +638,10 @@ export class MateuComponent extends ComponentElement {
         }
 
         if ('search' == detail.actionId) {
-            if (!this.state.size) {
+            const searchState = (detail.parameters as any)?._searchState
+            if (searchState) {
+                this.state = { ...this.state, ...searchState }
+            } else if (!this.state.size) {
                 this.state = { ...this.state, size: 10, page: 0, sort: [] }
             }
         }

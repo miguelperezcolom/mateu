@@ -125,6 +125,7 @@ export class MateuFilterBar extends LitElement {
         const value = e.detail.value
         if (typeof value === 'number' && Number.isNaN(value)) return
         const fieldId = (e.target as HTMLElement).id
+        if (value === this.state[fieldId]) return
         this.dispatchEvent(new CustomEvent('value-changed', {
             detail: {
                 value,

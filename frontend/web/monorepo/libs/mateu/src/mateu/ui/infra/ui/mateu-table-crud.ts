@@ -123,7 +123,7 @@ export class MateuTableCrud extends LitElement {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',
-                parameters: {crudId: this.id}
+                parameters: { crudId: this.id, _searchState: { ...this.state } }
             },
             bubbles: true,
             composed: true
@@ -226,7 +226,7 @@ export class MateuTableCrud extends LitElement {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',
-                parameters: {crudId: this.id},
+                parameters: { crudId: this.id, _searchState: { ...this.state } },
                 callback
             },
             bubbles: true,
