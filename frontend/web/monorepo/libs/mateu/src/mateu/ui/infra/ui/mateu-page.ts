@@ -3,7 +3,7 @@ import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/card'
 import '@vaadin/master-detail-layout'
-import { customElement, property } from 'lit/decorators.js';
+import { customElement, property, state } from 'lit/decorators.js';
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
@@ -38,6 +38,23 @@ export class MateuPage extends LitElement {
     @property({ type: Boolean })
     standalone = false
 
+    @state()
+    actionBanners: Banner[] = []
+
+    private _bannersHandler = (e: Event) => {
+        this.actionBanners = (e as CustomEvent).detail.banners ?? []
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        document.addEventListener('page-banners-received', this._bannersHandler)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        document.removeEventListener('page-banners-received', this._bannersHandler)
+    }
+
     bannerThemeClass(banner: Banner): string {
         const t = banner.theme?.toLowerCase() ?? 'info'
         return t === 'none' ? '' : t
@@ -45,7 +62,7 @@ export class MateuPage extends LitElement {
 
     render(): TemplateResult {
         const metadata = this.component?.metadata as PageComponent
-        const banners: Banner[] = (metadata as any)?.banners ?? []
+        const banners: Banner[] = [...((metadata as any)?.banners ?? []), ...this.actionBanners]
         const inner = html`
             <mateu-content-header
                 .metadata="${metadata}"

@@ -246,6 +246,6 @@ public class LongTask {
             ? List.of()
             : List.of(UIFragmentDto.builder().targetComponentId(id).state(state).build());
 
-    return Flux.just(new UIIncrementDto(commandDtos, List.of(), fragments, null, null));
+    return Flux.just(new UIIncrementDto(commandDtos, List.of(), fragments, List.of(), null, null));
   }
 }

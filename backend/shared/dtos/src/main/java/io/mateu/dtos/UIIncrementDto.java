@@ -18,6 +18,7 @@ public record UIIncrementDto(
     List<UICommandDto> commands,
     List<MessageDto> messages,
     List<UIFragmentDto> fragments,
+    List<BannerDto> banners,
     Object appData,
     Object appState) {
 
@@ -25,6 +26,7 @@ public record UIIncrementDto(
     commands = Collections.unmodifiableList(commands != null ? commands : List.of());
     messages = Collections.unmodifiableList(messages != null ? messages : List.of());
     fragments = Collections.unmodifiableList(fragments != null ? fragments : List.of());
+    banners = Collections.unmodifiableList(banners != null ? banners : List.of());
   }
 
   @Override

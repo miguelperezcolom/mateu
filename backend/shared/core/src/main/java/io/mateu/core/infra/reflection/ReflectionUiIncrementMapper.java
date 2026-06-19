@@ -1,11 +1,13 @@
 package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.domain.out.CommandMapper.mapToCommandDtos;
+import static io.mateu.core.domain.out.MessageMapper.mapToBannerDtos;
 import static io.mateu.core.domain.out.MessageMapper.mapToMessageDtos;
 
 import io.mateu.core.domain.out.UiIncrementMapper;
 import io.mateu.core.domain.out.componentmapper.ReflectionObjectToComponentMapper;
 import io.mateu.core.domain.out.fragmentmapper.ComponentFragmentMapper;
+import io.mateu.dtos.BannerDto;
 import io.mateu.dtos.MessageDto;
 import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -62,6 +64,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
             mapToCommands(instance, baseUrl, httpRequest),
             mapToMessages(instance, baseUrl, httpRequest),
             fragments,
+            mapToBanners(instance, baseUrl, httpRequest),
             mapToAppData(instance, baseUrl, httpRequest),
             mapToAppState(instance, baseUrl, httpRequest)));
   }
@@ -95,6 +98,10 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 
   private List<MessageDto> mapToMessages(Object instance, String baseUrl, HttpRequest httpRequest) {
     return mapToMessageDtos(instance, baseUrl, httpRequest);
+  }
+
+  private List<BannerDto> mapToBanners(Object instance, String baseUrl, HttpRequest httpRequest) {
+    return mapToBannerDtos(instance, baseUrl, httpRequest);
   }
 
   private List<UIFragmentDto> mapToFragments(

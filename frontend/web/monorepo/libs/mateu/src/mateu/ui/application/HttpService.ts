@@ -62,6 +62,13 @@ export class HttpService implements Service {
                 duration: message.duration
             });
         })
+        if (uiIncrement?.banners && uiIncrement.banners.length > 0) {
+            document.dispatchEvent(new CustomEvent('page-banners-received', {
+                detail: { banners: uiIncrement.banners },
+                bubbles: false,
+                composed: false
+            }))
+        }
         uiIncrement?.commands?.forEach(command => {
             upstream.next({
                 command,

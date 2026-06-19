@@ -53,6 +53,11 @@ final class FormSectionGrouper {
                 public String style() {
                   return "";
                 }
+
+                @Override
+                public String zone() {
+                  return "";
+                }
               };
         }
         sectionFields =
