@@ -67,9 +67,10 @@ export const renderFormComponent = (form: FormLayout, container: LitElement, com
 export const wrapWithFormItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormField && ((component as ClientSideComponent).metadata as FormField).label) {
         const field =  (component as ClientSideComponent).metadata as FormField
+        const fieldLabel = field.label?.includes('${') ? (container as any)._evalTemplate(field.label) : field.label
         return html`
                        <vaadin-form-item data-colspan="${field.colspan}">
-                           <label slot="label">${field.label}</label>
+                           <label slot="label">${fieldLabel}</label>
                            ${renderComponent(container, component, baseUrl, state, data, appState, appData, true)}
                        </vaadin-form-item>
                    `

@@ -450,7 +450,10 @@ export class MateuField extends LitElement {
     renderField(): TemplateResult {
         const fieldId = this.field?.fieldId??''
         const value = this.state && fieldId in this.state?this.state[fieldId]:this.field?.initialValue
-        const labelText = this.field?.label + ''
+        const rawLabelText = this.field?.label + ''
+        const labelText = rawLabelText?.includes('${')
+            ? new Function('state', 'data', 'return `' + rawLabelText + '`')(this.state ?? {}, this.data ?? {})
+            : rawLabelText
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
         if (this.field?.stereotype == 'badge') {
