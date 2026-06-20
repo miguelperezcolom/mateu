@@ -24,6 +24,7 @@ import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetad
 import {sseService} from "@application/SSEService.ts";
 import {ComponentState, ComponentData} from "@infra/ui/renderers/types.ts";
 import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import {nanoid} from "nanoid";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -254,6 +255,7 @@ export class MateuUx extends ConnectedElement {
             _changedProperties.has('consumedRoute') ||
             _changedProperties.has('instant')) {
             if (!this.preventNavigation) {
+                this.callbackToken = this.instant || nanoid()
                 this.manageActionEvent(new CustomEvent('server-side-action-requested', {
                     detail: {
                         route: this.route,

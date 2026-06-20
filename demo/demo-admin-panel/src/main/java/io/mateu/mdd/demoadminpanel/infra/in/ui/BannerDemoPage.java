@@ -1,12 +1,15 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
+import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.Banner;
 import io.mateu.uidl.annotations.ReadOnly;
+import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.BannerTheme;
 import io.mateu.uidl.data.PageBanner;
 import java.util.List;
 
+@Style(StyleConstants.CONTAINER)
 public class BannerDemoPage {
 
     @ReadOnly

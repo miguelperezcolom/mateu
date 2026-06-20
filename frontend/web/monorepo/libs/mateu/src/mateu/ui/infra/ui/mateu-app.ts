@@ -414,8 +414,9 @@ export class MateuApp extends ComponentElement {
                 route = (route??'').substring(1)
             }
             let targetUrl = new URL(baseUrl + route)
-            if (consumedRoute && (route??'').startsWith(consumedRoute)) {
-                targetUrl = new URL(baseUrl + route?.substring(consumedRoute.length))
+            if (consumedRoute && targetUrl.pathname.startsWith(consumedRoute)) {
+                const pathAfterConsumed = targetUrl.pathname.substring(consumedRoute.length)
+                targetUrl = new URL(targetUrl.origin + (pathAfterConsumed || '/'))
             }
             if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                 let pathname = targetUrl.pathname

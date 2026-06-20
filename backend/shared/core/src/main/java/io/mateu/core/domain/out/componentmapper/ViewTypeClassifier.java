@@ -54,7 +54,8 @@ public final class ViewTypeClassifier {
         || instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)
         || instance.getClass().isRecord()
-        || (!isBasic(instance) && hasSomething(instance));
+        || (!isBasic(instance)
+            && (hasSomething(instance) || getAllFields(instance.getClass()).isEmpty()));
   }
 
   private static boolean hasSomething(Object instance) {
