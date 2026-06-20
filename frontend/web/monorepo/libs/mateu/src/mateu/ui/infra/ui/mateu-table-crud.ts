@@ -625,10 +625,10 @@ export class MateuTableCrud extends LitElement {
                     <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: flex-end; padding-bottom: var(--lumo-space-m);">
                         <div style="flex: 1; min-width: 0;">
                             ${metadata?.title ? html`
-                                <h2 style="margin: 0; font-size: var(--lumo-font-size-xxl); font-weight: 700; color: var(--lumo-header-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${metadata.title}</h2>
+                                <h2 style="margin: 0; font-size: var(--lumo-font-size-xxl); font-weight: 700; color: var(--lumo-header-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.evalLabel(metadata.title)}</h2>
                             ` : nothing}
                             ${metadata?.subtitle ? html`
-                                <span style="display: block; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); margin-top: var(--lumo-space-xs);">${metadata.subtitle}</span>
+                                <span style="display: block; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); margin-top: var(--lumo-space-xs);">${this.evalLabel(metadata.subtitle)}</span>
                             ` : nothing}
                         </div>
                         ${navButtons.map(button => html`
