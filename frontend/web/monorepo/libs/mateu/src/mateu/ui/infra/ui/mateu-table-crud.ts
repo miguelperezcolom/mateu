@@ -222,7 +222,7 @@ export class MateuTableCrud extends LitElement {
         this.state = { ...this.state, crud_selected_items: [] }
         const metadata = (this.component as ClientSideComponent).metadata as Crud
         this._syncStateToUrl(metadata)
-        if (!metadata.infiniteScrolling) {
+        if (!metadata.infiniteScrolling && this.data?.[this.id]?.page) {
             this.data[this.id].page.content = []
         }
         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -263,12 +263,19 @@ export class MateuTableCrud extends LitElement {
             if (componentId !== this._initializedForComponentId) {
                 this._initializedForComponentId = componentId
                 const metadata = this.component?.metadata as Crud
+                const defaultPage = (metadata.initialPage && metadata.initialPage > 0) ? metadata.initialPage : 0
                 this.state = this._initStateFromUrl(metadata, {
                     ...this.state,
                     size: metadata.pageSize,
-                    page: (metadata.initialPage && metadata.initialPage > 0) ? metadata.initialPage : 0,
+                    page: defaultPage,
                     sort: []
                 })
+                const urlHasNonDefault = this.state.page !== defaultPage
+                    || (this.state.sort?.length > 0)
+                    || [...this._filterIds(metadata)].some(id => this.state[id] != null)
+                if (urlHasNonDefault) {
+                    this.handleSearchRequested(undefined)
+                }
             }
         }
     }
