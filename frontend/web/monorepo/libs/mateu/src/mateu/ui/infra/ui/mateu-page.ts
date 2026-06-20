@@ -132,12 +132,19 @@ export class MateuPage extends LitElement {
         return t === 'none' ? '' : t
     }
 
+    private _evalBannerText(text: string | undefined): string | undefined {
+        if (!text?.includes('${')) return text
+        return new Function('state', 'data', 'return `' + text + '`')(this.state ?? {}, this.data ?? {})
+    }
+
     private _renderBanner(banner: Banner, onDismiss: () => void): TemplateResult {
+        const title = this._evalBannerText(banner.title)
+        const description = this._evalBannerText(banner.description)
         return html`
             <vaadin-card class="page-banner page-banner--${this.bannerThemeClass(banner)}">
-                ${banner.title ? html`
+                ${title ? html`
                     <div slot="title" style="display: flex; align-items: center; justify-content: space-between; color: #1a1a1a; width: 100%;">
-                        <span>${banner.title}</span>
+                        <span>${title}</span>
                         ${banner.hasCloseButton ? html`
                             <vaadin-button theme="icon tertiary small" class="banner-close" @click=${onDismiss} title="Dismiss">
                                 <vaadin-icon icon="vaadin:close"></vaadin-icon>
@@ -149,7 +156,7 @@ export class MateuPage extends LitElement {
                         <vaadin-icon icon="vaadin:close"></vaadin-icon>
                     </vaadin-button>
                 ` : nothing}
-                ${banner.description ? html`<p>${banner.description}</p>` : nothing}
+                ${description ? html`<p>${description}</p>` : nothing}
             </vaadin-card>
         `
     }
