@@ -203,7 +203,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${renderThemeToggle(metadata, container)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
-                    <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-left: 2rem; box-sizing: border-box;">
+                    <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <vaadin-master-detail-layout>
                             <vaadin-scroller style="height: 100%;">
                                 <mateu-api-caller>
@@ -254,7 +254,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${renderThemeToggle(metadata, container)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
-                    <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-left: 2rem; box-sizing: border-box;">
+                    <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         ${container.tilesMenuOption ? container.renderTilesHub(container.tilesMenuOption) : html`
                         <vaadin-master-detail-layout>
                             <vaadin-scroller style="height: 100%;">

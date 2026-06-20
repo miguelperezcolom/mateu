@@ -6,7 +6,6 @@ import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.ColumnAction;
-import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -49,9 +48,7 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
                         .arrivalDate(line.getArrivalDate())
                         .departureDate(line.getDepartureDate())
                         .status(line.getStatus())
-                        .actions(new ColumnActionGroup(new ColumnAction[]{
-                                new ColumnAction("checkin", "Check-in")
-                        }))
+                        .actions(new ColumnAction("checkin", "Check-in"))
                         .build())
                 .toList();
 

@@ -127,22 +127,22 @@ export class MateuPage extends LitElement {
 
         .page-banner--info {
             --vaadin-card-background: #e8f4fd;
-            border-left: 4px solid var(--lumo-primary-color);
+            border-leftx: 4px solid var(--lumo-primary-color);
         }
 
         .page-banner--success {
             --vaadin-card-background: #eafaf1;
-            border-left: 4px solid var(--lumo-success-color);
+            border-leftx: 4px solid var(--lumo-success-color);
         }
 
         .page-banner--warning {
             --vaadin-card-background: #fef9e7;
-            border-left: 4px solid var(--lumo-warning-color, #f59e0b);
+            border-leftx: 4px solid var(--lumo-warning-color, #f59e0b);
         }
 
         .page-banner--danger {
             --vaadin-card-background: #fdf2f2;
-            border-left: 4px solid var(--lumo-error-color);
+            border-leftx: 4px solid var(--lumo-error-color);
         }
     `
 }

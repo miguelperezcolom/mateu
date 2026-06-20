@@ -5,7 +5,7 @@ import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Priority;
 import io.mateu.uidl.annotations.Status;
 import io.mateu.uidl.annotations.StatusMapping;
-import io.mateu.uidl.data.ColumnActionGroup;
+import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.StatusType;
 import io.mateu.uidl.interfaces.Identifiable;
 import lombok.AllArgsConstructor;
@@ -75,5 +75,5 @@ public class CheckInRow implements Identifiable {
     CheckInStatus status;
 
     @Label("")
-    ColumnActionGroup actions;
+    ColumnAction actions;
 }
