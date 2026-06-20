@@ -278,7 +278,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
             return renderAnchor(component)
         }
         if (type == ComponentMetadataType.Button) {
-            return renderButton(component)
+            return renderButton(component, state, data)
         }
         if (type == ComponentMetadataType.Card) {
             return renderCard(container, component, baseUrl, state, data, appState, appData)
