@@ -174,16 +174,20 @@ export class MateuFilterBar extends LitElement {
         if (active.length === 0) return nothing
         return html`
             <div class="active-filters">
-                ${active.map(field => html`
+                ${active.map(field => {
+                    const fieldLabel = (field.label as string)?.includes('${')
+                        ? new Function('state', 'data', 'return `' + field.label + '`')(this.state ?? {}, this.data ?? {})
+                        : field.label
+                    return html`
                     <span theme="badge contrast pill" class="active-filter-badge">
-                        <span>${field.label}: ${this.getFilterDisplayValue(field, this.state[field.fieldId])}</span>
+                        <span>${fieldLabel}: ${this.getFilterDisplayValue(field, this.state[field.fieldId])}</span>
                         <button
                             class="active-filter-remove"
                             @click="${() => this.clearFilter(field.fieldId)}"
                             aria-label="Remove filter"
                         >✕</button>
                     </span>
-                `)}
+                `})}
                 <vaadin-button theme="tertiary small" style="margin-left: 0.5rem;" @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
             </div>
         `
