@@ -104,7 +104,8 @@ final class PageMetadataExtractor {
               String title =
                   ann.title().isEmpty() ? FieldMetadataExtractor.getLabel(method) : ann.title();
               BannerTheme theme = ann.theme() != null ? ann.theme() : BannerTheme.INFO;
-              return new PageBanner(theme, title, description);
+              return new PageBanner(
+                  theme, title, description, ann.closeable(), ann.timeoutSeconds());
             })
         .toList();
   }

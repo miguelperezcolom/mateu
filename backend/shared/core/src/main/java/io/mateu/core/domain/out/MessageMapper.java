@@ -7,6 +7,7 @@ import io.mateu.dtos.NotificationPositionDto;
 import io.mateu.dtos.NotificationVariantDto;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.PageBanner;
+import io.mateu.uidl.data.PageBanners;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Collection;
 import java.util.List;
@@ -15,6 +16,9 @@ public class MessageMapper {
 
   public static List<BannerDto> mapToBannerDtos(
       Object instance, String baseUrl, HttpRequest httpRequest) {
+    if (instance instanceof PageBanners pageBanners) {
+      return pageBanners.banners().stream().map(MessageMapper::mapBanner).toList();
+    }
     if (instance instanceof PageBanner banner) {
       return List.of(mapBanner(banner));
     }
@@ -27,6 +31,13 @@ public class MessageMapper {
     return List.of();
   }
 
+  public static boolean mapToAppendBanners(Object instance) {
+    if (instance instanceof PageBanners pageBanners) {
+      return pageBanners.append();
+    }
+    return false;
+  }
+
   private static BannerDto mapBanner(PageBanner banner) {
     BannerThemeDto theme = BannerThemeDto.NONE;
     if (banner.theme() != null) {
@@ -35,7 +46,13 @@ public class MessageMapper {
       } catch (IllegalArgumentException ignored) {
       }
     }
-    return new BannerDto(theme, false, false, banner.title(), banner.description());
+    return new BannerDto(
+        theme,
+        false,
+        banner.closeable(),
+        banner.title(),
+        banner.description(),
+        banner.timeoutSeconds());
   }
 
   public static List<MessageDto> mapToMessageDtos(

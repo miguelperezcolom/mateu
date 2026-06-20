@@ -189,7 +189,7 @@ export class SSEService implements Service {
         })
         if (uiIncrement?.banners && uiIncrement.banners.length > 0) {
             document.dispatchEvent(new CustomEvent('page-banners-received', {
-                detail: { banners: uiIncrement.banners },
+                detail: { banners: uiIncrement.banners, append: uiIncrement.appendBanners ?? false },
                 bubbles: false,
                 composed: false
             }))

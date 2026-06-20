@@ -1,6 +1,7 @@
 package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.domain.out.CommandMapper.mapToCommandDtos;
+import static io.mateu.core.domain.out.MessageMapper.mapToAppendBanners;
 import static io.mateu.core.domain.out.MessageMapper.mapToBannerDtos;
 import static io.mateu.core.domain.out.MessageMapper.mapToMessageDtos;
 
@@ -65,6 +66,7 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
             mapToMessages(instance, baseUrl, httpRequest),
             fragments,
             mapToBanners(instance, baseUrl, httpRequest),
+            mapToAppendBanners(instance),
             mapToAppData(instance, baseUrl, httpRequest),
             mapToAppState(instance, baseUrl, httpRequest)));
   }

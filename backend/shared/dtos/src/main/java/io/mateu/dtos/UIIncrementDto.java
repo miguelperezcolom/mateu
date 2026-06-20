@@ -19,6 +19,7 @@ public record UIIncrementDto(
     List<MessageDto> messages,
     List<UIFragmentDto> fragments,
     List<BannerDto> banners,
+    boolean appendBanners,
     Object appData,
     Object appState) {
 

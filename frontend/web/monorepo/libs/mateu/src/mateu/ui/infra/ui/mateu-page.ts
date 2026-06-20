@@ -1,7 +1,10 @@
-import { css, html, LitElement, nothing, TemplateResult } from "lit";
+import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/card'
+import '@vaadin/button'
+import '@vaadin/icon'
+import '@vaadin/icons'
 import '@vaadin/master-detail-layout'
 import { customElement, property, state } from 'lit/decorators.js';
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
@@ -41,8 +44,31 @@ export class MateuPage extends LitElement {
     @state()
     actionBanners: Banner[] = []
 
+    @state()
+    dismissedStaticBannerIndices: Set<number> = new Set()
+
+    private _actionBannerTimers: ReturnType<typeof setTimeout>[] = []
+    private _staticBannerTimers: ReturnType<typeof setTimeout>[] = []
+
     private _bannersHandler = (e: Event) => {
-        this.actionBanners = (e as CustomEvent).detail.banners ?? []
+        const detail = (e as CustomEvent).detail
+        const newBanners: Banner[] = detail.banners ?? []
+        const append: boolean = detail.append ?? false
+        if (!append) {
+            this._clearActionBannerTimers()
+            this.actionBanners = newBanners
+        } else {
+            this.actionBanners = [...this.actionBanners, ...newBanners]
+        }
+        const baseIndex = append ? this.actionBanners.length - newBanners.length : 0
+        newBanners.forEach((banner, i) => {
+            if (banner.timeoutSeconds && banner.timeoutSeconds > 0) {
+                const targetIndex = baseIndex + i
+                this._actionBannerTimers.push(setTimeout(() => {
+                    this.actionBanners = this.actionBanners.filter((_, idx) => idx !== targetIndex)
+                }, banner.timeoutSeconds * 1000))
+            }
+        })
     }
 
     connectedCallback() {
@@ -53,6 +79,52 @@ export class MateuPage extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback()
         document.removeEventListener('page-banners-received', this._bannersHandler)
+        this._clearAllTimers()
+    }
+
+    updated(changedProperties: PropertyValues) {
+        super.updated(changedProperties)
+        if (changedProperties.has('component') && changedProperties.get('component') !== undefined) {
+            this._clearAllTimers()
+            this.actionBanners = []
+            this.dismissedStaticBannerIndices = new Set()
+        }
+        if (changedProperties.has('component')) {
+            this._scheduleStaticBannerTimeouts()
+        }
+    }
+
+    private _scheduleStaticBannerTimeouts() {
+        this._staticBannerTimers.forEach(t => clearTimeout(t))
+        this._staticBannerTimers = []
+        const metadata = this.component?.metadata as PageComponent
+        const staticBanners: Banner[] = (metadata as any)?.banners ?? []
+        staticBanners.forEach((banner, i) => {
+            if (banner.timeoutSeconds && banner.timeoutSeconds > 0) {
+                this._staticBannerTimers.push(setTimeout(() => {
+                    this.dismissedStaticBannerIndices = new Set([...this.dismissedStaticBannerIndices, i])
+                }, banner.timeoutSeconds * 1000))
+            }
+        })
+    }
+
+    private _clearActionBannerTimers() {
+        this._actionBannerTimers.forEach(t => clearTimeout(t))
+        this._actionBannerTimers = []
+    }
+
+    private _clearAllTimers() {
+        this._clearActionBannerTimers()
+        this._staticBannerTimers.forEach(t => clearTimeout(t))
+        this._staticBannerTimers = []
+    }
+
+    private _dismissActionBanner(index: number) {
+        this.actionBanners = this.actionBanners.filter((_, i) => i !== index)
+    }
+
+    private _dismissStaticBanner(index: number) {
+        this.dismissedStaticBannerIndices = new Set([...this.dismissedStaticBannerIndices, index])
     }
 
     bannerThemeClass(banner: Banner): string {
@@ -60,9 +132,38 @@ export class MateuPage extends LitElement {
         return t === 'none' ? '' : t
     }
 
+    private _renderBanner(banner: Banner, onDismiss: () => void): TemplateResult {
+        return html`
+            <vaadin-card class="page-banner page-banner--${this.bannerThemeClass(banner)}">
+                ${banner.title ? html`
+                    <div slot="title" style="display: flex; align-items: center; justify-content: space-between; color: #1a1a1a; width: 100%;">
+                        <span>${banner.title}</span>
+                        ${banner.hasCloseButton ? html`
+                            <vaadin-button theme="icon tertiary small" class="banner-close" @click=${onDismiss} title="Dismiss">
+                                <vaadin-icon icon="vaadin:close"></vaadin-icon>
+                            </vaadin-button>
+                        ` : nothing}
+                    </div>
+                ` : banner.hasCloseButton ? html`
+                    <vaadin-button slot="title" theme="icon tertiary small" class="banner-close" style="margin-left: auto;" @click=${onDismiss} title="Dismiss">
+                        <vaadin-icon icon="vaadin:close"></vaadin-icon>
+                    </vaadin-button>
+                ` : nothing}
+                ${banner.description ? html`<p>${banner.description}</p>` : nothing}
+            </vaadin-card>
+        `
+    }
+
     render(): TemplateResult {
         const metadata = this.component?.metadata as PageComponent
-        const banners: Banner[] = [...((metadata as any)?.banners ?? []), ...this.actionBanners]
+        const allStaticBanners: Banner[] = (metadata as any)?.banners ?? []
+        const visibleStaticBanners = allStaticBanners
+            .map((b, i) => ({ banner: b, index: i }))
+            .filter(({ index }) => !this.dismissedStaticBannerIndices.has(index))
+        const banners = [
+            ...visibleStaticBanners.map(({ banner, index }) => ({ banner, onDismiss: () => this._dismissStaticBanner(index) })),
+            ...this.actionBanners.map((banner, i) => ({ banner, onDismiss: () => this._dismissActionBanner(i) }))
+        ]
         const inner = html`
             <mateu-content-header
                 .metadata="${metadata}"
@@ -74,12 +175,7 @@ export class MateuPage extends LitElement {
             ></mateu-content-header>
             ${banners.length > 0 ? html`
                 <div class="page-banners">
-                    ${banners.map(banner => html`
-                        <vaadin-card class="page-banner page-banner--${this.bannerThemeClass(banner)}">
-                            ${banner.title ? html`<span slot="title" style="color: #1a1a1a;">${banner.title}</span>` : nothing}
-                            ${banner.description ? html`<p>${banner.description}</p>` : nothing}
-                        </vaadin-card>
-                    `)}
+                    ${banners.map(({ banner, onDismiss }) => this._renderBanner(banner, onDismiss))}
                 </div>
             ` : nothing}
             <div class="form-content">
@@ -123,6 +219,11 @@ export class MateuPage extends LitElement {
         .page-banner p {
             margin: 0;
             color: #1a1a1a;
+        }
+
+        .banner-close {
+            color: #1a1a1a;
+            flex-shrink: 0;
         }
 
         .page-banner--info {

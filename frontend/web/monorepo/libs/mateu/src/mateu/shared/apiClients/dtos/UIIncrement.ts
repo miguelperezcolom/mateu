@@ -9,6 +9,7 @@ export default interface UIIncrement {
     commands: UICommand[] | undefined
     fragments: UIFragment[] | undefined
     banners: Banner[] | undefined
+    appendBanners: boolean | undefined
     appData: Record<string, any> | undefined
     appState: Record<string, any> | undefined
 

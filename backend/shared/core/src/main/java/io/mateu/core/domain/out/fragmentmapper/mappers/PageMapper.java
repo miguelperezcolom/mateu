@@ -26,7 +26,13 @@ public class PageMapper {
       } catch (IllegalArgumentException ignored) {
       }
     }
-    return new BannerDto(theme, false, false, banner.title(), banner.description());
+    return new BannerDto(
+        theme,
+        false,
+        banner.closeable(),
+        banner.title(),
+        banner.description(),
+        banner.timeoutSeconds());
   }
 
   private static FabDto mapToFabDto(UserTrigger trigger) {

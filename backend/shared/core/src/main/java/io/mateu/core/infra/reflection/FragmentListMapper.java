@@ -8,6 +8,8 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.PageBanner;
+import io.mateu.uidl.data.PageBanners;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.net.URI;
@@ -32,6 +34,8 @@ final class FragmentListMapper {
     if (instance instanceof AppState
         || instance instanceof AppData
         || instance instanceof Message
+        || instance instanceof PageBanner
+        || instance instanceof PageBanners
         || instance instanceof UICommand
         || instance instanceof URI
         || instance instanceof URL) {
@@ -45,6 +49,8 @@ final class FragmentListMapper {
                   !(object instanceof AppState)
                       && !(object instanceof AppData)
                       && !(object instanceof Message)
+                      && !(object instanceof PageBanner)
+                      && !(object instanceof PageBanners)
                       && !(object instanceof UICommand)
                       && !(object instanceof URI)
                       && !(object instanceof URL))

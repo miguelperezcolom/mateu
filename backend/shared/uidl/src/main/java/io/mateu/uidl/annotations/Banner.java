@@ -13,4 +13,8 @@ public @interface Banner {
   BannerTheme theme() default BannerTheme.INFO;
 
   String title() default "";
+
+  boolean closeable() default false;
+
+  int timeoutSeconds() default 0;
 }
