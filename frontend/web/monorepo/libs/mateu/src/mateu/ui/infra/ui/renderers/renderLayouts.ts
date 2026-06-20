@@ -298,13 +298,14 @@ export const renderAccordionLayout = (container: LitElement, component: Componen
 
 export const renderAccordionPanel = (container: LitElement, panel: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, variant: AccordionLayoutVariant | undefined) => {
     const metadata = panel.metadata as AccordionPanel
+    const label = metadata.label?.includes('${') ? (container as any)._evalTemplate(metadata.label) : metadata.label
     return html`
-        <vaadin-accordion-panel style="${panel.style}" 
+        <vaadin-accordion-panel style="${panel.style}"
                                 class="${panel.cssClasses}"
                                 theme="${variant??nothing}"
                                 ?opened="${metadata.active}"
                                 ?disabled="${metadata.disabled}">
-            <vaadin-accordion-heading slot="summary">${metadata.label}</vaadin-accordion-heading>
+            <vaadin-accordion-heading slot="summary">${label}</vaadin-accordion-heading>
             ${panel.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </vaadin-accordion-panel>
             `
