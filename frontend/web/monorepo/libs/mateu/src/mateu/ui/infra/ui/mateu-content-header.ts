@@ -135,7 +135,7 @@ export class MateuContentHeader extends LitElement {
                     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                         ${metadata?.kpis?.map((kpi) => html`
                             <vaadin-vertical-layout style="align-items: center">
-                                <div>${kpi.title}</div>
+                                <div>${this.evalLabel(kpi.title)}</div>
                                 <div>${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</div>
                             </vaadin-vertical-layout>
                         `)}
