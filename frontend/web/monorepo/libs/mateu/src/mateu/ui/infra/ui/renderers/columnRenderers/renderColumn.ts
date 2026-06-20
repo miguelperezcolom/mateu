@@ -46,8 +46,11 @@ export const renderGroup = (group: GridGroupColumn,
                             data: ComponentData,
                             appState: ComponentState,
                             appData: ComponentData) => {
+    const groupLabel = group.label?.includes('${')
+        ? new Function('state', 'data', 'return `' + group.label + '`')(state ?? {}, data ?? {})
+        : group.label
     return html`
-<vaadin-grid-column-group header="${group.label}">
+<vaadin-grid-column-group header="${groupLabel}">
     ${group.columns.map(column => renderColumn(column.metadata as GridColumn,
             container,
     baseUrl,
@@ -92,6 +95,9 @@ export const renderColumn = (mateuColumn: GridColumn,
                              data: ComponentData,
                              appState: ComponentState,
                              appData: ComponentData) => {
+    const colLabel = mateuColumn.label?.includes('${')
+        ? new Function('state', 'data', 'return `' + mateuColumn.label + '`')(state ?? {}, data ?? {})
+        : mateuColumn.label
     if (mateuColumn.sortable) {
         return html`
                         <vaadin-grid-sort-column
@@ -106,7 +112,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 @direction-changed="${directionChanged}"
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
-                                ${headerRenderer(mateuColumn.label)}
+                                ${headerRenderer(colLabel)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -138,7 +144,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 width="${mateuColumn.width??nothing}"
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
-                                ${headerRenderer(mateuColumn.label)}
+                                ${headerRenderer(colLabel)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -171,7 +177,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
                                 .xcolumn="${mateuColumn}"
-                                ${headerRenderer(mateuColumn.label)}
+                                ${headerRenderer(colLabel)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
