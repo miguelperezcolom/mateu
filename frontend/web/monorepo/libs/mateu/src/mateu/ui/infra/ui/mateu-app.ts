@@ -135,6 +135,9 @@ export class MateuApp extends ComponentElement {
     @state()
     isDark: boolean = document.documentElement.getAttribute('theme') === 'dark'
 
+    @state()
+    chatOpen: boolean = false
+
     toggleTheme = () => {
         this.isDark = !this.isDark
         const theme = this.isDark ? 'dark' : 'light'
@@ -144,7 +147,8 @@ export class MateuApp extends ComponentElement {
 
     showHideIa = () => {
         if (this.chat) {
-            this.chat.slot = this.chat.slot == 'detail'?'detail-hidden':'detail'
+            this.chatOpen = !this.chatOpen
+            this.chat.slot = this.chatOpen ? 'detail' : 'detail-hidden'
         }
     }
 
