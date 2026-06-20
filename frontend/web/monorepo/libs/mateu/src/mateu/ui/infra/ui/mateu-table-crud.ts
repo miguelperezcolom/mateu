@@ -280,6 +280,10 @@ export class MateuTableCrud extends LitElement {
         }
     }
 
+    evalLabel = (raw: string) => raw?.includes('${')
+        ? new Function('state', 'data', 'return `' + raw + '`')(this.state ?? {}, this.data ?? {})
+        : raw
+
     handleToolbarButtonClick = (actionId: string) => {
         if (actionId === 'import') {
             this.showImportDialog = true
@@ -632,7 +636,7 @@ export class MateuTableCrud extends LitElement {
                                     data-action-id="${button.id}"
                                     theme="${buttonTheme(button) || nothing}"
                                     @click="${() => this.handleToolbarButtonClick(button.actionId)}"
-                            >${button.label}</vaadin-button>
+                            >${this.evalLabel(button.label)}</vaadin-button>
                         `)}
                         ${hasDivider ? html`<span class="toolbar-divider"></span>` : nothing}
                         ${actionButtons.map(button => html`
@@ -640,7 +644,7 @@ export class MateuTableCrud extends LitElement {
                                     data-action-id="${button.id}"
                                     theme="${buttonTheme(button) || nothing}"
                                     @click="${() => this.handleToolbarButtonClick(button.actionId)}"
-                            >${button.label}</vaadin-button>
+                            >${this.evalLabel(button.label)}</vaadin-button>
                         `)}
                         <slot></slot>
                     </vaadin-horizontal-layout>

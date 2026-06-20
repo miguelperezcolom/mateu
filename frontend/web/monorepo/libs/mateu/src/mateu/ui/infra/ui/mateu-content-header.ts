@@ -71,15 +71,20 @@ export class MateuContentHeader extends LitElement {
         }))
     }
 
+    evalLabel = (raw: string) => raw?.includes('${')
+        ? new Function('state', 'data', 'return `' + raw + '`')(this.state ?? {}, this.data ?? {})
+        : raw
+
     renderBtn = (button: Button) => {
         if ((this.data ?? {})[button.actionId + '.hidden']) return nothing
+        const label = this.evalLabel(button.label)
         return html`
         <vaadin-button
                 data-action-id="${button.id}"
                 theme="${buttonTheme(button) || nothing}"
                 @click="${() => this.handleButtonClick(button.actionId)}"
                 ?disabled="${button.disabled}"
-        >${button.iconOnLeft ? html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>` : nothing}${button.label}${button.iconOnRight ? html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>` : nothing}</vaadin-button>
+        >${button.iconOnLeft ? html`<vaadin-icon icon="${button.iconOnLeft}"></vaadin-icon>` : nothing}${label}${button.iconOnRight ? html`<vaadin-icon icon="${button.iconOnRight}"></vaadin-icon>` : nothing}</vaadin-button>
     `
     }
 
