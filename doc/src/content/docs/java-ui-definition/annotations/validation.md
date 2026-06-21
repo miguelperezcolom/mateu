@@ -7,6 +7,8 @@ description: "Annotations for cross-field validation rules and dynamic field rul
 For single-field constraints, use standard Jakarta Bean Validation annotations — `@NotNull`, `@NotEmpty`, `@Size`, `@Min`, `@Max`, `@Pattern` — directly on your fields. Mateu picks them up automatically. The annotations on this page handle cross-field logic and dynamic UI behaviour.
 :::
 
+![Bean validation in action — required fields and range constraints](/images/docs/annotations/validation.png)
+
 ---
 
 ## @Validation

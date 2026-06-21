@@ -66,6 +66,8 @@ From the Products demo:
 String description;
 ```
 
+![Field stereotypes — email, password, textarea, toggle, radio and slider](/images/docs/annotations/stereotypes.png)
+
 ---
 
 ## @UseRadioButtons

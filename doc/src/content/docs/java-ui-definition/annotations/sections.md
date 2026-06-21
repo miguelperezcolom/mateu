@@ -51,6 +51,8 @@ public class CustomerForm {
 
 The `Personal data` section uses the default single-column layout. The `Contact` section switches to two columns. Fields belong to whichever section was declared most recently above them.
 
+![Sections rendered as named cards](/images/docs/components/sections.png)
+
 ---
 
 ## @Header

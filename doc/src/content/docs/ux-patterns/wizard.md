@@ -67,6 +67,8 @@ The last step is instantiated automatically with its default field values if it 
 
 The wizard **title** is derived in order: `@Title` annotation → `TitleSupplier.title()` → class name.
 
+![Registration wizard — step 1 with progress bar and Next button](/images/docs/ux-patterns/wizard.png)
+
 ## Structure
 
 ```

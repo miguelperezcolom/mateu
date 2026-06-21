@@ -39,6 +39,8 @@ public class CheckInForm { ... }
 
 Font size is intentionally left at the normal Lumo value so body text stays legible.
 
+![High-density form — 4 columns with compact spacing](/images/docs/ux-patterns/high-density.png)
+
 ## Combining with other patterns
 
 `@Compact` pairs naturally with:

@@ -139,6 +139,8 @@ public class Home2 {
 }
 ```
 
+![Menu app — top navigation with Section 1 and Section 2 tabs](/images/docs/build/navigation.png)
+
 ---
 
 ## Nesting menus with @Route and parentRoute

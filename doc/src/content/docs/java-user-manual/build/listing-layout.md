@@ -5,6 +5,8 @@ description: How Mateu chooses between table, two-line list, cards, and master-d
 
 Every listing in Mateu renders in one of four layouts. The framework picks one automatically based on the columns you define and the available screen width. You can also force a specific layout when the automatic choice is not right for your use case.
 
+![Listing with search bar, filters and paginated table](/images/docs/build/listing.png)
+
 ---
 
 ## The four layouts

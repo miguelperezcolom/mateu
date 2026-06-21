@@ -59,6 +59,8 @@ public class DashboardPage {
 }
 ```
 
+![KPI tiles on a dashboard page](/images/docs/components/kpi.png)
+
 ---
 
 ## @Widget
@@ -274,6 +276,8 @@ public class OrderRow {
 
 > **Note:** Both `mappings` and `defaultStatus` are mandatory — `@Status` alone does not compile. The `from` string must match the enum constant name exactly (case-sensitive).
 
+![Status badges — green Available, red Out of stock](/images/docs/annotations/status.png)
+
 ---
 
 ## @PlainText
@@ -301,6 +305,8 @@ public class CheckInForm {
 ```
 
 Pairs well with [`@Compact`](../layout/#compact) and [`@Zones`](../layout/#zones--zone) for dense, single-screen layouts.
+
+![PlainText — read-only field values without input chrome](/images/docs/annotations/plain-text.png)
 
 ---
 
@@ -337,6 +343,8 @@ Marks a field as a status chip rendered in the **page header strip** (not in the
 - **String field**: the field value is used as badge text; `null` or blank hides the badge.
 
 For programmatic control implement `BadgeSupplier` (see [metadata suppliers](/java-ui-definition/interfaces/metadata-suppliers/)).
+
+![BadgeInHeader — status chip in the page header strip](/images/docs/annotations/badge.png)
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)

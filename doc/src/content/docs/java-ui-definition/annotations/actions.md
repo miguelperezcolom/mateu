@@ -157,6 +157,8 @@ void delete() { ... }
 
 Unlike `@Toolbar`, `@Button` places the button at the bottom of the form rather than in the toolbar strip at the top.
 
+![Simple form with a @Button — Greet action at the bottom](/images/docs/first-app/result.png)
+
 ---
 
 ## @RowAction
@@ -359,6 +361,8 @@ Shortcuts are expressed as a `+`-separated string. Modifier keys (`ctrl`, `alt`,
 ### Shortcuts in subforms
 
 Shortcuts also work on buttons inside nested types (subforms). Mateu propagates the shortcut through the `ButtonDto` and the parent component picks it up by scanning the component tree.
+
+![Action features — toolbar button, keyboard shortcut and confirm dialog](/images/docs/annotations/action-features.png)
 
 ```java
 public record ShippingDetails(String address, String city) {
@@ -595,6 +599,8 @@ return PageBanners.append(new PageBanner(BannerTheme.WARNING, "Warning", details
 
 Action banners are cleared automatically when the user navigates to a different page.
 
+![Banners — INFO and WARNING messages below the page header](/images/docs/components/banners.png)
+
 ---
 
 ## @Fab
@@ -638,6 +644,8 @@ public class MyApp {
     }
 }
 ```
+
+![FAB — floating action buttons in the bottom-right corner](/images/docs/annotations/fab.png)
 
 ### Page-level FABs
 

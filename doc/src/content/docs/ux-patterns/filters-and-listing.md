@@ -46,6 +46,8 @@ public class Product {
 }
 ```
 
+![Listing with filter bar, search and bulk actions](/images/docs/ux-patterns/filters.png)
+
 ## Structure
 
 ```

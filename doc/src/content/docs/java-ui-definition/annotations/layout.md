@@ -43,6 +43,8 @@ public class CustomerForm {
 
 Each `@Section` becomes a collapsible panel. Subform fields (nested records/classes) can carry their own `@Toolbar` or `@Button` methods scoped to that panel. See [Partial Forms](/ux-patterns/partial-forms/) for the full pattern.
 
+![FoldedLayout — sections as collapsible panels](/images/docs/annotations/folded.png)
+
 ---
 
 ## @FormLayout
@@ -79,6 +81,8 @@ public class CustomerForm {
     LocalDate birthDate;
 }
 ```
+
+![FormLayout with 3 columns](/images/docs/annotations/multi-column.png)
 
 ---
 
@@ -210,6 +214,8 @@ public class AccountPage {
 
 Each `@Tab` annotation starts a new tab. Fields without `@Tab` fall into a default tab.
 
+![Tabs layout — Personal and Address tabs](/images/docs/components/tabs.png)
+
 ---
 
 ## @Accordion
@@ -269,6 +275,8 @@ public class SettingsPage {
     boolean smsNotifications;
 }
 ```
+
+![Accordion layout — collapsible panels](/images/docs/annotations/accordion.png)
 
 ---
 
@@ -443,6 +451,8 @@ The "Guests" section card shows `[Welcome card]` on the same line as the heading
 
 Use `@Inline` on dense, information-rich screens (e.g. `@Compact` + `@Zones`) where an extra card nesting would add too much visual weight. For nested types that need their own clearly separated card and toolbar, omit `@Inline`.
 
+![Inline — nested fields expanded directly into the parent section](/images/docs/annotations/inline.png)
+
 ---
 
 ## @Zones / @Zone
@@ -494,6 +504,8 @@ public class CheckInForm {
 ```
 
 The `left` and `right` zones render side by side (64% / 36%); each stacks its own sections.
+
+![Zones — two side-by-side columns with independent section stacks](/images/docs/annotations/zones.png)
 
 ---
 
@@ -590,6 +602,8 @@ public class CheckInForm {
 ```
 
 Pairs naturally with [`@Zones`](#zones--zone) and [`@PlainText`](../display/#plaintext) for dense, single-screen desks.
+
+![Compact — high-density form with 4 columns](/images/docs/ux-patterns/high-density.png)
 
 ---
 
@@ -738,3 +752,5 @@ public class MixedPage {
 ```
 
 The single-column `@FormLayout` stacks the `name` text field on top of the `stats` component row, with the `save` button rendered inline below both.
+
+![MixedPage — declarative field with fluent chart and avatar](/images/docs/components/mixed.png)
