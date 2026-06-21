@@ -91,12 +91,12 @@ final class PageMetadataExtractor {
           .filter(b -> b != null && b.text() != null && !b.text().isBlank())
           .toList();
     }
-    // Fields annotated with @Badge generate reactive expression-based badges so they
+    // Fields annotated with @BadgeInHeader generate reactive expression-based badges so they
     // update when state changes without needing a full component re-render.
     return getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Badge.class))
+        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.BadgeInHeader.class))
         .map(field -> {
-          var ann = field.getAnnotation(io.mateu.uidl.annotations.Badge.class);
+          var ann = field.getAnnotation(io.mateu.uidl.annotations.BadgeInHeader.class);
           String label = ann.label().isBlank()
               ? FieldMetadataExtractor.getLabel(field)
               : ann.label();

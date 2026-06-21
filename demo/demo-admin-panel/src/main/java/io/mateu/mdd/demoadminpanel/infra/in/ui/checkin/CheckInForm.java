@@ -1,7 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
 import io.mateu.uidl.StyleConstants;
-import io.mateu.uidl.annotations.Badge;
+import io.mateu.uidl.annotations.BadgeInHeader;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
@@ -88,12 +88,12 @@ public class CheckInForm implements HeaderSupplier {
     @ReadOnly @PlainText @Label("Tipo tarifa") String tarifaType;
     @ReadOnly @PlainText @Label("Grupo res.") String grupoRes;
     @ReadOnly @PlainText @Label("Grupo op.") String grupoOp;
-    @Badge(label = "Garantizada", color = "success") boolean garantizada;
-    @Badge(label = "Terceros") boolean terceros;
-    @Badge(label = "Pdte. Int.") boolean pdteInt;
-    @Badge(label = "Exp.") boolean exp;
-    @Badge(label = "Múltiple") boolean multiple;
-    @Badge(label = "VIP", color = "contrast") boolean vip;
+    @BadgeInHeader(label = "Garantizada", color = "success") boolean garantizada;
+    @BadgeInHeader(label = "Terceros") boolean terceros;
+    @BadgeInHeader(label = "Pdte. Int.") boolean pdteInt;
+    @BadgeInHeader(label = "Exp.") boolean exp;
+    @BadgeInHeader(label = "Múltiple") boolean multiple;
+    @BadgeInHeader(label = "VIP", color = "contrast") boolean vip;
     @ReadOnly @PlainText @Label("Riu Class") String riuClass;
     @ReadOnly @PlainText @Label("Requiere") String requiere;
 

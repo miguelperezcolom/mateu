@@ -6,29 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a method as a page-level badge supplier. Two usage patterns:
+ * Renders a field as a badge inside the form body. Shorthand for
+ * {@code @Stereotype(FieldStereotype.badge)}.
  *
- * <p>1. Method returns {@code String}: the returned string is used as badge text; a null or blank
- * return means the badge is not shown.
- *
- * <p>2. Method returns {@code boolean}: badge is shown (using {@code label}) only when the method
- * returns {@code true}.
+ * <p>For header-level badges (shown in the page header strip, not in the form body) use
+ * {@link BadgeInHeader} instead.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD})
+@Target(ElementType.FIELD)
 public @interface Badge {
-
-  /**
-   * Badge text. For boolean fields/methods: shown when value is true. For String fields/methods:
-   * used as label if empty, the field/method value is used as the badge text.
-   */
-  String label() default "";
-
-  String color() default "normal";
-
-  boolean primary() default false;
-
-  boolean small() default true;
-
-  boolean pill() default true;
 }
