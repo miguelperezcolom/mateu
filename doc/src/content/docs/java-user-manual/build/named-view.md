@@ -1,40 +1,9 @@
 ---
-title: "NamedView"
-description: "The interface that wraps an entity for use as a view, editor, or creation form in a CrudAdapter."
+title: "AutoNamedView"
+description: "The concrete class that wraps an entity as a view, editor, or creation form in AutoCrud and FilteredAutoCrud."
 ---
 
-`NamedView<T>` is the return type of the `CrudAdapter` methods `getView()`, `getEditor()`, and `getCreationForm()`. It combines all the contracts a CRUD screen needs into one interface: it knows its title, its id, how to render its fields, how to provide its state to the client, and how to save or create the underlying entity.
-
-```java
-public interface NamedView<T extends Identifiable>
-    extends Identifiable,
-            CrudEditorForm<String>,
-            CrudCreationForm<String>,
-            EditableFieldsProvider,
-            StateSupplier {
-
-    String name();
-}
-```
-
----
-
-## Inherited contracts
-
-| Interface | What it contributes |
-|---|---|
-| `Identifiable` | `id()` — the entity's identifier, used for navigation after save |
-| `CrudEditorForm<String>` | `save(httpRequest)` — persists the edited entity |
-| `CrudCreationForm<String>` | `create(httpRequest)` — creates and persists a new entity, returns its id |
-| `EditableFieldsProvider` | `allEditableFields()` — the list of `Field` objects rendered as form inputs |
-| `StateSupplier` | `state(httpRequest)` — the object serialised as component state for the client |
-| `name()` | The string shown as the detail view / form title |
-
----
-
-## AutoNamedView — the built-in implementation
-
-You rarely implement `NamedView` directly. `AutoNamedView<T>` is the pre-built implementation used internally by `AutoCrud<T>` and `FilteredAutoCrud<F,T>`. It wraps any `T extends Identifiable` and wires all the contracts to the entity and the repository:
+`AutoNamedView<T>` is the internal wrapper that `AutoCrud<T>` and `FilteredAutoCrud<Filters,T>` use to turn an entity into a fully functional CRUD screen. It implements `Named`, `CrudEditorForm<String>`, `CrudCreationForm<String>`, `EditableFieldsProvider`, and `StateSupplier` — everything a CRUD screen needs.
 
 ```java
 new AutoNamedView<>(entityClass, entity, repository)
@@ -46,7 +15,9 @@ new AutoNamedView<>(entityClass, entity, repository)
 | `entity` | The object serialised as state and used for `id()` and `name()` |
 | `repository` | Called by `save()` and `create()` to persist the entity |
 
-### What AutoNamedView does for each method
+---
+
+## What AutoNamedView does for each method
 
 | Method | Behaviour |
 |---|---|
@@ -59,23 +30,13 @@ new AutoNamedView<>(entityClass, entity, repository)
 
 ---
 
-## When to use NamedView directly
+## When you interact with AutoNamedView directly
 
-You only need to implement `NamedView` (or return a custom object that implements it) when:
-
-- The view/editor/creation form is a different class from the entity (e.g. a DTO or projection).
-- You need custom save logic that cannot be expressed by delegating to `repository.save()`.
-- The form fields differ between view and edit (different `allEditableFields()` implementations).
-
-In those cases, implement `CrudEditorForm` and `CrudCreationForm` separately on the form classes and return them from `getEditor()` / `getCreationForm()` in the adapter — you do not need to implement `NamedView` at all. See [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) for that pattern.
-
----
-
-## Example — custom AutoNamedView with pre-populated fields
+You only need to construct an `AutoNamedView` when overriding `buildNamedView()` or `buildCreationForm()` in your `AutoCrud` / `FilteredAutoCrud` subclass to pre-populate fields or add custom view logic:
 
 ```java
 @Override
-public NamedView<Order> getCreationForm(HttpRequest httpRequest) {
+public AutoNamedView<Order> buildCreationForm(HttpRequest httpRequest) {
     var order = new Order();
     order.setDate(LocalDate.now());
     order.setStatus(OrderStatus.DRAFT);
@@ -83,12 +44,12 @@ public NamedView<Order> getCreationForm(HttpRequest httpRequest) {
 }
 ```
 
-The fields `date` and `status` are pre-filled; everything else is blank.
+For fully custom view/editor/creation form types (different DTOs per screen), use `CrudAdapter` directly and return objects implementing `CrudEditorForm` / `CrudCreationForm` — no `AutoNamedView` needed.
 
 ---
 
 ## Next
 
-- [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/) — override hooks that return `AutoNamedView` in `AutoCrud` / `FilteredAutoCrud`
-- [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the lighter alternative when you don't need the full `NamedView` contract
-- [Identifiable, Named, and Searchable](/java-user-manual/build/entity-interfaces/) — the entity interfaces that `NamedView` builds on
+- [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/) — the override hooks that return `AutoNamedView`
+- [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the alternative when each screen has a separate DTO
+- [Identifiable, Named, and Searchable](/java-user-manual/build/entity-interfaces/) — the entity interfaces `AutoNamedView` builds on

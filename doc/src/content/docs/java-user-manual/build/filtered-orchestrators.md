@@ -19,7 +19,7 @@ Separate filter and entity types. Everything else — view, edit form, creation 
 
 ```java
 public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
-    extends Crud<SimpleView<T>, SimpleView<T>, SimpleView<T>, Filters, T, String>
+    extends Crud<AutoNamedView<T>, AutoNamedView<T>, AutoNamedView<T>, Filters, T, String>
 ```
 
 ### What to implement

@@ -1,71 +1,32 @@
 ---
-title: "SimpleView"
-description: "The type placeholder used by auto orchestrators as the View, Editor, and CreationForm type in Crud."
+title: "AutoNamedView as generic parameter"
+description: "How FilteredAutoCrud and AutoCrud use AutoNamedView<T> directly as the View, Editor, and CreationForm type in Crud."
 ---
 
-`SimpleView<T>` is an internal interface that the auto orchestrators plug into `Crud` as the `View`, `Editor`, and `CreationForm` type parameters. You will see it in the class signatures of `AutoCrud`, `AutoCrud`, `FilteredAutoCrud`, and `FilteredAutoCrud`, but you never implement it directly.
+`AutoCrud<T>` and `FilteredAutoCrud<Filters,T>` use `AutoNamedView<T>` directly as the `View`, `Editor`, and `CreationForm` type parameters in the `Crud` base class:
 
 ```java
-public interface SimpleView<T extends Identifiable>
-    extends Entity<String>, CrudEditorForm<String>, CrudCreationForm<String> {
-
-    String name();
-}
+public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
+    extends Crud<AutoNamedView<T>, AutoNamedView<T>, AutoNamedView<T>, Filters, T, String>
 ```
 
----
-
-## Why it exists
-
-`Crud` requires concrete types for `View`, `Editor`, and `CreationForm`:
-
-```java
-Crud<View, Editor extends CrudEditorForm<IdType>, CreationForm extends CrudCreationForm<IdType>, ...>
-```
-
-The auto orchestrators use the same entity type `T` for all three screens, but they still need a type that satisfies the `CrudEditorForm` and `CrudCreationForm` bounds. `SimpleView<T>` is that placeholder — it declares the required interface methods without providing an implementation.
-
-The actual implementation is `AutoNamedView<T>`, which implements `SimpleView<T>` and is returned at runtime by the auto adapters.
+`AutoNamedView<T>` satisfies the `CrudEditorForm<String>` and `CrudCreationForm<String>` bounds that `Crud` requires for `Editor` and `CreationForm`. You never instantiate or implement these type parameters yourself — `FilteredAutoCrud` creates `AutoNamedView` instances internally via `buildNamedView()` and `buildCreationForm()`.
 
 ---
 
-## Inherited contracts
+## Where this matters
 
-| Interface | What it contributes |
-|---|---|
-| `Entity<String>` | `id()` — the entity identifier |
-| `CrudEditorForm<String>` | `save(httpRequest)` and `id()` |
-| `CrudCreationForm<String>` | `create(httpRequest)` |
-| `name()` | The screen title |
+You only encounter this directly if you:
 
----
+- Override `buildNamedView()` or `buildCreationForm()` — return type is `AutoNamedView<T>`.
+- Call `adapter()` on a `FilteredAutoCrud` — the returned `CrudAdapter` is parameterised with `AutoNamedView<T>`.
 
-## Where it appears
-
-| Orchestrator | How SimpleView is used |
-|---|---|
-| `AutoCrud<T>` | `Crud<SimpleView<T>, SimpleView<T>, SimpleView<T>, T, T, String>` |
-| `AutoCrud<T>` | Same — read-only, so Editor/CreationForm are unused |
-| `FilteredAutoCrud<F,R>` | `Crud<SimpleView<R>, SimpleView<R>, SimpleView<R>, F, R, String>` |
-| `FilteredAutoCrud<F,R>` | Same — read-only |
-
----
-
-## The concrete implementation: AutoNamedView
-
-At runtime, the auto adapters always return `AutoNamedView<T>` — not a `SimpleView<T>` instance. `AutoNamedView<T>` implements `NamedView<T>`, which extends `SimpleView<T>` and adds `EditableFieldsProvider` and `StateSupplier`.
-
-You only interact with `AutoNamedView` directly when overriding `getView()`, `getEditor()`, or `getCreationForm()` in an auto adapter:
-
-```java
-return new AutoNamedView<>(entityClass, entity, repository());
-```
-
-See [NamedView](/java-user-manual/build/named-view/) for the full picture.
+For fully custom view/editor/creation form types, step up to `Crud` directly and supply your own types.
 
 ---
 
 ## Next
 
-- [NamedView](/java-user-manual/build/named-view/) — the runtime implementation of `SimpleView`, returned by the auto orchestrators
-- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — when you provide your own View/Editor/CreationForm types instead of `SimpleView`
+- [AutoNamedView](/java-user-manual/build/named-view/) — what `AutoNamedView` is and what it does
+- [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/) — the override hooks that return `AutoNamedView`
+- [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — when you provide your own View/Editor/CreationForm types
