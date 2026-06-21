@@ -78,6 +78,9 @@ export default defineConfig({
 						{ slug: 'ux-patterns/long-running-jobs' },
 						{ slug: 'ux-patterns/autosave' },
 						{ slug: 'ux-patterns/keyboard-shortcuts' },
+						{ slug: 'ux-patterns/notifications' },
+						{ slug: 'ux-patterns/partial-forms' },
+						{ slug: 'ux-patterns/high-density', label: 'High-Density Screens' },
 					],
 				},
 				{
