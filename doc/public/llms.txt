@@ -1,0 +1,41 @@
+# Mateu
+
+> Model-driven UI framework for Java. Annotate Java classes with @UI and Mateu generates forms, CRUD screens, navigation, and a full web UI automatically. Zero frontend code for typical business apps.
+
+Mateu works with Spring Boot (MVC and WebFlux), Quarkus, Micronaut, and Helidon. The frontend ships as pre-built Lit web-components; renderers for Vaadin Lumo, SAP UI5, Oracle Redwood, and PatternFly are included.
+
+## AI reference files
+
+For AI-assisted development, use these context documents with your AI tool (Claude Projects, Gemini Gems, Cursor Rules, etc.):
+
+- [Compact reference](https://mateu.io/mateu-ai-compact.md): ~2 500 tokens — key annotations, patterns, return types. Use for day-to-day code generation.
+- [Full reference](https://mateu.io/mateu-ai-full.md): ~9 000 tokens — complete annotation catalogue, all interfaces, all UX patterns. Use for thorough assistance or broad feature coverage.
+
+## Documentation
+
+- [Quickstart](https://mateu.io/java-user-manual/start-here/quickstart/): Create a Spring Boot project with Mateu in 5 minutes
+- [First app](https://mateu.io/java-user-manual/start-here/first-app/): Build your first form and CRUD
+- [Annotations reference](https://mateu.io/java-ui-definition/annotations/): Every annotation with attributes and examples
+- [Interfaces reference](https://mateu.io/java-ui-definition/interfaces/): ListingBackend, CrudRepository, BannerSupplier, BadgeSupplier, etc.
+- [UX patterns](https://mateu.io/ux-patterns/): Wizard, high-density screens, split view, autosave, keyboard shortcuts, and more
+- [Components](https://mateu.io/java-ui-definition/components/): Badge, Banner, FAB, Chart, Map, and all fluent components
+- [Design systems](https://mateu.io/design-systems/): Vaadin, SAP UI5, Oracle Redwood, PatternFly
+
+## Key concepts
+
+- `@UI("/path")` on a class registers it as a routed view; no path means root.
+- Fields → form fields. `List<T>` fields → grids/tables. Nested class fields → subforms.
+- Methods annotated with `@Button` or `@Toolbar` become buttons.
+- Bean validation (`@NotNull`, `@NotEmpty`, `@Min`, `@Max`) is enforced client-side and server-side automatically.
+- `HttpRequest` can be added to any method signature; Mateu injects it.
+- Action methods return: `void` (stay), `URI` (navigate), `Message` (toast), any Java object (open as view), `PageBanner` (show banner), `new State(this)` (update without navigating).
+- CRUD: extend `AutoCrud<T>` with a record implementing `Identifiable` — zero extra code.
+- Custom listings: extend `Listing<Filters, Row>` and implement `search()`.
+- Wizard: extend `Wizard`, declare `WizardStep` fields, annotate the final action with `@WizardCompletionAction`.
+- Dense screens: combine `@Compact` + `@Zones`/`@Zone` + `@Section(zone="...")`.
+- Dynamic banners: `@Banner` on a method or implement `BannerSupplier`.
+- Header badges: `@BadgeInHeader` on a field or implement `BadgeSupplier`.
+- Floating buttons: `@Fab(icon="vaadin:plus")` on a method (app-level = global, page-level = scoped).
+- Dark/light mode toggle: `@App(themeToggle=true)`.
+- Expression labels: any label supports `${state.field}` template expressions.
+- URL pagination: CRUD pages sync `?page=N&sort=field:asc` to the URL automatically.

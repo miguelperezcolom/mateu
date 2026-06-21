@@ -58,6 +58,13 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
+					label: 'Use with AI',
+					items: [
+						{ slug: 'ai-assistant-reference', label: 'AI assistant reference' },
+						{ slug: 'ai', label: 'Embed AI chat in your app' },
+					],
+				},
+				{
 					label: 'UX Patterns',
 					items: [
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
