@@ -37,6 +37,7 @@ final class StandardFormFieldBuilder {
         .description(getDescription(field, instance, httpRequest))
         .attributes(getAttributes(field))
         .optionsColumns(getOptionsColumns(field))
+        .multiline(isMultiline(field))
         .build();
   }
 

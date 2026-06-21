@@ -472,7 +472,9 @@ export class MateuField extends LitElement {
             const isBool = this.field?.dataType == 'bool' || v === true || v === false
             const body = isBool
                 ? html`<vaadin-icon icon="${(v === true || v === 'true') ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
-                : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(v !== null && v !== undefined && v !== '') ? String(v) : '—'}</span>`
+                : this.field?.multiline
+                    ? html`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${(v !== null && v !== undefined && v !== '') ? String(v) : '—'}</span>`
+                    : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(v !== null && v !== undefined && v !== '') ? String(v) : '—'}</span>`
             // Rendered as a tight block (no vaadin-custom-field chrome) so read-only fields are dense.
             // mateu-field itself is the form-layout column item, so this does not affect column layout.
             return html`<div

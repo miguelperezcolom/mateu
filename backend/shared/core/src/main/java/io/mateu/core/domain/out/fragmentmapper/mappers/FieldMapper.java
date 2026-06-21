@@ -76,6 +76,7 @@ public class FieldMapper {
             .useButtonForDetail(formField.useButtonForDetail())
             .minHeightWhenDetailVisible(formField.minHeightWhenDetailVisible())
             .optionsColumns(formField.optionsColumns())
+            .multiline(formField.multiline())
             .build(),
         formField.id(),
         List.of(),

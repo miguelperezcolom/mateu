@@ -139,7 +139,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                 <vaadin-app-layout style="${metadata?.style}" class="${metadata?.cssClasses}" .drawerOpened=${!metadata.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
-                    ${renderThemeToggle(metadata, container)}
+                    <vaadin-horizontal-layout slot="navbar" style="margin-left: auto; align-items: center;">
+                        <slot name="widgets"></slot>
+                        ${renderThemeToggle(metadata, container)}
+                    </vaadin-horizontal-layout>
                     <vaadin-scroller slot="drawer" class="p-s"
                                      @navigation-requested="${container.updateRoute}">
                         ${metadata.menu && metadata.totalMenuOptions > 10?html`
@@ -152,7 +155,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${container.renderSideNav(items, undefined)}
                         </vaadin-side-nav>
                     </vaadin-scroller>
-                    <div class="app-content">
+                    <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
                         <vaadin-master-detail-layout>
                             <vaadin-scroller style="height: 100%;">
                                 <mateu-api-caller>
@@ -320,7 +323,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             ${renderThemeToggle(metadata, container)}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>
-                    <div class="app-content">
+                    <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
                         <vaadin-master-detail-layout>
                             <vaadin-scroller style="height: 100%;">
                                 <mateu-api-caller>
@@ -382,7 +385,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             </vaadin-horizontal-layout>
                         </vaadin-horizontal-layout>
                     </div>
-                    <div class="app-content">
+                    <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">
                         <vaadin-master-detail-layout>
                             <vaadin-scroller style="height: 100%;">
                                 <mateu-api-caller>

@@ -3,10 +3,12 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.BadgeInHeader;
 import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.Multiline;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
@@ -51,6 +53,8 @@ import java.util.stream.Stream;
 @ConfirmOnNavigationIfDirty
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @Compact
+@ReadOnly
+@PlainText
 @Title("Check-in")
 @Zones({
     @Zone(name = "left", width = "64%"),
@@ -66,6 +70,14 @@ public class CheckInForm implements HeaderSupplier {
 
     @Hidden String id;
     @Hidden String currency;
+
+    @BadgeInHeader(label = "Garantizada", color = "success") boolean garantizada = true;
+    @BadgeInHeader(label = "Terceros") boolean terceros;
+    @BadgeInHeader(label = "Pdte. Int.") boolean pdteInt;
+    @BadgeInHeader(label = "Exp.") boolean exp = true;
+    @BadgeInHeader(label = "Múltiple") boolean multiple;
+    @BadgeInHeader(label = "VIP", color = "contrast") boolean vip = true;
+
 
     // ===================== Información general de la reserva =====================
     // These are already shown in the page context header, so they are hidden from the form body.
@@ -83,34 +95,27 @@ public class CheckInForm implements HeaderSupplier {
     @Hidden String reservationStatus;
 
     @Section(value = "Información general de la reserva", columns = 8, zone = "left")
-    @ReadOnly @PlainText @Label("Tiempo esperando") String waitingTime;
-    @ReadOnly @PlainText @Label("Ref. tarifa") String tarifaRef;
-    @ReadOnly @PlainText @Label("Tipo tarifa") String tarifaType;
-    @ReadOnly @PlainText @Label("Grupo res.") String grupoRes;
-    @ReadOnly @PlainText @Label("Grupo op.") String grupoOp;
-    @BadgeInHeader(label = "Garantizada", color = "success") boolean garantizada;
-    @BadgeInHeader(label = "Terceros") boolean terceros;
-    @BadgeInHeader(label = "Pdte. Int.") boolean pdteInt;
-    @BadgeInHeader(label = "Exp.") boolean exp;
-    @BadgeInHeader(label = "Múltiple") boolean multiple;
-    @BadgeInHeader(label = "VIP", color = "contrast") boolean vip;
-    @ReadOnly @PlainText @Label("Riu Class") String riuClass;
-    @ReadOnly @PlainText @Label("Requiere") String requiere;
+    @Label("Tiempo esperando") String waitingTime;
+    @Label("Ref. tarifa") String tarifaRef;
+    @Label("Tipo tarifa") String tarifaType;
+    @Label("Grupo res.") String grupoRes;
+    @Label("Grupo op.") String grupoOp;
+    @Label("Riu Class") String riuClass;
+    @Label("Requiere") String requiere;
 
     // ===================== Check-in =====================
-    @Section(value = "Check-in", columns = 4, zone = "left")
+    @Section(value = "Check-in", columns = 6, zone = "left")
     @Label("Nº habitación") String assignedRoom;
-    @ReadOnly @PlainText @Label("Tipo hab. física") String roomTypePhysical;
-    @ReadOnly @PlainText @Label("Tipo hab. contratada") String roomType;
+    @Label("Tipo hab. física") String roomTypePhysical;
+    @Label("Tipo hab. contratada") String roomType;
     @Label("Upgrade") boolean upgrade;
-    @Label("Espera") boolean espera;
-    @Stereotype(FieldStereotype.textarea) @Label("Deseos") String deseos;
-    @Stereotype(FieldStereotype.textarea) @Label("Observaciones internas") String observacionesInternas;
-    @Stereotype(FieldStereotype.textarea) @Label("Avisos") String avisos;
+    @Colspan(2) @Label("Espera") boolean espera;
+    @Colspan(2) @Multiline @Label("Deseos") String deseos;
+    @Colspan(2) @Multiline @Label("Observaciones internas") String observacionesInternas;
+    @Colspan(2) @Multiline @Label("Avisos") String avisos;
 
     // ===================== Detalle de estancia (PAX) =====================
     @Section(value = "Detalle de estancia (huéspedes)", columns = 1, zone = "left")
-    @ReadOnly
     @Label("")
     @Stereotype(FieldStereotype.grid)
     List<GuestData> guests = new ArrayList<>();
@@ -118,76 +123,74 @@ public class CheckInForm implements HeaderSupplier {
     // ===================== Información cliente (tabs) =====================
     @Section(value = "Información cliente", columns = 8, zone = "left")
     @Tab("Info Cardex")
-    @ReadOnly @PlainText @Label("Titular") String leadFullName;         // Apellidos, Nombre
-    @ReadOnly @PlainText @Label("Email") String leadEmail;
-    @ReadOnly @PlainText @Label("Teléfono / Fax") String leadPhoneFax; // Teléfono · Fax
-    @ReadOnly @PlainText @Label("Dirección") String leadFullAddress;    // Dir, CP Ciudad (Prov) País
-    @ReadOnly @PlainText @Label("Nac. / Idioma") String leadNatLang;    // Nacionalidad / Idioma
-    @ReadOnly @PlainText @Label("F. nacimiento") String leadDobSex;     // Fecha · Sexo · Ciudad nac.
-    @ReadOnly @PlainText @Label("Documento") String leadDocInfo;        // Tipo Nº · exp.
-    @ReadOnly @PlainText @Label("Nº Riu Class") String leadRiuClassNo;
-    @ReadOnly @PlainText @Label("Acepta publicidad") String leadAcceptsAds;
-    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Acompañante") boolean leadCompanion;
-    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Cardex provisional") boolean leadProvisionalCardex;
+    @Label("Titular") String leadFullName;         // Apellidos, Nombre
+    @Label("Email") String leadEmail;
+    @Label("Teléfono / Fax") String leadPhoneFax; // Teléfono · Fax
+    @Label("Dirección") String leadFullAddress;    // Dir, CP Ciudad (Prov) País
+    @Label("Nac. / Idioma") String leadNatLang;    // Nacionalidad / Idioma
+    @Label("F. nacimiento") String leadDobSex;     // Fecha · Sexo · Ciudad nac.
+    @Label("Documento") String leadDocInfo;        // Tipo Nº · exp.
+    @Label("Nº Riu Class") String leadRiuClassNo;
+    @Label("Acepta publicidad") String leadAcceptsAds;
+    @Stereotype(FieldStereotype.badge) @Label("Acompañante") boolean leadCompanion;
+    @Stereotype(FieldStereotype.badge) @Label("Cardex provisional") boolean leadProvisionalCardex;
 
     @Tab("Datos Empresa")
-    @ReadOnly @PlainText @Label("Razón social") String companyName;
-    @ReadOnly @PlainText @Label("CIF") String cif;
-    @ReadOnly @PlainText @Label("Email facturación") String billingEmail;
-    @ReadOnly @PlainText @Label("Dirección fiscal") String fiscalAddress;
-    @ReadOnly @PlainText @Label("Forma de pago") String paymentTerms;
+    @Label("Razón social") String companyName;
+    @Label("CIF") String cif;
+    @Label("Email facturación") String billingEmail;
+    @Label("Dirección fiscal") String fiscalAddress;
+    @Label("Forma de pago") String paymentTerms;
 
     @Tab("Datos Tarjeta")
-    @ReadOnly @PlainText @Label("Tipo tarjeta") String cardTypeName;
-    @ReadOnly @PlainText @Label("4 últimos dígitos") String cardLast4Tab;
-    @ReadOnly @PlainText @Label("Caducidad") String cardExpiry;
-    @ReadOnly @PlainText @Label("Titular") String cardHolder;
-    @ReadOnly @PlainText @Label("Garantía validada") boolean cardValidated;
+    @Label("Tipo tarjeta") String cardTypeName;
+    @Label("4 últimos dígitos") String cardLast4Tab;
+    @Label("Caducidad") String cardExpiry;
+    @Label("Titular") String cardHolder;
+    @Label("Garantía validada") boolean cardValidated;
 
     @Tab("Histórico cliente")
-    @ReadOnly
     @Stereotype(FieldStereotype.grid)
     List<HistoryStay> historyStays = new ArrayList<>();
 
     @Tab("Preferencias")
-    @Stereotype(FieldStereotype.textarea) @Label("Preferencias del cliente") String preferenceNotes;
+    @Multiline @Label("Preferencias del cliente") String preferenceNotes;
 
     // ===================== Importes =====================
     @Section(value = "Importes", columns = 1, zone = "right")
-    @ReadOnly
     @Label("")
     @Stereotype(FieldStereotype.grid)
     List<ImporteLine> importes = new ArrayList<>();
 
     // ===================== Información habitación =====================
-    @Section(value = "Información habitación", columns = 3, zone = "right")
-    @ReadOnly @PlainText @Label("Nº habitación") String roomInfoNumber;
-    @ReadOnly @PlainText @Label("Dobles / Individuales") String beds;
-    @ReadOnly @PlainText @Label("Estado") RoomState roomState;
+    @Section(value = "Información habitación", columns = 4, zone = "right")
+    @Label("Nº habitación") String roomInfoNumber;
+    @Label("Dobles / Individuales") String beds;
+    @Label("Estado") RoomState roomState;
     @Label("Checkout") boolean checkout;
-    @ReadOnly @PlainText @Label("Observaciones") String roomObservations;
-    @Stereotype(FieldStereotype.textarea) @Label("Averías") String averias;
+    @Colspan(2) @Label("Observaciones") String roomObservations;
+    @Colspan(2) @Multiline @Label("Averías") String averias;
 
     // ===================== Historial cliente =====================
-    @Section(value = "Historial cliente", columns = 3, zone = "right")
-    @ReadOnly @PlainText @Label("Tipo Riu Class") String riuClassType;
-    @ReadOnly @PlainText @Label("Último hotel") String lastHotel;
-    @ReadOnly @PlainText @Label("RPC") boolean rpc;
-    @ReadOnly @PlainText @Label("Repetido") int repeated;
-    @ReadOnly @PlainText @Label("Tipo cliente") String clientType;
-    @ReadOnly @PlainText @Label("Nº Attn H") int attnH;
-    @ReadOnly @PlainText @Label("Última habitación") String lastRoom;
-    @Stereotype(FieldStereotype.textarea) @Label("Preferencias") String historialPreferences;
+    @Section(value = "Historial cliente", columns = 4, zone = "right")
+    @Label("Tipo Riu Class") String riuClassType;
+    @Label("Último hotel") String lastHotel;
+    @Label("RPC") boolean rpc;
+    @Label("Repetido") int repeated;
+    @Label("Tipo cliente") String clientType;
+    @Label("Nº Attn H") int attnH;
+    @Colspan(2) @Label("Última habitación") String lastRoom;
+    @Colspan(4) @Multiline @Label("Preferencias") String historialPreferences;
 
     // ===================== Folios / Anticipos =====================
-    @Section(value = "Folios / Anticipos", columns = 3, zone = "right")
+    @Section(value = "Folios / Anticipos", columns = 4, zone = "right")
     @Label("Crédito cancelado") boolean creditCancelled;
     @Label("Imprimir recibo") boolean printReceipt;
     @Label("Límite crédito") BigDecimal creditLimit;
-    @ReadOnly @PlainText @Label("Tipo tarjeta") String cardType;
-    @ReadOnly @PlainText @Label("4 últimos dígitos") String cardLast4;
+    @Label("Tipo tarjeta") String cardType;
+    @Label("4 últimos dígitos") String cardLast4;
     @Label("Entrega a cuenta") BigDecimal deposit;
-    @ReadOnly @PlainText @Label("Saldo pendiente") BigDecimal saldoPendiente;
+    @Label("Saldo pendiente") BigDecimal saldoPendiente;
 
     Object load(HttpRequest httpRequest) {
         return populate() ? (Object) new State(this) : Message.success("Reservation not found");

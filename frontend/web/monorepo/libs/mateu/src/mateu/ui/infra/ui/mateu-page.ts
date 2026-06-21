@@ -91,6 +91,11 @@ export class MateuPage extends LitElement {
         }
         if (changedProperties.has('component')) {
             this._scheduleStaticBannerTimeouts()
+            this.dispatchEvent(new CustomEvent('compact-changed', {
+                detail: { compact: !!this.component?.style?.includes('--mateu-compact:1') },
+                bubbles: true,
+                composed: true,
+            }))
         }
     }
 

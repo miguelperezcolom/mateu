@@ -49,5 +49,6 @@ export default interface FormField extends ComponentMetadata {
     minHeightWhenDetailVisible: string
     optionsColumns: number
     mainFilter?: boolean
+    multiline?: boolean
 
 }

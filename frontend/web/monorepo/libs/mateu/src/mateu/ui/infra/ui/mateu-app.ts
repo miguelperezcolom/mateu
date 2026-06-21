@@ -78,6 +78,13 @@ export class MateuApp extends ComponentElement {
 
     private _commandPaletteHandler: ((e: KeyboardEvent) => void) | null = null
 
+    @state()
+    pageCompact = false
+
+    private _compactHandler = (e: Event) => {
+        this.pageCompact = (e as CustomEvent).detail?.compact ?? false
+    }
+
     @query("mateu-chat")
     chat: MateuChat | undefined
 
@@ -117,6 +124,7 @@ export class MateuApp extends ComponentElement {
         document.addEventListener('keydown', this._commandPaletteHandler)
         document.addEventListener('dirty', this.dirtyEventHandler)
         document.addEventListener('clean', this.cleanEventHandler)
+        this.addEventListener('compact-changed', this._compactHandler)
     }
 
     disconnectedCallback() {
@@ -130,6 +138,7 @@ export class MateuApp extends ComponentElement {
         if (this.cleanEventHandler) {
             document.removeEventListener('clean', this.cleanEventHandler)
         }
+        this.removeEventListener('compact-changed', this._compactHandler)
     }
 
     @state()
@@ -632,6 +641,11 @@ export class MateuApp extends ComponentElement {
             width: calc(100% - 4rem);
             height: calc(100vh - 6rem);
             overflow-y: auto;
+        }
+
+        .app-content.no-padding {
+            padding: 0;
+            width: 100%;
         }
 
         .menu vaadin-menu-bar-button {
