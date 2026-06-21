@@ -77,8 +77,6 @@ For more background, see:
 
 ## Result
 
-![Embedded Mateu UI inside a host page](/images/docs/embedded/embedded-counter.png)
-
 The host page is your application.  
 The counter is rendered by a remote Mateu backend inside the page.
 

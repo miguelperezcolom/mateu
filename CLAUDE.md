@@ -134,6 +134,39 @@ npm run test:ui       # interactive UI mode
 npm run report        # open last HTML report
 ```
 
+## Generating Documentation Screenshots
+
+Screenshots for the documentation in `doc/src/content/docs/` are generated programmatically:
+
+1. **Write** the example Java class in the appropriate SUT module (usually `e2e/sut/modules/sample1/` for pure UI classes, or `e2e/sut/apps/mvc-app1/src/.../app/` for CRUD classes that need `AutoCrud`).
+2. **Build** the changed modules:
+   ```bash
+   cd e2e/sut/modules/sample1 && mvn clean install
+   cd e2e/sut/apps/mvc-app1 && mvn clean install -DskipTests
+   ```
+3. **Start** the MVC app (keep running in background):
+   ```bash
+   cd e2e/sut/apps/mvc-app1 && mvn spring-boot:run
+   ```
+4. **Take screenshots** using the Playwright one-shot script (from `e2e/`):
+   ```bash
+   # Full-page screenshot of a route
+   node screenshot.mjs --url http://localhost:8080/<route> --output ../doc/public/images/docs/<topic>/<name>.png
+
+   # Screenshot of a specific element only
+   node screenshot.mjs --url http://localhost:8080/<route> --output ../doc/public/images/docs/<topic>/<name>.png --element vaadin-form-layout
+
+   # Custom viewport
+   node screenshot.mjs --url http://localhost:8080/<route> --output ../doc/public/images/docs/<topic>/<name>.png --width 1440 --height 900
+   ```
+5. **Reference** the images in the doc Markdown as `/images/docs/<topic>/<name>.png`.
+
+The script waits for `mateu-page` to appear, then adds a 1.5 s settle delay so web components finish rendering before the screenshot is taken. Options: `--wait-for`, `--element`, `--width`, `--height`, `--full-page`, `--settle`, `--timeout`.
+
+> This approach also **validates** the documentation code examples — if a class does not compile or does not produce the expected UI, the screenshot will be blank or missing.
+
+---
+
 ## API Quick Reference
 
 Every Mateu app exposes the same REST contract regardless of framework:

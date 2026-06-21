@@ -47,11 +47,7 @@ For the architectural background, see:
 
 Authentication can be handled centrally in the shell.
 
-![Login](/images/docs/distributed/distributed-login.jpeg)
-
 After login, users enter a single unified backoffice.
-
-![Home](/images/docs/distributed/distributed-home.jpeg)
 
 The important point is not just the styling.
 
@@ -62,26 +58,6 @@ It is that the user experiences **one application**, even though different parts
 ## 2. Navigation across services
 
 The shell exposes a single navigation system, but each section can come from a different service.
-
-### Users menu
-
-![Users menu](/images/docs/distributed/distributed-users-menu.jpeg)
-
-### Content menu
-
-![Content menu](/images/docs/distributed/distributed-content-menu.jpeg)
-
-### Control plane menu
-
-![Control plane menu](/images/docs/distributed/distributed-control-plane-menu.jpeg)
-
-### Workflow menu
-
-![Workflow menu](/images/docs/distributed/distributed-workflow-menu.jpeg)
-
-### Forms menu
-
-![Forms menu](/images/docs/distributed/distributed-forms-menu.jpeg)
 
 This is the key architectural point:
 
@@ -94,27 +70,7 @@ This is the key architectural point:
 
 Each module is owned by a different service but rendered inside the same shell.
 
-### Users module
-
-![Users CRUD](/images/docs/distributed/distributed-users-crud.jpeg)
-
-### Content module
-
-![Content CRUD](/images/docs/distributed/distributed-content-sample-crud.jpeg)
-
-### Control plane module
-
-![Control plane view](/images/docs/distributed/distributed-control-plane-sample-view.jpeg)
-
-### Forms module
-
-![Forms CRUD](/images/docs/distributed/distributed-forms-sample-crud.jpeg)
-
-### Workflow module
-
-![Workflow CRUD](/images/docs/distributed/distributed-workflow-sample-crud.jpeg)
-
-These screenshots matter because they show the actual outcome:
+The actual outcome:
 
 - one shell
 - many domains

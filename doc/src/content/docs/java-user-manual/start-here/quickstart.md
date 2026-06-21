@@ -75,7 +75,7 @@ Open `http://localhost:8080/products`
 
 ## Result
 
-![Products list](/images/docs/admin-panel/products-list.jpeg)
+![Products list](/images/docs/admin-panel/products-list.png)
 
 ## Multi-module setup
 
