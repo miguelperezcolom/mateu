@@ -150,6 +150,7 @@ Response is `UIIncrementDto` (see `backend/shared/dtos`).
 - `@UI("/path")` on a class registers it as a routed view; no path means root.
 - `AutoCrud<T>` / `AutoCrudOrchestrator<T>` give full CRUD with minimal code.
 - `CrudRepository<T>` is the port; implement it inline or as a Spring `@Service` and return it from `repository()` in your `AutoCrud<T>` subclass.
+- **CRUD button labels**: override any of `newLabel()`, `saveLabel()`, `cancelLabel()`, `deleteLabel()`, `editLabel()`, `addAnotherLabel()`, `backToListLabel()`, `importLabel()`, `historyLabel()` in an `AutoCrud` subclass to replace the corresponding built-in English label. The default values are the method names in plain English (e.g. `newLabel()` → `"New"`). Implemented in `Crud.java`; consumed by `ListRouteResolver`, `CrudFormComponentBuilder`, and `ViewToolbarBuilder`.
 - Bean validation annotations (`@NotNull`, `@NotEmpty`, `@Min`, `@Max`) drive client-side and server-side validation automatically.
 - `Identifiable` interface on record/entity marks the ID field for CRUD.
 - `HttpRequest` can be added to any method signature; Mateu injects it automatically.

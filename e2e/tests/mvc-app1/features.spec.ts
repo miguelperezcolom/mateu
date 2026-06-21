@@ -1332,3 +1332,74 @@ test.describe('FullCrud — full AutoCrud lifecycle', () => {
   });
 
 });
+
+// ---------------------------------------------------------------------------
+// CustomLabelsCrud — /custom-labels-crud
+// ---------------------------------------------------------------------------
+
+const CUSTOM_LABELS_API = '/custom-labels-crud/mateu/v3/components/_/action';
+const CUSTOM_LABELS_TYPE = 'io.mateu.sample1.app.CustomLabelsCrud';
+
+test.describe('CustomLabelsCrud — overridden CRUD button labels', () => {
+
+  test('listing toolbar shows overridden "Añadir" instead of "New"', async ({ request }) => {
+    const body = await callAction(request, CUSTOM_LABELS_API, {
+      route: '/', actionId: '',
+      serverSideType: CUSTOM_LABELS_TYPE,
+      consumedRoute: '',
+      componentState: {},
+    });
+    const toolbar = allToolbar(body.fragments);
+    expect(toolbar.find((b: any) => b.label === 'Añadir')).toBeDefined();
+    expect(toolbar.find((b: any) => b.label === 'New')).toBeUndefined();
+  });
+
+  test('listing toolbar shows overridden "Eliminar" instead of "Delete"', async ({ request }) => {
+    const body = await callAction(request, CUSTOM_LABELS_API, {
+      route: '/', actionId: '',
+      serverSideType: CUSTOM_LABELS_TYPE,
+      consumedRoute: '',
+      componentState: {},
+    });
+    const toolbar = allToolbar(body.fragments);
+    expect(toolbar.find((b: any) => b.label === 'Eliminar')).toBeDefined();
+    expect(toolbar.find((b: any) => b.label === 'Delete')).toBeUndefined();
+  });
+
+  test('create form toolbar shows overridden "Guardar cambios" instead of "Save"', async ({ request }) => {
+    const body = await callAction(request, CUSTOM_LABELS_API, {
+      route: '/new', actionId: '',
+      serverSideType: CUSTOM_LABELS_TYPE,
+      consumedRoute: '',
+      componentState: {},
+    });
+    const toolbar = allToolbar(body.fragments);
+    expect(toolbar.find((b: any) => b.label === 'Guardar cambios')).toBeDefined();
+    expect(toolbar.find((b: any) => b.label === 'Save')).toBeUndefined();
+  });
+
+  test('create form toolbar shows overridden "Descartar" instead of "Cancel"', async ({ request }) => {
+    const body = await callAction(request, CUSTOM_LABELS_API, {
+      route: '/new', actionId: '',
+      serverSideType: CUSTOM_LABELS_TYPE,
+      consumedRoute: '',
+      componentState: {},
+    });
+    const toolbar = allToolbar(body.fragments);
+    expect(toolbar.find((b: any) => b.label === 'Descartar')).toBeDefined();
+    expect(toolbar.find((b: any) => b.label === 'Cancel')).toBeUndefined();
+  });
+
+  test('search returns 2 items with no errors', async ({ request }) => {
+    const body = await callAction(request, CUSTOM_LABELS_API, {
+      route: '/', actionId: 'search',
+      serverSideType: CUSTOM_LABELS_TYPE,
+      consumedRoute: '',
+      componentState: { page: 0, size: 10 },
+    });
+    expect(body.messages).toHaveLength(0);
+    const content = body.fragments[0]?.data?.crud?.page?.content ?? [];
+    expect(content.length).toBe(2);
+  });
+
+});
