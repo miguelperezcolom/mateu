@@ -115,29 +115,29 @@ public class CheckInForm implements HeaderSupplier {
     // ===================== Información cliente (tabs) =====================
     @Section(value = "Información cliente", columns = 5, zone = "left")
     @Tab("Info Cardex")
-    @Label("Apellidos") String leadLastName;
-    @Label("Nombre") String leadFirstName;
-    @Label("Email") String leadEmail;
-    @Label("Teléfono") String leadPhone;
-    @Label("Dirección") String leadAddress;
-    @Label("Población") String leadCity;
-    @Label("CP") String leadCp;
-    @Label("Provincia") String leadProvince;
-    @Label("País residencia") String leadCountryResidence;
-    @Label("Nacionalidad") String leadNationality;
-    @Label("Idioma") String leadLanguage;
-    @Label("Fecha nacimiento") LocalDate leadDob;
-    @Label("Sexo") Sex leadSex;
-    @Label("Ciudad nacimiento") String leadBirthCity;
-    @Label("Tipo documento") DocumentType leadDocType;
-    @Label("Nº documento") String leadDocNumber;
-    @Label("Expedido") LocalDate leadIssued;
-    @Label("Expira") LocalDate leadExpiry;
-    @Label("Nº Riu Class") String leadRiuClassNo;
-    @Label("Fax") String leadFax;
-    @Label("Acepta publicidad") String leadAcceptsAds;
-    @Label("Acompañante") boolean leadCompanion;
-    @Label("Cardex provisional") boolean leadProvisionalCardex;
+    @ReadOnly @PlainText @Label("Apellidos") String leadLastName;
+    @ReadOnly @PlainText @Label("Nombre") String leadFirstName;
+    @ReadOnly @PlainText @Label("Email") String leadEmail;
+    @ReadOnly @PlainText @Label("Teléfono") String leadPhone;
+    @ReadOnly @PlainText @Label("Dirección") String leadAddress;
+    @ReadOnly @PlainText @Label("Población") String leadCity;
+    @ReadOnly @PlainText @Label("CP") String leadCp;
+    @ReadOnly @PlainText @Label("Provincia") String leadProvince;
+    @ReadOnly @PlainText @Label("País residencia") String leadCountryResidence;
+    @ReadOnly @PlainText @Label("Nacionalidad") String leadNationality;
+    @ReadOnly @PlainText @Label("Idioma") String leadLanguage;
+    @ReadOnly @PlainText @Label("Fecha nacimiento") LocalDate leadDob;
+    @ReadOnly @PlainText @Label("Sexo") Sex leadSex;
+    @ReadOnly @PlainText @Label("Ciudad nacimiento") String leadBirthCity;
+    @ReadOnly @PlainText @Label("Tipo documento") DocumentType leadDocType;
+    @ReadOnly @PlainText @Label("Nº documento") String leadDocNumber;
+    @ReadOnly @PlainText @Label("Expedido") LocalDate leadIssued;
+    @ReadOnly @PlainText @Label("Expira") LocalDate leadExpiry;
+    @ReadOnly @PlainText @Label("Nº Riu Class") String leadRiuClassNo;
+    @ReadOnly @PlainText @Label("Fax") String leadFax;
+    @ReadOnly @PlainText @Label("Acepta publicidad") String leadAcceptsAds;
+    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Acompañante") boolean leadCompanion;
+    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Cardex provisional") boolean leadProvisionalCardex;
 
     @Tab("Datos Empresa")
     @ReadOnly @PlainText @Label("Razón social") String companyName;
