@@ -90,7 +90,8 @@ public class ReflectionInstanceFactory implements InstanceFactory {
   public <T> T newInstance(Class<T> c, Map<String, Object> data, HttpRequest httpRequest) {
     var o = beanProvider.getBean(c);
     if (o == null) { // not from spring
-      if (c.getDeclaringClass() != null) { // inner class
+      if (c.getDeclaringClass() != null && !java.lang.reflect.Modifier.isStatic(c.getModifiers())) {
+        // Non-static inner class: needs outer instance as first constructor arg
         Object p = newInstance(c.getDeclaringClass(), data, httpRequest);
         Constructor<?> cons =
             Arrays.stream(c.getDeclaredConstructors())
