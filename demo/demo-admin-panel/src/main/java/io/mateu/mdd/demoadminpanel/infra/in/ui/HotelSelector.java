@@ -21,8 +21,6 @@ record Row(String id, String name, String address) {}
 @Style("min-width: 40rem;")
 public class HotelSelector extends Listing<Filters, Row> implements Selector<String>, LookupLabelSupplier {
 
-    String _fieldId;
-
     static final List<Row> rows = List.of(
             new Row("1", "Hotel 1", "Calle 1"),
             new Row("2", "Hotel 2", "Calle 2"),

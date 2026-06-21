@@ -18,5 +18,4 @@ public class NewRouteResolver implements CrudOrchestratorRouteResolver {
     return new OrchestrationResult(
         "new", editor, CrudFormComponentBuilder.build(true, httpRequest, editor, orchestrator));
   }
-
 }

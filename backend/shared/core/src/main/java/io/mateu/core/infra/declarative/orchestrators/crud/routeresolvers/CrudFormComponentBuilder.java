@@ -18,7 +18,8 @@ import java.util.List;
 
 class CrudFormComponentBuilder {
 
-  static Component build(boolean isCreation, HttpRequest httpRequest, Object editor, Crud orchestrator) {
+  static Component build(
+      boolean isCreation, HttpRequest httpRequest, Object editor, Crud orchestrator) {
     Object viewModel =
         editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
     String title;
