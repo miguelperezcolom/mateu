@@ -88,12 +88,12 @@ public class CheckInForm implements HeaderSupplier {
     @ReadOnly @PlainText @Label("Tipo tarifa") String tarifaType;
     @ReadOnly @PlainText @Label("Grupo res.") String grupoRes;
     @ReadOnly @PlainText @Label("Grupo op.") String grupoOp;
-    @Hidden boolean garantizada;
-    @Hidden boolean terceros;
-    @Hidden boolean pdteInt;
-    @Hidden boolean exp;
-    @Hidden boolean multiple;
-    @Hidden boolean vip;
+    @Hidden @Badge(label = "Garantizada", color = "success") boolean garantizada;
+    @Hidden @Badge(label = "Terceros") boolean terceros;
+    @Hidden @Badge(label = "Pdte. Int.") boolean pdteInt;
+    @Hidden @Badge(label = "Exp.") boolean exp;
+    @Hidden @Badge(label = "Múltiple") boolean multiple;
+    @Hidden @Badge(label = "VIP", color = "contrast") boolean vip;
     @ReadOnly @PlainText @Label("Riu Class") String riuClass;
     @ReadOnly @PlainText @Label("Requiere") String requiere;
 
@@ -316,35 +316,6 @@ public class CheckInForm implements HeaderSupplier {
         }
         return true;
     }
-
-    // ===================== Page-level badges (declarative) =====================
-
-    @Badge(label = "Garantizada", color = "success")
-    boolean badgeGarantizada() { return garantizada; }
-
-    @Badge(label = "VIP", color = "contrast")
-    boolean badgeVip() { return vip; }
-
-    @Badge(color = "success")
-    String badgeRiuClass() { return riuClass != null && !riuClass.isBlank() ? "Riu Class " + riuClass : null; }
-
-    @Badge(label = "Múltiple")
-    boolean badgeMultiple() { return multiple; }
-
-    @Badge(label = "Espera", color = "warning")
-    boolean badgeEspera() { return espera; }
-
-    @Badge(label = "Terceros")
-    boolean badgeTerceros() { return terceros; }
-
-    @Badge(label = "Pdte. Int.")
-    boolean badgePdteInt() { return pdteInt; }
-
-    @Badge(label = "Exp.")
-    boolean badgeExp() { return exp; }
-
-    @Badge(label = "Saldo pendiente", color = "error")
-    boolean badgeSaldoPendiente() { return saldoPendiente != null && saldoPendiente.signum() > 0; }
 
     /** Context strip shown above the two columns: reservation identity. */
     @Override

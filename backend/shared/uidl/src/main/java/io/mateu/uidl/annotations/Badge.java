@@ -15,10 +15,13 @@ import java.lang.annotation.Target;
  * returns {@code true}.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Badge {
 
-  /** Badge text when the method returns boolean true. Ignored for String-returning methods. */
+  /**
+   * Badge text. For boolean fields/methods: shown when value is true. For String fields/methods:
+   * used as label if empty, the field/method value is used as the badge text.
+   */
   String label() default "";
 
   String color() default "normal";

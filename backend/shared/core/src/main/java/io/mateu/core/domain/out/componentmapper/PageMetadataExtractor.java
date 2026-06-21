@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
@@ -8,7 +9,6 @@ import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BannerTheme;
 import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.interfaces.*;
-import java.util.Objects;
 import java.util.List;
 import lombok.SneakyThrows;
 
@@ -85,44 +85,37 @@ final class PageMetadataExtractor {
     return style.isBlank() ? null : style;
   }
 
-  @SneakyThrows
   static List<Badge> getBadges(Object instance, HttpRequest httpRequest) {
     if (instance instanceof BadgeSupplier badgeSupplier) {
       return badgeSupplier.badges().stream()
           .filter(b -> b != null && b.text() != null && !b.text().isBlank())
           .toList();
     }
-    return getAllMethods(instance.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Badge.class))
-        .map(
-            method -> {
-              var ann = method.getAnnotation(io.mateu.uidl.annotations.Badge.class);
-              try {
-                method.setAccessible(true);
-                Object result = method.invoke(instance);
-                String text = null;
-                if (result instanceof String s) {
-                  text = s.isBlank() ? null : s;
-                } else if (result instanceof Boolean b && b) {
-                  String lbl = ann.label();
-                  text =
-                      (lbl == null || lbl.isBlank())
-                          ? FieldMetadataExtractor.getLabel(method)
-                          : lbl;
-                }
-                if (text == null) return null;
-                return Badge.builder()
-                    .text(text)
-                    .color(ann.color())
-                    .primary(ann.primary())
-                    .small(ann.small())
-                    .pill(ann.pill())
-                    .build();
-              } catch (Exception ignored) {
-                return null;
-              }
-            })
-        .filter(Objects::nonNull)
+    // Fields annotated with @Badge generate reactive expression-based badges so they
+    // update when state changes without needing a full component re-render.
+    return getAllFields(instance.getClass()).stream()
+        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Badge.class))
+        .map(field -> {
+          var ann = field.getAnnotation(io.mateu.uidl.annotations.Badge.class);
+          String label = ann.label().isBlank()
+              ? FieldMetadataExtractor.getLabel(field)
+              : ann.label();
+          String text;
+          if (boolean.class.equals(field.getType()) || Boolean.class.equals(field.getType())) {
+            // Show badge only when the field is true
+            text = "${state." + field.getName() + " ? '" + label + "' : ''}";
+          } else {
+            // Use the field value directly as badge text (empty/null = hidden)
+            text = "${state." + field.getName() + "}";
+          }
+          return Badge.builder()
+              .text(text)
+              .color(ann.color())
+              .primary(ann.primary())
+              .small(ann.small())
+              .pill(ann.pill())
+              .build();
+        })
         .toList();
   }
 
