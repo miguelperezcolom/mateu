@@ -7,6 +7,7 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BannerTheme;
+import io.mateu.uidl.data.KPI;
 import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
@@ -112,6 +113,24 @@ final class PageMetadataExtractor {
                   .small(ann.small())
                   .pill(ann.pill())
                   .build();
+            })
+        .toList();
+  }
+
+  static List<KPI> getKpis(Object instance) {
+    return getAllFields(instance.getClass()).stream()
+        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.KPI.class))
+        .map(
+            field -> {
+              field.setAccessible(true);
+              String text;
+              try {
+                Object value = field.get(instance);
+                text = value != null ? value.toString() : "";
+              } catch (Exception e) {
+                text = "${state." + field.getName() + "}";
+              }
+              return KPI.builder().title(FieldMetadataExtractor.getLabel(field)).text(text).build();
             })
         .toList();
   }

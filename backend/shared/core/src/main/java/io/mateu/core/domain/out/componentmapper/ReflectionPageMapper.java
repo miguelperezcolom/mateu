@@ -37,6 +37,7 @@ public class ReflectionPageMapper {
         .toolbar(getToolbar(instance, httpRequest))
         .buttons(getButtons(instance, httpRequest))
         .fabs(getFabs(instance, httpRequest))
+        .kpis(getKpis(instance))
         .badges(getBadges(instance, httpRequest))
         .banners(getBanners(instance, httpRequest))
         .header(getHeader(instance, baseUrl, route, initiatorComponentId, httpRequest))

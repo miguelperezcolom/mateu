@@ -50,11 +50,16 @@ final class FormTabArranger {
 
     for (Field field : fields) {
       if (field.isAnnotationPresent(Tab.class)) {
-        if (currentTab != null) {
-          fieldsPerTab.add(new Pair<>(currentTab, currentTabFields));
+        String newTabName = field.getAnnotation(Tab.class).value();
+        String currentTabName = currentTab != null ? currentTab.value() : null;
+        // Only start a new tab when the tab name actually changes.
+        if (!newTabName.equals(currentTabName)) {
+          if (currentTab != null) {
+            fieldsPerTab.add(new Pair<>(currentTab, currentTabFields));
+          }
+          currentTab = field.getAnnotation(Tab.class);
+          currentTabFields = new ArrayList<>();
         }
-        currentTab = field.getAnnotation(Tab.class);
-        currentTabFields = new ArrayList<>();
       }
       if (currentTab != null) {
         currentTabFields.add(field);

@@ -23,7 +23,17 @@ final class FormSectionGrouper {
     SectionFields sectionFields = null;
 
     for (Field field : fields) {
-      if (sectionFields == null || field.isAnnotationPresent(Section.class)) {
+      // Only start a new section when the section name actually changes.
+      // Consecutive fields sharing the same @Section value belong to the same group.
+      boolean startsNewSection =
+          sectionFields == null
+              || (field.isAnnotationPresent(Section.class)
+                  && (sectionAnnotation == null
+                      || !field
+                          .getAnnotation(Section.class)
+                          .value()
+                          .equals(sectionAnnotation.value())));
+      if (startsNewSection) {
         if (sectionFields != null) {
           fieldsPerSection.put(sectionAnnotation, sectionFields);
           sections.add(sectionAnnotation);
