@@ -5,7 +5,7 @@ import static org.mockito.Mockito.when;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.SaveActionHandler;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.PersistActionHandler;
 import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.junit.jupiter.api.Test;
@@ -14,37 +14,39 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SaveActionHandlerTest {
+class PersistActionHandlerTest {
 
   @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
   @Mock HttpRequest httpRequest;
 
-  private final SaveActionHandler handler = new SaveActionHandler();
+  private final PersistActionHandler handler = new PersistActionHandler();
 
   @Test
-  void supportsOnlySaveAction() {
+  void supportsSaveAndCreate() {
     assertThat(handler.supports("save", httpRequest)).isTrue();
-    assertThat(handler.supports("create", httpRequest)).isFalse();
+    assertThat(handler.supports("create", httpRequest)).isTrue();
     assertThat(handler.supports("delete", httpRequest)).isFalse();
     assertThat(handler.supports("edit", httpRequest)).isFalse();
   }
 
   @Test
-  void routeContainsSavedId() {
+  void saveRouteContainsSavedId() {
     when(orchestrator.save(httpRequest)).thenReturn("abc-123");
 
     var result = (CrudActionResult) handler.handleAction("save", httpRequest, orchestrator);
 
     assertThat(result.route()).isEqualTo("/abc-123");
+    assertThat(result.savedId()).isEqualTo("abc-123");
   }
 
   @Test
-  void savedIdIsPopulated() {
-    when(orchestrator.save(httpRequest)).thenReturn("abc-123");
+  void createRouteContainsNewlySavedId() {
+    when(orchestrator.saveNew(httpRequest)).thenReturn("new-456");
 
-    var result = (CrudActionResult) handler.handleAction("save", httpRequest, orchestrator);
+    var result = (CrudActionResult) handler.handleAction("create", httpRequest, orchestrator);
 
-    assertThat(result.savedId()).isEqualTo("abc-123");
+    assertThat(result.route()).isEqualTo("/new-456");
+    assertThat(result.savedId()).isEqualTo("new-456");
   }
 
   @Test

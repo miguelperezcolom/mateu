@@ -5,7 +5,7 @@ import static org.mockito.Mockito.when;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
-import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.CancelEditActionHandler;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.NavigateToViewActionHandler;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.Map;
@@ -19,12 +19,12 @@ import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-class CancelEditActionHandlerTest {
+class NavigateToViewActionHandlerTest {
 
   @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
   @Mock HttpRequest httpRequest;
 
-  private final CancelEditActionHandler handler = new CancelEditActionHandler();
+  private final NavigateToViewActionHandler handler = new NavigateToViewActionHandler();
 
   @BeforeEach
   void setUp() {
@@ -32,31 +32,33 @@ class CancelEditActionHandlerTest {
   }
 
   @Test
-  void supportsOnlyCancelEditAction() {
+  void supportsViewAndCancelEdit() {
+    assertThat(handler.supports("view", httpRequest)).isTrue();
     assertThat(handler.supports("cancel-edit", httpRequest)).isTrue();
-    assertThat(handler.supports("cancel-view", httpRequest)).isFalse();
     assertThat(handler.supports("edit", httpRequest)).isFalse();
+    assertThat(handler.supports("save", httpRequest)).isFalse();
   }
 
   @Test
-  void routeIsViewOfEntityWhenIdInComponentState() {
-    when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of("id", "entity-1"));
+  void usesIdFromComponentState() {
+    when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of("id", "view-id-1"));
 
-    var result = (CrudActionResult) handler.handleAction("cancel-edit", httpRequest, orchestrator);
+    var result = (CrudActionResult) handler.handleAction("view", httpRequest, orchestrator);
 
-    assertThat(result.route()).isEqualTo("/entity-1");
-    assertThat(result.savedId()).isEqualTo("entity-1");
+    assertThat(result.route()).isEqualTo("/view-id-1");
+    assertThat(result.savedId()).isEqualTo("view-id-1");
   }
 
   @Test
   void fallsBackToParameters() {
     when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of());
-    var rq = RunActionRqDto.builder().parameters(Map.of("id", "param-entity-2")).build();
+    var rq = RunActionRqDto.builder().parameters(Map.of("id", "param-id-2")).build();
     when(httpRequest.runActionRq()).thenReturn(rq);
 
-    var result = (CrudActionResult) handler.handleAction("cancel-edit", httpRequest, orchestrator);
+    var result = (CrudActionResult) handler.handleAction("view", httpRequest, orchestrator);
 
-    assertThat(result.route()).isEqualTo("/param-entity-2");
+    assertThat(result.route()).isEqualTo("/param-id-2");
+    assertThat(result.savedId()).isEqualTo("param-id-2");
   }
 
   @Test
@@ -64,20 +66,20 @@ class CancelEditActionHandlerTest {
     when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of());
     var rq =
         RunActionRqDto.builder()
-            .parameters(Map.of("initiatorState", Map.of("id", "initiator-entity-3")))
+            .parameters(Map.of("initiatorState", Map.of("id", "initiator-id-3")))
             .build();
     when(httpRequest.runActionRq()).thenReturn(rq);
 
     var result = (CrudActionResult) handler.handleAction("cancel-edit", httpRequest, orchestrator);
 
-    assertThat(result.route()).isEqualTo("/initiator-entity-3");
+    assertThat(result.route()).isEqualTo("/initiator-id-3");
   }
 
   @Test
   void noMessages() {
     when(httpRequest.getComponentState(Map.class)).thenReturn(Map.of("id", "x"));
 
-    var result = (CrudActionResult) handler.handleAction("cancel-edit", httpRequest, orchestrator);
+    var result = (CrudActionResult) handler.handleAction("view", httpRequest, orchestrator);
 
     assertThat(result.messages()).isEmpty();
   }

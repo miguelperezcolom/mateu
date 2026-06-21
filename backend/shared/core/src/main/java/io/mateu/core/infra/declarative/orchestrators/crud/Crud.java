@@ -40,15 +40,12 @@ public abstract class Crud<
   private final List<CrudOrchestratorActionHandler> actionHandlers =
       List.of(
           new SearchActionHandler(),
-          new ViewActionHandler(),
-          new CancelViewActionHandler(),
+          new NavigateToViewActionHandler(),
+          new CancelToListActionHandler(),
           new NewActionHandler(),
-          new CancelEditActionHandler(),
-          new CancelNewActionHandler(),
-          new CreateActionHandler(),
+          new PersistActionHandler(),
           new DeleteEditActionHandler(),
           new EditActionHandler(),
-          new SaveActionHandler(),
           new ActionOnRowActionHandler(),
           new ActionOnViewActionHandler());
 

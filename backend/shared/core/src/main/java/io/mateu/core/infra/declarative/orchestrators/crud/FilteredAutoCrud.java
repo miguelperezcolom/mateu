@@ -4,7 +4,6 @@ import static io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelp
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
-import io.mateu.core.infra.declarative.SimpleView;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
@@ -15,7 +14,7 @@ import java.util.Map;
 import lombok.SneakyThrows;
 
 public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
-    extends Crud<SimpleView<T>, SimpleView<T>, SimpleView<T>, Filters, T, String> {
+    extends Crud<AutoNamedView<T>, AutoNamedView<T>, AutoNamedView<T>, Filters, T, String> {
 
   @Override
   public String toId(String id) {
@@ -23,7 +22,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   }
 
   @Override
-  public CrudAdapter<SimpleView<T>, SimpleView<T>, Filters, T, String> adapter() {
+  public CrudAdapter<AutoNamedView<T>, AutoNamedView<T>, Filters, T, String> adapter() {
     return new CrudAdapter<>() {
       @Override
       public ListingData<T> search(

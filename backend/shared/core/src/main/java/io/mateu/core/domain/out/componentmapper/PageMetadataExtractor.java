@@ -32,9 +32,6 @@ final class PageMetadataExtractor {
     if (instance.getClass().isAnnotationPresent(Title.class)) {
       return TranslatorContext.translate(instance.getClass().getAnnotation(Title.class).value());
     }
-    if (instance instanceof NamedView namedView) {
-      return TranslatorContext.translate(namedView.name());
-    }
     if (instance instanceof Named named) {
       return TranslatorContext.translate(named.name());
     }
