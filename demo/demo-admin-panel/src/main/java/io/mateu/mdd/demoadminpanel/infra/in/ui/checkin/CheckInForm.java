@@ -3,19 +3,16 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.BadgeInHeader;
 import io.mateu.uidl.annotations.Button;
-import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
 import io.mateu.uidl.annotations.Hidden;
+import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Multiline;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
-import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.Style;
-import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
@@ -29,23 +26,11 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-/**
- * Hotel reception check-in screen.
- *
- * <p>Phase 1: all the information of the reservation is shown declaratively using existing
- * Mateu annotations (sections, grids, tabs, textareas). Sections are stacked vertically for now;
- * the dense two-column layout (named zones), per-section actions and value-coloured grid pills
- * are added in phase 2 as framework extensions.
- */
 @Service
 @Scope("prototype")
 @Route(value = "/:id/checkin", uis = {"/checkin"})
@@ -68,19 +53,9 @@ public class CheckInForm implements HeaderSupplier {
         this.repository = repository;
     }
 
+    // ── Hidden state (used only in header()) ──────────────────────────
     @Hidden String id;
     @Hidden String currency;
-
-    @BadgeInHeader(label = "Garantizada", color = "success") boolean garantizada = true;
-    @BadgeInHeader(label = "Terceros") boolean terceros;
-    @BadgeInHeader(label = "Pdte. Int.") boolean pdteInt;
-    @BadgeInHeader(label = "Exp.") boolean exp = true;
-    @BadgeInHeader(label = "Múltiple") boolean multiple;
-    @BadgeInHeader(label = "VIP", color = "contrast") boolean vip = true;
-
-
-    // ===================== Información general de la reserva =====================
-    // These are already shown in the page context header, so they are hidden from the form body.
     @Hidden String localizador;
     @Hidden String agencia;
     @Hidden String hotel;
@@ -94,300 +69,102 @@ public class CheckInForm implements HeaderSupplier {
     @Hidden int babies;
     @Hidden String reservationStatus;
 
+    // ── Page-header badges ────────────────────────────────────────────
+    @BadgeInHeader(label = "Garantizada", color = "success") boolean garantizada = true;
+    @BadgeInHeader(label = "Terceros") boolean terceros;
+    @BadgeInHeader(label = "Pdte. Int.") boolean pdteInt;
+    @BadgeInHeader(label = "Exp.") boolean exp = true;
+    @BadgeInHeader(label = "Múltiple") boolean multiple;
+    @BadgeInHeader(label = "VIP", color = "contrast") boolean vip = true;
+
+    // ── Left-zone sections ────────────────────────────────────────────
     @Section(value = "Información general de la reserva", columns = 8, zone = "left")
-    @Label("Tiempo esperando") String waitingTime;
-    @Label("Ref. tarifa") String tarifaRef;
-    @Label("Tipo tarifa") String tarifaType;
-    @Label("Grupo res.") String grupoRes;
-    @Label("Grupo op.") String grupoOp;
-    @Label("Riu Class") String riuClass;
-    @Label("Requiere") String requiere;
+    @Label("") @Inline
+    ReservacionInfoSection resvInfo = new ReservacionInfoSection();
 
-    // ===================== Check-in =====================
     @Section(value = "Check-in", columns = 6, zone = "left")
-    @Label("Nº habitación") String assignedRoom;
-    @Label("Tipo hab. física") String roomTypePhysical;
-    @Label("Tipo hab. contratada") String roomType;
-    @Label("Upgrade") boolean upgrade;
-    @Colspan(2) @Label("Espera") boolean espera;
-    @Colspan(2) @Multiline @Label("Deseos") String deseos;
-    @Colspan(2) @Multiline @Label("Observaciones internas") String observacionesInternas;
-    @Colspan(2) @Multiline @Label("Avisos") String avisos;
+    @Label("") @Inline
+    CheckInSection checkIn = new CheckInSection();
 
-    // ===================== Detalle de estancia (PAX) =====================
     @Section(value = "Detalle de estancia (huéspedes)", columns = 1, zone = "left")
-    @Label("")
-    @Stereotype(FieldStereotype.grid)
-    List<GuestData> guests = new ArrayList<>();
+    @Label("") @Inline
+    GuestsSection guestList = new GuestsSection();
 
-    // ===================== Información cliente (tabs) =====================
     @Section(value = "Información cliente", columns = 8, zone = "left")
-    @Tab("Info Cardex")
-    @Label("Titular") String leadFullName;         // Apellidos, Nombre
-    @Label("Email") String leadEmail;
-    @Label("Teléfono / Fax") String leadPhoneFax; // Teléfono · Fax
-    @Label("Dirección") String leadFullAddress;    // Dir, CP Ciudad (Prov) País
-    @Label("Nac. / Idioma") String leadNatLang;    // Nacionalidad / Idioma
-    @Label("F. nacimiento") String leadDobSex;     // Fecha · Sexo · Ciudad nac.
-    @Label("Documento") String leadDocInfo;        // Tipo Nº · exp.
-    @Label("Nº Riu Class") String leadRiuClassNo;
-    @Label("Acepta publicidad") String leadAcceptsAds;
-    @Stereotype(FieldStereotype.badge) @Label("Acompañante") boolean leadCompanion;
-    @Stereotype(FieldStereotype.badge) @Label("Cardex provisional") boolean leadProvisionalCardex;
+    @Label("") @Inline
+    ClientInfoSection clientInfo = new ClientInfoSection();
 
-    @Tab("Datos Empresa")
-    @Label("Razón social") String companyName;
-    @Label("CIF") String cif;
-    @Label("Email facturación") String billingEmail;
-    @Label("Dirección fiscal") String fiscalAddress;
-    @Label("Forma de pago") String paymentTerms;
-
-    @Tab("Datos Tarjeta")
-    @Label("Tipo tarjeta") String cardTypeName;
-    @Label("4 últimos dígitos") String cardLast4Tab;
-    @Label("Caducidad") String cardExpiry;
-    @Label("Titular") String cardHolder;
-    @Label("Garantía validada") boolean cardValidated;
-
-    @Tab("Histórico cliente")
-    @Stereotype(FieldStereotype.grid)
-    List<HistoryStay> historyStays = new ArrayList<>();
-
-    @Tab("Preferencias")
-    @Multiline @Label("Preferencias del cliente") String preferenceNotes;
-
-    // ===================== Importes =====================
+    // ── Right-zone sections ───────────────────────────────────────────
     @Section(value = "Importes", columns = 1, zone = "right")
-    @Label("")
-    @Stereotype(FieldStereotype.grid)
-    List<ImporteLine> importes = new ArrayList<>();
+    @Label("") @Inline
+    ImportesSection importesList = new ImportesSection();
 
-    // ===================== Información habitación =====================
     @Section(value = "Información habitación", columns = 4, zone = "right")
-    @Label("Nº habitación") String roomInfoNumber;
-    @Label("Dobles / Individuales") String beds;
-    @Label("Estado") RoomState roomState;
-    @Label("Checkout") boolean checkout;
-    @Colspan(2) @Label("Observaciones") String roomObservations;
-    @Colspan(2) @Multiline @Label("Averías") String averias;
+    @Label("") @Inline
+    RoomInfoSection roomInfo = new RoomInfoSection();
 
-    // ===================== Historial cliente =====================
     @Section(value = "Historial cliente", columns = 4, zone = "right")
-    @Label("Tipo Riu Class") String riuClassType;
-    @Label("Último hotel") String lastHotel;
-    @Label("RPC") boolean rpc;
-    @Label("Repetido") int repeated;
-    @Label("Tipo cliente") String clientType;
-    @Label("Nº Attn H") int attnH;
-    @Colspan(2) @Label("Última habitación") String lastRoom;
-    @Colspan(4) @Multiline @Label("Preferencias") String historialPreferences;
+    @Label("") @Inline
+    HistorialClienteSection historial = new HistorialClienteSection();
 
-    // ===================== Folios / Anticipos =====================
     @Section(value = "Folios / Anticipos", columns = 4, zone = "right")
-    @Label("Crédito cancelado") boolean creditCancelled;
-    @Label("Imprimir recibo") boolean printReceipt;
-    @Label("Límite crédito") BigDecimal creditLimit;
-    @Label("Tipo tarjeta") String cardType;
-    @Label("4 últimos dígitos") String cardLast4;
-    @Label("Entrega a cuenta") BigDecimal deposit;
-    @Label("Saldo pendiente") BigDecimal saldoPendiente;
+    @Label("") @Inline
+    FoliosSection folios = new FoliosSection();
+
+    // ── Actions ───────────────────────────────────────────────────────
 
     Object load(HttpRequest httpRequest) {
         return populate() ? (Object) new State(this) : Message.success("Reservation not found");
     }
 
-    /** Loads the reservation into the form fields. Reusable so the listing can pre-fill the form. */
     boolean populate() {
         var found = repository.findById(id);
         if (found.isEmpty()) {
             return false;
         }
         var line = found.get();
-        {
-            // Reservation
-            localizador = line.getLocalizador();
-            currency = line.getCurrency();
-            agencia = line.getAgencia();
-            hotel = line.getHotel();
-            mealPlan = line.getMealPlan();
-            chargeType = line.getChargeType();
-            arrivalDate = line.getArrivalDate();
-            departureDate = line.getDepartureDate();
-            nights = (int) ChronoUnit.DAYS.between(line.getArrivalDate(), line.getDepartureDate());
-            waitingTime = line.getWaitingTime();
-            adults = line.getAdults();
-            children = line.getChildren();
-            babies = line.getBabies();
-            reservationStatus = line.getStatus() != null ? line.getStatus().name() : "";
-            tarifaRef = line.getTarifaRef();
-            tarifaType = line.getTarifaType();
-            grupoRes = line.getGrupoRes();
-            grupoOp = line.getGrupoOp();
-            garantizada = line.isGarantizada();
-            terceros = line.isTerceros();
-            pdteInt = line.isPdteInt();
-            exp = line.isExp();
-            multiple = line.isMultiple();
-            vip = line.isVip();
-            riuClass = line.getRiuClass();
-            requiere = line.getRequiere();
 
-            // Check-in
-            assignedRoom = line.getAssignedRoom();
-            roomTypePhysical = line.getRoomTypePhysical();
-            roomType = line.getRoomType();
-            upgrade = line.isUpgrade();
-            espera = line.isEspera();
-            deseos = line.getDeseos();
-            observacionesInternas = line.getObservacionesInternas();
-            avisos = line.getAvisos();
+        // Header hidden fields
+        localizador       = line.getLocalizador();
+        currency          = line.getCurrency();
+        agencia           = line.getAgencia();
+        hotel             = line.getHotel();
+        mealPlan          = line.getMealPlan();
+        chargeType        = line.getChargeType();
+        arrivalDate       = line.getArrivalDate();
+        departureDate     = line.getDepartureDate();
+        nights            = (int) ChronoUnit.DAYS.between(line.getArrivalDate(), line.getDepartureDate());
+        adults            = line.getAdults();
+        children          = line.getChildren();
+        babies            = line.getBabies();
+        reservationStatus = line.getStatus() != null ? line.getStatus().name() : "";
 
-            // Pax
-            guests = new ArrayList<>(line.getGuests());
+        // Badges
+        garantizada = line.isGarantizada();
+        terceros    = line.isTerceros();
+        pdteInt     = line.isPdteInt();
+        exp         = line.isExp();
+        multiple    = line.isMultiple();
+        vip         = line.isVip();
 
-            // Lead guest cardex (merged display fields)
-            var lead = line.getGuests().isEmpty() ? null : line.getGuests().get(0);
-            leadFullName = join(", ",
-                    lead != null ? lead.getLastName() : null,
-                    lead != null ? lead.getFirstName() : null);
-            leadEmail = line.getLeadEmail();
-            leadPhoneFax = join(" · ", line.getLeadPhone(), line.getLeadFax());
-            leadFullAddress = join(", ",
-                    line.getLeadAddress(),
-                    join(" ", line.getLeadCp(), line.getLeadCity()),
-                    line.getLeadProvince(),
-                    line.getLeadCountryResidence());
-            leadNatLang = join(" / ", line.getLeadNationality(), line.getLeadLanguage());
-            leadDobSex = join(" · ",
-                    line.getLeadDob() != null ? line.getLeadDob().toString() : null,
-                    line.getLeadSex() != null ? line.getLeadSex().name() : null,
-                    line.getLeadBirthCity());
-            leadDocInfo = join(" · ",
-                    line.getLeadDocType() != null ? line.getLeadDocType().name() : null,
-                    line.getLeadDocNumber(),
-                    line.getLeadIssued() != null ? "exp. " + line.getLeadIssued() : null,
-                    line.getLeadExpiry() != null ? "cad. " + line.getLeadExpiry() : null);
-            leadRiuClassNo = line.getLeadRiuClassNo();
-            leadAcceptsAds = line.getLeadAcceptsAds();
-            leadCompanion = line.isLeadCompanion();
-            leadProvisionalCardex = line.isLeadProvisionalCardex();
+        // Sections
+        resvInfo.populate(line);
+        checkIn.populate(line);
+        guestList.populate(line);
+        clientInfo.populate(line);
+        importesList.populate(line);
+        roomInfo.populate(line);
+        historial.populate(line);
+        folios.populate(line);
 
-            // Company / card / history tabs
-            companyName = line.getCompanyName();
-            cif = line.getCif();
-            billingEmail = line.getBillingEmail();
-            fiscalAddress = line.getFiscalAddress();
-            paymentTerms = line.getPaymentTerms();
-            cardTypeName = line.getCardTypeName();
-            cardLast4Tab = line.getCardLast4();
-            cardExpiry = line.getCardExpiry();
-            cardHolder = line.getCardHolder();
-            cardValidated = line.isCardValidated();
-            historyStays = new ArrayList<>(line.getHistoryStays());
-            preferenceNotes = line.getPreferences();
-
-            // Importes
-            importes = new ArrayList<>(line.getImportes());
-
-            // Room info
-            roomInfoNumber = line.getAssignedRoom() == null || line.getAssignedRoom().isBlank()
-                    ? "—" : line.getAssignedRoom();
-            beds = line.getBeds();
-            roomState = line.getRoomState();
-            checkout = line.isCheckout();
-            roomObservations = line.getRoomObservations();
-            averias = line.getAverias();
-
-            // Client history
-            riuClassType = line.getRiuClassType();
-            lastHotel = line.getLastHotel();
-            rpc = line.isRpc();
-            repeated = line.getRepeated();
-            clientType = line.getClientType();
-            attnH = line.getAttnH();
-            lastRoom = line.getLastRoom();
-            historialPreferences = line.getPreferences();
-
-            // Folio
-            creditCancelled = line.isCreditCancelled();
-            printReceipt = line.isPrintReceipt();
-            creditLimit = line.getCreditLimit();
-            cardType = line.getCardType();
-            cardLast4 = line.getCardLast4();
-            deposit = line.getDeposit();
-            saldoPendiente = line.getSaldoPendiente();
-        }
         return true;
     }
 
-    /** Context strip shown above the two columns: reservation identity. */
-    @Override
-    public Collection<Component> header() {
-        var info = HorizontalLayout.builder()
-                .spacing(true)
-                .style("flex-wrap: wrap; align-items: baseline; gap: 2px 1.75rem; width: 100%;")
-                .content(List.of(
-                        item("Localizador", localizador),
-                        item("Hotel", hotel),
-                        item("Agencia", agencia),
-                        item("Estado", reservationStatus),
-                        item("Estancia", arrivalDate + " → " + departureDate + " · " + nights + "N"),
-                        item("Ocupación", adults + " AD · " + children + " CH · " + babies + " BB"),
-                        item("Régimen", mealPlan != null ? mealPlan.name() : "—"),
-                        item("Tipo cobro", chargeType),
-                        item("Saldo", (saldoPendiente != null ? saldoPendiente.toPlainString() : "0")
-                                + " " + nz(currency))))
-                .build();
-
-        return List.of(
-                VerticalLayout.builder()
-                        .spacing(true)
-                        .style("width: 100%;")
-                        .content(List.of(info))
-                        .build());
-    }
-
-    private static Component item(String label, String value) {
-        return VerticalLayout.builder()
-                .spacing(false)
-                .padding(false)
-                .style("min-width: 0; line-height: 1.15;")
-                .content(List.of(
-                        Text.builder().text(label).container(TextContainer.div)
-                                .style("font-size: 10px; text-transform: uppercase; letter-spacing: .3px;"
-                                        + " color: var(--lumo-secondary-text-color);")
-                                .build(),
-                        Text.builder().text(nz(value)).container(TextContainer.div)
-                                .style("font-size: 13px; font-weight: 600;")
-                                .build()))
-                .build();
-    }
-
-
-    private static String nz(String s) {
-        return s == null || s.isBlank() ? "—" : s;
-    }
-
-    private static String join(String sep, String... parts) {
-        return Stream.of(parts)
-                .filter(s -> s != null && !s.isBlank())
-                .collect(Collectors.joining(sep));
-    }
-
     private ReservationLine apply(ReservationLine line) {
-        line.setAssignedRoom(assignedRoom);
-        line.setUpgrade(upgrade);
-        line.setEspera(espera);
-        line.setDeseos(deseos);
-        line.setObservacionesInternas(observacionesInternas);
-        line.setAvisos(avisos);
-        line.setCheckout(checkout);
-        line.setAverias(averias);
-        line.setCreditCancelled(creditCancelled);
-        line.setPrintReceipt(printReceipt);
-        line.setCreditLimit(creditLimit);
-        line.setDeposit(deposit);
-        line.setGuests(guests);
+        checkIn.applyTo(line);
+        guestList.applyTo(line);
+        roomInfo.applyTo(line);
+        folios.applyTo(line);
         return line;
     }
 
@@ -425,17 +202,7 @@ public class CheckInForm implements HeaderSupplier {
         return Message.success("Lector de documento iniciado");
     }
 
-    @Button
-    @Label("Tarjeta welcome")
-    Object tarjetaWelcome(HttpRequest httpRequest) {
-        return Message.success("Tarjeta welcome enviada a impresión");
-    }
 
-    @Button
-    @Label("Código WiFi")
-    Object codigoWifi(HttpRequest httpRequest) {
-        return Message.success("Código WiFi: RIU-" + (id == null ? "0000" : id) + "-GUEST");
-    }
 
     @Button
     @Label("No show")
@@ -451,5 +218,54 @@ public class CheckInForm implements HeaderSupplier {
             repository.save(line);
             return (Object) Message.success("Check-in deshecho");
         }).orElse(Message.success("Reservation not found"));
+    }
+
+    // ── Context strip shown above the two columns ─────────────────────
+
+    @Override
+    public Collection<Component> header() {
+        var info = HorizontalLayout.builder()
+                .spacing(true)
+                .style("flex-wrap: wrap; align-items: baseline; gap: 2px 1.75rem; width: 100%;")
+                .content(List.of(
+                        item("Localizador", localizador),
+                        item("Hotel", hotel),
+                        item("Agencia", agencia),
+                        item("Estado", reservationStatus),
+                        item("Estancia", arrivalDate + " → " + departureDate + " · " + nights + "N"),
+                        item("Ocupación", adults + " AD · " + children + " CH · " + babies + " BB"),
+                        item("Régimen", mealPlan != null ? mealPlan.name() : "—"),
+                        item("Tipo cobro", chargeType),
+                        item("Saldo", (folios.saldoPendiente != null
+                                ? folios.saldoPendiente.toPlainString() : "0")
+                                + " " + nz(currency))))
+                .build();
+
+        return List.of(
+                VerticalLayout.builder()
+                        .spacing(true)
+                        .style("width: 100%;")
+                        .content(List.of(info))
+                        .build());
+    }
+
+    private static Component item(String label, String value) {
+        return VerticalLayout.builder()
+                .spacing(false)
+                .padding(false)
+                .style("min-width: 0; line-height: 1.15;")
+                .content(List.of(
+                        Text.builder().text(label).container(TextContainer.div)
+                                .style("font-size: 10px; text-transform: uppercase; letter-spacing: .3px;"
+                                        + " color: var(--lumo-secondary-text-color);")
+                                .build(),
+                        Text.builder().text(nz(value)).container(TextContainer.div)
+                                .style("font-size: 13px; font-weight: 600;")
+                                .build()))
+                .build();
+    }
+
+    private static String nz(String s) {
+        return s == null || s.isBlank() ? "—" : s;
     }
 }

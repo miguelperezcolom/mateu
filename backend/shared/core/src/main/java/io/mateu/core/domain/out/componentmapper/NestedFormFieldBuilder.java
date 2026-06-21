@@ -5,9 +5,12 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.*;
 import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 import static io.mateu.core.infra.declarative.FormViewToolbarBuilder.createButtons;
 import static io.mateu.core.infra.declarative.FormViewToolbarBuilder.createToolbar;
+import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
+import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
+import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CardVariant;
 import io.mateu.uidl.data.CustomField;
@@ -38,6 +41,42 @@ final class NestedFormFieldBuilder {
     }
     var value = instance instanceof Class ? null : getValue(field, instance);
     var type = value != null ? value.getClass() : field.getType();
+    if (field.isAnnotationPresent(Inline.class)) {
+      final var inlineValue =
+          value != null ? value : getValueOrNewInstance(field, instance, httpRequest);
+      var sectionReadOnly = readOnly || isReadOnly(field, instance, forCreationForm, httpRequest);
+      var newPrefix = ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-";
+      var sectionFields =
+          getAllEditableFields(inlineValue.getClass()).stream()
+              .filter(
+                  f ->
+                      FormFieldFilter.filterField(
+                          f, forCreationForm, sectionReadOnly, inlineValue, httpRequest))
+              .filter(f -> sectionReadOnly || !FormFieldFilter.hiddenInEditor(f, forCreationForm))
+              .filter(f -> !sectionReadOnly || !FormFieldFilter.hiddenInView(f))
+              .toList();
+      var sf = new SectionFields("", sectionFields, maxColumns);
+      return CustomField.builder()
+          .label("")
+          .content(
+              FormLayoutBuilder.toFormLayout(
+                  sf,
+                  newPrefix,
+                  inlineValue,
+                  baseUrl,
+                  route,
+                  consumedRoute,
+                  initiatorComponentId,
+                  httpRequest,
+                  forCreationForm,
+                  sectionReadOnly,
+                  maxColumns,
+                  "",
+                  level))
+          .colspan(maxColumns)
+          .style("width: 100%;")
+          .build();
+    }
     if (FormDetector.isForm(type)) {
       if (value == null) {
         value = getValueOrNewInstance(field, instance, httpRequest);

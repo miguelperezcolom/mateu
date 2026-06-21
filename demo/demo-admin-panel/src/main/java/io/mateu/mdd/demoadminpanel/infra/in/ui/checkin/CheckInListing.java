@@ -30,7 +30,7 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
 
     @Override
     public GridLayout gridLayout() {
-        return GridLayout.table;
+        return GridLayout.list;
     }
 
     @Override

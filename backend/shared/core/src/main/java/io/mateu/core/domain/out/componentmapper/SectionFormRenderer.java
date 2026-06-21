@@ -1,12 +1,19 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import static io.mateu.core.infra.declarative.FormViewToolbarBuilder.createButtons;
+import static io.mateu.core.infra.declarative.FormViewToolbarBuilder.createToolbar;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
+import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
+
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
 import io.mateu.uidl.annotations.FoldedLayout;
+import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Zone;
 import io.mateu.uidl.annotations.Zones;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.UserTrigger;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -138,36 +145,53 @@ final class SectionFormRenderer {
             : "";
     return sections.stream()
         .map(
-            section ->
-                (Component)
-                    Card.builder()
-                        .style("flex: 1; min-width: 0; width:100%;")
-                        .variants(List.of(CardVariant.outlined))
-                        .content(
-                            VerticalLayout.builder()
-                                .style(section.style())
-                                .content(
-                                    List.of(
-                                        Text.builder()
-                                            .text(section.value())
-                                            .container(getSectionHeaderContainer(level))
-                                            .style(titleStyle)
-                                            .build(),
-                                        buildFormLayout(
-                                            section,
-                                            fieldsPerSection,
-                                            prefix,
-                                            instance,
-                                            baseUrl,
-                                            route,
-                                            consumedRoute,
-                                            initiatorComponentId,
-                                            httpRequest,
-                                            forCreationForm,
-                                            readOnly,
-                                            level)))
-                                .build())
-                        .build())
+            section -> {
+              var toolbarTriggers =
+                  collectInlineTriggers(
+                      section, fieldsPerSection, instance, prefix, httpRequest, true);
+              var buttonTriggers =
+                  collectInlineTriggers(
+                      section, fieldsPerSection, instance, prefix, httpRequest, false);
+
+              var titleComponent =
+                  buildTitleRow(section.value(), toolbarTriggers, level, titleStyle);
+              var formLayout =
+                  buildFormLayout(
+                      section,
+                      fieldsPerSection,
+                      prefix,
+                      instance,
+                      baseUrl,
+                      route,
+                      consumedRoute,
+                      initiatorComponentId,
+                      httpRequest,
+                      forCreationForm,
+                      readOnly,
+                      level);
+
+              var contentItems = new ArrayList<Component>();
+              contentItems.add(titleComponent);
+              contentItems.add(formLayout);
+              if (!buttonTriggers.isEmpty()) {
+                contentItems.add(
+                    HorizontalLayout.builder()
+                        .style("justify-content: flex-end; width: 100%;")
+                        .content(buttonTriggers.stream().map(t -> (Component) t).toList())
+                        .build());
+              }
+
+              return (Component)
+                  Card.builder()
+                      .style("flex: 1; min-width: 0; width:100%;")
+                      .variants(List.of(CardVariant.outlined))
+                      .content(
+                          VerticalLayout.builder()
+                              .style(section.style())
+                              .content(contentItems)
+                              .build())
+                      .build();
+            })
         .toList();
   }
 
@@ -325,6 +349,52 @@ final class SectionFormRenderer {
     return width == null || width.isBlank()
         ? "flex: 1; min-width: 0;"
         : "flex: 0 0 " + width + "; min-width: 0;";
+  }
+
+  private static Component buildTitleRow(
+      String title, List<UserTrigger> toolbar, int level, String titleStyle) {
+    var titleText =
+        Text.builder()
+            .text(title)
+            .container(getSectionHeaderContainer(level))
+            .style(titleStyle + " flex: 1; margin: 0;")
+            .build();
+    if (toolbar.isEmpty()) {
+      return titleText;
+    }
+    var rowContent = new ArrayList<Component>();
+    rowContent.add(titleText);
+    toolbar.forEach(t -> rowContent.add((Component) t));
+    return HorizontalLayout.builder()
+        .style("align-items: center; width: 100%;")
+        .content(rowContent)
+        .build();
+  }
+
+  private static List<UserTrigger> collectInlineTriggers(
+      Section section,
+      Map<Section, SectionFields> fieldsPerSection,
+      Object instance,
+      String prefix,
+      HttpRequest httpRequest,
+      boolean isToolbar) {
+    if (instance instanceof Class<?>) return List.of();
+    var sectionFields = fieldsPerSection.get(section);
+    if (sectionFields == null) return List.of();
+    var triggers = new ArrayList<UserTrigger>();
+    for (var field : sectionFields.fields()) {
+      if (!field.isAnnotationPresent(Inline.class)) continue;
+      var value = getValue(field, instance);
+      if (value == null) value = getValueOrNewInstance(field, instance, httpRequest);
+      var fieldPrefix = ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-";
+      var actionPrefix = "nested-form-action-" + fieldPrefix;
+      if (isToolbar) {
+        triggers.addAll(createToolbar(actionPrefix, value, httpRequest));
+      } else {
+        triggers.addAll(createButtons(actionPrefix, value, httpRequest));
+      }
+    }
+    return triggers;
   }
 
   private SectionFormRenderer() {}
