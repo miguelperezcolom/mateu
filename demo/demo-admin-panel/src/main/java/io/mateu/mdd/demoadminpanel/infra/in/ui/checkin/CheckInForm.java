@@ -1,6 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
 import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.Badge;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
@@ -316,14 +317,38 @@ public class CheckInForm implements HeaderSupplier {
         return true;
     }
 
-    /** Context strip shown above the two columns: reservation identity + active-flag badges. */
+    // ===================== Page-level badges (declarative) =====================
+
+    @Badge(label = "Garantizada", color = "success")
+    boolean badgeGarantizada() { return garantizada; }
+
+    @Badge(label = "VIP", color = "contrast")
+    boolean badgeVip() { return vip; }
+
+    @Badge(color = "success")
+    String badgeRiuClass() { return riuClass != null && !riuClass.isBlank() ? "Riu Class " + riuClass : null; }
+
+    @Badge(label = "Múltiple")
+    boolean badgeMultiple() { return multiple; }
+
+    @Badge(label = "Espera", color = "warning")
+    boolean badgeEspera() { return espera; }
+
+    @Badge(label = "Terceros")
+    boolean badgeTerceros() { return terceros; }
+
+    @Badge(label = "Pdte. Int.")
+    boolean badgePdteInt() { return pdteInt; }
+
+    @Badge(label = "Exp.")
+    boolean badgeExp() { return exp; }
+
+    @Badge(label = "Saldo pendiente", color = "error")
+    boolean badgeSaldoPendiente() { return saldoPendiente != null && saldoPendiente.signum() > 0; }
+
+    /** Context strip shown above the two columns: reservation identity. */
     @Override
     public Collection<Component> header() {
-        // header() is called before the OnLoad trigger runs, so we self-populate
-        // if the data hasn't been loaded yet (id is available from the route).
-        if (localizador == null && id != null && !id.isBlank()) {
-            populate();
-        }
         var info = HorizontalLayout.builder()
                 .spacing(true)
                 .style("flex-wrap: wrap; align-items: baseline; gap: 2px 1.75rem; width: 100%;")
@@ -340,29 +365,11 @@ public class CheckInForm implements HeaderSupplier {
                                 + " " + nz(currency))))
                 .build();
 
-        var flags = new ArrayList<Component>();
-        if (garantizada) flags.add(badge("Garantizada", "success"));
-        if (vip) flags.add(badge("VIP", "contrast"));
-        if (riuClass != null && !riuClass.isBlank()) flags.add(badge("Riu Class " + riuClass, "success"));
-        if (multiple) flags.add(badge("Múltiple", "normal"));
-        if (espera) flags.add(badge("Espera", "warning"));
-        if (terceros) flags.add(badge("Terceros", "normal"));
-        if (pdteInt) flags.add(badge("Pdte. Int.", "normal"));
-        if (exp) flags.add(badge("Exp.", "normal"));
-        if (saldoPendiente != null && saldoPendiente.signum() > 0)
-            flags.add(badge("Saldo pendiente", "error"));
-
-        var badgesRow = HorizontalLayout.builder()
-                .spacing(true)
-                .style("flex-wrap: wrap; gap: 6px; width: 100%;")
-                .content(flags)
-                .build();
-
         return List.of(
                 VerticalLayout.builder()
                         .spacing(true)
                         .style("width: 100%;")
-                        .content(List.of(info, badgesRow))
+                        .content(List.of(info))
                         .build());
     }
 
@@ -382,9 +389,6 @@ public class CheckInForm implements HeaderSupplier {
                 .build();
     }
 
-    private static Component badge(String text, String color) {
-        return Badge.builder().text(text).color(color).pill(true).small(true).build();
-    }
 
     private static String nz(String s) {
         return s == null || s.isBlank() ? "—" : s;

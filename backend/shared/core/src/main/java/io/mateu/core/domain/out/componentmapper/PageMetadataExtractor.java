@@ -4,9 +4,12 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BannerTheme;
+import io.mateu.uidl.data.PageBadge;
 import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.interfaces.*;
+import java.util.Objects;
 import java.util.List;
 import lombok.SneakyThrows;
 
@@ -81,6 +84,56 @@ final class PageMetadataExtractor {
       style = style + ";" + io.mateu.uidl.StyleConstants.COMPACT;
     }
     return style.isBlank() ? null : style;
+  }
+
+  @SneakyThrows
+  static List<Badge> getBadges(Object instance, HttpRequest httpRequest) {
+    if (instance instanceof BadgeSupplier badgeSupplier) {
+      return badgeSupplier.badges().stream()
+          .filter(b -> b != null && b.text() != null && !b.text().isBlank())
+          .map(
+              b ->
+                  Badge.builder()
+                      .text(b.text())
+                      .color(b.color())
+                      .primary(b.primary())
+                      .small(b.small())
+                      .pill(b.pill())
+                      .build())
+          .toList();
+    }
+    return getAllMethods(instance.getClass()).stream()
+        .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Badge.class))
+        .map(
+            method -> {
+              var ann = method.getAnnotation(io.mateu.uidl.annotations.Badge.class);
+              try {
+                method.setAccessible(true);
+                Object result = method.invoke(instance);
+                String text = null;
+                if (result instanceof String s) {
+                  text = s.isBlank() ? null : s;
+                } else if (result instanceof Boolean b && b) {
+                  String lbl = ann.label();
+                  text =
+                      (lbl == null || lbl.isBlank())
+                          ? FieldMetadataExtractor.getLabel(method)
+                          : lbl;
+                }
+                if (text == null) return null;
+                return Badge.builder()
+                    .text(text)
+                    .color(ann.color())
+                    .primary(ann.primary())
+                    .small(ann.small())
+                    .pill(ann.pill())
+                    .build();
+              } catch (Exception ignored) {
+                return null;
+              }
+            })
+        .filter(Objects::nonNull)
+        .toList();
   }
 
   @SneakyThrows
