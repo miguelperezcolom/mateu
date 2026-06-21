@@ -378,6 +378,73 @@ public class CustomerForm {
 
 ---
 
+## @Inline
+
+**Target:** `FIELD`
+
+Expands a nested POJO field's sub-fields directly into the parent section, without adding a `Card` wrapper or a separate header around the content. The parent field's `@Section` annotation provides the section title; the nested type's class-level annotations (`@PlainText`, `@Compact`, etc.) must be applied on the nested class itself — they are not inherited from the enclosing form.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Inline {}
+```
+
+No attributes.
+
+### Behavior of `@Toolbar` and `@Button` on an `@Inline` type
+
+Methods annotated with `@Toolbar` or `@Button` inside the nested class still work. Their placement shifts to match the inline context:
+
+| Annotation on nested method | Rendered as |
+|---|---|
+| `@Toolbar` | Button(s) in the **section title row**, on the same line as the section heading |
+| `@Button` | Button row **below** the section content |
+
+### Example
+
+```java
+// Nested inline type — own annotations applied here
+@PlainText
+@Compact
+public class GuestsSection {
+
+    @Label("")
+    @Stereotype(FieldStereotype.grid)
+    List<GuestData> guests = new ArrayList<>();
+
+    @Toolbar
+    @Label("Welcome card")
+    Object printWelcomeCard(HttpRequest httpRequest) {
+        return Message.success("Sent to printer");
+    }
+
+    @Button
+    @Label("Wi-Fi code")
+    Object showWifiCode(HttpRequest httpRequest) {
+        return Message.success("Code: HOTEL-GUEST");
+    }
+}
+
+// Parent form
+@UI("/checkin/:id")
+@Compact
+@Zones({ @Zone(name = "left", width = "64%"), @Zone(name = "right", width = "36%") })
+public class CheckInForm {
+
+    // The @Section card is the only container; GuestsSection fields expand into it
+    @Section(value = "Guests", columns = 1, zone = "left")
+    @Label("") @Inline
+    GuestsSection guestList = new GuestsSection();
+}
+```
+
+The "Guests" section card shows `[Welcome card]` on the same line as the heading and renders the `[Wi-Fi code]` button below the guest grid.
+
+Use `@Inline` on dense, information-rich screens (e.g. `@Compact` + `@Zones`) where an extra card nesting would add too much visual weight. For nested types that need their own clearly separated card and toolbar, omit `@Inline`.
+
+---
+
 ## @Zones / @Zone
 
 **Target (`@Zones`):** `TYPE`
