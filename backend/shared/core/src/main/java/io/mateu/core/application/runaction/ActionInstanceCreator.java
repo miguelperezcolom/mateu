@@ -18,7 +18,7 @@ import reactor.core.publisher.Mono;
 @Named
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
-class ActionInstanceCreator {
+public class ActionInstanceCreator {
 
   private final InstanceFactoryProvider instanceFactoryProvider;
   private final CrudNavigationAdjuster crudNavigationAdjuster;

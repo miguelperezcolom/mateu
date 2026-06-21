@@ -19,7 +19,7 @@ import reactor.core.publisher.Mono;
 @Named
 @Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
-class RemoteMenuHandler {
+public class RemoteMenuHandler {
 
   private final MateuHttpClient mateuHttpClient;
 
