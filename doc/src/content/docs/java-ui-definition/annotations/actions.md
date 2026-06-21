@@ -475,6 +475,187 @@ The framework calls the `@WizardCompletionAction` method only after all steps ha
 
 ---
 
+## @Banner
+
+**Target:** `METHOD`
+
+Marks a method as a page banner — a highlighted message block rendered below the page header and above the first form section. Banners are built once alongside the component metadata and appear on every render.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Banner {
+    BannerTheme theme() default BannerTheme.INFO;
+    String title() default "";
+    boolean closeable() default false;
+    int timeoutSeconds() default 0;
+}
+```
+
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `theme` | `BannerTheme` | `INFO` | Visual theme of the banner |
+| `title` | `String` | `""` | Banner heading. Falls back to the method name if empty. |
+| `closeable` | `boolean` | `false` | Shows a dismiss button so the user can hide the banner |
+| `timeoutSeconds` | `int` | `0` | Auto-dismisses the banner after N seconds (0 = never) |
+
+### `BannerTheme` values
+
+| Value | Appearance |
+|---|---|
+| `INFO` | Blue — informational |
+| `SUCCESS` | Green — positive outcome |
+| `WARNING` | Amber — caution |
+| `DANGER` | Red — error or critical message |
+| `NONE` | Default / unstyled |
+
+### Declarative banner (method returns `String`)
+
+The annotated method may return `String` to supply a dynamic description; returning `null` or blank hides the banner.
+
+```java
+@UI("/maintenance")
+public class MaintenancePage {
+
+    @Banner(theme = BannerTheme.WARNING, title = "Maintenance window")
+    String maintenanceNotice() {
+        return scheduled ? "Scheduled maintenance on Sunday 02:00–04:00 UTC." : null;
+    }
+
+    boolean scheduled = true;
+}
+```
+
+### Fixed banner (void method)
+
+If the method returns `void`, the banner is always shown with the `title` text.
+
+```java
+@Banner(theme = BannerTheme.INFO, title = "Read-only mode", closeable = true)
+void readOnlyBanner() {}
+```
+
+### Programmatic: `BannerSupplier`
+
+Implement `BannerSupplier` when banner logic is too complex for a single annotation or you need multiple banners. It takes precedence over `@Banner` methods.
+
+```java
+@UI("/orders")
+public class OrdersPage implements BannerSupplier {
+
+    @Override
+    public List<PageBanner> banners() {
+        if (serviceDown) {
+            return List.of(
+                new PageBanner(BannerTheme.DANGER, "Service unavailable",
+                    "Order processing is currently offline.")
+            );
+        }
+        return List.of();
+    }
+}
+```
+
+`PageBanner` constructor:
+
+```java
+// Full constructor
+new PageBanner(BannerTheme theme, String title, String description,
+               boolean closeable, int timeoutSeconds)
+
+// Convenience constructor (closeable=false, timeoutSeconds=0)
+new PageBanner(BannerTheme theme, String title, String description)
+```
+
+### Action-returned banners
+
+Action methods (e.g. `@Toolbar`, `@Button`) can return `PageBanner`, `List<PageBanner>`, or `PageBanners` to show banners dynamically after an action completes.
+
+```java
+@Toolbar
+Object validate() {
+    if (hasErrors()) {
+        return new PageBanner(BannerTheme.DANGER, "Validation failed", errorSummary());
+    }
+    return new PageBanner(BannerTheme.SUCCESS, "All checks passed", "Ready to submit.");
+}
+```
+
+**Replace vs append**: by default, returning a `PageBanner` or `List<PageBanner>` replaces any banners previously shown by actions. Use `PageBanners` to control this explicitly:
+
+```java
+// Replace existing action banners
+return PageBanners.replace(new PageBanner(BannerTheme.INFO, "Step 1 complete", ""));
+
+// Accumulate banners across multiple action calls
+return PageBanners.append(new PageBanner(BannerTheme.WARNING, "Warning", details));
+```
+
+Action banners are cleared automatically when the user navigates to a different page.
+
+---
+
+## @Fab
+
+**Target:** `METHOD`
+
+Marks a method as a Floating Action Button (FAB) — a round button fixed to the bottom-right of the screen.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Fab {
+    String icon() default "vaadin:plus";
+    String label() default "";
+    ButtonStyle buttonStyle() default ButtonStyle.primary;
+    int order() default 0;
+}
+```
+
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `icon` | `String` | `"vaadin:plus"` | Vaadin icon name displayed inside the button |
+| `label` | `String` | `""` | Tooltip / aria-label for the button |
+| `buttonStyle` | `ButtonStyle` | `primary` | Visual style (same values as `@Button`) |
+| `order` | `int` | `0` | Stack order when multiple FABs are present (lower = closer to the edge) |
+
+### App-level FABs
+
+A `@Fab` on a method of an `@UI`-annotated app class creates a **global** FAB visible on every page, stacked above the AI assistant FAB at `right: 1.5rem`.
+
+```java
+@UI("/app")
+@App(AppVariant.HAMBURGUER_MENU)
+public class MyApp {
+
+    @Fab(icon = "vaadin:plus", label = "New order", order = 0)
+    Object newOrder() {
+        return new CreateOrderForm();
+    }
+}
+```
+
+### Page-level FABs
+
+A `@Fab` on a method of a page class creates a **page-scoped** FAB visible only while that page is active, stacked at `right: 5.5rem` (to avoid overlapping global FABs).
+
+```java
+@UI("/customers")
+public class CustomerListPage {
+
+    @Fab(icon = "vaadin:plus", label = "Add customer")
+    Object addCustomer() {
+        return new CreateCustomerForm();
+    }
+}
+```
+
+---
+
 ## Action method return values
 
 Action methods can return different types to drive the UI after execution:
@@ -485,6 +666,8 @@ Action methods can return different types to drive the UI after execution:
 | A Java object or record (a form, a listing, etc.) | Mateu navigates to that object as a new view. |
 | `URI` | The browser navigates to the given URL. |
 | `Message` | A toast notification is shown (`Message.builder().text("...").build()`). |
+| `PageBanner` / `List<PageBanner>` | Shows banners on the current page (replaces existing). |
+| `PageBanners` | Shows banners with explicit replace/append semantics. |
 
 ```java
 // Navigate to a URL
@@ -501,5 +684,11 @@ CreateReleaseForm createRelease(List<ChangeRow> selectedRows, HttpRequest httpRe
 @ListToolbarButton(confirmationRequired = false)
 public Object refresh(List<Grupo> selection) {
     return Message.builder().text("Refreshed " + selection.size() + " items").build();
+}
+
+// Show a banner dynamically
+@Toolbar
+Object check() {
+    return new PageBanner(BannerTheme.SUCCESS, "Check passed", "System is healthy.");
 }
 ```

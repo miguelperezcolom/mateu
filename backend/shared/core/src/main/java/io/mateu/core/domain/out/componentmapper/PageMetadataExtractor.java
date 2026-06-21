@@ -95,27 +95,27 @@ final class PageMetadataExtractor {
     // update when state changes without needing a full component re-render.
     return getAllFields(instance.getClass()).stream()
         .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.BadgeInHeader.class))
-        .map(field -> {
-          var ann = field.getAnnotation(io.mateu.uidl.annotations.BadgeInHeader.class);
-          String label = ann.label().isBlank()
-              ? FieldMetadataExtractor.getLabel(field)
-              : ann.label();
-          String text;
-          if (boolean.class.equals(field.getType()) || Boolean.class.equals(field.getType())) {
-            // Show badge only when the field is true
-            text = "${state." + field.getName() + " ? '" + label + "' : ''}";
-          } else {
-            // Use the field value directly as badge text (empty/null = hidden)
-            text = "${state." + field.getName() + "}";
-          }
-          return Badge.builder()
-              .text(text)
-              .color(ann.color())
-              .primary(ann.primary())
-              .small(ann.small())
-              .pill(ann.pill())
-              .build();
-        })
+        .map(
+            field -> {
+              var ann = field.getAnnotation(io.mateu.uidl.annotations.BadgeInHeader.class);
+              String label =
+                  ann.label().isBlank() ? FieldMetadataExtractor.getLabel(field) : ann.label();
+              String text;
+              if (boolean.class.equals(field.getType()) || Boolean.class.equals(field.getType())) {
+                // Show badge only when the field is true
+                text = "${state." + field.getName() + " ? '" + label + "' : ''}";
+              } else {
+                // Use the field value directly as badge text (empty/null = hidden)
+                text = "${state." + field.getName() + "}";
+              }
+              return Badge.builder()
+                  .text(text)
+                  .color(ann.color())
+                  .primary(ann.primary())
+                  .small(ann.small())
+                  .pill(ann.pill())
+                  .build();
+            })
         .toList();
   }
 

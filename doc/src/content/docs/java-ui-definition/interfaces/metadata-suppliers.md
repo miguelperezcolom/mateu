@@ -2,7 +2,88 @@
 title: "Metadata supplier interfaces"
 ---
 
-These lightweight interfaces let you provide page metadata (title, subtitle, browser title) dynamically at runtime instead of hardcoding them with annotations.
+These lightweight interfaces let you provide page metadata (title, subtitle, browser title, banners, badges) dynamically at runtime instead of hardcoding them with annotations.
+
+---
+
+# BannerSupplier
+
+Provides page banners dynamically. Banners appear below the page header and above the first form section, rendered as highlighted message cards.
+
+`BannerSupplier` takes precedence over `@Banner`-annotated methods when both are present.
+
+```java
+public interface BannerSupplier {
+    List<PageBanner> banners();
+}
+```
+
+## Usage
+
+```java
+@UI("/dashboard")
+public class DashboardPage implements BannerSupplier {
+
+    @Override
+    public List<PageBanner> banners() {
+        List<PageBanner> result = new ArrayList<>();
+        if (maintenanceScheduled) {
+            result.add(new PageBanner(BannerTheme.WARNING,
+                "Scheduled maintenance",
+                "The system will be unavailable Sunday 02:00–04:00 UTC."));
+        }
+        if (degradedMode) {
+            result.add(new PageBanner(BannerTheme.DANGER,
+                "Degraded mode",
+                "Some features may not respond.",
+                true,  // closeable
+                0));   // no auto-dismiss
+        }
+        return result;
+    }
+}
+```
+
+`PageBanner` convenience constructor: `new PageBanner(BannerTheme, String title, String description)` — `closeable` defaults to `false` and `timeoutSeconds` to `0`.
+
+---
+
+# BadgeSupplier
+
+Provides page-header status chips dynamically. Badges appear in the page header strip alongside the title — useful for status flags that depend on data loaded at render time.
+
+`BadgeSupplier` takes precedence over `@BadgeInHeader`-annotated fields when both are present.
+
+```java
+public interface BadgeSupplier {
+    List<Badge> badges();
+}
+```
+
+## Usage
+
+```java
+@UI("/booking/:id")
+public class BookingDetailPage implements BadgeSupplier {
+
+    String status;
+
+    @Override
+    public List<Badge> badges() {
+        return switch (status) {
+            case "CONFIRMED" -> List.of(Badge.builder()
+                .text("Confirmed").color(BadgeColor.success.name())
+                .pill(true).build());
+            case "CANCELLED" -> List.of(Badge.builder()
+                .text("Cancelled").color(BadgeColor.error.name())
+                .pill(true).build());
+            default -> List.of();
+        };
+    }
+}
+```
+
+`Badge` is a fluent builder record — see the [Badge component reference](/java-ui-definition/components/badge/) for all options.
 
 ---
 

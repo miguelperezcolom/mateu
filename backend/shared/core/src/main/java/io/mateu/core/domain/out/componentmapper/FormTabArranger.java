@@ -25,7 +25,8 @@ final class FormTabArranger {
                         || !field.isAnnotationPresent(io.mateu.uidl.annotations.Composition.class))
             .filter(field -> !io.mateu.uidl.data.Status.class.equals(field.getType()))
             .filter(field -> !field.isAnnotationPresent(io.mateu.uidl.annotations.KPI.class))
-            .filter(field -> !field.isAnnotationPresent(io.mateu.uidl.annotations.BadgeInHeader.class))
+            .filter(
+                field -> !field.isAnnotationPresent(io.mateu.uidl.annotations.BadgeInHeader.class))
             .filter(
                 field ->
                     !field.isAnnotationPresent(io.mateu.uidl.annotations.Hidden.class)

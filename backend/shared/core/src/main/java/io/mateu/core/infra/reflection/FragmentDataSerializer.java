@@ -4,10 +4,12 @@ import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.JsonSerializer.fromJson;
 import static io.mateu.core.infra.JsonSerializer.toJson;
 
+import io.mateu.core.infra.declarative.FormViewModel;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DialogDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
+import java.util.Collection;
 import java.util.Map;
 import lombok.SneakyThrows;
 
@@ -40,6 +42,9 @@ final class FragmentDataSerializer {
     if (isBasic(data)) {
       return data;
     }
-    return fromJson(toJson(data));
+    if (data instanceof Collection) {
+      return fromJson(toJson(data));
+    }
+    return FormViewModel.toMap(data);
   }
 }

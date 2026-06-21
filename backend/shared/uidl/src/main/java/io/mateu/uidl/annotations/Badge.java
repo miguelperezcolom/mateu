@@ -9,10 +9,9 @@ import java.lang.annotation.Target;
  * Renders a field as a badge inside the form body. Shorthand for
  * {@code @Stereotype(FieldStereotype.badge)}.
  *
- * <p>For header-level badges (shown in the page header strip, not in the form body) use
- * {@link BadgeInHeader} instead.
+ * <p>For header-level badges (shown in the page header strip, not in the form body) use {@link
+ * BadgeInHeader} instead.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
-public @interface Badge {
-}
+public @interface Badge {}

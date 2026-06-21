@@ -26,6 +26,7 @@ public class StyleConstants {
           // Compress field labels (consumed by mateu-field's --mateu-label-* hooks).
           + "--mateu-label-font-size:var(--lumo-font-size-xs);--mateu-label-padding-bottom:1px;"
           + "--mateu-label-line-height:1.1;"
-          // Marker consumed by the frontend to detect compact mode (e.g. to remove app-content padding).
+          // Marker consumed by the frontend to detect compact mode (e.g. to remove app-content
+          // padding).
           + "--mateu-compact:1;";
 }

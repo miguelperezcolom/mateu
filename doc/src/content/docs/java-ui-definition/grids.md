@@ -52,3 +52,20 @@ public class Arrivals extends Listing<ArrivalFilters, ArrivalRow> {
 ```
 
 A row class that drives a list/master-detail layout should mark its identifier column with `@Priority(value = 1, identifier = true)` so each row has a visible label.
+
+## URL-based pagination and sorting
+
+CRUD and listing pages sync their pagination, sort, and filter state to the browser URL. This means:
+
+- Sharing or bookmarking a URL preserves the exact page, sort order, and active filters.
+- Navigating back in the browser restores the previous listing state.
+- Deep-linking directly to `?page=2&sort=name:asc` opens the listing at that page and sort.
+
+The URL parameters are read automatically on component load; no extra code is needed in `search()`.
+
+```
+/customers?page=2&sort=lastName:asc
+/orders?page=0&sort=createdAt:desc&status=PENDING
+```
+
+Query parameters that match filter field names in the `Filters` class are applied to the filter form as well.

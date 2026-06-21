@@ -6,11 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a field as a badge to be shown in the page/form header strip (not in the form body).
- * The field is automatically excluded from the form layout.
+ * Marks a field as a badge to be shown in the page/form header strip (not in the form body). The
+ * field is automatically excluded from the form layout.
  *
- * <p>For boolean fields: badge is shown when the value is {@code true}, using {@code label} as
- * text (falls back to the field's label if empty).
+ * <p>For boolean fields: badge is shown when the value is {@code true}, using {@code label} as text
+ * (falls back to the field's label if empty).
  *
  * <p>For String fields: the field value is used as badge text; null or blank hides the badge.
  *

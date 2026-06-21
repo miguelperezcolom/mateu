@@ -6,8 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Allows a {@link PlainText} field to wrap its content instead of truncating with ellipsis.
- * Has no effect on non-plainText fields.
+ * Allows a {@link PlainText} field to wrap its content instead of truncating with ellipsis. Has no
+ * effect on non-plainText fields.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.FIELD})

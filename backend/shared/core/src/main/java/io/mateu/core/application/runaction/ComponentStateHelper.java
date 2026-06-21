@@ -3,10 +3,10 @@ package io.mateu.core.application.runaction;
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper.mapActions;
-import static io.mateu.core.domain.out.fragmentmapper.mappers.DataMapper.mapPojo;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRules;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
+import static io.mateu.core.infra.declarative.FormViewModel.toMap;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
 
 import io.mateu.dtos.ServerSideComponentDto;
@@ -87,7 +87,7 @@ public class ComponentStateHelper {
             ? stateSupplier.state(httpRequest)
             : modelView;
     if (!(state instanceof Map<?, ?>)) {
-      var newState = mapPojo(state);
+      var newState = toMap(state);
       GeneratedValueInitializer.initialize(
           getViewModelClass(modelView, httpRequest), newState, httpRequest);
       addRowNumber(modelView.getClass(), newState);

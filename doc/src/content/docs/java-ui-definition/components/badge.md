@@ -4,13 +4,43 @@ title: "Badge"
 
 A small, inline label used to display status, counts, or tags.
 
-## Basic usage
+## Two ways to show badges
+
+| Approach | Where it appears | How to use |
+|---|---|---|
+| `@Badge` / `@Stereotype(FieldStereotype.badge)` | **Inside the form body**, inline with other fields | Annotate a field |
+| `@BadgeInHeader` / `BadgeSupplier` | **Page header strip** alongside the title | Annotate a field or implement the interface |
+
+### `@Badge` — inline field badge
+
+Annotating a boolean field with `@Badge` (shorthand for `@Stereotype(FieldStereotype.badge)`) renders it as a coloured chip in the form body — lit when `true`, muted when `false`.
+
+```java
+@ReadOnly @Badge @Label("VIP") boolean vip;
+```
+
+### `@BadgeInHeader` — header status chip
+
+Annotating a field with `@BadgeInHeader` moves it to the page header strip and hides it from the form layout. See the [display annotations](/java-ui-definition/annotations/display/#badgeinheader) for full details.
+
+```java
+@BadgeInHeader(label = "VIP", color = "success")
+boolean vip;
+```
+
+For runtime-computed badges implement `BadgeSupplier` — see [metadata suppliers](/java-ui-definition/interfaces/metadata-suppliers/#badgesupplier).
+
+---
+
+## Fluent `Badge` component
+
+### Basic usage
 
 ```java
 new Badge("Active")
 ```
 
-## Properties
+### Properties
 
 | Property | Type | Default | Description |
 |---|---|---|---|
@@ -24,7 +54,7 @@ new Badge("Active")
 | `style` | String | `""` | Inline CSS |
 | `cssClasses` | String | `""` | CSS class names |
 
-## Colors (`BadgeColor`)
+### Colors (`BadgeColor`)
 
 | Value | Typical meaning |
 |---|---|
@@ -35,7 +65,7 @@ new Badge("Active")
 | `info` | Blue — informational |
 | `contrast` | High-contrast for accessibility |
 
-## Examples
+### Examples
 
 ```java
 // Success pill badge
@@ -61,7 +91,7 @@ Badge.builder()
     .build()
 ```
 
-## In a list or grid
+### In a list or grid
 
 Badges work well inside grid cell renderers or alongside text:
 

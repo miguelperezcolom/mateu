@@ -304,6 +304,82 @@ Pairs well with [`@Compact`](../layout/#compact) and [`@Zones`](../layout/#zones
 
 ---
 
+## @Multiline
+
+**Target:** `TYPE`, `FIELD`
+
+Allows a `@PlainText` field to wrap its text content instead of truncating it with an ellipsis. Has no effect on fields that are not plain-text.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD})
+public @interface Multiline {}
+```
+
+### Example
+
+```java
+public class IncidentForm {
+    @ReadOnly @PlainText @Multiline
+    String notes;   // wraps across multiple lines instead of truncating
+}
+```
+
+---
+
+## @BadgeInHeader
+
+**Target:** `FIELD`
+
+Marks a field as a status chip rendered in the **page header strip** (not in the form body). The field is automatically excluded from the form layout.
+
+- **Boolean field**: the badge is shown when the value is `true`; the text comes from `label` (falls back to the field's derived label if empty).
+- **String field**: the field value is used as badge text; `null` or blank hides the badge.
+
+For programmatic control implement `BadgeSupplier` (see [metadata suppliers](/java-ui-definition/interfaces/metadata-suppliers/)).
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface BadgeInHeader {
+    String label() default "";
+    String color() default "normal";
+    boolean primary() default false;
+    boolean small() default true;
+    boolean pill() default true;
+}
+```
+
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `label` | `String` | `""` | Badge text override (boolean fields: text shown when `true`) |
+| `color` | `String` | `"normal"` | Vaadin Lumo badge theme: `normal`, `success`, `error`, `warning`, `contrast` |
+| `primary` | `boolean` | `false` | Uses the primary colour fill |
+| `small` | `boolean` | `true` | Renders a smaller badge |
+| `pill` | `boolean` | `true` | Rounds the badge into a pill shape |
+
+### Example
+
+```java
+@UI("/checkin/:id")
+public class CheckInForm {
+
+    // Boolean: shown as "VIP" badge (success/green) when true
+    @BadgeInHeader(label = "VIP", color = "success")
+    boolean vip;
+
+    // String: displays the value directly; hidden when null or blank
+    @BadgeInHeader(color = "warning")
+    String pendingWarning;  // e.g. "OVERBOOKING", "NO CREDIT CARD"
+
+    // rest of form fields…
+}
+```
+
+---
+
 ## Boolean badges — `FieldStereotype.badge`
 
 Annotating a boolean with `@Stereotype(FieldStereotype.badge)` renders it as a coloured chip whose text is the field label — lit (green) when `true`, muted when `false`. Useful for flag rows where many on/off indicators must be scannable at a glance.
