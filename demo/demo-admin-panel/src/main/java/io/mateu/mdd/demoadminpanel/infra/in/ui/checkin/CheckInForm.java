@@ -32,6 +32,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Hotel reception check-in screen.
@@ -113,28 +115,16 @@ public class CheckInForm implements HeaderSupplier {
     List<GuestData> guests = new ArrayList<>();
 
     // ===================== Información cliente (tabs) =====================
-    @Section(value = "Información cliente", columns = 5, zone = "left")
+    @Section(value = "Información cliente", columns = 8, zone = "left")
     @Tab("Info Cardex")
-    @ReadOnly @PlainText @Label("Apellidos") String leadLastName;
-    @ReadOnly @PlainText @Label("Nombre") String leadFirstName;
+    @ReadOnly @PlainText @Label("Titular") String leadFullName;         // Apellidos, Nombre
     @ReadOnly @PlainText @Label("Email") String leadEmail;
-    @ReadOnly @PlainText @Label("Teléfono") String leadPhone;
-    @ReadOnly @PlainText @Label("Dirección") String leadAddress;
-    @ReadOnly @PlainText @Label("Población") String leadCity;
-    @ReadOnly @PlainText @Label("CP") String leadCp;
-    @ReadOnly @PlainText @Label("Provincia") String leadProvince;
-    @ReadOnly @PlainText @Label("País residencia") String leadCountryResidence;
-    @ReadOnly @PlainText @Label("Nacionalidad") String leadNationality;
-    @ReadOnly @PlainText @Label("Idioma") String leadLanguage;
-    @ReadOnly @PlainText @Label("Fecha nacimiento") LocalDate leadDob;
-    @ReadOnly @PlainText @Label("Sexo") Sex leadSex;
-    @ReadOnly @PlainText @Label("Ciudad nacimiento") String leadBirthCity;
-    @ReadOnly @PlainText @Label("Tipo documento") DocumentType leadDocType;
-    @ReadOnly @PlainText @Label("Nº documento") String leadDocNumber;
-    @ReadOnly @PlainText @Label("Expedido") LocalDate leadIssued;
-    @ReadOnly @PlainText @Label("Expira") LocalDate leadExpiry;
+    @ReadOnly @PlainText @Label("Teléfono / Fax") String leadPhoneFax; // Teléfono · Fax
+    @ReadOnly @PlainText @Label("Dirección") String leadFullAddress;    // Dir, CP Ciudad (Prov) País
+    @ReadOnly @PlainText @Label("Nac. / Idioma") String leadNatLang;    // Nacionalidad / Idioma
+    @ReadOnly @PlainText @Label("F. nacimiento") String leadDobSex;     // Fecha · Sexo · Ciudad nac.
+    @ReadOnly @PlainText @Label("Documento") String leadDocInfo;        // Tipo Nº · exp.
     @ReadOnly @PlainText @Label("Nº Riu Class") String leadRiuClassNo;
-    @ReadOnly @PlainText @Label("Fax") String leadFax;
     @ReadOnly @PlainText @Label("Acepta publicidad") String leadAcceptsAds;
     @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Acompañante") boolean leadCompanion;
     @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Cardex provisional") boolean leadProvisionalCardex;
@@ -251,28 +241,29 @@ public class CheckInForm implements HeaderSupplier {
             // Pax
             guests = new ArrayList<>(line.getGuests());
 
-            // Lead guest cardex
+            // Lead guest cardex (merged display fields)
             var lead = line.getGuests().isEmpty() ? null : line.getGuests().get(0);
-            leadLastName = lead != null ? lead.getLastName() : "";
-            leadFirstName = lead != null ? lead.getFirstName() : "";
+            leadFullName = join(", ",
+                    lead != null ? lead.getLastName() : null,
+                    lead != null ? lead.getFirstName() : null);
             leadEmail = line.getLeadEmail();
-            leadPhone = line.getLeadPhone();
-            leadAddress = line.getLeadAddress();
-            leadCity = line.getLeadCity();
-            leadCp = line.getLeadCp();
-            leadProvince = line.getLeadProvince();
-            leadCountryResidence = line.getLeadCountryResidence();
-            leadNationality = line.getLeadNationality();
-            leadLanguage = line.getLeadLanguage();
-            leadDob = line.getLeadDob();
-            leadSex = line.getLeadSex();
-            leadBirthCity = line.getLeadBirthCity();
-            leadDocType = line.getLeadDocType();
-            leadDocNumber = line.getLeadDocNumber();
-            leadIssued = line.getLeadIssued();
-            leadExpiry = line.getLeadExpiry();
+            leadPhoneFax = join(" · ", line.getLeadPhone(), line.getLeadFax());
+            leadFullAddress = join(", ",
+                    line.getLeadAddress(),
+                    join(" ", line.getLeadCp(), line.getLeadCity()),
+                    line.getLeadProvince(),
+                    line.getLeadCountryResidence());
+            leadNatLang = join(" / ", line.getLeadNationality(), line.getLeadLanguage());
+            leadDobSex = join(" · ",
+                    line.getLeadDob() != null ? line.getLeadDob().toString() : null,
+                    line.getLeadSex() != null ? line.getLeadSex().name() : null,
+                    line.getLeadBirthCity());
+            leadDocInfo = join(" · ",
+                    line.getLeadDocType() != null ? line.getLeadDocType().name() : null,
+                    line.getLeadDocNumber(),
+                    line.getLeadIssued() != null ? "exp. " + line.getLeadIssued() : null,
+                    line.getLeadExpiry() != null ? "cad. " + line.getLeadExpiry() : null);
             leadRiuClassNo = line.getLeadRiuClassNo();
-            leadFax = line.getLeadFax();
             leadAcceptsAds = line.getLeadAcceptsAds();
             leadCompanion = line.isLeadCompanion();
             leadProvisionalCardex = line.isLeadProvisionalCardex();
@@ -392,6 +383,12 @@ public class CheckInForm implements HeaderSupplier {
 
     private static String nz(String s) {
         return s == null || s.isBlank() ? "—" : s;
+    }
+
+    private static String join(String sep, String... parts) {
+        return Stream.of(parts)
+                .filter(s -> s != null && !s.isBlank())
+                .collect(Collectors.joining(sep));
     }
 
     private ReservationLine apply(ReservationLine line) {
