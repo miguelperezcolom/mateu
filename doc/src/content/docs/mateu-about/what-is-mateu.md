@@ -123,6 +123,6 @@ Mateu is especially useful for:
 
 ## Next
 
-- [Philosophy](/mateu-about/philosophy) — the accidental complexity problem Mateu solves
-- [The Mateu mental model](/mateu-about/mental-model) — how the system thinks about UI definitions
+- [Why Mateu](/mateu-about/why-mateu) — the problem it solves and what you gain
+- [How Mateu works](/mateu-about/how-mateu-works) — mental model, building blocks, and the stateless cycle
 - [Build a full backoffice in 10 minutes](/build-a-full-backoffice-in-10-minutes)

@@ -27,7 +27,7 @@ That makes it useful for:
 
 For more background, see:
 - [Embed →](/mateu-about/embed)
-- [Why Mateu →](/mateu-about/advantages)
+- [Why Mateu →](/mateu-about/why-mateu)
 
 ---
 
