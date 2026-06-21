@@ -88,12 +88,12 @@ public class CheckInForm implements HeaderSupplier {
     @ReadOnly @PlainText @Label("Tipo tarifa") String tarifaType;
     @ReadOnly @PlainText @Label("Grupo res.") String grupoRes;
     @ReadOnly @PlainText @Label("Grupo op.") String grupoOp;
-    @Hidden @Badge(label = "Garantizada", color = "success") boolean garantizada;
-    @Hidden @Badge(label = "Terceros") boolean terceros;
-    @Hidden @Badge(label = "Pdte. Int.") boolean pdteInt;
-    @Hidden @Badge(label = "Exp.") boolean exp;
-    @Hidden @Badge(label = "Múltiple") boolean multiple;
-    @Hidden @Badge(label = "VIP", color = "contrast") boolean vip;
+    @Badge(label = "Garantizada", color = "success") boolean garantizada;
+    @Badge(label = "Terceros") boolean terceros;
+    @Badge(label = "Pdte. Int.") boolean pdteInt;
+    @Badge(label = "Exp.") boolean exp;
+    @Badge(label = "Múltiple") boolean multiple;
+    @Badge(label = "VIP", color = "contrast") boolean vip;
     @ReadOnly @PlainText @Label("Riu Class") String riuClass;
     @ReadOnly @PlainText @Label("Requiere") String requiere;
 
