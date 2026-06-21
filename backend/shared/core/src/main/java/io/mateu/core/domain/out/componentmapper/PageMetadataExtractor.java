@@ -6,7 +6,6 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BannerTheme;
-import io.mateu.uidl.data.PageBadge;
 import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.interfaces.*;
 import java.util.Objects;
@@ -91,15 +90,6 @@ final class PageMetadataExtractor {
     if (instance instanceof BadgeSupplier badgeSupplier) {
       return badgeSupplier.badges().stream()
           .filter(b -> b != null && b.text() != null && !b.text().isBlank())
-          .map(
-              b ->
-                  Badge.builder()
-                      .text(b.text())
-                      .color(b.color())
-                      .primary(b.primary())
-                      .small(b.small())
-                      .pill(b.pill())
-                      .build())
           .toList();
     }
     return getAllMethods(instance.getClass()).stream()

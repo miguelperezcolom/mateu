@@ -1,9 +1,9 @@
 package io.mateu.uidl.interfaces;
 
-import io.mateu.uidl.data.PageBadge;
+import io.mateu.uidl.data.Badge;
 import java.util.List;
 
 public interface BadgeSupplier {
 
-  List<PageBadge> badges();
+  List<Badge> badges();
 }
