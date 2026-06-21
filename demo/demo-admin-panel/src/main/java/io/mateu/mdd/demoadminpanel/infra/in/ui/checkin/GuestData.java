@@ -27,5 +27,5 @@ public class GuestData {
     @ColumnWidth("4rem") @Label("Int.") boolean internal;
     @ColumnWidth("4rem") @Label("Aviso") boolean aviso;
     // No @ColumnWidth → this column flex-grows to fill the remaining space.
-    @Label("Observaciones hotel") String hotelObservations;
+    @Label("Obs. hotel") String hotelObservations;
 }
