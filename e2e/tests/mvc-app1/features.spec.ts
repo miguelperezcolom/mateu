@@ -818,3 +818,517 @@ test.describe('RegistrationWizard — Wizard', () => {
   });
 
 });
+
+// ---------------------------------------------------------------------------
+// ActionFeaturesForm — /action-features
+// ---------------------------------------------------------------------------
+
+const ACTION_FEATURES_API = '/action-features/mateu/v3/components/_/action';
+
+test.describe('ActionFeaturesForm — @Action attributes', () => {
+
+  test('load returns title "Action Features Form" with no errors', async ({ request }) => {
+    const body = await callAction(request, ACTION_FEATURES_API, { route: '/', actionId: '__load__' });
+    expect(titleCommand(body)?.data).toBe('Action Features Form');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('has 3 buttons: saveWithShortcut, deleteWithConfirm, validateAndSubmit', async ({ request }) => {
+    const body = await callAction(request, ACTION_FEATURES_API, { route: '/', actionId: '__load__' });
+    const buttons = allButtons(body.fragments);
+    expect(buttons.find((b: any) => b.actionId === 'saveWithShortcut')).toBeDefined();
+    expect(buttons.find((b: any) => b.actionId === 'deleteWithConfirm')).toBeDefined();
+    expect(buttons.find((b: any) => b.actionId === 'validateAndSubmit')).toBeDefined();
+  });
+
+  test('refresh is in toolbar', async ({ request }) => {
+    const body = await callAction(request, ACTION_FEATURES_API, { route: '/', actionId: '__load__' });
+    const toolbar = allToolbar(body.fragments);
+    expect(toolbar.find((b: any) => b.actionId === 'refresh')).toBeDefined();
+  });
+
+  test('saveWithShortcut action returns "Saved via shortcut!"', async ({ request }) => {
+    const body = await callAction(request, ACTION_FEATURES_API, {
+      route: '/', actionId: 'saveWithShortcut',
+      componentState: { text: 'hello' },
+      serverSideType: 'io.mateu.sample1.ActionFeaturesForm',
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].text).toBe('Saved via shortcut!');
+  });
+
+  test('deleteWithConfirm action returns "Deleted!"', async ({ request }) => {
+    const body = await callAction(request, ACTION_FEATURES_API, {
+      route: '/', actionId: 'deleteWithConfirm',
+      componentState: { text: 'hello' },
+      serverSideType: 'io.mateu.sample1.ActionFeaturesForm',
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].text).toBe('Deleted!');
+  });
+
+  test('validateAndSubmit action returns "Submitted!"', async ({ request }) => {
+    const body = await callAction(request, ACTION_FEATURES_API, {
+      route: '/', actionId: 'validateAndSubmit',
+      componentState: { text: 'hello' },
+      serverSideType: 'io.mateu.sample1.ActionFeaturesForm',
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].text).toBe('Submitted!');
+  });
+
+  test('refresh toolbar action returns "Refreshed!"', async ({ request }) => {
+    const body = await callAction(request, ACTION_FEATURES_API, {
+      route: '/', actionId: 'refresh',
+      componentState: { text: 'hello' },
+      serverSideType: 'io.mateu.sample1.ActionFeaturesForm',
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].text).toBe('Refreshed!');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// BadgeDemoForm — /badge-demo
+// ---------------------------------------------------------------------------
+
+const BADGE_DEMO_API = '/badge-demo/mateu/v3/components/_/action';
+
+test.describe('BadgeDemoForm — @Badge and @BadgeInHeader', () => {
+
+  test('load returns title "Badge Demo Form" with no errors', async ({ request }) => {
+    const body = await callAction(request, BADGE_DEMO_API, { route: '/', actionId: '__load__' });
+    expect(titleCommand(body)?.data).toBe('Badge Demo Form');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('@Badge field "premium" has stereotype "badge"', async ({ request }) => {
+    const body = await callAction(request, BADGE_DEMO_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'premium')?.stereotype).toBe('badge');
+  });
+
+  test('"name" and "active" fields are present in form body', async ({ request }) => {
+    const body = await callAction(request, BADGE_DEMO_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    const ids = fields.map((f: any) => f.fieldId);
+    expect(ids).toContain('name');
+    expect(ids).toContain('active');
+  });
+
+  test('@BadgeInHeader field "headerBadge" is excluded from form body', async ({ request }) => {
+    const body = await callAction(request, BADGE_DEMO_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'headerBadge')).toBeUndefined();
+  });
+
+  test('page has 1 header badge with color "success"', async ({ request }) => {
+    const body = await callAction(request, BADGE_DEMO_API, { route: '/', actionId: '__load__' });
+    const page = pageMetadata(body.fragments);
+    expect(page?.badges).toHaveLength(1);
+    expect(page?.badges[0]?.color).toBe('success');
+  });
+
+  test('toggle action returns "Toggled!"', async ({ request }) => {
+    const body = await callAction(request, BADGE_DEMO_API, {
+      route: '/', actionId: 'toggle',
+      componentState: { name: 'Test', active: true, premium: false, headerBadge: true },
+      serverSideType: 'io.mateu.sample1.BadgeDemoForm',
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].text).toBe('Toggled!');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// CompactForm — /compact
+// ---------------------------------------------------------------------------
+
+const COMPACT_API = '/compact/mateu/v3/components/_/action';
+
+test.describe('CompactForm — @Compact + @FormLayout(columns=4)', () => {
+
+  test('load returns title "Compact Form" with no errors', async ({ request }) => {
+    const body = await callAction(request, COMPACT_API, { route: '/', actionId: '__load__' });
+    expect(titleCommand(body)?.data).toBe('Compact Form');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('has 8 fields all of string type', async ({ request }) => {
+    const body = await callAction(request, COMPACT_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields).toHaveLength(8);
+    for (const f of fields) {
+      expect(f.dataType).toBe('string');
+    }
+  });
+
+  test('FormLayout has maxColumns=4', async ({ request }) => {
+    const body = await callAction(request, COMPACT_API, { route: '/', actionId: '__load__' });
+    const nodes = body.fragments.flatMap((f: any) => allNodes(f.component));
+    const formLayout = nodes.find((n: any) => n?.metadata?.type === 'FormLayout');
+    expect(formLayout?.metadata?.maxColumns).toBe(4);
+  });
+
+  test('save returns "Saved!"', async ({ request }) => {
+    const body = await callAction(request, COMPACT_API, {
+      route: '/', actionId: 'save',
+      componentState: { field1: 'a', field2: 'b', field3: 'c', field4: 'd',
+                        field5: 'e', field6: 'f', field7: 'g', field8: 'h' },
+      serverSideType: 'io.mateu.sample1.CompactForm',
+    });
+    expect(body.messages[0].text).toBe('Saved!');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// FoldedLayoutForm — /folded
+// ---------------------------------------------------------------------------
+
+const FOLDED_API = '/folded/mateu/v3/components/_/action';
+
+test.describe('FoldedLayoutForm — @FoldedLayout', () => {
+
+  test('load returns title "Folded Layout Form" with no errors', async ({ request }) => {
+    const body = await callAction(request, FOLDED_API, { route: '/', actionId: '__load__' });
+    expect(titleCommand(body)?.data).toBe('Folded Layout Form');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('all 4 fields are present', async ({ request }) => {
+    const body = await callAction(request, FOLDED_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    const ids = fields.map((f: any) => f.fieldId);
+    expect(ids).toContain('fieldA1');
+    expect(ids).toContain('fieldA2');
+    expect(ids).toContain('fieldB1');
+    expect(ids).toContain('fieldB2');
+  });
+
+  test('@FoldedLayout renders sections in a HorizontalLayout', async ({ request }) => {
+    const body = await callAction(request, FOLDED_API, { route: '/', actionId: '__load__' });
+    const nodes = body.fragments.flatMap((f: any) => allNodes(f.component));
+    const horizontal = nodes.find((n: any) => n?.metadata?.type === 'HorizontalLayout');
+    expect(horizontal).toBeDefined();
+  });
+
+  test('save returns "Saved!"', async ({ request }) => {
+    const body = await callAction(request, FOLDED_API, {
+      route: '/', actionId: 'save',
+      componentState: { fieldA1: 'a', fieldA2: 'b', fieldB1: 'c', fieldB2: 'd' },
+      serverSideType: 'io.mateu.sample1.FoldedLayoutForm',
+    });
+    expect(body.messages[0].text).toBe('Saved!');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// HiddenFieldsForm — /hidden-fields
+// ---------------------------------------------------------------------------
+
+const HIDDEN_FIELDS_API = '/hidden-fields/mateu/v3/components/_/action';
+
+test.describe('HiddenFieldsForm — @Hidden and @ReadOnly', () => {
+
+  test('load returns title "Hidden Fields Form" with no errors', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_FIELDS_API, { route: '/', actionId: '__load__' });
+    expect(titleCommand(body)?.data).toBe('Hidden Fields Form');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('"visibleField" is present in form body', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_FIELDS_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'visibleField')).toBeDefined();
+  });
+
+  test('@Hidden field "hiddenField" is excluded from form body', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_FIELDS_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'hiddenField')).toBeUndefined();
+  });
+
+  test('@ReadOnly field "readOnlyField" has readOnly=true', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_FIELDS_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'readOnlyField')?.readOnly).toBe(true);
+  });
+
+  test('save returns "Saved!"', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_FIELDS_API, {
+      route: '/', actionId: 'save',
+      componentState: { visibleField: 'hello', readOnlyField: 'readonly-value' },
+      serverSideType: 'io.mateu.sample1.HiddenFieldsForm',
+    });
+    expect(body.messages[0].text).toBe('Saved!');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// StereotypesForm — /stereotypes
+// ---------------------------------------------------------------------------
+
+const STEREOTYPES_API = '/stereotypes/mateu/v3/components/_/action';
+
+test.describe('StereotypesForm — @Stereotype variants', () => {
+
+  test('load returns title "Stereotypes Form" with no errors', async ({ request }) => {
+    const body = await callAction(request, STEREOTYPES_API, { route: '/', actionId: '__load__' });
+    expect(titleCommand(body)?.data).toBe('Stereotypes Form');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('email field stereotype is "email"', async ({ request }) => {
+    const body = await callAction(request, STEREOTYPES_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'email')?.stereotype).toBe('email');
+  });
+
+  test('password field stereotype is "password"', async ({ request }) => {
+    const body = await callAction(request, STEREOTYPES_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'password')?.stereotype).toBe('password');
+  });
+
+  test('description field stereotype is "textarea"', async ({ request }) => {
+    const body = await callAction(request, STEREOTYPES_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'description')?.stereotype).toBe('textarea');
+  });
+
+  test('toggleField stereotype is "toggle"', async ({ request }) => {
+    const body = await callAction(request, STEREOTYPES_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'toggleField')?.stereotype).toBe('toggle');
+  });
+
+  test('radioStatus stereotype is "radio"', async ({ request }) => {
+    const body = await callAction(request, STEREOTYPES_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'radioStatus')?.stereotype).toBe('radio');
+  });
+
+  test('sliderValue stereotype is "slider"', async ({ request }) => {
+    const body = await callAction(request, STEREOTYPES_API, { route: '/', actionId: '__load__' });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'sliderValue')?.stereotype).toBe('slider');
+  });
+
+  test('save action returns a message containing "Saved with email="', async ({ request }) => {
+    const body = await callAction(request, STEREOTYPES_API, {
+      route: '/', actionId: 'save',
+      componentState: { email: 'test@example.com', password: 'secret',
+                        description: 'desc', toggleField: true,
+                        radioStatus: 'ACTIVE', sliderValue: 50 },
+      serverSideType: 'io.mateu.sample1.StereotypesForm',
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].text).toContain('Saved with email=');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// SubtitleForm — /subtitle
+// ---------------------------------------------------------------------------
+
+const SUBTITLE_API = '/subtitle/mateu/v3/components/_/action';
+
+test.describe('SubtitleForm — @Subtitle', () => {
+
+  test('load returns title "Main Title"', async ({ request }) => {
+    const body = await callAction(request, SUBTITLE_API, { route: '/', actionId: '__load__' });
+    expect(titleCommand(body)?.data).toBe('Main Title');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('page subtitle is "Supporting subtitle text"', async ({ request }) => {
+    const body = await callAction(request, SUBTITLE_API, { route: '/', actionId: '__load__' });
+    const page = pageMetadata(body.fragments);
+    expect(page?.subtitle).toBe('Supporting subtitle text');
+  });
+
+  test('save returns "Saved!"', async ({ request }) => {
+    const body = await callAction(request, SUBTITLE_API, {
+      route: '/', actionId: 'save',
+      componentState: { name: 'Alice' },
+      serverSideType: 'io.mateu.sample1.SubtitleForm',
+    });
+    expect(body.messages[0].text).toBe('Saved!');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// CatalogWithHiddenColumns — /catalog-hidden-cols
+// ---------------------------------------------------------------------------
+
+const HIDDEN_COLS_API = '/catalog-hidden-cols/mateu/v3/components/_/action';
+
+function getCrudColumns(fragments: any[]): any[] {
+  const all: any[] = [];
+  for (const f of fragments) {
+    for (const n of allNodes(f.component)) {
+      if (n?.metadata?.columns !== undefined) {
+        for (const col of n.metadata.columns) {
+          all.push(col?.metadata);
+        }
+      }
+    }
+  }
+  return all;
+}
+
+test.describe('CatalogWithHiddenColumns — @HiddenInList / @HiddenInCreate / @HiddenInEditor', () => {
+
+  test('search returns 2 orders with no errors', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_COLS_API, {
+      route: '/', actionId: 'search',
+      serverSideType: 'io.mateu.sample1.app.CatalogWithHiddenColumns',
+      consumedRoute: '',
+      componentState: { page: 0, size: 10 },
+    });
+    expect(body.messages).toHaveLength(0);
+    const content = body.fragments[0]?.data?.crud?.page?.content ?? [];
+    expect(content.length).toBe(2);
+  });
+
+  test('"customerName" column is shown in list', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_COLS_API, {
+      route: '/', actionId: '',
+      serverSideType: 'io.mateu.sample1.app.CatalogWithHiddenColumns',
+      consumedRoute: '',
+      componentState: {},
+    });
+    const columnIds = getCrudColumns(body.fragments).map((c: any) => c?.id);
+    expect(columnIds).toContain('customerName');
+  });
+
+  test('@HiddenInList field "internalNotes" is excluded from list columns', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_COLS_API, {
+      route: '/', actionId: '',
+      serverSideType: 'io.mateu.sample1.app.CatalogWithHiddenColumns',
+      consumedRoute: '',
+      componentState: {},
+    });
+    const columnIds = getCrudColumns(body.fragments).map((c: any) => c?.id);
+    expect(columnIds).not.toContain('internalNotes');
+  });
+
+  test('@HiddenInCreate field "createdBy" is excluded from create form', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_COLS_API, {
+      route: '/new', actionId: '',
+      serverSideType: 'io.mateu.sample1.app.CatalogWithHiddenColumns',
+      consumedRoute: '',
+      componentState: {},
+    });
+    expect(body.messages).toHaveLength(0);
+    const fields = allFields(body.fragments);
+    expect(fields.length).toBeGreaterThan(0);
+    expect(fields.find((f: any) => f.fieldId === 'createdBy')).toBeUndefined();
+  });
+
+  test('@HiddenInCreate: "id" and "customerName" are present in create form', async ({ request }) => {
+    const body = await callAction(request, HIDDEN_COLS_API, {
+      route: '/new', actionId: '',
+      serverSideType: 'io.mateu.sample1.app.CatalogWithHiddenColumns',
+      consumedRoute: '',
+      componentState: {},
+    });
+    const fields = allFields(body.fragments);
+    const ids = fields.map((f: any) => f.fieldId);
+    expect(ids).toContain('id');
+    expect(ids).toContain('customerName');
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// FullCrud — /full-crud
+// ---------------------------------------------------------------------------
+
+const FULL_CRUD_API = '/full-crud/mateu/v3/components/_/action';
+
+test.describe('FullCrud — full AutoCrud lifecycle', () => {
+
+  test('search returns 3 tasks with no errors', async ({ request }) => {
+    const body = await callAction(request, FULL_CRUD_API, {
+      route: '/', actionId: 'search',
+      serverSideType: 'io.mateu.sample1.app.FullCrud',
+      consumedRoute: '',
+      componentState: { page: 0, size: 10 },
+    });
+    expect(body.messages).toHaveLength(0);
+    const content = body.fragments[0]?.data?.crud?.page?.content ?? [];
+    expect(content.length).toBe(3);
+  });
+
+  test('task records have title and done fields', async ({ request }) => {
+    const body = await callAction(request, FULL_CRUD_API, {
+      route: '/', actionId: 'search',
+      serverSideType: 'io.mateu.sample1.app.FullCrud',
+      consumedRoute: '',
+      componentState: { page: 0, size: 10 },
+    });
+    const content = body.fragments[0]?.data?.crud?.page?.content ?? [];
+    for (const task of content) {
+      expect(task.title).toBeDefined();
+      expect(typeof task.done).toBe('boolean');
+    }
+  });
+
+  test('task titles are Task Alpha, Task Beta, Task Gamma', async ({ request }) => {
+    const body = await callAction(request, FULL_CRUD_API, {
+      route: '/', actionId: 'search',
+      serverSideType: 'io.mateu.sample1.app.FullCrud',
+      consumedRoute: '',
+      componentState: { page: 0, size: 10 },
+    });
+    const content = body.fragments[0]?.data?.crud?.page?.content ?? [];
+    const titles = content.map((t: any) => t.title);
+    expect(titles).toContain('Task Alpha');
+    expect(titles).toContain('Task Beta');
+    expect(titles).toContain('Task Gamma');
+  });
+
+  test('create form returns fields with no errors', async ({ request }) => {
+    const body = await callAction(request, FULL_CRUD_API, {
+      route: '/new', actionId: '',
+      serverSideType: 'io.mateu.sample1.app.FullCrud',
+      consumedRoute: '',
+      componentState: {},
+    });
+    expect(body.messages).toHaveLength(0);
+    expect(allFields(body.fragments).length).toBeGreaterThan(0);
+  });
+
+  test('create form has "title" field that is required', async ({ request }) => {
+    const body = await callAction(request, FULL_CRUD_API, {
+      route: '/new', actionId: '',
+      serverSideType: 'io.mateu.sample1.app.FullCrud',
+      consumedRoute: '',
+      componentState: {},
+    });
+    const fields = allFields(body.fragments);
+    const titleField = fields.find((f: any) => f.fieldId === 'title');
+    expect(titleField).toBeDefined();
+    expect(titleField?.required).toBe(true);
+  });
+
+  test('create form has "description" field with textarea stereotype', async ({ request }) => {
+    const body = await callAction(request, FULL_CRUD_API, {
+      route: '/new', actionId: '',
+      serverSideType: 'io.mateu.sample1.app.FullCrud',
+      consumedRoute: '',
+      componentState: {},
+    });
+    const fields = allFields(body.fragments);
+    expect(fields.find((f: any) => f.fieldId === 'description')?.stereotype).toBe('textarea');
+  });
+
+});
