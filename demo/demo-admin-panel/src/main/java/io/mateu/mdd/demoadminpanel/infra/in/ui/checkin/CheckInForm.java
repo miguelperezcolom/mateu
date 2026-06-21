@@ -87,12 +87,12 @@ public class CheckInForm implements HeaderSupplier {
     @ReadOnly @PlainText @Label("Tipo tarifa") String tarifaType;
     @ReadOnly @PlainText @Label("Grupo res.") String grupoRes;
     @ReadOnly @PlainText @Label("Grupo op.") String grupoOp;
-    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Garantizada") boolean garantizada;
-    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Terceros") boolean terceros;
-    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Pdte. Int.") boolean pdteInt;
-    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Exp.") boolean exp;
-    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("Múltiple") boolean multiple;
-    @ReadOnly @Stereotype(FieldStereotype.badge) @Label("VIP") boolean vip;
+    @Hidden boolean garantizada;
+    @Hidden boolean terceros;
+    @Hidden boolean pdteInt;
+    @Hidden boolean exp;
+    @Hidden boolean multiple;
+    @Hidden boolean vip;
     @ReadOnly @PlainText @Label("Riu Class") String riuClass;
     @ReadOnly @PlainText @Label("Requiere") String requiere;
 
@@ -319,6 +319,11 @@ public class CheckInForm implements HeaderSupplier {
     /** Context strip shown above the two columns: reservation identity + active-flag badges. */
     @Override
     public Collection<Component> header() {
+        // header() is called before the OnLoad trigger runs, so we self-populate
+        // if the data hasn't been loaded yet (id is available from the route).
+        if (localizador == null && id != null && !id.isBlank()) {
+            populate();
+        }
         var info = HorizontalLayout.builder()
                 .spacing(true)
                 .style("flex-wrap: wrap; align-items: baseline; gap: 2px 1.75rem; width: 100%;")
