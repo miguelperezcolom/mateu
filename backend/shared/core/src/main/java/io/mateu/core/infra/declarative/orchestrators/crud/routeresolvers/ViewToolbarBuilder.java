@@ -64,13 +64,13 @@ final class ViewToolbarBuilder {
                       .build());
             });
     if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
-      toolbar.add(new Button("Back to list", "cancel-view"));
+      toolbar.add(new Button(orchestrator.backToListLabel(), "cancel-view"));
     }
     if (!orchestrator.readOnly()) {
-      toolbar.add(new Button("Add another", "new"));
+      toolbar.add(new Button(orchestrator.addAnotherLabel(), "new"));
     }
     if (!viewReadOnly(item, orchestrator)) {
-      toolbar.add(new Button("Edit", "edit"));
+      toolbar.add(new Button(orchestrator.editLabel(), "edit"));
     }
     return toolbar;
   }

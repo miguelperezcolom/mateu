@@ -54,9 +54,10 @@ class CrudFormComponentBuilder {
   private static List<UserTrigger> buildToolbar(boolean isCreation, Crud orchestrator) {
     List<UserTrigger> buttons = new ArrayList<>();
     if (!isCreation || !orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
-      buttons.add(new Button("Cancel", isCreation ? "cancel-new" : "cancel-edit"));
+      buttons.add(
+          new Button(orchestrator.cancelLabel(), isCreation ? "cancel-new" : "cancel-edit"));
     }
-    buttons.add(new Button("Save", "create"));
+    buttons.add(new Button(orchestrator.saveLabel(), "create"));
     return buttons;
   }
 }
