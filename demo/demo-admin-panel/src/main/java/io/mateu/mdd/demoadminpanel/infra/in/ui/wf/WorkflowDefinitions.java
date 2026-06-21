@@ -22,11 +22,11 @@ import static io.mateu.uidl.fluent.Component.createComponent;
 public class WorkflowDefinitions extends AutoCrud<WorkflowDefinition> {
 
     final WorkflowDefinitionEditor graphEditor;
-    final WorkflowDefinitionCrudAdapter adapter;
+    final WorkflowDefinitionRepository repository;
 
     @Override
     public io.mateu.uidl.interfaces.CrudRepository<WorkflowDefinition> repository() {
-        return adapter.repository();
+        return repository;
     }
 
     @Override

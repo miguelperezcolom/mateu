@@ -67,6 +67,5 @@ See [NamedView](/java-user-manual/build/named-view/) for the full picture.
 
 ## Next
 
-- [NamedView](/java-user-manual/build/named-view/) — the runtime implementation of `SimpleView`, returned by the auto adapters
-- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — where `AutoNamedView` is constructed
+- [NamedView](/java-user-manual/build/named-view/) — the runtime implementation of `SimpleView`, returned by the auto orchestrators
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — when you provide your own View/Editor/CreationForm types instead of `SimpleView`

@@ -164,7 +164,7 @@ When the entity itself is the form (no separate editor class), use `AutoNamedVie
 
 This is what `AutoCrud` does internally — it wraps the entity in `AutoNamedView` so you never have to write the form interfaces yourself.
 
-See [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) for the advanced customisation pattern.
+This is handled automatically by `AutoCrud` and `FilteredAutoCrud` — you only need these interfaces when using `Crud` directly with separate types for view, editor, and creation form.
 
 ---
 
@@ -172,4 +172,3 @@ See [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) for the advanced c
 
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — how these interfaces fit into the six-type-parameter orchestrator
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — where `getEditor()` and `getCreationForm()` return instances of these interfaces
-- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — the pre-built alternative using `AutoNamedView`

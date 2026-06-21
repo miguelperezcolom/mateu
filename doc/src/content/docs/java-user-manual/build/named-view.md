@@ -89,6 +89,6 @@ The fields `date` and `status` are pre-filled; everything else is blank.
 
 ## Next
 
-- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — where `NamedView` and `AutoNamedView` are returned
+- [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/) — override hooks that return `AutoNamedView` in `AutoCrud` / `FilteredAutoCrud`
 - [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the lighter alternative when you don't need the full `NamedView` contract
 - [Identifiable, Named, and Searchable](/java-user-manual/build/entity-interfaces/) — the entity interfaces that `NamedView` builds on

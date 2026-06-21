@@ -149,7 +149,7 @@ Response is `UIIncrementDto` (see `backend/shared/dtos`).
 
 - `@UI("/path")` on a class registers it as a routed view; no path means root.
 - `AutoCrud<T>` / `AutoCrudOrchestrator<T>` give full CRUD with minimal code.
-- `CrudRepository<T>` is the port; `AutoCrudAdapter<T>` is the default in-memory implementation for demos.
+- `CrudRepository<T>` is the port; implement it inline or as a Spring `@Service` and return it from `repository()` in your `AutoCrud<T>` subclass.
 - Bean validation annotations (`@NotNull`, `@NotEmpty`, `@Min`, `@Max`) drive client-side and server-side validation automatically.
 - `Identifiable` interface on record/entity marks the ID field for CRUD.
 - `HttpRequest` can be added to any method signature; Mateu injects it automatically.

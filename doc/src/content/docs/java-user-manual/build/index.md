@@ -28,7 +28,7 @@ If you are building something new, read the pages in order. If you are solving a
 
 - [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) — the list → view → edit flow and how to customize it
 - [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — the simplest way to get a CRUD or read-only listing, with capability annotations
-- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — advanced customisation layer for custom search, pre-populated forms, and custom delete
+- [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/) — override `fetchRows`, `buildNamedView`, or `buildCreationForm` for custom search, pre-populated forms, and more
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
 - [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the contracts for edit and create forms in a `Crud`
 - [NamedView](/java-user-manual/build/named-view/) — the interface wrapping an entity as a view, editor, or creation form
