@@ -60,6 +60,23 @@ Each renderer in `frontend/web/monorepo/apps/<name>/` is a standalone Vite app. 
 
 The shared lib (`libs/mateu`) contains: `MateuApiClient`, SSE support, `mateu-ux` (root web component), `mateu-dialog`, `mateu-grid`, `mateu-choice`, and base infrastructure. Renderers import from `mateu` workspace package and provide renderer-specific web-components for each DTO type.
 
+## Creating a Release
+
+Releases follow the pattern `Mateu v3.0-alpha.N`. To cut a new one:
+
+1. Check the latest release number:
+   ```bash
+   gh release list --limit 5
+   ```
+2. Create the next release (increment N by 1):
+   ```bash
+   gh release create v3.0-alpha.N --title "Mateu v3.0-alpha.N" --notes "- summary of changes"
+   ```
+
+GitHub Actions handle the rest (build, publish to Maven Central, etc.) automatically once the tag is pushed.
+
+---
+
 ## Build & Run Commands
 
 ### Java Backend (from repo root or any Maven module)
