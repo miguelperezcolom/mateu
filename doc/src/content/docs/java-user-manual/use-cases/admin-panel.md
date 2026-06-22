@@ -145,7 +145,7 @@ See [CRUD navigation flow](/java-user-manual/build/crud-navigation-flow/) for th
 
 ### Product list
 
-![Products list](/images/docs/admin-panel/products-list.jpeg)
+![Products list](/images/docs/admin-panel/products-list.png)
 
 The list is generated automatically from the model and repository.
 

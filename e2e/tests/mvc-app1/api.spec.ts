@@ -18,23 +18,26 @@ async function callAction(request: any, url: string, body: object) {
   return Array.isArray(json) ? json[0] : json;
 }
 
+// Collect all component nodes, traversing both children and metadata.content (used by Card)
+function allNodes(component: any): any[] {
+  if (!component) return [];
+  const fromChildren = (component?.children ?? []).flatMap(allNodes);
+  const fromContent  = component?.metadata?.content ? allNodes(component.metadata.content) : [];
+  return [component, ...fromChildren, ...fromContent];
+}
+
 function collectButtons(component: any): any[] {
-  const direct = component?.metadata?.buttons ?? [];
-  const nested = (component?.children ?? []).flatMap(collectButtons);
-  return [...direct, ...nested];
+  return allNodes(component).flatMap((c: any) => c?.metadata?.buttons ?? []);
 }
 
 function collectToolbar(component: any): any[] {
-  const direct = component?.metadata?.toolbar ?? [];
-  const nested = (component?.children ?? []).flatMap(collectToolbar);
-  return [...direct, ...nested];
+  return allNodes(component).flatMap((c: any) => c?.metadata?.toolbar ?? []);
 }
 
 function collectFields(component: any): any[] {
-  const isField = component?.metadata?.fieldId !== undefined;
-  const direct = isField ? [component.metadata] : [];
-  const nested = (component?.children ?? []).flatMap(collectFields);
-  return [...direct, ...nested];
+  return allNodes(component)
+    .filter((c: any) => c?.metadata?.fieldId !== undefined)
+    .map((c: any) => c.metadata);
 }
 
 function allButtons(fragments: any[]): any[] {

@@ -423,7 +423,11 @@ These are also part of the public DSL and are worth knowing:
 - `@Widget`
 - `@Footer`
 - `@Header`
-- `@Section`
+- `@Section` (incl. `zone` for use with `@Zones`)
+- `@Zones` / `@Zone` — side-by-side layout zones (columns of sections)
+- `@Compact` — high-density page preset (`StyleConstants.COMPACT`)
+- `@PlainText` — render a value as read-only text instead of an input
+- `@ColumnWidth` — fixed-width grid column
 - `@Colspan`
 - `@HiddenInList`
 - `@HiddenInView`

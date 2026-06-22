@@ -3,6 +3,38 @@ title: "Metadata Annotations"
 description: "Annotations for labels, help text, headings and display metadata."
 ---
 
+## Expression interpolation in labels
+
+Any string attribute that accepts a label or title supports `${...}` template expressions evaluated against the current component context. The available variables are:
+
+| Variable | Contains |
+|---|---|
+| `state` | The component's tracked state object |
+| `data` | The component's data object |
+| `appState` | The application-level state |
+| `appData` | The application-level data |
+
+Supported locations: `@Tab` labels, `@Section` titles, subsection titles, field `@Label` values, accordion panel labels, button / toolbar button labels, CRUD titles and subtitles, column header labels (including group headers), filter bar active-filter badges, banner title/description, and KPI titles.
+
+```java
+// Tab label that shows a field value
+@Tab("${state.customerName} — Details")
+String phone;
+
+// Section title with state data
+@Section("Room ${state.roomNumber}")
+String roomType;
+
+// Button label that reflects the current record
+@Toolbar
+@Label("Email ${state.guestName}")
+Object sendEmail() { ... }
+```
+
+Labels without `${` are treated as plain strings and are never evaluated — there is no performance cost for the common case.
+
+---
+
 ## @Label
 
 **Target:** `FIELD`, `METHOD`

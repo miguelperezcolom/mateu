@@ -1,9 +1,12 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.domain.out.componentmapper.PageButtonsBuilder.getButtons;
+import static io.mateu.core.domain.out.componentmapper.PageButtonsBuilder.getFabs;
 import static io.mateu.core.domain.out.componentmapper.PageButtonsBuilder.getToolbar;
 import static io.mateu.core.domain.out.componentmapper.PageContentBuilder.getContent;
 import static io.mateu.core.domain.out.componentmapper.PageMetadataExtractor.*;
+import static io.mateu.core.domain.out.componentmapper.PageMetadataExtractor.getBadges;
+import static io.mateu.core.domain.out.componentmapper.PageMetadataExtractor.getBanners;
 
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Breadcrumb;
@@ -33,6 +36,10 @@ public class ReflectionPageMapper {
         .avatar(getAvatar(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .toolbar(getToolbar(instance, httpRequest))
         .buttons(getButtons(instance, httpRequest))
+        .fabs(getFabs(instance, httpRequest))
+        .kpis(getKpis(instance))
+        .badges(getBadges(instance, httpRequest))
+        .banners(getBanners(instance, httpRequest))
         .header(getHeader(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .content(
             getContent(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))

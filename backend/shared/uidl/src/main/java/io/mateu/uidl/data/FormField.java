@@ -40,7 +40,8 @@ public record FormField(
     boolean useButtonForDetail,
     String minHeightWhenDetailVisible,
     int optionsColumns,
-    boolean mainFilter)
+    boolean mainFilter,
+    boolean multiline)
     implements Component {
 
   public FormField {

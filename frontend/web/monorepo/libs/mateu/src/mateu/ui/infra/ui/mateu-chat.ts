@@ -393,34 +393,46 @@ export class MateuChat extends LitElement {
         }
     }
 
+    closeChat = () => {
+        this.dispatchEvent(new CustomEvent('close-requested', { bubbles: true, composed: true }))
+    }
+
     render() {
         return html`
-            <div class="scroll-container" style="height: 35rem; overflow: auto;">
-                <vaadin-message-list .items="${this.items}" markdown style="--lumo-font-size-m: 12px;"></vaadin-message-list>
+            <div class="chat-container">
+                <div class="chat-header">
+                    <span class="chat-title">AI Assistant</span>
+                    <button class="chat-close" @click="${this.closeChat}" title="Cerrar">
+                        <vaadin-icon icon="vaadin:close"></vaadin-icon>
+                    </button>
+                </div>
+                <div class="scroll-container">
+                    <vaadin-message-list .items="${this.items}" markdown style="--lumo-font-size-m: 12px;"></vaadin-message-list>
+                </div>
+                ${this.tokenUsage ? html`
+                    <div class="token-bar">
+                        <span class="token-label">Tokens:</span>
+                        ${this.tokenUsage.inputTokens != null ? html`<span class="token-chip">in&nbsp;<strong>${this.tokenUsage.inputTokens}</strong></span>` : nothing}
+                        ${this.tokenUsage.outputTokens != null ? html`<span class="token-chip">out&nbsp;<strong>${this.tokenUsage.outputTokens}</strong></span>` : nothing}
+                        ${this.tokenUsage.totalTokens != null ? html`<span class="token-chip">total&nbsp;<strong>${this.tokenUsage.totalTokens}</strong></span>` : nothing}
+                    </div>
+                ` : nothing}
+                ${this.loading ? html`
+                    <div class="loading-bar">
+                        <span class="spinner"></span>
+                        <span class="loading-text">Thinking… ${this.elapsedSeconds}s</span>
+                    </div>
+                ` : nothing}
+                <vaadin-horizontal-layout
+                        style="padding-left: 1rem; align-items: center; border-top: 1px solid var(--lumo-contrast-10pct);"><vaadin-button
+                        theme="icon"
+                        @click="${this.startListening}"
+                        ?disabled="${!this.recognitionAvailable}"
+                ><vaadin-icon
+                        style="color: ${this.listening?'red':'var(--lumo-contrast-50pct)'};"
+                        icon="vaadin:microphone"></vaadin-icon></vaadin-button>
+                    <vaadin-message-input @submit="${this.send}" style="border-top: none; flex-grow: 1;"></vaadin-message-input></vaadin-horizontal-layout>
             </div>
-            ${this.tokenUsage ? html`
-                <div class="token-bar">
-                    <span class="token-label">Tokens:</span>
-                    ${this.tokenUsage.inputTokens != null ? html`<span class="token-chip">in&nbsp;<strong>${this.tokenUsage.inputTokens}</strong></span>` : nothing}
-                    ${this.tokenUsage.outputTokens != null ? html`<span class="token-chip">out&nbsp;<strong>${this.tokenUsage.outputTokens}</strong></span>` : nothing}
-                    ${this.tokenUsage.totalTokens != null ? html`<span class="token-chip">total&nbsp;<strong>${this.tokenUsage.totalTokens}</strong></span>` : nothing}
-                </div>
-            ` : nothing}
-            ${this.loading ? html`
-                <div class="loading-bar">
-                    <span class="spinner"></span>
-                    <span class="loading-text">Thinking… ${this.elapsedSeconds}s</span>
-                </div>
-            ` : nothing}
-            <vaadin-horizontal-layout
-                    style="padding-left: 1rem; align-items: center; border-top: 1px solid var(--lumo-contrast-10pct);"><vaadin-button
-                    theme="icon"
-                    @click="${this.startListening}"
-                    ?disabled="${!this.recognitionAvailable}"
-            ><vaadin-icon
-                    style="color: ${this.listening?'red':'var(--lumo-contrast-50pct)'};"
-                    icon="vaadin:microphone"></vaadin-icon></vaadin-button>
-                <vaadin-message-input @submit="${this.send}" style="border-top: none; flex-grow: 1;"></vaadin-message-input></vaadin-horizontal-layout>
         `
     }
 
@@ -438,10 +450,43 @@ export class MateuChat extends LitElement {
             background: var(--lumo-base-color);
         }
 
-        vaadin-message-list {
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem 0.5rem 1rem;
+            border-bottom: 1px solid var(--lumo-contrast-10pct);
+            flex-shrink: 0;
+        }
+
+        .chat-title {
+            font-size: var(--lumo-font-size-s);
+            font-weight: 600;
+            color: var(--lumo-secondary-text-color);
+        }
+
+        .chat-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--lumo-secondary-text-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.25rem;
+            border-radius: var(--lumo-border-radius-s);
+            line-height: 1;
+        }
+
+        .chat-close:hover {
+            background: var(--lumo-contrast-10pct);
+            color: var(--lumo-body-text-color);
+        }
+
+        .scroll-container {
             flex: 1;
             overflow-y: auto;
-            padding: 1rem;
+            min-height: 0;
         }
 
         vaadin-message-input {

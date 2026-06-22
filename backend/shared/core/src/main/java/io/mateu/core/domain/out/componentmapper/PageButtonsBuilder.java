@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Toolbar;
@@ -259,6 +260,32 @@ final class PageButtonsBuilder {
         group,
         separatorBefore,
         order);
+  }
+
+  static List<? extends UserTrigger> getFabs(Object instance, HttpRequest httpRequest) {
+    return getAllMethods(instance.getClass()).stream()
+        .filter(method -> method.isAnnotationPresent(Fab.class))
+        .filter(
+            method ->
+                !(instance instanceof VisibilitySupplier vs)
+                    || !vs.isHidden(method.getName(), httpRequest))
+        .sorted(
+            java.util.Comparator.comparingInt(method -> method.getAnnotation(Fab.class).order()))
+        .map(
+            method -> {
+              var ann = method.getAnnotation(Fab.class);
+              var buttonStyle =
+                  ann.buttonStyle() != io.mateu.uidl.data.ButtonStyle.none
+                      ? ann.buttonStyle()
+                      : io.mateu.uidl.data.ButtonStyle.primary;
+              return Button.builder()
+                  .actionId(method.getName())
+                  .label(getLabelForMethod(method))
+                  .iconOnLeft(ann.icon())
+                  .buttonStyle(buttonStyle)
+                  .build();
+            })
+        .toList();
   }
 
   private static String getLabelForMethod(Method method) {

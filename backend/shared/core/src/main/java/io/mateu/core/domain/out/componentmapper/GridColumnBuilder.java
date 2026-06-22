@@ -31,16 +31,21 @@ public class GridColumnBuilder {
                     && !columnField.isAnnotationPresent(HiddenInList.class)
                     && !List.class.isAssignableFrom(columnField.getType()))
         .forEach(
-            columnField ->
-                columns.add(
-                    GridColumn.builder()
-                        .dataType(getDataTypeForColumn(columnField))
-                        .stereotype(getStereotypeForColumn(columnField))
-                        .id(columnField.getName())
-                        .label(getLabel(columnField))
-                        .width(getColumnWidth(columnField))
-                        .filterable(getFilterable(columnField))
-                        .build()));
+            columnField -> {
+              var colWidth = getColumnWidth(columnField);
+              columns.add(
+                  GridColumn.builder()
+                      .dataType(getDataTypeForColumn(columnField))
+                      .stereotype(getStereotypeForColumn(columnField))
+                      .id(columnField.getName())
+                      .label(getLabel(columnField))
+                      .width(colWidth)
+                      // An explicit @ColumnWidth makes a fixed-width column; columns without one
+                      // keep the default flex-grow so they share the remaining space.
+                      .flexGrow(colWidth != null ? "0" : null)
+                      .filterable(getFilterable(columnField))
+                      .build());
+            });
     if (!readOnly) {
       columns.add(
           GridColumn.builder()

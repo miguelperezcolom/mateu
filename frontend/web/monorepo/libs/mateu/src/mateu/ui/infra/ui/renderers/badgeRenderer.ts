@@ -12,6 +12,8 @@ export const renderBadge = (component: ClientSideComponent, state: ComponentStat
 }
 
 export const renderBadgeMetadata = (metadata: Badge, state: ComponentState, data: ComponentData) => {
+    const text = evalIfNecessary(metadata.text, state, data)
+    if (!text) return nothing
     let color = evalIfNecessary(metadata.color, state, data);
     if (color == 'SUCCESS') color = 'success';
     if (color == 'ERROR') color = 'error';
@@ -24,5 +26,5 @@ export const renderBadgeMetadata = (metadata: Badge, state: ComponentState, data
     if (color == 'QUATERNARY') color = 'quaternary';
     if (color == 'LIGHT') color = 'light';
     if (color == 'DARK') color = 'dark';
-    return html`<span theme="badge ${color} ${metadata.pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${evalIfNecessary(metadata.text, state, data)}</span>`
+    return html`<span theme="badge ${color} ${metadata.pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${text}</span>`
 }

@@ -1,0 +1,61 @@
+package io.mateu.core.infra.declarative.crudorchestrator.actionhandlers;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
+import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
+import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
+import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.PersistActionHandler;
+import io.mateu.uidl.data.NotificationVariant;
+import io.mateu.uidl.interfaces.HttpRequest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class PersistActionHandlerTest {
+
+  @Mock Crud<?, ?, ?, ?, ?, ?> orchestrator;
+  @Mock HttpRequest httpRequest;
+
+  private final PersistActionHandler handler = new PersistActionHandler();
+
+  @Test
+  void supportsSaveAndCreate() {
+    assertThat(handler.supports("save", httpRequest)).isTrue();
+    assertThat(handler.supports("create", httpRequest)).isTrue();
+    assertThat(handler.supports("delete", httpRequest)).isFalse();
+    assertThat(handler.supports("edit", httpRequest)).isFalse();
+  }
+
+  @Test
+  void saveRouteContainsSavedId() {
+    when(orchestrator.save(httpRequest)).thenReturn("abc-123");
+
+    var result = (CrudActionResult) handler.handleAction("save", httpRequest, orchestrator);
+
+    assertThat(result.route()).isEqualTo("/abc-123");
+    assertThat(result.savedId()).isEqualTo("abc-123");
+  }
+
+  @Test
+  void createRouteContainsNewlySavedId() {
+    when(orchestrator.saveNew(httpRequest)).thenReturn("new-456");
+
+    var result = (CrudActionResult) handler.handleAction("create", httpRequest, orchestrator);
+
+    assertThat(result.route()).isEqualTo("/new-456");
+    assertThat(result.savedId()).isEqualTo("new-456");
+  }
+
+  @Test
+  void addsSuccessMessage() {
+    when(orchestrator.save(httpRequest)).thenReturn("abc-123");
+
+    var result = (CrudActionResult) handler.handleAction("save", httpRequest, orchestrator);
+
+    assertThat(result.messages()).hasSize(1);
+    assertThat(result.messages().get(0).variant()).isEqualTo(NotificationVariant.success);
+  }
+}

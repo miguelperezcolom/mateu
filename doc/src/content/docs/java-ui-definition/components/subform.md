@@ -107,3 +107,76 @@ public class CustomerForm {
 ```
 
 Use a subform when the nested object has its own actions. Use an embedded group when it is pure data with no actions.
+
+---
+
+## @Inline subforms
+
+Adding `@Inline` on the field merges the nested type's fields directly into the parent section — no `Card` wrapper, no separate header. The parent field's `@Section` annotation supplies the section title.
+
+`@Toolbar` and `@Button` methods on the nested type still work, but their placement shifts to match the inline context:
+
+| Annotation | Rendered as |
+|---|---|
+| `@Toolbar` | Button(s) in the **section title row**, same line as the heading |
+| `@Button` | Button row **below** the section content |
+
+Actions are still scoped to the nested object; clicking a toolbar button calls the method on the `GuestsSection` instance, not on the parent form.
+
+### Example
+
+```java
+@PlainText
+@Compact
+public class GuestsSection {
+
+    @Label("")
+    @Stereotype(FieldStereotype.grid)
+    List<GuestData> guests = new ArrayList<>();
+
+    @Toolbar
+    @Label("Welcome card")
+    Object printWelcomeCard(HttpRequest httpRequest) {
+        return Message.success("Sent to printer");
+    }
+
+    @Button
+    @Label("Wi-Fi code")
+    Object showWifiCode(HttpRequest httpRequest) {
+        return Message.success("Code: HOTEL-GUEST");
+    }
+}
+
+@UI("/checkin/:id")
+@Zones({ @Zone(name = "left", width = "64%"), @Zone(name = "right", width = "36%") })
+public class CheckInForm {
+
+    @Section(value = "Guests", columns = 1, zone = "left")
+    @Label("") @Inline
+    GuestsSection guestList = new GuestsSection();
+}
+```
+
+Rendered result for the "Guests" section:
+
+```
+┌─ Guests ──────────────── [Welcome card] ──────────────────────┐
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  Name          Room    Arrival     Departure             │  │
+│  │  …                                                       │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                              [Wi-Fi code]      │
+└────────────────────────────────────────────────────────────────┘
+```
+
+The section heading and `@Toolbar` button share the same row. The `@Button` sits below the grid.
+
+### When to use `@Inline`
+
+Use `@Inline` when:
+
+- The section should have **no visual chrome** (no card shadow, no nested card border) around the nested content — the parent `@Section` card provides the only container.
+- The nested type is tightly coupled to its section and does not need its own standalone visual identity.
+- Dense screens (`@Compact`, `@Zones`) where an extra card nesting would add too much visual weight.
+
+Use the default (non-`@Inline`) subform when the nested type should appear as its own clearly separated card with a title and toolbar inside the section.

@@ -109,5 +109,5 @@ The shell does not know the internal structure of each service's UI. It only kno
 ## Next
 
 - [Architecture](/mateu-about/architecture) — how the Mateu system is structured internally
-- [Advantages](/mateu-about/advantages) — what you gain from this approach
+- [Why Mateu](/mateu-about/why-mateu) — what you gain from this approach
 - [Mateu in microservices](/mateu-about/microservices) — service-owned UIs and federation

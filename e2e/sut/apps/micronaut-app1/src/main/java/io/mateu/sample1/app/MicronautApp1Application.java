@@ -27,7 +27,7 @@ import io.micronaut.serde.annotation.SerdeImport;
         "io.mateu.core.infra.out",
         "io.mateu.core.infra.declarative"
 },
-        annotated = "*")
+        annotated = {"jakarta.inject.Named", "jakarta.inject.Singleton"})
 public class MicronautApp1Application {
 
     public static void main(String[] args) {

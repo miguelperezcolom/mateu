@@ -121,7 +121,7 @@ The write operations are simply never invoked for a read-only `AutoCrud`.
 | `getCreationForm` | Instantiates a new T and wraps in `AutoNamedView` |
 | `deleteAllById` | Delegates to `repository().deleteAllById()` |
 
-For most use cases `repository()` is the only method you need to implement. To customise individual operations (custom search, pre-populated creation forms, etc.) use [`AutoCrudAdapter`](/java-user-manual/build/auto-adapters/).
+For most use cases `repository()` is the only method you need to implement. To customise individual operations (custom search, pre-populated creation forms, etc.) override the protected hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
 
 ---
 
@@ -142,7 +142,7 @@ When this is too restrictive, move to:
 
 ## Next
 
-- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — annotations and layout adjustments before reaching for a custom adapter
+- [Customizing CRUD and listings](/java-user-manual/build/customizing-crud-and-listings/) — annotations and layout adjustments before overriding hooks
 - [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model without leaving the auto variants
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — when each screen needs a separate model
 - [EditableView](/java-user-manual/build/editable-view/) — single-entity view with an Edit button, no list

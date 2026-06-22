@@ -5,12 +5,13 @@ import FormSubSection from "@mateu/shared/apiClients/dtos/componentmetadata/Form
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 export const renderFormSubSection = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as FormSubSection
+    const title = metadata.title?.includes('${') ? (container as any)._evalTemplate(metadata.title) : metadata.title
     return html`
         <div
                 slot="${component.slot??nothing}"
                 style="${component.style}" class="${component.cssClasses}"
         >
-        <h4>${metadata.title}</h4>
+        <h4>${title}</h4>
         ${component.children?.map(content => renderComponent(container, content, baseUrl, state, data, appState, appData))}</div>
     `
 }

@@ -27,7 +27,7 @@ That makes it useful for:
 
 For more background, see:
 - [Embed →](/mateu-about/embed)
-- [Why Mateu →](/mateu-about/advantages)
+- [Why Mateu →](/mateu-about/why-mateu)
 
 ---
 
@@ -76,8 +76,6 @@ For more background, see:
 ---
 
 ## Result
-
-![Embedded Mateu UI inside a host page](/images/docs/embedded/embedded-counter.png)
 
 The host page is your application.  
 The counter is rendered by a remote Mateu backend inside the page.

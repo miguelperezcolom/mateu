@@ -1,9 +1,7 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
-import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
-import io.mateu.uidl.annotations.AutoSave;
 import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.Header;
@@ -27,39 +25,30 @@ public final class FormDetector {
   }
 
   public static boolean isForm(Class<?> type) {
-    return (type.isAnnotationPresent(AutoSave.class)
-            || getAllFields(type).stream()
-                .anyMatch(
-                    field ->
-                        field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                            || field.isAnnotationPresent(Toolbar.class))
-            || getAllMethods(type).stream()
-                .anyMatch(
-                    method ->
-                        method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                            || method.isAnnotationPresent(Toolbar.class)))
-        && getAllFields(type).stream()
-            .anyMatch(
-                field ->
-                    !(field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                            || field.isAnnotationPresent(Toolbar.class))
-                        && ((!Modifier.isFinal(field.getModifiers())
-                                || field.getDeclaringClass().isRecord())
-                            && !field.isAnnotationPresent(ReadOnly.class)
-                            && !Component.class.isAssignableFrom(field.getType())
-                            && !ComponentTreeSupplier.class.isAssignableFrom(field.getType())
-                            && !MicroFrontend.class.isAssignableFrom(field.getType())
-                            && !(String.class.equals(field.getType())
-                                && field.isAnnotationPresent(Stereotype.class)
-                                && field
-                                    .getAnnotation(Stereotype.class)
-                                    .value()
-                                    .equals(FieldStereotype.html))
-                            && !field.isAnnotationPresent(KPI.class)
-                            && !field.isAnnotationPresent(Menu.class)
-                            && !field.isAnnotationPresent(Header.class)
-                            && !field.isAnnotationPresent(Footer.class)
-                            && !field.isAnnotationPresent(Avatar.class)
-                            && !Status.class.isAssignableFrom(field.getType())));
+    // A class is a form if it has at least one editable data field.
+    // @Button/@Toolbar methods are not required — a read-only / action-free form is still a form.
+    return getAllFields(type).stream()
+        .anyMatch(
+            field ->
+                !(field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
+                        || field.isAnnotationPresent(Toolbar.class))
+                    && ((!Modifier.isFinal(field.getModifiers())
+                            || field.getDeclaringClass().isRecord())
+                        && !field.isAnnotationPresent(ReadOnly.class)
+                        && !Component.class.isAssignableFrom(field.getType())
+                        && !ComponentTreeSupplier.class.isAssignableFrom(field.getType())
+                        && !MicroFrontend.class.isAssignableFrom(field.getType())
+                        && !(String.class.equals(field.getType())
+                            && field.isAnnotationPresent(Stereotype.class)
+                            && field
+                                .getAnnotation(Stereotype.class)
+                                .value()
+                                .equals(FieldStereotype.html))
+                        && !field.isAnnotationPresent(KPI.class)
+                        && !field.isAnnotationPresent(Menu.class)
+                        && !field.isAnnotationPresent(Header.class)
+                        && !field.isAnnotationPresent(Footer.class)
+                        && !field.isAnnotationPresent(Avatar.class)
+                        && !Status.class.isAssignableFrom(field.getType())));
   }
 }

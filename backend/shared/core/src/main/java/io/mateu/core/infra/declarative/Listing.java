@@ -22,7 +22,7 @@ import lombok.SneakyThrows;
 public abstract class Listing<Filters, Row>
     implements ListingBackend<Filters, Row>, ActionSupplier {
 
-  private String _fieldId;
+  String _fieldId;
 
   @Override
   public List<Action> actions(HttpRequest httpRequest) {

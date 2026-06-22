@@ -18,7 +18,7 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 
 | Annotation | Target | Description |
 |---|---|---|
-| [`@App`](app/) | Class | Applies an app layout variant |
+| [`@App`](app/) | Class | Applies an app layout variant; optional `themeToggle` adds dark/light mode switch |
 | [`@DrawerClosed`](app/) | Class | Starts the drawer/sidebar in closed state |
 | [`@Logo`](app/) | Class | Sets the app logo URL |
 | [`@FavIcon`](app/) | Class | Sets the browser favicon |
@@ -62,6 +62,12 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 | [`@VerticalLayout`](layout/) | Class | Renders children in a vertical column |
 | [`@SplitLayout`](layout/) | Class | Renders a resizable split panel |
 | [`@Scroller`](layout/) | Class | Wraps content in a scrollable container |
+| [`@FoldedLayout`](layout/) | Class | Renders each `@Section` as a collapsible panel |
+| [`@Compact`](layout/) | Class | High-density mode — tighter spacing and smaller controls |
+| [`@Zones` / `@Zone`](layout/) | Class | Declares side-by-side column zones for sections |
+| [`@Inline`](layout/) | Field | Expands a nested type's fields into the parent section inline |
+| [`@DetailFormCustomisation`](layout/) | Field | Controls position and columns of an embedded detail form |
+| [`@MasterDetail`](layout/) | Field | Renders a field as a master-detail panel |
 
 ## Grouping and sections
 
@@ -86,6 +92,8 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 | [`@ViewToolbarButton`](actions/) | Method | Adds a toolbar button to a view |
 | [`@Toolbar`](actions/) | Field, method | Places an element in the toolbar area |
 | [`@WizardCompletionAction`](actions/) | Field, method | Marks the final action of a wizard |
+| [`@Banner`](actions/) | Method | Renders a highlighted message block below the page header |
+| [`@Fab`](actions/) | Method | Renders a Floating Action Button fixed to the bottom-right |
 
 ## Navigation
 
@@ -148,6 +156,10 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 | [`@SliderMin` / `@SliderMax`](display/) | Field | Sets the min/max range for a slider field |
 | [`@Details`](display/) | Field | Renders a field inside a collapsible details panel |
 | [`@Widget`](display/) | Field | Renders a field as a widget |
+| [`@PlainText`](display/) | Field | Renders the field value as plain read-only text (no input chrome) |
+| [`@Badge`](display/) | Field | Renders a boolean field as an inline coloured chip in the form body |
+| [`@BadgeInHeader`](display/) | Field | Renders a field as a status chip in the page header strip |
+| [`@Multiline`](display/) | Field | Allows a `@PlainText` field to wrap instead of truncate |
 
 ## Data and persistence
 

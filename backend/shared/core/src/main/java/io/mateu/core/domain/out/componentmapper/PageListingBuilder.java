@@ -15,6 +15,7 @@ import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.FiltersLayout;
+import io.mateu.uidl.fluent.GridLayout;
 import io.mateu.uidl.fluent.Listing;
 import io.mateu.uidl.interfaces.*;
 import io.mateu.uidl.layout.FilterLayoutSelector;
@@ -58,6 +59,7 @@ public class PageListingBuilder {
                     initiatorComponentId,
                     httpRequest))
             .filtersLayout(filtersLayout)
+            .gridLayout(getGridLayout(instance))
             .style(getStyle(instance, httpRequest));
 
     if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {
@@ -79,6 +81,13 @@ public class PageListingBuilder {
     }
 
     return List.of(builder.build());
+  }
+
+  private static GridLayout getGridLayout(Object instance) {
+    if (instance instanceof ListingBackend<?, ?> listingBackend) {
+      return listingBackend.gridLayout();
+    }
+    return GridLayout.auto;
   }
 
   private static String getStyle(Object instance, HttpRequest httpRequest) {

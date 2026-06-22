@@ -33,6 +33,9 @@ final class FormFieldFilter {
     if (field.isAnnotationPresent(KPI.class)) {
       return false;
     }
+    if (field.isAnnotationPresent(BadgeInHeader.class)) {
+      return false;
+    }
     if (field.isAnnotationPresent(Menu.class)) {
       return false;
     }

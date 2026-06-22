@@ -144,7 +144,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
-                if (!trigger.condition || this._evalExpr(trigger.condition) && !((trigger as OnLoadTrigger).triggered)) {
+                if ((!trigger.condition || this._evalExpr(trigger.condition)) && !((trigger as OnLoadTrigger).triggered)) {
                     const onloadTrigger = trigger as OnLoadTrigger
                     onloadTrigger.triggered = true
                     var times = onloadTrigger.times - 1;

@@ -189,7 +189,8 @@ export class MateuGrid extends MetadataDrivenElement {
         const selectedItems = this.selectedItems || []
 
         return html`<vaadin-vertical-layout style="width: 100%;">
-            ${this.field?.label ? html`<label style="font-size: var(--lumo-font-size-s); font-weight: 500; color: var(--lumo-secondary-text-color);">${this.field.label}</label>` : nothing}
+            <!-- The field label is rendered by the surrounding mateu-field wrapper; rendering it
+                 here too would duplicate it (e.g. "Guests / Guests"). -->
             <vaadin-grid
                     style="${this.field?.style}"
                     class="${this.field?.cssClasses}"

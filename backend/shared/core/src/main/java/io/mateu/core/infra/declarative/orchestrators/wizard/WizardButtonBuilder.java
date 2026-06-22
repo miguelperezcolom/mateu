@@ -20,21 +20,20 @@ final class WizardButtonBuilder {
 
   static List<Component> createButtons(Wizard wizard, HttpRequest httpRequest) {
     List<Component> buttons = new ArrayList<>();
-    buttons.add(Button.builder().id("back").label("Back").disabled(wizard.position == 0).build());
-    if (wizard.position < wizard.numberOfSteps() - 1) {
-      buttons.add(
-          Button.builder()
-              .id("next")
-              .label("Next")
-              .disabled(wizard.position == wizard.numberOfSteps() - 1)
-              .build());
-    } else {
+    boolean isLastStep = wizard.position == wizard.numberOfSteps() - 1;
+    if (!isLastStep) {
+      buttons.add(Button.builder().id("back").label("Back").disabled(wizard.position == 0).build());
+    }
+    if (wizard.position < wizard.numberOfSteps() - 2) {
+      buttons.add(Button.builder().id("next").label("Next").build());
+    } else if (!isLastStep) {
       getAllMethods(wizard.getClass()).stream()
           .filter(method -> method.isAnnotationPresent(WizardCompletionAction.class))
           .forEach(
               method ->
                   buttons.add(
                       Button.builder()
+                          .actionId(method.getName())
                           .label(getLabel(method))
                           .buttonStyle(ButtonStyle.primary)
                           .build()));

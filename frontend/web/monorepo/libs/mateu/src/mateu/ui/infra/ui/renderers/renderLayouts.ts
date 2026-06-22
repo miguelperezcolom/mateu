@@ -67,9 +67,10 @@ export const renderFormComponent = (form: FormLayout, container: LitElement, com
 export const wrapWithFormItem = (container: LitElement, component: Component, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     if (component.type == ComponentType.ClientSide && (component as ClientSideComponent).metadata?.type == ComponentMetadataType.FormField && ((component as ClientSideComponent).metadata as FormField).label) {
         const field =  (component as ClientSideComponent).metadata as FormField
+        const fieldLabel = field.label?.includes('${') ? (container as any)._evalTemplate(field.label) : field.label
         return html`
                        <vaadin-form-item data-colspan="${field.colspan}">
-                           <label slot="label">${field.label}</label>
+                           <label slot="label">${fieldLabel}</label>
                            ${renderComponent(container, component, baseUrl, state, data, appState, appData, true)}
                        </vaadin-form-item>
                    `
@@ -223,18 +224,21 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                 style="${style}"
                 slot="${component.slot??nothing}"
         >
-            <vaadin-tabs slot="tabs" 
-                         style="${style}" 
+            <vaadin-tabs slot="tabs"
+                         style="${style}"
                          class="${component.cssClasses}"
                          orientation="${metadata.orientation??nothing}"
                          @items-changed=${itemsChanged}
             >
-                ${component.children?.map(child => child as ClientSideComponent).map(child => html`
-                    <vaadin-tab id="${(child.metadata as Tab).label}" 
-                                style="${child.style}" 
+                ${component.children?.map(child => child as ClientSideComponent).map(child => {
+                    const rawLabel = (child.metadata as Tab).label
+                    const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
+                    return html`
+                    <vaadin-tab id="${label}"
+                                style="${child.style}"
                                 class="${child.cssClasses}"
-                    >${(child.metadata as Tab).label}</vaadin-tab>
-                `)}
+                    >${label}</vaadin-tab>`
+                })}
             </vaadin-tabs>
 
             ${component.children?.map(child => renderTab(container, child as ClientSideComponent, baseUrl, state, data, appState, appData))}
@@ -243,8 +247,10 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
 }
 
 export const renderTab = (container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+    const rawLabel = (tab.metadata as Tab).label
+    const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
     return html`
-        <div tab="${(tab.metadata as Tab).label}" style="padding: var(--lumo-space-m) 0;">
+        <div tab="${label}" style="padding: var(--lumo-space-m) 0;">
                    ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </div>
             `
@@ -292,13 +298,14 @@ export const renderAccordionLayout = (container: LitElement, component: Componen
 
 export const renderAccordionPanel = (container: LitElement, panel: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, variant: AccordionLayoutVariant | undefined) => {
     const metadata = panel.metadata as AccordionPanel
+    const label = metadata.label?.includes('${') ? (container as any)._evalTemplate(metadata.label) : metadata.label
     return html`
-        <vaadin-accordion-panel style="${panel.style}" 
+        <vaadin-accordion-panel style="${panel.style}"
                                 class="${panel.cssClasses}"
                                 theme="${variant??nothing}"
                                 ?opened="${metadata.active}"
                                 ?disabled="${metadata.disabled}">
-            <vaadin-accordion-heading slot="summary">${metadata.label}</vaadin-accordion-heading>
+            <vaadin-accordion-heading slot="summary">${label}</vaadin-accordion-heading>
             ${panel.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </vaadin-accordion-panel>
             `

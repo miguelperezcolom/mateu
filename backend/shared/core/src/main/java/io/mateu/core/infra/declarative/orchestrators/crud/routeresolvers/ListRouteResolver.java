@@ -76,19 +76,23 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     var toolbar = new ArrayList<UserTrigger>();
     orchestrator.addButtonsToList(toolbar);
     if (orchestrator instanceof UploadEnabled) {
-      toolbar.add(new Button("Import", "import"));
+      toolbar.add(new Button(orchestrator.importLabel(), "import"));
     }
     if (orchestrator instanceof Auditable) {
-      toolbar.add(new Button("History", "history"));
+      toolbar.add(new Button(orchestrator.historyLabel(), "history"));
     }
     if (!notCreatable(orchestrator)) {
-      toolbar.add(new Button("New", "new"));
+      toolbar.add(new Button(orchestrator.newLabel(), "new"));
     }
     if (!notDeletable(orchestrator)
         && (orchestrator instanceof AutoCrud
             || Deleteable.class.isAssignableFrom(orchestrator.viewClass()))) {
       toolbar.add(
-          Button.builder().label("Delete").actionId("delete").variant(ButtonVariant.error).build());
+          Button.builder()
+              .label(orchestrator.deleteLabel())
+              .actionId("delete")
+              .variant(ButtonVariant.error)
+              .build());
     }
     List<GridContent> columns =
         getClass().isAnnotationPresent(ReadOnly.class)

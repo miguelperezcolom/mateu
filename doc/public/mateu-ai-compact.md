@@ -1,0 +1,281 @@
+# Mateu — AI Reference (Compact)
+
+Mateu is a model-driven UI framework for Java. Annotate Java classes with `@UI` and Mateu generates forms, CRUD screens, navigation, and a full web UI automatically. Zero frontend code for typical business apps.
+
+**Maven dependency (Spring Boot MVC):**
+```xml
+<dependency>
+  <groupId>io.mateu</groupId>
+  <artifactId>mvc</artifactId>
+  <version>LATEST</version>
+</dependency>
+```
+
+---
+
+## Simplest app
+
+```java
+@UI("/hello")
+@Title("My App")
+public class HelloForm {
+    @NotEmpty String name;
+
+    @Button
+    Message greet() { return new Message("Hello " + name); }
+}
+```
+
+---
+
+## Core rules
+
+- `@UI("/path")` on a class = routed page. `@UI("")` = root.
+- Fields = form fields. Collections = grids. Nested types = subforms.
+- Methods annotated with `@Button` or `@Toolbar` become buttons.
+- Bean validation (`@NotNull`, `@NotEmpty`, `@Min`, `@Max`) is automatic client + server.
+- `HttpRequest` can be added to any method signature — Mateu injects it automatically.
+- Labels auto-derive from field name (`lastName` → "Last Name"); override with `@Label("...")`.
+- Labels support `${state.field}` / `${data.field}` template expressions.
+
+---
+
+## Key annotations
+
+### App & routing
+
+| Annotation | Use |
+|---|---|
+| `@UI("/path")` | Register class as a routed page |
+| `@App(AppVariant.AUTO)` | Make class the app shell |
+| `@App(themeToggle=true)` | Add dark/light mode toggle to header |
+| `@Title("...")` | Page heading |
+| `@Subtitle("...")` | Page subheading |
+| `@PageTitle("...")` | Browser tab title |
+| `@AI(sse="/api/ai")` | Embed AI chat assistant |
+
+### Layout
+
+| Annotation | Use |
+|---|---|
+| `@Section("Name")` | Group fields under a heading |
+| `@Section(value="Name", columns=2)` | Multi-column section |
+| `@Section(zone="left")` | Assign section to a named zone column |
+| `@Zones({@Zone(name="left",width="60%"),@Zone(name="right",width="40%")})` | Side-by-side columns |
+| `@Compact` | High-density mode (smaller controls, tighter spacing) |
+| `@Tabs` + `@Tab("Name")` | Tabbed layout |
+| `@Accordion` + `@AccordionPanel(summary="Name")` | Collapsible accordion |
+| `@FoldedLayout` | Each `@Section` becomes a collapsible panel |
+| `@Inline` | Expand nested type inline into parent section (no extra card) |
+| `@FormLayout(columns=3)` | Force N-column form layout |
+| `@Colspan(2)` | Field spans 2 columns |
+| `@ColumnWidth("120px")` | Fixed column width in grid |
+
+### Actions
+
+| Annotation | Use |
+|---|---|
+| `@Button` | Button at bottom of form |
+| `@Toolbar` | Button in toolbar (top of page) |
+| `@Action(validationRequired=true)` | Validate before executing |
+| `@Action(confirmationRequired=true)` | Show confirmation dialog |
+| `@Action(background=true, sse=true)` | Long-running background job with SSE streaming |
+| `@RowAction` | Per-row action in a listing |
+| `@ListToolbarButton` | Listing toolbar button (acts on selected rows) |
+| `@AutoSave` | Auto-save on field change (debounced) |
+| `@WizardCompletionAction` | Final completion action in a wizard |
+| `@Banner(theme=BannerTheme.INFO, title="...")` | Message block below page header |
+| `@Fab(icon="vaadin:plus", label="New")` | Floating action button (bottom-right) |
+
+### Display & fields
+
+| Annotation | Use |
+|---|---|
+| `@KPI` | Render field as a KPI tile (dashboard numbers) |
+| `@PlainText` | Render field as plain read-only text (no input chrome) |
+| `@Multiline` | Allow `@PlainText` field to wrap instead of truncate |
+| `@Badge` | Boolean as coloured chip in form body |
+| `@BadgeInHeader(color="success")` | Status chip in the page header strip |
+| `@Status(mappings={...})` | Enum field as coloured badge |
+| `@ReadOnly` | Non-editable field |
+| `@Hidden` | Hide field completely |
+| `@HiddenInList` | Hide only in list/grid view |
+| `@HiddenInCreate` | Hide only in create mode |
+
+### Metadata
+
+| Annotation | Use |
+|---|---|
+| `@Label("...")` | Override field/method display label |
+| `@Help("...")` | Tooltip / helper text |
+| `@H1` – `@H5` | Render a `String` field as a heading |
+| `@Trigger(type=TriggerType.OnLoad, actionId="load")` | Fire an action on lifecycle event |
+| `@Rule(filter="...", field="...", attribute=..., value="...")` | Conditional show/hide/enable rule |
+
+---
+
+## Action return types
+
+| Return type | Effect |
+|---|---|
+| `void` / `null` | Stay on current page |
+| `URI.create("/path")` | Navigate to URL |
+| `new Message("text")` | Toast notification |
+| Any Java object | Navigate to that object as a new view |
+| `new State(this)` | Push updated state to frontend (no navigation) |
+| `PageBanner` / `List<PageBanner>` | Show dynamic banner on current page (replaces existing) |
+| `PageBanners.append(banner)` | Append banner without replacing existing ones |
+
+---
+
+## CRUD — zero boilerplate
+
+```java
+@UI("/products")
+public class Products extends AutoCrud<Product> {}
+
+record Product(
+    @NotEmpty @EditableOnlyWhenCreating String id,
+    @NotEmpty String name,
+    double price,
+    boolean active
+) implements Identifiable {}
+```
+
+---
+
+## Custom listing
+
+```java
+@UI("/orders")
+public class Orders extends Listing<OrderFilters, OrderRow> {
+
+    @Override
+    public ListingData<OrderRow> search(
+            String searchText, OrderFilters filters,
+            Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(repository.findAll(searchText, pageable));
+    }
+
+    @Override
+    public GridLayout gridLayout() { return GridLayout.table; }
+}
+
+record OrderFilters(String status, LocalDate from, LocalDate to) {}
+record OrderRow(String id, String customer, double total, String status) {}
+```
+
+---
+
+## Form with load trigger
+
+```java
+@UI("/customer/:id")
+@Trigger(type = TriggerType.OnLoad, actionId = "load")
+public class CustomerForm {
+    String name;
+    String email;
+
+    Object load(HttpRequest req) {
+        var c = repo.find(req.pathVariable("id"));
+        name = c.name(); email = c.email();
+        return new State(this);
+    }
+
+    @Toolbar
+    @Action(validationRequired = true)
+    Object save() {
+        repo.save(name, email);
+        return new Message("Saved");
+    }
+}
+```
+
+---
+
+## Wizard
+
+```java
+@UI("/signup")
+public class SignupWizard extends Wizard {
+    AccountStep account = new AccountStep();
+    PlanStep plan = new PlanStep();
+    SuccessStep result;  // null → auto-instantiated after completion
+
+    @WizardCompletionAction
+    @Action(validationRequired = true)
+    Object finish() {
+        service.create(account, plan);
+        return null;
+    }
+}
+
+class AccountStep implements WizardStep { @NotEmpty String email; String password; }
+class PlanStep    implements WizardStep { String planId; }
+class SuccessStep implements WizardStep { @PlainText String msg = "Account created!"; }
+```
+
+---
+
+## Navigation & menus
+
+```java
+@UI("/app")
+@App(AppVariant.HAMBURGUER_MENU)
+public class MyApp {
+    @Menu Customers customers;
+    @Menu Orders orders;
+}
+```
+
+---
+
+## Multi-zone dense form
+
+```java
+@UI("/checkin/:id")
+@Compact
+@Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
+@Zones({ @Zone(name="left", width="60%"), @Zone(name="right", width="40%") })
+public class CheckInForm {
+
+    @Section(value="Guest", columns=4, zone="left")
+    String guestName;
+    String roomNumber;
+
+    @Section(value="Charges", zone="right")
+    @Label("") @Stereotype(FieldStereotype.grid)
+    List<ChargeRow> charges;
+
+    @Toolbar
+    @Action(validationRequired=true)
+    Object checkIn() { return new Message("Checked in"); }
+}
+```
+
+---
+
+## Key interfaces
+
+| Interface | When to use |
+|---|---|
+| `Identifiable` | Mark ID field for CRUD (`id()` method) |
+| `ListingBackend<F,R>` | Custom searchable grid |
+| `CrudRepository<T>` | Data port for AutoCrud |
+| `Hydratable` | `hydrate(HttpRequest)` called before each render |
+| `BannerSupplier` | Programmatic page banners (replaces `@Banner` methods) |
+| `BadgeSupplier` | Programmatic header badges |
+| `TitleSupplier` | Dynamic page title |
+| `ValidationSupplier` | Cross-field validation logic |
+| `WizardStep` | Marker for wizard step classes |
+
+---
+
+## Common mistakes to avoid
+
+- **Missing `@NotNull`/`@NotEmpty`** on required fields — Mateu won't block the user otherwise.
+- **Navigation with `URI.create()`** uses the browser URL, not the Java type. Return the Java object directly to navigate to it as a page.
+- **Wizard result step** must implement `WizardStep`. If `null`, Mateu auto-instantiates it; or set it explicitly in `@WizardCompletionAction`.
+- **`@Section` zone** only works when the class has `@Zones(...)`. Without it the zone attribute is ignored.
+- **Badges**: use `@Badge` for in-form chips, `@BadgeInHeader` for header-strip status chips.
+- **`@Inline` + `@Toolbar`/`@Button`** on the nested type: `@Toolbar` appears on the section title row, `@Button` below the section content.

@@ -7,6 +7,7 @@ import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import KPI from "@mateu/shared/apiClients/dtos/componentmetadata/KPI.ts";
 import {Breadcrumb} from "@mateu/shared/apiClients/dtos/componentmetadata/Breadcrumbs.ts";
+import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab.ts";
 
 export default interface Form extends ComponentMetadata {
 
@@ -27,5 +28,6 @@ export default interface Form extends ComponentMetadata {
     avatar: Component
     header: Component[]
     footer: Component[]
+    fabs: Fab[] | undefined
 
 }

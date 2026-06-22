@@ -58,6 +58,13 @@ export default defineConfig({
 			],
 			sidebar: [
 				{
+					label: 'Use with AI',
+					items: [
+						{ slug: 'ai-assistant-reference', label: 'AI assistant reference' },
+						{ slug: 'ai', label: 'Embed AI chat in your app' },
+					],
+				},
+				{
 					label: 'UX Patterns',
 					items: [
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
@@ -71,19 +78,18 @@ export default defineConfig({
 						{ slug: 'ux-patterns/long-running-jobs' },
 						{ slug: 'ux-patterns/autosave' },
 						{ slug: 'ux-patterns/keyboard-shortcuts' },
+						{ slug: 'ux-patterns/notifications' },
+						{ slug: 'ux-patterns/partial-forms' },
+						{ slug: 'ux-patterns/high-density', label: 'High-Density Screens' },
 					],
 				},
 				{
 					label: 'About Mateu',
 					items: [
 						{ slug: 'mateu-about/what-is-mateu' },
-						{ slug: 'why-mateu', label: 'Why Mateu' },
-						{ slug: 'mateu-about/philosophy' },
-						{ slug: 'mateu-about/the-basics' },
-						{ slug: 'mateu-about/mental-model' },
-						{ slug: 'mateu-about/how-to-think-in-mateu' },
-						{ slug: 'mateu-about/advantages' },
-						{ slug: 'mateu-about/architecture' },
+						{ slug: 'mateu-about/why-mateu', label: 'Why Mateu' },
+						{ slug: 'mateu-about/how-mateu-works', label: 'How Mateu Works' },
+						{ slug: 'mateu-about/architecture', label: 'Technical Architecture' },
 						{ slug: 'mateu-about/system-architecture' },
 						{ slug: 'mateu-about/comparison' },
 						{ slug: 'mateu-about/disclaimer' },

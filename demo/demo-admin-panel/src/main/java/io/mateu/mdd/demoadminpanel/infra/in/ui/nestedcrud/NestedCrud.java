@@ -1,6 +1,5 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.nestedcrud;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.CrudRepository;

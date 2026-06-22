@@ -19,7 +19,7 @@ public class GridColumnMapper {
             .align(getAlignment(gridColumn))
             .dataType(gridColumn.dataType().name())
             .stereotype(gridColumn.stereotype().name())
-            .autoWidth(gridColumn.autoWidth())
+            .autoWidth(gridColumn.autoWidth() || gridColumn.width() == null)
             .cssClasses(gridColumn.cssClasses())
             .filterable(gridColumn.filterable())
             .flexGrow(gridColumn.flexGrow())
@@ -50,11 +50,7 @@ public class GridColumnMapper {
     if (gridColumn.width() != null) {
       return gridColumn.width();
     }
-    if (FieldDataType.money.equals(gridColumn.dataType())) {
-      return "9rem";
-    }
-
-    return "10rem";
+    return null;
   }
 
   private static String getAlignment(GridColumn gridColumn) {

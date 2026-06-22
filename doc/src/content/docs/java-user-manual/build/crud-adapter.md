@@ -104,7 +104,7 @@ public class ProductCrudAdapter
 | | `AutoCrud<T>` / `FilteredAutoCrud<F,T>` | `CrudAdapter` (direct) |
 |---|---|---|
 | View / Editor / CreationForm types | All `T` | Separate types |
-| Search | In-memory (override via `AutoCrudAdapter` to customise) | Fully custom |
+| Search | In-memory (override `fetchRows()` directly in your `AutoCrud` subclass to customise) | Fully custom |
 | Save / Create | Via `AutoNamedView` + `repository()` | Fully custom |
 | Boilerplate | Minimal | Full |
 
@@ -112,6 +112,6 @@ public class ProductCrudAdapter
 
 ## Next
 
-- [AutoCrudAdapter](/java-user-manual/build/auto-adapters/) — pre-built adapters for the common single-type case
+- [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/) — override hooks for custom search, pre-populated forms, and more in `AutoCrud`
 - [Full control with Crud](/java-user-manual/build/full-control-crud-orchestrator/) — the orchestrator that consumes this adapter
 - [CrudEditorForm and CrudCreationForm](/java-user-manual/build/crud-forms/) — the interfaces your editor and creation form must implement

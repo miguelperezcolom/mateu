@@ -100,8 +100,35 @@ public class FieldTypeMapper {
   }
 
   public static FieldStereotype getStereotype(Field field) {
+    if (field.isAnnotationPresent(PlainText.class)) {
+      return FieldStereotype.plainText;
+    }
+    if (field.isAnnotationPresent(io.mateu.uidl.annotations.Badge.class)) {
+      return FieldStereotype.badge;
+    }
     if (field.isAnnotationPresent(Stereotype.class)) {
       return field.getAnnotation(Stereotype.class).value();
+    }
+    if (field.getDeclaringClass().isAnnotationPresent(PlainText.class)
+        && (String.class.equals(field.getType())
+            || int.class.equals(field.getType())
+            || Integer.class.equals(field.getType())
+            || long.class.equals(field.getType())
+            || Long.class.equals(field.getType())
+            || BigInteger.class.equals(field.getType())
+            || float.class.equals(field.getType())
+            || Float.class.equals(field.getType())
+            || double.class.equals(field.getType())
+            || Double.class.equals(field.getType())
+            || BigDecimal.class.equals(field.getType())
+            || LocalDate.class.equals(field.getType())
+            || LocalDateTime.class.equals(field.getType())
+            || LocalTime.class.equals(field.getType())
+            || Date.class.equals(field.getType())
+            || ZonedDateTime.class.equals(field.getType())
+            || java.sql.Date.class.equals(field.getType())
+            || field.getType().isEnum())) {
+      return FieldStereotype.plainText;
     }
     if (field.getType().isEnum()) {
       return FieldStereotype.select;

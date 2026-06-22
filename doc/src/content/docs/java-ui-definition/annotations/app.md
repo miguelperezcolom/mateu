@@ -46,13 +46,17 @@ Marks a class as the application shell and selects its navigation layout variant
 
 ```java
 public @interface App {
-    AppVariant value();
+    AppVariant value() default AppVariant.AUTO;
+    AppLayout layout() default AppLayout.SINGLE_SLOT;
+    boolean themeToggle() default false;
 }
 ```
 
-| Attribute | Type | Description |
-|---|---|---|
-| `value` | `AppVariant` | Layout variant for the application shell |
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `value` | `AppVariant` | `AUTO` | Navigation layout variant for the shell |
+| `layout` | `AppLayout` | `SINGLE_SLOT` | Content area layout (`SINGLE_SLOT` or `SPLIT`) |
+| `themeToggle` | `boolean` | `false` | Shows a moon/sun icon button in the header to switch dark/light mode |
 
 **`AppVariant` values:**
 
@@ -62,13 +66,30 @@ public @interface App {
 | `MENU_ON_LEFT` | Persistent navigation panel on the left side |
 | `MENU_ON_TOP` | Navigation bar along the top |
 | `TABS` | Tab-based navigation |
-| `AUTO` | Framework chooses the best variant automatically |
+| `AUTO` | Framework chooses the best variant automatically based on menu width |
 | `MEDIATOR` | Used for nested sub-applications acting as a mediator |
+
+**`AppLayout` values:**
+
+| Value | Description |
+|---|---|
+| `SINGLE_SLOT` | Standard single-content-area layout (default) |
+| `SPLIT` | Content area split into two panes |
 
 ```java
 @UI("/app")
 @App(AppVariant.HAMBURGUER_MENU)
-public class ShellApp implements App { ... }
+public class ShellApp { ... }
+```
+
+### Dark / light mode toggle
+
+Set `themeToggle = true` to show a moon/sun icon button in the application header. Clicking it switches between dark and light mode and persists the choice in `localStorage`. On first load the stored preference is applied; if no preference is stored the OS `prefers-color-scheme` media query is used as the default.
+
+```java
+@UI("/app")
+@App(value = AppVariant.AUTO, themeToggle = true)
+public class MyApp { ... }
 ```
 
 ---

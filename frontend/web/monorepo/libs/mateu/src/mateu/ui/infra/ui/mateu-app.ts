@@ -13,6 +13,7 @@ import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import '@vaadin/details'
+import '@vaadin/scroller'
 import '@vaadin/side-nav';
 import ComponentElement from "@infra/ui/ComponentElement";
 import "./mateu-ux"
@@ -77,6 +78,13 @@ export class MateuApp extends ComponentElement {
 
     private _commandPaletteHandler: ((e: KeyboardEvent) => void) | null = null
 
+    @state()
+    pageCompact = false
+
+    private _compactHandler = (e: Event) => {
+        this.pageCompact = (e as CustomEvent).detail?.compact ?? false
+    }
+
     @query("mateu-chat")
     chat: MateuChat | undefined
 
@@ -100,6 +108,7 @@ export class MateuApp extends ComponentElement {
 
     connectedCallback() {
         super.connectedCallback()
+        this.isDark = document.documentElement.getAttribute('theme') === 'dark'
         this._commandPaletteHandler = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault()
@@ -115,6 +124,7 @@ export class MateuApp extends ComponentElement {
         document.addEventListener('keydown', this._commandPaletteHandler)
         document.addEventListener('dirty', this.dirtyEventHandler)
         document.addEventListener('clean', this.cleanEventHandler)
+        this.addEventListener('compact-changed', this._compactHandler)
     }
 
     disconnectedCallback() {
@@ -128,11 +138,38 @@ export class MateuApp extends ComponentElement {
         if (this.cleanEventHandler) {
             document.removeEventListener('clean', this.cleanEventHandler)
         }
+        this.removeEventListener('compact-changed', this._compactHandler)
+    }
+
+    @state()
+    isDark: boolean = document.documentElement.getAttribute('theme') === 'dark'
+
+    @state()
+    chatOpen: boolean = false
+
+    toggleTheme = () => {
+        this.isDark = !this.isDark
+        const theme = this.isDark ? 'dark' : 'light'
+        document.documentElement.setAttribute('theme', theme)
+        localStorage.setItem('mateu-theme', theme)
     }
 
     showHideIa = () => {
         if (this.chat) {
-            this.chat.slot = this.chat.slot == 'detail'?'detail-hidden':'detail'
+            this.chatOpen = !this.chatOpen
+            this.chat.slot = this.chatOpen ? 'detail' : 'detail-hidden'
+        }
+    }
+
+    runAction = (actionId: string) => {
+        const root = this.renderRoot as Element | ShadowRoot
+        const comp = root.querySelector?.('mateu-component') as HTMLElement | null
+        if (comp) {
+            comp.dispatchEvent(new CustomEvent('action-requested', {
+                detail: { actionId },
+                bubbles: true,
+                composed: true
+            }))
         }
     }
 
@@ -386,8 +423,9 @@ export class MateuApp extends ComponentElement {
                 route = (route??'').substring(1)
             }
             let targetUrl = new URL(baseUrl + route)
-            if (consumedRoute && (route??'').startsWith(consumedRoute)) {
-                targetUrl = new URL(baseUrl + route?.substring(consumedRoute.length))
+            if (consumedRoute && targetUrl.pathname.startsWith(consumedRoute)) {
+                const pathAfterConsumed = targetUrl.pathname.substring(consumedRoute.length)
+                targetUrl = new URL(targetUrl.origin + (pathAfterConsumed || '/'))
             }
             if ((window.location.pathname || targetUrl.pathname) && window.location.pathname != targetUrl.pathname) {
                 let pathname = targetUrl.pathname
@@ -602,6 +640,12 @@ export class MateuApp extends ComponentElement {
             padding-top: 1.5rem;
             width: calc(100% - 4rem);
             height: calc(100vh - 6rem);
+            overflow-y: auto;
+        }
+
+        .app-content.no-padding {
+            padding: 0;
+            width: 100%;
         }
 
         .menu vaadin-menu-bar-button {
@@ -811,6 +855,54 @@ export class MateuApp extends ComponentElement {
             text-align: center;
             color: var(--lumo-secondary-text-color);
             font-size: var(--lumo-font-size-s);
+        }
+
+        .app-fab, .page-fab {
+            position: fixed;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: var(--lumo-primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            z-index: 900;
+            transition: background 0.2s, transform 0.1s;
+            font-size: 1rem;
+        }
+
+        .app-fab:hover, .page-fab:hover {
+            background: var(--lumo-primary-color-50pct);
+            transform: scale(1.08);
+        }
+
+        .ai-fab {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            background: var(--lumo-primary-color);
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            z-index: 900;
+            transition: background 0.2s, transform 0.1s;
+            font-size: 1rem;
+        }
+
+        .ai-fab:hover {
+            background: var(--lumo-primary-color-50pct);
+            transform: scale(1.08);
         }
 
   `

@@ -1,6 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.processes;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
+import io.mateu.uidl.interfaces.CrudRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -8,10 +9,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class Processes extends AutoCrud<ProcessRow> {
 
-    final ProcessCrudAdapter adapter;
+    final ProcessRepository repository;
 
     @Override
-    public io.mateu.uidl.interfaces.CrudRepository<ProcessRow> repository() {
-        return adapter.repository();
+    public CrudRepository<ProcessRow> repository() {
+        return repository;
     }
 }

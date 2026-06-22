@@ -43,6 +43,8 @@ public class CustomerForm {
 
 Each `@Section` becomes a collapsible panel. Subform fields (nested records/classes) can carry their own `@Toolbar` or `@Button` methods scoped to that panel. See [Partial Forms](/ux-patterns/partial-forms/) for the full pattern.
 
+![FoldedLayout — sections as collapsible panels](/images/docs/annotations/folded.png)
+
 ---
 
 ## @FormLayout
@@ -79,6 +81,8 @@ public class CustomerForm {
     LocalDate birthDate;
 }
 ```
+
+![FormLayout with 3 columns](/images/docs/annotations/multi-column.png)
 
 ---
 
@@ -210,6 +214,8 @@ public class AccountPage {
 
 Each `@Tab` annotation starts a new tab. Fields without `@Tab` fall into a default tab.
 
+![Tabs layout — Personal and Address tabs](/images/docs/components/tabs.png)
+
 ---
 
 ## @Accordion
@@ -269,6 +275,8 @@ public class SettingsPage {
     boolean smsNotifications;
 }
 ```
+
+![Accordion layout — collapsible panels](/images/docs/annotations/accordion.png)
 
 ---
 
@@ -347,6 +355,7 @@ public @interface Section {
     String value();
     int columns() default 1;
     String style() default "";
+    String zone() default "";
 }
 ```
 
@@ -355,8 +364,9 @@ public @interface Section {
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `value` | `String` | — | Section heading label (required) |
-| `columns` | `int` | `1` | Number of columns inside this section |
+| `columns` | `int` | `1` | Number of columns inside this section's field grid |
 | `style` | `String` | `""` | Inline CSS for the section container |
+| `zone` | `String` | `""` | Name of the layout zone this section belongs to. Only used when the class is annotated with [`@Zones`](#zones--zone); sections sharing a zone are stacked inside that zone's column |
 
 ### Example
 
@@ -373,6 +383,129 @@ public class CustomerForm {
     String address;
 }
 ```
+
+---
+
+## @Inline
+
+**Target:** `FIELD`
+
+Expands a nested POJO field's sub-fields directly into the parent section, without adding a `Card` wrapper or a separate header around the content. The parent field's `@Section` annotation provides the section title; the nested type's class-level annotations (`@PlainText`, `@Compact`, etc.) must be applied on the nested class itself — they are not inherited from the enclosing form.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Inline {}
+```
+
+No attributes.
+
+### Behavior of `@Toolbar` and `@Button` on an `@Inline` type
+
+Methods annotated with `@Toolbar` or `@Button` inside the nested class still work. Their placement shifts to match the inline context:
+
+| Annotation on nested method | Rendered as |
+|---|---|
+| `@Toolbar` | Button(s) in the **section title row**, on the same line as the section heading |
+| `@Button` | Button row **below** the section content |
+
+### Example
+
+```java
+// Nested inline type — own annotations applied here
+@PlainText
+@Compact
+public class GuestsSection {
+
+    @Label("")
+    @Stereotype(FieldStereotype.grid)
+    List<GuestData> guests = new ArrayList<>();
+
+    @Toolbar
+    @Label("Welcome card")
+    Object printWelcomeCard(HttpRequest httpRequest) {
+        return Message.success("Sent to printer");
+    }
+
+    @Button
+    @Label("Wi-Fi code")
+    Object showWifiCode(HttpRequest httpRequest) {
+        return Message.success("Code: HOTEL-GUEST");
+    }
+}
+
+// Parent form
+@UI("/checkin/:id")
+@Compact
+@Zones({ @Zone(name = "left", width = "64%"), @Zone(name = "right", width = "36%") })
+public class CheckInForm {
+
+    // The @Section card is the only container; GuestsSection fields expand into it
+    @Section(value = "Guests", columns = 1, zone = "left")
+    @Label("") @Inline
+    GuestsSection guestList = new GuestsSection();
+}
+```
+
+The "Guests" section card shows `[Welcome card]` on the same line as the heading and renders the `[Wi-Fi code]` button below the guest grid.
+
+Use `@Inline` on dense, information-rich screens (e.g. `@Compact` + `@Zones`) where an extra card nesting would add too much visual weight. For nested types that need their own clearly separated card and toolbar, omit `@Inline`.
+
+![Inline — nested fields expanded directly into the parent section](/images/docs/annotations/inline.png)
+
+---
+
+## @Zones / @Zone
+
+**Target (`@Zones`):** `TYPE`
+
+Declares the layout **zones** (side-by-side columns) of a form. When a class is annotated with `@Zones`, its [`@Section`](#section)s are distributed into the declared zones by their `zone` value and the zones are rendered next to each other, each zone stacking its sections vertically. This is the idiomatic way to build dense, information-rich screens (e.g. a check-in or order desk) where related groups of sections sit in fixed-width columns.
+
+A section whose `zone` does not match any declared zone falls back into a trailing flexible column, so nothing is ever dropped.
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Zones {
+    Zone[] value();
+}
+
+public @interface Zone {
+    String name();
+    String width() default "";   // e.g. "64%", "30rem"; empty = grow to fill
+}
+```
+
+### Attributes (`@Zone`)
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `name` | `String` | — | Zone name, referenced by [`@Section(zone = …)`](#section) (required) |
+| `width` | `String` | `""` | CSS width of the zone column. Empty means the zone grows to fill the remaining space (`flex: 1`) |
+
+### Example
+
+```java
+@UI("/checkin/:id")
+@Zones({
+    @Zone(name = "left",  width = "64%"),
+    @Zone(name = "right", width = "36%")
+})
+public class CheckInForm {
+
+    @Section(value = "Reservation", columns = 4, zone = "left")
+    String localizador;
+    // … more left-zone sections …
+
+    @Section(value = "Charges", zone = "right")
+    List<ChargeLine> charges;
+    // … more right-zone sections …
+}
+```
+
+The `left` and `right` zones render side by side (64% / 36%); each stacks its own sections.
+
+![Zones — two side-by-side columns with independent section stacks](/images/docs/annotations/zones.png)
 
 ---
 
@@ -414,6 +547,8 @@ public class ProductForm {
 
 Specifies a CSS width for this field's column in a grid or listing. Accepts any valid CSS length value.
 
+A column with an explicit `@ColumnWidth` becomes a **fixed-width** column (`flex-grow: 0`); columns without one keep the default flex behaviour and share the remaining space. So in a row of columns, annotate the narrow ones (codes, flags, dates) with `@ColumnWidth` and leave the free-text column unannotated to let it absorb the slack.
+
 ```java
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
@@ -433,10 +568,42 @@ public @interface ColumnWidth {
 ```java
 record InvoiceRow(
     @ColumnWidth("80px")  String id,
-    String description,
+    String description,                  // no width → flex-grows to fill
     @ColumnWidth("120px") double total
 ) {}
 ```
+
+---
+
+## @Compact
+
+**Target:** `TYPE`
+
+Renders a page/form in a condensed, high-density mode so information-rich screens fit without scrolling. It injects a Lumo density preset (smaller control sizes, spacing, tighter form-row gaps and field labels, smaller card padding, and a smaller auto-responsive column width so more `@Section(columns = N)` columns actually fit) into the page container, which cascades to every component inside.
+
+It is opt-in and non-breaking: pages without `@Compact` are unaffected. The preset is also available directly as `StyleConstants.COMPACT` for use with [`@Style`](../styling/).
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Compact {}
+```
+
+### Example
+
+```java
+@UI("/checkin/:id")
+@Compact
+@Zones({ @Zone(name = "left", width = "64%"), @Zone(name = "right", width = "36%") })
+public class CheckInForm {
+    @Section(value = "Reservation", columns = 8, zone = "left")
+    // … many read-only fields rendered tightly …
+}
+```
+
+Pairs naturally with [`@Zones`](#zones--zone) and [`@PlainText`](../display/#plaintext) for dense, single-screen desks.
+
+![Compact — high-density form with 4 columns](/images/docs/ux-patterns/high-density.png)
 
 ---
 
@@ -585,3 +752,5 @@ public class MixedPage {
 ```
 
 The single-column `@FormLayout` stacks the `name` text field on top of the `stats` component row, with the `save` button rendered inline below both.
+
+![MixedPage — declarative field with fluent chart and avatar](/images/docs/components/mixed.png)

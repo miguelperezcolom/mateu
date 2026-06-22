@@ -9,7 +9,13 @@ import java.util.Collection;
 import java.util.Map;
 import lombok.SneakyThrows;
 
-public class AutoNamedView<T extends Identifiable> implements NamedView<T>, ModelSupplier {
+public class AutoNamedView<T extends Identifiable>
+    implements Named,
+        CrudEditorForm<String>,
+        CrudCreationForm<String>,
+        EditableFieldsProvider,
+        StateSupplier,
+        ModelSupplier {
 
   T entity;
   Class<T> entityClass;

@@ -8,11 +8,15 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.AppMenuDtoBuilder.
 
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.AI;
+import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -80,6 +84,8 @@ public final class AppMapper {
             .cssClasses(app.cssClasses())
             .home(null)
             .sseUrl(getSseUrl(app))
+            .fabs(getAppFabs(app))
+            .themeToggle(getThemeToggle(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -90,6 +96,42 @@ public final class AppMapper {
         app.style(),
         app.cssClasses(),
         null);
+  }
+
+  @SneakyThrows
+  private static List<FabDto> getAppFabs(AppShell app) {
+    if (app.serverSideType() == null) return List.of();
+    var appClass = Class.forName(app.serverSideType());
+    return Arrays.stream(appClass.getMethods())
+        .filter(method -> method.isAnnotationPresent(Fab.class))
+        .sorted(Comparator.comparingInt(method -> method.getAnnotation(Fab.class).order()))
+        .map(AppMapper::toFabDto)
+        .toList();
+  }
+
+  private static FabDto toFabDto(Method method) {
+    var ann = method.getAnnotation(Fab.class);
+    var label =
+        method.isAnnotationPresent(io.mateu.uidl.annotations.Label.class)
+            ? method.getAnnotation(io.mateu.uidl.annotations.Label.class).value()
+            : io.mateu.uidl.Humanizer.toUpperCaseFirst(method.getName());
+    return FabDto.builder()
+        .id(method.getName())
+        .label(label)
+        .icon(ann.icon())
+        .actionId(method.getName())
+        .buttonStyle(ann.buttonStyle().name())
+        .build();
+  }
+
+  @SneakyThrows
+  private static boolean getThemeToggle(AppShell app) {
+    if (app.serverSideType() == null) return false;
+    var appClass = Class.forName(app.serverSideType());
+    if (appClass.isAnnotationPresent(io.mateu.uidl.annotations.App.class)) {
+      return appClass.getAnnotation(io.mateu.uidl.annotations.App.class).themeToggle();
+    }
+    return false;
   }
 
   @SneakyThrows

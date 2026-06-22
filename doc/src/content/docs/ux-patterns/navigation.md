@@ -24,6 +24,8 @@ public class MyAdminApp { ... }
 
 ---
 
+![Menu app — navigation bar with top-level tabs](/images/docs/build/navigation.png)
+
 ## Pattern catalogue
 
 ### Tabs

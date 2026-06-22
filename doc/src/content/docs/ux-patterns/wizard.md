@@ -15,51 +15,87 @@ An onboarding flow where step 3 depends on what was selected in step 1 cannot be
 
 ## Solution
 
-Model each step as a separate view. The advance action validates the current step and returns the next. `@WizardCompletionAction` marks the final step's closing action. Intermediate validation is enforced with `@Action(validationRequired = true)`.
+Extend `Wizard` and declare one field per step; each field's type must implement `WizardStep`. Mateu renders the current step's form, a progress bar, and navigation buttons automatically.
 
 ```java
-@UI("/onboarding/step1")
-public class OnboardingStep1 {
+// Each step is a plain class or record implementing WizardStep
+public class AccountTypeStep implements WizardStep {
 
-    private AccountType accountType;
-
-    @WizardCompletionAction
-    @Action(validationRequired = true)
-    public OnboardingStep2 next() {
-        return new OnboardingStep2(accountType);
-    }
+    @NotNull
+    AccountType accountType;
 }
 
-@UI("/onboarding/step2")
-public class OnboardingStep2 {
+public class CompanyDetailsStep implements WizardStep {
 
-    private final AccountType accountType;
+    String companyName;
+    String vatNumber;
+}
 
-    // fields relevant to accountType only
-    private String companyName; // shown only for BUSINESS
+// Result step — read-only screen shown after completion
+public class OnboardingResult implements WizardStep {
+
+    @PlainText String summary = "Account created successfully.";
+}
+
+// The wizard class
+@UI("/onboarding")
+public class OnboardingWizard extends Wizard {
+
+    AccountTypeStep step1 = new AccountTypeStep();
+    CompanyDetailsStep step2 = new CompanyDetailsStep();
+    OnboardingResult result;   // null → auto-instantiated after @WizardCompletionAction
 
     @WizardCompletionAction
     @Action(validationRequired = true)
-    public OnboardingStep3 next() {
-        return new OnboardingStep3(/* ... */);
+    Object finish() {
+        accountService.create(step1, step2);
+        result = new OnboardingResult();  // optional: set explicitly for custom data
+        return null;
     }
 }
 ```
+
+## How it works
+
+| Step position | Behaviour |
+|---|---|
+| Any intermediate step | Shows **Next →** (and **← Back** after step 1). Validation runs on **Next →**. |
+| Penultimate step | Shows the `@WizardCompletionAction` button instead of **Next →**. |
+| Last step | **Read-only result screen.** No navigation buttons. Progress bar shows 100 %. |
+
+The last step is instantiated automatically with its default field values if it is `null` when `@WizardCompletionAction` returns — or the wizard can set it explicitly inside the completion method.
+
+The wizard **title** is derived in order: `@Title` annotation → `TitleSupplier.title()` → class name.
+
+![Registration wizard — step 1 with progress bar and Next button](/images/docs/ux-patterns/wizard.png)
 
 ## Structure
 
 ```
-Step 1 of 3 ──●────────────────────
+Account setup                         ← getTitle()
+[●────────────────────] Step 1 / 3   ← progress bar
+
   Account type: ○ Personal  ● Business
-  
+
                             [Next →]
 ```
 
 ```
-Step 2 of 3 ────●──────────────────
+Account setup
+[────●────────────────] Step 2 / 3
+
   Company name: ___________
-  
-  [← Back]                 [Next →]
+  VAT number:   ___________
+
+  [← Back]            [Create account]   ← @WizardCompletionAction
+```
+
+```
+Account setup
+[──────────────────────●] Done
+
+  ✓ Account created successfully.
+                                         ← no navigation buttons
 ```
 
 ## Principles served

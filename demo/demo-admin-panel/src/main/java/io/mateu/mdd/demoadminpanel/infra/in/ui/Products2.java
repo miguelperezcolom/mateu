@@ -1,6 +1,5 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Status;
@@ -95,13 +94,6 @@ class Product2Repository implements CrudRepository<Product2> {
     }
 }
 
-class Product2Adapter extends AutoCrudAdapter<Product2> {
-
-    @Override
-    public CrudRepository<Product2> repository() {
-        return new Product2Repository();
-    }
-}
 
 @UI("/productszzz")
 @SplitCrud

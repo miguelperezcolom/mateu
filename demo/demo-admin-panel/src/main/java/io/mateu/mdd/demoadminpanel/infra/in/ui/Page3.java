@@ -16,13 +16,13 @@ import java.util.List;
 public class Page3 {
 
     @Section("sf0")
-    String name;
+    String name = "Mateu";
 
-    int age;
+    int age =  18;
 
 
     @Section("sf2")
-    Subform1 subform1;
+    Subform1 subform1 = new Subform1("xxxx", "iiii");
 
 
     @Section("sf1")

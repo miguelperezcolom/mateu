@@ -89,8 +89,13 @@ export class MateuSapUI5App extends MateuApp {
                 if (this.lastActionInitiatorComponentId &&
                     fragment.targetComponentId === this.lastActionInitiatorComponentId &&
                     fragment.state?._route !== undefined) {
-                    const componentRoute = (fragment.state._componentRoute as string) || ''
                     const relRoute = fragment.state._route as string
+                    if (relRoute !== '' && !relRoute.startsWith('/')) {
+                        this.lastActionInitiatorComponentId = undefined
+                        this.lastActionServerSideType = undefined
+                        return
+                    }
+                    const componentRoute = (fragment.state._componentRoute as string) || ''
                     if (componentRoute) {
                         this.selectedConsumedRoute = componentRoute
                     }
@@ -99,13 +104,16 @@ export class MateuSapUI5App extends MateuApp {
                     if (!componentRoute) {
                         this.selectedConsumedRoute = effectiveConsumedRoute || this.selectedConsumedRoute
                     }
-                    this.selectedRoute = effectiveConsumedRoute + relRoute
-                    if (this.lastActionServerSideType) {
-                        this.selectedServerSideType = this.lastActionServerSideType
-                        this.lastActionServerSideType = undefined
-                    }
+                    const newRoute = effectiveConsumedRoute + relRoute
                     this.lastActionInitiatorComponentId = undefined
-                    this.instant = nanoid()
+                    if (newRoute !== this.selectedRoute) {
+                        this.selectedRoute = newRoute
+                        if (this.lastActionServerSideType) {
+                            this.selectedServerSideType = this.lastActionServerSideType
+                        }
+                        this.instant = nanoid()
+                    }
+                    this.lastActionServerSideType = undefined
                 }
             }
         })

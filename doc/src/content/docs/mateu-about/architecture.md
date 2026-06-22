@@ -87,5 +87,5 @@ Orchestrators are the entry points for structured UI patterns. `AutoCrud` and `C
 ## Related
 
 - [Mateu and system architecture](/mateu-about/system-architecture) — where Mateu fits in hexagonal and DDD designs
-- [The Mateu mental model](/mateu-about/mental-model) — how ViewModels become UI definitions
+- [How Mateu works](/mateu-about/how-mateu-works) — how ViewModels become UI definitions
 - [Design systems](/design-systems) — available renderers and how to bring your own

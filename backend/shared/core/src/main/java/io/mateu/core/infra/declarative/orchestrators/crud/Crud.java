@@ -40,15 +40,12 @@ public abstract class Crud<
   private final List<CrudOrchestratorActionHandler> actionHandlers =
       List.of(
           new SearchActionHandler(),
-          new ViewActionHandler(),
-          new CancelViewActionHandler(),
+          new NavigateToViewActionHandler(),
+          new CancelToListActionHandler(),
           new NewActionHandler(),
-          new CancelEditActionHandler(),
-          new CancelNewActionHandler(),
-          new CreateActionHandler(),
+          new PersistActionHandler(),
           new DeleteEditActionHandler(),
           new EditActionHandler(),
-          new SaveActionHandler(),
           new ActionOnRowActionHandler(),
           new ActionOnViewActionHandler());
 
@@ -119,6 +116,42 @@ public abstract class Crud<
 
   public boolean selectionEnabled() {
     return true;
+  }
+
+  public String newLabel() {
+    return "New";
+  }
+
+  public String saveLabel() {
+    return "Save";
+  }
+
+  public String cancelLabel() {
+    return "Cancel";
+  }
+
+  public String deleteLabel() {
+    return "Delete";
+  }
+
+  public String editLabel() {
+    return "Edit";
+  }
+
+  public String addAnotherLabel() {
+    return "Add another";
+  }
+
+  public String backToListLabel() {
+    return "Back to list";
+  }
+
+  public String importLabel() {
+    return "Import";
+  }
+
+  public String historyLabel() {
+    return "History";
   }
 
   public abstract String toId(String id);

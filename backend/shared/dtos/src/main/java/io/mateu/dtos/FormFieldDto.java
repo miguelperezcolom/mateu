@@ -57,7 +57,8 @@ public record FormFieldDto(
     boolean useButtonForDetail,
     String minHeightWhenDetailVisible,
     int optionsColumns,
-    boolean mainFilter)
+    boolean mainFilter,
+    boolean multiline)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

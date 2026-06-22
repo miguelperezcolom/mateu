@@ -1,14 +1,30 @@
 ---
-title: "AutoCrudAdapter<T>"
-description: "Advanced customisation layer for AutoCrud. Use when you need custom search, pre-populated forms, or custom delete logic."
+title: "Customising AutoCrud behaviour"
+description: "Override fetchRows, buildNamedView, or buildCreationForm in your AutoCrud or FilteredAutoCrud subclass to add custom search, pre-populated forms, or custom view logic."
 ---
 
-For the common case — supplying a repository — you do **not** need `AutoCrudAdapter`. Just override `repository()` directly in your `AutoCrud<T>` subclass:
+`AutoCrud<T>` and `FilteredAutoCrud<Filters, T>` cover the common case out of the box. When you need to go further — custom search queries, pre-populated creation forms, or a custom read-only view — override the protected hooks directly in your subclass. No extra class is needed.
+
+---
+
+## Override points in FilteredAutoCrud
+
+These methods are `public` in `FilteredAutoCrud` and can be overridden in any `AutoCrud` or `FilteredAutoCrud` subclass:
+
+| Method | Default behaviour | Override to… |
+|---|---|---|
+| `fetchRows(searchText, filters, pageable, httpRequest)` | In-memory filter via `toString()` / `Searchable.searchableText()` | Query a database or external service |
+| `buildNamedView(id, httpRequest)` | Loads via `repository().findById(id)`, wraps in `AutoNamedView` | Return a custom view (pre-loaded data, extra context, etc.) |
+| `buildCreationForm(httpRequest)` | Instantiates a new `T`, wraps in `AutoNamedView` | Pre-populate fields on the creation form |
+
+---
+
+## Example — custom search
 
 ```java
 @Service
 @UI("/products")
-public class ProductCrud extends AutoCrud<Product> {
+public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
 
     private final ProductRepository repository;
 
@@ -17,45 +33,8 @@ public class ProductCrud extends AutoCrud<Product> {
     }
 
     @Override
-    public CrudRepository<Product> repository() {
-        return repository;
-    }
-}
-```
-
-Use `AutoCrudAdapter<T>` when you need to customise individual CRUD operations (search, view, editor, creation form, or delete) without implementing the full `CrudAdapter` interface.
-
-```java
-public abstract class AutoCrudAdapter<T extends Identifiable>
-    implements CrudAdapter<NamedView<T>, NamedView<T>, NamedView<T>, T, T, String>
-```
-
----
-
-## Overridable operations
-
-| Operation | Default behaviour | Override to… |
-|---|---|---|
-| `search` | Filters in memory: `toString()` or `Searchable.searchableText()` contains search text | Query a database or external service |
-| `getView` | Loads via `repository().findById(id)`, wraps in `AutoNamedView` | Return a custom read-only view |
-| `getEditor` | Loads via `repository().findById(id)`, wraps in `AutoNamedView` | Return a custom editor form |
-| `getCreationForm` | Instantiates a new `T`, wraps in `AutoNamedView` | Pre-populate the creation form |
-| `deleteAllById` | Delegates to `repository().deleteAllById(ids)` | Add custom pre/post delete logic |
-
-When `@ReadOnly` (or `@NotEditable`, `@NotCreatable`, `@NotDeletable`) is applied to the orchestrator, the framework simply never calls the corresponding write operations — the adapter does not need to do anything special.
-
----
-
-## Example — custom search
-
-```java
-@Service
-public class ProductAdapter extends AutoCrudAdapter<Product> {
-
-    private final ProductRepository repository;
-
-    public ProductAdapter(ProductRepository repository) {
-        this.repository = repository;
+    public Class filtersClass() {
+        return ProductFilters.class;
     }
 
     @Override
@@ -64,14 +43,10 @@ public class ProductAdapter extends AutoCrudAdapter<Product> {
     }
 
     @Override
-    public ListingData<Product> search(
-            String searchText, Product filters,
+    public ListingData<Product> fetchRows(
+            String searchText, ProductFilters filters,
             Pageable pageable, HttpRequest httpRequest) {
-        return ListingData.of(
-            repository.findAll().stream()
-                .filter(p -> searchText == null
-                    || p.name().toLowerCase().contains(searchText.toLowerCase()))
-                .toList());
+        return repository.search(searchText, filters.category(), filters.active(), pageable);
     }
 }
 ```
@@ -82,15 +57,22 @@ public class ProductAdapter extends AutoCrudAdapter<Product> {
 
 ```java
 @Service
-public class OrderAdapter extends AutoCrudAdapter<Order> {
+@UI("/orders")
+public class OrderCrud extends AutoCrud<Order> {
 
-    @Override
-    public CrudRepository<Order> repository() {
-        return orderRepository;
+    private final OrderRepository repository;
+
+    public OrderCrud(OrderRepository repository) {
+        this.repository = repository;
     }
 
     @Override
-    public NamedView<Order> getCreationForm(HttpRequest httpRequest) {
+    public CrudRepository<Order> repository() {
+        return repository;
+    }
+
+    @Override
+    public AutoNamedView<Order> buildCreationForm(HttpRequest httpRequest) {
         var order = new Order();
         order.setDate(LocalDate.now());
         order.setStatus(OrderStatus.DRAFT);
@@ -103,23 +85,28 @@ public class OrderAdapter extends AutoCrudAdapter<Order> {
 
 ## AutoNamedView
 
-`AutoCrudAdapter` wraps entities in `AutoNamedView<T>` when returning views, editors, and creation forms. `AutoNamedView` is the bridge between the entity and the form:
-
-- Uses the entity's fields as form inputs.
-- Calls `repository().save(entity)` on save.
-- Uses `entity.id()` for navigation after save.
-- Uses `entity.toString()` (or `Named.name()` if implemented) as the page title.
-
-You rarely interact with `AutoNamedView` directly. You only need it when overriding `getView`, `getEditor`, or `getCreationForm`:
+`AutoNamedView<T>` is what `buildNamedView` and `buildCreationForm` return by default. It wraps any `T extends Identifiable` and wires all CRUD contracts to the entity and the repository:
 
 ```java
-return new AutoNamedView<>(T.class, entity, repository());
+new AutoNamedView<>(entityClass, entity, repository)
 ```
+
+| Constructor parameter | Purpose |
+|---|---|
+| `entityClass` | Determines which fields to render |
+| `entity` | The object serialised as form state |
+| `repository` | Called by `save()` and `create()` to persist |
+
+---
+
+## When these hooks are not enough
+
+If the view, editor, and creation form need to be **genuinely different types** (different fields, different DTOs), step up to [`Crud<View,Editor,CreationForm,Filters,Row,Id>`](/java-user-manual/build/full-control-crud-orchestrator/) and implement [`CrudAdapter`](/java-user-manual/build/crud-adapter/) directly.
 
 ---
 
 ## Next
 
-- [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — the orchestrator that uses this adapter
-- [Filtered orchestrators](/java-user-manual/build/filtered-orchestrators/) — when you need a separate filter type with a custom `search()` but still want the rest auto-managed
-- [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository interface this adapter depends on
+- [FilteredAutoCrud](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model
+- [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
+- [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository contract these hooks delegate to

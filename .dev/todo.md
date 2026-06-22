@@ -1,3 +1,10 @@
+# disclaimer
+esta es una lista personal de tareas. no es la lista de tareas para el proyecto. 
+
+# próximo
+
+
+
 # mateu
 
 - demo project (también para workshop)

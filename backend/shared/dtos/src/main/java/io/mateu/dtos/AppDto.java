@@ -33,7 +33,9 @@ public record AppDto(
     String cssClasses,
     ComponentDto home,
     String rootRoute,
-    String sseUrl)
+    String sseUrl,
+    List<FabDto> fabs,
+    boolean themeToggle)
     implements ComponentMetadataDto {
 
   public AppDto {

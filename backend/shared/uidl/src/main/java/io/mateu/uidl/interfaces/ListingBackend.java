@@ -10,6 +10,7 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
+import io.mateu.uidl.fluent.GridLayout;
 import java.util.List;
 import java.util.Map;
 
@@ -88,5 +89,14 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 
   default boolean selectionEnabled() {
     return false;
+  }
+
+  /**
+   * Preferred grid layout for this listing. Defaults to {@link GridLayout#auto} (the renderer picks
+   * via the weight formula). Override to force a concrete layout, e.g. {@code table} for an
+   * information-dense listing whose many columns would otherwise fall back to {@code masterDetail}.
+   */
+  default GridLayout gridLayout() {
+    return GridLayout.auto;
   }
 }

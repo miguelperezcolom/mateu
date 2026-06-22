@@ -15,8 +15,14 @@ public class Wizard1 extends Wizard {
 
     Step3 step3;
 
+    Wizard1Result result;
+
     @WizardCompletionAction
     void complete() {
+
+        result = new Wizard1Result(); // at this point, result does not exist yet
+        result.msg = "Hola " + step1.name() + ", " + step2.age() + ", " + step3.happy() + "!";
+
         System.out.println("Wizard completed");
     }
 }

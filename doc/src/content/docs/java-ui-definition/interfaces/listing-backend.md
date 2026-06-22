@@ -16,6 +16,7 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 
     default boolean selectionEnabled() { return false; }
     default Class<Filters> filtersClass() { /* auto-inferred via generics */ }
+    default GridLayout gridLayout() { return GridLayout.auto; }
 }
 ```
 
@@ -33,6 +34,29 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 | `search(searchText, filters, pageable, httpRequest)` | **Required.** Return a page of rows matching the search criteria |
 | `selectionEnabled()` | Return `true` to enable row checkbox selection |
 | `filtersClass()` | Returns the `Filters` class; auto-inferred via generics, rarely overridden |
+| `gridLayout()` | Force a specific grid layout. Defaults to `GridLayout.auto` (auto-selection based on column weights). Override to pin a layout: `GridLayout.table`, `.list`, `.cards`, or `.masterDetail` |
+
+### Overriding `gridLayout()`
+
+```java
+@UI("/arrivals")
+public class Arrivals extends Listing<ArrivalFilters, ArrivalRow> {
+
+    @Override
+    public GridLayout gridLayout() {
+        return GridLayout.table;   // always render as a classic table
+    }
+
+    @Override
+    public ListingData<ArrivalRow> search(
+            String searchText, ArrivalFilters filters,
+            Pageable pageable, HttpRequest httpRequest) {
+        // ...
+    }
+}
+```
+
+See [Listing layout](/java-user-manual/build/listing-layout/) for the full auto-selection algorithm and all available `GridLayout` values.
 
 ## Export support
 

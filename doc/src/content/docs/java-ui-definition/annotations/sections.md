@@ -20,6 +20,7 @@ public @interface Section {
     String value();             // section title (required)
     int columns() default 1;
     String style() default "";
+    String zone() default "";
 }
 ```
 
@@ -30,6 +31,7 @@ public @interface Section {
 | `value` | `String` | — | Section heading label, displayed as a visible separator (required) |
 | `columns` | `int` | `1` | Number of form columns inside this section |
 | `style` | `String` | `""` | Inline CSS applied to the section container |
+| `zone` | `String` | `""` | Name of the layout zone this section belongs to. Only meaningful when the enclosing class is annotated with [`@Zones`](/java-ui-definition/annotations/layout/#zones--zone); sections sharing a zone name are stacked inside that zone's column |
 
 ### Example
 
@@ -48,6 +50,8 @@ public class CustomerForm {
 ```
 
 The `Personal data` section uses the default single-column layout. The `Contact` section switches to two columns. Fields belong to whichever section was declared most recently above them.
+
+![Sections rendered as named cards](/images/docs/components/sections.png)
 
 ---
 
@@ -114,13 +118,29 @@ Places the annotated field or method in the view toolbar, the strip displayed at
 
 Combine `@Toolbar` with `@Action` to add behaviour such as form validation or confirmation dialogs before the method runs.
 
-No attributes.
-
 ```java
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
-public @interface Toolbar {}
+public @interface Toolbar {
+    ButtonStyle buttonStyle() default ButtonStyle.none;
+    ButtonColor buttonColor() default ButtonColor.none;
+    ButtonSize buttonSize() default ButtonSize.none;
+    String group() default "";
+    boolean separatorBefore() default false;
+    int order() default 0;
+}
 ```
+
+### Attributes
+
+| Attribute | Type | Default | Description |
+|---|---|---|---|
+| `buttonStyle` | `ButtonStyle` | `none` | Visual style: `primary`, `secondary`, `tertiary`, `tertiaryInline` |
+| `buttonColor` | `ButtonColor` | `none` | Colour theme: `success`, `error`, `warning`, `contrast`, `normal` |
+| `buttonSize` | `ButtonSize` | `none` | Size: `small`, `normal`, `large` |
+| `group` | `String` | `""` | Group name — methods sharing the same group collapse into a single dropdown button |
+| `separatorBefore` | `boolean` | `false` | Renders a visual divider before this button |
+| `order` | `int` | `0` | Explicit position in the toolbar (lower = first). Declare order explicitly because Java reflection does not preserve declaration order |
 
 ### Example — toolbar buttons on a form
 

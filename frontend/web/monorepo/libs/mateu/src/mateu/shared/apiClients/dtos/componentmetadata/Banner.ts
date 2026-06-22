@@ -6,4 +6,5 @@ export interface Banner {
     hasCloseButton: boolean
     title: string
     description: string
+    timeoutSeconds?: number
 }

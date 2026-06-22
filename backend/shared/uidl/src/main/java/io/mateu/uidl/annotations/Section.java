@@ -15,4 +15,12 @@ public @interface Section {
   int columns() default 1;
 
   String style() default "";
+
+  /**
+   * Name of the layout zone this section belongs to. When the form class is annotated with {@link
+   * Zones}, sections sharing a zone are stacked together inside that zone's column, and the
+   * declared zones are laid out side by side. Empty means no zone (classic full-width vertical
+   * stacking).
+   */
+  String zone() default "";
 }

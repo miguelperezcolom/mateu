@@ -1,7 +1,7 @@
 package io.mateu.core.infra.declarative;
 
+import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
-import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Hidden;
@@ -46,7 +46,7 @@ public final class FormViewToolbarBuilder {
               var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
               toolbar.add(
                   Button.builder()
-                      .label(toUpperCaseFirst(method.getName()))
+                      .label(getLabel(method))
                       .actionId(prefix + method.getName())
                       .shortcut(shortcut)
                       .buttonStyle(buttonStyle)
@@ -85,7 +85,7 @@ public final class FormViewToolbarBuilder {
               var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
               buttons.add(
                   Button.builder()
-                      .label(toUpperCaseFirst(method.getName()))
+                      .label(getLabel(method))
                       .actionId(prefix + method.getName())
                       .shortcut(shortcut)
                       .buttonStyle(buttonStyle)

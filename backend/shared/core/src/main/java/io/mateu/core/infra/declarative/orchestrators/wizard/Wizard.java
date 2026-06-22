@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.wizard;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.uidl.data.*;
@@ -71,14 +72,19 @@ public abstract class Wizard
     return VerticalLayout.builder()
         .content(
             List.of(
+                Text.builder()
+                    .text(getTitle(this))
+                    .container(TextContainer.h2)
+                    .style("margin: 0;")
+                    .build(),
                 ProgressBar.builder()
-                    .value(position + 1)
+                    .value(position == numberOfSteps() - 1 ? numberOfSteps() : position)
                     .max(numberOfSteps())
                     .text(getLabel(currentStepField()))
                     .style("width: 100%;")
                     .build(),
                 Div.builder()
-                    .style("width: 100%;")
+                    .style("width: 100%; margin-top: 1rem;")
                     .children(
                         (List<Component>)
                             getForm(

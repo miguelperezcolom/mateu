@@ -1,6 +1,5 @@
 package com.example.demo.infra.in.ui.pages.tests;
 
-import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrudAdapter;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.interfaces.CrudRepository;
 import io.mateu.uidl.annotations.Colspan;
@@ -48,16 +47,11 @@ record Grupo(@NotEmpty String id,
     }
 }
 
-class Adapter extends AutoCrudAdapter<Grupo> implements CrudRepository<Grupo> {
+class Adapter implements CrudRepository<Grupo> {
 
     static Map<String, Grupo> db = new HashMap<>(Map.of(
             "1", new Grupo("1", "Test", "si", true, "miguel@test.com", List.of())
     ));
-
-    @Override
-    public CrudRepository<Grupo> repository() {
-        return this;
-    }
 
     @Override
     public Optional<Grupo> findById(String id) {
