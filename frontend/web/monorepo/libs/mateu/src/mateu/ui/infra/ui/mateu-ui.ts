@@ -7,6 +7,7 @@ import './mateu-api-caller'
 import './mateu-debug-overlay'
 import {Subscription} from "rxjs";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
+import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import {nanoid} from "nanoid";
 
 
@@ -49,6 +50,9 @@ export class MateuUi extends LitElement {
 
     private upstreamSubscription: Subscription | undefined;
 
+    /** URL the user is currently sitting on, so a cancelled back/forward can be undone. */
+    private _lastUrl: string = ''
+
     routeChangedListener: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
@@ -85,6 +89,7 @@ export class MateuUi extends LitElement {
                         pathname = '/' + pathname
                     }
                     window.history.pushState({},"", pathname);
+                    this._lastUrl = window.location.href
                 }
             }
         }
@@ -95,6 +100,11 @@ export class MateuUi extends LitElement {
         e.stopPropagation()
 
         console.log('navigate to requested', e)
+
+        // Backend-initiated navigation (NavigateTo command, e.g. right after a save):
+        // the server decided to leave this form, so drop any pending dirty state
+        // instead of prompting the user.
+        dirtyGuard.markClean()
 
         if (e instanceof CustomEvent) {
             let route = e.detail.route
@@ -111,7 +121,16 @@ export class MateuUi extends LitElement {
     connectedCallback() {
         super.connectedCallback()
 
+        dirtyGuard.install()
+        this._lastUrl = window.location.href
+
         window.onpopstate = (e) => {
+            // Back/forward has already changed the URL by the time popstate fires.
+            // If the form is dirty and the user cancels, restore the URL we were on.
+            if (!dirtyGuard.confirmLeave()) {
+                window.history.pushState({}, "", this._lastUrl)
+                return
+            }
             const w = e.target as Window
             this.loadUrl(w)
         };
@@ -148,6 +167,7 @@ export class MateuUi extends LitElement {
         this.route = this.extractRouteFromUrl(w)
         this.setAttribute('route', this.route)
         this.instant = nanoid()
+        this._lastUrl = w.location.href
         if (w.location.search) {
             const urlParams = new URLSearchParams(w.location.search);
             const configParam = urlParams.get('overrides')

@@ -297,6 +297,16 @@ export class MateuComponent extends ComponentElement {
         }
         if (_changedProperties.has('component')) {
             this.formerState = {...this.state}
+            // A fresh (or reloaded) tracked form starts clean. Tying the reset to
+            // the same lifecycle that rebuilds formerState makes dirty-state reset
+            // reliable instead of depending on the backend sending MarkAsClean.
+            if (this.component?.confirmOnNavigationIfDirty) {
+                this.dispatchEvent(new CustomEvent('clean', {
+                    detail: {},
+                    bubbles: true,
+                    composed: true
+                }))
+            }
             setTimeout(() => this.triggerOnLoad())
         }
     }

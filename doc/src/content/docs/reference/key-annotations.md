@@ -405,7 +405,9 @@ public class MyForm {
 }
 ```
 
-CRUD create and edit views activate this behaviour automatically — the annotation is only needed on standalone forms. Use `UICommand.markAsClean()` in save actions and `UICommand.markAsDirty()` to set the flag programmatically.
+Tracking is **opt-in**: a plain page without this annotation never prompts on exit, even if it has editable fields and a `save()` action. CRUD create and edit views are the only exception — they activate the behaviour automatically, so the annotation is only needed on standalone forms.
+
+The confirmation covers every way of leaving the form: in-app menu navigation, the browser back/forward buttons, and reloading or closing the tab. Use `UICommand.markAsClean()` in save actions and `UICommand.markAsDirty()` to set the flag programmatically.
 
 ---
 

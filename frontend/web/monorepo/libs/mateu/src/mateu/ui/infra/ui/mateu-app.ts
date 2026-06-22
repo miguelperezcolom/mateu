@@ -26,6 +26,7 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppLayout } from "@vaadin/app-layout";
 import {MateuChat} from "@infra/ui/mateu-chat.ts";
+import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
@@ -88,24 +89,6 @@ export class MateuApp extends ComponentElement {
     @query("mateu-chat")
     chat: MateuChat | undefined
 
-    dirty: boolean = false
-
-    markAsDirty(): void {
-        this.dirty = true
-    }
-    markAsClean(): void {
-        this.dirty = false
-    }
-
-
-    private dirtyEventHandler = (_e: Event) => {
-        this.markAsDirty()
-    }
-
-    private cleanEventHandler = (_e: Event) => {
-        this.markAsClean()
-    }
-
     connectedCallback() {
         super.connectedCallback()
         this.isDark = document.documentElement.getAttribute('theme') === 'dark'
@@ -122,8 +105,7 @@ export class MateuApp extends ComponentElement {
             }
         }
         document.addEventListener('keydown', this._commandPaletteHandler)
-        document.addEventListener('dirty', this.dirtyEventHandler)
-        document.addEventListener('clean', this.cleanEventHandler)
+        dirtyGuard.install()
         this.addEventListener('compact-changed', this._compactHandler)
     }
 
@@ -131,12 +113,6 @@ export class MateuApp extends ComponentElement {
         super.disconnectedCallback()
         if (this._commandPaletteHandler) {
             document.removeEventListener('keydown', this._commandPaletteHandler)
-        }
-        if (this.dirtyEventHandler) {
-            document.removeEventListener('dirty', this.dirtyEventHandler)
-        }
-        if (this.cleanEventHandler) {
-            document.removeEventListener('clean', this.cleanEventHandler)
         }
         this.removeEventListener('compact-changed', this._compactHandler)
     }
@@ -391,14 +367,10 @@ export class MateuApp extends ComponentElement {
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
-        if (false && this.dirty) {
-            if (window.confirm('You are gonna loose your changes. Are you sure?')) {
-                this.dirty = false
-                this._selectRoute(consumedRoute, route, _actionId, _baseUrl, serverSideType, uriPrefix)
-            }
-        } else {
-            this._selectRoute(consumedRoute, route, _actionId, _baseUrl, serverSideType, uriPrefix)
+        if (!dirtyGuard.confirmLeave()) {
+            return
         }
+        this._selectRoute(consumedRoute, route, _actionId, _baseUrl, serverSideType, uriPrefix)
     }
 
     _selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
