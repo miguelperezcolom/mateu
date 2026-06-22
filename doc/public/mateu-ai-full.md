@@ -93,6 +93,24 @@ Embeds an AI chat assistant.
 @AI(sse = "/api/ai/chat")
 ```
 
+### `@ConfirmOnNavigationIfDirty`
+Warns the user before leaving a form that has unsaved changes. The confirmation covers **every** way of leaving the form: in-app menu navigation, the browser back/forward buttons (URL is restored on cancel), and reloading or closing the tab. CRUD create/edit views opt in automatically.
+```java
+@UI("/customer/:id")
+@ConfirmOnNavigationIfDirty
+public class CustomerForm {
+    String name;
+    String email;
+
+    @Toolbar @Action(validationRequired = true)
+    Object save() {
+        repo.save(name, email);
+        return List.of(new Message("Saved"), UICommand.markAsClean()); // clear dirty flag after save
+    }
+}
+```
+Control the dirty state programmatically by returning `UICommand.markAsClean()` (clear, e.g. after a successful save) or `UICommand.markAsDirty()` (set) from any action. A backend-driven navigation (`NavigateTo`) clears the flag instead of prompting.
+
 ---
 
 ## Layout annotations
@@ -318,7 +336,17 @@ ItemStatus status;
 
 ### `@Stereotype` / `@Representation`
 Control the input widget (`@Stereotype`) and read-only display (`@Representation`) independently.
-`FieldStereotype` values (selection): `text`, `textarea`, `richText`, `markdown`, `password`, `email`, `url`, `phone`, `integer`, `decimal`, `currency`, `percentage`, `date`, `dateTime`, `time`, `boolean`, `radio`, `checkbox`, `select`, `combobox`, `image`, `file`, `grid`, `badge`, `icon`, `html`, `code`, `rating`, `slider`, `color`.
+`FieldStereotype` values: `regular`, `radio`, `checkbox`, `textarea`, `toggle`, `combobox`, `select`, `email`, `password`, `richText`, `listBox`, `html`, `markdown`, `image`, `icon`, `link`, `money`, `grid`, `color`, `choice`, `popover`, `slider`, `button`, `stars`, `searchable`, `badge`, `plainText`.
+
+### Money formatting — `@Stereotype(FieldStereotype.money)`
+Mark a numeric field (`BigDecimal`, `double`, `long`, …) with `@Stereotype(FieldStereotype.money)` so it is rendered as a formatted currency amount. In a **read-only / plain-text context** (the field or its declaring class is `@PlainText`) the field keeps the dense plain-text rendering but the number is formatted with a thousands separator and 2 decimals (`de-DE` style by default — e.g. `1.250,00`). Fields of type `Amount` (which carry their own `currency` + `locale`) are formatted as full currency automatically without needing the stereotype.
+```java
+@PlainText
+public class FoliosSection {
+    @Stereotype(FieldStereotype.money) @Label("Credit limit")  BigDecimal creditLimit;  // → 1.250,00
+    @Stereotype(FieldStereotype.money) @Label("Balance due")   BigDecimal balanceDue;
+}
+```
 
 ### `@ReadOnly`
 Non-editable field (shown but cannot be modified).
@@ -472,6 +500,8 @@ public class AccountForm implements RuleSupplier {
 | `List<PageBanner>` | Same, multiple banners |
 | `PageBanners.replace(banner...)` | Explicit replace |
 | `PageBanners.append(banner...)` | Accumulate banners across action calls |
+| `UICommand.markAsClean()` | Clear the unsaved-changes flag (e.g. after a successful save) |
+| `UICommand.markAsDirty()` | Flag the form as having unsaved changes |
 
 ---
 
@@ -620,6 +650,7 @@ public class MyApp {
 @UI("/checkin/:id")
 @Compact
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
+@ConfirmOnNavigationIfDirty
 @Zones({
     @Zone(name = "left",  width = "64%"),
     @Zone(name = "right", width = "36%")
@@ -634,12 +665,19 @@ public class CheckInForm {
     @Inline @Label("")
     GuestSection guests = new GuestSection();
 
+    @Section(value = "Amounts", columns = 1, zone = "right")
+    @PlainText
+    @Stereotype(FieldStereotype.money) @Label("Credit limit") BigDecimal creditLimit; // → 1.250,00
+    @Stereotype(FieldStereotype.money) @Label("Balance due")  BigDecimal balanceDue;
+
     @Section(value = "Charges", zone = "right")
     @Label("") @Stereotype(FieldStereotype.grid)
     List<ChargeRow> charges;
 
     @Toolbar @Action(validationRequired = true)
-    Object checkIn(HttpRequest req) { return new Message("Checked in"); }
+    Object checkIn(HttpRequest req) {
+        return List.of(new Message("Checked in"), UICommand.markAsClean());
+    }
 }
 
 @PlainText
@@ -756,6 +794,7 @@ public class CustomerList {
 | `State` | Push updated field values to frontend: `new State(this)` |
 | `PageBanner` | Dynamic banner: `new PageBanner(BannerTheme, title, description)` |
 | `PageBanners` | Banner collection with replace/append: `PageBanners.replace(...)`, `.append(...)` |
+| `UICommand` | Frontend command: `UICommand.markAsClean()` / `markAsDirty()` (works with `@ConfirmOnNavigationIfDirty`) |
 | `Badge` | Fluent badge component (used in `BadgeSupplier`, grid cells): `Badge.builder()...build()` |
 | `ListingData<R>` | Search result: `ListingData.of(list)` or builder |
 | `Pageable` | Pagination/sort from the grid: `page`, `size`, `sort` |

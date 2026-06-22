@@ -468,13 +468,25 @@ export class MateuField extends LitElement {
 
         if (this.field?.stereotype == 'plainText') {
             let v = evalIfNecessary(value, this.state, this.data)
+            const amountObj = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any) : null
             if (v && (v as any).value) v = (v as any).value
             const isBool = this.field?.dataType == 'bool' || v === true || v === false
+            const isMoney = this.field?.dataType == 'money'
+            const hasValue = v !== null && v !== undefined && v !== ''
+            let display = hasValue ? String(v) : '—'
+            if (isMoney && hasValue) {
+                const num = typeof v === 'number' ? v : parseFloat(String(v))
+                if (!isNaN(num)) {
+                    display = (amountObj && amountObj.locale && amountObj.currency)
+                        ? new Intl.NumberFormat(amountObj.locale, { style: 'currency', currency: amountObj.currency }).format(num)
+                        : new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num)
+                }
+            }
             const body = isBool
                 ? html`<vaadin-icon icon="${(v === true || v === 'true') ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
                 : this.field?.multiline
-                    ? html`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${(v !== null && v !== undefined && v !== '') ? String(v) : '—'}</span>`
-                    : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${(v !== null && v !== undefined && v !== '') ? String(v) : '—'}</span>`
+                    ? html`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${display}</span>`
+                    : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
             // Rendered as a tight block (no vaadin-custom-field chrome) so read-only fields are dense.
             // mateu-field itself is the form-layout column item, so this does not affect column layout.
             return html`<div

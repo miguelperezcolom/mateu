@@ -53,6 +53,7 @@ public class HelloForm {
 | `@Subtitle("...")` | Page subheading |
 | `@PageTitle("...")` | Browser tab title |
 | `@AI(sse="/api/ai")` | Embed AI chat assistant |
+| `@ConfirmOnNavigationIfDirty` | Warn before leaving a form with unsaved changes (covers menu nav, browser back/forward, reload/close) |
 
 ### Layout
 
@@ -94,6 +95,7 @@ public class HelloForm {
 | `@KPI` | Render field as a KPI tile (dashboard numbers) |
 | `@PlainText` | Render field as plain read-only text (no input chrome) |
 | `@Multiline` | Allow `@PlainText` field to wrap instead of truncate |
+| `@Stereotype(FieldStereotype.money)` | Format numeric field as currency amount (read-only/plain-text contexts) |
 | `@Badge` | Boolean as coloured chip in form body |
 | `@BadgeInHeader(color="success")` | Status chip in the page header strip |
 | `@Status(mappings={...})` | Enum field as coloured badge |
@@ -125,6 +127,8 @@ public class HelloForm {
 | `new State(this)` | Push updated state to frontend (no navigation) |
 | `PageBanner` / `List<PageBanner>` | Show dynamic banner on current page (replaces existing) |
 | `PageBanners.append(banner)` | Append banner without replacing existing ones |
+| `UICommand.markAsClean()` | Clear the unsaved-changes flag (e.g. after a successful save) |
+| `UICommand.markAsDirty()` | Flag the form as having unsaved changes |
 
 ---
 
@@ -236,6 +240,7 @@ public class MyApp {
 @UI("/checkin/:id")
 @Compact
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
+@ConfirmOnNavigationIfDirty
 @Zones({ @Zone(name="left", width="60%"), @Zone(name="right", width="40%") })
 public class CheckInForm {
 
@@ -243,13 +248,18 @@ public class CheckInForm {
     String guestName;
     String roomNumber;
 
+    @Section(value="Amounts", columns=1, zone="right")
+    @PlainText
+    @Stereotype(FieldStereotype.money) BigDecimal creditLimit;   // shown as "1.250,00"
+    @Stereotype(FieldStereotype.money) BigDecimal balanceDue;
+
     @Section(value="Charges", zone="right")
     @Label("") @Stereotype(FieldStereotype.grid)
     List<ChargeRow> charges;
 
     @Toolbar
     @Action(validationRequired=true)
-    Object checkIn() { return new Message("Checked in"); }
+    Object checkIn() { return List.of(new Message("Checked in"), UICommand.markAsClean()); }
 }
 ```
 

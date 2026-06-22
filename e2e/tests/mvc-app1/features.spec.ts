@@ -49,6 +49,16 @@ function titleCommand(body: any): any {
   return body.commands.find((c: any) => c.type === 'SetWindowTitle');
 }
 
+// Root server-side component of a form fragment (carries confirmOnNavigationIfDirty).
+function rootComponent(fragments: any[]): any {
+  for (const f of fragments) {
+    for (const n of allNodes(f.component)) {
+      if (n?.serverSideType !== undefined && n?.serverSideType !== null) return n;
+    }
+  }
+  return fragments[0]?.component;
+}
+
 // ---------------------------------------------------------------------------
 // FieldTypesForm — /field-types
 // ---------------------------------------------------------------------------
@@ -1400,6 +1410,55 @@ test.describe('CustomLabelsCrud — overridden CRUD button labels', () => {
     expect(body.messages).toHaveLength(0);
     const content = body.fragments[0]?.data?.crud?.page?.content ?? [];
     expect(content.length).toBe(2);
+  });
+
+});
+
+// ---------------------------------------------------------------------------
+// ConfirmOnNavigationForm — /confirm-dirty  (@ConfirmOnNavigationIfDirty)
+// ---------------------------------------------------------------------------
+
+const CONFIRM_DIRTY_API = '/confirm-dirty/mateu/v3/components/_/action';
+const CONFIRM_DIRTY_TYPE = 'io.mateu.sample1.ConfirmOnNavigationForm';
+
+test.describe('ConfirmOnNavigationForm — @ConfirmOnNavigationIfDirty', () => {
+
+  test('load returns title "Confirm Dirty Form" with no errors', async ({ request }) => {
+    const body = await callAction(request, CONFIRM_DIRTY_API, { route: '/', actionId: '__load__' });
+    expect(titleCommand(body)?.data).toBe('Confirm Dirty Form');
+    expect(body.messages).toHaveLength(0);
+  });
+
+  test('root component has confirmOnNavigationIfDirty === true', async ({ request }) => {
+    const body = await callAction(request, CONFIRM_DIRTY_API, { route: '/', actionId: '__load__' });
+    expect(rootComponent(body.fragments)?.confirmOnNavigationIfDirty).toBe(true);
+  });
+
+  test('name and email fields are present', async ({ request }) => {
+    const body = await callAction(request, CONFIRM_DIRTY_API, { route: '/', actionId: '__load__' });
+    const ids = allFields(body.fragments).map((f: any) => f.fieldId);
+    expect(ids).toContain('name');
+    expect(ids).toContain('email');
+  });
+
+  test('save returns "Saved!" message and a MarkAsClean command', async ({ request }) => {
+    const body = await callAction(request, CONFIRM_DIRTY_API, {
+      route: '/', actionId: 'save',
+      componentState: { name: 'Bob', email: 'bob@example.com' },
+      serverSideType: CONFIRM_DIRTY_TYPE,
+    });
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].text).toBe('Saved!');
+    expect(body.commands.find((c: any) => c.type === 'MarkAsClean')).toBeDefined();
+  });
+
+});
+
+test.describe('ConfirmOnNavigationForm — flag is opt-in', () => {
+
+  test('a non-annotated form (SimpleForm) has no confirmOnNavigationIfDirty flag', async ({ request }) => {
+    const body = await callAction(request, '/mateu/v3/components/_/action', { route: '/', actionId: '__load__' });
+    expect(rootComponent(body.fragments)?.confirmOnNavigationIfDirty).toBeFalsy();
   });
 
 });

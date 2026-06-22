@@ -27,6 +27,12 @@ import java.util.Date;
 public class FieldTypeMapper {
 
   public static FieldDataType getDataType(Field field) {
+    // A field explicitly flagged as money (via @Stereotype(money)) that is shown read-only
+    // (plain text) keeps the dense plain-text rendering but is tagged as money so the
+    // front-end formats the number as a currency amount.
+    if (isMoneyStereotype(field) && isPlainTextContext(field)) {
+      return FieldDataType.money;
+    }
     if (String.class.equals(field.getType())) {
       return FieldDataType.string;
     }
@@ -107,7 +113,13 @@ public class FieldTypeMapper {
       return FieldStereotype.badge;
     }
     if (field.isAnnotationPresent(Stereotype.class)) {
-      return field.getAnnotation(Stereotype.class).value();
+      var stereotype = field.getAnnotation(Stereotype.class).value();
+      // A money field in a plain-text class keeps the dense plain-text rendering; the money
+      // intent is carried by the data type and the front-end formats the value as currency.
+      if (stereotype == FieldStereotype.money && isPlainTextContext(field)) {
+        return FieldStereotype.plainText;
+      }
+      return stereotype;
     }
     if (field.getDeclaringClass().isAnnotationPresent(PlainText.class)
         && (String.class.equals(field.getType())
@@ -164,5 +176,15 @@ public class FieldTypeMapper {
 
   public static FieldStereotype getStereotypeForColumn(Field columnField) {
     return ColumnTypeMapper.getStereotypeForColumn(columnField);
+  }
+
+  private static boolean isMoneyStereotype(Field field) {
+    return field.isAnnotationPresent(Stereotype.class)
+        && field.getAnnotation(Stereotype.class).value() == FieldStereotype.money;
+  }
+
+  private static boolean isPlainTextContext(Field field) {
+    return field.isAnnotationPresent(PlainText.class)
+        || field.getDeclaringClass().isAnnotationPresent(PlainText.class);
   }
 }

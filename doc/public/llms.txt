@@ -37,5 +37,7 @@ For AI-assisted development, use these context documents with your AI tool (Clau
 - Header badges: `@BadgeInHeader` on a field or implement `BadgeSupplier`.
 - Floating buttons: `@Fab(icon="vaadin:plus")` on a method (app-level = global, page-level = scoped).
 - Dark/light mode toggle: `@App(themeToggle=true)`.
+- Unsaved-changes guard: `@ConfirmOnNavigationIfDirty` warns before leaving a modified form (menu, browser back/forward, reload/close); use `UICommand.markAsClean()` / `markAsDirty()` to control the state.
+- Money formatting: `@Stereotype(FieldStereotype.money)` formats a numeric read-only/plain-text field as a currency amount.
 - Expression labels: any label supports `${state.field}` template expressions.
 - URL pagination: CRUD pages sync `?page=N&sort=field:asc` to the URL automatically.
