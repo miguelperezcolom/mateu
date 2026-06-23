@@ -33,6 +33,12 @@ final class CrudActionResultAssembler {
                   : httpRequest.runActionRq().initiatorComponentId()));
     }
     list.add(UICommand.pushStateToHistory(orchestrator.pathForHistory(result.route())));
+    var actionId = httpRequest.runActionRq().actionId();
+    if ("save".equals(actionId) || "create".equals(actionId)) {
+      // After a successful save the form no longer has unsaved changes, so reset the
+      // unsaved-changes navigation guard (@ConfirmOnNavigationIfDirty) on the client.
+      list.add(UICommand.markAsClean());
+    }
     var windowTitleCommand = orchestrator.setWindowTitle(httpRequest);
     if (windowTitleCommand != null) {
       list.add(windowTitleCommand);

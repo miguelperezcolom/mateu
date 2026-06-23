@@ -1341,6 +1341,30 @@ test.describe('FullCrud — full AutoCrud lifecycle', () => {
     expect(fields.find((f: any) => f.fieldId === 'description')?.stereotype).toBe('textarea');
   });
 
+  // After a successful save, the CRUD must reset the unsaved-changes guard automatically
+  // (CRUD create/edit views opt into @ConfirmOnNavigationIfDirty), so the response carries a
+  // MarkAsClean command. Without it the form stays "dirty" and navigating away keeps prompting.
+  test('create (new entity) returns a MarkAsClean command', async ({ request }) => {
+    const body = await callAction(request, FULL_CRUD_API, {
+      route: '/new', actionId: 'create',
+      serverSideType: 'io.mateu.sample1.app.FullCrud',
+      consumedRoute: '',
+      componentState: { title: 'Brand new task', description: 'created via e2e', priority: 1, done: false },
+    });
+    expect(body.commands.find((c: any) => c.type === 'MarkAsClean')).toBeDefined();
+  });
+
+  test('save (existing entity) returns a MarkAsClean command', async ({ request }) => {
+    const body = await callAction(request, FULL_CRUD_API, {
+      route: '/t1', actionId: 'save',
+      serverSideType: 'io.mateu.sample1.app.FullCrud',
+      consumedRoute: '',
+      parameters: {},
+      componentState: { id: 't1', title: 'Task Alpha edited', description: 'First task', priority: 1, done: false },
+    });
+    expect(body.commands.find((c: any) => c.type === 'MarkAsClean')).toBeDefined();
+  });
+
 });
 
 // ---------------------------------------------------------------------------

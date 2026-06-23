@@ -86,6 +86,65 @@ test.describe('@ConfirmOnNavigationIfDirty — dirty tracking', () => {
 
 });
 
+test.describe('@ConfirmOnNavigationIfDirty — CRUD save resets the guard', () => {
+
+  // Regression: in a CRUD create form the user types values (dirty), then clicks Save.
+  // The backend must return a MarkAsClean command so the guard is reset; otherwise
+  // navigating away after a successful save keeps prompting for unsaved changes.
+  // Mirror the guard: 'dirty' arms it, 'clean' disarms it.
+  async function trackGuardFlag(page: any) {
+    await page.evaluate(() => {
+      (window as any).__dirty = false;
+      document.addEventListener('dirty', () => { (window as any).__dirty = true; });
+      document.addEventListener('clean', () => { (window as any).__dirty = false; });
+    });
+  }
+
+  test('editing then saving a new entity fires "clean" (guard reset)', async ({ page }) => {
+    await page.goto('/full-crud/new');
+    await expect(fieldInput(page, 'title')).toBeVisible();
+    await trackGuardFlag(page);
+
+    const input = fieldInput(page, 'title');
+    await input.fill('Brand new task');
+    await input.blur();
+    // Typing arms the guard.
+    await expect.poll(() => page.evaluate(() => (window as any).__dirty)).toBe(true);
+
+    // Click Save. The CRUD persists and returns a MarkAsClean command, which
+    // ConnectedElement turns into a document-level 'clean' event the guard listens for.
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+
+    // The guard must end up clean, so a later navigation would NOT prompt.
+    await expect.poll(() => page.evaluate(() => (window as any).__dirty)).toBe(false);
+  });
+
+  test('navigating away after a save does NOT prompt', async ({ page }) => {
+    let dialogShown = false;
+    page.on('dialog', async (d) => { dialogShown = true; await d.dismiss(); });
+
+    await page.goto('/full-crud/new');
+    await expect(fieldInput(page, 'title')).toBeVisible();
+
+    const input = fieldInput(page, 'title');
+    await input.fill('Another task');
+    await input.blur();
+    await page.waitForTimeout(150);
+
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    // Give the MarkAsClean command time to reset the guard.
+    await page.waitForTimeout(400);
+
+    await page.evaluate(() => {
+      history.pushState({}, '', location.pathname + '?nav=1');
+      history.back();
+    });
+    await page.waitForTimeout(300);
+    expect(dialogShown).toBe(false);
+  });
+
+});
+
 test.describe('@ConfirmOnNavigationIfDirty — opt-in', () => {
 
   test('a non-annotated form (root SimpleForm) never fires "dirty"', async ({ page }) => {
