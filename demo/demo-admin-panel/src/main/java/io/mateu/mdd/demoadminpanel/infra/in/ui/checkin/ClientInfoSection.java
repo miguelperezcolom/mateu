@@ -15,8 +15,12 @@ import java.util.List;
 @Compact
 public class ClientInfoSection {
 
-    // The "Info Cardex" tab moved out to its own independent embedded component (Cardex/CardexView),
-    // which reloads on guest-row selection. This section keeps the rest of the client tabs.
+    // ── Tab: Info Cardex ──────────────────────────────────────────────
+    // Independent embedded component: subscribes to "pax-selected" and reloads only itself with the
+    // selected guest's cardex (see CardexView / Cardex), without reloading the rest of the form.
+    @Tab("Info Cardex")
+    @Label("")
+    CardexView cardex = new CardexView();
 
     // ── Tab: Datos Empresa ────────────────────────────────────────────
     @Tab("Datos Empresa")

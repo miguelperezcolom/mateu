@@ -99,12 +99,6 @@ public class CheckInForm implements HeaderSupplier {
     @Label("") @Inline
     ClientInfoSection clientInfo = new ClientInfoSection();
 
-    // Independent embedded component: subscribes to "pax-selected" and reloads only itself
-    // with the selected guest's cardex (see CardexView / Cardex).
-    @Section(value = "Cardex del huésped", columns = 1, zone = "left")
-    @Label("")
-    CardexView cardex = new CardexView();
-
     // ── Right-zone sections ───────────────────────────────────────────
     @Section(value = "Importes", columns = 1, zone = "right")
     @Label("") @Inline
