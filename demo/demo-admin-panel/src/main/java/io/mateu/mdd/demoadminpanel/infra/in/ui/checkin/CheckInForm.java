@@ -40,8 +40,6 @@ import java.util.List;
 // Refresh the whole form in place whenever any component announces a confirmed check-in,
 // instead of forcing a navigation. Listens on the global event bus (document).
 @SubscribeTo(event = "checkin-confirmed", action = "load", source = SubscriptionSource.DOCUMENT)
-// When a guest row is selected, update the cardex with the selected pax's info.
-@SubscribeTo(event = "pax-selected", action = "selectPax", source = SubscriptionSource.DOCUMENT)
 @ConfirmOnNavigationIfDirty
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @Compact
@@ -101,6 +99,12 @@ public class CheckInForm implements HeaderSupplier {
     @Label("") @Inline
     ClientInfoSection clientInfo = new ClientInfoSection();
 
+    // Independent embedded component: subscribes to "pax-selected" and reloads only itself
+    // with the selected guest's cardex (see CardexView / Cardex).
+    @Section(value = "Cardex del huésped", columns = 1, zone = "left")
+    @Label("")
+    CardexView cardex = new CardexView();
+
     // ── Right-zone sections ───────────────────────────────────────────
     @Section(value = "Importes", columns = 1, zone = "right")
     @Label("") @Inline
@@ -122,26 +126,6 @@ public class CheckInForm implements HeaderSupplier {
 
     Object load(HttpRequest httpRequest) {
         return populate() ? (Object) new State(this) : Message.success("Reservation not found");
-    }
-
-    // Triggered by the "pax-selected" event (emitted by GuestsSection on row selection).
-    // The selected pax fields travel in the event payload (the action parameters).
-    Object selectPax(HttpRequest httpRequest) {
-        if (!populate()) {
-            return Message.success("Reservation not found");
-        }
-        var p = httpRequest.runActionRq().parameters();
-        if (p != null) {
-            clientInfo.applySelectedPax(
-                    str(p.get("lastName")), str(p.get("firstName")),
-                    str(p.get("nationality")), str(p.get("paxType")),
-                    str(p.get("roomState")), Boolean.TRUE.equals(p.get("hasCardex")));
-        }
-        return new State(this);
-    }
-
-    private static String str(Object o) {
-        return o != null ? o.toString() : null;
     }
 
     boolean populate() {
@@ -183,6 +167,11 @@ public class CheckInForm implements HeaderSupplier {
         roomInfo.populate(line);
         historial.populate(line);
         folios.populate(line);
+
+        // Seed the embedded cardex with the lead guest so it shows data on first render.
+        if (!line.getGuests().isEmpty()) {
+            CardexView.prime(line.getGuests().get(0).getCardex());
+        }
 
         return true;
     }

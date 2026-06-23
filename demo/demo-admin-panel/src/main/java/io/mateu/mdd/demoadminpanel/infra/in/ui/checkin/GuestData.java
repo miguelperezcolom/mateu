@@ -1,6 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
 import io.mateu.uidl.annotations.ColumnWidth;
+import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.Label;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,4 +29,8 @@ public class GuestData {
     @ColumnWidth("4rem") @Label("Aviso") boolean aviso;
     // No @ColumnWidth → this column flex-grows to fill the remaining space.
     @Label("Obs. hotel") String hotelObservations;
+
+    // Full per-pax cardex; kept out of the grid columns but travels in the row data so the
+    // selected guest carries it to the cardex component.
+    @HiddenInList Cardex cardex;
 }

@@ -169,29 +169,98 @@ public class GuestsSection {
 }
 ```
 
-### Subscriber — the page updates the cardex section
+### Subscriber — the cardex reloads *itself*
+
+The cleanest subscriber is the cardex **as its own component**, so only it re-renders (not the whole
+page). Extract the cardex fields into their own class and embed it as an independent component by
+making it a `MultiView` (here a read-only `AutoEditableView`). A field whose type is a `MultiView`
+subclass is rendered as an independent embedded `ServerSideComponent` — see
+[Partial Forms](/ux-patterns/partial-forms/).
 
 ```java
-@SubscribeTo(event = "pax-selected", action = "selectPax", source = SubscriptionSource.DOCUMENT)
-public class CheckInForm implements HeaderSupplier {
+// The entity the cardex shows. The @SubscribeTo lives HERE (the loaded "model view"), because the
+// embedded component's triggers are mapped from the loaded entity, not from the orchestrator.
+@PlainText @Compact @Title("Info cardex")
+@SubscribeTo(event = "pax-selected", action = "reloadPax", source = SubscriptionSource.DOCUMENT)
+public class Cardex {
+    @Label("Titular") String fullName;
+    @Label("Email")   String email;
+    // … the rest of the cardex fields …
+}
 
-    ClientInfoSection clientInfo = new ClientInfoSection();   // the "cardex" section
+// The cardex as an independent, embedded, read-only component that reloads only itself.
+@UI("/checkin-cardex") @ReadOnly
+public class CardexView extends AutoEditableView<Cardex> {
+    private static volatile Cardex selected;          // demo holder; survives in-place re-renders
+    private static volatile boolean flip;
+    public static void prime(Cardex c) { selected = c; }
 
-    Object selectPax(HttpRequest httpRequest) {
-        if (!populate()) return Message.success("Reservation not found");
-        var p = httpRequest.runActionRq().parameters();        // the event payload
-        clientInfo.applySelectedPax(
-                str(p.get("lastName")), str(p.get("firstName")),
-                str(p.get("nationality")), Boolean.TRUE.equals(p.get("hasCardex")));
-        return new State(this);
+    @Override public Cardex load(HttpRequest rq)   { return selected != null ? selected : new Cardex(); }
+    @Override public void persist(Cardex c, HttpRequest rq) { selected = c; }
+
+    // Advertise reloadPax so the embedded component CLAIMS it (and routes it to handleAction).
+    @Override public List<Action> actions(HttpRequest rq) {
+        var l = new ArrayList<>(super.actions(rq));
+        l.add(Action.builder().id("reloadPax").build());
+        return l;
+    }
+
+    @Override public Object handleAction(String actionId, HttpRequest rq) {
+        if ("reloadPax".equals(actionId)) {
+            var pax = rq.getParameters(Cardex.class);   // the pax-selected payload
+            if (pax != null) selected = pax;
+            // Alternate the (always-view) route so the embedded mediator re-renders every time.
+            flip = !flip;
+            setRouteTo(flip ? "/view" : "/");
+            return new State(this);
+        }
+        return super.handleAction(actionId, rq);
     }
 }
 ```
 
-Clicking a guest row now refreshes the cardex with that pax's data in place. Since the grid and the
-cardex are `@Inline` sections of the **same** component, the event travels through the `DOCUMENT` bus
-and the page itself is the subscriber — the same pattern works unchanged when the panels are truly
-separate components (e.g. embedded orchestrator sections).
+Embed it in the page as a plain field; seed the lead on load so it shows data initially:
+
+```java
+public class CheckInForm {
+    @Section(value = "Info cardex", zone = "left") @Label("")
+    CardexView cardex = new CardexView();
+    // in load()/populate(): CardexView.prime(line.getGuests().get(0).getCardex());
+}
+```
+
+Now selecting a guest re-renders **only** the cardex with that pax — the rest of the check-in form,
+its scroll position and open sections are untouched.
+
+### Three things that make the self-reload work
+
+1. **`@SubscribeTo` on the entity, not the orchestrator** — an embedded `MultiView`'s triggers are
+   mapped from the loaded model (`Cardex`), so the subscription must live there.
+2. **Advertise the action** — `reloadPax` must be in the component's `actions()` (alongside the
+   built-in `edit`/`save`/`cancel-edit`), otherwise the dispatched event bubbles unclaimed and never
+   reaches the server. (`@OnRowSelected` registers its action automatically; a custom one on an
+   embedded orchestrator you add by hand.)
+3. **Force a re-render** — return `new State(this)` after alternating the (always-view) route.
+   The embedded mediator only re-renders when its route changes, so a fixed `/view` would update on
+   the first selection only; alternating `/view` ↔ `/` (both resolve to the view) re-renders on every
+   selection.
+
+### Simpler alternative — handle it on the page
+
+If a dedicated cardex component is overkill, subscribe on the page itself and update an `@Inline`
+section, returning `new State(this)`. The whole page re-renders (it may reset the active tab/scroll),
+but it needs no extra component:
+
+```java
+@SubscribeTo(event = "pax-selected", action = "selectPax", source = SubscriptionSource.DOCUMENT)
+public class CheckInForm {
+    Object selectPax(HttpRequest rq) {
+        populate();
+        clientInfo.applySelectedPax(rq.getParameters(Cardex.class));
+        return new State(this);
+    }
+}
+```
 
 ---
 

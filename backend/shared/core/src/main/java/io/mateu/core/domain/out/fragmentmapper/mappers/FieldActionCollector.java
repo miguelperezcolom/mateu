@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Lookup;
+import io.mateu.uidl.annotations.OnRowSelected;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.fluent.Action;
@@ -80,6 +81,14 @@ final class FieldActionCollector {
                             .build();
                       });
             })
+        .forEach(fieldActions::add);
+
+    // Register the developer action a grid field binds to row selection (@OnRowSelected), so the
+    // event dispatched on row click is claimed and sent to the server (otherwise it bubbles
+    // unhandled).
+    getAllFields(serverSideObject.getClass()).stream()
+        .filter(field -> field.isAnnotationPresent(OnRowSelected.class))
+        .map(field -> Action.builder().id(field.getAnnotation(OnRowSelected.class).value()).build())
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()

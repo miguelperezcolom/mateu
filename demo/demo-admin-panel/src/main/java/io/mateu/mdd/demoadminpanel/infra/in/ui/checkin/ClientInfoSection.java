@@ -10,26 +10,13 @@ import io.mateu.uidl.data.FieldStereotype;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @PlainText
 @Compact
 public class ClientInfoSection {
 
-    // ── Tab: Info Cardex ──────────────────────────────────────────────
-    @Tab("Info Cardex")
-    @Label("Titular")             String leadFullName;
-    @Label("Email")               String leadEmail;
-    @Label("Teléfono / Fax")      String leadPhoneFax;
-    @Label("Dirección")           String leadFullAddress;
-    @Label("Nac. / Idioma")       String leadNatLang;
-    @Label("F. nacimiento")       String leadDobSex;
-    @Label("Documento")           String leadDocInfo;
-    @Label("Nº Riu Class")        String leadRiuClassNo;
-    @Label("Acepta publicidad")   String leadAcceptsAds;
-    @Stereotype(FieldStereotype.badge) @Label("Acompañante")        boolean leadCompanion;
-    @Stereotype(FieldStereotype.badge) @Label("Cardex provisional") boolean leadProvisionalCardex;
+    // The "Info Cardex" tab moved out to its own independent embedded component (Cardex/CardexView),
+    // which reloads on guest-row selection. This section keeps the rest of the client tabs.
 
     // ── Tab: Datos Empresa ────────────────────────────────────────────
     @Tab("Datos Empresa")
@@ -57,32 +44,6 @@ public class ClientInfoSection {
     @Multiline @Label("Preferencias del cliente") String preferenceNotes;
 
     void populate(ReservationLine line) {
-        var lead = line.getGuests().isEmpty() ? null : line.getGuests().get(0);
-        leadFullName     = join(", ",
-                lead != null ? lead.getLastName() : null,
-                lead != null ? lead.getFirstName() : null);
-        leadEmail        = line.getLeadEmail();
-        leadPhoneFax     = join(" · ", line.getLeadPhone(), line.getLeadFax());
-        leadFullAddress  = join(", ",
-                line.getLeadAddress(),
-                join(" ", line.getLeadCp(), line.getLeadCity()),
-                line.getLeadProvince(),
-                line.getLeadCountryResidence());
-        leadNatLang      = join(" / ", line.getLeadNationality(), line.getLeadLanguage());
-        leadDobSex       = join(" · ",
-                line.getLeadDob() != null ? line.getLeadDob().toString() : null,
-                line.getLeadSex() != null ? line.getLeadSex().name() : null,
-                line.getLeadBirthCity());
-        leadDocInfo      = join(" · ",
-                line.getLeadDocType() != null ? line.getLeadDocType().name() : null,
-                line.getLeadDocNumber(),
-                line.getLeadIssued() != null ? "exp. " + line.getLeadIssued() : null,
-                line.getLeadExpiry() != null ? "cad. " + line.getLeadExpiry() : null);
-        leadRiuClassNo         = line.getLeadRiuClassNo();
-        leadAcceptsAds         = line.getLeadAcceptsAds();
-        leadCompanion          = line.isLeadCompanion();
-        leadProvisionalCardex  = line.isLeadProvisionalCardex();
-
         companyName    = line.getCompanyName();
         cif            = line.getCif();
         billingEmail   = line.getBillingEmail();
@@ -97,24 +58,5 @@ public class ClientInfoSection {
 
         historyStays   = new ArrayList<>(line.getHistoryStays());
         preferenceNotes = line.getPreferences();
-    }
-
-    /**
-     * Overlays the cardex (Info Cardex tab) with the data of a guest selected in the guests grid,
-     * driven by the "pax-selected" event. Only the per-pax fields change; the rest of the cardex
-     * keeps the reservation lead's contact data.
-     */
-    void applySelectedPax(
-            String lastName, String firstName, String nationality,
-            String paxType, String roomState, boolean hasCardex) {
-        leadFullName          = join(", ", lastName, firstName);
-        leadNatLang           = join(" · ", nationality, paxType, roomState);
-        leadProvisionalCardex = !hasCardex;
-    }
-
-    private static String join(String sep, String... parts) {
-        return Stream.of(parts)
-                .filter(s -> s != null && !s.isBlank())
-                .collect(Collectors.joining(sep));
     }
 }
