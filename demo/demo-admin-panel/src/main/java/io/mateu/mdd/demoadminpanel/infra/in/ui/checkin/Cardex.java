@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @PlainText
 @Compact
-@Title("Info cardex")
+@Title("")
 @SubscribeTo(event = "pax-selected", action = "reloadPax", source = SubscriptionSource.DOCUMENT)
 public class Cardex {
 
