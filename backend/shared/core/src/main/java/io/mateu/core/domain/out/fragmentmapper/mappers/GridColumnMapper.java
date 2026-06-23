@@ -5,6 +5,7 @@ import io.mateu.dtos.DataPageDto;
 import io.mateu.dtos.GridColumnDto;
 import io.mateu.uidl.data.ColumnAlignment;
 import io.mateu.uidl.data.FieldDataType;
+import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Grid;
 import io.mateu.uidl.data.GridColumn;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -59,6 +60,11 @@ public class GridColumnMapper {
     }
     if (List.of(FieldDataType.integer, FieldDataType.number, FieldDataType.money)
         .contains(gridColumn.dataType())) {
+      return ColumnAlignment.end.name();
+    }
+    // A column flagged as money via @Stereotype(money) keeps dataType=string but is
+    // formatted as currency, so it should be right-aligned like other numeric columns.
+    if (gridColumn.stereotype() == FieldStereotype.money) {
       return ColumnAlignment.end.name();
     }
     if (List.of(FieldDataType.bool).contains(gridColumn.dataType())) {

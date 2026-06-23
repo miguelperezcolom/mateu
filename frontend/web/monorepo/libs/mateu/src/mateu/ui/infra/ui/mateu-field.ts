@@ -492,7 +492,7 @@ export class MateuField extends LitElement {
             return html`<div
                     id="${this.field.fieldId}"
                     data-colspan="${this.field?.colspan}"
-                    style="display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.2; padding: 2px 0; ${this.field?.style}"
+                    style="display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.2; padding: 2px 0;${isMoney ? ' text-align: right;' : ''} ${this.field?.style}"
             >
                 <span style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); line-height: 1.1;">${label === nothing ? '' : label}</span>
                 ${body}
