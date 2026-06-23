@@ -134,6 +134,18 @@ export class MateuGrid extends MetadataDrivenElement {
             }
         }
 
+        // Vaadin distinguishes rows (for selection/active item) by item-id-path = "_rowNumber".
+        // Nested/read-only grids may arrive without it (the backend only stamps _rowNumber on
+        // direct collection fields), which makes every row share the same id, so selecting one
+        // selects all. Stamp a per-row index here as a fallback so each row has a distinct id.
+        if (Array.isArray(items)) {
+            items.forEach((row: any, i: number) => {
+                if (row && typeof row === 'object' && row._rowNumber === undefined) {
+                    row._rowNumber = i
+                }
+            })
+        }
+
         if (this.field?.formPosition && this.field?.formPosition.startsWith('modal')) {
             const grid = this;
             return html`
