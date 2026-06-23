@@ -69,17 +69,30 @@ public abstract class EditableView<V, E> extends MultiView {
   }
 
   private static boolean isEmbedded(HttpRequest httpRequest) {
+    return hasMarker(httpRequest, "_embeddedMediator");
+  }
+
+  /**
+   * Whether the host field of an embedded mediator was annotated {@code @Inline}, meaning the
+   * embedded view should drop its own page chrome (title/subtitle/kpis/badges) and the outlined
+   * Card around a single-section form so it blends into the host tab/section.
+   */
+  private static boolean isInline(HttpRequest httpRequest) {
+    return hasMarker(httpRequest, "_inline");
+  }
+
+  private static boolean hasMarker(HttpRequest httpRequest, String marker) {
     var rq = httpRequest.runActionRq();
     if (rq == null) {
       return false;
     }
     if (rq.componentState() != null
-        && "true".equals(String.valueOf(rq.componentState().get("_embeddedMediator")))) {
+        && "true".equals(String.valueOf(rq.componentState().get(marker)))) {
       return true;
     }
-    return (rq.route() != null && rq.route().contains("_embeddedMediator"))
+    return (rq.route() != null && rq.route().contains(marker))
         || (rq.serverSideComponentRoute() != null
-            && rq.serverSideComponentRoute().contains("_embeddedMediator"));
+            && rq.serverSideComponentRoute().contains(marker));
   }
 
   @Override
@@ -110,12 +123,15 @@ public abstract class EditableView<V, E> extends MultiView {
     if (!readOnly()) {
       toolbar.add(new Button("Edit", "edit"));
     }
+    var inline = isInline(httpRequest);
     String title = getTitle(view);
     httpRequest.setAttribute("windowTitle", title);
     return PageView.builder()
         .title(title)
-        .badges(createBadges(view))
-        .kpis(createKpis(view))
+        // Demote heading to h3 so the embedded view nests visually under the host @Section/@Tab.
+        .level(inline ? 1 : 0)
+        .badges(inline ? List.of() : createBadges(view))
+        .kpis(inline ? List.of() : createKpis(view))
         .content(
             getView(
                     view,
@@ -133,11 +149,13 @@ public abstract class EditableView<V, E> extends MultiView {
   }
 
   private Component buildEditorComponent(E editor, HttpRequest httpRequest) {
+    var inline = isInline(httpRequest);
     String title = getTitle(editor);
     httpRequest.setAttribute("windowTitle", title);
     return PageView.builder()
         .title(title)
-        .badges(createBadges(editor))
+        .level(inline ? 1 : 0)
+        .badges(inline ? List.of() : createBadges(editor))
         .content(
             getView(
                     editor,

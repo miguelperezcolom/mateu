@@ -390,7 +390,10 @@ public class CustomerForm {
 
 **Target:** `FIELD`
 
-Expands a nested POJO field's sub-fields directly into the parent section, without adding a `Card` wrapper or a separate header around the content. The parent field's `@Section` annotation provides the section title; the nested type's class-level annotations (`@PlainText`, `@Compact`, etc.) must be applied on the nested class itself — they are not inherited from the enclosing form.
+Drops the chrome (title, outlined card) that the framework would otherwise add around a nested field, so it blends into its host section/tab. Works in two flavours:
+
+- **POJO nested type** — expands the type's fields directly into the parent section, without adding a `Card` wrapper or a separate header around the content. The parent field's `@Section` annotation provides the section title; the nested type's class-level annotations (`@PlainText`, `@Compact`, etc.) must be applied on the nested class itself — they are not inherited from the enclosing form.
+- **Embedded orchestrator** (a `MultiView` subclass such as `AutoEditableView`) — the inner view drops badges/kpis, demotes its title from `h2` to `h3` so it nests under the host, and (for single-section forms) drops the outlined Card wrapper around its content. The parent `@Section` that hosts an `@Inline` orchestrator also drops its own title row so the embedded `h3` title + toolbar buttons render as one coherent row inside the section's card. For tabs (which have no parent title row), the embedded `h3` becomes the only visible title — remove `@Title` from the inner model class to suppress it entirely.
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -452,6 +455,38 @@ The "Guests" section card shows `[Welcome card]` on the same line as the heading
 Use `@Inline` on dense, information-rich screens (e.g. `@Compact` + `@Zones`) where an extra card nesting would add too much visual weight. For nested types that need their own clearly separated card and toolbar, omit `@Inline`.
 
 ![Inline — nested fields expanded directly into the parent section](/images/docs/annotations/inline.png)
+
+### Embedded orchestrator example
+
+A field whose type is a `MultiView` subclass (e.g. an `AutoEditableView<T>`) is embedded as a mediator sub-app. Annotating it with `@Inline` makes the embedded view collapse into the host section instead of stacking its own page chrome on top of the host card:
+
+```java
+// Routed editable view
+@UI("/pf-personal")
+public class PersonalDataView extends AutoEditableView<PersonalDataSection> {
+    @Override public PersonalDataSection load(HttpRequest r)     { return store; }
+    @Override public void persist(PersonalDataSection e, HttpRequest r) { store = e; }
+}
+
+// Host form
+@UI("/partial-forms")
+@Title("Formularios parciales")
+public class PartialFormDemo {
+
+    // @Inline → section header is hidden, the embedded view title renders as h3
+    // alongside the Edit / Save / Cancel toolbar, no inner Card wrap.
+    @Section("Datos personales")
+    @Inline
+    PersonalDataView personal;
+
+    @Section("Contacto")
+    ContactSection contact = new ContactSection();
+}
+```
+
+Result: the "Datos personales" card has no separate title row; instead it shows the embedded `h3` "Datos personales" + the Edit button in a single row, then the form fields. The "Contacto" section keeps its regular section heading because it is not `@Inline`.
+
+The marker travels via the embedded route (`?_embeddedMediator=1&_inline=1`), so the inline behaviour persists across view → edit → save cycles — including the toolbar buttons the embedded `AutoEditableView` brings.
 
 ---
 

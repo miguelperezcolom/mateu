@@ -1,6 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
 import io.mateu.uidl.annotations.Compact;
+import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Multiline;
 import io.mateu.uidl.annotations.PlainText;
@@ -18,8 +19,11 @@ public class ClientInfoSection {
     // ── Tab: Info Cardex ──────────────────────────────────────────────
     // Independent embedded component: subscribes to "pax-selected" and reloads only itself with the
     // selected guest's cardex (see CardexView / Cardex), without reloading the rest of the form.
+    // @Inline drops the embedded view's own page title and the outlined card around its single
+    // section, since the surrounding tab already provides framing.
     @Tab("Info Cardex")
     @Label("")
+    @Inline
     CardexView cardex = new CardexView();
 
     // ── Tab: Datos Empresa ────────────────────────────────────────────

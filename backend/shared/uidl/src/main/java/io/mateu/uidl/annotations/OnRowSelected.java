@@ -17,9 +17,9 @@ import java.lang.annotation.Target;
  * update another part of the screen.
  *
  * <p>On the frontend, clicking anywhere on a row triggers the selection (the row is resolved from
- * the grid's click context, since a read-only grid does not reliably fire Vaadin's
- * {@code active-item-changed} on click); rows show a pointer cursor to signal they are selectable.
- * The action id is also auto-registered on the component so the dispatched event reaches the server.
+ * the grid's click context, since a read-only grid does not reliably fire Vaadin's {@code
+ * active-item-changed} on click); rows show a pointer cursor to signal they are selectable. The
+ * action id is also auto-registered on the component so the dispatched event reaches the server.
  *
  * <pre>{@code
  * @OnRowSelected("onGuestSelected")

@@ -31,7 +31,16 @@ export const chooseRoute = (state: ComponentState, container: MateuApp, metadata
     const route = state?._route as string | undefined
     if (route != undefined && (route === '' || route.startsWith('/'))) {
         console.log('cogemos ruta de state._route', route)
-        return chooseConsumedRoute(container, metadata) + route
+        // Preserve any query-string markers from homeRoute (e.g. _embeddedMediator=1,
+        // _inline=1) so they keep travelling on every request as the orchestrator
+        // navigates internally via setRouteTo.
+        const homeRoute = metadata.homeRoute ?? ''
+        const queryIdx = homeRoute.indexOf('?')
+        const homeQuery = queryIdx >= 0 ? homeRoute.substring(queryIdx + 1) : ''
+        const baseRoute = chooseConsumedRoute(container, metadata) + route
+        if (!homeQuery) return baseRoute
+        const separator = baseRoute.indexOf('?') >= 0 ? '&' : '?'
+        return baseRoute + separator + homeQuery
     }
     if (container.selectedRoute) {
         console.log('cogemos ruta de container.selectedRoute', container.selectedRoute)

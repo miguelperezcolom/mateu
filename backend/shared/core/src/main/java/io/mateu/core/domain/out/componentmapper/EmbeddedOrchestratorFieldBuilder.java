@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.CustomField;
@@ -13,7 +14,9 @@ import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Renders a form field whose type is a routed orchestrator (a {@link MultiView} subclass such as an
@@ -33,6 +36,14 @@ final class EmbeddedOrchestratorFieldBuilder {
    */
   static final String EMBEDDED_MARKER = "_embeddedMediator";
 
+  /**
+   * Additional marker (set when the host field carries {@link Inline}) that asks the embedded
+   * orchestrator to render without the outer page chrome — no title/subtitle/kpis/badges in the
+   * page header and no outlined Card wrapper around a single-section form. Used so the embedded
+   * view blends into a host tab/section without duplicate framing.
+   */
+  static final String INLINE_MARKER = "_inline";
+
   static boolean isOrchestrator(Class<?> type) {
     return MultiView.class.isAssignableFrom(type);
   }
@@ -41,6 +52,24 @@ final class EmbeddedOrchestratorFieldBuilder {
   static boolean isEmbeddedRequest(HttpRequest httpRequest) {
     var rq = httpRequest.runActionRq();
     return rq != null && rq.route() != null && rq.route().contains(EMBEDDED_MARKER);
+  }
+
+  /**
+   * Whether the current request targets an embedded orchestrator that was marked {@link Inline} on
+   * the host field — so the inner view should drop its own page chrome and section card.
+   */
+  public static boolean isInlineRequest(HttpRequest httpRequest) {
+    var rq = httpRequest.runActionRq();
+    if (rq == null) {
+      return false;
+    }
+    if (rq.componentState() != null
+        && "true".equals(String.valueOf(rq.componentState().get(INLINE_MARKER)))) {
+      return true;
+    }
+    return (rq.route() != null && rq.route().contains(INLINE_MARKER))
+        || (rq.serverSideComponentRoute() != null
+            && rq.serverSideComponentRoute().contains(INLINE_MARKER));
   }
 
   static Component build(
@@ -60,7 +89,11 @@ final class EmbeddedOrchestratorFieldBuilder {
             + "_"
             + (prefix == null ? "" : prefix)
             + field.getName();
+    var inline = field.isAnnotationPresent(Inline.class);
     var markedRoute = route + (route.contains("?") ? "&" : "?") + EMBEDDED_MARKER + "=1";
+    if (inline) {
+      markedRoute += "&" + INLINE_MARKER + "=1";
+    }
     var app =
         AppShell.builder()
             .clientSideComponentId(componentId + "_app")
@@ -73,6 +106,11 @@ final class EmbeddedOrchestratorFieldBuilder {
             .variant(AppVariant.MEDIATOR)
             .style("width: 100%;")
             .build();
+    Map<String, Object> initialData = new LinkedHashMap<>();
+    initialData.put(EMBEDDED_MARKER, true);
+    if (inline) {
+      initialData.put(INLINE_MARKER, true);
+    }
     // Wrap the mediator app in a ServerSideComponent that carries the orchestrator's own actions
     // (edit/save/cancel…). Mirrors the standalone mediator: its component claims those actions, so
     // a
@@ -83,7 +121,7 @@ final class EmbeddedOrchestratorFieldBuilder {
             .id(componentId)
             .serverSideType(type.getName())
             .route(markedRoute)
-            .initialData(java.util.Map.of(EMBEDDED_MARKER, true))
+            .initialData(initialData)
             .actions(orchestratorActions(type, httpRequest))
             .children(List.of(app))
             .style("width: 100%;")

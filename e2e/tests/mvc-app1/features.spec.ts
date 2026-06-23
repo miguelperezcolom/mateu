@@ -1486,3 +1486,146 @@ test.describe('ConfirmOnNavigationForm — flag is opt-in', () => {
   });
 
 });
+
+// ---------------------------------------------------------------------------
+// @Inline on an embedded MultiView field
+//
+// InlineHostForm and NonInlineHostForm both wrap the same EmbeddedDataView
+// (an AutoEditableView<Data>). The host with @Inline must:
+//   1. Append _inline=1 next to _embeddedMediator=1 on the embedded route +
+//      initialData (carried by EmbeddedOrchestratorFieldBuilder).
+//   2. Hide the parent @Section title row.
+// And the embedded view, when loaded with _inline=1, must render its PageView
+// with level=1 (h3) and no badges/kpis, so it nests under the host card.
+// Without _inline the wrapper does not carry the marker, the section title
+// renders, and the embedded view stays at level=0.
+// ---------------------------------------------------------------------------
+
+const INLINE_HOST_API = '/inline-host/mateu/v3/components/_/action';
+const NON_INLINE_HOST_API = '/non-inline-host/mateu/v3/components/_/action';
+const EMBEDDED_DATA_API = '/embedded-data/mateu/v3/components/_/action';
+
+function findServerSideComponent(node: any, predicate: (n: any) => boolean): any {
+  if (!node || typeof node !== 'object') return null;
+  if (predicate(node)) return node;
+  const children = (node.children ?? []) as any[];
+  for (const child of children) {
+    const found = findServerSideComponent(child, predicate);
+    if (found) return found;
+  }
+  const content = node?.metadata?.content;
+  if (content) {
+    for (const item of (Array.isArray(content) ? content : [content])) {
+      const found = findServerSideComponent(item, predicate);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function findEmbeddedWrapper(body: any): any {
+  for (const f of body.fragments ?? []) {
+    const found = findServerSideComponent(
+      f.component,
+      (n) => n?.serverSideType === 'io.mateu.sample1.app.EmbeddedDataView'
+    );
+    if (found) return found;
+  }
+  return null;
+}
+
+function findSectionCard(body: any, label: string): any {
+  for (const f of body.fragments ?? []) {
+    for (const n of allNodes(f.component)) {
+      // Section title is rendered as a Text component whose text() equals the section value.
+      if (n?.metadata?.text === label) return n;
+    }
+  }
+  return null;
+}
+
+function findPageMetadata(body: any): any {
+  for (const f of body.fragments ?? []) {
+    for (const n of allNodes(f.component)) {
+      if (n?.metadata?.type === 'Page') return n.metadata;
+    }
+  }
+  return null;
+}
+
+test.describe('@Inline on embedded MultiView — host wrapper carries the marker', () => {
+
+  test('InlineHostForm embeds EmbeddedDataView with _inline=1 in route + initialData', async ({ request }) => {
+    const body = await callAction(request, INLINE_HOST_API, { route: '/', actionId: '__load__' });
+    const wrapper = findEmbeddedWrapper(body);
+    expect(wrapper).not.toBeNull();
+    expect(wrapper.route).toContain('_embeddedMediator');
+    expect(wrapper.route).toContain('_inline');
+    expect(wrapper.initialData).toMatchObject({ _embeddedMediator: true, _inline: true });
+  });
+
+  test('NonInlineHostForm embeds EmbeddedDataView without the _inline marker', async ({ request }) => {
+    const body = await callAction(request, NON_INLINE_HOST_API, { route: '/', actionId: '__load__' });
+    const wrapper = findEmbeddedWrapper(body);
+    expect(wrapper).not.toBeNull();
+    expect(wrapper.route).toContain('_embeddedMediator');
+    expect(wrapper.route).not.toContain('_inline');
+    expect(wrapper.initialData?._inline).toBeUndefined();
+  });
+
+  test('InlineHostForm hides the parent "Personal" section title', async ({ request }) => {
+    const body = await callAction(request, INLINE_HOST_API, { route: '/', actionId: '__load__' });
+    expect(findSectionCard(body, 'Personal')).toBeNull();
+  });
+
+  test('NonInlineHostForm renders the parent "Personal" section title', async ({ request }) => {
+    const body = await callAction(request, NON_INLINE_HOST_API, { route: '/', actionId: '__load__' });
+    expect(findSectionCard(body, 'Personal')).not.toBeNull();
+  });
+
+});
+
+test.describe('@Inline on embedded MultiView — inner view drops chrome', () => {
+
+  test('embedded view with _inline=1 renders PageView at level=1 (h3 nested heading)', async ({ request }) => {
+    const body = await callAction(request, EMBEDDED_DATA_API, {
+      route: '/?_embeddedMediator=1&_inline=1',
+      actionId: '',
+      serverSideType: 'io.mateu.sample1.app.EmbeddedDataView',
+    });
+    const page = findPageMetadata(body);
+    expect(page).not.toBeNull();
+    expect(page.level).toBe(1);
+    expect(page.title).toBe('Embedded Data');
+    expect(page.badges ?? []).toHaveLength(0);
+    expect(page.kpis ?? []).toHaveLength(0);
+  });
+
+  test('embedded view without _inline keeps the default level=0 (h2 top heading)', async ({ request }) => {
+    const body = await callAction(request, EMBEDDED_DATA_API, {
+      route: '/?_embeddedMediator=1',
+      actionId: '',
+      serverSideType: 'io.mateu.sample1.app.EmbeddedDataView',
+    });
+    const page = findPageMetadata(body);
+    expect(page).not.toBeNull();
+    expect(page.level ?? 0).toBe(0);
+    expect(page.title).toBe('Embedded Data');
+  });
+
+  test('switching to /edit while inline keeps level=1 (markers preserved across navigations)', async ({ request }) => {
+    const body = await callAction(request, EMBEDDED_DATA_API, {
+      route: '/edit?_embeddedMediator=1&_inline=1',
+      actionId: '',
+      serverSideType: 'io.mateu.sample1.app.EmbeddedDataView',
+    });
+    const page = findPageMetadata(body);
+    expect(page).not.toBeNull();
+    expect(page.level).toBe(1);
+    // Editor toolbar still carries Cancel/Save so users can finish editing.
+    const toolbarIds = (page.toolbar ?? []).map((b: any) => b.actionId);
+    expect(toolbarIds).toContain('save');
+    expect(toolbarIds).toContain('cancel-edit');
+  });
+
+});

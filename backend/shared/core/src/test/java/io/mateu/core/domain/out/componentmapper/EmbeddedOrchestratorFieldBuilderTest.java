@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.mateu.core.infra.declarative.orchestrators.editableview.AutoEditableView;
 import io.mateu.core.testutil.FakeHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
+import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.CustomField;
 import io.mateu.uidl.data.ServerSideComponent;
@@ -34,6 +35,10 @@ class EmbeddedOrchestratorFieldBuilderTest {
   static class Host {
     MyEditor editor;
     String plain;
+  }
+
+  static class InlineHost {
+    @Inline MyEditor editor;
   }
 
   private static FakeHttpRequest httpRequest() {
@@ -75,5 +80,51 @@ class EmbeddedOrchestratorFieldBuilderTest {
     assertThat(app.serverSideType()).isEqualTo(MyEditor.class.getName());
     assertThat(app.homeRoute()).contains("/my-editor");
     assertThat(app.homeRoute()).contains("_embeddedMediator");
+    // A non-@Inline host must NOT carry the inline marker — that flag is reserved for fields that
+    // opt in via @Inline and would otherwise alter the embedded view's chrome.
+    assertThat(app.homeRoute()).doesNotContain("_inline");
+    @SuppressWarnings("unchecked")
+    var nonInlineData = (java.util.Map<String, Object>) wrapper.initialData();
+    assertThat(nonInlineData).doesNotContainKey("_inline");
+  }
+
+  @Test
+  void inlineHostPropagatesInlineMarker() throws Exception {
+    var field = InlineHost.class.getDeclaredField("editor");
+
+    var component = EmbeddedOrchestratorFieldBuilder.build("", field, "host", httpRequest(), 2);
+
+    var wrapper = (ServerSideComponent) ((CustomField) component).content();
+    assertThat(wrapper.route()).contains("_embeddedMediator");
+    assertThat(wrapper.route()).contains("_inline");
+
+    var app = (AppShell) wrapper.children().get(0);
+    assertThat(app.homeRoute()).contains("_inline");
+
+    @SuppressWarnings("unchecked")
+    var initialData = (java.util.Map<String, Object>) wrapper.initialData();
+    assertThat(initialData).containsEntry("_embeddedMediator", true);
+    assertThat(initialData).containsEntry("_inline", true);
+  }
+
+  @Test
+  void isInlineRequestDetectsMarkerInRouteOrComponentState() {
+    var routeMatch =
+        new FakeHttpRequest(
+            RunActionRqDto.builder().route("/my-editor?_embeddedMediator=1&_inline=1").build());
+    assertThat(EmbeddedOrchestratorFieldBuilder.isInlineRequest(routeMatch)).isTrue();
+
+    var stateMatch =
+        new FakeHttpRequest(
+            RunActionRqDto.builder()
+                .route("/my-editor")
+                .componentState(java.util.Map.of("_inline", "true"))
+                .build());
+    assertThat(EmbeddedOrchestratorFieldBuilder.isInlineRequest(stateMatch)).isTrue();
+
+    var noMatch =
+        new FakeHttpRequest(
+            RunActionRqDto.builder().route("/my-editor?_embeddedMediator=1").build());
+    assertThat(EmbeddedOrchestratorFieldBuilder.isInlineRequest(noMatch)).isFalse();
   }
 }

@@ -95,31 +95,43 @@ final class SectionFormRenderer {
                       level))
               .build());
     }
+    var inline = EmbeddedOrchestratorFieldBuilder.isInlineRequest(httpRequest);
     return sections.stream()
         .map(
-            section ->
-                Card.builder()
-                    .variants(List.of(CardVariant.outlined))
-                    .content(
-                        Div.builder()
-                            .style("flex: 1; min-width: 0; width:100%;")
-                            .children(
-                                List.of(
-                                    buildFormLayout(
-                                        section,
-                                        fieldsPerSection,
-                                        prefix,
-                                        instance,
-                                        baseUrl,
-                                        route,
-                                        consumedRoute,
-                                        initiatorComponentId,
-                                        httpRequest,
-                                        forCreationForm,
-                                        readOnly,
-                                        level)))
-                            .build())
-                    .build())
+            section -> {
+              var formLayout =
+                  buildFormLayout(
+                      section,
+                      fieldsPerSection,
+                      prefix,
+                      instance,
+                      baseUrl,
+                      route,
+                      consumedRoute,
+                      initiatorComponentId,
+                      httpRequest,
+                      forCreationForm,
+                      readOnly,
+                      level);
+              if (inline) {
+                // Inline embedded mediator: render the section content bare, without the outlined
+                // Card wrapper, so it blends into the host section/tab without duplicate framing.
+                return (Component)
+                    Div.builder()
+                        .style("flex: 1; min-width: 0; width:100%;")
+                        .children(List.of(formLayout))
+                        .build();
+              }
+              return (Component)
+                  Card.builder()
+                      .variants(List.of(CardVariant.outlined))
+                      .content(
+                          Div.builder()
+                              .style("flex: 1; min-width: 0; width:100%;")
+                              .children(List.of(formLayout))
+                              .build())
+                      .build();
+            })
         .toList();
   }
 
@@ -152,9 +164,15 @@ final class SectionFormRenderer {
               var buttonTriggers =
                   collectInlineTriggers(
                       section, fieldsPerSection, instance, prefix, httpRequest, false);
+              // When the section's only field is an @Inline embedded MultiView, the embedded view
+              // brings its own (demoted) title + toolbar; suppress the parent section title so the
+              // two don't visually compete.
+              var hideTitle = hostsInlineEmbeddedMediator(section, fieldsPerSection);
 
               var titleComponent =
-                  buildTitleRow(section.value(), toolbarTriggers, level, titleStyle);
+                  hideTitle
+                      ? null
+                      : buildTitleRow(section.value(), toolbarTriggers, level, titleStyle);
               var formLayout =
                   buildFormLayout(
                       section,
@@ -171,7 +189,7 @@ final class SectionFormRenderer {
                       level);
 
               var contentItems = new ArrayList<Component>();
-              contentItems.add(titleComponent);
+              if (titleComponent != null) contentItems.add(titleComponent);
               contentItems.add(formLayout);
               if (!buttonTriggers.isEmpty()) {
                 contentItems.add(
@@ -193,6 +211,18 @@ final class SectionFormRenderer {
                       .build();
             })
         .toList();
+  }
+
+  private static boolean hostsInlineEmbeddedMediator(
+      Section section, Map<Section, SectionFields> fieldsPerSection) {
+    var sectionFields = fieldsPerSection.get(section);
+    if (sectionFields == null || sectionFields.fields().isEmpty()) return false;
+    return sectionFields.fields().stream()
+        .anyMatch(
+            f ->
+                f.isAnnotationPresent(Inline.class)
+                    && io.mateu.core.infra.declarative.orchestrators.MultiView.class
+                        .isAssignableFrom(f.getType()));
   }
 
   private static TextContainer getSectionHeaderContainer(int level) {

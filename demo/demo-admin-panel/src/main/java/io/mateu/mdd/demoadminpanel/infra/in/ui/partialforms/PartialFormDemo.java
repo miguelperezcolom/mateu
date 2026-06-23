@@ -24,8 +24,11 @@ import io.mateu.uidl.fluent.Component;
 public class PartialFormDemo {
 
     // ── Sección editable embebida (EditableView independiente) ─────────
+    // @Inline drops the embedded view's own page title and the outlined card around its single
+    // section, since the surrounding @Section already provides framing.
     @Section("Datos personales")
     @Label("")
+    @Inline
     PersonalDataView personal;
 
     // ── Secciones aún sin convertir (para contraste) ──────────────────
