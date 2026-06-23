@@ -191,8 +191,11 @@
               source without running Lombok's annotation processor, so it cannot
               resolve Lombok-only syntax such as @RequiredArgsConstructor(onConstructor_ = ...)
               and aborts with "cannot find symbol", producing an empty javadoc jar.
-              Delombok expands Lombok into plain Java under target/generated-sources/delombok,
-              and the javadoc plugin (configured in the parent pom) points its sourcepath there.
+              Delombok expands Lombok into plain Java under target/delombok, and the javadoc
+              plugin (configured in the parent pom) points its sourcepath there. The output
+              must stay OUT of target/generated-sources/ because IntelliJ automatically marks
+              every dir under generated-sources/ as a source root, which would clash with
+              src/main/java and break the IDE build with "duplicate class".
               The lombok dependency is pinned to match the version used for compilation
               (the plugin's bundled Lombok predates Java 21 records used in this module).
             -->
@@ -217,7 +220,7 @@
                         <configuration>
                             <addOutputDirectory>false</addOutputDirectory>
                             <sourceDirectory>src/main/java</sourceDirectory>
-                            <outputDirectory>${project.build.directory}/generated-sources/delombok</outputDirectory>
+                            <outputDirectory>${project.build.directory}/delombok</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -226,7 +229,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
-                    <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
+                    <sourcepath>${project.build.directory}/delombok</sourcepath>
                 </configuration>
             </plugin>
         </plugins>
