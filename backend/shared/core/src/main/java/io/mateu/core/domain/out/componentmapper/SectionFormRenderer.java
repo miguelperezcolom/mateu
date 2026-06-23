@@ -368,6 +368,7 @@ final class SectionFormRenderer {
     return HorizontalLayout.builder()
         .style("align-items: center; width: 100%;")
         .content(rowContent)
+        .spacing(true)
         .build();
   }
 

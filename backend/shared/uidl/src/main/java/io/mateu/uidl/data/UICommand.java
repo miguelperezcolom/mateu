@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.fluent.CustomEvent;
 import java.util.Map;
 import lombok.Builder;
 
@@ -7,6 +8,16 @@ import lombok.Builder;
 public record UICommand(UICommandType type, Object data) {
   public static UICommand navigateTo(String route) {
     return new UICommand(UICommandType.NavigateTo, route);
+  }
+
+  /** Emits a named custom event with no payload. Subscribers react via {@code @SubscribeTo}. */
+  public static UICommand dispatchEvent(String eventName) {
+    return new UICommand(UICommandType.DispatchEvent, new CustomEvent(eventName, null));
+  }
+
+  /** Emits a named custom event carrying {@code payload} as its detail. */
+  public static UICommand dispatchEvent(String eventName, Object payload) {
+    return new UICommand(UICommandType.DispatchEvent, new CustomEvent(eventName, payload));
   }
 
   public static UICommand runAction(String actionId) {

@@ -80,6 +80,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/keyboard-shortcuts' },
 						{ slug: 'ux-patterns/notifications' },
 						{ slug: 'ux-patterns/partial-forms' },
+						{ slug: 'ux-patterns/component-communication', label: 'Component Communication' },
 						{ slug: 'ux-patterns/high-density', label: 'High-Density Screens' },
 					],
 				},

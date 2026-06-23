@@ -25,7 +25,13 @@ public record ServerSideComponentDto(
      * navigates away without saving. Set via {@code @ConfirmOnNavigationIfDirty} or automatically
      * for CRUD create/edit views.
      */
-    boolean confirmOnNavigationIfDirty)
+    boolean confirmOnNavigationIfDirty,
+    /**
+     * Logical source name stamped into custom events emitted by this component (as {@code
+     * detail.__source}) so that {@code @SubscribeTo(source = COMPONENT, from = ...)} subscribers
+     * can filter by origin. Set via {@code @Emits(name = ...)}; null when unset.
+     */
+    String emitsName)
     implements ComponentDto {
 
   @Override
@@ -44,7 +50,8 @@ public record ServerSideComponentDto(
         validations,
         slot,
         containerId,
-        confirmOnNavigationIfDirty);
+        confirmOnNavigationIfDirty,
+        emitsName);
   }
 
   @Override
@@ -65,7 +72,8 @@ public record ServerSideComponentDto(
         validations,
         slot,
         containerId,
-        confirmOnNavigationIfDirty);
+        confirmOnNavigationIfDirty,
+        emitsName);
   }
 
   @Override
@@ -84,7 +92,8 @@ public record ServerSideComponentDto(
         validations,
         slot,
         containerId,
-        confirmOnNavigationIfDirty);
+        confirmOnNavigationIfDirty,
+        emitsName);
   }
 
   @Override
@@ -103,6 +112,7 @@ public record ServerSideComponentDto(
         validations,
         slot,
         containerId,
-        confirmOnNavigationIfDirty);
+        confirmOnNavigationIfDirty,
+        emitsName);
   }
 }

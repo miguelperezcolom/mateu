@@ -180,6 +180,34 @@ Use it when the Java type is not enough to express how the field should be rende
 
 ---
 
+## `@OnRowSelected`
+
+Binds row selection of a grid field (a `List` field rendered with `@Stereotype(FieldStereotype.grid)`)
+to a developer action. When the user clicks a row, Mateu runs the named method on the class that
+declares the grid field, **auto-injecting the selected row** as a method parameter (the parameter
+typed as the row class, via `HttpRequest.getClickedRow`). Unlike the built-in CRUD detail
+editing, it works on read-only grids too — making it the natural way to build a master/detail view:
+select a row, then emit an event or update another part of the screen.
+
+```java
+@OnRowSelected("onGuestSelected")
+@Stereotype(FieldStereotype.grid)
+List<GuestData> guests;
+
+Object onGuestSelected(GuestData guest, HttpRequest httpRequest) {
+    return UICommand.dispatchEvent("pax-selected", Map.of("name", guest.getFirstName()));
+}
+```
+
+### Key fields
+
+- `value` — name of the method/action to run when a row is selected.
+
+> Combine with [`@SubscribeTo` / `@Emits`](#subscribeto) to drive other components from a selection.
+> Opt-in: grids without `@OnRowSelected` keep their default selection behaviour.
+
+---
+
 ## `@Style`
 
 Adds inline CSS style to a type, field or parameter.
@@ -258,6 +286,75 @@ Use it when an action should be triggered automatically.
 - `OnValueChange`
 - `OnCustomEvent`
 - `OnEnter`
+
+---
+
+## `@SubscribeTo`
+
+Subscribes a component to a named custom event emitted by another component (or itself), so
+components on the same screen can talk to each other. When the event fires, Mateu runs the named
+action on the subscribing component server-side, passing the event payload as the action
+parameters. Repeatable at class level.
+
+```java
+// React to any "checkin-confirmed" event on the global bus by re-running this component's load.
+@SubscribeTo(event = "checkin-confirmed", action = "load")
+public class CheckInForm { ... }
+```
+
+Use it together with [`UICommand.dispatchEvent(...)`](#emitting-events) — one component emits, others
+react and refresh in place instead of forcing a full navigation.
+
+### Key fields
+
+- `event` — name of the custom event to listen for.
+- `action` — id (method name) of the action to run when the event fires.
+- `source` — where to listen (`SubscriptionSource`):
+  - `DOCUMENT` (default) — global event bus: react no matter which component emitted the event.
+  - `COMPONENT` — react only to events emitted by the component named in `from`.
+  - `SELF` — react only to events bubbling up from this component's own subtree (the behaviour of a
+    raw `@Trigger(type = OnCustomEvent)`).
+- `from` — logical name of the emitting component to match, used only with `source = COMPONENT`
+  (matches the emitter's `@Emits(name = ...)`).
+- `condition` — optional client-side expression that must hold for the action to run.
+
+> A raw `@Trigger(type = OnCustomEvent, ...)` is equivalent to `@SubscribeTo` with `source = SELF`.
+
+---
+
+## `@Emits`
+
+Declares the custom events a component emits and, optionally, the logical name it emits them under.
+It is mostly documentary — events are actually emitted by returning `UICommand.dispatchEvent(...)`
+from an action. Its one runtime effect is `name`: when set, it is stamped into every event the
+component emits (as `detail.__source`) so `@SubscribeTo(source = COMPONENT, from = ...)` subscribers
+can filter by origin. When omitted, the component's server-side type acts as the implicit source.
+
+```java
+@Emits(events = "checkin-confirmed", name = "guests-section")
+public class GuestsSection { ... }
+```
+
+### Key fields
+
+- `events` — names of the events this component emits (documentary).
+- `name` — logical source name stamped into emitted events as `detail.__source`.
+
+### Emitting events
+
+Return a `UICommand.dispatchEvent(...)` from any action to fire a custom event from that component:
+
+```java
+@Toolbar
+Object confirmCheckin(HttpRequest httpRequest) {
+    // ... persist ...
+    return List.of(
+        Message.success("Check-in confirmed"),
+        UICommand.dispatchEvent("checkin-confirmed", Map.of("reservationId", id)));
+}
+```
+
+The event bubbles (`composed`), so `DOCUMENT`-scoped subscribers anywhere on the page receive it.
 
 ---
 

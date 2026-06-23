@@ -41,6 +41,7 @@ public class ComponentTreeSupplierMapper {
         ValidationMapper.mapValidations(componentTreeSupplier, route),
         null,
         null,
-        false);
+        false,
+        EmitsMapper.emitsName(componentTreeSupplier));
   }
 }

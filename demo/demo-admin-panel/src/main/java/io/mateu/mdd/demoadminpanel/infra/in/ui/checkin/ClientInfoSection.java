@@ -99,6 +99,19 @@ public class ClientInfoSection {
         preferenceNotes = line.getPreferences();
     }
 
+    /**
+     * Overlays the cardex (Info Cardex tab) with the data of a guest selected in the guests grid,
+     * driven by the "pax-selected" event. Only the per-pax fields change; the rest of the cardex
+     * keeps the reservation lead's contact data.
+     */
+    void applySelectedPax(
+            String lastName, String firstName, String nationality,
+            String paxType, String roomState, boolean hasCardex) {
+        leadFullName          = join(", ", lastName, firstName);
+        leadNatLang           = join(" · ", nationality, paxType, roomState);
+        leadProvisionalCardex = !hasCardex;
+    }
+
     private static String join(String sep, String... parts) {
         return Stream.of(parts)
                 .filter(s -> s != null && !s.isBlank())

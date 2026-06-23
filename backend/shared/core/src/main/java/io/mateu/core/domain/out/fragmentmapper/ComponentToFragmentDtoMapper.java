@@ -46,6 +46,7 @@ public final class ComponentToFragmentDtoMapper {
           .id(serverSideComponent.id())
           .serverSideType(serverSideComponent.serverSideType())
           .route(serverSideComponent.route())
+          .emitsName(serverSideComponent.emitsName())
           .initialData(serverSideComponent.initialData())
           .style(serverSideComponent.style())
           .cssClasses(serverSideComponent.cssClasses())

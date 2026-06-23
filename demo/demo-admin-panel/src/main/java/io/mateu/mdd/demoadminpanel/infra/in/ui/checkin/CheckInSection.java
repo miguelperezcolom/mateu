@@ -1,14 +1,20 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
-import io.mateu.uidl.annotations.Colspan;
-import io.mateu.uidl.annotations.Compact;
-import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Multiline;
-import io.mateu.uidl.annotations.PlainText;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.UICommand;
+import io.mateu.uidl.di.MateuBeanProvider;
+import io.mateu.uidl.interfaces.HttpRequest;
+
+import java.util.List;
+import java.util.Map;
 
 @PlainText
 @Compact
+@Emits(events = "checkin-confirmed", name = "check-in-section")
 public class CheckInSection {
+
+    @Hidden String id;
 
     @Label("Nº habitación")             String assignedRoom;
     @Label("Tipo hab. física")          String roomTypePhysical;
@@ -19,7 +25,31 @@ public class CheckInSection {
     @Colspan(2) @Multiline @Label("Observaciones internas")  String observacionesInternas;
     @Colspan(2) @Multiline @Label("Avisos")                  String avisos;
 
+    @Toolbar
+    @Label("Check-in")
+    Object confirmCheckin(HttpRequest httpRequest) {
+        var repository = MateuBeanProvider.getBean(ReservationLineRepository.class);
+        return repository.findById(id).map(line -> {
+            line.setStatus(CheckInStatus.CHECKED_IN);
+            repository.save(line);
+            // Announce it on the bus: the whole form (and any subscriber) refreshes in place.
+            return (Object) List.of(
+                    Message.success("Check-in confirmado para " + line.getTitular()),
+                    UICommand.dispatchEvent("checkin-confirmed", Map.of("reservationId", id))
+            );
+        }).orElse(Message.success("Reservation not found"));
+    }
+
+    @Toolbar
+    @Label("Pre asignar")
+    Object preAsignar(HttpRequest httpRequest) {
+        return Message.success("Habitación pre-asignada");
+    }
+
+
+
     void populate(ReservationLine line) {
+        id                   = line.getId();
         assignedRoom         = line.getAssignedRoom();
         roomTypePhysical     = line.getRoomTypePhysical();
         roomType             = line.getRoomType();

@@ -13,6 +13,8 @@ import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Style;
+import io.mateu.uidl.annotations.SubscribeTo;
+import io.mateu.uidl.annotations.SubscriptionSource;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
@@ -35,6 +37,11 @@ import java.util.List;
 @Scope("prototype")
 @Route(value = "/:id/checkin", uis = {"/checkin"})
 @Trigger(type = TriggerType.OnLoad, actionId = "load")
+// Refresh the whole form in place whenever any component announces a confirmed check-in,
+// instead of forcing a navigation. Listens on the global event bus (document).
+@SubscribeTo(event = "checkin-confirmed", action = "load", source = SubscriptionSource.DOCUMENT)
+// When a guest row is selected, update the cardex with the selected pax's info.
+@SubscribeTo(event = "pax-selected", action = "selectPax", source = SubscriptionSource.DOCUMENT)
 @ConfirmOnNavigationIfDirty
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @Compact
@@ -117,6 +124,26 @@ public class CheckInForm implements HeaderSupplier {
         return populate() ? (Object) new State(this) : Message.success("Reservation not found");
     }
 
+    // Triggered by the "pax-selected" event (emitted by GuestsSection on row selection).
+    // The selected pax fields travel in the event payload (the action parameters).
+    Object selectPax(HttpRequest httpRequest) {
+        if (!populate()) {
+            return Message.success("Reservation not found");
+        }
+        var p = httpRequest.runActionRq().parameters();
+        if (p != null) {
+            clientInfo.applySelectedPax(
+                    str(p.get("lastName")), str(p.get("firstName")),
+                    str(p.get("nationality")), str(p.get("paxType")),
+                    str(p.get("roomState")), Boolean.TRUE.equals(p.get("hasCardex")));
+        }
+        return new State(this);
+    }
+
+    private static String str(Object o) {
+        return o != null ? o.toString() : null;
+    }
+
     boolean populate() {
         var found = repository.findById(id);
         if (found.isEmpty()) {
@@ -160,64 +187,56 @@ public class CheckInForm implements HeaderSupplier {
         return true;
     }
 
-    private ReservationLine apply(ReservationLine line) {
-        checkIn.applyTo(line);
-        guestList.applyTo(line);
-        roomInfo.applyTo(line);
-        folios.applyTo(line);
-        return line;
-    }
 
     @Button
     @Label("Guardar")
     Object save(HttpRequest httpRequest) {
         return repository.findById(id).map(line -> {
-            repository.save(apply(line));
+            //repository.save(apply(line));
             return (Object) List.of(Message.success("Guardado"), UICommand.markAsClean());
         }).orElse(Message.success("Reservation not found"));
     }
 
     @Button
-    @Label("Confirmar check-in")
-    Object confirmCheckin(HttpRequest httpRequest) {
-        return repository.findById(id).map(line -> {
-            apply(line).setStatus(CheckInStatus.CHECKED_IN);
-            repository.save(line);
-            return (Object) List.of(
-                    Message.success("Check-in confirmado para " + line.getTitular()),
-                    MateuBeanProvider.getBean(CheckInListing.class)
-            );
-        }).orElse(Message.success("Reservation not found"));
+    @Label("Detalle")
+    Object detalle(HttpRequest httpRequest) {
+        return Message.success("Detalle");
     }
 
     @Button
-    @Label("Pre asignar")
-    Object preAsignar(HttpRequest httpRequest) {
-        return Message.success("Habitación pre-asignada");
+    @Label("Editor")
+    Object editor(HttpRequest httpRequest) {
+        return Message.success("Editor");
     }
-
     @Button
-    @Label("Lector documento")
-    Object lectorDocumento(HttpRequest httpRequest) {
-        return Message.success("Lector de documento iniciado");
+    @Label("Estado Reserva")
+    Object estado(HttpRequest httpRequest) {
+        return Message.success("Estado");
     }
-
-
-
     @Button
-    @Label("No show")
-    Object noShow(HttpRequest httpRequest) {
-        return Message.success("Reserva marcada como No show");
+    @Label("Prev. Cupo")
+    Object prevCupo(HttpRequest httpRequest) {
+        return Message.success("Perv. Cupo");
     }
-
     @Button
-    @Label("Deshacer check-in")
-    Object deshacerCheckin(HttpRequest httpRequest) {
-        return repository.findById(id).map(line -> {
-            line.setStatus(CheckInStatus.PENDING);
-            repository.save(line);
-            return (Object) Message.success("Check-in deshecho");
-        }).orElse(Message.success("Reservation not found"));
+    @Label("Recibo T.")
+    Object reciboT(HttpRequest httpRequest) {
+        return Message.success("Recibo T.");
+    }
+    @Button
+    @Label("Huéspedes")
+    Object huespedes(HttpRequest httpRequest) {
+        return Message.success("Huéspedes");
+    }
+    @Button
+    @Label("Envío conf. reserva")
+    Object envioConfReserva(HttpRequest httpRequest) {
+        return Message.success("Envío conf. reserva");
+    }
+    @Button
+    @Label("Auditoría Res.")
+    Object autitoriaRes(HttpRequest httpRequest) {
+        return Message.success("Auditoria Res.");
     }
 
     // ── Context strip shown above the two columns ─────────────────────

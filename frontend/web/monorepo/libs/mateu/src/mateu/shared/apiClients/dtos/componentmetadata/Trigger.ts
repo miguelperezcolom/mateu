@@ -10,5 +10,8 @@ export default interface Trigger {
     calledActionId: string
     timeoutMillis: number
     debounceMillis: number
+    // For OnCustomEvent triggers: where to listen and, for COMPONENT scope, the source to match.
+    source?: 'DOCUMENT' | 'COMPONENT' | 'SELF'
+    from?: string
 
 }

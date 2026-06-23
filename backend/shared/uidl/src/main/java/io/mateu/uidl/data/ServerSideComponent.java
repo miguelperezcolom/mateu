@@ -22,7 +22,8 @@ public record ServerSideComponent(
     List<Validation> validations,
     String slot,
     String containerId,
-    boolean confirmOnNavigationIfDirty)
+    boolean confirmOnNavigationIfDirty,
+    String emitsName)
     implements Component {
   @Override
   public List<Component> children() {

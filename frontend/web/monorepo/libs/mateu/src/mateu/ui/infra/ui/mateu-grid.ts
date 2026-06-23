@@ -219,7 +219,10 @@ export class MateuGrid extends MetadataDrivenElement {
                 if (item) {
                     this.dispatchEvent(new CustomEvent('action-requested', {
                         detail: {
-                            actionId: this.field?.onItemSelectionActionId
+                            actionId: this.field?.onItemSelectionActionId,
+                            // Carry the selected row so the handler can read it via
+                            // HttpRequest.getClickedRow(...) (mirrors the row-action convention).
+                            parameters: { _clickedRow: item }
                         },
                         bubbles: true,
                         composed: true

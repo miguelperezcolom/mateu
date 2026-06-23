@@ -55,10 +55,8 @@ public class FutureComponentMapper {
         mapValidations(futureComponent.instance(), route),
         null,
         null,
-        futureComponent
-            .instance()
-            .getClass()
-            .isAnnotationPresent(ConfirmOnNavigationIfDirty.class));
+        futureComponent.instance().getClass().isAnnotationPresent(ConfirmOnNavigationIfDirty.class),
+        EmitsMapper.emitsName(futureComponent.instance()));
   }
 
   public static Component createComponent(

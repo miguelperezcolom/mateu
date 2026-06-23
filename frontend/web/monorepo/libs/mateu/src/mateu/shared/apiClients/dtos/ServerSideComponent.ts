@@ -13,5 +13,7 @@ export default interface ServerSideComponent extends Component {
     actions: Action[] | undefined
     rules: Rule[]
     validations: Validation[]
+    // Logical source name stamped into custom events this component emits (see @Emits).
+    emitsName?: string | undefined
 
 }

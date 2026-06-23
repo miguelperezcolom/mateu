@@ -117,12 +117,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                 this.data = { ...this.data, ...fragment.data }
             }
 
-            const serverSideComponent = this.component as ServerSideComponent
-
-            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
-                .forEach(trigger => {
-                    this.addEventListener(trigger.eventName, this.customEventManager)
-                })
+            this.registerCustomEventListeners()
             const afterRenderHook = componentRenderer.getAfterRenderHook()
             if (afterRenderHook) {
                 setTimeout(() => afterRenderHook(this))
@@ -136,11 +131,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
     triggerOnLoad = () => {
         const serverSideComponent = this.component as ServerSideComponent
 
-        serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
-            .forEach(trigger => {
-                console.log('adding listener for ' + trigger.eventName)
-                this.addEventListener(trigger.eventName, this.customEventManager)
-            })
+        this.registerCustomEventListeners()
 
         serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnLoad)
             .forEach(trigger => {
@@ -181,27 +172,68 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         }, onloadTrigger.timeoutMillis);
     }
 
+    // Listeners currently attached for OnCustomEvent triggers, so they can be removed on
+    // re-registration (idempotency) and on disconnect (to avoid leaking document-level listeners).
+    private _registeredCustomEventListeners: { target: EventTarget, name: string }[] = []
+
+    // (Re)attach a listener per OnCustomEvent trigger, on the target dictated by its source:
+    //   DOCUMENT / COMPONENT -> document (global bus, reaches sibling/unrelated components)
+    //   SELF (or unset)      -> this element (legacy: only events bubbling up from descendants)
+    private registerCustomEventListeners() {
+        this._registeredCustomEventListeners.forEach(({ target, name }) =>
+            target.removeEventListener(name, this.customEventManager))
+        this._registeredCustomEventListeners = []
+        const serverSideComponent = this.component as ServerSideComponent
+        serverSideComponent?.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
+            .forEach(trigger => {
+                const target: EventTarget =
+                    (trigger.source === 'DOCUMENT' || trigger.source === 'COMPONENT')
+                        ? document : this
+                target.addEventListener(trigger.eventName, this.customEventManager)
+                this._registeredCustomEventListeners.push({ target, name: trigger.eventName })
+            })
+    }
+
+    disconnectedCallback() {
+        this._registeredCustomEventListeners.forEach(({ target, name }) =>
+            target.removeEventListener(name, this.customEventManager))
+        this._registeredCustomEventListeners = []
+        super.disconnectedCallback()
+    }
+
     customEventManager:  EventListenerOrEventListenerObject = (event: Event) => {
-        event.stopPropagation()
-        event.preventDefault()
-        if (event instanceof CustomEvent) {
-            const customEvent = event as CustomEvent
-            const serverSideComponent = this.component as ServerSideComponent
-            serverSideComponent.triggers?.filter(trigger => trigger.type == TriggerType.OnCustomEvent)
-                .filter(trigger => trigger.eventName == customEvent.type)
-                .forEach(trigger => {
-                    if (!trigger.condition || this._evalExpr(trigger.condition)) {
-                        this.manageActionRequestedEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: trigger.actionId,
-                                parameters: customEvent.detail
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    }
-                })
+        if (!(event instanceof CustomEvent)) {
+            return
         }
+        const customEvent = event as CustomEvent
+        const serverSideComponent = this.component as ServerSideComponent
+        const matching = (serverSideComponent.triggers ?? [])
+            .filter(trigger => trigger.type == TriggerType.OnCustomEvent)
+            .filter(trigger => trigger.eventName == customEvent.type)
+            // COMPONENT scope: only react to events emitted by the named source component
+            .filter(trigger => trigger.source !== 'COMPONENT'
+                || (customEvent.detail as any)?.__source === trigger.from)
+        if (matching.length === 0) {
+            return
+        }
+        // Consume the event only for SELF subscriptions (legacy behaviour where an ancestor
+        // swallows a descendant's event). DOCUMENT/COMPONENT must let other global subscribers see it.
+        if (matching.some(trigger => !trigger.source || trigger.source === 'SELF')) {
+            event.stopPropagation()
+            event.preventDefault()
+        }
+        matching.forEach(trigger => {
+            if (!trigger.condition || this._evalExpr(trigger.condition)) {
+                this.manageActionRequestedEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: trigger.actionId,
+                        parameters: customEvent.detail
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        })
     }
 
 

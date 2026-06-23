@@ -71,8 +71,7 @@ public class GridColumnBuilder {
         .style(getStyleForArray(field))
         .colspan(getColspan(field, null, null))
         .itemIdPath("_rowNumber")
-        .onItemSelectionActionId(
-            readOnly ? null : getFieldId(field, prefix, readOnly) + "_selected")
+        .onItemSelectionActionId(getOnItemSelectionActionId(field, prefix, readOnly))
         .formPosition(getFormPosition(field))
         .formStyle(getFormStyle(field))
         .formTheme(getFormTheme(field))
@@ -81,6 +80,23 @@ public class GridColumnBuilder {
         .minHeightWhenDetailVisible(getMinHeightWhenDetailVisible(field))
         .optionsColumns(getOptionsColumns(field))
         .build();
+  }
+
+  /**
+   * Action id fired when a grid row is selected. With {@link OnRowSelected} the field binds
+   * selection to a developer method (and works even on read-only grids); the id is routed to that
+   * method via the {@code nested-form-action-} scheme when the grid lives inside a nested section.
+   * Without it, keeps the legacy CRUD behaviour: {@code <fieldId>_selected} for editable grids,
+   * nothing for read-only ones.
+   */
+  private static String getOnItemSelectionActionId(Field field, String prefix, boolean readOnly) {
+    if (field.isAnnotationPresent(OnRowSelected.class)) {
+      var method = field.getAnnotation(OnRowSelected.class).value();
+      return (prefix == null || prefix.isEmpty())
+          ? method
+          : "nested-form-action-" + prefix + method;
+    }
+    return readOnly ? null : getFieldId(field, prefix, readOnly) + "_selected";
   }
 
   public static int getDetailFormColumns(Field field) {

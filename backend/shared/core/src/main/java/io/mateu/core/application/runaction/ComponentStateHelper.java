@@ -3,6 +3,7 @@ package io.mateu.core.application.runaction;
 import static io.mateu.core.domain.act.FieldCrudActionRunner.getViewModelClass;
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper.mapActions;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.EmitsMapper.emitsName;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRules;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
@@ -75,7 +76,8 @@ public class ComponentStateHelper {
         mapValidations(modelView, route),
         null,
         null,
-        false);
+        false,
+        emitsName(modelView));
   }
 
   public static Object getState(Object modelView, HttpRequest httpRequest) {

@@ -7,6 +7,7 @@ import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isPage
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.UIFragmentAssembler.getData;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper.mapActions;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.EmitsMapper.emitsName;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRules;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
@@ -110,7 +111,8 @@ public class ReflectionObjectToComponentMapper {
             mapValidations(instance, route),
             null,
             null,
-            instance.getClass().isAnnotationPresent(ConfirmOnNavigationIfDirty.class)),
+            instance.getClass().isAnnotationPresent(ConfirmOnNavigationIfDirty.class),
+            emitsName(instance)),
         instance,
         getData(httpRequest, instance),
         UIFragmentActionDto.Replace,

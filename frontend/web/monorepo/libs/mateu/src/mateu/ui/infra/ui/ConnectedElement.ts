@@ -172,8 +172,19 @@ export default abstract class ConnectedElement extends LitElement {
                 detail?: unknown
             }
             if (data && data.eventName) {
+                // Stamp the emitting component's logical source name so that COMPONENT-scoped
+                // subscribers (@SubscribeTo(source = COMPONENT, from = ...)) can filter by origin.
+                // Falls back to the server-side type when @Emits(name=...) is not set. Only added to
+                // object payloads, so legacy events with null/primitive detail keep their exact shape.
+                const emitter = (this as any).component as
+                    { emitsName?: string, serverSideType?: string } | undefined
+                const source = emitter?.emitsName ?? emitter?.serverSideType
+                let detail = data.payload ?? data.detail
+                if (source && detail && typeof detail === 'object') {
+                    detail = { ...detail as object, __source: source }
+                }
                 this.dispatchEvent(new CustomEvent(data.eventName, {
-                    detail: data.payload ?? data.detail,
+                    detail,
                     bubbles: true,
                     composed: true
                 }))

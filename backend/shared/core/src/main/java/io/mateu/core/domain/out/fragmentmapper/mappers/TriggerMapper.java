@@ -25,7 +25,8 @@ public class TriggerMapper {
                         new OnLoadTrigger(
                             t.actionId(), t.timeoutMillis(), t.times(), t.condition());
                     case OnCustomEventTrigger t ->
-                        new OnCustomEventTrigger(t.actionId(), t.eventName(), t.condition());
+                        new OnCustomEventTrigger(
+                            t.actionId(), t.eventName(), t.condition(), t.source(), t.from());
                     case OnSuccessTrigger t ->
                         new OnSuccessTrigger(
                             t.actionId(), t.calledActionId(), t.condition(), t.timeoutMillis());
@@ -46,6 +47,22 @@ public class TriggerMapper {
                         .getAnnotationsByType(io.mateu.uidl.annotations.Trigger.class))
                 .map(TriggerMapper::mapToTrigger)
                 .toList());
+    triggers.addAll(
+        Arrays.stream(
+                serverSideObject
+                    .getClass()
+                    .getAnnotationsByType(io.mateu.uidl.annotations.SubscribeTo.class))
+            .map(
+                a ->
+                    (Trigger)
+                        OnCustomEventTrigger.builder()
+                            .actionId(a.action())
+                            .eventName(a.event())
+                            .condition(a.condition())
+                            .source(a.source())
+                            .from(a.from().isBlank() ? null : a.from())
+                            .build())
+            .toList());
     var autoSave = serverSideObject.getClass().getAnnotation(AutoSave.class);
     if (autoSave != null) {
       triggers.add(new AutoSaveTrigger(autoSave.action(), autoSave.debounceMillis()));
@@ -60,6 +77,8 @@ public class TriggerMapper {
               .actionId(annotation.actionId())
               .condition(annotation.condition())
               .eventName(annotation.eventName())
+              .source(io.mateu.uidl.annotations.SubscriptionSource.SELF)
+              .from(null)
               .build();
       case OnSuccess ->
           OnSuccessTrigger.builder()
@@ -94,12 +113,16 @@ public class TriggerMapper {
     if (trigger instanceof AutoSaveTrigger(String actionId, int debounceMillis)) {
       return AutoSaveTriggerDto.builder().actionId(actionId).debounceMillis(debounceMillis).build();
     }
-    if (trigger
-        instanceof OnCustomEventTrigger(String actionId, String eventName, String condition)) {
+    if (trigger instanceof OnCustomEventTrigger t) {
       return OnCustomEventTriggerDto.builder()
-          .actionId(actionId)
-          .eventName(eventName)
-          .condition(condition)
+          .actionId(t.actionId())
+          .eventName(t.eventName())
+          .condition(t.condition())
+          .source(
+              t.source() == null
+                  ? SubscriptionSourceDto.SELF
+                  : SubscriptionSourceDto.valueOf(t.source().name()))
+          .from(t.from())
           .build();
     }
     if (trigger
