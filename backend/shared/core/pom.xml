@@ -186,6 +186,49 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--
+              Delombok the sources before Javadoc runs. Javadoc parses the raw
+              source without running Lombok's annotation processor, so it cannot
+              resolve Lombok-only syntax such as @RequiredArgsConstructor(onConstructor_ = ...)
+              and aborts with "cannot find symbol", producing an empty javadoc jar.
+              Delombok expands Lombok into plain Java under target/generated-sources/delombok,
+              and the javadoc plugin (configured in the parent pom) points its sourcepath there.
+              The lombok dependency is pinned to match the version used for compilation
+              (the plugin's bundled Lombok predates Java 21 records used in this module).
+            -->
+            <plugin>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-maven-plugin</artifactId>
+                <version>1.18.20.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                        <version>1.18.40</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>delombok-for-javadoc</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>delombok</goal>
+                        </goals>
+                        <configuration>
+                            <addOutputDirectory>false</addOutputDirectory>
+                            <sourceDirectory>src/main/java</sourceDirectory>
+                            <outputDirectory>${project.build.directory}/generated-sources/delombok</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <sourcepath>${project.build.directory}/generated-sources/delombok</sourcepath>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
