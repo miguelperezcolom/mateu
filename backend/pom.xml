@@ -57,6 +57,20 @@
 
   <dependencyManagement>
     <dependencies>
+      <!--
+        Pin Lombok ahead of the Spring Boot BOM. spring-boot-starter-parent 3.3.4 manages
+        Lombok to 1.18.34, which crashes on newer JDKs (e.g. JDK 25:
+        "com.sun.tools.javac.code.TypeTag :: UNKNOWN"). A directly declared managed dependency
+        wins over one from an imported BOM, so this bumps every module — including the framework
+        adapters that pick Lombok up transitively from the classpath rather than pinning it in
+        their own annotationProcessorPaths. (Overriding the lombok.version property does NOT work
+        here because spring-boot-starter-parent is imported as a BOM, not used as the parent.)
+      -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.40</version>
+      </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
