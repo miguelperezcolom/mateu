@@ -59,15 +59,34 @@ public abstract class EditableView<V, E> extends MultiView {
     var result = new ArrayList<>();
     result.add(new State(this));
     if (message != null) result.add(message);
-    result.add(UICommand.pushStateToHistory(getComponentRoute() + route));
+    // When embedded as a mediator inside a host page, the view ↔ edit toggle happens in place
+    // (the embedded <mateu-ux> re-renders from the new state route); pushing to the browser history
+    // would leak the navigation to the host app and reload the whole page.
+    if (!isEmbedded(httpRequest)) {
+      result.add(UICommand.pushStateToHistory(getComponentRoute() + route));
+    }
     return result;
+  }
+
+  private static boolean isEmbedded(HttpRequest httpRequest) {
+    var rq = httpRequest.runActionRq();
+    if (rq == null) {
+      return false;
+    }
+    if (rq.componentState() != null
+        && "true".equals(String.valueOf(rq.componentState().get("_embeddedMediator")))) {
+      return true;
+    }
+    return (rq.route() != null && rq.route().contains("_embeddedMediator"))
+        || (rq.serverSideComponentRoute() != null
+            && rq.serverSideComponentRoute().contains("_embeddedMediator"));
   }
 
   @Override
   public List<Action> actions(HttpRequest httpRequest) {
     return List.of(
         Action.builder().id("edit").build(),
-        Action.builder().id("save").validationRequired(true).bubble(true).build(),
+        Action.builder().id("save").validationRequired(true).build(),
         Action.builder().id("cancel-edit").build());
   }
 
@@ -132,6 +151,8 @@ public abstract class EditableView<V, E> extends MultiView {
                 .stream()
                 .toList())
         .toolbar(List.of(new Button("Cancel", "cancel-edit"), new Button("Save", "save")))
+        // The editor bubbles save (carrying its own state as initiatorState) up to the mediator,
+        // which handles it; see AutoEditableView.save reading getInitiatorState.
         .actions(List.of(Action.builder().id("save").validationRequired(true).bubble(true).build()))
         .build();
   }

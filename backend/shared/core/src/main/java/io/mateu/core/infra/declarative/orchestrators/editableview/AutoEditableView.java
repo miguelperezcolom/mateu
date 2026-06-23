@@ -18,7 +18,9 @@ public abstract class AutoEditableView<T> extends EditableView<T, T> {
 
   @Override
   public void save(HttpRequest httpRequest) {
-    var entity = httpRequest.getComponentState(entityClass());
+    // The editor form bubbles its own state up to this mediator in the action event, so read the
+    // edited entity from there (falls back to component state when not embedded/bubbled).
+    var entity = httpRequest.getInitiatorState(entityClass());
     persist(entity, httpRequest);
   }
 

@@ -71,6 +71,9 @@ public class Home2 implements WidgetSupplier {
     @Menu
     BannerDemoPage bannerDemo;
 
+    @Menu
+    io.mateu.mdd.demoadminpanel.infra.in.ui.partialforms.PartialFormDemo partialForms;
+
 
     @NotEmpty
     String name;

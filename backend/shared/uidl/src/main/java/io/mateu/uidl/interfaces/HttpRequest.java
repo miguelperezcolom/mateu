@@ -151,6 +151,22 @@ public interface HttpRequest {
         componentStateType, runActionRq().componentState(), this);
   }
 
+  /**
+   * State of the component that originated a bubbled action. When a nested form/editor bubbles an
+   * action up to a parent (e.g. a mediator handling its child's {@code save}), the originating
+   * component's own state travels in {@code parameters.initiatorState}. This returns it built into
+   * {@code type}, falling back to the regular component state when no bubbling happened.
+   */
+  @SuppressWarnings("unchecked")
+  default <T> T getInitiatorState(Class<T> type) {
+    var parameters = runActionRq().parameters();
+    if (parameters != null
+        && parameters.get("initiatorState") instanceof Map<?, ?> initiatorState) {
+      return MateuInstanceFactory.newInstance(type, (Map<String, Object>) initiatorState, this);
+    }
+    return getComponentState(type);
+  }
+
   String path();
 
   default String lastPathItem() {

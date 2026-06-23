@@ -97,6 +97,13 @@ public class ReflectionFormFieldMapper {
       var value = getValue(field, instance);
       fieldType = value.getClass();
     }
+    // A field whose type is a routed orchestrator (a MultiView subclass) is embedded as a mediator
+    // sub-app. This must run before the generic Component branch below, since orchestrators are
+    // themselves Components (via DtoSupplier) and their field value is typically null.
+    if (EmbeddedOrchestratorFieldBuilder.isOrchestrator(fieldType)) {
+      return EmbeddedOrchestratorFieldBuilder.build(
+          prefix, field, initiatorComponentId, httpRequest, maxColumns);
+    }
     if (Component.class.isAssignableFrom(fieldType)) {
       var component = (Component) getValue(field, instance);
       return CustomField.builder()

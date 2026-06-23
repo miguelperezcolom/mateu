@@ -19,6 +19,16 @@ final class AppHomeRouteResolver {
       String appRoute,
       HttpRequest httpRequest,
       Optional<Actionable> selectedOption) {
+    // An embedded mediator (an orchestrator rendered as a form field) carries its own home route
+    // and server-side type explicitly. Honour them verbatim so the host page's route context does
+    // not leak in and the embedded <mateu-ux> loads the orchestrator's own route.
+    if (app.homeServerSideType() != null && app.homeRoute() != null) {
+      var embeddedRoute = app.homeRoute();
+      if (httpRequest.runActionRq().route().contains("?")) {
+        embeddedRoute = addQueryParams(embeddedRoute, httpRequest);
+      }
+      return embeddedRoute;
+    }
     var effectiveRoute = route;
     if (selectedOption.isPresent() && selectedOption.get() instanceof RemoteMenu) {
       effectiveRoute = app.homeRoute();
