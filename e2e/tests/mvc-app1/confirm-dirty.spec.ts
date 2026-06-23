@@ -145,6 +145,65 @@ test.describe('@ConfirmOnNavigationIfDirty — CRUD save resets the guard', () =
 
 });
 
+test.describe('@ConfirmOnNavigationIfDirty — embedded EditableView resets guard on save/cancel', () => {
+
+  // Regression: an embedded EditableView (rendered via @Inline inside a host page) enters edit
+  // mode → arms the dirty guard when the user types → must disarm the guard when the user clicks
+  // Save or Cancel and the inner view re-renders in (untracked) view mode. Without this, the host
+  // page would prompt "unsaved changes" on every navigation, even right after a successful save.
+  //
+  // The fix lives in mateu-component.updated(): the `clean` event is dispatched on component
+  // change whenever EITHER the previous or new component is tracked — so the edit→view transition
+  // (tracked→untracked) does fire `clean`.
+  async function trackGuardFlag(page: any) {
+    await page.evaluate(() => {
+      (window as any).__dirty = false;
+      document.addEventListener('dirty', () => { (window as any).__dirty = true; });
+      document.addEventListener('clean', () => { (window as any).__dirty = false; });
+    });
+  }
+
+  async function enterEditMode(page: any) {
+    // The embedded mediator initially renders read-only. Click the Edit button it brings.
+    await page.getByRole('button', { name: 'Edit', exact: true }).click();
+    await expect(fieldInput(page, 'firstName')).toBeVisible();
+  }
+
+  // EmbeddedDataView keeps its data in a static field, so the store value carries across tests.
+  // We use Date.now() to guarantee a value different from whatever is currently saved — otherwise
+  // fill() with the same value as the current input doesn't fire a value-changed event and the
+  // dirty guard never arms.
+  test('save inside the embedded EditableView fires "clean"', async ({ page }) => {
+    await page.goto('/inline-host');
+    await trackGuardFlag(page);
+    await enterEditMode(page);
+
+    const uniqueValue = `Lucía-${Date.now()}`;
+    await fieldInput(page, 'firstName').fill(uniqueValue);
+    await fieldInput(page, 'firstName').blur();
+    await expect.poll(() => page.evaluate(() => (window as any).__dirty)).toBe(true);
+
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    // Edit → view transition; the guard must end up clean so a later navigation does NOT prompt.
+    await expect.poll(() => page.evaluate(() => (window as any).__dirty)).toBe(false);
+  });
+
+  test('cancel inside the embedded EditableView fires "clean"', async ({ page }) => {
+    await page.goto('/inline-host');
+    await trackGuardFlag(page);
+    await enterEditMode(page);
+
+    const uniqueValue = `Discarded-${Date.now()}`;
+    await fieldInput(page, 'firstName').fill(uniqueValue);
+    await fieldInput(page, 'firstName').blur();
+    await expect.poll(() => page.evaluate(() => (window as any).__dirty)).toBe(true);
+
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect.poll(() => page.evaluate(() => (window as any).__dirty)).toBe(false);
+  });
+
+});
+
 test.describe('@ConfirmOnNavigationIfDirty — opt-in', () => {
 
   test('a non-annotated form (root SimpleForm) never fires "dirty"', async ({ page }) => {

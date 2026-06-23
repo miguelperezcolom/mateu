@@ -59,6 +59,13 @@ public abstract class EditableView<V, E> extends MultiView {
     var result = new ArrayList<>();
     result.add(new State(this));
     if (message != null) result.add(message);
+    // Leaving edit mode (save / cancel-edit lands on "/view") must reset the dirty guard so the
+    // host page does not keep prompting "unsaved changes" — the tracked edit form is gone, and
+    // its mateu-component (which would normally fire `clean` on reload) was unmounted instead of
+    // reloaded, so no clean event ever bubbles up unless we send one explicitly.
+    if ("/view".equals(route)) {
+      result.add(UICommand.markAsClean());
+    }
     // When embedded as a mediator inside a host page, the view ↔ edit toggle happens in place
     // (the embedded <mateu-ux> re-renders from the new state route); pushing to the browser history
     // would leak the navigation to the host app and reload the whole page.
