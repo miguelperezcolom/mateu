@@ -192,7 +192,7 @@ export class MateuGrid extends MetadataDrivenElement {
             <!-- The field label is rendered by the surrounding mateu-field wrapper; rendering it
                  here too would duplicate it (e.g. "Guests / Guests"). -->
             <vaadin-grid
-                    style="${this.field?.style}"
+                    style="${this.field?.onItemSelectionActionId ? 'cursor: pointer;' : ''}${this.field?.style ?? ''}"
                     class="${this.field?.cssClasses}"
                     .items="${items}"
                     .selectedItems="${selectedItems}"
@@ -202,6 +202,26 @@ export class MateuGrid extends MetadataDrivenElement {
                         this.state[this.id + '_selected_items'] = this.selectedItems
                     }}"
                     @item-toggle="${this.handleItemToggle}"
+                    @click="${ifDefined(this.field?.onItemSelectionActionId ? (e: MouseEvent) => {
+            // Row-click selection: Vaadin's active-item is not reliably set by a click on a
+            // read-only grid, so resolve the clicked row from the grid event context instead.
+            const grid = e.currentTarget as unknown as { getEventContext: (ev: Event) => { item?: unknown } }
+            const item = grid.getEventContext(e)?.item
+            if (item) {
+                this.selectedItems = [item]
+                this.state[this.id + '_selected_items'] = [item]
+                this.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: this.field?.onItemSelectionActionId,
+                        // Carry the selected row so the handler can read it via
+                        // HttpRequest.getClickedRow(...) (mirrors the row-action convention).
+                        parameters: { _clickedRow: item }
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+            }
+        } : undefined)}"
                     @active-item-changed="${ifDefined((this.field?.detailPath && !this.field?.useButtonForDetail)?(event: GridActiveItemChangedEvent<any>) => {
             if (this.field?.detailPath) {
                 const row = event.detail.value
@@ -211,26 +231,7 @@ export class MateuGrid extends MetadataDrivenElement {
                     this.detailsOpenedItems = []
                 }
             }
-        }:(e: GridActiveItemChangedEvent<any>) => {
-            if (this.field?.onItemSelectionActionId) {
-                const item = e.detail.value
-                this.selectedItems = item ? [item] : []
-                this.state[this.id + '_selected_items'] = item ? [item] : []
-                if (item) {
-                    this.dispatchEvent(new CustomEvent('action-requested', {
-                        detail: {
-                            actionId: this.field?.onItemSelectionActionId,
-                            // Carry the selected row so the handler can read it via
-                            // HttpRequest.getClickedRow(...) (mirrors the row-action convention).
-                            parameters: { _clickedRow: item }
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
-
-                }
-            }
-        })}"
+        }:undefined)}"
                     .detailsOpenedItems="${this.detailsOpenedItems}"
                     ${ifDefined(this.field?.detailPath?gridRowDetailsRenderer<any>((item) => html`${renderComponent(
             this,
