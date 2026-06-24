@@ -8,7 +8,11 @@ on:
     types: [published]
 
 jobs:
+  e2e:
+    uses: ./.github/workflows/run_tests.yml
+
   all:
+    needs: e2e
     runs-on: ubuntu-latest
 
     steps:
