@@ -1,14 +1,27 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
+import io.mateu.uidl.data.Status;
+import io.mateu.uidl.data.StatusType;
+
 /**
- * Check-in status of a guest (pax). The constant names are the human labels on purpose: Mateu's
- * reflective deserialization coerces enums with {@code Enum.valueOf(name)} (e.g. when a guest row is
- * selected and the row is rebuilt from the wire), so the wire value must equal the constant name.
- * Using the labels as names keeps the grid showing "Recepción / Pendiente / Checkin" while staying
- * round-trippable.
+ * Check-in status of a guest (pax). Maps to a compact one-letter coloured badge ({@link Status})
+ * shown in the "Estado" column of the guests grid: R = en recepción, P = pendiente, C = checkin.
  */
 public enum PaxStatus {
-    Recepción,
-    Pendiente,
-    Checkin
+    RECEPCION(StatusType.WARNING, "R"),
+    PENDIENTE(StatusType.NONE, "P"),
+    CHECKIN(StatusType.SUCCESS, "C");
+
+    private final StatusType type;
+    private final String code;
+
+    PaxStatus(StatusType type, String code) {
+        this.type = type;
+        this.code = code;
+    }
+
+    /** The one-letter coloured badge shown in the grid. */
+    public Status toBadge() {
+        return new Status(type, code);
+    }
 }

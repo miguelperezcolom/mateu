@@ -3,6 +3,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 import io.mateu.uidl.annotations.ColumnWidth;
 import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.data.Status;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +25,7 @@ public class GuestData {
     @ColumnWidth("4rem") @Label("Edad") Integer age;
     @ColumnWidth("5.5rem") @Label("Régimen") MealPlan mealPlan;
     @ColumnWidth("4rem") @Label("Nac.") String nationality;
-    @ColumnWidth("7rem") @Label("Estado") PaxStatus status;
+    @ColumnWidth("4rem") @Label("Estado") Status status;
     @ColumnWidth("5rem") @Label("Cardex") boolean hasCardex;
     @ColumnWidth("4rem") @Label("Int.") boolean internal;
     @ColumnWidth("4rem") @Label("Aviso") boolean aviso;

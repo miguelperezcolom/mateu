@@ -100,7 +100,7 @@ public class ReservationLineRepository {
                 .guests(new ArrayList<>(List.of(
                         GuestData.builder().lastName("García Romero").firstName("Miguel")
                                 .paxType(PaxType.AD).mealPlan(MealPlan.HB).nationality("ES")
-                                .status(PaxStatus.Recepción).age(41).hasCardex(true).internal(false).aviso(true)
+                                .status(PaxStatus.RECEPCION.toBadge()).age(41).hasCardex(true).internal(false).aviso(true)
                                 .hotelObservations("Cliente VIP — bienvenida especial")
                                 .cardex(Cardex.builder()
                                         .fullName("García Romero, Miguel")
@@ -115,7 +115,7 @@ public class ReservationLineRepository {
                                 .build(),
                         GuestData.builder().lastName("García Romero").firstName("Laura")
                                 .paxType(PaxType.AD).mealPlan(MealPlan.HB).nationality("ES")
-                                .status(PaxStatus.Pendiente).age(39).hasCardex(true).internal(false).aviso(false)
+                                .status(PaxStatus.PENDIENTE.toBadge()).age(39).hasCardex(true).internal(false).aviso(false)
                                 .hotelObservations("")
                                 .cardex(Cardex.builder()
                                         .fullName("García Romero, Laura")
@@ -130,7 +130,7 @@ public class ReservationLineRepository {
                                 .build(),
                         GuestData.builder().lastName("García Soto").firstName("Daniela")
                                 .paxType(PaxType.CH).mealPlan(MealPlan.HB).nationality("ES")
-                                .status(PaxStatus.Pendiente).age(9).hasCardex(false).internal(false).aviso(false)
+                                .status(PaxStatus.PENDIENTE.toBadge()).age(9).hasCardex(false).internal(false).aviso(false)
                                 .hotelObservations("Cama extra solicitada")
                                 .cardex(Cardex.builder()
                                         .fullName("García Soto, Daniela")
@@ -158,7 +158,7 @@ public class ReservationLineRepository {
                 .pax(1)
                 .guests(new ArrayList<>(List.of(
                         GuestData.builder().lastName("Smith").firstName("John").paxType(PaxType.AD)
-                                .mealPlan(MealPlan.BB).nationality("GB").status(PaxStatus.Checkin).age(46)
+                                .mealPlan(MealPlan.BB).nationality("GB").status(PaxStatus.CHECKIN.toBadge()).age(46)
                                 .hasCardex(true)
                                 .cardex(Cardex.builder()
                                         .fullName("Smith, John")
@@ -187,9 +187,9 @@ public class ReservationLineRepository {
                 .pax(4)
                 .guests(new ArrayList<>(List.of(
                         GuestData.builder().lastName("García López").firstName("Pedro").paxType(PaxType.AD)
-                                .mealPlan(MealPlan.AI).nationality("ES").status(PaxStatus.Recepción).age(45).build(),
+                                .mealPlan(MealPlan.AI).nationality("ES").status(PaxStatus.RECEPCION.toBadge()).age(45).build(),
                         GuestData.builder().lastName("García López").firstName("María").paxType(PaxType.AD)
-                                .mealPlan(MealPlan.AI).nationality("ES").status(PaxStatus.Pendiente).age(43).build()
+                                .mealPlan(MealPlan.AI).nationality("ES").status(PaxStatus.PENDIENTE.toBadge()).age(43).build()
                 )))
                 .build());
 
