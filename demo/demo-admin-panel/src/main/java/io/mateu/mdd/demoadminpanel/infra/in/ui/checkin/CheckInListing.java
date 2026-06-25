@@ -8,6 +8,7 @@ import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.ColumnAction;
+import io.mateu.uidl.data.ColumnActionGroup;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -51,7 +52,11 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
                         .arrivalDate(line.getArrivalDate())
                         .departureDate(line.getDepartureDate())
                         .status(line.getStatus())
-                        .actions(new ColumnAction("checkin", "Check-in"))
+                        .actions(new ColumnActionGroup(new ColumnAction[]{
+                                new ColumnAction("checkin", "Check-in"),
+                                new ColumnAction("checkinV2", "Check-in v2"),
+                                new ColumnAction("checkinV3", "Check-in v3")
+                        }))
                         .build())
                 .toList();
 
@@ -59,9 +64,14 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
     }
 
     public Object checkin(CheckInRow row) {
-        var form = MateuBeanProvider.getBean(CheckInForm.class);
-        form.id = row.id();
-        form.populate();
-        return form;
+        return io.mateu.uidl.data.UICommand.navigateTo("/checkin/" + row.id());
+    }
+
+    public Object checkinV2(CheckInRow row) {
+        return io.mateu.uidl.data.UICommand.navigateTo("/checkin/" + row.id() + "/v2");
+    }
+
+    public Object checkinV3(CheckInRow row) {
+        return io.mateu.uidl.data.UICommand.navigateTo("/checkin/" + row.id() + "/v3");
     }
 }

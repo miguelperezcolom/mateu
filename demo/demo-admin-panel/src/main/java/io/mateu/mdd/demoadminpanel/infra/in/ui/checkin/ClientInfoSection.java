@@ -19,6 +19,7 @@ import java.util.List;
 
 @PlainText
 @Compact
+@io.mateu.uidl.annotations.Title("")
 public class ClientInfoSection {
 
     @Hidden String id;

@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 
 @PlainText
 @Compact
+@io.mateu.uidl.annotations.Title("")
 public class FoliosSection {
 
     @Hidden String id;

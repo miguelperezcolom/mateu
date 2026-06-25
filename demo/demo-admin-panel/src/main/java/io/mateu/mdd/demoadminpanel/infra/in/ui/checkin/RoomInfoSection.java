@@ -8,6 +8,7 @@ import io.mateu.uidl.annotations.PlainText;
 
 @PlainText
 @Compact
+@io.mateu.uidl.annotations.Title("")
 public class RoomInfoSection {
 
     @Label("Nº habitación")             String roomInfoNumber;
