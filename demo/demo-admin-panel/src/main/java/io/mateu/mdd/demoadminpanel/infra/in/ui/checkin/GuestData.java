@@ -21,14 +21,14 @@ import lombok.NoArgsConstructor;
 public class GuestData {
     @ColumnWidth("9rem") @Label("Apellidos") String lastName;
     @ColumnWidth("7rem") @Label("Nombre") String firstName;
-    @ColumnWidth("4rem") @Label("Pax") PaxType paxType;
-    @ColumnWidth("4rem") @Label("Edad") Integer age;
-    @ColumnWidth("5.5rem") @Label("Régimen") MealPlan mealPlan;
-    @ColumnWidth("4rem") @Label("Nac.") String nationality;
-    @ColumnWidth("4rem") @Label("Estado") Status status;
-    @ColumnWidth("5rem") @Label("Cardex") boolean hasCardex;
-    @ColumnWidth("4rem") @Label("Int.") boolean internal;
-    @ColumnWidth("4rem") @Label("Aviso") boolean aviso;
+    @ColumnWidth("3rem") @Label("Pax") PaxType paxType;
+    @ColumnWidth("3rem") @Label("Edad") Integer age;
+    @ColumnWidth("3rem") @Label("Rég.") MealPlan mealPlan;
+    @ColumnWidth("3rem") @Label("Nac.") String nationality;
+    @ColumnWidth("3rem") @Label("Est.") Status status;
+    @ColumnWidth("3rem") @Label("Card.") boolean hasCardex;
+    @ColumnWidth("3rem") @Label("Int.") boolean internal;
+    @ColumnWidth("3rem") @Label("Aviso") boolean aviso;
     // No @ColumnWidth → this column flex-grows to fill the remaining space.
     @Label("Obs. hotel") String hotelObservations;
 

@@ -53,6 +53,22 @@ public class CheckInSection {
                 .build();
     }
 
+    @Toolbar
+    @Label("En recepción")
+    Object enRecepcion(HttpRequest httpRequest) {
+        var repository = MateuBeanProvider.getBean(ReservationLineRepository.class);
+        return repository.findById(id).map(line -> {
+            // Mark every pax as "en recepción" and flag the reservation as waiting.
+            line.getGuests().forEach(g -> g.setStatus(PaxStatus.RECEPCION.toBadge()));
+            line.setEspera(true);
+            repository.save(line);
+            return (Object) List.of(
+                    Message.success("Todos los pax en recepción"),
+                    UICommand.dispatchEvent("checkin-confirmed", Map.of("reservationId", id))
+            );
+        }).orElse(Message.success("Reservation not found"));
+    }
+
 
 
     void populate(ReservationLine line) {

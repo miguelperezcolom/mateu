@@ -93,7 +93,7 @@ public class CheckInForm implements HeaderSupplier, ActionSupplier {
     @Label("") @Inline
     CheckInSection checkIn = new CheckInSection();
 
-    @Section(value = "Detalle de estancia (huéspedes)", columns = 1, zone = "left")
+    @Section(value = "Huéspedes", columns = 1, zone = "left")
     @Label("") @Inline
     GuestsSection guestList = new GuestsSection();
 
