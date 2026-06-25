@@ -1,6 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -43,7 +44,13 @@ public class CheckInSection {
     @Toolbar
     @Label("Pre asignar")
     Object preAsignar(HttpRequest httpRequest) {
-        return Message.success("Habitación pre-asignada");
+        return Dialog.builder()
+                .headerTitle("Preasignar habitación")
+                .width("640px")
+                .height("460px")
+                .closeButtonOnHeader(true)
+                .content(MateuBeanProvider.getBean(AvailableRoomsDialog.class).load(id))
+                .build();
     }
 
 

@@ -354,7 +354,13 @@ export default abstract class ConnectedElement extends LitElement {
         const dialogs = this.shadowRoot?.querySelectorAll('mateu-dialog')
         if (dialogs && dialogs.length > 0) {
             dialogs[dialogs.length - 1].close()
+            return
         }
+        // No dialog lives in our own shadow root: we are a component embedded INSIDE the
+        // dialog (e.g. a selectable grid returned as the dialog content). Bubble a close
+        // request up — the mateu-event-interceptor that wraps the dialog content forwards
+        // it to the dialog owner, whose closeModal() does find the dialog and closes it.
+        this.dispatchEvent(new CustomEvent('close-modal-requested', { bubbles: true, composed: true }))
     }
 
     changeFavicon = (link: string) => {

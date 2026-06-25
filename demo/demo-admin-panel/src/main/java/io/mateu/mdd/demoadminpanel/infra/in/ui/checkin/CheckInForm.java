@@ -22,6 +22,8 @@ import io.mateu.uidl.annotations.Zone;
 import io.mateu.uidl.annotations.Zones;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.di.MateuBeanProvider;
+import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HeaderSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -50,7 +52,7 @@ import java.util.List;
     @Zone(name = "left", width = "64%"),
     @Zone(name = "right", width = "36%")
 })
-public class CheckInForm implements HeaderSupplier {
+public class CheckInForm implements HeaderSupplier, ActionSupplier {
 
     final ReservationLineRepository repository;
 
@@ -117,6 +119,14 @@ public class CheckInForm implements HeaderSupplier {
     FoliosSection folios = new FoliosSection();
 
     // ── Actions ───────────────────────────────────────────────────────
+
+    // Advertise the "load" action so the @SubscribeTo("checkin-confirmed") reload is claimed by
+    // this component and dispatched to the server. Without it, the subscription-triggered action
+    // bubbles up unclaimed (actions list would be null) and the form never refreshes in place.
+    @Override
+    public List<Action> actions(HttpRequest httpRequest) {
+        return List.of(Action.builder().id("load").build());
+    }
 
     Object load(HttpRequest httpRequest) {
         return populate() ? (Object) new State(this) : Message.success("Reservation not found");
