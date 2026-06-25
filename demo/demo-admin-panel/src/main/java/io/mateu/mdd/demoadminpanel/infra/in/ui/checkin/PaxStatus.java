@@ -1,39 +1,14 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-
 /**
- * Check-in status of a guest (pax). Serialized/displayed using the human label so the grid shows
- * "Recepción" / "Pendiente" / "Checkin"; {@link JsonCreator} accepts either the label or the
- * constant name so the value round-trips (e.g. when a guest row is clicked).
+ * Check-in status of a guest (pax). The constant names are the human labels on purpose: Mateu's
+ * reflective deserialization coerces enums with {@code Enum.valueOf(name)} (e.g. when a guest row is
+ * selected and the row is rebuilt from the wire), so the wire value must equal the constant name.
+ * Using the labels as names keeps the grid showing "Recepción / Pendiente / Checkin" while staying
+ * round-trippable.
  */
 public enum PaxStatus {
-    RECEPCION("Recepción"),
-    PENDIENTE("Pendiente"),
-    CHECKIN("Checkin");
-
-    private final String label;
-
-    PaxStatus(String label) {
-        this.label = label;
-    }
-
-    @JsonValue
-    public String getLabel() {
-        return label;
-    }
-
-    @JsonCreator
-    public static PaxStatus fromValue(String value) {
-        if (value == null) {
-            return null;
-        }
-        for (var s : values()) {
-            if (s.label.equalsIgnoreCase(value) || s.name().equalsIgnoreCase(value)) {
-                return s;
-            }
-        }
-        return null;
-    }
+    Recepción,
+    Pendiente,
+    Checkin
 }
