@@ -23,7 +23,7 @@ public class GuestData {
     @ColumnWidth("4rem") @Label("Pax") PaxType paxType;
     @ColumnWidth("5.5rem") @Label("Régimen") MealPlan mealPlan;
     @ColumnWidth("4rem") @Label("Nac.") String nationality;
-    @ColumnWidth("9rem") @Label("Estado habitación") RoomState roomState;
+    @ColumnWidth("7rem") @Label("Estado") PaxStatus status;
     @ColumnWidth("5rem") @Label("Cardex") boolean hasCardex;
     @ColumnWidth("4rem") @Label("Int.") boolean internal;
     @ColumnWidth("4rem") @Label("Aviso") boolean aviso;
