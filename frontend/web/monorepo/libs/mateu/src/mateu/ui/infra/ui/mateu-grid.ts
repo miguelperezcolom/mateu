@@ -48,6 +48,33 @@ export class MateuGrid extends MetadataDrivenElement {
     @state()
     detailsOpenedItems: any[] = []
 
+    // Row the pointer is currently over, used to paint a hover highlight on clickable grids.
+    // Vaadin sets pointer-events:none on the shadow rows/cells, so a CSS ::part(row):hover never
+    // matches; instead we track the hovered row in JS and tag its cells with a part name.
+    private hoveredItem: unknown = null
+
+    private onGridHoverMove = (e: MouseEvent) => {
+        const grid = e.currentTarget as unknown as {
+            getEventContext: (ev: Event) => { item?: unknown }, generateCellPartNames: () => void }
+        const item = grid.getEventContext(e)?.item ?? null
+        if (item !== this.hoveredItem) {
+            this.hoveredItem = item
+            // generateCellPartNames() re-runs cellPartNameGenerator; requestContentUpdate() does not.
+            grid.generateCellPartNames()
+        }
+    }
+
+    private onGridHoverLeave = (e: MouseEvent) => {
+        if (this.hoveredItem !== null) {
+            this.hoveredItem = null
+            ;(e.currentTarget as unknown as { generateCellPartNames: () => void }).generateCellPartNames()
+        }
+    }
+
+    // Tags every cell of the hovered row with the "hovered-cell" part so CSS can highlight it.
+    private hoverCellPartNameGenerator = (_column: unknown, model: { item?: unknown }) =>
+        model?.item != null && model.item === this.hoveredItem ? 'hovered-cell' : ''
+
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
@@ -204,6 +231,10 @@ export class MateuGrid extends MetadataDrivenElement {
             <!-- The field label is rendered by the surrounding mateu-field wrapper; rendering it
                  here too would duplicate it (e.g. "Guests / Guests"). -->
             <vaadin-grid
+                    ?clickable="${!!this.field?.onItemSelectionActionId}"
+                    .cellPartNameGenerator="${ifDefined(this.field?.onItemSelectionActionId ? this.hoverCellPartNameGenerator : undefined)}"
+                    @mousemove="${ifDefined(this.field?.onItemSelectionActionId ? this.onGridHoverMove : undefined)}"
+                    @mouseleave="${ifDefined(this.field?.onItemSelectionActionId ? this.onGridHoverLeave : undefined)}"
                     style="${this.field?.onItemSelectionActionId ? 'cursor: pointer;' : ''}${this.field?.style ?? ''}"
                     class="${this.field?.cssClasses}"
                     .items="${items}"
@@ -315,6 +346,14 @@ export class MateuGrid extends MetadataDrivenElement {
 
     static styles = css`
         ${badge}
+
+        /* Clickable grids (a row-selection action is wired) give visual feedback: the host sets a
+           pointer cursor (inline, inherited by the slotted cell content), and the cells of the
+           hovered row — tagged "hovered-cell" by cellPartNameGenerator — get a subtle highlight. */
+        vaadin-grid[clickable]::part(hovered-cell) {
+            background-color: var(--lumo-primary-color-10pct);
+            cursor: pointer;
+        }
     `
 }
 
