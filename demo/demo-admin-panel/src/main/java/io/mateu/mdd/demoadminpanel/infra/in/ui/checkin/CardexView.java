@@ -32,11 +32,6 @@ public class CardexView extends AutoEditableView<Cardex> {
         selected = cardex;
     }
 
-    /** The cardex currently shown (used to seed the edit dialog). */
-    public static Cardex current() {
-        return selected;
-    }
-
     @Override
     public Cardex load(HttpRequest httpRequest) {
         return selected != null

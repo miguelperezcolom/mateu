@@ -61,11 +61,17 @@ public class ClientInfoSection {
     @Toolbar
     @Label("Editar cardex")
     Object editCardex(HttpRequest httpRequest) {
+        // The pax to edit = the selected guest row (reliably carried in the form state), or the lead.
+        var selected = httpRequest.getSelectedRows("guestList-guests", GuestData.class)
+                .stream().findFirst().orElse(null);
+        var service = MateuBeanProvider.getBean(CardexService.class);
+        var guest = service.resolveGuest(id, selected);
+        var guestFullName = guest != null ? CardexService.fullName(guest) : null;
         return Dialog.builder()
                 .headerTitle("Editar cardex")
                 .width("520px")
                 .closeButtonOnHeader(true)
-                .content(MateuBeanProvider.getBean(CardexEditDialog.class).load(CardexView.current()))
+                .content(MateuBeanProvider.getBean(CardexEditDialog.class).load(id, guestFullName))
                 .build();
     }
 
