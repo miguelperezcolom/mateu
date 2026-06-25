@@ -32,6 +32,8 @@ public class CheckInSection {
         var repository = MateuBeanProvider.getBean(ReservationLineRepository.class);
         return repository.findById(id).map(line -> {
             line.setStatus(CheckInStatus.CHECKED_IN);
+            // Mark every pax as checked in (C badge).
+            line.getGuests().forEach(g -> g.setStatus(PaxStatus.CHECKIN.toBadge()));
             repository.save(line);
             // Announce it on the bus: the whole form (and any subscriber) refreshes in place.
             return (Object) List.of(
