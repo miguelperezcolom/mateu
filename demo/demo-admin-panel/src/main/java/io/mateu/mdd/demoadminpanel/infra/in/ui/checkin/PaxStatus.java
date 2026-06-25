@@ -5,12 +5,14 @@ import io.mateu.uidl.data.StatusType;
 
 /**
  * Check-in status of a guest (pax). Maps to a compact one-letter coloured badge ({@link Status})
- * shown in the "Estado" column of the guests grid: R = en recepción, P = pendiente, C = checkin.
+ * shown in the "Estado" column of the guests grid: R = en recepción, P = pendiente, C = checkin,
+ * N = no show.
  */
 public enum PaxStatus {
     RECEPCION(StatusType.WARNING, "R"),
     PENDIENTE(StatusType.NONE, "P"),
-    CHECKIN(StatusType.SUCCESS, "C");
+    CHECKIN(StatusType.SUCCESS, "C"),
+    NOSHOW(StatusType.DANGER, "N");
 
     private final StatusType type;
     private final String code;

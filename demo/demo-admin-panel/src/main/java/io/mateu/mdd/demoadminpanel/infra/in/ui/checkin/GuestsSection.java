@@ -3,6 +3,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -10,6 +11,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @PlainText
 @Compact
@@ -68,23 +70,45 @@ public class GuestsSection {
     @Toolbar
     @Label("Confirmar check-in")
     Object confirmCheckin(HttpRequest httpRequest) {
-        var repository = MateuBeanProvider.getBean(ReservationLineRepository.class);
-        return repository.findById(id).map(line -> {
-            line.setStatus(CheckInStatus.CHECKED_IN);
-            repository.save(line);
-            // Emit an event instead of navigating away: the page (and any other component
-            // subscribed to "checkin-confirmed") refreshes itself in place via the event bus.
-            return (Object) List.of(
-                    Message.success("Check-in confirmado para " + line.getTitular()),
-                    UICommand.dispatchEvent("checkin-confirmed", Map.of("reservationId", id))
-            );
-        }).orElse(Message.success("Reservation not found"));
+        return applyStatusToSelected(httpRequest, line -> PaxStatus.CHECKIN,
+                "Check-in confirmado para los huéspedes seleccionados");
     }
 
     @Toolbar
     @Label("No show")
     Object noShow(HttpRequest httpRequest) {
-        return Message.success("Reserva marcada como No show");
+        return applyStatusToSelected(httpRequest, line -> PaxStatus.NOSHOW,
+                "Huéspedes seleccionados marcados como No show");
+    }
+
+    /**
+     * Set the pax status of the <strong>selected</strong> guest rows. The selection rides in the
+     * form state (guestList-guests_selected_items); guests are matched by name against the persisted
+     * reservation. {@code statusFn} resolves the target status (it may depend on the reservation,
+     * e.g. on the "espera" flag).
+     */
+    private Object applyStatusToSelected(HttpRequest httpRequest,
+                                         java.util.function.Function<ReservationLine, PaxStatus> statusFn,
+                                         String message) {
+        var selectedKeys = httpRequest.getSelectedRows("guestList-guests", GuestData.class)
+                .stream().map(CardexService::fullName).collect(Collectors.toSet());
+        if (selectedKeys.isEmpty()) {
+            return Message.builder().variant(NotificationVariant.warning)
+                    .text("Seleccione al menos un huésped").build();
+        }
+        var repository = MateuBeanProvider.getBean(ReservationLineRepository.class);
+        return repository.findById(id).map(line -> {
+            var badge = statusFn.apply(line).toBadge();
+            line.getGuests().stream()
+                    .filter(g -> selectedKeys.contains(CardexService.fullName(g)))
+                    .forEach(g -> g.setStatus(badge));
+            repository.save(line);
+            // Refresh the form (and any subscriber) in place via the event bus.
+            return (Object) List.of(
+                    Message.success(message),
+                    UICommand.dispatchEvent("checkin-confirmed", Map.of("reservationId", id))
+            );
+        }).orElse(Message.success("Reservation not found"));
     }
 
     @Toolbar
@@ -102,15 +126,10 @@ public class GuestsSection {
     @Toolbar
     @Label("Deshacer check-in")
     Object deshacerCheckin(HttpRequest httpRequest) {
-        var repository = MateuBeanProvider.getBean(ReservationLineRepository.class);
-        return repository.findById(id).map(line -> {
-            line.setStatus(CheckInStatus.PENDING);
-            repository.save(line);
-            return (Object) List.of(
-                    Message.success("Check-in deshecho"),
-                    UICommand.dispatchEvent("checkin-confirmed", Map.of("reservationId", id))
-            );
-        }).orElse(Message.success("Reservation not found"));
+        // Back to "en recepción" if the reservation is waiting, otherwise to "pendiente".
+        return applyStatusToSelected(httpRequest,
+                line -> line.isEspera() ? PaxStatus.RECEPCION : PaxStatus.PENDIENTE,
+                "Check-in deshecho para los huéspedes seleccionados");
     }
 
     @Toolbar
