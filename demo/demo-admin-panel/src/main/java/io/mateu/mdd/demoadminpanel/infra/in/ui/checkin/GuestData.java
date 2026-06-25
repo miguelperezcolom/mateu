@@ -21,6 +21,7 @@ public class GuestData {
     @ColumnWidth("9rem") @Label("Apellidos") String lastName;
     @ColumnWidth("7rem") @Label("Nombre") String firstName;
     @ColumnWidth("4rem") @Label("Pax") PaxType paxType;
+    @ColumnWidth("4rem") @Label("Edad") Integer age;
     @ColumnWidth("5.5rem") @Label("Régimen") MealPlan mealPlan;
     @ColumnWidth("4rem") @Label("Nac.") String nationality;
     @ColumnWidth("7rem") @Label("Estado") PaxStatus status;
