@@ -43,7 +43,7 @@ final class FormFieldFilter {
     if (MetaAnnotations.isPresent(field, Lookup.class)) {
       return true;
     }
-    if (field.isAnnotationPresent(Searchable.class)) {
+    if (MetaAnnotations.isPresent(field, Searchable.class)) {
       return true;
     }
     if (Collection.class.isAssignableFrom(field.getType())

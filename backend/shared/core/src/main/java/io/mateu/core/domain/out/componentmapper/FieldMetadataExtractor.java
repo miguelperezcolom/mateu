@@ -54,7 +54,7 @@ public class FieldMetadataExtractor {
     if (readOnly && MetaAnnotations.isPresent(field, Lookup.class)) {
       return prefix + field.getName() + "-label";
     }
-    if (readOnly && field.isAnnotationPresent(Searchable.class)) {
+    if (readOnly && MetaAnnotations.isPresent(field, Searchable.class)) {
       return prefix + field.getName() + "-label";
     }
     return prefix + field.getName();

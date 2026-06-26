@@ -15,8 +15,8 @@ final class LookupSupplierResolver {
   @SneakyThrows
   static Selector getSelector(Object instance, Field field) {
     Class<? extends Selector> supplierType = null;
-    if (field.isAnnotationPresent(Searchable.class)) {
-      var lookup = field.getAnnotation(Searchable.class);
+    if (MetaAnnotations.isPresent(field, Searchable.class)) {
+      var lookup = MetaAnnotations.find(field, Searchable.class);
       supplierType = lookup.selector();
     }
     if (LookupLabelSupplier.class.equals(supplierType)) {
@@ -39,8 +39,8 @@ final class LookupSupplierResolver {
       var lookup = MetaAnnotations.find(field, Lookup.class);
       supplierType = lookup.label();
     }
-    if (field.isAnnotationPresent(Searchable.class)) {
-      var lookup = field.getAnnotation(Searchable.class);
+    if (MetaAnnotations.isPresent(field, Searchable.class)) {
+      var lookup = MetaAnnotations.find(field, Searchable.class);
       supplierType = lookup.label();
     }
     if (LookupLabelSupplier.class.equals(supplierType)) {

@@ -9,7 +9,9 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
+// ANNOTATION_TYPE so it can be used as a meta-annotation on a semantic annotation,
+// resolved via MetaAnnotations.
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface Searchable {
 
   Class<? extends Selector> selector() default Selector.class;

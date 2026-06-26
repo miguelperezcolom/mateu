@@ -122,7 +122,7 @@ public class ReflectionFormFieldMapper {
     }
     if (List.class.isAssignableFrom(fieldType)
         && !MetaAnnotations.isPresent(field, Lookup.class)
-        && !field.isAnnotationPresent(Searchable.class)
+        && !MetaAnnotations.isPresent(field, Searchable.class)
         && !field.isAnnotationPresent(Composition.class)
         && !isBasic(getGenericClass(field, List.class, "E"))) {
       return createCrudForField(

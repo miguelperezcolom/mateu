@@ -99,14 +99,14 @@ final class FieldActionCollector {
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Searchable.class))
-        .filter(field -> !field.getAnnotation(Searchable.class).bubble())
+        .filter(field -> MetaAnnotations.isPresent(field, Searchable.class))
+        .filter(field -> !MetaAnnotations.find(field, Searchable.class).bubble())
         .map(field -> Action.builder().id("code-" + field.getName()).build())
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Searchable.class))
-        .filter(field -> !field.getAnnotation(Searchable.class).bubble())
+        .filter(field -> MetaAnnotations.isPresent(field, Searchable.class))
+        .filter(field -> !MetaAnnotations.find(field, Searchable.class).bubble())
         .map(field -> Action.builder().id("codesearch-" + field.getName()).build())
         .forEach(fieldActions::add);
 

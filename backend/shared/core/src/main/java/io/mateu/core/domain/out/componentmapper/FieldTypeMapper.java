@@ -149,7 +149,7 @@ public class FieldTypeMapper {
     if (MetaAnnotations.isPresent(field, Lookup.class)) {
       return FieldStereotype.combobox;
     }
-    if (field.isAnnotationPresent(Searchable.class)) {
+    if (MetaAnnotations.isPresent(field, Searchable.class)) {
       return FieldStereotype.searchable;
     }
     if (field.isAnnotationPresent(Representation.class)) {
