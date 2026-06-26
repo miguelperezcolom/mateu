@@ -7,6 +7,7 @@ import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.NotCreatable;
 import io.mateu.uidl.annotations.NotDeletable;
 import io.mateu.uidl.annotations.NotNavigable;
@@ -39,12 +40,12 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
 
   private static boolean notCreatable(Crud orchestrator) {
     return orchestrator.readOnly()
-        || orchestrator.getClass().isAnnotationPresent(NotCreatable.class);
+        || MetaAnnotations.isPresent(orchestrator.getClass(), NotCreatable.class);
   }
 
   private static boolean notDeletable(Crud orchestrator) {
     return orchestrator.readOnly()
-        || orchestrator.getClass().isAnnotationPresent(NotDeletable.class);
+        || MetaAnnotations.isPresent(orchestrator.getClass(), NotDeletable.class);
   }
 
   private List<GridContent> withViewOnFirstColumn(Collection<? extends GridContent> rawColumns) {
@@ -95,7 +96,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
               .build());
     }
     List<GridContent> columns =
-        getClass().isAnnotationPresent(ReadOnly.class)
+        MetaAnnotations.isPresent(getClass(), ReadOnly.class)
             ? (List<GridContent>)
                 getColumns(
                     orchestrator.viewClass(),
@@ -104,7 +105,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().initiatorComponentId(),
                     httpRequest)
-            : orchestrator.getClass().isAnnotationPresent(NotNavigable.class)
+            : MetaAnnotations.isPresent(orchestrator.getClass(), NotNavigable.class)
                 ? (List<GridContent>)
                     getColumns(
                         orchestrator.rowClass(),

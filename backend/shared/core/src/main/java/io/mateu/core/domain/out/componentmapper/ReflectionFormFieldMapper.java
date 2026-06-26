@@ -173,7 +173,7 @@ public class ReflectionFormFieldMapper {
   }
 
   private static boolean isReadOnly(Field field, Object instance, HttpRequest httpRequest) {
-    return instance.getClass().isAnnotationPresent(ReadOnly.class)
+    return MetaAnnotations.isPresent(instance.getClass(), ReadOnly.class)
         || MetaAnnotations.isPresent(field, ReadOnly.class)
         || MetaAnnotations.isPresent(field, GeneratedValue.class)
         || (instance instanceof ReadOnlySupplier ros

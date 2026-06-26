@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Toolbar;
@@ -26,21 +27,21 @@ public final class FormViewToolbarBuilder {
       String prefix, Object instance, HttpRequest httpRequest) {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(Toolbar.class))
+        .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
         .filter(
             method ->
-                !method.isAnnotationPresent(Hidden.class)
-                    || !method.getAnnotation(Hidden.class).value().isEmpty())
+                !MetaAnnotations.isPresent(method, Hidden.class)
+                    || !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
         .filter(
             method ->
                 !(instance instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
         .forEach(
             method -> {
-              var action = method.getAnnotation(Action.class);
+              var action = MetaAnnotations.find(method, Action.class);
               var shortcut =
                   action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
-              var ann = method.getAnnotation(Toolbar.class);
+              var ann = MetaAnnotations.find(method, Toolbar.class);
               var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
               var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
               var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
@@ -65,21 +66,21 @@ public final class FormViewToolbarBuilder {
       String prefix, Object instance, HttpRequest httpRequest) {
     var buttons = new ArrayList<UserTrigger>();
     getAllMethods(instance.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
+        .filter(method -> MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Button.class))
         .filter(
             method ->
-                !method.isAnnotationPresent(Hidden.class)
-                    || !method.getAnnotation(Hidden.class).value().isEmpty())
+                !MetaAnnotations.isPresent(method, Hidden.class)
+                    || !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
         .filter(
             method ->
                 !(instance instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
         .forEach(
             method -> {
-              var action = method.getAnnotation(Action.class);
+              var action = MetaAnnotations.find(method, Action.class);
               var shortcut =
                   action != null && !action.shortcut().isEmpty() ? action.shortcut() : null;
-              var ann = method.getAnnotation(io.mateu.uidl.annotations.Button.class);
+              var ann = MetaAnnotations.find(method, io.mateu.uidl.annotations.Button.class);
               var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
               var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
               var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;

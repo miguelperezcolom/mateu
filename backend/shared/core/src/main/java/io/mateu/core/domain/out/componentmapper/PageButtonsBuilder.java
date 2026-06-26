@@ -51,7 +51,9 @@ final class PageButtonsBuilder {
         Stream.concat(
                 getAllFields(instance.getClass()).stream()
                     .filter(
-                        field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
+                        field ->
+                            MetaAnnotations.isPresent(
+                                field, io.mateu.uidl.annotations.Button.class))
                     .filter(
                         field ->
                             !MetaAnnotations.isPresent(field, Hidden.class)
@@ -69,11 +71,12 @@ final class PageButtonsBuilder {
                 getAllMethods(instance.getClass()).stream()
                     .filter(
                         method ->
-                            method.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
+                            MetaAnnotations.isPresent(
+                                method, io.mateu.uidl.annotations.Button.class))
                     .filter(
                         method ->
-                            !method.isAnnotationPresent(Hidden.class)
-                                || !method.getAnnotation(Hidden.class).value().isEmpty())
+                            !MetaAnnotations.isPresent(method, Hidden.class)
+                                || !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
                     .filter(
                         method ->
                             !(instance instanceof VisibilitySupplier vs)
@@ -112,11 +115,11 @@ final class PageButtonsBuilder {
                                 instance instanceof DisabledSupplier ds
                                     && ds.isDisabled(field.getName(), httpRequest))),
                 getAllMethods(instance.getClass()).stream()
-                    .filter(method -> method.isAnnotationPresent(Toolbar.class))
+                    .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
                     .filter(
                         method ->
-                            !method.isAnnotationPresent(Hidden.class)
-                                || !method.getAnnotation(Hidden.class).value().isEmpty())
+                            !MetaAnnotations.isPresent(method, Hidden.class)
+                                || !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
                     .filter(
                         method ->
                             !(instance instanceof VisibilitySupplier vs)
@@ -191,7 +194,7 @@ final class PageButtonsBuilder {
     ButtonSize buttonSize = null;
 
     if (annotationClass == Toolbar.class) {
-      var ann = method.getAnnotation(Toolbar.class);
+      var ann = MetaAnnotations.find(method, Toolbar.class);
       if (ann != null) {
         buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
         buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
@@ -201,7 +204,7 @@ final class PageButtonsBuilder {
         order = ann.order();
       }
     } else {
-      var ann = method.getAnnotation(io.mateu.uidl.annotations.Button.class);
+      var ann = MetaAnnotations.find(method, io.mateu.uidl.annotations.Button.class);
       if (ann != null) {
         buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
         buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
@@ -233,7 +236,7 @@ final class PageButtonsBuilder {
     ButtonSize buttonSize = null;
 
     var toolbarAnn = MetaAnnotations.find(field, Toolbar.class);
-    var buttonAnn = field.getAnnotation(io.mateu.uidl.annotations.Button.class);
+    var buttonAnn = MetaAnnotations.find(field, io.mateu.uidl.annotations.Button.class);
 
     if (toolbarAnn != null) {
       buttonStyle = toolbarAnn.buttonStyle() != ButtonStyle.none ? toolbarAnn.buttonStyle() : null;
@@ -265,16 +268,17 @@ final class PageButtonsBuilder {
 
   static List<? extends UserTrigger> getFabs(Object instance, HttpRequest httpRequest) {
     return getAllMethods(instance.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(Fab.class))
+        .filter(method -> MetaAnnotations.isPresent(method, Fab.class))
         .filter(
             method ->
                 !(instance instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
         .sorted(
-            java.util.Comparator.comparingInt(method -> method.getAnnotation(Fab.class).order()))
+            java.util.Comparator.comparingInt(
+                method -> MetaAnnotations.find(method, Fab.class).order()))
         .map(
             method -> {
-              var ann = method.getAnnotation(Fab.class);
+              var ann = MetaAnnotations.find(method, Fab.class);
               var buttonStyle =
                   ann.buttonStyle() != io.mateu.uidl.data.ButtonStyle.none
                       ? ann.buttonStyle()
@@ -290,8 +294,8 @@ final class PageButtonsBuilder {
   }
 
   private static String getLabelForMethod(Method method) {
-    if (method.isAnnotationPresent(Label.class)) {
-      return method.getAnnotation(Label.class).value();
+    if (MetaAnnotations.isPresent(method, Label.class)) {
+      return MetaAnnotations.find(method, Label.class).value();
     }
     return toUpperCaseFirst(method.getName());
   }

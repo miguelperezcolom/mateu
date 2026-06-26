@@ -5,6 +5,7 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.NotEditable;
 import io.mateu.uidl.annotations.SplitCrud;
@@ -27,7 +28,7 @@ final class ViewToolbarBuilder {
       Object item, Crud orchestrator, HttpRequest httpRequest) {
     var toolbar = new ArrayList<UserTrigger>();
     getAllMethods(orchestrator.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
+        .filter(method -> MetaAnnotations.isPresent(method, ViewToolbarButton.class))
         .forEach(
             method ->
                 toolbar.add(
@@ -39,18 +40,18 @@ final class ViewToolbarBuilder {
     }
     final var finalEntity = entity;
     getAllMethods(entity.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(Toolbar.class))
+        .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
         .filter(
             method ->
-                !method.isAnnotationPresent(Hidden.class)
-                    || !method.getAnnotation(Hidden.class).value().isEmpty())
+                !MetaAnnotations.isPresent(method, Hidden.class)
+                    || !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
         .filter(
             method ->
                 !(finalEntity instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
         .forEach(
             method -> {
-              var ann = method.getAnnotation(Toolbar.class);
+              var ann = MetaAnnotations.find(method, Toolbar.class);
               var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
               var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
               var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
@@ -63,7 +64,7 @@ final class ViewToolbarBuilder {
                       .size(buttonSize)
                       .build());
             });
-    if (!orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
+    if (!MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {
       toolbar.add(new Button(orchestrator.backToListLabel(), "cancel-view"));
     }
     if (!orchestrator.readOnly()) {
@@ -77,17 +78,15 @@ final class ViewToolbarBuilder {
 
   private static boolean viewReadOnly(Object item, Crud orchestrator) {
     if (orchestrator.readOnly()) return true;
-    if (orchestrator.getClass().isAnnotationPresent(NotEditable.class)) return true;
-    if (orchestrator.viewClass().isAnnotationPresent(io.mateu.uidl.annotations.ReadOnly.class))
-      return true;
+    if (MetaAnnotations.isPresent(orchestrator.getClass(), NotEditable.class)) return true;
+    if (MetaAnnotations.isPresent(
+        orchestrator.viewClass(), io.mateu.uidl.annotations.ReadOnly.class)) return true;
     if (item != null
-        && item.getClass().isAnnotationPresent(io.mateu.uidl.annotations.ReadOnly.class))
+        && MetaAnnotations.isPresent(item.getClass(), io.mateu.uidl.annotations.ReadOnly.class))
       return true;
     if (item instanceof ModelSupplier modelSupplier) {
-      return modelSupplier
-          .model()
-          .getClass()
-          .isAnnotationPresent(io.mateu.uidl.annotations.ReadOnly.class);
+      return MetaAnnotations.isPresent(
+          modelSupplier.model().getClass(), io.mateu.uidl.annotations.ReadOnly.class);
     }
     return false;
   }

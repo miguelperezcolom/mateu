@@ -13,6 +13,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapT
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
 
 import io.mateu.core.application.runaction.YamlUidlLoader;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
@@ -53,8 +54,8 @@ public class ReflectionObjectToComponentMapper {
           serverSideComponentDto.containerId());
     }
     if (!(instance instanceof ComponentTreeSupplier)
-        && instance.getClass().isAnnotationPresent(UISpec.class)) {
-      var uiSpec = instance.getClass().getAnnotation(UISpec.class);
+        && MetaAnnotations.isPresent(instance.getClass(), UISpec.class)) {
+      var uiSpec = MetaAnnotations.find(instance.getClass(), UISpec.class);
       var component = yamlUidlLoader.loadFromSpec(uiSpec.value());
       if (component != null) {
         return buildPageUIFragment(
@@ -111,7 +112,7 @@ public class ReflectionObjectToComponentMapper {
             mapValidations(instance, route),
             null,
             null,
-            instance.getClass().isAnnotationPresent(ConfirmOnNavigationIfDirty.class),
+            MetaAnnotations.isPresent(instance.getClass(), ConfirmOnNavigationIfDirty.class),
             emitsName(instance)),
         instance,
         getData(httpRequest, instance),

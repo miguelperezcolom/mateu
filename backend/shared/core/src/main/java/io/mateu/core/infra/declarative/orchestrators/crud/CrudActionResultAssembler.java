@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.State;
 import io.mateu.uidl.data.UICommand;
@@ -43,7 +44,7 @@ final class CrudActionResultAssembler {
     if (windowTitleCommand != null) {
       list.add(windowTitleCommand);
     }
-    if (orchestrator.getClass().isAnnotationPresent(SplitCrud.class)
+    if (MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)
         && !"view".equals(httpRequest.runActionRq().actionId())) {
       // ux_ux_b6d4da9d-4ebe-454a-b2e3-b2489cc4fb31_cs_list
       var initiatorId = httpRequest.runActionRq().initiatorComponentId();

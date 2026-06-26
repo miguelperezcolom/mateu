@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AppHomeRouteResolver.*;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AppMenuDtoBuilder.buildMenu;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.AI;
 import io.mateu.uidl.annotations.Fab;
@@ -103,17 +104,17 @@ public final class AppMapper {
     if (app.serverSideType() == null) return List.of();
     var appClass = Class.forName(app.serverSideType());
     return Arrays.stream(appClass.getMethods())
-        .filter(method -> method.isAnnotationPresent(Fab.class))
-        .sorted(Comparator.comparingInt(method -> method.getAnnotation(Fab.class).order()))
+        .filter(method -> MetaAnnotations.isPresent(method, Fab.class))
+        .sorted(Comparator.comparingInt(method -> MetaAnnotations.find(method, Fab.class).order()))
         .map(AppMapper::toFabDto)
         .toList();
   }
 
   private static FabDto toFabDto(Method method) {
-    var ann = method.getAnnotation(Fab.class);
+    var ann = MetaAnnotations.find(method, Fab.class);
     var label =
-        method.isAnnotationPresent(io.mateu.uidl.annotations.Label.class)
-            ? method.getAnnotation(io.mateu.uidl.annotations.Label.class).value()
+        MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Label.class)
+            ? MetaAnnotations.find(method, io.mateu.uidl.annotations.Label.class).value()
             : io.mateu.uidl.Humanizer.toUpperCaseFirst(method.getName());
     return FabDto.builder()
         .id(method.getName())
@@ -128,8 +129,8 @@ public final class AppMapper {
   private static boolean getThemeToggle(AppShell app) {
     if (app.serverSideType() == null) return false;
     var appClass = Class.forName(app.serverSideType());
-    if (appClass.isAnnotationPresent(io.mateu.uidl.annotations.App.class)) {
-      return appClass.getAnnotation(io.mateu.uidl.annotations.App.class).themeToggle();
+    if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
+      return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).themeToggle();
     }
     return false;
   }
@@ -138,8 +139,8 @@ public final class AppMapper {
   private static String getSseUrl(AppShell app) {
     if (app.serverSideType() == null) return null;
     var appClass = Class.forName(app.serverSideType());
-    if (appClass.isAnnotationPresent(AI.class)) {
-      return appClass.getAnnotation(AI.class).sse();
+    if (MetaAnnotations.isPresent(appClass, AI.class)) {
+      return MetaAnnotations.find(appClass, AI.class).sse();
     }
     return null;
   }

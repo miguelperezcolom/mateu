@@ -20,7 +20,7 @@ import java.lang.annotation.Target;
  * @see io.mateu.uidl.data.UICommand#dispatchEvent(String, Object)
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 public @interface Emits {
 
   /** Names of the events this component emits (documentary only). */

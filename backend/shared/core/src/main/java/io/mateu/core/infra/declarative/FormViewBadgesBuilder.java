@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.KPI;
@@ -19,7 +20,7 @@ final class FormViewBadgesBuilder {
       instance = modelSupplier.model();
     }
     return getAllEditableFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.KPI.class))
+        .filter(field -> MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.KPI.class))
         .map(field -> KPI.builder().title(getLabel(field)).text(getKpiText(field)).build())
         .toList();
   }

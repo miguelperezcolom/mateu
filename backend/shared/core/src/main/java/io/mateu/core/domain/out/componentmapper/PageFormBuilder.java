@@ -66,8 +66,9 @@ public class PageFormBuilder {
   }
 
   public static int getFormColumns(Class<?> instanceType) {
-    if (instanceType.isAnnotationPresent(io.mateu.uidl.annotations.FormLayout.class)) {
-      return instanceType.getAnnotation(io.mateu.uidl.annotations.FormLayout.class).columns();
+    if (MetaAnnotations.isPresent(instanceType, io.mateu.uidl.annotations.FormLayout.class)) {
+      return MetaAnnotations.find(instanceType, io.mateu.uidl.annotations.FormLayout.class)
+          .columns();
     }
     return 2;
   }
@@ -164,7 +165,7 @@ public class PageFormBuilder {
 
   public static boolean isReadOnly(
       Field field, Object instance, boolean forCreationForm, HttpRequest httpRequest) {
-    return (instance != null && instance.getClass().isAnnotationPresent(ReadOnly.class))
+    return (instance != null && MetaAnnotations.isPresent(instance.getClass(), ReadOnly.class))
         || MetaAnnotations.isPresent(field, ReadOnly.class)
         || MetaAnnotations.isPresent(field, GeneratedValue.class)
         || (!forCreationForm && MetaAnnotations.isPresent(field, EditableOnlyWhenCreating.class))

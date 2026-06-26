@@ -39,7 +39,7 @@ final class MenuEntryMapper {
     if ("/".equals(appRoute)) {
       appRoute = "";
     }
-    var menuAnnotation = field.getAnnotation(io.mateu.uidl.annotations.Menu.class);
+    var menuAnnotation = MetaAnnotations.find(field, io.mateu.uidl.annotations.Menu.class);
     var description =
         (menuAnnotation != null && !menuAnnotation.description().isBlank())
             ? menuAnnotation.description()
@@ -96,7 +96,7 @@ final class MenuEntryMapper {
       if (getAllFields(field.getType()).stream()
           .anyMatch(
               childField ->
-                  childField.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
+                  MetaAnnotations.isPresent(childField, io.mateu.uidl.annotations.Menu.class)
                       && isAuthorized(
                           MetaAnnotations.find(childField, EyesOnly.class), httpRequest))) {
         return new Menu(

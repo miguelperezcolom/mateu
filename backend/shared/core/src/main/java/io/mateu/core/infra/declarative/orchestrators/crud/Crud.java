@@ -8,6 +8,7 @@ import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.*;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
@@ -83,7 +84,7 @@ public abstract class Crud<
 
   public void addButtonsToList(List<UserTrigger> toolbar) {
     getAllMethods(getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
+        .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
         .forEach(
             method -> {
               toolbar.add(
@@ -216,7 +217,7 @@ public abstract class Crud<
 
   @Override
   protected AppLayout layout() {
-    if (getClass().isAnnotationPresent(SplitCrud.class)) {
+    if (MetaAnnotations.isPresent(getClass(), SplitCrud.class)) {
       return AppLayout.SPLIT;
     }
     return super.layout();

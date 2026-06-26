@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Emits;
 
 /** Resolves the logical source name a component emits events under (see {@link Emits}). */
@@ -14,7 +15,7 @@ public class EmitsMapper {
     if (instance == null) {
       return null;
     }
-    var emits = instance.getClass().getAnnotation(Emits.class);
+    var emits = MetaAnnotations.find(instance.getClass(), Emits.class);
     if (emits == null || emits.name().isBlank()) {
       return null;
     }

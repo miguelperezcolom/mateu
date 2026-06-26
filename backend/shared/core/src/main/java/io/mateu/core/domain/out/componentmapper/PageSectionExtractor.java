@@ -27,8 +27,8 @@ final class PageSectionExtractor {
     if (instance instanceof BreadcrumbsSupplier breadcrumbsSupplier) {
       return breadcrumbsSupplier.breadcrumbs(httpRequest);
     }
-    if (instance.getClass().isAnnotationPresent(Breadcrumbs.class)) {
-      return Arrays.stream(instance.getClass().getAnnotation(Breadcrumbs.class).value())
+    if (MetaAnnotations.isPresent(instance.getClass(), Breadcrumbs.class)) {
+      return Arrays.stream(MetaAnnotations.find(instance.getClass(), Breadcrumbs.class).value())
           .map(breadcrumb -> new Breadcrumb(breadcrumb.label(), breadcrumb.url()))
           .toList();
     }

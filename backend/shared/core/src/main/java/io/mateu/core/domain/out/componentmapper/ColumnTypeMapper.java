@@ -23,7 +23,7 @@ final class ColumnTypeMapper {
     if (Status.class.equals(columnField.getType())) {
       return FieldDataType.status;
     }
-    if (columnField.isAnnotationPresent(io.mateu.uidl.annotations.Status.class)) {
+    if (MetaAnnotations.isPresent(columnField, io.mateu.uidl.annotations.Status.class)) {
       return FieldDataType.status;
     }
     if (MetaAnnotations.isPresent(columnField, MappedValue.class)) {

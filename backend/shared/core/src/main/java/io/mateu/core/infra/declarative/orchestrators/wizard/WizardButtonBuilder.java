@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.wizard;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.WizardCompletionAction;
@@ -28,7 +29,7 @@ final class WizardButtonBuilder {
       buttons.add(Button.builder().id("next").label("Next").build());
     } else if (!isLastStep) {
       getAllMethods(wizard.getClass()).stream()
-          .filter(method -> method.isAnnotationPresent(WizardCompletionAction.class))
+          .filter(method -> MetaAnnotations.isPresent(method, WizardCompletionAction.class))
           .forEach(
               method ->
                   buttons.add(
@@ -40,18 +41,18 @@ final class WizardButtonBuilder {
     }
     var step = wizard.getStep();
     getAllMethods(wizard.currentStepField().getType()).stream()
-        .filter(method -> method.isAnnotationPresent(Toolbar.class))
+        .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
         .filter(
             method ->
-                !method.isAnnotationPresent(Hidden.class)
-                    || !method.getAnnotation(Hidden.class).value().isEmpty())
+                !MetaAnnotations.isPresent(method, Hidden.class)
+                    || !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
         .filter(
             method ->
                 !(step instanceof VisibilitySupplier vs)
                     || !vs.isHidden(method.getName(), httpRequest))
         .forEach(
             method -> {
-              var ann = method.getAnnotation(Toolbar.class);
+              var ann = MetaAnnotations.find(method, Toolbar.class);
               var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
               var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
               var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;

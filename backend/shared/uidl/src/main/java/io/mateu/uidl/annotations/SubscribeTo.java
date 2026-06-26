@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  */
 @Repeatable(SubscribesTo.class)
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 public @interface SubscribeTo {
 
   /** Name of the custom event to listen for. */

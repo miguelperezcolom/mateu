@@ -82,8 +82,8 @@ public class RuleMapper {
     getAllMethods(viewClass).stream()
         .filter(
             method ->
-                method.isAnnotationPresent(Hidden.class)
-                    && !method.getAnnotation(Hidden.class).value().isEmpty())
+                MetaAnnotations.isPresent(method, Hidden.class)
+                    && !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
         .forEach(
             method ->
                 rules.add(
@@ -92,7 +92,7 @@ public class RuleMapper {
                         .action(RuleAction.SetDataValue)
                         .fieldName(method.getName())
                         .fieldAttribute(RuleFieldAttribute.hidden)
-                        .expression(method.getAnnotation(Hidden.class).value())
+                        .expression(MetaAnnotations.find(method, Hidden.class).value())
                         .result(RuleResult.Continue)
                         .build()));
     ListFieldRuleCollector.addListFieldRules(viewClass, rules);

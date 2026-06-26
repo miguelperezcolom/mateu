@@ -4,6 +4,7 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 import static io.mateu.core.infra.reflection.write.RunMethodActionRunner.invoke;
 
 import io.mateu.core.application.runaction.RunActionCommand;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
@@ -29,7 +30,7 @@ public abstract class Listing<Filters, Row>
     var actions = new ArrayList<Action>();
     actions.addAll(ListingBackend.super.actions(httpRequest));
     getAllMethods(getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(Toolbar.class))
+        .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
         .forEach(
             method -> {
               actions.add(Action.builder().id(method.getName()).build());

@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
  * cascades to every component inside. Opt-in and non-breaking — pages without it are unaffected.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
 public @interface Compact {}

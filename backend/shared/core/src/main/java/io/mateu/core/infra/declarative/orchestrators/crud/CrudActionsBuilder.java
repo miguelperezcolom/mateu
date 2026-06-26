@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.ViewToolbarButton;
 import io.mateu.uidl.fluent.Action;
@@ -46,29 +47,32 @@ final class CrudActionsBuilder {
         actions.add(Action.builder().id("history").build());
       }
       getAllMethods(orchestrator.getClass()).stream()
-          .filter(method -> method.isAnnotationPresent(ListToolbarButton.class))
+          .filter(method -> MetaAnnotations.isPresent(method, ListToolbarButton.class))
           .forEach(
               method ->
                   actions.add(
                       Action.builder()
                           .id("action-on-row-" + method.getName())
                           .confirmationRequired(
-                              method.getAnnotation(ListToolbarButton.class).confirmationRequired())
+                              MetaAnnotations.find(method, ListToolbarButton.class)
+                                  .confirmationRequired())
                           .rowsSelectedRequired(
-                              method.getAnnotation(ListToolbarButton.class).rowsSelectedRequired())
+                              MetaAnnotations.find(method, ListToolbarButton.class)
+                                  .rowsSelectedRequired())
                           .bubble(true)
                           .build()));
     }
     if (httpRequest.getAttribute("view") != null) {
       getAllMethods(orchestrator.getClass()).stream()
-          .filter(method -> method.isAnnotationPresent(ViewToolbarButton.class))
+          .filter(method -> MetaAnnotations.isPresent(method, ViewToolbarButton.class))
           .forEach(
               method ->
                   actions.add(
                       Action.builder()
                           .id("action-on-view-" + method.getName())
                           .confirmationRequired(
-                              method.getAnnotation(ViewToolbarButton.class).confirmationRequired())
+                              MetaAnnotations.find(method, ViewToolbarButton.class)
+                                  .confirmationRequired())
                           .bubble(true)
                           .build()));
     }

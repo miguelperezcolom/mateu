@@ -23,9 +23,9 @@ class AppMetadataExtractor {
 
   static AppLayout getLayout(Object instance, Collection<? extends Actionable> menu) {
     if (instance != null
-        && instance.getClass().isAnnotationPresent(io.mateu.uidl.annotations.App.class)) {
+        && MetaAnnotations.isPresent(instance.getClass(), io.mateu.uidl.annotations.App.class)) {
       var appLayout =
-          instance.getClass().getAnnotation(io.mateu.uidl.annotations.App.class).layout();
+          MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.App.class).layout();
       if (appLayout != AppLayout.SINGLE_SLOT) {
         return appLayout;
       }
@@ -35,9 +35,9 @@ class AppMetadataExtractor {
 
   static AppVariant getVariant(Object instance, Collection<? extends Actionable> menu) {
     if (instance != null
-        && instance.getClass().isAnnotationPresent(io.mateu.uidl.annotations.App.class)) {
+        && MetaAnnotations.isPresent(instance.getClass(), io.mateu.uidl.annotations.App.class)) {
       var appVariant =
-          instance.getClass().getAnnotation(io.mateu.uidl.annotations.App.class).value();
+          MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.App.class).value();
       if (appVariant != AppVariant.AUTO) {
         return appVariant;
       }
@@ -65,33 +65,33 @@ class AppMetadataExtractor {
   }
 
   static String getLogo(Object instance) {
-    if (instance.getClass().isAnnotationPresent(Logo.class)) {
-      return instance.getClass().getAnnotation(Logo.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), Logo.class)) {
+      return MetaAnnotations.find(instance.getClass(), Logo.class).value();
     }
     return null;
   }
 
   static String getFavicon(Object instance) {
-    if (instance.getClass().isAnnotationPresent(FavIcon.class)) {
-      return instance.getClass().getAnnotation(FavIcon.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), FavIcon.class)) {
+      return MetaAnnotations.find(instance.getClass(), FavIcon.class).value();
     }
     return null;
   }
 
   static boolean isDrawerClosed(Object instance) {
-    return instance.getClass().isAnnotationPresent(DrawerClosed.class);
+    return MetaAnnotations.isPresent(instance.getClass(), DrawerClosed.class);
   }
 
   static String getCssClasses(Object instance) {
-    if (instance.getClass().isAnnotationPresent(CssClasses.class)) {
-      return instance.getClass().getAnnotation(CssClasses.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), CssClasses.class)) {
+      return MetaAnnotations.find(instance.getClass(), CssClasses.class).value();
     }
     return null;
   }
 
   static String getStyle(Object instance) {
-    if (instance.getClass().isAnnotationPresent(Style.class)) {
-      return instance.getClass().getAnnotation(Style.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), Style.class)) {
+      return MetaAnnotations.find(instance.getClass(), Style.class).value();
     }
     return null;
   }
@@ -110,8 +110,8 @@ class AppMetadataExtractor {
     if (instance instanceof TitleSupplier titleSupplier) {
       return titleSupplier.title();
     }
-    if (instance.getClass().isAnnotationPresent(Title.class)) {
-      return instance.getClass().getAnnotation(Title.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), Title.class)) {
+      return MetaAnnotations.find(instance.getClass(), Title.class).value();
     }
     return null;
   }
@@ -120,8 +120,8 @@ class AppMetadataExtractor {
     if (instance instanceof SubtitleSupplier subtitleSupplier) {
       return subtitleSupplier.subtitle();
     }
-    if (instance.getClass().isAnnotationPresent(Subtitle.class)) {
-      return instance.getClass().getAnnotation(Subtitle.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), Subtitle.class)) {
+      return MetaAnnotations.find(instance.getClass(), Subtitle.class).value();
     }
     return null;
   }
@@ -130,8 +130,8 @@ class AppMetadataExtractor {
     if (instance instanceof PageTitleSupplier pageTitleSupplier) {
       return pageTitleSupplier.pageTitle();
     }
-    if (instance.getClass().isAnnotationPresent(PageTitle.class)) {
-      return instance.getClass().getAnnotation(PageTitle.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), PageTitle.class)) {
+      return MetaAnnotations.find(instance.getClass(), PageTitle.class).value();
     }
     if (instance.getClass().isAnnotationPresent(UI.class)
         || instance.getClass().isAnnotationPresent(Route.class)) {
@@ -141,8 +141,8 @@ class AppMetadataExtractor {
   }
 
   static String getLabel(Method method) {
-    if (method.isAnnotationPresent(Label.class)) {
-      return method.getAnnotation(Label.class).value();
+    if (MetaAnnotations.isPresent(method, Label.class)) {
+      return MetaAnnotations.find(method, Label.class).value();
     }
     return Humanizer.toUpperCaseFirst(method.getName());
   }

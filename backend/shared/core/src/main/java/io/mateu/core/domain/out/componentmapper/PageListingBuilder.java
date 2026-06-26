@@ -93,8 +93,8 @@ public class PageListingBuilder {
 
   private static String getStyle(Object instance, HttpRequest httpRequest) {
     var style = "min-width: 30rem; display: block;";
-    if (instance.getClass().isAnnotationPresent(Style.class)) {
-      style += instance.getClass().getAnnotation(Style.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), Style.class)) {
+      style += MetaAnnotations.find(instance.getClass(), Style.class).value();
     }
     return style;
   }
@@ -108,7 +108,7 @@ public class PageListingBuilder {
     }
     if (instance != null) {
       return getAllMethods(instance.getClass()).stream()
-          .anyMatch(method -> method.isAnnotationPresent(Toolbar.class));
+          .anyMatch(method -> MetaAnnotations.isPresent(method, Toolbar.class));
     }
     return false;
   }

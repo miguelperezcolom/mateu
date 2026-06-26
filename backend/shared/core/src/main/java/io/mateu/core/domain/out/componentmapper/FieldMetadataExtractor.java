@@ -193,7 +193,8 @@ public class FieldMetadataExtractor {
   }
 
   static boolean isMultiline(Field field) {
-    return field.isAnnotationPresent(io.mateu.uidl.annotations.Multiline.class)
-        || field.getDeclaringClass().isAnnotationPresent(io.mateu.uidl.annotations.Multiline.class);
+    return MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Multiline.class)
+        || MetaAnnotations.isPresent(
+            field.getDeclaringClass(), io.mateu.uidl.annotations.Multiline.class);
   }
 }

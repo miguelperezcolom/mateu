@@ -61,8 +61,8 @@ public final class ViewTypeClassifier {
 
   private static boolean hasSomething(Object instance) {
     for (Method method : getAllMethods(instance.getClass())) {
-      if (method.isAnnotationPresent(Toolbar.class)) return true;
-      if (method.isAnnotationPresent(Button.class)) return true;
+      if (MetaAnnotations.isPresent(method, Toolbar.class)) return true;
+      if (MetaAnnotations.isPresent(method, Button.class)) return true;
     }
     for (Field field : getAllFields(instance.getClass())) {
       if (MetaAnnotations.isPresent(field, Toolbar.class)) return true;

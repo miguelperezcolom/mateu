@@ -5,6 +5,7 @@ import static io.mateu.core.domain.BasicTypeChecker.isBasicArray;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ActionDto;
 import io.mateu.uidl.annotations.AutoSave;
 import io.mateu.uidl.data.Amount;
@@ -31,7 +32,7 @@ public class ActionMapper {
     actions.addAll(
         addNestedFormsActions(
             "nested-form-action-", serverSideObject.getClass(), serverSideObject, httpRequest));
-    if (serverSideObject.getClass().isAnnotationPresent(AutoSave.class)) {
+    if (MetaAnnotations.isPresent(serverSideObject.getClass(), AutoSave.class)) {
       actions.add(Action.builder().id("*").build());
     }
     if (serverSideObject instanceof ActionSupplier hasActions) {

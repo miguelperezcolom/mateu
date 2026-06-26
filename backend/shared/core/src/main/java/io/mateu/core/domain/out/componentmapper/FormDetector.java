@@ -31,7 +31,7 @@ public final class FormDetector {
     return getAllFields(type).stream()
         .anyMatch(
             field ->
-                !(field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
+                !(MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Button.class)
                         || MetaAnnotations.isPresent(field, Toolbar.class))
                     && ((!Modifier.isFinal(field.getModifiers())
                             || field.getDeclaringClass().isRecord())

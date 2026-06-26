@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.*;
@@ -79,8 +80,8 @@ public class FormViewModel
   }
 
   public String title() {
-    if (this.getClass().isAnnotationPresent(Title.class)) {
-      return this.getClass().getAnnotation(Title.class).value();
+    if (MetaAnnotations.isPresent(this.getClass(), Title.class)) {
+      return MetaAnnotations.find(this.getClass(), Title.class).value();
     }
     return toUpperCaseFirst(getClass().getSimpleName());
   }

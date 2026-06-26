@@ -110,7 +110,7 @@ public class FieldTypeMapper {
     if (MetaAnnotations.isPresent(field, PlainText.class)) {
       return FieldStereotype.plainText;
     }
-    if (field.isAnnotationPresent(io.mateu.uidl.annotations.Badge.class)) {
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Badge.class)) {
       return FieldStereotype.badge;
     }
     if (MetaAnnotations.isPresent(field, Stereotype.class)) {
@@ -122,7 +122,7 @@ public class FieldTypeMapper {
       }
       return stereotype;
     }
-    if (field.getDeclaringClass().isAnnotationPresent(PlainText.class)
+    if (MetaAnnotations.isPresent(field.getDeclaringClass(), PlainText.class)
         && (String.class.equals(field.getType())
             || int.class.equals(field.getType())
             || Integer.class.equals(field.getType())
@@ -187,6 +187,6 @@ public class FieldTypeMapper {
 
   private static boolean isPlainTextContext(Field field) {
     return MetaAnnotations.isPresent(field, PlainText.class)
-        || field.getDeclaringClass().isAnnotationPresent(PlainText.class);
+        || MetaAnnotations.isPresent(field.getDeclaringClass(), PlainText.class);
   }
 }

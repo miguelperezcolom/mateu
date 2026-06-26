@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.wizard;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -33,7 +34,7 @@ final class WizardActionDispatcher {
     if (!"".equals(actionId)) {
       var found =
           getAllMethods(wizard.getClass()).stream()
-              .filter(method -> method.isAnnotationPresent(WizardCompletionAction.class))
+              .filter(method -> MetaAnnotations.isPresent(method, WizardCompletionAction.class))
               .filter(method -> actionId.equals(method.getName()))
               .findFirst();
       if (found.isPresent()) {

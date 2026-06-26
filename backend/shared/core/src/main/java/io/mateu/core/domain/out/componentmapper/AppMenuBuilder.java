@@ -36,7 +36,7 @@ class AppMenuBuilder {
             getAllFields(instance.getClass()).stream()
                 .filter(
                     field ->
-                        field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
+                        MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Menu.class)
                             && isAuthorized(
                                 MetaAnnotations.find(field, EyesOnly.class), httpRequest))
                 .map(field -> mapToMenu(appRoute, field, instance, route, httpRequest))
@@ -44,8 +44,9 @@ class AppMenuBuilder {
             getAllMethods(instance.getClass()).stream()
                 .filter(
                     method ->
-                        method.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
-                            && isAuthorized(method.getAnnotation(EyesOnly.class), httpRequest))
+                        MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Menu.class)
+                            && isAuthorized(
+                                MetaAnnotations.find(method, EyesOnly.class), httpRequest))
                 .map(method -> mapToMenu(appRoute, method, instance, route, httpRequest))
                 .filter(Objects::nonNull))
         .toList();

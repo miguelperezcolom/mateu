@@ -7,6 +7,7 @@ import static io.mateu.core.infra.declarative.FormViewModel.createKpis;
 
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Message;
@@ -116,7 +117,7 @@ public abstract class EditableView<V, E> extends MultiView {
   }
 
   public boolean readOnly() {
-    return getClass().isAnnotationPresent(ReadOnly.class);
+    return MetaAnnotations.isPresent(getClass(), ReadOnly.class);
   }
 
   public abstract V view(HttpRequest httpRequest);

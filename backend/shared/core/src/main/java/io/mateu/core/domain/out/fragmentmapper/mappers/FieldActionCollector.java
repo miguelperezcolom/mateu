@@ -31,20 +31,20 @@ final class FieldActionCollector {
     List<Action> fieldActions = new ArrayList<>();
 
     getAllFields(serverSideObject.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
+        .filter(field -> MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Action.class))
         .map(
             field ->
                 ActionDtoMapper.mapToAction(
-                        field.getAnnotation(io.mateu.uidl.annotations.Action.class))
+                        MetaAnnotations.find(field, io.mateu.uidl.annotations.Action.class))
                     .withId(field.getName()))
         .forEach(fieldActions::add);
     getAllMethods(serverSideObject.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class))
+        .filter(method -> MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Action.class))
         .map(
             method -> {
               Action action =
                   ActionDtoMapper.mapToAction(
-                          method.getAnnotation(io.mateu.uidl.annotations.Action.class))
+                          MetaAnnotations.find(method, io.mateu.uidl.annotations.Action.class))
                       .withId(method.getName());
               return isFluxReturning(method) ? action.withSse(true) : action;
             })
@@ -117,7 +117,7 @@ final class FieldActionCollector {
     getAllFields(serverSideObject.getClass()).stream()
         .filter(
             field ->
-                !field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
+                !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Action.class)
                     && (MetaAnnotations.isPresent(field, Button.class)
                         || MetaAnnotations.isPresent(field, Toolbar.class)))
         .map(field -> Action.builder().id(field.getName()).validationRequired(true).build())
@@ -125,9 +125,9 @@ final class FieldActionCollector {
     getAllMethods(serverSideObject.getClass()).stream()
         .filter(
             method ->
-                !method.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
-                    && (method.isAnnotationPresent(Button.class)
-                        || method.isAnnotationPresent(Toolbar.class)))
+                !MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Action.class)
+                    && (MetaAnnotations.isPresent(method, Button.class)
+                        || MetaAnnotations.isPresent(method, Toolbar.class)))
         .map(
             method ->
                 Action.builder()

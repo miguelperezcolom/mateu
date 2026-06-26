@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.*;
 import io.mateu.uidl.annotations.AutoSave;
 import io.mateu.uidl.fluent.*;
@@ -63,7 +64,7 @@ public class TriggerMapper {
                             .from(a.from().isBlank() ? null : a.from())
                             .build())
             .toList());
-    var autoSave = serverSideObject.getClass().getAnnotation(AutoSave.class);
+    var autoSave = MetaAnnotations.find(serverSideObject.getClass(), AutoSave.class);
     if (autoSave != null) {
       triggers.add(new AutoSaveTrigger(autoSave.action(), autoSave.debounceMillis()));
     }

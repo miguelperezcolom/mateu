@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRule
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
@@ -55,7 +56,8 @@ public class FutureComponentMapper {
         mapValidations(futureComponent.instance(), route),
         null,
         null,
-        futureComponent.instance().getClass().isAnnotationPresent(ConfirmOnNavigationIfDirty.class),
+        MetaAnnotations.isPresent(
+            futureComponent.instance().getClass(), ConfirmOnNavigationIfDirty.class),
         EmitsMapper.emitsName(futureComponent.instance()));
   }
 

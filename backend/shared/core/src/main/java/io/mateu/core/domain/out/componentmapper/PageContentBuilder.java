@@ -69,7 +69,7 @@ final class PageContentBuilder {
         .filter(field -> !Modifier.isFinal(field.getModifiers()))
         .filter(
             field ->
-                !field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
+                !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Button.class)
                     && !MetaAnnotations.isPresent(field, Toolbar.class)
                     && !MetaAnnotations.isPresent(field, Header.class)
                     && !MetaAnnotations.isPresent(field, Footer.class)

@@ -23,18 +23,20 @@ final class FormTabArranger {
             .filter(
                 field ->
                     readOnly
-                        || !field.isAnnotationPresent(io.mateu.uidl.annotations.Composition.class))
+                        || !MetaAnnotations.isPresent(
+                            field, io.mateu.uidl.annotations.Composition.class))
             .filter(field -> !io.mateu.uidl.data.Status.class.equals(field.getType()))
-            .filter(field -> !field.isAnnotationPresent(io.mateu.uidl.annotations.KPI.class))
-            .filter(
-                field -> !field.isAnnotationPresent(io.mateu.uidl.annotations.BadgeInHeader.class))
+            .filter(field -> !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.KPI.class))
             .filter(
                 field ->
-                    !field.isAnnotationPresent(io.mateu.uidl.annotations.Hidden.class)
+                    !MetaAnnotations.isPresent(
+                        field, io.mateu.uidl.annotations.BadgeInHeader.class))
+            .filter(
+                field ->
+                    !MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Hidden.class)
                         || !""
                             .equals(
-                                field
-                                    .getAnnotation(io.mateu.uidl.annotations.Hidden.class)
+                                MetaAnnotations.find(field, io.mateu.uidl.annotations.Hidden.class)
                                     .value()))
             .toList();
     arrangeInTabs(filteredFields, fieldsPerTab, noTabFields, readOnly, forCreationForm);

@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper
 
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.TabFields;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
@@ -50,7 +51,7 @@ class FormLayoutBuilder {
       return null;
     }
     var type = instance instanceof Class ? (Class<?>) instance : instance.getClass();
-    return type.isAnnotationPresent(io.mateu.uidl.annotations.Compact.class) ? "7em" : null;
+    return MetaAnnotations.isPresent(type, io.mateu.uidl.annotations.Compact.class) ? "7em" : null;
   }
 
   static Component toFormLayout(

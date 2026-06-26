@@ -39,10 +39,10 @@ final class SectionFormRenderer {
       int level) {
     if (sections.size() > 1) {
       var instanceClass = instance instanceof Class ? (Class) instance : instance.getClass();
-      if (instanceClass.isAnnotationPresent(Zones.class)) {
+      if (MetaAnnotations.isPresent(instanceClass, Zones.class)) {
         return List.of(
             renderZones(
-                (Zones) instanceClass.getAnnotation(Zones.class),
+                (Zones) MetaAnnotations.find(instanceClass, Zones.class),
                 sections,
                 fieldsPerSection,
                 prefix,
@@ -56,7 +56,7 @@ final class SectionFormRenderer {
                 readOnly,
                 level));
       }
-      if (instanceClass.isAnnotationPresent(FoldedLayout.class)) {
+      if (MetaAnnotations.isPresent(instanceClass, FoldedLayout.class)) {
         return List.of(
             HorizontalLayout.builder()
                 .spacing(true)
@@ -150,8 +150,9 @@ final class SectionFormRenderer {
       boolean readOnly,
       int level) {
     var compact =
-        (instance instanceof Class ? (Class) instance : instance.getClass())
-            .isAnnotationPresent(io.mateu.uidl.annotations.Compact.class);
+        MetaAnnotations.isPresent(
+            instance instanceof Class ? (Class) instance : instance.getClass(),
+            io.mateu.uidl.annotations.Compact.class);
     var titleStyle =
         compact
             ? "margin: 0 0 0.25rem 0; font-size: var(--lumo-font-size-l); line-height: 1.15;"
@@ -221,7 +222,7 @@ final class SectionFormRenderer {
     return sectionFields.fields().stream()
         .anyMatch(
             f ->
-                f.isAnnotationPresent(Inline.class)
+                MetaAnnotations.isPresent(f, Inline.class)
                     && io.mateu.core.infra.declarative.orchestrators.MultiView.class
                         .isAssignableFrom(f.getType()));
   }

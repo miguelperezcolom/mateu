@@ -4,6 +4,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BannerTheme;
@@ -19,9 +20,9 @@ final class PageMetadataExtractor {
     if (instance instanceof PageTitleSupplier pageTitleSupplier) {
       return TranslatorContext.translate(pageTitleSupplier.pageTitle());
     }
-    if (instance.getClass().isAnnotationPresent(PageTitle.class)) {
+    if (MetaAnnotations.isPresent(instance.getClass(), PageTitle.class)) {
       return TranslatorContext.translate(
-          instance.getClass().getAnnotation(PageTitle.class).value());
+          MetaAnnotations.find(instance.getClass(), PageTitle.class).value());
     }
     return TranslatorContext.translate(toUpperCaseFirst(instance.getClass().getSimpleName()));
   }
@@ -30,8 +31,9 @@ final class PageMetadataExtractor {
     if (instance instanceof TitleSupplier titleSupplier) {
       return TranslatorContext.translate(titleSupplier.title());
     }
-    if (instance.getClass().isAnnotationPresent(Title.class)) {
-      return TranslatorContext.translate(instance.getClass().getAnnotation(Title.class).value());
+    if (MetaAnnotations.isPresent(instance.getClass(), Title.class)) {
+      return TranslatorContext.translate(
+          MetaAnnotations.find(instance.getClass(), Title.class).value());
     }
     if (instance instanceof Named named) {
       return TranslatorContext.translate(named.name());
@@ -52,32 +54,33 @@ final class PageMetadataExtractor {
     if (instance instanceof SubtitleSupplier subtitleSupplier) {
       return TranslatorContext.translate(subtitleSupplier.subtitle());
     }
-    if (instance.getClass().isAnnotationPresent(Subtitle.class)) {
-      return TranslatorContext.translate(instance.getClass().getAnnotation(Subtitle.class).value());
+    if (MetaAnnotations.isPresent(instance.getClass(), Subtitle.class)) {
+      return TranslatorContext.translate(
+          MetaAnnotations.find(instance.getClass(), Subtitle.class).value());
     }
     return null;
   }
 
   static String getFavicon(Object instance) {
-    if (instance.getClass().isAnnotationPresent(FavIcon.class)) {
-      return instance.getClass().getAnnotation(FavIcon.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), FavIcon.class)) {
+      return MetaAnnotations.find(instance.getClass(), FavIcon.class).value();
     }
     return null;
   }
 
   static String getCssClasses(Object instance) {
-    if (instance.getClass().isAnnotationPresent(CssClasses.class)) {
-      return instance.getClass().getAnnotation(CssClasses.class).value();
+    if (MetaAnnotations.isPresent(instance.getClass(), CssClasses.class)) {
+      return MetaAnnotations.find(instance.getClass(), CssClasses.class).value();
     }
     return null;
   }
 
   static String getStyle(Object instance) {
     var style =
-        instance.getClass().isAnnotationPresent(Style.class)
-            ? instance.getClass().getAnnotation(Style.class).value()
+        MetaAnnotations.isPresent(instance.getClass(), Style.class)
+            ? MetaAnnotations.find(instance.getClass(), Style.class).value()
             : "";
-    if (instance.getClass().isAnnotationPresent(io.mateu.uidl.annotations.Compact.class)) {
+    if (MetaAnnotations.isPresent(instance.getClass(), io.mateu.uidl.annotations.Compact.class)) {
       style = style + ";" + io.mateu.uidl.StyleConstants.COMPACT;
     }
     return style.isBlank() ? null : style;
@@ -92,10 +95,12 @@ final class PageMetadataExtractor {
     // Fields annotated with @BadgeInHeader generate reactive expression-based badges so they
     // update when state changes without needing a full component re-render.
     return getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.BadgeInHeader.class))
+        .filter(
+            field ->
+                MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.BadgeInHeader.class))
         .map(
             field -> {
-              var ann = field.getAnnotation(io.mateu.uidl.annotations.BadgeInHeader.class);
+              var ann = MetaAnnotations.find(field, io.mateu.uidl.annotations.BadgeInHeader.class);
               String label =
                   ann.label().isBlank() ? FieldMetadataExtractor.getLabel(field) : ann.label();
               String text;
@@ -119,7 +124,7 @@ final class PageMetadataExtractor {
 
   static List<KPI> getKpis(Object instance) {
     return getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(io.mateu.uidl.annotations.KPI.class))
+        .filter(field -> MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.KPI.class))
         .map(
             field -> {
               field.setAccessible(true);
@@ -141,10 +146,10 @@ final class PageMetadataExtractor {
       return bannerSupplier.banners();
     }
     return getAllMethods(instance.getClass()).stream()
-        .filter(method -> method.isAnnotationPresent(Banner.class))
+        .filter(method -> MetaAnnotations.isPresent(method, Banner.class))
         .map(
             method -> {
-              var ann = method.getAnnotation(Banner.class);
+              var ann = MetaAnnotations.find(method, Banner.class);
               String description = null;
               if (method.getReturnType() == String.class) {
                 try {

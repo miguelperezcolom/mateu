@@ -6,6 +6,7 @@ import static io.mateu.core.infra.declarative.FormViewModel.createBadges;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Action;
@@ -53,7 +54,7 @@ class CrudFormComponentBuilder {
 
   private static List<UserTrigger> buildToolbar(boolean isCreation, Crud orchestrator) {
     List<UserTrigger> buttons = new ArrayList<>();
-    if (!isCreation || !orchestrator.getClass().isAnnotationPresent(SplitCrud.class)) {
+    if (!isCreation || !MetaAnnotations.isPresent(orchestrator.getClass(), SplitCrud.class)) {
       buttons.add(
           new Button(orchestrator.cancelLabel(), isCreation ? "cancel-new" : "cancel-edit"));
     }
