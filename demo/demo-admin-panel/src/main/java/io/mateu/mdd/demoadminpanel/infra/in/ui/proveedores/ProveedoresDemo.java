@@ -3,7 +3,7 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.proveedores;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 
-/** Demo of the @ProveedorId semantic annotation (a @Lookup composed into a domain annotation). */
+/** Demo of semantic annotations: @ProveedorId/@HotelId (lookup) and @Importe (stereotype). */
 @UI("/proveedor-demo")
 @Title("Pedido")
 public class ProveedoresDemo {
@@ -15,6 +15,9 @@ public class ProveedoresDemo {
 
   @HotelId
   String hotelId;
+
+  @Importe
+  java.math.BigDecimal total;
 
   String observaciones;
 }
