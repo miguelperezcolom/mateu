@@ -11,6 +11,11 @@ It is the extension point for *bridging* foreign models into the Mateu pipeline:
 the components + state + data; Mateu reuses its normal rendering, action dispatch and state
 round-trip for them.
 
+:::note
+For when to reach for an adapter vs. a semantic annotation vs. a custom supplier, see
+[Build Your Domain Vocabulary](../domain-vocabulary/).
+:::
+
 ```java
 public interface ComponentAdapter<T> {
 

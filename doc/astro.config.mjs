@@ -235,6 +235,7 @@ export default defineConfig({
 						{ slug: 'java-ui-definition/fluent-components' },
 						{ slug: 'java-ui-definition/client-side-logic' },
 						{ slug: 'java-ui-definition/yaml-ui-definition' },
+						{ slug: 'java-ui-definition/domain-vocabulary', label: 'Build Your Domain Vocabulary' },
 						{
 							label: 'Components',
 							items: [{ autogenerate: { directory: 'java-ui-definition/components' } }],
