@@ -9,6 +9,7 @@ import {
     renderSldsButton, renderSldsText, renderSldsFormLayout, renderSldsForm, renderSldsFormSection,
     renderSldsTable, renderSldsHorizontalLayout, renderSldsVerticalLayout, renderSldsSplitLayout,
     renderSldsCard, renderSldsBadge, renderSldsProgressBar, renderSldsAnchor,
+    renderSldsDialog, renderSldsConfirmDialog,
 } from './renderers/sldsRenderers.ts'
 import './components/mateu-slds-field.ts'
 import './components/mateu-slds-tabs.ts'
@@ -106,6 +107,14 @@ export class SldsComponentRenderer extends BasicComponentRenderer implements Com
 
         if (ComponentMetadataType.Anchor == type) {
             return renderSldsAnchor(component!)
+        }
+
+        if (ComponentMetadataType.Dialog == type) {
+            return renderSldsDialog(container, component!, baseUrl, state, data, appState, appData)
+        }
+
+        if (ComponentMetadataType.ConfirmDialog == type) {
+            return renderSldsConfirmDialog(container, component!, baseUrl, state, data, appState, appData)
         }
 
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)

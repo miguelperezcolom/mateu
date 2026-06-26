@@ -292,3 +292,48 @@ export const renderSldsAnchor = (component: ClientSideComponent): TemplateResult
     const md = component.metadata as any
     return html`<a href="${md.url ?? '#'}" slot="${component.slot ?? nothing}">${md.text ?? md.url ?? ''}</a>`
 }
+
+// ── Dialog / ConfirmDialog (slds-modal) ─────────────────────────────────────────
+
+const dispatchAction = (el: EventTarget | null, actionId: string | undefined) => {
+    if (!actionId) return
+    el?.dispatchEvent(new CustomEvent('action-requested', {
+        detail: { actionId, parameters: {} },
+        bubbles: true,
+        composed: true,
+    }))
+}
+
+const modalShell = (title: string, body: TemplateResult | unknown, footer: TemplateResult | unknown): TemplateResult => html`
+    <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+            <header class="slds-modal__header">
+                <h2 class="slds-modal__title slds-hyphenate">${title}</h2>
+            </header>
+            <div class="slds-modal__content slds-p-around_medium">${body}</div>
+            ${footer ? html`<footer class="slds-modal__footer">${footer}</footer>` : nothing}
+        </div>
+    </section>
+    <div class="slds-backdrop slds-backdrop_open"></div>`
+
+export const renderSldsDialog = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult => {
+    const md = component.metadata as any
+    const title = interpolate(md.headerTitle, state, data)
+    const render = (c: any) => c ? renderComponent(container, c, baseUrl, state, data, appState, appData) : nothing
+    const body = html`${render(md.content)}${renderChildren(container, component, baseUrl, state, data, appState, appData)}`
+    return modalShell(title, body, render(md.footer))
+}
+
+export const renderSldsConfirmDialog = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult => {
+    const md = component.metadata as any
+    const title = interpolate(md.header, state, data)
+    const body = md.content ? renderComponent(container, md.content, baseUrl, state, data, appState, appData) : nothing
+    const footer = html`
+        ${md.canCancel ? html`<button class="slds-button slds-button_neutral"
+                @click="${(e: Event) => dispatchAction(e.target, md.cancelActionId)}">${md.cancelText ?? 'Cancel'}</button>` : nothing}
+        ${md.canReject ? html`<button class="slds-button slds-button_neutral"
+                @click="${(e: Event) => dispatchAction(e.target, md.rejectActionId)}">${md.rejectText ?? 'No'}</button>` : nothing}
+        <button class="slds-button slds-button_brand"
+                @click="${(e: Event) => dispatchAction(e.target, md.confirmActionId)}">${md.confirmText ?? 'OK'}</button>`
+    return modalShell(title, body, footer)
+}
