@@ -5,7 +5,7 @@ import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideCompone
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType.ts'
 import { MateuComponent } from '@infra/ui/mateu-component.ts'
 import { renderApp } from './renderers/renderApp.ts'
-import { renderSldsButton, renderSldsText, renderSldsFormLayout, renderSldsForm, renderSldsFormSection } from './renderers/sldsRenderers.ts'
+import { renderSldsButton, renderSldsText, renderSldsFormLayout, renderSldsForm, renderSldsFormSection, renderSldsTable } from './renderers/sldsRenderers.ts'
 import './components/mateu-slds-field.ts'
 
 /**
@@ -61,6 +61,21 @@ export class SldsComponentRenderer extends BasicComponentRenderer implements Com
         }
 
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
+    }
+
+    // CRUD surface: render the listing as an SLDS data table.
+    renderTableComponent(container: any, component: ClientSideComponent | undefined, _baseUrl: string | undefined, _state: any, _data: any, _appState: any, _appData: any): TemplateResult {
+        return renderSldsTable(container, component!)
+    }
+
+    // Filter bar and pagination are not yet ported to SLDS; render nothing for now (TODO) instead of
+    // falling back to the Vaadin chrome, which would be unstyled without Lumo.
+    renderFilterBar(): TemplateResult {
+        return html``
+    }
+
+    renderPagination(): TemplateResult {
+        return html``
     }
 
 }

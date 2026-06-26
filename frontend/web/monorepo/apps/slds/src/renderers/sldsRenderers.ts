@@ -160,3 +160,44 @@ export const renderSldsFormSection = (
             </div>
         </article>`
 }
+
+// ── Table (CRUD grid, read path) ────────────────────────────────────────────
+
+const fmtCell = (v: any): string => {
+    if (v === null || v === undefined) return ''
+    if (typeof v === 'object') return v.text ?? v.label ?? v.name ?? JSON.stringify(v)
+    return String(v)
+}
+
+export const renderSldsTable = (container: any, component: ClientSideComponent): TemplateResult => {
+    const metadata = component.metadata as any
+    const cols: any[] = (metadata.columns ?? []).map((c: any) => c.metadata)
+    const rows: any[] = container?.data?.[container.id]?.page?.content ?? []
+    const align = (a: string | undefined) => (a === 'end' || a === 'right' ? 'slds-text-align_right' : a === 'center' ? 'slds-text-align_center' : '')
+    return html`
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_striped slds-table_fixed-layout">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    ${cols.map(col => html`
+                        <th scope="col" class="${align(col.align)}">
+                            <div class="slds-truncate" title="${col.label ?? ''}">${col.label ?? ''}</div>
+                        </th>`)}
+                </tr>
+            </thead>
+            <tbody>
+                ${rows.length === 0 ? html`
+                    <tr><td colspan="${cols.length}">
+                        <div class="slds-text-align_center slds-text-color_weak slds-p-vertical_small">
+                            ${metadata.emptyStateMessage ?? 'No items.'}
+                        </div>
+                    </td></tr>` : nothing}
+                ${rows.map(row => html`
+                    <tr class="slds-hint-parent">
+                        ${cols.map(col => html`
+                            <td class="${align(col.align)}">
+                                <div class="slds-truncate" title="${fmtCell(row[col.id])}">${fmtCell(row[col.id])}</div>
+                            </td>`)}
+                    </tr>`)}
+            </tbody>
+        </table>`
+}
