@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.masterdetail;
 
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
+import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getPageBadges;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
@@ -244,6 +245,11 @@ public abstract class MasterDetailView extends MultiView
     return new OrchestrationResult(
         route,
         this,
-        PageView.builder().title(title(httpRequest)).content(content).toolbar(bar).build());
+        PageView.builder()
+            .title(title(httpRequest))
+            .badges(getPageBadges(this, httpRequest))
+            .content(content)
+            .toolbar(bar)
+            .build());
   }
 }
