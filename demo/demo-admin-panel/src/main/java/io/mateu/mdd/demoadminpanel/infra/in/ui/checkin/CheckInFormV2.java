@@ -168,6 +168,12 @@ public class CheckInFormV2 implements HeaderSupplier, ActionSupplier {
 
     @Override
     public Collection<Component> header() {
+        // header() is extracted as part of the page structure, before the OnLoad load() runs — so
+        // populate eagerly here (the :id route param is already bound) to avoid a header baked with
+        // null values. populate() is idempotent for this purpose; load() still re-runs it on reload.
+        if (id != null && localizador == null) {
+            populate();
+        }
         var info = HorizontalLayout.builder()
                 .spacing(true)
                 .style("flex-wrap: wrap; align-items: baseline; gap: 2px 1.75rem; width: 100%;")
