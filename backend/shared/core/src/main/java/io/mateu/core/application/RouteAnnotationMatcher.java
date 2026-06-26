@@ -88,6 +88,7 @@ final class RouteAnnotationMatcher {
     if (aClass.isAnnotationPresent(Routes.class)) {
       for (Route annotation : aClass.getAnnotation(Routes.class).value()) {
         if ((matches(route, annotation.value()) || cleanRoute.equals(annotation.value()))
+            && parentRouteMatches(annotation, command)
             && (annotation.uis().length == 0
                 || Arrays.stream(annotation.uis()).anyMatch(u -> u.equals(command.baseUrl())))) {
           return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
@@ -95,16 +96,25 @@ final class RouteAnnotationMatcher {
       }
     }
     if (aClass.isAnnotationPresent(Route.class)) {
-      if ((matches(route, aClass.getAnnotation(Route.class).value())
-              || cleanRoute.equals(aClass.getAnnotation(Route.class).value()))
-          && (aClass.getAnnotation(Route.class).uis().length == 0
-              || Arrays.stream(aClass.getAnnotation(Route.class).uis())
-                  .anyMatch(u -> u.equals(command.baseUrl())))) {
-        return Optional.of(
-            new ResolvedRoute(route, aClass.getAnnotation(Route.class).value(), aClass));
+      var annotation = aClass.getAnnotation(Route.class);
+      if ((matches(route, annotation.value()) || cleanRoute.equals(annotation.value()))
+          && parentRouteMatches(annotation, command)
+          && (annotation.uis().length == 0
+              || Arrays.stream(annotation.uis()).anyMatch(u -> u.equals(command.baseUrl())))) {
+        return Optional.of(new ResolvedRoute(route, annotation.value(), aClass));
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * A relative {@code @Route} (one with an explicit {@code parentRoute}) only matches when its
+   * parent has already been consumed, so it does not shadow sibling/parent routes. Routes with the
+   * default {@code NO_PARENT_ROUTE} match anywhere (unchanged behaviour).
+   */
+  private static boolean parentRouteMatches(Route annotation, RunActionCommand command) {
+    return annotation.parentRoute().equals(RouteConstants.NO_PARENT_ROUTE)
+        || annotation.parentRoute().equals(command.consumedRoute());
   }
 
   static boolean matches(String route, String pattern) {
