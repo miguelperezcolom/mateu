@@ -170,3 +170,10 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 | [`@Subresource`](data/) | Field | Marks a field as a sub-resource |
 | [`@PrimaryKey`](data/) | Field | Marks the primary key field |
 | [`@GeneratedValue`](data/) | Field | Generates a field value via a `ValueGenerator` |
+
+## Composing annotations
+
+Any of the annotations above (except the routing ones) can be bundled into a single
+**semantic annotation** of your own — e.g. `@ProveedorId` instead of a full `@Lookup`,
+or `@ImporteTotal` instead of `@Stereotype(money) @Label(…) @Help(…)`. See
+[Semantic (Composed) Annotations](semantic-annotations/).
