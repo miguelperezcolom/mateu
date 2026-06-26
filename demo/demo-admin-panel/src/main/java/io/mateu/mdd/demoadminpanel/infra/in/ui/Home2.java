@@ -23,7 +23,7 @@ import java.util.List;
 public class Home2 implements WidgetSupplier {
 
     @Menu
-    CheckInListing checkInListing;
+    RouteLink checkin = new RouteLink("/checkin", "Check-in");
 
     @Menu
     Reservations reservations;

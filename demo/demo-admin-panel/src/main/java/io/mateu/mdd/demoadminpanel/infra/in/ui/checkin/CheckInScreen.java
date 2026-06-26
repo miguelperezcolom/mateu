@@ -102,6 +102,13 @@ public abstract class CheckInScreen extends MasterDetailView {
     var consumed = rq.consumedRoute() != null ? rq.consumedRoute() : "";
     var rel = route.startsWith(consumed) ? route.substring(consumed.length()) : route;
     var segs = rel.replaceFirst("^/", "").split("/");
+    // The id is the segment right after "checkin" (route is /checkin/<id>/... under the root app),
+    // falling back to the first segment when the "checkin" prefix has already been consumed.
+    for (int i = 0; i < segs.length; i++) {
+      if ("checkin".equals(segs[i])) {
+        return i + 1 < segs.length && !segs[i + 1].isBlank() ? segs[i + 1] : null;
+      }
+    }
     return segs.length > 0 && !segs[0].isBlank() ? segs[0] : null;
   }
 

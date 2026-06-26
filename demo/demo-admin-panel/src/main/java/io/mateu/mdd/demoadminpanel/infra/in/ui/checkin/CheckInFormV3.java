@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Scope("prototype")
-@Route(value = "/:id/v3", uis = {"/checkin"})
+@Route(value = "/checkin/:id/v3", parentRoute = "")
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @Compact
 @ReadOnly

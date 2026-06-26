@@ -6,6 +6,7 @@ import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Trigger;
 import io.mateu.uidl.annotations.TriggerType;
+import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Scope("prototype")
 @RequiredArgsConstructor
-@UI("/checkin")
+@Route(value = "/checkin", parentRoute = "")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
