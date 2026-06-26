@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormCo
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
@@ -90,8 +91,8 @@ public class GridColumnBuilder {
    * nothing for read-only ones.
    */
   private static String getOnItemSelectionActionId(Field field, String prefix, boolean readOnly) {
-    if (field.isAnnotationPresent(OnRowSelected.class)) {
-      var method = field.getAnnotation(OnRowSelected.class).value();
+    if (MetaAnnotations.isPresent(field, OnRowSelected.class)) {
+      var method = MetaAnnotations.find(field, OnRowSelected.class).value();
       return (prefix == null || prefix.isEmpty())
           ? method
           : "nested-form-action-" + prefix + method;
@@ -100,8 +101,8 @@ public class GridColumnBuilder {
   }
 
   public static int getDetailFormColumns(Field field) {
-    if (field.isAnnotationPresent(DetailFormCustomisation.class)) {
-      var columns = field.getAnnotation(DetailFormCustomisation.class).columns();
+    if (MetaAnnotations.isPresent(field, DetailFormCustomisation.class)) {
+      var columns = MetaAnnotations.find(field, DetailFormCustomisation.class).columns();
       if (columns != 2) {
         return columns;
       }

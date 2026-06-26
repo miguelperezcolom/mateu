@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getT
 
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
 import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.DetailPart;
 import io.mateu.uidl.annotations.SubscriptionSource;
 import io.mateu.uidl.data.Button;
@@ -99,7 +100,7 @@ public abstract class MasterDetailView extends MultiView
   private List<Part> detailParts() {
     var parts = new ArrayList<Part>();
     for (var field : allFields(getClass())) {
-      var ann = field.getAnnotation(DetailPart.class);
+      var ann = MetaAnnotations.find(field, DetailPart.class);
       if (ann != null) {
         var key = ann.key().isBlank() ? field.getName() : ann.key();
         var label = ann.label().isBlank() ? field.getName() : ann.label();

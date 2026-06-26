@@ -4,6 +4,7 @@ import static io.mateu.core.domain.BasicTypeChecker.isBasic;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.AppData;
@@ -31,7 +32,7 @@ public final class ViewTypeClassifier {
     if (AppSupplier.class.isAssignableFrom(instanceType)) return true;
     if (App.class.isAssignableFrom(instanceType)) return true;
     if (getAllFields(instanceType).stream()
-        .anyMatch(field -> field.isAnnotationPresent(Menu.class))) return true;
+        .anyMatch(field -> MetaAnnotations.isPresent(field, Menu.class))) return true;
     return false;
   }
 
@@ -64,9 +65,9 @@ public final class ViewTypeClassifier {
       if (method.isAnnotationPresent(Button.class)) return true;
     }
     for (Field field : getAllFields(instance.getClass())) {
-      if (field.isAnnotationPresent(Toolbar.class)) return true;
-      if (field.isAnnotationPresent(Button.class)) return true;
-      if (field.isAnnotationPresent(KPI.class)) return true;
+      if (MetaAnnotations.isPresent(field, Toolbar.class)) return true;
+      if (MetaAnnotations.isPresent(field, Button.class)) return true;
+      if (MetaAnnotations.isPresent(field, KPI.class)) return true;
       if (!Modifier.isFinal(field.getModifiers())) return true;
     }
     return false;

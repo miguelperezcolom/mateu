@@ -6,6 +6,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.FoldedLayout;
 import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Section;
@@ -414,7 +415,7 @@ final class SectionFormRenderer {
     if (sectionFields == null) return List.of();
     var triggers = new ArrayList<UserTrigger>();
     for (var field : sectionFields.fields()) {
-      if (!field.isAnnotationPresent(Inline.class)) continue;
+      if (!MetaAnnotations.isPresent(field, Inline.class)) continue;
       var value = getValue(field, instance);
       if (value == null) value = getValueOrNewInstance(field, instance, httpRequest);
       var fieldPrefix = ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-";

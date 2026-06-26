@@ -114,16 +114,17 @@ public class ReflectionFormFieldMapper {
           .style(component.style())
           .build();
     }
-    if (List.class.isAssignableFrom(fieldType) && field.isAnnotationPresent(Composition.class)) {
+    if (List.class.isAssignableFrom(fieldType)
+        && MetaAnnotations.isPresent(field, Composition.class)) {
       return createCrudForCompositionField(field, httpRequest, instance);
     }
-    if (field.isAnnotationPresent(Composition.class)) {
+    if (MetaAnnotations.isPresent(field, Composition.class)) {
       return createEditorForCompositionField(field, httpRequest, instance);
     }
     if (List.class.isAssignableFrom(fieldType)
         && !MetaAnnotations.isPresent(field, Lookup.class)
         && !MetaAnnotations.isPresent(field, Searchable.class)
-        && !field.isAnnotationPresent(Composition.class)
+        && !MetaAnnotations.isPresent(field, Composition.class)
         && !isBasic(getGenericClass(field, List.class, "E"))) {
       return createCrudForField(
           field,
@@ -154,7 +155,7 @@ public class ReflectionFormFieldMapper {
           maxColumns,
           level + 1);
     }
-    if (field.isAnnotationPresent(Text.class)) {
+    if (MetaAnnotations.isPresent(field, Text.class)) {
       var colspan = getColspan(field, instance, httpRequest);
       var attributes = new HashMap<String, String>();
       if (colspan > 1) {
@@ -162,7 +163,7 @@ public class ReflectionFormFieldMapper {
       }
       return io.mateu.uidl.data.Text.builder()
           .id(getFieldId(field, prefix, readOnly))
-          .container(field.getAnnotation(Text.class).container())
+          .container(MetaAnnotations.find(field, Text.class).container())
           .text("${state." + prefix + field.getName() + "}")
           .attributes(attributes)
           .build();
@@ -173,8 +174,8 @@ public class ReflectionFormFieldMapper {
 
   private static boolean isReadOnly(Field field, Object instance, HttpRequest httpRequest) {
     return instance.getClass().isAnnotationPresent(ReadOnly.class)
-        || field.isAnnotationPresent(ReadOnly.class)
-        || field.isAnnotationPresent(GeneratedValue.class)
+        || MetaAnnotations.isPresent(field, ReadOnly.class)
+        || MetaAnnotations.isPresent(field, GeneratedValue.class)
         || (instance instanceof ReadOnlySupplier ros
             && ros.isReadOnly(field.getName(), httpRequest));
   }

@@ -6,6 +6,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.MainFilter;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
@@ -171,7 +172,7 @@ public class PageListingBuilder {
                           false,
                           2,
                           0);
-              if (field.isAnnotationPresent(MainFilter.class)) {
+              if (MetaAnnotations.isPresent(field, MainFilter.class)) {
                 return formField.toBuilder().mainFilter(true).build();
               }
               return formField;

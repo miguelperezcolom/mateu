@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface Disabled {
 
   String value() default "";

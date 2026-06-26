@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Status;
 import io.mateu.uidl.annotations.StatusMapping;
 import io.mateu.uidl.data.StatusType;
@@ -13,7 +14,7 @@ import java.util.Map;
 final class StatusFieldMapper {
 
   static Object mapStatusValue(Field field, Object item) {
-    var ann = field.getAnnotation(Status.class);
+    var ann = MetaAnnotations.find(field, Status.class);
     Map<String, StatusType> mapping = new HashMap<>();
     for (StatusMapping statusMapping : ann.mappings()) {
       mapping.put(statusMapping.from(), statusMapping.to());

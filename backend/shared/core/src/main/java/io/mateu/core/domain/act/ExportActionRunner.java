@@ -4,6 +4,7 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.ports.BeanProvider;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.Label;
@@ -117,13 +118,13 @@ public class ExportActionRunner implements ActionRunner {
   private List<ExportColumn> buildExportColumns(Class<?> rowClass) {
     var columns = new ArrayList<ExportColumn>();
     for (Field field : rowClass.getDeclaredFields()) {
-      if (field.isAnnotationPresent(Hidden.class)
-          || field.isAnnotationPresent(HiddenInList.class)) {
+      if (MetaAnnotations.isPresent(field, Hidden.class)
+          || MetaAnnotations.isPresent(field, HiddenInList.class)) {
         continue;
       }
       String label =
-          field.isAnnotationPresent(Label.class)
-              ? field.getAnnotation(Label.class).value()
+          MetaAnnotations.isPresent(field, Label.class)
+              ? MetaAnnotations.find(field, Label.class).value()
               : toUpperCaseFirst(field.getName());
       columns.add(new ExportColumn(field.getName(), label));
     }

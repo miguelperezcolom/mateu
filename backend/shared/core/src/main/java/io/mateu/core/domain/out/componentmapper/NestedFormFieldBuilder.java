@@ -10,6 +10,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.CardVariant;
@@ -41,7 +42,7 @@ final class NestedFormFieldBuilder {
     }
     var value = instance instanceof Class ? null : getValue(field, instance);
     var type = value != null ? value.getClass() : field.getType();
-    if (field.isAnnotationPresent(Inline.class)) {
+    if (MetaAnnotations.isPresent(field, Inline.class)) {
       final var inlineValue =
           value != null ? value : getValueOrNewInstance(field, instance, httpRequest);
       var sectionReadOnly = readOnly || isReadOnly(field, instance, forCreationForm, httpRequest);

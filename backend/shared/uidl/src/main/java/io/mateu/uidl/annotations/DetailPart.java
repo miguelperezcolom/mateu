@@ -18,7 +18,7 @@ import java.lang.annotation.Target;
  * }</pre>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface DetailPart {
 
   /** Button caption. Defaults to the field name when empty. */

@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import io.mateu.core.domain.out.componentmapper.TranslatorContext;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.data.Validation;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -17,7 +18,7 @@ final class ConstraintValidationMapper {
 
   static List<Validation> getValidationsWithFieldPrefix(String prefix, Field field) {
     List<Validation> validations = new ArrayList<>();
-    if (field.isAnnotationPresent(Size.class)) {
+    if (MetaAnnotations.isPresent(field, Size.class)) {
       Arrays.stream(field.getAnnotationsByType(Size.class))
           .forEach(
               annotation -> {
@@ -73,8 +74,8 @@ final class ConstraintValidationMapper {
                 }
               });
     }
-    if (field.isAnnotationPresent(Min.class)) {
-      long minValue = field.getAnnotation(Min.class).value();
+    if (MetaAnnotations.isPresent(field, Min.class)) {
+      long minValue = MetaAnnotations.find(field, Min.class).value();
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())
@@ -89,8 +90,8 @@ final class ConstraintValidationMapper {
                               "Must be at least " + minValue)))
               .build());
     }
-    if (field.isAnnotationPresent(Max.class)) {
-      long maxValue = field.getAnnotation(Max.class).value();
+    if (MetaAnnotations.isPresent(field, Max.class)) {
+      long maxValue = MetaAnnotations.find(field, Max.class).value();
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())
@@ -105,13 +106,13 @@ final class ConstraintValidationMapper {
                               "Must be at most " + maxValue)))
               .build());
     }
-    if (field.isAnnotationPresent(Pattern.class)) {
+    if (MetaAnnotations.isPresent(field, Pattern.class)) {
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())
               .condition(
                   "/"
-                      + field.getAnnotation(Pattern.class).regexp()
+                      + MetaAnnotations.find(field, Pattern.class).regexp()
                       + "/.test(state['"
                       + prefix
                       + field.getName()
@@ -126,7 +127,7 @@ final class ConstraintValidationMapper {
                               "Invalid format")))
               .build());
     }
-    if (field.isAnnotationPresent(NotEmpty.class)) {
+    if (MetaAnnotations.isPresent(field, NotEmpty.class)) {
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())
@@ -141,7 +142,7 @@ final class ConstraintValidationMapper {
                               "Cannot be empty")))
               .build());
     }
-    if (field.isAnnotationPresent(NotNull.class)) {
+    if (MetaAnnotations.isPresent(field, NotNull.class)) {
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())

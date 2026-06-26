@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
  * Typically combined with {@link ReadOnly} for dense, display-only screens.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.ANNOTATION_TYPE})
 public @interface PlainText {}

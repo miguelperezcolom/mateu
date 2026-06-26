@@ -10,6 +10,7 @@ import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.Menu;
@@ -69,11 +70,11 @@ final class PageContentBuilder {
         .filter(
             field ->
                 !field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                    && !field.isAnnotationPresent(Toolbar.class)
-                    && !field.isAnnotationPresent(Header.class)
-                    && !field.isAnnotationPresent(Footer.class)
-                    && !field.isAnnotationPresent(Avatar.class)
-                    && !field.isAnnotationPresent(Menu.class)
+                    && !MetaAnnotations.isPresent(field, Toolbar.class)
+                    && !MetaAnnotations.isPresent(field, Header.class)
+                    && !MetaAnnotations.isPresent(field, Footer.class)
+                    && !MetaAnnotations.isPresent(field, Avatar.class)
+                    && !MetaAnnotations.isPresent(field, Menu.class)
                     && !Status.class.equals(field.getType()))
         .map(
             field ->

@@ -107,14 +107,14 @@ public class FieldTypeMapper {
   }
 
   public static FieldStereotype getStereotype(Field field) {
-    if (field.isAnnotationPresent(PlainText.class)) {
+    if (MetaAnnotations.isPresent(field, PlainText.class)) {
       return FieldStereotype.plainText;
     }
     if (field.isAnnotationPresent(io.mateu.uidl.annotations.Badge.class)) {
       return FieldStereotype.badge;
     }
-    if (field.isAnnotationPresent(Stereotype.class)) {
-      var stereotype = field.getAnnotation(Stereotype.class).value();
+    if (MetaAnnotations.isPresent(field, Stereotype.class)) {
+      var stereotype = MetaAnnotations.find(field, Stereotype.class).value();
       // A money field in a plain-text class keeps the dense plain-text rendering; the money
       // intent is carried by the data type and the front-end formats the value as currency.
       if (stereotype == FieldStereotype.money && isPlainTextContext(field)) {
@@ -152,10 +152,11 @@ public class FieldTypeMapper {
     if (MetaAnnotations.isPresent(field, Searchable.class)) {
       return FieldStereotype.searchable;
     }
-    if (field.isAnnotationPresent(Representation.class)) {
-      return field.getAnnotation(Representation.class).value();
+    if (MetaAnnotations.isPresent(field, Representation.class)) {
+      return MetaAnnotations.find(field, Representation.class).value();
     }
-    if (field.isAnnotationPresent(SliderMin.class) || field.isAnnotationPresent(SliderMax.class)) {
+    if (MetaAnnotations.isPresent(field, SliderMin.class)
+        || MetaAnnotations.isPresent(field, SliderMax.class)) {
       return FieldStereotype.slider;
     }
     if (Amount.class.equals(field.getType())) {
@@ -180,12 +181,12 @@ public class FieldTypeMapper {
   }
 
   private static boolean isMoneyStereotype(Field field) {
-    return field.isAnnotationPresent(Stereotype.class)
-        && field.getAnnotation(Stereotype.class).value() == FieldStereotype.money;
+    return MetaAnnotations.isPresent(field, Stereotype.class)
+        && MetaAnnotations.find(field, Stereotype.class).value() == FieldStereotype.money;
   }
 
   private static boolean isPlainTextContext(Field field) {
-    return field.isAnnotationPresent(PlainText.class)
+    return MetaAnnotations.isPresent(field, PlainText.class)
         || field.getDeclaringClass().isAnnotationPresent(PlainText.class);
   }
 }

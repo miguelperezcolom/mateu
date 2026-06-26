@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Widget;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -24,7 +25,7 @@ final class AppWidgetExtractor {
       return widgetSupplier.widgets(httpRequest);
     }
     return getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Widget.class))
+        .filter(field -> MetaAnnotations.isPresent(field, Widget.class))
         .map(field -> mapWidget(field, instance, baseUrl, route, initiatorComponentId, httpRequest))
         .filter(Objects::nonNull)
         .toList();

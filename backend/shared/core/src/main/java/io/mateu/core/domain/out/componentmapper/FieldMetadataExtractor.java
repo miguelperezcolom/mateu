@@ -61,8 +61,8 @@ public class FieldMetadataExtractor {
   }
 
   static int getColspan(Field field) {
-    if (field.isAnnotationPresent(Colspan.class)) {
-      return field.getAnnotation(Colspan.class).value();
+    if (MetaAnnotations.isPresent(field, Colspan.class)) {
+      return MetaAnnotations.find(field, Colspan.class).value();
     }
     return 1;
   }
@@ -84,8 +84,8 @@ public class FieldMetadataExtractor {
         return supplied;
       }
     }
-    if (field.isAnnotationPresent(Style.class)) {
-      return field.getAnnotation(Style.class).value();
+    if (MetaAnnotations.isPresent(field, Style.class)) {
+      return MetaAnnotations.find(field, Style.class).value();
     }
     return "";
   }
@@ -97,35 +97,35 @@ public class FieldMetadataExtractor {
         return supplied;
       }
     }
-    if (field.isAnnotationPresent(Help.class)) {
-      return field.getAnnotation(Help.class).value();
+    if (MetaAnnotations.isPresent(field, Help.class)) {
+      return MetaAnnotations.find(field, Help.class).value();
     }
     return "";
   }
 
   static Map<String, String> getAttributes(Field field) {
-    if (field.isAnnotationPresent(DivStyle.class)) {
-      return Map.of("divStyle", field.getAnnotation(DivStyle.class).value());
+    if (MetaAnnotations.isPresent(field, DivStyle.class)) {
+      return Map.of("divStyle", MetaAnnotations.find(field, DivStyle.class).value());
     }
     return Map.of();
   }
 
   static boolean isRequired(Field field, Object instance, HttpRequest httpRequest) {
-    return field.isAnnotationPresent(NotNull.class)
-        || field.isAnnotationPresent(NotEmpty.class)
+    return MetaAnnotations.isPresent(field, NotNull.class)
+        || MetaAnnotations.isPresent(field, NotEmpty.class)
         || (instance instanceof RequiredSupplier rs && rs.isRequired(field.getName(), httpRequest));
   }
 
   static Double getMin(Field field) {
-    if (field.isAnnotationPresent(Min.class)) {
-      return (double) field.getAnnotation(Min.class).value();
+    if (MetaAnnotations.isPresent(field, Min.class)) {
+      return (double) MetaAnnotations.find(field, Min.class).value();
     }
     return null;
   }
 
   static Double getMax(Field field) {
-    if (field.isAnnotationPresent(Max.class)) {
-      return (double) field.getAnnotation(Max.class).value();
+    if (MetaAnnotations.isPresent(field, Max.class)) {
+      return (double) MetaAnnotations.find(field, Max.class).value();
     }
     return null;
   }
@@ -139,15 +139,15 @@ public class FieldMetadataExtractor {
   }
 
   static int getSliderMin(Field field) {
-    if (field.isAnnotationPresent(SliderMin.class)) {
-      return field.getAnnotation(SliderMin.class).value();
+    if (MetaAnnotations.isPresent(field, SliderMin.class)) {
+      return MetaAnnotations.find(field, SliderMin.class).value();
     }
     return 0;
   }
 
   static int getSliderMax(Field field) {
-    if (field.isAnnotationPresent(SliderMax.class)) {
-      return field.getAnnotation(SliderMax.class).value();
+    if (MetaAnnotations.isPresent(field, SliderMax.class)) {
+      return MetaAnnotations.find(field, SliderMax.class).value();
     }
     return 100;
   }
@@ -186,8 +186,8 @@ public class FieldMetadataExtractor {
   }
 
   static int getOptionsColumns(Field field) {
-    if (field.isAnnotationPresent(OptionsLayout.class)) {
-      return field.getAnnotation(OptionsLayout.class).columns();
+    if (MetaAnnotations.isPresent(field, OptionsLayout.class)) {
+      return MetaAnnotations.find(field, OptionsLayout.class).columns();
     }
     return 1;
   }

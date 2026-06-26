@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Section;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -27,7 +28,7 @@ final class FormSectionGrouper {
       // Consecutive fields sharing the same @Section value belong to the same group.
       boolean startsNewSection =
           sectionFields == null
-              || (field.isAnnotationPresent(Section.class)
+              || (MetaAnnotations.isPresent(field, Section.class)
                   && (sectionAnnotation == null
                       || !field
                           .getAnnotation(Section.class)
@@ -38,8 +39,8 @@ final class FormSectionGrouper {
           fieldsPerSection.put(sectionAnnotation, sectionFields);
           sections.add(sectionAnnotation);
         }
-        if (field.isAnnotationPresent(Section.class)) {
-          sectionAnnotation = field.getAnnotation(Section.class);
+        if (MetaAnnotations.isPresent(field, Section.class)) {
+          sectionAnnotation = MetaAnnotations.find(field, Section.class);
         } else {
           final int cols = maxColumns;
           sectionAnnotation =

@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.Footer;
 import io.mateu.uidl.annotations.Header;
@@ -31,24 +32,24 @@ public final class FormDetector {
         .anyMatch(
             field ->
                 !(field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class)
-                        || field.isAnnotationPresent(Toolbar.class))
+                        || MetaAnnotations.isPresent(field, Toolbar.class))
                     && ((!Modifier.isFinal(field.getModifiers())
                             || field.getDeclaringClass().isRecord())
-                        && !field.isAnnotationPresent(ReadOnly.class)
+                        && !MetaAnnotations.isPresent(field, ReadOnly.class)
                         && !Component.class.isAssignableFrom(field.getType())
                         && !ComponentTreeSupplier.class.isAssignableFrom(field.getType())
                         && !MicroFrontend.class.isAssignableFrom(field.getType())
                         && !(String.class.equals(field.getType())
-                            && field.isAnnotationPresent(Stereotype.class)
+                            && MetaAnnotations.isPresent(field, Stereotype.class)
                             && field
                                 .getAnnotation(Stereotype.class)
                                 .value()
                                 .equals(FieldStereotype.html))
-                        && !field.isAnnotationPresent(KPI.class)
-                        && !field.isAnnotationPresent(Menu.class)
-                        && !field.isAnnotationPresent(Header.class)
-                        && !field.isAnnotationPresent(Footer.class)
-                        && !field.isAnnotationPresent(Avatar.class)
+                        && !MetaAnnotations.isPresent(field, KPI.class)
+                        && !MetaAnnotations.isPresent(field, Menu.class)
+                        && !MetaAnnotations.isPresent(field, Header.class)
+                        && !MetaAnnotations.isPresent(field, Footer.class)
+                        && !MetaAnnotations.isPresent(field, Avatar.class)
                         && !Status.class.isAssignableFrom(field.getType())));
   }
 }

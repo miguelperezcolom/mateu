@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.componentmapper.FieldTypeMapper.getDataTy
 import static io.mateu.core.domain.out.componentmapper.FieldTypeMapper.getStereotypeForColumn;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.ColumnWidth;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.HiddenInList;
@@ -61,9 +62,9 @@ final class ListingColumnBuilder {
   private static boolean filterColumn(Field field, Object instance, HttpRequest httpRequest) {
     if (instance instanceof VisibilitySupplier visibilitySupplier
         && visibilitySupplier.isHidden(field.getName(), httpRequest)) return false;
-    if (field.isAnnotationPresent(Hidden.class)) return false;
-    if (field.isAnnotationPresent(HiddenInList.class)) return false;
-    if (field.isAnnotationPresent(Menu.class)) return false;
+    if (MetaAnnotations.isPresent(field, Hidden.class)) return false;
+    if (MetaAnnotations.isPresent(field, HiddenInList.class)) return false;
+    if (MetaAnnotations.isPresent(field, Menu.class)) return false;
     if (Collection.class.isAssignableFrom(field.getType())) return false;
     return true;
   }
@@ -77,16 +78,16 @@ final class ListingColumnBuilder {
       HttpRequest httpRequest) {
     Integer priority = null;
     boolean identifier = false;
-    if (field.isAnnotationPresent(Priority.class)) {
-      var p = field.getAnnotation(Priority.class);
+    if (MetaAnnotations.isPresent(field, Priority.class)) {
+      var p = MetaAnnotations.find(field, Priority.class);
       priority = p.value();
       identifier = p.identifier();
     }
     Double weight = null;
-    if (field.isAnnotationPresent(Weight.class)) {
-      weight = field.getAnnotation(Weight.class).value();
-    } else if (field.isAnnotationPresent(ColumnWidth.class)) {
-      weight = WEIGHT_ESTIMATOR.parsePx(field.getAnnotation(ColumnWidth.class).value());
+    if (MetaAnnotations.isPresent(field, Weight.class)) {
+      weight = MetaAnnotations.find(field, Weight.class).value();
+    } else if (MetaAnnotations.isPresent(field, ColumnWidth.class)) {
+      weight = WEIGHT_ESTIMATOR.parsePx(MetaAnnotations.find(field, ColumnWidth.class).value());
     }
     return GridColumn.builder()
         .id(field.getName())
@@ -102,8 +103,8 @@ final class ListingColumnBuilder {
   }
 
   private static String getColumnStyle(AccessibleObject field) {
-    if (field.isAnnotationPresent(Style.class)) {
-      return field.getAnnotation(Style.class).value();
+    if (MetaAnnotations.isPresent(field, Style.class)) {
+      return MetaAnnotations.find(field, Style.class).value();
     }
     return "";
   }

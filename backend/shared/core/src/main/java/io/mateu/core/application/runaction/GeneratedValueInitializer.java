@@ -3,6 +3,7 @@ package io.mateu.core.application.runaction;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.core.domain.out.fragmentmapper.mappers.DataMapper;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -17,11 +18,12 @@ final class GeneratedValueInitializer {
       return;
     }
     getAllFields(viewModelClass).stream()
-        .filter(field -> field.isAnnotationPresent(GeneratedValue.class))
+        .filter(field -> MetaAnnotations.isPresent(field, GeneratedValue.class))
         .forEach(
             field -> {
               var generator =
-                  MateuBeanProvider.getBean(field.getAnnotation(GeneratedValue.class).value());
+                  MateuBeanProvider.getBean(
+                      MetaAnnotations.find(field, GeneratedValue.class).value());
               var value = generator.generate();
               if (value != null && List.class.isAssignableFrom(value.getClass())) {
                 var list = (List<?>) value;

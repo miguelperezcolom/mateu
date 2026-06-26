@@ -4,6 +4,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.PrimaryKey;
 import java.lang.reflect.Field;
 
@@ -31,7 +32,7 @@ final class EntityFieldInspector {
     boolean hasIdField = false;
     String firstField = null;
     for (Field field : getAllFields(entityClass)) {
-      if (field.isAnnotationPresent(PrimaryKey.class)) {
+      if (MetaAnnotations.isPresent(field, PrimaryKey.class)) {
         return field.getName();
       }
       hasIdField |= "id".equals(field.getName());

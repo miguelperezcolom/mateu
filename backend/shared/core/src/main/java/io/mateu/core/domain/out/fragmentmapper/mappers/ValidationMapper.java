@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.isForm;
 import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isPage;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ValidationDto;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Validation;
@@ -52,7 +53,7 @@ public class ValidationMapper {
       String prefix, Field field) {
     List<io.mateu.uidl.data.Validation> validations =
         ConstraintValidationMapper.getValidationsWithFieldPrefix(prefix, field);
-    Hidden hidden = field.getAnnotation(Hidden.class);
+    Hidden hidden = MetaAnnotations.find(field, Hidden.class);
     if (hidden != null && !hidden.value().isBlank()) {
       validations =
           validations.stream()

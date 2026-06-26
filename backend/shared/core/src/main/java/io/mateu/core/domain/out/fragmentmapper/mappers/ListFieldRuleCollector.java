@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Disabled;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Rule;
@@ -25,7 +26,7 @@ final class ListFieldRuleCollector {
                       .map(RuleMapper::mapToRule)
                       .toList());
               getAllFields(rowClass).stream()
-                  .filter(field -> field.isAnnotationPresent(Disabled.class))
+                  .filter(field -> MetaAnnotations.isPresent(field, Disabled.class))
                   .forEach(
                       field ->
                           rules.add(
@@ -40,8 +41,8 @@ final class ListFieldRuleCollector {
               getAllFields(rowClass).stream()
                   .filter(
                       field ->
-                          field.isAnnotationPresent(Hidden.class)
-                              && !field.getAnnotation(Hidden.class).value().isEmpty())
+                          MetaAnnotations.isPresent(field, Hidden.class)
+                              && !MetaAnnotations.find(field, Hidden.class).value().isEmpty())
                   .forEach(
                       field ->
                           rules.add(
@@ -50,7 +51,7 @@ final class ListFieldRuleCollector {
                                   .action(RuleAction.SetDataValue)
                                   .fieldName(collectionField.getName() + "-" + field.getName())
                                   .fieldAttribute(RuleFieldAttribute.hidden)
-                                  .expression(field.getAnnotation(Hidden.class).value())
+                                  .expression(MetaAnnotations.find(field, Hidden.class).value())
                                   .result(RuleResult.Continue)
                                   .build()));
             });

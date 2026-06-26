@@ -4,6 +4,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.GetterProvider.getGetter;
 import static io.mateu.core.infra.reflection.read.MethodProvider.getMethod;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.data.ColumnAction;
 import io.mateu.uidl.data.ColumnActionGroup;
@@ -44,7 +45,7 @@ public final class AllEditableFieldsProvider {
   }
 
   private static boolean isNotMenu(Field field) {
-    return !field.isAnnotationPresent(Menu.class);
+    return !MetaAnnotations.isPresent(field, Menu.class);
   }
 
   private static boolean isAccessible(Field field) {
@@ -54,7 +55,7 @@ public final class AllEditableFieldsProvider {
   }
 
   private static boolean isNotInjected(Field field) {
-    return !(field.isAnnotationPresent(Inject.class)
+    return !(MetaAnnotations.isPresent(field, Inject.class)
         || (!field.getDeclaringClass().isRecord() && Modifier.isFinal(field.getModifiers())));
   }
 

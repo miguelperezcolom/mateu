@@ -11,7 +11,7 @@ public class FileChecker {
     return java.io.File.class.equals(field.getType())
         || java.io.File[].class.equals(field.getType())
         || java.io.File.class.equals(getGenericClass(field, List.class, "E"))
-    // || field.isAnnotationPresent(File.class)
+    // || MetaAnnotations.isPresent(field, File.class)
     ;
   }
 }

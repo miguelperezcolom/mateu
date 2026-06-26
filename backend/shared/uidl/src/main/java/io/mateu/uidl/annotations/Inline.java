@@ -26,5 +26,5 @@ import java.lang.annotation.Target;
  * </ul>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface Inline {}

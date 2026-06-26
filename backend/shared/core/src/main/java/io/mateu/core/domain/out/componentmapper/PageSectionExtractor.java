@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionComponentMapper
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Avatar;
 import io.mateu.uidl.annotations.Breadcrumbs;
 import io.mateu.uidl.annotations.Footer;
@@ -44,7 +45,7 @@ final class PageSectionExtractor {
       return headerSupplier.header();
     }
     return getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Header.class))
+        .filter(field -> MetaAnnotations.isPresent(field, Header.class))
         .map(
             field ->
                 mapToComponent(
@@ -62,7 +63,7 @@ final class PageSectionExtractor {
       return footerSupplier.footer();
     }
     return getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Footer.class))
+        .filter(field -> MetaAnnotations.isPresent(field, Footer.class))
         .map(
             field ->
                 mapToComponent(
@@ -80,7 +81,7 @@ final class PageSectionExtractor {
       return avatarSupplier.avatar();
     }
     return getAllFields(instance.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Avatar.class))
+        .filter(field -> MetaAnnotations.isPresent(field, Avatar.class))
         .findAny()
         .map(
             field ->

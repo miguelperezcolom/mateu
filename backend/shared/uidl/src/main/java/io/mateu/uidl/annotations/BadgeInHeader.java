@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
  * <p>For programmatic control implement {@link io.mateu.uidl.interfaces.BadgeSupplier}.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface BadgeInHeader {
 
   /** Badge text override. For boolean fields: shown when true. Falls back to field label. */

@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.ReadOnly;
@@ -164,9 +165,9 @@ public class PageFormBuilder {
   public static boolean isReadOnly(
       Field field, Object instance, boolean forCreationForm, HttpRequest httpRequest) {
     return (instance != null && instance.getClass().isAnnotationPresent(ReadOnly.class))
-        || field.isAnnotationPresent(ReadOnly.class)
-        || field.isAnnotationPresent(GeneratedValue.class)
-        || (!forCreationForm && field.isAnnotationPresent(EditableOnlyWhenCreating.class))
+        || MetaAnnotations.isPresent(field, ReadOnly.class)
+        || MetaAnnotations.isPresent(field, GeneratedValue.class)
+        || (!forCreationForm && MetaAnnotations.isPresent(field, EditableOnlyWhenCreating.class))
         || (instance instanceof ReadOnlySupplier ros
             && ros.isReadOnly(field.getName(), httpRequest));
   }

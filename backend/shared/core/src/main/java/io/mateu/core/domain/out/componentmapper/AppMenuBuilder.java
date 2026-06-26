@@ -4,6 +4,7 @@ import static io.mateu.core.domain.Authorizer.isAuthorized;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.Actionable;
@@ -36,7 +37,8 @@ class AppMenuBuilder {
                 .filter(
                     field ->
                         field.isAnnotationPresent(io.mateu.uidl.annotations.Menu.class)
-                            && isAuthorized(field.getAnnotation(EyesOnly.class), httpRequest))
+                            && isAuthorized(
+                                MetaAnnotations.find(field, EyesOnly.class), httpRequest))
                 .map(field -> mapToMenu(appRoute, field, instance, route, httpRequest))
                 .filter(Objects::nonNull),
             getAllMethods(instance.getClass()).stream()

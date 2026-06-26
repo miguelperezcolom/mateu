@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
  * effect on non-plainText fields.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.FIELD})
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.ANNOTATION_TYPE})
 public @interface Multiline {}

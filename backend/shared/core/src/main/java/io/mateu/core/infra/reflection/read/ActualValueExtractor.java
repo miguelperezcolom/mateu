@@ -11,6 +11,7 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.domain.ports.InstanceFactory;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
@@ -26,7 +27,8 @@ public class ActualValueExtractor {
   private static boolean checkInjected(Object viewInstance, String fieldName) {
     Field field = getFieldByName(viewInstance.getClass(), fieldName);
     return field != null
-        && (field.isAnnotationPresent(Inject.class) || Modifier.isFinal(field.getModifiers()));
+        && (MetaAnnotations.isPresent(field, Inject.class)
+            || Modifier.isFinal(field.getModifiers()));
   }
 
   public static Object getActualValue(

@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
 import io.mateu.dtos.RuleFieldAttributeDto;
@@ -35,7 +36,7 @@ public class RuleMapper {
             .map(RuleMapper::mapToRule)
             .toList());
     getAllFields(viewClass).stream()
-        .filter(field -> field.isAnnotationPresent(Disabled.class))
+        .filter(field -> MetaAnnotations.isPresent(field, Disabled.class))
         .forEach(
             field ->
                 rules.add(
@@ -65,8 +66,8 @@ public class RuleMapper {
     getAllFields(viewClass).stream()
         .filter(
             field ->
-                field.isAnnotationPresent(Hidden.class)
-                    && !field.getAnnotation(Hidden.class).value().isEmpty())
+                MetaAnnotations.isPresent(field, Hidden.class)
+                    && !MetaAnnotations.find(field, Hidden.class).value().isEmpty())
         .forEach(
             field ->
                 rules.add(
@@ -75,7 +76,7 @@ public class RuleMapper {
                         .action(RuleAction.SetDataValue)
                         .fieldName(field.getName())
                         .fieldAttribute(RuleFieldAttribute.hidden)
-                        .expression(field.getAnnotation(Hidden.class).value())
+                        .expression(MetaAnnotations.find(field, Hidden.class).value())
                         .result(RuleResult.Continue)
                         .build()));
     getAllMethods(viewClass).stream()

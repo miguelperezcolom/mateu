@@ -7,7 +7,11 @@ import java.lang.annotation.Target;
 
 /** Created by miguel on 18/1/17. */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.PARAMETER}) // can use in method only.
+@Target({
+  ElementType.FIELD,
+  ElementType.PARAMETER,
+  ElementType.ANNOTATION_TYPE
+}) // can use in method only.
 public @interface GenericClass {
   Class clazz();
 }

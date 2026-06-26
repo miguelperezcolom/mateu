@@ -6,5 +6,5 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD}) // can use in method only.
+@Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE}) // can use in method only.
 public @interface KPI {}

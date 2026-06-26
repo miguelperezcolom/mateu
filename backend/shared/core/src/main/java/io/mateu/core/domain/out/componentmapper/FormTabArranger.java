@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.interfaces.Pair;
 import java.lang.reflect.Field;
@@ -49,15 +50,15 @@ final class FormTabArranger {
     List<Field> currentTabFields = new ArrayList<>();
 
     for (Field field : fields) {
-      if (field.isAnnotationPresent(Tab.class)) {
-        String newTabName = field.getAnnotation(Tab.class).value();
+      if (MetaAnnotations.isPresent(field, Tab.class)) {
+        String newTabName = MetaAnnotations.find(field, Tab.class).value();
         String currentTabName = currentTab != null ? currentTab.value() : null;
         // Only start a new tab when the tab name actually changes.
         if (!newTabName.equals(currentTabName)) {
           if (currentTab != null) {
             fieldsPerTab.add(new Pair<>(currentTab, currentTabFields));
           }
-          currentTab = field.getAnnotation(Tab.class);
+          currentTab = MetaAnnotations.find(field, Tab.class);
           currentTabFields = new ArrayList<>();
         }
       }

@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.Humanizer;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Menu;
@@ -147,8 +148,8 @@ class AppMetadataExtractor {
   }
 
   static String getLabel(Field field) {
-    if (field.isAnnotationPresent(Label.class)) {
-      return field.getAnnotation(Label.class).value();
+    if (MetaAnnotations.isPresent(field, Label.class)) {
+      return MetaAnnotations.find(field, Label.class).value();
     }
     return Humanizer.toUpperCaseFirst(field.getName());
   }

@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.Status;
@@ -75,12 +76,12 @@ public class DataMapper {
       if (!item.getClass().isRecord() && Modifier.isFinal(field.getModifiers())) {
         continue;
       }
-      if (field.isAnnotationPresent(JsonIgnore.class)) {
+      if (MetaAnnotations.isPresent(field, JsonIgnore.class)) {
         continue;
       }
-      if (field.isAnnotationPresent(Status.class)) {
+      if (MetaAnnotations.isPresent(field, Status.class)) {
         map.put(field.getName(), StatusFieldMapper.mapStatusValue(field, item));
-      } else if (field.isAnnotationPresent(MappedValue.class)) {
+      } else if (MetaAnnotations.isPresent(field, MappedValue.class)) {
         map.put(field.getName(), MappedValueFieldMapper.mapMappedValue(field, item));
       } else {
         var value = getValue(field, item);

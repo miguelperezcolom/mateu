@@ -88,8 +88,12 @@ final class FieldActionCollector {
     // event dispatched on row click is claimed and sent to the server (otherwise it bubbles
     // unhandled).
     getAllFields(serverSideObject.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(OnRowSelected.class))
-        .map(field -> Action.builder().id(field.getAnnotation(OnRowSelected.class).value()).build())
+        .filter(field -> MetaAnnotations.isPresent(field, OnRowSelected.class))
+        .map(
+            field ->
+                Action.builder()
+                    .id(MetaAnnotations.find(field, OnRowSelected.class).value())
+                    .build())
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
@@ -114,8 +118,8 @@ final class FieldActionCollector {
         .filter(
             field ->
                 !field.isAnnotationPresent(io.mateu.uidl.annotations.Action.class)
-                    && (field.isAnnotationPresent(Button.class)
-                        || field.isAnnotationPresent(Toolbar.class)))
+                    && (MetaAnnotations.isPresent(field, Button.class)
+                        || MetaAnnotations.isPresent(field, Toolbar.class)))
         .map(field -> Action.builder().id(field.getName()).validationRequired(true).build())
         .forEach(fieldActions::add);
     getAllMethods(serverSideObject.getClass()).stream()
@@ -154,12 +158,12 @@ final class FieldActionCollector {
   }
 
   private static boolean hasValidationConstraint(Field field) {
-    return field.isAnnotationPresent(NotEmpty.class)
-        || field.isAnnotationPresent(NotNull.class)
-        || field.isAnnotationPresent(Min.class)
-        || field.isAnnotationPresent(Max.class)
-        || field.isAnnotationPresent(Size.class)
-        || field.isAnnotationPresent(Pattern.class);
+    return MetaAnnotations.isPresent(field, NotEmpty.class)
+        || MetaAnnotations.isPresent(field, NotNull.class)
+        || MetaAnnotations.isPresent(field, Min.class)
+        || MetaAnnotations.isPresent(field, Max.class)
+        || MetaAnnotations.isPresent(field, Size.class)
+        || MetaAnnotations.isPresent(field, Pattern.class);
   }
 
   private static boolean isFluxReturning(Method method) {

@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
@@ -53,8 +54,8 @@ final class PageButtonsBuilder {
                         field -> field.isAnnotationPresent(io.mateu.uidl.annotations.Button.class))
                     .filter(
                         field ->
-                            !field.isAnnotationPresent(Hidden.class)
-                                || !field.getAnnotation(Hidden.class).value().isEmpty())
+                            !MetaAnnotations.isPresent(field, Hidden.class)
+                                || !MetaAnnotations.find(field, Hidden.class).value().isEmpty())
                     .filter(
                         field ->
                             !(instance instanceof VisibilitySupplier vs)
@@ -95,11 +96,11 @@ final class PageButtonsBuilder {
     var rawButtons =
         Stream.concat(
                 getAllFields(instance.getClass()).stream()
-                    .filter(field -> field.isAnnotationPresent(Toolbar.class))
+                    .filter(field -> MetaAnnotations.isPresent(field, Toolbar.class))
                     .filter(
                         field ->
-                            !field.isAnnotationPresent(Hidden.class)
-                                || !field.getAnnotation(Hidden.class).value().isEmpty())
+                            !MetaAnnotations.isPresent(field, Hidden.class)
+                                || !MetaAnnotations.find(field, Hidden.class).value().isEmpty())
                     .filter(
                         field ->
                             !(instance instanceof VisibilitySupplier vs)
@@ -231,7 +232,7 @@ final class PageButtonsBuilder {
     ButtonColor buttonColor = null;
     ButtonSize buttonSize = null;
 
-    var toolbarAnn = field.getAnnotation(Toolbar.class);
+    var toolbarAnn = MetaAnnotations.find(field, Toolbar.class);
     var buttonAnn = field.getAnnotation(io.mateu.uidl.annotations.Button.class);
 
     if (toolbarAnn != null) {

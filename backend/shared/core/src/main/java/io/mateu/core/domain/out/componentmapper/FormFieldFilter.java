@@ -27,17 +27,17 @@ final class FormFieldFilter {
     if (Status.class.equals(field.getType())) {
       return false;
     }
-    if (field.isAnnotationPresent(Hidden.class)
-        && field.getAnnotation(Hidden.class).value().isEmpty()) {
+    if (MetaAnnotations.isPresent(field, Hidden.class)
+        && MetaAnnotations.find(field, Hidden.class).value().isEmpty()) {
       return false;
     }
-    if (field.isAnnotationPresent(KPI.class)) {
+    if (MetaAnnotations.isPresent(field, KPI.class)) {
       return false;
     }
-    if (field.isAnnotationPresent(BadgeInHeader.class)) {
+    if (MetaAnnotations.isPresent(field, BadgeInHeader.class)) {
       return false;
     }
-    if (field.isAnnotationPresent(Menu.class)) {
+    if (MetaAnnotations.isPresent(field, Menu.class)) {
       return false;
     }
     if (MetaAnnotations.isPresent(field, Lookup.class)) {
@@ -47,20 +47,20 @@ final class FormFieldFilter {
       return true;
     }
     if (Collection.class.isAssignableFrom(field.getType())
-        && field.isAnnotationPresent(Composition.class)) {
+        && MetaAnnotations.isPresent(field, Composition.class)) {
       return readOnly;
     }
     return true;
   }
 
   static boolean hiddenInView(Field field) {
-    return field.isAnnotationPresent(HiddenInView.class);
+    return MetaAnnotations.isPresent(field, HiddenInView.class);
   }
 
   static boolean hiddenInEditor(Field field, boolean forCreationForm) {
     if (forCreationForm) {
-      return field.isAnnotationPresent(HiddenInCreate.class);
+      return MetaAnnotations.isPresent(field, HiddenInCreate.class);
     }
-    return field.isAnnotationPresent(HiddenInEditor.class);
+    return MetaAnnotations.isPresent(field, HiddenInEditor.class);
   }
 }

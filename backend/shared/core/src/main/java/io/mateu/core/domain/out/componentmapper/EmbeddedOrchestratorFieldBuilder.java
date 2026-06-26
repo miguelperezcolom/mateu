@@ -1,6 +1,7 @@
 package io.mateu.core.domain.out.componentmapper;
 
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.UI;
@@ -89,7 +90,7 @@ final class EmbeddedOrchestratorFieldBuilder {
             + "_"
             + (prefix == null ? "" : prefix)
             + field.getName();
-    var inline = field.isAnnotationPresent(Inline.class);
+    var inline = MetaAnnotations.isPresent(field, Inline.class);
     var markedRoute = route + (route.contains("?") ? "&" : "?") + EMBEDDED_MARKER + "=1";
     if (inline) {
       markedRoute += "&" + INLINE_MARKER + "=1";
