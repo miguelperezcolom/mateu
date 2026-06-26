@@ -1,10 +1,7 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
-import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getView;
-
-import io.mateu.core.infra.declarative.orchestrators.MultiView;
-import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.BadgeInHeader;
 import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Inline;
@@ -14,33 +11,42 @@ import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Style;
+import io.mateu.uidl.annotations.SubscribeTo;
+import io.mateu.uidl.annotations.SubscriptionSource;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.Trigger;
+import io.mateu.uidl.annotations.TriggerType;
 import io.mateu.uidl.annotations.Zone;
 import io.mateu.uidl.annotations.Zones;
-import io.mateu.uidl.data.Button;
-import io.mateu.uidl.data.State;
+import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
-import io.mateu.uidl.fluent.PageView;
-import io.mateu.uidl.fluent.UserTrigger;
+import io.mateu.uidl.interfaces.HeaderSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
-import io.mateu.uidl.interfaces.VisibilitySupplier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 /**
- * PROTOTYPE of a master-detail orchestrator. The master (left zone) shows the primary content and a
- * button bar; the detail (right zone) shows the selected secondary part. Built on {@link MultiView}:
- * the orchestrator IS its own model-view, so the parts' own actions route back to it; non-selected
- * parts are hidden via {@link VisibilitySupplier}. Once validated, the reusable base will move to core.
+ * Master-detail check-in screen (v3). The master zone shows the primary content (reservation,
+ * check-in, guests) plus a button bar; the detail zone shows ONE secondary part at a time.
+ *
+ * <p>Unlike a top-level orchestrator (which does not re-resolve on a {@code State} change), the detail
+ * is an <b>embedded mediator</b> ({@link PartView}) driven by events: the {@link PartSelectorSection}
+ * buttons emit "part-selected" and {@code PartView} reloads itself in place — the proven CardexView
+ * pattern. So this screen is a plain declarative form; the master-detail behaviour comes entirely
+ * from the embedded mediator + event bus.
  */
 @Service
 @Scope("prototype")
 @Route(value = "/:id/v3", uis = {"/checkin"})
+@Trigger(type = TriggerType.OnLoad, actionId = "load")
+@SubscribeTo(event = "checkin-confirmed", action = "load", source = SubscriptionSource.DOCUMENT)
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @Compact
 @ReadOnly
@@ -50,7 +56,7 @@ import java.util.Map;
     @Zone(name = "master", width = "60%"),
     @Zone(name = "detail", width = "40%")
 })
-public class CheckInFormV3 extends MultiView implements VisibilitySupplier {
+public class CheckInFormV3 implements HeaderSupplier, ActionSupplier {
 
     final ReservationLineRepository repository;
 
@@ -58,8 +64,29 @@ public class CheckInFormV3 extends MultiView implements VisibilitySupplier {
         this.repository = repository;
     }
 
+    // ── Hidden state (used only in header()) ──────────────────────────
     @Hidden String id;
-    @Hidden String partId = "cliente";
+    @Hidden String currency;
+    @Hidden String localizador;
+    @Hidden String agencia;
+    @Hidden String hotel;
+    @Hidden MealPlan mealPlan;
+    @Hidden String chargeType;
+    @Hidden LocalDate arrivalDate;
+    @Hidden int nights;
+    @Hidden LocalDate departureDate;
+    @Hidden int adults;
+    @Hidden int children;
+    @Hidden int babies;
+    @Hidden String reservationStatus;
+
+    // ── Page-header badges ────────────────────────────────────────────
+    @BadgeInHeader(label = "Garantizada", color = "success") boolean garantizada = true;
+    @BadgeInHeader(label = "Terceros") boolean terceros;
+    @BadgeInHeader(label = "Pdte. Int.") boolean pdteInt;
+    @BadgeInHeader(label = "Exp.") boolean exp = true;
+    @BadgeInHeader(label = "Múltiple") boolean multiple;
+    @BadgeInHeader(label = "VIP", color = "contrast") boolean vip = true;
 
     // ── Master zone (always visible) ──────────────────────────────────
     @Section(value = "Información general de la reserva", columns = 8, zone = "master")
@@ -71,129 +98,101 @@ public class CheckInFormV3 extends MultiView implements VisibilitySupplier {
     @Section(value = "Huéspedes", columns = 1, zone = "master")
     @Label("") @Inline GuestsSection guestList = new GuestsSection();
 
-    // ── Detail zone (only the selected part is shown) ─────────────────
-    @Section(value = "Información cliente", columns = 8, zone = "detail")
-    @Label("") @Inline ClientInfoSection clientInfo = new ClientInfoSection();
+    // ── Detail zone: button bar + embedded mediator showing one part ──
+    @Section(value = "Detalle", columns = 1, zone = "detail")
+    @Label("") @Inline PartSelectorSection partSelector = new PartSelectorSection();
 
-    @Section(value = "Importes", columns = 1, zone = "detail")
-    @Label("") @Inline ImportesSection importesList = new ImportesSection();
+    @Section(value = "", columns = 1, zone = "detail")
+    @Label("") @Inline PartView detail = new PartView();
 
-    @Section(value = "Información habitación", columns = 4, zone = "detail")
-    @Label("") @Inline RoomInfoSection roomInfo = new RoomInfoSection();
-
-    @Section(value = "Historial cliente", columns = 4, zone = "detail")
-    @Label("") @Inline HistorialClienteSection historial = new HistorialClienteSection();
-
-    @Section(value = "Folios / Anticipos", columns = 4, zone = "detail")
-    @Label("") @Inline FoliosSection folios = new FoliosSection();
-
-    /** Maps a part id (button) to the orchestrator field name holding that part. */
-    private static final Map<String, String> PART_FIELD = Map.of(
-            "cliente", "clientInfo",
-            "importes", "importesList",
-            "habitacion", "roomInfo",
-            "historial", "historial",
-            "folios", "folios");
-
-    @Override
-    public boolean isHidden(String member, HttpRequest httpRequest) {
-        if (member.startsWith("_") || member.equals("repository")
-                || member.equals("id") || member.equals("partId")) {
-            return true;
-        }
-        if (PART_FIELD.containsValue(member)) {
-            return !member.equals(PART_FIELD.get(partId));
-        }
-        return false;
-    }
-
-    @Override
-    protected OrchestrationResult resolveInternalRoute(String route, HttpRequest httpRequest) {
-        var idFromR = idFromRoute(route);
-        if (idFromR != null) id = idFromR;
-        partId = partFromRoute(route);
-        if (id == null) {
-            return new OrchestrationResult(route, this, PageView.builder().title("Check-in").build());
-        }
-        populate(httpRequest);
-        var content = new ArrayList<Component>(getView(
-                this,
-                "base_url",
-                httpRequest.runActionRq().route(),
-                httpRequest.runActionRq().consumedRoute(),
-                httpRequest.runActionRq().initiatorComponentId(),
-                httpRequest,
-                true,
-                false));
-        List<UserTrigger> bar = List.of(
-                btn("Cliente", "cliente"), btn("Importes", "importes"),
-                btn("Habitación", "habitacion"), btn("Historial", "historial"),
-                btn("Folios", "folios"));
-        var page = PageView.builder().title("Check-in").content(content).toolbar(bar).build();
-        return new OrchestrationResult(route, this, page);
-    }
-
-    private static Button btn(String label, String id) {
-        return new Button(label, "md:" + id);
-    }
-
-    @Override
-    public boolean supportsAction(String actionId) {
-        return actionId != null && actionId.startsWith("md:");
-    }
-
-    @Override
-    public Object handleAction(String actionId, HttpRequest httpRequest) {
-        if (actionId != null && actionId.startsWith("md:")) {
-            var rid = idFromRoute(httpRequest.runActionRq().route());
-            partId = actionId.substring(3);
-            setRouteTo("/" + rid + "/part/" + partId);
-            return List.of(
-                    new State(this),
-                    io.mateu.uidl.data.UICommand.pushStateToHistory("/checkin/" + rid + "/part/" + partId));
-        }
-        return null;
-    }
-
-    private static String idFromRoute(String route) {
-        if (route == null) return null;
-        var segs = route.replaceFirst("^/", "").split("/");
-        return segs.length > 0 && !segs[0].isBlank() ? segs[0] : null;
-    }
-
-    private static String partFromRoute(String route) {
-        if (route != null && route.contains("/part/")) {
-            return route.substring(route.indexOf("/part/") + 6);
-        }
-        return "cliente";
-    }
+    // ── Actions ───────────────────────────────────────────────────────
 
     @Override
     public List<Action> actions(HttpRequest httpRequest) {
-        var list = new ArrayList<Action>();
-        for (var key : PART_FIELD.keySet()) {
-            list.add(Action.builder().id("md:" + key).build());
-        }
-        return list;
+        return List.of(Action.builder().id("load").build());
     }
 
-    public boolean populate(HttpRequest httpRequest) {
+    Object load(HttpRequest httpRequest) {
+        if (id == null || id.isBlank()) {
+            id = CheckInForm.idFromRoute(httpRequest);
+        }
+        return populate() ? (Object) new State(this) : Message.success("Reservation not found");
+    }
+
+    boolean populate() {
         var found = repository.findById(id);
         if (found.isEmpty()) {
             return false;
         }
         var line = found.get();
+        localizador       = line.getLocalizador();
+        currency          = line.getCurrency();
+        agencia           = line.getAgencia();
+        hotel             = line.getHotel();
+        mealPlan          = line.getMealPlan();
+        chargeType        = line.getChargeType();
+        arrivalDate       = line.getArrivalDate();
+        departureDate     = line.getDepartureDate();
+        nights            = (int) ChronoUnit.DAYS.between(line.getArrivalDate(), line.getDepartureDate());
+        adults            = line.getAdults();
+        children          = line.getChildren();
+        babies            = line.getBabies();
+        reservationStatus = line.getStatus() != null ? line.getStatus().name() : "";
+
+        garantizada = line.isGarantizada();
+        terceros    = line.isTerceros();
+        pdteInt     = line.isPdteInt();
+        exp         = line.isExp();
+        multiple    = line.isMultiple();
+        vip         = line.isVip();
+
         resvInfo.populate(line);
         checkIn.populate(line);
         guestList.populate(line);
-        clientInfo.populate(line);
-        importesList.populate(line);
-        roomInfo.populate(line);
-        historial.populate(line);
-        folios.populate(line);
+
+        // Seed the embedded detail mediator (and cardex) so it shows data on first render.
+        PartView.prime(id, "cliente");
         if (!line.getGuests().isEmpty()) {
             CardexView.prime(line.getGuests().get(0).getCardex());
         }
         return true;
+    }
+
+    // ── Context strip ─────────────────────────────────────────────────
+
+    @Override
+    public Collection<Component> header() {
+        var info = HorizontalLayout.builder()
+                .spacing(true)
+                .style("flex-wrap: wrap; align-items: baseline; gap: 2px 1.75rem; width: 100%;")
+                .content(List.of(
+                        item("Localizador", localizador),
+                        item("Hotel", hotel),
+                        item("Agencia", agencia),
+                        item("Estado", reservationStatus),
+                        item("Estancia", arrivalDate + " → " + departureDate + " · " + nights + "N"),
+                        item("Ocupación", adults + " AD · " + children + " CH · " + babies + " BB"),
+                        item("Régimen", mealPlan != null ? mealPlan.name() : "—"),
+                        item("Tipo cobro", chargeType)))
+                .build();
+        return List.of(VerticalLayout.builder().spacing(true).style("width: 100%;")
+                .content(List.of(info)).build());
+    }
+
+    private static Component item(String label, String value) {
+        return VerticalLayout.builder()
+                .spacing(false).padding(false)
+                .style("min-width: 0; line-height: 1.15;")
+                .content(List.of(
+                        Text.builder().text(label).container(TextContainer.div)
+                                .style("font-size: 10px; text-transform: uppercase; letter-spacing: .3px;"
+                                        + " color: var(--lumo-secondary-text-color);").build(),
+                        Text.builder().text(nz(value)).container(TextContainer.div)
+                                .style("font-size: 13px; font-weight: 600;").build()))
+                .build();
+    }
+
+    private static String nz(String s) {
+        return s == null || s.isBlank() ? "—" : s;
     }
 }
