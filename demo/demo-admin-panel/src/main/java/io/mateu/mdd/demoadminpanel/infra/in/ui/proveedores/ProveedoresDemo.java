@@ -13,5 +13,8 @@ public class ProveedoresDemo {
   @ProveedorId
   String proveedorId;
 
+  @HotelId
+  String hotelId;
+
   String observaciones;
 }
