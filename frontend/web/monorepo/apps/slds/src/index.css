@@ -1,0 +1,17 @@
+/* Salesforce Lightning Design System 2 — global stylesheet (Cosmos theme).
+   Ships BEM classes (slds-*) + --slds styling hooks; applied to our own markup. */
+@import '@salesforce-ux/design-system-2/dist/css/bundled/slds2.cosmos.css';
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--slds-g-color-surface-container-1, #f3f3f3);
+  font-family: var(--slds-g-font-family, 'Salesforce Sans', Arial, sans-serif);
+}
+
+mateu-ui {
+  display: block;
+  height: 100%;
+}
