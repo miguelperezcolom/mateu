@@ -9,7 +9,7 @@ import {
     renderSldsButton, renderSldsText, renderSldsFormLayout, renderSldsForm, renderSldsFormSection,
     renderSldsTable, renderSldsHorizontalLayout, renderSldsVerticalLayout, renderSldsSplitLayout,
     renderSldsCard, renderSldsBadge, renderSldsProgressBar, renderSldsAnchor,
-    renderSldsDialog, renderSldsConfirmDialog,
+    renderSldsDialog, renderSldsConfirmDialog, renderSldsFilterBar, renderSldsPagination,
 } from './renderers/sldsRenderers.ts'
 import './components/mateu-slds-field.ts'
 import './components/mateu-slds-tabs.ts'
@@ -125,14 +125,12 @@ export class SldsComponentRenderer extends BasicComponentRenderer implements Com
         return renderSldsTable(container, component!)
     }
 
-    // Filter bar and pagination are not yet ported to SLDS; render nothing for now (TODO) instead of
-    // falling back to the Vaadin chrome, which would be unstyled without Lumo.
-    renderFilterBar(): TemplateResult {
-        return html``
+    renderFilterBar(container: any, component: ClientSideComponent | undefined, _baseUrl: string | undefined, _state: any, _data: any, _appState: any, _appData: any, searchOnly?: boolean): TemplateResult {
+        return renderSldsFilterBar(container, component, searchOnly)
     }
 
-    renderPagination(): TemplateResult {
-        return html``
+    renderPagination(container: any, component: ClientSideComponent | undefined): TemplateResult {
+        return renderSldsPagination(container, component)
     }
 
 }

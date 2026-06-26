@@ -337,3 +337,67 @@ export const renderSldsConfirmDialog = (container: LitElement, component: Client
                 @click="${(e: Event) => dispatchAction(e.target, md.confirmActionId)}">${md.confirmText ?? 'OK'}</button>`
     return modalShell(title, body, footer)
 }
+
+// ── CRUD filter bar + pagination ────────────────────────────────────────────────
+
+export const renderSldsFilterBar = (container: any, component: ClientSideComponent | undefined, searchOnly?: boolean): TemplateResult => {
+    const md = (component?.metadata as any) ?? {}
+    const filters: any[] = searchOnly ? [] : (md.filters ?? [])
+    const setState = (id: string, value: any) => { container.state = { ...container.state, [id]: value } }
+    const doSearch = () => container.search?.(new CustomEvent('search-requested'))
+    const reset = () => {
+        const cleared: Record<string, any> = { searchText: undefined }
+        filters.forEach((f: any) => { cleared[f.fieldId] = undefined })
+        container.state = { ...container.state, ...cleared }
+        doSearch()
+    }
+    return html`
+        <div class="slds-grid slds-grid_vertical-align-end slds-wrap slds-gutters_x-small slds-m-bottom_small">
+            <div class="slds-col">
+                <div class="slds-form-element">
+                    <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_left">
+                        <input type="search" class="slds-input" placeholder="Search…"
+                               .value="${container.state?.searchText ?? ''}"
+                               @input="${(e: Event) => setState('searchText', (e.target as HTMLInputElement).value)}"
+                               @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter') doSearch() }}" />
+                    </div>
+                </div>
+            </div>
+            ${filters.map((f: any) => html`
+                <div class="slds-col">
+                    <div class="slds-form-element">
+                        ${f.label ? html`<label class="slds-form-element__label">${f.label}</label>` : nothing}
+                        <div class="slds-form-element__control">
+                            <input class="slds-input" .value="${container.state?.[f.fieldId] ?? ''}"
+                                   @input="${(e: Event) => setState(f.fieldId, (e.target as HTMLInputElement).value)}" />
+                        </div>
+                    </div>
+                </div>`)}
+            <div class="slds-col slds-grow-none">
+                <button class="slds-button slds-button_brand" @click="${doSearch}">Search</button>
+                <button class="slds-button slds-button_neutral" @click="${reset}">Reset</button>
+            </div>
+        </div>`
+}
+
+export const renderSldsPagination = (container: any, component: ClientSideComponent | undefined): TemplateResult => {
+    const page = container?.data?.[component?.id ?? '']?.page ?? {}
+    const total = page.totalElements ?? 0
+    const pageSize = page.pageSize ?? 10
+    const pageNumber = page.pageNumber ?? 0
+    const totalPages = Math.max(1, Math.ceil(total / (pageSize || 1)))
+    const go = (n: number) => container.pageChanged?.({ detail: { page: n } })
+    if (total === 0) return html``
+    return html`
+        <div class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-p-top_small">
+            <div class="slds-text-body_small slds-text-color_weak">
+                ${total} item${total === 1 ? '' : 's'} · page ${pageNumber + 1} of ${totalPages}
+            </div>
+            <div class="slds-button-group" role="group">
+                <button class="slds-button slds-button_neutral" ?disabled="${pageNumber <= 0}"
+                        @click="${() => go(pageNumber - 1)}">Previous</button>
+                <button class="slds-button slds-button_neutral" ?disabled="${pageNumber >= totalPages - 1}"
+                        @click="${() => go(pageNumber + 1)}">Next</button>
+            </div>
+        </div>`
+}
