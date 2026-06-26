@@ -385,6 +385,39 @@ export class MateuField extends LitElement {
         }
     }
 
+    // Uploadable image field: opens the hidden file input next to the upload button.
+    triggerImageUpload = () => {
+        const input = this.renderRoot?.querySelector('input[type="file"]') as HTMLInputElement | null
+        input?.click()
+    }
+
+    // Reads the chosen image client-side into a data URI and writes it to the field value, so the
+    // image travels in the string itself — no upload endpoint required.
+    imageUpload = (e: Event) => {
+        const input = e.target as HTMLInputElement
+        const file = input.files?.[0]
+        if (!file) return
+        const reader = new FileReader()
+        reader.onload = () => {
+            this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
+                detail: { value: reader.result as string, fieldId: this.field?.fieldId },
+                bubbles: true,
+                composed: true
+            }))
+        }
+        reader.readAsDataURL(file)
+        input.value = '' // allow re-selecting the same file
+    }
+
+    // Clears the field value, removing the image.
+    imageDelete = () => {
+        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
+            detail: { value: '', fieldId: this.field?.fieldId },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
     iconComboboxRenderer: ComboBoxLitRenderer<string> = (icon) => html`
   <div style="display: flex;">
       <vaadin-icon
@@ -502,7 +535,7 @@ export class MateuField extends LitElement {
             if (valueToDisplay && (valueToDisplay as any).value) {
                 valueToDisplay = (valueToDisplay as any).value
             }
-            if ('image' == this.field.stereotype) {
+            if ('image' == this.field.stereotype || 'uploadableImage' == this.field.stereotype) {
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${label}"
@@ -1166,9 +1199,41 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${label}"
                             data-colspan="${this.field.colspan}"
-                    ><img 
+                    ><img
                             src="${value}"
                             style="${this.component?.style}" class="${this.component?.cssClasses}"></vaadin-custom-field>
+                `
+            }
+            if (this.field?.stereotype == 'uploadableImage') {
+                const hasImage = value != null && value !== ''
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            .helperText="${this.field.description}"
+                            data-colspan="${this.field.colspan}"
+                    >
+                        <vaadin-vertical-layout style="align-items: stretch; gap: var(--lumo-space-s); max-width: 320px;">
+                            ${hasImage ? html`<img
+                                    src="${value}"
+                                    style="max-width: 100%; max-height: 240px; object-fit: contain; border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-m); ${this.field.style ?? ''}"
+                                    class="${this.component?.cssClasses}">`
+                                : html`<div style="height: 135px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--lumo-contrast-30pct); border-radius: var(--lumo-border-radius-m); color: var(--lumo-secondary-text-color);">
+                                    <vaadin-icon icon="vaadin:picture" style="height: 2rem; width: 2rem;"></vaadin-icon>
+                                </div>`}
+                            <input type="file" accept="image/*" style="display: none;" @change="${this.imageUpload}">
+                            <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-start;">
+                                <vaadin-button @click="${this.triggerImageUpload}">
+                                    <vaadin-icon icon="vaadin:upload" slot="prefix"></vaadin-icon>
+                                    ${hasImage ? 'Replace' : 'Upload'}
+                                </vaadin-button>
+                                ${hasImage ? html`<vaadin-button theme="error tertiary" @click="${this.imageDelete}">
+                                    <vaadin-icon icon="vaadin:trash" slot="prefix"></vaadin-icon>
+                                    Delete
+                                </vaadin-button>` : nothing}
+                            </vaadin-horizontal-layout>
+                        </vaadin-vertical-layout>
+                    </vaadin-custom-field>
                 `
             }
             if (this.field?.stereotype == 'color') {

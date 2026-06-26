@@ -44,7 +44,8 @@ public @interface Stereotype {
 | `listBox` | List box (scrollable options) |
 | `html` | Raw HTML display |
 | `markdown` | Markdown editor / renderer |
-| `image` | Image upload / display |
+| `image` | Image display (`<img>` from a URL / data-URI value) |
+| `uploadableImage` | Image preview + upload (replace) + delete actions — see [`@UploadableImage`](#uploadableimage) |
 | `icon` | Icon picker |
 | `link` | Hyperlink |
 | `money` | Currency amount |
@@ -86,6 +87,46 @@ public class OrderForm {
     DeliveryMethod delivery;
 }
 ```
+
+---
+
+## @UploadableImage
+
+**Target:** `FIELD`
+
+No attributes. Shorthand for `@Stereotype(FieldStereotype.uploadableImage)`. Renders a `String`
+field as an **uploadable image**: the image preview combined with an *Upload* (or *Replace*)
+action and a *Delete* action.
+
+```java
+public @interface UploadableImage {}
+```
+
+The picked file is read **client-side** into a data URI (base64) and stored as the field value,
+so the image travels in the string itself — **no upload endpoint is required**. The value may also
+be a plain image URL. *Delete* clears the value; pressing your form's action round-trips the value
+(the data URI or URL) to the backend like any other string.
+
+### Example
+
+```java
+@UI("/profile")
+public class Profile {
+
+    String name;
+
+    @UploadableImage
+    @Label("Avatar")
+    String avatar;   // null/empty → "upload" placeholder; a data-URI/URL → preview + replace + delete
+
+    @Toolbar
+    Object save() {
+        return Message.success("Saved");
+    }
+}
+```
+
+In read-only mode the field shows just the image (same as `@Stereotype(FieldStereotype.image)`).
 
 ---
 

@@ -15,6 +15,12 @@ public enum FieldStereotype {
   html,
   markdown,
   image,
+  /**
+   * Renders a String field as an uploadable image: the image preview plus upload (replace) and
+   * delete actions. The field value holds the image as a data URI (or URL). See {@code
+   * UploadableImage}.
+   */
+  uploadableImage,
   icon,
   link,
   money,
