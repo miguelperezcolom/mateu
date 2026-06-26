@@ -19,10 +19,10 @@ jobs:
           distribution: zulu
 
       - name: Build backend
-        run: mvn -B install -DskipTests --file backend/pom.xml
+        run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
 
       - name: Build SUT apps
-        run: mvn -B install -Dmaven.test.skip=true --file e2e/sut/pom.xml
+        run: mvn -B install -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml
 
       - name: Start SUT apps
         run: |
