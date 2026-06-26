@@ -233,10 +233,12 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                 ${component.children?.map(child => child as ClientSideComponent).map(child => {
                     const rawLabel = (child.metadata as Tab).label
                     const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
+                    const shortcut = (child.metadata as Tab).shortcut
                     return html`
                     <vaadin-tab id="${label}"
                                 style="${child.style}"
                                 class="${child.cssClasses}"
+                                data-shortcut="${shortcut ?? nothing}"
                     >${label}</vaadin-tab>`
                 })}
             </vaadin-tabs>

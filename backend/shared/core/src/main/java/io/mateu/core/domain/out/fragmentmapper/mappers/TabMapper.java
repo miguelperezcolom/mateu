@@ -17,7 +17,11 @@ public class TabMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
-    var metadataDto = TabDto.builder().label(tab.label()).build();
+    var metadataDto =
+        TabDto.builder()
+            .label(tab.label())
+            .shortcut(tab.shortcut() == null || tab.shortcut().isEmpty() ? null : tab.shortcut())
+            .build();
     return new ClientSideComponentDto(
         metadataDto,
         null,

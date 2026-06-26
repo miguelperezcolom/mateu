@@ -4,10 +4,10 @@ import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
 @Builder
-public record Tab(String label, Component content, String style, String cssClasses)
+public record Tab(String label, Component content, String style, String cssClasses, String shortcut)
     implements Component {
 
   public Tab(String label, Component content) {
-    this(label, content, "", "");
+    this(label, content, "", "", "");
   }
 }

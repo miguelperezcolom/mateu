@@ -4,4 +4,6 @@ export default interface Tab extends ComponentMetadata {
 
     label: string
 
+    shortcut?: string
+
 }

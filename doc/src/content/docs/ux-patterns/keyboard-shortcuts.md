@@ -3,7 +3,7 @@ title: Keyboard Shortcuts
 description: First-class keyboard navigation for power users.
 ---
 
-**Status:** ✅ Implemented — `@Action(shortcut = ...)`, `@Trigger(type = OnEnter)`
+**Status:** ✅ Implemented — `@Action(shortcut = ...)`, `@Trigger(type = OnEnter)`, `@Tab(shortcut = ...)`
 
 ## Intent
 
@@ -50,6 +50,36 @@ public class ProductSearch {
     }
 }
 ```
+
+### Tab shortcuts — `@Tab(shortcut = ...)`
+
+Attach a shortcut to a tab so users can jump straight to it without the mouse. Use the same
+modifier notation as action shortcuts.
+
+```java
+@UI("/order")
+@Tabs
+public class OrderForm {
+
+    @Tab(value = "Customer", shortcut = "alt+1")
+    String customer;
+
+    @Tab(value = "Items", shortcut = "alt+2")
+    String items;
+
+    @Tab(value = "Billing", shortcut = "alt+3")
+    String billing;
+}
+```
+
+Pressing the shortcut selects the matching tab in place — no server round-trip, no navigation.
+`alt+<number>` reads naturally as "go to tab N" and avoids clashing with text input.
+
+:::tip[One tab strip per form]
+Tabs are grouped by consecutive fields that share the same `@Tab` name. Avoid putting a
+`@Section` on each tab's fields if you want a single tab strip — a section boundary per tab
+splits the form into several separate one-tab strips.
+:::
 
 ## Recommended shortcuts
 

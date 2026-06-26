@@ -13,4 +13,11 @@ public @interface Tab {
   String value() default "";
 
   int order() default 0;
+
+  /**
+   * Keyboard shortcut that selects this tab, e.g. {@code "alt+1"} or {@code "ctrl+shift+p"}. Same
+   * syntax as {@code @Action(shortcut=...)}: {@code +}-separated modifiers ({@code ctrl}, {@code
+   * alt}, {@code shift}, {@code meta}) and the key. Empty means no shortcut.
+   */
+  String shortcut() default "";
 }
