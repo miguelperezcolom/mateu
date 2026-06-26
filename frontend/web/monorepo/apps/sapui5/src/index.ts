@@ -17,6 +17,11 @@ import "@ui5/webcomponents/dist/Select.js";
 import "@ui5/webcomponents/dist/ComboBox.js";
 import "@ui5/webcomponents/dist/Title.js";
 import "@ui5/webcomponents/dist/Switch.js";
+import "@ui5/webcomponents/dist/Panel.js"; // ui5-panel (form sections)
+import "@ui5/webcomponents/dist/Card.js"; // ui5-card
+import "@ui5/webcomponents/dist/CardHeader.js"; // ui5-card-header
+import "@ui5/webcomponents/dist/Dialog.js"; // ui5-dialog
+import "@ui5/webcomponents/dist/Link.js"; // ui5-link (anchor)
 
 import "@ui5/webcomponents-fiori/dist/NavigationLayout.js";
 import "@ui5/webcomponents-fiori/dist/SideNavigation.js";

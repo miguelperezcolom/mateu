@@ -14,6 +14,7 @@ import { renderField } from "@/renderers/renderField.ts";
 import { renderApp } from "@/renderers/renderApp.ts";
 import { renderPage } from "@/renderers/renderPage.ts";
 import { renderForm } from "@/renderers/renderForm.ts";
+import { renderFormSection, renderFormSubSection, renderCard, renderAnchor, renderDialog, renderConfirmDialog } from "@/renderers/renderSections.ts";
 import {
     renderHorizontalLayout,
     renderVerticalLayout,
@@ -110,6 +111,15 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
         if (ComponentMetadataType.FormRow == component?.metadata?.type) {
             return renderFormRow(container, component, baseUrl, state, data, appState, appData)
         }
+        if (ComponentMetadataType.FormSection == component?.metadata?.type) {
+            return renderFormSection(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.FormSubSection == component?.metadata?.type) {
+            return renderFormSubSection(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Card == component?.metadata?.type) {
+            return renderCard(container, component, baseUrl, state, data, appState, appData)
+        }
         if (ComponentMetadataType.TabLayout == component?.metadata?.type) {
             return renderTabLayout(container, component, baseUrl, state, data, appState, appData)
         }
@@ -162,6 +172,15 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
         }
         if (ComponentMetadataType.Image == component?.metadata?.type) {
             return renderImage(component)
+        }
+        if (ComponentMetadataType.Anchor == component?.metadata?.type) {
+            return renderAnchor(component)
+        }
+        if (ComponentMetadataType.Dialog == component?.metadata?.type) {
+            return renderDialog(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.ConfirmDialog == component?.metadata?.type) {
+            return renderConfirmDialog(container, component, baseUrl, state, data, appState, appData)
         }
 
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
