@@ -487,16 +487,14 @@ export class MateuField extends LitElement {
                 : this.field?.multiline
                     ? html`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${display}</span>`
                     : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
-            // Rendered as a tight block (no vaadin-custom-field chrome) so read-only fields are dense.
-            // mateu-field itself is the form-layout column item, so this does not affect column layout.
-            return html`<div
+            // Read-only plain-text fields render as a vaadin-custom-field with the value as its
+            // slotted content, so they sit consistently in the form layout (label on top, value below).
+            return html`<vaadin-custom-field
                     id="${this.field.fieldId}"
+                    label="${label}"
                     data-colspan="${this.field?.colspan}"
-                    style="display: flex; flex-direction: column; gap: 1px; min-width: 0; line-height: 1.2; padding: 2px 0;${isMoney ? ' text-align: right;' : ''} ${this.field?.style}"
-            >
-                <span style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); line-height: 1.1;">${label === nothing ? '' : label}</span>
-                ${body}
-            </div>`
+                    style="${isMoney ? 'text-align: right; ' : ''}${this.field?.style}"
+            >${body}</vaadin-custom-field>`
         }
 
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) {
