@@ -21,7 +21,7 @@ public class ComponentTreeSupplierMapper {
       HttpRequest httpRequest) {
     return new ServerSideComponentDto(
         UUID.randomUUID().toString(),
-        componentTreeSupplier.getClass().getName(),
+        componentTreeSupplier.serverSideType(),
         consumedRoute,
         List.of(
             mapComponentToDto(

@@ -105,6 +105,23 @@ public class ReflectionFormFieldMapper {
       return EmbeddedOrchestratorFieldBuilder.build(
           prefix, field, initiatorComponentId, httpRequest, maxColumns);
     }
+    // A field whose type has a registered ComponentAdapter is rendered as an independent island:
+    // its value is bridged into a ComponentTreeSupplier, which ComponentToFragmentDtoMapper maps to
+    // its own ServerSideComponentDto (own serverSideType + state + actions). It therefore
+    // round-trips through the adapter on its own actions — no parent state/deserialize involvement.
+    var fieldAdapter = io.mateu.core.infra.adapters.AdapterRegistry.find(fieldType);
+    if (fieldAdapter != null) {
+      var value = getValue(field, instance);
+      if (value != null) {
+        var bridge = new io.mateu.core.infra.adapters.AdaptedComponentTree(value, fieldAdapter);
+        return CustomField.builder()
+            .label(getLabel(field))
+            .content(bridge)
+            .colspan(getColspan(field, instance, httpRequest))
+            .style("width: 100%;")
+            .build();
+      }
+    }
     if (Component.class.isAssignableFrom(fieldType)) {
       var component = (Component) getValue(field, instance);
       return CustomField.builder()

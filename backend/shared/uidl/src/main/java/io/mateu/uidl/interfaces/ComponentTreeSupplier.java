@@ -9,6 +9,14 @@ public interface ComponentTreeSupplier extends Component {
     return this.getClass().getName();
   }
 
+  /**
+   * The server-side type advertised to the frontend (used to route the state back on actions).
+   * Defaults to this class; a bridge can override it to the type it stands in for.
+   */
+  default String serverSideType() {
+    return this.getClass().getName();
+  }
+
   Component component(HttpRequest httpRequest);
 
   default String style() {

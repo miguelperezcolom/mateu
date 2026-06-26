@@ -58,6 +58,12 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
       return mono.flatMap(
           object -> map(object, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     }
+    // A domain object with a registered ComponentAdapter is bridged into the supplier interfaces so
+    // the adapter's components + state + data flow through the rest of the pipeline unchanged.
+    var adapter = io.mateu.core.infra.adapters.AdapterRegistry.find(instance.getClass());
+    if (adapter != null) {
+      instance = new io.mateu.core.infra.adapters.AdaptedComponentTree(instance, adapter);
+    }
     var fragments =
         mapToFragments(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     return Mono.just(

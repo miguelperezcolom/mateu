@@ -9,6 +9,7 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 | Interface | Description |
 |---|---|
 | [`ComponentTreeSupplier`](component-tree-supplier/) | Implement to provide a custom component tree for a route |
+| [`ComponentAdapter`](component-adapter/) | Render an arbitrary non-Mateu domain object and round-trip it back from state |
 | [`TitleSupplier`](metadata-suppliers/) | Provides the page title dynamically |
 | [`SubtitleSupplier`](metadata-suppliers/) | Provides the page subtitle dynamically |
 | [`PageTitleSupplier`](metadata-suppliers/) | Provides the browser tab title dynamically |
