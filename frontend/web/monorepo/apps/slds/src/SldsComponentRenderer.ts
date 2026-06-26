@@ -5,7 +5,7 @@ import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideCompone
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType.ts'
 import { MateuComponent } from '@infra/ui/mateu-component.ts'
 import { renderApp } from './renderers/renderApp.ts'
-import { renderSldsButton, renderSldsText, renderSldsFormLayout } from './renderers/sldsRenderers.ts'
+import { renderSldsButton, renderSldsText, renderSldsFormLayout, renderSldsForm, renderSldsFormSection } from './renderers/sldsRenderers.ts'
 import './components/mateu-slds-field.ts'
 
 /**
@@ -38,6 +38,14 @@ export class SldsComponentRenderer extends BasicComponentRenderer implements Com
                         .labelAlreadyRendered="${labelAlreadyRendered}"
                         data-colspan="${(component!.metadata as any).colspan}"
                 ></mateu-slds-field>`
+        }
+
+        if (ComponentMetadataType.Form == type) {
+            return renderSldsForm(container, component!, baseUrl, state, data, appState, appData)
+        }
+
+        if (ComponentMetadataType.FormSection == type) {
+            return renderSldsFormSection(container, component!, baseUrl, state, data, appState, appData)
         }
 
         if (ComponentMetadataType.FormLayout == type) {

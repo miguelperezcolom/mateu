@@ -4,6 +4,8 @@ import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideCompone
 import Button from '@mateu/shared/apiClients/dtos/componentmetadata/Button.ts'
 import Text from '@mateu/shared/apiClients/dtos/componentmetadata/Text.ts'
 import FormLayout from '@mateu/shared/apiClients/dtos/componentmetadata/FormLayout.ts'
+import Form from '@mateu/shared/apiClients/dtos/componentmetadata/Form.ts'
+import FormSection from '@mateu/shared/apiClients/dtos/componentmetadata/FormSection.ts'
 import { renderComponent } from '@infra/ui/renderers/renderComponent.ts'
 import { handleButtonClick } from '@infra/ui/renderers/buttonRenderer.ts'
 import { ComponentState, ComponentData } from '@infra/ui/renderers/types.ts'
@@ -93,4 +95,68 @@ export const renderSldsFormLayout = (
             ${leaves.map(child =>
                 html`<div>${renderComponent(container, child, baseUrl, state, data, appState, appData)}</div>`)}
         </div>`
+}
+
+// ── Form ────────────────────────────────────────────────────────────────────
+
+export const renderSldsForm = (
+    container: LitElement,
+    component: ClientSideComponent,
+    baseUrl: string | undefined,
+    state: ComponentState,
+    data: ComponentData,
+    appState: ComponentState,
+    appData: ComponentData,
+): TemplateResult => {
+    const metadata = component.metadata as Form
+    const children = component.children ?? []
+    const bySlot = (slot: string) => children.filter((c: any) => c.slot === slot)
+    const content = children.filter((c: any) => c.slot !== 'buttons' && c.slot !== 'toolbar')
+    const toolbar = bySlot('toolbar')
+    const buttons = bySlot('buttons')
+    const title = interpolate(metadata.title, state, data)
+    const subtitle = interpolate(metadata.subtitle, state, data)
+    const render = (c: any) => renderComponent(container, c, baseUrl, state, data, appState, appData)
+
+    return html`
+        <div class="slds-form-wrapper">
+            ${metadata.noHeader ? nothing : html`
+                <header class="slds-grid slds-grid_align-spread slds-m-bottom_small" style="align-items:flex-end;">
+                    <div>
+                        ${title ? html`<h1 class="slds-text-heading_medium">${title}</h1>` : nothing}
+                        ${subtitle ? html`<p class="slds-text-body_small slds-text-color_weak">${subtitle}</p>` : nothing}
+                    </div>
+                    ${toolbar.length ? html`<div class="slds-button-group" role="group">${toolbar.map(render)}</div>` : nothing}
+                </header>`}
+            ${content.map(render)}
+            ${buttons.length ? html`
+                <div class="slds-grid slds-grid_align-end slds-m-top_medium" style="gap:.5rem;">
+                    ${buttons.map(render)}
+                </div>` : nothing}
+        </div>`
+}
+
+// ── FormSection ───────────────────────────────────────────────────────────────
+
+export const renderSldsFormSection = (
+    container: LitElement,
+    component: ClientSideComponent,
+    baseUrl: string | undefined,
+    state: ComponentState,
+    data: ComponentData,
+    appState: ComponentState,
+    appData: ComponentData,
+): TemplateResult => {
+    const metadata = component.metadata as FormSection
+    const title = interpolate(metadata.title, state, data)
+    return html`
+        <article class="slds-card slds-m-bottom_medium" slot="${component.slot ?? nothing}">
+            ${title ? html`
+                <div class="slds-card__header slds-grid">
+                    <h2 class="slds-card__header-title slds-text-heading_small">${title}</h2>
+                </div>` : nothing}
+            <div class="slds-card__body slds-card__body_inner slds-p-horizontal_medium slds-p-bottom_medium">
+                ${(component.children ?? []).map((c: any) => renderComponent(container, c, baseUrl, state, data, appState, appData))}
+            </div>
+        </article>`
 }
