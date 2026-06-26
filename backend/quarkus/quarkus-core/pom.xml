@@ -35,7 +35,7 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
-            <version>3.17.8</version>
+            <version>3.20.5</version>
             <scope>provided</scope>
         </dependency>
 
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-spring-di</artifactId>
-            <version>3.17.8</version>
+            <version>3.20.5</version>
             <exclusions>
                 <exclusion>
                     <groupId>io.smallrye.common</groupId>
