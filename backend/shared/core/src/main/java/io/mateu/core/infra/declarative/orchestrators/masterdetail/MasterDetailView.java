@@ -82,6 +82,15 @@ public abstract class MasterDetailView extends MultiView
     return getTitle(this);
   }
 
+  /**
+   * Optional context strip rendered full-width above the master/detail panes (e.g. a summary of the
+   * loaded entity). Empty by default. Called after {@link #load}, so it can read the populated
+   * fields.
+   */
+  protected List<Component> header(HttpRequest httpRequest) {
+    return List.of();
+  }
+
   // ── Detail-part reflection ────────────────────────────────────────────────
 
   private record Part(String fieldName, String key, String label, int order) {}
@@ -210,17 +219,17 @@ public abstract class MasterDetailView extends MultiView
 
     // The orchestrator IS its own model-view: getView renders its @Section fields (non-selected
     // parts hidden via isHidden) and getState carries their data, keeping both consistent.
-    var content =
-        new ArrayList<Component>(
-            getView(
-                this,
-                "base_url",
-                httpRequest.runActionRq().route(),
-                httpRequest.runActionRq().consumedRoute(),
-                httpRequest.runActionRq().initiatorComponentId(),
-                httpRequest,
-                true,
-                false));
+    var content = new ArrayList<Component>(header(httpRequest));
+    content.addAll(
+        getView(
+            this,
+            "base_url",
+            httpRequest.runActionRq().route(),
+            httpRequest.runActionRq().consumedRoute(),
+            httpRequest.runActionRq().initiatorComponentId(),
+            httpRequest,
+            true,
+            false));
 
     List<UserTrigger> bar = new ArrayList<>();
     for (var part : parts) {

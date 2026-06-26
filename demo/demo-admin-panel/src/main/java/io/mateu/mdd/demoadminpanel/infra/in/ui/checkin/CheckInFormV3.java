@@ -14,9 +14,15 @@ import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.Zone;
 import io.mateu.uidl.annotations.Zones;
+import io.mateu.uidl.data.HorizontalLayout;
+import io.mateu.uidl.data.VerticalLayout;
+import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 /**
  * Master-detail check-in screen (v3), built on the reusable {@link MasterDetailView} core
@@ -83,6 +89,65 @@ public class CheckInFormV3 extends MasterDetailView {
   @Section(value = "Folios / Anticipos", columns = 4, zone = "detail")
   @Label("") @Inline
   FoliosSection folios = new FoliosSection();
+
+  @Override
+  protected List<Component> header(HttpRequest httpRequest) {
+    var id = CheckInForm.idFromRoute(httpRequest);
+    if (id == null) {
+      return List.of();
+    }
+    return repository
+        .findById(id)
+        .map(
+            line -> {
+              var nights =
+                  (int) ChronoUnit.DAYS.between(line.getArrivalDate(), line.getDepartureDate());
+              var saldo =
+                  folios.saldoPendiente != null ? folios.saldoPendiente.toPlainString() : "0";
+              var info =
+                  HorizontalLayout.builder()
+                      .spacing(true)
+                      .style(
+                          "flex-wrap: wrap; align-items: baseline; gap: 2px 1.75rem; width: 100%;")
+                      .content(
+                          List.of(
+                              CheckInForm.item("Localizador", line.getLocalizador()),
+                              CheckInForm.item("Hotel", line.getHotel()),
+                              CheckInForm.item("Agencia", line.getAgencia()),
+                              CheckInForm.item(
+                                  "Estado",
+                                  line.getStatus() != null ? line.getStatus().name() : "—"),
+                              CheckInForm.item(
+                                  "Estancia",
+                                  line.getArrivalDate()
+                                      + " → "
+                                      + line.getDepartureDate()
+                                      + " · "
+                                      + nights
+                                      + "N"),
+                              CheckInForm.item(
+                                  "Ocupación",
+                                  line.getAdults()
+                                      + " AD · "
+                                      + line.getChildren()
+                                      + " CH · "
+                                      + line.getBabies()
+                                      + " BB"),
+                              CheckInForm.item(
+                                  "Régimen",
+                                  line.getMealPlan() != null ? line.getMealPlan().name() : "—"),
+                              CheckInForm.item("Tipo cobro", line.getChargeType()),
+                              CheckInForm.item("Saldo", saldo + " " + CheckInForm.nz(line.getCurrency()))))
+                      .build();
+              return List.<Component>of(
+                  VerticalLayout.builder()
+                      .spacing(true)
+                      .style("width: 100%;")
+                      .content(List.of(info))
+                      .build());
+            })
+        .orElse(List.of());
+  }
 
   @Override
   protected void load(HttpRequest httpRequest) {

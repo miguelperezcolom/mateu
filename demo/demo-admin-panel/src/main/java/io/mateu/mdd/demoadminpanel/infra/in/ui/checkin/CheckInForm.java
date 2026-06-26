@@ -283,7 +283,7 @@ public class CheckInForm implements HeaderSupplier, ActionSupplier {
                         .build());
     }
 
-    private static Component item(String label, String value) {
+    static Component item(String label, String value) {
         return VerticalLayout.builder()
                 .spacing(false)
                 .padding(false)
@@ -299,7 +299,7 @@ public class CheckInForm implements HeaderSupplier, ActionSupplier {
                 .build();
     }
 
-    private static String nz(String s) {
+    static String nz(String s) {
         return s == null || s.isBlank() ? "—" : s;
     }
 }
