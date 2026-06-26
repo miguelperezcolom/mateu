@@ -1,0 +1,58 @@
+# Dependabot version updates — grouped to keep PR noise low.
+# Security *alerts* are already enabled at the repo level; this file adds
+# automated *update PRs*, batched weekly per ecosystem.
+version: 2
+updates:
+  # ── Backend (Maven, multi-module) ────────────────────────────────
+  - package-ecosystem: maven
+    directory: "/backend"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      maven-minor-patch:
+        update-types: ["minor", "patch"]
+      maven-major:
+        update-types: ["major"]
+
+  # ── Frontend monorepo (npm) ──────────────────────────────────────
+  - package-ecosystem: npm
+    directory: "/frontend/web/monorepo"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      monorepo-minor-patch:
+        update-types: ["minor", "patch"]
+      monorepo-major:
+        update-types: ["major"]
+
+  # ── E2E tests (npm) ──────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: "/e2e"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      e2e-all:
+        patterns: ["*"]
+
+  # ── Docs site (npm) ──────────────────────────────────────────────
+  - package-ecosystem: npm
+    directory: "/doc"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      doc-all:
+        patterns: ["*"]
+
+  # ── GitHub Actions ───────────────────────────────────────────────
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      actions-all:
+        patterns: ["*"]

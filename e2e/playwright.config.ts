@@ -19,7 +19,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:8080',
       },
-      testMatch: '**/mvc-app1/**/*.spec.ts',
+      testMatch: '**/shared/**/*.spec.ts',
     },
     {
       name: 'webflux-app1',
@@ -27,7 +27,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:8081',
       },
-      testMatch: '**/mvc-app1/**/*.spec.ts',
+      testMatch: '**/shared/**/*.spec.ts',
     },
     {
       name: 'quarkus-app1',
@@ -35,7 +35,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:8082',
       },
-      testMatch: '**/mvc-app1/**/*.spec.ts',
+      testMatch: '**/shared/**/*.spec.ts',
     },
     {
       name: 'micronaut-app1',
@@ -43,7 +43,7 @@ export default defineConfig({
         ...devices['Desktop Chrome'],
         baseURL: 'http://localhost:8083',
       },
-      testMatch: '**/mvc-app1/**/*.spec.ts',
+      testMatch: '**/shared/**/*.spec.ts',
     },
   ],
 });
