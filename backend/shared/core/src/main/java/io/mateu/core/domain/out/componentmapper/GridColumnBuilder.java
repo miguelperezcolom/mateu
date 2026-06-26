@@ -27,9 +27,9 @@ public class GridColumnBuilder {
     getAllFields(getGenericClass(field, field.getType(), "E")).stream()
         .filter(
             columnField ->
-                (!columnField.isAnnotationPresent(Hidden.class)
-                        || !columnField.getAnnotation(Hidden.class).value().isEmpty())
-                    && !columnField.isAnnotationPresent(HiddenInList.class)
+                (!MetaAnnotations.isPresent(columnField, Hidden.class)
+                        || !MetaAnnotations.find(columnField, Hidden.class).value().isEmpty())
+                    && !MetaAnnotations.isPresent(columnField, HiddenInList.class)
                     && !List.class.isAssignableFrom(columnField.getType()))
         .forEach(
             columnField -> {
@@ -111,19 +111,19 @@ public class GridColumnBuilder {
   }
 
   private static String getColumnWidth(Field columnField) {
-    if (columnField.isAnnotationPresent(ColumnWidth.class)) {
-      return columnField.getAnnotation(ColumnWidth.class).value();
+    if (MetaAnnotations.isPresent(columnField, ColumnWidth.class)) {
+      return MetaAnnotations.find(columnField, ColumnWidth.class).value();
     }
     return null;
   }
 
   private static boolean getFilterable(Field columnField) {
-    return columnField.isAnnotationPresent(Filterable.class);
+    return MetaAnnotations.isPresent(columnField, Filterable.class);
   }
 
   private static String getDetailPath(Field field) {
     return getAllFields(getGenericClass(field, field.getType(), "E")).stream()
-        .filter(columnField -> columnField.isAnnotationPresent(Details.class))
+        .filter(columnField -> MetaAnnotations.isPresent(columnField, Details.class))
         .map(Field::getName)
         .findFirst()
         .orElse(null);

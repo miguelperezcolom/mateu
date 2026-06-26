@@ -1,5 +1,6 @@
 package io.mateu.core.infra.reflection.read;
 
+
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import java.lang.reflect.Field;

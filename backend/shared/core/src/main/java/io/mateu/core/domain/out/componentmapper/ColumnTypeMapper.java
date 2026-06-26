@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.MappedValue;
 import io.mateu.uidl.annotations.Stereotype;
@@ -25,7 +26,7 @@ final class ColumnTypeMapper {
     if (columnField.isAnnotationPresent(io.mateu.uidl.annotations.Status.class)) {
       return FieldDataType.status;
     }
-    if (columnField.isAnnotationPresent(MappedValue.class)) {
+    if (MetaAnnotations.isPresent(columnField, MappedValue.class)) {
       return FieldDataType.string;
     }
     if (ComponentDto.class.isAssignableFrom(columnField.getType())) {
@@ -42,8 +43,8 @@ final class ColumnTypeMapper {
   }
 
   static FieldStereotype getStereotypeForColumn(Field columnField) {
-    if (columnField.isAnnotationPresent(Stereotype.class)) {
-      return columnField.getAnnotation(Stereotype.class).value();
+    if (MetaAnnotations.isPresent(columnField, Stereotype.class)) {
+      return MetaAnnotations.find(columnField, Stereotype.class).value();
     }
     return FieldStereotype.regular;
   }

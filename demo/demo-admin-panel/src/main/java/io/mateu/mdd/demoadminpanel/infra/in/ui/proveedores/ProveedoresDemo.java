@@ -19,5 +19,8 @@ public class ProveedoresDemo {
   @Importe
   java.math.BigDecimal total;
 
+  @ImporteTotal
+  java.math.BigDecimal granTotal;
+
   String observaciones;
 }

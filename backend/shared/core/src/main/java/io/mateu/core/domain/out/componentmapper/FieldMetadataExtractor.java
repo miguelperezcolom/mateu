@@ -28,8 +28,8 @@ import java.util.Map;
 public class FieldMetadataExtractor {
 
   public static String getLabel(AnnotatedElement fieldOrMethod) {
-    if (fieldOrMethod.isAnnotationPresent(Label.class)) {
-      return TranslatorContext.translate(fieldOrMethod.getAnnotation(Label.class).value());
+    if (MetaAnnotations.isPresent(fieldOrMethod, Label.class)) {
+      return TranslatorContext.translate(MetaAnnotations.find(fieldOrMethod, Label.class).value());
     }
     if (fieldOrMethod instanceof Field field) {
       return TranslatorContext.translate(toUpperCaseFirst(field.getName()));
@@ -168,9 +168,9 @@ public class FieldMetadataExtractor {
       for (Object enumConstant : field.getType().getEnumConstants()) {
         try {
           Field enumField = field.getType().getField(enumConstant.toString());
-          Label label = enumField.getAnnotation(Label.class);
+          Label label = MetaAnnotations.find(enumField, Label.class);
           String labelValue = label != null ? label.value() : enumConstant.toString();
-          Icon icon = enumField.getAnnotation(Icon.class);
+          Icon icon = MetaAnnotations.find(enumField, Icon.class);
           options.add(
               Option.builder()
                   .value(enumConstant.toString())
