@@ -53,17 +53,6 @@ const ADAPTER_TYPE = 'io.mateu.sample1.app.AdapterDemo';
 
 test.describe('AdapterDemo — ComponentAdapter SPI', () => {
 
-  // Known gap: on Quarkus the adapter bean is not resolved — QuarkusBeanProvider looks adapters up
-  // via BeanManager.getBeans(ComponentAdapter.class) (raw type), which CDI typesafe resolution does
-  // not match against a parameterized ComponentAdapter<AdapterDemo> bean, so Mateu silently renders
-  // the POJO as a regular component. Skip until QuarkusBeanProvider resolves parameterized beans.
-  test.beforeEach(({}, testInfo) => {
-    test.skip(
-      testInfo.project.name === 'quarkus-app1',
-      'ComponentAdapter SPI not yet supported on Quarkus (parameterized bean resolution)',
-    );
-  });
-
   test('load renders the adapted view title "Product (adapted)"', async ({ request }) => {
     const body = await callAction(request, ADAPTER_API, { route: '/', actionId: '__load__' });
     expect(pageTitle(body.fragments)).toBe('Product (adapted)');

@@ -12,19 +12,20 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import jakarta.enterprise.context.ApplicationScoped;
+import io.quarkus.arc.Unremovable;
 
 /**
  * A {@link ComponentAdapter} for {@link AdapterDemo}: it teaches Mateu how to render the plain
  * object (components + state) and how to rebuild it from the state returned on an action.
  * Registered automatically because it is a CDI bean ({@code @ApplicationScoped}).
  *
- * <p><b>Known gap:</b> on Quarkus the adapter is NOT picked up — {@code QuarkusBeanProvider} looks
- * it up via {@code BeanManager.getBeans(ComponentAdapter.class)} (raw type), which CDI typesafe
- * resolution does not match against a parameterized {@code ComponentAdapter<AdapterDemo>} bean, so
- * Mateu silently falls back to rendering the POJO as a regular component. The e2e spec skips
- * Quarkus until {@code QuarkusBeanProvider} resolves parameterized beans (e.g. via {@code @Any}).
+ * <p>{@code @Unremovable} is required on Quarkus: the adapter is discovered reflectively via the
+ * {@code BeanManager} and never injected, so Arc's unused-bean removal would prune it otherwise.
+ * {@code QuarkusBeanProvider} resolves the parameterized {@code ComponentAdapter<AdapterDemo>} bean
+ * via an {@code @Any} scan.
  */
 @ApplicationScoped
+@Unremovable
 public class AdapterDemoAdapter implements ComponentAdapter<AdapterDemo> {
 
   @Override
