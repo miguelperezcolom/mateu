@@ -5,8 +5,14 @@ import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideCompone
 import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType.ts'
 import { MateuComponent } from '@infra/ui/mateu-component.ts'
 import { renderApp } from './renderers/renderApp.ts'
-import { renderSldsButton, renderSldsText, renderSldsFormLayout, renderSldsForm, renderSldsFormSection, renderSldsTable } from './renderers/sldsRenderers.ts'
+import {
+    renderSldsButton, renderSldsText, renderSldsFormLayout, renderSldsForm, renderSldsFormSection,
+    renderSldsTable, renderSldsHorizontalLayout, renderSldsVerticalLayout, renderSldsSplitLayout,
+    renderSldsCard, renderSldsBadge, renderSldsProgressBar, renderSldsAnchor,
+} from './renderers/sldsRenderers.ts'
 import './components/mateu-slds-field.ts'
+import './components/mateu-slds-tabs.ts'
+import './components/mateu-slds-accordion.ts'
 
 /**
  * Mateu renderer for the Salesforce Lightning Design System 2 (SLDS 2).
@@ -58,6 +64,48 @@ export class SldsComponentRenderer extends BasicComponentRenderer implements Com
 
         if (ComponentMetadataType.Text == type) {
             return renderSldsText(component!, state, data)
+        }
+
+        if (ComponentMetadataType.TabLayout == type) {
+            return html`<mateu-slds-tabs
+                    .component="${component}" .container="${container}" baseUrl="${baseUrl}"
+                    .compState="${state}" .compData="${data}" .appState="${appState}" .appData="${appData}"
+            ></mateu-slds-tabs>`
+        }
+
+        if (ComponentMetadataType.AccordionLayout == type) {
+            return html`<mateu-slds-accordion
+                    .component="${component}" .container="${container}" baseUrl="${baseUrl}"
+                    .compState="${state}" .compData="${data}" .appState="${appState}" .appData="${appData}"
+            ></mateu-slds-accordion>`
+        }
+
+        if (ComponentMetadataType.HorizontalLayout == type) {
+            return renderSldsHorizontalLayout(container, component!, baseUrl, state, data, appState, appData)
+        }
+
+        if (ComponentMetadataType.VerticalLayout == type) {
+            return renderSldsVerticalLayout(container, component!, baseUrl, state, data, appState, appData)
+        }
+
+        if (ComponentMetadataType.SplitLayout == type) {
+            return renderSldsSplitLayout(container, component!, baseUrl, state, data, appState, appData)
+        }
+
+        if (ComponentMetadataType.Card == type) {
+            return renderSldsCard(container, component!, baseUrl, state, data, appState, appData)
+        }
+
+        if (ComponentMetadataType.Badge == type) {
+            return renderSldsBadge(component!)
+        }
+
+        if (ComponentMetadataType.ProgressBar == type) {
+            return renderSldsProgressBar(component!, state)
+        }
+
+        if (ComponentMetadataType.Anchor == type) {
+            return renderSldsAnchor(component!)
         }
 
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)

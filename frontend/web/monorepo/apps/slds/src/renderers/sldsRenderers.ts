@@ -201,3 +201,94 @@ export const renderSldsTable = (container: any, component: ClientSideComponent):
             </tbody>
         </table>`
 }
+
+// ── Layouts (flex) ─────────────────────────────────────────────────────────────
+
+const renderChildren = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) =>
+    (component.children ?? []).map((c: any) => renderComponent(container, c, baseUrl, state, data, appState, appData))
+
+export const renderSldsHorizontalLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult => {
+    const md = component.metadata as any
+    const gap = md.spacing === false ? '0' : '1rem'
+    return html`<div style="display:flex; flex-direction:row; gap:${gap}; ${md.wrap ? 'flex-wrap:wrap;' : ''} ${md.fullWidth ? 'width:100%;' : ''} ${component.style ?? ''}"
+                     slot="${component.slot ?? nothing}">
+        ${renderChildren(container, component, baseUrl, state, data, appState, appData)}
+    </div>`
+}
+
+export const renderSldsVerticalLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult => {
+    const md = component.metadata as any
+    const gap = md.spacing === false ? '0' : '.75rem'
+    return html`<div style="display:flex; flex-direction:column; gap:${gap}; ${md.fullWidth ? 'width:100%;' : ''} ${component.style ?? ''}"
+                     slot="${component.slot ?? nothing}">
+        ${renderChildren(container, component, baseUrl, state, data, appState, appData)}
+    </div>`
+}
+
+export const renderSldsSplitLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult => {
+    const md = component.metadata as any
+    const dir = md.orientation === 'vertical' ? 'column' : 'row'
+    const children = component.children ?? []
+    return html`<div style="display:flex; flex-direction:${dir}; gap:1rem; width:100%; ${component.style ?? ''}"
+                     slot="${component.slot ?? nothing}">
+        ${children.map((c: any) => html`<div style="flex:1; min-width:0;">${renderComponent(container, c, baseUrl, state, data, appState, appData)}</div>`)}
+    </div>`
+}
+
+// ── Card ──────────────────────────────────────────────────────────────────────
+
+export const renderSldsCard = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult => {
+    const md = component.metadata as any
+    const render = (c: any) => c ? renderComponent(container, c, baseUrl, state, data, appState, appData) : nothing
+    const hasHeader = md.title || md.header || md.headerPrefix || md.headerSuffix
+    return html`
+        <article class="slds-card" slot="${component.slot ?? nothing}">
+            ${hasHeader ? html`
+                <div class="slds-card__header slds-grid">
+                    <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                        <div class="slds-media__body">
+                            <h2 class="slds-card__header-title slds-text-heading_small">${render(md.title)}</h2>
+                            ${md.subtitle ? html`<div class="slds-text-body_small slds-text-color_weak">${render(md.subtitle)}</div>` : nothing}
+                        </div>
+                    </header>
+                </div>` : nothing}
+            <div class="slds-card__body slds-card__body_inner">
+                ${render(md.content)}
+                ${renderChildren(container, component, baseUrl, state, data, appState, appData)}
+            </div>
+            ${md.footer ? html`<footer class="slds-card__footer">${render(md.footer)}</footer>` : nothing}
+        </article>`
+}
+
+// ── Badge ──────────────────────────────────────────────────────────────────────
+
+export const renderSldsBadge = (component: ClientSideComponent): TemplateResult => {
+    const md = component.metadata as any
+    const color = md.color as string
+    const variant = color === 'success' ? 'slds-badge_inverse slds-theme_success'
+        : color === 'error' || color === 'danger' ? 'slds-theme_error'
+        : color === 'warning' ? 'slds-theme_warning'
+        : ''
+    return html`<span class="slds-badge ${variant}" slot="${component.slot ?? nothing}">${md.text ?? ''}</span>`
+}
+
+// ── ProgressBar ─────────────────────────────────────────────────────────────────
+
+export const renderSldsProgressBar = (component: ClientSideComponent, state?: ComponentState): TemplateResult => {
+    const md = component.metadata as any
+    const min = md.min ?? 0
+    const max = md.max ?? 1
+    const raw = md.valueKey && state ? state[md.valueKey] : md.value
+    const pct = Math.max(0, Math.min(100, Math.round(((Number(raw ?? 0) - min) / (max - min || 1)) * 100)))
+    return html`
+        <div class="slds-progress-bar" aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${raw ?? 0}" role="progressbar" slot="${component.slot ?? nothing}">
+            <span class="slds-progress-bar__value" style="width:${pct}%;"><span class="slds-assistive-text">${pct}%</span></span>
+        </div>`
+}
+
+// ── Anchor ──────────────────────────────────────────────────────────────────────
+
+export const renderSldsAnchor = (component: ClientSideComponent): TemplateResult => {
+    const md = component.metadata as any
+    return html`<a href="${md.url ?? '#'}" slot="${component.slot ?? nothing}">${md.text ?? md.url ?? ''}</a>`
+}
