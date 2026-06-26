@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.wizard;
 
 import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
@@ -27,12 +28,13 @@ final class WizardLookupHandler {
                       .getGenericType(),
               java.util.List.class,
               "E");
-      var fkAnnotation = getFieldByName(rowClass, childFieldName).getAnnotation(Lookup.class);
+      var fkAnnotation =
+          MetaAnnotations.find(getFieldByName(rowClass, childFieldName), Lookup.class);
       optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
     } else {
       var fkAnnotation =
-          getFieldByName(orchestrator.currentStepField().getType(), fieldName)
-              .getAnnotation(Lookup.class);
+          MetaAnnotations.find(
+              getFieldByName(orchestrator.currentStepField().getType(), fieldName), Lookup.class);
       optionsSupplier = MateuBeanProvider.getBean(fkAnnotation.search());
     }
     Pageable pageable = httpRequest.getParameters(Pageable.class);

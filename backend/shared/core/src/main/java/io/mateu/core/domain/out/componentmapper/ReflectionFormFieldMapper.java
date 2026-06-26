@@ -8,6 +8,7 @@ import static io.mateu.core.domain.out.componentmapper.GridColumnBuilder.createC
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Text;
 import io.mateu.uidl.data.*;
@@ -120,7 +121,7 @@ public class ReflectionFormFieldMapper {
       return createEditorForCompositionField(field, httpRequest, instance);
     }
     if (List.class.isAssignableFrom(fieldType)
-        && !field.isAnnotationPresent(Lookup.class)
+        && !MetaAnnotations.isPresent(field, Lookup.class)
         && !field.isAnnotationPresent(Searchable.class)
         && !field.isAnnotationPresent(Composition.class)
         && !isBasic(getGenericClass(field, List.class, "E"))) {

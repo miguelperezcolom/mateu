@@ -7,6 +7,7 @@ import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldBy
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.act.ActionRunner;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
@@ -29,7 +30,7 @@ public class ForeignKeyResolverActionRunner implements ActionRunner {
     if (actionId != null && actionId.startsWith("search-")) {
       var field = getFieldByName(instance.getClass(), actionId.substring("search-".length()));
       if (field != null) {
-        return field.isAnnotationPresent(Lookup.class);
+        return MetaAnnotations.isPresent(field, Lookup.class);
       }
     }
     return false;

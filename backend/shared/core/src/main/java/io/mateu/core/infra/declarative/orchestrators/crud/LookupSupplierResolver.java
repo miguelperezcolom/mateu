@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -34,8 +35,8 @@ final class LookupSupplierResolver {
   @SneakyThrows
   static LookupLabelSupplier getLookupLabelSupplier(Object instance, Field field) {
     Class<? extends LookupLabelSupplier> supplierType = null;
-    if (field.isAnnotationPresent(Lookup.class)) {
-      var lookup = field.getAnnotation(Lookup.class);
+    if (MetaAnnotations.isPresent(field, Lookup.class)) {
+      var lookup = MetaAnnotations.find(field, Lookup.class);
       supplierType = lookup.label();
     }
     if (field.isAnnotationPresent(Searchable.class)) {
@@ -58,7 +59,7 @@ final class LookupSupplierResolver {
   @SneakyThrows
   static LookupOptionsSupplier getLookupOptionsSupplier(Object instance, Field field) {
     if (field != null) {
-      var lookup = field.getAnnotation(Lookup.class);
+      var lookup = MetaAnnotations.find(field, Lookup.class);
       if (lookup != null) {
         if (LookupOptionsSupplier.class.equals(lookup.search())) {
           if (instance instanceof LookupOptionsSupplier supplier) {
@@ -66,9 +67,10 @@ final class LookupSupplierResolver {
           }
           return null;
         }
-        var supplier = MateuBeanProvider.getBean(field.getAnnotation(Lookup.class).search());
+        var supplier =
+            MateuBeanProvider.getBean(MetaAnnotations.find(field, Lookup.class).search());
         if (supplier == null) {
-          return field.getAnnotation(Lookup.class).search().getConstructor().newInstance();
+          return MetaAnnotations.find(field, Lookup.class).search().getConstructor().newInstance();
         }
         return supplier;
       }

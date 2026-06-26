@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupLabelSupplier;
@@ -34,7 +35,7 @@ public class DataLayer {
                   LookupFieldDataWriter.writeField(field, item, labelSupplier, data, httpRequest));
     }
     getAllFields(item.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Lookup.class))
+        .filter(field -> MetaAnnotations.isPresent(field, Lookup.class))
         .forEach(
             field ->
                 LookupFieldDataWriter.writeField(

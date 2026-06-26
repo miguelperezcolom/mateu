@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.componentmapper;
 
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.RemoteCoordinates;
@@ -50,7 +51,7 @@ public class FieldMetadataExtractor {
   }
 
   public static String getFieldId(Field field, String prefix, boolean readOnly) {
-    if (readOnly && field.isAnnotationPresent(Lookup.class)) {
+    if (readOnly && MetaAnnotations.isPresent(field, Lookup.class)) {
       return prefix + field.getName() + "-label";
     }
     if (readOnly && field.isAnnotationPresent(Searchable.class)) {
@@ -152,7 +153,7 @@ public class FieldMetadataExtractor {
   }
 
   static RemoteCoordinates getRemoteCoordinates(String prefix, Field field) {
-    if (field.isAnnotationPresent(Lookup.class)) {
+    if (MetaAnnotations.isPresent(field, Lookup.class)) {
       return RemoteCoordinates.builder().action("search-" + prefix + field.getName()).build();
     }
     return null;

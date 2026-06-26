@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Status;
@@ -39,7 +40,7 @@ final class FormFieldFilter {
     if (field.isAnnotationPresent(Menu.class)) {
       return false;
     }
-    if (field.isAnnotationPresent(Lookup.class)) {
+    if (MetaAnnotations.isPresent(field, Lookup.class)) {
       return true;
     }
     if (field.isAnnotationPresent(Searchable.class)) {

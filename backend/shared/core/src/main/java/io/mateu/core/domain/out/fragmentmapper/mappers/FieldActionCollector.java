@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.OnRowSelected;
@@ -92,8 +93,8 @@ final class FieldActionCollector {
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()
-        .filter(field -> field.isAnnotationPresent(Lookup.class))
-        .filter(field -> !field.getAnnotation(Lookup.class).bubble())
+        .filter(field -> MetaAnnotations.isPresent(field, Lookup.class))
+        .filter(field -> !MetaAnnotations.find(field, Lookup.class).bubble())
         .map(field -> Action.builder().id("search-" + field.getName()).build())
         .forEach(fieldActions::add);
 
