@@ -18,12 +18,6 @@ jobs:
           java-version: 21
           distribution: zulu
 
-      - name: Import GPG Key
-        uses: crazy-max/ghaction-import-gpg@v1
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-
       - name: Build backend
         run: mvn -B install -DskipTests --file backend/pom.xml
 
