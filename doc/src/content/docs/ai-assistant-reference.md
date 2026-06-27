@@ -18,6 +18,23 @@ Both files are plain Markdown — paste them directly, link to them, or download
 
 ## How to use with each tool
 
+### Claude Code / Claude Agent SDK
+
+Mateu ships a ready-made **skill** at `.claude/skills/mateu/`. When you run Claude Code
+(or the Claude Agent SDK) inside a project that contains it, the skill activates
+automatically as soon as you ask for Mateu work — *"create a CRUD for…"*, *"add a
+wizard…"* — and loads the API on demand (progressive disclosure), so it costs almost
+nothing until it is needed.
+
+- **In the Mateu repo:** it is already there — just ask.
+- **In your own project:** copy the `.claude/skills/mateu/` folder into your repo, or
+  into `~/.claude/skills/` to make it available in every project.
+
+The skill covers CRUD, forms and actions, wizards, editor/partial-form views, fluent
+component trees, shells and federation, custom adapters / web components / CSS, and the
+full annotation catalogue — each a focused reference the agent reads only when relevant.
+It stays in sync with the compact and full references below.
+
 ### Claude Projects (claude.ai)
 
 1. Open [claude.ai](https://claude.ai) and create or open a **Project**.

@@ -10,6 +10,7 @@ For AI-assisted development, use these context documents with your AI tool (Clau
 
 - [Compact reference](https://mateu.io/mateu-ai-compact.md): ~2 500 tokens — key annotations, patterns, return types. Use for day-to-day code generation.
 - [Full reference](https://mateu.io/mateu-ai-full.md): ~9 000 tokens — complete annotation catalogue, all interfaces, all UX patterns. Use for thorough assistance or broad feature coverage.
+- Claude Code / Claude Agent SDK: a bundled skill at `.claude/skills/mateu/` auto-activates for Mateu tasks (progressive disclosure). See [Use Mateu with AI assistants](https://mateu.io/ai-assistant-reference/).
 
 ## Documentation
 
