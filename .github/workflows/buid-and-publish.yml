@@ -43,8 +43,8 @@ jobs:
         run: cd frontend/web/monorepo/apps/vaadin && npm run copy
       - name: Build SAPUI5 front
         run: cd frontend/web/monorepo/apps/sapui5 && npm run copy
-      - name: Build Redwood front
-        run: cd frontend/web/monorepo/apps/redwood && npm run copy
+      - name: Build SLDS front
+        run: cd frontend/web/monorepo/apps/slds && npm run copy
       - name: Build Red Hat front
         run: cd frontend/web/monorepo/apps/redhat && npm run copy
 
