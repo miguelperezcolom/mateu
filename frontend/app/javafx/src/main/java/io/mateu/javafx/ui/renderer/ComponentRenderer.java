@@ -63,6 +63,18 @@ public class ComponentRenderer {
                 l.setWrapText(true);
                 yield l;
             }
+            case "FormSection" -> new ContainerRenderer(ctx).renderSection(component, metadata, state, data);
+            case "FormSubSection" -> new ContainerRenderer(ctx).renderSubSection(component, metadata, state, data);
+            case "Card" -> new ContainerRenderer(ctx).renderCard(component, metadata, state, data);
+            case "TabLayout" -> new ContainerRenderer(ctx).renderTabs(component, state, data);
+            case "AccordionLayout" -> new ContainerRenderer(ctx).renderAccordion(component, state, data);
+            case "SplitLayout" -> new ContainerRenderer(ctx).renderSplit(component, metadata, state, data);
+            case "Scroller", "FullWidth", "Container" -> new LayoutRenderer(ctx).renderVBox(component, metadata, state, data);
+            case "Badge" -> new ContainerRenderer(ctx).renderBadge(metadata);
+            case "Anchor" -> new ContainerRenderer(ctx).renderAnchor(metadata);
+            case "ProgressBar" -> new ContainerRenderer(ctx).renderProgressBar(metadata, state);
+            case "Dialog" -> new ContainerRenderer(ctx).renderDialog(component, metadata, state, data);
+            case "ConfirmDialog" -> new ContainerRenderer(ctx).renderConfirmDialog(metadata, state, data);
             default -> {
                 if (!metaType.isBlank()) {
                     yield new Label("Unsupported component: " + metaType);
