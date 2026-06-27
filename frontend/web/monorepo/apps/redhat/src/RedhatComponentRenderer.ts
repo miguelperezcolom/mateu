@@ -1,17 +1,68 @@
-import { LitElement, type TemplateResult } from 'lit';
+import { LitElement, html, type TemplateResult } from 'lit'
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
-import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
-import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
-import { MateuComponent } from "@infra/ui/mateu-component.ts";
-import { renderApp } from "@/renderers/renderApp.ts";
+import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
+import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType.ts'
+import { MateuComponent } from '@infra/ui/mateu-component.ts'
+import { renderApp } from '@/renderers/renderApp.ts'
+import {
+    renderButton, renderText, renderFormLayout, renderForm, renderFormSection, renderFormSubSection,
+    renderCard, renderHorizontalLayout, renderVerticalLayout, renderSplitLayout, renderBadge,
+    renderAnchor, renderDialog, renderConfirmDialog, renderTable, renderFilterBar, renderPagination,
+} from '@/renderers/patternfly.ts'
+import './components/mateu-redhat-field.ts'
+import './components/mateu-redhat-tabs.ts'
+import './components/mateu-redhat-accordion.ts'
 
+/**
+ * Mateu renderer for the Red Hat PatternFly 6 design system.
+ *
+ * PatternFly 6 is a global CSS framework (pf-v6-c-* classes), not web components, so this renderer
+ * emits its own markup carrying PatternFly classes and runs in the light DOM (see index.ts
+ * setUseShadowRoot(false)) so the global stylesheet reaches it. Anything not overridden falls back
+ * to the shared BasicComponentRenderer.
+ */
 export class RedhatComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
 
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
-        if (ComponentMetadataType.App == component?.metadata?.type) {
-            return renderApp(container as MateuComponent, component, baseUrl, state, data)
-        }return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
+        const t = component?.metadata?.type
+        const c = component!
+
+        if (ComponentMetadataType.App == t) return renderApp(container as MateuComponent, c, baseUrl, state, data)
+        if (ComponentMetadataType.Form == t) return renderForm(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.FormField == t) {
+            return html`<mateu-redhat-field id="${c.id}" .component="${c}" .field="${c.metadata}" .state="${state}" .labelAlreadyRendered="${labelAlreadyRendered}"></mateu-redhat-field>`
+        }
+        if (ComponentMetadataType.FormLayout == t) return renderFormLayout(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.FormSection == t) return renderFormSection(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.FormSubSection == t) return renderFormSubSection(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.Card == t) return renderCard(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.Button == t) return renderButton(c, state, data)
+        if (ComponentMetadataType.Text == t) return renderText(c, state, data)
+        if (ComponentMetadataType.HorizontalLayout == t) return renderHorizontalLayout(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.VerticalLayout == t) return renderVerticalLayout(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.SplitLayout == t) return renderSplitLayout(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.Badge == t) return renderBadge(c)
+        if (ComponentMetadataType.Anchor == t) return renderAnchor(c)
+        if (ComponentMetadataType.Dialog == t) return renderDialog(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.ConfirmDialog == t) return renderConfirmDialog(container, c, baseUrl, state, data, appState, appData)
+        if (ComponentMetadataType.TabLayout == t) {
+            return html`<mateu-redhat-tabs .component="${c}" .container="${container}" baseUrl="${baseUrl}" .compState="${state}" .compData="${data}" .appState="${appState}" .appData="${appData}"></mateu-redhat-tabs>`
+        }
+        if (ComponentMetadataType.AccordionLayout == t) {
+            return html`<mateu-redhat-accordion .component="${c}" .container="${container}" baseUrl="${baseUrl}" .compState="${state}" .compData="${data}" .appState="${appState}" .appData="${appData}"></mateu-redhat-accordion>`
+        }
+
+        return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
+    renderTableComponent(container: any, component: ClientSideComponent | undefined): TemplateResult {
+        return renderTable(container, component!)
+    }
+    renderFilterBar(container: any, component: ClientSideComponent | undefined): TemplateResult {
+        return renderFilterBar(container, component)
+    }
+    renderPagination(container: any, component: ClientSideComponent | undefined): TemplateResult {
+        return renderPagination(container, component)
+    }
 }

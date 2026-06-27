@@ -1,13 +1,4 @@
-import { componentRenderer } from '@infra/ui/renderers/ComponentRenderer'
-import { RedhatComponentRenderer } from "./RedhatComponentRenderer.ts";
+// set-env registers the renderer and disables shadow DOM — it MUST run before mateu-ui.
+import './set-env.ts'
 import '@infra/ui/mateu-ui'
-
-import '@rhds/elements/rh-navigation-primary/rh-navigation-primary.js';
-import '@rhds/elements/rh-avatar/rh-avatar.js';
-import '@rhds/elements/rh-button/rh-button.js';
-import "@rhds/elements/rh-icon/rh-icon.js";
-import '@rhds/icons/ui/menu-bars.js'
-import '@rhds/icons/microns/caret-down.js'
-
-componentRenderer.set(new RedhatComponentRenderer())
-componentRenderer.setUseShadowRoot(false)
+// PatternFly 6 CSS (pf-v6-c-* + tokens) is loaded via <link> to src/index.css in index.html.
