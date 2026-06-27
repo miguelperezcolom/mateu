@@ -1,61 +1,20 @@
-import { customElement, property } from 'lit/decorators.js'
+import { customElement } from 'lit/decorators.js'
 import { html, nothing, type TemplateResult } from 'lit'
-import MetadataDrivenElement from '@infra/ui/MetadataDrivenElement'
+import { MateuRendererApp } from '@infra/ui/MateuRendererApp.ts'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import MenuOption from '@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts'
 
 /**
  * SLDS 2 application shell: a global header plus a vertical navigation built from the app menu, and
- * the routed content embedded via <mateu-ux>. Renders in the light DOM so the global SLDS
- * stylesheet (slds-* classes) applies to its markup.
+ * the routed content embedded via {@link MateuRendererApp.renderContent} (which carries the shared
+ * CRUD/server-driven navigation). Renders in the light DOM so the global SLDS stylesheet applies.
  */
 @customElement('mateu-slds-app')
-export class MateuSldsApp extends MetadataDrivenElement {
+export class MateuSldsApp extends MateuRendererApp {
 
-    @property()
-    baseUrl = ''
-
-    @property()
-    route = ''
-
-    @property()
-    consumedRoute = ''
-
-    // Render in light DOM: SLDS ships global CSS, which cannot cross a shadow boundary.
     createRenderRoot() {
         return this
-    }
-
-    private navigateTo = (path: string | undefined) => {
-        if (!path) return
-        this.route = path
-        let baseUrl = this.baseUrl ?? ''
-        if (baseUrl.indexOf('://') < 0) {
-            if (!baseUrl.startsWith('/')) {
-                baseUrl = '/' + baseUrl
-            }
-            baseUrl = window.location.origin + baseUrl
-        }
-        const targetUrl = new URL(baseUrl + path)
-        if (window.location.pathname != targetUrl.pathname) {
-            let pathname = targetUrl.pathname
-            if (pathname && !pathname.startsWith('/')) {
-                pathname = '/' + pathname
-            }
-            this.dispatchEvent(new CustomEvent('update-route', {
-                detail: { route: pathname },
-                bubbles: true,
-                composed: true,
-            }))
-        }
-        this.requestUpdate()
-    }
-
-    private isActive = (option: MenuOption): boolean => {
-        const metadata = (this.component as ClientSideComponent)?.metadata as App
-        if (this.route === option.path) return true
-        return this.route === this.consumedRoute && option.path === metadata?.homeRoute
     }
 
     private renderNavItem = (option: MenuOption): TemplateResult => {
@@ -63,32 +22,25 @@ export class MateuSldsApp extends MetadataDrivenElement {
             return html`
                 <li class="slds-nav-vertical__item">
                     <div class="slds-nav-vertical__title slds-text-title_caps">${option.label}</div>
-                    <ul>
-                        ${option.submenus.map(sub => this.renderNavItem(sub))}
-                    </ul>
-                </li>
-            `
+                    <ul>${option.submenus.map(sub => this.renderNavItem(sub))}</ul>
+                </li>`
         }
         return html`
             <li class="slds-nav-vertical__item ${this.isActive(option) ? 'slds-is-active' : ''}">
-                <a href="javascript:void(0)"
-                   class="slds-nav-vertical__action"
+                <a href="javascript:void(0)" class="slds-nav-vertical__action"
                    aria-current="${this.isActive(option) ? 'page' : nothing}"
-                   @click="${() => this.navigateTo(option.path)}">
-                    ${option.label}
-                </a>
-            </li>
-        `
+                   @click="${() => this.navigate(option)}">${option.label}</a>
+            </li>`
     }
 
     render() {
         const metadata = (this.component as ClientSideComponent)?.metadata as App
         if (!metadata) return nothing
-        const contentRoute = this.route != this.consumedRoute ? this.route : metadata.homeRoute
+        const hasMenu = (metadata.menu ?? []).length > 0
 
         return html`
             <div class="slds-grid slds-grid_vertical" style="height: 100vh;">
-                <header class="slds-global-header_container">
+                <header class="slds-global-header_container" style="flex: 0 0 auto;">
                     <div class="slds-global-header slds-grid slds-grid_align-spread slds-p-horizontal_medium">
                         <div class="slds-global-header__item">
                             ${metadata.logo
@@ -103,26 +55,17 @@ export class MateuSldsApp extends MetadataDrivenElement {
                 </header>
 
                 <div class="slds-grid" style="flex: 1; min-height: 0;">
-                    <nav class="slds-nav-vertical slds-p-around_medium"
-                         aria-label="${metadata.title ?? 'Navigation'}"
-                         style="width: 16rem; flex: 0 0 auto; overflow: auto; border-right: 1px solid var(--slds-g-color-border-base-1, #e5e5e5);">
-                        <div class="slds-nav-vertical__section">
-                            <ul>
-                                ${(metadata.menu ?? []).map(option => this.renderNavItem(option))}
-                            </ul>
-                        </div>
-                    </nav>
+                    ${hasMenu ? html`
+                        <nav class="slds-nav-vertical slds-p-around_medium"
+                             aria-label="${metadata.title ?? 'Navigation'}"
+                             style="width: 16rem; flex: 0 0 auto; overflow: auto; border-right: 1px solid var(--slds-g-color-border-base-1, #e5e5e5);">
+                            <div class="slds-nav-vertical__section">
+                                <ul>${metadata.menu.map(option => this.renderNavItem(option))}</ul>
+                            </div>
+                        </nav>` : nothing}
 
-                    <main class="slds-col slds-p-around_medium"
-                          style="flex: 1; min-width: 0; overflow: auto;">
-                        <mateu-api-caller style="width: 100%;">
-                            <mateu-ux
-                                    route="${contentRoute}"
-                                    id="ux_${this.id}"
-                                    baseUrl="${this.baseUrl}"
-                                    consumedRoute="${metadata.route}"
-                            ></mateu-ux>
-                        </mateu-api-caller>
+                    <main class="slds-col slds-p-around_medium" style="flex: 1; min-width: 0; overflow: auto;">
+                        ${this.renderContent()}
                     </main>
                 </div>
             </div>

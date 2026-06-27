@@ -21,6 +21,8 @@ import {
 } from "@infra/ui/renderers/appRenderer.ts";
 import {nanoid} from "nanoid";
 import {MateuApp} from "@infra/ui/mateu-app.ts";
+import {upstream} from "@domain/state";
+import Message from "@domain/Message";
 import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode.js";
 import {TabData} from "../../public/oj-c/types/tab-bar";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
@@ -51,6 +53,79 @@ export class MateuRedwoodApp extends MateuApp {
 
     @state()
     selectedParams: any | undefined = undefined
+
+    private innerFragmentSubscription: { unsubscribe: () => void } | undefined
+    private lastActionServerSideType: string | undefined = undefined
+    private lastActionInitiatorComponentId: string | undefined = undefined
+
+    private captureActionSST = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        if (detail?.serverSideType) {
+            this.lastActionServerSideType = detail.serverSideType
+            this.lastActionInitiatorComponentId = detail.initiatorComponentId
+        }
+    }
+
+    private handleUnhandledAction = (e: Event) => {
+        const detail = (e as CustomEvent).detail
+        e.preventDefault()
+        e.stopPropagation()
+        const innerUx = (this.renderRoot as ParentNode)?.querySelector('#ux_' + this.id) as any
+        if (!innerUx || typeof innerUx.manageActionEvent !== 'function') return
+        this.lastActionServerSideType = this.selectedServerSideType
+        this.lastActionInitiatorComponentId = innerUx.id
+        innerUx.manageActionEvent(new CustomEvent('server-side-action-requested', {
+            detail: {
+                route: innerUx.route ?? this.selectedRoute ?? '',
+                consumedRoute: innerUx.consumedRoute ?? this.selectedConsumedRoute ?? '',
+                componentState: detail.parameters?.initiatorState ?? {},
+                parameters: detail.parameters,
+                actionId: detail.actionId,
+                serverSideType: this.selectedServerSideType ?? '',
+                initiatorComponentId: innerUx.id,
+                initiator: innerUx,
+            },
+        }))
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        this.addEventListener('server-side-action-requested', this.captureActionSST, true)
+        this.addEventListener('action-requested', this.handleUnhandledAction)
+        this.innerFragmentSubscription = upstream.subscribe((message: Message) => {
+            const fragment = message.fragment as any
+            if (!fragment) return
+            if (this.lastActionInitiatorComponentId &&
+                fragment.targetComponentId === this.lastActionInitiatorComponentId &&
+                fragment.state?._route !== undefined) {
+                const relRoute = fragment.state._route as string
+                if (relRoute !== '' && !relRoute.startsWith('/')) {
+                    this.lastActionInitiatorComponentId = undefined
+                    this.lastActionServerSideType = undefined
+                    return
+                }
+                const componentRoute = (fragment.state._componentRoute as string) || ''
+                const md = (this.component as ClientSideComponent)?.metadata as App
+                const effectiveConsumedRoute = componentRoute || this.selectedConsumedRoute || md?.homeConsumedRoute || ''
+                this.selectedConsumedRoute = effectiveConsumedRoute
+                const newRoute = effectiveConsumedRoute + relRoute
+                this.lastActionInitiatorComponentId = undefined
+                if (newRoute !== this.selectedRoute) {
+                    this.selectedRoute = newRoute
+                    if (this.lastActionServerSideType) this.selectedServerSideType = this.lastActionServerSideType
+                    this.instant = nanoid()
+                }
+                this.lastActionServerSideType = undefined
+            }
+        })
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.removeEventListener('server-side-action-requested', this.captureActionSST, true)
+        this.removeEventListener('action-requested', this.handleUnhandledAction)
+        this.innerFragmentSubscription?.unsubscribe()
+    }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
         if (true) {
