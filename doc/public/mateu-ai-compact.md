@@ -80,7 +80,7 @@ public class HelloForm {
 | `@Toolbar` | Button in toolbar (top of page) |
 | `@Action(validationRequired=true)` | Validate before executing |
 | `@Action(confirmationRequired=true)` | Show confirmation dialog |
-| `@Action(background=true, sse=true)` | Long-running background job with SSE streaming |
+| `@Action(background=true)` | Fire-and-forget: start the job, keep the UI interactive (no busy indicator) |
 | `@RowAction` | Per-row action in a listing |
 | `@ListToolbarButton` | Listing toolbar button (acts on selected rows) |
 | `@AutoSave` | Auto-save on field change (debounced) |
@@ -125,6 +125,7 @@ public class HelloForm {
 | `new Message("text")` | Toast notification |
 | Any Java object | Navigate to that object as a new view |
 | `new State(this)` | Push updated state to frontend (no navigation) |
+| `Flux<?>` (or `LongTask.run(...)`) | Stream a sequence of updates over SSE — returning a `Flux` auto-enables `sse` |
 | `PageBanner` / `List<PageBanner>` | Show dynamic banner on current page (replaces existing) |
 | `PageBanners.append(banner)` | Append banner without replacing existing ones |
 | `UICommand.markAsClean()` | Clear the unsaved-changes flag (e.g. after a successful save) |

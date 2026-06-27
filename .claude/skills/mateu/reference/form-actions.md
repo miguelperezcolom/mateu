@@ -55,9 +55,30 @@ There is **no `Navigation` type** — navigate with a `URI` or by returning the 
 ## Action options
 
 `@Action` (and `@Button`/`@Toolbar`) accept: `validationRequired`,
-`confirmationRequired` + `confirmationTitle/Message/Text`, `background` (run async),
-`sse` (stream progress), `rowsSelectedRequired`, `shortcut`, `href`, `js`, `order`,
-`group`, `separatorBefore`. Place buttons with `@Button` (bottom) or `@Toolbar` (top).
+`confirmationRequired` + `confirmationTitle/Message/Text`, `background` (fire-and-forget:
+hide the busy indicator), `sse` (stream over SSE), `rowsSelectedRequired`, `shortcut`,
+`href`, `js`, `order`, `group`, `separatorBefore`. Place buttons with `@Button` (bottom)
+or `@Toolbar` (top).
+
+## Streaming & long-running work
+
+To stream a sequence of updates (progress, live results) instead of one response,
+**return a `Flux<?>`** — that auto-enables `sse`, so you rarely set `sse=true` by hand:
+
+```java
+@Button
+Flux<?> importar() {
+    return LongTask.create("Importando…")        // modal progress dialog
+        .withProgressBar()
+        .done("Hecho", "Importación completa")
+        .run(progress -> servicio.filas()
+            .map(f -> progress.step("Fila " + f.id(), f.indice() / (double) f.total)));
+}
+```
+
+`background` is **orthogonal**: it only hides the busy indicator (fire-and-forget) and
+does not stream. Use a raw `Flux<?>` of `Message`/`State`/components when you want full
+control instead of the `LongTask` dialog.
 
 ## Buttons / placement
 

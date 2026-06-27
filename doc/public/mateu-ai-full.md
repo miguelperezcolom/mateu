@@ -248,8 +248,8 @@ Attaches configurable behaviour to a method.
     confirmationMessage = "This cannot be undone.",
     confirmationText = "Delete",
     confirmationDenialText = "Cancel",
-    background = true,   // non-blocking
-    sse = true,          // stream progress via SSE
+    background = true,   // fire-and-forget: no busy indicator (orthogonal to streaming)
+    sse = true,          // stream over SSE — auto-enabled when the method returns a Flux<?>
     shortcut = "ctrl+s"  // keyboard shortcut
 )
 ```
@@ -854,12 +854,18 @@ public class SettingsPage {
 @UI("/import")
 public class ImportPage {
     @Button
-    @Action(background=true, sse=true)
-    Object runImport(HttpRequest req) {
-        return importService.start();   // returns a job that streams progress
+    Flux<?> runImport() {                    // returning a Flux auto-enables SSE streaming
+        return LongTask.create("Importing…")
+                .withProgressBar()
+                .done("Done", "Import complete")
+                .run(progress -> importService.rows()
+                        .map(r -> progress.step("Imported " + r.name(),
+                                r.index() / (double) r.total())));
     }
 }
 ```
+> `background` is **not** what streams — it is an orthogonal flag that hides the busy
+> indicator (fire-and-forget). Streaming comes from returning a `Flux<?>`.
 
 ### Navigation from action
 ```java
@@ -880,5 +886,5 @@ Object openDetail() {
 ## What Mateu does NOT support declaratively
 
 - **Complex custom layouts** beyond `@Zones` + `@Compact` — use the Fluent Component API or `ComponentTreeSupplier`.
-- **Real-time push without polling** — use `@Action(sse=true)` or the `@AI` chat panel; WebSocket is not a native primitive.
+- **Real-time push without polling** — return a `Flux<?>` (streams over SSE) or use the `@AI` chat panel; WebSocket is not a native primitive.
 - **Per-cell custom rendering** beyond `@Stereotype` / `@Status` / `@ColumnAction` — implement a custom web component.

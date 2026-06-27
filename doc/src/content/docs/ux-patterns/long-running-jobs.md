@@ -25,6 +25,23 @@ Mateu offers three strategies depending on how much feedback the operation can p
 | `Flux<?>` (low-level) | Need full control over what is streamed to the client |
 | `@Action(background = true)` | Fire-and-forget; the UI stays interactive, no progress shown |
 
+### How streaming is wired: `Flux` ⇔ `sse`
+
+Returning a `Flux<?>` **is** the switch that turns on SSE streaming: the framework
+detects the `Flux` return type and enables `sse` automatically, so you rarely write
+`@Action(sse = true)` by hand (`LongTask.run(...)` returns a `Flux`, so it streams too).
+Under the hood every action produces a `Flux<UIIncrementDto>` — a non-streaming action
+emits a single item, a streaming one emits many over the same SSE channel.
+
+`background` is a **separate, orthogonal** flag: it only tells the frontend not to show
+the busy indicator (a fire-and-forget feel). It does not stream and is not needed for
+streaming. The two concerns are independent:
+
+| Concern | Control |
+|---|---|
+| Stream many updates vs one response | return a `Flux<?>` (auto-enables `sse`) — or `@Action(sse = true)` |
+| Show the busy indicator vs fire-and-forget | `@Action(background = …)` |
+
 ---
 
 ## `LongTask` — live progress dialog
