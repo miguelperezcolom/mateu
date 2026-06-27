@@ -121,3 +121,41 @@ export const renderAnchor = (component: ClientSideComponent): TemplateResult => 
     const md = component.metadata as any
     return html`<a class="oj-link-standalone" href="${md.url ?? '#'}" slot="${component.slot ?? nothing}">${md.text ?? md.url ?? ''}</a>`
 }
+
+// ── Dialog / ConfirmDialog (modal overlay, Redwood styling) ─────────────────────
+
+const dispatchAction = (el: EventTarget | null, actionId: string | undefined) => {
+    if (!actionId) return
+    el?.dispatchEvent(new CustomEvent('action-requested', {
+        detail: { actionId, parameters: {} }, bubbles: true, composed: true,
+    }))
+}
+
+const modalShell = (title: string, body: unknown, footer: unknown): TemplateResult => html`
+    <div style="position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:1000;">
+        <div class="oj-panel oj-panel-shadow-lg" role="dialog" aria-modal="true"
+             style="background:var(--oj-core-bg-color-content, #fff); border-radius:var(--oj-core-border-radius-lg, 8px); min-width:320px; max-width:90vw; max-height:90vh; overflow:auto;">
+            ${title ? html`<h2 class="oj-typography-heading-sm" style="margin:0; padding:1rem; border-bottom:1px solid var(--oj-core-divider-color, #e0e0e0);">${title}</h2>` : nothing}
+            <div style="padding:1rem;">${body}</div>
+            ${footer ? html`<div style="display:flex; gap:.5rem; justify-content:flex-end; padding:.75rem 1rem; border-top:1px solid var(--oj-core-divider-color, #e0e0e0);">${footer}</div>` : nothing}
+        </div>
+    </div>`
+
+export const renderDialog = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
+    const md = component.metadata as any
+    const title = evalTpl(md.headerTitle, container)
+    const render = (c: any) => c ? renderComponent(container, c, baseUrl, state, data, appState, appData) : nothing
+    const body = html`${render(md.content)}${kids(container, component, baseUrl, state, data, appState, appData)}`
+    return modalShell(title, body, render(md.footer))
+}
+
+export const renderConfirmDialog = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
+    const md = component.metadata as any
+    const title = evalTpl(md.header, container)
+    const body = md.content ? renderComponent(container, md.content, baseUrl, state, data, appState, appData) : nothing
+    const footer = html`
+        ${md.canCancel ? html`<oj-c-button label="${md.cancelText ?? 'Cancel'}" @ojAction="${(e: Event) => dispatchAction(e.target, md.cancelActionId)}"></oj-c-button>` : nothing}
+        ${md.canReject ? html`<oj-c-button label="${md.rejectText ?? 'No'}" @ojAction="${(e: Event) => dispatchAction(e.target, md.rejectActionId)}"></oj-c-button>` : nothing}
+        <oj-c-button chroming="callToAction" label="${md.confirmText ?? 'OK'}" @ojAction="${(e: Event) => dispatchAction(e.target, md.confirmActionId)}"></oj-c-button>`
+    return modalShell(title, body, footer)
+}

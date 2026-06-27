@@ -12,8 +12,10 @@ import { renderPage } from "@/renderers/renderPage.ts";
 import {
     renderFormLayout, renderFormRow, renderFormSection, renderFormSubSection,
     renderHorizontalLayout, renderVerticalLayout, renderSplitLayout, renderCard,
-    renderText, renderBadge, renderAnchor,
+    renderText, renderBadge, renderAnchor, renderDialog, renderConfirmDialog,
 } from "@/renderers/renderLayouts.ts";
+import './components/mateu-redwood-tabs'
+import './components/mateu-redwood-accordion'
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
@@ -174,6 +176,24 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         }
         if (ComponentMetadataType.Anchor == component?.metadata?.type) {
             return renderAnchor(component)
+        }
+        if (ComponentMetadataType.TabLayout == component?.metadata?.type) {
+            return html`<mateu-redwood-tabs
+                    .component="${component}" .container="${container}" baseUrl="${baseUrl}"
+                    .compState="${state}" .compData="${data}" .appState="${appState}" .appData="${appData}"
+            ></mateu-redwood-tabs>`
+        }
+        if (ComponentMetadataType.AccordionLayout == component?.metadata?.type) {
+            return html`<mateu-redwood-accordion
+                    .component="${component}" .container="${container}" baseUrl="${baseUrl}"
+                    .compState="${state}" .compData="${data}" .appState="${appState}" .appData="${appData}"
+            ></mateu-redwood-accordion>`
+        }
+        if (ComponentMetadataType.Dialog == component?.metadata?.type) {
+            return renderDialog(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.ConfirmDialog == component?.metadata?.type) {
+            return renderConfirmDialog(container, component, baseUrl, state, data, appState, appData)
         }
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
