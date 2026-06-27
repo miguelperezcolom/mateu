@@ -6,6 +6,10 @@ import { FormFieldRenderer } from './FormFieldRenderer';
 import { FormRenderer } from './FormRenderer';
 import { LayoutRenderer } from './LayoutRenderer';
 import { PageRenderer } from './PageRenderer';
+import {
+  SectionRenderer, SubSectionRenderer, CardRenderer, TabsRenderer, AccordionRenderer,
+  SplitRenderer, BadgeRenderer, AnchorRenderer, ProgressBarRenderer, DialogRenderer, ConfirmDialogRenderer,
+} from './ContainerRenderer';
 
 interface Props {
   component: unknown;
@@ -120,6 +124,35 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       const text = (metadata['text'] as string) ?? '';
       return <Text style={styles.text}>{text}</Text>;
     }
+
+    case 'FormSection':
+      return <SectionRenderer component={component} state={state} />;
+    case 'FormSubSection':
+      return <SubSectionRenderer component={component} state={state} />;
+    case 'Card':
+      return <CardRenderer component={component} state={state} />;
+    case 'TabLayout':
+      return <TabsRenderer component={component} state={state} />;
+    case 'AccordionLayout':
+      return <AccordionRenderer component={component} state={state} />;
+    case 'SplitLayout':
+      return <SplitRenderer component={component} state={state} />;
+    case 'Scroller':
+    case 'FullWidth':
+    case 'Container':
+      return (
+        <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
+      );
+    case 'Badge':
+      return <BadgeRenderer metadata={metadata} />;
+    case 'Anchor':
+      return <AnchorRenderer metadata={metadata} />;
+    case 'ProgressBar':
+      return <ProgressBarRenderer metadata={metadata} state={state} />;
+    case 'Dialog':
+      return <DialogRenderer component={component} state={state} />;
+    case 'ConfirmDialog':
+      return <ConfirmDialogRenderer metadata={metadata} state={state} />;
 
     default: {
       if (metaType) {
