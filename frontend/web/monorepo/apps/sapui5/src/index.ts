@@ -22,6 +22,12 @@ import "@ui5/webcomponents/dist/Card.js"; // ui5-card
 import "@ui5/webcomponents/dist/CardHeader.js"; // ui5-card-header
 import "@ui5/webcomponents/dist/Dialog.js"; // ui5-dialog
 import "@ui5/webcomponents/dist/Link.js"; // ui5-link (anchor)
+import "@ui5/webcomponents/dist/Avatar.js"; // ui5-avatar
+import "@ui5/webcomponents/dist/AvatarGroup.js"; // ui5-avatar-group
+import "@ui5/webcomponents/dist/Carousel.js"; // ui5-carousel
+import "@ui5/webcomponents/dist/Menu.js"; // ui5-menu
+import "@ui5/webcomponents/dist/MenuItem.js"; // ui5-menu-item
+import "@ui5/webcomponents/dist/Popover.js"; // ui5-popover
 
 import "@ui5/webcomponents-fiori/dist/NavigationLayout.js";
 import "@ui5/webcomponents-fiori/dist/SideNavigation.js";

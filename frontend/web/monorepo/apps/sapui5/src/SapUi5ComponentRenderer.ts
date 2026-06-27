@@ -15,6 +15,7 @@ import { renderApp } from "@/renderers/renderApp.ts";
 import { renderPage } from "@/renderers/renderPage.ts";
 import { renderForm } from "@/renderers/renderForm.ts";
 import { renderFormSection, renderFormSubSection, renderCard, renderAnchor, renderDialog, renderConfirmDialog } from "@/renderers/renderSections.ts";
+import { renderAvatar, renderAvatarGroup, renderTooltip, renderCarouselLayout, renderPopover, renderMenuBar } from "@/renderers/renderMore.ts";
 import {
     renderHorizontalLayout,
     renderVerticalLayout,
@@ -181,6 +182,24 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
         }
         if (ComponentMetadataType.ConfirmDialog == component?.metadata?.type) {
             return renderConfirmDialog(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Avatar == component?.metadata?.type) {
+            return renderAvatar(component)
+        }
+        if (ComponentMetadataType.AvatarGroup == component?.metadata?.type) {
+            return renderAvatarGroup(component)
+        }
+        if (ComponentMetadataType.Tooltip == component?.metadata?.type) {
+            return renderTooltip(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.CarouselLayout == component?.metadata?.type) {
+            return renderCarouselLayout(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Popover == component?.metadata?.type) {
+            return renderPopover(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.MenuBar == component?.metadata?.type) {
+            return renderMenuBar(container, component)
         }
 
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
