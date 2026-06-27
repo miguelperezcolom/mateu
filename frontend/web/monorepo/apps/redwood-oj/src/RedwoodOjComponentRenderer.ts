@@ -9,6 +9,11 @@ import { renderApp } from "@/renderers/renderApp.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { renderForm } from "@/renderers/renderForm.ts";
 import { renderPage } from "@/renderers/renderPage.ts";
+import {
+    renderFormLayout, renderFormRow, renderFormSection, renderFormSubSection,
+    renderHorizontalLayout, renderVerticalLayout, renderSplitLayout, renderCard,
+    renderText, renderBadge, renderAnchor,
+} from "@/renderers/renderLayouts.ts";
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
@@ -136,6 +141,39 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         }
         if (ComponentMetadataType.FormField == component?.metadata?.type) {
             return renderField(component, baseUrl, state, data)
+        }
+        if (ComponentMetadataType.FormLayout == component?.metadata?.type) {
+            return renderFormLayout(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.FormRow == component?.metadata?.type) {
+            return renderFormRow(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.FormSection == component?.metadata?.type) {
+            return renderFormSection(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.FormSubSection == component?.metadata?.type) {
+            return renderFormSubSection(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.HorizontalLayout == component?.metadata?.type) {
+            return renderHorizontalLayout(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.VerticalLayout == component?.metadata?.type) {
+            return renderVerticalLayout(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.SplitLayout == component?.metadata?.type) {
+            return renderSplitLayout(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Card == component?.metadata?.type) {
+            return renderCard(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Text == component?.metadata?.type) {
+            return renderText(container, component)
+        }
+        if (ComponentMetadataType.Badge == component?.metadata?.type) {
+            return renderBadge(component)
+        }
+        if (ComponentMetadataType.Anchor == component?.metadata?.type) {
+            return renderAnchor(component)
         }
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
