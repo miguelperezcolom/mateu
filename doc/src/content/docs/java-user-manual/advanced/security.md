@@ -64,14 +64,18 @@ public class App {
 
 Mateu reads the JWT Bearer token from the `Authorization` request header. It decodes the payload and checks the claims. Signature verification is expected to happen at the API gateway before the request reaches Mateu.
 
-| `@EyesOnly` attribute | JWT claim checked |
+Authorization is **provider-agnostic** — it works with Keycloak, Okta, Azure AD, Auth0 or any OIDC issuer, reading each dimension from the conventional claim shapes:
+
+| `@EyesOnly` attribute | JWT claim(s) checked |
 |---|---|
-| `roles` | `realm_access.roles` (Keycloak realm roles) |
-| `scopes` | `scope` claim (space-separated list) |
-| `groups` | *(reserved for future use)* |
-| `permissions` | *(reserved for future use)* |
+| `roles` | `realm_access.roles` + `resource_access.*.roles` (Keycloak) **and** a top-level `roles` claim (Okta / Azure AD / generic OIDC) |
+| `groups` | `groups` claim (Okta / Azure AD) |
+| `scopes` | `scope` (space-separated) or `scp` (Azure AD) claim |
+| `permissions` | `permissions` claim (Auth0) |
 
 If any required condition is not met, the element is omitted from the response. The user never sees the menu entry or page.
+
+> `@KeycloakSecured` only configures the (Keycloak) login flow. Authorization via `@EyesOnly` is independent of the identity provider — point your gateway at any OIDC issuer and the role/group/scope/permission checks above apply unchanged.
 
 ---
 
