@@ -1,6 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, PropertyValues, TemplateResult } from "lit";
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import './mateu-redwood-action-menu';
@@ -37,7 +36,6 @@ export class MateuRedwoodTable extends LitElement {
     @property()
     emptyStateMessage?: string
 
-    @state()
     private dataProvider: any = undefined
 
     @state()
@@ -55,6 +53,8 @@ export class MateuRedwoodTable extends LitElement {
         this._connected = true
     }
 
+    // oj-c-table's `columns` property is a KEYED OBJECT (component.json declares it type "object" with
+    // keyedProperties), i.e. a map of columnKey → column definition — NOT an array.
     private getOjColumns(): Record<string, any> {
         const cols: Record<string, any> = {}
         this.metadata?.columns?.forEach(col => {
@@ -125,21 +125,97 @@ data-oj-binding-provider="preact" label="${label}" chroming="borderless"></oj-c-
     }
 
     private refreshDataProvider() {
-        const rows = this.data[this.id]?.page?.content ?? []
-        if (MateuRedwoodTable._ADP) {
+        // Build from the CURRENT rows. The first time the ADP module loads asynchronously, so several
+        // refreshes may be in flight at once (initial empty load + the populated page). Each async
+        // callback MUST re-read the latest content rather than close over the rows captured at call
+        // time — otherwise a late-resolving callback from an earlier (empty) call clobbers the good
+        // provider with a stale empty array, leaving the table on "No data to display".
+        const build = () => {
+            const rows = this.data[this.id]?.page?.content ?? []
             this.dataProvider = new MateuRedwoodTable._ADP(rows, { keyAttributes: '@index' })
+            this.scheduleMount()
+        }
+        if (MateuRedwoodTable._ADP) {
+            build()
         } else {
             (require as any)(['ojs/ojarraydataprovider'], (ADP: any) => {
                 MateuRedwoodTable._ADP = ADP.default ?? ADP
                 if (!this.isConnected) return
-                this.dataProvider = new MateuRedwoodTable._ADP(rows, { keyAttributes: '@index' })
+                build()
             })
         }
     }
 
+    private mountTimer: any = null
+
+    // Coalesce the bursts of refreshDataProvider() calls that fire while mateu streams properties into
+    // this component during initial render (empty load → populated page, plus the async ADP module
+    // load). Mounting oj-c-table repeatedly in that storm leaves it stuck on "No data to display";
+    // debouncing so a single fresh table is mounted once the burst settles renders the rows reliably.
+    private scheduleMount() {
+        if (this.mountTimer) clearTimeout(this.mountTimer)
+        this.mountTimer = setTimeout(() => {
+            this.mountTimer = null
+            this.mountTable()
+        }, 60)
+    }
+
+    // Create the <oj-c-table> imperatively and swap it into the host on every data change, rather than
+    // letting Lit manage it declaratively. A declaratively-rendered oj-c-table inside this component is
+    // reliably left stuck on "No data to display": it mounts with .data=undefined during mateu's first
+    // render pass and never recovers when the provider is later assigned (reassigning .data does not
+    // make it re-fetch). A FRESH oj-c-table element built with the populated provider always renders
+    // correctly (verified in isolation), so we recreate it each time the rows change.
+    private mountTable() {
+        const host = this.querySelector('.rwt-table-host') as HTMLElement | null
+        if (!host) return
+
+        const tbl = document.createElement('oj-c-table') as any
+        tbl.setAttribute('data-oj-binding-provider', 'preact')
+        tbl.setAttribute('aria-label', 'Data table')
+        tbl.setAttribute('layout', 'contents')
+        tbl.style.width = '100%'
+
+        // Cell templates (button / status / action / menu columns) go in as <template slot> children.
+        const slotsHtml = this.getTemplateSlots()
+        if (slotsHtml) {
+            const holder = document.createElement('div')
+            holder.innerHTML = slotsHtml
+            Array.from(holder.childNodes).forEach(n => tbl.appendChild(n))
+        }
+
+        tbl.columns = this.getOjColumns()
+        tbl.selectionMode = this.metadata?.rowsSelectionEnabled
+            ? { row: 'multiple' }
+            : { row: 'none' }
+
+        tbl.addEventListener('ojRowAction', (e: CustomEvent) => this.handleRowAction(e))
+        tbl.addEventListener('ojAction', (e: CustomEvent) => this.handleCellButtonAction(e))
+        tbl.addEventListener('selectedChanged', (e: CustomEvent) => this.handleSelectedChanged(e))
+        tbl.addEventListener('ojMenuAction', (e: CustomEvent) => this.handleMenuAction(e))
+
+        // Assign .data LAST, after columns/templates/listeners are in place.
+        tbl.data = this.dataProvider
+
+        host.replaceChildren(tbl)
+    }
+
+    // Cache the last content we built the provider from, by reference AND length, so we rebuild even
+    // when the parent mutates data[id].page.content in place (same `data` reference — Lit then never
+    // reports a 'data' change). updated() still fires because `state` is reassigned on search/paging.
+    private lastContentRef: unknown = null
+    private lastContentLen = -1
+
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties)
-        if (_changedProperties.has('data') || _changedProperties.has('metadata')) {
+        if (_changedProperties.has('metadata')) this.lastContentRef = false // force rebuild on column change
+        // Use the RAW content reference (may be undefined) — never `?? []`, which would mint a fresh
+        // array each call and loop forever (provider is @state, so a rebuild re-enters updated()).
+        const content = this.data?.[this.id]?.page?.content
+        const len = Array.isArray(content) ? content.length : 0
+        if (content !== this.lastContentRef || len !== this.lastContentLen) {
+            this.lastContentRef = content
+            this.lastContentLen = len
             this.refreshDataProvider()
         }
     }
@@ -221,26 +297,11 @@ data-oj-binding-provider="preact" label="${label}" chroming="borderless"></oj-c-
 
     render(): TemplateResult {
         if (!this._connected) return html``
-
-        const columns = this.getOjColumns()
-        const selectionMode = this.metadata?.rowsSelectionEnabled
-            ? { row: 'multiple' as const }
-            : { row: 'none' as const }
-
+        // The <oj-c-table> itself is created imperatively in mountTable() and lives inside this host
+        // (see mountTable for why it is not rendered declaratively). Lit only owns the host wrapper, so
+        // its re-renders never touch the table.
         return html`
-            <oj-c-table
-                data-oj-binding-provider="preact"
-                .data="${this.dataProvider}"
-                .columns="${columns}"
-                .selectionMode="${selectionMode}"
-                layout="contents"
-                @ojRowAction="${(e: CustomEvent) => this.handleRowAction(e)}"
-                @ojAction="${(e: CustomEvent) => this.handleCellButtonAction(e)}"
-                @selectedChanged="${(e: CustomEvent) => this.handleSelectedChanged(e)}"
-                @ojMenuAction="${(e: CustomEvent) => this.handleMenuAction(e)}"
-                aria-label="Data table"
-                style="width: 100%;"
-            >${unsafeHTML(this.getTemplateSlots())}</oj-c-table>
+            <div class="rwt-table-host" style="width: 100%;"></div>
             <slot></slot>
         `
     }
