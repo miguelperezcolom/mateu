@@ -58,10 +58,8 @@ public class AppRenderer {
         // into floating windows and docked/split by drag and drop.
         root.setCenter(ctx.shell.dockHost);
 
-        // Open the home tab
-        if (!homeRoute.isBlank() || !homeServerSideType.isBlank()) {
-            ctx.shell.openTab("Home", homeRoute, homeConsumedRoute, homeServerSideType, "");
-        }
+        // Restore the saved workspace (open tabs) or, if none, open the home tab.
+        ctx.shell.openInitialTabs("Home", homeRoute, homeConsumedRoute, homeServerSideType);
 
         return root;
     }
