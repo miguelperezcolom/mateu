@@ -7,11 +7,14 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 > Status: **M1–M4 working & verified live** in the Compose renderer (desktop + iOS) against this server:
 > - **M1** — `[UI]` form + `[Button]` action (e.g. `SimpleForm` → "Hello {name}" toast).
 > - **M2** — field types (string/int/bool/date/enum→options), `[Required]`→required, `[Section]`→cards.
-> - **M3** — `Crud<T>` listing: columns, search box, an OnLoad `search` trigger that calls `Fetch()` and
->   returns the rows (rendered as a table on desktop, cards on phone).
+> - **M3** — `Crud<T>`: a searchable listing (table on desktop, cards on phone) **plus full
+>   detail / edit / new** — row → read-only view, Edit/New → form, **Save** (with server-side
+>   `[Required]` validation; untouched fields preserved), Delete, and back-to-list navigation, all via
+>   the route flow (`/reservations`, `/{id}`, `/{id}/edit`, `/new`) the renderer already drives.
 > - **M4** — `[App]` shell + a menu from `[MenuItem]` methods + route navigation between views.
 >
-> Next (roadmap in `DESIGN.md`): server-side validation, CRUD detail/edit/new, wizards, banners, i18n.
+> Next (roadmap in `DESIGN.md`): wizards, banners/badges/KPIs, `@SubscribeTo`/`@Emits` events, i18n,
+> security.
 
 ## Projects
 

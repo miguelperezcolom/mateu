@@ -56,8 +56,25 @@ public sealed class ReflectionMapper
             [page], new Dictionary<string, object?>(), actions, [], null, null, null);
     }
 
+    /// <summary>Detail/edit/new form for a single CRUD entity, with a mode-specific toolbar.</summary>
+    public ServerSideComponentDto MapEntityForm(Type crudType, Type element, object entity, string mode, string route)
+    {
+        var title = crudType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(element.Name);
+        IReadOnlyList<ButtonDto> toolbar = mode switch
+        {
+            "view" => [new("Back to list", "cancel-view"), new("Edit", "edit"), new("Add another", "new")],
+            "edit" => [new("Cancel", "cancel-edit"), new("Save", "create") { ButtonStyle = "Primary" }],
+            _ /* new */ => [new("Cancel", "cancel-new"), new("Save", "create") { ButtonStyle = "Primary" }],
+        };
+        var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
+            FormCards(element, entity, readOnly: mode == "view"));
+        return new ServerSideComponentDto(
+            Guid.NewGuid().ToString(), crudType.FullName!, route, [page],
+            new Dictionary<string, object?>(), [], [], null, null, null);
+    }
+
     // Groups fields by [Section] into cards (one plain card when there are no sections).
-    private List<ComponentDto> FormCards(Type type, object instance)
+    private List<ComponentDto> FormCards(Type type, object instance, bool readOnly = false)
     {
         var sections = new List<(string? title, List<ClientSideComponentDto> fields)>();
         string? current = null;
@@ -66,7 +83,7 @@ public sealed class ReflectionMapper
             if (p.GetCustomAttribute<SectionAttribute>()?.Caption is { } s) current = s;
             if (sections.Count == 0 || sections[^1].title != current)
                 sections.Add((current, new List<ClientSideComponentDto>()));
-            sections[^1].fields.Add(MapField(p, instance));
+            sections[^1].fields.Add(MapField(p, instance, readOnly));
         }
         return sections.Select(s => (ComponentDto)SectionCard(s.title, s.fields)).ToList();
     }
@@ -111,7 +128,7 @@ public sealed class ReflectionMapper
         type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p is { CanRead: true, CanWrite: true });
 
-    private static ClientSideComponentDto MapField(PropertyInfo p, object instance)
+    private static ClientSideComponentDto MapField(PropertyInfo p, object instance, bool readOnly = false)
     {
         var fieldId = Naming.CamelCase(p.Name);
         var label = p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name);
@@ -125,11 +142,20 @@ public sealed class ReflectionMapper
         var meta = new FormFieldMetadataDto(fieldId, InferDataType(t), label)
         {
             Required = required,
+            ReadOnly = readOnly,
             Options = options,
-            InitialValue = value is null ? null : value.ToString(),
+            InitialValue = FormatValue(value),
         };
         return Client(meta, fieldId, []);
     }
+
+    private static string? FormatValue(object? value) => value switch
+    {
+        null => null,
+        DateOnly d => d.ToString("yyyy-MM-dd"),
+        DateTime dt => dt.ToString("yyyy-MM-dd"),
+        _ => value.ToString(),
+    };
 
     private static ButtonDto MapButton(MethodInfo m)
     {

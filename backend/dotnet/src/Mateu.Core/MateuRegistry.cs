@@ -39,6 +39,20 @@ public sealed class MateuRegistry
         return norm == "" ? AppType : null;
     }
 
+    /// <summary>Finds the registered view whose route is the longest prefix of <paramref name="route"/>
+    /// (so CRUD sub-routes like "reservations/7/edit" resolve to the "reservations" view).</summary>
+    public (Type Type, string BaseRoute)? ResolveByPrefix(string? route)
+    {
+        var norm = Normalize(route);
+        var parts = norm.Length == 0 ? [] : norm.Split('/');
+        for (var n = parts.Length; n >= 1; n--)
+        {
+            var prefix = string.Join('/', parts.Take(n));
+            if (_byRoute.TryGetValue(prefix, out var t)) return (t, prefix);
+        }
+        return null;
+    }
+
     public static string Normalize(string? route)
     {
         var r = (route ?? "").Trim('/');
