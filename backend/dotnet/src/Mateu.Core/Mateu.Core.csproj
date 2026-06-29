@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Mateu.Core</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Mateu.Uidl/Mateu.Uidl.csproj" />
+    <ProjectReference Include="../Mateu.Dtos/Mateu.Dtos.csproj" />
+  </ItemGroup>
+</Project>

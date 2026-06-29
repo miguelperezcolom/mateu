@@ -26,6 +26,10 @@ backend/          ← Maven multi-module Java backend
   quarkus/        ← Quarkus adapter
   helidon-mp/     ← Helidon MicroProfile adapter
 
+backend/dotnet/   ← C# server-side (Mateu.NET) — ASP.NET reflection mapper emitting the same
+                    /mateu/v3/sync wire model so existing renderers render a C# backend. M1 done;
+                    see backend/dotnet/DESIGN.md + README.md. (backend/go is still a placeholder.)
+
 frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo
   libs/mateu/             ← Shared lib: API client, domain state, base web-components
   apps/vaadin/            ← Vaadin-themed renderer (builds → backend/shared/frontend/vaadin-lit)
