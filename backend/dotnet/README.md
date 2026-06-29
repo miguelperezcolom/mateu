@@ -12,9 +12,13 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   `[Required]` validation; untouched fields preserved), Delete, and back-to-list navigation, all via
 >   the route flow (`/reservations`, `/{id}`, `/{id}/edit`, `/new`) the renderer already drives.
 > - **M4** — `[App]` shell + a menu from `[MenuItem]` methods + route navigation between views.
+> - **M5** — `Wizard` (multi-step, `[Step(n)]`, progress + Back/Next, state via componentState);
+>   page decorations (`[Subtitle]`, `[Banner]`, `[HeaderBadge]`); **i18n** (`ITranslator`); **events**
+>   (`[Emits]` → `emitsName`, `[SubscribeTo]` → OnCustomEvent trigger); **security** scaffolding
+>   (`[Secured]`, app login URLs).
 >
-> Next (roadmap in `DESIGN.md`): wizards, banners/badges/KPIs, `@SubscribeTo`/`@Emits` events, i18n,
-> security.
+> The core Mateu surface is covered (11 golden tests). The web renderer renders all of it; the Compose
+> renderer (a subset) renders forms/CRUD/app-shell/wizards/banners.
 
 ## Projects
 

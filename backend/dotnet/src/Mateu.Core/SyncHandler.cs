@@ -7,9 +7,9 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
-public sealed class SyncHandler(MateuRegistry registry)
+public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null)
 {
-    private readonly ReflectionMapper _mapper = new();
+    private readonly ReflectionMapper _mapper = new(translator);
 
     public UIIncrementDto Handle(RunActionRqDto rq)
     {
@@ -23,13 +23,39 @@ public sealed class SyncHandler(MateuRegistry registry)
         if (ResolveCrud(rq) is { } c)
             return HandleCrud(c.Type, c.Element, c.BaseRoute, rq);
 
-        // 3. A plain view.
         var type = registry.Resolve(rq.ServerSideType, rq.Route);
         if (type is null) return Error($"Route not found: {rq.Route}");
+
+        // 3. A wizard.
+        if (typeof(Wizard).IsAssignableFrom(type)) return HandleWizard(type, rq);
+
+        // 4. A plain view.
         var instance = Activator.CreateInstance(type)!;
         BindState(instance, rq.ComponentState);
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }
+
+    private UIIncrementDto HandleWizard(Type type, RunActionRqDto rq)
+    {
+        var wizard = Activator.CreateInstance(type)!;
+        BindState(wizard, rq.ComponentState);
+        var step = StepOf(rq);
+        var total = ReflectionMapper.EditableProperties(type)
+            .Select(p => p.GetCustomAttribute<StepAttribute>()?.Step ?? 1).DefaultIfEmpty(1).Max();
+        var route = "/" + (type.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
+
+        switch (rq.ActionId)
+        {
+            case "back": step = Math.Max(1, step - 1); break;
+            case "next" when step >= total: return MapResult(((Wizard)wizard).Complete());
+            case "next": step++; break;
+        }
+        return FragmentResponse(Title(type), _mapper.MapWizard(type, wizard, route, step));
+    }
+
+    private static int StepOf(RunActionRqDto rq) =>
+        rq.ComponentState.TryGetValue("__step", out var v) && v is JsonElement { ValueKind: JsonValueKind.Number } el
+            ? el.GetInt32() : 1;
 
     // ── CRUD ───────────────────────────────────────────────────────────────────
     private (Type Type, Type Element, string BaseRoute)? ResolveCrud(RunActionRqDto rq)

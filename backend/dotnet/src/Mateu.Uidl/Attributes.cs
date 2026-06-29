@@ -48,3 +48,34 @@ public sealed class SectionAttribute(string caption) : Attribute
 {
     public string Caption { get; } = caption;
 }
+
+/// <summary>A subtitle shown under the page title.</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class SubtitleAttribute(string value) : Attribute
+{
+    public string Value { get; } = value;
+}
+
+public enum BannerTheme { Info, Success, Warning, Danger }
+
+/// <summary>A page banner. Put on a method returning the description (string), or a void method.</summary>
+[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+public sealed class BannerAttribute(BannerTheme theme = BannerTheme.Info, string? title = null) : Attribute
+{
+    public BannerTheme Theme { get; } = theme;
+    public string? Title { get; } = title;
+}
+
+/// <summary>A status chip in the page header strip, from a string property's value.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class HeaderBadgeAttribute(string color = "normal") : Attribute
+{
+    public string Color { get; } = color;
+}
+
+/// <summary>Assigns a property to a wizard step (1-based).</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class StepAttribute(int step) : Attribute
+{
+    public int Step { get; } = step;
+}

@@ -8,4 +8,5 @@ public class DemoApp
     [MenuItem("Reservations")] public Reservations Reservations() => new();
     [MenuItem("Simple form")] public SimpleForm SimpleForm() => new();
     [MenuItem("Person")] public Person Person() => new();
+    [MenuItem("Sign up")] public SignupWizard SignupWizard() => new();
 }

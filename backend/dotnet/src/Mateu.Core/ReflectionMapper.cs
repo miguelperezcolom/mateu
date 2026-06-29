@@ -6,8 +6,19 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Turns an annotated C# view instance into the Mateu component tree (App→Page→Card→…→FormField).</summary>
-public sealed class ReflectionMapper
+public sealed class ReflectionMapper(ITranslator? translator = null)
 {
+    /// <summary>Translates a user-facing string when a translator is registered, else returns it unchanged.</summary>
+    private string T(string s) => translator?.Translate(s) ?? s;
+
+    /// <summary>OnCustomEvent triggers (from [SubscribeTo]) and the [Emits] name for a view type.</summary>
+    private static (List<object> Triggers, string? EmitsName) EventsOf(Type type)
+    {
+        var triggers = type.GetCustomAttributes<SubscribeToAttribute>()
+            .Select(s => (object)new CustomTriggerDto(s.Event, s.Action)).ToList();
+        return (triggers, type.GetCustomAttribute<EmitsAttribute>()?.Name);
+    }
+
     /// <summary>Builds the App shell (header + menu) from an [App] class's [MenuItem] methods.</summary>
     public ClientSideComponentDto MapApp(Type appType)
     {
@@ -17,7 +28,7 @@ public sealed class ReflectionMapper
             .Select(MapMenuItem).ToList();
         var variant = items.Count > 7 ? "HAMBURGUER_MENU" : "MENU_ON_LEFT";
         var home = items.FirstOrDefault();
-        var meta = new AppMetadataDto(app.Title, variant, items)
+        var meta = new AppMetadataDto(T(app.Title), variant, items)
         {
             HomeRoute = home?.Route ?? "",
             HomeConsumedRoute = home?.ConsumedRoute ?? "",
@@ -27,14 +38,14 @@ public sealed class ReflectionMapper
         return new ClientSideComponentDto(meta, "ux_main_app", [], null, null, null);
     }
 
-    private static MenuItemDto MapMenuItem(MethodInfo m)
+    private MenuItemDto MapMenuItem(MethodInfo m)
     {
         var viewType = m.ReturnType;
         var route = "/" + (viewType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
         var label = m.GetCustomAttribute<MenuItemAttribute>()?.Label
                     ?? viewType.GetCustomAttribute<TitleAttribute>()?.Value
                     ?? Naming.Humanize(m.Name);
-        return new MenuItemDto(label, route, viewType.FullName!) { ConsumedRoute = route };
+        return new MenuItemDto(T(label), route, viewType.FullName!) { ConsumedRoute = route };
     }
 
     public ServerSideComponentDto MapView(Type type, object instance, string route)
@@ -42,18 +53,75 @@ public sealed class ReflectionMapper
         var crudElement = CrudElementType(type);
         if (crudElement is not null) return MapCrud(type, crudElement, route);
 
-        var title = type.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
+        var title = T(type.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
 
         var buttons = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.GetCustomAttribute<ButtonAttribute>() != null)
             .Select(MapButton).ToList();
         var actions = buttons.Select(b => new ActionDto(b.ActionId)).ToList();
 
-        var page = Client(new PageMetadataDto(title, title, null, [], buttons), null, FormCards(type, instance));
+        var page = Client(new PageMetadataDto(
+            title, title, OptT(type.GetCustomAttribute<SubtitleAttribute>()?.Value), [], buttons)
+        {
+            Banners = Banners(type, instance),
+            Badges = Badges(type, instance),
+        }, null, FormCards(type, instance));
 
+        var (triggers, emits) = EventsOf(type);
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), type.FullName!, route,
-            [page], new Dictionary<string, object?>(), actions, [], null, null, null);
+            [page], new Dictionary<string, object?>(), actions, triggers, null, null, null)
+        {
+            EmitsName = emits,
+        };
+    }
+
+    private string? OptT(string? s) => s is null ? null : T(s);
+
+    private static List<BannerDto> Banners(Type type, object instance) =>
+        type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => m.GetCustomAttribute<BannerAttribute>() != null)
+            .Select(m =>
+            {
+                var a = m.GetCustomAttribute<BannerAttribute>()!;
+                var desc = m.ReturnType == typeof(string) ? m.Invoke(instance, [])?.ToString() : null;
+                return new BannerDto(a.Theme.ToString().ToUpperInvariant(), a.Title, desc);
+            })
+            .ToList();
+
+    private static List<BadgeDto> Badges(Type type, object instance) =>
+        EditableProperties(type)
+            .Where(p => p.GetCustomAttribute<HeaderBadgeAttribute>() != null)
+            .Select(p => (text: p.GetValue(instance)?.ToString(), color: p.GetCustomAttribute<HeaderBadgeAttribute>()!.Color))
+            .Where(x => !string.IsNullOrWhiteSpace(x.text))
+            .Select(x => new BadgeDto(x.text!, x.color))
+            .ToList();
+
+    /// <summary>A wizard step: title + progress bar + the current step's fields + Back/Next. The state
+    /// (__step + all field values) rides in initialData so it round-trips through componentState.</summary>
+    public ServerSideComponentDto MapWizard(Type type, object instance, string route, int step)
+    {
+        var stepProps = EditableProperties(type)
+            .Select(p => (p, step: p.GetCustomAttribute<StepAttribute>()?.Step ?? 1))
+            .ToList();
+        var total = stepProps.Count == 0 ? 1 : stepProps.Max(x => x.step);
+        var current = Math.Clamp(step, 1, total);
+        var fields = stepProps.Where(x => x.step == current).Select(x => MapField(x.p, instance)).ToList();
+
+        var title = type.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
+        var titleText = Client(new TextMetadataDto(title), null, []);
+        var progress = Client(new ProgressBarMetadataDto((double)current / total), "fieldId", []);
+        var card = Client(new CardMetadataDto(Client(new FormLayoutMetadataDto(), null, FormRows(fields))), "fieldId", []);
+        var back = Client(new ButtonMetadataDto("Back", "back") { Disabled = current == 1 }, null, []);
+        var next = Client(new ButtonMetadataDto(current == total ? "Finish" : "Next", "next") { ButtonStyle = "Primary" }, null, []);
+        var bar = Client(new HorizontalLayoutMetadataDto(), null, [back, next]);
+        var layout = Client(new VerticalLayoutMetadataDto { Spacing = true }, null, [titleText, progress, card, bar]);
+
+        var initial = new Dictionary<string, object?> { ["__step"] = current };
+        foreach (var (p, _) in stepProps) initial[Naming.CamelCase(p.Name)] = FormatValue(p.GetValue(instance));
+
+        return new ServerSideComponentDto(
+            Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial, [], [], null, null, null);
     }
 
     /// <summary>Detail/edit/new form for a single CRUD entity, with a mode-specific toolbar.</summary>
@@ -128,10 +196,10 @@ public sealed class ReflectionMapper
         type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p is { CanRead: true, CanWrite: true });
 
-    private static ClientSideComponentDto MapField(PropertyInfo p, object instance, bool readOnly = false)
+    private ClientSideComponentDto MapField(PropertyInfo p, object instance, bool readOnly = false)
     {
         var fieldId = Naming.CamelCase(p.Name);
-        var label = p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name);
+        var label = T(p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
         var required = p.GetCustomAttribute<RequiredAttribute>() != null;
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
         var options = t.IsEnum
@@ -157,12 +225,12 @@ public sealed class ReflectionMapper
         _ => value.ToString(),
     };
 
-    private static ButtonDto MapButton(MethodInfo m)
+    private ButtonDto MapButton(MethodInfo m)
     {
         var label = m.GetCustomAttribute<ButtonAttribute>()?.Label
                     ?? m.GetCustomAttribute<LabelAttribute>()?.Value
                     ?? Naming.Humanize(m.Name);
-        return new ButtonDto(label, Naming.CamelCase(m.Name));
+        return new ButtonDto(T(label), Naming.CamelCase(m.Name));
     }
 
     // Group fields into FormRow components of at most `maxColumns` (here 2).

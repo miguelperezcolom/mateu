@@ -5,9 +5,12 @@ namespace Mateu.Demo;
 
 public enum Role { Guest, Member, Admin }
 
-[UI("person"), Title("Person")]
+[UI("person"), Title("Person"), Subtitle("Personal data")]
 public class Person
 {
+    [Banner(BannerTheme.Info, "Heads up")]
+    public string Note() => "Fields marked * are required.";
+
     [Required, Section("Identity")]
     public string? Name { get; set; }
 

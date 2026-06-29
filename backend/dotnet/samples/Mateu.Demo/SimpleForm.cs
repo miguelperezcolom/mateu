@@ -4,6 +4,8 @@ using Mateu.Uidl;
 namespace Mateu.Demo;
 
 [UI("simple-form"), Title("Simple Form")]
+[Emits("greeting-sent")]
+[SubscribeTo("refresh", "greet")]
 public class SimpleForm
 {
     [Required]

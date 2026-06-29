@@ -35,6 +35,27 @@ public class Things : Crud<Thing>
         [new() { Id = "1", Name = "Alpha" }, new() { Id = "2", Name = "Beta" }];
 }
 
+public class UpperTranslator : ITranslator
+{
+    public string Translate(string key) => key.ToUpperInvariant();
+}
+
+[UI("decorated"), Title("Decorated"), Subtitle("a subtitle")]
+[Emits("ev-out"), SubscribeTo("ev-in", "act")]
+public class Decorated
+{
+    [Banner(BannerTheme.Warning, "Careful")] public string Warn() => "be careful";
+    public string? Field { get; set; }
+}
+
+[UI("wiz"), Title("Wiz")]
+public class Wiz : Wizard
+{
+    [Step(1)] public string? A { get; set; }
+    [Step(2)] public string? B { get; set; }
+    public override Message Complete() => new("done");
+}
+
 public class SyncHandlerTests
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -165,5 +186,53 @@ public class SyncHandlerTests
         var msg = Assert.Single(inc.Messages);
         Assert.Equal("error", msg.Variant);
         Assert.Contains("Name", msg.Text);
+    }
+
+    [Fact]
+    public void Translator_translates_titles_and_labels()
+    {
+        var handler = new SyncHandler(new MateuRegistry(typeof(SimpleForm).Assembly), new UpperTranslator());
+        var json = Render(handler.Handle(new RunActionRqDto { Route = "" }));
+
+        Assert.Contains("SIMPLE FORM", json); // title translated
+        Assert.Contains("\"label\":\"NAME\"", json); // field label translated
+    }
+
+    [Fact]
+    public void Page_decorations_subtitle_and_banner_are_emitted()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(Decorated).FullName }));
+
+        Assert.Contains("\"subtitle\":\"a subtitle\"", json);
+        Assert.Contains("\"theme\":\"WARNING\"", json);
+        Assert.Contains("\"title\":\"Careful\"", json);
+        Assert.Contains("be careful", json);
+    }
+
+    [Fact]
+    public void Events_emit_name_and_subscription_trigger()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(Decorated).FullName }));
+
+        Assert.Contains("\"emitsName\":\"ev-out\"", json);
+        Assert.Contains("\"type\":\"OnCustomEvent\"", json);
+        Assert.Contains("\"event\":\"ev-in\"", json);
+        Assert.Contains("\"actionId\":\"act\"", json);
+    }
+
+    [Fact]
+    public void Wizard_renders_steps_and_completes_on_finish()
+    {
+        var step1 = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(Wiz).FullName }));
+        Assert.Contains("\"type\":\"ProgressBar\"", step1);
+        Assert.Contains("\"actionId\":\"next\"", step1);
+
+        var finish = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "next",
+            ServerSideType = typeof(Wiz).FullName,
+            ComponentState = new() { ["__step"] = JsonSerializer.SerializeToElement(2) },
+        });
+        Assert.Equal("done", Assert.Single(finish.Messages).Text);
     }
 }

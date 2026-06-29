@@ -20,7 +20,10 @@ public static class MateuExtensions
     public static IServiceCollection AddMateu(this IServiceCollection services, params Assembly[] assemblies)
     {
         services.AddSingleton(new MateuRegistry(assemblies));
-        services.AddSingleton<SyncHandler>();
+        // ITranslator is optional — register an Mateu.Uidl.ITranslator to enable i18n.
+        services.AddSingleton(sp => new SyncHandler(
+            sp.GetRequiredService<MateuRegistry>(),
+            sp.GetService<Mateu.Uidl.ITranslator>()));
         return services;
     }
 

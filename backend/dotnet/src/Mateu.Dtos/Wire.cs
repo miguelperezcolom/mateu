@@ -55,9 +55,18 @@ public record ServerSideComponentDto(
     IReadOnlyList<object> Triggers,
     string? Style,
     string? CssClasses,
-    string? Slot) : ComponentDto;
+    string? Slot) : ComponentDto
+{
+    public string? EmitsName { get; init; }
+}
 
 public record ActionDto(string Id, bool ValidationRequired = true);
+
+/// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received.</summary>
+public record CustomTriggerDto(string Event, string ActionId)
+{
+    public string Type { get; init; } = "OnCustomEvent";
+}
 
 // ── Component metadata (discriminated on "type") ───────────────────────────────
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
@@ -71,7 +80,30 @@ public record ActionDto(string Id, bool ValidationRequired = true);
 [JsonDerivedType(typeof(FormFieldMetadataDto), "FormField")]
 [JsonDerivedType(typeof(FormSectionMetadataDto), "FormSection")]
 [JsonDerivedType(typeof(CrudMetadataDto), "Crud")]
+[JsonDerivedType(typeof(HorizontalLayoutMetadataDto), "HorizontalLayout")]
+[JsonDerivedType(typeof(ProgressBarMetadataDto), "ProgressBar")]
+[JsonDerivedType(typeof(TextMetadataDto), "Text")]
+[JsonDerivedType(typeof(ButtonMetadataDto), "Button")]
 public abstract record ComponentMetadataDto;
+
+public record HorizontalLayoutMetadataDto : ComponentMetadataDto
+{
+    public bool Spacing { get; init; } = true;
+}
+
+public record ProgressBarMetadataDto(double Value) : ComponentMetadataDto
+{
+    public double Min { get; init; }
+    public double Max { get; init; } = 1;
+}
+
+public record TextMetadataDto(string Text) : ComponentMetadataDto;
+
+public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetadataDto
+{
+    public bool Disabled { get; init; }
+    public string? ButtonStyle { get; init; }
+}
 
 public record FormSectionMetadataDto(string Title) : ComponentMetadataDto;
 
@@ -108,6 +140,8 @@ public record AppMetadataDto(
     public string ServerSideType { get; init; } = "";
     public string RootRoute { get; init; } = "";
     public string? Subtitle { get; init; }
+    public string? LoginUrl { get; init; }
+    public string? LogoutUrl { get; init; }
 }
 
 public record MenuItemDto(string Label, string Route, string ServerSideType)
@@ -129,9 +163,25 @@ public record PageMetadataDto(
     public int Level { get; init; }
     public bool ReadOnly { get; init; }
     public object? Actions { get; init; }
-    public IReadOnlyList<object> Badges { get; init; } = [];
+    public IReadOnlyList<BadgeDto> Badges { get; init; } = [];
     public IReadOnlyList<object> Kpis { get; init; } = [];
-    public IReadOnlyList<object> Banners { get; init; } = [];
+    public IReadOnlyList<BannerDto> Banners { get; init; } = [];
+}
+
+/// <summary>A page banner (mirrors io.mateu.dtos.BannerDto). Theme: INFO|SUCCESS|WARNING|DANGER.</summary>
+public record BannerDto(string Theme, string? Title, string? Description)
+{
+    public bool HasIcon { get; init; } = true;
+    public bool HasCloseButton { get; init; }
+    public int TimeoutSeconds { get; init; }
+}
+
+/// <summary>A status chip shown in the page header strip.</summary>
+public record BadgeDto(string Text, string Color)
+{
+    public bool Primary { get; init; }
+    public bool Small { get; init; }
+    public bool Pill { get; init; } = true;
 }
 
 public record CardMetadataDto(ComponentDto Content) : ComponentMetadataDto
