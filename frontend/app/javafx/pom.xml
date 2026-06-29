@@ -15,7 +15,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.5</javafx.version>
-        <jackson.version>2.19.0</jackson.version>
+        <jackson.version>2.22.0</jackson.version>
         <mainClass>io.mateu.javafx.MateuApp</mainClass>
     </properties>
 
