@@ -49,6 +49,11 @@ public class AppShell {
         this.apiClient = new MateuApiClient(baseUrl, UUID.randomUUID().toString());
 
         tabPane.setCloseIfEmpty(false);
+        // Explicit, app-wide dock scope: tabs only dock among panes sharing this scope. With a
+        // single named scope every Mateu pane (main, split and floating) docks with every other,
+        // while staying isolated from any unrelated DetachableTabPane (e.g. if embedded elsewhere).
+        // The factory below propagates this scope to panes created by detaching/splitting.
+        tabPane.setScope("mateu-dock");
         // Floating (detached) windows must carry the app stylesheet so content stays styled.
         tabPane.setSceneFactory(pane -> {
             Scene scene = new Scene(pane, 900, 650);
