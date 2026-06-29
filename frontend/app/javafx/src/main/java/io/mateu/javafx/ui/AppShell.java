@@ -5,6 +5,7 @@ import com.panemu.tiwulfx.control.dock.DetachableTab;
 import com.panemu.tiwulfx.control.dock.DetachableTabPane;
 import io.mateu.javafx.api.MateuApiClient;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -35,7 +36,7 @@ public class AppShell {
      * inside {@code StackPane}/{@code Pane}/{@code SplitPane}, but NOT {@code BorderPane}. So the
      * tab pane must live inside this StackPane (this host stays put as the layout's center).
      */
-    public final StackPane dockHost = new StackPane(tabPane);
+    public final StackPane dockHost = new StackPane();
     private final Map<String, Tab> tabsByKey = new HashMap<>();
 
     public AppShell(String baseUrl) {
@@ -50,6 +51,12 @@ public class AppShell {
             if (css != null) scene.getStylesheets().add(css.toExternalForm());
             return scene;
         });
+
+        // Empty-state hint shown behind the tab pane when no tab is open.
+        Label empty = new Label("Open a screen from the menu");
+        empty.getStyleClass().add("empty-hint");
+        empty.visibleProperty().bind(javafx.beans.binding.Bindings.isEmpty(tabPane.getTabs()));
+        dockHost.getChildren().addAll(empty, tabPane);
     }
 
     /**
@@ -74,10 +81,20 @@ public class AppShell {
 
         String text = (label == null || label.isBlank()) ? "—" : label;
         DetachableTab tab = tabPane.addTab(text, content);
+        ctx.tab = tab;
         tab.setOnClosed(e -> tabsByKey.remove(key));
         tabsByKey.put(key, tab);
         tabPane.getSelectionModel().select(tab);
 
         ctx.navigate(route, consumedRoute, serverSideType, actionId == null ? "" : actionId);
+    }
+
+    /** Closes the currently selected tab in the main tab pane (bound to Ctrl/Cmd+W). */
+    public void closeSelectedTab() {
+        Tab sel = tabPane.getSelectionModel().getSelectedItem();
+        if (sel == null) return;
+        tabPane.getTabs().remove(sel);
+        // Programmatic removal doesn't fire onClosed, so run it to drop the open-tab key.
+        if (sel.getOnClosed() != null) sel.getOnClosed().handle(null);
     }
 }

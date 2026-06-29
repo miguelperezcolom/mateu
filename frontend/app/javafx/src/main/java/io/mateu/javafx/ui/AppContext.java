@@ -30,6 +30,8 @@ public class AppContext {
 
     public Stage primaryStage;
     public Pane contentPane;
+    // The tab this context renders into (null for the chrome context). Its title tracks the view.
+    public javafx.scene.control.Tab tab;
 
     public String currentRoute = "";
     public String currentConsumedRoute = "";
@@ -401,7 +403,15 @@ public class AppContext {
         switch (type) {
             case "SetWindowTitle" -> {
                 String title = cmdData.isTextual() ? cmdData.asText() : cmdData.path("title").asText("");
-                if (!title.isBlank() && primaryStage != null) {
+                // Skip empty and the orchestrator's internal "[State[…], UICommand[…]]" payloads.
+                if (title.isBlank() || title.startsWith("[")) break;
+                if (tab != null) {
+                    String shortTitle = title.length() > 28 ? title.substring(0, 27) + "…" : title;
+                    Platform.runLater(() -> {
+                        tab.setText(shortTitle);
+                        tab.setTooltip(new javafx.scene.control.Tooltip(title));
+                    });
+                } else if (primaryStage != null) {
                     Platform.runLater(() -> primaryStage.setTitle(title));
                 }
             }

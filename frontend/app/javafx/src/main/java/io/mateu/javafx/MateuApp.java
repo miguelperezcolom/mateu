@@ -48,6 +48,12 @@ public class MateuApp extends Application {
                 ? getClass().getResource("/app.css").toExternalForm() : null;
         if (css != null) scene.getStylesheets().add(css);
 
+        // Ctrl/Cmd+W closes the active tab.
+        scene.getAccelerators().put(
+                new javafx.scene.input.KeyCodeCombination(
+                        javafx.scene.input.KeyCode.W, javafx.scene.input.KeyCombination.SHORTCUT_DOWN),
+                () -> mainView.getShell().closeSelectedTab());
+
         primaryStage.setTitle("Mateu");
         primaryStage.setScene(scene);
         primaryStage.show();

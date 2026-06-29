@@ -167,6 +167,11 @@
     -fx-cursor: default;
 }
 
+.empty-hint {
+    -fx-text-fill: #8a8d90;
+    -fx-font-size: 15px;
+}
+
 .field-error {
     -fx-text-fill: #c9190b;
     -fx-font-size: 12px;
