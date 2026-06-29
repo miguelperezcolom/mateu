@@ -23,13 +23,34 @@ The desktop renderer exists for one reason: **power-user productivity**. Browser
 
 All of this is **free for the application developer**: you write the same `@UI` classes, and the desktop shell adds the windowing productivity layer on top of the exact same backend.
 
-### Productivity features
+### The docking workspace
 
-- **Tabbed workspace** — clicking a menu item opens (or re-activates) a tab. Each tab is an independent view; navigating inside one tab (e.g. opening a CRUD detail) only changes that tab.
-- **Detach & dock** — built on a `DetachableTabPane` (TiwulFX-Dock): drag tabs to reorder, drop them outside the window to float them, or drop them on an edge to split/dock two views together. Floating windows inherit the app stylesheet.
-- **Collapsible navigation** — submenu groups are collapsed by default and expand on click; a hamburger button shows/hides the whole sidebar.
+The desktop renderer turns the content area into a dockable, multi-document workspace built on a `DetachableTabPane` (TiwulFX-Dock). Everything below works out of the box — there is nothing to configure in your `@UI` classes.
 
 ![The JavaFX desktop renderer showing two docked panes side by side: a Reservation detail (with its own "Reservations / Wizard 1" tabs) on the left and a Products CRUD listing on the right, plus the collapsible left menu.](/images/docs/native/desktop-docking.png)
+
+**Tabs**
+
+- Clicking a menu item **opens a new tab**, or re-activates it if that screen is already open.
+- Each tab carries its **own navigation state** — navigating inside one tab (opening a CRUD detail, paging a list, editing a form) changes only that tab; the others are untouched.
+- Tab titles **track the current view** (its page title, truncated), with the full title shown on hover.
+- **Ctrl/Cmd + W** closes the active tab. When no tab is open, the area shows a hint to pick a screen from the menu.
+
+**Docking (drag & drop)**
+
+- **Reorder** — drag a tab within its tab strip.
+- **Split / dock** — drag a tab onto an edge of a pane to split the area and place the two views **side by side** (e.g. a list next to the detail you're editing).
+- **Detach** — drop a tab outside the window to pop it into a **floating window**, which inherits the app stylesheet and can be moved to another monitor.
+- **Dock back** — drag a floating tab back onto any pane to re-dock it. Floating windows **close automatically** once their last tab is removed. All panes share a single dock scope, so any tab can dock into any pane.
+
+**Persistence**
+
+- The set of open tabs (and which one is selected) is **saved on change and restored on the next launch**, keyed by backend URL — reopening the app brings back the same workspace. (Split/floating arrangements are not restored; tabs reopen in the main pane.)
+
+**Navigation chrome**
+
+- Submenu groups in the left menu are **collapsed by default** and expand on click.
+- A **hamburger** button shows/hides the whole sidebar to maximize working space.
 
 **How it works:**
 
@@ -50,7 +71,7 @@ State is split so that tabs are truly independent:
 |---|---|
 | `MateuApp` | Entry point — launches the JavaFX stage |
 | `MateuApiClient` | HTTP client — calls `POST /mateu/v3/sync/{route}` |
-| `AppShell` | App-wide shared state + the `DetachableTabPane`; `openTab(...)` opens/activates tabs |
+| `AppShell` | App-wide shared state + the dockable `DetachableTabPane`; opens/activates tabs and saves/restores the open-tabs workspace |
 | `AppContext` | Per-tab navigation state, action dispatch/bubbling, and client-side validation |
 | `AppRenderer` | Builds the window: header, collapsible menu, and the dockable tab area |
 | `PageRenderer` | Renders pages with header, toolbar, children, and bottom buttons |
