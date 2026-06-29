@@ -7,6 +7,15 @@ Mateu separates UI definition (your Java backend) from UI rendering (the fronten
 
 All renderers consume the same Mateu API, so you can switch or support multiple renderers without changing your Java code.
 
+## Web or native?
+
+Each renderer family serves a different goal. The same `@UI` backend can drive all of them at once, so you pick per deployment — or offer several.
+
+- **Web renderers** (with multiple design systems) — best when you want a **zero-install** UI delivered through the browser, and when you need to **drop Mateu into an application you already have without breaking its UX**. Choose the design system that matches the host application — [Vaadin](/design-systems/vaadin/), [SAP Fiori](/design-systems/sapui5/), [Oracle Redwood](/design-systems/oracle-redwood/), [Red Hat PatternFly](/design-systems/redhat/), [Salesforce SLDS](/design-systems/slds2/) — and the Mateu screens blend in seamlessly.
+- **Native renderers** — best when you want **better performance** and an OS-native feel. The [desktop (JavaFX)](/native/) renderer additionally gives power users a productivity workspace with **docking and tabs** — detach views into floating windows, dock them side by side, keep several screens open at once. The [mobile (React Native)](/native/) renderer ships your app to iOS and Android.
+
+You don't have to pick just one: the identical backend can serve a web UI, a native desktop app, and a mobile app simultaneously.
+
 ## Available renderers
 
 | Renderer | Design system | Dependency |

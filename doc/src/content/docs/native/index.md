@@ -5,6 +5,8 @@ description: "Run your Mateu application as a native desktop or mobile app, with
 
 Mateu's API is not limited to web browsers. Because the renderer is decoupled from the backend, any client that speaks HTTP and understands the Mateu component tree can render a Mateu application natively.
 
+Native renderers trade the browser's zero-install convenience for **better performance** and an OS-native feel — and, on the desktop, for a **docking/tabbed productivity workspace** the browser can't offer. (For when to prefer web vs. native, see [Web or native?](/design-systems/#web-or-native).)
+
 Two native renderers are available out of the box:
 
 ## Desktop — JavaFX
