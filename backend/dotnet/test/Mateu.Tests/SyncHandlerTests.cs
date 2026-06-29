@@ -56,6 +56,20 @@ public class Wiz : Wizard
     public override Message Complete() => new("done");
 }
 
+[UI("featured"), Title("Featured"), Compact, ConfirmOnNavigationIfDirty]
+public class Featured
+{
+    [Tab("One")] public string? Name { get; set; }
+    [Tab("One"), Password] public string? Secret { get; set; }
+    [Tab("Two"), Multiline] public string? Bio { get; set; }
+    [Tab("Two"), Money] public decimal Salary { get; set; }
+    [Tab("Two"), PlainText] public string? Joined { get; set; } = "2021-03-14";
+
+    [Kpi("Tickets")] public string Tickets() => "42";
+    [Fab("plus", "Add", 0)] public Message Add() => new("Added");
+    [Button, Shortcut("ctrl+s")] public Message Save() => new($"Saved {Name}");
+}
+
 public class SyncHandlerTests
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -234,5 +248,46 @@ public class SyncHandlerTests
             ComponentState = new() { ["__step"] = JsonSerializer.SerializeToElement(2) },
         });
         Assert.Equal("done", Assert.Single(finish.Messages).Text);
+    }
+
+    [Fact]
+    public void Tabs_stereotypes_kpis_fabs_shortcuts_and_page_flags_are_emitted()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(Featured).FullName }));
+
+        // Tabs: a TabLayout with one Tab per [Tab] name.
+        Assert.Contains("\"type\":\"TabLayout\"", json);
+        Assert.Contains("\"type\":\"Tab\"", json);
+        Assert.Contains("\"label\":\"One\"", json);
+        Assert.Contains("\"label\":\"Two\"", json);
+
+        // Field stereotypes.
+        Assert.Contains("\"stereotype\":\"password\"", json);
+        Assert.Contains("\"stereotype\":\"textarea\"", json);
+        Assert.Contains("\"multiline\":true", json);
+        Assert.Contains("\"dataType\":\"money\"", json);
+        Assert.Contains("\"stereotype\":\"plainText\"", json);
+
+        // KPIs and FABs.
+        Assert.Contains("\"title\":\"Tickets\"", json);
+        Assert.Contains("\"value\":\"42\"", json);
+        Assert.Contains("\"icon\":\"plus\"", json);
+        Assert.Contains("\"actionId\":\"add\"", json);
+
+        // Button shortcut + page-level flags. (The '+' serializes as the + escape.)
+        Assert.Contains("\"shortcut\":\"ctrl", json);
+        Assert.Contains("\"confirmOnNavigationIfDirty\":true", json);
+        Assert.Contains("--mateu-compact:1", json);
+    }
+
+    [Fact]
+    public void Fab_action_is_invoked_by_method_name()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "add",
+            ServerSideType = typeof(Featured).FullName,
+        });
+        Assert.Equal("Added", Assert.Single(inc.Messages).Text);
     }
 }

@@ -58,14 +58,22 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var buttons = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.GetCustomAttribute<ButtonAttribute>() != null)
             .Select(MapButton).ToList();
-        var actions = buttons.Select(b => new ActionDto(b.ActionId)).ToList();
+        var fabs = Fabs(type);
+        // Both [Button] and [Fab] methods are server-side actions the renderer can invoke.
+        var actions = buttons.Select(b => new ActionDto(b.ActionId))
+            .Concat(fabs.Select(f => new ActionDto(f.ActionId))).ToList();
 
-        var page = Client(new PageMetadataDto(
+        var compact = type.GetCustomAttribute<CompactAttribute>() != null;
+        var pageMeta = new PageMetadataDto(
             title, title, OptT(type.GetCustomAttribute<SubtitleAttribute>()?.Value), [], buttons)
         {
             Banners = Banners(type, instance),
             Badges = Badges(type, instance),
-        }, null, FormCards(type, instance));
+            Kpis = Kpis(type, instance),
+            Fabs = fabs,
+        };
+        var page = new ClientSideComponentDto(
+            pageMeta, null, FormCards(type, instance), compact ? "--mateu-compact:1" : null, null, null);
 
         var (triggers, emits) = EventsOf(type);
         return new ServerSideComponentDto(
@@ -73,6 +81,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             [page], new Dictionary<string, object?>(), actions, triggers, null, null, null)
         {
             EmitsName = emits,
+            ConfirmOnNavigationIfDirty = type.GetCustomAttribute<ConfirmOnNavigationIfDirtyAttribute>() != null,
         };
     }
 
@@ -141,12 +150,17 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             new Dictionary<string, object?>(), [], [], null, null, null);
     }
 
-    // Groups fields by [Section] into cards (one plain card when there are no sections).
+    // Groups fields by [Section] into cards (one plain card when there are no sections),
+    // or into a TabLayout when any field carries [Tab].
     private List<ComponentDto> FormCards(Type type, object instance, bool readOnly = false)
     {
+        var props = EditableProperties(type).ToList();
+        if (props.Any(p => p.GetCustomAttribute<TabAttribute>() != null))
+            return [TabLayout(props, instance, readOnly)];
+
         var sections = new List<(string? title, List<ClientSideComponentDto> fields)>();
         string? current = null;
-        foreach (var p in EditableProperties(type))
+        foreach (var p in props)
         {
             if (p.GetCustomAttribute<SectionAttribute>()?.Caption is { } s) current = s;
             if (sections.Count == 0 || sections[^1].title != current)
@@ -155,6 +169,43 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         }
         return sections.Select(s => (ComponentDto)SectionCard(s.title, s.fields)).ToList();
     }
+
+    // Groups consecutive fields sharing the same [Tab] name into the tabs of a single TabLayout.
+    private ComponentDto TabLayout(List<PropertyInfo> props, object instance, bool readOnly)
+    {
+        var tabs = new List<(string name, List<ClientSideComponentDto> fields)>();
+        var current = "Tab";
+        foreach (var p in props)
+        {
+            if (p.GetCustomAttribute<TabAttribute>()?.Name is { } n) current = n;
+            if (tabs.Count == 0 || tabs[^1].name != current)
+                tabs.Add((current, new List<ClientSideComponentDto>()));
+            tabs[^1].fields.Add(MapField(p, instance, readOnly));
+        }
+        var tabComps = tabs.Select((tb, i) => (ComponentDto)Client(
+            new TabMetadataDto(T(tb.name)) { Active = i == 0 }, null,
+            [Client(new FormLayoutMetadataDto(), null, FormRows(tb.fields))])).ToList();
+        return Client(new TabLayoutMetadataDto(), null, tabComps);
+    }
+
+    /// <summary>KPI cards from [Kpi] methods (the title is the attribute, the value is the call result).</summary>
+    private static List<KpiDto> Kpis(Type type, object instance) =>
+        type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => m.GetCustomAttribute<KpiAttribute>() != null && m.GetParameters().Length == 0)
+            .Select(m => new KpiDto(m.GetCustomAttribute<KpiAttribute>()!.Title, m.Invoke(instance, [])?.ToString() ?? ""))
+            .ToList();
+
+    /// <summary>Floating action buttons from [Fab] methods (the method name is the action id).</summary>
+    private static List<FabDto> Fabs(Type type) =>
+        type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(m => m.GetCustomAttribute<FabAttribute>() != null)
+            .Select(m =>
+            {
+                var a = m.GetCustomAttribute<FabAttribute>()!;
+                return new FabDto(a.Icon, Naming.CamelCase(m.Name)) { Label = a.Label, Order = a.Order };
+            })
+            .OrderBy(f => f.Order)
+            .ToList();
 
     private ClientSideComponentDto SectionCard(string? title, List<ClientSideComponentDto> fields)
     {
@@ -207,14 +258,34 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             : new List<OptionDto>();
         var value = p.GetValue(instance);
 
-        var meta = new FormFieldMetadataDto(fieldId, InferDataType(t), label)
+        // A [PlainText] field — or any field of a [PlainText] class — renders as read-only text.
+        var plainText = p.GetCustomAttribute<PlainTextAttribute>() != null
+                        || p.DeclaringType?.GetCustomAttribute<PlainTextAttribute>() != null;
+        var multiline = p.GetCustomAttribute<MultilineAttribute>() != null;
+        var stereotype = StereotypeOf(p, plainText, multiline);
+
+        var meta = new FormFieldMetadataDto(fieldId, InferDataType(t, p), label)
         {
+            Stereotype = stereotype,
             Required = required,
-            ReadOnly = readOnly,
+            ReadOnly = readOnly || plainText,
+            Multiline = multiline,
             Options = options,
             InitialValue = FormatValue(value),
         };
         return Client(meta, fieldId, []);
+    }
+
+    /// <summary>The field stereotype: explicit [Stereotype] wins, else [Multiline]/[Password]/[Money]
+    /// map to their names, else plain-text context yields "plainText", else "regular".</summary>
+    private static string StereotypeOf(PropertyInfo p, bool plainText, bool multiline)
+    {
+        if (p.GetCustomAttribute<StereotypeAttribute>()?.Value is { } s) return s;
+        if (p.GetCustomAttribute<PasswordAttribute>() != null) return "password";
+        if (p.GetCustomAttribute<MoneyAttribute>() != null) return plainText ? "plainText" : "money";
+        if (plainText) return "plainText";
+        if (multiline) return "textarea";
+        return "regular";
     }
 
     private static string? FormatValue(object? value) => value switch
@@ -230,7 +301,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var label = m.GetCustomAttribute<ButtonAttribute>()?.Label
                     ?? m.GetCustomAttribute<LabelAttribute>()?.Value
                     ?? Naming.Humanize(m.Name);
-        return new ButtonDto(T(label), Naming.CamelCase(m.Name));
+        return new ButtonDto(T(label), Naming.CamelCase(m.Name))
+        {
+            Shortcut = m.GetCustomAttribute<ShortcutAttribute>()?.Keys,
+        };
     }
 
     // Group fields into FormRow components of at most `maxColumns` (here 2).
@@ -245,7 +319,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     private static ClientSideComponentDto Client(ComponentMetadataDto meta, string? id, IReadOnlyList<ComponentDto> children) =>
         new(meta, id, children, null, null, null);
 
-    private static string InferDataType(Type t) => t switch
+    private static string InferDataType(Type t, PropertyInfo? p = null) => p?.GetCustomAttribute<MoneyAttribute>() != null ? "money" : t switch
     {
         _ when t.IsEnum => "string",
         _ when t == typeof(bool) => "boolean",

@@ -16,9 +16,13 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   page decorations (`[Subtitle]`, `[Banner]`, `[HeaderBadge]`); **i18n** (`ITranslator`); **events**
 >   (`[Emits]` → `emitsName`, `[SubscribeTo]` → OnCustomEvent trigger); **security** scaffolding
 >   (`[Secured]`, app login URLs).
+> - **Tail features** — `[Tab]` (fields grouped into a `TabLayout`); field stereotypes (`[Multiline]`
+>   → textarea, `[Password]`, `[Money]` → `money` dataType, `[PlainText]` field/class → read-only text,
+>   `[Stereotype("…")]`); `[Kpi]` methods → page KPI cards; `[Fab]` methods → floating action buttons;
+>   `[Shortcut("ctrl+s")]` on action methods; `[ConfirmOnNavigationIfDirty]` and `[Compact]` page flags.
 >
-> The core Mateu surface is covered (11 golden tests). The web renderer renders all of it; the Compose
-> renderer (a subset) renders forms/CRUD/app-shell/wizards/banners.
+> The core Mateu surface is covered (13 golden tests). The web renderer renders all of it; the Compose
+> renderer (a subset) renders forms/CRUD/app-shell/wizards/banners/tabs.
 
 ## Projects
 

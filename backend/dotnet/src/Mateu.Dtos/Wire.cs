@@ -58,6 +58,7 @@ public record ServerSideComponentDto(
     string? Slot) : ComponentDto
 {
     public string? EmitsName { get; init; }
+    public bool ConfirmOnNavigationIfDirty { get; init; }
 }
 
 public record ActionDto(string Id, bool ValidationRequired = true);
@@ -84,7 +85,29 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(ProgressBarMetadataDto), "ProgressBar")]
 [JsonDerivedType(typeof(TextMetadataDto), "Text")]
 [JsonDerivedType(typeof(ButtonMetadataDto), "Button")]
+[JsonDerivedType(typeof(TabLayoutMetadataDto), "TabLayout")]
+[JsonDerivedType(typeof(TabMetadataDto), "Tab")]
 public abstract record ComponentMetadataDto;
+
+public record TabLayoutMetadataDto : ComponentMetadataDto;
+
+public record TabMetadataDto(string Label) : ComponentMetadataDto
+{
+    public bool Active { get; init; }
+    public string? Shortcut { get; init; }
+}
+
+public record KpiDto(string Title, string Value)
+{
+    public string? Icon { get; init; }
+    public string? Color { get; init; }
+}
+
+public record FabDto(string Icon, string ActionId)
+{
+    public string? Label { get; init; }
+    public int Order { get; init; }
+}
 
 public record HorizontalLayoutMetadataDto : ComponentMetadataDto
 {
@@ -164,8 +187,9 @@ public record PageMetadataDto(
     public bool ReadOnly { get; init; }
     public object? Actions { get; init; }
     public IReadOnlyList<BadgeDto> Badges { get; init; } = [];
-    public IReadOnlyList<object> Kpis { get; init; } = [];
+    public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];
+    public IReadOnlyList<FabDto> Fabs { get; init; } = [];
 }
 
 /// <summary>A page banner (mirrors io.mateu.dtos.BannerDto). Theme: INFO|SUCCESS|WARNING|DANGER.</summary>
@@ -216,6 +240,7 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     public int Colspan { get; init; } = 1;
     public object? InitialValue { get; init; }
     public IReadOnlyList<OptionDto> Options { get; init; } = [];
+    public bool Multiline { get; init; }
 }
 
 public record OptionDto(string Value, string Label);
@@ -226,6 +251,7 @@ public record ButtonDto(string Label, string ActionId)
     public string Type { get; init; } = "Button";
     public bool Disabled { get; init; }
     public string? ButtonStyle { get; init; }
+    public string? Shortcut { get; init; }
 }
 
 // ── Inbound request (mirrors io.mateu.dtos.RunActionRqDto) ──────────────────────
