@@ -16,6 +16,20 @@ public class SimpleForm
     [Button] public Message Greet() => new($"Hello {Name}!");
 }
 
+[App("Test App")]
+public class TestApp
+{
+    [MenuItem("Things")] public Things Things() => new();
+}
+
+public record Thing(string Id, string Name);
+
+[UI("things"), Title("Things")]
+public class Things : Crud<Thing>
+{
+    public override IEnumerable<Thing> Fetch(string? search) => [new("1", "Alpha"), new("2", "Beta")];
+}
+
 public class SyncHandlerTests
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -63,5 +77,38 @@ public class SyncHandlerTests
         Assert.Equal("Hello Mateu!", msg.Text);
         Assert.Equal("success", msg.Variant);
         Assert.Empty(inc.Fragments);
+    }
+
+    [Fact]
+    public void App_shell_emits_menu_from_menuitem_methods()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName });
+        var json = Render(inc);
+
+        Assert.Contains("\"type\":\"App\"", json);
+        Assert.Contains("\"title\":\"Test App\"", json);
+        Assert.Contains("\"label\":\"Things\"", json);
+        Assert.Contains("\"route\":\"/things\"", json);
+    }
+
+    [Fact]
+    public void Crud_search_returns_rows_as_data_only_fragment()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(Things).FullName,
+            ComponentState = new() { ["searchText"] = JsonSerializer.SerializeToElement("") },
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Equal("crud", frag.TargetComponentId);
+        Assert.Null(frag.Component);
+        var json = Render(inc);
+        Assert.Contains("\"totalElements\":2", json);
+        Assert.Contains("Alpha", json);
+        Assert.Contains("Beta", json);
     }
 }

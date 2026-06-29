@@ -1,8 +1,9 @@
 # Mateu server-side for .NET (C#) — design & plan
 
-> Status: **Milestone 1 implemented & verified** (see README). The vertical slice — a `[UI]` form +
-> `[Button]` action — renders end-to-end in the Compose renderer (desktop + iOS) against this C#
-> server, with golden-JSON tests asserting wire compatibility. M2–M5 below remain the roadmap.
+> Status: **M1–M4 implemented & verified** (see README) — `[UI]` forms + `[Button]` actions, field
+> types + `[Section]`, `Crud<T>` listings with search, and the `[App]` shell + menu navigation all
+> render end-to-end in the Compose renderer (desktop + iOS) against this C# server, with golden-JSON
+> tests. Remaining roadmap below: server-side validation, CRUD detail/edit, M5 (wizards/banners/i18n).
 > Goal: a C# implementation of Mateu's *server side* — turn annotated C# classes into the Mateu
 > component tree and serve the `/mateu/v3/sync` API — so the **existing renderers** (web, JavaFX,
 > Compose) render a C# backend with zero client changes.

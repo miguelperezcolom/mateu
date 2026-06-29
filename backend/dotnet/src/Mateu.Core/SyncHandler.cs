@@ -16,13 +16,21 @@ public sealed class SyncHandler(MateuRegistry registry)
         if (type is null)
             return Error($"Route not found: {rq.Route}");
 
+        if (type.GetCustomAttribute<AppAttribute>() is { } app && string.IsNullOrEmpty(rq.ActionId))
+            return RenderApp(type, app.Title);
+
         var instance = Activator.CreateInstance(type)!;
         BindState(instance, rq.ComponentState);
 
         return string.IsNullOrEmpty(rq.ActionId)
             ? Render(type, instance, rq)
-            : RunAction(type, instance, rq.ActionId!);
+            : RunAction(type, instance, rq);
     }
+
+    private UIIncrementDto RenderApp(Type appType, string title) =>
+        UIIncrementDto.Of(
+            commands: [new UICommandDto("ux_main", "SetWindowTitle", title)],
+            fragments: [new UIFragmentDto("ux_main", _mapper.MapApp(appType), null, null, "Replace", null)]);
 
     private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq)
     {
@@ -34,8 +42,13 @@ public sealed class SyncHandler(MateuRegistry registry)
             fragments: [new UIFragmentDto("ux_main", component, null, null, "Replace", null)]);
     }
 
-    private static UIIncrementDto RunAction(Type type, object instance, string actionId)
+    private static UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq)
     {
+        var actionId = rq.ActionId!;
+        var element = ReflectionMapper.CrudElementType(type);
+        if (element is not null && actionId == "search")
+            return CrudSearch(instance, element, SearchText(rq));
+
         var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .FirstOrDefault(m => !m.IsSpecialName && Naming.CamelCase(m.Name) == actionId);
         if (method is null) return Error($"Action not found: {actionId}");
@@ -43,6 +56,36 @@ public sealed class SyncHandler(MateuRegistry registry)
         var result = method.Invoke(instance, []);
         return MapResult(result);
     }
+
+    private static string? SearchText(RunActionRqDto rq) =>
+        rq.ComponentState.TryGetValue("searchText", out var v) && v is JsonElement { ValueKind: JsonValueKind.String } el
+            ? el.GetString()
+            : null;
+
+    /// <summary>Runs a Crud's Fetch and returns the rows as a data-only fragment the renderer's table consumes.</summary>
+    private static UIIncrementDto CrudSearch(object instance, Type element, string? search)
+    {
+        var items = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [search])!;
+        var props = ReflectionMapper.EditableProperties(element).ToList();
+        var rows = new List<Dictionary<string, object?>>();
+        foreach (var item in items)
+        {
+            var row = new Dictionary<string, object?>();
+            foreach (var p in props) row[Naming.CamelCase(p.Name)] = CellValue(p.GetValue(item));
+            rows.Add(row);
+        }
+        var data = new { crud = new { page = new { content = rows, pageSize = rows.Count, pageNumber = 0, totalElements = rows.Count } } };
+        return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, data, "Replace", null)]);
+    }
+
+    private static object? CellValue(object? value) => value switch
+    {
+        null => null,
+        DateOnly d => d.ToString("yyyy-MM-dd"),
+        DateTime dt => dt.ToString("yyyy-MM-dd"),
+        Enum e => e.ToString(),
+        _ => value,
+    };
 
     private static UIIncrementDto MapResult(object? result) => result switch
     {

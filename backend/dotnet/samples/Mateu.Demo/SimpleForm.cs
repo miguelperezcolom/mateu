@@ -3,7 +3,7 @@ using Mateu.Uidl;
 
 namespace Mateu.Demo;
 
-[UI(""), Title("Simple Form")]
+[UI("simple-form"), Title("Simple Form")]
 public class SimpleForm
 {
     [Required]

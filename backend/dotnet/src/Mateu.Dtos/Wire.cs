@@ -61,6 +61,7 @@ public record ActionDto(string Id, bool ValidationRequired = true);
 
 // ── Component metadata (discriminated on "type") ───────────────────────────────
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(AppMetadataDto), "App")]
 [JsonDerivedType(typeof(PageMetadataDto), "Page")]
 [JsonDerivedType(typeof(CardMetadataDto), "Card")]
 [JsonDerivedType(typeof(DivMetadataDto), "Div")]
@@ -68,7 +69,55 @@ public record ActionDto(string Id, bool ValidationRequired = true);
 [JsonDerivedType(typeof(FormLayoutMetadataDto), "FormLayout")]
 [JsonDerivedType(typeof(FormRowMetadataDto), "FormRow")]
 [JsonDerivedType(typeof(FormFieldMetadataDto), "FormField")]
+[JsonDerivedType(typeof(FormSectionMetadataDto), "FormSection")]
+[JsonDerivedType(typeof(CrudMetadataDto), "Crud")]
 public abstract record ComponentMetadataDto;
+
+public record FormSectionMetadataDto(string Title) : ComponentMetadataDto;
+
+public record CrudMetadataDto(
+    string? Title,
+    IReadOnlyList<GridColumnDto> Columns,
+    IReadOnlyList<ButtonDto> Toolbar) : ComponentMetadataDto
+{
+    public string? Subtitle { get; init; }
+    public bool Searchable { get; init; } = true;
+    public bool CanEdit { get; init; }
+    public string? DetailPath { get; init; }
+    public string CrudlType { get; init; } = "table";
+}
+
+public record GridColumnDto(GridColumnMetaDto Metadata);
+
+public record GridColumnMetaDto(string Id, string Label)
+{
+    public string Type { get; init; } = "GridColumn";
+}
+
+public record TriggerDto(string Type, string ActionId);
+
+public record AppMetadataDto(
+    string Title,
+    string Variant,
+    IReadOnlyList<MenuItemDto> Menu) : ComponentMetadataDto
+{
+    public string Layout { get; init; } = "SINGLE_SLOT";
+    public string HomeRoute { get; init; } = "";
+    public string HomeConsumedRoute { get; init; } = "";
+    public string HomeServerSideType { get; init; } = "";
+    public string ServerSideType { get; init; } = "";
+    public string RootRoute { get; init; } = "";
+    public string? Subtitle { get; init; }
+}
+
+public record MenuItemDto(string Label, string Route, string ServerSideType)
+{
+    public string ConsumedRoute { get; init; } = "";
+    public string? ActionId { get; init; }
+    public bool Separator { get; init; }
+    public bool Visible { get; init; } = true;
+    public IReadOnlyList<MenuItemDto> Submenus { get; init; } = [];
+}
 
 public record PageMetadataDto(
     string? Title,

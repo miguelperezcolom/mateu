@@ -4,10 +4,14 @@ A C# implementation of Mateu's **server side**: turn annotated C# classes into t
 tree and serve the `/mateu/v3/sync` API, so the **existing renderers** (web, JavaFX, Compose) render a
 C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the full plan and roadmap.
 
-> Status: **Milestone 1 done** — a form view (`[UI]` class) with fields + a `[Button]` action renders
-> end-to-end and was verified live in the Compose renderer (desktop + iOS) against this server. Field
-> types string/int/bool/date/enum→options and `[Required]`→required are mapped. Next: server-side
-> validation, sections/tabs (M2), then `AutoCrud` (M3) and the app shell (M4).
+> Status: **M1–M4 working & verified live** in the Compose renderer (desktop + iOS) against this server:
+> - **M1** — `[UI]` form + `[Button]` action (e.g. `SimpleForm` → "Hello {name}" toast).
+> - **M2** — field types (string/int/bool/date/enum→options), `[Required]`→required, `[Section]`→cards.
+> - **M3** — `Crud<T>` listing: columns, search box, an OnLoad `search` trigger that calls `Fetch()` and
+>   returns the rows (rendered as a table on desktop, cards on phone).
+> - **M4** — `[App]` shell + a menu from `[MenuItem]` methods + route navigation between views.
+>
+> Next (roadmap in `DESIGN.md`): server-side validation, CRUD detail/edit/new, wizards, banners, i18n.
 
 ## Projects
 
@@ -33,14 +37,32 @@ Point any Mateu renderer at it — e.g. set the Compose app's `mateu.baseUrl=htt
 The server binds to `0.0.0.0` so the iOS simulator (`localhost:8593`) and Android emulator
 (`10.0.2.2:8593`) reach it too.
 
-## Define a view
+## Define views
 
 ```csharp
-[UI(""), Title("Simple Form")]
-public class SimpleForm
+// A form with sections + an action
+[UI("person"), Title("Person")]
+public class Person
 {
-    [Required] public string? Name { get; set; }
+    [Required, Section("Identity")] public string? Name { get; set; }
+    public int Age { get; set; }
+    [Section("Preferences")] public bool Subscribed { get; set; }
+    public Role Role { get; set; }            // enum → dropdown
+    [Button] public Message Save() => new($"Saved {Name}");
+}
 
-    [Button] public Message Greet() => new($"Hello {Name}!");
+// A CRUD listing
+[UI("reservations"), Title("Reservations")]
+public class Reservations : Crud<Reservation>
+{
+    public override IEnumerable<Reservation> Fetch(string? search) => /* your query */;
+}
+
+// The app shell + menu
+[App("My C# Mateu app")]
+public class DemoApp
+{
+    [MenuItem("Reservations")] public Reservations Reservations() => new();
+    [MenuItem("Person")] public Person Person() => new();
 }
 ```

@@ -8,11 +8,12 @@ public enum Role { Guest, Member, Admin }
 [UI("person"), Title("Person")]
 public class Person
 {
-    [Required]
+    [Required, Section("Identity")]
     public string? Name { get; set; }
 
     public int Age { get; set; }
 
+    [Section("Preferences")]
     public bool Subscribed { get; set; }
 
     public DateOnly BirthDate { get; set; }
