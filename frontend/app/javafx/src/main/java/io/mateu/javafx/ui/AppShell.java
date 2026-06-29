@@ -3,6 +3,7 @@ package io.mateu.javafx.ui;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.panemu.tiwulfx.control.dock.DetachableTab;
 import com.panemu.tiwulfx.control.dock.DetachableTabPane;
+import com.panemu.tiwulfx.control.dock.DetachableTabPaneFactory;
 import io.mateu.javafx.api.MateuApiClient;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -50,6 +51,22 @@ public class AppShell {
             var css = AppShell.class.getResource("/app.css");
             if (css != null) scene.getStylesheets().add(css.toExternalForm());
             return scene;
+        });
+
+        // Panes created by detaching/splitting (incl. floating windows) should close when they
+        // become empty — unlike the main pane (closeIfEmpty=false, which keeps the empty-state
+        // hint). The factory also carries over the scene/scope so detached windows stay styled
+        // and dockable, and propagates itself so panes split off them behave the same.
+        tabPane.setDetachableTabPaneFactory(new DetachableTabPaneFactory() {
+            @Override
+            protected void init(DetachableTabPane newPane) {
+                newPane.setCloseIfEmpty(true);
+                newPane.setSceneFactory(tabPane.getSceneFactory());
+                newPane.setStageFactory(tabPane.getStageFactory());
+                newPane.setStageOwnerFactory(tabPane.getStageOwnerFactory());
+                newPane.setScope(tabPane.getScope());
+                newPane.setDetachableTabPaneFactory(this);
+            }
         });
 
         // Empty-state hint shown behind the tab pane when no tab is open.
