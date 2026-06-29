@@ -37,6 +37,16 @@ public class FormFieldRenderer {
 
         Node input = buildInput(fieldId, dataType, stereotype, value, rawValue, readOnly, disabled, metadata, data);
         container.getChildren().addAll(lbl, input);
+
+        // Inline validation error (set by AppContext when a validationRequired action is blocked)
+        String error = ctx.currentFieldErrors.get(fieldId);
+        if (error != null && !error.isBlank()) {
+            input.getStyleClass().add("field-invalid");
+            Label err = new Label(error);
+            err.getStyleClass().add("field-error");
+            err.setWrapText(true);
+            container.getChildren().add(err);
+        }
         return container;
     }
 

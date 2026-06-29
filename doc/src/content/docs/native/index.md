@@ -11,11 +11,36 @@ Two native renderers are available out of the box:
 
 The JavaFX renderer runs your Mateu backend as a **native desktop application** on Windows, macOS, and Linux. No browser is required. The UI is rendered using JavaFX controls and layouts, giving you a native look and feel on each operating system.
 
+### Why a native desktop app: productivity
+
+The desktop renderer exists for one reason: **power-user productivity**. Browser tabs are isolated and heavyweight; a native desktop shell can give operational users — the people who live in the app all day (check-in desks, back-office, control rooms) — a workspace tuned for speed:
+
+- **Tabs** — every menu entry opens in its own tab, each with its **own independent navigation state** (route, form data, CRUD page/filters). Users keep several screens open at once and switch instantly, instead of losing context on every navigation.
+- **Docking** — tabs can be **detached into floating windows** and **docked side by side** (drag a tab to an edge to split the area). A user can put a reservations list next to the detail they're editing, or spread work across multiple monitors — a layout a single browser tab can't offer.
+- **Collapsible menu + hamburger** — the left menu starts with submenus collapsed and can be hidden entirely, maximizing screen space for the actual work.
+
+All of this is **free for the application developer**: you write the same `@UI` classes, and the desktop shell adds the windowing productivity layer on top of the exact same backend.
+
+### Productivity features
+
+- **Tabbed workspace** — clicking a menu item opens (or re-activates) a tab. Each tab is an independent view; navigating inside one tab (e.g. opening a CRUD detail) only changes that tab.
+- **Detach & dock** — built on a `DetachableTabPane` (TiwulFX-Dock): drag tabs to reorder, drop them outside the window to float them, or drop them on an edge to split/dock two views together. Floating windows inherit the app stylesheet.
+- **Collapsible navigation** — submenu groups are collapsed by default and expand on click; a hamburger button shows/hides the whole sidebar.
+
+![The JavaFX desktop renderer showing two docked panes side by side: a Reservation detail (with its own "Reservations / Wizard 1" tabs) on the left and a Products CRUD listing on the right, plus the collapsible left menu.](/images/docs/native/desktop-docking.png)
+
 **How it works:**
 
 1. The app starts, makes an initial HTTP call to `POST /mateu/v3/sync/_no_route`, and receives the application metadata (title, menu, home route, variant).
-2. Based on the `variant` field (`NAVIGATION_LAYOUT`, `MENU_ON_LEFT`, `TABS`, `MEDIATOR`), it builds a JavaFX window with the appropriate navigation structure.
-3. As the user navigates, subsequent calls fetch pages, forms, and CRUD listings, which are rendered as native JavaFX controls (`TextField`, `ComboBox`, `TableView`, `DatePicker`, etc.).
+2. Based on the `variant` field (`NAVIGATION_LAYOUT`, `MENU_ON_LEFT`, `TABS`, `MEDIATOR`), it builds a JavaFX window: a shared shell (header + collapsible menu) around a central dockable tab area.
+3. Each menu entry opens a tab backed by its own navigation context. Subsequent calls within that tab fetch pages, forms, and CRUD listings, rendered as native JavaFX controls (`TextField`, `ComboBox`, `TableView`, `DatePicker`, etc.).
+
+**Architecture — shared shell vs. per-tab state:**
+
+State is split so that tabs are truly independent:
+
+- **`AppShell`** (one per app) holds the shared services and the dockable tab container: the HTTP client, the global `appState`, the JavaFX stage, and the `DetachableTabPane`.
+- **`AppContext`** (one per tab) holds that view's navigation state: current route, `serverSideType`, component state, the component/action registry, CRUD orchestrator context, and inline validation.
 
 **Key classes:**
 
@@ -23,13 +48,16 @@ The JavaFX renderer runs your Mateu backend as a **native desktop application** 
 |---|---|
 | `MateuApp` | Entry point — launches the JavaFX stage |
 | `MateuApiClient` | HTTP client — calls `POST /mateu/v3/sync/{route}` |
-| `AppContext` | Shared state — holds navigation helpers and component state |
-| `AppRenderer` | Builds the top-level window layout from app metadata |
+| `AppShell` | App-wide shared state + the `DetachableTabPane`; `openTab(...)` opens/activates tabs |
+| `AppContext` | Per-tab navigation state, action dispatch/bubbling, and client-side validation |
+| `AppRenderer` | Builds the window: header, collapsible menu, and the dockable tab area |
 | `PageRenderer` | Renders pages with header, toolbar, children, and bottom buttons |
 | `FormRenderer` | Renders forms with a grid of fields |
-| `FormFieldRenderer` | Renders individual fields (`text`, `boolean`, `date`, `options`, etc.) |
-| `CrudRenderer` | Renders tables with search, pagination, and row actions |
+| `FormFieldRenderer` | Renders individual fields (`text`, `boolean`, `date`, `options`, etc.) and inline validation errors |
+| `CrudRenderer` | Renders tables with search, pagination, status badges, link columns, and row actions |
 | `ComponentRenderer` | Dispatcher — routes each component node to the right renderer |
+
+**Dependencies:** JavaFX 21 + [TiwulFX-Dock](https://github.com/panemu/tiwulfx-dock) (`com.panemu:tiwulfx-dock`) for the detachable/dockable tabs.
 
 **Source:** `frontend/app/javafx/`
 

@@ -11,13 +11,14 @@ import javafx.scene.layout.*;
 
 public class MainView {
 
-    private final AppContext ctx;
+    private final AppShell shell;
+    private AppContext ctx;
     private final StackPane root;
     private final String initialRoute;
 
     public MainView(String baseUrl, String initialRoute, java.util.Map<String, Object> config) {
-        this.ctx = new AppContext(baseUrl);
-        this.ctx.appState.putAll(config);
+        this.shell = new AppShell(baseUrl);
+        this.shell.appState.putAll(config);
         this.initialRoute = initialRoute;
 
         root = new StackPane();
@@ -31,11 +32,13 @@ public class MainView {
         return root;
     }
 
-    public AppContext getCtx() {
-        return ctx;
+    public AppShell getShell() {
+        return shell;
     }
 
     public void load() {
+        // The chrome context is created now that the primary stage is set on the shell.
+        ctx = new AppContext(shell);
         Task<JsonNode> task = new Task<>() {
             @Override
             protected JsonNode call() throws Exception {

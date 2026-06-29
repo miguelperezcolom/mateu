@@ -14,6 +14,11 @@ import java.util.Properties;
 public class MateuApp extends Application {
 
     public static void main(String[] args) {
+        // Surface uncaught exceptions (incl. JavaFX-thread ones during drag/dock) to the console.
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            System.err.println("[Mateu] Uncaught exception on thread " + t.getName() + ": " + e);
+            e.printStackTrace();
+        });
         launch(args);
     }
 
@@ -36,7 +41,7 @@ public class MateuApp extends Application {
         }
 
         MainView mainView = new MainView(baseUrl, route, config);
-        mainView.getCtx().primaryStage = primaryStage;
+        mainView.getShell().primaryStage = primaryStage;
 
         Scene scene = new Scene(mainView.getRoot(), 1280, 800);
         String css = getClass().getResource("/app.css") != null

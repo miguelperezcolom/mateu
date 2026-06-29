@@ -6,7 +6,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.data.Message;
 
-@Route(value = "/page4", parentRoute = "/home2")
+@Route(value = "/page4", parentRoute = "")
 @AutoSave
 @Style(StyleConstants.CONTAINER)
 public class Page4 {

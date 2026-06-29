@@ -69,7 +69,7 @@ public class ComponentRenderer {
             case "TabLayout" -> new ContainerRenderer(ctx).renderTabs(component, state, data);
             case "AccordionLayout" -> new ContainerRenderer(ctx).renderAccordion(component, state, data);
             case "SplitLayout" -> new ContainerRenderer(ctx).renderSplit(component, metadata, state, data);
-            case "Scroller", "FullWidth", "Container" -> new LayoutRenderer(ctx).renderVBox(component, metadata, state, data);
+            case "Scroller", "FullWidth", "Container", "Div" -> new LayoutRenderer(ctx).renderVBox(component, metadata, state, data);
             case "Badge" -> new ContainerRenderer(ctx).renderBadge(metadata);
             case "Anchor" -> new ContainerRenderer(ctx).renderAnchor(metadata);
             case "ProgressBar" -> new ContainerRenderer(ctx).renderProgressBar(metadata, state);

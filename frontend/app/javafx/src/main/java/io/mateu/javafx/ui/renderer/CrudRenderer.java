@@ -130,25 +130,23 @@ public class CrudRenderer {
                 // GridColumn uses "id" for the data field; FormField uses "fieldId"
                 String fieldId = colMeta.path("id").asText(col.path("id").asText(""));
                 String label = colMeta.path("label").asText(fieldId);
+                String dataType = colMeta.path("dataType").asText("");
+                String columnActionId = colMeta.path("actionId").asText("");
+                String text = colMeta.path("text").asText("");
 
-                TableColumn<JsonNode, String> tableCol = new TableColumn<>(label);
-                tableCol.setCellValueFactory(cellData -> {
-                    JsonNode row = cellData.getValue();
-                    JsonNode val = row.path(fieldId);
-                    String text;
-                    if (val.isNull() || val.isMissingNode()) {
-                        text = "";
-                    } else if (val.isObject()) {
-                        // Status/badge objects: prefer "message", then "value", then toString
-                        JsonNode msg = val.path("message");
-                        text = (!msg.isMissingNode() && !msg.isNull())
-                                ? msg.asText() : val.path("value").asText(val.toString());
-                    } else {
-                        text = val.asText();
+                switch (dataType) {
+                    case "actionGroup", "menu", "action" ->
+                            table.getColumns().add(buildActionColumn(label, fieldId, dataType));
+                    case "status" ->
+                            table.getColumns().add(buildStatusColumn(label, fieldId));
+                    default -> {
+                        if (!columnActionId.isBlank()) {
+                            table.getColumns().add(buildLinkColumn(label, fieldId, columnActionId, text));
+                        } else {
+                            table.getColumns().add(buildTextColumn(label, fieldId));
+                        }
                     }
-                    return new SimpleStringProperty(text);
-                });
-                table.getColumns().add(tableCol);
+                }
             }
         }
 
@@ -181,6 +179,157 @@ public class CrudRenderer {
         }
 
         return table;
+    }
+
+    /** Plain text column: renders the cell value, unwrapping {message|value} objects. */
+    private TableColumn<JsonNode, String> buildTextColumn(String label, String fieldId) {
+        TableColumn<JsonNode, String> tableCol = new TableColumn<>(label);
+        tableCol.setCellValueFactory(cellData -> {
+            JsonNode val = cellData.getValue().path(fieldId);
+            String text;
+            if (val.isNull() || val.isMissingNode()) {
+                text = "";
+            } else if (val.isObject()) {
+                JsonNode msg = val.path("message");
+                text = (!msg.isMissingNode() && !msg.isNull())
+                        ? msg.asText() : val.path("value").asText(val.toString());
+            } else {
+                text = val.asText();
+            }
+            return new SimpleStringProperty(text);
+        });
+        return tableCol;
+    }
+
+    /**
+     * Link column: a cell whose {@code actionId} makes it a clickable link to the detail
+     * (e.g. an identifier column with {@code actionId="view"}). Dispatches {@code actionId} with
+     * the whole row as parameters, matching the web frontend (linkColumnRenderer / renderButtonCell).
+     */
+    private TableColumn<JsonNode, Void> buildLinkColumn(String label, String fieldId, String actionId, String text) {
+        TableColumn<JsonNode, Void> col = new TableColumn<>(label);
+        col.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                int idx = getIndex();
+                if (empty || idx < 0 || idx >= getTableView().getItems().size()) {
+                    setGraphic(null);
+                    return;
+                }
+                JsonNode row = getTableView().getItems().get(idx);
+                String cellText = !text.isBlank() ? text : row.path(fieldId).asText("");
+                if (cellText.isBlank()) {
+                    setGraphic(null);
+                    return;
+                }
+                Hyperlink link = new Hyperlink(cellText);
+                link.getStyleClass().add("link-cell");
+                link.setOnAction(e -> ctx.runAction(actionId,
+                        ctx.mapper.convertValue(row, java.util.Map.class)));
+                setGraphic(link);
+            }
+        });
+        return col;
+    }
+
+    /**
+     * Row-action column ({@code actionGroup}/{@code menu}/{@code action}): renders one link-styled
+     * button per action. Dispatches {@code action-on-row-<methodNameInCrud>} with the row as
+     * {@code _clickedRow}, matching the web frontend (mateu-table-crud.ts).
+     */
+    private TableColumn<JsonNode, Void> buildActionColumn(String label, String fieldId, String dataType) {
+        TableColumn<JsonNode, Void> col = new TableColumn<>(label);
+        col.setSortable(false);
+        // Action columns are usually last; under FLEX_LAST_COLUMN that leaves ~0px and the
+        // buttons collapse out of view. Force a min width so they always render.
+        col.setMinWidth(280);
+        col.setPrefWidth(300);
+        col.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                int idx = getIndex();
+                if (empty || idx < 0 || idx >= getTableView().getItems().size()) {
+                    setGraphic(null);
+                    return;
+                }
+                JsonNode row = getTableView().getItems().get(idx);
+                JsonNode val = row.path(fieldId);
+
+                List<JsonNode> actions = new ArrayList<>();
+                if ("action".equals(dataType)) {
+                    if (val.has("methodNameInCrud")) actions.add(val);
+                } else { // actionGroup / menu
+                    JsonNode arr = val.path("actions");
+                    if (arr.isArray()) arr.forEach(actions::add);
+                }
+
+                if (actions.isEmpty()) {
+                    setGraphic(null);
+                    return;
+                }
+
+                HBox box = new HBox(4);
+                box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                for (JsonNode a : actions) {
+                    String method = a.path("methodNameInCrud").asText("");
+                    String btnLabel = a.path("label").asText(method);
+                    Button b = new Button(btnLabel);
+                    b.getStyleClass().add("btn-link");
+                    b.setDisable(a.path("disabled").asBoolean(false));
+                    String icon = a.path("icon").asText("");
+                    if (!btnLabel.isBlank() || !icon.isBlank()) {
+                        b.setOnAction(e -> ctx.runAction("action-on-row-" + method,
+                                java.util.Map.of("_clickedRow", row)));
+                        box.getChildren().add(b);
+                    }
+                }
+                setGraphic(box.getChildren().isEmpty() ? null : box);
+            }
+        });
+        return col;
+    }
+
+    /** Status column: renders the {@code {type,message,value}} object as a coloured badge. */
+    private TableColumn<JsonNode, Void> buildStatusColumn(String label, String fieldId) {
+        TableColumn<JsonNode, Void> col = new TableColumn<>(label);
+        col.setCellFactory(tc -> new TableCell<>() {
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                int idx = getIndex();
+                if (empty || idx < 0 || idx >= getTableView().getItems().size()) {
+                    setGraphic(null);
+                    return;
+                }
+                JsonNode val = getTableView().getItems().get(idx).path(fieldId);
+                if (val.isNull() || val.isMissingNode()) {
+                    setGraphic(null);
+                    return;
+                }
+                String text = val.isObject()
+                        ? val.path("message").asText(val.path("value").asText(""))
+                        : val.asText("");
+                String type = val.isObject() ? val.path("type").asText("") : "";
+                setGraphic(text.isBlank() ? null : statusBadge(text, type));
+            }
+        });
+        return col;
+    }
+
+    private Label statusBadge(String text, String type) {
+        String bg = switch (type == null ? "" : type.toUpperCase()) {
+            case "SUCCESS", "OK", "DONE" -> "#3e8635";
+            case "ERROR", "DANGER", "KO" -> "#c9190b";
+            case "WARNING", "WARN", "PENDING" -> "#f0ab00";
+            case "INFO" -> "#2b9af3";
+            default -> "#6a6e73";
+        };
+        Label badge = new Label(text);
+        badge.setStyle("-fx-background-color: " + bg + "; -fx-text-fill: white; "
+                + "-fx-padding: 2 8; -fx-background-radius: 10; -fx-font-size: 12px;");
+        return badge;
     }
 
     private List<JsonNode> extractRows(JsonNode data) {
@@ -254,12 +403,13 @@ public class CrudRenderer {
     }
 
     private Button buildButton(JsonNode btn) {
-        String id = btn.path("id").asText("");
-        String label = btn.path("label").asText(id);
+        // ButtonDto uses "actionId"; fall back to "id" for ActionDto / other shapes
+        String actionId = btn.path("actionId").asText(btn.path("id").asText(""));
+        String label = btn.path("label").asText(actionId);
         Button button = new Button(label);
-        boolean primary = "Primary".equals(btn.path("buttonStyle").asText(""));
+        boolean primary = "Primary".equalsIgnoreCase(btn.path("buttonStyle").asText(""));
         button.getStyleClass().add(primary ? "btn-primary" : "btn-default");
-        button.setOnAction(e -> ctx.runAction(id, null));
+        button.setOnAction(e -> ctx.runAction(actionId, null));
         return button;
     }
 }

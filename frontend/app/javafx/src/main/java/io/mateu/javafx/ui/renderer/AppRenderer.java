@@ -6,6 +6,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
@@ -44,25 +45,22 @@ public class AppRenderer {
                                          String homeRoute, String homeConsumedRoute, String homeServerSideType) {
         BorderPane root = new BorderPane();
 
-        // Top header / shellbar
-        HBox header = buildShellbar(title, appMetadata, homeRoute, homeConsumedRoute, homeServerSideType);
-        root.setTop(header);
-
         // Left sidebar
         VBox sidebar = buildSidebar(appMetadata, homeConsumedRoute);
         root.setLeft(sidebar);
 
-        // Content area
-        StackPane contentArea = new StackPane();
-        contentArea.getStyleClass().add("content-area");
-        contentArea.setAlignment(Pos.TOP_LEFT);
-        ctx.contentPane = contentArea;
-        ctx.registerComponent("ux_main", contentArea);
-        root.setCenter(contentArea);
+        // Top header / shellbar (hamburger toggles the sidebar above)
+        HBox header = buildShellbar(title, appMetadata, homeRoute, homeConsumedRoute, homeServerSideType, sidebar);
+        root.setTop(header);
 
-        // Load home content
+        // Content area: a dockable tab pane (inside its StackPane host so TiwulFX can split it).
+        // Each menu item opens its own tab (its own AppContext); tabs can be reordered, detached
+        // into floating windows and docked/split by drag and drop.
+        root.setCenter(ctx.shell.dockHost);
+
+        // Open the home tab
         if (!homeRoute.isBlank() || !homeServerSideType.isBlank()) {
-            ctx.navigate(homeRoute, homeConsumedRoute, homeServerSideType, "");
+            ctx.shell.openTab("Home", homeRoute, homeConsumedRoute, homeServerSideType, "");
         }
 
         return root;
@@ -118,22 +116,31 @@ public class AppRenderer {
     }
 
     private HBox buildShellbar(String title, JsonNode appMetadata,
-                                String homeRoute, String homeConsumedRoute, String homeServerSideType) {
+                                String homeRoute, String homeConsumedRoute, String homeServerSideType,
+                                Node sidebar) {
         HBox header = new HBox();
         header.getStyleClass().add("app-header");
         header.setAlignment(Pos.CENTER_LEFT);
         header.setSpacing(16);
 
+        Button hamburger = new Button("☰");
+        hamburger.getStyleClass().add("hamburger");
+        hamburger.setOnAction(e -> {
+            boolean show = !sidebar.isVisible();
+            sidebar.setVisible(show);
+            sidebar.setManaged(show);
+        });
+
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("app-title");
         titleLabel.setStyle("-fx-cursor: hand;");
         titleLabel.setOnMouseClicked(e ->
-                ctx.navigate(homeRoute, homeConsumedRoute, homeServerSideType, ""));
+                ctx.shell.openTab("Home", homeRoute, homeConsumedRoute, homeServerSideType, ""));
 
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        header.getChildren().addAll(titleLabel, spacer);
+        header.getChildren().addAll(hamburger, titleLabel, spacer);
         return header;
     }
 
@@ -171,13 +178,33 @@ public class AppRenderer {
 
         boolean hasSubmenus = submenus.isArray() && !submenus.isEmpty();
 
-        if (hasSubmenus && depth == 0) {
-            // Group header
-            Label groupLabel = new Label(label.toUpperCase());
-            groupLabel.getStyleClass().add("menu-group-label");
-            sidebar.getChildren().add(groupLabel);
+        if (hasSubmenus) {
+            // Collapsible group: a header toggles a (initially collapsed) children container.
+            VBox childrenBox = new VBox();
+            childrenBox.setVisible(false);
+            childrenBox.setManaged(false);
+
+            Label caret = new Label("▸");
+            caret.getStyleClass().add("menu-caret");
+
+            Button header = new Button(label);
+            header.getStyleClass().add("menu-group");
+            header.setGraphic(caret);
+            header.setContentDisplay(ContentDisplay.LEFT);
+            header.setGraphicTextGap(8);
+            header.setAlignment(Pos.CENTER_LEFT);
+            header.setPadding(new Insets(10, 20, 10, 20 + depth * 12));
+            header.setMaxWidth(Double.MAX_VALUE);
+            header.setOnAction(e -> {
+                boolean show = !childrenBox.isVisible();
+                childrenBox.setVisible(show);
+                childrenBox.setManaged(show);
+                caret.setText(show ? "▾" : "▸");
+            });
+
+            sidebar.getChildren().addAll(header, childrenBox);
             for (JsonNode sub : submenus) {
-                addMenuItems(sidebar, sub, depth + 1);
+                addMenuItems(childrenBox, sub, depth + 1);
             }
         } else {
             String route = menuItem.path("route").asText("");
@@ -189,16 +216,9 @@ public class AppRenderer {
             btn.getStyleClass().add("menu-item");
             btn.setPadding(new Insets(10, 20, 10, 20 + depth * 12));
             btn.setMaxWidth(Double.MAX_VALUE);
-            btn.setOnAction(e -> {
-                ctx.navigate(route, consumedRoute, serverSideType, actionId);
-            });
+            btn.setAlignment(Pos.CENTER_LEFT);
+            btn.setOnAction(e -> ctx.shell.openTab(label, route, consumedRoute, serverSideType, actionId));
             sidebar.getChildren().add(btn);
-
-            if (hasSubmenus) {
-                for (JsonNode sub : submenus) {
-                    addMenuItems(sidebar, sub, depth + 1);
-                }
-            }
         }
     }
 

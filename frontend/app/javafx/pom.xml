@@ -35,6 +35,23 @@
             <artifactId>jackson-databind</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+        <!-- Detachable/dockable tab pane (drag, detach to floating window, dock/split). -->
+        <dependency>
+            <groupId>com.panemu</groupId>
+            <artifactId>tiwulfx-dock</artifactId>
+            <version>0.5</version>
+            <exclusions>
+                <!-- Use our JavaFX 21, not the library's bundled 13.0.2. -->
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-controls</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-fxml</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
 
     <build>

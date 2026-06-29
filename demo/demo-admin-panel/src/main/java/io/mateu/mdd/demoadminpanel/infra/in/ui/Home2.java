@@ -50,9 +50,6 @@ public class Home2 implements WidgetSupplier {
     NestedApp nestedApp;
 
     @Menu
-    String xxx;
-
-    @Menu
     String page3 = "/page3";
 
     @Menu
