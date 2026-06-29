@@ -1,0 +1,9 @@
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+# iOS: the Xcode project is generated from project.yml by xcodegen
+iosApp/iosApp.xcodeproj/
+iosApp/build/
+# Android (opt-in)
+local.properties
+iosApp/iosApp/Info.plist

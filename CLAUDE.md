@@ -33,6 +33,12 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo
   apps/redwood/           ← Redwood renderer
   apps/redhat/            ← PatternFly renderer
 
+frontend/app/             ← Native (non-browser) renderers — all speak the same /mateu/v3/sync API
+  javafx/                 ← Desktop (JavaFX) — tabbed/docking power-user workspace
+  react-native/           ← Mobile (Expo/TypeScript) — iOS & Android
+  compose/                ← Compose Multiplatform (Kotlin): ONE codebase → desktop + iOS + Android
+                            (commonMain renderers; desktop/iosMain/androidMain entry points)
+
 demo/             ← Runnable demo apps (Spring MVC, WebFlux, Micronaut, Quarkus, Helidon)
 e2e/              ← Playwright end-to-end tests + SUT (subject under test) apps
 ```

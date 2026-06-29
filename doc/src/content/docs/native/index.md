@@ -7,7 +7,11 @@ Mateu's API is not limited to web browsers. Because the renderer is decoupled fr
 
 Native renderers trade the browser's zero-install convenience for **better performance** and an OS-native feel — and, on the desktop, for a **docking/tabbed productivity workspace** the browser can't offer. (For when to prefer web vs. native, see [Web or native?](/design-systems/#web-or-native).)
 
-Two native renderers are available out of the box:
+Three native renderers are available out of the box:
+
+- **[JavaFX](#desktop--javafx)** — a desktop power-user workspace (tabs + docking).
+- **[React Native](#mobile--react-native)** — iOS & Android, built with Expo/TypeScript.
+- **[Compose Multiplatform](#desktop--mobile--compose-multiplatform)** — **one Kotlin codebase that runs on desktop, iOS and Android** (and, soon, web).
 
 ## Desktop — JavaFX
 
@@ -122,9 +126,43 @@ npx expo start --port 8084
 
 Scan the QR code with **Expo Go** on your phone, or press `i` for iOS simulator / `a` for Android emulator.
 
-## How both renderers relate to the Mateu API
+## Desktop & mobile — Compose Multiplatform
 
-Both renderers implement the same protocol as the web renderers:
+The Compose renderer is a single **[Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform/)** (Kotlin) codebase that runs as a **native desktop app** (Windows/macOS/Linux, JVM) **and** as a **native mobile app** on **iOS and Android** — the same UI, compiled to each platform. Where the JavaFX + React Native pair is two separate codebases (one per form factor), this is one.
+
+**How it works:** like every Mateu renderer it calls `POST /mateu/v3/sync/{route}`, receives the component tree, and renders it — here with native **Compose** widgets. All rendering logic lives in `commonMain` and is shared verbatim across targets; each platform only provides a tiny entry point and an HTTP engine.
+
+**Responsive UI** — the same screens adapt to the form factor:
+
+- On wide (desktop) viewports the left menu is an inline sidebar and CRUD listings render as a **table**.
+- On narrow (phone) viewports the menu becomes an **overlay drawer** (hamburger toggle) and CRUD listings render as **cards** (one per row). Forms drop to a single column. The breakpoint is 600 dp.
+
+**Key files** (under `frontend/app/compose/src/`):
+
+| File | Role |
+|---|---|
+| `commonMain/.../api/MateuApiClient.kt` | HTTP client — Ktor + kotlinx.serialization; `expect fun createHttpClient()` |
+| `commonMain/.../state/AppState.kt` | Session state holder — observable content slots, navigation, action dispatch, validation |
+| `commonMain/.../ui/MateuApp.kt` | Platform-agnostic root composable each entry point hosts |
+| `commonMain/.../ui/*` | The `@Composable` renderers (App shell, Page, Form, FormField, Crud, layouts…) + `Json.kt` |
+| `desktopMain/.../Main.kt` | Desktop entry (`Window`/`application`); CIO engine |
+| `iosMain/.../MainViewController.kt` | iOS entry (`ComposeUIViewController`); Darwin engine |
+| `androidMain/.../MainActivity.kt` | Android entry (`setContent`); OkHttp engine |
+
+**Run:**
+
+```bash
+cd frontend/app/compose
+./gradlew run                 # desktop  (mateu.windowMode=mobile previews the phone UI)
+# iOS:     see iosApp/README.md  (xcodegen + an iOS Simulator)
+# Android: ./gradlew assembleDebug && adb install … (needs the Android SDK)
+```
+
+Targets desktop / iOS / Android are wired and run today; **web** (`wasmJs`) reuses the same `commonMain` and is the natural next target. **Source:** `frontend/app/compose/` (see its `README.md` for per-platform run details).
+
+## How the renderers relate to the Mateu API
+
+All native renderers implement the same protocol as the web renderers:
 
 ```
 POST /mateu/v3/sync/{route}

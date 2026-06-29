@@ -1,0 +1,37 @@
+# Xcode project spec for the Mateu iOS app — generate the .xcodeproj with: `xcodegen generate`
+# (install xcodegen via `brew install xcodegen`). Hosts the Compose UI from the MateuKit framework.
+name: iosApp
+options:
+  bundleIdPrefix: io.mateu
+  deploymentTarget:
+    iOS: "15.0"
+settings:
+  base:
+    # Where the Gradle `embedAndSignAppleFrameworkForXcode` task drops MateuKit.framework.
+    FRAMEWORK_SEARCH_PATHS: "$(SRCROOT)/../build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)"
+    ENABLE_USER_SCRIPT_SANDBOXING: "NO"
+targets:
+  iosApp:
+    type: application
+    platform: iOS
+    sources:
+      - path: iosApp
+    info:
+      path: iosApp/Info.plist
+      properties:
+        CFBundleDisplayName: Mateu
+        # Required by Compose Multiplatform for iOS (high-refresh-rate displays).
+        CADisableMinimumFrameDurationOnPhone: true
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.mateu.compose.iosApp
+        SWIFT_VERSION: "5.0"
+    preBuildScripts:
+      - name: Build & embed Kotlin framework
+        basedOnDependencyAnalysis: false
+        script: |
+          cd "$SRCROOT/.."
+          ./gradlew :embedAndSignAppleFrameworkForXcode
