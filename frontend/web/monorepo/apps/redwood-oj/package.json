@@ -9,9 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "lit": "^3.3.1",
+    "lit": "^3.3.3",
     "mateu": "*",
-    "minimatch": "10.0.3"
+    "minimatch": "10.2.5"
   },
   "devDependencies": {
     "typescript": "~5.8.3",
