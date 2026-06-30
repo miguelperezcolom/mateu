@@ -11,13 +11,13 @@
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.1",
-    "@fabricelements/skeleton-carousel": "3.0.0",
+    "@fabricelements/skeleton-carousel": "3.0.2",
     "@ngyewch/chartjs-v4-webcomponent": "^0.4.0",
     "@polymer/paper-toggle-button": "^3.0.1",
     "@types/sortablejs": "^1.15.9",
-    "@ui5/webcomponents": "^2.13.2",
-    "@ui5/webcomponents-ai": "^2.13.2",
-    "@ui5/webcomponents-fiori": "^2.13.2",
+    "@ui5/webcomponents": "^2.23.2",
+    "@ui5/webcomponents-ai": "^2.23.2",
+    "@ui5/webcomponents-fiori": "^2.23.2",
     "@vaadin-component-factory/vcf-date-range-picker": "^5.0.2",
     "@vaadin/accordion": "^24.8.0",
     "@vaadin/app-layout": "^24.8.0",
@@ -74,27 +74,27 @@
     "@web-comp/core": "^1.0.2",
     "@web-comp/json-viewer": "^1.0.2",
     "axios": "^1.16.0",
-    "bpmn-js": "^18.14.0",
+    "bpmn-js": "^18.19.0",
     "chart.js": "^4.5.0",
     "chartjs-adapter-date-fns": "^3.0.0",
     "cookieconsent": "^3.1.1",
-    "date-fns": "^4.1.0",
+    "date-fns": "^4.4.0",
     "elkjs": "^0.11.1",
-    "js-base64": "^3.7.7",
+    "js-base64": "^3.8.0",
     "lit-vaadin-helpers": "^0.3.1",
-    "minimatch": "10.0.3",
-    "nanoid": "^5.0.7",
+    "minimatch": "10.2.5",
+    "nanoid": "^5.1.16",
     "rxjs": "^7.8.1",
     "sortablejs": "^1.15.7",
     "vite-plugin-dts": "^4.5.4"
   },
   "devDependencies": {
-    "lit": "^3.3.1",
+    "lit": "^3.3.3",
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
     "vite-plugin-dts": "^4.5.4"
   },
   "resolutions": {
-    "lit": "^3.3.1"
+    "lit": "^3.3.3"
   }
 }
