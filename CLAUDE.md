@@ -27,8 +27,12 @@ backend/          ← Maven multi-module Java backend
   helidon-mp/     ← Helidon MicroProfile adapter
 
 backend/dotnet/   ← C# server-side (Mateu.NET) — ASP.NET reflection mapper emitting the same
-                    /mateu/v3/sync wire model so existing renderers render a C# backend. M1 done;
-                    see backend/dotnet/DESIGN.md + README.md. (backend/go is still a placeholder.)
+                    /mateu/v3/sync wire model so existing renderers render a C# backend.
+                    See backend/dotnet/DESIGN.md + README.md.
+backend/python/   ← Python server-side — FastAPI + Pydantic reflection mapper emitting the same
+                    /mateu/v3/sync wire model. Field modifiers via Annotated[...], class/method
+                    features via decorators. See backend/python/DESIGN.md + README.md.
+                    (backend/go is still a placeholder.)
 
 frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo
   libs/mateu/             ← Shared lib: API client, domain state, base web-components
