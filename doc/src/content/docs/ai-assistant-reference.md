@@ -20,20 +20,25 @@ Both files are plain Markdown — paste them directly, link to them, or download
 
 ### Claude Code / Claude Agent SDK
 
-Mateu ships a ready-made **skill** at `.claude/skills/mateu/`. When you run Claude Code
-(or the Claude Agent SDK) inside a project that contains it, the skill activates
-automatically as soon as you ask for Mateu work — *"create a CRUD for…"*, *"add a
-wizard…"* — and loads the API on demand (progressive disclosure), so it costs almost
-nothing until it is needed.
+Mateu ships a family of ready-made **skills** under `.claude/skills/`. When you run
+Claude Code (or the Claude Agent SDK) inside a project that contains them, the right
+skill activates automatically as soon as you ask for Mateu work — *"create a CRUD
+for…"*, *"start a new Mateu app"*, *"run and screenshot this screen"* — and loads its
+references on demand (progressive disclosure), so they cost almost nothing until needed.
 
-- **In the Mateu repo:** it is already there — just ask.
-- **In your own project:** copy the `.claude/skills/mateu/` folder into your repo, or
-  into `~/.claude/skills/` to make it available in every project.
+- **In the Mateu repo:** they are already there — just ask.
+- **In your own project:** copy the `.claude/skills/` folder into your repo, or into
+  `~/.claude/skills/` to make the skills available in every project.
 
-The skill covers CRUD, forms and actions, wizards, editor/partial-form views, fluent
-component trees, shells and federation, custom adapters / web components / CSS, and the
-full annotation catalogue — each a focused reference the agent reads only when relevant.
-It stays in sync with the compact and full references below.
+| Skill | Use it for |
+|---|---|
+| `mateu` | Writing screens: CRUD, forms and actions, wizards, editor/partial-form views, fluent component trees, shells and federation, custom adapters / web components / CSS, and the full annotation catalogue. |
+| `mateu-scaffold` | Wiring the Maven build: the two-step annotation processing (indexer + framework AP), the renderer dependency, the Spring Boot main class — and fixing "compiles but nothing renders". |
+| `mateu-run` | Building in the right order, running the app, and screenshotting a route (Playwright) to see it render. |
+| `mateu-federation` | Composing several `@UI` modules by Maven (build-time) or independent services by `RemoteMenu` (runtime). |
+
+Each skill is a set of focused references the agent reads only when relevant, and stays in
+sync with the compact and full references below.
 
 ### Claude Projects (claude.ai)
 

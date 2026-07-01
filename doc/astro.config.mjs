@@ -93,6 +93,7 @@ export default defineConfig({
 						{ slug: 'mateu-about/architecture', label: 'Technical Architecture' },
 						{ slug: 'mateu-about/system-architecture' },
 						{ slug: 'mateu-about/comparison' },
+						{ slug: 'mateu-about/mateu-and-ai', label: 'Mateu and AI' },
 						{ slug: 'mateu-about/disclaimer' },
 						{
 							label: 'Advanced',
@@ -101,6 +102,7 @@ export default defineConfig({
 								{ slug: 'mateu-about/shell-and-remote-menus' },
 								{ slug: 'mateu-about/ui-federation' },
 								{ slug: 'mateu-about/embed' },
+								{ slug: 'mateu-about/standalone-desktop', label: 'Standalone desktop app' },
 								{ slug: 'mateu-about/see-it-in-action' },
 							],
 						},

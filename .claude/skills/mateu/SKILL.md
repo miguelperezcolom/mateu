@@ -29,10 +29,13 @@ Mateu generates all of that from the model. Validate with Bean Validation
 | a custom / dynamic layout | `implements ComponentTreeSupplier` | [fluent.md](reference/fluent.md) |
 | an app menu / shell / federation | `@UI("")` + `@Menu` / `RemoteMenu` | [federation.md](reference/federation.md) |
 | render a domain object you can't annotate | `ComponentAdapter<T>` (`@Service`) | [extension.md](reference/extension.md) |
+| a dense screen composing many sub-forms | `@Inline` + `@Compact` + `@Zones` | [inline-dense-screens.md](reference/inline-dense-screens.md) |
+| panels that react to each other | `@Emits` / `@SubscribeTo` / `@OnRowSelected` | [component-communication.md](reference/component-communication.md) |
 
 Full annotation catalog: [annotations.md](reference/annotations.md) ·
 Common mistakes: [gotchas.md](reference/gotchas.md) ·
-Testing & local iteration: [testing.md](reference/testing.md)
+Testing & local iteration: [testing.md](reference/testing.md) ·
+Deployment (all-in-one / CDN / standalone desktop): [standalone-desktop.md](reference/standalone-desktop.md)
 
 ## Skeleton — a screen is a class
 
