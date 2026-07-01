@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import io.mateu.core.domain.Authorizer;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.annotations.*;
@@ -20,6 +21,10 @@ final class FormFieldFilter {
     if (instance instanceof VisibilitySupplier visibilitySupplier
         && visibilitySupplier.isHidden(field.getName(), httpRequest)) {
       return false;
+    }
+    if (MetaAnnotations.isPresent(field, EyesOnly.class)
+        && !Authorizer.isAuthorized(MetaAnnotations.find(field, EyesOnly.class), httpRequest)) {
+      return false; // not authorized to see this field
     }
     if (ComponentDto.class.isAssignableFrom(field.getType())) {
       return false;

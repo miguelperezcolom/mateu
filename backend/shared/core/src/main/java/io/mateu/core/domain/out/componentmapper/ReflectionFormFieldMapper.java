@@ -193,6 +193,7 @@ public class ReflectionFormFieldMapper {
     return MetaAnnotations.isPresent(instance.getClass(), ReadOnly.class)
         || MetaAnnotations.isPresent(field, ReadOnly.class)
         || MetaAnnotations.isPresent(field, GeneratedValue.class)
+        || PageFormBuilder.readOnlyByPermission(field, instance, httpRequest)
         || (instance instanceof ReadOnlySupplier ros
             && ros.isReadOnly(field.getName(), httpRequest));
   }

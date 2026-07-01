@@ -368,7 +368,8 @@ Restricts access to parts of the UI.
 Users users;
 ```
 
-Use it for authorization.
+Use it for authorization. It gates **menu entries** and, on a **form field**, hides the field
+when the current user is not authorized. Identity is read from the JWT Bearer token.
 
 ### Supported scopes
 
@@ -376,6 +377,46 @@ Use it for authorization.
 - groups
 - scopes
 - permissions
+
+The same four dimensions are used by `@ReadOnlyUnless` and `@DisabledUnless` below. Matching is
+AND across the dimensions you declare, OR within each; no dimension declared → unrestricted.
+
+---
+
+## `@ReadOnlyUnless`
+
+Renders a field (or, at class level, the whole view) **read-only unless** the current user
+matches one of the declared identity dimensions — same dimensions and matching as `@EyesOnly`.
+
+```java
+@ReadOnlyUnless(roles = "manager")
+BigDecimal salary;   // read-only for everyone except managers
+```
+
+Composes with `@EyesOnly` for layered access:
+
+```java
+@EyesOnly(roles = "staff")          // hidden unless staff
+@ReadOnlyUnless(roles = "manager")  // read-only unless manager
+BigDecimal salary;                  // non-staff: hidden · staff: read-only · manager: editable
+```
+
+---
+
+## `@DisabledUnless`
+
+Renders a field or a button (`@Button` / `@Toolbar`) **disabled unless** the current user
+matches one of the declared identity dimensions — same dimensions and matching as `@EyesOnly`.
+Disabled state is carried as a client-side rule; the authorization is decided server-side.
+
+```java
+@DisabledUnless(scopes = "write")
+String note;
+
+@Toolbar
+@DisabledUnless(roles = "approver")
+Object approve(HttpRequest req) { ... }
+```
 
 ---
 

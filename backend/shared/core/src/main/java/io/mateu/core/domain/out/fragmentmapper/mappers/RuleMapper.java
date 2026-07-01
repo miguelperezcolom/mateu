@@ -3,12 +3,14 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.domain.Authorizer;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.RuleActionDto;
 import io.mateu.dtos.RuleDto;
 import io.mateu.dtos.RuleFieldAttributeDto;
 import io.mateu.dtos.RuleResultDto;
 import io.mateu.uidl.annotations.Disabled;
+import io.mateu.uidl.annotations.DisabledUnless;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Rule;
 import io.mateu.uidl.data.RuleAction;
@@ -37,6 +39,23 @@ public class RuleMapper {
             .toList());
     getAllFields(viewClass).stream()
         .filter(field -> MetaAnnotations.isPresent(field, Disabled.class))
+        .forEach(
+            field ->
+                rules.add(
+                    io.mateu.uidl.data.Rule.builder()
+                        .filter("true")
+                        .action(RuleAction.SetDataValue)
+                        .fieldName(field.getName())
+                        .fieldAttribute(RuleFieldAttribute.disabled)
+                        .expression("true")
+                        .result(RuleResult.Continue)
+                        .build()));
+    getAllFields(viewClass).stream()
+        .filter(
+            field ->
+                MetaAnnotations.isPresent(field, DisabledUnless.class)
+                    && !Authorizer.isAuthorized(
+                        MetaAnnotations.find(field, DisabledUnless.class), httpRequest))
         .forEach(
             field ->
                 rules.add(

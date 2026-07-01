@@ -65,7 +65,7 @@ class AuthorizerTest {
 
   @Test
   void noAnnotationIsAlwaysAuthorized() {
-    assertThat(Authorizer.isAuthorized(null, null)).isTrue();
+    assertThat(Authorizer.isAuthorized((io.mateu.uidl.annotations.EyesOnly) null, null)).isTrue();
   }
 
   @Test

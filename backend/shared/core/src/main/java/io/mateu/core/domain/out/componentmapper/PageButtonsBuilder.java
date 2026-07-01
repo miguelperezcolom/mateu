@@ -5,7 +5,9 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.domain.Authorizer;
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.DisabledUnless;
 import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
@@ -21,6 +23,7 @@ import io.mateu.uidl.interfaces.DisabledSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ToolbarSupplier;
 import io.mateu.uidl.interfaces.VisibilitySupplier;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -66,8 +69,9 @@ final class PageButtonsBuilder {
                         field ->
                             getRawButtonFromField(
                                 field,
-                                instance instanceof DisabledSupplier ds
-                                    && ds.isDisabled(field.getName(), httpRequest))),
+                                (instance instanceof DisabledSupplier ds
+                                        && ds.isDisabled(field.getName(), httpRequest))
+                                    || disabledByPermission(field, httpRequest))),
                 getAllMethods(instance.getClass()).stream()
                     .filter(
                         method ->
@@ -86,8 +90,9 @@ final class PageButtonsBuilder {
                             getRawButtonFromMethod(
                                 method,
                                 io.mateu.uidl.annotations.Button.class,
-                                instance instanceof DisabledSupplier ds
-                                    && ds.isDisabled(method.getName(), httpRequest))))
+                                (instance instanceof DisabledSupplier ds
+                                        && ds.isDisabled(method.getName(), httpRequest))
+                                    || disabledByPermission(method, httpRequest))))
             .toList();
     return groupRawButtons(rawButtons);
   }
@@ -112,8 +117,9 @@ final class PageButtonsBuilder {
                         field ->
                             getRawButtonFromField(
                                 field,
-                                instance instanceof DisabledSupplier ds
-                                    && ds.isDisabled(field.getName(), httpRequest))),
+                                (instance instanceof DisabledSupplier ds
+                                        && ds.isDisabled(field.getName(), httpRequest))
+                                    || disabledByPermission(field, httpRequest))),
                 getAllMethods(instance.getClass()).stream()
                     .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
                     .filter(
@@ -129,10 +135,18 @@ final class PageButtonsBuilder {
                             getRawButtonFromMethod(
                                 method,
                                 Toolbar.class,
-                                instance instanceof DisabledSupplier ds
-                                    && ds.isDisabled(method.getName(), httpRequest))))
+                                (instance instanceof DisabledSupplier ds
+                                        && ds.isDisabled(method.getName(), httpRequest))
+                                    || disabledByPermission(method, httpRequest))))
             .toList();
     return groupRawButtons(rawButtons);
+  }
+
+  /** Disabled when a {@link DisabledUnless} on the button field/method is not satisfied. */
+  private static boolean disabledByPermission(AnnotatedElement element, HttpRequest httpRequest) {
+    return MetaAnnotations.isPresent(element, DisabledUnless.class)
+        && !Authorizer.isAuthorized(
+            MetaAnnotations.find(element, DisabledUnless.class), httpRequest);
   }
 
   private static Collection<? extends UserTrigger> groupRawButtons(List<RawButton> rawButtons) {

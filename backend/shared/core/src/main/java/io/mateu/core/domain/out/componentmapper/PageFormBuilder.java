@@ -3,11 +3,13 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.core.domain.out.componentmapper.ReflectionFormFieldMapper.*;
 import static io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields;
 
+import io.mateu.core.domain.Authorizer;
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.EditableOnlyWhenCreating;
 import io.mateu.uidl.annotations.GeneratedValue;
 import io.mateu.uidl.annotations.ReadOnly;
+import io.mateu.uidl.annotations.ReadOnlyUnless;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
 import java.lang.reflect.Field;
@@ -169,8 +171,22 @@ public class PageFormBuilder {
         || MetaAnnotations.isPresent(field, ReadOnly.class)
         || MetaAnnotations.isPresent(field, GeneratedValue.class)
         || (!forCreationForm && MetaAnnotations.isPresent(field, EditableOnlyWhenCreating.class))
+        || readOnlyByPermission(field, instance, httpRequest)
         || (instance instanceof ReadOnlySupplier ros
             && ros.isReadOnly(field.getName(), httpRequest));
+  }
+
+  /** Read-only when a {@link ReadOnlyUnless} on the field or the view is not satisfied. */
+  static boolean readOnlyByPermission(Field field, Object instance, HttpRequest httpRequest) {
+    if (MetaAnnotations.isPresent(field, ReadOnlyUnless.class)
+        && !Authorizer.isAuthorized(
+            MetaAnnotations.find(field, ReadOnlyUnless.class), httpRequest)) {
+      return true;
+    }
+    return instance != null
+        && MetaAnnotations.isPresent(instance.getClass(), ReadOnlyUnless.class)
+        && !Authorizer.isAuthorized(
+            MetaAnnotations.find(instance.getClass(), ReadOnlyUnless.class), httpRequest);
   }
 
   public static boolean isForm(Object instance) {

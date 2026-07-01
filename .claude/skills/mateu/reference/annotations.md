@@ -23,7 +23,9 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 | `@Hidden` / `@HiddenInList` / `@HiddenInCreate` / `@HiddenInView` / `@HiddenInEditor` | hide per context |
 | `@EditableOnlyWhenCreating`, `@NotEditable` | edit constraints |
 | `@NotCreatable`, `@NotDeletable` | CRUD constraints |
-| `@Disabled`, `@EyesOnly` | disabled / sensitive |
+| `@Disabled`, `@EyesOnly` | disabled / sensitive (`@EyesOnly` also hides fields by roles/groups/scopes/permissions) |
+| `@ReadOnlyUnless(roles/groups/scopes/permissions)` | read-only unless the user matches (field or class); same 4 dimensions as `@EyesOnly` |
+| `@DisabledUnless(roles/groups/scopes/permissions)` | disabled unless the user matches (field or `@Button`/`@Toolbar`) |
 | `@Filterable`, `@Searchable` | list filtering / global search |
 
 ## Field meaning & presentation
