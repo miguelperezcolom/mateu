@@ -17,4 +17,16 @@ public record Message(
   public static Message success(String message) {
     return Message.builder().variant(NotificationVariant.success).text(message).build();
   }
+
+  public static Message error(String message) {
+    return Message.builder().variant(NotificationVariant.error).text(message).build();
+  }
+
+  public static Message warning(String message) {
+    return Message.builder().variant(NotificationVariant.warning).text(message).build();
+  }
+
+  public static Message contrast(String message) {
+    return Message.builder().variant(NotificationVariant.contrast).text(message).build();
+  }
 }

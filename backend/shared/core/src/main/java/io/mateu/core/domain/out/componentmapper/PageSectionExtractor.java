@@ -42,7 +42,7 @@ final class PageSectionExtractor {
       String initiatorComponentId,
       HttpRequest httpRequest) {
     if (instance instanceof HeaderSupplier headerSupplier) {
-      return headerSupplier.header();
+      return headerSupplier.header(httpRequest);
     }
     return getAllFields(instance.getClass()).stream()
         .filter(field -> MetaAnnotations.isPresent(field, Header.class))

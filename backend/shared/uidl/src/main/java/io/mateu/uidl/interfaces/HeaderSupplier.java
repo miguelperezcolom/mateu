@@ -2,8 +2,9 @@ package io.mateu.uidl.interfaces;
 
 import io.mateu.uidl.fluent.Component;
 import java.util.Collection;
+import java.util.List;
 
 public interface HeaderSupplier {
 
-  Collection<Component> header();
+  List<Component> header(HttpRequest httpRequest);
 }

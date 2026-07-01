@@ -6,9 +6,10 @@ import { ComponentRenderer } from './src/renderer/ComponentRenderer';
 
 // ─── Configure your Mateu backend here ───────────────────────────────────────
 const MATEU_CONFIG = {
-  baseUrl: 'http://localhost:8080',
+  // iOS simulator / web reach the host at localhost; on a real device use the machine's LAN IP.
+  baseUrl: 'http://localhost:8592',
   sessionId: 'native-session-1',
-  appState: {},
+  appState: { tenantId: '1111', profile: 'dev' },
 };
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -24,13 +25,14 @@ function MateuRoot() {
     api
       .initialLoad('', appState)
       .then((result) => {
+        // The backend returns a UIIncrementDto: pick the App fragment (or the first one).
         const res = result as Record<string, unknown>;
-        const comp = (res['components'] as unknown[])?.[0] ?? result;
-        const st = (res['state'] as Record<string, unknown>) ?? {};
-        const dt = res['data'];
-        setRootComponent(comp);
-        setState(st);
-        setData(dt);
+        const fragments = (res['fragments'] as any[]) ?? [];
+        const frag =
+          fragments.find((f) => f?.component?.metadata?.type === 'App') ?? fragments[0];
+        setRootComponent(frag?.component ?? null);
+        setState(frag?.state ?? {});
+        setData(frag?.data ?? null);
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));

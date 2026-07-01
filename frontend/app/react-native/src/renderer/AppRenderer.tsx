@@ -173,7 +173,9 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     );
   }
 
-  if ((variant === 'NAVIGATION_LAYOUT' || variant === 'MENU_ON_LEFT') && menuItems.length > 0) {
+  // A Drawer is the native equivalent of a hamburger/side menu, so all menu-bearing variants
+  // (including HAMBURGUER_MENU and AUTO) render through it.
+  if (variant !== 'TABS' && menuItems.length > 0) {
     return (
       <NavigationContainer>
         <Drawer.Navigator

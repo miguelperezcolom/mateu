@@ -140,6 +140,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Scroller':
     case 'FullWidth':
     case 'Container':
+    case 'Div':
       return (
         <LayoutRenderer component={component} state={state} onStateChange={() => {}} renderComponent={renderComponent} direction="column" />
       );

@@ -7,6 +7,10 @@ import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.Trigger;
+import io.mateu.uidl.annotations.TriggerType;
+import io.mateu.uidl.annotations.Zone;
+import io.mateu.uidl.annotations.Zones;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +27,12 @@ import org.springframework.stereotype.Service;
 @ReadOnly
 @PlainText
 @Title("Check-in")
-public class CheckInForm extends CheckInScreen {
+@Zones({
+        @Zone(name = "left", width = "64%"),
+        @Zone(name = "right", width = "36%")
+})
+@Trigger(type = TriggerType.OnLoad, actionId = "load")
+public class CheckInForm extends CompactCheckInScreen {
 
   public CheckInForm(ReservationLineRepository repository) {
     super(repository);
