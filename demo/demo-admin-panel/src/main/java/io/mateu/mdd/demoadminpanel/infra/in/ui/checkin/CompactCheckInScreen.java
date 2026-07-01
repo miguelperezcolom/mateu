@@ -13,6 +13,9 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.TextContainer;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
+import io.mateu.uidl.fluent.OnLoadTrigger;
+import io.mateu.uidl.fluent.Trigger;
+import io.mateu.uidl.fluent.TriggersSupplier;
 import io.mateu.uidl.interfaces.HeaderSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 
@@ -218,4 +221,5 @@ public abstract class CompactCheckInScreen implements HeaderSupplier {
             })
         .orElse(List.of());
   }
+
 }
