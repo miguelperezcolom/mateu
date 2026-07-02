@@ -1,6 +1,5 @@
 package io.mateu.ijp.ui
 
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -15,30 +14,34 @@ import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
 
-/** Opens a lightweight month-calendar popup under [anchor]; [onPick] fires with the chosen date. */
+/**
+ * Opens a lightweight month-calendar under [anchor]; [onPick] fires with the chosen date.
+ *
+ * Uses a plain Swing [JPopupMenu] (not `JBPopupFactory`, which is a platform *service* and needs a
+ * booted Application — this standalone app deliberately runs without one).
+ */
 fun openCalendarPopup(anchor: JComponent, initial: LocalDate?, onPick: (LocalDate) -> Unit) {
-    val panel = CalendarPanel(initial ?: LocalDate.now(), onPick)
-    val popup = JBPopupFactory.getInstance()
-        .createComponentPopupBuilder(panel, panel)
-        .setRequestFocus(true)
-        .setResizable(false)
-        .setMovable(false)
-        .createPopup()
-    panel.onDone = { popup.cancel() }
-    popup.showUnderneathOf(anchor)
+    val menu = JPopupMenu()
+    menu.border = JBUI.Borders.empty(4)
+    menu.add(
+        CalendarPanel(initial ?: LocalDate.now()) { picked ->
+            onPick(picked)
+            menu.isVisible = false
+        },
+    )
+    menu.show(anchor, 0, anchor.height)
 }
 
 private class CalendarPanel(start: LocalDate, val onPick: (LocalDate) -> Unit) : JPanel(BorderLayout(0, JBUI.scale(4))) {
-    var onDone: (() -> Unit)? = null
     private var ym = YearMonth.from(start)
     private val selected = start
     private val header = JBLabel("", SwingConstants.CENTER)
     private val grid = JPanel(GridLayout(0, 7, JBUI.scale(2), JBUI.scale(2)))
 
     init {
-        border = JBUI.Borders.empty(6)
         val nav = JPanel(BorderLayout())
         nav.add(JButton("‹").apply { addActionListener { ym = ym.minusMonths(1); rebuild() } }, BorderLayout.WEST)
         header.font = header.font.deriveFont(Font.BOLD)
@@ -63,8 +66,12 @@ private class CalendarPanel(start: LocalDate, val onPick: (LocalDate) -> Unit) :
                 JButton(day.toString()).apply {
                     margin = JBUI.insets(2)
                     isFocusPainted = false
-                    if (date == selected) { isOpaque = true; background = JBUI.CurrentTheme.Focus.focusColor(); foreground = Color.WHITE }
-                    addActionListener { onPick(date); onDone?.invoke() }
+                    if (date == selected) {
+                        isOpaque = true
+                        background = JBUI.CurrentTheme.Focus.focusColor()
+                        foreground = Color.WHITE
+                    }
+                    addActionListener { onPick(date) }
                 },
             )
         }
