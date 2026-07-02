@@ -38,6 +38,9 @@ class AppContext(val session: AppSession) {
     var onFirstContent: ((Boolean) -> Unit)? = null
     private var firstContentFired = false
 
+    /** When true, load/action failures are logged instead of shown in a dialog (used by embedded islands). */
+    var silentErrors = false
+
     // Action ids the currently-loaded server-side component declares (for action bubbling).
     private var currentComponentActions: List<String> = emptyList()
     private var currentComponentValidations: JsonNode? = null
@@ -161,7 +164,7 @@ class AppContext(val session: AppSession) {
         }
     }
 
-    fun runAction(actionId: String, parameters: Map<String, Any?>?) {
+    fun runAction(actionId: String, parameters: Map<String, Any?>?, silent: Boolean = false) {
         if (contentPane == null) return
 
         // Client-side validation: actions flagged validationRequired only fire if every validation
@@ -188,7 +191,10 @@ class AppContext(val session: AppSession) {
                 currentComponentState = HashMap()
                 applyIncrement(increment)
             },
-            onErr = { showError("Action failed: ${it.message}") },
+            onErr = {
+                if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
+                else showError("Action failed: ${it.message}")
+            },
         )
     }
 
@@ -429,14 +435,27 @@ class AppContext(val session: AppSession) {
                 firstChild.path("metadata").text("type") == "App"
 
             if (firstChildIsApp) {
-                if (id.isNotBlank()) currentComponentId = id
-                if (serverSideType.isNotBlank()) currentServerSideType = serverSideType
                 val meta = firstChild.path("metadata")
                 val homeRoute = meta.text("homeRoute")
                 val homeConsumedRoute = meta.text("homeConsumedRoute")
                 val homeSST = meta.text("homeServerSideType", meta.text("serverSideType"))
-                if (homeRoute.isNotBlank() || homeSST.isNotBlank()) {
-                    navigate(homeRoute, homeConsumedRoute, homeSST, "")
+                val embedded = sscNode.path("initialData").has("_embeddedMediator") || route.contains("_embeddedMediator")
+                if (embedded) {
+                    // An `@Inline` embedded orchestrator island (e.g. the check-in cardex): render it in
+                    // its OWN context/container so it doesn't hijack the parent view. Keep its load
+                    // failures silent (they must not pop dialogs over the host form).
+                    val island = AppContext(session)
+                    island.contentPane = container
+                    island.silentErrors = true
+                    if (homeRoute.isNotBlank() || homeSST.isNotBlank()) {
+                        island.navigate(homeRoute, homeConsumedRoute, homeSST, "")
+                    }
+                } else {
+                    if (id.isNotBlank()) currentComponentId = id
+                    if (serverSideType.isNotBlank()) currentServerSideType = serverSideType
+                    if (homeRoute.isNotBlank() || homeSST.isNotBlank()) {
+                        navigate(homeRoute, homeConsumedRoute, homeSST, "")
+                    }
                 }
             } else {
                 if (id.isNotBlank()) currentComponentId = id
@@ -515,7 +534,8 @@ class AppContext(val session: AppSession) {
                         currentComponentState.putIfAbsent("sort", emptyList<Any>())
                         currentComponentState.putIfAbsent("searchText", "")
                     }
-                    runAction(actionId, null)
+                    // OnLoad triggers are background hydration/search — a failure logs, never a dialog.
+                    runAction(actionId, null, silent = true)
                 }
             }
         }
@@ -536,6 +556,7 @@ class AppContext(val session: AppSession) {
     }
 
     private fun showMessage(text: String, variant: String) {
+        if (silentErrors) { println("[Mateu] $variant: $text"); return }
         val type = when (variant) {
             "error" -> JOptionPane.ERROR_MESSAGE
             "warning" -> JOptionPane.WARNING_MESSAGE
@@ -545,6 +566,7 @@ class AppContext(val session: AppSession) {
     }
 
     private fun showError(message: String?) {
+        if (silentErrors) { println("[Mateu] error: $message"); return }
         JOptionPane.showMessageDialog(session.frame, message ?: "Error", "Error", JOptionPane.ERROR_MESSAGE)
     }
 

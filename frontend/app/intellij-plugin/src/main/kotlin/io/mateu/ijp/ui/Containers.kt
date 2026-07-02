@@ -61,6 +61,32 @@ fun renderCard(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     return panel
 }
 
+/**
+ * CustomField → renders its `metadata.content` (the field's actual UI). The content may be a plain
+ * component tree or an embedded **ServerSide island** (an `@Inline` orchestrator / adapter, e.g. the
+ * check-in guests/cardex sections) — either way [ComponentRenderer.render] handles it (a ServerSide
+ * goes through `loadServerSideComponent`). An optional label + `children` are stacked around it.
+ */
+fun renderCustomField(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
+    val label = metadata.text("label")
+    val content = metadata.path("content")
+    val children = component.path("children")
+    val hasChildren = children.isArray && !children.isEmpty
+
+    if (label.isBlank() && !hasChildren && content.isObject) {
+        return r.render(content, state, data) // pure pass-through (the common case)
+    }
+    val panel = verticalPanel(4)
+    if (label.isNotBlank()) {
+        val l = JBLabel(label)
+        l.font = l.font.deriveFont(Font.BOLD)
+        panel.addStacked(l, 4)
+    }
+    if (content.isObject) panel.addStacked(r.render(content, state, data), JBGap)
+    if (hasChildren) for (c in children) panel.addStacked(r.render(c, state, data), JBGap)
+    return panel
+}
+
 fun renderBadge(metadata: JsonNode): JComponent {
     val label = JBLabel(metadata.text("text"))
     label.foreground = Color.WHITE

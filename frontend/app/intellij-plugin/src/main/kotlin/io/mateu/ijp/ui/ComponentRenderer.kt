@@ -32,6 +32,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Form" -> { updateContext(component); renderForm(this, component, metadata, state, data) }
             "Crud" -> { updateContext(component); renderCrud(this, component, metadata, state, data) }
             "FormField" -> renderFormField(ctx, metadata, state, data)
+            "CustomField" -> renderCustomField(this, component, metadata, state, data)
             "FormLayout" -> renderFormLayout(this, component, metadata, state, data)
             "VerticalLayout", "Scroller", "FullWidth", "Container", "Div" ->
                 renderVBox(this, component, metadata, state, data)
