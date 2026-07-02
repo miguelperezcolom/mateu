@@ -69,8 +69,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             val rowId = extractRowId(row) ?: return
             val base = detailPath.ifBlank { ctx.currentRoute }
             // Open the detail as a central editor tab (openDetail forces the editor even when the
-            // detail form embeds grids) instead of replacing the list.
-            ctx.session.openDetailHandler?.invoke(rowId, "$base/$rowId", "", ctx.currentServerSideType, "")
+            // detail form embeds grids). Resolve it by route path (no serverSideType) — passing the
+            // list's serverSideType would re-resolve to the listing, not the row's detail.
+            ctx.session.openDetailHandler?.invoke(rowId, "$base/$rowId", "", null, "")
         }
     })
 
