@@ -2,14 +2,15 @@ package io.mateu.ijp.ui
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.ui.JBUI
 import io.mateu.ijp.api.arr
 import io.mateu.ijp.api.bool
+import io.mateu.ijp.api.int
 import io.mateu.ijp.api.text
 import java.awt.Font
 import java.awt.FlowLayout
+import java.awt.GridBagConstraints
+import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -50,10 +51,14 @@ fun renderForm(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 }
 
 /**
- * FormLayout → a Kotlin UI DSL v2 `panel { }`. FormRow children are flattened into their own fields;
- * v1 lays fields out one per row (single column). colspan/maxColumns are read but not yet honored.
+ * FormLayout → a multi-column grid ([GridBagLayout]). FormRow wrappers are flattened away and their
+ * fields re-flowed into `maxColumns` (default 2) equal-weight columns; a field's `colspan` makes it
+ * span that many columns (and forces a wrap when it doesn't fit the row's remaining columns). Columns
+ * align across rows because every column carries the same `weightx`.
  */
 fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
+    val maxColumns = metadata.int("maxColumns", 2).coerceAtLeast(1)
+
     val flattened = ArrayList<JsonNode>()
     val children = component.path("children")
     if (children.isArray) {
@@ -66,13 +71,34 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
             }
         }
     }
-    return panel {
-        for (field in flattened) {
-            row {
-                cell(r.render(field, state, data)).align(AlignX.FILL)
-            }
+
+    val panel = JPanel(GridBagLayout())
+    var col = 0
+    var rowIdx = 0
+    for (field in flattened) {
+        val span = field.path("metadata").int("colspan", 1).coerceIn(1, maxColumns)
+        if (col + span > maxColumns) { col = 0; rowIdx++ }
+        val gbc = GridBagConstraints().apply {
+            gridx = col
+            gridy = rowIdx
+            gridwidth = span
+            weightx = span.toDouble()
+            fill = GridBagConstraints.HORIZONTAL
+            anchor = GridBagConstraints.NORTHWEST
+            insets = JBUI.insets(0, 0, JBGap, JBGap)
         }
+        panel.add(r.render(field, state, data), gbc)
+        col += span
     }
+    // Bottom filler so fields stay top-aligned when the grid is placed in a filling container.
+    panel.add(
+        JPanel().apply { isOpaque = false },
+        GridBagConstraints().apply {
+            gridx = 0; gridy = rowIdx + 1; gridwidth = maxColumns
+            weightx = 1.0; weighty = 1.0; fill = GridBagConstraints.BOTH
+        },
+    )
+    return panel
 }
 
 /** FormRow → a horizontal row of its children (each field builds its own label + input). */
