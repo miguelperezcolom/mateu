@@ -118,7 +118,8 @@ class AppContext(val session: AppSession) {
 
     fun navigate(route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) {
         val target = contentPane ?: return
-        SwingUtilities.invokeLater { fill(target, loadingLabel(), add = false) }
+        val loading = loadingLabel()
+        fill(target, loading, add = false)
         background(
             work = {
                 if (!actionId.isNullOrBlank()) {
@@ -136,9 +137,24 @@ class AppContext(val session: AppSession) {
                 currentServerSideType = serverSideType ?: ""
                 currentComponentState = HashMap()
                 applyIncrement(increment)
+                // If the response carried no component for the content slot (e.g. a backend error
+                // with only a message), drop the spinner instead of leaving it stuck on "Loading…".
+                clearStaleLoading(target, loading)
             },
-            onErr = { showError("Navigation failed: ${it.message}") },
+            onErr = {
+                clearStaleLoading(target, loading)
+                showError("Navigation failed: ${it.message}")
+            },
         )
+    }
+
+    /** Removes [loading] from [target] if it is still the only thing there (nothing replaced it). */
+    private fun clearStaleLoading(target: JComponent, loading: JComponent) {
+        if (target.componentCount == 1 && target.getComponent(0) === loading) {
+            target.removeAll()
+            target.revalidate()
+            target.repaint()
+        }
     }
 
     fun runAction(actionId: String, parameters: Map<String, Any?>?) {
@@ -332,7 +348,7 @@ class AppContext(val session: AppSession) {
             if (!data.isNull && !data.isMissingNode) {
                 val key = targetId.ifBlank { "ux_main" }
                 val handler = dataHandlers[key] ?: dataHandlers["crud"]
-                if (handler != null) SwingUtilities.invokeLater { handler(data) }
+                if (handler != null) handler(data)
                 return
             }
             // State-only navigation fragment from a CRUD orchestrator (view/new/save): follow up by
@@ -351,11 +367,11 @@ class AppContext(val session: AppSession) {
         }
 
         if (target == null) return
-        SwingUtilities.invokeLater {
-            val renderer = ComponentRenderer(this)
-            val rendered = renderer.render(component, state, data)
-            fill(target, rendered, add = action.equals("Add", ignoreCase = true))
-        }
+        // Already on the EDT (applyIncrement is invoked from a background() onOk hop), so render
+        // synchronously — this lets navigate() detect afterwards whether the slot was replaced.
+        val renderer = ComponentRenderer(this)
+        val rendered = renderer.render(component, state, data)
+        fill(target, rendered, add = action.equals("Add", ignoreCase = true))
     }
 
     private fun handleCommand(cmd: JsonNode) {
