@@ -34,6 +34,10 @@ class AppContext(val session: AppSession) {
     var currentComponentId: String = "ux_main"
     var currentComponentState: MutableMap<String, Any?> = HashMap()
 
+    /** Fired once, with `isCrud`, when this view's first real content is rendered (host placement hook). */
+    var onFirstContent: ((Boolean) -> Unit)? = null
+    private var firstContentFired = false
+
     // Action ids the currently-loaded server-side component declares (for action bubbling).
     private var currentComponentActions: List<String> = emptyList()
     private var currentComponentValidations: JsonNode? = null
@@ -372,6 +376,24 @@ class AppContext(val session: AppSession) {
         val renderer = ComponentRenderer(this)
         val rendered = renderer.render(component, state, data)
         fill(target, rendered, add = action.equals("Add", ignoreCase = true))
+
+        // First time this view's real content (a Crud/Page/Form, not a bare mediator) lands in its
+        // root slot, tell the host whether it's a Crud — so it can place the listing in the bottom
+        // tool window and everything else (incl. row details) in the central editor.
+        if (!firstContentFired && target === contentPane && containsType(component, REAL_CONTENT)) {
+            firstContentFired = true
+            onFirstContent?.invoke(containsType(component, CRUD_ONLY))
+        }
+    }
+
+    private fun containsType(node: JsonNode, types: Set<String>): Boolean {
+        if (node.isNull || node.isMissingNode) return false
+        if (node.path("metadata").text("type") in types) return true
+        val children = node.path("children")
+        if (children.isArray) for (c in children) if (containsType(c, types)) return true
+        val content = node.path("metadata").path("content")
+        if (content.isObject && containsType(content, types)) return true
+        return false
     }
 
     private fun handleCommand(cmd: JsonNode) {
@@ -527,6 +549,8 @@ class AppContext(val session: AppSession) {
     }
 
     companion object {
+        private val REAL_CONTENT = setOf("Crud", "Page", "Form")
+        private val CRUD_ONLY = setOf("Crud")
         private val COMPARISON: java.util.regex.Pattern =
             java.util.regex.Pattern.compile("state\\['([^']+)'\\]\\s*(>=|<=|==|!=|>|<)\\s*(-?\\d+(?:\\.\\d+)?)")
         private val TRUTHY: java.util.regex.Pattern =

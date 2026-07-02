@@ -50,6 +50,6 @@ kotlin {
 // the "Mateu" tool window (View ▸ Tool Windows ▸ Mateu, or the Mateu menu). The consent flag just
 // skips the data-sharing prompt on a fresh dev sandbox.
 tasks.runIde {
-    // Skip the data-sharing consent prompt on a fresh dev sandbox.
-    jvmArgs("-Djb.consents.confirmation.enabled=false")
+    // Skip the data-sharing consent + trust-project prompts on a fresh dev sandbox.
+    jvmArgs("-Djb.consents.confirmation.enabled=false", "-Didea.trust.all.projects=true")
 }
