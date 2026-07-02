@@ -35,8 +35,9 @@ class AppSession(
     /** Where `SetWindowTitle` goes when there is no [frame] (e.g. the ToolWindow content title). */
     var titleConsumer: ((String) -> Unit)? = null
 
-    /** Set by the tabbed shell so menu entries (and tooling) can open a tab: (label, route, consumedRoute, sst, actionId). */
-    var openTabHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
+    /** Set by the host so menu entries open a view: (label, route, consumedRoute, sst, actionId).
+     *  In the plugin each view opens as its own dockable tool window. */
+    var openViewHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
 
     fun setWindowTitle(title: String) {
         SwingUtilities.invokeLater {

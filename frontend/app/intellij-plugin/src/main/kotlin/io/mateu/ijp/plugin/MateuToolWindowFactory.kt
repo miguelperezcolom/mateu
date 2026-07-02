@@ -10,18 +10,19 @@ import io.mateu.ijp.state.AppSession
 import javax.swing.SwingUtilities
 
 /**
- * Hosts the Mateu renderer inside a **dockable IntelliJ ToolWindow** (the plugin form): the tool
- * window can be docked/moved/floated like any IDE panel, and the whole platform is available (native
- * date pickers, popups, menus, …). The Mateu UI itself — app shell + tabbed workspace — is rendered
- * into the tool window's content by the same framework-agnostic renderers as before.
+ * The main **"Mateu" tool window** — a navigator hosting the app shell's menu. Each menu entry opens
+ * its view in its own dockable tool window ([MateuViewManager]), so views can be docked/floated/split
+ * independently. The whole platform is available (native date pickers, popups, menus, …), and the
+ * same framework-agnostic renderers do the drawing.
  */
 class MateuToolWindowFactory : ToolWindowFactory, DumbAware {
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val cfg = loadMateuConfig()
         val session = AppSession(cfg.baseUrl, cfg.config)
-        val ctx = AppContext(session)
+        session.openViewHandler = MateuViewManager(project, session)::openView
 
+        val ctx = AppContext(session)
         val root = ctx.newSlot()
         ctx.contentPane = root
         // SetWindowTitle → the tool window's title suffix (there is no JFrame here).
@@ -31,6 +32,7 @@ class MateuToolWindowFactory : ToolWindowFactory, DumbAware {
         content.isCloseable = false
         toolWindow.contentManager.addContent(content)
 
+        // Loads the App fragment → renderApp draws the menu navigator into this tool window.
         ctx.initialLoad(cfg.route)
     }
 }

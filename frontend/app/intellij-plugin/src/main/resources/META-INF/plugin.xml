@@ -10,6 +10,7 @@
         <toolWindow id="Mateu" anchor="right" canCloseContents="false"
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
                     icon="AllIcons.Toolwindows.ToolWindowStructure"/>
+        <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
     </extensions>
 
     <actions>

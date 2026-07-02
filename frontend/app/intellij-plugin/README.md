@@ -10,9 +10,12 @@ windows/docking and menus only exist inside a running IDE with a project open.
 
 ## What it provides
 
-- **Tool window "Mateu"** (`MateuToolWindowFactory`, right-anchored, dockable/movable/floatable). Its
-  content is the Mateu app shell — a sidebar menu + a tabbed workspace (`TabbedWorkspace`) where each
-  menu entry opens a closeable tab backed by its own independent `AppContext`.
+- **Navigator tool window "Mateu"** (`MateuToolWindowFactory`, right-anchored, dockable): its content
+  is the app-shell **menu**. Each menu entry opens its view in the **central editor area**.
+- **Per-view editor tabs** (`MateuViewManager` + `MateuFileEditorProvider` + `MateuVirtualFile`): every
+  view opens as a tab in the center, backed by its own independent `AppContext`, so it can be split
+  and dragged out to floating windows like any editor (native editor docking / `DockManager`). Re-
+  selecting a menu entry re-focuses its tab.
 - **Menu**: a top-level *Mateu* menu with *Show Mateu Window* (`ShowMateuAction`).
 - **Native date fields**: `FormFieldRenderer` renders date fields with `org.jdesktop.swingx.JXDatePicker`
   (a formatted field + a real calendar dropdown), bundled in the platform.
@@ -58,5 +61,5 @@ mateu.config={}
 
 ## Next steps
 
-Per-view detachable docking via `DockManager`/`ContentManager` (each Mateu view as a dockable
-Content), richer actions/toolbar, and wiring Mateu actions to IDE notifications.
+Richer actions/toolbar in the Mateu menu, closing a view's cached `MateuVirtualFile` when its editor
+tab is closed, and wiring Mateu messages to IDE notifications.
