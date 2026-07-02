@@ -29,12 +29,19 @@ class AppSession(
         Thread(r, "mateu-net").apply { isDaemon = true }
     }
 
+    /** Optional top-level window (standalone). In the plugin the host is a ToolWindow, so this is null. */
     var frame: JFrame? = null
+
+    /** Where `SetWindowTitle` goes when there is no [frame] (e.g. the ToolWindow content title). */
+    var titleConsumer: ((String) -> Unit)? = null
 
     /** Set by the tabbed shell so menu entries (and tooling) can open a tab: (label, route, consumedRoute, sst, actionId). */
     var openTabHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
 
     fun setWindowTitle(title: String) {
-        SwingUtilities.invokeLater { frame?.title = title }
+        SwingUtilities.invokeLater {
+            frame?.title = title
+            titleConsumer?.invoke(title)
+        }
     }
 }

@@ -1,0 +1,22 @@
+<idea-plugin>
+    <id>io.mateu.ijp.plugin</id>
+    <name>Mateu</name>
+    <vendor>Mateu</vendor>
+    <description>Renders Mateu model-driven Java UIs inside IntelliJ — a dockable tool window, IDE menus, and native platform components (date pickers, popups, tabs).</description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Mateu" anchor="right" canCloseContents="false"
+                    factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
+                    icon="AllIcons.Toolwindows.ToolWindowStructure"/>
+    </extensions>
+
+    <actions>
+        <group id="io.mateu.MateuMenu" text="_Mateu" description="Mateu" popup="true">
+            <add-to-group group-id="MainMenu" anchor="last"/>
+            <action id="io.mateu.ShowMateu" class="io.mateu.ijp.plugin.ShowMateuAction"
+                    text="Show Mateu Window" description="Activate the Mateu tool window"/>
+        </group>
+    </actions>
+</idea-plugin>

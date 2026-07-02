@@ -34,7 +34,7 @@ dependencies {
 
 intellijPlatform {
     pluginConfiguration {
-        name = "Mateu Renderer (spike)"
+        name = "Mateu"
         ideaVersion {
             sinceBuild = "252"
             untilBuild = provider { null }
@@ -46,7 +46,10 @@ kotlin {
     jvmToolchain(21)
 }
 
-// Launch the platform straight into our ApplicationStarter command ("mateu") instead of the IDE UI.
+// `./gradlew runIde` launches the IDE (from the configured platform) with the Mateu plugin — open
+// the "Mateu" tool window (View ▸ Tool Windows ▸ Mateu, or the Mateu menu). The consent flag just
+// skips the data-sharing prompt on a fresh dev sandbox.
 tasks.runIde {
-    args = listOf("mateu")
+    // Skip the data-sharing consent prompt on a fresh dev sandbox.
+    jvmArgs("-Djb.consents.confirmation.enabled=false")
 }
