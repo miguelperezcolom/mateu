@@ -1,5 +1,6 @@
 package io.mateu.compose
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -8,9 +9,10 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import io.mateu.compose.state.AppState
-import io.mateu.compose.ui.MateuApp
+import io.mateu.compose.ui.desktop.MateuAppJewel
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
+import org.jetbrains.jewel.intui.standalone.theme.IntUiTheme
 import java.util.Properties
 
 private data class Config(
@@ -45,14 +47,19 @@ fun main() = application {
     // (same Compose code that a real Android/iOS target would run).
     val mobile = config.windowMode.equals("mobile", ignoreCase = true)
     val title by app.windowTitle
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = if (mobile) "$title (mobile)" else title,
-        state = rememberWindowState(
-            width = if (mobile) 390.dp else 1280.dp,
-            height = if (mobile) 844.dp else 800.dp,
-        ),
-    ) {
-        MateuApp(app, config.route)
+    // Wrap the whole window in Jewel's IntelliJ (Int UI) theme so the desktop renderer draws with
+    // Jewel components. A plain Compose Window is used (not Jewel's DecoratedWindow) because the
+    // latter requires the JetBrains Runtime; Jewel's widgets themselves work in any Window.
+    IntUiTheme(isDark = isSystemInDarkTheme(), swingCompatMode = false) {
+        Window(
+            onCloseRequest = ::exitApplication,
+            title = if (mobile) "$title (mobile)" else title,
+            state = rememberWindowState(
+                width = if (mobile) 390.dp else 1280.dp,
+                height = if (mobile) 844.dp else 800.dp,
+            ),
+        ) {
+            MateuAppJewel(app, config.route)
+        }
     }
 }

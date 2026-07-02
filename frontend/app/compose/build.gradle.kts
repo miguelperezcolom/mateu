@@ -15,6 +15,9 @@ repositories {
     google()
     mavenCentral()
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+    // Jewel's IntelliJ-platform builds (…-243.*) pull JetBrains-forked artifacts
+    // (skiko-awt-runtime-all, kotlinx-coroutines-*-intellij) that live here, not on Maven Central.
+    maven("https://cache-redirector.jetbrains.com/intellij-dependencies")
 }
 
 kotlin {
@@ -50,6 +53,17 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 implementation("io.ktor:ktor-client-cio:3.0.3")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
+
+                // Jewel — IntelliJ (Int UI) look & feel for the desktop renderer. This build (…-243.*)
+                // is compiled against Compose Multiplatform 1.7.3, matching the version used here.
+                // Desktop-only: Jewel is JVM/Compose-Desktop and cannot be used from commonMain
+                // (Android/iOS keep the Material 3 renderers in commonMain).
+                // jewel-ui / jewel-foundation are pulled by jewel-int-ui-standalone only at `runtime`
+                // scope in its POM, so they must be declared explicitly to be on the compile classpath.
+                val jewelVersion = "0.28.0-243.27100"
+                implementation("org.jetbrains.jewel:jewel-int-ui-standalone:$jewelVersion")
+                implementation("org.jetbrains.jewel:jewel-ui:$jewelVersion")
+                implementation("org.jetbrains.jewel:jewel-foundation:$jewelVersion")
             }
         }
         iosMain.dependencies {
