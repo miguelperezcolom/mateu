@@ -13,16 +13,22 @@ repositories {
     }
 }
 
-// Path to a local IntelliJ IDEA (or any IntelliJ-Platform IDE) install used as the platform — no
-// download needed. Override with -Pmateu.idePath=/path or in gradle.properties.
-val idePath = (findProperty("mateu.idePath") as String?) ?: "/home/mperezco/idea-IU-252.28238.7"
+// Platform to build/run against. By default we download IntelliJ IDEA **Community** — it has no
+// remote-dev backend (rdserver), so JBPopupFactory & friends resolve to their normal *local*
+// variants (pure local mode). Override with -Pmateu.idePath=/path to reuse a LOCAL install instead
+// (faster, no download — but Ultimate boots in a remote-dev-aware mode).
+val idePath = findProperty("mateu.idePath") as String?
+val ideVersion = (findProperty("mateu.ideVersion") as String?) ?: "2025.2.5"
 
 dependencies {
     intellijPlatform {
-        // Using an installed IDE gives the full product-modules layout (modules/module-descriptors.dat)
-        // that the loose Maven jars lacked — the whole platform Application boots, so all services
-        // (JBPopupFactory, real L&F, …) are available.
-        local(idePath)
+        // Either way this gives the full product-modules layout (modules/module-descriptors.dat) the
+        // loose Maven jars lacked — the whole platform Application boots, so all services are available.
+        if (idePath != null) {
+            local(idePath)
+        } else {
+            intellijIdeaCommunity(ideVersion)
+        }
     }
 }
 

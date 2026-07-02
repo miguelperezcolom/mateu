@@ -22,21 +22,28 @@ IDE welcome screen.
   closeable tab backed by its own independent `AppContext` (its own route / nav state), like a
   power-user workspace.
 
-## The platform without a download
+## Which platform
 
-The build uses an **already-installed IntelliJ IDEA** as the platform (`local(idePath)` in
-`build.gradle.kts`). An installed IDE carries the full product-modules layout
-(`modules/module-descriptors.dat`) that loose Maven artifacts lack — which is exactly why the full
-Application boots here but not in the lightweight variant.
+By default the build **downloads IntelliJ IDEA Community** (`intellijIdeaCommunity(...)`). Community
+has no remote-dev backend (`rdserver`), so popups/services resolve to their normal **local** variants
+(pure local mode). On the **first** `runIde` it shows the JetBrains End-User Agreement once — accept
+it and it's remembered (standard for any JetBrains-based runtime; an automated/headless run would
+block on that dialog).
 
-Override the install path if yours differs:
+Either platform carries the full product-modules layout (`modules/module-descriptors.dat`) that loose
+Maven artifacts lack — which is why the whole Application boots here but not in the lightweight variant.
+
+To skip the download and the EULA, point at a **local** IntelliJ install instead (e.g. your IDEA
+Ultimate) — no download, no agreement (already accepted), but it boots in a remote-dev-aware mode
+(`JBPopupFactory` is the backend variant; rendering is still local):
 
 ```
 ./gradlew runIde -Pmateu.idePath=/path/to/idea
+# or pick a Community version:  -Pmateu.ideVersion=2025.2.5
 ```
 
 Requires **Gradle 9** (the IntelliJ Platform Gradle Plugin 2.17 needs it — the wrapper is already
-pinned) and a JDK/JBR 21 (the install's own JBR is used at runtime).
+pinned) and JDK/JBR 21 (the platform's own JBR is used at runtime).
 
 ## Configure the backend
 
@@ -63,6 +70,5 @@ workspace (closeable tabs, independent contexts), Page / Form / Crud / Form fiel
 date picker, all rendering **locally** (not a remote-dev backend).
 
 Next: detachable docking via `DockManager`, using platform date-picker/JBPopup components directly,
-and a standalone launch wrapper (a script that runs the install's launcher with the `mateu` command)
-so it starts without Gradle. Note the popup factory resolves to the remote-dev backend variant under
-IntelliJ **Ultimate**; basing on IntelliJ **Community** avoids that.
+and a standalone launch wrapper (a script that runs the platform's launcher with the `mateu` command)
+so it starts without Gradle.
