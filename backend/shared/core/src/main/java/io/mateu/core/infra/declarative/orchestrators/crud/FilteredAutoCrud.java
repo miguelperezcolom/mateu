@@ -5,7 +5,6 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.declarative.AutoNamedView;
 import io.mateu.uidl.data.ListingData;
-import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.*;
@@ -52,26 +51,13 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     };
   }
 
+  @SuppressWarnings("unchecked")
   public ListingData<T> fetchRows(
       String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
-    var all =
-        repository().findAll().stream()
-            .filter(
-                item ->
-                    searchText == null
-                        || searchText.isEmpty()
-                        || (item instanceof Searchable searchable
-                                ? searchable.searchableText()
-                                : item.toString())
-                            .toLowerCase()
-                            .contains(searchText.toLowerCase()))
-            .toList();
-    int pageSize = pageable != null && pageable.size() > 0 ? pageable.size() : all.size();
-    int pageNumber = pageable != null ? pageable.page() : 0;
-    int from = Math.min(pageNumber * pageSize, all.size());
-    int to = Math.min(from + pageSize, all.size());
-    return new ListingData<>(
-        new Page<>("", pageSize, pageNumber, all.size(), all.subList(from, to)));
+    // Filters is the same type as T for FilteredAutoCrud (filtersClass() == entityClass()); cast so
+    // custom repositories can apply field-level filtering. Search + paging live in the repository's
+    // find(...) (in-memory by default, DB-side when overridden).
+    return new ListingData<>(repository().find(searchText, (T) filters, pageable));
   }
 
   public AutoNamedView<T> buildNamedView(String id, HttpRequest httpRequest) {

@@ -42,12 +42,20 @@ class ProductRepository implements CrudRepository<Product> {
     public String save(Product e) { /* persist */ return e.id(); } // gen id if null
     public List<Product> findAll() { /* ... */ }
     public void deleteAllById(List<String> ids) { /* ... */ }
+    // find(searchText, filters, pageable) -> Page<T> is a DEFAULT method:
+    //   in-memory over findAll() (text match + sort + page). Override for DB-side paging.
+    // public Page<Product> find(String text, Product filters, Pageable p) { ... }
 }
 ```
 
 - The entity implements `Identifiable` (`String id()`).
 - `save` returns the id; generate a `UUID.randomUUID().toString()` when it's null/blank.
 - `toString()` is the row label in the list.
+- `find(String searchText, T filters, Pageable pageable)` returns `Page<T>` (which carries
+  `totalElements` — no separate `count` needed). It has a **default** in-memory implementation
+  (filters by `searchText` via `Searchable.searchableText()`/`toString()`, sorts by
+  `pageable.sort()` reflectively, then paginates), so you only implement it to push
+  search/filter/sort/paging to the database. `AutoCrud` calls `find` to fill the listing.
 
 ## Filters
 

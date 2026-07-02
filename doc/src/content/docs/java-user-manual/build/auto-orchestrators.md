@@ -115,13 +115,13 @@ The write operations are simply never invoked for a read-only `AutoCrud`.
 
 | Operation | Behaviour |
 |---|---|
-| `search` | Filters by `toString()` or `Searchable.searchableText()` |
+| `search` | Delegates to `repository().find(searchText, filters, pageable)` → `Page<T>` (default: filters by `Searchable.searchableText()`/`toString()`, sorts by `pageable.sort()`, paginates in memory) |
 | `getView` | Loads entity by id and wraps in `AutoNamedView` |
 | `getEditor` | Same as view — entity fields become editable inputs |
 | `getCreationForm` | Instantiates a new T and wraps in `AutoNamedView` |
 | `deleteAllById` | Delegates to `repository().deleteAllById()` |
 
-For most use cases `repository()` is the only method you need to implement. To customise individual operations (custom search, pre-populated creation forms, etc.) override the protected hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
+For most use cases `repository()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudRepository.find(...)`](/java-ui-definition/interfaces/crud-repository/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override the protected hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
 
 ---
 

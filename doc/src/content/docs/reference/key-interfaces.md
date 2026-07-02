@@ -101,6 +101,7 @@ Typical responsibilities:
 - `save`
 - `findAll`
 - `deleteAllById`
+- `find(searchText, filters, pageable)` — search + filter + sort + paginate, returning `Page<T>`. Has a default in-memory implementation over `findAll()`; override it for database-side paging.
 
 ---
 

@@ -147,6 +147,11 @@ record Product(
 ) implements Identifiable {}
 ```
 
+`CrudRepository<T>` methods: `findById`, `save`, `findAll`, `deleteAllById`, and the **default**
+`Page<T> find(String searchText, T filters, Pageable pageable)` — search + filter + sort + paginate;
+default impl runs in memory over `findAll()` (override for DB-side paging). `Page<T>` carries
+`totalElements`, so no separate `count()` is needed. `AutoCrud` calls `find` to fill the listing.
+
 ---
 
 ## Custom listing

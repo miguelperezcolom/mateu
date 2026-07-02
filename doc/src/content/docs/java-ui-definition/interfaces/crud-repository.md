@@ -21,6 +21,10 @@ public interface CrudRepository<T extends Identifiable> {
     String save(T entity);
     List<T> findAll();
     void deleteAllById(List<String> selectedIds);
+
+    // Search + filter + sort + paginate. Ships with a default in-memory
+    // implementation (over findAll()); override it to push everything to the DB.
+    Page<T> find(String searchText, T filters, Pageable pageable);
 }
 ```
 
@@ -32,6 +36,7 @@ public interface CrudRepository<T extends Identifiable> {
 | `save(entity)` | Persist the entity and return its ID |
 | `findAll()` | Return all entities for the listing view |
 | `deleteAllById(ids)` | Delete every entity whose ID appears in the list |
+| `find(searchText, filters, pageable)` | Search, filter, sort and paginate in one call, returning a [`Page<T>`](#the-find-method). **Has a default** implementation (in-memory over `findAll()`), so you only override it for DB-side paging. |
 
 ## Full example
 
@@ -144,37 +149,58 @@ The adapter decouples Mateu's API from Spring Data so the rest of your code is n
 
 ---
 
-## Filtering in findAll vs custom search
+## The `find` method
 
-`CrudRepository.findAll()` returns all rows, and `AutoCrud` applies search text filtering in memory. This is fine for small datasets. For large tables, override `fetchRows()` directly in your `AutoCrud` subclass to push filtering to the database:
+`find(searchText, filters, pageable)` is the single entry point `AutoCrud` uses to populate the listing view. It returns a `Page<T>`:
+
+```java
+public record Page<T>(
+    String searchSignature, int pageSize, int pageNumber, long totalElements, List<T> content) {}
+```
+
+The `Page` already carries `totalElements`, so **no separate `count` method is needed** — a DB-backed implementation is expected to run both the count and the page query inside `find` and return them together.
+
+### Default (in-memory) behaviour
+
+You get a working `find` for free. The default implementation:
+
+1. loads `findAll()`,
+2. keeps rows whose text contains `searchText` — using `Searchable.searchableText()` when the entity implements [`Searchable`](/java-ui-definition/interfaces/searchable/), otherwise `toString()`,
+3. sorts by `pageable.sort()` (each `Sort` field is read reflectively via getter / record accessor / field), and
+4. slices out the requested page.
+
+The `filters` argument is **ignored** by the default — override `find` to apply field-level filtering. This is fine for small/medium datasets; everything happens in memory.
+
+### Overriding for database-side paging
+
+For large tables, override `find` so the search, filtering, sorting and pagination all run in the database. Because `Page` carries `totalElements`, you run a count query plus a paged query:
 
 ```java
 @Service
-@UI("/products")
-public class Products extends AutoCrud<Product> {
+public class ProductRepository implements CrudRepository<Product> {
 
     private final ProductJpaRepository jpa;
-    private final ProductRepository productRepository;
 
-    public Products(ProductJpaRepository jpa, ProductRepository productRepository) {
+    public ProductRepository(ProductJpaRepository jpa) {
         this.jpa = jpa;
-        this.productRepository = productRepository;
     }
 
-    @Override
-    public CrudRepository<Product> repository() {
-        return productRepository; // used for save/delete/view
-    }
+    // findById / save / findAll / deleteAllById as usual …
 
     @Override
-    public ListingData<Product> fetchRows(
-            String searchText, Product filters,
-            Pageable pageable, HttpRequest httpRequest) {
-        return ListingData.of(jpa.findByNameContainingIgnoreCase(
-            searchText != null ? searchText : ""));
+    public Page<Product> find(String searchText, Product filters, Pageable pageable) {
+        var springPageable = org.springframework.data.domain.PageRequest.of(
+            pageable.page(), pageable.size(), toSpringSort(pageable.sort()));
+        var result = jpa.findByNameContainingIgnoreCase(
+            searchText != null ? searchText : "", springPageable);
+        return new Page<>(
+            searchText, result.getSize(), result.getNumber(),
+            result.getTotalElements(), result.getContent());
     }
 }
 ```
+
+`AutoCrud` delegates to `find` automatically, so a repository that overrides it gets DB-side paging with no extra wiring. If you need access to the `HttpRequest` (e.g. tenant scoping), override `fetchRows(searchText, filters, pageable, httpRequest)` on the `AutoCrud` subclass instead — it wraps `repository().find(...)` by default.
 
 ---
 

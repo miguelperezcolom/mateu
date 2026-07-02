@@ -520,6 +520,25 @@ record Product(
 ) implements Identifiable {}
 ```
 
+### Repository — `CrudRepository<T>`
+```java
+class ProductRepository implements CrudRepository<Product> {
+    public Optional<Product> findById(String id) { /* ... */ }
+    public String save(Product e) { /* persist */ return e.id(); }
+    public List<Product> findAll() { /* ... */ }
+    public void deleteAllById(List<String> ids) { /* ... */ }
+
+    // DEFAULT method: search + filter + sort + paginate -> Page<T>.
+    // Default impl filters findAll() by searchText (Searchable/toString),
+    // sorts by pageable.sort(), paginates in memory. Override for DB-side paging.
+    // Page<T> carries totalElements, so no separate count() is needed.
+    // public Page<Product> find(String searchText, Product filters, Pageable pageable) { ... }
+}
+```
+`AutoCrud` calls `repository().find(...)` to fill the listing. `Page<T>` =
+`(String searchSignature, int pageSize, int pageNumber, long totalElements, List<T> content)`;
+`Pageable` = `(int page, int size, List<Sort> sort)`, `Sort` = `(String field, Direction direction)`.
+
 ### Custom listing with search
 ```java
 @UI("/orders")
