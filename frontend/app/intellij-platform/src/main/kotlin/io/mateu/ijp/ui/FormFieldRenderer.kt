@@ -12,13 +12,20 @@ import io.mateu.ijp.api.arr
 import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
+import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.time.LocalDate
 import javax.swing.DefaultComboBoxModel
+import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
+import javax.swing.text.DocumentFilter
 
 private val BOOL_TYPES = setOf("bool", "boolean", "Boolean")
 private val DATE_TYPES = setOf("date", "LocalDate")
@@ -116,23 +123,73 @@ private fun textArea(ctx: AppContext, fieldId: String, initial: String, enabled:
 }
 
 private fun dateField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean): JComponent {
-    // No date picker in the JB component set for this subset — a plain text field with an ISO hint.
     val tf = JBTextField(initial)
     tf.isEnabled = enabled
     tf.emptyText.text = "YYYY-MM-DD"
-    tf.onTextChange { ctx.currentComponentState[fieldId] = tf.text }
-    return tf
+    val validFg = tf.foreground
+    fun commit() {
+        val t = tf.text.trim()
+        if (t.isEmpty() || parseIsoDate(t) != null) {
+            tf.foreground = validFg
+            ctx.currentComponentState[fieldId] = t
+        } else {
+            // Typed text isn't a valid ISO date — flag it and don't push a bad value to the server.
+            tf.foreground = Color(0xC9, 0x19, 0x0B)
+        }
+    }
+    tf.onTextChange { commit() }
+
+    val calendarButton = JButton("📅").apply { // 📅
+        isEnabled = enabled
+        margin = JBUI.insets(0, 6)
+        toolTipText = "Pick a date"
+        addActionListener {
+            openCalendarPopup(this, parseIsoDate(tf.text.trim())) { picked ->
+                tf.text = picked.toString() // fires commit() via the document listener
+            }
+        }
+    }
+
+    return JPanel(BorderLayout(JBUI.scale(4), 0)).apply {
+        isOpaque = false
+        add(tf, BorderLayout.CENTER)
+        add(calendarButton, BorderLayout.EAST)
+    }
 }
+
+private fun parseIsoDate(s: String): LocalDate? =
+    if (s.isEmpty()) null else runCatching { LocalDate.parse(s) }.getOrNull()
 
 private fun numberField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean, integer: Boolean): JComponent {
     val tf = JBTextField(initial)
     tf.isEnabled = enabled
+    // Reject non-numeric keystrokes outright so letters can't be typed into a numeric field.
+    (tf.document as AbstractDocument).documentFilter = NumericDocumentFilter(integer)
     tf.onTextChange {
         val raw = tf.text
         if (integer) raw.toIntOrNull()?.let { ctx.currentComponentState[fieldId] = it }
         else raw.replace(',', '.').toDoubleOrNull()?.let { ctx.currentComponentState[fieldId] = it }
     }
     return tf
+}
+
+/** Only lets the text stay a (possibly partial) number: optional leading `-`, digits, one decimal sep. */
+private class NumericDocumentFilter(private val integer: Boolean) : DocumentFilter() {
+    private val pattern = if (integer) Regex("-?\\d*") else Regex("-?\\d*([.,]\\d*)?")
+    private fun allows(proposed: String) = pattern.matches(proposed)
+
+    override fun insertString(fb: FilterBypass, offset: Int, string: String, attr: AttributeSet?) {
+        val cur = fb.document.getText(0, fb.document.length)
+        if (allows(cur.substring(0, offset) + string + cur.substring(offset))) {
+            super.insertString(fb, offset, string, attr)
+        }
+    }
+
+    override fun replace(fb: FilterBypass, offset: Int, length: Int, text: String?, attrs: AttributeSet?) {
+        val cur = fb.document.getText(0, fb.document.length)
+        val proposed = cur.substring(0, offset) + (text ?: "") + cur.substring(offset + length)
+        if (allows(proposed)) super.replace(fb, offset, length, text, attrs)
+    }
 }
 
 private fun optionsCombo(ctx: AppContext, fieldId: String, options: List<JsonNode>, value: String, enabled: Boolean): JComponent {
