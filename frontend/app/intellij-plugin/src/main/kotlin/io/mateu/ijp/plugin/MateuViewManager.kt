@@ -38,7 +38,13 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         val panel = ctx.newSlot()
         ctx.contentPane = panel
         ctx.onFirstContent = { isCrud ->
-            focusByKey[key] = if (isCrud && !preferEditor) placeCrudList(panel, title) else placeEditor(panel, title)
+            focusByKey[key] = if (isCrud && !preferEditor) {
+                // Row detail / New / Edit navigations from this listing open in a central editor tab.
+                ctx.detailOpener = { dLabel, dRoute, dConsumed, dSst -> openDetail(dLabel, dRoute, dConsumed, dSst, null) }
+                placeCrudList(panel, title)
+            } else {
+                placeEditor(panel, title)
+            }
         }
         ctx.navigate(route, consumedRoute, serverSideType, actionId)
     }

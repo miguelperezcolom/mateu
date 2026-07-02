@@ -38,6 +38,13 @@ class AppContext(val session: AppSession) {
     var onFirstContent: ((Boolean) -> Unit)? = null
     private var firstContentFired = false
 
+    /**
+     * When set (on a CRUD listing context), a row-detail / new / edit navigation opens in a NEW
+     * editor tab through this opener instead of re-rendering this context's slot in place — so the
+     * listing stays put in the bottom tool window. Args: (label, route, consumedRoute, serverSideType).
+     */
+    var detailOpener: ((String, String, String, String) -> Unit)? = null
+
     /** When true, load/action failures are logged instead of shown in a dialog (used by embedded islands). */
     var silentErrors = false
 
@@ -364,14 +371,29 @@ class AppContext(val session: AppSession) {
             // State-only navigation fragment from a CRUD orchestrator (view/new/save): follow up by
             // loading the resolved full route (desktop stand-in for the web's history navigation).
             if (state.isObject && state.has("_route") && state.has("_componentRoute")) {
-                val compRoute = state.text("_componentRoute")
-                val fullRoute = compRoute + state.text("_route")
-                val sst = if (orchestratorServerSideType.isNotBlank() && orchestratorComponentRoute == compRoute) {
+                val stateComp = state.text("_componentRoute")
+                // The mediator emits a route RELATIVE to its component route; when it doesn't repeat
+                // that prefix (`_componentRoute` == ""), fall back to this context's consumed route
+                // (e.g. "/products") — otherwise the route would be a bare "/0130" that resolves to
+                // nothing (or back to the listing).
+                val base = stateComp.ifBlank { currentConsumedRoute }
+                val routeSuffix = state.text("_route")
+                val fullRoute = base + routeSuffix
+                val sst = if (orchestratorServerSideType.isNotBlank() && orchestratorComponentRoute == stateComp) {
                     orchestratorServerSideType
                 } else {
                     currentServerSideType
                 }
-                SwingUtilities.invokeLater { navigate(fullRoute, compRoute, sst, "") }
+                val opener = detailOpener
+                val isDetail = routeSuffix.isNotBlank() && fullRoute != base
+                if (opener != null && isDetail) {
+                    // CRUD list → detail/new/edit: open in a central editor tab; the listing stays
+                    // in the bottom tool window untouched.
+                    val label = detailLabel(routeSuffix)
+                    SwingUtilities.invokeLater { opener(label, fullRoute, base, sst) }
+                } else {
+                    SwingUtilities.invokeLater { navigate(fullRoute, base, sst, "") }
+                }
             }
             return
         }
@@ -542,6 +564,16 @@ class AppContext(val session: AppSession) {
     }
 
     // ── misc ─────────────────────────────────────────────────────────────────────────
+    /** A short tab title for a CRUD detail route suffix, e.g. "/0130" → "0130", "/new" → "New". */
+    private fun detailLabel(routeSuffix: String): String {
+        val seg = routeSuffix.trim('/').substringAfterLast('/')
+        return when {
+            seg.isBlank() -> "Detail"
+            seg.equals("new", ignoreCase = true) -> "New"
+            else -> seg
+        }
+    }
+
     private fun loadingLabel(): JComponent = JLabel("Loading…")
 
     private fun background(work: () -> JsonNode, onOk: (JsonNode) -> Unit, onErr: (Throwable) -> Unit) {

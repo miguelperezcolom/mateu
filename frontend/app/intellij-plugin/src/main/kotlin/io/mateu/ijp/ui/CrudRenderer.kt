@@ -11,20 +11,32 @@ import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.displayString
 import io.mateu.ijp.api.text
 import java.awt.BorderLayout
+import java.awt.Color
+import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.Font
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.util.EventObject
+import javax.swing.AbstractCellEditor
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
+import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.TableCellEditor
+import javax.swing.table.TableCellRenderer
 
 /**
  * Crud — port of the JavaFX `CrudRenderer`. A [JBTable] whose columns come from `metadata.columns`
- * and whose rows come from the data fragment (`data.content[]`). Toolbar, search bar and a
- * pagination bar drive `search`/`prevPage`/`nextPage`; a double-click on a row opens its detail/edit
- * view. Search results arrive as a data-only fragment routed to the `"crud"` data handler.
+ * and whose rows come from the data fragment (`data.content[]`). Each column renders per its
+ * `dataType`: `status` → a coloured badge, `actionGroup`/`menu`/`action` → row-action buttons, a
+ * column carrying an `actionId` → a link, everything else → plain text. A double-click on a row
+ * dispatches the row link action (e.g. `view`) which — on a listing hosted in the bottom tool window
+ * — opens the detail in a central editor tab (see `AppContext.detailOpener`). Toolbar, search bar and
+ * a pagination bar drive the usual `search`/`prevPage`/`nextPage` actions.
  */
 fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val ctx = r.ctx
@@ -49,29 +61,62 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     if (toolbar.isNotEmpty()) header.addStacked(buttonRow(r, toolbar), 4)
     panel.add(header, BorderLayout.NORTH)
 
-    // ── columns + table ──
-    val columns = metadata.arr("columns")
-    val colIds = columns.map { it.path("metadata").text("id", it.text("id")) }
-    val headers = columns.map { c ->
-        c.path("metadata").text("label", c.path("metadata").text("id", c.text("id")))
+    // ── column specs ──
+    val specs = metadata.arr("columns").map { col ->
+        val cm = col.path("metadata")
+        val id = cm.text("id", col.text("id"))
+        val label = cm.text("label", id)
+        val dataType = cm.text("dataType")
+        val actionId = cm.text("actionId")
+        val text = cm.text("text")
+        val kind = when {
+            dataType == "status" -> ColKind.STATUS
+            dataType == "actionGroup" || dataType == "menu" || dataType == "action" -> ColKind.ACTIONS
+            actionId.isNotBlank() -> ColKind.LINK
+            else -> ColKind.TEXT
+        }
+        ColSpec(id, label, kind, dataType, actionId, text)
     }
-    val model = CrudTableModel(colIds, headers)
+    // The action id used to open a row's detail: the first link column (e.g. the id column's "view").
+    val rowLinkActionId = specs.firstOrNull { it.kind == ColKind.LINK }?.actionId ?: ""
+
+    val model = CrudTableModel(specs)
     val table = JBTable(model)
     table.setShowGrid(true)
+    table.rowHeight = JBUI.scale(30)
 
-    val detailPath = metadata.text("detailPath")
+    // Per-column renderers + interactive editor for action columns.
+    for ((i, spec) in specs.withIndex()) {
+        val column = table.columnModel.getColumn(i)
+        when (spec.kind) {
+            ColKind.STATUS -> column.cellRenderer = StatusCellRenderer()
+            ColKind.LINK -> column.cellRenderer = LinkCellRenderer(spec.text)
+            ColKind.ACTIONS -> {
+                column.cellRenderer = ActionsCellRenderer(spec)
+                column.cellEditor = ActionsCellEditor(spec, model) { method, row ->
+                    ctx.runAction("action-on-row-$method", mapOf("_clickedRow" to row))
+                }
+                column.minWidth = JBUI.scale(220)
+                column.preferredWidth = JBUI.scale(260)
+            }
+            ColKind.TEXT -> column.cellRenderer = NodeTextRenderer()
+        }
+    }
+
+    // Double-click a row → open its detail via the row link action (e.g. "view"), passing the whole
+    // row as parameters (matching the JavaFX renderer). Skipped over the action column, whose own
+    // buttons handle their clicks.
     table.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
-            if (e.clickCount < 2) return
-            val viewRow = table.selectedRow
+            if (e.clickCount < 2 || rowLinkActionId.isBlank()) return
+            val viewRow = table.rowAtPoint(e.point)
+            val viewCol = table.columnAtPoint(e.point)
             if (viewRow < 0) return
+            if (viewCol in specs.indices && specs[viewCol].kind == ColKind.ACTIONS) return
             val row = model.rowAt(table.convertRowIndexToModel(viewRow)) ?: return
-            val rowId = extractRowId(row) ?: return
-            val base = detailPath.ifBlank { ctx.currentRoute }
-            // Open the detail as a central editor tab (openDetail forces the editor even when the
-            // detail form embeds grids). Resolve it by route path (no serverSideType) — passing the
-            // list's serverSideType would re-resolve to the listing, not the row's detail.
-            ctx.session.openDetailHandler?.invoke(rowId, "$base/$rowId", "", null, "")
+            @Suppress("UNCHECKED_CAST")
+            val params = ctx.mapper.convertValue(row, Map::class.java) as Map<String, Any?>
+            ctx.runAction(rowLinkActionId, params)
         }
     })
 
@@ -129,6 +174,17 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     return panel
 }
 
+private enum class ColKind { TEXT, STATUS, LINK, ACTIONS }
+
+private data class ColSpec(
+    val id: String,
+    val label: String,
+    val kind: ColKind,
+    val dataType: String,
+    val actionId: String,
+    val text: String,
+)
+
 private fun extractRows(node: JsonNode): List<JsonNode> {
     val content = node.path("content")
     return when {
@@ -138,19 +194,127 @@ private fun extractRows(node: JsonNode): List<JsonNode> {
     }
 }
 
-private fun extractRowId(row: JsonNode): String? {
-    for (key in listOf("id", "_id", "key", "uuid")) {
-        val v = row.path(key)
-        if (!v.isMissingNode && !v.isNull) return v.asText()
-    }
-    return null
+// ── cell renderers ─────────────────────────────────────────────────────────────────────
+
+/** Plain text: unwraps `{message}`/`{value}` objects via [displayString]. */
+private class NodeTextRenderer : DefaultTableCellRenderer() {
+    override fun getTableCellRendererComponent(
+        table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
+    ): Component = super.getTableCellRendererComponent(
+        table, (value as? JsonNode).displayString(), isSelected, hasFocus, row, column,
+    )
 }
 
-/** JTable model backed by a live list of row [JsonNode]s; cells read `row[colId]` as display text. */
-private class CrudTableModel(
-    private val colIds: List<String>,
-    private val headers: List<String>,
-) : AbstractTableModel() {
+/** Link-styled cell (an identifier column with an `actionId`); the row double-click opens it. */
+private class LinkCellRenderer(private val fixedText: String) : DefaultTableCellRenderer() {
+    override fun getTableCellRendererComponent(
+        table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
+    ): Component {
+        val node = value as? JsonNode
+        val cellText = fixedText.ifBlank { node.displayString() }
+        val c = super.getTableCellRendererComponent(table, cellText, isSelected, hasFocus, row, column) as JLabel
+        if (!isSelected) c.foreground = JBUI.CurrentTheme.Link.Foreground.ENABLED
+        return c
+    }
+}
+
+/** Status column: renders the `{type,message,value}` object as a coloured badge. */
+private class StatusCellRenderer : TableCellRenderer {
+    override fun getTableCellRendererComponent(
+        table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
+    ): Component {
+        val wrapper = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), JBUI.scale(2)))
+        wrapper.background = if (isSelected) table.selectionBackground else table.background
+        val node = value as? JsonNode
+        if (node != null && !node.isNull && !node.isMissingNode) {
+            val text = node.displayString()
+            val type = if (node.isObject) node.text("type") else ""
+            if (text.isNotBlank()) wrapper.add(statusBadge(text, type))
+        }
+        return wrapper
+    }
+}
+
+private fun statusBadge(text: String, type: String): JComponent {
+    val badge = JLabel(text)
+    badge.isOpaque = true
+    badge.foreground = Color.WHITE
+    badge.background = statusColor(type)
+    badge.border = JBUI.Borders.empty(1, 8)
+    return badge
+}
+
+private fun statusColor(type: String): Color = when (type.uppercase()) {
+    "SUCCESS", "OK", "DONE" -> Color(0x3E, 0x86, 0x35)
+    "ERROR", "DANGER", "KO" -> Color(0xC9, 0x19, 0x0B)
+    "WARNING", "WARN", "PENDING" -> Color(0xF0, 0xAB, 0x00)
+    "INFO" -> Color(0x2B, 0x9A, 0xF3)
+    else -> Color(0x6A, 0x6E, 0x73)
+}
+
+/** Row-action column: one button per action ({@code actionGroup}/{@code menu}/{@code action}). */
+private class ActionsCellRenderer(private val spec: ColSpec) : TableCellRenderer {
+    override fun getTableCellRendererComponent(
+        table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
+    ): Component {
+        val panel = buildActionPanel(value as? JsonNode, spec.dataType, null)
+        panel.background = if (isSelected) table.selectionBackground else table.background
+        panel.isOpaque = true
+        return panel
+    }
+}
+
+/** Interactive editor for the action column so its buttons receive clicks and dispatch. */
+private class ActionsCellEditor(
+    private val spec: ColSpec,
+    private val model: CrudTableModel,
+    private val dispatch: (String, JsonNode) -> Unit,
+) : AbstractCellEditor(), TableCellEditor {
+    override fun getCellEditorValue(): Any? = null
+    override fun isCellEditable(e: EventObject?): Boolean = true
+    override fun getTableCellEditorComponent(
+        table: JTable, value: Any?, isSelected: Boolean, row: Int, column: Int,
+    ): Component {
+        val rowNode = model.rowAt(table.convertRowIndexToModel(row))
+        val panel = buildActionPanel(value as? JsonNode, spec.dataType) { method ->
+            if (rowNode != null) dispatch(method, rowNode)
+            fireEditingStopped()
+        }
+        panel.background = table.selectionBackground
+        panel.isOpaque = true
+        return panel
+    }
+}
+
+private fun collectActions(fieldNode: JsonNode?, dataType: String): List<JsonNode> {
+    if (fieldNode == null || fieldNode.isNull || fieldNode.isMissingNode) return emptyList()
+    return if (dataType == "action") {
+        if (fieldNode.has("methodNameInCrud")) listOf(fieldNode) else emptyList()
+    } else {
+        fieldNode.path("actions").let { if (it.isArray) it.toList() else emptyList() }
+    }
+}
+
+private fun buildActionPanel(fieldNode: JsonNode?, dataType: String, onClick: ((String) -> Unit)?): JPanel {
+    val panel = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), JBUI.scale(1)))
+    for (a in collectActions(fieldNode, dataType)) {
+        val method = a.text("methodNameInCrud")
+        val label = a.text("label", method)
+        if (label.isBlank() && a.text("icon").isBlank()) continue
+        val b = JButton(label)
+        b.isEnabled = !a.bool("disabled")
+        onClick?.let { cb -> b.addActionListener { cb(method) } }
+        panel.add(b)
+    }
+    return panel
+}
+
+/**
+ * JTable model backed by a live list of row [JsonNode]s. Each cell returns the row's field node
+ * (`row[colId]`) so the per-column renderers/editor can inspect its shape (status object, action
+ * group, …). Only action columns are editable (so their buttons receive clicks).
+ */
+private class CrudTableModel(private val specs: List<ColSpec>) : AbstractTableModel() {
     private val rows = ArrayList<JsonNode>()
 
     fun setRows(newRows: List<JsonNode>) {
@@ -162,11 +326,12 @@ private class CrudTableModel(
     fun rowAt(index: Int): JsonNode? = rows.getOrNull(index)
 
     override fun getRowCount(): Int = rows.size
-    override fun getColumnCount(): Int = colIds.size
-    override fun getColumnName(column: Int): String = headers.getOrElse(column) { "" }
-    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
-    override fun getValueAt(rowIndex: Int, columnIndex: Int): Any {
-        val row = rows.getOrNull(rowIndex) ?: return ""
-        return row.path(colIds[columnIndex]).displayString()
+    override fun getColumnCount(): Int = specs.size
+    override fun getColumnName(column: Int): String = specs.getOrNull(column)?.label ?: ""
+    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean =
+        specs.getOrNull(columnIndex)?.kind == ColKind.ACTIONS
+    override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
+        val row = rows.getOrNull(rowIndex) ?: return null
+        return row.path(specs[columnIndex].id)
     }
 }
