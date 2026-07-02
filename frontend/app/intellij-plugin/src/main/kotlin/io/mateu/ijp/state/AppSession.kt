@@ -35,9 +35,13 @@ class AppSession(
     /** Where `SetWindowTitle` goes when there is no [frame] (e.g. the ToolWindow content title). */
     var titleConsumer: ((String) -> Unit)? = null
 
-    /** Set by the host so menu entries open a view: (label, route, consumedRoute, sst, actionId).
-     *  In the plugin each view opens as its own dockable tool window. */
+    /** Set by the host so **menu entries** open a view: (label, route, consumedRoute, sst, actionId).
+     *  A Crud listing is placed in the bottom tool window; anything else in a central editor tab. */
     var openViewHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
+
+    /** Like [openViewHandler] but for a **row detail** — always opens in a central editor tab, even
+     *  when the detail form contains nested grids (which would otherwise look like a Crud listing). */
+    var openDetailHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
 
     fun setWindowTitle(title: String) {
         SwingUtilities.invokeLater {

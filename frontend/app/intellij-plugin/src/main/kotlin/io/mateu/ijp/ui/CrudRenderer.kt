@@ -68,8 +68,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             val row = model.rowAt(table.convertRowIndexToModel(viewRow)) ?: return
             val rowId = extractRowId(row) ?: return
             val base = detailPath.ifBlank { ctx.currentRoute }
-            // Open the detail as its own view (a central editor tab) instead of replacing the list.
-            ctx.session.openViewHandler?.invoke(rowId, "$base/$rowId", "", ctx.currentServerSideType, "")
+            // Open the detail as a central editor tab (openDetail forces the editor even when the
+            // detail form embeds grids) instead of replacing the list.
+            ctx.session.openDetailHandler?.invoke(rowId, "$base/$rowId", "", ctx.currentServerSideType, "")
         }
     })
 

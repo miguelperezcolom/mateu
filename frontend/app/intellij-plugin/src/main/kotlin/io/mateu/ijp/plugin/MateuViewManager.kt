@@ -21,7 +21,15 @@ class MateuViewManager(private val project: Project, private val session: AppSes
     // key ("sst::route") → a function that re-focuses the already-open view.
     private val focusByKey = HashMap<String, () -> Unit>()
 
-    fun openView(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) {
+    /** Menu entry → view (Crud listing to the bottom tool window, everything else to an editor tab). */
+    fun openView(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) =
+        open(label, route, consumedRoute, serverSideType, actionId, preferEditor = false)
+
+    /** Row detail → always a central editor tab (even if the form embeds grids). */
+    fun openDetail(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) =
+        open(label, route, consumedRoute, serverSideType, actionId, preferEditor = true)
+
+    private fun open(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?, preferEditor: Boolean) {
         val key = "${serverSideType.orEmpty()}::${route.orEmpty()}"
         focusByKey[key]?.let { it(); return }
 
@@ -30,7 +38,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         val panel = ctx.newSlot()
         ctx.contentPane = panel
         ctx.onFirstContent = { isCrud ->
-            focusByKey[key] = if (isCrud) placeCrudList(panel, title) else placeEditor(panel, title)
+            focusByKey[key] = if (isCrud && !preferEditor) placeCrudList(panel, title) else placeEditor(panel, title)
         }
         ctx.navigate(route, consumedRoute, serverSideType, actionId)
     }

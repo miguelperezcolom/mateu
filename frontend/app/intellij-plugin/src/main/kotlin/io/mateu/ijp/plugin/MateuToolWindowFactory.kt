@@ -20,7 +20,9 @@ class MateuToolWindowFactory : ToolWindowFactory, DumbAware {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val cfg = loadMateuConfig()
         val session = AppSession(cfg.baseUrl, cfg.config)
-        session.openViewHandler = MateuViewManager(project, session)::openView
+        val viewManager = MateuViewManager(project, session)
+        session.openViewHandler = viewManager::openView
+        session.openDetailHandler = viewManager::openDetail
 
         val ctx = AppContext(session)
         val root = ctx.newSlot()
