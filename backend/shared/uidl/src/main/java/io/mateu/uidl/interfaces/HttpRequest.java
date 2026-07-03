@@ -6,6 +6,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Framework-agnostic abstraction over the incoming HTTP request that Mateu injects into any action
+ * or supplier method that declares it as a parameter. It exposes the request path ({@link #path()},
+ * {@link #lastPathItem()}), query parameters, headers and attributes, plus typed accessors over the
+ * submitted component state and action parameters — e.g. {@link #getSelectedRows(Class)}, {@link
+ * #getClickedRow(Class)}, {@link #getParameters(Class)}, {@link #getComponentState(Class)} and
+ * {@link #getInitiatorState(Class)} — each of which reconstructs a strongly-typed object from the
+ * request payload.
+ */
 public interface HttpRequest {
 
   default String getBaseUrl() {

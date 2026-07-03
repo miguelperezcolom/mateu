@@ -11,6 +11,16 @@ import java.util.Map;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+/**
+ * Reactive (Project Reactor) counterpart of {@link ListingBackend} for non-blocking listings.
+ * Implement {@link #search(String, Object, Pageable, HttpRequest)} to return a {@link Mono} of a
+ * {@link ListingData} page of {@code Row} objects for the given {@code searchText}, {@code Filters}
+ * and {@link Pageable}; the default {@link #handleAction} wires the {@code "search"} action to it.
+ * Override {@link #selectionEnabled()} to allow row selection.
+ *
+ * @param <Filters> the type carrying the listing's filter fields
+ * @param <Row> the type of each row in the listing
+ */
 public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
 
   @Override

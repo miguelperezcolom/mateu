@@ -5,6 +5,14 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Matches an incoming request route against a set of compiled route patterns and resolves it to the
+ * class to render. Implement {@link #supportedRoutesPatterns()} to declare the {@link
+ * CompiledRouteValue} patterns this resolver handles and {@link #resolveRoute(String, String,
+ * HttpRequest)} to produce the target class; the default {@link #matchingPattern}, {@link
+ * #supportsRoute} and {@link #weight} methods select the best-matching (longest) pattern honouring
+ * the parent (already-consumed) route.
+ */
 public interface RouteResolver {
 
   default boolean supportsRoute(String route, String consumedRoute) {

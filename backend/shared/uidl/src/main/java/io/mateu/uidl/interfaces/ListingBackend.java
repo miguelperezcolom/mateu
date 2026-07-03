@@ -14,6 +14,18 @@ import io.mateu.uidl.fluent.GridLayout;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Backend contract for a searchable, paginated, sortable listing (the data source behind a Mateu
+ * grid/CRUD listing). Implement {@link #search(String, Object, Pageable, HttpRequest)} to return a
+ * {@link ListingData} page of {@code Row} objects for the given free-text {@code searchText},
+ * strongly-typed {@code Filters}, and {@link Pageable} (page/size/sort). The default {@link
+ * #handleAction} wires the {@code "search"} action (and {@code action-on-row-*} row actions) to
+ * your {@code search}, so implementers normally only provide {@code search}; override {@link
+ * #selectionEnabled()} to allow row selection and {@link #gridLayout()} to force a grid layout.
+ *
+ * @param <Filters> the type carrying the listing's filter fields
+ * @param <Row> the type of each row in the listing
+ */
 public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSupplier {
 
   @Override

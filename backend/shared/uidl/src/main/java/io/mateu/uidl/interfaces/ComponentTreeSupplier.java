@@ -3,6 +3,13 @@ package io.mateu.uidl.interfaces;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.fluent.Component;
 
+/**
+ * Implemented by a class that builds its own UI as a fluent {@link Component} tree instead of being
+ * reflected from annotated fields. {@link #component(HttpRequest)} returns the root component;
+ * {@link #id()}, {@link #serverSideType()}, {@link #style()} and {@link #cssClasses()} provide the
+ * component identity and container styling (the {@code serverSideType} is what routes state back on
+ * actions).
+ */
 public interface ComponentTreeSupplier extends Component {
 
   default String id() {

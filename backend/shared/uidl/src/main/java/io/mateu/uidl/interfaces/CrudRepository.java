@@ -9,6 +9,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * The persistence port an {@code AutoCrud} uses to load, save, list and delete its entities.
+ * Implement it inline or as a bean and return it from {@code AutoCrud.repository()}. The core CRUD
+ * operations are {@link #findById(String)}, {@link #save(Object)}, {@link #findAll()} and {@link
+ * #deleteAllById(List)}; {@link #find(String, Identifiable, Pageable)} is the single
+ * search+filter+sort+paginate entry point that fills the listing — it defaults to filtering {@code
+ * findAll()} in memory, so override it to push the work to the database.
+ *
+ * @param <T> the entity type, which must be {@link Identifiable}
+ */
 public interface CrudRepository<T extends Identifiable> {
   Optional<T> findById(String id);
 
