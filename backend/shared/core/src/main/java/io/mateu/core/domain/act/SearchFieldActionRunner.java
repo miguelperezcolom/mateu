@@ -37,13 +37,16 @@ public class SearchFieldActionRunner implements ActionRunner {
     var actionId = command.actionId();
     if (actionId.startsWith("search-")) {
       var httpRequest = command.httpRequest();
-      // search-field-childfield
-      String fieldName = actionId.substring(actionId.indexOf('-') + 1);
+      // search-field-childfield (nested/inline grid) or search-field (plain @Lookup field).
+      String fieldName = actionId.substring("search-".length());
       LookupOptionsSupplier optionsSupplier = null;
       Lookup fkAnnotation = null;
       if (fieldName.contains("-")) {
-        var parentFieldName = fieldName.substring(0, fieldName.indexOf('-'));
-        var childFieldName = fieldName.substring(fieldName.indexOf('-') + 1);
+        // The child (column) is always a bare Java identifier with no dash, so split on the LAST
+        // dash: this keeps the parse correct even when the parent grid field id carries a prefix
+        // that itself contains dashes.
+        var parentFieldName = fieldName.substring(0, fieldName.lastIndexOf('-'));
+        var childFieldName = fieldName.substring(fieldName.lastIndexOf('-') + 1);
         var rowClass =
             getGenericClass(
                 (ParameterizedType)

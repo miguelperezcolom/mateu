@@ -43,6 +43,48 @@ final class WizardStepInspector {
     }
   }
 
+  /**
+   * Guards the flattened-state modes (ACCUMULATIVE / ACCORDION) against two steps declaring a field
+   * with the same name: because every rendered step's fields are hydrated from one shared state map
+   * keyed by plain field name, a collision silently makes one step display/overwrite the other's
+   * value. Throws a clear, actionable error listing the offending names so the developer renames
+   * them.
+   */
+  static void assertNoFieldNameCollisions(Wizard wizard) {
+    var steps = getStepFields(wizard);
+    var seenIn = new java.util.HashMap<String, String>();
+    var collisions = new java.util.LinkedHashMap<String, List<String>>();
+    for (var stepField : steps) {
+      var stepClass = stepField.getType();
+      for (var f : getAllFields(stepClass)) {
+        if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+          continue;
+        }
+        var name = f.getName();
+        var previousOwner = seenIn.put(name, stepClass.getSimpleName());
+        if (previousOwner != null) {
+          collisions
+              .computeIfAbsent(name, k -> new ArrayList<>(List.of(previousOwner)))
+              .add(stepClass.getSimpleName());
+        }
+      }
+    }
+    if (!collisions.isEmpty()) {
+      var detail =
+          collisions.entrySet().stream()
+              .map(e -> "'" + e.getKey() + "' in " + e.getValue())
+              .collect(java.util.stream.Collectors.joining("; "));
+      throw new IllegalStateException(
+          "Wizard "
+              + wizard.getClass().getSimpleName()
+              + " uses an ACCUMULATIVE/ACCORDION layout, which renders several steps at once into a"
+              + " single flattened state map, but these field names are declared in more than one"
+              + " step and would collide: "
+              + detail
+              + ". Rename the colliding fields so each step's fields are uniquely named.");
+    }
+  }
+
   static List<Validation> validations(Wizard wizard) {
     List<Validation> fieldLevelValidations = new ArrayList<>();
     var stepClass = getStepFields(wizard).get(wizard.position).getType();

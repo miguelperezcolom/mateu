@@ -24,6 +24,27 @@ import {dialogRenderer} from "@vaadin/dialog/lit";
 import {nanoid} from "nanoid";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 
+/** The active element, crossing shadow-DOM boundaries. */
+const deepActiveElement = (): Element | null => {
+    let el: Element | null = document.activeElement
+    while (el?.shadowRoot?.activeElement) {
+        el = el.shadowRoot.activeElement
+    }
+    return el
+}
+
+/** Whether `node` is `ancestor` or nested within it, crossing shadow-DOM boundaries. */
+const containsDeep = (ancestor: Element, node: Element | null): boolean => {
+    let cur: Node | null = node
+    while (cur) {
+        if (cur === ancestor) return true
+        cur = (cur as Element).assignedSlot
+            ?? cur.parentNode
+            ?? ((cur as ShadowRoot).host ?? null)
+    }
+    return false
+}
+
 @customElement('mateu-grid')
 export class MateuGrid extends MetadataDrivenElement {
 
@@ -112,6 +133,9 @@ export class MateuGrid extends MetadataDrivenElement {
     private _onRowKey = (e: KeyboardEvent) => {
         const base = this.field?.rowSelectionShortcut
         if (!base || !this.field?.onItemSelectionActionId) return
+        // The listener is on document, so scope it: ignore the shortcut when this grid is off-screen
+        // or when the user is typing into an editable control that lives outside this grid.
+        if (!this._isRowShortcutRelevant()) return
         const parts = base.toLowerCase().split('+')
         if (e.ctrlKey !== parts.includes('ctrl') || e.altKey !== parts.includes('alt')
             || e.shiftKey !== parts.includes('shift') || e.metaKey !== parts.includes('meta')) return
@@ -122,6 +146,21 @@ export class MateuGrid extends MetadataDrivenElement {
         if (idx >= items.length) return
         e.preventDefault()
         this.selectRow(items[idx])
+    }
+
+    /** True when the row-selection shortcut should act: grid is visible and focus isn't in an
+        editable control outside this grid (so typing elsewhere doesn't trigger a selection). */
+    private _isRowShortcutRelevant(): boolean {
+        if (this.offsetParent === null && this.getClientRects().length === 0) return false
+        const active = deepActiveElement()
+        if (active && active !== document.body && !containsDeep(this, active)) {
+            const tag = active.tagName?.toLowerCase() ?? ''
+            const isEditable = (active as HTMLElement).isContentEditable
+                || /^(input|textarea|select)$/.test(tag)
+                || (tag.startsWith('vaadin-') && /(field|combo|picker|area|select)/.test(tag))
+            if (isEditable) return false
+        }
+        return true
     }
 
     handleButtonClick = (actionId: string) => {
@@ -330,11 +369,27 @@ export class MateuGrid extends MetadataDrivenElement {
                     ?all-rows-visible=${items?.length < 10}
             >
                 <span slot="empty-state">${this.field?.label ? `No ${this.field.label.toLowerCase()} added yet.` : 'No items added yet.'}</span>
-                ${(this.field?.readOnly)?nothing:html`
+                ${(this.field?.readOnly || this.field?.inlineEditing)?nothing:html`
                     <vaadin-grid-selection-column drag-select></vaadin-grid-selection-column>
                 `}
                 ${this.field?.columns?.map(column =>
             renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+
+                ${(this.field?.inlineEditing && !this.field?.readOnly)?html`
+                    <vaadin-grid-column width="3.5rem" flex-grow="0" frozen-to-end
+                            ${columnBodyRenderer<any>((row) => html`
+                                <vaadin-button theme="tertiary icon error" title="Remove row"
+                                    @click="${() => {
+                                        this.state[this.id + '_selected_items'] = [row]
+                                        this.dispatchEvent(new CustomEvent('action-requested', {
+                                            detail: { actionId: this.id + '_remove' },
+                                            bubbles: true, composed: true
+                                        }))
+                                    }}">
+                                    <vaadin-icon icon="vaadin:trash"></vaadin-icon>
+                                </vaadin-button>`, [])}
+                    ></vaadin-grid-column>
+                `:nothing}
 
                 ${this.field?.useButtonForDetail?html`
                     <vaadin-grid-column
@@ -363,7 +418,17 @@ export class MateuGrid extends MetadataDrivenElement {
                 `:nothing}
 
             </vaadin-grid>
-            ${(this.field?.readOnly)?nothing:html`
+            ${(this.field?.readOnly)?nothing:
+              this.field?.inlineEditing?html`
+                    <vaadin-horizontal-layout theme="spacing">
+                        <!-- Inline mode: rows are removed with the per-row trash button, so the
+                             toolbar only needs the "add" action. -->
+                        <vaadin-button theme="tertiary icon" title="Add row" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                            detail: { actionId: this.id + '_add' },
+                            bubbles: true, composed: true
+                        }))}"><vaadin-icon icon="vaadin:plus"></vaadin-icon></vaadin-button>
+                    </vaadin-horizontal-layout>
+                `:html`
                     <vaadin-horizontal-layout theme="spacing">
                         <vaadin-button theme="tertiary icon" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId: this.id + '_add' },

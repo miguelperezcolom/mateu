@@ -85,7 +85,15 @@ public abstract class Wizard
             .style("width: 100%;")
             .build());
 
-    switch (layoutMode()) {
+    var mode = layoutMode();
+    if (mode == WizardLayoutMode.ACCORDION || mode == WizardLayoutMode.ACCUMULATIVE) {
+      // These modes render several steps' forms at once into a single flattened state map, so two
+      // steps sharing a field name would collide (one step's value would overwrite/mirror the
+      // other's). Fail fast with an actionable message instead of corrupting data silently.
+      WizardStepInspector.assertNoFieldNameCollisions(this);
+    }
+
+    switch (mode) {
       case ACCORDION -> content.add(accordionBody(httpRequest));
       case ACCUMULATIVE -> {
         // Read-only recap of every completed step, then the current (editable) step below it.

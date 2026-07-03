@@ -61,8 +61,7 @@ public class GridColumnBuilder {
                       .filterable(getFilterable(columnField))
                       .editable(colEditable)
                       .editorType(colEditable ? getEditorType(columnField) : null)
-                      .editorOptions(
-                          colEditable ? getEditorOptions(columnField, httpRequest) : null)
+                      .editorOptions(colEditable ? getEditorOptions(columnField) : null)
                       .build());
             });
     // The per-row "Edit" button opens the detail form; inline editing replaces it.
@@ -171,31 +170,20 @@ public class GridColumnBuilder {
   }
 
   /**
-   * Options for a {@code select} editor: the constants of an enum column, or the options a
-   * {@code @Lookup} field resolves through its {@code LookupOptionsSupplier} (the initial page).
+   * Eager options for a {@code select} editor: only the constants of an enum column.
+   * {@code @Lookup} columns are intentionally <b>not</b> preloaded here — the frontend combo box
+   * resolves its options lazily through a remote search-as-you-type {@code dataProvider} (see
+   * {@code renderColumn.ts}), so eagerly running the lookup's {@code LookupOptionsSupplier} on
+   * every render would (a) fire a full search query per lookup column even when the user never
+   * edits, and (b) risk breaking the whole page render if the supplier needs an instance we don't
+   * have here. The already-set value shows its id until the combo is opened and the label arrives
+   * from the search.
    */
-  private static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(
-      Field columnField, HttpRequest httpRequest) {
+  private static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(Field columnField) {
     if (columnField.getType().isEnum()) {
       return java.util.Arrays.stream(columnField.getType().getEnumConstants())
           .map(c -> new io.mateu.uidl.data.Option(((Enum<?>) c).name(), c.toString()))
           .toList();
-    }
-    if (MetaAnnotations.isPresent(columnField, Lookup.class)) {
-      var supplier =
-          io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.getLookupOptionsSupplier(
-              null, columnField);
-      if (supplier != null) {
-        var listing =
-            supplier.search(
-                columnField.getName(),
-                "",
-                new io.mateu.uidl.data.Pageable(0, 200, java.util.List.of()),
-                httpRequest);
-        if (listing != null && listing.page() != null) {
-          return listing.page().content();
-        }
-      }
     }
     return null;
   }

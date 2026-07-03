@@ -31,6 +31,28 @@ import "@vaadin/time-picker";
 import "@vaadin/date-time-picker";
 import "@vaadin/combo-box";
 
+// Per-row cache of lookup labels, keyed by the row object itself so the synthetic "<col>-label"
+// keys never end up on the row that round-trips to the server (the Java row class has no such
+// property). Stored in a WeakMap so entries are collected with their rows.
+const lookupLabelCache = new WeakMap<object, Record<string, string>>()
+
+const cachedLabel = (row: object, columnId: string): string | undefined =>
+    lookupLabelCache.get(row)?.[columnId]
+
+const cacheLabel = (row: object, columnId: string, label: string) => {
+    let byCol = lookupLabelCache.get(row)
+    if (!byCol) { byCol = {}; lookupLabelCache.set(row, byCol) }
+    byCol[columnId] = label
+}
+
+// Coerce a raw editor string to the type the backing Java field expects, so the row array posted
+// back doesn't carry strings where a number is expected (blank → null; non-numeric → null).
+const toNumber = (raw: any): number | null => {
+    if (raw == null || raw === '') return null
+    const n = Number(raw)
+    return Number.isNaN(n) ? null : n
+}
+
 // Inline-editing cell: an input bound to the row value. On commit it mutates the row and re-emits the
 // whole grid array as a value-changed so mateu-component updates state[fieldId] (edits then round-trip
 // with the enclosing form's next action). The editor is picked from the column's editorType (derived
@@ -57,9 +79,9 @@ const renderEditableCell = (
         case 'boolean':
             return html`<vaadin-checkbox ?checked=${!!v} @checked-changed=${(e: any) => commit(e.detail.value)}></vaadin-checkbox>`
         case 'integer':
-            return html`<vaadin-integer-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-integer-field>`
+            return html`<vaadin-integer-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-integer-field>`
         case 'number':
-            return html`<vaadin-number-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-number-field>`
+            return html`<vaadin-number-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(toNumber(e.target.value))}></vaadin-number-field>`
         case 'date':
             return html`<vaadin-date-picker theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
         case 'time':
@@ -81,9 +103,8 @@ const renderEditableCell = (
             const searchActionId = `search-${gridFieldId}-${column.id}`
             const dataKey = `${gridFieldId}-${column.id}`
             const opts = column.editorOptions ?? []
-            const labelKey = column.id + '-label'
             const selected = opts.find(o => String(o.value) === s)
-                ?? (s ? { value: s, label: item[labelKey] ?? s } : undefined)
+                ?? (s ? { value: s, label: cachedLabel(item, column.id) ?? s } : undefined)
             const dataProvider = (params: any, callback: any) => {
                 container.dispatchEvent(new CustomEvent('action-requested', {
                     detail: {
@@ -108,7 +129,7 @@ const renderEditableCell = (
                     const it = e.detail.value
                     const nv = it ? it.value : null
                     if (String(nv ?? '') === s) return
-                    if (it) item[labelKey] = it.label
+                    if (it) cacheLabel(item, column.id, it.label)
                     commit(nv)
                 }}></vaadin-combo-box>`
         }
