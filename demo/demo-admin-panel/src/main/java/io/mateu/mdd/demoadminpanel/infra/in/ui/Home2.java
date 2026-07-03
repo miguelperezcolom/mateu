@@ -4,6 +4,8 @@ import io.mateu.mdd.demoadminpanel.infra.in.ui.changes.Changes;
 import io.mateu.mdd.demoadminpanel.infra.in.ui.checkin.CheckInListing;
 import io.mateu.mdd.demoadminpanel.infra.in.ui.reservations.Reservations;
 import io.mateu.mdd.demoadminpanel.infra.in.ui.wizard.Wizard1;
+import io.mateu.mdd.demoadminpanel.infra.in.ui.wizard.WizardAccordion;
+import io.mateu.mdd.demoadminpanel.infra.in.ui.wizard.WizardAccumulative;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Button;
@@ -30,6 +32,12 @@ public class Home2 implements WidgetSupplier {
 
     @Menu
     Wizard1 wizard1;
+
+    @Menu
+    WizardAccumulative wizardAccumulative;
+
+    @Menu
+    WizardAccordion wizardAccordion;
 
     @Menu
     Products2 xxxx;
