@@ -259,12 +259,13 @@ export class MateuPage extends LitElement {
         const header = this.shadowRoot?.querySelector('mateu-content-header') as HTMLElement | null
         this._headerH = (this._tocVisible && header) ? header.offsetHeight : 0
         this.style.setProperty('--mateu-header-h', this._headerH + 'px')
-        const gap = 8
+        const gap = 12
         let offset = this._headerH + gap
         for (const card of this._sectionCards()) {
             if (!card.classList.contains('mateu-section--sticky')) continue
             card.style.top = offset + 'px'
-            offset += card.offsetHeight
+            // Leave a gap below each pinned card so stacked sticky sections don't touch.
+            offset += card.offsetHeight + gap
         }
     }
 

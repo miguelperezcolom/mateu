@@ -2,7 +2,6 @@ package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.BadgeInHeader;
-import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.PlainText;
@@ -45,7 +44,6 @@ import java.util.List;
 @Scope("prototype")
 @Route(value = "/checkin/:id/v2", parentRoute = "")
 @Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
-@Compact
 @ReadOnly
 @PlainText
 @Title("Check-in")
