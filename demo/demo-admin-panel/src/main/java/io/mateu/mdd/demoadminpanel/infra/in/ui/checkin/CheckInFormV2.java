@@ -76,8 +76,7 @@ public class CheckInFormV2 implements HeaderSupplier, TriggersSupplier, Hydratab
   boolean vip = true;
 
   // ── Sections (single vertical column, in reading order) ───────────────────
-  // Pinned (like Huéspedes) so the reservation's general info stays in view while scrolling.
-  @Section(value = "Información general de la reserva", columns = 8, sticky = true)
+  @Section(value = "Información general de la reserva", columns = 8)
   @Label("") @Inline
   ReservacionInfoSection resvInfo = new ReservacionInfoSection();
 
