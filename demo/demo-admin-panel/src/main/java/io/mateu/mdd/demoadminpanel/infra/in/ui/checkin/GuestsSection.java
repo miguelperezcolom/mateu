@@ -68,6 +68,7 @@ public class GuestsSection {
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+c")
     @Label("Confirmar check-in")
     Object confirmCheckin(HttpRequest httpRequest) {
         return applyStatusToSelected(httpRequest, line -> PaxStatus.CHECKIN,
@@ -75,6 +76,7 @@ public class GuestsSection {
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+n")
     @Label("No show")
     Object noShow(HttpRequest httpRequest) {
         return applyStatusToSelected(httpRequest, line -> PaxStatus.NOSHOW,
@@ -112,18 +114,21 @@ public class GuestsSection {
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+d")
     @Label("Lector documento")
     Object lectorDocumento(HttpRequest httpRequest) {
         return Message.success("Lector de documento iniciado");
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+w")
     @Label("Tarjeta welcome")
     Object tarjetaWelcome(HttpRequest httpRequest) {
         return Message.success("Tarjeta welcome enviada a impresión");
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+u")
     @Label("Deshacer check-in")
     Object deshacerCheckin(HttpRequest httpRequest) {
         // Back to "en recepción" if the reservation is waiting, otherwise to "pendiente".
@@ -133,6 +138,7 @@ public class GuestsSection {
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+f")
     @Label("Código WiFi")
     Object codigoWifi(HttpRequest httpRequest) {
         return Message.success("Código WiFi: RIU-GUEST");

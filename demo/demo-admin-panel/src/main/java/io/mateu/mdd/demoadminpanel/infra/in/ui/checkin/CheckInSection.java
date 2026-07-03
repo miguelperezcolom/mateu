@@ -27,6 +27,7 @@ public class CheckInSection {
     @Colspan(2) @Multiline @Label("Avisos")                  String avisos;
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+i")
     @Label("Check-in")
     Object confirmCheckin(HttpRequest httpRequest) {
         var repository = MateuBeanProvider.getBean(ReservationLineRepository.class);
@@ -44,6 +45,7 @@ public class CheckInSection {
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+p")
     @Label("Pre asignar")
     Object preAsignar(HttpRequest httpRequest) {
         return Dialog.builder()
@@ -56,6 +58,7 @@ public class CheckInSection {
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+r")
     @Label("En recepción")
     Object enRecepcion(HttpRequest httpRequest) {
         var repository = MateuBeanProvider.getBean(ReservationLineRepository.class);

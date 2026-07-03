@@ -15,6 +15,11 @@ export const handleButtonClick = (event: Event, button: Button) => {
     }))
 }
 
+const formatShortcut = (shortcut?: string): string | undefined =>
+    shortcut
+        ? shortcut.split('+').map(p => p.length <= 1 ? p.toUpperCase() : p.charAt(0).toUpperCase() + p.slice(1)).join('+')
+        : undefined
+
 export const renderButton = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
     const metadata = component.metadata as Button
     const rawLabel = metadata.label
@@ -39,6 +44,7 @@ id="${component.id}"
             class="${component.cssClasses}"
             theme="${theme}"
             ?disabled="${metadata.disabled}"
+            title="${metadata.shortcut ? `${label} (${formatShortcut(metadata.shortcut)})` : nothing}"
             slot="${component.slot??nothing}"
     >${metadata.iconOnLeft?html`<vaadin-icon icon="${metadata.iconOnLeft}"></vaadin-icon>`:nothing}${label}${metadata.iconOnRight?html`<vaadin-icon icon="${metadata.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>`
 }

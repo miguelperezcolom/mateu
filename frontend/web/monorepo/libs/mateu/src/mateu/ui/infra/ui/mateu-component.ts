@@ -741,11 +741,14 @@ export class MateuComponent extends ComponentElement {
         const alt = parts.includes('alt')
         const shift = parts.includes('shift')
         const meta = parts.includes('meta')
-        return e.key.toLowerCase() === key
-            && e.ctrlKey === ctrl
-            && e.altKey === alt
-            && e.shiftKey === shift
-            && e.metaKey === meta
+        if (e.ctrlKey !== ctrl || e.altKey !== alt || e.shiftKey !== shift || e.metaKey !== meta) return false
+        // Match by logical key, or by physical code (KeyX / DigitX / NumpadX) so modifier shortcuts
+        // work across keyboard layouts (e.g. Spanish AltGr remaps Ctrl+Alt+<letter> to a symbol) and
+        // on the numeric keypad.
+        if (e.key.toLowerCase() === key) return true
+        if (/^[a-z]$/.test(key) && e.code === 'Key' + key.toUpperCase()) return true
+        if (/^[0-9]$/.test(key) && (e.code === 'Digit' + key || e.code === 'Numpad' + key)) return true
+        return false
     }
 
 

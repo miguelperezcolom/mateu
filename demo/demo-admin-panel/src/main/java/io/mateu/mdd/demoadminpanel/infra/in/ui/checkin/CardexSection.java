@@ -1,5 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Inline;
 import io.mateu.uidl.annotations.Label;
@@ -24,6 +25,7 @@ public class CardexSection {
     CardexView cardex = new CardexView();
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+k")
     @Label("Editar cardex")
     Object editCardex(HttpRequest httpRequest) {
         // The pax to edit = the selected guest row (reliably carried in the form state), or the lead.

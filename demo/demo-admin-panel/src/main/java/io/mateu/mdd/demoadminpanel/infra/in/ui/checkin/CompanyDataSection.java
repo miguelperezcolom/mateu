@@ -1,5 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.PlainText;
@@ -21,6 +22,7 @@ public class CompanyDataSection {
     @Label("Forma de pago")     String paymentTerms;
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+m")
     @Label("Editar datos empresa")
     Object editCompany(HttpRequest httpRequest) {
         return Dialog.builder()

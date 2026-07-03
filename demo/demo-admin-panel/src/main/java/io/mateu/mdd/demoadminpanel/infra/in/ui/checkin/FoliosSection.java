@@ -1,5 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.checkin;
 
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Compact;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
@@ -29,6 +30,7 @@ public class FoliosSection {
     @Stereotype(FieldStereotype.money) @Label("Saldo pendiente")   BigDecimal saldoPendiente;
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+g")
     @Label("Límite crédito")
     Object editCreditLimit(HttpRequest httpRequest) {
         return Dialog.builder()
@@ -40,6 +42,7 @@ public class FoliosSection {
     }
 
     @Toolbar
+    @Action(shortcut = "ctrl+alt+o")
     @Label("Introducir cobro")
     Object addCharge(HttpRequest httpRequest) {
         return Dialog.builder()

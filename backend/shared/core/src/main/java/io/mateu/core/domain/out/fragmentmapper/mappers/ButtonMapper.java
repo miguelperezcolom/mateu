@@ -33,6 +33,7 @@ public class ButtonMapper {
             .iconOnLeft(button.iconOnLeft())
             .iconOnRight(button.iconOnRight())
             .disabled(button.disabled())
+            .shortcut(button.shortcut())
             .parameters(mapParameters(button.parameters()))
             .separatorBefore(button.separatorBefore())
             .build(),
