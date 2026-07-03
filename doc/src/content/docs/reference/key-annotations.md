@@ -202,6 +202,9 @@ Object onGuestSelected(GuestData guest, HttpRequest httpRequest) {
 ### Key fields
 
 - `value` — name of the method/action to run when a row is selected.
+- `shortcut` — optional keyboard-shortcut base (e.g. `"ctrl+shift"`) for selecting a row by position:
+  the base combo plus a digit selects that row (`ctrl+shift+1` → first row … ninth; top-row or numeric
+  keypad).
 
 > Combine with [`@SubscribeTo` / `@Emits`](#subscribeto) to drive other components from a selection.
 > Opt-in: grids without `@OnRowSelected` keep their default selection behaviour.
@@ -563,11 +566,12 @@ These are also part of the public DSL and are worth knowing:
 - `@Widget`
 - `@Footer`
 - `@Header`
-- `@Section` (incl. `zone` for use with `@Zones`)
+- `@Section` (incl. `zone` for use with `@Zones`, and `sticky = true` to pin the section card)
 - `@Zones` / `@Zone` — side-by-side layout zones (columns of sections)
+- `@Toc` — sticky sections index (table of contents) on a long page; see [Sticky sections index](/ux-patterns/sections-index/)
 - `@Compact` — high-density page preset (`StyleConstants.COMPACT`)
 - `@PlainText` — render a value as read-only text instead of an input
-- `@ColumnWidth` — fixed-width grid column
+- `@ColumnWidth` — grid column width; a fixed value (`"9rem"`) or `"auto"` (size to content)
 - `@Colspan`
 - `@HiddenInList`
 - `@HiddenInView`

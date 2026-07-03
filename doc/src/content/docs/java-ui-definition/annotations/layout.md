@@ -367,6 +367,7 @@ public @interface Section {
 | `columns` | `int` | `1` | Number of columns inside this section's field grid |
 | `style` | `String` | `""` | Inline CSS for the section container |
 | `zone` | `String` | `""` | Name of the layout zone this section belongs to. Only used when the class is annotated with [`@Zones`](#zones--zone); sections sharing a zone are stacked inside that zone's column |
+| `sticky` | `boolean` | `false` | Pin the section card (`position: sticky`) so it stays in view while the rest of the page scrolls. Handy on a long [`@Toc`](#toc) page for a reference section (e.g. a list you keep glancing at); multiple sticky sections stack under the pinned header |
 
 ### Example
 
@@ -383,6 +384,35 @@ public class CustomerForm {
     String address;
 }
 ```
+
+---
+
+## @Toc
+
+**Target:** `TYPE`
+
+Shows a **sticky index** (table of contents) of the page's [`@Section`](#section)s in a right-hand
+sidebar. Each entry lists a section title and scrolls to it when clicked; the active section is
+highlighted as the user scrolls, and `Ctrl+Alt+1..9` jump to the first nine sections. In docs mode
+the page header is pinned and any [`@Section(sticky = true)`](#section) sections stack under it.
+
+It is **tri-state**: absent means *auto* — the index appears only when there are more than four
+vertically-stacked sections and the form is not a [`@Zones`](#zones--zone) / horizontal layout;
+`@Toc` (or `@Toc(true)`) forces it on; `@Toc(false)` suppresses it.
+
+```java
+@UI("/checkin/:id")
+@Toc
+public class CheckInForm {
+    @Section("Información general de la reserva") ReservationInfo general;
+    @Section("Check-in")                          CheckInData checkIn;
+    @Section(value = "Huéspedes", sticky = true)  GuestList guests;   // pinned
+    @Section("Información cliente")                ClientInfo client;
+    // …
+}
+```
+
+See [Sticky sections index](/ux-patterns/sections-index/) for the full pattern.
 
 ---
 
@@ -584,6 +614,8 @@ Specifies a CSS width for this field's column in a grid or listing. Accepts any 
 
 A column with an explicit `@ColumnWidth` becomes a **fixed-width** column (`flex-grow: 0`); columns without one keep the default flex behaviour and share the remaining space. So in a row of columns, annotate the narrow ones (codes, flags, dates) with `@ColumnWidth` and leave the free-text column unannotated to let it absorb the slack.
 
+Use the special value `@ColumnWidth("auto")` to make the column **size to its content** (header + widest cell). It never truncates and adapts to the current density — the right choice for short code/flag columns on a grid shown in both compact and non-compact screens, where a fixed `3rem` might truncate a value to `"A."` once the extra padding of a non-compact layout eats the width.
+
 ```java
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
@@ -596,7 +628,7 @@ public @interface ColumnWidth {
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `value` | `String` | — | CSS width string, e.g. `"150px"` or `"20%"` (required) |
+| `value` | `String` | — | CSS width string, e.g. `"150px"` or `"20%"`, or `"auto"` to size to content (required) |
 
 ### Example
 

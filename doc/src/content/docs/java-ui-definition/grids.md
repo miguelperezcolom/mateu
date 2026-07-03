@@ -33,6 +33,44 @@ record GuestRow(
 ) {}
 ```
 
+Use `@ColumnWidth("auto")` to make a column **size to its content** (header + widest cell) instead
+of a fixed width. It never truncates and adapts to the current density, so it's the right choice for
+short code/flag columns on a grid that is shown both in compact and non-compact screens (a fixed
+`3rem` can truncate to `"A."` once the extra padding of a non-compact layout eats the width).
+
+```java
+record GuestRow(
+    @ColumnWidth("9rem") String lastName,
+    @ColumnWidth("auto") String paxType,   // as wide as "Pax" / "AD" needs
+    @ColumnWidth("auto") String mealPlan,
+    String observations                     // no width → fills the rest
+) {}
+```
+
+## Row selection (`@OnRowSelected`)
+
+Annotate a grid field with `@OnRowSelected("method")` to run a method when the user selects a row.
+The selected row is auto-injected (typed as the row class), and it works on read-only grids — the
+natural way to build a master/detail screen.
+
+```java
+@Stereotype(FieldStereotype.grid)
+@OnRowSelected("onGuestSelected")
+List<GuestData> guests;
+
+Object onGuestSelected(GuestData guest, HttpRequest httpRequest) {
+    return UICommand.dispatchEvent("pax-selected", guest.getCardex());
+}
+```
+
+Add a `shortcut` base to select rows by position from the keyboard — the base combo plus a digit
+selects that row (`ctrl+shift+1` → first row … up to the ninth; top-row digits or numeric keypad):
+
+```java
+@OnRowSelected(value = "onGuestSelected", shortcut = "ctrl+shift")
+List<GuestData> guests;
+```
+
 ## Choosing the layout (`gridLayout()`)
 
 A declarative listing (`extends Listing<Filters, Row>`) can force how its rows are laid out by overriding `gridLayout()`. By default the renderer picks a layout from the column weights (`GridLayout.auto`), which for a wide, many-column row can fall back to `masterDetail`. Return `GridLayout.table` (or `list`, `cards`) to force it:

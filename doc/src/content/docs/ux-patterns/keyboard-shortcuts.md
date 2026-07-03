@@ -81,6 +81,33 @@ Tabs are grouped by consecutive fields that share the same `@Tab` name. Avoid pu
 splits the form into several separate one-tab strips.
 :::
 
+### Section index shortcuts — `@Toc`
+
+On a long page with a [sticky sections index](/ux-patterns/sections-index/), `Ctrl+Alt+1..9` jump to
+the first nine sections (same as clicking the index entry). This is on by default whenever the index
+is shown — no extra configuration. The shortcut number is shown as a faint badge on each index entry.
+
+### Grid row selection — `@OnRowSelected(shortcut = ...)`
+
+Give a grid's row-selection action a `shortcut` base so users can select a row by position: the base
+combo plus a digit selects that row.
+
+```java
+@Stereotype(FieldStereotype.grid)
+@OnRowSelected(value = "onGuestSelected", shortcut = "ctrl+shift")
+List<GuestData> guests;
+```
+
+`Ctrl+Shift+1` selects the first row … up to the ninth, exactly as if the row had been clicked (it
+fires the same `@OnRowSelected` method, so any master/detail wiring reacts identically).
+
+### Keyboard-layout independence
+
+Shortcuts are matched by physical key (`e.code`) as well as logical key, so `Ctrl+Alt+<letter>` and
+`<modifier>+<digit>` work regardless of the keyboard layout — even where e.g. a Spanish layout's
+AltGr remaps `Ctrl+Alt+E` to `€` — and the numeric keypad works too. Buttons that carry a shortcut
+show it in their tooltip.
+
 ## Recommended shortcuts
 
 Consistent conventions across the application reinforce the *Consistency* principle.
