@@ -39,6 +39,21 @@ public class GridColumnMapper {
             .priority(gridColumn.priority() != Integer.MAX_VALUE ? gridColumn.priority() : null)
             .identifier(gridColumn.identifier())
             .editable(gridColumn.editable())
+            .editorType(gridColumn.editorType())
+            .editorOptions(
+                gridColumn.editorOptions() == null
+                    ? null
+                    : gridColumn.editorOptions().stream()
+                        .map(
+                            o ->
+                                new io.mateu.dtos.OptionDto(
+                                    o.value(),
+                                    o.label(),
+                                    o.description(),
+                                    o.image(),
+                                    o.imageStyle(),
+                                    o.icon()))
+                        .toList())
             .weight(gridColumn.weight())
             .build(),
         gridColumn.id(),

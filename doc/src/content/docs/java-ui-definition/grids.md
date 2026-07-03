@@ -83,8 +83,20 @@ no per-row "Edit" button.
 List<OrderLine> lines;
 ```
 
-Each column becomes an editable input based on its type — text field, number, checkbox, date picker;
-a field marked `@ReadOnly` stays display-only. Edits travel back in the normal component state, so
+Each column becomes an editable input based on its field's real Java type:
+
+| Type | Editor |
+|---|---|
+| `String` | text field |
+| `int` / `Integer` / `long` | integer field |
+| `double` / `BigDecimal` / `@Stereotype(money)` | number field |
+| `boolean` | checkbox |
+| `enum` | combo box (the enum constants) |
+| `LocalDate` | date picker |
+| `LocalTime` | time picker |
+| `LocalDateTime` | date-time picker |
+
+A field marked `@ReadOnly` stays display-only. Edits travel back in the normal component state, so
 they are **persisted when the enclosing form's next action runs** (a save/submit, or any developer
 action that reads the list) — there is no per-cell save.
 

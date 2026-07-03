@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import java.util.List;
 import lombok.Builder;
 
 @Builder(toBuilder = true)
@@ -26,6 +27,8 @@ public record GridColumn(
     Integer priority,
     boolean identifier,
     boolean editable,
+    String editorType,
+    List<Option> editorOptions,
     Double weight)
     implements GridContent {
 

@@ -41,6 +41,10 @@ public class GridColumnBuilder {
               // never truncates, adapting to the current density instead of a fixed width.
               var auto = "auto".equalsIgnoreCase(rawWidth);
               var colWidth = auto ? null : rawWidth;
+              // In inline mode every data column is edited in place; a field marked @ReadOnly stays
+              // display-only.
+              boolean colEditable =
+                  inlineEditing && !MetaAnnotations.isPresent(columnField, ReadOnly.class);
               columns.add(
                   GridColumn.builder()
                       .dataType(getDataTypeForColumn(columnField))
@@ -55,10 +59,9 @@ public class GridColumnBuilder {
                       // space.
                       .flexGrow(auto || colWidth != null ? "0" : null)
                       .filterable(getFilterable(columnField))
-                      // In inline mode every data column is edited in place; a field marked
-                      // @ReadOnly stays display-only.
-                      .editable(
-                          inlineEditing && !MetaAnnotations.isPresent(columnField, ReadOnly.class))
+                      .editable(colEditable)
+                      .editorType(colEditable ? getEditorType(columnField) : null)
+                      .editorOptions(colEditable ? getEditorOptions(columnField) : null)
                       .build());
             });
     // The per-row "Edit" button opens the detail form; inline editing replaces it.
@@ -136,6 +139,40 @@ public class GridColumnBuilder {
       }
     }
     return getFormColumns(getGenericClass(field, field.getType(), "E"));
+  }
+
+  /**
+   * The inline-cell editor to use for a column, derived from the element field's real Java type
+   * (the coarse column {@code dataType} collapses most types to {@code string}).
+   */
+  private static String getEditorType(Field columnField) {
+    if (columnField.getType().isEnum()) {
+      return "select";
+    }
+    if (MetaAnnotations.isPresent(columnField, io.mateu.uidl.annotations.Stereotype.class)
+        && MetaAnnotations.find(columnField, io.mateu.uidl.annotations.Stereotype.class).value()
+            == io.mateu.uidl.data.FieldStereotype.money) {
+      return "number";
+    }
+    return switch (getDataType(columnField)) {
+      case bool -> "boolean";
+      case integer -> "integer";
+      case number, money -> "number";
+      case date -> "date";
+      case dateTime -> "datetime";
+      case time -> "time";
+      default -> "text";
+    };
+  }
+
+  /** Options for a {@code select} editor: the constants of an enum column. */
+  private static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(Field columnField) {
+    if (!columnField.getType().isEnum()) {
+      return null;
+    }
+    return java.util.Arrays.stream(columnField.getType().getEnumConstants())
+        .map(c -> new io.mateu.uidl.data.Option(((Enum<?>) c).name(), c.toString()))
+        .toList();
   }
 
   private static String getColumnWidth(Field columnField) {

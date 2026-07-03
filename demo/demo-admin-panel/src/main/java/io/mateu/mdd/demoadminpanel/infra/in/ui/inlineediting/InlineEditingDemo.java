@@ -31,13 +31,23 @@ public class InlineEditingDemo {
     List<LineItem> lines =
             new ArrayList<>(
                     List.of(
-                            new LineItem("Widget", 3, 9.90, true),
-                            new LineItem("Gadget", 1, 19.50, false)));
+                            new LineItem(
+                                    "Widget", 3, 9.90, true, LineCategory.STANDARD,
+                                    java.time.LocalDate.now().plusDays(3), java.time.LocalTime.of(10, 30)),
+                            new LineItem(
+                                    "Gadget", 1, 19.50, false, LineCategory.PRIORITY,
+                                    java.time.LocalDate.now().plusDays(7), java.time.LocalTime.of(16, 0))));
 
     @Toolbar
     @Label("Total")
     Object total(HttpRequest httpRequest) {
         double total = lines.stream().mapToDouble(l -> l.getPrice() * l.getQty()).sum();
-        return Message.success("Líneas: " + lines.size() + " · Total: " + total);
+        var first = lines.isEmpty() ? null : lines.get(0);
+        return Message.success(
+                "Líneas: " + lines.size() + " · Total: " + total
+                        + (first != null
+                                ? " · 1ª: " + first.getProduct() + "/" + first.getCategory()
+                                        + "/" + first.getDeliveryDate() + "/" + first.getDeliveryTime()
+                                : ""));
     }
 }

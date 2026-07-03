@@ -27,5 +27,7 @@ public record GridColumnDto(
     Integer priority,
     boolean identifier,
     boolean editable,
+    String editorType,
+    java.util.List<OptionDto> editorOptions,
     Double weight)
     implements ComponentMetadataDto {}

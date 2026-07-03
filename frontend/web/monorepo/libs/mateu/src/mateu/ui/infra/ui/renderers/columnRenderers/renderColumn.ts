@@ -24,12 +24,17 @@ import { GridSortColumn } from "@vaadin/grid/all-imports";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@vaadin/text-field";
 import "@vaadin/number-field";
+import "@vaadin/integer-field";
 import "@vaadin/checkbox";
 import "@vaadin/date-picker";
+import "@vaadin/time-picker";
+import "@vaadin/date-time-picker";
+import "@vaadin/combo-box";
 
 // Inline-editing cell: an input bound to the row value. On commit it mutates the row and re-emits the
 // whole grid array as a value-changed so mateu-component updates state[fieldId] (edits then round-trip
-// with the enclosing form's next action). Unsupported types fall back to a read-only span.
+// with the enclosing form's next action). The editor is picked from the column's editorType (derived
+// server-side from the field's real Java type); unknown types fall back to a text field.
 const renderEditableCell = (
     item: any,
     column: GridColumn,
@@ -47,19 +52,29 @@ const renderEditableCell = (
         }))
     }
     const v = item[column.id]
-    switch (column.dataType) {
-        case 'bool':
+    const s = v == null ? '' : String(v)
+    switch (column.editorType) {
+        case 'boolean':
             return html`<vaadin-checkbox ?checked=${!!v} @checked-changed=${(e: any) => commit(e.detail.value)}></vaadin-checkbox>`
         case 'integer':
+            return html`<vaadin-integer-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-integer-field>`
         case 'number':
-        case 'money':
-            return html`<vaadin-number-field theme="small" style="width:100%;" .value=${v == null ? '' : String(v)} @change=${(e: any) => commit(e.target.value)}></vaadin-number-field>`
+            return html`<vaadin-number-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-number-field>`
         case 'date':
-            return html`<vaadin-date-picker theme="small" style="width:100%;" .value=${v ?? ''} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
-        case 'string':
-            return html`<vaadin-text-field theme="small" style="width:100%;" .value=${v ?? ''} @change=${(e: any) => commit(e.target.value)}></vaadin-text-field>`
+            return html`<vaadin-date-picker theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
+        case 'time':
+            return html`<vaadin-time-picker theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-time-picker>`
+        case 'datetime':
+            return html`<vaadin-date-time-picker theme="small" style="width:100%;" .value=${s} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-time-picker>`
+        case 'select':
+            return html`<vaadin-combo-box
+                theme="small" style="width:100%;"
+                .items=${(column.editorOptions ?? []).map(o => ({ label: o.label, value: String(o.value) }))}
+                item-label-path="label" item-value-path="value"
+                .value=${s}
+                @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-combo-box>`
         default:
-            return html`<span title="${v}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${v}</span>`
+            return html`<vaadin-text-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-text-field>`
     }
 }
 
