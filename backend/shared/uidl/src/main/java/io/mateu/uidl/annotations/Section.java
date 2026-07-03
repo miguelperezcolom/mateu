@@ -23,4 +23,11 @@ public @interface Section {
    * stacking).
    */
   String zone() default "";
+
+  /**
+   * When {@code true} the section card is pinned ({@code position: sticky}) so it stays in view
+   * while the rest of the form scrolls. Useful for a reference/list section that should never leave
+   * the viewport (e.g. a guests list on a long check-in screen).
+   */
+  boolean sticky() default false;
 }

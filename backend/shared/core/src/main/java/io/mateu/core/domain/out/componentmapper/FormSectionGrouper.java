@@ -69,6 +69,11 @@ final class FormSectionGrouper {
                 public String zone() {
                   return "";
                 }
+
+                @Override
+                public boolean sticky() {
+                  return false;
+                }
               };
         }
         sectionFields =

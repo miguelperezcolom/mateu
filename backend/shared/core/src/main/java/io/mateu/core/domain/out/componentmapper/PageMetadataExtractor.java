@@ -86,6 +86,17 @@ final class PageMetadataExtractor {
     return style.isBlank() ? null : style;
   }
 
+  /**
+   * Tri-state flag for the sticky sections index (see {@link Toc}): {@code null} when the
+   * annotation is absent (frontend auto-heuristic), otherwise the annotation's {@code value()}.
+   */
+  static Boolean getToc(Object instance) {
+    var c = instance instanceof Class ? (Class) instance : instance.getClass();
+    return MetaAnnotations.isPresent(c, Toc.class)
+        ? MetaAnnotations.find(c, Toc.class).value()
+        : null;
+  }
+
   static List<Badge> getBadges(Object instance, HttpRequest httpRequest) {
     if (instance instanceof BadgeSupplier badgeSupplier) {
       return badgeSupplier.badges().stream()

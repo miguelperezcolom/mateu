@@ -126,6 +126,8 @@ final class SectionFormRenderer {
               return (Component)
                   Card.builder()
                       .variants(List.of(CardVariant.outlined))
+                      .cssClasses(sectionCssClasses(section))
+                      .style(stickyStyle(section))
                       .content(
                           Div.builder()
                               .style("flex: 1; min-width: 0; width:100%;")
@@ -134,6 +136,20 @@ final class SectionFormRenderer {
                       .build();
             })
         .toList();
+  }
+
+  /**
+   * Marker class every section card carries so the frontend can enumerate sections for the index.
+   */
+  private static String sectionCssClasses(Section section) {
+    return "mateu-section" + (section.sticky() ? " mateu-section--sticky" : "");
+  }
+
+  /** When the section is {@code sticky}, pin its card while the rest of the form scrolls. */
+  private static String stickyStyle(Section section) {
+    return section.sticky()
+        ? "position: sticky; top: var(--mateu-sticky-top, 0.5rem); z-index: 2;"
+        : "";
   }
 
   private static List<Component> renderSections(
@@ -203,7 +219,8 @@ final class SectionFormRenderer {
 
               return (Component)
                   Card.builder()
-                      .style("flex: 1; min-width: 0; width:100%;")
+                      .style("flex: 1; min-width: 0; width:100%;" + stickyStyle(section))
+                      .cssClasses(sectionCssClasses(section))
                       .variants(List.of(CardVariant.outlined))
                       .content(
                           VerticalLayout.builder()

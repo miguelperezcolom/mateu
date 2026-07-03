@@ -29,5 +29,6 @@ export default interface Form extends ComponentMetadata {
     header: Component[]
     footer: Component[]
     fabs: Fab[] | undefined
+    toc?: boolean
 
 }

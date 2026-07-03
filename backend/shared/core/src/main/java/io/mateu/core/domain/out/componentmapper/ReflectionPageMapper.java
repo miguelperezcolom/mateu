@@ -33,6 +33,7 @@ public class ReflectionPageMapper {
         .subtitle(getSubtitle(instance))
         .style(getStyle(instance))
         .cssClasses(getCssClasses(instance))
+        .toc(getToc(instance))
         .avatar(getAvatar(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .toolbar(getToolbar(instance, httpRequest))
         .buttons(getButtons(instance, httpRequest))

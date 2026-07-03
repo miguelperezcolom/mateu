@@ -29,6 +29,7 @@ public record PageView(
     @Singular("bannerItem") List<PageBanner> banners,
     String style,
     String cssClasses,
+    Boolean toc,
     @Singular("actionItem") List<Action> actions,
     @Singular("fabItem") List<UserTrigger> fabs)
     implements Component, ActionSupplier {

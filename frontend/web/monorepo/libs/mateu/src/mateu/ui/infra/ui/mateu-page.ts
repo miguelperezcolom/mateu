@@ -14,6 +14,13 @@ import './mateu-content-header'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner.ts"
 
+/** Next ancestor element, crossing shadow-DOM boundaries via the host, for scroll-container lookup. */
+function nextAncestor(el: HTMLElement): HTMLElement | null {
+    if (el.parentElement) return el.parentElement
+    const root = el.getRootNode()
+    return root instanceof ShadowRoot ? (root.host as HTMLElement) : null
+}
+
 @customElement('mateu-page')
 export class MateuPage extends LitElement {
 
@@ -46,6 +53,19 @@ export class MateuPage extends LitElement {
 
     @state()
     dismissedStaticBannerIndices: Set<number> = new Set()
+
+    // Sticky sections index (table of contents). See the @Toc annotation (backend).
+    @state()
+    private _tocEntries: { title: string, el: HTMLElement }[] = []
+
+    @state()
+    private _activeToc = 0
+
+    @state()
+    private _tocVisible = false
+
+    private _spyTarget?: HTMLElement | Window
+    private _tocRebuildScheduled = false
 
     private _actionBannerTimers: ReturnType<typeof setTimeout>[] = []
     private _staticBannerTimers: ReturnType<typeof setTimeout>[] = []
@@ -80,6 +100,7 @@ export class MateuPage extends LitElement {
         super.disconnectedCallback()
         document.removeEventListener('page-banners-received', this._bannersHandler)
         this._clearAllTimers()
+        this._teardownScrollSpy()
     }
 
     updated(changedProperties: PropertyValues) {
@@ -96,6 +117,9 @@ export class MateuPage extends LitElement {
                 bubbles: true,
                 composed: true,
             }))
+            // The sections (slotted light-DOM cards) are re-rendered on component change; rebuild the
+            // index after the browser has laid them out (Vaadin cards populate their shadow async).
+            this._scheduleTocRebuild()
         }
     }
 
@@ -166,6 +190,103 @@ export class MateuPage extends LitElement {
         `
     }
 
+    // ── Sticky sections index (table of contents) ─────────────────────────────
+
+    private _onSlotChange() {
+        this._scheduleTocRebuild()
+    }
+
+    private _scheduleTocRebuild() {
+        if (this._tocRebuildScheduled) return
+        this._tocRebuildScheduled = true
+        // Vaadin cards upgrade/populate their shadow after slotting; enumerate on the next frame.
+        requestAnimationFrame(() => {
+            this._tocRebuildScheduled = false
+            this._rebuildToc()
+        })
+    }
+
+    /** Section cards live inside the slotted <vaadin-vertical-layout> as ordinary light-DOM descendants. */
+    private _sectionCards(): HTMLElement[] {
+        return Array.from(this.querySelectorAll('vaadin-card.mateu-section')) as HTMLElement[]
+    }
+
+    private _sectionTitle(card: HTMLElement): string | undefined {
+        const fromSlot = card.querySelector('[slot="title"]')?.textContent?.trim()
+        if (fromSlot) return fromSlot
+        // The reflective @Section path renders the title as a heading inside the card content.
+        return card.querySelector('h1,h2,h3,h4,h5,h6')?.textContent?.trim() || undefined
+    }
+
+    private _rebuildToc() {
+        const cards = this._sectionCards()
+        const entries = cards
+            .map(el => ({ title: this._sectionTitle(el), el }))
+            .filter((e): e is { title: string, el: HTMLElement } => !!e.title)
+
+        const toc = (this.component?.metadata as PageComponent)?.toc
+        // Auto heuristic: enough sections stacked vertically and not a @Zones/@FoldedLayout (horizontal) form.
+        const auto = entries.length > 4 && cards.every(c => !c.closest('vaadin-horizontal-layout'))
+        const visible = (toc === true ? true : toc === false ? false : auto) && entries.length > 0
+
+        this._tocEntries = entries
+        this._tocVisible = visible
+        if (this._activeToc >= entries.length) this._activeToc = 0
+
+        this._teardownScrollSpy()
+        if (visible) {
+            // Attach the scrollspy after the with-toc grid has been applied.
+            requestAnimationFrame(() => this._setupScrollSpy())
+        }
+    }
+
+    private _scrollContainer(): HTMLElement | null {
+        let node: HTMLElement | null = nextAncestor(this as HTMLElement)
+        while (node) {
+            const oy = getComputedStyle(node).overflowY
+            if ((oy === 'auto' || oy === 'scroll') && node.scrollHeight > node.clientHeight) {
+                return node
+            }
+            node = nextAncestor(node)
+        }
+        return null
+    }
+
+    private _setupScrollSpy() {
+        if (!this._tocEntries.length) return
+        this._spyTarget = this._scrollContainer() ?? window
+        this._spyTarget.addEventListener('scroll', this._onScrollSpy, { passive: true })
+        this._onScrollSpy()
+    }
+
+    private _teardownScrollSpy() {
+        this._spyTarget?.removeEventListener('scroll', this._onScrollSpy)
+        this._spyTarget = undefined
+    }
+
+    // Classic scrollspy: the active entry is the last section whose top has crossed the activation
+    // line near the top of the scroll viewport. Sticky (pinned) sections are skipped so a pinned card
+    // never permanently hijacks the highlight.
+    private _onScrollSpy = () => {
+        const cards = this._tocEntries.map(e => e.el)
+        if (!cards.length) return
+        const root = this._scrollContainer()
+        const line = (root ? root.getBoundingClientRect().top : 0) + 120
+        let active = 0
+        for (let i = 0; i < cards.length; i++) {
+            if (cards[i].classList.contains('mateu-section--sticky')) continue
+            if (cards[i].getBoundingClientRect().top <= line + 1) active = i
+        }
+        this._activeToc = active
+    }
+
+    private _scrollToSection(i: number) {
+        const entry = this._tocEntries[i]
+        if (!entry) return
+        this._activeToc = i
+        entry.el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+
     render(): TemplateResult {
         const metadata = this.component?.metadata as PageComponent
         const allStaticBanners: Banner[] = (metadata as any)?.banners ?? []
@@ -190,11 +311,24 @@ export class MateuPage extends LitElement {
                     ${banners.map(({ banner, onDismiss }) => this._renderBanner(banner, onDismiss))}
                 </div>
             ` : nothing}
-            <div class="form-content">
-                <slot></slot>
-                <vaadin-horizontal-layout theme="spacing" class="form-buttons">
-                    <slot name="buttons"></slot>
-                </vaadin-horizontal-layout>
+            <div class="page-body ${this._tocVisible ? 'with-toc' : ''}">
+                <div class="form-content">
+                    <slot @slotchange=${this._onSlotChange}></slot>
+                    <vaadin-horizontal-layout theme="spacing" class="form-buttons">
+                        <slot name="buttons"></slot>
+                    </vaadin-horizontal-layout>
+                </div>
+                ${this._tocVisible ? html`
+                    <aside class="page-toc">
+                        <nav>
+                            ${this._tocEntries.map((entry, i) => html`
+                                <a class="page-toc__item ${i === this._activeToc ? 'is-active' : ''}"
+                                   @click=${() => this._scrollToSection(i)}
+                                   title=${entry.title}>${entry.title}</a>
+                            `)}
+                        </nav>
+                    </aside>
+                ` : nothing}
             </div>
             <div class="form-footer">
                 ${metadata?.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
@@ -212,6 +346,68 @@ export class MateuPage extends LitElement {
 
         .form-content {
             width: 100%;
+            min-width: 0;
+        }
+
+        .page-body {
+            width: 100%;
+        }
+
+        .page-body.with-toc {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 15rem;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .page-toc {
+            position: sticky;
+            top: 0.5rem;
+            align-self: start;
+            max-height: calc(100vh - 8rem);
+            overflow: auto;
+            font-size: var(--lumo-font-size-s);
+        }
+
+        .page-toc nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.1rem;
+            border-left: 1px solid var(--lumo-contrast-10pct);
+            padding-left: 0.25rem;
+        }
+
+        .page-toc__item {
+            display: block;
+            padding: 0.2rem 0.5rem;
+            cursor: pointer;
+            color: var(--lumo-secondary-text-color);
+            border-left: 2px solid transparent;
+            margin-left: -0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-radius: var(--lumo-border-radius-s);
+        }
+
+        .page-toc__item:hover {
+            color: var(--lumo-body-text-color);
+            background: var(--lumo-contrast-5pct);
+        }
+
+        .page-toc__item.is-active {
+            color: var(--lumo-primary-text-color);
+            border-left-color: var(--lumo-primary-color);
+            font-weight: 600;
+        }
+
+        @media (max-width: 900px) {
+            .page-body.with-toc {
+                grid-template-columns: 1fr;
+            }
+            .page-toc {
+                display: none;
+            }
         }
 
         .page-banners {

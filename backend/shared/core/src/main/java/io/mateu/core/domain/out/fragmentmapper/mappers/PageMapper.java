@@ -135,6 +135,7 @@ public class PageMapper {
                 page.banners() != null
                     ? page.banners().stream().map(PageMapper::mapToBannerDto).toList()
                     : null)
+            .toc(page.toc())
             .build();
     return new ClientSideComponentDto(
         formMetadataDto,
