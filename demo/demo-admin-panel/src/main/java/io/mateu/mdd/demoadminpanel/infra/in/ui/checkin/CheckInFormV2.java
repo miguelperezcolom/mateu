@@ -90,9 +90,27 @@ public class CheckInFormV2 implements HeaderSupplier, TriggersSupplier, Hydratab
   @Label("") @Inline
   GuestsSectionNonCompact guestList = new GuestsSectionNonCompact();
 
-  @Section(value = "Información cliente", columns = 8)
+  // "Información cliente" is split into one section per former tab so all of it is visible in the
+  // vertical flow and shows up in the index (instead of being hidden behind tabs).
+  @Section(value = "Info Cardex", columns = 1)
   @Label("") @Inline
-  ClientInfoSection clientInfo = new ClientInfoSection();
+  CardexSection cardex = new CardexSection();
+
+  @Section(value = "Datos empresa", columns = 8)
+  @Label("") @Inline
+  CompanyDataSection company = new CompanyDataSection();
+
+  @Section(value = "Datos tarjeta", columns = 8)
+  @Label("") @Inline
+  CardDataSection card = new CardDataSection();
+
+  @Section(value = "Histórico cliente", columns = 1)
+  @Label("") @Inline
+  ClientHistorySection clientHistory = new ClientHistorySection();
+
+  @Section(value = "Preferencias", columns = 1)
+  @Label("") @Inline
+  PreferencesSection preferences = new PreferencesSection();
 
   @Section(value = "Importes", columns = 1)
   @Label("") @Inline
@@ -140,7 +158,11 @@ public class CheckInFormV2 implements HeaderSupplier, TriggersSupplier, Hydratab
               resvInfo.populate(line);
               checkIn.populate(line);
               guestList.populate(line);
-              clientInfo.populate(line);
+              cardex.populate(line);
+              company.populate(line);
+              card.populate(line);
+              clientHistory.populate(line);
+              preferences.populate(line);
               importesList.populate(line);
               roomInfo.populate(line);
               historial.populate(line);
