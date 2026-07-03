@@ -101,271 +101,179 @@ export const updateMedata = (component: ClientSideComponent, data: ComponentData
     return metadata
 }
 
-export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {
-    if (component?.metadata) {
+// Everything a per-type renderer might need. Each renderer in the dispatch table below picks the
+// arguments it actually uses; the table replaces what used to be a ~60-branch if/else chain.
+type RenderContext = {
+    container: LitElement
+    component: ClientSideComponent
+    baseUrl: string | undefined
+    state: ComponentState
+    data: ComponentData
+    appState: ComponentState
+    appData: ComponentData
+    labelAlreadyRendered: boolean | undefined
+}
 
-        const type = component.metadata.type
+// A renderer that takes the full (container, component, baseUrl, state, data, appState, appData)
+// signature — the common case. Adapts it to a RenderContext consumer so it can live in the table.
+const full =
+    (fn: (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined,
+          state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => TemplateResult) =>
+        (c: RenderContext) => fn(c.container, c.component, c.baseUrl, c.state, c.data, c.appState, c.appData)
 
-        component = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data)}
-
-        if (type == ComponentMetadataType.Bpmn) {
-            return renderBpmn(component)
-        }
-        if (type == ComponentMetadataType.Workflow) {
-            return renderWorkflow(component)
-        }
-        if (type == ComponentMetadataType.WorkflowElk) {
-            return renderWorkflowElk(component)
-        }
-        if (type == ComponentMetadataType.FormEditor) {
-            return renderFormEditor(component)
-        }
-        if (type == ComponentMetadataType.Page) {
-            return renderPage(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Div) {
-            return renderDiv(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Directory) {
-            return renderDirectory(component, baseUrl, state, data)
-        }
-        if (type == ComponentMetadataType.FormLayout) {
-            return renderFormLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.HorizontalLayout) {
-            return renderHorizontalLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.VerticalLayout) {
-            return renderVerticalLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.SplitLayout) {
-            return renderSplitLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.MasterDetailLayout) {
-            return renderMasterDetailLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.TabLayout) {
-            return renderTabLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.AccordionLayout) {
-            return renderAccordionLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.BoardLayout) {
-            return renderBoardLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.BoardLayoutRow) {
-            return renderBoardLayoutRow(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.BoardLayoutItem) {
-            return renderBoardLayoutItem(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Scroller) {
-            return renderScroller(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.FullWidth) {
-            return renderFullWidth(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Container) {
-            return renderContainer(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Form) {
-            const metadata = component.metadata as Form
-            return html`<mateu-form 
-                id="${component.id}" 
-            baseUrl="${baseUrl}"
-                .component="${component}"
-                .values="${state}"
-                .state="${state}"
-                .data="${data}"
-                .appState="${appState}"
-                .appdata="${appData}"
-                style="${component.style}" 
-                class="${component.cssClasses}"
-                slot="${component.slot??nothing}"
-                >
-                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-                ${metadata?.buttons?.map(button => html`
-                   ${renderComponent(container, {
-                    id: button.actionId,
-                    metadata: button,
-                    type: ComponentType.ClientSide,
-                       slot: 'buttons'
-                } as unknown as ClientSideComponent, undefined, state, data, appState, appData)}
+// Maps a component metadata type to the function that renders it. Built once at module load.
+const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => TemplateResult>> = {
+    [ComponentMetadataType.Bpmn]: ({ component }) => renderBpmn(component),
+    [ComponentMetadataType.Workflow]: ({ component }) => renderWorkflow(component),
+    [ComponentMetadataType.WorkflowElk]: ({ component }) => renderWorkflowElk(component),
+    [ComponentMetadataType.FormEditor]: ({ component }) => renderFormEditor(component),
+    [ComponentMetadataType.Page]: full(renderPage),
+    [ComponentMetadataType.Div]: full(renderDiv),
+    [ComponentMetadataType.Directory]: ({ component, baseUrl, state, data }) => renderDirectory(component, baseUrl, state, data),
+    [ComponentMetadataType.FormLayout]: full(renderFormLayout),
+    [ComponentMetadataType.HorizontalLayout]: full(renderHorizontalLayout),
+    [ComponentMetadataType.VerticalLayout]: full(renderVerticalLayout),
+    [ComponentMetadataType.SplitLayout]: full(renderSplitLayout),
+    [ComponentMetadataType.MasterDetailLayout]: full(renderMasterDetailLayout),
+    [ComponentMetadataType.TabLayout]: full(renderTabLayout),
+    [ComponentMetadataType.AccordionLayout]: full(renderAccordionLayout),
+    [ComponentMetadataType.BoardLayout]: full(renderBoardLayout),
+    [ComponentMetadataType.BoardLayoutRow]: full(renderBoardLayoutRow),
+    [ComponentMetadataType.BoardLayoutItem]: full(renderBoardLayoutItem),
+    [ComponentMetadataType.Scroller]: full(renderScroller),
+    [ComponentMetadataType.FullWidth]: full(renderFullWidth),
+    [ComponentMetadataType.Container]: full(renderContainer),
+    [ComponentMetadataType.Form]: ({ container, component, baseUrl, state, data, appState, appData }) => {
+        const metadata = component.metadata as Form
+        return html`<mateu-form
+            id="${component.id}"
+        baseUrl="${baseUrl}"
+            .component="${component}"
+            .values="${state}"
+            .state="${state}"
+            .data="${data}"
+            .appState="${appState}"
+            .appdata="${appData}"
+            style="${component.style}"
+            class="${component.cssClasses}"
+            slot="${component.slot??nothing}"
+            >
+                ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
+            ${metadata?.buttons?.map(button => html`
+               ${renderComponent(container, {
+            id: button.actionId,
+            metadata: button,
+            type: ComponentType.ClientSide,
+               slot: 'buttons'
+        } as unknown as ClientSideComponent, undefined, state, data, appState, appData)}
 `)}
 
-                </mateu-form>`
-        }
-        if (type == ComponentMetadataType.Table) {
-            return html`<mateu-table
-                            id="${component.id}"
-            baseUrl="${baseUrl}"
-                .metadata="${component.metadata}"
-                .state="${state}"
-                            .data="${data}"
-                            .appState="${appState}"
-                            .appDate="${appData}"
-                            style="${component.style}" class="${component.cssClasses}"
-                            slot="${component.slot??nothing}"
-                >
-                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-                </mateu-table>`
-        }
-        if (type == ComponentMetadataType.Crud) {
-            return renderCrud(container, component, baseUrl, state, data, appState, appData)
-        }
+            </mateu-form>`
+    },
+    [ComponentMetadataType.Table]: ({ container, component, baseUrl, state, data, appState, appData }) => html`<mateu-table
+                        id="${component.id}"
+        baseUrl="${baseUrl}"
+            .metadata="${component.metadata}"
+            .state="${state}"
+                        .data="${data}"
+                        .appState="${appState}"
+                        .appDate="${appData}"
+                        style="${component.style}" class="${component.cssClasses}"
+                        slot="${component.slot??nothing}"
+            >
+             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
+            </mateu-table>`,
+    [ComponentMetadataType.Crud]: full(renderCrud),
+    [ComponentMetadataType.App]: ({ container, component, baseUrl, state, data, appState, appData }) => html`
+            <mateu-app
+                        id="${component.id}"
+                        baseUrl="${baseUrl}"
+                        .component="${component}"
+                        .state="${state}"
+                        .data="${data}"
+                        style="${component.style}"
+                        class="${component.cssClasses}"
+                        .appState="${appState}"
+                        .appData="${appData}"
+            >
+             ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
+         </mateu-app>`,
+    [ComponentMetadataType.Element]: ({ container, component }) => renderElement(container, component.metadata as Element, component),
+    [ComponentMetadataType.FormField]: ({ container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered }) => {
+        const field = component.metadata as FormField
+        return html`
+    <mateu-field
+                   id="${component.id}"
+                   .component="${component}"
+            .field="${component.metadata}"
+                   .state="${state}"
+                   .data="${data}"
+                   .appState="${appState}"
+                   .appdata="${appData}"
+                   style="${component.style}" class="${component.cssClasses}"
+                   slot="${component.slot??nothing}"
+                   data-colspan="${field.colspan}"
+                   .labelAlreadyRendered="${labelAlreadyRendered}"
+            >
+                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData, labelAlreadyRendered))}
+                </mateu-field>
+        `
+    },
+    [ComponentMetadataType.Text]: ({ component, state, data, appState, appData }) => renderText(component, state, data, appState, appData),
+    [ComponentMetadataType.Avatar]: ({ component, state, data }) => renderAvatar(component, state, data),
+    [ComponentMetadataType.Chat]: ({ component, state, data }) => renderChat(component, state, data),
+    [ComponentMetadataType.AvatarGroup]: ({ component }) => renderAvatarGroup(component),
+    [ComponentMetadataType.Badge]: ({ component, state, data }) => renderBadge(component, state, data),
+    [ComponentMetadataType.Breadcrumbs]: ({ component }) => renderBreadcrumbs(component),
+    [ComponentMetadataType.Anchor]: ({ component }) => renderAnchor(component),
+    [ComponentMetadataType.Button]: ({ component, state, data }) => renderButton(component, state, data),
+    [ComponentMetadataType.Card]: full(renderCard),
+    [ComponentMetadataType.Chart]: ({ component }) => renderChart(component),
+    [ComponentMetadataType.Icon]: ({ component }) => renderIcon(component),
+    [ComponentMetadataType.ConfirmDialog]: full(renderConfirmDialog),
+    [ComponentMetadataType.ContextMenu]: full(renderContextMenu),
+    [ComponentMetadataType.CookieConsent]: ({ component }) => renderCookieConsent(component),
+    [ComponentMetadataType.Details]: full(renderDetails),
+    [ComponentMetadataType.Dialog]: ({ component, baseUrl, state, data, appState, appData }) => renderDialog(component, baseUrl, state, data, appState, appData),
+    [ComponentMetadataType.Image]: ({ component }) => renderImage(component),
+    [ComponentMetadataType.Map]: ({ component }) => renderMap(component),
+    [ComponentMetadataType.Markdown]: ({ component }) => renderMarkdown(component),
+    [ComponentMetadataType.MicroFrontend]: ({ component }) => renderMicroFrontend(component),
+    [ComponentMetadataType.Notification]: ({ component }) => renderNotification(component),
+    [ComponentMetadataType.ProgressBar]: ({ component, state }) => renderProgressBar(component, state),
+    [ComponentMetadataType.Popover]: full(renderPopover),
+    [ComponentMetadataType.CarouselLayout]: full(renderCarouselLayout),
+    [ComponentMetadataType.Tooltip]: full(renderTooltip),
+    [ComponentMetadataType.MessageInput]: ({ component }) => renderMessageInput(component),
+    [ComponentMetadataType.MessageList]: ({ component }) => renderMessageList(component),
+    [ComponentMetadataType.CustomField]: full(customFieldRenderer),
+    [ComponentMetadataType.MenuBar]: ({ container, component, baseUrl, state, data }) => renderMenuBar(container, component, baseUrl, state, data),
+    [ComponentMetadataType.Grid]: full(renderGrid),
+    [ComponentMetadataType.VirtualList]: full(renderVirtualList),
+    [ComponentMetadataType.FormSection]: full(renderFormSection),
+    [ComponentMetadataType.FormSubSection]: full(renderFormSubSection),
+}
 
-        if (type == ComponentMetadataType.App) {
-            return html`
-                <mateu-app
-                            id="${component.id}"
-                            baseUrl="${baseUrl}"
-                            .component="${component}"
-                            .state="${state}"
-                            .data="${data}"
-                            style="${component.style}" 
-                            class="${component.cssClasses}"
-                            .appState="${appState}"
-                            .appData="${appData}"
-                >
-                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-             </mateu-app>`
+export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {
+    if (!component?.metadata) {
+        // A raw metadata object arrived instead of a ClientSideComponent — wrap it and retry once.
+        if (component == undefined) {
+            console.warn('No metadata for component', component)
+            return html`<p>No metadata for component</p>`
         }
-
-
-        if (type == ComponentMetadataType.Element) {
-            return renderElement(container, component.metadata as Element, component)
-        }
-
-        if (type == ComponentMetadataType.FormField) {
-            const field = component.metadata as FormField
-            return html`
-        <mateu-field
-                       id="${component.id}"
-                       .component="${component}"
-                .field="${component.metadata}"
-                       .state="${state}"
-                       .data="${data}"
-                       .appState="${appState}"
-                       .appdata="${appData}"
-                       style="${component.style}" class="${component.cssClasses}"
-                       slot="${component.slot??nothing}"
-                       data-colspan="${field.colspan}"
-                       .labelAlreadyRendered="${labelAlreadyRendered}"
-                >
-                        ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData, labelAlreadyRendered))}
-                    </mateu-field>
-            `
-        }
-        if (type == ComponentMetadataType.Text) {
-            return renderText(component, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Avatar) {
-            return renderAvatar(component, state, data)
-        }
-        if (type == ComponentMetadataType.Chat) {
-            return renderChat(component, state, data)
-        }
-        if (type == ComponentMetadataType.AvatarGroup) {
-            return renderAvatarGroup(component)
-        }
-        if (type == ComponentMetadataType.Badge) {
-            return renderBadge(component, state, data)
-        }
-        if (type == ComponentMetadataType.Breadcrumbs) {
-            return renderBreadcrumbs(component)
-        }
-        if (type == ComponentMetadataType.Anchor) {
-            return renderAnchor(component)
-        }
-        if (type == ComponentMetadataType.Button) {
-            return renderButton(component, state, data)
-        }
-        if (type == ComponentMetadataType.Card) {
-            return renderCard(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Chart) {
-            return renderChart(component)
-        }
-        if (type == ComponentMetadataType.Icon) {
-            return renderIcon(component)
-        }
-        if (type == ComponentMetadataType.ConfirmDialog) {
-            return renderConfirmDialog(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.ContextMenu) {
-            return renderContextMenu(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.CookieConsent) {
-            return renderCookieConsent(component)
-        }
-        if (type == ComponentMetadataType.Details) {
-            return renderDetails(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Dialog) {
-            return renderDialog(component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Image) {
-            return renderImage(component)
-        }
-        if (type == ComponentMetadataType.Map) {
-            return renderMap(component)
-        }
-        if (type == ComponentMetadataType.Markdown) {
-            return renderMarkdown(component)
-        }
-        if (type == ComponentMetadataType.MicroFrontend) {
-            return renderMicroFrontend(component)
-        }
-        if (type == ComponentMetadataType.Notification) {
-            return renderNotification(component)
-        }
-        if (type == ComponentMetadataType.ProgressBar) {
-            return renderProgressBar(component, state)
-        }
-        if (type == ComponentMetadataType.Popover) {
-            return renderPopover(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.CarouselLayout) {
-            return renderCarouselLayout(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.Tooltip) {
-            return renderTooltip(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.MessageInput) {
-            return renderMessageInput(component)
-        }
-        if (type == ComponentMetadataType.MessageList) {
-            return renderMessageList(component)
-        }
-        if (type == ComponentMetadataType.CustomField) {
-            return customFieldRenderer(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.MenuBar) {
-            return renderMenuBar(container, component, baseUrl, state, data)
-        }
-        if (type == ComponentMetadataType.Grid) {
-            return renderGrid(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.VirtualList) {
-            return renderVirtualList(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.FormSection) {
-            return renderFormSection(container, component, baseUrl, state, data, appState, appData)
-        }
-        if (type == ComponentMetadataType.FormSubSection) {
-            return renderFormSubSection(container, component, baseUrl, state, data, appState, appData)
-        }
-        //console.log('Unknown metadata type for component', type, component)
-        return html`<p ${component?.slot??nothing}>Unknown metadata type ${type} for component ${component?.id}</p>`
-    }
-    else {
         return renderClientSideComponent(container, {
             id: nanoid(),
             metadata: component,
             type: ComponentType.ClientSide
-        } as ClientSideComponent, baseUrl, state, data, appState, appData, labelAlreadyRendered)
-
+        } as unknown as ClientSideComponent, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
-    console.warn('No metadata for component', component)
-    return html`<p ${component?.slot??nothing}>No metadata for component ${component?.id}</p>`
+
+    const type = component.metadata.type
+    const resolved = { ...component, style: updateStyle(component, data), metadata: updateMedata(component, data) }
+
+    const renderer = RENDERERS[type]
+    if (renderer) {
+        return renderer({ container, component: resolved, baseUrl, state, data, appState, appData, labelAlreadyRendered })
+    }
+    return html`<p ${resolved?.slot??nothing}>Unknown metadata type ${type} for component ${resolved?.id}</p>`
 }
