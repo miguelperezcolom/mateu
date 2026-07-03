@@ -69,6 +69,36 @@ The wizard **title** is derived in order: `@Title` annotation → `TitleSupplier
 
 ![Registration wizard — step 1 with progress bar and Next button](/images/docs/ux-patterns/wizard.png)
 
+## Layout modes — `@WizardLayout`
+
+By default a wizard shows one step at a time. Annotate the class with `@WizardLayout(...)` to change
+how it's laid out:
+
+```java
+@WizardLayout(WizardLayoutMode.ACCUMULATIVE)
+public class OnboardingWizard extends Wizard { … }
+```
+
+| Mode | Behaviour |
+|---|---|
+| `STEPS` *(default)* | Only the current step is shown, one at a time. |
+| `ACCUMULATIVE` | The current step is editable, with a **read-only recap card of every completed step stacked above it** — the user always sees what has been collected so far. |
+| `ACCORDION` | Every step is a **collapsible panel**: the current one is open and editable, completed ones are collapsed (expand to review), upcoming ones are disabled. As you advance, the previous panel collapses and the next opens. |
+
+<div style="display:flex; gap:1rem; flex-wrap:wrap;">
+  <figure style="flex:1; min-width:280px; margin:0;">
+    <img src="/images/docs/ux-patterns/wizard-accumulative.png" alt="Accumulative wizard — completed steps recapped above the current one" />
+    <figcaption><code>ACCUMULATIVE</code></figcaption>
+  </figure>
+  <figure style="flex:1; min-width:280px; margin:0;">
+    <img src="/images/docs/ux-patterns/wizard-accordion.png" alt="Accordion wizard — one collapsible panel per step" />
+    <figcaption><code>ACCORDION</code></figcaption>
+  </figure>
+</div>
+
+Both non-default modes render previously entered data read-only; steps should use distinct field
+names (the wizard state is a single flat map across steps).
+
 ## Structure
 
 ```
