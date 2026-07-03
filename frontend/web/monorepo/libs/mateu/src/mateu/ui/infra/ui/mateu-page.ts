@@ -68,6 +68,11 @@ export class MateuPage extends LitElement {
     private _tocRebuildScheduled = false
     private _headerH = 0
     private _onResize = () => this._layoutStickyTops()
+    // While locked (right after clicking an index entry) the scrollspy leaves the active entry alone,
+    // so a clicked section stays highlighted even if it sits near the bottom and can't scroll all the
+    // way up to the reading line. Any manual scroll gesture releases the lock.
+    private _tocLocked = false
+    private _unlockToc = () => { this._tocLocked = false }
 
     private _actionBannerTimers: ReturnType<typeof setTimeout>[] = []
     private _staticBannerTimers: ReturnType<typeof setTimeout>[] = []
@@ -285,23 +290,28 @@ export class MateuPage extends LitElement {
         if (!this._tocEntries.length) return
         this._spyTarget = this._scrollContainer() ?? window
         this._spyTarget.addEventListener('scroll', this._onScrollSpy, { passive: true })
+        // A manual scroll gesture releases the click lock (see _tocLocked).
+        window.addEventListener('wheel', this._unlockToc, { passive: true })
+        window.addEventListener('touchstart', this._unlockToc, { passive: true })
+        window.addEventListener('keydown', this._unlockToc)
         this._onScrollSpy()
     }
 
     private _teardownScrollSpy() {
         this._spyTarget?.removeEventListener('scroll', this._onScrollSpy)
+        window.removeEventListener('wheel', this._unlockToc)
+        window.removeEventListener('touchstart', this._unlockToc)
+        window.removeEventListener('keydown', this._unlockToc)
         this._spyTarget = undefined
     }
 
-    // Classic scrollspy: the active entry is the last section whose top has crossed the activation
-    // line near the top of the scroll viewport. Sticky (pinned) sections are skipped so a pinned card
-    // never permanently hijacks the highlight.
     // Scrollspy: the active entry is the section that occupies the reading area — the strip just
     // below the pinned region (header + any pinned sticky sections). Sticky sections are *included*
     // so a pinned section (e.g. the guests list) is highlighted while it's the one in view and hands
     // off to the next as that scrolls up; sections hidden behind a pinned sticky are never marked
     // active because the reading line sits below the whole pinned region.
     private _onScrollSpy = () => {
+        if (this._tocLocked) return
         const cards = this._sectionCards()
         if (!cards.length) return
         const gap = 12
@@ -332,6 +342,9 @@ export class MateuPage extends LitElement {
         const entry = this._tocEntries[i]
         if (!entry) return
         this._activeToc = i
+        // Keep this entry highlighted until the user scrolls, even if it can't reach the reading line
+        // (e.g. a section near the bottom with too little content below it to scroll all the way up).
+        this._tocLocked = true
         // Land the section at the start of the visible area, i.e. below the pinned header and any
         // sticky section that sits *above* this one (those overlap the top once pinned). Sticky
         // sections below the target don't overlap it, so they're not counted.
