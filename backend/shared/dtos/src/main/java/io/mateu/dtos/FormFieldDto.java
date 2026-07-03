@@ -44,6 +44,7 @@ public record FormFieldDto(
     String style,
     List<ComponentDto> columns,
     String onItemSelectionActionId,
+    String rowSelectionShortcut,
     FormPositionDto formPosition,
     String formStyle,
     String formTheme,

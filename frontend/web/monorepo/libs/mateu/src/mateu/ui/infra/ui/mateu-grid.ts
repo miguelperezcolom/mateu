@@ -75,6 +75,55 @@ export class MateuGrid extends MetadataDrivenElement {
     private hoverCellPartNameGenerator = (_column: unknown, model: { item?: unknown }) =>
         model?.item != null && model.item === this.hoveredItem ? 'hovered-cell' : ''
 
+    connectedCallback() {
+        super.connectedCallback()
+        document.addEventListener('keydown', this._onRowKey)
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        document.removeEventListener('keydown', this._onRowKey)
+    }
+
+    /** The grid's current rows (local collection or fetched remote content). */
+    private currentItems(): any[] {
+        if (this.field?.remoteCoordinates) return this.data?.[this.id]?.content ?? []
+        if (this.field?.fieldId && this.state) return this.state[this.field.fieldId] ?? []
+        return []
+    }
+
+    /** Select a row (mark it and fire the @OnRowSelected action, exactly like a row click). */
+    private selectRow(item: any) {
+        if (!item || !this.field?.onItemSelectionActionId) return
+        this.selectedItems = [item]
+        this.state[this.id + '_selected_items'] = [item]
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: {
+                actionId: this.field.onItemSelectionActionId,
+                parameters: { _clickedRow: item }
+            },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+    // @OnRowSelected(shortcut="ctrl+shift") → select row N with the base combo plus a digit
+    // (ctrl+shift+1 = first row …). Matches e.code (Digit/Numpad) so it's layout/NumLock independent.
+    private _onRowKey = (e: KeyboardEvent) => {
+        const base = this.field?.rowSelectionShortcut
+        if (!base || !this.field?.onItemSelectionActionId) return
+        const parts = base.toLowerCase().split('+')
+        if (e.ctrlKey !== parts.includes('ctrl') || e.altKey !== parts.includes('alt')
+            || e.shiftKey !== parts.includes('shift') || e.metaKey !== parts.includes('meta')) return
+        const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)
+        if (!m) return
+        const items = this.currentItems()
+        const idx = parseInt(m[1], 10) - 1
+        if (idx >= items.length) return
+        e.preventDefault()
+        this.selectRow(items[idx])
+    }
+
     handleButtonClick = (actionId: string) => {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
@@ -250,20 +299,8 @@ export class MateuGrid extends MetadataDrivenElement {
             // read-only grid, so resolve the clicked row from the grid event context instead.
             const grid = e.currentTarget as unknown as { getEventContext: (ev: Event) => { item?: unknown } }
             const item = grid.getEventContext(e)?.item
-            if (item) {
-                this.selectedItems = [item]
-                this.state[this.id + '_selected_items'] = [item]
-                this.dispatchEvent(new CustomEvent('action-requested', {
-                    detail: {
-                        actionId: this.field?.onItemSelectionActionId,
-                        // Carry the selected row so the handler can read it via
-                        // HttpRequest.getClickedRow(...) (mirrors the row-action convention).
-                        parameters: { _clickedRow: item }
-                    },
-                    bubbles: true,
-                    composed: true
-                }))
-            }
+            // selectRow carries the row so the handler can read it via HttpRequest.getClickedRow(...).
+            if (item) this.selectRow(item)
         } : undefined)}"
                     @active-item-changed="${ifDefined((this.field?.detailPath && !this.field?.useButtonForDetail)?(event: GridActiveItemChangedEvent<any>) => {
             if (this.field?.detailPath) {

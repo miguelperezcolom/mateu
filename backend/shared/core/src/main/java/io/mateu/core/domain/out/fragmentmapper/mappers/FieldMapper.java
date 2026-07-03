@@ -71,6 +71,7 @@ public class FieldMapper {
                                 httpRequest))
                     .toList())
             .onItemSelectionActionId(formField.onItemSelectionActionId())
+            .rowSelectionShortcut(formField.rowSelectionShortcut())
             .attributes(mapAttributes(formField))
             .detailPath(formField.detailPath())
             .useButtonForDetail(formField.useButtonForDetail())

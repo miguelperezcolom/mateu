@@ -37,4 +37,11 @@ public @interface OnRowSelected {
 
   /** Name of the action/method to run when a row is selected. */
   String value();
+
+  /**
+   * Optional keyboard-shortcut base (e.g. {@code "ctrl+shift"}) that lets the user select a row by
+   * its position: the base combined with a digit selects that row ({@code ctrl+shift+1} → first
+   * row, … up to the ninth). Empty means no keyboard row selection.
+   */
+  String shortcut() default "";
 }

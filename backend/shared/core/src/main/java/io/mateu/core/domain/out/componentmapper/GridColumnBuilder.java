@@ -80,6 +80,7 @@ public class GridColumnBuilder {
         .colspan(getColspan(field, null, null))
         .itemIdPath("_rowNumber")
         .onItemSelectionActionId(getOnItemSelectionActionId(field, prefix, readOnly))
+        .rowSelectionShortcut(getRowSelectionShortcut(field))
         .formPosition(getFormPosition(field))
         .formStyle(getFormStyle(field))
         .formTheme(getFormTheme(field))
@@ -105,6 +106,17 @@ public class GridColumnBuilder {
           : "nested-form-action-" + prefix + method;
     }
     return readOnly ? null : getFieldId(field, prefix, readOnly) + "_selected";
+  }
+
+  /**
+   * Keyboard-shortcut base for selecting a row by position (see {@link OnRowSelected#shortcut()}).
+   */
+  private static String getRowSelectionShortcut(Field field) {
+    if (MetaAnnotations.isPresent(field, OnRowSelected.class)) {
+      var shortcut = MetaAnnotations.find(field, OnRowSelected.class).shortcut();
+      return shortcut == null || shortcut.isEmpty() ? null : shortcut;
+    }
+    return null;
   }
 
   public static int getDetailFormColumns(Field field) {

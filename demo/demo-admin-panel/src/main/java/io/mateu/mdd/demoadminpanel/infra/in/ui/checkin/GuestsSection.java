@@ -22,7 +22,7 @@ public class GuestsSection {
 
     @Label("")
     @Stereotype(FieldStereotype.grid)
-    @OnRowSelected("onGuestSelected")
+    @OnRowSelected(value = "onGuestSelected", shortcut = "ctrl+shift")
     List<GuestData> guests = new ArrayList<>();
 
     void populate(ReservationLine line) {
