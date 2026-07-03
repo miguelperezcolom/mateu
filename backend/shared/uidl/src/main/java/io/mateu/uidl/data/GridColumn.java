@@ -25,6 +25,7 @@ public record GridColumn(
     String text,
     Integer priority,
     boolean identifier,
+    boolean editable,
     Double weight)
     implements GridContent {
 

@@ -222,12 +222,17 @@ export class MateuGrid extends MetadataDrivenElement {
             })
         }
 
+        // Inline editing: just the grid with editable cells — no detail form / master-detail layout.
+        if (this.field?.inlineEditing) {
+            return this.renderMaster(items)
+        }
+
         if (this.field?.formPosition && this.field?.formPosition.startsWith('modal')) {
             const grid = this;
             return html`
 
                 ${this.renderMaster(items)}
-                
+
                 <vaadin-dialog
                         .opened="${showDetail}"
                         @closed="${() => {

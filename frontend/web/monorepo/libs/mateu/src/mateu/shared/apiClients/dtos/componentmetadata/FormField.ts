@@ -34,6 +34,7 @@ export default interface FormField extends ComponentMetadata {
     editor: ClientSideComponent
     onItemSelectionActionId: string | undefined
     rowSelectionShortcut: string | undefined
+    inlineEditing: boolean
     formPosition: string
     formStyle: string
     formTheme: string

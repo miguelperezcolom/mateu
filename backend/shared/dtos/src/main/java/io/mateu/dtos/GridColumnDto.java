@@ -26,5 +26,6 @@ public record GridColumnDto(
     String text,
     Integer priority,
     boolean identifier,
+    boolean editable,
     Double weight)
     implements ComponentMetadataDto {}

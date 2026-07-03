@@ -43,6 +43,7 @@ public record FormFieldDto(
     boolean required,
     String style,
     List<ComponentDto> columns,
+    boolean inlineEditing,
     String onItemSelectionActionId,
     String rowSelectionShortcut,
     FormPositionDto formPosition,

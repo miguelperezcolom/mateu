@@ -22,6 +22,7 @@ public record FormField(
     String style,
     String cssClasses,
     List<GridContent> columns,
+    boolean inlineEditing,
     String onItemSelectionActionId,
     String rowSelectionShortcut,
     int colspan,

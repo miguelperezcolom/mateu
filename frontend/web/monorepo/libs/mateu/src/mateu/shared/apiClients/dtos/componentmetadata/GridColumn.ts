@@ -21,6 +21,7 @@ export default interface GridColumn extends ComponentMetadata {
     style: string
     priority: number
     identifier: boolean
+    editable: boolean
     weight: number | null
 
 }

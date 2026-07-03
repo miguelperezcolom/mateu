@@ -23,6 +23,9 @@ public class GridColumnBuilder {
 
   static Component createCrudForField(
       Field field, String prefix, boolean readOnly, HttpRequest httpRequest) {
+    // Inline editing: row cells become editable inputs in the grid instead of opening a detail
+    // form.
+    boolean inlineEditing = !readOnly && MetaAnnotations.isPresent(field, InlineEditing.class);
     var columns = new ArrayList<GridContent>();
     getAllFields(getGenericClass(field, field.getType(), "E")).stream()
         .filter(
@@ -52,9 +55,14 @@ public class GridColumnBuilder {
                       // space.
                       .flexGrow(auto || colWidth != null ? "0" : null)
                       .filterable(getFilterable(columnField))
+                      // In inline mode every data column is edited in place; a field marked
+                      // @ReadOnly stays display-only.
+                      .editable(
+                          inlineEditing && !MetaAnnotations.isPresent(columnField, ReadOnly.class))
                       .build());
             });
-    if (!readOnly) {
+    // The per-row "Edit" button opens the detail form; inline editing replaces it.
+    if (!readOnly && !inlineEditing) {
       columns.add(
           GridColumn.builder()
               .dataType(FieldDataType.string)
@@ -76,6 +84,7 @@ public class GridColumnBuilder {
         .useButtonForDetail(detailPath != null)
         .label(getLabel(field))
         .columns(columns)
+        .inlineEditing(inlineEditing)
         .style(getStyleForArray(field))
         .colspan(getColspan(field, null, null))
         .itemIdPath("_rowNumber")

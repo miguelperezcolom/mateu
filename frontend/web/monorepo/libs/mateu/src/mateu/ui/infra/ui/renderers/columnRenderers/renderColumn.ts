@@ -22,6 +22,46 @@ import { renderComponentCell } from "@infra/ui/renderers/columnRenderers/compone
 import { GridSortColumnDirectionChangedEvent } from "@vaadin/grid/src/vaadin-grid-sort-column-mixin";
 import { GridSortColumn } from "@vaadin/grid/all-imports";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import "@vaadin/text-field";
+import "@vaadin/number-field";
+import "@vaadin/checkbox";
+import "@vaadin/date-picker";
+
+// Inline-editing cell: an input bound to the row value. On commit it mutates the row and re-emits the
+// whole grid array as a value-changed so mateu-component updates state[fieldId] (edits then round-trip
+// with the enclosing form's next action). Unsupported types fall back to a read-only span.
+const renderEditableCell = (
+    item: any,
+    column: GridColumn,
+    container: LitElement,
+    state: ComponentState,
+) => {
+    const gridFieldId = (container as any)?.field?.fieldId
+    const commit = (value: any) => {
+        item[column.id] = value
+        const arr = gridFieldId ? (state as any)[gridFieldId] : undefined
+        container.dispatchEvent(new CustomEvent('value-changed', {
+            detail: { fieldId: gridFieldId, value: Array.isArray(arr) ? [...arr] : arr },
+            bubbles: true,
+            composed: true,
+        }))
+    }
+    const v = item[column.id]
+    switch (column.dataType) {
+        case 'bool':
+            return html`<vaadin-checkbox ?checked=${!!v} @checked-changed=${(e: any) => commit(e.detail.value)}></vaadin-checkbox>`
+        case 'integer':
+        case 'number':
+        case 'money':
+            return html`<vaadin-number-field theme="small" style="width:100%;" .value=${v == null ? '' : String(v)} @change=${(e: any) => commit(e.target.value)}></vaadin-number-field>`
+        case 'date':
+            return html`<vaadin-date-picker theme="small" style="width:100%;" .value=${v ?? ''} @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-date-picker>`
+        case 'string':
+            return html`<vaadin-text-field theme="small" style="width:100%;" .value=${v ?? ''} @change=${(e: any) => commit(e.target.value)}></vaadin-text-field>`
+        default:
+            return html`<span title="${v}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${v}</span>`
+    }
+}
 
 const headerRenderer = (label: string) =>
     columnHeaderRenderer(() => html`<span title="${label}" style="white-space:normal;overflow-wrap:break-word;">${label}</span>`, [label])
@@ -211,6 +251,9 @@ export const columnRenderer = (item: any,
                                appData: ComponentData) => {
     const type = vaadinColumn.dataset.dataType??''
     const stereotype = vaadinColumn.dataset.stereotype??''
+    if (column.editable) {
+        return renderEditableCell(item, column, container, state)
+    }
     if ('status' == type) {
         return renderStatusCell(item, model, vaadinColumn)
     }

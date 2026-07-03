@@ -72,6 +72,7 @@ public class FieldMapper {
                     .toList())
             .onItemSelectionActionId(formField.onItemSelectionActionId())
             .rowSelectionShortcut(formField.rowSelectionShortcut())
+            .inlineEditing(formField.inlineEditing())
             .attributes(mapAttributes(formField))
             .detailPath(formField.detailPath())
             .useButtonForDetail(formField.useButtonForDetail())

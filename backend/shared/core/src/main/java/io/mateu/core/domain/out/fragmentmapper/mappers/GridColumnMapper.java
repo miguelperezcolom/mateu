@@ -38,6 +38,7 @@ public class GridColumnMapper {
             .style(gridColumn.style())
             .priority(gridColumn.priority() != Integer.MAX_VALUE ? gridColumn.priority() : null)
             .identifier(gridColumn.identifier())
+            .editable(gridColumn.editable())
             .weight(gridColumn.weight())
             .build(),
         gridColumn.id(),
