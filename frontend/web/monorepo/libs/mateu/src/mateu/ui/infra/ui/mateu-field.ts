@@ -542,7 +542,27 @@ export class MateuField extends LitElement {
             : rawLabelText
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
-        if (this.field?.stereotype == 'badge') {
+        if (this.field?.stereotype == 'badge') return this.renderBadgeField(fieldId, value, label, labelText)
+        if (this.field?.stereotype == 'plainText') return this.renderPlainTextField(fieldId, value, label, labelText)
+        if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) return this.renderReadOnlyField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'file') return this.renderFileField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'string') return this.renderStringField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'number') return this.renderNumberField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'integer') return this.renderIntegerField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'bool') return this.renderBoolField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'dateRange') return this.renderDateRangeField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'date') return this.renderDateField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'dateTime') return this.renderDateTimeField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'time') return this.renderTimeField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'array') return this.renderArrayField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'money') return this.renderMoneyField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'status') return this.renderStatusField(fieldId, value, label, labelText)
+        if (this.field?.dataType == 'range') return this.renderRangeField(fieldId, value, label, labelText)
+        return html `<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`
+    }
+
+    private renderBadgeField(_fieldId: string, value: any, _label: any, labelText: string): TemplateResult {
+        if (!this.field) return html``
             const on = value === true || value === 'true'
             return html`<vaadin-custom-field
                     id="${this.field.fieldId}"
@@ -550,9 +570,10 @@ export class MateuField extends LitElement {
                     style="${this.field?.style}"
             ><span theme="badge ${on ? 'success' : ''} pill" style="${on ? '' : 'opacity: 0.4;'}">${labelText}</span>
             </vaadin-custom-field>`
-        }
+    }
 
-        if (this.field?.stereotype == 'plainText') {
+    private renderPlainTextField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             let v = evalIfNecessary(value, this.state, this.data)
             const amountObj = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any) : null
             if (v && (v as any).value) v = (v as any).value
@@ -581,9 +602,10 @@ export class MateuField extends LitElement {
                     data-colspan="${this.field?.colspan}"
                     style="${isMoney ? 'text-align: right; ' : ''}${this.field?.style}"
             >${body}</vaadin-custom-field>`
-        }
+    }
 
-        if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) {
+    private renderReadOnlyField(fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             let valueToDisplay = evalIfNecessary(value, this.state, this.data) || this.data[fieldId]
             if (valueToDisplay && (valueToDisplay as any).value) {
                 valueToDisplay = (valueToDisplay as any).value
@@ -626,9 +648,10 @@ export class MateuField extends LitElement {
                         @click="${() => navigator.clipboard.writeText(strValue).catch(() => {})}"
                 ></vaadin-icon>` : nothing}</vaadin-text-field>
 `
-        }
+    }
 
-        if (this.field?.dataType == 'file') {
+    private renderFileField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             const files = value?.map((file: FileLike) => {
                 return {
                     id: file.id,
@@ -652,8 +675,10 @@ export class MateuField extends LitElement {
                     ></vaadin-upload>
                 </vaadin-custom-field>
             `
-        }
-        if (this.field?.dataType == 'string') {
+    }
+
+    private renderStringField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             if (this.field?.stereotype == 'searchable') {
 
                 const searchCode = (e: CustomEvent) => {
@@ -1324,8 +1349,10 @@ export class MateuField extends LitElement {
                         style="${this.field.style}"
                 ></vaadin-text-field>
 `
-        }
-        if (this.field?.dataType == 'number') {
+    }
+
+    private renderNumberField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             return html`<vaadin-number-field
                         id="${this.field.fieldId}"
                         label="${label}"
@@ -1340,8 +1367,10 @@ export class MateuField extends LitElement {
                         min="${this.field.min != null ? this.field.min : nothing}"
                         max="${this.field.max != null ? this.field.max : nothing}"
             ></vaadin-number-field>`
-        }
-        if (this.field?.dataType == 'integer') {
+    }
+
+    private renderIntegerField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             if (this.field.stereotype == 'stars') {
                 let renderValue = value;
                 if (isNaN(renderValue)) {
@@ -1406,8 +1435,10 @@ export class MateuField extends LitElement {
                         max="${this.field.max != null ? this.field.max : nothing}"
                 ></vaadin-integer-field>
             `
-        }
-        if (this.field?.dataType == 'bool') {
+    }
+
+    private renderBoolField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             return html `
                 <vaadin-custom-field
                         label="${label}"
@@ -1432,8 +1463,10 @@ export class MateuField extends LitElement {
                     `}
                 </vaadin-custom-field>
             `
-        }
-        if (this.field?.dataType == 'dateRange') {
+    }
+
+    private renderDateRangeField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             const drValue = value?value.from + ';' + value.to:undefined;
             return html`<vcf-date-range-picker
                     id="${this.field.fieldId}"
@@ -1452,8 +1485,10 @@ export class MateuField extends LitElement {
                     ?required="${this.field.required || nothing}"
                     data-colspan="${this.field.colspan}"
             ></vcf-date-range-picker>`
-        }
-        if (this.field?.dataType == 'date') {
+    }
+
+    private renderDateField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             return html`<vaadin-date-picker
                         id="${this.field.fieldId}"
                         label="${label}"
@@ -1464,8 +1499,10 @@ export class MateuField extends LitElement {
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
             ></vaadin-date-picker>`
-        }
-        if (this.field?.dataType == 'dateTime') {
+    }
+
+    private renderDateTimeField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             return html`<vaadin-date-time-picker
                         id="${this.field.fieldId}"
                         label="${label}"
@@ -1476,8 +1513,10 @@ export class MateuField extends LitElement {
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
             ></vaadin-date-time-picker>`
-        }
-        if (this.field?.dataType == 'time') {
+    }
+
+    private renderTimeField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             return html`<vaadin-time-picker
                         id="${this.field.fieldId}"
                         label="${label}"
@@ -1488,8 +1527,10 @@ export class MateuField extends LitElement {
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
             ></vaadin-time-picker>`
-        }
-        if (this.field?.dataType == 'array') {
+    }
+
+    private renderArrayField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             if (this.field?.stereotype == 'choice') {
                 return html`
                     <vaadin-custom-field
@@ -1724,8 +1765,10 @@ export class MateuField extends LitElement {
                         `)}
                 </vaadin-checkbox-group>
             `
-        }
-        if (this.field?.dataType == 'money') {
+    }
+
+    private renderMoneyField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             if (this.field.readOnly) {
                 const amount = value
                 let formatted = amount
@@ -1759,8 +1802,10 @@ export class MateuField extends LitElement {
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
             ></mateu-money-field>`
-        }
-        if (this.field?.dataType == 'status') {
+    }
+
+    private renderStatusField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             const status = value as Status
             return html`
                 <vaadin-custom-field
@@ -1772,8 +1817,10 @@ export class MateuField extends LitElement {
                     ${status?html`<span theme="badge pill ${getThemeForBadgetType(status.type)}">${status.message}</span>`:html``}                    
                 </vaadin-custom-field>
             `
-        }
-        if (this.field?.dataType == 'range') {
+    }
+
+    private renderRangeField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
             const range = value as {
                 from: number
                 to: number
@@ -1807,8 +1854,6 @@ export class MateuField extends LitElement {
                                    style="min-width: 10rem;"
                 ></ui5-range-slider></vaadin-custom-field>
             `
-        }
-        return html `<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`
     }
 
     static styles = css`
