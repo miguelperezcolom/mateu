@@ -33,10 +33,12 @@ public class InlineEditingDemo {
                     List.of(
                             new LineItem(
                                     "Widget", 3, 9.90, true, LineCategory.STANDARD,
-                                    java.time.LocalDate.now().plusDays(3), java.time.LocalTime.of(10, 30)),
+                                    java.time.LocalDate.now().plusDays(3), java.time.LocalTime.of(10, 30),
+                                    "P001"),
                             new LineItem(
                                     "Gadget", 1, 19.50, false, LineCategory.PRIORITY,
-                                    java.time.LocalDate.now().plusDays(7), java.time.LocalTime.of(16, 0))));
+                                    java.time.LocalDate.now().plusDays(7), java.time.LocalTime.of(16, 0),
+                                    "P002")));
 
     @Toolbar
     @Label("Total")
@@ -48,6 +50,7 @@ public class InlineEditingDemo {
                         + (first != null
                                 ? " · 1ª: " + first.getProduct() + "/" + first.getCategory()
                                         + "/" + first.getDeliveryDate() + "/" + first.getDeliveryTime()
+                                        + "/prov=" + first.getSupplierId()
                                 : ""));
     }
 }

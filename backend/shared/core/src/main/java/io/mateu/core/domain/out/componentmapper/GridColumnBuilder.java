@@ -61,7 +61,8 @@ public class GridColumnBuilder {
                       .filterable(getFilterable(columnField))
                       .editable(colEditable)
                       .editorType(colEditable ? getEditorType(columnField) : null)
-                      .editorOptions(colEditable ? getEditorOptions(columnField) : null)
+                      .editorOptions(
+                          colEditable ? getEditorOptions(columnField, httpRequest) : null)
                       .build());
             });
     // The per-row "Edit" button opens the detail form; inline editing replaces it.
@@ -146,7 +147,7 @@ public class GridColumnBuilder {
    * (the coarse column {@code dataType} collapses most types to {@code string}).
    */
   private static String getEditorType(Field columnField) {
-    if (columnField.getType().isEnum()) {
+    if (columnField.getType().isEnum() || MetaAnnotations.isPresent(columnField, Lookup.class)) {
       return "select";
     }
     if (MetaAnnotations.isPresent(columnField, io.mateu.uidl.annotations.Stereotype.class)
@@ -165,14 +166,34 @@ public class GridColumnBuilder {
     };
   }
 
-  /** Options for a {@code select} editor: the constants of an enum column. */
-  private static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(Field columnField) {
-    if (!columnField.getType().isEnum()) {
-      return null;
+  /**
+   * Options for a {@code select} editor: the constants of an enum column, or the options a
+   * {@code @Lookup} field resolves through its {@code LookupOptionsSupplier} (the initial page).
+   */
+  private static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(
+      Field columnField, HttpRequest httpRequest) {
+    if (columnField.getType().isEnum()) {
+      return java.util.Arrays.stream(columnField.getType().getEnumConstants())
+          .map(c -> new io.mateu.uidl.data.Option(((Enum<?>) c).name(), c.toString()))
+          .toList();
     }
-    return java.util.Arrays.stream(columnField.getType().getEnumConstants())
-        .map(c -> new io.mateu.uidl.data.Option(((Enum<?>) c).name(), c.toString()))
-        .toList();
+    if (MetaAnnotations.isPresent(columnField, Lookup.class)) {
+      var supplier =
+          io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.getLookupOptionsSupplier(
+              null, columnField);
+      if (supplier != null) {
+        var listing =
+            supplier.search(
+                columnField.getName(),
+                "",
+                new io.mateu.uidl.data.Pageable(0, 200, java.util.List.of()),
+                httpRequest);
+        if (listing != null && listing.page() != null) {
+          return listing.page().content();
+        }
+      }
+    }
+    return null;
   }
 
   private static String getColumnWidth(Field columnField) {
