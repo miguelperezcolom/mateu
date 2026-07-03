@@ -21,14 +21,16 @@ import lombok.NoArgsConstructor;
 public class GuestData {
     @ColumnWidth("9rem") @Label("Apellidos") String lastName;
     @ColumnWidth("7rem") @Label("Nombre") String firstName;
-    @ColumnWidth("3rem") @Label("Pax") PaxType paxType;
-    @ColumnWidth("3rem") @Label("Edad") Integer age;
-    @ColumnWidth("3rem") @Label("Rég.") MealPlan mealPlan;
-    @ColumnWidth("3rem") @Label("Nac.") String nationality;
-    @ColumnWidth("3rem") @Label("Est.") Status status;
-    @ColumnWidth("3rem") @Label("Card.") boolean hasCardex;
-    @ColumnWidth("3rem") @Label("Int.") boolean internal;
-    @ColumnWidth("3rem") @Label("Aviso") boolean aviso;
+    // "auto" → each column sizes to its content (header + value) so nothing truncates, in both the
+    // compact (v1/v3) and non-compact (v2) renderings.
+    @ColumnWidth("auto") @Label("Pax") PaxType paxType;
+    @ColumnWidth("auto") @Label("Edad") Integer age;
+    @ColumnWidth("auto") @Label("Rég.") MealPlan mealPlan;
+    @ColumnWidth("auto") @Label("Nac.") String nationality;
+    @ColumnWidth("auto") @Label("Est.") Status status;
+    @ColumnWidth("auto") @Label("Card.") boolean hasCardex;
+    @ColumnWidth("auto") @Label("Int.") boolean internal;
+    @ColumnWidth("auto") @Label("Aviso") boolean aviso;
     // No @ColumnWidth → this column flex-grows to fill the remaining space.
     @Label("Obs. hotel") String hotelObservations;
 

@@ -33,17 +33,24 @@ public class GridColumnBuilder {
                     && !List.class.isAssignableFrom(columnField.getType()))
         .forEach(
             columnField -> {
-              var colWidth = getColumnWidth(columnField);
+              var rawWidth = getColumnWidth(columnField);
+              // @ColumnWidth("auto") → the column sizes to its content (header + widest cell) and
+              // never truncates, adapting to the current density instead of a fixed width.
+              var auto = "auto".equalsIgnoreCase(rawWidth);
+              var colWidth = auto ? null : rawWidth;
               columns.add(
                   GridColumn.builder()
                       .dataType(getDataTypeForColumn(columnField))
                       .stereotype(getStereotypeForColumn(columnField))
                       .id(columnField.getName())
                       .label(getLabel(columnField))
+                      .autoWidth(auto)
                       .width(colWidth)
-                      // An explicit @ColumnWidth makes a fixed-width column; columns without one
-                      // keep the default flex-grow so they share the remaining space.
-                      .flexGrow(colWidth != null ? "0" : null)
+                      // A fixed @ColumnWidth (or an auto column) does not flex-grow; columns
+                      // without
+                      // any @ColumnWidth keep the default flex-grow so they share the remaining
+                      // space.
+                      .flexGrow(auto || colWidth != null ? "0" : null)
                       .filterable(getFilterable(columnField))
                       .build());
             });
