@@ -23,8 +23,10 @@ import io.mateu.uidl.interfaces.DisabledSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.ToolbarSupplier;
 import io.mateu.uidl.interfaces.VisibilitySupplier;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,96 +52,68 @@ final class PageButtonsBuilder {
     if (instance instanceof ButtonsSupplier buttonsSupplier) {
       return buttonsSupplier.buttons();
     }
-    var rawButtons =
-        Stream.concat(
-                getAllFields(instance.getClass()).stream()
-                    .filter(
-                        field ->
-                            MetaAnnotations.isPresent(
-                                field, io.mateu.uidl.annotations.Button.class))
-                    .filter(
-                        field ->
-                            !MetaAnnotations.isPresent(field, Hidden.class)
-                                || !MetaAnnotations.find(field, Hidden.class).value().isEmpty())
-                    .filter(
-                        field ->
-                            !(instance instanceof VisibilitySupplier vs)
-                                || !vs.isHidden(field.getName(), httpRequest))
-                    .map(
-                        field ->
-                            getRawButtonFromField(
-                                field,
-                                (instance instanceof DisabledSupplier ds
-                                        && ds.isDisabled(field.getName(), httpRequest))
-                                    || disabledByPermission(field, httpRequest))),
-                getAllMethods(instance.getClass()).stream()
-                    .filter(
-                        method ->
-                            MetaAnnotations.isPresent(
-                                method, io.mateu.uidl.annotations.Button.class))
-                    .filter(
-                        method ->
-                            !MetaAnnotations.isPresent(method, Hidden.class)
-                                || !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
-                    .filter(
-                        method ->
-                            !(instance instanceof VisibilitySupplier vs)
-                                || !vs.isHidden(method.getName(), httpRequest))
-                    .map(
-                        method ->
-                            getRawButtonFromMethod(
-                                method,
-                                io.mateu.uidl.annotations.Button.class,
-                                (instance instanceof DisabledSupplier ds
-                                        && ds.isDisabled(method.getName(), httpRequest))
-                                    || disabledByPermission(method, httpRequest))))
-            .toList();
-    return groupRawButtons(rawButtons);
+    return collect(instance, httpRequest, io.mateu.uidl.annotations.Button.class);
   }
 
   static Collection<? extends UserTrigger> getToolbar(Object instance, HttpRequest httpRequest) {
     if (instance instanceof ToolbarSupplier toolbarSupplier) {
       return toolbarSupplier.toolbar();
     }
+    return collect(instance, httpRequest, Toolbar.class);
+  }
+
+  /**
+   * Collects the buttons declared by the {@code marker} annotation ({@code @Button} or
+   * {@code @Toolbar}) on the instance's visible fields and methods, then groups them. {@code
+   * getButtons} and {@code getToolbar} differ only in this marker (and the supplier short-circuit
+   * above).
+   */
+  private static Collection<? extends UserTrigger> collect(
+      Object instance, HttpRequest httpRequest, Class<? extends Annotation> marker) {
     var rawButtons =
         Stream.concat(
-                getAllFields(instance.getClass()).stream()
-                    .filter(field -> MetaAnnotations.isPresent(field, Toolbar.class))
-                    .filter(
-                        field ->
-                            !MetaAnnotations.isPresent(field, Hidden.class)
-                                || !MetaAnnotations.find(field, Hidden.class).value().isEmpty())
-                    .filter(
-                        field ->
-                            !(instance instanceof VisibilitySupplier vs)
-                                || !vs.isHidden(field.getName(), httpRequest))
-                    .map(
-                        field ->
-                            getRawButtonFromField(
-                                field,
-                                (instance instanceof DisabledSupplier ds
-                                        && ds.isDisabled(field.getName(), httpRequest))
-                                    || disabledByPermission(field, httpRequest))),
-                getAllMethods(instance.getClass()).stream()
-                    .filter(method -> MetaAnnotations.isPresent(method, Toolbar.class))
-                    .filter(
-                        method ->
-                            !MetaAnnotations.isPresent(method, Hidden.class)
-                                || !MetaAnnotations.find(method, Hidden.class).value().isEmpty())
-                    .filter(
-                        method ->
-                            !(instance instanceof VisibilitySupplier vs)
-                                || !vs.isHidden(method.getName(), httpRequest))
-                    .map(
-                        method ->
-                            getRawButtonFromMethod(
-                                method,
-                                Toolbar.class,
-                                (instance instanceof DisabledSupplier ds
-                                        && ds.isDisabled(method.getName(), httpRequest))
-                                    || disabledByPermission(method, httpRequest))))
+                annotatedFields(instance, httpRequest, marker),
+                annotatedMethods(instance, httpRequest, marker))
             .toList();
     return groupRawButtons(rawButtons);
+  }
+
+  private static Stream<RawButton> annotatedFields(
+      Object instance, HttpRequest httpRequest, Class<? extends Annotation> marker) {
+    return getAllFields(instance.getClass()).stream()
+        .filter(field -> MetaAnnotations.isPresent(field, marker))
+        .filter(field -> isVisible(instance, field, httpRequest))
+        .map(field -> getRawButtonFromField(field, isDisabled(instance, field, httpRequest)));
+  }
+
+  private static Stream<RawButton> annotatedMethods(
+      Object instance, HttpRequest httpRequest, Class<? extends Annotation> marker) {
+    return getAllMethods(instance.getClass()).stream()
+        .filter(method -> MetaAnnotations.isPresent(method, marker))
+        .filter(method -> isVisible(instance, method, httpRequest))
+        .map(
+            method ->
+                getRawButtonFromMethod(method, marker, isDisabled(instance, method, httpRequest)));
+  }
+
+  /** A field/method contributes a button unless it is {@code @Hidden} or hidden by a supplier. */
+  private static boolean isVisible(Object instance, Member member, HttpRequest httpRequest) {
+    var element = (AnnotatedElement) member;
+    boolean notHidden =
+        !MetaAnnotations.isPresent(element, Hidden.class)
+            || !MetaAnnotations.find(element, Hidden.class).value().isEmpty();
+    boolean notHiddenBySupplier =
+        !(instance instanceof VisibilitySupplier vs) || !vs.isHidden(member.getName(), httpRequest);
+    return notHidden && notHiddenBySupplier;
+  }
+
+  /**
+   * Disabled by a {@link DisabledSupplier} on the instance or an unsatisfied {@link
+   * DisabledUnless}.
+   */
+  private static boolean isDisabled(Object instance, Member member, HttpRequest httpRequest) {
+    return (instance instanceof DisabledSupplier ds && ds.isDisabled(member.getName(), httpRequest))
+        || disabledByPermission((AnnotatedElement) member, httpRequest);
   }
 
   /** Disabled when a {@link DisabledUnless} on the button field/method is not satisfied. */

@@ -24,6 +24,29 @@ import java.util.Map;
 
 final class SectionFormRenderer {
 
+  /**
+   * Bundles the many context values threaded unchanged through every rendering step (the fields per
+   * section, the routing/request context and the form flags), so the private helpers take a single
+   * {@code Ctx} instead of the same dozen positional parameters over and over.
+   */
+  private record Ctx(
+      Map<Section, SectionFields> fieldsPerSection,
+      String prefix,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean forCreationForm,
+      boolean readOnly,
+      int level) {
+
+    Class<?> instanceClass() {
+      return instance instanceof Class ? (Class<?>) instance : instance.getClass();
+    }
+  }
+
   static Collection<? extends Component> render(
       List<Section> sections,
       Map<Section, SectionFields> fieldsPerSection,
@@ -37,83 +60,48 @@ final class SectionFormRenderer {
       boolean forCreationForm,
       boolean readOnly,
       int level) {
+    var ctx =
+        new Ctx(
+            fieldsPerSection,
+            prefix,
+            instance,
+            baseUrl,
+            route,
+            consumedRoute,
+            initiatorComponentId,
+            httpRequest,
+            forCreationForm,
+            readOnly,
+            level);
+    return render(sections, ctx);
+  }
+
+  private static Collection<? extends Component> render(List<Section> sections, Ctx ctx) {
     if (sections.size() > 1) {
-      var instanceClass = instance instanceof Class ? (Class) instance : instance.getClass();
+      var instanceClass = ctx.instanceClass();
       if (MetaAnnotations.isPresent(instanceClass, Zones.class)) {
         return List.of(
-            renderZones(
-                (Zones) MetaAnnotations.find(instanceClass, Zones.class),
-                sections,
-                fieldsPerSection,
-                prefix,
-                instance,
-                baseUrl,
-                route,
-                consumedRoute,
-                initiatorComponentId,
-                httpRequest,
-                forCreationForm,
-                readOnly,
-                level));
+            renderZones((Zones) MetaAnnotations.find(instanceClass, Zones.class), sections, ctx));
       }
       if (MetaAnnotations.isPresent(instanceClass, FoldedLayout.class)) {
         return List.of(
             HorizontalLayout.builder()
                 .spacing(true)
-                .content(
-                    renderSections(
-                        sections,
-                        fieldsPerSection,
-                        prefix,
-                        instance,
-                        baseUrl,
-                        route,
-                        consumedRoute,
-                        initiatorComponentId,
-                        httpRequest,
-                        forCreationForm,
-                        readOnly,
-                        level))
+                .content(renderSections(sections, ctx))
                 .build());
       }
       return List.of(
           VerticalLayout.builder()
               .style("width: 100%;")
               .spacing(true)
-              .content(
-                  renderSections(
-                      sections,
-                      fieldsPerSection,
-                      prefix,
-                      instance,
-                      baseUrl,
-                      route,
-                      consumedRoute,
-                      initiatorComponentId,
-                      httpRequest,
-                      forCreationForm,
-                      readOnly,
-                      level))
+              .content(renderSections(sections, ctx))
               .build());
     }
-    var inline = EmbeddedOrchestratorFieldBuilder.isInlineRequest(httpRequest);
+    var inline = EmbeddedOrchestratorFieldBuilder.isInlineRequest(ctx.httpRequest());
     return sections.stream()
         .map(
             section -> {
-              var formLayout =
-                  buildFormLayout(
-                      section,
-                      fieldsPerSection,
-                      prefix,
-                      instance,
-                      baseUrl,
-                      route,
-                      consumedRoute,
-                      initiatorComponentId,
-                      httpRequest,
-                      forCreationForm,
-                      readOnly,
-                      level);
+              var formLayout = buildFormLayout(section, ctx);
               if (inline) {
                 // Inline embedded mediator: render the section content bare, without the outlined
                 // Card wrapper, so it blends into the host section/tab without duplicate framing.
@@ -152,23 +140,9 @@ final class SectionFormRenderer {
         : "";
   }
 
-  private static List<Component> renderSections(
-      List<Section> sections,
-      Map<Section, SectionFields> fieldsPerSection,
-      String prefix,
-      Object instance,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest,
-      boolean forCreationForm,
-      boolean readOnly,
-      int level) {
+  private static List<Component> renderSections(List<Section> sections, Ctx ctx) {
     var compact =
-        MetaAnnotations.isPresent(
-            instance instanceof Class ? (Class) instance : instance.getClass(),
-            io.mateu.uidl.annotations.Compact.class);
+        MetaAnnotations.isPresent(ctx.instanceClass(), io.mateu.uidl.annotations.Compact.class);
     var titleStyle =
         compact
             ? "margin: 0 0 0.25rem 0; font-size: var(--lumo-font-size-l); line-height: 1.15;"
@@ -176,35 +150,18 @@ final class SectionFormRenderer {
     return sections.stream()
         .map(
             section -> {
-              var toolbarTriggers =
-                  collectInlineTriggers(
-                      section, fieldsPerSection, instance, prefix, httpRequest, true);
-              var buttonTriggers =
-                  collectInlineTriggers(
-                      section, fieldsPerSection, instance, prefix, httpRequest, false);
+              var toolbarTriggers = collectInlineTriggers(section, ctx, true);
+              var buttonTriggers = collectInlineTriggers(section, ctx, false);
               // When the section's only field is an @Inline embedded MultiView, the embedded view
               // brings its own (demoted) title + toolbar; suppress the parent section title so the
               // two don't visually compete.
-              var hideTitle = hostsInlineEmbeddedMediator(section, fieldsPerSection);
+              var hideTitle = hostsInlineEmbeddedMediator(section, ctx.fieldsPerSection());
 
               var titleComponent =
                   hideTitle
                       ? null
-                      : buildTitleRow(section.value(), toolbarTriggers, level, titleStyle);
-              var formLayout =
-                  buildFormLayout(
-                      section,
-                      fieldsPerSection,
-                      prefix,
-                      instance,
-                      baseUrl,
-                      route,
-                      consumedRoute,
-                      initiatorComponentId,
-                      httpRequest,
-                      forCreationForm,
-                      readOnly,
-                      level);
+                      : buildTitleRow(section.value(), toolbarTriggers, ctx.level(), titleStyle);
+              var formLayout = buildFormLayout(section, ctx);
 
               var contentItems = new ArrayList<Component>();
               if (titleComponent != null) contentItems.add(titleComponent);
@@ -251,37 +208,26 @@ final class SectionFormRenderer {
     return TextContainer.h6;
   }
 
-  private static Component buildFormLayout(
-      Section section,
-      Map<Section, SectionFields> fieldsPerSection,
-      String prefix,
-      Object instance,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest,
-      boolean forCreationForm,
-      boolean readOnly,
-      int level) {
-    var instanceType = instance instanceof Class ? (Class) instance : instance.getClass();
+  private static Component buildFormLayout(Section section, Ctx ctx) {
     // @Section(columns=N) drives the column count when set above the default (1); otherwise fall
     // back to the form-level column count so forms that don't set it keep their previous behaviour.
     int columns =
-        section.columns() > 1 ? section.columns() : PageFormBuilder.getFormColumns(instanceType);
+        section.columns() > 1
+            ? section.columns()
+            : PageFormBuilder.getFormColumns(ctx.instanceClass());
     return FormLayoutBuilder.toFormLayout(
-        fieldsPerSection.get(section),
-        prefix,
-        instance,
-        baseUrl,
-        route,
-        consumedRoute,
-        initiatorComponentId,
-        httpRequest,
-        forCreationForm,
-        readOnly,
+        ctx.fieldsPerSection().get(section),
+        ctx.prefix(),
+        ctx.instance(),
+        ctx.baseUrl(),
+        ctx.route(),
+        ctx.consumedRoute(),
+        ctx.initiatorComponentId(),
+        ctx.httpRequest(),
+        ctx.forCreationForm(),
+        ctx.readOnly(),
         columns,
-        level);
+        ctx.level());
   }
 
   /**
@@ -290,21 +236,7 @@ final class SectionFormRenderer {
    * column width comes from {@link Zone#width()}. Sections whose zone is not declared fall back
    * into a trailing flexible column so nothing is ever dropped.
    */
-  private static Component renderZones(
-      Zones zones,
-      List<Section> sections,
-      Map<Section, SectionFields> fieldsPerSection,
-      String prefix,
-      Object instance,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest,
-      boolean forCreationForm,
-      boolean readOnly,
-      int level) {
-
+  private static Component renderZones(Zones zones, List<Section> sections, Ctx ctx) {
     Map<String, List<Section>> sectionsByZone = new LinkedHashMap<>();
     for (Section section : sections) {
       sectionsByZone.computeIfAbsent(section.zone(), k -> new ArrayList<>()).add(section);
@@ -316,41 +248,13 @@ final class SectionFormRenderer {
       if (zoneSections == null || zoneSections.isEmpty()) {
         continue;
       }
-      columns.add(
-          zoneColumn(
-              zoneSections,
-              widthStyle(zone.width()),
-              fieldsPerSection,
-              prefix,
-              instance,
-              baseUrl,
-              route,
-              consumedRoute,
-              initiatorComponentId,
-              httpRequest,
-              forCreationForm,
-              readOnly,
-              level));
+      columns.add(zoneColumn(zoneSections, widthStyle(zone.width()), ctx));
     }
 
     if (!sectionsByZone.isEmpty()) {
       var leftover = new ArrayList<Section>();
       sectionsByZone.values().forEach(leftover::addAll);
-      columns.add(
-          zoneColumn(
-              leftover,
-              widthStyle(""),
-              fieldsPerSection,
-              prefix,
-              instance,
-              baseUrl,
-              route,
-              consumedRoute,
-              initiatorComponentId,
-              httpRequest,
-              forCreationForm,
-              readOnly,
-              level));
+      columns.add(zoneColumn(leftover, widthStyle(""), ctx));
     }
 
     return HorizontalLayout.builder()
@@ -360,37 +264,11 @@ final class SectionFormRenderer {
         .build();
   }
 
-  private static Component zoneColumn(
-      List<Section> zoneSections,
-      String widthStyle,
-      Map<Section, SectionFields> fieldsPerSection,
-      String prefix,
-      Object instance,
-      String baseUrl,
-      String route,
-      String consumedRoute,
-      String initiatorComponentId,
-      HttpRequest httpRequest,
-      boolean forCreationForm,
-      boolean readOnly,
-      int level) {
+  private static Component zoneColumn(List<Section> zoneSections, String widthStyle, Ctx ctx) {
     return VerticalLayout.builder()
         .spacing(true)
         .style(widthStyle)
-        .content(
-            renderSections(
-                zoneSections,
-                fieldsPerSection,
-                prefix,
-                instance,
-                baseUrl,
-                route,
-                consumedRoute,
-                initiatorComponentId,
-                httpRequest,
-                forCreationForm,
-                readOnly,
-                level))
+        .content(renderSections(zoneSections, ctx))
         .build();
   }
 
@@ -422,26 +300,22 @@ final class SectionFormRenderer {
   }
 
   private static List<UserTrigger> collectInlineTriggers(
-      Section section,
-      Map<Section, SectionFields> fieldsPerSection,
-      Object instance,
-      String prefix,
-      HttpRequest httpRequest,
-      boolean isToolbar) {
-    if (instance instanceof Class<?>) return List.of();
-    var sectionFields = fieldsPerSection.get(section);
+      Section section, Ctx ctx, boolean isToolbar) {
+    if (ctx.instance() instanceof Class<?>) return List.of();
+    var sectionFields = ctx.fieldsPerSection().get(section);
     if (sectionFields == null) return List.of();
     var triggers = new ArrayList<UserTrigger>();
     for (var field : sectionFields.fields()) {
       if (!MetaAnnotations.isPresent(field, Inline.class)) continue;
-      var value = getValue(field, instance);
-      if (value == null) value = getValueOrNewInstance(field, instance, httpRequest);
-      var fieldPrefix = ("".equals(prefix) ? "" : (prefix + "-")) + field.getName() + "-";
+      var value = getValue(field, ctx.instance());
+      if (value == null) value = getValueOrNewInstance(field, ctx.instance(), ctx.httpRequest());
+      var fieldPrefix =
+          ("".equals(ctx.prefix()) ? "" : (ctx.prefix() + "-")) + field.getName() + "-";
       var actionPrefix = "nested-form-action-" + fieldPrefix;
       if (isToolbar) {
-        triggers.addAll(createToolbar(actionPrefix, value, httpRequest));
+        triggers.addAll(createToolbar(actionPrefix, value, ctx.httpRequest()));
       } else {
-        triggers.addAll(createButtons(actionPrefix, value, httpRequest));
+        triggers.addAll(createButtons(actionPrefix, value, ctx.httpRequest()));
       }
     }
     return triggers;
