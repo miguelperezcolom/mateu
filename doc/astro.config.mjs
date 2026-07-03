@@ -83,6 +83,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/component-communication', label: 'Component Communication' },
 						{ slug: 'ux-patterns/high-density', label: 'High-Density Screens' },
 						{ slug: 'ux-patterns/sections-index', label: 'Sticky Sections Index' },
+						{ slug: 'ux-patterns/editable-table', label: 'Editable Table' },
 					],
 				},
 				{

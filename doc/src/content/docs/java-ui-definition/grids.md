@@ -75,7 +75,8 @@ List<GuestData> guests;
 
 By default, editing a row of an editable list opens a **separate detail form**. Annotate the list
 field with `@InlineEditing` to edit the rows **directly in the grid cells** instead — no detail form,
-no per-row "Edit" button.
+no per-row "Edit" button. See the [Editable table](/ux-patterns/editable-table/) pattern for when to
+reach for it.
 
 ```java
 @InlineEditing
