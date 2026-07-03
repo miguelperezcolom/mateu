@@ -86,9 +86,10 @@ public class CheckInFormV2 implements HeaderSupplier, TriggersSupplier, Hydratab
   CheckInSection checkIn = new CheckInSection();
 
   // Pinned so the guest list never leaves the viewport while the rest of the form scrolls.
+  // Non-compact variant so the grid renders at normal density on this (non-compact) screen.
   @Section(value = "Huéspedes", columns = 1, sticky = true)
   @Label("") @Inline
-  GuestsSection guestList = new GuestsSection();
+  GuestsSectionNonCompact guestList = new GuestsSectionNonCompact();
 
   @Section(value = "Información cliente", columns = 8)
   @Label("") @Inline
