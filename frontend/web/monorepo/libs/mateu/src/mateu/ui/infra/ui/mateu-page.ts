@@ -66,6 +66,8 @@ export class MateuPage extends LitElement {
 
     private _spyTarget?: HTMLElement | Window
     private _tocRebuildScheduled = false
+    private _headerH = 0
+    private _onResize = () => this._layoutStickyTops()
 
     private _actionBannerTimers: ReturnType<typeof setTimeout>[] = []
     private _staticBannerTimers: ReturnType<typeof setTimeout>[] = []
@@ -94,11 +96,13 @@ export class MateuPage extends LitElement {
     connectedCallback() {
         super.connectedCallback()
         document.addEventListener('page-banners-received', this._bannersHandler)
+        window.addEventListener('resize', this._onResize)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         document.removeEventListener('page-banners-received', this._bannersHandler)
+        window.removeEventListener('resize', this._onResize)
         this._clearAllTimers()
         this._teardownScrollSpy()
     }
@@ -235,8 +239,32 @@ export class MateuPage extends LitElement {
 
         this._teardownScrollSpy()
         if (visible) {
-            // Attach the scrollspy after the with-toc grid has been applied.
-            requestAnimationFrame(() => this._setupScrollSpy())
+            // Attach the scrollspy and compute the stacked sticky offsets after the with-toc grid
+            // has been applied.
+            requestAnimationFrame(() => {
+                this._layoutStickyTops()
+                this._setupScrollSpy()
+            })
+        } else {
+            this._layoutStickyTops()
+        }
+    }
+
+    /**
+     * Pins the page header (in docs mode) and stacks every sticky section directly under it, so
+     * multiple pinned elements never overlap. Each sticky card's `top` is the header height plus the
+     * total height of the sticky cards declared before it.
+     */
+    private _layoutStickyTops() {
+        const header = this.shadowRoot?.querySelector('mateu-content-header') as HTMLElement | null
+        this._headerH = (this._tocVisible && header) ? header.offsetHeight : 0
+        this.style.setProperty('--mateu-header-h', this._headerH + 'px')
+        const gap = 8
+        let offset = this._headerH + gap
+        for (const card of this._sectionCards()) {
+            if (!card.classList.contains('mateu-section--sticky')) continue
+            card.style.top = offset + 'px'
+            offset += card.offsetHeight
         }
     }
 
@@ -271,7 +299,9 @@ export class MateuPage extends LitElement {
         const cards = this._tocEntries.map(e => e.el)
         if (!cards.length) return
         const root = this._scrollContainer()
-        const line = (root ? root.getBoundingClientRect().top : 0) + 120
+        // Activation line sits just below the pinned header so a section becomes active as its top
+        // clears the header.
+        const line = (root ? root.getBoundingClientRect().top : 0) + this._headerH + 24
         let active = 0
         for (let i = 0; i < cards.length; i++) {
             if (cards[i].classList.contains('mateu-section--sticky')) continue
@@ -299,6 +329,7 @@ export class MateuPage extends LitElement {
         ]
         const inner = html`
             <mateu-content-header
+                class="${this._tocVisible ? 'sticky-header' : ''}"
                 .metadata="${metadata}"
                 .baseUrl="${this.baseUrl}"
                 .state="${this.state}"
@@ -353,6 +384,14 @@ export class MateuPage extends LitElement {
             width: 100%;
         }
 
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            background: var(--lumo-base-color);
+            padding-bottom: 0.25rem;
+        }
+
         .page-body.with-toc {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 15rem;
@@ -362,7 +401,7 @@ export class MateuPage extends LitElement {
 
         .page-toc {
             position: sticky;
-            top: 0.5rem;
+            top: calc(var(--mateu-header-h, 0px) + 0.5rem);
             align-self: start;
             max-height: calc(100vh - 8rem);
             overflow: auto;
