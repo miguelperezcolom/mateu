@@ -366,6 +366,6 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         } as ClientSideComponent, baseUrl, state, data, appState, appData, labelAlreadyRendered)
 
     }
-    console.log('No metadata for component', component)
+    console.warn('No metadata for component', component)
     return html`<p ${component?.slot??nothing}>No metadata for component ${component?.id}</p>`
 }

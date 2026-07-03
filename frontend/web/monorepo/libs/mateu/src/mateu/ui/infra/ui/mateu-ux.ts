@@ -28,8 +28,7 @@ import {nanoid} from "nanoid";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
-    manageActionRequestedEvent(event: CustomEvent<unknown>): void {
-        console.log('manageActionRequestedEvent', event)
+    manageActionRequestedEvent(_event: CustomEvent<unknown>): void {
         throw new Error("Method not implemented.");
     }
 

@@ -81,7 +81,6 @@ export class MateuChat extends LitElement {
 
 
     startListening = () => {
-        console.log('startListening', this.recognition);
         if (this.recognition) {
             if (this.listening) {
                 this.recognition.stop();
@@ -97,9 +96,7 @@ export class MateuChat extends LitElement {
         if (this.recognition) {
             // Obtener el texto procesado
             const speechEvent = event as Event & { results: SpeechRecognitionResultList }
-            console.log("Resultados del reconocimiento:", speechEvent.results);
             const transcript = speechEvent.results[speechEvent.results[0].length - 1][0].transcript;
-            console.log("Resultado del reconocimiento:", transcript);
             if (this.messageInputElement) {
                 this.messageInputElement.value = transcript; // Poner el texto en el input
                 this.send(new CustomEvent('submit', {
@@ -119,10 +116,8 @@ export class MateuChat extends LitElement {
 // Comprobar si el navegador es compatible
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
-        console.log('SpeechRecognition', SpeechRecognition);
 
         if (SpeechRecognition) {
-            console.log('SpeechRecognition available');
             const recognition: SpeechRecognitionLike = new SpeechRecognition() as SpeechRecognitionLike;
             this.recognition = recognition;
             recognition.lang = 'es-ES'; // Configuramos el idioma a español
@@ -130,13 +125,11 @@ export class MateuChat extends LitElement {
             //recognition.interimResults = true;
 
             recognition.onend = () => {
-                console.log("El reconocimiento ha terminado.");
                 setTimeout(() => {
                     if (this.listening && this.recognition) {
                         try {
                             this.recognition.start();
                         } catch (e) {
-                            console.log('Error al iniciar el reconocimiento:', (e as Error).message);
                         }
                     }
                 }, 250)
@@ -155,7 +148,6 @@ export class MateuChat extends LitElement {
                 }
             };
         } else {
-            console.log("Lo siento, tu navegador no soporta la API de voz.");
         }
 
     }

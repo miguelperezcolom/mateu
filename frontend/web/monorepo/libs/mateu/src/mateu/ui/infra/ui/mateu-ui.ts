@@ -99,7 +99,6 @@ export class MateuUi extends LitElement {
         e.preventDefault()
         e.stopPropagation()
 
-        console.log('navigate to requested', e)
 
         // Backend-initiated navigation (NavigateTo command, e.g. right after a save):
         // the server decided to leave this form, so drop any pending dirty state

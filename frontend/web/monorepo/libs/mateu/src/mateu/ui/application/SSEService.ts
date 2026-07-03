@@ -14,7 +14,6 @@ export class SSEService implements Service {
         //console.log(actionId)
 
         if (!route) {
-            console.log('no route')
             return
         }
         if (true || 'server-action' == actionId) {

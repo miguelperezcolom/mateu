@@ -193,7 +193,6 @@ export default abstract class ConnectedElement extends LitElement {
         if ('NavigateTo' == command.type) {
             const destination = command.data as string
             if (destination) {
-                console.log('navigate to', destination)
                 if (true) {
                     if (destination.startsWith('http:') || destination.startsWith('https:')) {
                         window.open(command.data as string, '_blank');
@@ -212,7 +211,6 @@ export default abstract class ConnectedElement extends LitElement {
             }
         }
         if ('PushStateToHistory' == command.type) {
-            console.log('PushStateToHistory', command.data)
             const destination = command.data as string
             if (destination !== undefined) {
                 this.dispatchEvent(new CustomEvent('route-changed', {
@@ -244,7 +242,6 @@ export default abstract class ConnectedElement extends LitElement {
                         error: undefined,
                         callbackToken: ''
                     }
-                    console.log('send to upstream', msg)
                     setTimeout(() => upstream.next(msg))
                 } else {
                     this.manageActionRequestedEvent(new CustomEvent('action-requested', {
@@ -305,7 +302,6 @@ export default abstract class ConnectedElement extends LitElement {
             if (data && data.name) {
                 if (data.attributes && data.attributes['id']) {
                     if (document.getElementById(data.attributes['id'])) {
-                        console.log('already there', data)
                         return
                     }
                 }
@@ -317,7 +313,6 @@ export default abstract class ConnectedElement extends LitElement {
             if (data && data.name) {
                 if (data.attributes && data.attributes['id']) {
                     if (document.getElementById(data.attributes['id'])) {
-                        console.log('already there', data)
                         return
                     }
                 }
@@ -333,7 +328,6 @@ export default abstract class ConnectedElement extends LitElement {
                 element.setAttribute(k, data.attributes[k])
             }
             for (let k in data.on) {
-                console.log('adding listener to ', data.on)
                 element.addEventListener(k, (e: Event) => {
                     this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                         detail: {

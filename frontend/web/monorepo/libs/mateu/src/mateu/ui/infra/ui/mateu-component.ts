@@ -473,7 +473,6 @@ export class MateuComponent extends ComponentElement {
                 if (!_pendingInitiatorComponent) {
                     _pendingInitiatorComponent = this
                 }
-                console.log('bubbling up', e.type, e, this)
                 this.dispatchEvent(new CustomEvent(e.type, {
                     detail: {
                         ...e.detail,

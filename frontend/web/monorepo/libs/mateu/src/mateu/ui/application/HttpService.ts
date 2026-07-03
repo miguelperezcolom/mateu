@@ -138,7 +138,7 @@ export class HttpService implements Service {
             }))
 
         } catch(reason) {
-            console.log('reason', reason)
+            console.warn('Action request failed', reason)
                 initiator.dispatchEvent(new CustomEvent('backend-failed-event', {
                     bubbles: true,
                     composed: true,

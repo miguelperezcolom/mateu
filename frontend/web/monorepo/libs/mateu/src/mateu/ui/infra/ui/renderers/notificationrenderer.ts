@@ -12,8 +12,7 @@ export const renderNotification = (component: ClientSideComponent) => {
                 slot="${component.slot??nothing}"
                 style="${component.style}"
                 class="${component.cssClasses}"
-                ${notificationRenderer(notification => {
-        console.log(notification)
+                ${notificationRenderer(() => {
         return html`
                     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                         <h3>${metadata.title}</h3>
