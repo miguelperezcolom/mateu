@@ -296,29 +296,35 @@ export class MateuPage extends LitElement {
     // Classic scrollspy: the active entry is the last section whose top has crossed the activation
     // line near the top of the scroll viewport. Sticky (pinned) sections are skipped so a pinned card
     // never permanently hijacks the highlight.
+    // Scrollspy: the active entry is the section that occupies the reading area — the strip just
+    // below the pinned region (header + any pinned sticky sections). Sticky sections are *included*
+    // so a pinned section (e.g. the guests list) is highlighted while it's the one in view and hands
+    // off to the next as that scrolls up; sections hidden behind a pinned sticky are never marked
+    // active because the reading line sits below the whole pinned region.
     private _onScrollSpy = () => {
-        const cards = this._tocEntries.map(e => e.el)
+        const cards = this._sectionCards()
         if (!cards.length) return
-        const root = this._scrollContainer()
-        const rootTop = root ? root.getBoundingClientRect().top : 0
         const gap = 12
-        // Activation line sits just below the currently-pinned region (the header plus any sticky
-        // section pinned at the top), matching where clicked sections land, so the active entry
-        // agrees with click-to-scroll.
-        let pinnedBottom = rootTop + this._headerH
-        for (const c of this._sectionCards()) {
-            if (!c.classList.contains('mateu-section--sticky')) continue
-            const pinTop = rootTop + parseFloat(c.style.top || '0')
-            if (c.getBoundingClientRect().top <= pinTop + 1) {
-                pinnedBottom = Math.max(pinnedBottom, c.getBoundingClientRect().bottom)
-            }
+
+        // Bottom of the pinned region: the pinned header, extended by each sticky section currently
+        // butted up against it. Read straight from the rendered rects so it doesn't depend on the
+        // sticky offsets having been computed yet.
+        const header = this.shadowRoot?.querySelector('mateu-content-header') as HTMLElement | null
+        let pinnedBottom = header ? header.getBoundingClientRect().bottom : 0
+        for (const card of cards) {
+            if (!card.classList.contains('mateu-section--sticky')) continue
+            const r = card.getBoundingClientRect()
+            // Allow for the gap left between the header and stacked sticky cards.
+            if (r.top <= pinnedBottom + gap + 2) pinnedBottom = Math.max(pinnedBottom, r.bottom)
         }
-        const line = pinnedBottom + gap + 4
+
+        // +gap matches the gap that click-to-scroll leaves below the pinned region, so a clicked
+        // section is highlighted as soon as it lands.
+        const readingLine = pinnedBottom + gap + 4
         let active = 0
-        for (let i = 0; i < cards.length; i++) {
-            if (cards[i].classList.contains('mateu-section--sticky')) continue
-            if (cards[i].getBoundingClientRect().top <= line) active = i
-        }
+        this._tocEntries.forEach((entry, i) => {
+            if (entry.el.getBoundingClientRect().top <= readingLine) active = i
+        })
         this._activeToc = active
     }
 
