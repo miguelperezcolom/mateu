@@ -73,6 +73,45 @@ const renderEditableCell = (
                 item-label-path="label" item-value-path="value"
                 .value=${s}
                 @value-changed=${(e: any) => commit(e.detail.value)}></vaadin-combo-box>`
+        case 'lookup': {
+            // Remote search-as-you-type: the combo box's dataProvider dispatches the per-column
+            // search action (search-<gridField>-<column>, handled by SearchFieldActionRunner) and
+            // feeds the returned options back to the combo box.
+            const gridFieldId = (container as any)?.field?.fieldId
+            const searchActionId = `search-${gridFieldId}-${column.id}`
+            const dataKey = `${gridFieldId}-${column.id}`
+            const opts = column.editorOptions ?? []
+            const labelKey = column.id + '-label'
+            const selected = opts.find(o => String(o.value) === s)
+                ?? (s ? { value: s, label: item[labelKey] ?? s } : undefined)
+            const dataProvider = (params: any, callback: any) => {
+                container.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: searchActionId,
+                        parameters: { searchText: params.filter, size: params.pageSize, page: params.page },
+                        callback: (uiIncrement: any) => {
+                            const data = uiIncrement?.fragments?.[0]?.data?.[dataKey]
+                            callback((data?.content ?? []) as any[], (data?.totalElements ?? 0) as number)
+                        },
+                        callbackonly: true,
+                    },
+                    bubbles: true,
+                    composed: true,
+                }))
+            }
+            return html`<vaadin-combo-box
+                theme="small" style="width:100%;"
+                item-label-path="label" item-id-path="value"
+                .dataProvider=${dataProvider}
+                .selectedItem=${selected}
+                @selected-item-changed=${(e: any) => {
+                    const it = e.detail.value
+                    const nv = it ? it.value : null
+                    if (String(nv ?? '') === s) return
+                    if (it) item[labelKey] = it.label
+                    commit(nv)
+                }}></vaadin-combo-box>`
+        }
         default:
             return html`<vaadin-text-field theme="small" style="width:100%;" .value=${s} @change=${(e: any) => commit(e.target.value)}></vaadin-text-field>`
     }

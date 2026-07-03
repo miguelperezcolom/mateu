@@ -5,6 +5,7 @@ import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMetho
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.InlineEditing;
 import io.mateu.uidl.annotations.Lookup;
 import io.mateu.uidl.annotations.OnRowSelected;
 import io.mateu.uidl.annotations.Searchable;
@@ -94,6 +95,14 @@ final class FieldActionCollector {
                 Action.builder()
                     .id(MetaAnnotations.find(field, OnRowSelected.class).value())
                     .build())
+        .forEach(fieldActions::add);
+
+    // Register the per-column lookup search action for inline-editing grids, so a @Lookup cell's
+    // combo box can search remotely (routed to SearchFieldActionRunner as search-<field>-<column>).
+    getAllFields(serverSideObject.getClass()).stream()
+        .filter(field -> List.class.isAssignableFrom(field.getType()))
+        .filter(field -> MetaAnnotations.isPresent(field, InlineEditing.class))
+        .map(field -> Action.builder().id("search-" + field.getName() + "-*").build())
         .forEach(fieldActions::add);
 
     getAllFields(serverSideObject.getClass()).stream()

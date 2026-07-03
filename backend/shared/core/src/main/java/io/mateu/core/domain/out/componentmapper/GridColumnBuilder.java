@@ -147,7 +147,11 @@ public class GridColumnBuilder {
    * (the coarse column {@code dataType} collapses most types to {@code string}).
    */
   private static String getEditorType(Field columnField) {
-    if (columnField.getType().isEnum() || MetaAnnotations.isPresent(columnField, Lookup.class)) {
+    if (MetaAnnotations.isPresent(columnField, Lookup.class)) {
+      // Remote, search-as-you-type reference: a combo box whose options come from the server.
+      return "lookup";
+    }
+    if (columnField.getType().isEnum()) {
       return "select";
     }
     if (MetaAnnotations.isPresent(columnField, io.mateu.uidl.annotations.Stereotype.class)

@@ -95,7 +95,7 @@ Each column becomes an editable input based on its field's real Java type:
 | `LocalDate` | date picker |
 | `LocalTime` | time picker |
 | `LocalDateTime` | date-time picker |
-| `@Lookup` (reference) | combo box (the lookup's options; stores the id, shows the label) |
+| `@Lookup` (reference) | combo box with **remote search-as-you-type** (the lookup's `LookupOptionsSupplier`); stores the id, shows the label |
 
 A field marked `@ReadOnly` stays display-only. Edits travel back in the normal component state, so
 they are **persisted when the enclosing form's next action runs** (a save/submit, or any developer
