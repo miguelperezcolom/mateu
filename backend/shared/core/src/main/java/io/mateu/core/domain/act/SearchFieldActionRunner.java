@@ -39,14 +39,12 @@ public class SearchFieldActionRunner implements ActionRunner {
       var httpRequest = command.httpRequest();
       // search-field-childfield (nested/inline grid) or search-field (plain @Lookup field).
       String fieldName = actionId.substring("search-".length());
+      var target = parseSearchTarget(fieldName);
       LookupOptionsSupplier optionsSupplier = null;
       Lookup fkAnnotation = null;
-      if (fieldName.contains("-")) {
-        // The child (column) is always a bare Java identifier with no dash, so split on the LAST
-        // dash: this keeps the parse correct even when the parent grid field id carries a prefix
-        // that itself contains dashes.
-        var parentFieldName = fieldName.substring(0, fieldName.lastIndexOf('-'));
-        var childFieldName = fieldName.substring(fieldName.lastIndexOf('-') + 1);
+      if (target.child() != null) {
+        var parentFieldName = target.parent();
+        var childFieldName = target.child();
         var rowClass =
             getGenericClass(
                 (ParameterizedType)
@@ -83,4 +81,21 @@ public class SearchFieldActionRunner implements ActionRunner {
     }
     return null;
   }
+
+  /**
+   * Splits a {@code search-} action target (the id with the {@code search-} prefix already removed)
+   * into the parent field and, for a nested/inline-grid column search, its child column. The child
+   * (column) is always a bare Java identifier with no dash, so we split on the <b>last</b> dash:
+   * this stays correct even when the parent grid field id carries a prefix that itself contains
+   * dashes. A target with no dash is a plain {@code @Lookup} field ({@code child == null}).
+   */
+  static SearchTarget parseSearchTarget(String target) {
+    if (target.contains("-")) {
+      int cut = target.lastIndexOf('-');
+      return new SearchTarget(target.substring(0, cut), target.substring(cut + 1));
+    }
+    return new SearchTarget(target, null);
+  }
+
+  record SearchTarget(String parent, String child) {}
 }
