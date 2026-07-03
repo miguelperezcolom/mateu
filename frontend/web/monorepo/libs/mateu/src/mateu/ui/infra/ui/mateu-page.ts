@@ -77,7 +77,7 @@ export class MateuPage extends LitElement {
         // click), so don't let it immediately release the lock.
         if (e && e.type === 'keydown') {
             const ke = e as KeyboardEvent
-            if (ke.ctrlKey && ke.altKey && !ke.shiftKey && !ke.metaKey && /^Digit[1-9]$/.test(ke.code)) return
+            if (ke.ctrlKey && ke.altKey && !ke.shiftKey && !ke.metaKey && /^(?:Digit|Numpad)[1-9]$/.test(ke.code)) return
         }
         this._tocLocked = false
     }
@@ -123,11 +123,12 @@ export class MateuPage extends LitElement {
     }
 
     // When the index is shown, Ctrl+Alt+<1..9> jumps to the matching section (same as clicking the
-    // index entry). Uses e.code so it works regardless of keyboard layout / modifier translation.
+    // index entry). Matches both the top-row digits (Digit1..9) and the numeric keypad (Numpad1..9)
+    // via e.code, so it works regardless of keyboard layout and NumLock state.
     private _onTocKey = (e: KeyboardEvent) => {
         if (!this._tocVisible) return
         if (!e.ctrlKey || !e.altKey || e.shiftKey || e.metaKey) return
-        const m = /^Digit([1-9])$/.exec(e.code)
+        const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)
         if (!m) return
         const idx = parseInt(m[1], 10) - 1
         if (idx >= this._tocEntries.length) return
