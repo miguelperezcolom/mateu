@@ -92,6 +92,59 @@ export class MateuField extends LitElement {
 
     comboData: Option[] = []
 
+    // The filter of the most recent remote combo search, used to drop out-of-order responses
+    // (a slow response for an old filter must not overwrite the results of a newer keystroke).
+    private _comboFilter = ''
+
+    /**
+     * Shared remote data provider for both the single and multi-select combo boxes. Dispatches the
+     * remote search action and feeds the returned options back to the combo, showing any messages
+     * and handling an empty result. Guards against out-of-order responses: only the response whose
+     * filter still matches the latest keystroke is delivered (pagination of the same filter is
+     * unaffected).
+     */
+    private remoteComboDataProvider(action: string | undefined): ComboBoxDataProvider<Option> {
+        return (params, callback) => {
+            const { filter, page, pageSize } = params
+            const requestFilter = filter ?? ''
+            this._comboFilter = requestFilter
+            this.dispatchEvent(new CustomEvent('action-requested', {
+                detail: {
+                    actionId: action,
+                    parameters: {
+                        searchText: filter,
+                        fieldId: this.field?.fieldId,
+                        size: pageSize,
+                        page,
+                        sort: undefined
+                    },
+                    callback: (uiIncrement: UIIncrement) => {
+                        // A newer keystroke has superseded this search — ignore its stale response.
+                        if (requestFilter !== this._comboFilter) return
+                        uiIncrement?.messages?.forEach(message => {
+                            Notification.show(message.text, {
+                                position: message.position ? this.mapPosition(message.position) : undefined,
+                                theme: message.variant,
+                                duration: message.duration
+                            })
+                        })
+                        if (!uiIncrement.fragments || uiIncrement.fragments.length == 0) {
+                            this.comboData = []
+                            callback([], 0)
+                        } else {
+                            const data = uiIncrement.fragments![0].data?.[this.id] as Record<string, unknown>
+                            this.comboData = data?.content as Option[]
+                            callback(data?.content as Option[], data?.totalElements as number)
+                        }
+                    },
+                    callbackonly: true
+                },
+                bubbles: true,
+                composed: true
+            }))
+        }
+    }
+
     rendered = false
 
     renderColorPicker = () => {
@@ -745,29 +798,7 @@ export class MateuField extends LitElement {
                         } as Option
                     }
 
-                    const dataProvider: ComboBoxDataProvider<Option> = (params, callback) => {
-                        const { filter, page, pageSize } = params;
-                        this.dispatchEvent(new CustomEvent('action-requested', {
-                                detail: {
-                                    actionId: coords.action,
-                                    parameters: {
-                                        searchText: filter,
-                                        fieldId: this.field?.fieldId,
-                                        size: pageSize,
-                                        page,
-                                        sort: undefined
-                                    },
-                                    callback: (uiIncrement: UIIncrement) => {
-                                        const data = uiIncrement.fragments![0].data?.[this.id] as Record<string, unknown>
-                                        this.comboData = data?.content as Option[]
-                                        callback(data?.content as Option[], data?.totalElements as number);
-                                    },
-                                    callbackonly: true
-                                },
-                                bubbles: true,
-                                composed: true
-                            }))
-                    };
+                    const dataProvider = this.remoteComboDataProvider(coords.action)
 
                     return html`
                     <vaadin-combo-box
@@ -1573,41 +1604,7 @@ export class MateuField extends LitElement {
                 if (this.field?.remoteCoordinates) {
                     const coords = this.field.remoteCoordinates;
 
-                    const dataProvider: ComboBoxDataProvider<Option> = (params, callback) => {
-                        const { filter, page, pageSize } = params;
-                            this.dispatchEvent(new CustomEvent('action-requested', {
-                                detail: {
-                                    actionId: coords.action,
-                                    parameters: {
-                                        searchText: filter,
-                                        fieldId: this.field?.fieldId,
-                                        size: pageSize,
-                                        page,
-                                        sort: undefined
-                                    },
-                                    callback: (uiIncrement: UIIncrement) => {
-                                        uiIncrement?.messages?.forEach(message => {
-                                            Notification.show(message.text, {
-                                                position: message.position?this.mapPosition(message.position):undefined,
-                                                theme: message.variant,
-                                                duration: message.duration
-                                            });
-                                        })
-                                        if (!uiIncrement.fragments || uiIncrement.fragments.length == 0) {
-                                            this.comboData = []
-                                            callback([], 0);
-                                        } else {
-                                            const data = uiIncrement.fragments![0].data?.[this.id] as Record<string, unknown>
-                                            this.comboData = data?.content as Option[]
-                                            callback(data?.content as Option[], data?.totalElements as number);
-                                        }
-                                    },
-                                    callbackonly: true
-                                },
-                                bubbles: true,
-                                composed: true
-                            }))
-                    };
+                    const dataProvider = this.remoteComboDataProvider(coords.action)
 
                     return html`
                         <vaadin-multi-select-combo-box
