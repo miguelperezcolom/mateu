@@ -72,7 +72,15 @@ export class MateuPage extends LitElement {
     // so a clicked section stays highlighted even if it sits near the bottom and can't scroll all the
     // way up to the reading line. Any manual scroll gesture releases the lock.
     private _tocLocked = false
-    private _unlockToc = () => { this._tocLocked = false }
+    private _unlockToc = (e?: Event) => {
+        // The Ctrl+Alt+<n> index shortcut is itself a keydown that *locks* (it's a jump, like a
+        // click), so don't let it immediately release the lock.
+        if (e && e.type === 'keydown') {
+            const ke = e as KeyboardEvent
+            if (ke.ctrlKey && ke.altKey && !ke.shiftKey && !ke.metaKey && /^Digit[1-9]$/.test(ke.code)) return
+        }
+        this._tocLocked = false
+    }
 
     private _actionBannerTimers: ReturnType<typeof setTimeout>[] = []
     private _staticBannerTimers: ReturnType<typeof setTimeout>[] = []
@@ -102,14 +110,29 @@ export class MateuPage extends LitElement {
         super.connectedCallback()
         document.addEventListener('page-banners-received', this._bannersHandler)
         window.addEventListener('resize', this._onResize)
+        document.addEventListener('keydown', this._onTocKey)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         document.removeEventListener('page-banners-received', this._bannersHandler)
         window.removeEventListener('resize', this._onResize)
+        document.removeEventListener('keydown', this._onTocKey)
         this._clearAllTimers()
         this._teardownScrollSpy()
+    }
+
+    // When the index is shown, Ctrl+Alt+<1..9> jumps to the matching section (same as clicking the
+    // index entry). Uses e.code so it works regardless of keyboard layout / modifier translation.
+    private _onTocKey = (e: KeyboardEvent) => {
+        if (!this._tocVisible) return
+        if (!e.ctrlKey || !e.altKey || e.shiftKey || e.metaKey) return
+        const m = /^Digit([1-9])$/.exec(e.code)
+        if (!m) return
+        const idx = parseInt(m[1], 10) - 1
+        if (idx >= this._tocEntries.length) return
+        e.preventDefault()
+        this._scrollToSection(idx)
     }
 
     updated(changedProperties: PropertyValues) {
@@ -398,7 +421,10 @@ export class MateuPage extends LitElement {
                             ${this._tocEntries.map((entry, i) => html`
                                 <a class="page-toc__item ${i === this._activeToc ? 'is-active' : ''}"
                                    @click=${() => this._scrollToSection(i)}
-                                   title=${entry.title}>${entry.title}</a>
+                                   title=${i < 9 ? `${entry.title} (Ctrl+Alt+${i + 1})` : entry.title}>
+                                    <span class="page-toc__label">${entry.title}</span>
+                                    ${i < 9 ? html`<span class="page-toc__key">${i + 1}</span>` : nothing}
+                                </a>
                             `)}
                         </nav>
                     </aside>
@@ -460,16 +486,41 @@ export class MateuPage extends LitElement {
         }
 
         .page-toc__item {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
             padding: 0.2rem 0.5rem;
             cursor: pointer;
             color: var(--lumo-secondary-text-color);
             border-left: 2px solid transparent;
             margin-left: -0.25rem;
+            border-radius: var(--lumo-border-radius-s);
+        }
+
+        .page-toc__label {
+            flex: 1;
+            min-width: 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .page-toc__key {
+            flex-shrink: 0;
+            font-size: var(--lumo-font-size-xxs);
+            font-family: var(--lumo-font-family-monospace, monospace);
+            color: var(--lumo-tertiary-text-color);
+            background: var(--lumo-contrast-5pct);
             border-radius: var(--lumo-border-radius-s);
+            padding: 0 0.3rem;
+            line-height: 1.4;
+            opacity: 0;
+            transition: opacity 0.1s;
+        }
+
+        .page-toc:hover .page-toc__key,
+        .page-toc__item.is-active .page-toc__key {
+            opacity: 1;
         }
 
         .page-toc__item:hover {
