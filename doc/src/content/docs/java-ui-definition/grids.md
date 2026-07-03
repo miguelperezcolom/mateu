@@ -71,6 +71,25 @@ selects that row (`ctrl+shift+1` → first row … up to the ninth; top-row digi
 List<GuestData> guests;
 ```
 
+## Inline editing (`@InlineEditing`)
+
+By default, editing a row of an editable list opens a **separate detail form**. Annotate the list
+field with `@InlineEditing` to edit the rows **directly in the grid cells** instead — no detail form,
+no per-row "Edit" button.
+
+```java
+@InlineEditing
+@Stereotype(FieldStereotype.grid)
+List<OrderLine> lines;
+```
+
+Each column becomes an editable input based on its type — text field, number, checkbox, date picker;
+a field marked `@ReadOnly` stays display-only. Edits travel back in the normal component state, so
+they are **persisted when the enclosing form's next action runs** (a save/submit, or any developer
+action that reads the list) — there is no per-cell save.
+
+![Inline editing — order lines edited directly in the grid cells](/images/docs/inline-editing.png)
+
 ## Choosing the layout (`gridLayout()`)
 
 A declarative listing (`extends Listing<Filters, Row>`) can force how its rows are laid out by overriding `gridLayout()`. By default the renderer picks a layout from the column weights (`GridLayout.auto`), which for a wide, many-column row can fall back to `masterDetail`. Return `GridLayout.table` (or `list`, `cards`) to force it:

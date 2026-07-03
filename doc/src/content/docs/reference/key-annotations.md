@@ -572,6 +572,7 @@ These are also part of the public DSL and are worth knowing:
 - `@Compact` — high-density page preset (`StyleConstants.COMPACT`)
 - `@PlainText` — render a value as read-only text instead of an input
 - `@ColumnWidth` — grid column width; a fixed value (`"9rem"`) or `"auto"` (size to content)
+- `@InlineEditing` — edit a list/grid field's rows in place (editable cells) instead of a detail form
 - `@Colspan`
 - `@HiddenInList`
 - `@HiddenInView`
