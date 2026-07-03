@@ -300,13 +300,24 @@ export class MateuPage extends LitElement {
         const cards = this._tocEntries.map(e => e.el)
         if (!cards.length) return
         const root = this._scrollContainer()
-        // Activation line sits just below the pinned header so a section becomes active as its top
-        // clears the header.
-        const line = (root ? root.getBoundingClientRect().top : 0) + this._headerH + 24
+        const rootTop = root ? root.getBoundingClientRect().top : 0
+        const gap = 12
+        // Activation line sits just below the currently-pinned region (the header plus any sticky
+        // section pinned at the top), matching where clicked sections land, so the active entry
+        // agrees with click-to-scroll.
+        let pinnedBottom = rootTop + this._headerH
+        for (const c of this._sectionCards()) {
+            if (!c.classList.contains('mateu-section--sticky')) continue
+            const pinTop = rootTop + parseFloat(c.style.top || '0')
+            if (c.getBoundingClientRect().top <= pinTop + 1) {
+                pinnedBottom = Math.max(pinnedBottom, c.getBoundingClientRect().bottom)
+            }
+        }
+        const line = pinnedBottom + gap + 4
         let active = 0
         for (let i = 0; i < cards.length; i++) {
             if (cards[i].classList.contains('mateu-section--sticky')) continue
-            if (cards[i].getBoundingClientRect().top <= line + 1) active = i
+            if (cards[i].getBoundingClientRect().top <= line) active = i
         }
         this._activeToc = active
     }
@@ -315,7 +326,19 @@ export class MateuPage extends LitElement {
         const entry = this._tocEntries[i]
         if (!entry) return
         this._activeToc = i
-        entry.el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        // Land the section at the start of the visible area, i.e. below the pinned header and any
+        // sticky section that sits *above* this one (those overlap the top once pinned). Sticky
+        // sections below the target don't overlap it, so they're not counted.
+        const gap = 12
+        let offset = this._headerH + gap
+        for (const card of this._sectionCards()) {
+            if (card === entry.el) break
+            if (card.classList.contains('mateu-section--sticky')) offset += card.offsetHeight + gap
+        }
+        const root = this._scrollContainer()
+        const rootTop = root ? root.getBoundingClientRect().top : 0
+        const delta = entry.el.getBoundingClientRect().top - rootTop - offset
+        ;(root ?? window).scrollBy({ top: delta, behavior: 'smooth' })
     }
 
     render(): TemplateResult {
