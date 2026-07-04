@@ -132,10 +132,6 @@ public class RuleMapper {
                           .build())
               .toList());
     }
-    rules.addAll(
-        Arrays.stream(serverSideObject.getClass().getAnnotationsByType(Rule.class))
-            .map(RuleMapper::mapToRule)
-            .toList());
     return rules;
   }
 

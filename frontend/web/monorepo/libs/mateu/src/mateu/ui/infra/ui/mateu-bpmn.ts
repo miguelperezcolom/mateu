@@ -13,8 +13,8 @@ import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import "@vaadin/card"
 import {customElement, property, query} from 'lit/decorators.js';
-import Viewer from "bpmn-js";
-import {BaseViewerOptions} from "bpmn-js/lib/BaseViewer";
+import type Viewer from "bpmn-js";
+import type {BaseViewerOptions} from "bpmn-js/lib/BaseViewer";
 
 
 @customElement('mateu-bpmn')
@@ -36,12 +36,25 @@ export class MateuBpmn extends LitElement {
             this.chart = undefined
         }
         if (this.xml) {
-            const options: BaseViewerOptions = {
-                container: this.divElement
-            }
-            this.chart = new Viewer(options)
-            this.chart.importXML(this.xml)
+            this.createViewer(this.xml)
         }
+    }
+
+    // bpmn-js (~1.6 MB with diagram-js) is lazy-loaded so it stays out of the initial bundle.
+    private async createViewer(xml: string) {
+        const {default: LoadedViewer} = await import("bpmn-js")
+        // the xml may have changed (or been cleared) while the module was loading
+        if (xml !== this.xml) {
+            return
+        }
+        if (this.chart) {
+            this.chart.destroy()
+        }
+        const options: BaseViewerOptions = {
+            container: this.divElement
+        }
+        this.chart = new LoadedViewer(options)
+        this.chart.importXML(xml)
     }
 
     private handleSlotChange() {

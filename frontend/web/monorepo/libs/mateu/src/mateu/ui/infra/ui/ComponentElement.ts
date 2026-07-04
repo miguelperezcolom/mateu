@@ -9,27 +9,26 @@ import {TriggerType} from "@mateu/shared/apiClients/dtos/componentmetadata/Trigg
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import OnLoadTrigger from "@mateu/shared/apiClients/dtos/componentmetadata/OnLoadTrigger.ts";
 import {nanoid} from "nanoid";
+import {evaluateExpression, evaluateTemplate, InterpolationContext} from "@infra/ui/interpolation.ts";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
+    // Extra named variables (besides state/data) visible to expressions and templates
+    // evaluated against this component: appState, appData and the component itself.
+    private _interpolationExtra(): InterpolationContext {
+        return {
+            appState: this.appState ?? {},
+            appData: this.appData ?? {},
+            component: this.component
+        }
+    }
+
     protected _evalExpr(expr: string): any {
-        const state = this.state ?? {}
-        const data = this.data ?? {}
-        const appState = this.appState ?? {}
-        const appData = this.appData ?? {}
-        const component = this.component
-        return new Function('state', 'data', 'appState', 'appData', 'component',
-            `return (${expr})`)(state, data, appState, appData, component)
+        return evaluateExpression(expr, this.state ?? {}, this.data ?? {}, this._interpolationExtra())
     }
 
     protected _evalTemplate(tmpl: string): string {
-        const state = this.state ?? {}
-        const data = this.data ?? {}
-        const appState = this.appState ?? {}
-        const appData = this.appData ?? {}
-        const component = this.component
-        return new Function('state', 'data', 'appState', 'appData', 'component',
-            'return `' + tmpl + '`')(state, data, appState, appData, component)
+        return evaluateTemplate(tmpl, this.state ?? {}, this.data ?? {}, this._interpolationExtra())
     }
 
     // public properties

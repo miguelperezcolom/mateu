@@ -129,6 +129,22 @@ class RuleMapperTest {
     List<Row> rows;
   }
 
+  @SuppressWarnings("unused")
+  @Rule(
+      filter = "state.total > 100",
+      action = RuleAction.SetDataValue,
+      fieldName = "discount",
+      fieldAttribute = RuleFieldAttribute.hidden,
+      value = "",
+      expression = "false",
+      actionId = "",
+      result = RuleResult.Continue)
+  static class ClassRuleWithListsForm {
+    String discount;
+    List<Row> rows;
+    List<Row> moreRows;
+  }
+
   static class EmptyForm {}
 
   private static HttpRequest requestWithRoles(String... roles) throws Exception {
@@ -147,11 +163,12 @@ class RuleMapperTest {
   // ── class-level @Rule ──────────────────────────────────────────────────────
 
   @Test
-  void classLevelRuleAnnotationIsMapped() {
+  void classLevelRuleAnnotationIsMappedExactlyOnce() {
     var rules = RuleMapper.createRules(new ClassRuleForm(), null);
 
-    // note: createRules currently appends class-level @Rule twice (start + end of the method)
-    assertThat(rules).hasSize(2);
+    // Each class-level @Rule must be emitted exactly once: the frontend applies rules
+    // sequentially, so duplicates would re-run RunAction/RunJS rules per state change.
+    assertThat(rules).hasSize(1);
     var rule = rules.get(0);
     assertThat(rule.filter()).isEqualTo("state.total > 100");
     assertThat(rule.action()).isEqualTo(RuleAction.SetDataValue);
@@ -159,7 +176,6 @@ class RuleMapperTest {
     assertThat(rule.fieldAttribute()).isEqualTo(RuleFieldAttribute.hidden);
     assertThat(rule.expression()).isEqualTo("false");
     assertThat(rule.result()).isEqualTo(RuleResult.Continue);
-    assertThat(rules.get(1)).isEqualTo(rule);
   }
 
   @Test
@@ -272,6 +288,16 @@ class RuleMapperTest {
               assertThat(rule.fieldAttribute()).isEqualTo(RuleFieldAttribute.hidden);
               assertThat(rule.expression()).isEqualTo("state.hideCol");
             });
+  }
+
+  @Test
+  void listFieldsDoNotReAddClassLevelRules() {
+    var rules = RuleMapper.createRules(new ClassRuleWithListsForm(), null);
+
+    // 1 class-level rule + 2 row rules per list field (rows + moreRows). Before the fix the
+    // class-level @Rule was re-added once per List field (and once more at the end).
+    assertThat(rules.stream().filter(rule -> "discount".equals(rule.fieldName()))).hasSize(1);
+    assertThat(rules).hasSize(5);
   }
 
   // ── RuleSupplier ───────────────────────────────────────────────────────────

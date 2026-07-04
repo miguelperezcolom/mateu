@@ -1,6 +1,6 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, svg} from "lit";
-import ELK, {ElkNode, ElkExtendedEdge} from "elkjs/lib/elk.bundled.js";
+import type {ELK, ElkNode, ElkExtendedEdge} from "elkjs/lib/elk.bundled.js";
 import "@vaadin/button";
 import "@vaadin/icon";
 import "@vaadin/icons";
@@ -67,7 +67,14 @@ const TYPE_ICON: Record<StepType, string> = {
 
 const STEP_TYPES: StepType[] = ["ACTION", "JOIN", "FORK", "END", "USER_TASK", "PROCESS"];
 
-const elk = new ELK();
+// elkjs (~1.4 MB) is lazy-loaded on first layout so it stays out of the initial bundle.
+let elkPromise: Promise<ELK> | undefined;
+const getElk = (): Promise<ELK> => {
+    if (!elkPromise) {
+        elkPromise = import("elkjs/lib/elk.bundled.js").then(m => new m.default());
+    }
+    return elkPromise;
+};
 
 function newId(): string {
     return "step-" + Math.random().toString(36).slice(2, 8);
@@ -160,6 +167,7 @@ export class MateuWorkflowElk extends LitElement {
         };
 
         try {
+            const elk = await getElk();
             const laid = await elk.layout(graph);
             const newPositions: Record<string, NodePos> = {...this.positions};
             for (const child of laid.children ?? []) {

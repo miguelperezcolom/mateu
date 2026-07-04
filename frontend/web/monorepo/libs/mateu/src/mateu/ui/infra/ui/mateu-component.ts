@@ -20,7 +20,9 @@ import "@vaadin/scroller"
 import "@vaadin/accordion"
 import "@vaadin/avatar"
 import "@vaadin/avatar-group"
-import "@vaadin/charts"
+// note: @vaadin/charts (highcharts, ~840 kB) is NOT imported eagerly — nothing in the
+// framework renders <vaadin-chart> directly; elementRenderer lazy-loads it on demand
+// when a backend Element asks for a vaadin-chart* tag.
 import "@vaadin/combo-box"
 import "@vaadin/radio-group"
 import "@vaadin/checkbox-group"
@@ -78,6 +80,7 @@ import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAc
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
+import {evaluateExpression, interpolateAndEvaluate} from "@infra/ui/interpolation.ts";
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -111,16 +114,17 @@ export class MateuComponent extends ComponentElement {
             const appState = this.appState
             const appData = this.appData
             const component = this.component
-            // Use new Function instead of eval so minifier cannot rename the parameter names,
-            // which would break rule expressions that reference state/data/appState/appData/component by name.
+            // Rule expressions see state/data/appState/appData/component by name; the shared
+            // interpolation helpers use new Function (not eval) so minifiers cannot rename them.
+            // Both preserve the typed (non-string) result of the expression (e.g. booleans).
+            const evalExpr = (expr: string): any =>
+                evaluateExpression(expr, state, data, { appState, appData, component })
+            const evalTemplate = (tmpl: string): any =>
+                interpolateAndEvaluate(tmpl, state, data, appState, appData, { component })
+            // RunJS rules evaluate a statement body (not an expression), so they keep a raw
+            // new Function with the same named context.
             const ctxArgs: [string, string, string, string, string] = ['state', 'data', 'appState', 'appData', 'component']
             const ctxVals = [state, data, appState, appData, component]
-            const evalExpr = (expr: string) =>
-                new Function(...ctxArgs, `return (${expr})`)(...ctxVals)
-            const evalTemplate = (tmpl: string) => {
-                const interpolated = new Function(...ctxArgs, 'return `' + tmpl + '`')(...ctxVals)
-                return new Function(...ctxArgs, `return (${interpolated})`)(...ctxVals)
-            }
             const newState = {...this.state}
             const newData = {...this.data}
             let stateUpdated = false;

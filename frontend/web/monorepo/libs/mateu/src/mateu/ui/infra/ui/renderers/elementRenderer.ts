@@ -39,7 +39,18 @@ const hydrate = (htmlElement: any, element: Element, component: ClientSideCompon
     }
 }
 
+// Heavy component libraries loaded on demand the first time an Element asks for one of
+// their tags. Custom elements upgrade in place once defined, so the element can be created
+// before the module finishes loading. @vaadin/charts bundles highcharts (~840 kB), so it is
+// deliberately kept out of the initial bundle (see mateu-component.ts).
+const ensureElementDefined = (tagName: string) => {
+    if (tagName.startsWith('vaadin-chart') && !customElements.get(tagName)) {
+        import('@vaadin/charts')
+    }
+}
+
 export const renderElement = (container: LitElement, element: Element, component: ClientSideComponent): TemplateResult => {
+    ensureElementDefined(element.name)
     let selector = element.name
     if (element.attributes && element.attributes['id']) {
         selector = '#' + element.attributes['id']

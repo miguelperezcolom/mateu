@@ -95,11 +95,12 @@ export default defineConfig({
     },
     build: {
         // After the manualChunks split below, the remaining >500 kB chunks are
-        // single third-party libraries (vendor-vaadin 1.9 MB, vendor-diagrams
-        // 1.6 MB, vendor-highcharts 0.8 MB, vendor-ui5 0.6 MB) that cannot be
-        // split further without lazy-loading them in libs/mateu, so raise the
-        // warning limit just above the biggest one to keep the build quiet while
-        // still catching a regression to a monolithic bundle.
+        // single third-party libraries (vendor-vaadin 1.9 MB eager, vendor-ui5
+        // 0.6 MB eager; vendor-diagrams 1.6 MB and vendor-highcharts 0.8 MB are
+        // lazy-loaded async chunks — see mateu-bpmn.ts, mateu-workflow-elk.ts
+        // and elementRenderer.ts in libs/mateu) that cannot be split further,
+        // so raise the warning limit just above the biggest one to keep the
+        // build quiet while still catching a regression to a monolithic bundle.
         chunkSizeWarningLimit: 2048,
         rollupOptions: {
             output: {
@@ -118,7 +119,10 @@ export default defineConfig({
                     const parts = id.split('node_modules/').pop()!.split('/')
                     const pkg = parts[0].startsWith('@') ? `${parts[0]}/${parts[1]}` : parts[0]
                     // self-contained heavy leaves first (no imports back into other groups)
-                    if (pkg === 'highcharts') return 'vendor-highcharts'
+                    // @vaadin/charts goes with highcharts (not vendor-vaadin): it is only
+                    // dynamically imported (elementRenderer.ts), so keeping the wrapper in
+                    // the same chunk as highcharts makes the whole thing an async chunk.
+                    if (pkg === 'highcharts' || pkg === '@vaadin/charts') return 'vendor-highcharts'
                     if (pkg === 'ol' || pkg.startsWith('ol-')
                         || pkg === 'rbush' || pkg === 'quickselect'
                         || pkg === 'geotiff' || pkg === 'earcut'

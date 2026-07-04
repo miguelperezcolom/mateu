@@ -110,17 +110,50 @@ export const interpolateNested = (
 /**
  * Interpolates `text` as a template literal and then evaluates the resulting
  * string as a JS expression (historical `eval(eval(...))` of e.g. the confirm
- * dialog's `openedCondition`). Expressions see `state`, `data`, `appState` and
- * `appData`. Throws on failure — callers decide the error behaviour.
+ * dialog's `openedCondition` and rule expressions). Expressions see `state`,
+ * `data`, `appState` and `appData`, plus any additional named variables passed
+ * in `extra` (e.g. `{ component }` for rule expressions). Throws on failure —
+ * callers decide the error behaviour. The typed (non-string) result of the
+ * final expression is returned as-is.
  */
 export const interpolateAndEvaluate = (
     text: string,
     state: ComponentState,
     data: ComponentData,
     appState?: ComponentState,
-    appData?: ComponentData
+    appData?: ComponentData,
+    extra?: InterpolationContext
 ): unknown => {
-    const ctx = buildContext(state, data, { appState: appState ?? {}, appData: appData ?? {} })
+    const ctx = buildContext(state, data, { appState: appState ?? {}, appData: appData ?? {}, ...extra })
     const interpolated = evalTemplate(text, ctx)
     return new Function(...Object.keys(ctx), `return (${interpolated})`)(...Object.values(ctx))
 }
+
+/**
+ * Evaluates `expr` as a single JS expression (no template pass) with `state`,
+ * `data` and any `extra` named variables in scope, preserving the expression's
+ * typed result (e.g. a boolean for a trigger condition or a disabled/visible
+ * rule filter). Throws on failure — callers decide the error behaviour.
+ */
+export const evaluateExpression = (
+    expr: string,
+    state?: ComponentState,
+    data?: ComponentData,
+    extra?: InterpolationContext
+): unknown => {
+    const ctx = buildContext(state, data, extra)
+    return new Function(...Object.keys(ctx), `return (${expr})`)(...Object.values(ctx))
+}
+
+/**
+ * Evaluates `text` as a JS template literal with `state`, `data` and any
+ * `extra` named variables in scope. Unlike {@link interpolate} it THROWS on a
+ * failing expression instead of falling back to the raw text — for callers
+ * that implement their own error behaviour (e.g. validation messages).
+ */
+export const evaluateTemplate = (
+    text: string,
+    state?: ComponentState,
+    data?: ComponentData,
+    extra?: InterpolationContext
+): string => evalTemplate(text, buildContext(state, data, extra))

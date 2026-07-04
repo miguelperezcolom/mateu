@@ -6,11 +6,9 @@ import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Disabled;
 import io.mateu.uidl.annotations.Hidden;
-import io.mateu.uidl.annotations.Rule;
 import io.mateu.uidl.data.RuleAction;
 import io.mateu.uidl.data.RuleFieldAttribute;
 import io.mateu.uidl.data.RuleResult;
-import java.util.Arrays;
 import java.util.List;
 
 final class ListFieldRuleCollector {
@@ -21,10 +19,6 @@ final class ListFieldRuleCollector {
         .forEach(
             collectionField -> {
               var rowClass = getGenericClass(collectionField, List.class, "E");
-              rules.addAll(
-                  Arrays.stream(viewClass.getAnnotationsByType(Rule.class))
-                      .map(RuleMapper::mapToRule)
-                      .toList());
               getAllFields(rowClass).stream()
                   .filter(field -> MetaAnnotations.isPresent(field, Disabled.class))
                   .forEach(

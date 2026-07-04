@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { interpolate, interpolateAndEvaluate, interpolateNested, possiblyHtml } from './interpolation'
+import {
+    evaluateExpression,
+    evaluateTemplate,
+    interpolate,
+    interpolateAndEvaluate,
+    interpolateNested,
+    possiblyHtml
+} from './interpolation'
 
 describe('interpolate', () => {
     afterEach(() => {
@@ -96,6 +103,53 @@ describe('interpolateAndEvaluate', () => {
 
     it('throws on a failing expression (callers decide the error behaviour)', () => {
         expect(() => interpolateAndEvaluate('${noSuchVar}', {}, {})).toThrow()
+    })
+
+    it('exposes extra named variables (rule expressions see component)', () => {
+        const component = { serverSideType: 'io.mateu.Demo' }
+        expect(interpolateAndEvaluate('component.serverSideType == "${state.type}"',
+            { type: 'io.mateu.Demo' }, {}, {}, {}, { component }))
+            .toBe(true)
+    })
+
+    it('preserves the typed result of the evaluated expression', () => {
+        expect(interpolateAndEvaluate('${state.count} + 1', { count: 2 }, {}, {}, {}, {})).toBe(3)
+        expect(interpolateAndEvaluate('[1, 2]', {}, {}, {}, {}, {})).toEqual([1, 2])
+    })
+})
+
+describe('evaluateExpression', () => {
+    it('evaluates an expression against state and data preserving its type', () => {
+        expect(evaluateExpression('state.total > 100', { total: 150 }, {})).toBe(true)
+        expect(evaluateExpression('state.total > 100', { total: 5 }, {})).toBe(false)
+        expect(evaluateExpression('data.items.length', {}, { items: [1, 2, 3] })).toBe(3)
+    })
+
+    it('exposes extra named variables (component, appState, appData)', () => {
+        const component = { rules: [{ filter: 'true' }] }
+        expect(evaluateExpression('component.rules.length', {}, {}, { component })).toBe(1)
+        expect(evaluateExpression('appState.on && appData.ready', {}, {},
+            { appState: { on: true }, appData: { ready: true } })).toBe(true)
+    })
+
+    it('defaults state and data to empty objects', () => {
+        expect(evaluateExpression('state.missing ?? "n/a"')).toBe('n/a')
+    })
+
+    it('throws on a failing expression (callers decide the error behaviour)', () => {
+        expect(() => evaluateExpression('noSuchVar', {}, {})).toThrow()
+    })
+})
+
+describe('evaluateTemplate', () => {
+    it('evaluates a template literal against state, data and extra context', () => {
+        expect(evaluateTemplate('Hola ${state.user}', { user: 'Ana' }, {})).toBe('Hola Ana')
+        expect(evaluateTemplate('${component.id}: ${data.total}', {}, { total: 9 },
+            { component: { id: 'c1' } })).toBe('c1: 9')
+    })
+
+    it('throws on a failing expression, unlike interpolate', () => {
+        expect(() => evaluateTemplate('${noSuchVar}', {}, {})).toThrow()
     })
 })
 
