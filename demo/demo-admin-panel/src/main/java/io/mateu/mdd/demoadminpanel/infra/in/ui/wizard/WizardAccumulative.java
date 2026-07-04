@@ -9,8 +9,8 @@ import io.mateu.uidl.annotations.WizardLayout;
 import io.mateu.uidl.annotations.WizardLayoutMode;
 
 /**
- * Accumulative wizard: the current step is editable, with a read-only recap of the completed steps
- * stacked above it.
+ * Accumulative wizard: the current step is editable, with a single compact "Previous answers" recap
+ * card (label: value lines, grouped by step) above it.
  */
 @Style(StyleConstants.CONTAINER)
 @Title("Accumulative wizard")

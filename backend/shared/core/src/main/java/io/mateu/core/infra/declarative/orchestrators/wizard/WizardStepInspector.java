@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.wizard;
 
+import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.getValidations;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
@@ -83,6 +84,37 @@ final class WizardStepInspector {
               + detail
               + ". Rename the colliding fields so each step's fields are uniquely named.");
     }
+  }
+
+  /** One "label: value" answer read back from a completed step. */
+  record AnswerLine(String label, String value) {}
+
+  /**
+   * The non-empty answers a completed step holds, as label/value pairs, for the ACCUMULATIVE recap.
+   * Skips static fields and null/blank values so the recap only shows what the user actually filled
+   * in. Returns an empty list if the step has no stored instance yet.
+   */
+  static List<AnswerLine> getAnswerLines(Wizard wizard, int stepIndex) {
+    var step = getValueOrClass(wizard, stepIndex);
+    if (step instanceof Class) {
+      return List.of();
+    }
+    var lines = new ArrayList<AnswerLine>();
+    for (var f : getAllFields(step.getClass())) {
+      if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+        continue;
+      }
+      var value = getValue(f, step);
+      if (value == null) {
+        continue;
+      }
+      var text = String.valueOf(value);
+      if (text.isBlank()) {
+        continue;
+      }
+      lines.add(new AnswerLine(getLabel(f), text));
+    }
+    return lines;
   }
 
   static List<Validation> validations(Wizard wizard) {

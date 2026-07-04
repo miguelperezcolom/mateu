@@ -96,9 +96,11 @@ public abstract class Wizard
     switch (mode) {
       case ACCORDION -> content.add(accordionBody(httpRequest));
       case ACCUMULATIVE -> {
-        // Read-only recap of every completed step, then the current (editable) step below it.
-        for (int i = 0; i < position; i++) {
-          content.add(recapCard(i, httpRequest));
+        // A single compact "previous answers" recap of every completed step, then the current
+        // (editable) step below it.
+        var recap = previousAnswersCard();
+        if (recap != null) {
+          content.add(recap);
         }
         content.add(currentStepBody(httpRequest));
       }
@@ -133,28 +135,64 @@ public abstract class Wizard
   }
 
   /**
-   * A completed step rendered read-only. The step fields read their values from the (flattened)
-   * wizard state — the same way the live step does — so previously entered data shows up.
+   * A single compact card recapping every completed step as "label: value" lines, grouped under
+   * each step's title. Far denser than one read-only form card per step. Returns {@code null} when
+   * nothing has been answered yet (first step, or no non-empty values).
    */
-  private Component recapCard(int stepIndex, HttpRequest httpRequest) {
-    var step = WizardStepInspector.getValueOrClass(this, stepIndex);
-    var label = getLabel(WizardStepInspector.getStepFields(this).get(stepIndex));
-    var body =
-        Div.builder().style("width: 100%;").children(stepForm(step, "", true, httpRequest)).build();
+  private Component previousAnswersCard() {
+    if (position == 0) {
+      return null;
+    }
+    var steps = WizardStepInspector.getStepFields(this);
+    var body = new ArrayList<Component>();
+    body.add(
+        Text.builder()
+            .text("Previous answers")
+            .container(TextContainer.h4)
+            .style("margin: 0 0 0.25rem 0;")
+            .build());
+    boolean any = false;
+    for (int i = 0; i < position; i++) {
+      var lines = WizardStepInspector.getAnswerLines(this, i);
+      if (lines.isEmpty()) {
+        continue;
+      }
+      any = true;
+      body.add(
+          Text.builder()
+              .text(getLabel(steps.get(i)))
+              .container(TextContainer.h5)
+              .style(
+                  "margin: 0.5rem 0 0.15rem 0; color: var(--lumo-secondary-text-color);"
+                      + " font-size: var(--lumo-font-size-s);")
+              .build());
+      lines.forEach(line -> body.add(answerLine(line)));
+    }
+    if (!any) {
+      return null;
+    }
     return Card.builder()
         .variants(List.of(CardVariant.outlined))
         .style("width: 100%;")
+        .content(VerticalLayout.builder().content(body).style("gap: 0;").build())
+        .build();
+  }
+
+  /** A single "label: value" row of the previous-answers recap. */
+  private Component answerLine(WizardStepInspector.AnswerLine line) {
+    return HorizontalLayout.builder()
+        .spacing(false)
+        .style("gap: 0.5rem; align-items: baseline;")
         .content(
-            VerticalLayout.builder()
-                .content(
-                    List.of(
-                        Text.builder()
-                            .text(label)
-                            .container(TextContainer.h4)
-                            .style("margin: 0 0 0.25rem 0;")
-                            .build(),
-                        body))
-                .build())
+            List.of(
+                Text.builder()
+                    .text(line.label() + ":")
+                    .container(TextContainer.span)
+                    .style(
+                        "font-weight: 600; min-width: 8rem;"
+                            + " color: var(--lumo-secondary-text-color);")
+                    .build(),
+                Text.builder().text(line.value()).container(TextContainer.span).build()))
         .build();
   }
 

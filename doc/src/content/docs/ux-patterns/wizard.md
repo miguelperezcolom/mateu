@@ -82,7 +82,7 @@ public class OnboardingWizard extends Wizard { … }
 | Mode | Behaviour |
 |---|---|
 | `STEPS` *(default)* | Only the current step is shown, one at a time. |
-| `ACCUMULATIVE` | The current step is editable, with a **read-only recap card of every completed step stacked above it** — the user always sees what has been collected so far. |
+| `ACCUMULATIVE` | The current step is editable, with a single compact **"Previous answers" recap card** above it — every completed step's values listed as dense `label: value` lines, grouped by step — so the user always sees what has been collected so far without it dominating the screen. |
 | `ACCORDION` | Every step is a **collapsible panel**: the current one is open and editable, completed ones are collapsed (expand to review), upcoming ones are disabled. As you advance, the previous panel collapses and the next opens. |
 
 <div style="display:flex; gap:1rem; flex-wrap:wrap;">
