@@ -7,7 +7,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.1",
@@ -92,7 +94,8 @@
     "lit": "^3.3.1",
     "typescript": "~5.8.3",
     "vite": "^7.1.2",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.4"
   },
   "resolutions": {
     "lit": "^3.3.1"

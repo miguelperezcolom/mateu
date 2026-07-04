@@ -1,5 +1,6 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
+import { interpolate } from './interpolation'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -174,9 +175,7 @@ export class MateuFilterBar extends LitElement {
         return html`
             <div class="active-filters">
                 ${active.map(field => {
-                    const fieldLabel = (field.label as string)?.includes('${')
-                        ? new Function('state', 'data', 'return `' + field.label + '`')(this.state ?? {}, this.data ?? {})
-                        : field.label
+                    const fieldLabel = interpolate(field.label, this.state, this.data)
                     return html`
                     <span theme="badge contrast pill" class="active-filter-badge">
                         <span>${fieldLabel}: ${this.getFilterDisplayValue(field, this.state[field.fieldId])}</span>

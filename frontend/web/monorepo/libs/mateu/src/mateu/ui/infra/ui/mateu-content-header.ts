@@ -15,21 +15,9 @@ import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetad
 import type Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form.ts";
 import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 
-export const possiblyHtml = (
-    text: string | undefined,
-    state: ComponentState,
-    data: ComponentData
-): string | undefined => {
-    void state; void data;  // captured by eval template literal
-    if (text && text.indexOf("${") >= 0) {
-        try {
-            return eval('`' + text + '`')
-        } catch (e) {
-            return (e as Error).message
-        }
-    }
-    return text;
-}
+import { interpolate, possiblyHtml } from './interpolation'
+
+export { possiblyHtml } from './interpolation'
 
 export const buttonTheme = (button: Button): string | undefined => {
     const parts: string[] = []
@@ -71,9 +59,7 @@ export class MateuContentHeader extends LitElement {
         }))
     }
 
-    evalLabel = (raw: string) => raw?.includes('${')
-        ? new Function('state', 'data', 'return `' + raw + '`')(this.state ?? {}, this.data ?? {})
-        : raw
+    evalLabel = (raw: string) => interpolate(raw, this.state, this.data)
 
     renderBtn = (button: Button) => {
         if ((this.data ?? {})[button.actionId + '.hidden']) return nothing

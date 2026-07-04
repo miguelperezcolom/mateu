@@ -2,6 +2,8 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import { html, nothing } from "lit";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { interpolate } from "@infra/ui/interpolation.ts";
+import { formatShortcut } from "@infra/ui/shortcuts.ts";
 
 export const handleButtonClick = (event: Event, button: Button) => {
     const actionId = (event.target as HTMLElement).dataset.actionId
@@ -15,17 +17,9 @@ export const handleButtonClick = (event: Event, button: Button) => {
     }))
 }
 
-const formatShortcut = (shortcut?: string): string | undefined =>
-    shortcut
-        ? shortcut.split('+').map(p => p.length <= 1 ? p.toUpperCase() : p.charAt(0).toUpperCase() + p.slice(1)).join('+')
-        : undefined
-
 export const renderButton = (component: ClientSideComponent, state?: ComponentState, data?: ComponentData) => {
     const metadata = component.metadata as Button
-    const rawLabel = metadata.label
-    const label = rawLabel?.includes('${')
-        ? new Function('state', 'data', 'return `' + rawLabel + '`')(state ?? {}, data ?? {})
-        : rawLabel
+    const label = interpolate(metadata.label, state, data)
     let theme = '';
     if (metadata.buttonStyle) {
         theme += ' ' + metadata.buttonStyle

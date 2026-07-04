@@ -11,6 +11,7 @@ import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageC
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import './mateu-content-header'
+import { interpolate } from './interpolation'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner.ts"
 
@@ -195,8 +196,7 @@ export class MateuPage extends LitElement {
     }
 
     private _evalBannerText(text: string | undefined): string | undefined {
-        if (!text?.includes('${')) return text
-        return new Function('state', 'data', 'return `' + text + '`')(this.state ?? {}, this.data ?? {})
+        return interpolate(text, this.state, this.data)
     }
 
     private _renderBanner(banner: Banner, onDismiss: () => void): TemplateResult {

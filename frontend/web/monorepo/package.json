@@ -6,5 +6,8 @@
   "workspaces": [
     "apps/*",
     "libs/*"
-  ]
+  ],
+  "scripts": {
+    "test": "yarn workspace mateu test"
+  }
 }

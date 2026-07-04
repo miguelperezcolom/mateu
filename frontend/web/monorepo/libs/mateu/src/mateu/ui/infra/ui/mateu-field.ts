@@ -1,5 +1,6 @@
 import { customElement, property, state } from "lit/decorators.js";
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
+import { interpolate } from './interpolation'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -537,9 +538,7 @@ export class MateuField extends LitElement {
         const fieldId = this.field?.fieldId??''
         const value = this.state && fieldId in this.state?this.state[fieldId]:this.field?.initialValue
         const rawLabelText = this.field?.label + ''
-        const labelText = rawLabelText?.includes('${')
-            ? new Function('state', 'data', 'return `' + rawLabelText + '`')(this.state ?? {}, this.data ?? {})
-            : rawLabelText
+        const labelText = interpolate(rawLabelText, this.state, this.data)
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
         if (this.field?.stereotype == 'badge') return this.renderBadgeField(fieldId, value, label, labelText)

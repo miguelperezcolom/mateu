@@ -71,6 +71,7 @@ import './mateu-workflow'
 import './mateu-workflow-elk'
 import './mateu-form-editor'
 import './mateu-debug-overlay'
+import { shortcutMatchesEvent } from './shortcuts'
 import {Notification} from "@vaadin/notification"
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
@@ -734,20 +735,7 @@ export class MateuComponent extends ComponentElement {
     }
 
     private _shortcutMatchesEvent(shortcut: string, e: KeyboardEvent): boolean {
-        const parts = shortcut.toLowerCase().split('+')
-        const key = parts[parts.length - 1]
-        const ctrl = parts.includes('ctrl')
-        const alt = parts.includes('alt')
-        const shift = parts.includes('shift')
-        const meta = parts.includes('meta')
-        if (e.ctrlKey !== ctrl || e.altKey !== alt || e.shiftKey !== shift || e.metaKey !== meta) return false
-        // Match by logical key, or by physical code (KeyX / DigitX / NumpadX) so modifier shortcuts
-        // work across keyboard layouts (e.g. Spanish AltGr remaps Ctrl+Alt+<letter> to a symbol) and
-        // on the numeric keypad.
-        if (e.key.toLowerCase() === key) return true
-        if (/^[a-z]$/.test(key) && e.code === 'Key' + key.toUpperCase()) return true
-        if (/^[0-9]$/.test(key) && (e.code === 'Digit' + key || e.code === 'Numpad' + key)) return true
-        return false
+        return shortcutMatchesEvent(shortcut, e)
     }
 
 

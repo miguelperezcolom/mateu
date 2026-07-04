@@ -19,6 +19,7 @@ import { columnBodyRenderer } from "@vaadin/grid/lit"
 import "@vaadin/card"
 import './mateu-filter-bar'
 import './mateu-content-header'
+import { interpolate } from './interpolation'
 import './mateu-pagination'
 import './mateu-table'
 import './mateu-card-list'
@@ -281,9 +282,7 @@ export class MateuTableCrud extends LitElement {
         }
     }
 
-    evalLabel = (raw: string) => raw?.includes('${')
-        ? new Function('state', 'data', 'return `' + raw + '`')(this.state ?? {}, this.data ?? {})
-        : raw
+    evalLabel = (raw: string) => interpolate(raw, this.state, this.data)
 
     handleToolbarButtonClick = (actionId: string) => {
         if (actionId === 'import') {

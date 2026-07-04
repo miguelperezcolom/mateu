@@ -10,6 +10,7 @@ import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import '@vaadin/button'
 import './mateu-field'
+import { modifiersMatch } from './shortcuts'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
@@ -136,9 +137,7 @@ export class MateuGrid extends MetadataDrivenElement {
         // The listener is on document, so scope it: ignore the shortcut when this grid is off-screen
         // or when the user is typing into an editable control that lives outside this grid.
         if (!this._isRowShortcutRelevant()) return
-        const parts = base.toLowerCase().split('+')
-        if (e.ctrlKey !== parts.includes('ctrl') || e.altKey !== parts.includes('alt')
-            || e.shiftKey !== parts.includes('shift') || e.metaKey !== parts.includes('meta')) return
+        if (!modifiersMatch(base, e)) return
         const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code)
         if (!m) return
         const items = this.currentItems()

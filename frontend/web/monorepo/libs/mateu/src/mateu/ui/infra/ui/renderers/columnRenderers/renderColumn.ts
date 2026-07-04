@@ -1,5 +1,6 @@
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { html, LitElement, nothing } from "lit";
+import { interpolate } from "@infra/ui/interpolation.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -161,9 +162,7 @@ export const renderGroup = (group: GridGroupColumn,
                             data: ComponentData,
                             appState: ComponentState,
                             appData: ComponentData) => {
-    const groupLabel = group.label?.includes('${')
-        ? new Function('state', 'data', 'return `' + group.label + '`')(state ?? {}, data ?? {})
-        : group.label
+    const groupLabel = interpolate(group.label, state, data)
     return html`
 <vaadin-grid-column-group header="${groupLabel}">
     ${group.columns.map(column => renderColumn(column.metadata as GridColumn,
@@ -210,9 +209,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                              data: ComponentData,
                              appState: ComponentState,
                              appData: ComponentData) => {
-    const colLabel = mateuColumn.label?.includes('${')
-        ? new Function('state', 'data', 'return `' + mateuColumn.label + '`')(state ?? {}, data ?? {})
-        : mateuColumn.label
+    const colLabel = interpolate(mateuColumn.label, state, data)
     if (mateuColumn.sortable) {
         return html`
                         <vaadin-grid-sort-column
