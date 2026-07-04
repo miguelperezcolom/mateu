@@ -200,6 +200,49 @@ Bind an action method to a shortcut with `[Shortcut("ctrl+s")]`.
 public class CheckIn { /* … */ }
 ```
 
+## Dashboards, foldouts & fluent components
+
+The nine dashboard/UX component types are available as **fluent records** (in `Mateu.Uidl`):
+`MetricCard` (with `MetricTrend` up/down/neutral), `Scoreboard`, `DashboardPanel`,
+`DashboardLayout`, `FoldoutLayout`/`FoldoutPanel`, `HeroSection`, `EmptyState`, `Skeleton`
+(text/card/grid/form variants) and `Gantt`/`GanttTask` — plus the generic `Text`, `Button`, `Card`,
+`HorizontalLayout`, `VerticalLayout` and `TabLayout`/`TabPanel` building blocks. They serialize to
+the exact wire shape of the Java DTOs, so the renderers draw the C# output unchanged.
+
+Any view can return a fluent tree by implementing `IComponentTreeSupplier`, but the easiest path is
+a **declarative page archetype** — derive from `Dashboard`, `Foldout`, `Welcome` or `ItemOverview`
+and declare component-holding properties; `[Panel]` marks titled tiles / fold-out panels / tabs:
+
+```csharp
+[UI("dashboard"), Title("Sales dashboard")]
+public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
+{
+    // Consecutive MetricCard properties form a Scoreboard KPI band.
+    public MetricCard Revenue { get; } = new()
+        { Title = "Revenue", Value = "1.2", Unit = "M€", Trend = MetricTrend.Up,
+          TrendLabel = "+12%", ActionId = "openRevenue" };
+
+    // [Panel] component properties become titled tiles on a responsive grid.
+    [Panel(Title = "Delivery plan", ColSpan = 2)]
+    public Gantt Plan { get; } = new() { Tasks = [ new GanttTask
+        { Id = "t1", Title = "Build", Start = new(2026, 7, 1), End = new(2026, 8, 20), Progress = 40 } ] };
+
+    [Panel(Title = "Alerts")]
+    public EmptyState Alerts { get; } = new() { Icon = "🎉", Title = "No alerts" };
+
+    public Message OpenRevenue() => new("Drill-in");   // MetricCard.ActionId dispatches this
+}
+```
+
+- **`Dashboard`** — MetricCards → `Scoreboard` band; `[Panel]` components → `DashboardPanel` tiles
+  on a `DashboardLayout` grid (override `Columns` to fix the count; 0 = auto-fit).
+- **`Foldout`** — the first non-`[Panel]` component property is the always-visible overview;
+  `[Panel(Icon = …, Open = false)]` properties are lateral fold-out panels.
+- **`Welcome`** — `Button` properties become CTAs inside a centered `HeroSection` (override
+  `HeroTitle`/`HeroSubtitle`/`HeroImage`); `[Panel]` properties are highlight tiles below.
+- **`ItemOverview`** — the first non-`[Panel]` component property is the sticky key-info card
+  (left); `[Panel(Title = …)]` properties become tabs on the right.
+
 ## i18n, events & security
 
 - **i18n** — implement `ITranslator` and register it; titles, labels and menu entries are translated.
@@ -223,8 +266,11 @@ public class Orders { /* … */ }
 The core Mateu surface is covered and verified live in the Compose renderer (desktop + iOS) against
 this server: forms + sections + field types + validation, `Crud<T>` (list / detail / edit / new /
 save / delete), the `[App]` shell + menu navigation, wizards, page decorations, i18n, events,
-security scaffolding, and the tail features above (tabs, stereotypes, KPIs, FABs, shortcuts, compact,
-unsaved-changes guard). 13 golden-JSON tests assert wire compatibility with the Java backend.
+security scaffolding, the tail features above (tabs, stereotypes, KPIs, FABs, shortcuts, compact,
+unsaved-changes guard), the nine dashboard/UX component types (MetricCard, Scoreboard,
+DashboardPanel, DashboardLayout, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
+declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). 20 golden-JSON tests
+assert wire compatibility with the Java backend.
 
 Beyond the core, the remaining Java features (component adapters, federated microfrontends, framework
 adapters, SSE/AI chat) follow the same pattern: extend the mapper, add a metadata DTO, add a golden

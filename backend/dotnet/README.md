@@ -20,15 +20,20 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   → textarea, `[Password]`, `[Money]` → `money` dataType, `[PlainText]` field/class → read-only text,
 >   `[Stereotype("…")]`); `[Kpi]` methods → page KPI cards; `[Fab]` methods → floating action buttons;
 >   `[Shortcut("ctrl+s")]` on action methods; `[ConfirmOnNavigationIfDirty]` and `[Compact]` page flags.
+> - **Fluent components & archetypes** — the nine dashboard/UX component types (`MetricCard`,
+>   `Scoreboard`, `DashboardPanel`, `DashboardLayout`, `FoldoutLayout`, `HeroSection`, `EmptyState`,
+>   `Skeleton`, `Gantt`) as fluent records a view can emit via `IComponentTreeSupplier`, plus the
+>   declarative page archetypes (`Dashboard`, `Foldout`, `Welcome`, `ItemOverview`) that compose them
+>   from component-holding properties (`[Panel]` carries title/subtitle/colSpan/rowSpan/icon/open).
 >
-> The core Mateu surface is covered (13 golden tests). The web renderer renders all of it; the Compose
+> The core Mateu surface is covered (20 golden tests). The web renderer renders all of it; the Compose
 > renderer (a subset) renders forms/CRUD/app-shell/wizards/banners/tabs.
 
 ## Projects
 
 | Project | Role |
 |---|---|
-| `src/Mateu.Uidl` | Public API — attributes (`[UI]`,`[Title]`,`[Button]`,`[Label]`) + data types (`Message`) |
+| `src/Mateu.Uidl` | Public API — attributes (`[UI]`,`[Title]`,`[Button]`,`[Panel]`…), fluent components (`MetricCard`, `Gantt`, …), archetypes (`Dashboard`, `Foldout`, …) + data types (`Message`) |
 | `src/Mateu.Dtos` | The wire model — `UIIncrementDto`, `ComponentDto` + metadata (System.Text.Json polymorphism on `type`) |
 | `src/Mateu.Core` | The engine — `MateuRegistry` (route/type resolution), `ReflectionMapper` (model→tree), `SyncHandler` (action dispatch) |
 | `src/Mateu.AspNetCore` | `AddMateu()` / `MapMateu()` — DI + the `POST /mateu/v3/sync/{route}` endpoint |
@@ -76,4 +81,47 @@ public class DemoApp
     [MenuItem("Reservations")] public Reservations Reservations() => new();
     [MenuItem("Person")] public Person Person() => new();
 }
+
+// A declarative dashboard: consecutive MetricCard properties form a Scoreboard KPI band,
+// [Panel] component properties become titled tiles on a responsive grid.
+[UI("dashboard"), Title("Sales dashboard")]
+public class SalesDashboard : Dashboard
+{
+    public MetricCard Revenue { get; } = new()
+        { Title = "Revenue", Value = "1.2", Unit = "M€", Trend = MetricTrend.Up, TrendLabel = "+12%" };
+
+    [Panel(Title = "Delivery plan", ColSpan = 2)]
+    public Gantt Plan { get; } = new() { Tasks = [ new GanttTask
+        { Id = "t1", Title = "Build", Start = new(2026, 7, 1), End = new(2026, 8, 20), Progress = 40 } ] };
+
+    [Panel(Title = "Alerts")]
+    public EmptyState Alerts { get; } = new() { Icon = "🎉", Title = "No alerts" };
+}
+
+// A Redwood-style foldout record page: overview on the left + lateral fold-out panels.
+[UI("booking"), Title("Booking")]
+public class BookingFoldout : Foldout
+{
+    public Text Overview { get; } = new("Booking 2026/0042 — 2 nights, Deluxe room");
+    [Panel(Title = "Guests", Icon = "👥")] public Text Guests { get; } = new("…");
+    [Panel(Title = "Payments", Open = false)] public Text Payments { get; } = new("…");
+}
 ```
+
+### Fluent components
+
+Beyond reflected forms, any view can implement `IComponentTreeSupplier` and return a fluent
+component tree (`Mateu.Uidl` records). Supported types: `MetricCard`, `Scoreboard`,
+`DashboardPanel`, `DashboardLayout`, `FoldoutLayout`/`FoldoutPanel`, `HeroSection`, `EmptyState`,
+`Skeleton`, `Gantt`/`GanttTask`, plus the generic `Text`, `Button`, `Card`, `HorizontalLayout`,
+`VerticalLayout` and `TabLayout`/`TabPanel`. They serialize to the exact wire shape of the Java
+DTOs (same `type` discriminators, field names and `slot`s), so every renderer that supports them
+renders the C# output unchanged. `MetricCard.ActionId` / `EmptyState.ActionId` / `Button.ActionId`
+dispatch the method of the same name on the view (drill-in navigation, CTAs).
+
+### Page archetypes
+
+`Dashboard`, `Foldout`, `Welcome` and `ItemOverview` (C# analogues of the Java declarative
+orchestrators) reflect over the subclass's public component-holding properties and compose the
+layout for you — `[Panel(Title, Subtitle, ColSpan, RowSpan, Icon, Open)]` marks tiles / fold-out
+panels / tabs. See `samples/Mateu.Demo/SalesDashboard.cs`.

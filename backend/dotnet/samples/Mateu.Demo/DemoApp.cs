@@ -10,4 +10,7 @@ public class DemoApp
     [MenuItem("Person")] public Person Person() => new();
     [MenuItem("Sign up")] public SignupWizard SignupWizard() => new();
     [MenuItem("Showcase")] public Showcase Showcase() => new();
+    [MenuItem("Dashboard")] public SalesDashboard Dashboard() => new();
+    [MenuItem("Booking foldout")] public BookingFoldout Booking() => new();
+    [MenuItem("Welcome")] public WelcomeDemo Welcome() => new();
 }

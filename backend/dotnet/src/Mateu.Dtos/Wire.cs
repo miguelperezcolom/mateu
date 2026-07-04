@@ -87,7 +87,61 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(ButtonMetadataDto), "Button")]
 [JsonDerivedType(typeof(TabLayoutMetadataDto), "TabLayout")]
 [JsonDerivedType(typeof(TabMetadataDto), "Tab")]
+[JsonDerivedType(typeof(MetricCardMetadataDto), "MetricCard")]
+[JsonDerivedType(typeof(ScoreboardMetadataDto), "Scoreboard")]
+[JsonDerivedType(typeof(DashboardPanelMetadataDto), "DashboardPanel")]
+[JsonDerivedType(typeof(DashboardLayoutMetadataDto), "DashboardLayout")]
+[JsonDerivedType(typeof(FoldoutLayoutMetadataDto), "FoldoutLayout")]
+[JsonDerivedType(typeof(HeroSectionMetadataDto), "HeroSection")]
+[JsonDerivedType(typeof(EmptyStateMetadataDto), "EmptyState")]
+[JsonDerivedType(typeof(SkeletonMetadataDto), "Skeleton")]
+[JsonDerivedType(typeof(GanttMetadataDto), "Gantt")]
 public abstract record ComponentMetadataDto;
+
+// ── Dashboards, foldouts, heroes, empty states, skeletons, Gantt ───────────────
+// 1:1 mirrors of the Java wire DTOs (io.mateu.dtos.MetricCardDto & friends).
+
+/// <summary>KPI tile metadata for dashboards (mirrors MetricCardDto). Trend: up|down|neutral.</summary>
+public record MetricCardMetadataDto(
+    string? Title,
+    string? Value,
+    string? Unit,
+    string? Trend,
+    string? TrendLabel,
+    string? Icon,
+    string? Description,
+    string? ActionId) : ComponentMetadataDto;
+
+/// <summary>Horizontal band of metric cards. The MetricCards travel as component children.</summary>
+public record ScoreboardMetadataDto : ComponentMetadataDto;
+
+/// <summary>Titled dashboard tile. The wrapped component travels as the component's single child.</summary>
+public record DashboardPanelMetadataDto(string? Title, string? Subtitle, int ColSpan, int RowSpan) : ComponentMetadataDto;
+
+/// <summary>Responsive dashboard grid. Tiles travel as component children (columns 0 = auto-fit).</summary>
+public record DashboardLayoutMetadataDto(int Columns) : ComponentMetadataDto;
+
+/// <summary>Redwood-style foldout layout. The overview travels as the child slotted "overview";
+/// each panel's content as the child slotted "panel-N" matching the panels list order.</summary>
+public record FoldoutLayoutMetadataDto(IReadOnlyList<FoldoutPanelInfoDto> Panels) : ComponentMetadataDto;
+
+/// <summary>Header info for one foldout panel; its content travels as a slotted component child.</summary>
+public record FoldoutPanelInfoDto(string? Title, string? Subtitle, string? Icon, bool Open);
+
+/// <summary>Page hero header. Slotted content travels as component children.</summary>
+public record HeroSectionMetadataDto(string? Title, string? Subtitle, string? Image, string? Height, bool Centered) : ComponentMetadataDto;
+
+/// <summary>Friendly empty-state placeholder with an optional call-to-action.</summary>
+public record EmptyStateMetadataDto(string? Icon, string? Title, string? Description, string? ActionId, string? ActionLabel) : ComponentMetadataDto;
+
+/// <summary>Shimmering loading placeholder. Variant: text|card|grid|form.</summary>
+public record SkeletonMetadataDto(string Variant, int Count) : ComponentMetadataDto;
+
+/// <summary>Gantt/timeline chart metadata.</summary>
+public record GanttMetadataDto(IReadOnlyList<GanttTaskDto> Tasks) : ComponentMetadataDto;
+
+/// <summary>One Gantt bar; start/end are ISO-8601 dates (yyyy-MM-dd).</summary>
+public record GanttTaskDto(string? Id, string? Title, string? Start, string? End, double Progress, string? Color);
 
 public record TabLayoutMetadataDto : ComponentMetadataDto;
 

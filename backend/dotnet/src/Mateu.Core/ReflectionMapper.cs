@@ -63,6 +63,22 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var actions = buttons.Select(b => new ActionDto(b.ActionId))
             .Concat(fabs.Select(f => new ActionDto(f.ActionId))).ToList();
 
+        // A component-tree view (an archetype like Dashboard/Foldout, or any IComponentTreeSupplier)
+        // renders its fluent tree as the page content; actionIds referenced by the tree (metric-card
+        // drill-ins, empty-state CTAs, welcome buttons) are advertised so the renderer routes them back.
+        List<ComponentDto> content;
+        if (instance is IComponentTreeSupplier supplier)
+        {
+            var tree = supplier.Component();
+            content = [ComponentMapper.Map(tree)];
+            actions.AddRange(ComponentMapper.CollectActionIds(tree)
+                .Where(a => actions.All(x => x.Id != a)).Select(a => new ActionDto(a)));
+        }
+        else
+        {
+            content = FormCards(type, instance);
+        }
+
         var compact = type.GetCustomAttribute<CompactAttribute>() != null;
         var pageMeta = new PageMetadataDto(
             title, title, OptT(type.GetCustomAttribute<SubtitleAttribute>()?.Value), [], buttons)
@@ -73,7 +89,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             Fabs = fabs,
         };
         var page = new ClientSideComponentDto(
-            pageMeta, null, FormCards(type, instance), compact ? "--mateu-compact:1" : null, null, null);
+            pageMeta, null, content, compact ? "--mateu-compact:1" : null, null, null);
 
         var (triggers, emits) = EventsOf(type);
         return new ServerSideComponentDto(
