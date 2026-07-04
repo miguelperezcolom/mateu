@@ -18,6 +18,8 @@ Every listing in Mateu renders in one of four layouts. The framework picks one a
 | **cards** | Image/rich content present, or many columns without a clear primary one | Product catalogues, media galleries |
 | **masterDetail** | Too many or too wide columns to summarise | Complex entities that need side-by-side browsing |
 
+A fifth layout, **tree**, is never auto-selected: force it with `GridLayout.tree` when your rows are hierarchical (each row exposes a self-referential `children` list) and you want an expandable tree grid.
+
 ---
 
 ## How auto-selection works
@@ -101,7 +103,7 @@ return Listing.builder()
     .build();
 ```
 
-Available values: `auto` (default), `table`, `list`, `cards`, `masterDetail`.
+Available values: `auto` (default), `table`, `list`, `cards`, `masterDetail`, `tree`.
 
 ### Via listingType (shorthand for cards)
 

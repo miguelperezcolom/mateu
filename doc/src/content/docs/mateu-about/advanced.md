@@ -25,4 +25,4 @@ Read this section after you understand:
 - [UI federation](/mateu-about/ui-federation)
 - [Embed](/mateu-about/embed)
 - [Mateu in microservices](/mateu-about/microservices)
-- [Routing and parameters](/java-user-manual/routing-and-parameters)
+- [Routing and parameters](/java-user-manual/concepts/routing-and-parameters/)

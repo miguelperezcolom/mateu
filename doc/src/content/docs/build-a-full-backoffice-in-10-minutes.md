@@ -372,9 +372,9 @@ With Mateu, it stays in one place.
 
 If you want the step-by-step version, continue with:
 
-- [Your first Mateu app with Spring Boot →](/java-user-manual/your-first-mateu-app)
-- [Build a real CRUD with relationships →](/java-user-manual/build-a-real-crud-with-relationships)
-- [Compose a shell with multiple services →](/java-user-manual/shell-and-federation-tutorial)
+- [Your first Mateu app with Spring Boot →](/java-user-manual/start-here/first-app/)
+- [Build a real CRUD with relationships →](/java-user-manual/build/orders-customers-order-lines/)
+- [Compose a shell with multiple services →](/java-user-manual/use-cases/distributed-backoffice/)
 
 ---
 

@@ -143,7 +143,7 @@ Use it when a field depends on remote or dynamic options.
 ### Key fields
 
 - `search()` → `LookupOptionsSupplier`
-- `label()` → `LabelSupplier`
+- `label()` → `LookupLabelSupplier`
 
 ---
 
@@ -161,7 +161,7 @@ Use it when picking the related entity requires a filterable grid, row actions, 
 ### Key fields
 
 - `selector()` → `Selector` implementation (usually a `Listing` subclass) opened in the modal
-- `label()` → `LabelSupplier` to display the stored id as text
+- `label()` → `LookupLabelSupplier` to display the stored id as text
 - `editableCode()` → allow the user to type the id directly
 - `showCode()` → show the raw id alongside the label
 
@@ -249,15 +249,17 @@ Defines dynamic browser-side behavior.
 ```java
 @Rule(
   filter = "name == null || name == ''",
-  action = RuleAction.Set,
+  action = RuleAction.SetAttributeValue,
   fieldName = "save",
   fieldAttribute = RuleFieldAttribute.disabled,
   value = "true",
   expression = "",
   actionId = "",
-  result = RuleResult.Value
+  result = RuleResult.Continue
 )
 ```
+
+`RuleAction` values: `SetAttributeValue`, `SetStateValue`, `SetDataValue`, `SetAppStateValue`, `SetAppDataValue`, `SetCssClass`, `SetStyle`, `RunAction`, `RunJS`. `RuleResult` is `Continue` or `Stop` (stop evaluating further rules once this one matches).
 
 Use it when the UI must change dynamically without a server round-trip.
 
@@ -288,7 +290,6 @@ Use it when an action should be triggered automatically.
 - `OnError`
 - `OnValueChange`
 - `OnCustomEvent`
-- `OnEnter`
 
 ---
 
@@ -556,6 +557,17 @@ The confirmation covers every way of leaving the form: in-app menu navigation, t
 
 These are also part of the public DSL and are worth knowing:
 
+- `@Label` — set the display label of a field or button (instead of deriving it from the name)
+- `@Help` — help/hint text on a class, field, or method
+- `@Validation` — declarative cross-field validation (`condition`, `fieldId`, `message`; repeatable)
+- `@Multiline` — let a `@PlainText` value wrap across multiple lines
+- `@UploadableImage` — image field with upload/replace/delete, stored as data URI or URL
+- `@RowAction` — per-row contextual actions in listings
+- `@MainFilter` / `@Filterable` — mark filter fields for CRUD listings
+- `@HomeRoute` — designate the default/home route
+- `@Fab` — floating action button (app level or page level)
+- `@KPI` — render a numeric field as a dashboard KPI card
+- `@WizardCompletionAction` — the method that completes a `Wizard` (shown on the penultimate step)
 - `@AutoSave`
 - `@Icon`
 - `@PageTitle`

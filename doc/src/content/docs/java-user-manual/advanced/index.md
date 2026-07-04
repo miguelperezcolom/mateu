@@ -12,7 +12,7 @@ The topics here build on the core Mateu model. Read them when you encounter a sp
 - [Custom web components](/java-user-manual/advanced/custom-web-components/) — embed any standard web component using `Element.builder()`
 - [Extensibility](/java-user-manual/advanced/extensibility/) — override framework internals, add micro-frontends, or plug in an alternative renderer
 - [Security](/java-user-manual/advanced/security/) — authenticate with Keycloak and restrict access with `@EyesOnly`
-- [Internacionalización (i18n)](/java-user-manual/advanced/i18n/) — translate labels, titles and messages via the `Translator` interface
+- [Internationalization (i18n)](/java-user-manual/advanced/i18n/) — translate labels, titles and messages via the `Translator` interface
 - [Accessibility (WCAG)](/java-user-manual/advanced/accessibility/) — how WCAG compliance is inherited from the design system and where developer responsibility begins
 - [Printing](/java-user-manual/advanced/printing/) — control print output with browser `@media print` CSS and a programmatic print action
 - [Audit / Change History](/java-user-manual/advanced/audit/) — add a history button to any page by implementing `Auditable`

@@ -67,10 +67,10 @@ Use it when triggers should not be static.
 
 ## `AppSupplier`
 
-Specialized extension point for classes that return a fluent `App`.
+Specialized extension point for classes that return a fluent `AppShell`.
 
 ```java
-App getApp(HttpRequest httpRequest);
+AppShell getApp(HttpRequest httpRequest);
 ```
 
 Use it when the whole application shell is produced fluently.
@@ -147,10 +147,12 @@ Extension point for `@Searchable` fields. Implement this (typically alongside `L
 ```java
 public interface Selector<IdType> {
     SelectedItem<IdType> selected(HttpRequest httpRequest);
+    String fieldId();
+    Selector withFieldId(String name);
 }
 ```
 
-`selected()` must return a `SelectedItem` record containing the `id` and a `label`. The framework closes the modal and updates the annotated field with the returned id.
+`selected()` must return a `SelectedItem` record containing the `id` and a `label`. The framework closes the modal and updates the annotated field with the returned id. `fieldId()` identifies the form field the selector is bound to; `withFieldId(name)` returns a copy of the selector bound to the given field id.
 
 Combine with `LookupLabelSupplier` on the same class so the same bean handles both selection and label resolution.
 

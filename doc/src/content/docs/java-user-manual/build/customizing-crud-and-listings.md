@@ -191,6 +191,40 @@ Used in:
 
 ---
 
+## Button labels
+
+Every built-in CRUD button label can be replaced by overriding the matching method on your `AutoCrud` (or any `Crud`) subclass:
+
+| Method | Default label |
+|---|---|
+| `newLabel()` | `New` |
+| `saveLabel()` | `Save` |
+| `cancelLabel()` | `Cancel` |
+| `deleteLabel()` | `Delete` |
+| `editLabel()` | `Edit` |
+| `addAnotherLabel()` | `Add another` |
+| `backToListLabel()` | `Back to list` |
+| `importLabel()` | `Import` |
+| `historyLabel()` | `History` |
+
+```java
+@UI("/products")
+public class Products extends AutoCrud<Product> {
+
+    @Override
+    public String newLabel() { return "Add product"; }
+
+    @Override
+    public String deleteLabel() { return "Remove"; }
+
+    // repository() as usual …
+}
+```
+
+This is the simplest way to localise or rephrase the CRUD chrome without touching the generated screens.
+
+---
+
 # 6. Customize forms
 
 ## Layout
@@ -209,12 +243,14 @@ public record Product(
 ## Grouping fields
 
 ```java
-@FormSection("General")
+@Section("General")
 String name;
 
-@FormSection("Pricing")
+@Section("Pricing")
 BigDecimal price;
 ```
+
+Consecutive fields sharing the same `@Section` name are grouped into one titled card.
 
 ---
 

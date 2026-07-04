@@ -34,7 +34,7 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
 | `search(searchText, filters, pageable, httpRequest)` | **Required.** Return a page of rows matching the search criteria |
 | `selectionEnabled()` | Return `true` to enable row checkbox selection |
 | `filtersClass()` | Returns the `Filters` class; auto-inferred via generics, rarely overridden |
-| `gridLayout()` | Force a specific grid layout. Defaults to `GridLayout.auto` (auto-selection based on column weights). Override to pin a layout: `GridLayout.table`, `.list`, `.cards`, or `.masterDetail` |
+| `gridLayout()` | Force a specific grid layout. Defaults to `GridLayout.auto` (auto-selection based on column weights). Override to pin a layout: `GridLayout.table`, `.list`, `.cards`, `.masterDetail`, or `.tree` (hierarchical rows with a self-referential `children` list) |
 
 ### Overriding `gridLayout()`
 

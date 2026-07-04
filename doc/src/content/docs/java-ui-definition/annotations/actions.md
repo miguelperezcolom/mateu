@@ -189,13 +189,13 @@ Row actions are displayed inside each row (for example as a dropdown or icon but
 
 ## @ListToolbarButton
 
-Marks a method as a toolbar button in a listing view. The method receives the list of currently selected rows. Both `confirmationRequired` and `rowsSelectedRequired` default to `true`, making this annotation safe by default.
+Marks a method as a toolbar button in a listing view. The method receives the list of currently selected rows. `rowsSelectedRequired` defaults to `true`, so the button stays disabled until the user selects at least one row; set `confirmationRequired = true` to ask for confirmation before destructive operations.
 
 ```java
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ListToolbarButton {
-    boolean confirmationRequired() default true;
+    boolean confirmationRequired() default false;
     boolean rowsSelectedRequired() default true;
 }
 ```
@@ -204,7 +204,7 @@ public @interface ListToolbarButton {
 
 | Attribute | Type | Default | Description |
 |---|---|---|---|
-| `confirmationRequired` | `boolean` | `true` | Show a confirmation dialog before executing. |
+| `confirmationRequired` | `boolean` | `false` | Show a confirmation dialog before executing. |
 | `rowsSelectedRequired` | `boolean` | `true` | Disable the button until at least one row is selected. |
 
 ### Example

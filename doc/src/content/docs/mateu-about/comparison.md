@@ -72,6 +72,5 @@ Mateu gives you speed and simplicity at the cost of frontend flexibility. For th
 
 ## Related
 
-- [Philosophy](
-- - [Why Mateu](/mateu-about/why-mateu) — the problem and what you gain
+- [Why Mateu](/mateu-about/why-mateu) — the problem and what you gain
 - [Use cases](/use-cases) — types of applications where Mateu fits

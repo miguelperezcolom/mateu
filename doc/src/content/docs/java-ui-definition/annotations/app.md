@@ -66,8 +66,12 @@ public @interface App {
 | `MENU_ON_LEFT` | Persistent navigation panel on the left side |
 | `MENU_ON_TOP` | Navigation bar along the top |
 | `TABS` | Tab-based navigation |
-| `AUTO` | Framework chooses the best variant automatically based on menu width |
+| `TILES` | Flat top-level nav; items with children open a tiles hub in the content area |
+| `RAIL` | Compact icon rail on the left side |
+| `AUTO` | Framework picks the variant from the menu shape (see below) |
 | `MEDIATOR` | Used for nested sub-applications acting as a mediator |
+
+With `AUTO` (the default), the variant is inferred from the menu: if any top-level item has grandchildren (menu depth > 2) → `TILES`; more than 7 top-level items → `HAMBURGUER_MENU`; otherwise `MENU_ON_TOP`. An app with no submenus at all renders as `TABS`. See [Navigation & Menus](/ux-patterns/navigation/) for the full behaviour of each variant.
 
 **`AppLayout` values:**
 
