@@ -28,6 +28,7 @@ Mateu generates all of that from the model. Validate with Bean Validation
 | a dashboard landing page | `extends Dashboard` + `MetricCard` fields + `@Panel` | [dashboard.md](reference/dashboard.md) |
 | a record page with fold-out panels | `extends Foldout` + overview field + `@Panel` | [foldout.md](reference/foldout.md) |
 | a search-first landing page | `extends HeroSearch<Filters, Row>` | [hero-search.md](reference/hero-search.md) |
+| a detail page with pinned key info + tabs | `extends ItemOverview` + key-info field + `@Panel` | [item-overview.md](reference/item-overview.md) |
 | read ⇄ edit on one entity | `extends AutoEditableView<T>` | [editor.md](reference/editor.md) |
 | a custom / dynamic layout | `implements ComponentTreeSupplier` | [fluent.md](reference/fluent.md) |
 | an app menu / shell / federation | `@UI("")` + `@Menu` / `RemoteMenu` | [federation.md](reference/federation.md) |

@@ -754,6 +754,30 @@ public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
 
 ---
 
+## Item overview page
+
+Extend `ItemOverview` to keep the item's key information pinned in a sticky left panel while the rest of the page is organised in tabs:
+
+```java
+@UI("/product/:id")
+@Title("Ergonomic chair EC-200")
+public class ProductOverview extends ItemOverview {
+
+    // First component field without @Panel → key-info panel (left, sticky while scrolling)
+    Markdown keyInfo = new Markdown("### EC-200\n**SKU:** EC-200-BLK · **Price:** 349 €", null, null);
+
+    // @Panel fields → tabs on the right (label defaults to the field label)
+    @Panel(title = "Sales")          Chart sales = Chart.builder()/* … */.build();
+    @Panel(title = "Specifications") Markdown specs = new Markdown("…", null, null);
+    @Panel(title = "Reviews")        Markdown reviews = new Markdown("…", null, null);
+}
+```
+
+- Override `panelWidth()` (default `"22rem"`) to size the key-info panel.
+- Pick by need: read-mostly detail → `ItemOverview`; editable → `AutoEditableView`; categories visible simultaneously → `Foldout`; long single flow with index → `@Toc` + sticky sections.
+
+---
+
 ## Navigation & menus
 
 ```java

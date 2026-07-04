@@ -292,6 +292,25 @@ Starts empty; add `@Trigger(type=TriggerType.OnLoad, actionId="search")` to prel
 
 ---
 
+## Item overview page
+
+```java
+@UI("/product/:id")
+public class ProductOverview extends ItemOverview {
+    // first component field without @Panel → key-info panel (left, sticky)
+    Markdown keyInfo = new Markdown("### EC-200\n**SKU:** EC-200-BLK", null, null);
+
+    // @Panel fields → tabs on the right
+    @Panel(title = "Sales")   Chart sales = Chart.builder()/* … */.build();
+    @Panel(title = "Reviews") Markdown reviews = new Markdown("…", null, null);
+}
+```
+
+Override `panelWidth()` (default "22rem"). Read-mostly → ItemOverview; editable →
+AutoEditableView; categories side-by-side → Foldout.
+
+---
+
 ## Navigation & menus
 
 ```java
