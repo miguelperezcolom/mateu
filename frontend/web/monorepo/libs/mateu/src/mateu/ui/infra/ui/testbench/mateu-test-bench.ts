@@ -23,8 +23,12 @@ export class MateuTestBench extends LitElement {
 
 
     loadTableData = () => {
-        const fragment = {
+        const fragment: UIFragment = {
             targetComponentId: 'table1',
+            component: undefined,
+            state: undefined,
+            action: undefined,
+            containerId: undefined,
             data: {
                 page: {
                     items: [
@@ -36,11 +40,13 @@ export class MateuTestBench extends LitElement {
                     ]
                 }
             }
-        } as UIFragment
+        }
         upstream.next({
+            command: undefined,
             fragment,
             ui:undefined,
-            error: undefined
+            error: undefined,
+            callbackToken: ''
         })
     }
 
@@ -49,22 +55,30 @@ export class MateuTestBench extends LitElement {
         const data = mockedSimpleTableCrudMessage1
         data.fragments?.forEach(fragment => {
             upstream.next({
+                command: undefined,
                 fragment,
                 ui:undefined,
-                error: undefined
+                error: undefined,
+                callbackToken: ''
             })
         })
     }
 
     loadComponent = (component: Component) => {
-        const fragment = {
+        const fragment: UIFragment = {
             targetComponentId: '_ux',
-            component
-        } as UIFragment
+            component,
+            data: undefined,
+            state: undefined,
+            action: undefined,
+            containerId: undefined
+        }
         upstream.next({
+            command: undefined,
             fragment: fragment,
             ui:undefined,
-            error: undefined
+            error: undefined,
+            callbackToken: ''
         })
     }
 

@@ -1,4 +1,5 @@
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { interpolate } from "@infra/ui/interpolation.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Avatar from "@mateu/shared/apiClients/dtos/componentmetadata/Avatar";
 import {html, nothing} from "lit";
@@ -15,17 +16,12 @@ export const renderAvatar = (component: ClientSideComponent, state: ComponentSta
     ></vaadin-avatar>`
 }
 
-export const evalIfNecessary = (value: string, _state: ComponentState, _data: ComponentData) => {
-    if (value && value.includes && value.includes('${')) {
-        const state = _state
-        const data = _data
-        void state; void data;  // captured by eval template literal
-        try {
-            return eval('`' + value + '`')
-        } catch (e) {
-            console.error('Error evaluating template string:', e, value, state, data)
-            return value
-        }
+// value is declared as string but callers also pass booleans/numbers/objects,
+// which pass through untouched — hence the historical `any` return type.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const evalIfNecessary = (value: string, state: ComponentState, data: ComponentData): any => {
+    if (typeof value === 'string' && value.includes('${')) {
+        return interpolate(value, state, data)
     }
     return value
 }

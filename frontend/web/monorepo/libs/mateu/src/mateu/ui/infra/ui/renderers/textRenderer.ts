@@ -5,29 +5,11 @@ import { html, nothing } from "lit";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {ifDefined} from "lit/directives/if-defined.js";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { interpolateNested } from "@infra/ui/interpolation.ts";
 export const renderText = (component: ClientSideComponent, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as Text
-    let content = metadata.text
     const colspan = metadata.attributes?.['data-colspan']
-
-    if (content) {
-        try {
-            content = eval('`' + metadata.text + '`')
-            if (content.includes('${')) {
-                try {
-                    content = eval('`' + content + '`')
-                } catch (e) {
-                    content = 'when evaluating nested ' + metadata.text + ' :' +  e + ', where data is ' + data
-                        + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
-                    console.error(e, content, state, data, appState, appData)
-                }
-            }
-        } catch (e) {
-            content = 'when evaluating ' + metadata.text + ' :' +  e + ', where data is ' + data
-                + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
-            console.error(e, content, state, data, appState, appData)
-        }
-    }
+    const content = interpolateNested(metadata.text, state, data, appState, appData)
     if (TextContainer.h1 == metadata.container) {
         return html`
             <h1 style="${component.style}" class="${component.cssClasses}"

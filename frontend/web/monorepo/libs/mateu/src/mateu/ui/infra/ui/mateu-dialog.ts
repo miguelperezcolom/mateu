@@ -20,6 +20,7 @@ import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
 import ComponentElement from "@infra/ui/ComponentElement.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
+import { interpolateNested } from "@infra/ui/interpolation.ts";
 
 
 @customElement('mateu-dialog')
@@ -63,34 +64,8 @@ export class MateuDialog extends ComponentElement {
                 this.dialogOpened = event.detail.value;
             }}"
  */
-        const data = this.data
-        const state = this.state
-        const appState = this.appState
-        const appData = this.appData
-        void state
-        void data
-        void appState
-        void appData
-
-        let content = metadata.headerTitle
-        if (content) {
-            try {
-                content = eval('`' + metadata.headerTitle + '`')
-                if (content.includes('${')) {
-                    try {
-                        content = eval('`' + content + '`')
-                    } catch (e) {
-                        content = 'when evaluating nested ' + metadata.headerTitle + ' :' +  e + ', where data is ' + data
-                            + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
-                        console.error(e, content, state, data, appState, appData)
-                    }
-                }
-            } catch (e) {
-                content = 'when evaluating ' + metadata.headerTitle + ' :' +  e + ', where data is ' + data
-                    + ' and state is ' + state + ' and app state is ' + appState + ' and app data is ' + appData
-                console.error(e, content, state, data, appState, appData)
-            }
-        }
+        const content = interpolateNested(
+            metadata.headerTitle, this.state, this.data, this.appState, this.appData)
 
         return html`
         <vaadin-dialog

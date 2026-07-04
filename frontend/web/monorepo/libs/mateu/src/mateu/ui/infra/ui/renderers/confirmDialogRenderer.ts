@@ -3,12 +3,13 @@ import ConfirmDialog from "@mateu/shared/apiClients/dtos/componentmetadata/Confi
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { interpolateAndEvaluate } from "@infra/ui/interpolation.ts";
 export const renderConfirmDialog = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as ConfirmDialog
     let opened = false;
     if (metadata.openedCondition) {
         try {
-            opened = eval(eval('`' + metadata.openedCondition + '`'))
+            opened = interpolateAndEvaluate(metadata.openedCondition, state, data, appState, appData) as boolean
             //console.log(metadata.openedCondition + ' evaluates to', opened, typeof opened)
         } catch (e) {
             console.error('when evaluating ' + metadata.openedCondition + ' :' +  e + ', where data is ' + data
