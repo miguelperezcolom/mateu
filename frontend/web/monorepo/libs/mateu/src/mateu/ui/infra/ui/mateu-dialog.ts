@@ -13,7 +13,6 @@ import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import "@vaadin/card"
 import {customElement, state} from 'lit/decorators.js';
-import 'chartjs-adapter-date-fns';
 import Dialog from "@mateu/shared/apiClients/dtos/componentmetadata/Dialog";
 import {dialogFooterRenderer, dialogHeaderRenderer, dialogRenderer} from "@vaadin/dialog/lit";
 import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";

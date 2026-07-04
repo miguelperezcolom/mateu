@@ -13,7 +13,6 @@ import "@vaadin/menu-bar"
 import "@vaadin/grid"
 import "@vaadin/card"
 import { customElement, property, query, state } from 'lit/decorators.js';
-import 'chartjs-adapter-date-fns';
 import 'cookieconsent/build/cookieconsent.min.js';
 
 
