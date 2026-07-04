@@ -1,0 +1,28 @@
+{
+  "description": "Renderer-conformance fixtures. Each entry is a route served by the SUT (e2e/sut/apps/mvc-app1, @UI classes from e2e/sut/modules/sample1 plus the app-level CRUD/wizard classes). `types` lists the ComponentMetadataType values the screen is expected to exercise (informative, used to build the parity matrix; the observed <mateu-unsupported> placeholders are the ground truth).",
+  "fixtures": [
+    { "route": "/",                  "name": "simple-form",       "types": ["Page", "Form", "FormField"] },
+    { "route": "/field-types",       "name": "field-types",       "types": ["Page", "Form", "FormField"] },
+    { "route": "/stereotypes",       "name": "stereotypes",       "types": ["Page", "Form", "FormField", "Button"] },
+    { "route": "/validation",        "name": "validation",        "types": ["Page", "Form", "FormField", "Button"] },
+    { "route": "/sections",          "name": "sections",          "types": ["Page", "Form", "Card", "FormField"] },
+    { "route": "/tabs",              "name": "tabs",              "types": ["Page", "Form", "TabLayout", "FormField"] },
+    { "route": "/accordion",         "name": "accordion",         "types": ["Page", "Form", "AccordionLayout", "FormField"] },
+    { "route": "/zones",             "name": "zones",             "types": ["Page", "Form", "Card", "HorizontalLayout", "VerticalLayout"] },
+    { "route": "/multi-column",      "name": "multi-column",      "types": ["Page", "Form", "FormLayout", "FormField"] },
+    { "route": "/mixed",             "name": "mixed-chart",       "types": ["Page", "Chart", "HorizontalLayout", "Text"] },
+    { "route": "/kpi",               "name": "kpi",               "types": ["Page", "Text"] },
+    { "route": "/badge-demo",        "name": "badges",            "types": ["Page", "Form", "Badge"] },
+    { "route": "/banners",           "name": "banners",           "types": ["Page", "Form"] },
+    { "route": "/plain-text",        "name": "plain-text",        "types": ["Page", "Form", "FormField"] },
+    { "route": "/uploadable-image",  "name": "uploadable-image",  "types": ["Page", "Form", "FormField"] },
+    { "route": "/action-features",   "name": "action-features",   "types": ["Page", "Form", "Button"] },
+    { "route": "/wizard",            "name": "wizard",            "types": ["Page", "Form", "ProgressBar", "Button"] },
+    { "route": "/full-crud",         "name": "full-crud",         "types": ["Page", "Crud"] },
+    { "route": "/catalog-read-only", "name": "crud-read-only",    "types": ["Page", "Crud"] },
+    { "route": "/catalog-filterable","name": "crud-filterable",   "types": ["Page", "Crud"] },
+    { "route": "/master-detail",     "name": "master-detail",     "types": ["Page", "Crud"] },
+    { "route": "/inline-host",       "name": "inline-host",       "types": ["Page", "Form", "Card", "FormField", "Button"] },
+    { "route": "/adapter-demo",      "name": "adapter",           "types": ["Page", "Form", "FormField", "Button"] }
+  ]
+}

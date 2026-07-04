@@ -6,6 +6,12 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 
 export class VaadinComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
 
+    // Reference renderer: supportedClientSideTypes() stays undefined = supports the full shared
+    // switch, so no <mateu-unsupported> placeholder is ever shown here.
+    rendererName(): string {
+        return 'vaadin'
+    }
+
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }

@@ -1,0 +1,767 @@
+{
+  "renderer": "sapui5",
+  "baseUrl": "http://localhost:5199",
+  "date": "2026-07-04T17:53:53.358Z",
+  "rendererInfo": {
+    "name": "sapui5",
+    "supportedTypes": [
+      "AccordionLayout",
+      "Anchor",
+      "App",
+      "Avatar",
+      "AvatarGroup",
+      "Badge",
+      "BoardLayout",
+      "BoardLayoutItem",
+      "BoardLayoutRow",
+      "Breadcrumbs",
+      "Button",
+      "Card",
+      "CarouselLayout",
+      "ConfirmDialog",
+      "Container",
+      "Crud",
+      "Details",
+      "Dialog",
+      "Div",
+      "Element",
+      "Form",
+      "FormField",
+      "FormLayout",
+      "FormRow",
+      "FormSection",
+      "FormSubSection",
+      "FullWidth",
+      "HorizontalLayout",
+      "Icon",
+      "Image",
+      "MenuBar",
+      "MicroFrontend",
+      "Notification",
+      "Page",
+      "Popover",
+      "ProgressBar",
+      "Scroller",
+      "SplitLayout",
+      "TabLayout",
+      "Text",
+      "Tooltip",
+      "VerticalLayout"
+    ]
+  },
+  "matrix": [
+    {
+      "type": "AccordionLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Badge",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Button",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Card",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Chart",
+      "declaredSupported": false,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Crud",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Form",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "FormField",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "FormLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "HorizontalLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Page",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "ProgressBar",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "TabLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Text",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "VerticalLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    }
+  ],
+  "results": [
+    {
+      "route": "/",
+      "name": "simple-form",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 18325,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/simple-form.png"
+    },
+    {
+      "route": "/field-types",
+      "name": "field-types",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 19040,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/field-types.png"
+    },
+    {
+      "route": "/stereotypes",
+      "name": "stereotypes",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField",
+        "Button"
+      ],
+      "unsupported": [],
+      "textLength": 18965,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/stereotypes.png"
+    },
+    {
+      "route": "/validation",
+      "name": "validation",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField",
+        "Button"
+      ],
+      "unsupported": [],
+      "textLength": 18730,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/validation.png"
+    },
+    {
+      "route": "/sections",
+      "name": "sections",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "Card",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 18777,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/sections.png"
+    },
+    {
+      "route": "/tabs",
+      "name": "tabs",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "TabLayout",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 19040,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/tabs.png"
+    },
+    {
+      "route": "/accordion",
+      "name": "accordion",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "AccordionLayout",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 18791,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/accordion.png"
+    },
+    {
+      "route": "/zones",
+      "name": "zones",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "Card",
+        "HorizontalLayout",
+        "VerticalLayout"
+      ],
+      "unsupported": [],
+      "textLength": 18857,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/zones.png"
+    },
+    {
+      "route": "/multi-column",
+      "name": "multi-column",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormLayout",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 18588,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/multi-column.png"
+    },
+    {
+      "route": "/mixed",
+      "name": "mixed-chart",
+      "declaredTypes": [
+        "Page",
+        "Chart",
+        "HorizontalLayout",
+        "Text"
+      ],
+      "unsupported": [
+        {
+          "type": "CustomField",
+          "renderer": "sapui5"
+        }
+      ],
+      "textLength": 19054,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/mixed-chart.png"
+    },
+    {
+      "route": "/kpi",
+      "name": "kpi",
+      "declaredTypes": [
+        "Page",
+        "Text"
+      ],
+      "unsupported": [],
+      "textLength": 21154,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/kpi.png"
+    },
+    {
+      "route": "/badge-demo",
+      "name": "badges",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "Badge"
+      ],
+      "unsupported": [],
+      "textLength": 19590,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/badges.png"
+    },
+    {
+      "route": "/banners",
+      "name": "banners",
+      "declaredTypes": [
+        "Page",
+        "Form"
+      ],
+      "unsupported": [],
+      "textLength": 19127,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/banners.png"
+    },
+    {
+      "route": "/plain-text",
+      "name": "plain-text",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 18469,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/plain-text.png"
+    },
+    {
+      "route": "/uploadable-image",
+      "name": "uploadable-image",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 619,
+      "status": "rendered",
+      "consoleErrors": [
+        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+      ],
+      "screenshot": "screenshots/uploadable-image.png"
+    },
+    {
+      "route": "/action-features",
+      "name": "action-features",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "Button"
+      ],
+      "unsupported": [],
+      "textLength": 26012,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/action-features.png"
+    },
+    {
+      "route": "/wizard",
+      "name": "wizard",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "ProgressBar",
+        "Button"
+      ],
+      "unsupported": [],
+      "textLength": 13767,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/wizard.png"
+    },
+    {
+      "route": "/full-crud",
+      "name": "full-crud",
+      "declaredTypes": [
+        "Page",
+        "Crud"
+      ],
+      "unsupported": [],
+      "textLength": 57557,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/full-crud.png"
+    },
+    {
+      "route": "/catalog-read-only",
+      "name": "crud-read-only",
+      "declaredTypes": [
+        "Page",
+        "Crud"
+      ],
+      "unsupported": [],
+      "textLength": 39144,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/crud-read-only.png"
+    },
+    {
+      "route": "/catalog-filterable",
+      "name": "crud-filterable",
+      "declaredTypes": [
+        "Page",
+        "Crud"
+      ],
+      "unsupported": [],
+      "textLength": 56783,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/crud-filterable.png"
+    },
+    {
+      "route": "/master-detail",
+      "name": "master-detail",
+      "declaredTypes": [
+        "Page",
+        "Crud"
+      ],
+      "unsupported": [
+        {
+          "type": "CustomField",
+          "renderer": "sapui5"
+        },
+        {
+          "type": "CustomField",
+          "renderer": "sapui5"
+        }
+      ],
+      "textLength": 48760,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/master-detail.png"
+    },
+    {
+      "route": "/inline-host",
+      "name": "inline-host",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "Card",
+        "FormField",
+        "Button"
+      ],
+      "unsupported": [
+        {
+          "type": "CustomField",
+          "renderer": "sapui5"
+        }
+      ],
+      "textLength": 19314,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/inline-host.png"
+    },
+    {
+      "route": "/adapter-demo",
+      "name": "adapter",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField",
+        "Button"
+      ],
+      "unsupported": [],
+      "textLength": 25911,
+      "status": "rendered",
+      "consoleErrors": [
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
+      ],
+      "screenshot": "screenshots/adapter.png"
+    }
+  ]
+}

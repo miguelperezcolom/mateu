@@ -9,6 +9,8 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { MateuTableCrud } from "../mateu-table-crud.ts";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import { isUnsupportedType, renderUnsupported } from "@infra/ui/renderers/unsupportedRenderer.ts";
 
 export abstract class BasicComponentRenderer implements ComponentRenderer {
 
@@ -70,7 +72,33 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
         ></mateu-table>
         `
     }
+    /** Short renderer name for diagnostics/conformance. Subclasses should override. */
+    rendererName(): string {
+        return this.constructor?.name ?? 'unknown'
+    }
+
+    /**
+     * Types this renderer declares it supports. Default `undefined` = full shared switch (the
+     * Vaadin reference renderer, and any renderer that has not opted in yet — no behavior change).
+     * Non-vaadin renderers should override and return their declared set: any other type falling
+     * through their own switch to this shared fallback renders a visible <mateu-unsupported>
+     * placeholder instead of broken Vaadin-flavoured components.
+     */
+    supportedClientSideTypes(): ReadonlySet<ComponentMetadataType> | undefined {
+        return undefined
+    }
+
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult {
+        // Some callers pass a raw metadata object instead of a ClientSideComponent (the shared
+        // switch wraps and retries), so read the type from either shape before deciding. Only a
+        // value that is really a ComponentMetadataType counts (a metadata-less ClientSideComponent
+        // carries a ComponentType there instead — let the shared switch handle that case).
+        const rawType = component?.metadata?.type ?? (component as unknown as { type?: string })?.type
+        const type = (Object.values(ComponentMetadataType) as string[]).includes(rawType as string)
+            ? rawType as ComponentMetadataType : undefined
+        if (isUnsupportedType(this.supportedClientSideTypes(), type)) {
+            return renderUnsupported(component, type!, this.rendererName())
+        }
         return _renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 

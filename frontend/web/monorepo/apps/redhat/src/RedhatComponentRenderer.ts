@@ -22,7 +22,51 @@ import './components/mateu-redhat-accordion.ts'
  * setUseShadowRoot(false)) so the global stylesheet reaches it. Anything not overridden falls back
  * to the shared BasicComponentRenderer.
  */
+/**
+ * Types this renderer supports: everything handled by its own switch below, plus types it
+ * deliberately delegates to the shared infra (Page → mateu-page framing; Crud → mateu-table-crud,
+ * which calls back into this renderer's table/filter-bar/pagination; Element/Div/Image/
+ * MicroFrontend are design-system-agnostic). Anything else renders a visible <mateu-unsupported>
+ * placeholder instead of silently falling back to Vaadin-flavoured components (parity phase 0).
+ */
+const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
+    // own switch
+    ComponentMetadataType.App,
+    ComponentMetadataType.Form,
+    ComponentMetadataType.FormField,
+    ComponentMetadataType.FormLayout,
+    ComponentMetadataType.FormSection,
+    ComponentMetadataType.FormSubSection,
+    ComponentMetadataType.Card,
+    ComponentMetadataType.Button,
+    ComponentMetadataType.Text,
+    ComponentMetadataType.HorizontalLayout,
+    ComponentMetadataType.VerticalLayout,
+    ComponentMetadataType.SplitLayout,
+    ComponentMetadataType.Badge,
+    ComponentMetadataType.Anchor,
+    ComponentMetadataType.Dialog,
+    ComponentMetadataType.ConfirmDialog,
+    ComponentMetadataType.TabLayout,
+    ComponentMetadataType.AccordionLayout,
+    // deliberate delegation to shared, design-system-agnostic infra
+    ComponentMetadataType.Page,
+    ComponentMetadataType.Crud,
+    ComponentMetadataType.Element,
+    ComponentMetadataType.Div,
+    ComponentMetadataType.Image,
+    ComponentMetadataType.MicroFrontend,
+])
+
 export class RedhatComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
+
+    rendererName(): string {
+        return 'redhat'
+    }
+
+    supportedClientSideTypes(): ReadonlySet<ComponentMetadataType> {
+        return SUPPORTED_TYPES
+    }
 
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, labelAlreadyRendered: boolean | undefined): TemplateResult {
         const t = component?.metadata?.type

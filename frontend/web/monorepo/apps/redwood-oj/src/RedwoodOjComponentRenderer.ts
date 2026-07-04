@@ -46,7 +46,53 @@ export const handleButtonClick = (event: Event) => {
     }))
 }
 
+/**
+ * Types this renderer supports: everything handled by its own switch below (App is handled via
+ * renderAppComponent, reached through the shared mateu-app infra), plus types it deliberately
+ * delegates to the shared infra (Crud → mateu-table-crud, which calls back into this renderer's
+ * table/filter-bar/pagination; Element/Div/Image/MicroFrontend are design-system-agnostic).
+ * Anything else renders a visible <mateu-unsupported> placeholder instead of silently falling
+ * back to Vaadin-flavoured components (parity phase 0).
+ */
+const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
+    // own switch (+ App via renderAppComponent)
+    ComponentMetadataType.App,
+    ComponentMetadataType.Page,
+    ComponentMetadataType.Form,
+    ComponentMetadataType.Button,
+    ComponentMetadataType.FormField,
+    ComponentMetadataType.FormLayout,
+    ComponentMetadataType.FormRow,
+    ComponentMetadataType.FormSection,
+    ComponentMetadataType.FormSubSection,
+    ComponentMetadataType.HorizontalLayout,
+    ComponentMetadataType.VerticalLayout,
+    ComponentMetadataType.SplitLayout,
+    ComponentMetadataType.Card,
+    ComponentMetadataType.Text,
+    ComponentMetadataType.Badge,
+    ComponentMetadataType.Anchor,
+    ComponentMetadataType.TabLayout,
+    ComponentMetadataType.AccordionLayout,
+    ComponentMetadataType.Dialog,
+    ComponentMetadataType.ConfirmDialog,
+    // deliberate delegation to shared, design-system-agnostic infra
+    ComponentMetadataType.Crud,
+    ComponentMetadataType.Element,
+    ComponentMetadataType.Div,
+    ComponentMetadataType.Image,
+    ComponentMetadataType.MicroFrontend,
+])
+
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
+
+    rendererName(): string {
+        return 'redwood-oj'
+    }
+
+    supportedClientSideTypes(): ReadonlySet<ComponentMetadataType> {
+        return SUPPORTED_TYPES
+    }
 
     renderFilterBar(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult {
         const metadata = component?.metadata as Crud

@@ -79,7 +79,69 @@ export const handleButtonClick = (event: Event) => {
     }))
 }
 
+/**
+ * Types this renderer supports: everything handled by its own switch below, plus types it
+ * deliberately delegates to the shared infra (Crud → mateu-table-crud, which calls back into
+ * this renderer's table/filter-bar/pagination; Element/Div/Image/MicroFrontend are
+ * design-system-agnostic). Anything else renders a visible <mateu-unsupported> placeholder
+ * instead of silently falling back to Vaadin-flavoured components (parity phase 0).
+ */
+const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
+    // own switch
+    ComponentMetadataType.App,
+    ComponentMetadataType.Page,
+    ComponentMetadataType.Form,
+    ComponentMetadataType.Button,
+    ComponentMetadataType.FormField,
+    ComponentMetadataType.HorizontalLayout,
+    ComponentMetadataType.VerticalLayout,
+    ComponentMetadataType.FormLayout,
+    ComponentMetadataType.FormRow,
+    ComponentMetadataType.FormSection,
+    ComponentMetadataType.FormSubSection,
+    ComponentMetadataType.Card,
+    ComponentMetadataType.TabLayout,
+    ComponentMetadataType.AccordionLayout,
+    ComponentMetadataType.SplitLayout,
+    ComponentMetadataType.Scroller,
+    ComponentMetadataType.FullWidth,
+    ComponentMetadataType.Container,
+    ComponentMetadataType.BoardLayout,
+    ComponentMetadataType.BoardLayoutRow,
+    ComponentMetadataType.BoardLayoutItem,
+    ComponentMetadataType.Text,
+    ComponentMetadataType.Badge,
+    ComponentMetadataType.Icon,
+    ComponentMetadataType.Breadcrumbs,
+    ComponentMetadataType.Notification,
+    ComponentMetadataType.ProgressBar,
+    ComponentMetadataType.Details,
+    ComponentMetadataType.Image,
+    ComponentMetadataType.Anchor,
+    ComponentMetadataType.Dialog,
+    ComponentMetadataType.ConfirmDialog,
+    ComponentMetadataType.Avatar,
+    ComponentMetadataType.AvatarGroup,
+    ComponentMetadataType.Tooltip,
+    ComponentMetadataType.CarouselLayout,
+    ComponentMetadataType.Popover,
+    ComponentMetadataType.MenuBar,
+    // deliberate delegation to shared, design-system-agnostic infra
+    ComponentMetadataType.Crud,
+    ComponentMetadataType.Element,
+    ComponentMetadataType.Div,
+    ComponentMetadataType.MicroFrontend,
+])
+
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
+
+    rendererName(): string {
+        return 'sapui5'
+    }
+
+    supportedClientSideTypes(): ReadonlySet<ComponentMetadataType> {
+        return SUPPORTED_TYPES
+    }
 
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult {
 
