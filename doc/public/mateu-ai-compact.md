@@ -225,6 +225,9 @@ class PlanStep    implements WizardStep { String planId; }
 class SuccessStep implements WizardStep { @PlainText String msg = "Account created!"; }
 ```
 
+Branching: override `stepApplies(String stepFieldName)` to skip steps based on earlier
+answers (skipped in both directions, excluded from the progress bar).
+
 ---
 
 ## Dashboard

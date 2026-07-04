@@ -645,6 +645,20 @@ class ResultStep implements WizardStep {
 }
 ```
 
+### Branching (conditional steps)
+
+Override `stepApplies(String stepFieldName)` to skip steps based on the answers so far — evaluated on every render/navigation, skipped in both directions, excluded from the progress bar and from the accordion/recap layouts. The result step always applies; if the penultimate step is skipped, the completion button moves to the last applicable step.
+
+```java
+@Override
+protected boolean stepApplies(String stepFieldName) {
+    if ("company".equals(stepFieldName)) {
+        return account.accountType == AccountType.COMPANY;   // skip for personal accounts
+    }
+    return true;
+}
+```
+
 ---
 
 ## Dashboard

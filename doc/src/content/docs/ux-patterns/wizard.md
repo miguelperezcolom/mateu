@@ -69,6 +69,34 @@ The wizard **title** is derived in order: `@Title` annotation → `TitleSupplier
 
 ![Registration wizard — step 1 with progress bar and Next button](/images/docs/ux-patterns/wizard.png)
 
+## Branching — conditional steps
+
+Override `stepApplies(String stepFieldName)` to skip steps based on the answers so far. A skipped step is jumped over in **both** directions (Next and Back), excluded from the progress bar, and left out of the accordion / previous-answers recap in the other layout modes. The result step always applies.
+
+```java
+public class SignupWizard extends Wizard {
+
+    AccountTypeStep account = new AccountTypeStep();   // asks PERSONAL / COMPANY
+    CompanyDetailsStep company = new CompanyDetailsStep();
+    PlanStep plan = new PlanStep();
+    ResultStep result;
+
+    @Override
+    protected boolean stepApplies(String stepFieldName) {
+        if ("company".equals(stepFieldName)) {
+            return account.accountType == AccountType.COMPANY;   // skip for personal accounts
+        }
+        return true;
+    }
+
+    @WizardCompletionAction
+    @Action(validationRequired = true)
+    Object finish() { /* … */ return null; }
+}
+```
+
+`stepApplies` is evaluated on every render and navigation, so it can depend on values captured by any earlier step. When the skipped step was the penultimate one, the completion button moves to the last applicable step automatically.
+
 ## Layout modes — `@WizardLayout`
 
 By default a wizard shows one step at a time. Annotate the class with `@WizardLayout(...)` to change

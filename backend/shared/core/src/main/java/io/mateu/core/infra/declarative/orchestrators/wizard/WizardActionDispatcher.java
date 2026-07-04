@@ -26,10 +26,15 @@ final class WizardActionDispatcher {
           MateuBeanProvider.getBean(InstanceFactory.class)
               .newInstance(
                   stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
-      wizard.position++;
+      // Branching: move to the next applicable non-result step (skipped steps don't apply given
+      // the answers so far). The result step is only reached through the completion action.
+      var next = wizard.nextApplicable(wizard.position);
+      if (next >= 0) {
+        wizard.position = next;
+      }
     }
     if ("back".equals(actionId)) {
-      wizard.position--;
+      wizard.position = wizard.previousApplicable(wizard.position);
     }
     if (!"".equals(actionId)) {
       var found =

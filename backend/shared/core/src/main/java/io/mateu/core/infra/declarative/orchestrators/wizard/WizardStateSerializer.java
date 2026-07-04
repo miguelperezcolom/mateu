@@ -33,6 +33,7 @@ final class WizardStateSerializer {
         .filter(
             field ->
                 !isBasic(field.getType())
+                    && !field.getType().isEnum()
                     && !Collection.class.isAssignableFrom(field.getType())
                     && !Map.class.isAssignableFrom(field.getType())
                     && !Modifier.isFinal(field.getModifiers()))
@@ -40,7 +41,7 @@ final class WizardStateSerializer {
             field -> {
               var value = getValue(field, instance);
               if (value != null) {
-                if (value instanceof Class || isBasic(value)) {
+                if (value instanceof Class || value instanceof Enum<?> || isBasic(value)) {
                   map.put(field.getName(), value);
                 } else {
                   var nestedMap =

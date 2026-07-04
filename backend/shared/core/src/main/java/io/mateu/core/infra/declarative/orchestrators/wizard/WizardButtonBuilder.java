@@ -25,7 +25,7 @@ final class WizardButtonBuilder {
     if (!isLastStep) {
       buttons.add(Button.builder().id("back").label("Back").disabled(wizard.position == 0).build());
     }
-    if (wizard.position < wizard.numberOfSteps() - 2) {
+    if (wizard.nextApplicable(wizard.position) >= 0) {
       buttons.add(Button.builder().id("next").label("Next").build());
     } else if (!isLastStep) {
       getAllMethods(wizard.getClass()).stream()

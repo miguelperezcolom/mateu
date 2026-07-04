@@ -79,8 +79,8 @@ public abstract class Wizard
             .build());
     content.add(
         ProgressBar.builder()
-            .value(position == numberOfSteps() - 1 ? numberOfSteps() : position)
-            .max(numberOfSteps())
+            .value(position == numberOfSteps() - 1 ? applicableSteps() : applicablePosition())
+            .max(applicableSteps())
             .text(getLabel(currentStepField()))
             .style("width: 100%;")
             .build());
@@ -153,6 +153,9 @@ public abstract class Wizard
             .build());
     boolean any = false;
     for (int i = 0; i < position; i++) {
+      if (!applies(i)) {
+        continue;
+      }
       var lines = WizardStepInspector.getAnswerLines(this, i);
       if (lines.isEmpty()) {
         continue;
@@ -203,6 +206,9 @@ public abstract class Wizard
     var steps = WizardStepInspector.getStepFields(this);
     var panels = new ArrayList<AccordionPanel>();
     for (int i = 0; i < steps.size(); i++) {
+      if (!applies(i)) {
+        continue;
+      }
       boolean current = i == position;
       boolean upcoming = i > position;
       // Only the current (editable) and completed (read-only) steps render a form; upcoming steps
@@ -245,6 +251,71 @@ public abstract class Wizard
                 readOnly,
                 getFormColumns(step.getClass()),
                 0));
+  }
+
+  /**
+   * Whether the step held by the given field applies, given the answers so far. Override to skip
+   * steps conditionally (branching wizard) — e.g. only show the "company details" step when the
+   * account type chosen in a previous step is COMPANY. Called every time the wizard renders or
+   * navigates, so it can depend on values captured by earlier steps. The result (last) step always
+   * applies.
+   */
+  protected boolean stepApplies(String stepFieldName) {
+    return true;
+  }
+
+  /** Whether the step at the given index applies (the result step always does). */
+  boolean applies(int index) {
+    var steps = WizardStepInspector.getStepFields(this);
+    if (index == steps.size() - 1) {
+      return true;
+    }
+    return stepApplies(steps.get(index).getName());
+  }
+
+  /** How many steps apply given the answers so far. */
+  int applicableSteps() {
+    int count = 0;
+    for (int i = 0; i < numberOfSteps(); i++) {
+      if (applies(i)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * The next applicable non-result step after {@code from}, or -1 when there is none (meaning the
+   * completion action is what comes next).
+   */
+  int nextApplicable(int from) {
+    for (int i = from + 1; i < numberOfSteps() - 1; i++) {
+      if (applies(i)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  /** The previous applicable step before {@code from} (0 at worst). */
+  int previousApplicable(int from) {
+    for (int i = from - 1; i > 0; i--) {
+      if (applies(i)) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
+  /** The current position expressed as an index over applicable steps only. */
+  int applicablePosition() {
+    int count = 0;
+    for (int i = 0; i < position; i++) {
+      if (applies(i)) {
+        count++;
+      }
+    }
+    return count;
   }
 
   public Object getStep() {
