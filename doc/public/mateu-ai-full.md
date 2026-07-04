@@ -647,6 +647,53 @@ class ResultStep implements WizardStep {
 
 ---
 
+## Dashboard
+
+Extend `Dashboard` for a landing page with a KPI band and a responsive grid of titled panels:
+
+```java
+@UI("/dashboard")
+@Title("Sales dashboard")
+public class SalesDashboard extends Dashboard {
+
+    // Consecutive MetricCard fields → one full-width Scoreboard band
+    MetricCard revenue = MetricCard.builder()
+            .title("Revenue").value("1.2").unit("M€")
+            .trend(MetricTrend.up).trendLabel("+8% vs last month")   // green ▲
+            .icon("vaadin:dollar")
+            .build();
+
+    MetricCard orders = MetricCard.builder()
+            .title("Orders").value("3,421")
+            .actionId("openOrders")            // clickable → runs the @Action below
+            .build();
+
+    // @Panel component fields → titled tiles; colSpan/rowSpan control the footprint
+    @Panel(title = "Monthly sales", subtitle = "Units sold per month", colSpan = 2)
+    Chart sales = Chart.builder()
+            .chartType(ChartType.bar)
+            .chartData(ChartData.builder()
+                    .labels(List.of("Jan", "Feb", "Mar"))
+                    .datasets(List.of(ChartDataset.builder()
+                            .label("2026").data(List.of(120d, 190d, 300d)).build()))
+                    .build())
+            .build();
+
+    @Panel(title = "Notes")
+    Markdown notes = new Markdown("- Summer campaign starts **July 15th**", null, null);
+
+    @Action
+    Object openOrders() { return URI.create("/orders"); }
+}
+```
+
+- `MetricCard` fields: `title`, `value`, `unit`, `trend` (`up`/`down`/`neutral`), `trendLabel`, `icon`, `description`, `actionId` (drill-in).
+- Override `columns()` to fix the grid column count; default `0` = responsive auto-fit.
+- Populate fields in the constructor / initializers (query use cases or repositories there).
+- Fluent variant: build a `DashboardLayout` with `Scoreboard` / `DashboardPanel` / `MetricCard` items from `ComponentTreeSupplier.component(...)`.
+
+---
+
 ## Navigation & menus
 
 ```java
@@ -823,15 +870,17 @@ public class CustomerList {
 
 ## Common patterns — quick reference
 
-### Dashboard with KPIs
+### Page with KPI headers
 ```java
-@UI("/dashboard")
-public class Dashboard {
+@UI("/orders-overview")
+public class OrdersOverview {
     @KPI int totalOrders = orderRepo.count();
     @KPI String totalRevenue = "€ " + revenueService.total();
     @KPI double avgOrderValue = revenueService.average();
 }
 ```
+
+For a full dashboard landing page (KPI scoreboard + titled chart panels on a grid), extend the `Dashboard` archetype — see the **Dashboard** section above.
 
 ### Detail form with tabs
 ```java

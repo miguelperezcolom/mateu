@@ -227,6 +227,30 @@ class SuccessStep implements WizardStep { @PlainText String msg = "Account creat
 
 ---
 
+## Dashboard
+
+```java
+@UI("/dashboard")
+public class SalesDashboard extends Dashboard {
+    // consecutive MetricCard fields → full-width KPI scoreboard band
+    MetricCard revenue = MetricCard.builder().title("Revenue").value("1.2").unit("M€")
+            .trend(MetricTrend.up).trendLabel("+8%").actionId("openOrders").build();
+    MetricCard orders = MetricCard.builder().title("Orders").value("3,421").build();
+
+    // @Panel component fields → titled tiles on a responsive grid
+    @Panel(title = "Monthly sales", colSpan = 2)
+    Chart sales = Chart.builder().chartType(ChartType.bar).chartData(...).build();
+
+    @Action Object openOrders() { return URI.create("/orders"); }  // metric drill-in
+}
+```
+
+Override `columns()` to fix the grid column count (default 0 = responsive auto-fit). Fluent
+variant: build a `DashboardLayout` (+ `Scoreboard`/`DashboardPanel`/`MetricCard`) from
+`ComponentTreeSupplier`.
+
+---
+
 ## Navigation & menus
 
 ```java

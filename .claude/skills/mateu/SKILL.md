@@ -25,6 +25,7 @@ Mateu generates all of that from the model. Validate with Bean Validation
 | list + create/edit/view/delete | `extends AutoCrud<T>` + `CrudRepository<T>` | [crud.md](reference/crud.md) |
 | a single form with an action | a class with fields + `@Button` | [form-actions.md](reference/form-actions.md) |
 | a multi-step flow | `extends Wizard` + `WizardStep` | [wizard.md](reference/wizard.md) |
+| a dashboard landing page | `extends Dashboard` + `MetricCard` fields + `@Panel` | [dashboard.md](reference/dashboard.md) |
 | read ⇄ edit on one entity | `extends AutoEditableView<T>` | [editor.md](reference/editor.md) |
 | a custom / dynamic layout | `implements ComponentTreeSupplier` | [fluent.md](reference/fluent.md) |
 | an app menu / shell / federation | `@UI("")` + `@Menu` / `RemoteMenu` | [federation.md](reference/federation.md) |

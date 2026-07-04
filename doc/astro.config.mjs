@@ -72,6 +72,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/split-view' },
 						{ slug: 'ux-patterns/filters-and-listing' },
 						{ slug: 'ux-patterns/wizard' },
+						{ slug: 'ux-patterns/dashboard' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

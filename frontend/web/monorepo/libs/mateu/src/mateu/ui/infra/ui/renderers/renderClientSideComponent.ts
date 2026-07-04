@@ -65,6 +65,12 @@ import {renderWorkflow} from "@infra/ui/renderers/workflowRenderer.ts";
 import {renderWorkflowElk} from "@infra/ui/renderers/workflowElkRenderer.ts";
 import {renderFormEditor} from "@infra/ui/renderers/formEditorRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import {
+    renderDashboardLayout,
+    renderDashboardPanel,
+    renderMetricCard,
+    renderScoreboard
+} from "@infra/ui/renderers/dashboardRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -252,6 +258,10 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.VirtualList]: full(renderVirtualList),
     [ComponentMetadataType.FormSection]: full(renderFormSection),
     [ComponentMetadataType.FormSubSection]: full(renderFormSubSection),
+    [ComponentMetadataType.MetricCard]: ({ component }) => renderMetricCard(component),
+    [ComponentMetadataType.Scoreboard]: full(renderScoreboard),
+    [ComponentMetadataType.DashboardPanel]: full(renderDashboardPanel),
+    [ComponentMetadataType.DashboardLayout]: full(renderDashboardLayout),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

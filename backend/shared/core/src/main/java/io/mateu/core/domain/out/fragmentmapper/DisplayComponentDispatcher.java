@@ -13,7 +13,9 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.IconMapper.mapIcon
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ImageMapper.mapImageToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.KPIMapper.mapKPIToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.mapMarkdownToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.MetricCardMapper.mapMetricCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ScoreboardMapper.mapScoreboardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TextMapper.mapTextToDto;
 
 import io.mateu.dtos.ComponentDto;
@@ -50,6 +52,12 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof KPI kpi) {
       return mapKPIToDto(kpi);
+    }
+    if (component instanceof MetricCard metricCard) {
+      return mapMetricCardToDto(metricCard);
+    }
+    if (component instanceof Scoreboard scoreboard) {
+      return mapScoreboardToDto(scoreboard);
     }
     if (component instanceof Anchor anchor) {
       return mapAnchorToDto(anchor);

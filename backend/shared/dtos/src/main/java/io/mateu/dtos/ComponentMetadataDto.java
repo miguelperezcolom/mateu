@@ -72,7 +72,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = FormSectionDto.class, name = "FormSection"),
   @JsonSubTypes.Type(value = FormSubSectionDto.class, name = "FormSubSection"),
   @JsonSubTypes.Type(value = PageDto.class, name = "Page"),
-  @JsonSubTypes.Type(value = ChatDto.class, name = "Chat")
+  @JsonSubTypes.Type(value = ChatDto.class, name = "Chat"),
+  @JsonSubTypes.Type(value = MetricCardDto.class, name = "MetricCard"),
+  @JsonSubTypes.Type(value = ScoreboardDto.class, name = "Scoreboard"),
+  @JsonSubTypes.Type(value = DashboardPanelDto.class, name = "DashboardPanel"),
+  @JsonSubTypes.Type(value = DashboardLayoutDto.class, name = "DashboardLayout")
 })
 @Schema(
     oneOf = {
@@ -138,6 +142,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
       PageDto.class,
       ChatDto.class,
       WorkflowElkDto.class,
-      FormEditorDto.class
+      FormEditorDto.class,
+      MetricCardDto.class,
+      ScoreboardDto.class,
+      DashboardPanelDto.class,
+      DashboardLayoutDto.class
     })
 public interface ComponentMetadataDto {}

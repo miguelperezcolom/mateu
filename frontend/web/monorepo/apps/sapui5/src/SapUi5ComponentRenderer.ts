@@ -168,6 +168,10 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Workflow,
     ComponentMetadataType.WorkflowElk,
     ComponentMetadataType.FormEditor,
+    ComponentMetadataType.MetricCard,
+    ComponentMetadataType.Scoreboard,
+    ComponentMetadataType.DashboardPanel,
+    ComponentMetadataType.DashboardLayout,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

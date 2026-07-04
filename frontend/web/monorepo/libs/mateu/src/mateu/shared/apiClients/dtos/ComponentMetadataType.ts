@@ -64,6 +64,10 @@ export enum ComponentMetadataType {
     Bpmn="Bpmn",
     Workflow="Workflow",
     WorkflowElk="WorkflowElk",
-    FormEditor="FormEditor"
+    FormEditor="FormEditor",
+    MetricCard = "MetricCard",
+    Scoreboard = "Scoreboard",
+    DashboardPanel = "DashboardPanel",
+    DashboardLayout = "DashboardLayout"
 
 }

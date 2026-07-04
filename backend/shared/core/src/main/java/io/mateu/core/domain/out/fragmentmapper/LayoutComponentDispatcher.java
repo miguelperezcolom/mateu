@@ -7,6 +7,8 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.BoardLayoutMapper.
 import static io.mateu.core.domain.out.fragmentmapper.mappers.BoardLayoutRowMapper.mapBoardLayoutRowToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CarouselLayoutMapper.mapCarouselLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ContainerMapper.mapContainerToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.DashboardLayoutMapper.mapDashboardLayoutToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.DashboardPanelMapper.mapDashboardPanelToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DivMapper.mapDivToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormItemMapper.mapFormItemToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormLayoutMapper.mapFormLayoutToDto;
@@ -94,6 +96,14 @@ final class LayoutComponentDispatcher {
     if (component instanceof BoardLayoutItem boardLayoutItem) {
       return mapBoardLayoutItemToDto(
           boardLayoutItem, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof DashboardLayout dashboardLayout) {
+      return mapDashboardLayoutToDto(
+          dashboardLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof DashboardPanel dashboardPanel) {
+      return mapDashboardPanelToDto(
+          dashboardPanel, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Scroller scroller) {
       return mapScrollerToDto(
