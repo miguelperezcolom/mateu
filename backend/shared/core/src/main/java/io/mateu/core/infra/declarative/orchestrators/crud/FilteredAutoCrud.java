@@ -127,6 +127,14 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   }
 
   @Override
+  @SuppressWarnings("unchecked")
+  public Object updateRow(Map<String, Object> row, HttpRequest httpRequest) {
+    var entity = (T) MateuInstanceFactory.newInstance(entityClass(), row, httpRequest);
+    repository().save(entity);
+    return io.mateu.uidl.data.Message.success("Saved");
+  }
+
+  @Override
   public Object saveNew(HttpRequest httpRequest) {
     return buildCreationForm(httpRequest).create(httpRequest);
   }

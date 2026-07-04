@@ -100,7 +100,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
             ? (List<GridContent>)
                 getColumns(
                     orchestrator.viewClass(),
-                    this,
+                    orchestrator,
                     "base_url",
                     httpRequest.runActionRq().route(),
                     httpRequest.runActionRq().initiatorComponentId(),
@@ -109,7 +109,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                 ? (List<GridContent>)
                     getColumns(
                         orchestrator.rowClass(),
-                        this,
+                        orchestrator,
                         "base_url",
                         httpRequest.runActionRq().route(),
                         httpRequest.runActionRq().initiatorComponentId(),
@@ -117,7 +117,7 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                 : withViewOnFirstColumn(
                     getColumns(
                         orchestrator.rowClass(),
-                        this,
+                        orchestrator,
                         "base_url",
                         httpRequest.runActionRq().route(),
                         httpRequest.runActionRq().initiatorComponentId(),

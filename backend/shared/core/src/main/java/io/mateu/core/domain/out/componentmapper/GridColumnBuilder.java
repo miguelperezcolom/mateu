@@ -145,7 +145,7 @@ public class GridColumnBuilder {
    * The inline-cell editor to use for a column, derived from the element field's real Java type
    * (the coarse column {@code dataType} collapses most types to {@code string}).
    */
-  private static String getEditorType(Field columnField) {
+  static String getEditorType(Field columnField) {
     if (MetaAnnotations.isPresent(columnField, Lookup.class)) {
       // Remote, search-as-you-type reference: a combo box whose options come from the server.
       return "lookup";
@@ -179,7 +179,7 @@ public class GridColumnBuilder {
    * have here. The already-set value shows its id until the combo is opened and the label arrives
    * from the search.
    */
-  private static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(Field columnField) {
+  static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(Field columnField) {
     if (columnField.getType().isEnum()) {
       return java.util.Arrays.stream(columnField.getType().getEnumConstants())
           .map(c -> new io.mateu.uidl.data.Option(((Enum<?>) c).name(), c.toString()))

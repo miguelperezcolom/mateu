@@ -792,6 +792,28 @@ public class ProductOverview extends ItemOverview {
 
 ---
 
+## Inline editing on CRUD listings
+
+Annotate the `AutoCrud` class with `@InlineEditing` to edit rows directly in the listing grid — each committed cell persists its row through the repository, no detail-form round-trip:
+
+```java
+@UI("/stock")
+@Title("Stock (edit in place)")
+@InlineEditing
+public class StockCrud extends AutoCrud<StockItem> {
+
+    @Override public GridLayout gridLayout() { return GridLayout.table; }  // cell editing lives in the table layout
+
+    @Override public CrudRepository<StockItem> repository() { /* … */ }
+}
+```
+
+- Editors derive from each field's Java type (same mapping as editable tables); `@ReadOnly` fields stay display-only.
+- Each commit dispatches `update-row` with the edited row; `AutoCrud` rebuilds the entity and calls `repository().save(entity)`. Override `updateRow(Map, HttpRequest)` for partial updates / optimistic locking.
+- For **form collections** (a `List` field inside a form) use `@InlineEditing` on the field instead — edits accumulate in the form state and persist with the form's action.
+
+---
+
 ## Gantt / timeline
 
 Show time-based work as bars on a shared time axis — read-only monitoring of schedules:

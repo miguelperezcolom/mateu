@@ -48,7 +48,8 @@ public abstract class Crud<
           new DeleteEditActionHandler(),
           new EditActionHandler(),
           new ActionOnRowActionHandler(),
-          new ActionOnViewActionHandler());
+          new ActionOnViewActionHandler(),
+          new UpdateRowActionHandler());
 
   @Override
   protected OrchestrationResult resolveInternalRoute(String route, HttpRequest httpRequest) {
@@ -97,6 +98,16 @@ public abstract class Crud<
 
   public boolean readOnly() {
     return CrudOrchestratorMetadata.readOnly(this);
+  }
+
+  /**
+   * Persists one row edited in place in the listing grid (class-level {@code @InlineEditing}).
+   * {@code AutoCrud}/{@code FilteredAutoCrud} implement it through the {@code CrudRepository};
+   * other cruds must override it to support inline editing.
+   */
+  public Object updateRow(java.util.Map<String, Object> row, HttpRequest httpRequest) {
+    throw new UnsupportedOperationException(
+        "inline row editing not supported by " + getClass().getSimpleName());
   }
 
   public Class<?> viewClass() {

@@ -314,6 +314,22 @@ AutoEditableView; categories side-by-side → Foldout.
 
 ---
 
+## Inline editing on CRUD listings
+
+```java
+@UI("/stock") @InlineEditing                 // class-level: cells edit in place
+public class StockCrud extends AutoCrud<StockItem> {
+    @Override public GridLayout gridLayout() { return GridLayout.table; }
+    @Override public CrudRepository<StockItem> repository() { /* … */ }
+}
+```
+
+Each committed cell persists its row via repository().save (update-row action).
+`@ReadOnly` fields stay display-only. (For form collections use `@InlineEditing`
+on the `List` field — see Editable table.)
+
+---
+
 ## Gantt / timeline
 
 ```java

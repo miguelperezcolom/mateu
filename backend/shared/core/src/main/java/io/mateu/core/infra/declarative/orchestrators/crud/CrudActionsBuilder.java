@@ -29,9 +29,11 @@ final class CrudActionsBuilder {
       actions.add(Action.builder().id("cancel-new").build());
       actions.add(Action.builder().id("action-on-row-*").build());
       actions.add(Action.builder().id("action-on-view-*").build());
+      actions.add(Action.builder().id("update-row").build());
     }
     if (httpRequest.getAttribute("list") != null) {
       actions.add(Action.builder().id("search").build());
+      actions.add(Action.builder().id("update-row").build());
       actions.add(
           Action.builder()
               .id("delete")

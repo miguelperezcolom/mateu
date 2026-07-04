@@ -66,8 +66,23 @@ const renderEditableCell = (
 ) => {
     const gridFieldId = (container as any)?.field?.fieldId
     const commit = (value: any) => {
+        // No-op commits (e.g. vaadin-checkbox firing checked-changed on initialization) must not
+        // dispatch — in a listing every dispatch persists the row.
+        if (item[column.id] === value || (item[column.id] == null && (value === '' || value == null))) {
+            return
+        }
         item[column.id] = value
-        const arr = gridFieldId ? (state as any)[gridFieldId] : undefined
+        if (!gridFieldId) {
+            // Not a form grid but a listing (crud) grid: persist the edited row right away via the
+            // crud's update-row action instead of accumulating edits in the form state.
+            container.dispatchEvent(new CustomEvent('action-requested', {
+                detail: { actionId: 'update-row', parameters: { _editedRow: { ...item } } },
+                bubbles: true,
+                composed: true,
+            }))
+            return
+        }
+        const arr = (state as any)[gridFieldId]
         container.dispatchEvent(new CustomEvent('value-changed', {
             detail: { fieldId: gridFieldId, value: Array.isArray(arr) ? [...arr] : arr },
             bubbles: true,

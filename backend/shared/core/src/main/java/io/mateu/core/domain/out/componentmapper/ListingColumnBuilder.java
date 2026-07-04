@@ -9,8 +9,10 @@ import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.ColumnWidth;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.HiddenInList;
+import io.mateu.uidl.annotations.InlineEditing;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Priority;
+import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Weight;
 import io.mateu.uidl.data.FieldDataType;
@@ -89,6 +91,12 @@ final class ListingColumnBuilder {
     } else if (MetaAnnotations.isPresent(field, ColumnWidth.class)) {
       weight = WEIGHT_ESTIMATOR.parsePx(MetaAnnotations.find(field, ColumnWidth.class).value());
     }
+    // Inline row editing: when the listing class is annotated @InlineEditing, every data column
+    // (except @ReadOnly ones) is edited in place; commits dispatch the crud's update-row action.
+    boolean editable =
+        instance != null
+            && MetaAnnotations.isPresent(instance.getClass(), InlineEditing.class)
+            && !MetaAnnotations.isPresent(field, ReadOnly.class);
     return GridColumn.builder()
         .id(field.getName())
         .label(getLabel(field))
@@ -99,6 +107,9 @@ final class ListingColumnBuilder {
         .priority(priority)
         .identifier(identifier)
         .weight(weight)
+        .editable(editable)
+        .editorType(editable ? GridColumnBuilder.getEditorType(field) : null)
+        .editorOptions(editable ? GridColumnBuilder.getEditorOptions(field) : null)
         .build();
   }
 
