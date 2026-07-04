@@ -269,6 +269,29 @@ Fluent variant: `FoldoutLayout.builder().overview(c).panels(List.of(FoldoutPanel
 
 ---
 
+## Hero search page
+
+```java
+@UI("/hotel-search")
+public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
+    public record HotelFilters(String zone, Integer minStars) {}   // fields → facets
+    public record Hotel(String name, String zone, int stars, String price) {}  // → cards
+
+    @Override protected String heroTitle() { return "Find your hotel"; }
+    @Override protected String heroSubtitle() { return "Search by name or zone…"; }
+
+    @Override
+    public ListingData<Hotel> search(String searchText, HotelFilters filters,
+                                     Pageable pageable, HttpRequest req) { /* query */ }
+}
+```
+
+Big hero header + search box + facets + card results (override `gridLayout()` for table).
+Starts empty; add `@Trigger(type=TriggerType.OnLoad, actionId="search")` to preload.
+`HeroSection` is also a standalone fluent component (title, subtitle, image, content slot).
+
+---
+
 ## Navigation & menus
 
 ```java

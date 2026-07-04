@@ -17,6 +17,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.FormRowMapper.mapF
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormSectionMapper.mapFormSectionToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormSubSectionMapper.mapFormSubSectionToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FullWidthMapper.mapFullWidthToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.HeroSectionMapper.mapHeroSectionToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.HorizontalLayoutMapper.mapHorizontalLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MasterDetailLayoutMapper.mapMasterDetailLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ScrollerMapper.mapScrollerToDto;
@@ -109,6 +110,10 @@ final class LayoutComponentDispatcher {
     if (component instanceof FoldoutLayout foldoutLayout) {
       return mapFoldoutLayoutToDto(
           foldoutLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof HeroSection heroSection) {
+      return mapHeroSectionToDto(
+          heroSection, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Scroller scroller) {
       return mapScrollerToDto(

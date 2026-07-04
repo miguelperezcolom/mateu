@@ -28,7 +28,7 @@ public class PageListingBuilder {
 
   private static final FilterLayoutSelector FILTER_LAYOUT_SELECTOR = new FilterLayoutSelector();
 
-  static Collection<? extends Component> getCrud(
+  public static Collection<? extends Component> getCrud(
       Object instance,
       String baseUrl,
       String route,

@@ -74,6 +74,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/wizard' },
 						{ slug: 'ux-patterns/dashboard' },
 						{ slug: 'ux-patterns/foldout' },
+						{ slug: 'ux-patterns/hero-search' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

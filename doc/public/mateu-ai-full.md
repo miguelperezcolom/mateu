@@ -723,6 +723,37 @@ public class BookingFoldout extends Foldout {
 
 ---
 
+## Hero search page
+
+Extend `HeroSearch<Filters, Row>` for a search-first landing page: a big centered hero header, a prominent search box with filter facets, and results as cards:
+
+```java
+@UI("/hotel-search")
+@Title("Hotel search")
+public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
+
+    public record HotelFilters(String zone, Integer minStars) {}   // fields become the facet bar
+    public record Hotel(String name, String zone, int stars, String price) {}  // one card per row
+
+    @Override protected String heroTitle() { return "Find your hotel"; }
+    @Override protected String heroSubtitle() { return "Search by name or zone…"; }
+    // @Override protected String heroImage() { return "/images/hero.jpg"; }   // optional background
+
+    @Override
+    public ListingData<Hotel> search(String searchText, HotelFilters filters,
+                                     Pageable pageable, HttpRequest httpRequest) {
+        // query your use case / repository; return a ListingData page
+    }
+}
+```
+
+- Implement `search(...)` exactly like a declarative `Listing` — same contract, same pagination.
+- Results render as **cards** by default; override `gridLayout()` for `table`/`list`.
+- The listing starts **empty** and searches on enter; add `@Trigger(type = TriggerType.OnLoad, actionId = "search")` to preload results.
+- `HeroSection` is also a standalone fluent component: `HeroSection.builder().title("…").subtitle("…").image("…").centered(true).content(List.of(…)).build()` — compose it in welcome pages or any `ComponentTreeSupplier`.
+
+---
+
 ## Navigation & menus
 
 ```java
