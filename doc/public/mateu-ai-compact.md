@@ -311,6 +311,27 @@ AutoEditableView; categories side-by-side → Foldout.
 
 ---
 
+## Welcome page
+
+```java
+@UI("/welcome")
+public class WelcomeDemo extends Welcome {
+    // Button fields → CTAs in the hero; actionId runs the matching @Action
+    Button start = Button.builder().label("Start check-in")
+            .actionId("startCheckin").buttonStyle(ButtonStyle.primary).build();
+
+    // @Panel fields → highlight tiles below the hero
+    @Panel(title = "1 · Search the booking")
+    Markdown step1 = new Markdown("Find the reservation…", null, null);
+
+    @Override protected String heroTitle() { return "Front desk check-in"; }
+
+    @Action Object startCheckin() { return URI.create("/checkin"); }
+}
+```
+
+---
+
 ## Navigation & menus
 
 ```java

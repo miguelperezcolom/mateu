@@ -778,6 +778,35 @@ public class ProductOverview extends ItemOverview {
 
 ---
 
+## Welcome page
+
+Extend `Welcome` for a friendly entry point to a flow — hero + call-to-action buttons + highlight tiles:
+
+```java
+@UI("/welcome")
+@Title("Welcome")
+public class WelcomeDemo extends Welcome {
+
+    // Button fields → CTAs inside the hero; the actionId runs the matching @Action method
+    Button start = Button.builder().label("Start check-in")
+            .actionId("startCheckin").buttonStyle(ButtonStyle.primary).build();
+
+    // @Panel component fields → highlight tiles on a responsive grid below the hero
+    @Panel(title = "1 · Search the booking")
+    Markdown step1 = new Markdown("Find the reservation by locator, guest name or room.", null, null);
+
+    @Override protected String heroTitle() { return "Front desk check-in"; }
+    @Override protected String heroSubtitle() { return "Everything you need, in three steps"; }
+
+    @Action
+    Object startCheckin() { return URI.create("/checkin"); }   // navigate into the flow
+}
+```
+
+Use for occasional/first-time users at a flow's entry route; power users are better served by a `Dashboard` or the operational screen directly.
+
+---
+
 ## Navigation & menus
 
 ```java
