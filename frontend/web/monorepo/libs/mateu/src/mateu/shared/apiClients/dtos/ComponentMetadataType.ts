@@ -72,6 +72,7 @@ export enum ComponentMetadataType {
     FoldoutLayout = "FoldoutLayout",
     HeroSection = "HeroSection",
     EmptyState = "EmptyState",
-    Skeleton = "Skeleton"
+    Skeleton = "Skeleton",
+    Gantt = "Gantt"
 
 }

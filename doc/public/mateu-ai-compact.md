@@ -314,6 +314,19 @@ AutoEditableView; categories side-by-side → Foldout.
 
 ---
 
+## Gantt / timeline
+
+```java
+Component plan = Gantt.builder().tasks(List.of(
+        GanttTask.builder().title("Implementation")
+                .start(LocalDate.of(2026, 7, 1)).end(LocalDate.of(2026, 8, 14))
+                .progress(25).build())).build();
+```
+
+Read-only schedule view: month headers, progress fill, today marker. Optional per-task `color`.
+
+---
+
 ## Empty states & skeletons
 
 ```java

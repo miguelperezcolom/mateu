@@ -792,6 +792,30 @@ public class ProductOverview extends ItemOverview {
 
 ---
 
+## Gantt / timeline
+
+Show time-based work as bars on a shared time axis — read-only monitoring of schedules:
+
+```java
+@Section("Schedule")
+Component plan = Gantt.builder()
+        .tasks(List.of(
+                GanttTask.builder().title("Discovery")
+                        .start(LocalDate.of(2026, 6, 1)).end(LocalDate.of(2026, 6, 12))
+                        .progress(100).build(),
+                GanttTask.builder().title("Implementation")
+                        .start(LocalDate.of(2026, 7, 1)).end(LocalDate.of(2026, 8, 14))
+                        .progress(25).build(),
+                GanttTask.builder().title("QA & launch")
+                        .start(LocalDate.of(2026, 8, 17)).end(LocalDate.of(2026, 8, 31))
+                        .color("#10b981").build()))
+        .build();
+```
+
+The axis, month headers and today marker derive from the tasks' dates; `progress` renders as a fill inside the bar; `color` overrides the fill color. Dependency-free and dark-mode aware.
+
+---
+
 ## Empty states & skeletons
 
 Never show a blank void — `EmptyState` for "nothing here yet", `Skeleton` while content loads:

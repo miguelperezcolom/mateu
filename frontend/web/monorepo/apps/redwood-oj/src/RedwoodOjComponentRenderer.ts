@@ -143,6 +143,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.HeroSection,
     ComponentMetadataType.EmptyState,
     ComponentMetadataType.Skeleton,
+    ComponentMetadataType.Gantt,
 ])
 
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

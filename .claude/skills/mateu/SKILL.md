@@ -31,6 +31,7 @@ Mateu generates all of that from the model. Validate with Bean Validation
 | a detail page with pinned key info + tabs | `extends ItemOverview` + key-info field + `@Panel` | [item-overview.md](reference/item-overview.md) |
 | a welcome/landing page for a flow | `extends Welcome` + `Button` fields + `@Panel` | [welcome.md](reference/welcome.md) |
 | "nothing here yet" / loading placeholders | `EmptyState` / `Skeleton` components | [empty-states.md](reference/empty-states.md) |
+| a project schedule / timeline | `Gantt` + `GanttTask` (LocalDate spans, progress, color) | fluent component, see key-annotations docs |
 | read ⇄ edit on one entity | `extends AutoEditableView<T>` | [editor.md](reference/editor.md) |
 | a custom / dynamic layout | `implements ComponentTreeSupplier` | [fluent.md](reference/fluent.md) |
 | an app menu / shell / federation | `@UI("")` + `@Menu` / `RemoteMenu` | [federation.md](reference/federation.md) |

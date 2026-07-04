@@ -176,6 +176,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.HeroSection,
     ComponentMetadataType.EmptyState,
     ComponentMetadataType.Skeleton,
+    ComponentMetadataType.Gantt,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
