@@ -10,6 +10,13 @@ import {
   SectionRenderer, SubSectionRenderer, CardRenderer, TabsRenderer, AccordionRenderer,
   SplitRenderer, BadgeRenderer, AnchorRenderer, ProgressBarRenderer, DialogRenderer, ConfirmDialogRenderer,
 } from './ContainerRenderer';
+import {
+  MetricCardRenderer, ScoreboardRenderer, DashboardPanelRenderer, DashboardLayoutRenderer,
+} from './DashboardRenderer';
+import {
+  FoldoutRenderer, HeroSectionRenderer, EmptyStateRenderer, SkeletonRenderer, GanttRenderer,
+} from './DisplayRenderer';
+import { EmptyState, MetricCard, Skeleton } from '../api/metadata';
 
 interface Props {
   component: unknown;
@@ -154,6 +161,25 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <DialogRenderer component={component} state={state} />;
     case 'ConfirmDialog':
       return <ConfirmDialogRenderer metadata={metadata} state={state} />;
+
+    case 'MetricCard':
+      return <MetricCardRenderer metadata={metadata as unknown as MetricCard} />;
+    case 'Scoreboard':
+      return <ScoreboardRenderer component={component} state={state} />;
+    case 'DashboardPanel':
+      return <DashboardPanelRenderer component={component} state={state} />;
+    case 'DashboardLayout':
+      return <DashboardLayoutRenderer component={component} state={state} />;
+    case 'FoldoutLayout':
+      return <FoldoutRenderer component={component} state={state} />;
+    case 'HeroSection':
+      return <HeroSectionRenderer component={component} state={state} />;
+    case 'EmptyState':
+      return <EmptyStateRenderer metadata={metadata as unknown as EmptyState} />;
+    case 'Skeleton':
+      return <SkeletonRenderer metadata={metadata as unknown as Skeleton} />;
+    case 'Gantt':
+      return <GanttRenderer component={component} />;
 
     default: {
       if (metaType) {

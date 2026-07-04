@@ -82,7 +82,13 @@ State is split so that tabs are truly independent:
 | `FormRenderer` | Renders forms with a grid of fields |
 | `FormFieldRenderer` | Renders individual fields (`text`, `boolean`, `date`, `options`, etc.) and inline validation errors |
 | `CrudRenderer` | Renders tables with search, pagination, status badges, link columns, and row actions |
+| `ContainerRenderer` | Renders sections, cards, tabs, accordion, split layout, badges, dialogs |
+| `DashboardRenderer` | Renders `MetricCard` KPI tiles, the `Scoreboard` band, `DashboardPanel` tiles and the `DashboardLayout` grid |
+| `FoldoutRenderer` | Renders `FoldoutLayout` — overview panel + lateral fold-out panels (click a strip to unfold; local UI state) |
+| `DisplayRenderer` | Renders `HeroSection` headers, `EmptyState` placeholders, `Skeleton` loading blocks and the `Gantt` timeline |
 | `ComponentRenderer` | Dispatcher — routes each component node to the right renderer |
+
+The desktop renderer also covers the UX-pattern components (`MetricCard`, `Scoreboard`, `DashboardPanel`, `DashboardLayout`, `FoldoutLayout`, `HeroSection`, `EmptyState`, `Skeleton`, `Gantt`), so dashboards, foldout record pages, hero/welcome pages and Gantt timelines defined with the archetypes render natively on the desktop too. `MetricCard` and `EmptyState` actions dispatch through the same mechanism as buttons.
 
 **Dependencies:** JavaFX 21 + [TiwulFX-Dock](https://github.com/panemu/tiwulfx-dock) (`com.panemu:tiwulfx-dock`) for the detachable/dockable tabs.
 
@@ -98,6 +104,7 @@ The React Native renderer runs your Mateu backend as a **native mobile applicati
 2. If the root component is of type `App`, `AppRenderer` builds the navigation structure — a Drawer for `NAVIGATION_LAYOUT`/`MENU_ON_LEFT` variants, a Bottom Tab navigator for `TABS`, or a simple Stack for `MEDIATOR`.
 3. Each menu entry maps to a content screen that fetches its data on demand.
 4. Pages, forms, CRUD tables, and individual fields are rendered as native React Native components (`TextInput`, `Switch`, `FlatList`, `TouchableOpacity`, etc.).
+5. The dashboard/display components are supported too: `MetricCard`, `Scoreboard`, `DashboardPanel`, `DashboardLayout` (rendered mobile-first as a single-column stack with the KPI band on top), `FoldoutLayout` (overview card + accordion of panels), `HeroSection`, `EmptyState`, `Skeleton`, and `Gantt` (horizontal-scrollable timeline with proportional bars, progress fill, and today marker).
 
 **Key files:**
 
@@ -113,6 +120,9 @@ The React Native renderer runs your Mateu backend as a **native mobile applicati
 | `src/renderer/CrudRenderer.tsx` | Renders tables with search, pagination, and row navigation |
 | `src/renderer/ComponentRenderer.tsx` | Dispatcher — routes each component node to the right renderer |
 | `src/renderer/LayoutRenderer.tsx` | Renders horizontal and vertical layouts |
+| `src/renderer/DashboardRenderer.tsx` | Renders `MetricCard`, `Scoreboard`, `DashboardPanel`, `DashboardLayout` |
+| `src/renderer/DisplayRenderer.tsx` | Renders `FoldoutLayout`, `HeroSection`, `EmptyState`, `Skeleton`, `Gantt` |
+| `src/api/metadata.ts` | TypeScript wire types for the dashboard/display component metadata |
 
 **Source:** `frontend/app/react-native/`
 
