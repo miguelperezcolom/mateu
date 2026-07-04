@@ -75,6 +75,15 @@ public class ComponentRenderer {
             case "ProgressBar" -> new ContainerRenderer(ctx).renderProgressBar(metadata, state);
             case "Dialog" -> new ContainerRenderer(ctx).renderDialog(component, metadata, state, data);
             case "ConfirmDialog" -> new ContainerRenderer(ctx).renderConfirmDialog(metadata, state, data);
+            case "MetricCard" -> new DashboardRenderer(ctx).renderMetricCard(metadata);
+            case "Scoreboard" -> new DashboardRenderer(ctx).renderScoreboard(component, state, data);
+            case "DashboardPanel" -> new DashboardRenderer(ctx).renderPanel(component, metadata, state, data);
+            case "DashboardLayout" -> new DashboardRenderer(ctx).renderDashboard(component, metadata, state, data);
+            case "FoldoutLayout" -> new FoldoutRenderer(ctx).render(component, metadata, state, data);
+            case "HeroSection" -> new DisplayRenderer(ctx).renderHero(component, metadata, state, data);
+            case "EmptyState" -> new DisplayRenderer(ctx).renderEmptyState(metadata);
+            case "Skeleton" -> new DisplayRenderer(ctx).renderSkeleton(metadata);
+            case "Gantt" -> new DisplayRenderer(ctx).renderGantt(metadata);
             default -> {
                 if (!metaType.isBlank()) {
                     yield new Label("Unsupported component: " + metaType);
