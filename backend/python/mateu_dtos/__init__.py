@@ -145,6 +145,108 @@ class TabMetadata(Wire):
     shortcut: str | None = None
 
 
+class MetricCardMetadata(Wire):
+    """KPI tile metadata for dashboards (mirrors ``MetricCardDto``)."""
+
+    type: Literal["MetricCard"] = "MetricCard"
+    title: str | None = None
+    value: str | None = None
+    unit: str | None = None
+    trend: str | None = None  # "up" | "down" | "neutral"
+    trend_label: str | None = None
+    icon: str | None = None
+    description: str | None = None
+    action_id: str | None = None
+
+
+class ScoreboardMetadata(Wire):
+    """Horizontal band of metric cards; the metric cards travel as component children."""
+
+    type: Literal["Scoreboard"] = "Scoreboard"
+
+
+class DashboardPanelMetadata(Wire):
+    """Titled dashboard tile; the wrapped component travels as the component's single child."""
+
+    type: Literal["DashboardPanel"] = "DashboardPanel"
+    title: str | None = None
+    subtitle: str | None = None
+    col_span: int = 1
+    row_span: int = 1
+
+
+class DashboardLayoutMetadata(Wire):
+    """Responsive dashboard grid; tiles travel as component children. 0 columns = auto-fit."""
+
+    type: Literal["DashboardLayout"] = "DashboardLayout"
+    columns: int = 0
+
+
+class FoldoutPanelInfo(Wire):
+    """Header info for one foldout panel (mirrors ``FoldoutPanelInfoDto``)."""
+
+    title: str | None = None
+    subtitle: str | None = None
+    icon: str | None = None
+    open: bool = True
+
+
+class FoldoutLayoutMetadata(Wire):
+    """Redwood-style foldout. Overview travels as the child slotted ``overview``; each panel's
+    content as the child slotted ``panel-N`` matching the panels list order."""
+
+    type: Literal["FoldoutLayout"] = "FoldoutLayout"
+    panels: list[FoldoutPanelInfo] = Field(default_factory=list)
+
+
+class HeroSectionMetadata(Wire):
+    """Page hero header; slotted content travels as component children."""
+
+    type: Literal["HeroSection"] = "HeroSection"
+    title: str | None = None
+    subtitle: str | None = None
+    image: str | None = None
+    height: str | None = None
+    centered: bool = False
+
+
+class EmptyStateMetadata(Wire):
+    """Friendly empty-state placeholder (mirrors ``EmptyStateDto``)."""
+
+    type: Literal["EmptyState"] = "EmptyState"
+    icon: str | None = None
+    title: str | None = None
+    description: str | None = None
+    action_id: str | None = None
+    action_label: str | None = None
+
+
+class SkeletonMetadata(Wire):
+    """Shimmering loading placeholder (mirrors ``SkeletonDto``)."""
+
+    type: Literal["Skeleton"] = "Skeleton"
+    variant: str = "text"  # "text" | "card" | "grid" | "form"
+    count: int = 0
+
+
+class GanttTaskRecord(Wire):
+    """One Gantt bar; start/end are ISO-8601 dates (mirrors ``GanttTaskDto``)."""
+
+    id: str | None = None
+    title: str | None = None
+    start: str | None = None
+    end: str | None = None
+    progress: float = 0
+    color: str | None = None
+
+
+class GanttMetadata(Wire):
+    """Gantt/timeline chart metadata (mirrors ``GanttDto``)."""
+
+    type: Literal["Gantt"] = "Gantt"
+    tasks: list[GanttTaskRecord] = Field(default_factory=list)
+
+
 ComponentMetadata = Annotated[
     Union[
         AppMetadata,
@@ -163,6 +265,15 @@ ComponentMetadata = Annotated[
         ButtonMetadata,
         TabLayoutMetadata,
         TabMetadata,
+        MetricCardMetadata,
+        ScoreboardMetadata,
+        DashboardPanelMetadata,
+        DashboardLayoutMetadata,
+        FoldoutLayoutMetadata,
+        HeroSectionMetadata,
+        EmptyStateMetadata,
+        SkeletonMetadata,
+        GanttMetadata,
     ],
     Field(discriminator="type"),
 ]

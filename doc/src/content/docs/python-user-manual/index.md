@@ -166,6 +166,83 @@ class Dashboard:
     def save(self) -> Message: return Message("Saved")
 ```
 
+## Dashboards, foldouts & UX-pattern components
+
+The UX-pattern components from the Java backend are available as **fluent components** in
+`mateu_uidl.components` — they emit the exact same wire JSON, so every renderer that supports them
+renders the Python backend unchanged:
+
+| Component | Purpose |
+|---|---|
+| `MetricCard` (+ `MetricTrend`) | KPI tile: title, value, unit, trend (`up`/`down`/`neutral`), drill-in `action_id` |
+| `Scoreboard` | horizontal band of metric cards |
+| `DashboardPanel` | titled tile wrapping any component; `col_span`/`row_span` |
+| `DashboardLayout` | responsive dashboard grid (`columns=0` = auto-fit) |
+| `FoldoutPanel` / `FoldoutLayout` | Redwood-style foldout: fixed overview + lateral fold-out panels |
+| `HeroSection` | big page hero: title, subtitle, background image, slotted content |
+| `EmptyState` | friendly "nothing here yet" placeholder with an optional call-to-action |
+| `Skeleton` (+ `SkeletonVariant`) | shimmering loading placeholder (`text`/`card`/`grid`/`form`) |
+| `Gantt` / `GanttTask` | read-only Gantt/timeline chart (ISO dates, progress 0–100, color) |
+
+The **declarative archetypes** compose them from your fields, exactly like the Java
+`Dashboard`/`Foldout`/`ItemOverview`/`Welcome` orchestrators. Declare type-hinted fields holding
+components; mark titled panels with `Panel(...)` inside `Annotated[...]` (the analogue of Java's
+`@Panel`):
+
+```python
+from datetime import date
+from typing import Annotated
+from mateu_uidl import ui, title, Dashboard, Panel
+from mateu_uidl.components import MetricCard, MetricTrend, Gantt, GanttTask
+
+@ui("dashboard")
+@title("Sales dashboard")
+class SalesDashboard(Dashboard):
+    # consecutive MetricCards group into a full-width Scoreboard KPI band
+    revenue: MetricCard = MetricCard(title="Revenue", value="1.2", unit="M€",
+                                     trend=MetricTrend.up, action_id="openRevenue")
+    incidents: MetricCard = MetricCard(title="Incidents", value="3", trend=MetricTrend.down)
+
+    # Panel(...) fields become titled tiles on a responsive grid
+    plan: Annotated[Gantt, Panel("Rollout plan", col_span=2)] = Gantt(tasks=(
+        GanttTask(id="t1", title="Design", start=date(2026, 7, 1), end=date(2026, 7, 20),
+                  progress=80.0),
+    ))
+
+    def open_revenue(self):     # runs when the Revenue tile is clicked
+        ...
+```
+
+- **`Dashboard`** — consecutive `MetricCard` fields → `Scoreboard` band; `Panel(...)` fields →
+  titled tiles; other component fields land on the grid as-is. Override `columns()` to fix the
+  column count.
+- **`Foldout`** — the first component field without `Panel` is the always-visible overview;
+  `Panel(title, subtitle, icon, open)` fields are lateral fold-out panels.
+- **`ItemOverview`** — the first component field without `Panel` is the key-info panel (left,
+  sticky); `Panel(title)` fields become tabs on the right. Override `panel_width()`.
+- **`Welcome`** — fluent `Button` fields become hero call-to-action buttons; `Panel(title)` fields
+  become highlight tiles below. Override `hero_title()` / `hero_subtitle()` / `hero_image()`.
+
+For full control, subclass `ComponentTreeSupplier` and return any fluent component tree:
+
+```python
+from mateu_uidl import ui, title, ComponentTreeSupplier
+from mateu_uidl.components import Gantt, GanttTask
+
+@ui("project-plan")
+@title("Project plan")
+class ProjectPlan(ComponentTreeSupplier):
+    def component(self) -> Gantt:
+        return Gantt(tasks=(
+            GanttTask(id="a", title="Analysis", start=date(2026, 1, 7), end=date(2026, 2, 1),
+                      progress=100.0),
+            GanttTask(id="b", title="Build", start=date(2026, 2, 1), end=date(2026, 5, 1)),
+        ))
+```
+
+Action ids referenced by `MetricCard`, `EmptyState` or `Button` components are advertised
+automatically and dispatch to the method of the same (camelCased) name.
+
 ## Page decorations
 
 - `@subtitle("…")` — a subtitle under the page title.
@@ -195,5 +272,8 @@ so the field markers work on Python 3.11 through 3.14+.
 
 Forms + sections + field types + validation, `Crud[T]` (list / detail / edit / new / save / delete),
 the `@app` shell + menu navigation, wizards, page decorations, tabs, stereotypes, KPIs, FABs,
-shortcuts, compact, the unsaved-changes guard, i18n, events and security scaffolding. 13 golden-JSON
-tests assert wire compatibility; the live `showcase` view is byte-identical to the C# reference.
+shortcuts, compact, the unsaved-changes guard, i18n, events, security scaffolding, and the
+UX-pattern components (MetricCard/Scoreboard/DashboardPanel/DashboardLayout, FoldoutLayout,
+HeroSection, EmptyState, Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome
+declarative archetypes. 18 golden-JSON tests assert wire compatibility; the live `showcase` view
+is byte-identical to the C# reference.

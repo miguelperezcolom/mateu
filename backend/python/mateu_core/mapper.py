@@ -20,21 +20,32 @@ from mateu_dtos import (
     ClientSideComponent,
     CrudMetadata,
     CustomTrigger,
+    DashboardLayoutMetadata,
+    DashboardPanelMetadata,
     DivMetadata,
+    EmptyStateMetadata,
     Fab,
+    FoldoutLayoutMetadata,
+    FoldoutPanelInfo,
     FormFieldMetadata,
     FormLayoutMetadata,
     FormRowMetadata,
     FormSectionMetadata,
+    GanttMetadata,
+    GanttTaskRecord,
     GridColumn,
     GridColumnMeta,
+    HeroSectionMetadata,
     HorizontalLayoutMetadata,
     Kpi,
     MenuItem,
+    MetricCardMetadata,
     Option,
     PageMetadata,
     ProgressBarMetadata,
+    ScoreboardMetadata,
     ServerSideComponent,
+    SkeletonMetadata,
     TabLayoutMetadata,
     TabMetadata,
     TextMetadata,
@@ -42,11 +53,16 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    ComponentTreeSupplier,
     Crud,
+    Dashboard,
+    Foldout,
     HeaderBadge,
+    ItemOverview,
     Label,
     Money,
     Multiline,
+    Panel,
     Password,
     PlainText,
     Required,
@@ -55,7 +71,9 @@ from mateu_uidl import (
     Stereotype,
     Tab,
     Translator,
+    Welcome,
 )
+from mateu_uidl import components as fluent
 
 from .naming import camel_case, humanize
 from .reflection import class_flag, methods_with, view_fields
@@ -150,6 +168,16 @@ class ReflectionMapper:
         fabs = self.fabs(cls)
         actions = [Action(id=b.action_id) for b in buttons] + [Action(id=f.action_id) for f in fabs]
 
+        tree = self.component_tree(instance)
+        if tree is not None:
+            children = [self.map_component(tree)]
+            known = {a.id for a in actions}
+            actions += [
+                Action(id=a) for a in self.collect_action_ids(tree) if a not in known
+            ]
+        else:
+            children = self.form_cards(cls, instance)
+
         compact = bool(class_flag(cls, "__mateu_compact__", False))
         page_meta = PageMetadata(
             title=title,
@@ -164,7 +192,7 @@ class ReflectionMapper:
         )
         page = ClientSideComponent(
             metadata=page_meta,
-            children=self.form_cards(cls, instance),
+            children=children,
             style="--mateu-compact:1" if compact else None,
         )
         triggers, emits = self.events_of(cls)
@@ -179,6 +207,285 @@ class ReflectionMapper:
             emits_name=emits,
             confirm_on_navigation_if_dirty=bool(class_flag(cls, "__mateu_confirm_dirty__", False)),
         )
+
+    # ── Fluent component trees & declarative archetypes ───────────────────────
+    def component_tree(self, instance):
+        """The component tree of an archetype / ``ComponentTreeSupplier`` view (a fluent
+        component or an already-mapped ``ClientSideComponent``), or ``None`` for form views."""
+        if isinstance(instance, Dashboard):
+            return self.compose_dashboard(instance)
+        if isinstance(instance, Foldout):
+            return self.compose_foldout(instance)
+        if isinstance(instance, ItemOverview):
+            return self.compose_item_overview(instance)
+        if isinstance(instance, Welcome):
+            return self.compose_welcome(instance)
+        if isinstance(instance, ComponentTreeSupplier):
+            return instance.component()
+        return None
+
+    def _component_fields(self, instance):
+        """``(field, value)`` for every declared field holding a fluent component value."""
+        out = []
+        for f in view_fields(type(instance)):
+            value = getattr(instance, f.name, None)
+            if isinstance(value, fluent.Component):
+                out.append((f, value))
+        return out
+
+    def _panel_title(self, f, panel: Panel) -> str:
+        if panel.title:
+            return panel.title
+        return self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
+
+    def compose_dashboard(self, instance: Dashboard) -> fluent.DashboardLayout:
+        items: list[fluent.Component] = []
+        pending: list[fluent.MetricCard] = []
+
+        def flush():
+            if pending:
+                items.append(fluent.Scoreboard(metrics=tuple(pending)))
+                pending.clear()
+
+        for f, value in self._component_fields(instance):
+            if isinstance(value, fluent.MetricCard):
+                pending.append(value)
+                continue
+            flush()
+            panel = f.marker(Panel)
+            if panel is not None:
+                items.append(
+                    fluent.DashboardPanel(
+                        id=camel_case(f.name),
+                        title=self._panel_title(f, panel),
+                        subtitle=panel.subtitle or None,
+                        col_span=panel.col_span,
+                        row_span=panel.row_span,
+                        content=value,
+                    )
+                )
+            else:
+                items.append(value)
+        flush()
+        return fluent.DashboardLayout(columns=instance.columns(), items=tuple(items))
+
+    def compose_foldout(self, instance: Foldout) -> fluent.FoldoutLayout:
+        overview: fluent.Component | None = None
+        panels: list[fluent.FoldoutPanel] = []
+        for f, value in self._component_fields(instance):
+            panel = f.marker(Panel)
+            if panel is None:
+                if overview is None:
+                    overview = value
+                continue
+            panels.append(
+                fluent.FoldoutPanel(
+                    id=camel_case(f.name),
+                    title=self._panel_title(f, panel),
+                    subtitle=panel.subtitle or None,
+                    icon=panel.icon or None,
+                    open=panel.open,
+                    content=value,
+                )
+            )
+        return fluent.FoldoutLayout(overview=overview, panels=tuple(panels))
+
+    def compose_item_overview(self, instance: ItemOverview) -> ClientSideComponent:
+        key_info: fluent.Component | None = None
+        tabs: list[tuple[str, fluent.Component]] = []
+        for f, value in self._component_fields(instance):
+            panel = f.marker(Panel)
+            if panel is None:
+                if key_info is None:
+                    key_info = value
+                continue
+            tabs.append((self._panel_title(f, panel), value))
+        content = []
+        if key_info is not None:
+            card = self.client(CardMetadata(content=self.map_component(key_info)), "key-info", [])
+            card.style = (
+                f"flex: 0 0 {instance.panel_width()}; align-self: flex-start; "
+                "position: sticky; top: 1rem;"
+            )
+            content.append(card)
+        tab_comps = [
+            self.client(TabMetadata(label=label, active=i == 0), None, [self.map_component(c)])
+            for i, (label, c) in enumerate(tabs)
+        ]
+        tab_layout = self.client(TabLayoutMetadata(), "item-tabs", tab_comps)
+        tab_layout.style = "flex: 1; min-width: 0;"
+        content.append(tab_layout)
+        return self.client(HorizontalLayoutMetadata(spacing=True), None, content)
+
+    def compose_welcome(self, instance: Welcome) -> ClientSideComponent:
+        ctas: list[fluent.Component] = []
+        tiles: list[fluent.Component] = []
+        for f, value in self._component_fields(instance):
+            if isinstance(value, fluent.Button):
+                ctas.append(value)
+                continue
+            panel = f.marker(Panel)
+            if panel is not None:
+                tiles.append(
+                    fluent.DashboardPanel(
+                        id=camel_case(f.name),
+                        title=self._panel_title(f, panel),
+                        subtitle=panel.subtitle or None,
+                        col_span=panel.col_span,
+                        row_span=panel.row_span,
+                        content=value,
+                    )
+                )
+            else:
+                tiles.append(value)
+        content = [
+            self.map_component(
+                fluent.HeroSection(
+                    id="hero",
+                    title=instance.hero_title(),
+                    subtitle=instance.hero_subtitle(),
+                    image=instance.hero_image(),
+                    centered=True,
+                    content=tuple(ctas),
+                )
+            )
+        ]
+        if tiles:
+            content.append(
+                self.map_component(fluent.DashboardLayout(id="highlights", items=tuple(tiles)))
+            )
+        return self.client(VerticalLayoutMetadata(spacing=True), None, content)
+
+    def map_component(self, c) -> ClientSideComponent:
+        """A fluent component (``mateu_uidl.components``) -> its wire ClientSide component.
+        The Python port of the Java Metric/Scoreboard/Dashboard/Foldout/Hero/… mappers."""
+        if isinstance(c, ClientSideComponent):  # pre-composed (archetype wrappers)
+            return c
+        if isinstance(c, fluent.MetricCard):
+            meta = MetricCardMetadata(
+                title=c.title,
+                value=c.value,
+                unit=c.unit,
+                trend=c.trend.value if c.trend is not None else None,
+                trend_label=c.trend_label,
+                icon=c.icon,
+                description=c.description,
+                action_id=c.action_id,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.Scoreboard):
+            return self._fluent_client(
+                ScoreboardMetadata(), c, [self.map_component(m) for m in c.metrics]
+            )
+        if isinstance(c, fluent.DashboardPanel):
+            meta = DashboardPanelMetadata(
+                title=c.title, subtitle=c.subtitle, col_span=c.col_span, row_span=c.row_span
+            )
+            children = [self.map_component(c.content)] if c.content is not None else []
+            return self._fluent_client(meta, c, children)
+        if isinstance(c, fluent.DashboardLayout):
+            return self._fluent_client(
+                DashboardLayoutMetadata(columns=c.columns),
+                c,
+                [self.map_component(i) for i in c.items],
+            )
+        if isinstance(c, fluent.FoldoutLayout):
+            children = []
+            if c.overview is not None:
+                overview = self.map_component(c.overview)
+                overview.slot = "overview"
+                children.append(overview)
+            infos = []
+            for i, panel in enumerate(c.panels):
+                infos.append(
+                    FoldoutPanelInfo(
+                        title=panel.title, subtitle=panel.subtitle, icon=panel.icon, open=panel.open
+                    )
+                )
+                if panel.content is not None:
+                    child = self.map_component(panel.content)
+                    child.slot = f"panel-{i}"
+                    children.append(child)
+            return self._fluent_client(FoldoutLayoutMetadata(panels=infos), c, children)
+        if isinstance(c, fluent.HeroSection):
+            meta = HeroSectionMetadata(
+                title=c.title, subtitle=c.subtitle, image=c.image, height=c.height, centered=c.centered
+            )
+            return self._fluent_client(meta, c, [self.map_component(i) for i in c.content])
+        if isinstance(c, fluent.EmptyState):
+            meta = EmptyStateMetadata(
+                icon=c.icon,
+                title=c.title,
+                description=c.description,
+                action_id=c.action_id,
+                action_label=c.action_label,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.Skeleton):
+            variant = c.variant.value if c.variant is not None else "text"
+            return self._fluent_client(SkeletonMetadata(variant=variant, count=c.count), c)
+        if isinstance(c, fluent.Gantt):
+            tasks = [
+                GanttTaskRecord(
+                    id=t.id,
+                    title=t.title,
+                    start=t.start.isoformat() if t.start is not None else None,
+                    end=t.end.isoformat() if t.end is not None else None,
+                    progress=t.progress,
+                    color=t.color,
+                )
+                for t in c.tasks
+            ]
+            return self._fluent_client(GanttMetadata(tasks=tasks), c)
+        if isinstance(c, fluent.Button):
+            meta = ButtonMetadata(
+                label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
+                button_style=c.button_style,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.Text):
+            return self._fluent_client(TextMetadata(text=self.T(c.text)), c)
+        raise TypeError(f"Unsupported fluent component: {type(c).__name__}")
+
+    def _fluent_client(self, meta, c, children=None) -> ClientSideComponent:
+        return ClientSideComponent(
+            metadata=meta,
+            id=c.id,
+            children=children or [],
+            style=c.style,
+            css_classes=c.css_classes,
+        )
+
+    def collect_action_ids(self, c) -> list[str]:
+        """Action ids referenced anywhere in a fluent tree (for the component's actions list)."""
+        out: list[str] = []
+
+        def walk(node):
+            if node is None:
+                return
+            if isinstance(node, ClientSideComponent):
+                aid = getattr(node.metadata, "action_id", None)
+                if aid:
+                    out.append(aid)
+                walk(getattr(node.metadata, "content", None))
+                for child in node.children:
+                    walk(child)
+                return
+            if not isinstance(node, fluent.Component):
+                return
+            aid = getattr(node, "action_id", None)
+            if aid:
+                out.append(aid)
+            for attr in ("content", "overview", "items", "metrics", "panels"):
+                v = getattr(node, attr, None)
+                if isinstance(v, (fluent.Component, ClientSideComponent)):
+                    walk(v)
+                elif isinstance(v, (list, tuple)):
+                    for i in v:
+                        walk(i)
+
+        walk(c)
+        return list(dict.fromkeys(out))
 
     # ── Decorations ────────────────────────────────────────────────────────────
     def banners(self, cls, instance) -> list[Banner]:

@@ -8,7 +8,7 @@ for the sibling implementation.
 > **The leverage:** the renderers are backend-agnostic — they POST `/mateu/v3/sync/{route}` and
 > consume the `UIIncrement` JSON. So this is **not** a port of the ~865-file Java framework; it just
 > **emits the same JSON**. Verified by diffing the live output against the C# reference: the
-> `showcase` view is byte-identical (310/310 lines). 13 golden-JSON tests pass.
+> `showcase` view is byte-identical (310/310 lines). 18 golden-JSON tests pass.
 
 ## What works
 
@@ -25,6 +25,15 @@ for the sibling implementation.
   `PlainText`, `Stereotype`); `@kpi` → KPI cards; `@fab` → floating action buttons; `@shortcut`;
   `@compact`; `@confirm_on_navigation_if_dirty`.
 - **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `@secured`.
+- **UX-pattern components** (`mateu_uidl.components`, same wire JSON as the Java
+  `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,
+  `DashboardLayout`, `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
+  slotted `panel-N`), `HeroSection`, `EmptyState`, `Skeleton` (+ `SkeletonVariant`), `Gantt` /
+  `GanttTask`, plus fluent `Text` and `Button`.
+- **Declarative archetypes** — subclass `Dashboard` / `Foldout` / `ItemOverview` / `Welcome` and
+  declare type-hinted fields holding components; `Panel(title, subtitle, col_span, row_span, icon,
+  open)` in `Annotated[...]` marks titled panels/tabs/tiles (the analogue of Java's `@Panel`).
+  Or subclass `ComponentTreeSupplier` and return any fluent component tree from `component()`.
 
 ## Projects
 
@@ -76,6 +85,27 @@ class Reservations(Crud[Reservation]):
 class DemoApp:
     @menu_item("Person")
     def person(self) -> Person: return Person()
+```
+
+Dashboards, foldouts and Gantt charts use the fluent components + archetypes:
+
+```python
+from datetime import date
+from mateu_uidl import ui, title, Dashboard, Panel
+from mateu_uidl.components import MetricCard, MetricTrend, Gantt, GanttTask
+
+@ui("dashboard")
+@title("Sales dashboard")
+class SalesDashboard(Dashboard):
+    revenue: MetricCard = MetricCard(title="Revenue", value="1.2", unit="M€",
+                                     trend=MetricTrend.up, action_id="openRevenue")
+    incidents: MetricCard = MetricCard(title="Incidents", value="3", trend=MetricTrend.down)
+    plan: Annotated[Gantt, Panel("Rollout plan", col_span=2)] = Gantt(tasks=(
+        GanttTask(id="t1", title="Design", start=date(2026, 7, 1), end=date(2026, 7, 20),
+                  progress=80.0),
+    ))
+
+    def open_revenue(self): ...   # runs when the Revenue tile is clicked
 ```
 
 ## Note for Python 3.14+

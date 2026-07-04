@@ -114,6 +114,21 @@ class Step:
     step: int
 
 
+@dataclass(frozen=True)
+class Panel:
+    """Marks a component-holding field of a ``Dashboard`` / ``Foldout`` / ``ItemOverview`` /
+    ``Welcome`` archetype as a titled panel (the Python analogue of Java's ``@Panel``)."""
+
+    title: str = ""
+    subtitle: str = ""
+    col_span: int = 1
+    row_span: int = 1
+    #: Icon shown on the panel strip (foldout pages).
+    icon: str = ""
+    #: Whether the panel starts folded out (foldout pages).
+    open: bool = True
+
+
 # ── Method-level feature descriptors (set by decorators) ───────────────────────
 @dataclass(frozen=True)
 class _Banner:
@@ -299,12 +314,65 @@ class Translator:
         raise NotImplementedError
 
 
+class ComponentTreeSupplier:
+    """A view that supplies its UI as a fluent component tree (see ``mateu_uidl.components``)
+    instead of reflected form fields. The Python analogue of Java's ``ComponentTreeSupplier``."""
+
+    def component(self):
+        raise NotImplementedError
+
+
+class Dashboard(ComponentTreeSupplier):
+    """Declarative dashboard landing page. Declare type-hinted fields holding fluent components:
+
+    - consecutive ``MetricCard`` fields group into a full-width ``Scoreboard`` KPI band;
+    - component fields annotated ``Panel(title, subtitle, col_span, row_span)`` become titled
+      tiles on a responsive grid;
+    - any other component field lands on the grid as-is.
+
+    Override :meth:`columns` to fix the column count (0 = auto-fit)."""
+
+    def columns(self) -> int:
+        return 0
+
+
+class Foldout(ComponentTreeSupplier):
+    """Declarative Redwood-style foldout page: the first component field without ``Panel`` is the
+    always-visible overview; ``Panel(title, subtitle, icon, open)`` fields are lateral fold-out
+    panels."""
+
+
+class ItemOverview(ComponentTreeSupplier):
+    """Item overview page: the first component field without ``Panel`` is the key-info panel
+    (left, sticky); ``Panel(title)`` fields become tabs on the right. Override
+    :meth:`panel_width` to change the key-info panel width."""
+
+    def panel_width(self) -> str:
+        return "22rem"
+
+
+class Welcome(ComponentTreeSupplier):
+    """Welcome page: ``Button`` fields become call-to-action buttons inside a centered hero;
+    ``Panel(title)`` component fields become highlight tiles on a grid below. Override
+    :meth:`hero_title` / :meth:`hero_subtitle` / :meth:`hero_image` for the hero chrome."""
+
+    def hero_title(self) -> str | None:
+        return None
+
+    def hero_subtitle(self) -> str | None:
+        return None
+
+    def hero_image(self) -> str | None:
+        return None
+
+
 __all__ = [
     "Message", "MessageVariant", "BannerTheme",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "HeaderBadge", "Step",
+    "Money", "PlainText", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "compact", "confirm_on_navigation_if_dirty",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
     "Crud", "Wizard", "Translator",
+    "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome",
 ]

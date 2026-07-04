@@ -2,9 +2,11 @@
 
 > Status: **implemented & verified**. Forms + sections + field types + validation, `Crud[T]`
 > (list / detail / edit / new / save / delete), the `@app` shell + menu navigation, wizards,
-> page decorations, i18n, events, security scaffolding, and the tail features (tabs, stereotypes,
-> KPIs, FABs, shortcuts, compact, unsaved-changes guard). 13 golden-JSON tests pass; the live
-> `showcase` view is byte-identical to the C# reference.
+> page decorations, i18n, events, security scaffolding, the tail features (tabs, stereotypes,
+> KPIs, FABs, shortcuts, compact, unsaved-changes guard), and the UX-pattern components
+> (MetricCard/Scoreboard/DashboardPanel/DashboardLayout, FoldoutLayout, HeroSection, EmptyState,
+> Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome declarative archetypes.
+> 18 golden-JSON tests pass; the live `showcase` view is byte-identical to the C# reference.
 
 ## 1. Guiding principle: the renderers are backend-agnostic
 
