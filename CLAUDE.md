@@ -130,6 +130,9 @@ cd apps/sapui5 && yarn dev
 # Build a renderer and copy assets into backend
 cd apps/vaadin && yarn copy      # builds + copies to backend/shared/frontend/vaadin-lit/...
 cd apps/sapui5 && yarn copy
+
+# Unit tests of the shared lib (vitest; pure logic: weightEngine, interpolation, shortcuts, dirtyGuard…)
+yarn test                        # from monorepo root (delegates to libs/mateu) or cd libs/mateu && yarn test
 ```
 
 ### E2E Tests (from `e2e/`)

@@ -26,21 +26,20 @@ final class FormSectionGrouper {
     for (Field field : fields) {
       // Only start a new section when the section name actually changes.
       // Consecutive fields sharing the same @Section value belong to the same group.
+      // Meta-aware read so composed (semantic) annotations carrying @Section also work here.
+      Section fieldSection = MetaAnnotations.find(field, Section.class);
       boolean startsNewSection =
           sectionFields == null
-              || (MetaAnnotations.isPresent(field, Section.class)
+              || (fieldSection != null
                   && (sectionAnnotation == null
-                      || !field
-                          .getAnnotation(Section.class)
-                          .value()
-                          .equals(sectionAnnotation.value())));
+                      || !fieldSection.value().equals(sectionAnnotation.value())));
       if (startsNewSection) {
         if (sectionFields != null) {
           fieldsPerSection.put(sectionAnnotation, sectionFields);
           sections.add(sectionAnnotation);
         }
-        if (MetaAnnotations.isPresent(field, Section.class)) {
-          sectionAnnotation = MetaAnnotations.find(field, Section.class);
+        if (fieldSection != null) {
+          sectionAnnotation = fieldSection;
         } else {
           final int cols = maxColumns;
           sectionAnnotation =
