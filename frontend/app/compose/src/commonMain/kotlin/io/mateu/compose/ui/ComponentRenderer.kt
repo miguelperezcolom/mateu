@@ -60,6 +60,15 @@ private fun RenderClientSide(component: JsonNode, state: JsonNode, data: JsonNod
         "ProgressBar" -> RenderProgressBar(metadata, state)
         "Dialog" -> RenderDialog(component, metadata, state, data, app)
         "ConfirmDialog" -> RenderConfirmDialog(metadata, state, data, app)
+        "MetricCard" -> RenderMetricCard(metadata, app)
+        "Scoreboard" -> RenderScoreboard(component, state, data, app)
+        "DashboardPanel" -> RenderDashboardPanel(component, metadata, state, data, app)
+        "DashboardLayout" -> RenderDashboardLayout(component, metadata, state, data, app)
+        "FoldoutLayout" -> RenderFoldoutLayout(component, metadata, state, data, app)
+        "HeroSection" -> RenderHeroSection(component, metadata, state, data, app)
+        "EmptyState" -> RenderEmptyState(metadata, app)
+        "Skeleton" -> RenderSkeleton(metadata)
+        "Gantt" -> RenderGantt(metadata)
         else -> {
             val t = metadata.text("type")
             if (t.isNotBlank()) {

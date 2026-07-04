@@ -142,6 +142,8 @@ The Compose renderer is a single **[Compose Multiplatform](https://www.jetbrains
 
 **How it works:** like every Mateu renderer it calls `POST /mateu/v3/sync/{route}`, receives the component tree, and renders it — here with native **Compose** widgets. All rendering logic lives in `commonMain` and is shared verbatim across targets; each platform only provides a tiny entry point and an HTTP engine.
 
+The Compose renderer also covers the UX-pattern components (`MetricCard`, `Scoreboard`, `DashboardPanel`, `DashboardLayout`, `FoldoutLayout`, `HeroSection`, `EmptyState`, `Skeleton`, `Gantt`), so dashboards, foldout record pages, hero/welcome pages and Gantt timelines defined with the archetypes render natively on desktop and mobile too (shared `ui/UxRenderers.kt`, used by both the Material 3 and the desktop Jewel dispatchers). `MetricCard` and `EmptyState` actions dispatch through the same mechanism as buttons; the foldout's open/closed state is local UI state, exactly like the web's `mateu-foldout`.
+
 **Responsive UI** — the same screens adapt to the form factor:
 
 - On wide (desktop) viewports the left menu is an inline sidebar and CRUD listings render as a **table**.

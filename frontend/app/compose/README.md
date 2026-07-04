@@ -17,6 +17,9 @@ src/
     state/AppState.kt       ← session state holder (observable slots, navigation, actions)
     ui/MateuApp.kt          ← platform-agnostic root composable (each entry point hosts it)
     ui/                     ← all the @Composable renderers + Json.kt (JsonElement helpers)
+    ui/UxRenderers.kt       ← UX-pattern components (MetricCard, Scoreboard, DashboardPanel/Layout,
+                              FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) — shared by the
+                              Material 3 and the desktop Jewel dispatchers via a child-renderer hook
   desktopMain/kotlin/io/mateu/compose/
     Main.kt                 ← desktop entry point (Window/application)
     api/Platform.desktop.kt ← `actual fun createHttpClient()` = HttpClient(CIO)

@@ -109,6 +109,17 @@ private fun RenderClientSide(component: JsonNode, state: JsonNode, data: JsonNod
         "ProgressBar" -> RenderProgressBar(metadata, state)
         "Dialog" -> RenderDialog(component, metadata, state, data, app)
         "ConfirmDialog" -> RenderConfirmDialog(metadata, state, data, app)
+        // UX-pattern components — shared commonMain renderers (design-system-neutral drawing);
+        // children recurse through THIS dispatcher so nested components keep the Jewel widgets.
+        "MetricCard" -> RenderMetricCard(metadata, app)
+        "Scoreboard" -> RenderScoreboard(component, state, data, app, renderChild = jewelChildRenderer)
+        "DashboardPanel" -> RenderDashboardPanel(component, metadata, state, data, app, renderChild = jewelChildRenderer)
+        "DashboardLayout" -> RenderDashboardLayout(component, metadata, state, data, app, renderChild = jewelChildRenderer)
+        "FoldoutLayout" -> RenderFoldoutLayout(component, metadata, state, data, app, renderChild = jewelChildRenderer)
+        "HeroSection" -> RenderHeroSection(component, metadata, state, data, app, renderChild = jewelChildRenderer)
+        "EmptyState" -> RenderEmptyState(metadata, app)
+        "Skeleton" -> RenderSkeleton(metadata)
+        "Gantt" -> RenderGantt(metadata)
         else -> {
             val t = metadata.text("type")
             if (t.isNotBlank()) {
@@ -124,6 +135,9 @@ private fun updateContext(component: JsonNode, app: AppState) {
     val id = component.text("id")
     if (id.isNotBlank()) app.currentComponentId = id
 }
+
+/** Child recursion for the shared UX renderers: back through the Jewel dispatcher. */
+private val jewelChildRenderer: UxChildRenderer = { c, s, d, a -> RenderComponent(c, s, d, a) }
 
 /** Renders every [SlotContent] currently assigned to [id]; recomposes when the slot changes. */
 @Composable
