@@ -15,6 +15,7 @@ import "@vaadin/dialog"
 import "@vaadin/upload"
 import { dialogRenderer, dialogFooterRenderer } from "@vaadin/dialog/lit"
 import "@vaadin/grid"
+import { columnBodyRenderer } from "@vaadin/grid/lit"
 import "@vaadin/card"
 import './mateu-filter-bar'
 import './mateu-content-header'
@@ -565,6 +566,64 @@ export class MateuTableCrud extends LitElement {
                 </div>`
         }
 
+        // Hierarchical tree grid. Rows carry a self-referential `children` array; the first visible
+        // column is the expandable tree column. Behaviour mirrors renderTwoLineList: clicking a node
+        // dispatches the `view` action (drives the split detail pane) and the open node is highlighted
+        // by matching its id against appState._splitDetailId.
+        const renderTree = () => {
+            const idField = this.identifierFieldName
+            const selectedId = this.state._selectedId ?? this.appState?._splitDetailId
+            const treeCol = allCols[0]
+            const restCols = allCols.slice(1)
+            // The list resolver injects actionId 'view' on the first column (withViewOnFirstColumn) when the
+            // crud is navigable; reuse its presence as the "is navigable" signal and render a per-row View
+            // button (so the disclosure toggle only expands/collapses and never opens by accident). The
+            // action is dispatched FROM THE ROW with the row in `parameters`, so a composite id
+            // (e.g. "aggregate:123") reaches the view route intact (the id in the row, not the opened form).
+            const navigable = !!treeCol?.actionId
+
+            const dataProvider = (params: any, callback: any) => {
+                const items = params.parentItem ? (params.parentItem.children ?? []) : rows
+                callback(items, items.length)
+            }
+
+            const findById = (items: any[], id: string): any => {
+                for (const it of items ?? []) {
+                    if (idField && String(it[idField]) === id) return it
+                    const found = findById(it.children, id)
+                    if (found) return found
+                }
+                return undefined
+            }
+            const selectedItem = (idField && selectedId !== undefined) ? findById(rows, String(selectedId)) : undefined
+
+            const openRow = (e: Event, item: any, action: string) => {
+                e.stopPropagation()
+                if (idField && item[idField] !== undefined) {
+                    this.state = { ...this.state, _selectedId: String(item[idField]) }
+                }
+                this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: action, parameters: item }, bubbles: true, composed: true }))
+            }
+
+            return html`
+                <vaadin-grid
+                    style="width: 100%;"
+                    all-rows-visible
+                    .itemHasChildrenPath="${'children'}"
+                    .itemIdPath="${idField ?? 'id'}"
+                    .dataProvider="${dataProvider}"
+                    .selectedItems="${selectedItem ? [selectedItem] : []}"
+                >
+                    ${treeCol ? html`<vaadin-grid-tree-column path="${treeCol.id}" header="${treeCol.label ?? nothing}" flex-grow="1"></vaadin-grid-tree-column>` : nothing}
+                    ${navigable ? html`
+                    <vaadin-grid-column width="6rem" flex-grow="0" text-align="end" ${columnBodyRenderer((item: any) => item?.viewable === false ? nothing : html`
+                        <vaadin-button theme="tertiary small" @click="${(e: Event) => openRow(e, item, 'view')}">View</vaadin-button>
+                    `, [])}></vaadin-grid-column>` : nothing}
+                    ${restCols.map(c => html`<vaadin-grid-column path="${c.id}" header="${c.label ?? nothing}" auto-width></vaadin-grid-column>`)}
+                    <span slot="empty-state">${emptyMsg ?? 'No data.'}</span>
+                </vaadin-grid>`
+        }
+
         const contentHtml = html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
@@ -576,6 +635,7 @@ export class MateuTableCrud extends LitElement {
                 </vaadin-scroller>
             ` : renderCards())
             : gridLayout === 'masterDetail' ? renderMasterDetail()
+            : gridLayout === 'tree' ? renderTree()
             : componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)}
             <slot></slot>
         `

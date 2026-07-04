@@ -10,5 +10,7 @@ public enum GridLayout {
   /** Card tiles — preferred when image/html stereotypes are present. */
   cards,
   /** Split panel: row list on the left, detail view on the right. */
-  masterDetail
+  masterDetail,
+  /** Hierarchical tree grid — rows carry a self-referential {@code children} list. */
+  tree
 }

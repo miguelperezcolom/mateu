@@ -98,10 +98,10 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                             style="width: 100%;"
                                             .appState="${{...appState, _splitDetailId}}"
                                             .appData="${appData}"
-                                            instant="${container.instant}"
+                                            instant="${_splitConsumedRoute}"
                                             @navigation-requested="${container.updateRoute}"
                                     ></mateu-ux>
-                                    </div>  
+                                    </div>
                                 </mateu-api-caller>
                                 <mateu-api-caller slot="detail">
                                     <div style="padding-left: 1rem; width: calc(100% - 1rem);">

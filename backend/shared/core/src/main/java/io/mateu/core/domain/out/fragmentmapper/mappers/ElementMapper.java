@@ -9,7 +9,8 @@ public class ElementMapper {
 
   public static ClientSideComponentDto mapElementToDto(Element element) {
     return new ClientSideComponentDto(
-        new ElementDto(element.name(), element.attributes(), element.on(), element.content()),
+        new ElementDto(
+            element.name(), element.attributes(), element.on(), element.content(), element.html()),
         "fieldId",
         List.of(),
         element.style(),

@@ -3,7 +3,7 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 
 export const PX_PER_UNIT = 76
 
-export type ResolvedGridLayout = 'table' | 'list' | 'cards' | 'masterDetail'
+export type ResolvedGridLayout = 'table' | 'list' | 'cards' | 'masterDetail' | 'tree'
 export type ResolvedFiltersLayout = 'inline' | 'popover' | 'drawer' | 'dialog'
 
 /** Weight table (1u ≈ 76px) — mirrors WeightEstimator.base() on the Java side. */

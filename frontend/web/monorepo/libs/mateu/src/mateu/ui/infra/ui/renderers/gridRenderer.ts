@@ -51,8 +51,14 @@ export const renderGrid = (
                      slot="${component.slot??nothing}"
                      all-rows-visible
         >
-            ${metadata.content.map((mateuColumn, index) => index > 0?html`
+            ${metadata.content.map((mateuColumn, index) => {
+            const col = mateuColumn.metadata as GridColumn
+            return index > 0?html`
             <vaadin-grid-column path="${mateuColumn.id}"
+                                header="${col?.label ?? nothing}"
+                                ?auto-width="${col?.autoWidth}"
+                                flex-grow="${col?.flexGrow ?? nothing}"
+                                width="${col?.width ?? nothing}"
                                 .column="${mateuColumn.metadata}"
                                 ${columnBodyRenderer(
                     (item: any,
@@ -60,7 +66,7 @@ export const renderGrid = (
                      column: VaadinGridColumn) => columnRenderer(item,
                             model,
                             column,
-                            mateuColumn.metadata as GridColumn,
+                            col,
                             container,
                             baseUrl,
                             state,
@@ -68,10 +74,15 @@ export const renderGrid = (
                     appState,
                     appData),
                     []
-            )}>${index} - ${(mateuColumn.metadata as GridColumn)?.label}</vaadin-grid-column>
+            )}></vaadin-grid-column>
 `:html`
-            <vaadin-grid-tree-column path="${mateuColumn.id}">${index} - ${(mateuColumn.metadata as GridColumn)?.label}</vaadin-grid-tree-column>
-`)}
+            <vaadin-grid-tree-column path="${mateuColumn.id}"
+                                header="${col?.label ?? nothing}"
+                                ?auto-width="${col?.autoWidth}"
+                                flex-grow="${col?.flexGrow ?? nothing}"
+                                width="${col?.width ?? nothing}"
+            ></vaadin-grid-tree-column>
+`})}
             <span slot="empty-state">No data.</span>
         </vaadin-grid>
     `

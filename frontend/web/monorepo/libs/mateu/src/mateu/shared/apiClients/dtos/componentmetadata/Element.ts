@@ -5,4 +5,6 @@ export default interface Element extends ComponentMetadata {
     content: string
     attributes: Record<string, any>
     on: Record<string, string>
+    // When true, `content` is injected as raw HTML (innerHTML) instead of escaped text.
+    html?: boolean
 }

@@ -31,7 +31,11 @@ const hydrate = (htmlElement: any, element: Element, component: ClientSideCompon
         htmlElement.setAttribute('slot', component.slot)
     }
     if (element.content) {
-        htmlElement.append(element.content)
+        if (element.html) {
+            htmlElement.innerHTML = element.content
+        } else {
+            htmlElement.append(element.content)
+        }
     }
 }
 
