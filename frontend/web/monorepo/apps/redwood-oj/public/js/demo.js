@@ -26,6 +26,7 @@ require([
             "oj-c/table/table",
             "oj-c/badge/badge",
             "oj-c/menu-button/menu-button",
+            "oj-c/progress-bar/progress-bar",
             "ojs/ojarraydataprovider"
         ],
         function (require, exports, ko, ojbootstrap_1) {

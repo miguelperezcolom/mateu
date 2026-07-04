@@ -13,7 +13,19 @@ import {
     renderFormLayout, renderFormRow, renderFormSection, renderFormSubSection,
     renderHorizontalLayout, renderVerticalLayout, renderSplitLayout, renderCard,
     renderText, renderBadge, renderAnchor, renderDialog, renderConfirmDialog,
+    renderScroller, renderFullWidth, renderContainer,
+    renderBoardLayout, renderBoardLayoutRow, renderBoardLayoutItem,
+    renderMasterDetailLayout, renderCarouselLayout,
 } from "@/renderers/renderLayouts.ts";
+import {
+    renderIcon, renderBreadcrumbs, renderNotification, renderProgressBar,
+    renderDetails, renderAvatar, renderAvatarGroup, renderTooltip,
+    renderPopover, renderMenuBar, renderContextMenu,
+} from "@/renderers/renderDisplayComponents.ts";
+import {
+    renderGrid, renderTable, renderVirtualList, renderDirectory,
+    renderCustomField, renderMessageList, renderMessageInput,
+} from "@/renderers/renderData.ts";
 import './components/mateu-redwood-tabs'
 import './components/mateu-redwood-accordion'
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud.ts";
@@ -49,10 +61,16 @@ export const handleButtonClick = (event: Event) => {
 /**
  * Types this renderer supports: everything handled by its own switch below (App is handled via
  * renderAppComponent, reached through the shared mateu-app infra), plus types it deliberately
- * delegates to the shared infra (Crud → mateu-table-crud, which calls back into this renderer's
- * table/filter-bar/pagination; Element/Div/Image/MicroFrontend are design-system-agnostic).
+ * delegates to the shared, design-system-agnostic infra (Element/Div/Image/MicroFrontend
+ * markup; Crud → mateu-table-crud, which calls back into this renderer's table/filter-bar/
+ * pagination; Chart/Bpmn render canvas/SVG; mateu-map renders an OpenLayers canvas;
+ * mateu-markdown renders plain HTML typography; CookieConsent renders plain markup; and, since
+ * parity phase 2, the Chat side panel and the Workflow/WorkflowElk/FormEditor SVG editors use
+ * neutral plain-HTML chrome — no Vaadin components left in any of them).
+ *
  * Anything else renders a visible <mateu-unsupported> placeholder instead of silently falling
- * back to Vaadin-flavoured components (parity phase 0).
+ * back to Vaadin-flavoured components (parity phase 0). This set currently covers the full
+ * shared switch (renderClientSideComponent.ts).
  */
 const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     // own switch (+ App via renderAppComponent)
@@ -68,20 +86,55 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.HorizontalLayout,
     ComponentMetadataType.VerticalLayout,
     ComponentMetadataType.SplitLayout,
+    ComponentMetadataType.MasterDetailLayout,
+    ComponentMetadataType.Scroller,
+    ComponentMetadataType.FullWidth,
+    ComponentMetadataType.Container,
+    ComponentMetadataType.BoardLayout,
+    ComponentMetadataType.BoardLayoutRow,
+    ComponentMetadataType.BoardLayoutItem,
+    ComponentMetadataType.CarouselLayout,
     ComponentMetadataType.Card,
     ComponentMetadataType.Text,
     ComponentMetadataType.Badge,
     ComponentMetadataType.Anchor,
+    ComponentMetadataType.Icon,
+    ComponentMetadataType.Breadcrumbs,
+    ComponentMetadataType.Notification,
+    ComponentMetadataType.ProgressBar,
+    ComponentMetadataType.Details,
+    ComponentMetadataType.Avatar,
+    ComponentMetadataType.AvatarGroup,
+    ComponentMetadataType.Tooltip,
+    ComponentMetadataType.Popover,
+    ComponentMetadataType.MenuBar,
+    ComponentMetadataType.ContextMenu,
     ComponentMetadataType.TabLayout,
     ComponentMetadataType.AccordionLayout,
     ComponentMetadataType.Dialog,
     ComponentMetadataType.ConfirmDialog,
+    ComponentMetadataType.Grid,
+    ComponentMetadataType.Table,
+    ComponentMetadataType.VirtualList,
+    ComponentMetadataType.Directory,
+    ComponentMetadataType.CustomField,
+    ComponentMetadataType.MessageList,
+    ComponentMetadataType.MessageInput,
     // deliberate delegation to shared, design-system-agnostic infra
     ComponentMetadataType.Crud,
     ComponentMetadataType.Element,
     ComponentMetadataType.Div,
     ComponentMetadataType.Image,
     ComponentMetadataType.MicroFrontend,
+    ComponentMetadataType.Markdown,
+    ComponentMetadataType.Chart,
+    ComponentMetadataType.Bpmn,
+    ComponentMetadataType.Map,
+    ComponentMetadataType.Chat,
+    ComponentMetadataType.CookieConsent,
+    ComponentMetadataType.Workflow,
+    ComponentMetadataType.WorkflowElk,
+    ComponentMetadataType.FormEditor,
 ])
 
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
@@ -188,7 +241,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
             return renderButton(component, baseUrl, state, data)
         }
         if (ComponentMetadataType.FormField == component?.metadata?.type) {
-            return renderField(component, baseUrl, state, data)
+            return renderField(container, component, baseUrl, state, data)
         }
         if (ComponentMetadataType.FormLayout == component?.metadata?.type) {
             return renderFormLayout(container, component, baseUrl, state, data, appState, appData)
@@ -211,6 +264,30 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         if (ComponentMetadataType.SplitLayout == component?.metadata?.type) {
             return renderSplitLayout(container, component, baseUrl, state, data, appState, appData)
         }
+        if (ComponentMetadataType.MasterDetailLayout == component?.metadata?.type) {
+            return renderMasterDetailLayout(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Scroller == component?.metadata?.type) {
+            return renderScroller(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.FullWidth == component?.metadata?.type) {
+            return renderFullWidth(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Container == component?.metadata?.type) {
+            return renderContainer(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.BoardLayout == component?.metadata?.type) {
+            return renderBoardLayout(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.BoardLayoutRow == component?.metadata?.type) {
+            return renderBoardLayoutRow(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.BoardLayoutItem == component?.metadata?.type) {
+            return renderBoardLayoutItem(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.CarouselLayout == component?.metadata?.type) {
+            return renderCarouselLayout(container, component, baseUrl, state, data, appState, appData)
+        }
         if (ComponentMetadataType.Card == component?.metadata?.type) {
             return renderCard(container, component, baseUrl, state, data, appState, appData)
         }
@@ -222,6 +299,60 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         }
         if (ComponentMetadataType.Anchor == component?.metadata?.type) {
             return renderAnchor(component)
+        }
+        if (ComponentMetadataType.Icon == component?.metadata?.type) {
+            return renderIcon(component)
+        }
+        if (ComponentMetadataType.Breadcrumbs == component?.metadata?.type) {
+            return renderBreadcrumbs(component)
+        }
+        if (ComponentMetadataType.Notification == component?.metadata?.type) {
+            return renderNotification(component)
+        }
+        if (ComponentMetadataType.ProgressBar == component?.metadata?.type) {
+            return renderProgressBar(component, state)
+        }
+        if (ComponentMetadataType.Details == component?.metadata?.type) {
+            return renderDetails(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Avatar == component?.metadata?.type) {
+            return renderAvatar(component, state, data)
+        }
+        if (ComponentMetadataType.AvatarGroup == component?.metadata?.type) {
+            return renderAvatarGroup(component)
+        }
+        if (ComponentMetadataType.Tooltip == component?.metadata?.type) {
+            return renderTooltip(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Popover == component?.metadata?.type) {
+            return renderPopover(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.MenuBar == component?.metadata?.type) {
+            return renderMenuBar(container, component)
+        }
+        if (ComponentMetadataType.ContextMenu == component?.metadata?.type) {
+            return renderContextMenu(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Grid == component?.metadata?.type) {
+            return renderGrid(component, state)
+        }
+        if (ComponentMetadataType.Table == component?.metadata?.type) {
+            return renderTable(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.VirtualList == component?.metadata?.type) {
+            return renderVirtualList(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Directory == component?.metadata?.type) {
+            return renderDirectory(component)
+        }
+        if (ComponentMetadataType.CustomField == component?.metadata?.type) {
+            return renderCustomField(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.MessageList == component?.metadata?.type) {
+            return renderMessageList(component)
+        }
+        if (ComponentMetadataType.MessageInput == component?.metadata?.type) {
+            return renderMessageInput(component)
         }
         if (ComponentMetadataType.TabLayout == component?.metadata?.type) {
             return html`<mateu-redwood-tabs

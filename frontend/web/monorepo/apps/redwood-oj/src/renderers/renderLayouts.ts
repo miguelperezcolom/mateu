@@ -159,3 +159,85 @@ export const renderConfirmDialog = (container: LitElement, component: ClientSide
         <oj-c-button chroming="callToAction" label="${md.confirmText ?? 'OK'}" @ojAction="${(e: Event) => dispatchAction(e.target, md.confirmActionId)}"></oj-c-button>`
     return modalShell(title, body, footer)
 }
+
+// ── Auxiliary containers (parity phase 3) ───────────────────────────────────────
+
+export const renderScroller = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult =>
+    html`<div style="overflow: auto; ${component.style ?? ''}" class="${component.cssClasses ?? nothing}"
+              slot="${component.slot ?? nothing}">${kids(container, component, baseUrl, state, data, appState, appData)}</div>`
+
+export const renderFullWidth = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult =>
+    html`<div style="width: 100%; ${component.style ?? ''}" class="${component.cssClasses ?? nothing}"
+              slot="${component.slot ?? nothing}">${kids(container, component, baseUrl, state, data, appState, appData)}</div>`
+
+export const renderContainer = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult =>
+    html`<div style="max-width: min(100%, 1200px); margin: auto; ${component.style ?? ''}" class="${component.cssClasses ?? nothing}"
+              slot="${component.slot ?? nothing}">${kids(container, component, baseUrl, state, data, appState, appData)}</div>`
+
+export const renderBoardLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult =>
+    html`<div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; ${component.style ?? ''}"
+              class="${component.cssClasses ?? nothing}" slot="${component.slot ?? nothing}">
+        ${kids(container, component, baseUrl, state, data, appState, appData)}</div>`
+
+// Rows honor each BoardLayoutItem's boardCols as flex weight (vaadin-board-row's board-cols).
+export const renderBoardLayoutRow = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
+    const grow = (child: any): number =>
+        child?.metadata?.type === 'BoardLayoutItem' ? (child.metadata.boardCols ?? 1) : 1
+    return html`<div style="display: flex; flex-direction: row; gap: 1rem; width: 100%; ${component.style ?? ''}"
+                     class="${component.cssClasses ?? nothing}" slot="${component.slot ?? nothing}">
+        ${(component.children ?? []).map((child: any) => html`
+            <div style="flex: ${grow(child)} 1 0; min-width: 0;">${renderComponent(container, child, baseUrl, state, data, appState, appData)}</div>`)}
+    </div>`
+}
+
+export const renderBoardLayoutItem = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult =>
+    html`<div style="${component.style ?? ''}" class="${component.cssClasses ?? nothing}">
+        ${kids(container, component, baseUrl, state, data, appState, appData)}</div>`
+
+// Two panes; the detail arrives in data.detailComponent / data.hasDetail (same contract as
+// the shared vaadin-master-detail-layout renderer and the sapui5 port).
+export const renderMasterDetailLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
+    const staticDetail = component.children && component.children.length > 1 ? component.children[1] : null
+    const dynamicDetail = data?.detailComponent ?? null
+    const hasDetail = !!(data?.hasDetail) || !!staticDetail
+    const detailContent = dynamicDetail ?? staticDetail
+    return html`
+        <div style="display: flex; gap: 0; width: 100%; border: 1px solid var(--oj-core-divider-color, #e0e0e0); border-radius: var(--oj-core-border-radius-lg, 8px); overflow: hidden; ${component.style ?? ''}"
+             class="${component.cssClasses ?? nothing}" slot="${component.slot ?? nothing}">
+            <div style="flex: 1; min-width: 0; overflow-y: auto;">
+                ${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}
+            </div>
+            <div style="flex: 1; min-width: 0; overflow-y: auto; border-left: 1px solid var(--oj-core-divider-color, #e0e0e0); ${hasDetail && detailContent ? '' : 'display: flex; align-items: center; justify-content: center;'}">
+                ${hasDetail && detailContent
+                    ? renderComponent(container, detailContent, baseUrl, state, data, appState, appData)
+                    : html`<span style="color: var(--oj-core-text-color-secondary, #666); font-size: 0.875rem; padding: 1rem;">Select an item to view details</span>`}
+            </div>
+        </div>`
+}
+
+// Plain scroll-snap carousel with prev/next buttons: deterministic under JET's async AMD
+// bootstrap (oj-c-conveyor-belt measures slotted children during its own lifecycle, which is
+// fragile when Lit re-renders the slides).
+export const renderCarouselLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
+    const md = component.metadata as any
+    const scroll = (dir: number) => (e: Event) => {
+        const wrap = (e.target as HTMLElement).closest('.rw-carousel-wrap')
+        const scroller = wrap?.querySelector(':scope > .rw-carousel') as HTMLElement | null
+        scroller?.scrollBy({ left: dir * scroller.clientWidth, behavior: 'smooth' })
+    }
+    const showNav = md?.nav !== false
+    return html`
+        <div class="rw-carousel-wrap ${component.cssClasses ?? ''}" style="position: relative; width: 100%; ${component.style ?? ''}"
+             slot="${component.slot ?? nothing}">
+            <div class="rw-carousel" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 1rem; scrollbar-width: none;">
+                ${(component.children ?? []).map((child: any) => html`
+                    <div style="scroll-snap-align: start; flex: 0 0 100%; min-width: 0;">${renderComponent(container, child, baseUrl, state, data, appState, appData)}</div>`)}
+            </div>
+            ${showNav ? html`
+                <div style="display: flex; gap: 0.5rem; justify-content: center; padding-top: 0.5rem;">
+                    <oj-c-button data-oj-binding-provider="preact" label="‹" chroming="outlined" @ojAction="${scroll(-1)}"></oj-c-button>
+                    <oj-c-button data-oj-binding-provider="preact" label="›" chroming="outlined" @ojAction="${scroll(1)}"></oj-c-button>
+                </div>
+            ` : nothing}
+        </div>`
+}
