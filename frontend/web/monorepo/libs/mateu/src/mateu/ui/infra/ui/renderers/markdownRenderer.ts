@@ -6,8 +6,8 @@ export const renderMarkdown = (component: ClientSideComponent) => {
     const metadata = component.metadata as Markdown
 
     return html`
-        <vaadin-markdown .content=${metadata.markdown}
-                         style="${component.style}" class="${component.cssClasses}"
-                         slot="${component.slot??nothing}"></vaadin-markdown>
+        <mateu-markdown .content=${metadata.markdown}
+                        style="${component.style}" class="${component.cssClasses}"
+                        slot="${component.slot??nothing}"></mateu-markdown>
             `
 }

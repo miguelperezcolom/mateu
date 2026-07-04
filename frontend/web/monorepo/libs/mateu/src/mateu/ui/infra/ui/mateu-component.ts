@@ -31,8 +31,8 @@ import "@vaadin/multi-select-combo-box"
 import "@vaadin/confirm-dialog"
 import "@vaadin/context-menu"
 import "@vaadin/dialog"
-import "@vaadin/map"
-import "@vaadin/markdown"
+import './mateu-map'
+import './mateu-markdown'
 import "@vaadin/notification"
 import "@vaadin/icons"
 import "@vaadin/popover"

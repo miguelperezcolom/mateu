@@ -450,10 +450,10 @@ const renderStringField = (container: LitElement, component: ClientSideComponent
             renderSelect(metadata, id, realValue, optionsFor(container, metadata, id, fieldId, data)))
     }
     if (metadata.stereotype == 'markdown') {
-        // vaadin-markdown only renders parsed markdown as plain HTML typography (registered by
-        // the shared mateu-component import) — no Lumo chrome, so it is design-system-neutral.
+        // mateu-markdown renders parsed markdown (marked + DOMPurify) as plain HTML typography
+        // into its light DOM (registered by the shared mateu-component import) — design-system-neutral.
         return labeled(component, metadata, id, label, html`
-            <vaadin-markdown .content="${value ?? ''}"></vaadin-markdown>`)
+            <mateu-markdown .content="${value ?? ''}"></mateu-markdown>`)
     }
     if (metadata.stereotype == 'combobox') {
         return labeled(component, metadata, id, label,

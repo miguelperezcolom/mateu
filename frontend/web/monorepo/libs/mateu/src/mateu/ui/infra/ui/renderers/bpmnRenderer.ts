@@ -8,14 +8,12 @@ export const renderBpmn = (component: ClientSideComponent) => {
     //console.log('metadata', metadata)
 
     return html`
-        aaa
-        <mateu-bpmn 
-                style="${component.style}" 
+        <mateu-bpmn
+                style="${component.style}"
                 class="${component.cssClasses}"
-                slot="${component.slot??nothing}" 
+                slot="${component.slot??nothing}"
                 xml="${metadata.xml}"
         >
         </mateu-bpmn>
-        aaa
     `
 }

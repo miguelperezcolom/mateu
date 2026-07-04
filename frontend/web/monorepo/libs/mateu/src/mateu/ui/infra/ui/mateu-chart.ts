@@ -1,17 +1,4 @@
 import {css, html, LitElement, PropertyValues} from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/grid"
-import "@vaadin/card"
 import {customElement, property, query} from 'lit/decorators.js';
 import type {Chart, ChartConfiguration, ChartTypeRegistry, ChartData, ChartOptions} from 'chart.js';
 

@@ -18,14 +18,15 @@ import '@/components/mateu-sapui5-table';
 // with SAP UI5 web components (or plain design-system-neutral markup).
 
 // ── Markdown ─────────────────────────────────────────────────────────────────
-// vaadin-markdown only renders parsed markdown as plain HTML typography (the element is
-// registered by the shared mateu-component import) — no Lumo chrome, design-system-neutral.
+// mateu-markdown renders parsed markdown (marked + DOMPurify) as plain HTML typography into
+// its light DOM (the element is registered by the shared mateu-component import) — no design
+// system involved.
 export const renderMarkdown = (component: ClientSideComponent): TemplateResult => {
     const metadata = component.metadata as Markdown
     return html`
-        <vaadin-markdown .content=${metadata.markdown}
-                         style="${component.style ?? nothing}" class="${component.cssClasses ?? nothing}"
-                         slot="${component.slot ?? nothing}"></vaadin-markdown>`
+        <mateu-markdown .content=${metadata.markdown}
+                        style="${component.style ?? nothing}" class="${component.cssClasses ?? nothing}"
+                        slot="${component.slot ?? nothing}"></mateu-markdown>`
 }
 
 // ── Grid (read-only data grid, incl. tree mode) ─────────────────────────────

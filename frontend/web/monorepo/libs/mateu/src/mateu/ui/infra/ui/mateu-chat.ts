@@ -1,12 +1,26 @@
 import {customElement, property, query, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing} from "lit";
-import {MessageListItem} from "@vaadin/message-list";
-import "@vaadin/message-list";
-import "@vaadin/message-input";
-import "@vaadin/vertical-layout";
-import {MessageInput} from "@vaadin/message-input";
 import {nanoid} from "nanoid";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
+import {neutralButtonStyles, iconClose, iconMicrophone} from "./neutralChrome";
+import "./mateu-markdown";
+
+/** One chat message (design-system-neutral replacement for Vaadin's MessageListItem). */
+export interface ChatMessageItem {
+    text?: string;
+    time?: string;
+    userName?: string;
+    userColorIndex?: number;
+}
+
+/** Avatar colors by userColorIndex (index 1 = user, 2 = agent, see addMessage). */
+const USER_COLORS = ['#e91e63', '#1676f3', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444'];
+
+const avatarColor = (index: number | undefined) =>
+    USER_COLORS[Math.abs(index ?? 0) % USER_COLORS.length];
+
+const initials = (userName: string | undefined) =>
+    (userName ?? '?').split(/\s+/).filter(s => s).map(s => s[0]).slice(0, 2).join('').toUpperCase() || '?';
 
 /** Minimal interface for the browser SpeechRecognition API (not universally typed in lib.dom). */
 interface SpeechRecognitionLike {
@@ -51,13 +65,13 @@ export class MateuChat extends LitElement {
     private menuContextSent = false;
 
     @property()
-    items: MessageListItem[] = []
+    items: ChatMessageItem[] = []
 
     @query('.scroll-container')
     scrollContainer?: HTMLElement;
 
-    @query('vaadin-message-input')
-    messageInputElement?: MessageInput;
+    @query('.msg-input')
+    messageInputElement?: HTMLInputElement;
 
     @state()
     recognition: SpeechRecognitionLike | undefined
@@ -164,18 +178,18 @@ export class MateuChat extends LitElement {
     }
 
     private addMessage(text: string, role: string): number {
-        const msg = {
+        const msg: ChatMessageItem = {
             text,
             time: new Date().toLocaleTimeString(),
             userName: role.includes('agent') ? 'Asistente' : 'Tú',
             userColorIndex: role.includes('agent') ? 2 : 1,
-        } as MessageListItem;
+        };
         this.items = [...this.items, msg];
         this.scrollBottom();
         return this.items.length - 1;
     }
 
-    // Creates a NEW item object so Vaadin always detects the change (=== comparison).
+    // Creates a NEW item object so Lit always detects the change (=== comparison).
     private updateMessage(idx: number, text: string) {
         this.items = this.items.map((item, i) =>
             i === idx ? { ...item, text } : item
@@ -389,17 +403,47 @@ export class MateuChat extends LitElement {
         this.dispatchEvent(new CustomEvent('close-requested', { bubbles: true, composed: true }))
     }
 
+    private submitFromInput = () => {
+        const value = this.messageInputElement?.value?.trim() ?? ''
+        if (!value) return
+        this.send(new CustomEvent('submit', {
+            detail: { value },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+    private onInputKeydown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault()
+            this.submitFromInput()
+        }
+    }
+
     render() {
         return html`
             <div class="chat-container">
                 <div class="chat-header">
                     <span class="chat-title">AI Assistant</span>
                     <button class="chat-close" @click="${this.closeChat}" title="Cerrar">
-                        <vaadin-icon icon="vaadin:close"></vaadin-icon>
+                        ${iconClose}
                     </button>
                 </div>
                 <div class="scroll-container">
-                    <vaadin-message-list .items="${this.items}" markdown style="--lumo-font-size-m: 12px;"></vaadin-message-list>
+                    <div class="message-list" role="list">
+                        ${this.items.map(item => html`
+                            <div class="message" role="listitem">
+                                <div class="avatar" style="background: ${avatarColor(item.userColorIndex)};">${initials(item.userName)}</div>
+                                <div class="message-body">
+                                    <div class="message-meta">
+                                        <span class="message-name">${item.userName}</span>
+                                        <span class="message-time">${item.time}</span>
+                                    </div>
+                                    <mateu-markdown class="message-text" .content="${item.text ?? ''}"></mateu-markdown>
+                                </div>
+                            </div>
+                        `)}
+                    </div>
                 </div>
                 ${this.tokenUsage ? html`
                     <div class="token-bar">
@@ -415,20 +459,24 @@ export class MateuChat extends LitElement {
                         <span class="loading-text">Thinking… ${this.elapsedSeconds}s</span>
                     </div>
                 ` : nothing}
-                <vaadin-horizontal-layout
-                        style="padding-left: 1rem; align-items: center; border-top: 1px solid var(--lumo-contrast-10pct);"><vaadin-button
-                        theme="icon"
-                        @click="${this.startListening}"
-                        ?disabled="${!this.recognitionAvailable}"
-                ><vaadin-icon
-                        style="color: ${this.listening?'red':'var(--lumo-contrast-50pct)'};"
-                        icon="vaadin:microphone"></vaadin-icon></vaadin-button>
-                    <vaadin-message-input @submit="${this.send}" style="border-top: none; flex-grow: 1;"></vaadin-message-input></vaadin-horizontal-layout>
+                <div class="input-bar">
+                    <button class="mic-btn"
+                            title="Dictar"
+                            style="color: ${this.listening ? 'red' : 'var(--lumo-contrast-50pct, #767676)'};"
+                            @click="${this.startListening}"
+                            ?disabled="${!this.recognitionAvailable}"
+                    >${iconMicrophone}</button>
+                    <input class="msg-input"
+                           placeholder="Message"
+                           aria-label="Message"
+                           @keydown="${this.onInputKeydown}"/>
+                    <button class="nbtn primary" ?disabled="${this.loading}" @click="${this.submitFromInput}">Send</button>
+                </div>
             </div>
         `
     }
 
-    static styles = css`
+    static styles = [neutralButtonStyles, css`
         :host {
             display: block;
             height: 100%;
@@ -439,7 +487,7 @@ export class MateuChat extends LitElement {
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
-            background: var(--lumo-base-color);
+            background: var(--lumo-base-color, #fff);
         }
 
         .chat-header {
@@ -447,32 +495,37 @@ export class MateuChat extends LitElement {
             align-items: center;
             justify-content: space-between;
             padding: 0.5rem 0.75rem 0.5rem 1rem;
-            border-bottom: 1px solid var(--lumo-contrast-10pct);
+            border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
             flex-shrink: 0;
         }
 
         .chat-title {
-            font-size: var(--lumo-font-size-s);
+            font-size: var(--lumo-font-size-s, .875rem);
             font-weight: 600;
-            color: var(--lumo-secondary-text-color);
+            color: var(--lumo-secondary-text-color, #555);
         }
 
         .chat-close {
             background: none;
             border: none;
             cursor: pointer;
-            color: var(--lumo-secondary-text-color);
+            color: var(--lumo-secondary-text-color, #555);
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0.25rem;
-            border-radius: var(--lumo-border-radius-s);
+            border-radius: var(--lumo-border-radius-s, 4px);
             line-height: 1;
         }
 
+        .chat-close svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
         .chat-close:hover {
-            background: var(--lumo-contrast-10pct);
-            color: var(--lumo-body-text-color);
+            background: var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
+            color: var(--lumo-body-text-color, #1a1a1a);
         }
 
         .scroll-container {
@@ -481,10 +534,124 @@ export class MateuChat extends LitElement {
             min-height: 0;
         }
 
-        vaadin-message-input {
+        .message-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 12px;
+        }
+
+        .message {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+        }
+
+        .avatar {
+            width: 1.75rem;
+            height: 1.75rem;
+            border-radius: 50%;
             flex-shrink: 0;
-            padding: 1rem;
-            border-top: 1px solid var(--lumo-contrast-10pct);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.65rem;
+            font-weight: 600;
+            user-select: none;
+        }
+
+        .message-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .message-name {
+            font-weight: 600;
+            color: var(--lumo-body-text-color, #1a1a1a);
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--lumo-tertiary-text-color, #888);
+        }
+
+        .message-text {
+            color: var(--lumo-body-text-color, #1a1a1a);
+            overflow-wrap: anywhere;
+        }
+
+        .message-text > :first-child {
+            margin-top: 0.15rem;
+        }
+
+        .message-text > :last-child {
+            margin-bottom: 0;
+        }
+
+        .input-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
+            flex-shrink: 0;
+        }
+
+        .mic-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem;
+            border-radius: var(--lumo-border-radius-s, 4px);
+            line-height: 1;
+        }
+
+        .mic-btn svg {
+            width: 1.1rem;
+            height: 1.1rem;
+        }
+
+        .mic-btn:hover:not(:disabled) {
+            background: var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
+        }
+
+        .mic-btn:disabled {
+            cursor: default;
+            opacity: .4;
+        }
+
+        .msg-input {
+            flex: 1;
+            min-width: 0;
+            box-sizing: border-box;
+            height: var(--lumo-size-m, 2.25rem);
+            padding: 0 0.75rem;
+            border: 1px solid var(--lumo-contrast-20pct, rgba(0, 0, 0, .2));
+            border-radius: var(--lumo-border-radius-m, 4px);
+            background: var(--lumo-base-color, #fff);
+            color: var(--lumo-body-text-color, #1a1a1a);
+            font-family: inherit;
+            font-size: var(--lumo-font-size-s, .875rem);
+            outline: none;
+        }
+
+        .msg-input:focus {
+            border-color: var(--lumo-primary-color, #1676f3);
+        }
+
+        .msg-input:disabled {
+            opacity: .5;
         }
 
         .token-bar {
@@ -492,23 +659,23 @@ export class MateuChat extends LitElement {
             align-items: center;
             gap: 0.5rem;
             padding: 0.25rem 1rem;
-            background: var(--lumo-contrast-5pct);
-            border-top: 1px solid var(--lumo-contrast-10pct);
-            font-size: var(--lumo-font-size-xs);
-            color: var(--lumo-secondary-text-color);
+            background: var(--lumo-contrast-5pct, rgba(0, 0, 0, .04));
+            border-top: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
+            font-size: var(--lumo-font-size-xs, .75rem);
+            color: var(--lumo-secondary-text-color, #555);
             flex-wrap: wrap;
         }
 
         .token-label {
             font-weight: 600;
-            color: var(--lumo-tertiary-text-color);
+            color: var(--lumo-tertiary-text-color, #888);
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
 
         .token-chip {
-            background: var(--lumo-contrast-10pct);
-            border-radius: var(--lumo-border-radius-s);
+            background: var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
+            border-radius: var(--lumo-border-radius-s, 4px);
             padding: 0.1rem 0.4rem;
             font-variant-numeric: tabular-nums;
         }
@@ -518,10 +685,10 @@ export class MateuChat extends LitElement {
             align-items: center;
             gap: 0.5rem;
             padding: 0.4rem 1rem;
-            background: var(--lumo-contrast-5pct);
-            border-top: 1px solid var(--lumo-contrast-10pct);
-            font-size: var(--lumo-font-size-s);
-            color: var(--lumo-secondary-text-color);
+            background: var(--lumo-contrast-5pct, rgba(0, 0, 0, .04));
+            border-top: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-secondary-text-color, #555);
         }
 
         .loading-text {
@@ -532,8 +699,8 @@ export class MateuChat extends LitElement {
             display: inline-block;
             width: 14px;
             height: 14px;
-            border: 2px solid var(--lumo-contrast-20pct);
-            border-top-color: var(--lumo-primary-color);
+            border: 2px solid var(--lumo-contrast-20pct, rgba(0, 0, 0, .2));
+            border-top-color: var(--lumo-primary-color, #1676f3);
             border-radius: 50%;
             animation: spin 0.7s linear infinite;
             flex-shrink: 0;
@@ -542,5 +709,5 @@ export class MateuChat extends LitElement {
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-    `
+    `]
 }

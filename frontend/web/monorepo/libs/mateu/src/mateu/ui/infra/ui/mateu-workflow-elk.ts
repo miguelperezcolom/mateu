@@ -1,9 +1,7 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, svg} from "lit";
 import type {ELK, ElkNode, ElkExtendedEdge} from "elkjs/lib/elk.bundled.js";
-import "@vaadin/button";
-import "@vaadin/icon";
-import "@vaadin/icons";
+import {neutralButtonStyles, iconCog, iconPlus, iconDownload, iconSitemap} from "./neutralChrome";
 
 // ── Domain types ─────────────────────────────────────────────────────────────
 
@@ -350,25 +348,25 @@ export class MateuWorkflowElk extends LitElement {
                 <span class="wf-name">${this.wf.name}</span>
                 <span class="badge badge-${status.toLowerCase()}">${status}</span>
                 <div style="flex:1"></div>
-                <vaadin-button theme="tertiary small" title="Re-run ELK layout"
-                               @click="${() => this.relayout()}">
-                    <vaadin-icon icon="vaadin:sitemap" slot="prefix"></vaadin-icon>
+                <button class="nbtn" title="Re-run ELK layout"
+                        @click="${() => this.relayout()}">
+                    ${iconSitemap}
                     Re-layout
-                </vaadin-button>
+                </button>
                 ${!this.readOnly ? html`
-                    <vaadin-button theme="tertiary small" @click="${() => this.showMeta = !this.showMeta}">
-                        <vaadin-icon icon="vaadin:cog" slot="prefix"></vaadin-icon>
+                    <button class="nbtn" @click="${() => this.showMeta = !this.showMeta}">
+                        ${iconCog}
                         Settings
-                    </vaadin-button>
-                    <vaadin-button theme="primary small" @click="${() => this.addStep()}">
-                        <vaadin-icon icon="vaadin:plus" slot="prefix"></vaadin-icon>
+                    </button>
+                    <button class="nbtn primary" @click="${() => this.addStep()}">
+                        ${iconPlus}
                         Add Step
-                    </vaadin-button>
+                    </button>
                 ` : nothing}
-                <vaadin-button theme="tertiary small" @click="${() => this.exportJson()}">
-                    <vaadin-icon icon="vaadin:download" slot="prefix"></vaadin-icon>
+                <button class="nbtn" @click="${() => this.exportJson()}">
+                    ${iconDownload}
                     Export
-                </vaadin-button>
+                </button>
             </div>
         `;
     }
@@ -565,7 +563,7 @@ export class MateuWorkflowElk extends LitElement {
 
     // ── Styles ────────────────────────────────────────────────────────────────
 
-    static styles = css`
+    static styles = [neutralButtonStyles, css`
         :host {display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif);}
 
         .root {display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff);}
@@ -643,7 +641,7 @@ export class MateuWorkflowElk extends LitElement {
         .inp:focus {border-color: #3B82F6;}
         textarea.inp {resize: vertical;}
         input[readonly].inp {background: #f8fafc; color: #94a3b8;}
-    `;
+    `];
 }
 
 declare global {

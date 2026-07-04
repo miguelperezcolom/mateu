@@ -1,17 +1,4 @@
 import {css, html, LitElement, PropertyValues} from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/grid"
-import "@vaadin/card"
 import {customElement, property, query} from 'lit/decorators.js';
 import type Viewer from "bpmn-js";
 import type {BaseViewerOptions} from "bpmn-js/lib/BaseViewer";
@@ -62,7 +49,6 @@ export class MateuBpmn extends LitElement {
 
     render() {
         return html`
-            zzz
             <div class="container" style="width: 20rem; height: 15rem; overflow: auto;">
                 <!-- BPMN diagram container -->
                 <div id="canvas" style="width: 60rem; height: 30rem; zoom: 0.5;"></div>

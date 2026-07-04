@@ -93,16 +93,13 @@ export const handleButtonClick = (event: Event) => {
 
 /**
  * Types this renderer supports: everything handled by its own switch below, plus types it
- * deliberately delegates to the shared infra. Two delegation flavours:
- *
- * - design-system-agnostic shared components (Element/Div/MicroFrontend markup; Crud →
- *   mateu-table-crud, which calls back into this renderer's table/filter-bar/pagination and —
- *   via rendersCrudLayouts() — also its list/cards/masterDetail/tree layouts; Chart/Bpmn/
- *   CookieConsent render canvas/SVG/plain markup; Map renders an OpenLayers canvas;
- *   Markdown renders plain HTML typography);
- * - shared components that still carry some Vaadin-flavoured chrome around a design-system-
- *   neutral core (Chat side panel, Workflow/WorkflowElk/FormEditor SVG editors). Functional,
- *   pending native replacements.
+ * deliberately delegates to the shared, design-system-agnostic infra (Element/Div/
+ * MicroFrontend markup; Crud → mateu-table-crud, which calls back into this renderer's
+ * table/filter-bar/pagination and — via rendersCrudLayouts() — also its list/cards/
+ * masterDetail/tree layouts; Chart/Bpmn render canvas/SVG; mateu-map renders an OpenLayers
+ * canvas; mateu-markdown renders plain HTML typography; CookieConsent renders plain markup;
+ * and, since parity phase 2, the Chat side panel and the Workflow/WorkflowElk/FormEditor SVG
+ * editors use neutral plain-HTML chrome — no Vaadin components left in any of them).
  *
  * Anything else renders a visible <mateu-unsupported> placeholder instead of silently falling
  * back to Vaadin-flavoured components (parity phase 0). This set currently covers the full
@@ -167,7 +164,6 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Bpmn,
     ComponentMetadataType.CookieConsent,
     ComponentMetadataType.Map,
-    // deliberate delegation to shared components with residual Vaadin chrome (documented above)
     ComponentMetadataType.Chat,
     ComponentMetadataType.Workflow,
     ComponentMetadataType.WorkflowElk,

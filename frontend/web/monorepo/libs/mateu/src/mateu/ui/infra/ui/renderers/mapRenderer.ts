@@ -6,8 +6,8 @@ export const renderMap = (component: ClientSideComponent) => {
     const metadata = component.metadata as Map
 
     return html`
-        <vaadin-map src="${metadata.position}" zoom="${metadata.zoom}"
-                    style="${component.style}" class="${component.cssClasses}"
-                    slot="${component.slot??nothing}"></vaadin-map>
+        <mateu-map position="${metadata.position}" zoom="${metadata.zoom}"
+                   style="${component.style}" class="${component.cssClasses}"
+                   slot="${component.slot??nothing}"></mateu-map>
             `
 }
