@@ -70,7 +70,7 @@ public class CodeFieldActionRunner implements ActionRunner {
       try {
         label = optionsSupplier.label(fieldName, code, command.httpRequest());
       } catch (Throwable e) {
-        e.printStackTrace();
+        log.warn("Lookup label resolution failed for field {} and code {}", fieldName, code, e);
       }
       return Flux.just(
           List.of(
