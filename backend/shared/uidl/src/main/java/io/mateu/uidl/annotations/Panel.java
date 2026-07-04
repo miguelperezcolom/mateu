@@ -19,4 +19,10 @@ public @interface Panel {
   int colSpan() default 1;
 
   int rowSpan() default 1;
+
+  /** Icon shown on the panel strip (foldout pages). */
+  String icon() default "";
+
+  /** Whether the panel starts folded out (foldout pages). */
+  boolean open() default true;
 }

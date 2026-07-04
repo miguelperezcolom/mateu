@@ -251,6 +251,24 @@ variant: build a `DashboardLayout` (+ `Scoreboard`/`DashboardPanel`/`MetricCard`
 
 ---
 
+## Foldout record page
+
+```java
+@UI("/booking/:id")
+public class BookingFoldout extends Foldout {
+    // first component field without @Panel → always-visible overview (left)
+    Markdown overview = new Markdown("**Guest:** Jane Smith …", null, null);
+
+    // @Panel fields → lateral fold-out panels (closed = narrow strip, click to unfold)
+    @Panel(title = "Payments") Markdown payments = new Markdown("…", null, null);
+    @Panel(title = "Notes", open = false) Markdown notes = new Markdown("…", null, null);
+}
+```
+
+Fluent variant: `FoldoutLayout.builder().overview(c).panels(List.of(FoldoutPanel.builder()…))`.
+
+---
+
 ## Navigation & menus
 
 ```java

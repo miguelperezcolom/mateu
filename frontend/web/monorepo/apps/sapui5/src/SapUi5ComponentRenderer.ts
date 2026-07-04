@@ -172,6 +172,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Scoreboard,
     ComponentMetadataType.DashboardPanel,
     ComponentMetadataType.DashboardLayout,
+    ComponentMetadataType.FoldoutLayout,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

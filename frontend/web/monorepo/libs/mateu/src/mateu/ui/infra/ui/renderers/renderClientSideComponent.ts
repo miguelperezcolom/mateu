@@ -71,6 +71,7 @@ import {
     renderMetricCard,
     renderScoreboard
 } from "@infra/ui/renderers/dashboardRenderer.ts";
+import { renderFoldoutLayout } from "@infra/ui/renderers/foldoutRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -262,6 +263,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.Scoreboard]: full(renderScoreboard),
     [ComponentMetadataType.DashboardPanel]: full(renderDashboardPanel),
     [ComponentMetadataType.DashboardLayout]: full(renderDashboardLayout),
+    [ComponentMetadataType.FoldoutLayout]: full(renderFoldoutLayout),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

@@ -694,6 +694,35 @@ public class SalesDashboard extends Dashboard {
 
 ---
 
+## Foldout record page
+
+Extend `Foldout` for a record workspace: a fixed overview panel on the left plus lateral fold-out panels with categories of associated information (Redwood foldout pattern):
+
+```java
+@UI("/booking/:id")
+@Title("Booking 2026-08117")
+public class BookingFoldout extends Foldout {
+
+    // First component field without @Panel → the always-visible overview (left)
+    Markdown overview = new Markdown("**Guest:** Jane Smith\n**Dates:** 12–19 Aug", null, null);
+
+    @Panel(title = "Payments", subtitle = "Charges and refunds")
+    Markdown payments = new Markdown("| Date | Amount |\n|---|---|\n| 02/05 | 620 € |", null, null);
+
+    @Panel(title = "Occupancy")
+    Chart occupancy = Chart.builder().chartType(ChartType.line) /* … */ .build();
+
+    @Panel(title = "Notes", open = false)   // starts folded (narrow strip)
+    Markdown notes = new Markdown("- Late checkout", null, null);
+}
+```
+
+- Closed panels render as a narrow strip with the rotated title; clicking folds them out. Several panels can be open side by side; the row scrolls horizontally on overflow.
+- `@Panel` attributes here: `title` (defaults to field label), `subtitle`, `icon`, `open` (default `true`).
+- Fluent variant: `FoldoutLayout.builder().overview(component).panels(List.of(FoldoutPanel.builder().title("…").open(false).content(component).build())).build()`.
+
+---
+
 ## Navigation & menus
 
 ```java

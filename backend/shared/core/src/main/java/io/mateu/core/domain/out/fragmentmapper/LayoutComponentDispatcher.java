@@ -10,6 +10,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ContainerMapper.ma
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DashboardLayoutMapper.mapDashboardLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DashboardPanelMapper.mapDashboardPanelToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DivMapper.mapDivToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.FoldoutLayoutMapper.mapFoldoutLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormItemMapper.mapFormItemToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormLayoutMapper.mapFormLayoutToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FormRowMapper.mapFormRowToDto;
@@ -104,6 +105,10 @@ final class LayoutComponentDispatcher {
     if (component instanceof DashboardPanel dashboardPanel) {
       return mapDashboardPanelToDto(
           dashboardPanel, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof FoldoutLayout foldoutLayout) {
+      return mapFoldoutLayoutToDto(
+          foldoutLayout, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Scroller scroller) {
       return mapScrollerToDto(

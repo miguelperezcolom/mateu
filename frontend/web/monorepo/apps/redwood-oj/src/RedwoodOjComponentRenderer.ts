@@ -139,6 +139,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Scoreboard,
     ComponentMetadataType.DashboardPanel,
     ComponentMetadataType.DashboardLayout,
+    ComponentMetadataType.FoldoutLayout,
 ])
 
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

@@ -68,6 +68,7 @@ export enum ComponentMetadataType {
     MetricCard = "MetricCard",
     Scoreboard = "Scoreboard",
     DashboardPanel = "DashboardPanel",
-    DashboardLayout = "DashboardLayout"
+    DashboardLayout = "DashboardLayout",
+    FoldoutLayout = "FoldoutLayout"
 
 }

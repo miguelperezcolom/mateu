@@ -1,18 +1,18 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-highcharts.js","assets/vendor-vaadin.js","assets/vendor-lit.js","assets/vendor.js","assets/vendor-diagrams.js"])))=>i.map(i=>d[i]);
-import{f as Ha,m as Ga,o as Ka,b as Ja,e as Le,i as Ya,s as Xa,j as Qa,k as Za,t as ei,u as ti,l as ai,_ as te,n as We,p as ii,q as It,v as Ea,N as _t,w as Gt,x as ea,y as Ft,z as si,A as Ca,B as ri}from"./vendor-vaadin.js";import{a as T,j as u,k as Se,i as D,x as n,m as O,p as me,A as d,q as f,l as C,D as Ia,c as V,r as ni}from"./vendor-lit.js";import{S as oi,a as li,n as se,b as di}from"./vendor.js";import"./vendor-ui5.js";(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))i(s);new MutationObserver(s=>{for(const r of s)if(r.type==="childList")for(const o of r.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&i(o)}).observe(document,{childList:!0,subtree:!0});function a(s){const r={};return s.integrity&&(r.integrity=s.integrity),s.referrerPolicy&&(r.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?r.credentials="include":s.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function i(s){if(s.ep)return;s.ep=!0;const r=a(s);fetch(s.href,r)}})();const _a=document.createElement("style");_a.innerHTML=`
-${Ha.cssText}
-${Ga.cssText}
+import{f as Ka,m as Ja,o as Ya,b as Xa,e as Le,i as Qa,s as Za,j as ei,k as ti,t as ai,u as ii,l as si,_ as te,n as We,p as ri,q as _t,v as Ia,N as Tt,w as Kt,x as ta,y as Nt,z as ni,A as _a,B as oi}from"./vendor-vaadin.js";import{a as _,j as u,k as Se,i as L,x as n,m as O,p as me,A as d,q as f,l as I,D as Ta,c as V,r as li}from"./vendor-lit.js";import{S as di,a as ci,n as se,b as hi}from"./vendor.js";import"./vendor-ui5.js";(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const s of document.querySelectorAll('link[rel="modulepreload"]'))i(s);new MutationObserver(s=>{for(const r of s)if(r.type==="childList")for(const o of r.addedNodes)o.tagName==="LINK"&&o.rel==="modulepreload"&&i(o)}).observe(document,{childList:!0,subtree:!0});function a(s){const r={};return s.integrity&&(r.integrity=s.integrity),s.referrerPolicy&&(r.referrerPolicy=s.referrerPolicy),s.crossOrigin==="use-credentials"?r.credentials="include":s.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function i(s){if(s.ep)return;s.ep=!0;const r=a(s);fetch(s.href,r)}})();const Oa=document.createElement("style");Oa.innerHTML=`
 ${Ka.cssText}
 ${Ja.cssText}
-${Le.cssText}
 ${Ya.cssText}
 ${Xa.cssText}
+${Le.cssText}
 ${Qa.cssText}
 ${Za.cssText}
 ${ei.cssText}
 ${ti.cssText}
 ${ai.cssText}
-`;document.body.appendChild(_a);const et=new oi,B={value:{}},St={value:{}},ci={lon:0,lat:0},la=3,hi=e=>{if(!e)return;const t=e.split(",").map(s=>s.trim());if(t.length!==2)return;const a=Number(t[0]),i=Number(t[1]);if(!(t[0]===""||t[1]===""||!Number.isFinite(a)||!Number.isFinite(i)))return{lon:i,lat:a}},ui=e=>{if(e==null||e.trim()==="")return la;const t=Number(e);return Number.isFinite(t)?t:la};var pi=Object.defineProperty,vi=Object.getOwnPropertyDescriptor,Nt=(e,t,a,i)=>{for(var s=i>1?void 0:i?vi(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&pi(t,a,s),s};let ct=class extends D{constructor(){super(...arguments),this.renderSeq=0}updated(e){super.updated(e),this.createMap()}disconnectedCallback(){super.disconnectedCallback(),this.map?.setTarget(void 0),this.map=void 0}async createMap(){const e=++this.renderSeq,[{default:t},{default:a},{default:i},{default:s},{fromLonLat:r},{default:o}]=await Promise.all([te(()=>import("./vendor-ol.js").then(c=>c.M),[]),te(()=>import("./vendor-ol.js").then(c=>c.V),[]),te(()=>import("./vendor-ol.js").then(c=>c.T),[]),te(()=>import("./vendor-ol.js").then(c=>c.O),[]),te(()=>import("./vendor-ol.js").then(c=>c.p),[]),te(()=>import("./vendor-ol.js").then(c=>c.o),[])]);if(e!==this.renderSeq||!this.isConnected)return;if(!this.shadowRoot.querySelector("style[data-ol]")){const c=document.createElement("style");c.setAttribute("data-ol",""),c.textContent=o,this.shadowRoot.appendChild(c)}this.map&&(this.map.setTarget(void 0),this.map=void 0);const l=hi(this.position)??ci;this.map=new t({target:this.mapElement,layers:[new i({source:new s})],view:new a({center:r([l.lon,l.lat]),zoom:ui(this.zoom)})})}render(){return n`<div id="map"></div>`}};ct.styles=T`
+${ii.cssText}
+${si.cssText}
+`;document.body.appendChild(Oa);const et=new di,B={value:{}},St={value:{}},ui={lon:0,lat:0},ca=3,pi=e=>{if(!e)return;const t=e.split(",").map(s=>s.trim());if(t.length!==2)return;const a=Number(t[0]),i=Number(t[1]);if(!(t[0]===""||t[1]===""||!Number.isFinite(a)||!Number.isFinite(i)))return{lon:i,lat:a}},vi=e=>{if(e==null||e.trim()==="")return ca;const t=Number(e);return Number.isFinite(t)?t:ca};var mi=Object.defineProperty,fi=Object.getOwnPropertyDescriptor,qt=(e,t,a,i)=>{for(var s=i>1?void 0:i?fi(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&mi(t,a,s),s};let ct=class extends L{constructor(){super(...arguments),this.renderSeq=0}updated(e){super.updated(e),this.createMap()}disconnectedCallback(){super.disconnectedCallback(),this.map?.setTarget(void 0),this.map=void 0}async createMap(){const e=++this.renderSeq,[{default:t},{default:a},{default:i},{default:s},{fromLonLat:r},{default:o}]=await Promise.all([te(()=>import("./vendor-ol.js").then(c=>c.M),[]),te(()=>import("./vendor-ol.js").then(c=>c.V),[]),te(()=>import("./vendor-ol.js").then(c=>c.T),[]),te(()=>import("./vendor-ol.js").then(c=>c.O),[]),te(()=>import("./vendor-ol.js").then(c=>c.p),[]),te(()=>import("./vendor-ol.js").then(c=>c.o),[])]);if(e!==this.renderSeq||!this.isConnected)return;if(!this.shadowRoot.querySelector("style[data-ol]")){const c=document.createElement("style");c.setAttribute("data-ol",""),c.textContent=o,this.shadowRoot.appendChild(c)}this.map&&(this.map.setTarget(void 0),this.map=void 0);const l=pi(this.position)??ui;this.map=new t({target:this.mapElement,layers:[new i({source:new s})],view:new a({center:r([l.lon,l.lat]),zoom:vi(this.zoom)})})}render(){return n`<div id="map"></div>`}};ct.styles=_`
         :host {
             display: block;
             width: 100%;
@@ -22,31 +22,31 @@ ${ai.cssText}
             width: 100%;
             height: 100%;
         }
-    `;Nt([u()],ct.prototype,"position",2);Nt([u()],ct.prototype,"zoom",2);Nt([Se("#map")],ct.prototype,"mapElement",2);ct=Nt([O("mateu-map")],ct);const mi=typeof HTMLElement<"u"?HTMLElement:class{};class fi extends mi{static get observedAttributes(){return["content"]}#e;#t=0;get content(){return this.#e}set content(t){this.#e=t,this.#a()}attributeChangedCallback(t,a,i){this.content=i??void 0}connectedCallback(){this.style.display="block",this.#a()}async#a(){if(!this.isConnected)return;const t=this.#e??"",a=++this.#t,[{marked:i},{default:s}]=await Promise.all([te(()=>import("./vendor.js").then(r=>r.f),[]),te(()=>import("./vendor.js").then(r=>r.c),[])]);a===this.#t&&(this.innerHTML=s.sanitize(await i.parse(t),{CUSTOM_ELEMENT_HANDLING:{tagNameCheck:r=>!0}}))}}typeof customElements<"u"&&!customElements.get("mateu-markdown")&&customElements.define("mateu-markdown",fi);const ht=(e,t)=>new Function(...Object.keys(t),"return `"+e+"`")(...Object.values(t)),vt=(e,t,a)=>({state:e??{},data:t??{},...a});function De(e,t,a,i){if(!e?.includes("${"))return e;try{return ht(e,vt(t,a,i))}catch(s){return console.warn(`Mateu: could not interpolate "${e}":`,s),e}}const Qe=(e,t,a)=>{if(e&&e.indexOf("${")>=0)try{return ht(e,vt(t,a))}catch(i){return i.message}return e},Ta=(e,t,a,i,s)=>{if(!e)return e;const r=vt(t,a,{appState:i??{},appData:s??{}});let o=e;try{if(o=ht(e,r),o.includes("${"))try{o=ht(o,r)}catch(l){o="when evaluating nested "+e+" :"+l+", where data is "+a+" and state is "+t+" and app state is "+i+" and app data is "+s,console.error(l,o,t,a,i,s)}}catch(l){o="when evaluating "+e+" :"+l+", where data is "+a+" and state is "+t+" and app state is "+i+" and app data is "+s,console.error(l,o,t,a,i,s)}return o},Oa=(e,t,a,i,s,r)=>{const o=vt(t,a,{appState:i??{},appData:s??{},...r}),l=ht(e,o);return new Function(...Object.keys(o),`return (${l})`)(...Object.values(o))},Ra=(e,t,a,i)=>{const s=vt(t,a,i);return new Function(...Object.keys(s),`return (${e})`)(...Object.values(s))},bi=(e,t,a,i)=>ht(e,vt(t,a,i)),Pa=(e,t)=>{const a=e.toLowerCase().split("+");return t.ctrlKey===a.includes("ctrl")&&t.altKey===a.includes("alt")&&t.shiftKey===a.includes("shift")&&t.metaKey===a.includes("meta")},gi=(e,t)=>{if(!Pa(e,t))return!1;const a=e.toLowerCase().split("+"),i=a[a.length-1];return!!(t.key.toLowerCase()===i||/^[a-z]$/.test(i)&&t.code==="Key"+i.toUpperCase()||/^[0-9]$/.test(i)&&(t.code==="Digit"+i||t.code==="Numpad"+i))},$i=e=>e?e.split("+").map(t=>t.length<=1?t.toUpperCase():t.charAt(0).toUpperCase()+t.slice(1)).join("+"):void 0;var G=(e=>(e.ServerSide="ServerSide",e.ClientSide="ClientSide",e))(G||{}),m=(e=>(e.Page="Page",e.Div="Div",e.Element="Element",e.MicroFrontend="MicroFrontend",e.Form="Form",e.Crud="Crud",e.Result="Result",e.Card="Card",e.Directory="Directory",e.Stepper="Stepper",e.HorizontalLayout="HorizontalLayout",e.VerticalLayout="VerticalLayout",e.SplitLayout="SplitLayout",e.MasterDetailLayout="MasterDetailLayout",e.TabLayout="TabLayout",e.AccordionLayout="AccordionLayout",e.FormLayout="FormLayout",e.FormRow="FormRow",e.FormItem="FormItem",e.BoardLayout="BoardLayout",e.BoardLayoutRow="BoardLayoutRow",e.BoardLayoutItem="BoardLayoutItem",e.Scroller="Scroller",e.FullWidth="FullWidth",e.Container="Container",e.FormField="FormField",e.Table="Table",e.App="App",e.Text="Text",e.Avatar="Avatar",e.Chat="Chat",e.AvatarGroup="AvatarGroup",e.Badge="Badge",e.Breadcrumbs="Breadcrumbs",e.Anchor="Anchor",e.Button="Button",e.Chart="Chart",e.Icon="Icon",e.ConfirmDialog="ConfirmDialog",e.ContextMenu="ContextMenu",e.CookieConsent="CookieConsent",e.Details="Details",e.Dialog="Dialog",e.Image="Image",e.Map="Map",e.Markdown="Markdown",e.Notification="Notification",e.ProgressBar="ProgressBar",e.Popover="Popover",e.CarouselLayout="CarouselLayout",e.Tooltip="Tooltip",e.MessageInput="MessageInput",e.MessageList="MessageList",e.CustomField="CustomField",e.MenuBar="MenuBar",e.Grid="Grid",e.GridColumn="GridColumn",e.GridGroupColumn="GridGroupColumn",e.VirtualList="VirtualList",e.FormSection="FormSection",e.FormSubSection="FormSubSection",e.Bpmn="Bpmn",e.Workflow="Workflow",e.WorkflowElk="WorkflowElk",e.FormEditor="FormEditor",e.MetricCard="MetricCard",e.Scoreboard="Scoreboard",e.DashboardPanel="DashboardPanel",e.DashboardLayout="DashboardLayout",e))(m||{});let dt=[];class yi{constructor(){this.axiosInstance=li.create({timeout:6e4}),this.axiosInstance.interceptors.request.use(t=>(this.addAuthToken(t),this.addSessionId(t),t))}addSessionId(t){let a=sessionStorage.getItem("__mateu_sesion_id");a||(a=se(),sessionStorage.setItem("__mateu_sesion_id",a)),t.headers["X-Session-Id"]=a}addAuthToken(t){const a=localStorage.getItem("__mateu_auth_token");a&&(t.headers.Authorization="Bearer "+a)}async wrap(t,a,i,s){return i||a.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),t.then(r=>(a.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:s}})),r)).catch(r=>{throw r?.code=="ERR_CANCELED"?a.dispatchEvent(new CustomEvent("backend-cancelled-event",{bubbles:!0,composed:!0,detail:{}})):a.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:s,reason:this.serialize(r)}})),r})}serialize(t){return t?.message?t:JSON.stringify(t)}async get(t){const a=new AbortController;return dt=[...dt,a],this.axiosInstance.get(t,{signal:a.signal})}async post(t,a){const i=new AbortController;return dt=[...dt,i],this.axiosInstance.post(t,a,{signal:i.signal})}async abortAll(){dt.forEach(t=>t.abort()),dt=[]}async runAction(t,a,i,s,r,o,l,c,h,p,v){return a&&a.startsWith("/")&&(a=a.substring(1)),await this.wrap(this.post(t+"/mateu/v3/sync/"+(a&&a!=""?a:"_no_route"),{serverSideType:l,appState:o,componentState:c,parameters:h,initiatorComponentId:r,consumedRoute:i,route:a&&a!=""?"/"+a:"",actionId:s}).then(y=>y.data),p,v,s)}}const La=new yi;var Et=(e=>(e.Add="Add",e.Replace="Replace",e.ReplaceKeepData="ReplaceKeepData",e))(Et||{}),Re=(e=>(e.HAMBURGUER_MENU="HAMBURGUER_MENU",e.MENU_ON_LEFT="MENU_ON_LEFT",e.MENU_ON_TOP="MENU_ON_TOP",e.TABS="TABS",e.TILES="TILES",e.RAIL="RAIL",e.AUTO="AUTO",e.MEDIATOR="MEDIATOR",e))(Re||{}),wi=Object.defineProperty,Da=(e,t,a,i)=>{for(var s=void 0,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=o(t,a,s)||s);return s&&wi(t,a,s),s};class qt extends D{constructor(){super(...arguments),this.id="",this.baseUrl="",this.callbackToken="",this.createElement=t=>{const a=t.data,i=document.createElement(a.name);for(let s in a.attributes)i.setAttribute(s,a.attributes[s]);for(let s in a.on)i.addEventListener(s,r=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.on[s],parameters:{event:r}},bubbles:!0,composed:!0}))});return i},this.closeModal=()=>{const t=this.shadowRoot?.querySelectorAll("mateu-dialog");if(t&&t.length>0){t[t.length-1].close();return}this.dispatchEvent(new CustomEvent("close-modal-requested",{bubbles:!0,composed:!0}))},this.changeFavicon=t=>{let a=document.querySelector('link[rel="icon"]');a!==null?a.setAttribute("href",t):(a=document.createElement("link"),a.setAttribute("rel","icon"),a.setAttribute("href",t),document.head.appendChild(a))}}connectedCallback(){super.connectedCallback(),this.upstreamSubscription=et.subscribe(t=>{if(t.command){const a=t.command;this.id==a.targetComponentId&&this.applyCommand(a)}if((!t.callbackToken||!this.callbackToken||t.callbackToken===this.callbackToken)&&t.fragment){const a=t.fragment;this.id==a.targetComponentId&&(this.applyFragment(a),this.completeMenu(a))}})}completeMenu(t){if(t.component&&t.component.type==G.ClientSide){const a=t.component,i=a.metadata;if(i?.type==m.App){const s=i,r=this.getRemoteMenus(s.menu);if(r.length>0){const o=r.map(l=>La.runAction(l.baseUrl,l.route,"_empty","",l.baseUrl+"#"+l.route,void 0,void 0,void 0,l.params,this,!0));Promise.all(o).then(l=>{s.menu=this.updateMenu(s.menu,l.map(c=>c.fragments).filter(c=>c).map(c=>c).flat()),s.variant=Re.MENU_ON_TOP,et.next({fragment:{component:a,data:void 0,state:void 0,action:Et.Replace,targetComponentId:this.id,containerId:void 0},callbackToken:this.callbackToken})})}}}}updateMenu(t,a){const i=[];return t.forEach(s=>{if(s.remote){const r=a.find(o=>o.targetComponentId==s.baseUrl+"#"+s.route);if(r&&r.component?.type==G.ClientSide){const o=r.component;if(o.metadata?.type==m.App){const l=o.metadata,c=s.serverSideType&&s.serverSideType!=""?s.serverSideType:l.serverSideType;this.changeBaseUrl(l.menu,s.baseUrl,c,s.route,l.route),i.push(...l.menu)}}}else i.push(s)}),i}changeBaseUrl(t,a,i,s,r){t.forEach(o=>{o.baseUrl||(o.submenus&&o.submenus.length>0?this.changeBaseUrl(o.submenus,a,i,s,r):(o.consumedRoute=r??"",o.baseUrl=a,o.serverSideType=i,o.uriPrefix=s))})}getRemoteMenus(t){const a=[];return t.forEach(i=>{i.remote&&a.push(i)}),a}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe()}applyCommand(t){if(t.type=="SetWindowTitle"&&(document.title=t.data),t.type=="SetFavicon"&&this.changeFavicon(t.data),t.type=="DispatchEvent"){const a=t.data;if(a&&a.eventName){const i=this.component,s=i?.emitsName??i?.serverSideType;let r=a.payload??a.detail;s&&r&&typeof r=="object"&&(r={...r,__source:s}),this.dispatchEvent(new CustomEvent(a.eventName,{detail:r,bubbles:!0,composed:!0}))}}if(t.type=="NavigateTo"){const a=t.data;a&&(a.startsWith("http:")||a.startsWith("https:")?window.open(t.data,"_blank"):window.location.href=t.data)}if(t.type=="PushStateToHistory"){const a=t.data;a!==void 0&&this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:a},bubbles:!0,composed:!0}))}if(t.type=="RunAction"){const a=t.data;if(a&&a.actionId)if(a.targetComponentId){const i={command:{type:"RunAction",data:{actionId:a.actionId},targetComponentId:a.targetComponentId},fragment:void 0,ui:void 0,error:void 0,callbackToken:""};setTimeout(()=>et.next(i))}else this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.actionId,parameters:{}},bubbles:!0,composed:!0}))}if(t.type=="MarkAsDirty"&&this.dispatchEvent(new CustomEvent("dirty",{detail:{},bubbles:!0,composed:!0})),t.type=="MarkAsClean"&&this.dispatchEvent(new CustomEvent("clean",{detail:{},bubbles:!0,composed:!0})),t.type=="DownloadFile"){const a=t.data;if(a&&a.base64Content){const i=atob(a.base64Content),s=new Uint8Array(i.length);for(let c=0;c<i.length;c++)s[c]=i.charCodeAt(c);const r=new Blob([s],{type:a.mimeType}),o=URL.createObjectURL(r),l=document.createElement("a");l.href=o,l.download=a.filename??"export",l.click(),URL.revokeObjectURL(o)}}if(t.type=="CloseModal"&&this.closeModal(),t.type=="AddContentToHead"){const a=t.data;if(a&&a.name){if(a.attributes&&a.attributes.id&&document.getElementById(a.attributes.id))return;document.head.appendChild(this.createElement(t))}}if(t.type=="AddContentToBody"){const a=t.data;if(a&&a.name){if(a.attributes&&a.attributes.id&&document.getElementById(a.attributes.id))return;document.body.appendChild(this.createElement(t))}}}}Da([u()],qt.prototype,"id");Da([u()],qt.prototype,"baseUrl");var xi=Object.defineProperty,ki=(e,t,a,i)=>{for(var s=void 0,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=o(t,a,s)||s);return s&&xi(t,a,s),s};class Ut extends qt{applyFragment(t){}manageActionRequestedEvent(t){}}ki([u()],Ut.prototype,"component");var xt=(e=>(e.NONE="NONE",e.INFO="INFO",e.SUCCESS="SUCCESS",e.WARNING="WARNING",e.DANGER="DANGER",e))(xt||{});const Si=(e,t,a)=>{const i=e[a.path];return i?n`<span theme="badge pill ${Mt(i.type)}">${i.message}</span>`:n``},Mt=e=>{switch(e){case xt.SUCCESS:return"success";case xt.WARNING:return"warning";case xt.DANGER:return"error";case xt.NONE:return"contrast"}return""},Ei=(e,t,a)=>{const s=e[a.path]?"vaadin:check":"vaadin:minus";return n`<vaadin-icon 
+    `;qt([u()],ct.prototype,"position",2);qt([u()],ct.prototype,"zoom",2);qt([Se("#map")],ct.prototype,"mapElement",2);ct=qt([O("mateu-map")],ct);const bi=typeof HTMLElement<"u"?HTMLElement:class{};class gi extends bi{static get observedAttributes(){return["content"]}#e;#t=0;get content(){return this.#e}set content(t){this.#e=t,this.#a()}attributeChangedCallback(t,a,i){this.content=i??void 0}connectedCallback(){this.style.display="block",this.#a()}async#a(){if(!this.isConnected)return;const t=this.#e??"",a=++this.#t,[{marked:i},{default:s}]=await Promise.all([te(()=>import("./vendor.js").then(r=>r.f),[]),te(()=>import("./vendor.js").then(r=>r.c),[])]);a===this.#t&&(this.innerHTML=s.sanitize(await i.parse(t),{CUSTOM_ELEMENT_HANDLING:{tagNameCheck:r=>!0}}))}}typeof customElements<"u"&&!customElements.get("mateu-markdown")&&customElements.define("mateu-markdown",gi);const ht=(e,t)=>new Function(...Object.keys(t),"return `"+e+"`")(...Object.values(t)),vt=(e,t,a)=>({state:e??{},data:t??{},...a});function De(e,t,a,i){if(!e?.includes("${"))return e;try{return ht(e,vt(t,a,i))}catch(s){return console.warn(`Mateu: could not interpolate "${e}":`,s),e}}const Qe=(e,t,a)=>{if(e&&e.indexOf("${")>=0)try{return ht(e,vt(t,a))}catch(i){return i.message}return e},Pa=(e,t,a,i,s)=>{if(!e)return e;const r=vt(t,a,{appState:i??{},appData:s??{}});let o=e;try{if(o=ht(e,r),o.includes("${"))try{o=ht(o,r)}catch(l){o="when evaluating nested "+e+" :"+l+", where data is "+a+" and state is "+t+" and app state is "+i+" and app data is "+s,console.error(l,o,t,a,i,s)}}catch(l){o="when evaluating "+e+" :"+l+", where data is "+a+" and state is "+t+" and app state is "+i+" and app data is "+s,console.error(l,o,t,a,i,s)}return o},Ra=(e,t,a,i,s,r)=>{const o=vt(t,a,{appState:i??{},appData:s??{},...r}),l=ht(e,o);return new Function(...Object.keys(o),`return (${l})`)(...Object.values(o))},La=(e,t,a,i)=>{const s=vt(t,a,i);return new Function(...Object.keys(s),`return (${e})`)(...Object.values(s))},$i=(e,t,a,i)=>ht(e,vt(t,a,i)),Da=(e,t)=>{const a=e.toLowerCase().split("+");return t.ctrlKey===a.includes("ctrl")&&t.altKey===a.includes("alt")&&t.shiftKey===a.includes("shift")&&t.metaKey===a.includes("meta")},yi=(e,t)=>{if(!Da(e,t))return!1;const a=e.toLowerCase().split("+"),i=a[a.length-1];return!!(t.key.toLowerCase()===i||/^[a-z]$/.test(i)&&t.code==="Key"+i.toUpperCase()||/^[0-9]$/.test(i)&&(t.code==="Digit"+i||t.code==="Numpad"+i))},wi=e=>e?e.split("+").map(t=>t.length<=1?t.toUpperCase():t.charAt(0).toUpperCase()+t.slice(1)).join("+"):void 0;var G=(e=>(e.ServerSide="ServerSide",e.ClientSide="ClientSide",e))(G||{}),m=(e=>(e.Page="Page",e.Div="Div",e.Element="Element",e.MicroFrontend="MicroFrontend",e.Form="Form",e.Crud="Crud",e.Result="Result",e.Card="Card",e.Directory="Directory",e.Stepper="Stepper",e.HorizontalLayout="HorizontalLayout",e.VerticalLayout="VerticalLayout",e.SplitLayout="SplitLayout",e.MasterDetailLayout="MasterDetailLayout",e.TabLayout="TabLayout",e.AccordionLayout="AccordionLayout",e.FormLayout="FormLayout",e.FormRow="FormRow",e.FormItem="FormItem",e.BoardLayout="BoardLayout",e.BoardLayoutRow="BoardLayoutRow",e.BoardLayoutItem="BoardLayoutItem",e.Scroller="Scroller",e.FullWidth="FullWidth",e.Container="Container",e.FormField="FormField",e.Table="Table",e.App="App",e.Text="Text",e.Avatar="Avatar",e.Chat="Chat",e.AvatarGroup="AvatarGroup",e.Badge="Badge",e.Breadcrumbs="Breadcrumbs",e.Anchor="Anchor",e.Button="Button",e.Chart="Chart",e.Icon="Icon",e.ConfirmDialog="ConfirmDialog",e.ContextMenu="ContextMenu",e.CookieConsent="CookieConsent",e.Details="Details",e.Dialog="Dialog",e.Image="Image",e.Map="Map",e.Markdown="Markdown",e.Notification="Notification",e.ProgressBar="ProgressBar",e.Popover="Popover",e.CarouselLayout="CarouselLayout",e.Tooltip="Tooltip",e.MessageInput="MessageInput",e.MessageList="MessageList",e.CustomField="CustomField",e.MenuBar="MenuBar",e.Grid="Grid",e.GridColumn="GridColumn",e.GridGroupColumn="GridGroupColumn",e.VirtualList="VirtualList",e.FormSection="FormSection",e.FormSubSection="FormSubSection",e.Bpmn="Bpmn",e.Workflow="Workflow",e.WorkflowElk="WorkflowElk",e.FormEditor="FormEditor",e.MetricCard="MetricCard",e.Scoreboard="Scoreboard",e.DashboardPanel="DashboardPanel",e.DashboardLayout="DashboardLayout",e.FoldoutLayout="FoldoutLayout",e))(m||{});let dt=[];class xi{constructor(){this.axiosInstance=ci.create({timeout:6e4}),this.axiosInstance.interceptors.request.use(t=>(this.addAuthToken(t),this.addSessionId(t),t))}addSessionId(t){let a=sessionStorage.getItem("__mateu_sesion_id");a||(a=se(),sessionStorage.setItem("__mateu_sesion_id",a)),t.headers["X-Session-Id"]=a}addAuthToken(t){const a=localStorage.getItem("__mateu_auth_token");a&&(t.headers.Authorization="Bearer "+a)}async wrap(t,a,i,s){return i||a.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),t.then(r=>(a.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:s}})),r)).catch(r=>{throw r?.code=="ERR_CANCELED"?a.dispatchEvent(new CustomEvent("backend-cancelled-event",{bubbles:!0,composed:!0,detail:{}})):a.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:s,reason:this.serialize(r)}})),r})}serialize(t){return t?.message?t:JSON.stringify(t)}async get(t){const a=new AbortController;return dt=[...dt,a],this.axiosInstance.get(t,{signal:a.signal})}async post(t,a){const i=new AbortController;return dt=[...dt,i],this.axiosInstance.post(t,a,{signal:i.signal})}async abortAll(){dt.forEach(t=>t.abort()),dt=[]}async runAction(t,a,i,s,r,o,l,c,h,p,v){return a&&a.startsWith("/")&&(a=a.substring(1)),await this.wrap(this.post(t+"/mateu/v3/sync/"+(a&&a!=""?a:"_no_route"),{serverSideType:l,appState:o,componentState:c,parameters:h,initiatorComponentId:r,consumedRoute:i,route:a&&a!=""?"/"+a:"",actionId:s}).then(y=>y.data),p,v,s)}}const za=new xi;var Et=(e=>(e.Add="Add",e.Replace="Replace",e.ReplaceKeepData="ReplaceKeepData",e))(Et||{}),Pe=(e=>(e.HAMBURGUER_MENU="HAMBURGUER_MENU",e.MENU_ON_LEFT="MENU_ON_LEFT",e.MENU_ON_TOP="MENU_ON_TOP",e.TABS="TABS",e.TILES="TILES",e.RAIL="RAIL",e.AUTO="AUTO",e.MEDIATOR="MEDIATOR",e))(Pe||{}),ki=Object.defineProperty,Fa=(e,t,a,i)=>{for(var s=void 0,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=o(t,a,s)||s);return s&&ki(t,a,s),s};class Ut extends L{constructor(){super(...arguments),this.id="",this.baseUrl="",this.callbackToken="",this.createElement=t=>{const a=t.data,i=document.createElement(a.name);for(let s in a.attributes)i.setAttribute(s,a.attributes[s]);for(let s in a.on)i.addEventListener(s,r=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.on[s],parameters:{event:r}},bubbles:!0,composed:!0}))});return i},this.closeModal=()=>{const t=this.shadowRoot?.querySelectorAll("mateu-dialog");if(t&&t.length>0){t[t.length-1].close();return}this.dispatchEvent(new CustomEvent("close-modal-requested",{bubbles:!0,composed:!0}))},this.changeFavicon=t=>{let a=document.querySelector('link[rel="icon"]');a!==null?a.setAttribute("href",t):(a=document.createElement("link"),a.setAttribute("rel","icon"),a.setAttribute("href",t),document.head.appendChild(a))}}connectedCallback(){super.connectedCallback(),this.upstreamSubscription=et.subscribe(t=>{if(t.command){const a=t.command;this.id==a.targetComponentId&&this.applyCommand(a)}if((!t.callbackToken||!this.callbackToken||t.callbackToken===this.callbackToken)&&t.fragment){const a=t.fragment;this.id==a.targetComponentId&&(this.applyFragment(a),this.completeMenu(a))}})}completeMenu(t){if(t.component&&t.component.type==G.ClientSide){const a=t.component,i=a.metadata;if(i?.type==m.App){const s=i,r=this.getRemoteMenus(s.menu);if(r.length>0){const o=r.map(l=>za.runAction(l.baseUrl,l.route,"_empty","",l.baseUrl+"#"+l.route,void 0,void 0,void 0,l.params,this,!0));Promise.all(o).then(l=>{s.menu=this.updateMenu(s.menu,l.map(c=>c.fragments).filter(c=>c).map(c=>c).flat()),s.variant=Pe.MENU_ON_TOP,et.next({fragment:{component:a,data:void 0,state:void 0,action:Et.Replace,targetComponentId:this.id,containerId:void 0},callbackToken:this.callbackToken})})}}}}updateMenu(t,a){const i=[];return t.forEach(s=>{if(s.remote){const r=a.find(o=>o.targetComponentId==s.baseUrl+"#"+s.route);if(r&&r.component?.type==G.ClientSide){const o=r.component;if(o.metadata?.type==m.App){const l=o.metadata,c=s.serverSideType&&s.serverSideType!=""?s.serverSideType:l.serverSideType;this.changeBaseUrl(l.menu,s.baseUrl,c,s.route,l.route),i.push(...l.menu)}}}else i.push(s)}),i}changeBaseUrl(t,a,i,s,r){t.forEach(o=>{o.baseUrl||(o.submenus&&o.submenus.length>0?this.changeBaseUrl(o.submenus,a,i,s,r):(o.consumedRoute=r??"",o.baseUrl=a,o.serverSideType=i,o.uriPrefix=s))})}getRemoteMenus(t){const a=[];return t.forEach(i=>{i.remote&&a.push(i)}),a}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe()}applyCommand(t){if(t.type=="SetWindowTitle"&&(document.title=t.data),t.type=="SetFavicon"&&this.changeFavicon(t.data),t.type=="DispatchEvent"){const a=t.data;if(a&&a.eventName){const i=this.component,s=i?.emitsName??i?.serverSideType;let r=a.payload??a.detail;s&&r&&typeof r=="object"&&(r={...r,__source:s}),this.dispatchEvent(new CustomEvent(a.eventName,{detail:r,bubbles:!0,composed:!0}))}}if(t.type=="NavigateTo"){const a=t.data;a&&(a.startsWith("http:")||a.startsWith("https:")?window.open(t.data,"_blank"):window.location.href=t.data)}if(t.type=="PushStateToHistory"){const a=t.data;a!==void 0&&this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:a},bubbles:!0,composed:!0}))}if(t.type=="RunAction"){const a=t.data;if(a&&a.actionId)if(a.targetComponentId){const i={command:{type:"RunAction",data:{actionId:a.actionId},targetComponentId:a.targetComponentId},fragment:void 0,ui:void 0,error:void 0,callbackToken:""};setTimeout(()=>et.next(i))}else this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.actionId,parameters:{}},bubbles:!0,composed:!0}))}if(t.type=="MarkAsDirty"&&this.dispatchEvent(new CustomEvent("dirty",{detail:{},bubbles:!0,composed:!0})),t.type=="MarkAsClean"&&this.dispatchEvent(new CustomEvent("clean",{detail:{},bubbles:!0,composed:!0})),t.type=="DownloadFile"){const a=t.data;if(a&&a.base64Content){const i=atob(a.base64Content),s=new Uint8Array(i.length);for(let c=0;c<i.length;c++)s[c]=i.charCodeAt(c);const r=new Blob([s],{type:a.mimeType}),o=URL.createObjectURL(r),l=document.createElement("a");l.href=o,l.download=a.filename??"export",l.click(),URL.revokeObjectURL(o)}}if(t.type=="CloseModal"&&this.closeModal(),t.type=="AddContentToHead"){const a=t.data;if(a&&a.name){if(a.attributes&&a.attributes.id&&document.getElementById(a.attributes.id))return;document.head.appendChild(this.createElement(t))}}if(t.type=="AddContentToBody"){const a=t.data;if(a&&a.name){if(a.attributes&&a.attributes.id&&document.getElementById(a.attributes.id))return;document.body.appendChild(this.createElement(t))}}}}Fa([u()],Ut.prototype,"id");Fa([u()],Ut.prototype,"baseUrl");var Si=Object.defineProperty,Ei=(e,t,a,i)=>{for(var s=void 0,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=o(t,a,s)||s);return s&&Si(t,a,s),s};class Mt extends Ut{applyFragment(t){}manageActionRequestedEvent(t){}}Ei([u()],Mt.prototype,"component");var xt=(e=>(e.NONE="NONE",e.INFO="INFO",e.SUCCESS="SUCCESS",e.WARNING="WARNING",e.DANGER="DANGER",e))(xt||{});const Ci=(e,t,a)=>{const i=e[a.path];return i?n`<span theme="badge pill ${Bt(i.type)}">${i.message}</span>`:n``},Bt=e=>{switch(e){case xt.SUCCESS:return"success";case xt.WARNING:return"warning";case xt.DANGER:return"error";case xt.NONE:return"contrast"}return""},Ii=(e,t,a)=>{const s=e[a.path]?"vaadin:check":"vaadin:minus";return n`<vaadin-icon 
                     icon="${s}"
                     style="height: 16px; width: 16px; color: ${"var(--lumo-body-text-color)"};"
-            ></vaadin-icon>`},Ci=(e,t,a,i,s)=>{const r=e[a.path];let o=r;return i=="money"&&r&&r.locale&&r.currency?o=new Intl.NumberFormat(r.locale,{style:"currency",currency:r.currency}).format(r.value):s=="money"&&(o=new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(r)),n`${o}`},da=(e,t,a)=>{e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:a},bubbles:!0,composed:!0}))},Ii=(e,t,a,i,s,r)=>{const o=a.xcolumn??r;if(o.text){if(o.actionId)return n`<a href="javascript: void(0);" @click="${h=>da(a,o,e)}">${o.text}</a>`;const c=e[a.path];return n`<a href="${c}">${o.text}</a>`}if(i=="string"){if(o.actionId){const h=e[a.path];return n`<a href="javascript: void(0);" @click="${p=>da(a,o,e)}">${h}</a>`}const c=e[a.path];return n`<a href="${c}">${c}</a>`}const l=e[a.path];return n`<a href="${l.href}">${l.text}</a>`},_i=(e,t,a,i,s)=>i=="string"?e[a.path].split(",").map(l=>n`<vaadin-icon icon="${l}" style="width: 16px;"></vaadin-icon>`):e[a.path].split(",").map(o=>n`<vaadin-icon icon="${o.icon}" style="width: 16px;"></vaadin-icon>`),Ti=(e,t,a,i,s)=>{const r=e[a.path];return n`${me(r)}`},Oi=(e,t,a,i,s,r)=>{if(i=="string"){const l=e[a.path],c="max-height: 40px; "+(r.style??"");return n`<img src="${l}" style="${c}">`}const o=e[a.path];return n`<img src="${o.src}" style="${r.style??""}">`},Ri=e=>{const t={_clickedRow:e.target.row};e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+e.detail.value.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},ca=e=>{const t={_clickedRow:e.target.row},a=e.target.action;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+a.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Pi=e=>{const t=document.createElement("vaadin-context-menu-item"),a=document.createElement("vaadin-icon");return a.style.color="var(--lumo-secondary-text-color)",a.style.marginInlineEnd="var(--lumo-space-s)",a.style.padding="var(--lumo-space-xs)",a.setAttribute("icon",e.icon),t.appendChild(a),e.label&&t.appendChild(document.createTextNode(e.label)),t.disabled=e.disabled,t},ha=(e,t,a)=>{const i=e[a.path]?.actions?.map(s=>s.icon?{component:Pi(s),methodNameInCrud:s.methodNameInCrud}:{...s,text:s.label});return!i||i.length==0?n``:n`
+            ></vaadin-icon>`},_i=(e,t,a,i,s)=>{const r=e[a.path];let o=r;return i=="money"&&r&&r.locale&&r.currency?o=new Intl.NumberFormat(r.locale,{style:"currency",currency:r.currency}).format(r.value):s=="money"&&(o=new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(r)),n`${o}`},ha=(e,t,a)=>{e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:a},bubbles:!0,composed:!0}))},Ti=(e,t,a,i,s,r)=>{const o=a.xcolumn??r;if(o.text){if(o.actionId)return n`<a href="javascript: void(0);" @click="${h=>ha(a,o,e)}">${o.text}</a>`;const c=e[a.path];return n`<a href="${c}">${o.text}</a>`}if(i=="string"){if(o.actionId){const h=e[a.path];return n`<a href="javascript: void(0);" @click="${p=>ha(a,o,e)}">${h}</a>`}const c=e[a.path];return n`<a href="${c}">${c}</a>`}const l=e[a.path];return n`<a href="${l.href}">${l.text}</a>`},Oi=(e,t,a,i,s)=>i=="string"?e[a.path].split(",").map(l=>n`<vaadin-icon icon="${l}" style="width: 16px;"></vaadin-icon>`):e[a.path].split(",").map(o=>n`<vaadin-icon icon="${o.icon}" style="width: 16px;"></vaadin-icon>`),Pi=(e,t,a,i,s)=>{const r=e[a.path];return n`${me(r)}`},Ri=(e,t,a,i,s,r)=>{if(i=="string"){const l=e[a.path],c="max-height: 40px; "+(r.style??"");return n`<img src="${l}" style="${c}">`}const o=e[a.path];return n`<img src="${o.src}" style="${r.style??""}">`},Li=e=>{const t={_clickedRow:e.target.row};e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+e.detail.value.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},ua=e=>{const t={_clickedRow:e.target.row},a=e.target.action;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+a.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Di=e=>{const t=document.createElement("vaadin-context-menu-item"),a=document.createElement("vaadin-icon");return a.style.color="var(--lumo-secondary-text-color)",a.style.marginInlineEnd="var(--lumo-space-s)",a.style.padding="var(--lumo-space-xs)",a.setAttribute("icon",e.icon),t.appendChild(a),e.label&&t.appendChild(document.createTextNode(e.label)),t.disabled=e.disabled,t},pa=(e,t,a)=>{const i=e[a.path]?.actions?.map(s=>s.icon?{component:Di(s),methodNameInCrud:s.methodNameInCrud}:{...s,text:s.label});return!i||i.length==0?n``:n`
                                      <vaadin-menu-bar
                                          .items=${[{text:"···",children:i}]}
                                          theme="tertiary"
                                          .row="${e}"
                                          data-testid="menubar-${a.path}"
-                                         @item-selected="${Ri}"
+                                         @item-selected="${Li}"
                                      ></vaadin-menu-bar>
-                                   `},Li=(e,t,a)=>{if(a.path=="select"){const r={actionId:a.path,icon:"",label:"Select",disabled:!1,methodNameInCrud:"select"};return n`
-         <vaadin-button theme="tertiary" title="Select" @click="${ca}" .row="${e}" .action="${r}">
+                                   `},zi=(e,t,a)=>{if(a.path=="select"){const r={actionId:a.path,icon:"",label:"Select",disabled:!1,methodNameInCrud:"select"};return n`
+         <vaadin-button theme="tertiary" title="Select" @click="${ua}" .row="${e}" .action="${r}">
              Select
          </vaadin-button>
     `}const i=a.path&&e[a.path].methodNameInCrud?e[a.path]:e.action,s=i.icon&&!i.label;return n`
-         <vaadin-button theme="tertiary${s?" icon":""}" title="${i.label||d}" @click="${ca}" .row="${e}" .action="${i}">
+         <vaadin-button theme="tertiary${s?" icon":""}" title="${i.label||d}" @click="${ua}" .row="${e}" .action="${i}">
              ${i.icon?n`<vaadin-icon icon="${i.icon}"></vaadin-icon>`:d}
              ${i.label?i.label:d}
          </vaadin-button>
-    `},Di=(e,t,a)=>{e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:a},bubbles:!0,composed:!0}))},zi=(e,t,a,i,s,r)=>{const o=a.xcolumn??r;if(o.actionId){const c=o.text||e[a.path];return n`
-            <vaadin-button theme="tertiary" @click="${h=>Di(a,o,e)}" .row="${e}">
+    `},Fi=(e,t,a)=>{e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:a},bubbles:!0,composed:!0}))},Ai=(e,t,a,i,s,r)=>{const o=a.xcolumn??r;if(o.actionId){const c=o.text||e[a.path];return n`
+            <vaadin-button theme="tertiary" @click="${h=>Fi(a,o,e)}" .row="${e}">
                 ${c}
             </vaadin-button>
-        `}const l=e[a.path];return n`<a href="${l}">${o.text||l}</a>`};class Ai{constructor(){this.afterRenderHook=void 0,this.useShadowRoot=!0,this.componentRenderer=void 0}set(t){if(this.componentRenderer=t,typeof window<"u"){const a=t.supportedClientSideTypes?.();window.__mateuRendererInfo={name:t.rendererName?.()??t.constructor?.name??"unknown",supportedTypes:a?[...a].sort():null}}}get(){return this.componentRenderer}setUseShadowRoot(t){this.useShadowRoot=t}mustUseShadowRoot(){return this.useShadowRoot}setAfterRenderHook(t){this.afterRenderHook=t}getAfterRenderHook(){return this.afterRenderHook}}const W=new Ai,Ze=(e,t,a,i,s,r,o,l,c)=>(t.slot=l,g(e,t,a,i,s,r,o,c)),g=(e,t,a,i,s,r,o,l)=>{if(!t)return n``;if(t.type==G.ClientSide)return W.get().renderClientSideComponent(e,t,a,i,s,r,o,l);const c=e.route,h=e.consumedRoute;return n`
+        `}const l=e[a.path];return n`<a href="${l}">${o.text||l}</a>`};class Ni{constructor(){this.afterRenderHook=void 0,this.useShadowRoot=!0,this.componentRenderer=void 0}set(t){if(this.componentRenderer=t,typeof window<"u"){const a=t.supportedClientSideTypes?.();window.__mateuRendererInfo={name:t.rendererName?.()??t.constructor?.name??"unknown",supportedTypes:a?[...a].sort():null}}}get(){return this.componentRenderer}setUseShadowRoot(t){this.useShadowRoot=t}mustUseShadowRoot(){return this.useShadowRoot}setAfterRenderHook(t){this.afterRenderHook=t}getAfterRenderHook(){return this.afterRenderHook}}const W=new Ni,Ze=(e,t,a,i,s,r,o,l,c)=>(t.slot=l,b(e,t,a,i,s,r,o,c)),b=(e,t,a,i,s,r,o,l)=>{if(!t)return n``;if(t.type==G.ClientSide)return W.get().renderClientSideComponent(e,t,a,i,s,r,o,l);const c=e.route,h=e.consumedRoute;return n`
         <mateu-component id="${t.id}"
                          .component="${t}"
                         route="${c}"
@@ -60,21 +60,21 @@ ${ai.cssText}
                          .appState="${r}"
                          .appData="${o}"
         >
-       </mateu-component>`},Fi=(e,t,a,i,s,r,o,l,c)=>{const h=e[a.path];return g(i,h,s,r,o,l,c)},Xt=new WeakMap,Ni=(e,t)=>Xt.get(e)?.[t],qi=(e,t,a)=>{let i=Xt.get(e);i||(i={},Xt.set(e,i)),i[t]=a},ua=e=>{if(e==null||e==="")return null;const t=Number(e);return Number.isNaN(t)?null:t},Ui=(e,t,a,i)=>{const s=a?.field?.fieldId,r=c=>{e[t.id]=c;const h=s?i[s]:void 0;a.dispatchEvent(new CustomEvent("value-changed",{detail:{fieldId:s,value:Array.isArray(h)?[...h]:h},bubbles:!0,composed:!0}))},o=e[t.id],l=o==null?"":String(o);switch(t.editorType){case"boolean":return n`<vaadin-checkbox ?checked=${!!o} @checked-changed=${c=>r(c.detail.value)}></vaadin-checkbox>`;case"integer":return n`<vaadin-integer-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(ua(c.target.value))}></vaadin-integer-field>`;case"number":return n`<vaadin-number-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(ua(c.target.value))}></vaadin-number-field>`;case"date":return n`<vaadin-date-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-date-picker>`;case"time":return n`<vaadin-time-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-time-picker>`;case"datetime":return n`<vaadin-date-time-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-date-time-picker>`;case"select":return n`<vaadin-combo-box
+       </mateu-component>`},qi=(e,t,a,i,s,r,o,l,c)=>{const h=e[a.path];return b(i,h,s,r,o,l,c)},Qt=new WeakMap,Ui=(e,t)=>Qt.get(e)?.[t],Mi=(e,t,a)=>{let i=Qt.get(e);i||(i={},Qt.set(e,i)),i[t]=a},va=e=>{if(e==null||e==="")return null;const t=Number(e);return Number.isNaN(t)?null:t},Bi=(e,t,a,i)=>{const s=a?.field?.fieldId,r=c=>{e[t.id]=c;const h=s?i[s]:void 0;a.dispatchEvent(new CustomEvent("value-changed",{detail:{fieldId:s,value:Array.isArray(h)?[...h]:h},bubbles:!0,composed:!0}))},o=e[t.id],l=o==null?"":String(o);switch(t.editorType){case"boolean":return n`<vaadin-checkbox ?checked=${!!o} @checked-changed=${c=>r(c.detail.value)}></vaadin-checkbox>`;case"integer":return n`<vaadin-integer-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(va(c.target.value))}></vaadin-integer-field>`;case"number":return n`<vaadin-number-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(va(c.target.value))}></vaadin-number-field>`;case"date":return n`<vaadin-date-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-date-picker>`;case"time":return n`<vaadin-time-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-time-picker>`;case"datetime":return n`<vaadin-date-time-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-date-time-picker>`;case"select":return n`<vaadin-combo-box
                 theme="small" style="width:100%;"
                 .items=${(t.editorOptions??[]).map(c=>({label:c.label,value:String(c.value)}))}
                 item-label-path="label" item-value-path="value"
                 .value=${l}
-                @value-changed=${c=>r(c.detail.value)}></vaadin-combo-box>`;case"lookup":{const c=a?.field?.fieldId,h=`search-${c}-${t.id}`,p=`${c}-${t.id}`,y=(t.editorOptions??[]).find(k=>String(k.value)===l)??(l?{value:l,label:Ni(e,t.id)??l}:void 0);return n`<vaadin-combo-box
+                @value-changed=${c=>r(c.detail.value)}></vaadin-combo-box>`;case"lookup":{const c=a?.field?.fieldId,h=`search-${c}-${t.id}`,p=`${c}-${t.id}`,y=(t.editorOptions??[]).find(k=>String(k.value)===l)??(l?{value:l,label:Ui(e,t.id)??l}:void 0);return n`<vaadin-combo-box
                 theme="small" style="width:100%;"
                 item-label-path="label" item-id-path="value"
-                .dataProvider=${(k,b)=>{a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:h,parameters:{searchText:k.filter,size:k.pageSize,page:k.page},callback:E=>{const q=E?.fragments?.[0]?.data?.[p];b(q?.content??[],q?.totalElements??0)},callbackonly:!0},bubbles:!0,composed:!0}))}}
+                .dataProvider=${(k,g)=>{a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:h,parameters:{searchText:k.filter,size:k.pageSize,page:k.page},callback:E=>{const q=E?.fragments?.[0]?.data?.[p];g(q?.content??[],q?.totalElements??0)},callbackonly:!0},bubbles:!0,composed:!0}))}}
                 .selectedItem=${y}
-                @selected-item-changed=${k=>{const b=k.detail.value,E=b?b.value:null;String(E??"")!==l&&(b&&qi(e,t.id,b.label),r(E))}}></vaadin-combo-box>`}default:return n`<vaadin-text-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(c.target.value)}></vaadin-text-field>`}},Kt=e=>ii(()=>n`<span title="${e}" style="white-space:normal;overflow-wrap:break-word;">${e}</span>`,[e]),Mi=e=>{e.preventDefault(),e.stopPropagation(),e.currentTarget?.dispatchEvent(new CustomEvent("sort-direction-changed",{detail:{grid:e.currentTarget.parentElement},bubbles:!0,composed:!0}))},Bi=(e,t,a,i,s,r,o)=>{const l=De(e.label,i,s);return n`
+                @selected-item-changed=${k=>{const g=k.detail.value,E=g?g.value:null;String(E??"")!==l&&(g&&Mi(e,t.id,g.label),r(E))}}></vaadin-combo-box>`}default:return n`<vaadin-text-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(c.target.value)}></vaadin-text-field>`}},Jt=e=>ri(()=>n`<span title="${e}" style="white-space:normal;overflow-wrap:break-word;">${e}</span>`,[e]),ji=e=>{e.preventDefault(),e.stopPropagation(),e.currentTarget?.dispatchEvent(new CustomEvent("sort-direction-changed",{detail:{grid:e.currentTarget.parentElement},bubbles:!0,composed:!0}))},Wi=(e,t,a,i,s,r,o)=>{const l=De(e.label,i,s);return n`
 <vaadin-grid-column-group header="${l}">
-    ${e.columns.map(c=>za(c.metadata,t,a,i,s,r,o))}
+    ${e.columns.map(c=>Aa(c.metadata,t,a,i,s,r,o))}
 </vaadin-grid-column-group>
-`},ta=(e,t,a,i,s,r,o)=>m.GridGroupColumn==e.metadata?.type?Bi(e.metadata,t,a,i,s,r,o):za(e.metadata,t,a,i,s,r,o),za=(e,t,a,i,s,r,o)=>{const l=De(e.label,i,s);return e.sortable?n`
+`},aa=(e,t,a,i,s,r,o)=>m.GridGroupColumn==e.metadata?.type?Wi(e.metadata,t,a,i,s,r,o):Aa(e.metadata,t,a,i,s,r,o),Aa=(e,t,a,i,s,r,o)=>{const l=De(e.label,i,s);return e.sortable?n`
                         <vaadin-grid-sort-column
                                 path="${e.id}"
                                 text-align="${e.align??d}"
@@ -84,11 +84,11 @@ ${ai.cssText}
                                 flex-grow="${e.flexGrow??d}"
                                 ?resizable="${e.resizable}"
                                 width="${e.width??d}"
-                                @direction-changed="${Mi}"
+                                @direction-changed="${ji}"
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
-                                ${Kt(l)}
-                                ${We((c,h,p)=>Dt(c,h,p,e,t,a,i,s,r,o),[])}
+                                ${Jt(l)}
+                                ${We((c,h,p)=>zt(c,h,p,e,t,a,i,s,r,o),[])}
                         ></vaadin-grid-sort-column>
                     `:e.filterable?n`
                         <vaadin-grid-filter-column
@@ -102,8 +102,8 @@ ${ai.cssText}
                                 width="${e.width??d}"
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
-                                ${Kt(l)}
-                                ${We((c,h,p)=>Dt(c,h,p,e,t,a,i,s,r,o),[])}
+                                ${Jt(l)}
+                                ${We((c,h,p)=>zt(c,h,p,e,t,a,i,s,r,o),[])}
                         ></vaadin-grid-filter-column>
                     `:n`
                         <vaadin-grid-column
@@ -118,17 +118,17 @@ ${ai.cssText}
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
                                 .xcolumn="${e}"
-                                ${Kt(l)}
-                                ${We((c,h,p)=>Dt(c,h,p,e,t,a,i,s,r,o),[])}
+                                ${Jt(l)}
+                                ${We((c,h,p)=>zt(c,h,p,e,t,a,i,s,r,o),[])}
                         ></vaadin-grid-column>
-                    `},Dt=(e,t,a,i,s,r,o,l,c,h)=>{const p=a.dataset.dataType??"",v=a.dataset.stereotype??"";if(i.editable)return Ui(e,i,s,o);if(p=="status")return Si(e,t,a);if(p=="bool")return Ei(e,t,a);if(p=="money"||v=="money")return Ci(e,t,a,p,v);if(p=="link"||v=="link")return Ii(e,t,a,p,v,i);if(p=="icon"||v=="icon")return _i(e,t,a,p);if(v=="html")return Ti(e,t,a);if(v=="image")return Oi(e,t,a,p,v,i);if(p=="menu")return ha(e,t,a);if(p=="component")return Fi(e,t,a,s,r,o,l,c,h);if(p=="action")return Li(e,t,a);if(p=="actionGroup")return ha(e,t,a);if(v=="button"||i.actionId)return zi(e,t,a,p,v,i);const y=e[a.path];return n`<span title="${y}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${y}</span>`};var ji=Object.defineProperty,Wi=Object.getOwnPropertyDescriptor,Ge=(e,t,a,i)=>{for(var s=i>1?void 0:i?Wi(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&ji(t,a,s),s};const Vi=()=>{let e=document.activeElement;for(;e?.shadowRoot?.activeElement;)e=e.shadowRoot.activeElement;return e},Hi=(e,t)=>{let a=t;for(;a;){if(a===e)return!0;a=a.assignedSlot??a.parentNode??a.host??null}return!1};let ke=class extends Ut{constructor(){super(...arguments),this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.hoveredItem=null,this.onGridHoverMove=e=>{const t=e.currentTarget,a=t.getEventContext(e)?.item??null;a!==this.hoveredItem&&(this.hoveredItem=a,t.generateCellPartNames())},this.onGridHoverLeave=e=>{this.hoveredItem!==null&&(this.hoveredItem=null,e.currentTarget.generateCellPartNames())},this.hoverCellPartNameGenerator=(e,t)=>t?.item!=null&&t.item===this.hoveredItem?"hovered-cell":"",this._onRowKey=e=>{const t=this.field?.rowSelectionShortcut;if(!t||!this.field?.onItemSelectionActionId||!this._isRowShortcutRelevant()||!Pa(t,e))return;const a=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!a)return;const i=this.currentItems(),s=parseInt(a[1],10)-1;s>=i.length||(e.preventDefault(),this.selectRow(i[s]))},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))}}connectedCallback(){super.connectedCallback(),document.addEventListener("keydown",this._onRowKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("keydown",this._onRowKey)}currentItems(){return this.field?.remoteCoordinates?this.data?.[this.id]?.content??[]:this.field?.fieldId&&this.state?this.state[this.field.fieldId]??[]:[]}selectRow(e){!e||!this.field?.onItemSelectionActionId||(this.selectedItems=[e],this.state[this.id+"_selected_items"]=[e],this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.field.onItemSelectionActionId,parameters:{_clickedRow:e}},bubbles:!0,composed:!0})))}_isRowShortcutRelevant(){if(this.offsetParent===null&&this.getClientRects().length===0)return!1;const e=Vi();if(e&&e!==document.body&&!Hi(this,e)){const t=e.tagName?.toLowerCase()??"";if(e.isContentEditable||/^(input|textarea|select)$/.test(t)||t.startsWith("vaadin-")&&/(field|combo|picker|area|select)/.test(t))return!1}return!0}handleItemToggle(e){const{item:t,selected:a,shiftKey:i}=e.detail;if(this.rangeStartItem??=t,i){let s=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(s=this.state[this.field.fieldId]);const[r,o]=[this.rangeStartItem,t].map(h=>s.indexOf(h)).sort((h,p)=>h-p),l=s.slice(r,o+1),c=new Set(this.selectedItems);l.forEach(h=>{a?c.add(h):c.delete(h)}),this.selectedItems=[...c],this.state[this.id+"_selected_items"]=this.selectedItems}this.rangeStartItem=t}render(){let e=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(e=this.state[this.field.fieldId]);const t=this.state[this.field?.fieldId+"_show_detail"]||this.state._show_detail&&this.state._show_detail[this.field.fieldId];if(this.field?.remoteCoordinates){const a=this.field.remoteCoordinates,i="";this.data[this.id]&&(this.data[this.id].searchSignature||i)&&this.data[this.id].searchSignature!=i&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements?e=this.data[this.id].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.action,parameters:{searchText:i,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}if(Array.isArray(e)&&e.forEach((a,i)=>{a&&typeof a=="object"&&a._rowNumber===void 0&&(a._rowNumber=i)}),this.field?.inlineEditing)return this.renderMaster(e);if(this.field?.formPosition&&this.field?.formPosition.startsWith("modal")){const a=this;return n`
+                    `},zt=(e,t,a,i,s,r,o,l,c,h)=>{const p=a.dataset.dataType??"",v=a.dataset.stereotype??"";if(i.editable)return Bi(e,i,s,o);if(p=="status")return Ci(e,t,a);if(p=="bool")return Ii(e,t,a);if(p=="money"||v=="money")return _i(e,t,a,p,v);if(p=="link"||v=="link")return Ti(e,t,a,p,v,i);if(p=="icon"||v=="icon")return Oi(e,t,a,p);if(v=="html")return Pi(e,t,a);if(v=="image")return Ri(e,t,a,p,v,i);if(p=="menu")return pa(e,t,a);if(p=="component")return qi(e,t,a,s,r,o,l,c,h);if(p=="action")return zi(e,t,a);if(p=="actionGroup")return pa(e,t,a);if(v=="button"||i.actionId)return Ai(e,t,a,p,v,i);const y=e[a.path];return n`<span title="${y}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${y}</span>`};var Vi=Object.defineProperty,Hi=Object.getOwnPropertyDescriptor,Ge=(e,t,a,i)=>{for(var s=i>1?void 0:i?Hi(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Vi(t,a,s),s};const Gi=()=>{let e=document.activeElement;for(;e?.shadowRoot?.activeElement;)e=e.shadowRoot.activeElement;return e},Ki=(e,t)=>{let a=t;for(;a;){if(a===e)return!0;a=a.assignedSlot??a.parentNode??a.host??null}return!1};let ke=class extends Mt{constructor(){super(...arguments),this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.hoveredItem=null,this.onGridHoverMove=e=>{const t=e.currentTarget,a=t.getEventContext(e)?.item??null;a!==this.hoveredItem&&(this.hoveredItem=a,t.generateCellPartNames())},this.onGridHoverLeave=e=>{this.hoveredItem!==null&&(this.hoveredItem=null,e.currentTarget.generateCellPartNames())},this.hoverCellPartNameGenerator=(e,t)=>t?.item!=null&&t.item===this.hoveredItem?"hovered-cell":"",this._onRowKey=e=>{const t=this.field?.rowSelectionShortcut;if(!t||!this.field?.onItemSelectionActionId||!this._isRowShortcutRelevant()||!Da(t,e))return;const a=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!a)return;const i=this.currentItems(),s=parseInt(a[1],10)-1;s>=i.length||(e.preventDefault(),this.selectRow(i[s]))},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))}}connectedCallback(){super.connectedCallback(),document.addEventListener("keydown",this._onRowKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("keydown",this._onRowKey)}currentItems(){return this.field?.remoteCoordinates?this.data?.[this.id]?.content??[]:this.field?.fieldId&&this.state?this.state[this.field.fieldId]??[]:[]}selectRow(e){!e||!this.field?.onItemSelectionActionId||(this.selectedItems=[e],this.state[this.id+"_selected_items"]=[e],this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.field.onItemSelectionActionId,parameters:{_clickedRow:e}},bubbles:!0,composed:!0})))}_isRowShortcutRelevant(){if(this.offsetParent===null&&this.getClientRects().length===0)return!1;const e=Gi();if(e&&e!==document.body&&!Ki(this,e)){const t=e.tagName?.toLowerCase()??"";if(e.isContentEditable||/^(input|textarea|select)$/.test(t)||t.startsWith("vaadin-")&&/(field|combo|picker|area|select)/.test(t))return!1}return!0}handleItemToggle(e){const{item:t,selected:a,shiftKey:i}=e.detail;if(this.rangeStartItem??=t,i){let s=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(s=this.state[this.field.fieldId]);const[r,o]=[this.rangeStartItem,t].map(h=>s.indexOf(h)).sort((h,p)=>h-p),l=s.slice(r,o+1),c=new Set(this.selectedItems);l.forEach(h=>{a?c.add(h):c.delete(h)}),this.selectedItems=[...c],this.state[this.id+"_selected_items"]=this.selectedItems}this.rangeStartItem=t}render(){let e=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(e=this.state[this.field.fieldId]);const t=this.state[this.field?.fieldId+"_show_detail"]||this.state._show_detail&&this.state._show_detail[this.field.fieldId];if(this.field?.remoteCoordinates){const a=this.field.remoteCoordinates,i="";this.data[this.id]&&(this.data[this.id].searchSignature||i)&&this.data[this.id].searchSignature!=i&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements?e=this.data[this.id].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.action,parameters:{searchText:i,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}if(Array.isArray(e)&&e.forEach((a,i)=>{a&&typeof a=="object"&&a._rowNumber===void 0&&(a._rowNumber=i)}),this.field?.inlineEditing)return this.renderMaster(e);if(this.field?.formPosition&&this.field?.formPosition.startsWith("modal")){const a=this;return n`
 
                 ${this.renderMaster(e)}
 
                 <vaadin-dialog
                         .opened="${t}"
                         @closed="${()=>{a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.field?.fieldId+"_cancel"},bubbles:!0,composed:!0}))}}"
-                        ${It(()=>n`
+                        ${_t(()=>n`
                             <mateu-event-interceptor .target="${a}">
                                 <div id="container" style="${this.field?.formStyle??"display: contents;"}">
                                     <mateu-component id="${this.field?.fieldId}-container"></mateu-component>
@@ -156,9 +156,9 @@ ${ai.cssText}
                  here too would duplicate it (e.g. "Guests / Guests"). -->
             <vaadin-grid
                     ?clickable="${!!this.field?.onItemSelectionActionId}"
-                    .cellPartNameGenerator="${C(this.field?.onItemSelectionActionId?this.hoverCellPartNameGenerator:void 0)}"
-                    @mousemove="${C(this.field?.onItemSelectionActionId?this.onGridHoverMove:void 0)}"
-                    @mouseleave="${C(this.field?.onItemSelectionActionId?this.onGridHoverLeave:void 0)}"
+                    .cellPartNameGenerator="${I(this.field?.onItemSelectionActionId?this.hoverCellPartNameGenerator:void 0)}"
+                    @mousemove="${I(this.field?.onItemSelectionActionId?this.onGridHoverMove:void 0)}"
+                    @mouseleave="${I(this.field?.onItemSelectionActionId?this.onGridHoverLeave:void 0)}"
                     style="${this.field?.onItemSelectionActionId?"cursor: pointer;":""}${this.field?.style??""}"
                     class="${this.field?.cssClasses}"
                     .items="${e}"
@@ -166,17 +166,17 @@ ${ai.cssText}
                     item-id-path="${this.field?.itemIdPath}"
                     @selected-items-changed="${a=>{this.selectedItems=a.detail.value,this.state[this.id+"_selected_items"]=this.selectedItems}}"
                     @item-toggle="${this.handleItemToggle}"
-                    @click="${C(this.field?.onItemSelectionActionId?a=>{const s=a.currentTarget.getEventContext(a)?.item;s&&this.selectRow(s)}:void 0)}"
-                    @active-item-changed="${C(this.field?.detailPath&&!this.field?.useButtonForDetail?a=>{if(this.field?.detailPath){const i=a.detail.value;i?this.detailsOpenedItems=[i]:this.detailsOpenedItems=[]}}:void 0)}"
+                    @click="${I(this.field?.onItemSelectionActionId?a=>{const s=a.currentTarget.getEventContext(a)?.item;s&&this.selectRow(s)}:void 0)}"
+                    @active-item-changed="${I(this.field?.detailPath&&!this.field?.useButtonForDetail?a=>{if(this.field?.detailPath){const i=a.detail.value;i?this.detailsOpenedItems=[i]:this.detailsOpenedItems=[]}}:void 0)}"
                     .detailsOpenedItems="${this.detailsOpenedItems}"
-                    ${C(this.field?.detailPath?Ea(a=>n`${g(this,a[this.field?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
+                    ${I(this.field?.detailPath?Ia(a=>n`${b(this,a[this.field?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
                     ?all-rows-visible=${e?.length<10}
             >
                 <span slot="empty-state">${this.field?.label?`No ${this.field.label.toLowerCase()} added yet.`:"No items added yet."}</span>
                 ${this.field?.readOnly||this.field?.inlineEditing?d:n`
                     <vaadin-grid-selection-column drag-select></vaadin-grid-selection-column>
                 `}
-                ${this.field?.columns?.map(a=>ta(a,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
+                ${this.field?.columns?.map(a=>aa(a,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
 
                 ${this.field?.inlineEditing&&!this.field?.readOnly?n`
                     <vaadin-grid-column width="3.5rem" flex-grow="0" frozen-to-end
@@ -223,7 +223,7 @@ ${ai.cssText}
                         <vaadin-button theme="tertiary icon" title="Move down" @click="${()=>this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.id+"_move-down"},bubbles:!0,composed:!0}))}"><vaadin-icon icon="vaadin:arrow-down"></vaadin-icon></vaadin-button>
                     </vaadin-horizontal-layout>
                 `}
-        </vaadin-vertical-layout>`}};ke.styles=T`
+        </vaadin-vertical-layout>`}};ke.styles=_`
         ${Le}
 
         /* Clickable grids (a row-selection action is wired) give visual feedback: the host sets a
@@ -233,7 +233,7 @@ ${ai.cssText}
             background-color: var(--lumo-primary-color-10pct);
             cursor: pointer;
         }
-    `;Ge([u()],ke.prototype,"field",2);Ge([u()],ke.prototype,"state",2);Ge([u()],ke.prototype,"data",2);Ge([u()],ke.prototype,"appState",2);Ge([u()],ke.prototype,"appData",2);Ge([u()],ke.prototype,"selectedItems",2);Ge([f()],ke.prototype,"detailsOpenedItems",2);ke=Ge([O("mateu-grid")],ke);var Gi=Object.defineProperty,Ki=Object.getOwnPropertyDescriptor,mt=(e,t,a,i)=>{for(var s=i>1?void 0:i?Ki(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Gi(t,a,s),s};let Ve=class extends D{constructor(){super(...arguments),this.getNewValue=e=>{if(this.field?.dataType=="array"){if(!this.value)return[e];const t=this.value;return t.indexOf(e)>=0?t.filter(a=>a!==e):[...t,e]}return e}}render(){let e=this.field?.options;if(this.field?.remoteCoordinates){const a=this.field.remoteCoordinates;this.data?.[this.field.fieldId]&&this.data[this.field.fieldId].content&&this.data[this.field.fieldId].totalElements?e=this.data[this.field.fieldId].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.action,parameters:{searchText:"",fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}const t=this.field?.attributes?.divStyle;return n`
+    `;Ge([u()],ke.prototype,"field",2);Ge([u()],ke.prototype,"state",2);Ge([u()],ke.prototype,"data",2);Ge([u()],ke.prototype,"appState",2);Ge([u()],ke.prototype,"appData",2);Ge([u()],ke.prototype,"selectedItems",2);Ge([f()],ke.prototype,"detailsOpenedItems",2);ke=Ge([O("mateu-grid")],ke);var Ji=Object.defineProperty,Yi=Object.getOwnPropertyDescriptor,mt=(e,t,a,i)=>{for(var s=i>1?void 0:i?Yi(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Ji(t,a,s),s};let Ve=class extends L{constructor(){super(...arguments),this.getNewValue=e=>{if(this.field?.dataType=="array"){if(!this.value)return[e];const t=this.value;return t.indexOf(e)>=0?t.filter(a=>a!==e):[...t,e]}return e}}render(){let e=this.field?.options;if(this.field?.remoteCoordinates){const a=this.field.remoteCoordinates;this.data?.[this.field.fieldId]&&this.data[this.field.fieldId].content&&this.data[this.field.fieldId].totalElements?e=this.data[this.field.fieldId].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.action,parameters:{searchText:"",fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}const t=this.field?.attributes?.divStyle;return n`
         <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap; ${t}">
                                     ${e?.map(a=>n`
                             <div 
@@ -257,7 +257,7 @@ ${ai.cssText}
                         `)}
                                 </div>
 
-       `}};Ve.styles=T`
+       `}};Ve.styles=_`
         .choice {
             min-width: 10rem;
             min-height: 5rem;
@@ -279,7 +279,7 @@ ${ai.cssText}
         .selected, .selected:hover {
             border: 1px solid var(--lumo-shade-20pct);
         }
-  `;mt([u()],Ve.prototype,"field",2);mt([u()],Ve.prototype,"baseUrl",2);mt([u()],Ve.prototype,"state",2);mt([u()],Ve.prototype,"data",2);mt([u()],Ve.prototype,"value",2);Ve=mt([O("mateu-choice")],Ve);var Ji=Object.defineProperty,Yi=Object.getOwnPropertyDescriptor,Ee=(e,t,a,i)=>{for(var s=i>1?void 0:i?Yi(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Ji(t,a,s),s};let re=class extends D{constructor(){super(...arguments),this.currencyChanged=e=>{this.value||(this.value={value:0,currency:"EUR",locale:"es-ES"}),this.value.currency=e.detail.value,this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{...this.value},fieldId:this.fieldId}}))},this.valueChanged=e=>{this.value||(this.value={value:0,currency:"EUR",locale:"es-ES"}),e.detail.value&&(this.value.value=e.detail.value?parseFloat(e.detail.value):0,this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{...this.value},fieldId:this.fieldId}})))}}render(){return n`
+  `;mt([u()],Ve.prototype,"field",2);mt([u()],Ve.prototype,"baseUrl",2);mt([u()],Ve.prototype,"state",2);mt([u()],Ve.prototype,"data",2);mt([u()],Ve.prototype,"value",2);Ve=mt([O("mateu-choice")],Ve);var Xi=Object.defineProperty,Qi=Object.getOwnPropertyDescriptor,Ee=(e,t,a,i)=>{for(var s=i>1?void 0:i?Qi(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Xi(t,a,s),s};let re=class extends L{constructor(){super(...arguments),this.currencyChanged=e=>{this.value||(this.value={value:0,currency:"EUR",locale:"es-ES"}),this.value.currency=e.detail.value,this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{...this.value},fieldId:this.fieldId}}))},this.valueChanged=e=>{this.value||(this.value={value:0,currency:"EUR",locale:"es-ES"}),e.detail.value&&(this.value.value=e.detail.value?parseFloat(e.detail.value):0,this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{...this.value},fieldId:this.fieldId}})))}}render(){return n`
             <vaadin-number-field
                     id="${this.fieldId}"
                     label="${this.label}"
@@ -298,18 +298,18 @@ ${ai.cssText}
                     style="max-width: 100px;"
                     theme="small"
             ></vaadin-select></div></vaadin-number-field>
-       `}};re.styles=T`
-  `;Ee([u()],re.prototype,"fieldId",2);Ee([u()],re.prototype,"label",2);Ee([u()],re.prototype,"state",2);Ee([u()],re.prototype,"data",2);Ee([u()],re.prototype,"value",2);Ee([u()],re.prototype,"autoFocus",2);Ee([u()],re.prototype,"required",2);Ee([u()],re.prototype,"colspan",2);Ee([u()],re.prototype,"helperText",2);re=Ee([O("mateu-money-field")],re);const pa=["vaadin:abacus","vaadin:absolute-position","vaadin:academy-cap","vaadin:accessibility","vaadin:accordion-menu","vaadin:add-dock","vaadin:adjust","vaadin:adobe-flash","vaadin:airplane","vaadin:alarm","vaadin:align-center","vaadin:align-justify","vaadin:align-left","vaadin:align-right","vaadin:alt-a","vaadin:alt","vaadin:ambulance","vaadin:anchor","vaadin:angle-double-down","vaadin:angle-double-left","vaadin:angle-double-right","vaadin:angle-double-up","vaadin:angle-down","vaadin:angle-left","vaadin:angle-right","vaadin:angle-up","vaadin:archive","vaadin:archives","vaadin:area-select","vaadin:arrow-backward","vaadin:arrow-circle-down-o","vaadin:arrow-circle-down","vaadin:arrow-circle-left-o","vaadin:arrow-circle-left","vaadin:arrow-circle-right-o","vaadin:arrow-circle-right","vaadin:arrow-circle-up-o","vaadin:arrow-circle-up","vaadin:arrow-down","vaadin:arrow-forward","vaadin:arrow-left","vaadin:arrow-long-down","vaadin:arrow-long-left","vaadin:arrow-right","vaadin:arrow-up","vaadin:arrows-cross","vaadin:arrows-long-h","vaadin:arrows-long-right","vaadin:arrows-long-up","vaadin:arrows-long-v","vaadin:arrows","vaadin:asterisk","vaadin:at","vaadin:automation","vaadin:backspace-a","vaadin:backspace","vaadin:backwards","vaadin:ban","vaadin:bar-chart-h","vaadin:bar-chart-v","vaadin:bar-chart","vaadin:barcode","vaadin:bed","vaadin:bell-o","vaadin:bell-slash-o","vaadin:bell-slash","vaadin:bell","vaadin:boat","vaadin:bold","vaadin:bolt","vaadin:bomb","vaadin:book-dollar","vaadin:book-percent","vaadin:book","vaadin:bookmark-o","vaadin:bookmark","vaadin:briefcase","vaadin:browser","vaadin:bug-o","vaadin:bug","vaadin:building-o","vaadin:building","vaadin:bullets","vaadin:bullseye","vaadin:bus","vaadin:buss","vaadin:button","vaadin:calc-book","vaadin:calc","vaadin:calendar-briefcase","vaadin:calendar-clock","vaadin:calendar-envelope","vaadin:calendar-o","vaadin:calendar-user","vaadin:calendar","vaadin:camera","vaadin:car","vaadin:caret-down","vaadin:caret-left","vaadin:caret-right","vaadin:caret-square-down-o","vaadin:caret-square-left-o","vaadin:caret-square-right-o","vaadin:caret-square-up-o","vaadin:caret-up","vaadin:cart-o","vaadin:cart","vaadin:cash","vaadin:chart-3d","vaadin:chart-grid","vaadin:chart-line","vaadin:chart-timeline","vaadin:chart","vaadin:chat","vaadin:check-circle-o","vaadin:check-circle","vaadin:check-square-o","vaadin:check-square","vaadin:check","vaadin:chevron-circle-down-o","vaadin:chevron-circle-down","vaadin:chevron-circle-left-o","vaadin:chevron-circle-left","vaadin:chevron-circle-right-o","vaadin:chevron-circle-right","vaadin:chevron-circle-up-o","vaadin:chevron-circle-up","vaadin:chevron-down-small","vaadin:chevron-down","vaadin:chevron-left-small","vaadin:chevron-left","vaadin:chevron-right-small","vaadin:chevron-right","vaadin:chevron-up-small","vaadin:chevron-up","vaadin:child","vaadin:circle-thin","vaadin:circle","vaadin:clipboard-check","vaadin:clipboard-cross","vaadin:clipboard-heart","vaadin:clipboard-pulse","vaadin:clipboard-text","vaadin:clipboard-user","vaadin:clipboard","vaadin:clock","vaadin:close-big","vaadin:close-circle-o","vaadin:close-circle","vaadin:close-small","vaadin:close","vaadin:cloud-download-o","vaadin:cloud-download","vaadin:cloud-o","vaadin:cloud-upload-o","vaadin:cloud-upload","vaadin:cloud","vaadin:cluster","vaadin:code","vaadin:coffee","vaadin:cog-o","vaadin:cog","vaadin:cogs","vaadin:coin-piles","vaadin:coins","vaadin:combobox","vaadin:comment-ellipsis-o","vaadin:comment-ellipsis","vaadin:comment-o","vaadin:comment","vaadin:comments-o","vaadin:comments","vaadin:compile","vaadin:compress-square","vaadin:compress","vaadin:connect-o","vaadin:connect","vaadin:controller","vaadin:copy-o","vaadin:copy","vaadin:copyright","vaadin:corner-lower-left","vaadin:corner-lower-right","vaadin:corner-upper-left","vaadin:corner-upper-right","vaadin:credit-card","vaadin:crop","vaadin:cross-cutlery","vaadin:crosshairs","vaadin:css","vaadin:ctrl-a","vaadin:ctrl","vaadin:cube","vaadin:cubes","vaadin:curly-brackets","vaadin:cursor-o","vaadin:cursor","vaadin:cutlery","vaadin:dashboard","vaadin:database","vaadin:date-input","vaadin:deindent","vaadin:del-a","vaadin:del","vaadin:dental-chair","vaadin:desktop","vaadin:diamond-o","vaadin:diamond","vaadin:diploma-scroll","vaadin:diploma","vaadin:disc","vaadin:doctor-briefcase","vaadin:doctor","vaadin:dollar","vaadin:dot-circle","vaadin:download-alt","vaadin:download","vaadin:drop","vaadin:edit","vaadin:eject","vaadin:elastic","vaadin:ellipsis-circle-o","vaadin:ellipsis-circle","vaadin:ellipsis-dots-h","vaadin:ellipsis-dots-v","vaadin:ellipsis-h","vaadin:ellipsis-v","vaadin:enter-arrow","vaadin:enter","vaadin:envelope-o","vaadin:envelope-open-o","vaadin:envelope-open","vaadin:envelope","vaadin:envelopes-o","vaadin:envelopes","vaadin:eraser","vaadin:esc-a","vaadin:esc","vaadin:euro","vaadin:exchange","vaadin:exclamation-circle-o","vaadin:exclamation-circle","vaadin:exclamation","vaadin:exit-o","vaadin:exit","vaadin:expand-full","vaadin:expand-square","vaadin:expand","vaadin:external-browser","vaadin:external-link","vaadin:eye-slash","vaadin:eye","vaadin:eyedropper","vaadin:facebook-square","vaadin:facebook","vaadin:factory","vaadin:family","vaadin:fast-backward","vaadin:fast-forward","vaadin:female","vaadin:file-add","vaadin:file-code","vaadin:file-font","vaadin:file-movie","vaadin:file-o","vaadin:file-picture","vaadin:file-presentation","vaadin:file-process","vaadin:file-refresh","vaadin:file-remove","vaadin:file-search","vaadin:file-sound","vaadin:file-start","vaadin:file-table","vaadin:file-text-o","vaadin:file-text","vaadin:file-tree-small","vaadin:file-tree-sub","vaadin:file-tree","vaadin:file-zip","vaadin:file","vaadin:fill","vaadin:film","vaadin:filter","vaadin:fire","vaadin:flag-checkered","vaadin:flag-o","vaadin:flag","vaadin:flash","vaadin:flask","vaadin:flight-landing","vaadin:flight-takeoff","vaadin:flip-h","vaadin:flip-v","vaadin:folder-add","vaadin:folder-o","vaadin:folder-open-o","vaadin:folder-open","vaadin:folder-remove","vaadin:folder-search","vaadin:folder","vaadin:font","vaadin:form","vaadin:forward","vaadin:frown-o","vaadin:funcion","vaadin:function","vaadin:funnel","vaadin:gamepad","vaadin:gavel","vaadin:gift","vaadin:glass","vaadin:glasses","vaadin:globe-wire","vaadin:globe","vaadin:golf","vaadin:google-plus-square","vaadin:google-plus","vaadin:grab","vaadin:grid-bevel","vaadin:grid-big-o","vaadin:grid-big","vaadin:grid-h","vaadin:grid-small-o","vaadin:grid-small","vaadin:grid-v","vaadin:grid","vaadin:group","vaadin:hammer","vaadin:hand","vaadin:handle-corner","vaadin:hands-up","vaadin:handshake","vaadin:harddrive-o","vaadin:harddrive","vaadin:hash","vaadin:header","vaadin:headphones","vaadin:headset","vaadin:health-card","vaadin:heart-o","vaadin:heart","vaadin:home-o","vaadin:home","vaadin:hospital","vaadin:hourglass-empty","vaadin:hourglass-end","vaadin:hourglass-start","vaadin:hourglass","vaadin:inbox","vaadin:indent","vaadin:info-circle-o","vaadin:info-circle","vaadin:info","vaadin:input","vaadin:insert","vaadin:institution","vaadin:invoice","vaadin:italic","vaadin:key-o","vaadin:key","vaadin:keyboard-o","vaadin:keyboard","vaadin:laptop","vaadin:layout","vaadin:level-down-bold","vaadin:level-down","vaadin:level-left-bold","vaadin:level-left","vaadin:level-right-bold","vaadin:level-right","vaadin:level-up-bold","vaadin:level-up","vaadin:lifebuoy","vaadin:lightbulb","vaadin:line-bar-chart","vaadin:line-chart","vaadin:line-h","vaadin:line-v","vaadin:lines-list","vaadin:lines","vaadin:link","vaadin:list-ol","vaadin:list-select","vaadin:list-ul","vaadin:list","vaadin:location-arrow-circle-o","vaadin:location-arrow-circle","vaadin:location-arrow","vaadin:lock","vaadin:magic","vaadin:magnet","vaadin:mailbox","vaadin:male","vaadin:map-marker","vaadin:margin-bottom","vaadin:margin-left","vaadin:margin-right","vaadin:margin-top","vaadin:margin","vaadin:medal","vaadin:megafone","vaadin:megaphone","vaadin:meh-o","vaadin:menu","vaadin:microphone","vaadin:minus-circle-o","vaadin:minus-circle","vaadin:minus-square-o","vaadin:minus","vaadin:mobile-browser","vaadin:mobile-retro","vaadin:mobile","vaadin:modal-list","vaadin:modal","vaadin:money-deposit","vaadin:money-exchange","vaadin:money-withdraw","vaadin:money","vaadin:moon-o","vaadin:moon","vaadin:morning","vaadin:movie","vaadin:music","vaadin:mute","vaadin:native-button","vaadin:newspaper","vaadin:notebook","vaadin:nurse","vaadin:office","vaadin:open-book","vaadin:option-a","vaadin:option","vaadin:options","vaadin:orientation","vaadin:out","vaadin:outbox","vaadin:package","vaadin:padding-bottom","vaadin:padding-left","vaadin:padding-right","vaadin:padding-top","vaadin:padding","vaadin:paint-roll","vaadin:paintbrush","vaadin:palete","vaadin:palette","vaadin:panel","vaadin:paperclip","vaadin:paperplane-o","vaadin:paperplane","vaadin:paragraph","vaadin:password","vaadin:paste","vaadin:pause","vaadin:pencil","vaadin:phone-landline","vaadin:phone","vaadin:picture","vaadin:pie-bar-chart","vaadin:pie-chart","vaadin:piggy-bank-coin","vaadin:piggy-bank","vaadin:pill","vaadin:pills","vaadin:pin-post","vaadin:pin","vaadin:play-circle-o","vaadin:play-circle","vaadin:play","vaadin:plug","vaadin:plus-circle-o","vaadin:plus-circle","vaadin:plus-minus","vaadin:plus-square-o","vaadin:plus","vaadin:pointer","vaadin:power-off","vaadin:presentation","vaadin:print","vaadin:progressbar","vaadin:puzzle-piece","vaadin:pyramid-chart","vaadin:qrcode","vaadin:question-circle-o","vaadin:question-circle","vaadin:question","vaadin:quote-left","vaadin:quote-right","vaadin:random","vaadin:raster-lower-left","vaadin:raster","vaadin:records","vaadin:recycle","vaadin:refresh","vaadin:reply-all","vaadin:reply","vaadin:resize-h","vaadin:resize-v","vaadin:retweet","vaadin:rhombus","vaadin:road-branch","vaadin:road-branches","vaadin:road-split","vaadin:road","vaadin:rocket","vaadin:rotate-left","vaadin:rotate-right","vaadin:rss-square","vaadin:rss","vaadin:safe-lock","vaadin:safe","vaadin:scale-unbalance","vaadin:scale","vaadin:scatter-chart","vaadin:scissors","vaadin:screwdriver","vaadin:search-minus","vaadin:search-plus","vaadin:search","vaadin:select","vaadin:server","vaadin:share-square","vaadin:share","vaadin:shield","vaadin:shift-arrow","vaadin:shift","vaadin:shop","vaadin:sign-in-alt","vaadin:sign-in","vaadin:sign-out-alt","vaadin:sign-out","vaadin:signal","vaadin:sitemap","vaadin:slider","vaadin:sliders","vaadin:smiley-o","vaadin:sort","vaadin:sound-disable","vaadin:spark-line","vaadin:specialist","vaadin:spinner-arc","vaadin:spinner-third","vaadin:spinner","vaadin:spline-area-chart","vaadin:spline-chart","vaadin:split-h","vaadin:split-v","vaadin:split","vaadin:spoon","vaadin:square-shadow","vaadin:star-half-left-o","vaadin:star-half-left","vaadin:star-half-right-o","vaadin:star-half-right","vaadin:star-o","vaadin:star","vaadin:start-cog","vaadin:step-backward","vaadin:step-forward","vaadin:stethoscope","vaadin:stock","vaadin:stop-cog","vaadin:stop","vaadin:stopwatch","vaadin:storage","vaadin:strikethrough","vaadin:subscript","vaadin:suitcase","vaadin:sun-down","vaadin:sun-o","vaadin:sun-rise","vaadin:superscript","vaadin:sword","vaadin:tab-a","vaadin:tab","vaadin:table","vaadin:tablet","vaadin:tabs","vaadin:tag","vaadin:tags","vaadin:tasks","vaadin:taxi","vaadin:teeth","vaadin:terminal","vaadin:text-height","vaadin:text-input","vaadin:text-label","vaadin:text-width","vaadin:thin-square","vaadin:thumbs-down-o","vaadin:thumbs-down","vaadin:thumbs-up-o","vaadin:thumbs-up","vaadin:ticket","vaadin:time-backward","vaadin:time-forward","vaadin:timer","vaadin:toolbox","vaadin:tools","vaadin:tooth","vaadin:touch","vaadin:train","vaadin:trash","vaadin:tree-table","vaadin:trendind-down","vaadin:trending-down","vaadin:trending-up","vaadin:trophy","vaadin:truck","vaadin:twin-col-select","vaadin:twitter-square","vaadin:twitter","vaadin:umbrella","vaadin:underline","vaadin:unlink","vaadin:unlock","vaadin:upload-alt","vaadin:upload","vaadin:user-card","vaadin:user-check","vaadin:user-clock","vaadin:user-heart","vaadin:user-star","vaadin:user","vaadin:users","vaadin:vaadin-h","vaadin:vaadin-v","vaadin:viewport","vaadin:vimeo-square","vaadin:vimeo","vaadin:volume-down","vaadin:volume-off","vaadin:volume-up","vaadin:volume","vaadin:wallet","vaadin:warning","vaadin:workplace","vaadin:wrench","vaadin:youtube-square","vaadin:youtube"],Xi=(e,t,a)=>{const i=e.metadata;return n`<vaadin-avatar
+       `}};re.styles=_`
+  `;Ee([u()],re.prototype,"fieldId",2);Ee([u()],re.prototype,"label",2);Ee([u()],re.prototype,"state",2);Ee([u()],re.prototype,"data",2);Ee([u()],re.prototype,"value",2);Ee([u()],re.prototype,"autoFocus",2);Ee([u()],re.prototype,"required",2);Ee([u()],re.prototype,"colspan",2);Ee([u()],re.prototype,"helperText",2);re=Ee([O("mateu-money-field")],re);const ma=["vaadin:abacus","vaadin:absolute-position","vaadin:academy-cap","vaadin:accessibility","vaadin:accordion-menu","vaadin:add-dock","vaadin:adjust","vaadin:adobe-flash","vaadin:airplane","vaadin:alarm","vaadin:align-center","vaadin:align-justify","vaadin:align-left","vaadin:align-right","vaadin:alt-a","vaadin:alt","vaadin:ambulance","vaadin:anchor","vaadin:angle-double-down","vaadin:angle-double-left","vaadin:angle-double-right","vaadin:angle-double-up","vaadin:angle-down","vaadin:angle-left","vaadin:angle-right","vaadin:angle-up","vaadin:archive","vaadin:archives","vaadin:area-select","vaadin:arrow-backward","vaadin:arrow-circle-down-o","vaadin:arrow-circle-down","vaadin:arrow-circle-left-o","vaadin:arrow-circle-left","vaadin:arrow-circle-right-o","vaadin:arrow-circle-right","vaadin:arrow-circle-up-o","vaadin:arrow-circle-up","vaadin:arrow-down","vaadin:arrow-forward","vaadin:arrow-left","vaadin:arrow-long-down","vaadin:arrow-long-left","vaadin:arrow-right","vaadin:arrow-up","vaadin:arrows-cross","vaadin:arrows-long-h","vaadin:arrows-long-right","vaadin:arrows-long-up","vaadin:arrows-long-v","vaadin:arrows","vaadin:asterisk","vaadin:at","vaadin:automation","vaadin:backspace-a","vaadin:backspace","vaadin:backwards","vaadin:ban","vaadin:bar-chart-h","vaadin:bar-chart-v","vaadin:bar-chart","vaadin:barcode","vaadin:bed","vaadin:bell-o","vaadin:bell-slash-o","vaadin:bell-slash","vaadin:bell","vaadin:boat","vaadin:bold","vaadin:bolt","vaadin:bomb","vaadin:book-dollar","vaadin:book-percent","vaadin:book","vaadin:bookmark-o","vaadin:bookmark","vaadin:briefcase","vaadin:browser","vaadin:bug-o","vaadin:bug","vaadin:building-o","vaadin:building","vaadin:bullets","vaadin:bullseye","vaadin:bus","vaadin:buss","vaadin:button","vaadin:calc-book","vaadin:calc","vaadin:calendar-briefcase","vaadin:calendar-clock","vaadin:calendar-envelope","vaadin:calendar-o","vaadin:calendar-user","vaadin:calendar","vaadin:camera","vaadin:car","vaadin:caret-down","vaadin:caret-left","vaadin:caret-right","vaadin:caret-square-down-o","vaadin:caret-square-left-o","vaadin:caret-square-right-o","vaadin:caret-square-up-o","vaadin:caret-up","vaadin:cart-o","vaadin:cart","vaadin:cash","vaadin:chart-3d","vaadin:chart-grid","vaadin:chart-line","vaadin:chart-timeline","vaadin:chart","vaadin:chat","vaadin:check-circle-o","vaadin:check-circle","vaadin:check-square-o","vaadin:check-square","vaadin:check","vaadin:chevron-circle-down-o","vaadin:chevron-circle-down","vaadin:chevron-circle-left-o","vaadin:chevron-circle-left","vaadin:chevron-circle-right-o","vaadin:chevron-circle-right","vaadin:chevron-circle-up-o","vaadin:chevron-circle-up","vaadin:chevron-down-small","vaadin:chevron-down","vaadin:chevron-left-small","vaadin:chevron-left","vaadin:chevron-right-small","vaadin:chevron-right","vaadin:chevron-up-small","vaadin:chevron-up","vaadin:child","vaadin:circle-thin","vaadin:circle","vaadin:clipboard-check","vaadin:clipboard-cross","vaadin:clipboard-heart","vaadin:clipboard-pulse","vaadin:clipboard-text","vaadin:clipboard-user","vaadin:clipboard","vaadin:clock","vaadin:close-big","vaadin:close-circle-o","vaadin:close-circle","vaadin:close-small","vaadin:close","vaadin:cloud-download-o","vaadin:cloud-download","vaadin:cloud-o","vaadin:cloud-upload-o","vaadin:cloud-upload","vaadin:cloud","vaadin:cluster","vaadin:code","vaadin:coffee","vaadin:cog-o","vaadin:cog","vaadin:cogs","vaadin:coin-piles","vaadin:coins","vaadin:combobox","vaadin:comment-ellipsis-o","vaadin:comment-ellipsis","vaadin:comment-o","vaadin:comment","vaadin:comments-o","vaadin:comments","vaadin:compile","vaadin:compress-square","vaadin:compress","vaadin:connect-o","vaadin:connect","vaadin:controller","vaadin:copy-o","vaadin:copy","vaadin:copyright","vaadin:corner-lower-left","vaadin:corner-lower-right","vaadin:corner-upper-left","vaadin:corner-upper-right","vaadin:credit-card","vaadin:crop","vaadin:cross-cutlery","vaadin:crosshairs","vaadin:css","vaadin:ctrl-a","vaadin:ctrl","vaadin:cube","vaadin:cubes","vaadin:curly-brackets","vaadin:cursor-o","vaadin:cursor","vaadin:cutlery","vaadin:dashboard","vaadin:database","vaadin:date-input","vaadin:deindent","vaadin:del-a","vaadin:del","vaadin:dental-chair","vaadin:desktop","vaadin:diamond-o","vaadin:diamond","vaadin:diploma-scroll","vaadin:diploma","vaadin:disc","vaadin:doctor-briefcase","vaadin:doctor","vaadin:dollar","vaadin:dot-circle","vaadin:download-alt","vaadin:download","vaadin:drop","vaadin:edit","vaadin:eject","vaadin:elastic","vaadin:ellipsis-circle-o","vaadin:ellipsis-circle","vaadin:ellipsis-dots-h","vaadin:ellipsis-dots-v","vaadin:ellipsis-h","vaadin:ellipsis-v","vaadin:enter-arrow","vaadin:enter","vaadin:envelope-o","vaadin:envelope-open-o","vaadin:envelope-open","vaadin:envelope","vaadin:envelopes-o","vaadin:envelopes","vaadin:eraser","vaadin:esc-a","vaadin:esc","vaadin:euro","vaadin:exchange","vaadin:exclamation-circle-o","vaadin:exclamation-circle","vaadin:exclamation","vaadin:exit-o","vaadin:exit","vaadin:expand-full","vaadin:expand-square","vaadin:expand","vaadin:external-browser","vaadin:external-link","vaadin:eye-slash","vaadin:eye","vaadin:eyedropper","vaadin:facebook-square","vaadin:facebook","vaadin:factory","vaadin:family","vaadin:fast-backward","vaadin:fast-forward","vaadin:female","vaadin:file-add","vaadin:file-code","vaadin:file-font","vaadin:file-movie","vaadin:file-o","vaadin:file-picture","vaadin:file-presentation","vaadin:file-process","vaadin:file-refresh","vaadin:file-remove","vaadin:file-search","vaadin:file-sound","vaadin:file-start","vaadin:file-table","vaadin:file-text-o","vaadin:file-text","vaadin:file-tree-small","vaadin:file-tree-sub","vaadin:file-tree","vaadin:file-zip","vaadin:file","vaadin:fill","vaadin:film","vaadin:filter","vaadin:fire","vaadin:flag-checkered","vaadin:flag-o","vaadin:flag","vaadin:flash","vaadin:flask","vaadin:flight-landing","vaadin:flight-takeoff","vaadin:flip-h","vaadin:flip-v","vaadin:folder-add","vaadin:folder-o","vaadin:folder-open-o","vaadin:folder-open","vaadin:folder-remove","vaadin:folder-search","vaadin:folder","vaadin:font","vaadin:form","vaadin:forward","vaadin:frown-o","vaadin:funcion","vaadin:function","vaadin:funnel","vaadin:gamepad","vaadin:gavel","vaadin:gift","vaadin:glass","vaadin:glasses","vaadin:globe-wire","vaadin:globe","vaadin:golf","vaadin:google-plus-square","vaadin:google-plus","vaadin:grab","vaadin:grid-bevel","vaadin:grid-big-o","vaadin:grid-big","vaadin:grid-h","vaadin:grid-small-o","vaadin:grid-small","vaadin:grid-v","vaadin:grid","vaadin:group","vaadin:hammer","vaadin:hand","vaadin:handle-corner","vaadin:hands-up","vaadin:handshake","vaadin:harddrive-o","vaadin:harddrive","vaadin:hash","vaadin:header","vaadin:headphones","vaadin:headset","vaadin:health-card","vaadin:heart-o","vaadin:heart","vaadin:home-o","vaadin:home","vaadin:hospital","vaadin:hourglass-empty","vaadin:hourglass-end","vaadin:hourglass-start","vaadin:hourglass","vaadin:inbox","vaadin:indent","vaadin:info-circle-o","vaadin:info-circle","vaadin:info","vaadin:input","vaadin:insert","vaadin:institution","vaadin:invoice","vaadin:italic","vaadin:key-o","vaadin:key","vaadin:keyboard-o","vaadin:keyboard","vaadin:laptop","vaadin:layout","vaadin:level-down-bold","vaadin:level-down","vaadin:level-left-bold","vaadin:level-left","vaadin:level-right-bold","vaadin:level-right","vaadin:level-up-bold","vaadin:level-up","vaadin:lifebuoy","vaadin:lightbulb","vaadin:line-bar-chart","vaadin:line-chart","vaadin:line-h","vaadin:line-v","vaadin:lines-list","vaadin:lines","vaadin:link","vaadin:list-ol","vaadin:list-select","vaadin:list-ul","vaadin:list","vaadin:location-arrow-circle-o","vaadin:location-arrow-circle","vaadin:location-arrow","vaadin:lock","vaadin:magic","vaadin:magnet","vaadin:mailbox","vaadin:male","vaadin:map-marker","vaadin:margin-bottom","vaadin:margin-left","vaadin:margin-right","vaadin:margin-top","vaadin:margin","vaadin:medal","vaadin:megafone","vaadin:megaphone","vaadin:meh-o","vaadin:menu","vaadin:microphone","vaadin:minus-circle-o","vaadin:minus-circle","vaadin:minus-square-o","vaadin:minus","vaadin:mobile-browser","vaadin:mobile-retro","vaadin:mobile","vaadin:modal-list","vaadin:modal","vaadin:money-deposit","vaadin:money-exchange","vaadin:money-withdraw","vaadin:money","vaadin:moon-o","vaadin:moon","vaadin:morning","vaadin:movie","vaadin:music","vaadin:mute","vaadin:native-button","vaadin:newspaper","vaadin:notebook","vaadin:nurse","vaadin:office","vaadin:open-book","vaadin:option-a","vaadin:option","vaadin:options","vaadin:orientation","vaadin:out","vaadin:outbox","vaadin:package","vaadin:padding-bottom","vaadin:padding-left","vaadin:padding-right","vaadin:padding-top","vaadin:padding","vaadin:paint-roll","vaadin:paintbrush","vaadin:palete","vaadin:palette","vaadin:panel","vaadin:paperclip","vaadin:paperplane-o","vaadin:paperplane","vaadin:paragraph","vaadin:password","vaadin:paste","vaadin:pause","vaadin:pencil","vaadin:phone-landline","vaadin:phone","vaadin:picture","vaadin:pie-bar-chart","vaadin:pie-chart","vaadin:piggy-bank-coin","vaadin:piggy-bank","vaadin:pill","vaadin:pills","vaadin:pin-post","vaadin:pin","vaadin:play-circle-o","vaadin:play-circle","vaadin:play","vaadin:plug","vaadin:plus-circle-o","vaadin:plus-circle","vaadin:plus-minus","vaadin:plus-square-o","vaadin:plus","vaadin:pointer","vaadin:power-off","vaadin:presentation","vaadin:print","vaadin:progressbar","vaadin:puzzle-piece","vaadin:pyramid-chart","vaadin:qrcode","vaadin:question-circle-o","vaadin:question-circle","vaadin:question","vaadin:quote-left","vaadin:quote-right","vaadin:random","vaadin:raster-lower-left","vaadin:raster","vaadin:records","vaadin:recycle","vaadin:refresh","vaadin:reply-all","vaadin:reply","vaadin:resize-h","vaadin:resize-v","vaadin:retweet","vaadin:rhombus","vaadin:road-branch","vaadin:road-branches","vaadin:road-split","vaadin:road","vaadin:rocket","vaadin:rotate-left","vaadin:rotate-right","vaadin:rss-square","vaadin:rss","vaadin:safe-lock","vaadin:safe","vaadin:scale-unbalance","vaadin:scale","vaadin:scatter-chart","vaadin:scissors","vaadin:screwdriver","vaadin:search-minus","vaadin:search-plus","vaadin:search","vaadin:select","vaadin:server","vaadin:share-square","vaadin:share","vaadin:shield","vaadin:shift-arrow","vaadin:shift","vaadin:shop","vaadin:sign-in-alt","vaadin:sign-in","vaadin:sign-out-alt","vaadin:sign-out","vaadin:signal","vaadin:sitemap","vaadin:slider","vaadin:sliders","vaadin:smiley-o","vaadin:sort","vaadin:sound-disable","vaadin:spark-line","vaadin:specialist","vaadin:spinner-arc","vaadin:spinner-third","vaadin:spinner","vaadin:spline-area-chart","vaadin:spline-chart","vaadin:split-h","vaadin:split-v","vaadin:split","vaadin:spoon","vaadin:square-shadow","vaadin:star-half-left-o","vaadin:star-half-left","vaadin:star-half-right-o","vaadin:star-half-right","vaadin:star-o","vaadin:star","vaadin:start-cog","vaadin:step-backward","vaadin:step-forward","vaadin:stethoscope","vaadin:stock","vaadin:stop-cog","vaadin:stop","vaadin:stopwatch","vaadin:storage","vaadin:strikethrough","vaadin:subscript","vaadin:suitcase","vaadin:sun-down","vaadin:sun-o","vaadin:sun-rise","vaadin:superscript","vaadin:sword","vaadin:tab-a","vaadin:tab","vaadin:table","vaadin:tablet","vaadin:tabs","vaadin:tag","vaadin:tags","vaadin:tasks","vaadin:taxi","vaadin:teeth","vaadin:terminal","vaadin:text-height","vaadin:text-input","vaadin:text-label","vaadin:text-width","vaadin:thin-square","vaadin:thumbs-down-o","vaadin:thumbs-down","vaadin:thumbs-up-o","vaadin:thumbs-up","vaadin:ticket","vaadin:time-backward","vaadin:time-forward","vaadin:timer","vaadin:toolbox","vaadin:tools","vaadin:tooth","vaadin:touch","vaadin:train","vaadin:trash","vaadin:tree-table","vaadin:trendind-down","vaadin:trending-down","vaadin:trending-up","vaadin:trophy","vaadin:truck","vaadin:twin-col-select","vaadin:twitter-square","vaadin:twitter","vaadin:umbrella","vaadin:underline","vaadin:unlink","vaadin:unlock","vaadin:upload-alt","vaadin:upload","vaadin:user-card","vaadin:user-check","vaadin:user-clock","vaadin:user-heart","vaadin:user-star","vaadin:user","vaadin:users","vaadin:vaadin-h","vaadin:vaadin-v","vaadin:viewport","vaadin:vimeo-square","vaadin:vimeo","vaadin:volume-down","vaadin:volume-off","vaadin:volume-up","vaadin:volume","vaadin:wallet","vaadin:warning","vaadin:workplace","vaadin:wrench","vaadin:youtube-square","vaadin:youtube"],Zi=(e,t,a)=>{const i=e.metadata;return n`<vaadin-avatar
             img="${i.image}"
             name="${tt(i.name,t,a)}"
             abbr="${i.abbreviation}"
             style="${e.style}" class="${e.cssClasses}"
             slot="${e.slot??d}"
-    ></vaadin-avatar>`},tt=(e,t,a)=>typeof e=="string"&&e.includes("${")?De(e,t,a):e,Qi=e=>{const t=e.metadata;return n`<vaadin-avatar-group max-items-visible="${t.maxItemsVisible}"
+    ></vaadin-avatar>`},tt=(e,t,a)=>typeof e=="string"&&e.includes("${")?De(e,t,a):e,es=e=>{const t=e.metadata;return n`<vaadin-avatar-group max-items-visible="${t.maxItemsVisible}"
                                      .items="${t.avatars}"
                                      style="${e.style}" class="${e.cssClasses}"
                                      slot="${e.slot??d}">
-    </vaadin-avatar-group>`};var Zi=Object.defineProperty,es=Object.getOwnPropertyDescriptor,le=(e,t,a,i)=>{for(var s=i>1?void 0:i?es(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Zi(t,a,s),s};let K=class extends D{constructor(){super(...arguments),this.component=void 0,this.field=void 0,this.baseUrl=void 0,this.state={},this.data={},this.appState={},this.appData={},this.colorPickerOpened=!1,this.colorPickerValue=void 0,this.comboData=[],this._comboFilter="",this.rendered=!1,this.renderColorPicker=()=>{const e=this.field?.fieldId,t=this.state&&e in this.state?this.state[e]:this.field?.initialValue;return n`
+    </vaadin-avatar-group>`};var ts=Object.defineProperty,as=Object.getOwnPropertyDescriptor,le=(e,t,a,i)=>{for(var s=i>1?void 0:i?as(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&ts(t,a,s),s};let K=class extends L{constructor(){super(...arguments),this.component=void 0,this.field=void 0,this.baseUrl=void 0,this.state={},this.data={},this.appState={},this.appData={},this.colorPickerOpened=!1,this.colorPickerValue=void 0,this.comboData=[],this._comboFilter="",this.rendered=!1,this.renderColorPicker=()=>{const e=this.field?.fieldId,t=this.state&&e in this.state?this.state[e]:this.field?.initialValue;return n`
             <ui5-color-picker value="${t}" @change="${a=>this.colorPickerValue=a.target.value}">Picker</ui5-color-picker>
         `},this.saveColor=()=>{this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:this.colorPickerValue,fieldId:this.field.fieldId},bubbles:!0,composed:!0})),this.colorPickerOpened=!1},this.renderColorPickerFooter=()=>n`<vaadin-button @click="${()=>this.colorPickerOpened=!1}">Cancel</vaadin-button>
         <vaadin-button theme="primary" @click="${this.saveColor}">Save</vaadin-button>`,this.checked=e=>{const t=e.target;this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:t.checked,fieldId:this.field.fieldId},bubbles:!0,composed:!0}))},this.convert=e=>this.field?.dataType=="integer"?parseInt(e):e,this.multiComboBoxValueChanged=e=>{if(this.rendered){const t=this.field?.fieldId,a=this.state&&t in this.state?this.state[t]:this.field?.initialValue;let i;e.detail.value&&(i=e.detail.value.map(s=>s.value),i&&i.length>0&&(this.data[this.id]||(this.data[this.id]={}),this.data[this.id].content||(this.data[this.id].content=[]),this.data[this.id]&&this.data[this.id].content&&e.detail.value.forEach(s=>{this.data[this.id].content?.find(r=>s.value==r.value)||this.data[this.id].content.push(s)}))),this.compareArrays(i,a)||this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:i,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}},this.valueChanged=e=>{this.rendered&&e.detail.value!==void 0&&e.detail.value!=this.state[this.field.fieldId]&&this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:this.convert(e.detail.value),fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.selectedItems=e=>{if(e&&e.length>0)if(this.field?.remoteCoordinates){if(this.comboData&&this.comboData.length>0)return this.comboData?.filter(t=>e.indexOf(t.value)>=0);if(this.data[this.id]&&this.data[this.id].content&&this.data[this.id].content.length>0)return this.data[this.id].content.filter(t=>e.indexOf(t.value)>=0)}else return this.field?.options?.filter(t=>e.indexOf(t.value)>=0);return[]},this.selectedIndex=e=>{if(e)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content){const t=this.data[this.id].content.find(a=>a.value==e);if(t)return this.data[this.id].content.indexOf(t)}}else{const t=this.field?.options?.find(a=>a.value==e);if(t)return this.field?.options?.indexOf(t)}},this.selectedIndexes=e=>{if(e&&e.length>0)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content)return this.data[this.id].content.filter(a=>e.indexOf(a.value)>=0).map(a=>this.data[this.id].content.indexOf(a))}else return this.field?.options?.filter(t=>e.indexOf(t.value)>=0).map(t=>this.field?.options?.indexOf(t));return[]},this.compareArrays=(e,t)=>this.falsy(e)&&this.falsy(t)||e&&t&&e.length===t.length&&e.every((a,i)=>a===t[i]),this.falsy=e=>!e||e.length==0,this.listItemsSelected=e=>{const t=this.field?.fieldId,a=this.state&&t in this.state?this.state[t]:this.field?.initialValue;let i;this.rendered&&(e.detail.value&&(this.field?.remoteCoordinates?this.data[this.id]&&this.data[this.id].content&&(i=e.detail.value.map(s=>this.data[this.id].content[s].value)):i=e.detail.value.map(s=>this.field.options[s].value)),this.compareArrays(i,a)||this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:i,fieldId:this.field?.fieldId},bubbles:!0,composed:!0})))},this.listItemSelected=e=>{let t;if(e.detail.value||e.detail.value==0)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content){const a=this.data[this.id].content[e.detail.value];a&&(t=a.value)}}else{const a=this.field.options[e.detail.value];a&&(t=a.value)}this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:t,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.mapPosition=e=>{switch(e){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.fileUploaded=e=>{const t=this.field?.fieldId??"",a=this.state[t];a.push({id:e.detail.xhr.responseText,name:e.detail.file.name}),this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:a,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.fileChanged=e=>{const t=this.field?.fieldId??"",a=(e.detail.value??[]).filter(s=>s.id).map(s=>s.id),i=(this.state[t]??[]).map(s=>s.id);if(!this.compareArrays(i,a)){const s=(e.detail.value??[]).filter(r=>r.id).map(r=>({id:r.id,name:r.name}));this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:s,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}},this.triggerImageUpload=()=>{this.renderRoot?.querySelector('input[type="file"]')?.click()},this.imageUpload=e=>{const t=e.target,a=t.files?.[0];if(!a)return;const i=new FileReader;i.onload=()=>{this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:i.result,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},i.readAsDataURL(a),t.value=""},this.imageDelete=()=>{this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:"",fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.iconComboboxRenderer=e=>n`
@@ -350,7 +350,7 @@ ${ai.cssText}
 
             </vaadin-horizontal-layout>
                             `:e.label}
-`,this.filteredIcons=[],this.iconFilterChanged=e=>{this.filteredIcons=pa.filter(t=>!e.detail.value||t.indexOf(e.detail.value)>=0)}}remoteComboDataProvider(e){return(t,a)=>{const{filter:i,page:s,pageSize:r}=t,o=i??"";this._comboFilter=o,this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e,parameters:{searchText:i,fieldId:this.field?.fieldId,size:r,page:s,sort:void 0},callback:l=>{if(o===this._comboFilter)if(l?.messages?.forEach(c=>{_t.show(c.text,{position:c.position?this.mapPosition(c.position):void 0,theme:c.variant,duration:c.duration})}),!l.fragments||l.fragments.length==0)this.comboData=[],a([],0);else{const c=l.fragments[0].data?.[this.id];this.comboData=c?.content,a(c?.content,c?.totalElements)}},callbackonly:!0},bubbles:!0,composed:!0}))}}disconnectedCallback(){super.disconnectedCallback(),this.rendered=!1}render(){const e=this.field?.fieldId??"";return this.rendered=!0,n`<div style="display: block;">
+`,this.filteredIcons=[],this.iconFilterChanged=e=>{this.filteredIcons=ma.filter(t=>!e.detail.value||t.indexOf(e.detail.value)>=0)}}remoteComboDataProvider(e){return(t,a)=>{const{filter:i,page:s,pageSize:r}=t,o=i??"";this._comboFilter=o,this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e,parameters:{searchText:i,fieldId:this.field?.fieldId,size:r,page:s,sort:void 0},callback:l=>{if(o===this._comboFilter)if(l?.messages?.forEach(c=>{Tt.show(c.text,{position:c.position?this.mapPosition(c.position):void 0,theme:c.variant,duration:c.duration})}),!l.fragments||l.fragments.length==0)this.comboData=[],a([],0);else{const c=l.fragments[0].data?.[this.id];this.comboData=c?.content,a(c?.content,c?.totalElements)}},callbackonly:!0},bubbles:!0,composed:!0}))}}disconnectedCallback(){super.disconnectedCallback(),this.rendered=!1}render(){const e=this.field?.fieldId??"";return this.rendered=!0,n`<div style="display: block;">
             <div>${this.renderField()}</div>
             ${this.field?.description?n`
                 <div style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); margin-top: var(--lumo-space-xs);">${tt(this.field?.description,this.state,this.data)}</div>
@@ -358,7 +358,7 @@ ${ai.cssText}
             ${this.data.errors&&this.data.errors[e]&&this.data.errors[e].length>0?n`
                 <div><ul>${this.data.errors[e].map(t=>n`<li>${t}</li>`)}</ul></div>
             `:d}
-        </div>`}async firstUpdated(){this.filteredIcons=pa}update(e){e.has("component")&&(this.rendered=!1),super.update(e)}renderField(){const e=this.field?.fieldId??"",t=this.state&&e in this.state?this.state[e]:this.field?.initialValue,a=this.field?.label+"",i=De(a,this.state,this.data),s=this.labelAlreadyRendered||!i||i=="null"?d:i;return this.field?.stereotype=="badge"?this.renderBadgeField(e,t,s,i):this.field?.stereotype=="plainText"?this.renderPlainTextField(e,t,s,i):this.field?.readOnly&&this.field.stereotype!="grid"&&this.field.dataType!="status"&&this.field?.dataType!="money"?this.renderReadOnlyField(e,t,s,i):this.field?.dataType=="file"?this.renderFileField(e,t,s,i):this.field?.dataType=="string"?this.renderStringField(e,t,s,i):this.field?.dataType=="number"?this.renderNumberField(e,t,s,i):this.field?.dataType=="integer"?this.renderIntegerField(e,t,s,i):this.field?.dataType=="bool"?this.renderBoolField(e,t,s,i):this.field?.dataType=="dateRange"?this.renderDateRangeField(e,t,s,i):this.field?.dataType=="date"?this.renderDateField(e,t,s,i):this.field?.dataType=="dateTime"?this.renderDateTimeField(e,t,s,i):this.field?.dataType=="time"?this.renderTimeField(e,t,s,i):this.field?.dataType=="array"?this.renderArrayField(e,t,s,i):this.field?.dataType=="money"?this.renderMoneyField(e,t,s,i):this.field?.dataType=="status"?this.renderStatusField(e,t,s,i):this.field?.dataType=="range"?this.renderRangeField(e,t,s,i):n`<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`}renderBadgeField(e,t,a,i){if(!this.field)return n``;const s=t===!0||t==="true";return n`<vaadin-custom-field
+        </div>`}async firstUpdated(){this.filteredIcons=ma}update(e){e.has("component")&&(this.rendered=!1),super.update(e)}renderField(){const e=this.field?.fieldId??"",t=this.state&&e in this.state?this.state[e]:this.field?.initialValue,a=this.field?.label+"",i=De(a,this.state,this.data),s=this.labelAlreadyRendered||!i||i=="null"?d:i;return this.field?.stereotype=="badge"?this.renderBadgeField(e,t,s,i):this.field?.stereotype=="plainText"?this.renderPlainTextField(e,t,s,i):this.field?.readOnly&&this.field.stereotype!="grid"&&this.field.dataType!="status"&&this.field?.dataType!="money"?this.renderReadOnlyField(e,t,s,i):this.field?.dataType=="file"?this.renderFileField(e,t,s,i):this.field?.dataType=="string"?this.renderStringField(e,t,s,i):this.field?.dataType=="number"?this.renderNumberField(e,t,s,i):this.field?.dataType=="integer"?this.renderIntegerField(e,t,s,i):this.field?.dataType=="bool"?this.renderBoolField(e,t,s,i):this.field?.dataType=="dateRange"?this.renderDateRangeField(e,t,s,i):this.field?.dataType=="date"?this.renderDateField(e,t,s,i):this.field?.dataType=="dateTime"?this.renderDateTimeField(e,t,s,i):this.field?.dataType=="time"?this.renderTimeField(e,t,s,i):this.field?.dataType=="array"?this.renderArrayField(e,t,s,i):this.field?.dataType=="money"?this.renderMoneyField(e,t,s,i):this.field?.dataType=="status"?this.renderStatusField(e,t,s,i):this.field?.dataType=="range"?this.renderRangeField(e,t,s,i):n`<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`}renderBadgeField(e,t,a,i){if(!this.field)return n``;const s=t===!0||t==="true";return n`<vaadin-custom-field
                     id="${this.field.fieldId}"
                     data-colspan="${this.field?.colspan}"
                     style="${this.field?.style}"
@@ -479,7 +479,7 @@ ${ai.cssText}
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
                             @keyup="${l=>{if(l.key=="Backspace"){const c=l.currentTarget;c.inputElement.value||(c.value="")}}}"
-                            ${Gt(this.comboRenderer,[])}
+                            ${Kt(this.comboRenderer,[])}
                     ></vaadin-combo-box>
                     `}return n`
                     <vaadin-combo-box
@@ -495,7 +495,7 @@ ${ai.cssText}
                             required="${this.field.required||d}"
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
-                            ${Gt(this.comboRenderer,[])}
+                            ${Kt(this.comboRenderer,[])}
                     ></vaadin-combo-box>
                     `}if(this.field?.stereotype=="listBox"){if(this.field?.remoteCoordinates){const s=this.field.remoteCoordinates,r="";return this.data[this.id]&&(this.data[this.id].searchSignature||r)&&this.data[this.id].searchSignature!=r&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements||this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:s.action,parameters:{searchText:r,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0})),n`
                         <vaadin-custom-field
@@ -505,7 +505,7 @@ ${ai.cssText}
                         >
                     <vaadin-list-box
                             id="${this.field.fieldId}"
-                            selected="${C(this.selectedIndex(t))}"
+                            selected="${I(this.selectedIndex(t))}"
                             @selected-changed="${this.listItemSelected}"
                             ?autofocus="${this.field.wantsFocus}"
                     >
@@ -539,7 +539,7 @@ ${ai.cssText}
                     >
                     <vaadin-list-box
                             id="${this.field.fieldId}"
-                            selected="${C(this.selectedIndex(t))}"
+                            selected="${I(this.selectedIndex(t))}"
                             @selected-changed="${this.listItemSelected}"
                             ?autofocus="${this.field.wantsFocus}"
                     >
@@ -649,7 +649,7 @@ ${ai.cssText}
                             accessible-name-ref="notifications-heading"
                             content-width="300px"
                             position="bottom"
-                            ${ea(()=>n`
+                            ${ta(()=>n`
                                 <mateu-event-interceptor .target="${this}">
                                 <mateu-choice
                                         .field="${this.field}"
@@ -747,7 +747,7 @@ ${ai.cssText}
                             style="--vaadin-combo-box-overlay-width: 16em"
                                     .filteredItems="${this.filteredIcons}"
                             @filter-changed="${this.iconFilterChanged}"
-                            ${Gt(this.iconComboboxRenderer,[])}
+                            ${Kt(this.iconComboboxRenderer,[])}
                     >
                         ${t?n`<vaadin-icon slot="prefix" icon="${t}"></vaadin-icon>`:d}
                     </vaadin-combo-box>
@@ -826,8 +826,8 @@ ${ai.cssText}
   header-title="Choose color"
   .opened="${this.colorPickerOpened}"
   @closed="${()=>{this.colorPickerOpened=!1}}"
-  ${It(this.renderColorPicker,[])}
-  ${Ft(this.renderColorPickerFooter,[])}
+  ${_t(this.renderColorPicker,[])}
+  ${Nt(this.renderColorPickerFooter,[])}
 ></vaadin-dialog>
                 `:n`
                 <vaadin-text-field
@@ -985,7 +985,7 @@ ${ai.cssText}
                                 data-colspan="${this.field.colspan}"
                         >
                     <vaadin-list-box multiple
-                                     .selectedValues="${C(this.selectedIndexes(t))}"
+                                     .selectedValues="${I(this.selectedIndexes(t))}"
                                      @selected-values-changed="${this.listItemsSelected}"
                             id="${this.field.fieldId}"
                             ?autofocus="${this.field.wantsFocus}"
@@ -1002,7 +1002,7 @@ ${ai.cssText}
                             data-colspan="${this.field.colspan}"
                     >
                     <vaadin-list-box multiple 
-                                     .selectedValues="${C(this.selectedIndexes(t))}"
+                                     .selectedValues="${I(this.selectedIndexes(t))}"
                                      @selected-values-changed="${this.listItemsSelected}"
                                      ?autofocus="${this.field.wantsFocus}"
                                      data-colspan="${this.field.colspan}"
@@ -1108,7 +1108,7 @@ ${ai.cssText}
                         required="${this.field.required||d}"
                         data-colspan="${this.field.colspan}"
                 >
-                    ${s?n`<span theme="badge pill ${Mt(s.type)}">${s.message}</span>`:n``}                    
+                    ${s?n`<span theme="badge pill ${Bt(s.type)}">${s.message}</span>`:n``}                    
                 </vaadin-custom-field>
             `}renderRangeField(e,t,a,i){if(!this.field)return n``;const s=t;return n`
                 <vaadin-custom-field
@@ -1122,7 +1122,7 @@ ${ai.cssText}
                                    @change="${r=>{const o=r.target;this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{from:o.startValue,to:o.endValue},fieldId:this.field.fieldId},bubbles:!0,composed:!0}))}}"
                                    style="min-width: 10rem;"
                 ></ui5-range-slider></vaadin-custom-field>
-            `}};K.styles=T`
+            `}};K.styles=_`
         ${Le}
 
         .mateu-checkbox-group-multi-column::part(group-field) {
@@ -1146,16 +1146,16 @@ ${ai.cssText}
             padding-bottom: var(--mateu-label-padding-bottom, 7px);
             line-height: var(--mateu-label-line-height, 1);
         }
-  `;le([u()],K.prototype,"component",2);le([u()],K.prototype,"field",2);le([u()],K.prototype,"baseUrl",2);le([u()],K.prototype,"state",2);le([u()],K.prototype,"data",2);le([u()],K.prototype,"appState",2);le([u()],K.prototype,"appData",2);le([u()],K.prototype,"labelAlreadyRendered",2);le([f()],K.prototype,"colorPickerOpened",2);le([f()],K.prototype,"colorPickerValue",2);le([f()],K.prototype,"filteredIcons",2);K=le([O("mateu-field")],K);const ts=(e,t,a)=>{const i=e.metadata;return n`<span theme="badge ${i.color} ${i.pill?"pill":""} ${i.small?"small":""} ${i.primary?"primary":""}"
+  `;le([u()],K.prototype,"component",2);le([u()],K.prototype,"field",2);le([u()],K.prototype,"baseUrl",2);le([u()],K.prototype,"state",2);le([u()],K.prototype,"data",2);le([u()],K.prototype,"appState",2);le([u()],K.prototype,"appData",2);le([u()],K.prototype,"labelAlreadyRendered",2);le([f()],K.prototype,"colorPickerOpened",2);le([f()],K.prototype,"colorPickerValue",2);le([f()],K.prototype,"filteredIcons",2);K=le([O("mateu-field")],K);const is=(e,t,a)=>{const i=e.metadata;return n`<span theme="badge ${i.color} ${i.pill?"pill":""} ${i.small?"small":""} ${i.primary?"primary":""}"
                       style="${e.style}" class="${e.cssClasses}"
-                      slot="${e.slot??d}">${tt(i.text,t,a)}</span>`},as=(e,t,a)=>{const i=tt(e.text,t,a);if(!i)return d;let s=tt(e.color,t,a);return s=="SUCCESS"&&(s="success"),s=="ERROR"&&(s="error"),s=="DANGER"&&(s="error"),s=="WARNING"&&(s="warning"),s=="INFO"&&(s="info"),s=="PRIMARY"&&(s="primary"),s=="SECONDARY"&&(s="secondary"),s=="TERTIARY"&&(s="tertiary"),s=="QUATERNARY"&&(s="quaternary"),s=="LIGHT"&&(s="light"),s=="DARK"&&(s="dark"),n`<span theme="badge ${s} ${e.pill?"pill":""} ${e.small?"small":""} ${e.primary?"primary":""}">${i}</span>`};var is=Object.defineProperty,ss=Object.getOwnPropertyDescriptor,nt=(e,t,a,i)=>{for(var s=i>1?void 0:i?ss(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&is(t,a,s),s};const rs=e=>{const t=[];return e.color&&e.color!=="normal"&&e.color!=="none"&&t.push(e.color),e.buttonStyle&&t.push(e.buttonStyle==="tertiaryInline"?"tertiary-inline":e.buttonStyle),e.size&&e.size!=="none"&&e.size!=="normal"&&t.push(e.size),t.length?t.join(" "):void 0},va=e=>e==="back"||e==="backToList"||!!e&&e.startsWith("cancel");let Pe=class extends D{constructor(){super(...arguments),this.appState={},this.appData={},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.evalLabel=e=>De(e,this.state,this.data),this.renderBtn=e=>{if((this.data??{})[e.actionId+".hidden"])return d;const t=this.evalLabel(e.label);return n`
+                      slot="${e.slot??d}">${tt(i.text,t,a)}</span>`},ss=(e,t,a)=>{const i=tt(e.text,t,a);if(!i)return d;let s=tt(e.color,t,a);return s=="SUCCESS"&&(s="success"),s=="ERROR"&&(s="error"),s=="DANGER"&&(s="error"),s=="WARNING"&&(s="warning"),s=="INFO"&&(s="info"),s=="PRIMARY"&&(s="primary"),s=="SECONDARY"&&(s="secondary"),s=="TERTIARY"&&(s="tertiary"),s=="QUATERNARY"&&(s="quaternary"),s=="LIGHT"&&(s="light"),s=="DARK"&&(s="dark"),n`<span theme="badge ${s} ${e.pill?"pill":""} ${e.small?"small":""} ${e.primary?"primary":""}">${i}</span>`};var rs=Object.defineProperty,ns=Object.getOwnPropertyDescriptor,nt=(e,t,a,i)=>{for(var s=i>1?void 0:i?ns(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&rs(t,a,s),s};const os=e=>{const t=[];return e.color&&e.color!=="normal"&&e.color!=="none"&&t.push(e.color),e.buttonStyle&&t.push(e.buttonStyle==="tertiaryInline"?"tertiary-inline":e.buttonStyle),e.size&&e.size!=="none"&&e.size!=="normal"&&t.push(e.size),t.length?t.join(" "):void 0},fa=e=>e==="back"||e==="backToList"||!!e&&e.startsWith("cancel");let Re=class extends L{constructor(){super(...arguments),this.appState={},this.appData={},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.evalLabel=e=>De(e,this.state,this.data),this.renderBtn=e=>{if((this.data??{})[e.actionId+".hidden"])return d;const t=this.evalLabel(e.label);return n`
         <vaadin-button
                 data-action-id="${e.id}"
-                theme="${rs(e)||d}"
+                theme="${os(e)||d}"
                 @click="${()=>this.handleButtonClick(e.actionId)}"
                 ?disabled="${e.disabled}"
         >${e.iconOnLeft?n`<vaadin-icon icon="${e.iconOnLeft}"></vaadin-icon>`:d}${t}${e.iconOnRight?n`<vaadin-icon icon="${e.iconOnRight}"></vaadin-icon>`:d}</vaadin-button>
-    `}}render(){const e=this.metadata;if(!e)return n``;const t=e.toolbar??[],a=t.filter(l=>va(l.actionId)),i=t.filter(l=>!va(l.actionId)),s=a.length>0&&i.length>0?n`<span class="toolbar-divider"></span>`:d,r=e.avatar||e.title||e.subtitle||e.kpis?.length>0||e.header?.length>0||t.length>0,o=e.level??0;return o>0?this.setAttribute("data-nested",""):this.removeAttribute("data-nested"),n`
+    `}}render(){const e=this.metadata;if(!e)return n``;const t=e.toolbar??[],a=t.filter(l=>fa(l.actionId)),i=t.filter(l=>!fa(l.actionId)),s=a.length>0&&i.length>0?n`<span class="toolbar-divider"></span>`:d,r=e.avatar||e.title||e.subtitle||e.kpis?.length>0||e.header?.length>0||t.length>0,o=e.level??0;return o>0?this.setAttribute("data-nested",""):this.removeAttribute("data-nested"),n`
             ${e.breadcrumbs&&e.breadcrumbs.length>0?n`
                 <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="breadcrumbs-bar">
                     ${e.breadcrumbs.map((l,c)=>n`
@@ -1166,14 +1166,14 @@ ${ai.cssText}
             `:d}
             ${e.noHeader?n`
                 <vaadin-horizontal-layout theme="spacing">
-                    ${e?.header?.map(l=>g(this,l,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData))}
+                    ${e?.header?.map(l=>b(this,l,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData))}
                     ${a.map(this.renderBtn)}
                     ${s}
                     ${i.map(this.renderBtn)}
                 </vaadin-horizontal-layout>
             `:r?n`
                 <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
-                    ${e.avatar?g(this,e.avatar,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData):d}
+                    ${e.avatar?b(this,e.avatar,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData):d}
                     <div style="flex: 1; min-width: 0; overflow: hidden;">
                         ${e?.title&&o==0?n`<h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${me(Qe(e?.title,this.state??{},this.data??{}))}</h2>`:d}
                         ${e?.title&&o==1?n`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${me(Qe(e?.title,this.state??{},this.data??{}))}</h3>`:d}
@@ -1190,7 +1190,7 @@ ${ai.cssText}
                                 <div>${me(Qe(l.text,this.state??{},this.data??{}))}</div>
                             </vaadin-vertical-layout>
                         `)}
-                        ${e?.header?.map(l=>g(this,l,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData))}
+                        ${e?.header?.map(l=>b(this,l,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData))}
                         ${a.map(this.renderBtn)}
                         ${s}
                         ${i.map(this.renderBtn)}
@@ -1199,10 +1199,10 @@ ${ai.cssText}
             `:d}
             ${e.badges&&e.badges.length>0?n`
                 <vaadin-horizontal-layout style="padding-bottom: var(--lumo-space-s);">
-                    ${e.badges.map(l=>as(l,this.state??{},this.data??{}))}
+                    ${e.badges.map(l=>ss(l,this.state??{},this.data??{}))}
                 </vaadin-horizontal-layout>
             `:d}
-        `}};Pe.styles=T`
+        `}};Re.styles=_`
         :host {
             display: block;
             width: 100%;
@@ -1225,7 +1225,7 @@ ${ai.cssText}
         }
 
         ${Le}
-    `;nt([u()],Pe.prototype,"metadata",2);nt([u()],Pe.prototype,"baseUrl",2);nt([u()],Pe.prototype,"state",2);nt([u()],Pe.prototype,"data",2);nt([u()],Pe.prototype,"appState",2);nt([u()],Pe.prototype,"appData",2);Pe=nt([O("mateu-content-header")],Pe);var ns=Object.defineProperty,os=Object.getOwnPropertyDescriptor,Tt=(e,t,a,i)=>{for(var s=i>1?void 0:i?os(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&ns(t,a,s),s};let at=class extends Ut{constructor(){super(...arguments),this.state={},this.data={},this.appState={},this.appData={}}render(){const e=this.component?.metadata;return n`
+    `;nt([u()],Re.prototype,"metadata",2);nt([u()],Re.prototype,"baseUrl",2);nt([u()],Re.prototype,"state",2);nt([u()],Re.prototype,"data",2);nt([u()],Re.prototype,"appState",2);nt([u()],Re.prototype,"appData",2);Re=nt([O("mateu-content-header")],Re);var ls=Object.defineProperty,ds=Object.getOwnPropertyDescriptor,Ot=(e,t,a,i)=>{for(var s=i>1?void 0:i?ds(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&ls(t,a,s),s};let at=class extends Mt{constructor(){super(...arguments),this.state={},this.data={},this.appState={},this.appData={}}render(){const e=this.component?.metadata;return n`
             <vaadin-vertical-layout theme="spacing" class="${this.component?.cssClasses}">
                 <mateu-content-header
                     .metadata="${e}"
@@ -1242,7 +1242,7 @@ ${ai.cssText}
                     </vaadin-horizontal-layout>
                 </div>
             </vaadin-vertical-layout>
-       `}};at.styles=T`
+       `}};at.styles=_`
         :host {
         }
 
@@ -1256,7 +1256,7 @@ ${ai.cssText}
         .form-content {
             padding-bottom: 3rem;
         }
-    `;Tt([u()],at.prototype,"state",2);Tt([u()],at.prototype,"data",2);Tt([u()],at.prototype,"appState",2);Tt([u()],at.prototype,"appData",2);at=Tt([O("mateu-form")],at);var ls=Object.defineProperty,ds=Object.getOwnPropertyDescriptor,$e=(e,t,a,i)=>{for(var s=i>1?void 0:i?ds(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&ls(t,a,s),s};let ae=class extends D{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.pagesRequested=[],this.emptyArray=e=>!e||e.length==0,this.dataProvider=(e,t)=>{const a=this.data[this.id]?.page;if(this.metadata?.infiniteScrolling&&e.page>0){let i=!1;a&&a.content&&(a.content.length>=(e.page+1)*e.pageSize||a.content.length==a.totalElements)&&(t(a.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),a.totalElements),i=!0,this.grid&&this.grid.recalculateColumnWidths()),i||this.pagesRequested.find(s=>s==e.page)||(this.pagesRequested.push(e.page),this.dispatchEvent(new CustomEvent("fetch-more-elements",{detail:{params:e,callback:()=>{this.data[this.id]?.page?.content&&(t(this.data[this.id].page.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),this.data[this.id].page.totalElements),this.grid&&this.grid.recalculateColumnWidths())}},bubbles:!0,composed:!0})))}else{const i=this.metadata?.infiniteScrolling?a?.totalElements:a?.content?.length??0;t(a?.content??[],i),this.grid&&this.grid.recalculateColumnWidths()}},this._onActionRequested=e=>{const t=e.detail,a=this.identifierFieldName;if(!a||!t.parameters||t.actionId?.startsWith("action-on-row-"))return;const i=t.parameters[a];i!==void 0&&(this.state._selectedId=String(i),this._applyCellPartNameGenerator(),this.grid?.requestContentUpdate())},this.tooltipGenerator=e=>{let t="";const{column:a,item:i}=e,s=this.metadata?.columns?.find(r=>r.metadata.id==a?.path);if(s?.metadata){const r=(s?.metadata).tooltipPath;r&&a&&i&&(t=i[r])}return t}}get identifierFieldName(){const e=this.metadata?.columns?.find(a=>a.metadata?.identifier);if(e)return e.metadata?.id;if(this.metadata?.columns?.find(a=>a.metadata?.id==="id"))return"id"}_applyCellPartNameGenerator(){if(!this.grid)return;const e=this.identifierFieldName,t=this.state?._selectedId??this.appState?._splitDetailId;e&&t!==void 0?this.grid.cellPartNameGenerator=(a,i)=>String(i.item[e])===String(t)?"selected-row":"":this.grid.cellPartNameGenerator=null}connectedCallback(){super.connectedCallback(),this.addEventListener("action-requested",this._onActionRequested)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("action-requested",this._onActionRequested)}updated(e){super.updated(e),this._applyCellPartNameGenerator(),this.grid?.clearCache(),this.grid?.recalculateColumnWidths(),this.pagesRequested=[]}render(){const e=this.data[this.id]?.page;let t="";this.metadata?.wrapCellContent&&(t+=" wrap-cell-content"),this.metadata?.compact&&(t+=" compact"),this.metadata?.noBorder&&(t+=" no-border"),this.metadata?.noRowBorder&&(t+=" no-row-borders"),this.metadata?.columnBorders&&(t+=" column-borders"),this.metadata?.rowStripes&&(t+=" row-stripes");const a=this.state[this.id+"_selected_items"]||[];return n`
+    `;Ot([u()],at.prototype,"state",2);Ot([u()],at.prototype,"data",2);Ot([u()],at.prototype,"appState",2);Ot([u()],at.prototype,"appData",2);at=Ot([O("mateu-form")],at);var cs=Object.defineProperty,hs=Object.getOwnPropertyDescriptor,$e=(e,t,a,i)=>{for(var s=i>1?void 0:i?hs(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&cs(t,a,s),s};let ae=class extends L{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.pagesRequested=[],this.emptyArray=e=>!e||e.length==0,this.dataProvider=(e,t)=>{const a=this.data[this.id]?.page;if(this.metadata?.infiniteScrolling&&e.page>0){let i=!1;a&&a.content&&(a.content.length>=(e.page+1)*e.pageSize||a.content.length==a.totalElements)&&(t(a.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),a.totalElements),i=!0,this.grid&&this.grid.recalculateColumnWidths()),i||this.pagesRequested.find(s=>s==e.page)||(this.pagesRequested.push(e.page),this.dispatchEvent(new CustomEvent("fetch-more-elements",{detail:{params:e,callback:()=>{this.data[this.id]?.page?.content&&(t(this.data[this.id].page.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),this.data[this.id].page.totalElements),this.grid&&this.grid.recalculateColumnWidths())}},bubbles:!0,composed:!0})))}else{const i=this.metadata?.infiniteScrolling?a?.totalElements:a?.content?.length??0;t(a?.content??[],i),this.grid&&this.grid.recalculateColumnWidths()}},this._onActionRequested=e=>{const t=e.detail,a=this.identifierFieldName;if(!a||!t.parameters||t.actionId?.startsWith("action-on-row-"))return;const i=t.parameters[a];i!==void 0&&(this.state._selectedId=String(i),this._applyCellPartNameGenerator(),this.grid?.requestContentUpdate())},this.tooltipGenerator=e=>{let t="";const{column:a,item:i}=e,s=this.metadata?.columns?.find(r=>r.metadata.id==a?.path);if(s?.metadata){const r=(s?.metadata).tooltipPath;r&&a&&i&&(t=i[r])}return t}}get identifierFieldName(){const e=this.metadata?.columns?.find(a=>a.metadata?.identifier);if(e)return e.metadata?.id;if(this.metadata?.columns?.find(a=>a.metadata?.id==="id"))return"id"}_applyCellPartNameGenerator(){if(!this.grid)return;const e=this.identifierFieldName,t=this.state?._selectedId??this.appState?._splitDetailId;e&&t!==void 0?this.grid.cellPartNameGenerator=(a,i)=>String(i.item[e])===String(t)?"selected-row":"":this.grid.cellPartNameGenerator=null}connectedCallback(){super.connectedCallback(),this.addEventListener("action-requested",this._onActionRequested)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("action-requested",this._onActionRequested)}updated(e){super.updated(e),this._applyCellPartNameGenerator(),this.grid?.clearCache(),this.grid?.recalculateColumnWidths(),this.pagesRequested=[]}render(){const e=this.data[this.id]?.page;let t="";this.metadata?.wrapCellContent&&(t+=" wrap-cell-content"),this.metadata?.compact&&(t+=" compact"),this.metadata?.noBorder&&(t+=" no-border"),this.metadata?.noRowBorder&&(t+=" no-row-borders"),this.metadata?.columnBorders&&(t+=" column-borders"),this.metadata?.rowStripes&&(t+=" row-stripes");const a=this.state[this.id+"_selected_items"]||[];return n`
             <vaadin-grid
                     .items="${e?.content}"
                     item-id-path="_rowNumber"
@@ -1269,16 +1269,16 @@ ${ai.cssText}
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
                     @selected-items-changed="${i=>{this.emptyArray(this.state[this.id+"_selected_items"])&&this.emptyArray(i.detail.value)||(this.state[this.id+"_selected_items"]=i.detail.value,this.metadata?.onRowSelectionChangedActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.metadata?.onRowSelectionChangedActionId},bubbles:!0,composed:!0})))}}"
-                    @active-item-changed="${C(this.metadata?.detailPath&&!this.metadata?.useButtonForDetail?i=>{if(this.metadata?.detailPath){const s=i.detail.value;s?this.detailsOpenedItems=[s]:this.detailsOpenedItems=[]}}:void 0)}"
+                    @active-item-changed="${I(this.metadata?.detailPath&&!this.metadata?.useButtonForDetail?i=>{if(this.metadata?.detailPath){const s=i.detail.value;s?this.detailsOpenedItems=[s]:this.detailsOpenedItems=[]}}:void 0)}"
                     .detailsOpenedItems="${this.detailsOpenedItems}"
-                    ${C(this.metadata?.detailPath?Ea(i=>n`${g(this,i[this.metadata?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
+                    ${I(this.metadata?.detailPath?Ia(i=>n`${b(this,i[this.metadata?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
                     theme="${t}"
                     style="${this.metadata?.gridStyle}"
             >
                 ${this.metadata?.rowsSelectionEnabled?n`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:d}
-                ${this.metadata?.columns?.map(i=>ta(i,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
+                ${this.metadata?.columns?.map(i=>aa(i,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
                 ${this.metadata?.useButtonForDetail?n`
                     <vaadin-grid-column
                             width="44px"
@@ -1302,7 +1302,7 @@ ${ai.cssText}
                 ${this.metadata?.columns?.find(i=>i.metadata.tooltipPath)?n`<vaadin-tooltip slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>`:d}
             </vaadin-grid>
             <slot></slot>
-       `}};ae.styles=T`
+       `}};ae.styles=_`
         ${Le}
         vaadin-grid[data-clickable-rows]::part(row) {
             cursor: pointer;
@@ -1313,7 +1313,7 @@ ${ai.cssText}
         vaadin-grid::part(selected-row) {
             background-color: var(--lumo-primary-color-10pct);
         }
-  `;$e([u()],ae.prototype,"id",2);$e([u()],ae.prototype,"metadata",2);$e([u()],ae.prototype,"baseUrl",2);$e([u()],ae.prototype,"state",2);$e([u()],ae.prototype,"data",2);$e([u()],ae.prototype,"appState",2);$e([u()],ae.prototype,"appData",2);$e([u()],ae.prototype,"emptyStateMessage",2);$e([f()],ae.prototype,"detailsOpenedItems",2);$e([Se("vaadin-grid")],ae.prototype,"grid",2);ae=$e([O("mateu-table")],ae);const cs=76;function ma(e){if(e.weight!=null)return e.weight;const t=e.stereotype??"";if(t==="icon")return 1;if(t==="image")return 4;if(t==="html"||t==="richText"||t==="markdown"||t==="textarea")return 5;if(t==="link")return 2.5;if(t==="combobox"||t==="select")return 2;const a=e.dataType??"";return a==="bool"?1:a==="status"||a==="integer"?1.5:a==="number"||a==="date"||a==="money"?2:a==="dateTime"||a==="dateRange"?2.5:3}function hs(e,t){if(e.length===0)return"table";const a=e.reduce((c,h)=>c+ma(h),0),i=t/cs,s=a/i;if(s<=1)return"table";const r=e.filter(c=>c.identifier||(c.priority??Number.MAX_SAFE_INTEGER)<=2),o=r.reduce((c,h)=>c+ma(h),0);return s>1.6||e.length>10?"masterDetail":r.length>0&&o<=8?"list":e.some(c=>c.stereotype==="image"||c.stereotype==="html")||r.length===0&&e.length>=4&&e.length<=8?"cards":"masterDetail"}function us(e){return e.filter(t=>t.identifier||(t.priority??Number.MAX_SAFE_INTEGER)<=2).sort((t,a)=>(t.priority??Number.MAX_SAFE_INTEGER)-(a.priority??Number.MAX_SAFE_INTEGER))}function ps(e){const t=e.dataType??"",a=e.stereotype??"";let i;return a==="combobox"||a==="select"?i=2:t==="bool"?i=1:t==="status"||t==="integer"?i=1.5:t==="number"||t==="date"||t==="money"?i=2:t==="dateTime"?i=2.5:i=3,t==="dateRange"?2.5*1.5:a==="listBox"?i*1.5:i}function vs(e){if(e.length===0)return"inline";const t=e.reduce((a,i)=>a+ps(i),0);return t<=4?"inline":e.length>=6||t>8?"drawer":"popover"}var ms=Object.defineProperty,fs=Object.getOwnPropertyDescriptor,ze=(e,t,a,i)=>{for(var s=i>1?void 0:i?fs(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&ms(t,a,s),s};let fe=class extends D{constructor(){super(...arguments),this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.searchOnly=!1,this.filtersOpened=!1,this.clickedOnClearFilters=()=>{const e={};this.metadata?.filters.forEach(t=>{e[t.fieldId]=void 0}),e.searchText=void 0,this.state={...this.state,...e},this.dispatchEvent(new CustomEvent("filter-reset-requested",{detail:{fieldIds:this.metadata?.filters.map(t=>t.fieldId)},bubbles:!0,composed:!0})),this.handleButtonClick()},this.clickedOnFilters=()=>{this.filtersOpened=!0},this.clickedOnSearch=()=>{this.filtersOpened=!1,this.handleButtonClick()},this.valueChanged=e=>{const t=e.detail.value;if(typeof t=="number"&&Number.isNaN(t))return;const a=e.target.id;this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:t,fieldId:a},bubbles:!0,composed:!0}))},this.handleButtonClick=()=>{this.dispatchEvent(new CustomEvent("search-requested",{detail:{},bubbles:!0,composed:!0}))},this.renderActiveFilterBadges=()=>{const e=(this.metadata?.filters??[]).map(t=>t).filter(t=>{const a=this.state[t.fieldId];return a!=null&&a!==""&&!Number.isNaN(a)});return e.length===0?d:n`
+  `;$e([u()],ae.prototype,"id",2);$e([u()],ae.prototype,"metadata",2);$e([u()],ae.prototype,"baseUrl",2);$e([u()],ae.prototype,"state",2);$e([u()],ae.prototype,"data",2);$e([u()],ae.prototype,"appState",2);$e([u()],ae.prototype,"appData",2);$e([u()],ae.prototype,"emptyStateMessage",2);$e([f()],ae.prototype,"detailsOpenedItems",2);$e([Se("vaadin-grid")],ae.prototype,"grid",2);ae=$e([O("mateu-table")],ae);const us=76;function ba(e){if(e.weight!=null)return e.weight;const t=e.stereotype??"";if(t==="icon")return 1;if(t==="image")return 4;if(t==="html"||t==="richText"||t==="markdown"||t==="textarea")return 5;if(t==="link")return 2.5;if(t==="combobox"||t==="select")return 2;const a=e.dataType??"";return a==="bool"?1:a==="status"||a==="integer"?1.5:a==="number"||a==="date"||a==="money"?2:a==="dateTime"||a==="dateRange"?2.5:3}function ps(e,t){if(e.length===0)return"table";const a=e.reduce((c,h)=>c+ba(h),0),i=t/us,s=a/i;if(s<=1)return"table";const r=e.filter(c=>c.identifier||(c.priority??Number.MAX_SAFE_INTEGER)<=2),o=r.reduce((c,h)=>c+ba(h),0);return s>1.6||e.length>10?"masterDetail":r.length>0&&o<=8?"list":e.some(c=>c.stereotype==="image"||c.stereotype==="html")||r.length===0&&e.length>=4&&e.length<=8?"cards":"masterDetail"}function vs(e){return e.filter(t=>t.identifier||(t.priority??Number.MAX_SAFE_INTEGER)<=2).sort((t,a)=>(t.priority??Number.MAX_SAFE_INTEGER)-(a.priority??Number.MAX_SAFE_INTEGER))}function ms(e){const t=e.dataType??"",a=e.stereotype??"";let i;return a==="combobox"||a==="select"?i=2:t==="bool"?i=1:t==="status"||t==="integer"?i=1.5:t==="number"||t==="date"||t==="money"?i=2:t==="dateTime"?i=2.5:i=3,t==="dateRange"?2.5*1.5:a==="listBox"?i*1.5:i}function fs(e){if(e.length===0)return"inline";const t=e.reduce((a,i)=>a+ms(i),0);return t<=4?"inline":e.length>=6||t>8?"drawer":"popover"}var bs=Object.defineProperty,gs=Object.getOwnPropertyDescriptor,ze=(e,t,a,i)=>{for(var s=i>1?void 0:i?gs(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&bs(t,a,s),s};let fe=class extends L{constructor(){super(...arguments),this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.searchOnly=!1,this.filtersOpened=!1,this.clickedOnClearFilters=()=>{const e={};this.metadata?.filters.forEach(t=>{e[t.fieldId]=void 0}),e.searchText=void 0,this.state={...this.state,...e},this.dispatchEvent(new CustomEvent("filter-reset-requested",{detail:{fieldIds:this.metadata?.filters.map(t=>t.fieldId)},bubbles:!0,composed:!0})),this.handleButtonClick()},this.clickedOnFilters=()=>{this.filtersOpened=!0},this.clickedOnSearch=()=>{this.filtersOpened=!1,this.handleButtonClick()},this.valueChanged=e=>{const t=e.detail.value;if(typeof t=="number"&&Number.isNaN(t))return;const a=e.target.id;this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:t,fieldId:a},bubbles:!0,composed:!0}))},this.handleButtonClick=()=>{this.dispatchEvent(new CustomEvent("search-requested",{detail:{},bubbles:!0,composed:!0}))},this.renderActiveFilterBadges=()=>{const e=(this.metadata?.filters??[]).map(t=>t).filter(t=>{const a=this.state[t.fieldId];return a!=null&&a!==""&&!Number.isNaN(a)});return e.length===0?d:n`
             <div class="active-filters">
                 ${e.map(t=>{const a=De(t.label,this.state,this.data);return n`
                     <span theme="badge contrast pill" class="active-filter-badge">
@@ -1341,11 +1341,11 @@ ${ai.cssText}
             `:d}
 
             ${this.mainFilters.length>0?n`
-                ${this.mainFilters.map(e=>g(this,this.wrapFilter(e),this.baseUrl,this.state,this.data,this.appState,this.appData))}
+                ${this.mainFilters.map(e=>b(this,this.wrapFilter(e),this.baseUrl,this.state,this.data,this.appState,this.appData))}
             `:d}
 
             ${this.effectiveFiltersLayout==="inline"?n`
-                ${this.secondaryFilters.map(e=>g(this,this.wrapFilter(e),this.baseUrl,this.state,this.data,this.appState,this.appData))}
+                ${this.secondaryFilters.map(e=>b(this,this.wrapFilter(e),this.baseUrl,this.state,this.data,this.appState,this.appData))}
             `:d}
 
             ${(this.effectiveFiltersLayout==="popover"||this.effectiveFiltersLayout==="drawer"||this.effectiveFiltersLayout==="dialog")&&this.secondaryFilters.length>0?n`
@@ -1359,17 +1359,17 @@ ${ai.cssText}
                 header-title="Filters"
                 .opened="${this.filtersOpened}"
                 @closed="${()=>this.filtersOpened=!1}"
-                ${It(()=>this.renderFilterControls(),[])}
-                ${Ft(()=>n`
+                ${_t(()=>this.renderFilterControls(),[])}
+                ${Nt(()=>n`
                     <vaadin-button theme="tertiary" @click="${()=>this.filtersOpened=!1}">Cancel</vaadin-button>
                     <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;">Search</vaadin-button>
                 `,[])}
         ></vaadin-dialog>
-    `}updated(e){super.updated(e);const t=this.renderRoot?.querySelector("#filters-toggle-btn"),a=this.renderRoot?.querySelector("vaadin-popover");t&&a&&a.target!==t&&(a.target=t)}get mainFilters(){return(this.metadata?.filters??[]).filter(e=>e.mainFilter)}get secondaryFilters(){return(this.metadata?.filters??[]).filter(e=>!e.mainFilter)}get effectiveFiltersLayout(){const e=this.metadata?.filtersLayout??"auto";return e==="auto"?vs(this.secondaryFilters):e}handleKey(e){e.code=="Enter"&&(this.filtersOpened=!1,this.handleButtonClick())}connectedCallback(){super.connectedCallback(),this.metadata?.searchOnEnter&&this.addEventListener("keydown",this.handleKey)}disconnectedCallback(){super.disconnectedCallback(),this.metadata?.searchOnEnter&&this.removeEventListener("keydown",this.handleKey)}getFilterDisplayValue(e,t){if(e.options?.length){const a=e.options.find(i=>i.value===String(t));if(a)return a.label}return typeof t=="boolean"?t?"Yes":"No":String(t)}clearFilter(e){this.state={...this.state,[e]:void 0},this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:void 0,fieldId:e},bubbles:!0,composed:!0})),this.handleButtonClick()}wrapFilter(e){return{id:"",metadata:{...e,wantsFocus:!0},type:G.ClientSide,style:"",children:[],slot:"",cssClasses:"",initialData:{},confirmOnNavigationIfDirty:!1}}renderFilterControls(){return n`
+    `}updated(e){super.updated(e);const t=this.renderRoot?.querySelector("#filters-toggle-btn"),a=this.renderRoot?.querySelector("vaadin-popover");t&&a&&a.target!==t&&(a.target=t)}get mainFilters(){return(this.metadata?.filters??[]).filter(e=>e.mainFilter)}get secondaryFilters(){return(this.metadata?.filters??[]).filter(e=>!e.mainFilter)}get effectiveFiltersLayout(){const e=this.metadata?.filtersLayout??"auto";return e==="auto"?fs(this.secondaryFilters):e}handleKey(e){e.code=="Enter"&&(this.filtersOpened=!1,this.handleButtonClick())}connectedCallback(){super.connectedCallback(),this.metadata?.searchOnEnter&&this.addEventListener("keydown",this.handleKey)}disconnectedCallback(){super.disconnectedCallback(),this.metadata?.searchOnEnter&&this.removeEventListener("keydown",this.handleKey)}getFilterDisplayValue(e,t){if(e.options?.length){const a=e.options.find(i=>i.value===String(t));if(a)return a.label}return typeof t=="boolean"?t?"Yes":"No":String(t)}clearFilter(e){this.state={...this.state,[e]:void 0},this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:void 0,fieldId:e},bubbles:!0,composed:!0})),this.handleButtonClick()}wrapFilter(e){return{id:"",metadata:{...e,wantsFocus:!0},type:G.ClientSide,style:"",children:[],slot:"",cssClasses:"",initialData:{},confirmOnNavigationIfDirty:!1}}renderFilterControls(){return n`
             <mateu-event-interceptor .target="${this}">
                 <vaadin-form-layout max-columns="1" @keydown="${this.handleKey}" auto-responsive>
                     <vaadin-form-row>
-                        ${this.secondaryFilters.map(e=>g(this,this.wrapFilter(e),this.baseUrl,this.state,this.data,this.appState,this.appData))}
+                        ${this.secondaryFilters.map(e=>b(this,this.wrapFilter(e),this.baseUrl,this.state,this.data,this.appState,this.appData))}
                     </vaadin-form-row>
                 </vaadin-form-layout>
             </mateu-event-interceptor>`}renderFilterActionButtons(){return n`
@@ -1381,7 +1381,7 @@ ${ai.cssText}
                 .opened="${this.filtersOpened}"
                 @opened-changed="${e=>{this.filtersOpened=e.detail.value}}"
                 content-width="400px"
-                ${ea(()=>n`
+                ${ta(()=>n`
                     <div style="padding: var(--lumo-space-m);">
                         ${this.renderFilterControls()}
                         <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-end; padding-top: var(--lumo-space-s);">
@@ -1416,7 +1416,7 @@ ${ai.cssText}
             </vaadin-vertical-layout>
             ${e==="dialog"?this.renderFiltersDialog():d}
             ${e==="drawer"?this.renderDrawer():d}
-        `}};fe.styles=T`
+        `}};fe.styles=_`
         ${Le}
         :host {
             width: 100%;
@@ -1468,7 +1468,7 @@ ${ai.cssText}
             background: rgba(0, 0, 0, 0.32);
             z-index: 199;
         }
-    `;ze([u()],fe.prototype,"metadata",2);ze([u()],fe.prototype,"baseUrl",2);ze([f()],fe.prototype,"state",2);ze([f()],fe.prototype,"data",2);ze([u()],fe.prototype,"appState",2);ze([u()],fe.prototype,"appData",2);ze([u({type:Boolean})],fe.prototype,"searchOnly",2);ze([f()],fe.prototype,"filtersOpened",2);fe=ze([O("mateu-filter-bar")],fe);var bs=Object.defineProperty,gs=Object.getOwnPropertyDescriptor,Ot=(e,t,a,i)=>{for(var s=i>1?void 0:i?gs(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&bs(t,a,s),s};let it=class extends D{constructor(){super(...arguments),this.totalElements=0,this.pageSize=100,this.pageNumber=0,this.totalPages=0}updated(e){super.updated(e),(e.has("totalElements")||e.has("pageSize"))&&(this.totalPages=Math.ceil(this.totalElements/this.pageSize))}dispatch(e){this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:e}}))}render(){if(!this.totalElements)return d;const e=this.totalPages>1,t=this.pageNumber,a=t===0,i=t>=this.totalPages-1;return n`
+    `;ze([u()],fe.prototype,"metadata",2);ze([u()],fe.prototype,"baseUrl",2);ze([f()],fe.prototype,"state",2);ze([f()],fe.prototype,"data",2);ze([u()],fe.prototype,"appState",2);ze([u()],fe.prototype,"appData",2);ze([u({type:Boolean})],fe.prototype,"searchOnly",2);ze([f()],fe.prototype,"filtersOpened",2);fe=ze([O("mateu-filter-bar")],fe);var $s=Object.defineProperty,ys=Object.getOwnPropertyDescriptor,Pt=(e,t,a,i)=>{for(var s=i>1?void 0:i?ys(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&$s(t,a,s),s};let it=class extends L{constructor(){super(...arguments),this.totalElements=0,this.pageSize=100,this.pageNumber=0,this.totalPages=0}updated(e){super.updated(e),(e.has("totalElements")||e.has("pageSize"))&&(this.totalPages=Math.ceil(this.totalElements/this.pageSize))}dispatch(e){this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:e}}))}render(){if(!this.totalElements)return d;const e=this.totalPages>1,t=this.pageNumber,a=t===0,i=t>=this.totalPages-1;return n`
             <vaadin-horizontal-layout theme="spacing" style="align-items: center; flex-wrap: wrap;">
                 ${e?n`
                     <vaadin-button theme="tertiary icon" title="First page" ?disabled="${a}"
@@ -1493,7 +1493,7 @@ ${ai.cssText}
                 <span class="total-count">${this.totalElements} item${this.totalElements===1?"":"s"}</span>
                 <slot></slot>
             </vaadin-horizontal-layout>
-        `}};it.styles=T`
+        `}};it.styles=_`
         :host {
             display: block;
             width: 100%;
@@ -1516,7 +1516,7 @@ ${ai.cssText}
             align-self: center;
             margin: 0 4px;
         }
-    `;Ot([u()],it.prototype,"totalElements",2);Ot([u()],it.prototype,"pageSize",2);Ot([u()],it.prototype,"pageNumber",2);Ot([f()],it.prototype,"totalPages",2);it=Ot([O("mateu-pagination")],it);const $s=(e,t,a,i,s,r,o)=>{const l=t.metadata;let c=t.style;return c==null&&(c=""),l.columnSpacing&&(c+="--vaadin-form-layout-column-spacing: "+l.columnSpacing+";"),l.itemRowSpacing&&(c+="--vaadin-form-layout-row-spacing: "+l.itemRowSpacing+";"),l.itemLabelSpacing&&(c+="--vaadin-form-layout-label-spacing: "+l.itemLabelSpacing+";"),l.labelsAside&&(c+="--vaadin-form-item-label-width: 92px;"),l.fullWidth&&(c+="width: 100%;"),n`
+    `;Pt([u()],it.prototype,"totalElements",2);Pt([u()],it.prototype,"pageSize",2);Pt([u()],it.prototype,"pageNumber",2);Pt([f()],it.prototype,"totalPages",2);it=Pt([O("mateu-pagination")],it);const ws=(e,t,a,i,s,r,o)=>{const l=t.metadata;let c=t.style;return c==null&&(c=""),l.columnSpacing&&(c+="--vaadin-form-layout-column-spacing: "+l.columnSpacing+";"),l.itemRowSpacing&&(c+="--vaadin-form-layout-row-spacing: "+l.itemRowSpacing+";"),l.itemLabelSpacing&&(c+="--vaadin-form-layout-label-spacing: "+l.itemLabelSpacing+";"),l.labelsAside&&(c+="--vaadin-form-item-label-width: 92px;"),l.fullWidth&&(c+="width: 100%;"),n`
                <vaadin-form-layout 
                        .responsiveSteps="${l.responsiveSteps||d}"  
                        style="${c||d}" 
@@ -1529,36 +1529,36 @@ ${ai.cssText}
                        labels-aside="${l.labelsAside||d}"
                        slot="${t.slot||d}"
                >
-                   ${t.children?.map(h=>Aa(l,e,h,a,i,s,r,o))}
+                   ${t.children?.map(h=>Na(l,e,h,a,i,s,r,o))}
                </vaadin-form-layout>
-            `},Aa=(e,t,a,i,s,r,o,l)=>a.type==G.ClientSide&&a.metadata?.type==m.FormRow?ws(e,t,a,i,s,r,o,l):e.labelsAside?ys(t,a,i,s,r,o,l):g(t,a,i,s,r,o,l),ys=(e,t,a,i,s,r,o)=>{if(t.type==G.ClientSide&&t.metadata?.type==m.FormField&&t.metadata.label){const l=t.metadata,c=l.label?.includes("${")?e._evalTemplate(l.label):l.label;return n`
+            `},Na=(e,t,a,i,s,r,o,l)=>a.type==G.ClientSide&&a.metadata?.type==m.FormRow?ks(e,t,a,i,s,r,o,l):e.labelsAside?xs(t,a,i,s,r,o,l):b(t,a,i,s,r,o,l),xs=(e,t,a,i,s,r,o)=>{if(t.type==G.ClientSide&&t.metadata?.type==m.FormField&&t.metadata.label){const l=t.metadata,c=l.label?.includes("${")?e._evalTemplate(l.label):l.label;return n`
                        <vaadin-form-item data-colspan="${l.colspan}">
                            <label slot="label">${c}</label>
-                           ${g(e,t,a,i,s,r,o,!0)}
+                           ${b(e,t,a,i,s,r,o,!0)}
                        </vaadin-form-item>
-                   `}return g(e,t,a,i,s,r,o)},ws=(e,t,a,i,s,r,o,l)=>n`
+                   `}return b(e,t,a,i,s,r,o)},ks=(e,t,a,i,s,r,o,l)=>n`
         <vaadin-form-row>
-            ${a.children?.map(c=>Aa(e,t,c,i,s,r,o,l))}
+            ${a.children?.map(c=>Na(e,t,c,i,s,r,o,l))}
         </vaadin-form-row>
-            `,xs=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=(l.padding?" padding":"")+(l.spacing?" spacing":"")+(l.spacingVariant?" spacing-"+l.spacingVariant:"")+(l.wrap?" wrap":"");let h=t.style;return l.fullWidth&&(h=h?"width: 100%;"+h:"width: 100%;"),l.justification&&(h=h?"justify-content: "+l.justification+";"+h:"justify-content: "+l.justification+";"),l.verticalAlignment&&(h=h?"align-items: "+l.verticalAlignment+";"+h:"align-items: "+l.verticalAlignment+";"),n`
+            `,Ss=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=(l.padding?" padding":"")+(l.spacing?" spacing":"")+(l.spacingVariant?" spacing-"+l.spacingVariant:"")+(l.wrap?" wrap":"");let h=t.style;return l.fullWidth&&(h=h?"width: 100%;"+h:"width: 100%;"),l.justification&&(h=h?"justify-content: "+l.justification+";"+h:"justify-content: "+l.justification+";"),l.verticalAlignment&&(h=h?"align-items: "+l.verticalAlignment+";"+h:"align-items: "+l.verticalAlignment+";"),n`
                <vaadin-horizontal-layout 
                        style="${h}" 
                        class="${t.cssClasses}"
                        theme="${c}"
                        slot="${t.slot??d}"
                >
-                   ${t.children?.map(p=>g(e,p,a,i,s,r,o))}
+                   ${t.children?.map(p=>b(e,p,a,i,s,r,o))}
                </vaadin-horizontal-layout>
-            `},ks=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=(l.padding?" padding":"")+(l.spacing?" spacing":"")+(l.spacingVariant?" spacing-"+l.spacingVariant:"")+(l.wrap?" wrap":"");let h=t.style;return l.fullWidth&&(h=h?"width: 100%;"+h:"width: 100%;"),l.justification&&(h=h?"justify-content: "+l.justification+";"+h:"justify-content: "+l.justification+";"),l.horizontalAlignment&&(h=h?"align-items: "+l.horizontalAlignment+";"+h:"align-items: "+l.horizontalAlignment+";"),n`
+            `},Es=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=(l.padding?" padding":"")+(l.spacing?" spacing":"")+(l.spacingVariant?" spacing-"+l.spacingVariant:"")+(l.wrap?" wrap":"");let h=t.style;return l.fullWidth&&(h=h?"width: 100%;"+h:"width: 100%;"),l.justification&&(h=h?"justify-content: "+l.justification+";"+h:"justify-content: "+l.justification+";"),l.horizontalAlignment&&(h=h?"align-items: "+l.horizontalAlignment+";"+h:"align-items: "+l.horizontalAlignment+";"),n`
         <vaadin-vertical-layout
                 style="${h}"
                 class="${t.cssClasses}"
                 theme="${c}"
                 slot="${t.slot??d}"
         >
-            ${t.children?.map(p=>g(e,p,a,i,s,r,o))}
+            ${t.children?.map(p=>b(e,p,a,i,s,r,o))}
         </vaadin-vertical-layout>
-    `},Ss=(e,t,a,i,s,r,o)=>{const l=t.metadata;let c=t.style;return l.fullWidth&&(c=c?"width: 100%;"+c:"width: 100%;"),n`
+    `},Cs=(e,t,a,i,s,r,o)=>{const l=t.metadata;let c=t.style;return l.fullWidth&&(c=c?"width: 100%;"+c:"width: 100%;"),n`
                <vaadin-split-layout 
                        style="${c}" 
                        class="${t.cssClasses}"
@@ -1566,18 +1566,18 @@ ${ai.cssText}
                        theme="${l.variant??d}"
                        slot="${t.slot??d}"
                >
-                   <master-content>${g(e,t.children[0],a,i,s,r,o)}</master-content>
-                   <detail-content>${g(e,t.children[1],a,i,s,r,o)}</detail-content>
+                   <master-content>${b(e,t.children[0],a,i,s,r,o)}</master-content>
+                   <detail-content>${b(e,t.children[1],a,i,s,r,o)}</detail-content>
                </vaadin-split-layout>
-            `},Es=(e,t,a,i,s,r,o)=>{const l=t.children&&t.children.length>1?t.children[1]:null,c=s?.detailComponent??null,h=!!s?.hasDetail||!!l,p=c??l;return n`
+            `},Is=(e,t,a,i,s,r,o)=>{const l=t.children&&t.children.length>1?t.children[1]:null,c=s?.detailComponent??null,h=!!s?.hasDetail||!!l,p=c??l;return n`
                <vaadin-master-detail-layout ?has-detail="${h}"
                                             style="${t.style}"
                                             class="${t.cssClasses}"
                                             slot="${t.slot??d}">
-                   <div>${g(e,t.children[0],a,i,s,r,o)}</div>
-                   ${h&&p?n`<div slot="detail">${g(e,p,a,i,s,r,o)}</div>`:n`<div slot="detail" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Select an item to view details</div>`}
+                   <div>${b(e,t.children[0],a,i,s,r,o)}</div>
+                   ${h&&p?n`<div slot="detail">${b(e,p,a,i,s,r,o)}</div>`:n`<div slot="detail" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Select an item to view details</div>`}
                </vaadin-master-detail-layout>
-            `},Cs=(e,t,a,i,s,r,o)=>{const l=t.metadata;let c=t.style;c==null&&(c=""),l.fullWidth&&(c+="width: 100%;");let h=l.variant;h=="equalWidth"&&(h="equal-width-tabs");const p=v=>{v.target.selected=0};return n`
+            `},_s=(e,t,a,i,s,r,o)=>{const l=t.metadata;let c=t.style;c==null&&(c=""),l.fullWidth&&(c+="width: 100%;");let h=l.variant;h=="equalWidth"&&(h="equal-width-tabs");const p=v=>{v.target.selected=0};return n`
         <vaadin-tabsheet
                 theme="${h??d}"
                 style="${c}"
@@ -1589,83 +1589,83 @@ ${ai.cssText}
                          orientation="${l.orientation??d}"
                          @items-changed=${p}
             >
-                ${t.children?.map(v=>v).map(v=>{const y=v.metadata.label,_=y?.includes("${")?e._evalTemplate(y):y,k=v.metadata.shortcut;return n`
-                    <vaadin-tab id="${_}"
+                ${t.children?.map(v=>v).map(v=>{const y=v.metadata.label,T=y?.includes("${")?e._evalTemplate(y):y,k=v.metadata.shortcut;return n`
+                    <vaadin-tab id="${T}"
                                 style="${v.style}"
                                 class="${v.cssClasses}"
                                 data-shortcut="${k??d}"
-                    >${_}</vaadin-tab>`})}
+                    >${T}</vaadin-tab>`})}
             </vaadin-tabs>
 
-            ${t.children?.map(v=>Is(e,v,a,i,s,r,o))}
+            ${t.children?.map(v=>Ts(e,v,a,i,s,r,o))}
         </vaadin-tabsheet>
-            `},Is=(e,t,a,i,s,r,o)=>{const l=t.metadata.label,c=l?.includes("${")?e._evalTemplate(l):l;return n`
+            `},Ts=(e,t,a,i,s,r,o)=>{const l=t.metadata.label,c=l?.includes("${")?e._evalTemplate(l):l;return n`
         <div tab="${c}" style="padding: var(--lumo-space-m) 0;">
-                   ${t.children?.map(h=>g(e,h,a,i,s,r,o))}
+                   ${t.children?.map(h=>b(e,h,a,i,s,r,o))}
                </div>
-            `},_s=(e,t,a,i,s,r,o)=>{const l=t.metadata;t.style,l.fullWidth;let c=0;if(t.children){for(let h=0;h<t.children.length;h++)if(t.children[h].metadata?.active){c=h;break}}return n`
+            `},Os=(e,t,a,i,s,r,o)=>{const l=t.metadata;t.style,l.fullWidth;let c=0;if(t.children){for(let h=0;h<t.children.length;h++)if(t.children[h].metadata?.active){c=h;break}}return n`
                <vaadin-accordion
                        style="${t.style}"
                        class="${t.cssClasses}"
                        opened="${c}"
                        slot="${t.slot??d}"
                >
-                   ${t.children?.map(h=>Ts(e,h,a,i,s,r,o,l.variant))}
+                   ${t.children?.map(h=>Ps(e,h,a,i,s,r,o,l.variant))}
                </vaadin-accordion>
-            `},Ts=(e,t,a,i,s,r,o,l)=>{const c=t.metadata,h=c.label?.includes("${")?e._evalTemplate(c.label):c.label;return n`
+            `},Ps=(e,t,a,i,s,r,o,l)=>{const c=t.metadata,h=c.label?.includes("${")?e._evalTemplate(c.label):c.label;return n`
         <vaadin-accordion-panel style="${t.style}"
                                 class="${t.cssClasses}"
                                 theme="${l??d}"
                                 ?opened="${c.active}"
                                 ?disabled="${c.disabled}">
             <vaadin-accordion-heading slot="summary">${h}</vaadin-accordion-heading>
-            ${t.children?.map(p=>g(e,p,a,i,s,r,o))}
+            ${t.children?.map(p=>b(e,p,a,i,s,r,o))}
         </vaadin-accordion-panel>
-            `},Os=(e,t,a,i,s,r,o)=>n`
+            `},Rs=(e,t,a,i,s,r,o)=>n`
                <vaadin-scroller style="${t.style}" 
                                 class="${t.cssClasses}"
                                 slot="${t.slot??d}">
-                   ${t.children?.map(l=>g(e,l,a,i,s,r,o))}
+                   ${t.children?.map(l=>b(e,l,a,i,s,r,o))}
                </vaadin-scroller>
-            `,Rs=(e,t,a,i,s,r,o)=>n`
+            `,Ls=(e,t,a,i,s,r,o)=>n`
                <div style="width: 100%; ${t.style}" 
                     class="${t.cssClasses}"
                     slot="${t.slot??d}">
-                   ${t.children?.map(l=>g(e,l,a,i,s,r,o))}
+                   ${t.children?.map(l=>b(e,l,a,i,s,r,o))}
                </div>
-            `,Ps=(e,t,a,i,s,r,o)=>n`
+            `,Ds=(e,t,a,i,s,r,o)=>n`
                <div style="max-width: min(100%, 1200px); margin: auto; ${t.style}" 
                     class="${t.cssClasses}"
                     slot="${t.slot??d}">
-                   ${t.children?.map(l=>g(e,l,a,i,s,r,o))}
+                   ${t.children?.map(l=>b(e,l,a,i,s,r,o))}
                </div>
-            `,Ls=(e,t,a,i,s,r,o)=>n`
+            `,zs=(e,t,a,i,s,r,o)=>n`
         <vaadin-board style="${t.style}" 
                       class="${t.cssClasses}"
                       slot="${t.slot??d}">
-            ${t.children?.map(l=>g(e,l,a,i,s,r,o))}
+            ${t.children?.map(l=>b(e,l,a,i,s,r,o))}
         </vaadin-board>
-            `,Ds=(e,t,a,i,s,r,o)=>n`
+            `,Fs=(e,t,a,i,s,r,o)=>n`
         <vaadin-board-row style="${t.style}" class="${t.cssClasses}">
-                   ${t.children?.map(l=>g(e,l,a,i,s,r,o))}
+                   ${t.children?.map(l=>b(e,l,a,i,s,r,o))}
                </vaadin-board-row>
-            `,zs=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
+            `,As=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
         <div style="${t.style}" 
              class="${t.cssClasses}"
              board-cols="${l.boardCols??d}"
         >
-                   ${t.children?.map(c=>g(e,c,a,i,s,r,o))}
+                   ${t.children?.map(c=>b(e,c,a,i,s,r,o))}
                </div>
-            `},As=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=h=>n`
-            ${g(e,h,a,i,s,r,o)}
+            `},Ns=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=h=>n`
+            ${b(e,h,a,i,s,r,o)}
 `;return n`
         <vaadin-virtual-list
                 .items="${l.page.content}"
-                ${si(c,[])}
+                ${ni(c,[])}
                 style="${t.style}" class="${t.cssClasses}"
                 slot="${t.slot??d}"
         ></vaadin-virtual-list>
-    `},Fs=(e,t,a,i,s,r,o)=>{const l=t.metadata;if(l.tree){const h=async(p,v)=>{const y=p.parentItem?p.parentItem.children:l.page.content;v(y,y.length)};return n`
+    `},qs=(e,t,a,i,s,r,o)=>{const l=t.metadata;if(l.tree){const h=async(p,v)=>{const y=p.parentItem?p.parentItem.children:l.page.content;v(y,y.length)};return n`
         <vaadin-grid style="${t.style}" class="${t.cssClasses}"
                      .itemHasChildrenPath="${"children"}" .dataProvider="${h}"
                      slot="${t.slot??d}"
@@ -1678,7 +1678,7 @@ ${ai.cssText}
                                 flex-grow="${y?.flexGrow??d}"
                                 width="${y?.width??d}"
                                 .column="${p.metadata}"
-                                ${We((_,k,b)=>Dt(_,k,b,y,e,a,i,s,r,o),[])}></vaadin-grid-column>
+                                ${We((T,k,g)=>zt(T,k,g,y,e,a,i,s,r,o),[])}></vaadin-grid-column>
 `:n`
             <vaadin-grid-tree-column path="${p.id}"
                                 header="${y?.label??d}"
@@ -1696,9 +1696,9 @@ ${ai.cssText}
                 .items="${c}"
                 all-rows-visible
         >
-            ${l?.content?.map(h=>ta(h,e,a,i,s,r,o))}
+            ${l?.content?.map(h=>aa(h,e,a,i,s,r,o))}
         </vaadin-grid>
-    `},Ns=e=>(e.metadata,n`
+    `},Us=e=>(e.metadata,n`
         <vaadin-message-list
                 style="${e.style}" class="${e.cssClasses}"
                 slot="${e.slot??d}"
@@ -1711,115 +1711,115 @@ I've completed the initial research phase and documented my findings.
 
 Let me know your thoughts!`,userName:"Sam Rivera"}]}"
         ></vaadin-message-list>
-    `),qs=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
-        <vaadin-context-menu .items=${aa(e,l.menu,a,i,s,r,o)} 
+    `),Ms=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
+        <vaadin-context-menu .items=${ia(e,l.menu,a,i,s,r,o)} 
                              style="${t.style}" 
                              class="${t.cssClasses}"
                              open-on="${l.activateOnLeftClick?"click":d}"
                              slot="${t.slot??d}">
-            ${g(e,l.wrapped,a,i,s,r,o)}
+            ${b(e,l.wrapped,a,i,s,r,o)}
         </vaadin-context-menu>
-            `},Us=(e,t,a,i,s)=>{const r=t.metadata;return n`
-        <vaadin-menu-bar .items=${aa(e,r.options,a,i,s,B,St)}
+            `},Bs=(e,t,a,i,s)=>{const r=t.metadata;return n`
+        <vaadin-menu-bar .items=${ia(e,r.options,a,i,s,B,St)}
                          style="${t.style}" class="${t.cssClasses}"
                          slot="${t.slot??d}">
         </vaadin-menu-bar>
-            `},fa=(e,t,a,i,s,r,o)=>{const l=document.createElement("vaadin-context-menu-item");return Ia(g(e,t,a,i,s,r,o),l),l},aa=(e,t,a,i,s,r,o)=>t.map(l=>l.submenus?{text:l.component?void 0:l.label,route:l.path,checked:l.selected,disabled:l.disabled,className:l.className,component:l.component?fa(e,l.component,a,i,s,r,o):void 0,children:aa(e,l.submenus,a,i,s,r,o)}:l.separator?{component:"hr"}:{text:l.component?void 0:l.label,route:l.path,checked:l.selected,disabled:l.disabled,className:l.className,component:l.component?fa(e,l.component,a,i,s,r,o):void 0}),Ms=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
+            `},ga=(e,t,a,i,s,r,o)=>{const l=document.createElement("vaadin-context-menu-item");return Ta(b(e,t,a,i,s,r,o),l),l},ia=(e,t,a,i,s,r,o)=>t.map(l=>l.submenus?{text:l.component?void 0:l.label,route:l.path,checked:l.selected,disabled:l.disabled,className:l.className,component:l.component?ga(e,l.component,a,i,s,r,o):void 0,children:ia(e,l.submenus,a,i,s,r,o)}:l.separator?{component:"hr"}:{text:l.component?void 0:l.label,route:l.path,checked:l.selected,disabled:l.disabled,className:l.className,component:l.component?ga(e,l.component,a,i,s,r,o):void 0}),js=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
         <vaadin-custom-field label="${l.label}"
                              style="${t.style}" 
                              class="${t.cssClasses}"
                              slot="${t.slot??d}"
                              data-colspan="${l.colspan||d}"
         >
-            ${g(e,l.content,a,i,s,r,o)}
+            ${b(e,l.content,a,i,s,r,o)}
         </vaadin-custom-field>
-            `},Bs=e=>(e.metadata,n`
+            `},Ws=e=>(e.metadata,n`
         <vaadin-message-input style="${e.style}" class="${e.cssClasses}"
                               slot="${e.slot??d}"></vaadin-message-input>
-    `),js=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
-        <div id="show-notifications">${g(e,l.wrapped,a,i,s,r,o)}</div>
+    `),Vs=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
+        <div id="show-notifications">${b(e,l.wrapped,a,i,s,r,o)}</div>
         <vaadin-tooltip
                 style="${t.style}" class="${t.cssClasses}"
                 slot="${t.slot??d}"
                 for="show-notifications" text="${l.text}" position="top-start"></vaadin-tooltip>
-    `},Ws=e=>{if(e instanceof CustomEvent)return e.detail;const t={};for(const a in e){const i=e[a];["number","string","boolean"].indexOf(typeof i)>=0&&(t[a]=e[a])}return t},ba=(e,t,a)=>{for(let i in t.attributes)e.setAttribute(i,t.attributes[i]);a.style&&e.setAttribute("style",a.style),a.cssClasses&&e.setAttribute("class",a.cssClasses),a.slot&&e.setAttribute("slot",a.slot),t.content&&(t.html?e.innerHTML=t.content:e.append(t.content))},Vs=e=>{e.startsWith("vaadin-chart")&&!customElements.get(e)&&te(()=>import("./vendor-highcharts.js"),__vite__mapDeps([0,1,2,3]))},Hs=(e,t,a)=>{Vs(t.name);let i=t.name;return t.attributes&&t.attributes.id&&(i="#"+t.attributes.id),setTimeout(()=>{const s=e.shadowRoot?.querySelector(".element-container")?.querySelector(i);if(s){for(;s.firstChild;)s.removeChild(s.lastChild);ba(s,t,a)}else{const r=document.createElement(t.name);ba(r,t,a);for(let o in t.on)r.addEventListener(o,l=>{const c=Ws(l);e.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:t.on[o],parameters:{event:c}},bubbles:!0,composed:!0}))});e.shadowRoot?.querySelector(".element-container")?.appendChild(r)}}),n`<div class="element-container"></div>`};var xe=(e=>(e.div="div",e.p="p",e.h1="h1",e.h2="h2",e.h3="h3",e.h4="h4",e.h5="h5",e.h6="h6",e.span="span",e))(xe||{});const Gs=(e,t,a,i,s)=>{const r=e.metadata,o=r.attributes?.["data-colspan"],l=Ta(r.text,t,a,i,s);return xe.h1==r.container?n`
+    `},Hs=e=>{if(e instanceof CustomEvent)return e.detail;const t={};for(const a in e){const i=e[a];["number","string","boolean"].indexOf(typeof i)>=0&&(t[a]=e[a])}return t},$a=(e,t,a)=>{for(let i in t.attributes)e.setAttribute(i,t.attributes[i]);a.style&&e.setAttribute("style",a.style),a.cssClasses&&e.setAttribute("class",a.cssClasses),a.slot&&e.setAttribute("slot",a.slot),t.content&&(t.html?e.innerHTML=t.content:e.append(t.content))},Gs=e=>{e.startsWith("vaadin-chart")&&!customElements.get(e)&&te(()=>import("./vendor-highcharts.js"),__vite__mapDeps([0,1,2,3]))},Ks=(e,t,a)=>{Gs(t.name);let i=t.name;return t.attributes&&t.attributes.id&&(i="#"+t.attributes.id),setTimeout(()=>{const s=e.shadowRoot?.querySelector(".element-container")?.querySelector(i);if(s){for(;s.firstChild;)s.removeChild(s.lastChild);$a(s,t,a)}else{const r=document.createElement(t.name);$a(r,t,a);for(let o in t.on)r.addEventListener(o,l=>{const c=Hs(l);e.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:t.on[o],parameters:{event:c}},bubbles:!0,composed:!0}))});e.shadowRoot?.querySelector(".element-container")?.appendChild(r)}}),n`<div class="element-container"></div>`};var xe=(e=>(e.div="div",e.p="p",e.h1="h1",e.h2="h2",e.h3="h3",e.h4="h4",e.h5="h5",e.h6="h6",e.span="span",e))(xe||{});const Js=(e,t,a,i,s)=>{const r=e.metadata,o=r.attributes?.["data-colspan"],l=Pa(r.text,t,a,i,s);return xe.h1==r.container?n`
             <h1 style="${e.style}" class="${e.cssClasses}"
-                id="${C(e.id)}"
-                data-colspan="${C(o)}"
+                id="${I(e.id)}"
+                data-colspan="${I(o)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h1>
         `:xe.h2==r.container?n`
             <h2 style="${e.style}" class="${e.cssClasses}"
-                id="${C(e.id)}"
-                data-colspan="${C(o)}"
+                id="${I(e.id)}"
+                data-colspan="${I(o)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h2>
         `:xe.h3==r.container?n`
             <h3 style="${e.style}" class="${e.cssClasses}"
-                id="${C(e.id)}"
-                data-colspan="${C(o)}"
+                id="${I(e.id)}"
+                data-colspan="${I(o)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h3>
         `:xe.h4==r.container?n`
             <h4 style="${e.style}" class="${e.cssClasses}"
-                id="${C(e.id)}"
-                data-colspan="${C(o)}"
+                id="${I(e.id)}"
+                data-colspan="${I(o)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h4>
         `:xe.h5==r.container?n`
             <h5 style="${e.style}" class="${e.cssClasses}"
-                id="${C(e.id)}"
-                data-colspan="${C(o)}"
+                id="${I(e.id)}"
+                data-colspan="${I(o)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h5>
         `:xe.h6==r.container?n`
             <h6 style="${e.style}" class="${e.cssClasses}"
-                id="${C(e.id)}"
-                data-colspan="${C(o)}"
+                id="${I(e.id)}"
+                data-colspan="${I(o)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h6>
         `:xe.p==r.container?n`
                <p style="${e.style}" class="${e.cssClasses}"
-                  id="${C(e.id)}"
-                  data-colspan="${C(o)}"
+                  id="${I(e.id)}"
+                  data-colspan="${I(o)}"
                   slot="${e.slot??d}">
                    ${l??d}
                </p>
             `:xe.div==r.container?n`
                <div style="${e.style}" class="${e.cssClasses}"
-                    id="${C(e.id)}"
-                    data-colspan="${C(o)}"
+                    id="${I(e.id)}"
+                    data-colspan="${I(o)}"
                     slot="${e.slot??d}">${l?me(l):d}</div>
             `:xe.span==r.container?n`
                <span style="${e.style}" class="${e.cssClasses}"
-                     id="${C(e.id)}"
-                     data-colspan="${C(o)}"
+                     id="${I(e.id)}"
+                     data-colspan="${I(o)}"
                     slot="${e.slot??d}">${l??d}</span>
             `:n`
                <p
-                       id="${C(e.id)}"
-                       data-colspan="${C(o)}"
+                       id="${I(e.id)}"
+                       data-colspan="${I(o)}"
                        slot="${e.slot??d}">
                    Unknown text container: ${r.container} 
                </p>
-            `},Ks=e=>{const t=e.metadata;return n`<a href="${t.url}" style="${e.style}" class="${e.cssClasses}"
-                   slot="${e.slot??d}">${t.text}</a>`},Js=(e,t)=>{const a=e.target.dataset.actionId;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a,parameters:t.parameters},bubbles:!0,composed:!0}))},Ys=(e,t,a)=>{const i=e.metadata,s=De(i.label,t,a);let r="";return i.buttonStyle&&(r+=" "+i.buttonStyle),i.color&&i.color!=="none"&&i.color!=="normal"&&(r+=" "+i.color),i.size&&i.size!=="none"&&i.size!=="normal"&&(r+=" "+i.size),n`<vaadin-button
+            `},Ys=e=>{const t=e.metadata;return n`<a href="${t.url}" style="${e.style}" class="${e.cssClasses}"
+                   slot="${e.slot??d}">${t.text}</a>`},Xs=(e,t)=>{const a=e.target.dataset.actionId;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a,parameters:t.parameters},bubbles:!0,composed:!0}))},Qs=(e,t,a)=>{const i=e.metadata,s=De(i.label,t,a);let r="";return i.buttonStyle&&(r+=" "+i.buttonStyle),i.color&&i.color!=="none"&&i.color!=="normal"&&(r+=" "+i.color),i.size&&i.size!=="none"&&i.size!=="normal"&&(r+=" "+i.size),n`<vaadin-button
 id="${e.id}"
             data-action-id="${i.actionId}"
-            @click="${o=>Js(o,i)}"
+            @click="${o=>Xs(o,i)}"
             style="${e.style}"
             class="${e.cssClasses}"
             theme="${r}"
             ?disabled="${i.disabled}"
-            title="${i.shortcut?`${s} (${$i(i.shortcut)})`:d}"
+            title="${i.shortcut?`${s} (${wi(i.shortcut)})`:d}"
             slot="${e.slot??d}"
-    >${i.iconOnLeft?n`<vaadin-icon icon="${i.iconOnLeft}"></vaadin-icon>`:d}${s}${i.iconOnRight?n`<vaadin-icon icon="${i.iconOnRight}"></vaadin-icon>`:d}</vaadin-button>`},Xs=(e,t,a,i,s,r,o)=>{const l=t.metadata;if(!l)return n``;let c="";return l.variants?.map(h=>h=="stretchMedia"?"stretch-media":h=="coverMedia"?"cover-media":h).forEach(h=>c+=" "+h),c=c.trim(),n`
+    >${i.iconOnLeft?n`<vaadin-icon icon="${i.iconOnLeft}"></vaadin-icon>`:d}${s}${i.iconOnRight?n`<vaadin-icon icon="${i.iconOnRight}"></vaadin-icon>`:d}</vaadin-button>`},Zs=(e,t,a,i,s,r,o)=>{const l=t.metadata;if(!l)return n``;let c="";return l.variants?.map(h=>h=="stretchMedia"?"stretch-media":h=="coverMedia"?"cover-media":h).forEach(h=>c+=" "+h),c=c.trim(),n`
         <vaadin-card
                 style="${t.style}" 
                 class="${t.cssClasses}" 
@@ -1833,9 +1833,9 @@ id="${e.id}"
             ${l.headerPrefix?Ze(e,l.headerPrefix,a,i,s,r,o,"header-prefix",!1):d}
             ${l.headerSuffix?Ze(e,l.headerSuffix,a,i,s,r,o,"header-suffix",!1):d}
             ${l.footer?Ze(e,l.footer,a,i,s,r,o,"footer",!1):d}
-            ${l.content?g(e,l.content,a,i,s,r,o,!1):d}
+            ${l.content?b(e,l.content,a,i,s,r,o,!1):d}
         </vaadin-card>
-    `},Qs=e=>{const t=e.metadata;return n`
+    `},er=e=>{const t=e.metadata;return n`
         <mateu-chart 
                 style="${e.style}" 
                 class="${e.cssClasses}"
@@ -1845,10 +1845,10 @@ id="${e.id}"
                 .options="${t.chartOptions}"
         >
         </mateu-chart>
-    `},Zs=e=>{const t=e.metadata;return n`
+    `},tr=e=>{const t=e.metadata;return n`
         <vaadin-icon icon="${t.icon}" style="${e.style}" class="${e.cssClasses}"
                      slot="${e.slot??d}"></vaadin-icon>
-    `},er=(e,t,a,i,s,r,o)=>{const l=t.metadata;let c=!1;if(l.openedCondition)try{c=Oa(l.openedCondition,i,s,r,o)}catch(h){console.error("when evaluating "+l.openedCondition+" :"+h+", where data is "+s+" and state is "+i)}return n`
+    `},ar=(e,t,a,i,s,r,o)=>{const l=t.metadata;let c=!1;if(l.openedCondition)try{c=Ra(l.openedCondition,i,s,r,o)}catch(h){console.error("when evaluating "+l.openedCondition+" :"+h+", where data is "+s+" and state is "+i)}return n`
         <vaadin-confirm-dialog
   header="${l.header}"
   ?cancel-button-visible="${l.canCancel}"
@@ -1859,9 +1859,9 @@ id="${e.id}"
   style="${t.style}" class="${t.cssClasses}"
   slot="${t.slot??d}"
 >
-  ${t.children?.map(h=>g(e,h,a,i,s,r,o))}
+  ${t.children?.map(h=>b(e,h,a,i,s,r,o))}
 </vaadin-confirm-dialog>
-            `},tr=e=>{const t=e.metadata;let a;return t.position&&(a={Top:"top",Bottom:"bottom",TopLeft:"top-left",TopRight:"top-right",BottomLeft:"bottom-left",BottomRight:"bottom-right"}[t.position]),n`
+            `},ir=e=>{const t=e.metadata;let a;return t.position&&(a={Top:"top",Bottom:"bottom",TopLeft:"top-left",TopRight:"top-right",BottomLeft:"bottom-left",BottomRight:"bottom-right"}[t.position]),n`
         <mateu-cookie-consent style="${e.style}" class="${e.cssClasses}"
                                slot="${e.slot??d}"
                                position="${a??d}"
@@ -1872,7 +1872,7 @@ id="${e.id}"
                                .learnMoreLink="${t.learnMoreLink??d}"
                                .dismiss="${t.dismiss??d}"
         ></mateu-cookie-consent>
-    `},ar=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
+    `},sr=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
         <vaadin-details 
                 ?opened="${l.opened}" 
                 style="${t.style}" 
@@ -1880,11 +1880,11 @@ id="${e.id}"
                 slot="${t.slot??d}"
         >
             <vaadin-details-summary slot="summary">
-            ${g(e,l.summary,a,i,s,r,o)}
+            ${b(e,l.summary,a,i,s,r,o)}
             </vaadin-details-summary>
-            ${g(e,l.content,a,i,s,r,o)}
+            ${b(e,l.content,a,i,s,r,o)}
         </vaadin-details>
-            `},ir=(e,t,a,i,s,r)=>n`
+            `},rr=(e,t,a,i,s,r)=>n`
         <mateu-dialog
                 id="${e.metadata.id}"
             .component="${e}"
@@ -1894,7 +1894,7 @@ id="${e.id}"
             .appState="${s}"
             .appdata="${r}"
         ></mateu-dialog>
-            `,sr=e=>{const t=e.metadata;return n`
+            `,nr=e=>{const t=e.metadata;return n`
         <mateu-api-caller>
         <mateu-ux baseUrl="${t.baseUrl}"  
                   route="${t.route}" 
@@ -1906,17 +1906,17 @@ id="${e.id}"
                   slot="${e.slot??d}"
         ></mateu-ux>
         </mateu-api-caller>
-            `},rr=e=>{const t=e.metadata;return n`
+            `},or=e=>{const t=e.metadata;return n`
         <mateu-markdown .content=${t.markdown}
                         style="${e.style}" class="${e.cssClasses}"
                         slot="${e.slot??d}"></mateu-markdown>
-            `},nr=e=>{const t=e.metadata;return n`
+            `},lr=e=>{const t=e.metadata;return n`
         <vaadin-notification
                 .opened="${!0}"
                 slot="${e.slot??d}"
                 style="${e.style}"
                 class="${e.cssClasses}"
-                ${Ca(()=>n`
+                ${_a(()=>n`
                     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                         <h3>${t.title}</h3>
                         <div>
@@ -1925,7 +1925,7 @@ id="${e.id}"
                     </vaadin-horizontal-layout>
                 `,[])}
         ></vaadin-notification>
-            `},or=(e,t={})=>{const a=e.metadata,i=a.valueKey?t[a.valueKey]:a.value;return n`
+            `},dr=(e,t={})=>{const a=e.metadata,i=a.valueKey?t[a.valueKey]:a.value;return n`
         <div style="${e.style}">
         <vaadin-progress-bar
                 ?indeterminate="${a.indeterminate}"
@@ -1940,8 +1940,8 @@ id="${e.id}"
     ${a.text}
   </span>`:d}
         </div>
-    `},lr=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
-        <div id="show-notifications">${g(e,l.wrapped,a,i,s,r,o)}</div>
+    `},cr=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
+        <div id="show-notifications">${b(e,l.wrapped,a,i,s,r,o)}</div>
         <vaadin-popover
                 for="show-notifications"
                 theme="arrow no-padding"
@@ -1950,24 +1950,24 @@ id="${e.id}"
                 content-width="300px"
                 position="bottom"
                 slot="${t.slot??d}"
-                ${ea(()=>n`${g(e,l.content,a,i,s,r,o)}`,[])}
+                ${ta(()=>n`${b(e,l.content,a,i,s,r,o)}`,[])}
                 style="${t.style}" class="${t.cssClasses}"
         ></vaadin-popover>
-    `},dr=e=>{const t=e.metadata;return n`
+    `},hr=e=>{const t=e.metadata;return n`
         <mateu-map position="${t.position}" zoom="${t.zoom}"
                    style="${e.style}" class="${e.cssClasses}"
                    slot="${e.slot??d}"></mateu-map>
-            `},cr=e=>{const t=e.metadata;return n`
+            `},ur=e=>{const t=e.metadata;return n`
         <img src="${t.src}" style="${e.style}" class="${e.cssClasses}"
              slot="${e.slot??d}">
-            `},hr=e=>{const t=e.metadata;return n`<vaadin-horizontal-layout theme="spacing"
+            `},pr=e=>{const t=e.metadata;return n`<vaadin-horizontal-layout theme="spacing"
                                           slot="${e.slot??d}">
         ${t.breadcrumbs.map(a=>n`
             <a href="${a.link}">${a.text}</a>
             <span>/</span>
         `)}
         <div style="${e.style}" class="${e.cssClasses}">${t.currentItemText}</span>
-    </vaadin-horizontal-layout>`},ur=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
+    </vaadin-horizontal-layout>`},vr=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
         <skeleton-carousel 
                 id="${t.id}"
                 ?dots = "${l.dots}" 
@@ -1976,42 +1976,42 @@ id="${e.id}"
                 style="${t.style}"
                 css="${t.cssClasses}"
         >
-            ${t.children?.map(c=>n`<div>${g(e,c,a,i,s,r,o)}</div>`)}
+            ${t.children?.map(c=>n`<div>${b(e,c,a,i,s,r,o)}</div>`)}
         </skeleton-carousel>
-    `},pr=(e,t,a,i)=>{const s=e.metadata;return n`
+    `},mr=(e,t,a,i)=>{const s=e.metadata;return n`
         <div style="display: flex; gap: 3rem; ${e.style}" class="${e.cssClasses}" slot="${e.slot??d}">
-            ${s.menu.map(r=>Fa(r))}
+            ${s.menu.map(r=>qa(r))}
         </div>
-            `},Fa=e=>n`
+            `},qa=e=>n`
         ${e.submenus?n`
                 <vaadin-details summary="${e.label}" opened>
                     <vaadin-vertical-layout theme="spacing">
-                        ${e.submenus.map(t=>Fa(t))}
+                        ${e.submenus.map(t=>qa(t))}
                     </vaadin-vertical-layout>
                 </vaadin-details>
             `:n`
                 <a href="${e.path}">${e.label}</a>
         `}
-        `,vr=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`<div
+        `,fr=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`<div
                 slot="${t.slot??d}"
                 style="${t.style}" class="${t.cssClasses}"
-        >${l.content?me(l.content):d}${t.children?.map(c=>g(e,c,a,i,s,r,o))}</div>
-    `},mr=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=l.title?.includes("${")?e._evalTemplate(l.title):l.title;return n`<vaadin-card
+        >${l.content?me(l.content):d}${t.children?.map(c=>b(e,c,a,i,s,r,o))}</div>
+    `},br=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=l.title?.includes("${")?e._evalTemplate(l.title):l.title;return n`<vaadin-card
                 slot="${t.slot??d}"
                 style="width: 100%; margin-bottom: var(--lumo-space-m); ${t.style}"
                 class="${t.cssClasses}"
         >
         ${c?n`<div slot="title" style="font-size: var(--lumo-font-size-l); font-weight: 600; color: var(--lumo-header-text-color);">${c}</div>`:d}
-        ${t.children?.map(h=>g(e,h,a,i,s,r,o))}
+        ${t.children?.map(h=>b(e,h,a,i,s,r,o))}
     </vaadin-card>
-    `},fr=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=l.title?.includes("${")?e._evalTemplate(l.title):l.title;return n`
+    `},gr=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=l.title?.includes("${")?e._evalTemplate(l.title):l.title;return n`
         <div
                 slot="${t.slot??d}"
                 style="${t.style}" class="${t.cssClasses}"
         >
         <h4>${c}</h4>
-        ${t.children?.map(h=>g(e,h,a,i,s,r,o))}</div>
-    `},Qt=(e,t,a,i,s,r,o,l)=>{const c=t.metadata,h=c?.fabs??[];return n`<mateu-page
+        ${t.children?.map(h=>b(e,h,a,i,s,r,o))}</div>
+    `},Zt=(e,t,a,i,s,r,o,l)=>{const c=t.metadata,h=c?.fabs??[];return n`<mateu-page
             .component="${t}"
             baseUrl="${a}"
             .state="${i}"
@@ -2023,9 +2023,9 @@ id="${e.id}"
             class="${t.cssClasses}"
             ?standalone="${l??!1}"
     >
-        ${t.children?.map(p=>g(e,p,a,i,s,r,o))}
+        ${t.children?.map(p=>b(e,p,a,i,s,r,o))}
         ${c?.buttons?.map(p=>n`
-                   ${g(e,{id:p.actionId,metadata:p,type:G.ClientSide,slot:"buttons"},void 0,i,s,r,o)}
+                   ${b(e,{id:p.actionId,metadata:p,type:G.ClientSide,slot:"buttons"},void 0,i,s,r,o)}
 `)}
         ${h.map((p,v)=>n`
             <button class="page-fab" style="position: fixed; bottom: ${1.5+v*4}rem; right: 5.5rem;"
@@ -2035,7 +2035,7 @@ id="${e.id}"
             </button>
         `)}
 </mateu-page>
-    `},Zt=(e,t,a,i,s,r,o,l)=>n`<mateu-table-crud
+    `},ea=(e,t,a,i,s,r,o,l)=>n`<mateu-table-crud
             id="${t.id}"
             baseUrl="${a}"
             .component="${t}"
@@ -2049,8 +2049,8 @@ id="${e.id}"
             slot="${t.slot??d}"
             ?standalone="${l??!1}"
     >
-        ${t.children?.map(c=>g(e,c,a,i,s,r,o))}
-    </mateu-table-crud>`,br=e=>{const t=e.metadata;return n`
+        ${t.children?.map(c=>b(e,c,a,i,s,r,o))}
+    </mateu-table-crud>`,$r=e=>{const t=e.metadata;return n`
         <mateu-bpmn
                 style="${e.style}"
                 class="${e.cssClasses}"
@@ -2058,17 +2058,17 @@ id="${e.id}"
                 xml="${t.xml}"
         >
         </mateu-bpmn>
-    `},gr=(e,t,a)=>{const i=e.metadata;return n`<mateu-chat sseUrl="${i.sseUrl}"
+    `},yr=(e,t,a)=>{const i=e.metadata;return n`<mateu-chat sseUrl="${i.sseUrl}"
                             style="${e.style}" 
                             class="${e.cssClasses}" 
-                            slot="${e.slot??d}"></mateu-chat>`},$r=e=>{const t=e.metadata;return n`
+                            slot="${e.slot??d}"></mateu-chat>`},wr=e=>{const t=e.metadata;return n`
         <mateu-workflow
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
                 value="${t.value??'{"name":"New Workflow","steps":[]}'}"
         ></mateu-workflow>
-    `},yr=e=>{const t=e.metadata;return n`
+    `},xr=e=>{const t=e.metadata;return n`
         <mateu-workflow-elk
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
@@ -2076,25 +2076,25 @@ id="${e.id}"
                 value="${t.value??'{"name":"New Workflow","steps":[]}'}"
                 ?readOnly="${t.readOnly??!1}"
         ></mateu-workflow-elk>
-    `},wr=e=>{const t=e.metadata;return n`
+    `},kr=e=>{const t=e.metadata;return n`
         <mateu-form-editor
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
                 value="${t.value??'{"name":"New Form","fields":[]}'}"
         ></mateu-form-editor>
-    `},Na=`
+    `},Ua=`
     background: var(--lumo-base-color, #fff);
     border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
     border-radius: var(--lumo-border-radius-l, 12px);
     padding: var(--lumo-space-m, 1rem);
     box-sizing: border-box;
-`,xr=e=>e=="up"?"var(--lumo-success-text-color, #1a7f37)":e=="down"?"var(--lumo-error-text-color, #c5221f)":"var(--lumo-secondary-text-color, #666)",kr=e=>e=="up"?"▲":e=="down"?"▼":"",Sr=(e,t)=>{t.actionId&&e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId},bubbles:!0,composed:!0}))},Er=e=>{const t=e.metadata,a=!!t.actionId;return n`
+`,Sr=e=>e=="up"?"var(--lumo-success-text-color, #1a7f37)":e=="down"?"var(--lumo-error-text-color, #c5221f)":"var(--lumo-secondary-text-color, #666)",Er=e=>e=="up"?"▲":e=="down"?"▼":"",Cr=(e,t)=>{t.actionId&&e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId},bubbles:!0,composed:!0}))},Ir=e=>{const t=e.metadata,a=!!t.actionId;return n`
         <div class="mateu-metric-card ${e.cssClasses??""}"
-             style="${Na} display: flex; flex-direction: column; gap: .25rem; min-width: 11rem; flex: 1; ${a?"cursor: pointer;":""} ${e.style??""}"
+             style="${Ua} display: flex; flex-direction: column; gap: .25rem; min-width: 11rem; flex: 1; ${a?"cursor: pointer;":""} ${e.style??""}"
              slot="${e.slot??d}"
              role="${a?"button":d}"
-             @click="${i=>Sr(i,t)}"
+             @click="${i=>Cr(i,t)}"
         >
             <div style="display: flex; align-items: center; justify-content: space-between; gap: .5rem;">
                 <span style="font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-secondary-text-color, #666);">${t.title}</span>
@@ -2105,22 +2105,22 @@ id="${e.id}"
                 ${t.unit?n`<span style="font-size: var(--lumo-font-size-m, 1rem); color: var(--lumo-secondary-text-color, #666);">${t.unit}</span>`:d}
             </div>
             ${t.trend||t.trendLabel?n`
-                <span style="font-size: var(--lumo-font-size-s, .875rem); color: ${xr(t.trend)};">
-                    ${kr(t.trend)} ${t.trendLabel??d}
+                <span style="font-size: var(--lumo-font-size-s, .875rem); color: ${Sr(t.trend)};">
+                    ${Er(t.trend)} ${t.trendLabel??d}
                 </span>
             `:d}
             ${t.description?n`<span style="font-size: var(--lumo-font-size-xs, .8rem); color: var(--lumo-tertiary-text-color, #999);">${t.description}</span>`:d}
         </div>
-    `},Cr=(e,t,a,i,s,r,o)=>n`
+    `},_r=(e,t,a,i,s,r,o)=>n`
         <div class="mateu-scoreboard ${t.cssClasses??""}"
              style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-m, 1rem); grid-column: 1 / -1; ${t.style??""}"
              slot="${t.slot??d}"
         >
-            ${t.children?.map(l=>g(e,l,a,i,s,r,o))}
+            ${t.children?.map(l=>b(e,l,a,i,s,r,o))}
         </div>
-    `,Ir=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=l.colSpan&&l.colSpan>1?`grid-column: span ${l.colSpan};`:"",h=l.rowSpan&&l.rowSpan>1?`grid-row: span ${l.rowSpan};`:"";return n`
+    `,Tr=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=l.colSpan&&l.colSpan>1?`grid-column: span ${l.colSpan};`:"",h=l.rowSpan&&l.rowSpan>1?`grid-row: span ${l.rowSpan};`:"";return n`
         <div class="mateu-dashboard-panel ${t.cssClasses??""}"
-             style="${Na} display: flex; flex-direction: column; gap: .5rem; min-width: 0; ${c} ${h} ${t.style??""}"
+             style="${Ua} display: flex; flex-direction: column; gap: .5rem; min-width: 0; ${c} ${h} ${t.style??""}"
              slot="${t.slot??d}"
         >
             ${l.title?n`
@@ -2130,17 +2130,133 @@ id="${e.id}"
                 </div>
             `:d}
             <div style="flex: 1; min-height: 0;">
-                ${t.children?.map(p=>g(e,p,a,i,s,r,o))}
+                ${t.children?.map(p=>b(e,p,a,i,s,r,o))}
             </div>
         </div>
-    `},_r=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=l.columns&&l.columns>0?`repeat(${l.columns}, minmax(0, 1fr))`:"repeat(auto-fit, minmax(20rem, 1fr))";return n`
+    `},Or=(e,t,a,i,s,r,o)=>{const l=t.metadata,c=l.columns&&l.columns>0?`repeat(${l.columns}, minmax(0, 1fr))`:"repeat(auto-fit, minmax(20rem, 1fr))";return n`
         <div class="mateu-dashboard ${t.cssClasses??""}"
              style="display: grid; grid-template-columns: ${c}; gap: var(--lumo-space-m, 1rem); align-items: stretch; ${t.style??""}"
              slot="${t.slot??d}"
         >
-            ${t.children?.map(h=>g(e,h,a,i,s,r,o))}
+            ${t.children?.map(h=>b(e,h,a,i,s,r,o))}
         </div>
-    `},Tr=(e,t)=>{let a=e.style;return e.id&&(a&&!a.endsWith(";")&&(a+=";"),a==null&&(a=""),t[e.id+".hidden"]==!0&&(a+="display: none;")),a},Or=(e,t)=>{let a={...e.metadata};if(e.id&&a){if(a.type==m.Button){const i=a;t[e.id+".disabled"]==!0&&(i.disabled=!0)}if(a.type==m.FormField){const i=a;t[e.id+".disabled"]==!0&&(i.disabled=!0)}}return a},I=e=>t=>e(t.container,t.component,t.baseUrl,t.state,t.data,t.appState,t.appData),Rr={[m.Bpmn]:({component:e})=>br(e),[m.Workflow]:({component:e})=>$r(e),[m.WorkflowElk]:({component:e})=>yr(e),[m.FormEditor]:({component:e})=>wr(e),[m.Page]:I(Qt),[m.Div]:I(vr),[m.Directory]:({component:e,baseUrl:t,state:a,data:i})=>pr(e),[m.FormLayout]:I($s),[m.HorizontalLayout]:I(xs),[m.VerticalLayout]:I(ks),[m.SplitLayout]:I(Ss),[m.MasterDetailLayout]:I(Es),[m.TabLayout]:I(Cs),[m.AccordionLayout]:I(_s),[m.BoardLayout]:I(Ls),[m.BoardLayoutRow]:I(Ds),[m.BoardLayoutItem]:I(zs),[m.Scroller]:I(Os),[m.FullWidth]:I(Rs),[m.Container]:I(Ps),[m.Form]:({container:e,component:t,baseUrl:a,state:i,data:s,appState:r,appData:o})=>{const l=t.metadata;return n`<mateu-form
+    `};var Pr=Object.defineProperty,Rr=Object.getOwnPropertyDescriptor,sa=(e,t,a,i)=>{for(var s=i>1?void 0:i?Rr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Pr(t,a,s),s};let Ct=class extends L{constructor(){super(...arguments),this.panels=[],this.openPanels=new Set,this.initialized=!1}willUpdate(){!this.initialized&&this.panels.length&&(this.openPanels=new Set(this.panels.map((e,t)=>e.open?t:-1).filter(e=>e>=0)),this.initialized=!0)}toggle(e){const t=new Set(this.openPanels);t.has(e)?t.delete(e):t.add(e),this.openPanels=t}render(){return n`
+            <div class="overview" part="overview">
+                <slot name="overview"></slot>
+            </div>
+            <div class="rail" part="rail">
+                ${this.panels.map((e,t)=>this.openPanels.has(t)?n`
+                    <div class="panel" part="panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>${e.title}</h3>
+                                ${e.subtitle?n`<div class="subtitle">${e.subtitle}</div>`:""}
+                            </div>
+                            <button class="fold" title="Fold" @click="${()=>this.toggle(t)}">⟨</button>
+                        </div>
+                        <div style="flex: 1; min-height: 0;">
+                            <slot name="panel-${t}"></slot>
+                        </div>
+                    </div>
+                `:n`
+                    <div class="strip" role="button" title="${e.title}" @click="${()=>this.toggle(t)}">
+                        <button class="fold" tabindex="-1">⟩</button>
+                        <span>${e.title}</span>
+                    </div>
+                `)}
+            </div>
+        `}};Ct.styles=_`
+        :host {
+            display: flex;
+            gap: var(--lumo-space-m, 1rem);
+            align-items: stretch;
+            min-height: 24rem;
+        }
+        .overview {
+            flex: 0 0 20rem;
+            min-width: 0;
+            background: var(--lumo-base-color, #fff);
+            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
+            border-radius: var(--lumo-border-radius-l, 12px);
+            padding: var(--lumo-space-m, 1rem);
+            box-sizing: border-box;
+            overflow: auto;
+        }
+        .rail {
+            display: flex;
+            gap: var(--lumo-space-s, .5rem);
+            flex: 1;
+            min-width: 0;
+            overflow-x: auto;
+            align-items: stretch;
+        }
+        .panel {
+            flex: 1 1 22rem;
+            min-width: 18rem;
+            background: var(--lumo-base-color, #fff);
+            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
+            border-radius: var(--lumo-border-radius-l, 12px);
+            padding: var(--lumo-space-m, 1rem);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            overflow: auto;
+        }
+        .panel-header {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: .5rem;
+        }
+        .panel-header h3 {
+            margin: 0;
+            font-size: var(--lumo-font-size-l, 1.125rem);
+        }
+        .panel-header .subtitle {
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-secondary-text-color, #666);
+        }
+        .strip {
+            flex: 0 0 2.75rem;
+            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
+            border-radius: var(--lumo-border-radius-l, 12px);
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.03));
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--lumo-space-s, .5rem) 0;
+            gap: .5rem;
+        }
+        .strip:hover {
+            background: var(--lumo-contrast-10pct, rgba(0,0,0,.06));
+        }
+        .strip span {
+            writing-mode: vertical-rl;
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-secondary-text-color, #666);
+            white-space: nowrap;
+        }
+        button.fold {
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--lumo-secondary-text-color, #666);
+            font-size: 1rem;
+            padding: 0;
+            line-height: 1;
+        }
+    `;sa([u({type:Array})],Ct.prototype,"panels",2);sa([f()],Ct.prototype,"openPanels",2);Ct=sa([O("mateu-foldout")],Ct);const Lr=(e,t,a,i,s,r,o)=>{const l=t.metadata;return n`
+        <mateu-foldout
+                .panels="${l.panels??[]}"
+                style="${t.style}"
+                class="${t.cssClasses}"
+                slot="${t.slot??d}"
+        >
+            ${t.children?.map(c=>b(e,c,a,i,s,r,o))}
+        </mateu-foldout>
+    `},Dr=(e,t)=>{let a=e.style;return e.id&&(a&&!a.endsWith(";")&&(a+=";"),a==null&&(a=""),t[e.id+".hidden"]==!0&&(a+="display: none;")),a},zr=(e,t)=>{let a={...e.metadata};if(e.id&&a){if(a.type==m.Button){const i=a;t[e.id+".disabled"]==!0&&(i.disabled=!0)}if(a.type==m.FormField){const i=a;t[e.id+".disabled"]==!0&&(i.disabled=!0)}}return a},C=e=>t=>e(t.container,t.component,t.baseUrl,t.state,t.data,t.appState,t.appData),Fr={[m.Bpmn]:({component:e})=>$r(e),[m.Workflow]:({component:e})=>wr(e),[m.WorkflowElk]:({component:e})=>xr(e),[m.FormEditor]:({component:e})=>kr(e),[m.Page]:C(Zt),[m.Div]:C(fr),[m.Directory]:({component:e,baseUrl:t,state:a,data:i})=>mr(e),[m.FormLayout]:C(ws),[m.HorizontalLayout]:C(Ss),[m.VerticalLayout]:C(Es),[m.SplitLayout]:C(Cs),[m.MasterDetailLayout]:C(Is),[m.TabLayout]:C(_s),[m.AccordionLayout]:C(Os),[m.BoardLayout]:C(zs),[m.BoardLayoutRow]:C(Fs),[m.BoardLayoutItem]:C(As),[m.Scroller]:C(Rs),[m.FullWidth]:C(Ls),[m.Container]:C(Ds),[m.Form]:({container:e,component:t,baseUrl:a,state:i,data:s,appState:r,appData:o})=>{const l=t.metadata;return n`<mateu-form
             id="${t.id}"
         baseUrl="${a}"
             .component="${t}"
@@ -2153,9 +2269,9 @@ id="${e.id}"
             class="${t.cssClasses}"
             slot="${t.slot??d}"
             >
-                ${t.children?.map(c=>g(e,c,a,i,s,r,o))}
+                ${t.children?.map(c=>b(e,c,a,i,s,r,o))}
             ${l?.buttons?.map(c=>n`
-               ${g(e,{id:c.actionId,metadata:c,type:G.ClientSide,slot:"buttons"},void 0,i,s,r,o)}
+               ${b(e,{id:c.actionId,metadata:c,type:G.ClientSide,slot:"buttons"},void 0,i,s,r,o)}
 `)}
 
             </mateu-form>`},[m.Table]:({container:e,component:t,baseUrl:a,state:i,data:s,appState:r,appData:o})=>n`<mateu-table
@@ -2169,8 +2285,8 @@ id="${e.id}"
                         style="${t.style}" class="${t.cssClasses}"
                         slot="${t.slot??d}"
             >
-             ${t.children?.map(l=>g(e,l,a,i,s,r,o))}
-            </mateu-table>`,[m.Crud]:I(Zt),[m.App]:({container:e,component:t,baseUrl:a,state:i,data:s,appState:r,appData:o})=>n`
+             ${t.children?.map(l=>b(e,l,a,i,s,r,o))}
+            </mateu-table>`,[m.Crud]:C(ea),[m.App]:({container:e,component:t,baseUrl:a,state:i,data:s,appState:r,appData:o})=>n`
             <mateu-app
                         id="${t.id}"
                         baseUrl="${a}"
@@ -2182,8 +2298,8 @@ id="${e.id}"
                         .appState="${r}"
                         .appData="${o}"
             >
-             ${t.children?.map(l=>g(e,l,a,i,s,r,o))}
-         </mateu-app>`,[m.Element]:({container:e,component:t})=>Hs(e,t.metadata,t),[m.FormField]:({container:e,component:t,baseUrl:a,state:i,data:s,appState:r,appData:o,labelAlreadyRendered:l})=>{const c=t.metadata;return n`
+             ${t.children?.map(l=>b(e,l,a,i,s,r,o))}
+         </mateu-app>`,[m.Element]:({container:e,component:t})=>Ks(e,t.metadata,t),[m.FormField]:({container:e,component:t,baseUrl:a,state:i,data:s,appState:r,appData:o,labelAlreadyRendered:l})=>{const c=t.metadata;return n`
     <mateu-field
                    id="${t.id}"
                    .component="${t}"
@@ -2197,9 +2313,9 @@ id="${e.id}"
                    data-colspan="${c.colspan}"
                    .labelAlreadyRendered="${l}"
             >
-                    ${t.children?.map(h=>g(e,h,a,i,s,r,o,l))}
+                    ${t.children?.map(h=>b(e,h,a,i,s,r,o,l))}
                 </mateu-field>
-        `},[m.Text]:({component:e,state:t,data:a,appState:i,appData:s})=>Gs(e,t,a,i,s),[m.Avatar]:({component:e,state:t,data:a})=>Xi(e,t,a),[m.Chat]:({component:e,state:t,data:a})=>gr(e),[m.AvatarGroup]:({component:e})=>Qi(e),[m.Badge]:({component:e,state:t,data:a})=>ts(e,t,a),[m.Breadcrumbs]:({component:e})=>hr(e),[m.Anchor]:({component:e})=>Ks(e),[m.Button]:({component:e,state:t,data:a})=>Ys(e,t,a),[m.Card]:I(Xs),[m.Chart]:({component:e})=>Qs(e),[m.Icon]:({component:e})=>Zs(e),[m.ConfirmDialog]:I(er),[m.ContextMenu]:I(qs),[m.CookieConsent]:({component:e})=>tr(e),[m.Details]:I(ar),[m.Dialog]:({component:e,baseUrl:t,state:a,data:i,appState:s,appData:r})=>ir(e,t,a,i,s,r),[m.Image]:({component:e})=>cr(e),[m.Map]:({component:e})=>dr(e),[m.Markdown]:({component:e})=>rr(e),[m.MicroFrontend]:({component:e})=>sr(e),[m.Notification]:({component:e})=>nr(e),[m.ProgressBar]:({component:e,state:t})=>or(e,t),[m.Popover]:I(lr),[m.CarouselLayout]:I(ur),[m.Tooltip]:I(js),[m.MessageInput]:({component:e})=>Bs(e),[m.MessageList]:({component:e})=>Ns(e),[m.CustomField]:I(Ms),[m.MenuBar]:({container:e,component:t,baseUrl:a,state:i,data:s})=>Us(e,t,a,i,s),[m.Grid]:I(Fs),[m.VirtualList]:I(As),[m.FormSection]:I(mr),[m.FormSubSection]:I(fr),[m.MetricCard]:({component:e})=>Er(e),[m.Scoreboard]:I(Cr),[m.DashboardPanel]:I(Ir),[m.DashboardLayout]:I(_r)},ia=(e,t,a,i,s,r,o,l)=>{if(!t?.metadata)return t==null?(console.warn("No metadata for component",t),n`<p>No metadata for component</p>`):ia(e,{id:se(),metadata:t,type:G.ClientSide},a,i,s,r,o,l);const c=t.metadata.type,h={...t,style:Tr(t,s),metadata:Or(t,s)},p=Rr[c];return p?p({container:e,component:h,baseUrl:a,state:i,data:s,appState:r,appData:o,labelAlreadyRendered:l}):n`<p ${h?.slot??d}>Unknown metadata type ${c} for component ${h?.id}</p>`};var Pr=Object.defineProperty,Lr=Object.getOwnPropertyDescriptor,de=(e,t,a,i)=>{for(var s=i>1?void 0:i?Lr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Pr(t,a,s),s};let J=class extends D{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.dataProvider=(e,t)=>{const a=this.data[this.id]?.page;t(a?.content??[],a?.content?.length??0)},this.respondToVisibility=(e,t)=>{var a={root:document.documentElement},i=new IntersectionObserver(s=>{s.forEach(r=>{t(r.intersectionRatio>0)})},a);i.observe(e)},this.keepAsking=!1,this.askToUpper=()=>{const e=this.data[this.id]?.page,t=e?.content?.length/e?.pageSize;this.dispatchEvent(new CustomEvent("fetch-more-elements",{detail:{params:{page:t,pageSize:this.metadata?.pageSize},callback:()=>{this.keepAsking&&this.askToUpper()}},bubbles:!0,composed:!0}))},this.renderItem=e=>e.card?ia(this,e.card,this.baseUrl,this.state,this.data,this.appState,this.appData,!1):e.title?n`<vaadin-card
+        `},[m.Text]:({component:e,state:t,data:a,appState:i,appData:s})=>Js(e,t,a,i,s),[m.Avatar]:({component:e,state:t,data:a})=>Zi(e,t,a),[m.Chat]:({component:e,state:t,data:a})=>yr(e),[m.AvatarGroup]:({component:e})=>es(e),[m.Badge]:({component:e,state:t,data:a})=>is(e,t,a),[m.Breadcrumbs]:({component:e})=>pr(e),[m.Anchor]:({component:e})=>Ys(e),[m.Button]:({component:e,state:t,data:a})=>Qs(e,t,a),[m.Card]:C(Zs),[m.Chart]:({component:e})=>er(e),[m.Icon]:({component:e})=>tr(e),[m.ConfirmDialog]:C(ar),[m.ContextMenu]:C(Ms),[m.CookieConsent]:({component:e})=>ir(e),[m.Details]:C(sr),[m.Dialog]:({component:e,baseUrl:t,state:a,data:i,appState:s,appData:r})=>rr(e,t,a,i,s,r),[m.Image]:({component:e})=>ur(e),[m.Map]:({component:e})=>hr(e),[m.Markdown]:({component:e})=>or(e),[m.MicroFrontend]:({component:e})=>nr(e),[m.Notification]:({component:e})=>lr(e),[m.ProgressBar]:({component:e,state:t})=>dr(e,t),[m.Popover]:C(cr),[m.CarouselLayout]:C(vr),[m.Tooltip]:C(Vs),[m.MessageInput]:({component:e})=>Ws(e),[m.MessageList]:({component:e})=>Us(e),[m.CustomField]:C(js),[m.MenuBar]:({container:e,component:t,baseUrl:a,state:i,data:s})=>Bs(e,t,a,i,s),[m.Grid]:C(qs),[m.VirtualList]:C(Ns),[m.FormSection]:C(br),[m.FormSubSection]:C(gr),[m.MetricCard]:({component:e})=>Ir(e),[m.Scoreboard]:C(_r),[m.DashboardPanel]:C(Tr),[m.DashboardLayout]:C(Or),[m.FoldoutLayout]:C(Lr)},ra=(e,t,a,i,s,r,o,l)=>{if(!t?.metadata)return t==null?(console.warn("No metadata for component",t),n`<p>No metadata for component</p>`):ra(e,{id:se(),metadata:t,type:G.ClientSide},a,i,s,r,o,l);const c=t.metadata.type,h={...t,style:Dr(t,s),metadata:zr(t,s)},p=Fr[c];return p?p({container:e,component:h,baseUrl:a,state:i,data:s,appState:r,appData:o,labelAlreadyRendered:l}):n`<p ${h?.slot??d}>Unknown metadata type ${c} for component ${h?.id}</p>`};var Ar=Object.defineProperty,Nr=Object.getOwnPropertyDescriptor,de=(e,t,a,i)=>{for(var s=i>1?void 0:i?Nr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Ar(t,a,s),s};let J=class extends L{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.dataProvider=(e,t)=>{const a=this.data[this.id]?.page;t(a?.content??[],a?.content?.length??0)},this.respondToVisibility=(e,t)=>{var a={root:document.documentElement},i=new IntersectionObserver(s=>{s.forEach(r=>{t(r.intersectionRatio>0)})},a);i.observe(e)},this.keepAsking=!1,this.askToUpper=()=>{const e=this.data[this.id]?.page,t=e?.content?.length/e?.pageSize;this.dispatchEvent(new CustomEvent("fetch-more-elements",{detail:{params:{page:t,pageSize:this.metadata?.pageSize},callback:()=>{this.keepAsking&&this.askToUpper()}},bubbles:!0,composed:!0}))},this.renderItem=e=>e.card?ra(this,e.card,this.baseUrl,this.state,this.data,this.appState,this.appData,!1):e.title?n`<vaadin-card
         >
                 ${e.title?n`
                     <div slot="title">${e.title}</div>
@@ -2211,7 +2327,7 @@ id="${e.id}"
                     <div>${e.content}</div>
                 `:d}
                 ${e.status?n`
-                    <span slot="header-suffix" theme="badge ${Mt(e.status.type)}">${e.status.message}</span>
+                    <span slot="header-suffix" theme="badge ${Bt(e.status.type)}">${e.status.message}</span>
                 `:d}
                 ${e.image?n`
                     <img slot="media" src="${e.image}" alt="" />
@@ -2224,7 +2340,7 @@ id="${e.id}"
             </div>
 
             <slot></slot>
-       `}};J.styles=T`
+       `}};J.styles=_`
         ${Le}
         
         .card-container {
@@ -2238,43 +2354,43 @@ id="${e.id}"
             grid-column: 3;
         }
 
-    `;de([u()],J.prototype,"id",2);de([u()],J.prototype,"metadata",2);de([u()],J.prototype,"baseUrl",2);de([u()],J.prototype,"state",2);de([u()],J.prototype,"data",2);de([u()],J.prototype,"appState",2);de([u()],J.prototype,"appData",2);de([u()],J.prototype,"emptyStateMessage",2);de([f()],J.prototype,"keepAsking",2);de([Se("#ask-for-more")],J.prototype,"askForMore",2);de([f()],J.prototype,"hasMore",2);J=de([O("mateu-card-list")],J);var qa=(e=>(e.none="none",e.success="success",e.error="error",e.warning="warning",e.contrast="contrast",e.normal="normal",e))(qa||{}),Ua=(e=>(e.primary="primary",e.secondary="secondary",e.tertiary="tertiary",e.tertiaryInline="tertiaryInline",e))(Ua||{}),Dr=Object.defineProperty,zr=Object.getOwnPropertyDescriptor,ye=(e,t,a,i)=>{for(var s=i>1?void 0:i?zr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Dr(t,a,s),s};const Ar={asc:"ascending",desc:"descending"};let ie=class extends D{constructor(){super(...arguments),this.component=void 0,this.standalone=!1,this.state={},this.data={},this.appState={},this.appData={},this.showImportDialog=!1,this.availableWidthPx=1024,this.selectedItem=null,this.search=()=>{const e=this.component.metadata;this.state={...this.state,size:e.pageSize,page:0,crud_selected_items:[]},this._syncStateToUrl(e),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"search",parameters:{crudId:this.id,_searchState:{...this.state}}},bubbles:!0,composed:!0}))},this.notify=e=>{_t.show(e,{position:"bottom-end",theme:"error",duration:3e3})},this.handleSearchRequested=e=>{this.state={...this.state,crud_selected_items:[]};const t=this.component.metadata;this._syncStateToUrl(t),!t.infiniteScrolling&&this.data?.[this.id]?.page&&(this.data[this.id].page.content=[]),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"search",parameters:{crudId:this.id,_searchState:{...this.state}},callback:e},bubbles:!0,composed:!0}))},this.fetchMoreElements=e=>{const{params:t,callback:a}=e.detail;this.state={...this.state,size:t.pageSize,page:t.page},this.handleSearchRequested(a)},this.directionChanged=e=>{const t=e.detail.grid._sorters;this.state={...this.state,sort:t.map(a=>({fieldId:a.__data.path,direction:a.__data.direction?Ar[a.__data.direction]:void 0}))},this.handleSearchRequested(void 0)},this._initializedForComponentId=void 0,this.evalLabel=e=>De(e,this.state,this.data),this.handleToolbarButtonClick=e=>{if(e==="import"){this.showImportDialog=!0;return}this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.handleImportUploadSuccess=e=>{const t=e.detail.xhr.responseText;this.showImportDialog=!1,this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"process-import",parameters:{fileId:t}},bubbles:!0,composed:!0}))}}get cols(){return this.component?.metadata?.columns?.map(t=>t.metadata)??[]}get identifierFieldName(){const e=this.cols.find(t=>t.identifier);return e?e.id:this.cols.find(t=>t.id==="id")?.id}get effectiveGridLayout(){const e=this.component?.metadata,t=e?.gridLayout??"auto";return t==="auto"?e?.crudlType==="card"?"cards":hs(this.cols,this.availableWidthPx):t}connectedCallback(){super.connectedCallback(),this.resizeObserver=new ResizeObserver(e=>{const t=e[0]?.contentRect.width;t&&Math.abs(t-this.availableWidthPx)>10&&(this.availableWidthPx=t)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect()}_filterIds(e){return new Set(["searchText",...(e.filters??[]).map(t=>t.fieldId)])}_syncStateToUrl(e){const t=this._filterIds(e),a=new URLSearchParams(window.location.search);t.forEach(l=>a.delete(l)),a.delete("page"),a.delete("sort"),t.forEach(l=>{const c=this.state[l];c!=null&&c!==""&&a.set(l,String(c))});const i=this.state.page;i&&i>0&&a.set("page",String(i));const s=this.state.sort;if(s&&s.length>0){const l=s.filter(c=>c.fieldId&&c.direction).map(c=>`${c.fieldId}:${c.direction}`).join(",");l&&a.set("sort",l)}const r=a.toString(),o=r?`${window.location.pathname}?${r}`:window.location.pathname;window.location.pathname+window.location.search!==o&&history.replaceState(null,"",o)}_initStateFromUrl(e,t){const a=new URLSearchParams(window.location.search),i=this._filterIds(e),s={...t};a.forEach((l,c)=>{i.has(c)&&(s[c]=l)});const r=a.get("page");if(r!==null){const l=parseInt(r,10);!isNaN(l)&&l>0&&(s.page=l)}const o=a.get("sort");if(o){const l=o.split(",").map(c=>{const[h,p]=c.split(":");return h&&p?{fieldId:h,direction:p}:null}).filter(Boolean);l.length>0&&(s.sort=l)}return s}pageChanged(e){this.state={...this.state,page:e.detail.page},this.handleSearchRequested(void 0)}updated(e){if(super.updated(e),e.has("component")){const t=this.component?.id;if(t!==this._initializedForComponentId){this._initializedForComponentId=t;const a=this.component?.metadata,i=a.initialPage&&a.initialPage>0?a.initialPage:0;this.state=this._initStateFromUrl(a,{...this.state,size:a.pageSize,page:i,sort:[]}),(this.state.page!==i||this.state.sort?.length>0||[...this._filterIds(a)].some(r=>this.state[r]!=null))&&this.handleSearchRequested(void 0)}}}render(){const e=$=>{const R=[];return $.color&&$.color!==qa.normal&&R.push($.color),$.buttonStyle&&R.push($.buttonStyle===Ua.tertiaryInline?"tertiary-inline":$.buttonStyle),R.length?R.join(" "):void 0},t=$=>$==="back"||$==="backToList"||!!$&&$.startsWith("cancel");if(!this.component)return n`no component`;const a=this.component.metadata;a.serverSideOrdering=!0;const i=a?.toolbar??[],s=i.filter($=>t($.actionId)),r=i.filter($=>!t($.actionId)),o=s.length>0&&r.length>0,l=!!a?.title||!!a?.subtitle||i.length>0,c=this.effectiveGridLayout,h=this.cols,p=us(h),v=this.data[this.id]?.page?.content??[],y=this.state[this.component?.id]?.emptyStateMessage,_=($,R)=>{const w=R[$.id];if(w==null)return n``;if($.dataType==="status"){const z=Mt(w.type);return n`<span theme="badge pill ${z}">${w.message}</span>`}return $.dataType==="bool"?n`${w?"✓":"✗"}`:typeof w=="object"?n`${w.label??w.name??w.message??""}`:n`${w}`},k=()=>{const $=this.identifierFieldName,R=this.state._selectedId??this.appState?._splitDetailId,w=p.find(S=>S.identifier)??p[0],z=S=>S.dataType==="action"||S.dataType==="actionGroup"||S.dataType==="menu"||S.stereotype==="button",Je=p.filter(S=>S!==w&&!z(S)),$t=h.filter(S=>z(S)),Ne=(S,P,A)=>{S.stopPropagation(),S.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:P,parameters:{_clickedRow:A}},bubbles:!0,composed:!0}))},Ye=S=>{const P=[];for(const A of $t){const M=S[A.id];if(A.dataType==="action"){const ue=M?.methodNameInCrud?M:S.action?.methodNameInCrud?S.action:{methodNameInCrud:A.id,label:A.label,icon:null};P.push(n`
+    `;de([u()],J.prototype,"id",2);de([u()],J.prototype,"metadata",2);de([u()],J.prototype,"baseUrl",2);de([u()],J.prototype,"state",2);de([u()],J.prototype,"data",2);de([u()],J.prototype,"appState",2);de([u()],J.prototype,"appData",2);de([u()],J.prototype,"emptyStateMessage",2);de([f()],J.prototype,"keepAsking",2);de([Se("#ask-for-more")],J.prototype,"askForMore",2);de([f()],J.prototype,"hasMore",2);J=de([O("mateu-card-list")],J);var Ma=(e=>(e.none="none",e.success="success",e.error="error",e.warning="warning",e.contrast="contrast",e.normal="normal",e))(Ma||{}),Ba=(e=>(e.primary="primary",e.secondary="secondary",e.tertiary="tertiary",e.tertiaryInline="tertiaryInline",e))(Ba||{}),qr=Object.defineProperty,Ur=Object.getOwnPropertyDescriptor,ye=(e,t,a,i)=>{for(var s=i>1?void 0:i?Ur(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&qr(t,a,s),s};const Mr={asc:"ascending",desc:"descending"};let ie=class extends L{constructor(){super(...arguments),this.component=void 0,this.standalone=!1,this.state={},this.data={},this.appState={},this.appData={},this.showImportDialog=!1,this.availableWidthPx=1024,this.selectedItem=null,this.search=()=>{const e=this.component.metadata;this.state={...this.state,size:e.pageSize,page:0,crud_selected_items:[]},this._syncStateToUrl(e),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"search",parameters:{crudId:this.id,_searchState:{...this.state}}},bubbles:!0,composed:!0}))},this.notify=e=>{Tt.show(e,{position:"bottom-end",theme:"error",duration:3e3})},this.handleSearchRequested=e=>{this.state={...this.state,crud_selected_items:[]};const t=this.component.metadata;this._syncStateToUrl(t),!t.infiniteScrolling&&this.data?.[this.id]?.page&&(this.data[this.id].page.content=[]),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"search",parameters:{crudId:this.id,_searchState:{...this.state}},callback:e},bubbles:!0,composed:!0}))},this.fetchMoreElements=e=>{const{params:t,callback:a}=e.detail;this.state={...this.state,size:t.pageSize,page:t.page},this.handleSearchRequested(a)},this.directionChanged=e=>{const t=e.detail.grid._sorters;this.state={...this.state,sort:t.map(a=>({fieldId:a.__data.path,direction:a.__data.direction?Mr[a.__data.direction]:void 0}))},this.handleSearchRequested(void 0)},this._initializedForComponentId=void 0,this.evalLabel=e=>De(e,this.state,this.data),this.handleToolbarButtonClick=e=>{if(e==="import"){this.showImportDialog=!0;return}this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.handleImportUploadSuccess=e=>{const t=e.detail.xhr.responseText;this.showImportDialog=!1,this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"process-import",parameters:{fileId:t}},bubbles:!0,composed:!0}))}}get cols(){return this.component?.metadata?.columns?.map(t=>t.metadata)??[]}get identifierFieldName(){const e=this.cols.find(t=>t.identifier);return e?e.id:this.cols.find(t=>t.id==="id")?.id}get effectiveGridLayout(){const e=this.component?.metadata,t=e?.gridLayout??"auto";return t==="auto"?e?.crudlType==="card"?"cards":ps(this.cols,this.availableWidthPx):t}connectedCallback(){super.connectedCallback(),this.resizeObserver=new ResizeObserver(e=>{const t=e[0]?.contentRect.width;t&&Math.abs(t-this.availableWidthPx)>10&&(this.availableWidthPx=t)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect()}_filterIds(e){return new Set(["searchText",...(e.filters??[]).map(t=>t.fieldId)])}_syncStateToUrl(e){const t=this._filterIds(e),a=new URLSearchParams(window.location.search);t.forEach(l=>a.delete(l)),a.delete("page"),a.delete("sort"),t.forEach(l=>{const c=this.state[l];c!=null&&c!==""&&a.set(l,String(c))});const i=this.state.page;i&&i>0&&a.set("page",String(i));const s=this.state.sort;if(s&&s.length>0){const l=s.filter(c=>c.fieldId&&c.direction).map(c=>`${c.fieldId}:${c.direction}`).join(",");l&&a.set("sort",l)}const r=a.toString(),o=r?`${window.location.pathname}?${r}`:window.location.pathname;window.location.pathname+window.location.search!==o&&history.replaceState(null,"",o)}_initStateFromUrl(e,t){const a=new URLSearchParams(window.location.search),i=this._filterIds(e),s={...t};a.forEach((l,c)=>{i.has(c)&&(s[c]=l)});const r=a.get("page");if(r!==null){const l=parseInt(r,10);!isNaN(l)&&l>0&&(s.page=l)}const o=a.get("sort");if(o){const l=o.split(",").map(c=>{const[h,p]=c.split(":");return h&&p?{fieldId:h,direction:p}:null}).filter(Boolean);l.length>0&&(s.sort=l)}return s}pageChanged(e){this.state={...this.state,page:e.detail.page},this.handleSearchRequested(void 0)}updated(e){if(super.updated(e),e.has("component")){const t=this.component?.id;if(t!==this._initializedForComponentId){this._initializedForComponentId=t;const a=this.component?.metadata,i=a.initialPage&&a.initialPage>0?a.initialPage:0;this.state=this._initStateFromUrl(a,{...this.state,size:a.pageSize,page:i,sort:[]}),(this.state.page!==i||this.state.sort?.length>0||[...this._filterIds(a)].some(r=>this.state[r]!=null))&&this.handleSearchRequested(void 0)}}}render(){const e=$=>{const P=[];return $.color&&$.color!==Ma.normal&&P.push($.color),$.buttonStyle&&P.push($.buttonStyle===Ba.tertiaryInline?"tertiary-inline":$.buttonStyle),P.length?P.join(" "):void 0},t=$=>$==="back"||$==="backToList"||!!$&&$.startsWith("cancel");if(!this.component)return n`no component`;const a=this.component.metadata;a.serverSideOrdering=!0;const i=a?.toolbar??[],s=i.filter($=>t($.actionId)),r=i.filter($=>!t($.actionId)),o=s.length>0&&r.length>0,l=!!a?.title||!!a?.subtitle||i.length>0,c=this.effectiveGridLayout,h=this.cols,p=vs(h),v=this.data[this.id]?.page?.content??[],y=this.state[this.component?.id]?.emptyStateMessage,T=($,P)=>{const w=P[$.id];if(w==null)return n``;if($.dataType==="status"){const z=Bt(w.type);return n`<span theme="badge pill ${z}">${w.message}</span>`}return $.dataType==="bool"?n`${w?"✓":"✗"}`:typeof w=="object"?n`${w.label??w.name??w.message??""}`:n`${w}`},k=()=>{const $=this.identifierFieldName,P=this.state._selectedId??this.appState?._splitDetailId,w=p.find(S=>S.identifier)??p[0],z=S=>S.dataType==="action"||S.dataType==="actionGroup"||S.dataType==="menu"||S.stereotype==="button",Je=p.filter(S=>S!==w&&!z(S)),$t=h.filter(S=>z(S)),Ne=(S,R,F)=>{S.stopPropagation(),S.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:R,parameters:{_clickedRow:F}},bubbles:!0,composed:!0}))},Ye=S=>{const R=[];for(const F of $t){const M=S[F.id];if(F.dataType==="action"){const ue=M?.methodNameInCrud?M:S.action?.methodNameInCrud?S.action:{methodNameInCrud:F.id,label:F.label,icon:null};R.push(n`
                             <vaadin-button theme="tertiary small" title="${ue.label||d}"
                                 @click="${x=>Ne(x,"action-on-row-"+ue.methodNameInCrud,S)}">
                                 ${ue.icon?n`<vaadin-icon icon="${ue.icon}"></vaadin-icon>`:d}
                                 ${ue.label??d}
-                            </vaadin-button>`)}else(A.dataType==="actionGroup"||A.dataType==="menu")&&(M?.actions??[]).forEach(x=>P.push(n`
+                            </vaadin-button>`)}else(F.dataType==="actionGroup"||F.dataType==="menu")&&(M?.actions??[]).forEach(x=>R.push(n`
                             <vaadin-button theme="tertiary small" title="${x.label||d}"
                                 @click="${H=>Ne(H,"action-on-row-"+x.methodNameInCrud,S)}">
                                 ${x.icon?n`<vaadin-icon icon="${x.icon}"></vaadin-icon>`:d}
                                 ${x.label??d}
-                            </vaadin-button>`))}return P.length?n`
+                            </vaadin-button>`))}return R.length?n`
                     <div style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); margin-top: var(--lumo-space-xs);">
-                        ${P}
+                        ${R}
                     </div>`:d};return n`
                 <vaadin-list-box style="width: 100%;">
                     ${v.length===0?n`<vaadin-item disabled>${y??"No data."}</vaadin-item>`:d}
                     ${v.map(S=>n`
                         <vaadin-item
-                            ?selected="${$&&R!==void 0&&String(S[$])===String(R)}"
+                            ?selected="${$&&P!==void 0&&String(S[$])===String(P)}"
                             @click="${()=>{$&&S[$]!==void 0&&(this.state={...this.state,_selectedId:String(S[$])}),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"view",parameters:S},bubbles:!0,composed:!0}))}}"
                             style="cursor: pointer;"
                         >
                             <div style="font-weight: 600;">${w?S[w.id]??"":""}</div>
                             <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
-                                ${Je.map(P=>n`<span>${P.label}: ${_(P,S)}</span>`)}
+                                ${Je.map(R=>n`<span>${R.label}: ${T(R,S)}</span>`)}
                             </div>
                             ${Ye(S)}
                         </vaadin-item>
                     `)}
-                </vaadin-list-box>`},b=($,R,w)=>{const z=this.identifierFieldName;z&&w[z]!==void 0&&(this.state={...this.state,_selectedId:String(w[z])}),$.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:R,parameters:w},bubbles:!0,composed:!0}))},E=()=>{const $=this.identifierFieldName,R=this.state._selectedId??this.appState?._splitDetailId,w=h.slice(0,6),z=w.filter(x=>x.stereotype==="image"),Je=w.find(x=>x.identifier)??w[0],$t=x=>!!x.actionId,Ne=x=>x.dataType==="action"||x.dataType==="actionGroup"||x.dataType==="menu"||x.stereotype==="button",Ye=w.find(x=>x.id==="select"&&x.dataType==="action"),S=!!Ye,P=w.filter(x=>x!==Je&&!z.includes(x)&&!$t(x)&&!Ne(x)),A=w.filter(x=>Ne(x)&&!(S&&x===Ye)),M=(x,H,qe)=>{x.stopPropagation(),x.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:H,parameters:{_clickedRow:qe}},bubbles:!0,composed:!0}))},ue=x=>{const H=[];for(const qe of A){const Ht=x[qe.id];if(qe.dataType==="action"){const lt=Ht?.methodNameInCrud?Ht:x.action?.methodNameInCrud?x.action:{methodNameInCrud:qe.id,label:qe.label,icon:null};H.push(n`
+                </vaadin-list-box>`},g=($,P,w)=>{const z=this.identifierFieldName;z&&w[z]!==void 0&&(this.state={...this.state,_selectedId:String(w[z])}),$.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:P,parameters:w},bubbles:!0,composed:!0}))},E=()=>{const $=this.identifierFieldName,P=this.state._selectedId??this.appState?._splitDetailId,w=h.slice(0,6),z=w.filter(x=>x.stereotype==="image"),Je=w.find(x=>x.identifier)??w[0],$t=x=>!!x.actionId,Ne=x=>x.dataType==="action"||x.dataType==="actionGroup"||x.dataType==="menu"||x.stereotype==="button",Ye=w.find(x=>x.id==="select"&&x.dataType==="action"),S=!!Ye,R=w.filter(x=>x!==Je&&!z.includes(x)&&!$t(x)&&!Ne(x)),F=w.filter(x=>Ne(x)&&!(S&&x===Ye)),M=(x,H,qe)=>{x.stopPropagation(),x.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:H,parameters:{_clickedRow:qe}},bubbles:!0,composed:!0}))},ue=x=>{const H=[];for(const qe of F){const Gt=x[qe.id];if(qe.dataType==="action"){const lt=Gt?.methodNameInCrud?Gt:x.action?.methodNameInCrud?x.action:{methodNameInCrud:qe.id,label:qe.label,icon:null};H.push(n`
                             <vaadin-button theme="tertiary" title="${lt.label||d}"
                                 @click="${Xe=>M(Xe,"action-on-row-"+lt.methodNameInCrud,x)}">
                                 ${lt.icon?n`<vaadin-icon icon="${lt.icon}"></vaadin-icon>`:d}
                                 ${lt.label??d}
-                            </vaadin-button>`)}else(qe.dataType==="actionGroup"||qe.dataType==="menu")&&(Ht?.actions??[]).forEach(Xe=>H.push(n`
+                            </vaadin-button>`)}else(qe.dataType==="actionGroup"||qe.dataType==="menu")&&(Gt?.actions??[]).forEach(Xe=>H.push(n`
                             <vaadin-button theme="tertiary" title="${Xe.label||d}"
-                                @click="${Va=>M(Va,"action-on-row-"+Xe.methodNameInCrud,x)}">
+                                @click="${Ga=>M(Ga,"action-on-row-"+Xe.methodNameInCrud,x)}">
                                 ${Xe.icon?n`<vaadin-icon icon="${Xe.icon}"></vaadin-icon>`:d}
                                 ${Xe.label??d}
                             </vaadin-button>`))}return H.length?n`
@@ -2286,24 +2402,24 @@ id="${e.id}"
                     ${v.map(x=>n`
                         <vaadin-card
                             clickable
-                            ?data-selected="${$&&R!==void 0&&String(x[$])===String(R)}"
+                            ?data-selected="${$&&P!==void 0&&String(x[$])===String(P)}"
                             style="cursor: pointer;"
-                            @click="${H=>S?M(H,"action-on-row-select",x):b(H.target,"view",x)}"
+                            @click="${H=>S?M(H,"action-on-row-select",x):g(H.target,"view",x)}"
                         >
                             ${z.length?n`<img slot="media" src="${x[z[0].id]??""}" alt="" style="width: 100%; max-height: 160px; object-fit: cover;" />`:d}
                             ${Je?n`<div slot="title">${x[Je.id]??""}</div>`:d}
                             <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs); padding: var(--lumo-space-s) 0;">
-                                ${P.map(H=>n`
+                                ${R.map(H=>n`
                                     <div style="display: flex; gap: var(--lumo-space-s); font-size: var(--lumo-font-size-s);">
                                         <span style="color: var(--lumo-secondary-text-color); min-width: 80px;">${H.label}</span>
-                                        <span>${_(H,x)}</span>
+                                        <span>${T(H,x)}</span>
                                     </div>
                                 `)}
                             </div>
                             ${ue(x)}
                         </vaadin-card>
                     `)}
-                </div>`},q=()=>{const $=p.find(w=>w.identifier)??p[0],R=p.filter(w=>w!==$);return n`
+                </div>`},q=()=>{const $=p.find(w=>w.identifier)??p[0],P=p.filter(w=>w!==$);return n`
                 <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
                     <div style="width: 260px; flex-shrink: 0; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
                         <vaadin-list-box style="width: 100%;">
@@ -2316,7 +2432,7 @@ id="${e.id}"
                                 >
                                     <div style="font-weight: 600;">${$?w[$.id]??"":""}</div>
                                     <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
-                                        ${R.map(z=>n`${_(z,w)} `)}
+                                        ${P.map(z=>n`${T(z,w)} `)}
                                     </div>
                                 </vaadin-item>
                             `)}
@@ -2337,7 +2453,7 @@ id="${e.id}"
                             <p style="color: var(--lumo-secondary-text-color);">Select a row to view details.</p>
                         `}
                     </div>
-                </div>`},U=()=>{const $=this.identifierFieldName,R=this.state._selectedId??this.appState?._splitDetailId,w=h[0],z=h.slice(1),Je=!!w?.actionId,$t=(P,A)=>{const M=P.parentItem?P.parentItem.children??[]:v;A(M,M.length)},Ne=(P,A)=>{for(const M of P??[]){if($&&String(M[$])===A)return M;const ue=Ne(M.children,A);if(ue)return ue}},Ye=$&&R!==void 0?Ne(v,String(R)):void 0,S=(P,A,M)=>{P.stopPropagation(),$&&A[$]!==void 0&&(this.state={...this.state,_selectedId:String(A[$])}),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:M,parameters:A},bubbles:!0,composed:!0}))};return n`
+                </div>`},U=()=>{const $=this.identifierFieldName,P=this.state._selectedId??this.appState?._splitDetailId,w=h[0],z=h.slice(1),Je=!!w?.actionId,$t=(R,F)=>{const M=R.parentItem?R.parentItem.children??[]:v;F(M,M.length)},Ne=(R,F)=>{for(const M of R??[]){if($&&String(M[$])===F)return M;const ue=Ne(M.children,F);if(ue)return ue}},Ye=$&&P!==void 0?Ne(v,String(P)):void 0,S=(R,F,M)=>{R.stopPropagation(),$&&F[$]!==void 0&&(this.state={...this.state,_selectedId:String(F[$])}),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:M,parameters:F},bubbles:!0,composed:!0}))};return n`
                 <vaadin-grid
                     style="width: 100%;"
                     all-rows-visible
@@ -2348,34 +2464,34 @@ id="${e.id}"
                 >
                     ${w?n`<vaadin-grid-tree-column path="${w.id}" header="${w.label??d}" flex-grow="1"></vaadin-grid-tree-column>`:d}
                     ${Je?n`
-                    <vaadin-grid-column width="6rem" flex-grow="0" text-align="end" ${We(P=>P?.viewable===!1?d:n`
-                        <vaadin-button theme="tertiary small" @click="${A=>S(A,P,"view")}">View</vaadin-button>
+                    <vaadin-grid-column width="6rem" flex-grow="0" text-align="end" ${We(R=>R?.viewable===!1?d:n`
+                        <vaadin-button theme="tertiary small" @click="${F=>S(F,R,"view")}">View</vaadin-button>
                     `,[])}></vaadin-grid-column>`:d}
-                    ${z.map(P=>n`<vaadin-grid-column path="${P.id}" header="${P.label??d}" auto-width></vaadin-grid-column>`)}
+                    ${z.map(R=>n`<vaadin-grid-column path="${R.id}" header="${R.label??d}" auto-width></vaadin-grid-column>`)}
                     <span slot="empty-state">${y??"No data."}</span>
-                </vaadin-grid>`},L=W.get()?.rendersCrudLayouts?.()===!0,Z=n`
+                </vaadin-grid>`},D=W.get()?.rendersCrudLayouts?.()===!0,Z=n`
             ${a.infiniteScrolling?n`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             `:d}
-            ${!L&&c==="list"?k():!L&&c==="cards"?a.contentHeight?n`
+            ${!D&&c==="list"?k():!D&&c==="cards"?a.contentHeight?n`
                 <vaadin-scroller style="width: 100%; height: ${a.contentHeight};">
                     ${E()}
                 </vaadin-scroller>
-            `:E():!L&&c==="masterDetail"?q():!L&&c==="tree"?U():W.get()?.renderTableComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}
+            `:E():!D&&c==="masterDetail"?q():!D&&c==="tree"?U():W.get()?.renderTableComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}
             <slot></slot>
         `,Ke=a.infiniteScrolling?d:W.get()?.renderPagination(this,this.component),gt=n`
             <vaadin-dialog
                 .opened="${this.showImportDialog}"
                 header-title="Import"
                 @opened-changed="${$=>{this.showImportDialog=$.detail.value}}"
-                ${It(()=>n`
+                ${_t(()=>n`
                     <vaadin-upload
                         target="/upload"
                         max-files="1"
                         @upload-success="${this.handleImportUploadSuccess}"
                     ></vaadin-upload>
                 `,[this.showImportDialog])}
-                ${Ft(()=>n`
+                ${Nt(()=>n`
                     <vaadin-button @click="${()=>{this.showImportDialog=!1}}">Cancel</vaadin-button>
                 `,[])}
             ></vaadin-dialog>
@@ -2431,7 +2547,7 @@ id="${e.id}"
                 <div style="flex: 1; overflow-y: auto; min-height: 0;">${Z}</div>
                 <div style="flex-shrink: 0;">${Ke}</div>
             </div>
-        `}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}};ie.styles=T`
+        `}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}};ie.styles=_`
         ${Le}
         vaadin-card[clickable] {
             transition: box-shadow 0.15s, transform 0.15s;
@@ -2448,7 +2564,7 @@ id="${e.id}"
             outline: 2px solid var(--lumo-primary-color);
             outline-offset: -2px;
         }
-    `;ye([u()],ie.prototype,"component",2);ye([u()],ie.prototype,"baseUrl",2);ye([u({type:Boolean})],ie.prototype,"standalone",2);ye([u()],ie.prototype,"state",2);ye([u()],ie.prototype,"data",2);ye([u()],ie.prototype,"appState",2);ye([u()],ie.prototype,"appData",2);ye([f()],ie.prototype,"showImportDialog",2);ye([f()],ie.prototype,"availableWidthPx",2);ye([f()],ie.prototype,"selectedItem",2);ie=ye([O("mateu-table-crud")],ie);var je=(e=>(e.OnLoad="OnLoad",e.OnSuccess="OnSuccess",e.OnError="OnError",e.OnValueChange="OnValueChange",e.OnCustomEvent="OnCustomEvent",e.AutoSave="AutoSave",e))(je||{}),Fr=Object.defineProperty,Bt=(e,t,a,i)=>{for(var s=void 0,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=o(t,a,s)||s);return s&&Fr(t,a,s),s};class ot extends Ut{constructor(){super(...arguments),this.state={},this.data={},this.appData={},this.appState={},this.triggerOnLoad=()=>{const t=this.component;this.registerCustomEventListeners(),t.triggers?.filter(a=>a.type==je.OnLoad).forEach(a=>{if((!a.condition||this._evalExpr(a.condition))&&!a.triggered){const s=a;s.triggered=!0;var i=s.times-1;s.timeoutMillis>0?this.scheduleOnload(s,i,this.id):this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0}))}})},this.scheduleOnload=(t,a,i)=>{if(i!=this.component?.id)return;const s=this.callbackToken;setTimeout(()=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,callbackToken:s},bubbles:!0,composed:!0}))},t.timeoutMillis)},this._registeredCustomEventListeners=[],this.customEventManager=t=>{if(!(t instanceof CustomEvent))return;const a=t,s=(this.component.triggers??[]).filter(r=>r.type==je.OnCustomEvent).filter(r=>r.eventName==a.type).filter(r=>r.source!=="COMPONENT"||a.detail?.__source===r.from);s.length!==0&&(s.some(r=>!r.source||r.source==="SELF")&&(t.stopPropagation(),t.preventDefault()),s.forEach(r=>{(!r.condition||this._evalExpr(r.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:r.actionId,parameters:a.detail},bubbles:!0,composed:!0}))}))}}_interpolationExtra(){return{appState:this.appState??{},appData:this.appData??{},component:this.component}}_evalExpr(t){return Ra(t,this.state??{},this.data??{},this._interpolationExtra())}_evalTemplate(t){return bi(t,this.state??{},this.data??{},this._interpolationExtra())}applyFragment(t){if(this.id==t.targetComponentId){if(t.component)if(Et.Add==t.action)this.component&&this.component.children?.push(t.component);else{if(this.callbackToken=se(),t.component?.type==G.ServerSide)if(this.component){const i=this.component,s=t.component;i.actions=s.actions,i.type=s.type,i.rules=s.rules,i.triggers=s.triggers,i.serverSideType=s.serverSideType,i.route=s.route,i.initialData=s.initialData,i.validations=s.validations,i.cssClasses=s.cssClasses,i.slot=s.slot,i.style=s.style,i.children=s.children,(i.serverSideType!=s.serverSideType||i.id!=s.id)&&setTimeout(()=>this.triggerOnLoad())}else this.component=t.component,setTimeout(()=>this.triggerOnLoad());else{const i=[t.component];this.component&&(this.component.children=i)}t.action!==Et.ReplaceKeepData&&(this.state={},this.data={})}if(t.state&&(this.state={...this.state,...t.state}),t.data){for(const i in t.data){const s=t.data[i]?.page;s?.pageNumber>0&&this.data[i]&&this.data[i].page.content&&(s.content?s.content=[...this.data[i].page.content,...s.content]:s.content=[...this.data[i].page.content])}this.data={...this.data,...t.data}}this.registerCustomEventListeners();const a=W.getAfterRenderHook();a&&setTimeout(()=>a(this)),this.requestUpdate()}}registerCustomEventListeners(){this._registeredCustomEventListeners.forEach(({target:a,name:i})=>a.removeEventListener(i,this.customEventManager)),this._registeredCustomEventListeners=[],this.component?.triggers?.filter(a=>a.type==je.OnCustomEvent).forEach(a=>{const i=a.source==="DOCUMENT"||a.source==="COMPONENT"?document:this;i.addEventListener(a.eventName,this.customEventManager),this._registeredCustomEventListeners.push({target:i,name:a.eventName})})}disconnectedCallback(){this._registeredCustomEventListeners.forEach(({target:t,name:a})=>t.removeEventListener(a,this.customEventManager)),this._registeredCustomEventListeners=[],super.disconnectedCallback()}}Bt([u()],ot.prototype,"state");Bt([u()],ot.prototype,"data");Bt([u()],ot.prototype,"appData");Bt([u()],ot.prototype,"appState");var Nr=Object.defineProperty,qr=Object.getOwnPropertyDescriptor,jt=(e,t,a,i)=>{for(var s=i>1?void 0:i?qr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Nr(t,a,s),s};let ut=class extends D{constructor(){super(...arguments),this.notificationOpened=!1,this.fetchStarted=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!0},this.fetchFinished=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!1},this.fetchFailed=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!1,this.error=e.detail.reason,this.openNotification()},this.openNotification=()=>{this.notificationOpened=!0},this.closeNotification=()=>{this.notificationOpened=!1},this.notificationRenderer=()=>n`
+    `;ye([u()],ie.prototype,"component",2);ye([u()],ie.prototype,"baseUrl",2);ye([u({type:Boolean})],ie.prototype,"standalone",2);ye([u()],ie.prototype,"state",2);ye([u()],ie.prototype,"data",2);ye([u()],ie.prototype,"appState",2);ye([u()],ie.prototype,"appData",2);ye([f()],ie.prototype,"showImportDialog",2);ye([f()],ie.prototype,"availableWidthPx",2);ye([f()],ie.prototype,"selectedItem",2);ie=ye([O("mateu-table-crud")],ie);var je=(e=>(e.OnLoad="OnLoad",e.OnSuccess="OnSuccess",e.OnError="OnError",e.OnValueChange="OnValueChange",e.OnCustomEvent="OnCustomEvent",e.AutoSave="AutoSave",e))(je||{}),Br=Object.defineProperty,jt=(e,t,a,i)=>{for(var s=void 0,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=o(t,a,s)||s);return s&&Br(t,a,s),s};class ot extends Mt{constructor(){super(...arguments),this.state={},this.data={},this.appData={},this.appState={},this.triggerOnLoad=()=>{const t=this.component;this.registerCustomEventListeners(),t.triggers?.filter(a=>a.type==je.OnLoad).forEach(a=>{if((!a.condition||this._evalExpr(a.condition))&&!a.triggered){const s=a;s.triggered=!0;var i=s.times-1;s.timeoutMillis>0?this.scheduleOnload(s,i,this.id):this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0}))}})},this.scheduleOnload=(t,a,i)=>{if(i!=this.component?.id)return;const s=this.callbackToken;setTimeout(()=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,callbackToken:s},bubbles:!0,composed:!0}))},t.timeoutMillis)},this._registeredCustomEventListeners=[],this.customEventManager=t=>{if(!(t instanceof CustomEvent))return;const a=t,s=(this.component.triggers??[]).filter(r=>r.type==je.OnCustomEvent).filter(r=>r.eventName==a.type).filter(r=>r.source!=="COMPONENT"||a.detail?.__source===r.from);s.length!==0&&(s.some(r=>!r.source||r.source==="SELF")&&(t.stopPropagation(),t.preventDefault()),s.forEach(r=>{(!r.condition||this._evalExpr(r.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:r.actionId,parameters:a.detail},bubbles:!0,composed:!0}))}))}}_interpolationExtra(){return{appState:this.appState??{},appData:this.appData??{},component:this.component}}_evalExpr(t){return La(t,this.state??{},this.data??{},this._interpolationExtra())}_evalTemplate(t){return $i(t,this.state??{},this.data??{},this._interpolationExtra())}applyFragment(t){if(this.id==t.targetComponentId){if(t.component)if(Et.Add==t.action)this.component&&this.component.children?.push(t.component);else{if(this.callbackToken=se(),t.component?.type==G.ServerSide)if(this.component){const i=this.component,s=t.component;i.actions=s.actions,i.type=s.type,i.rules=s.rules,i.triggers=s.triggers,i.serverSideType=s.serverSideType,i.route=s.route,i.initialData=s.initialData,i.validations=s.validations,i.cssClasses=s.cssClasses,i.slot=s.slot,i.style=s.style,i.children=s.children,(i.serverSideType!=s.serverSideType||i.id!=s.id)&&setTimeout(()=>this.triggerOnLoad())}else this.component=t.component,setTimeout(()=>this.triggerOnLoad());else{const i=[t.component];this.component&&(this.component.children=i)}t.action!==Et.ReplaceKeepData&&(this.state={},this.data={})}if(t.state&&(this.state={...this.state,...t.state}),t.data){for(const i in t.data){const s=t.data[i]?.page;s?.pageNumber>0&&this.data[i]&&this.data[i].page.content&&(s.content?s.content=[...this.data[i].page.content,...s.content]:s.content=[...this.data[i].page.content])}this.data={...this.data,...t.data}}this.registerCustomEventListeners();const a=W.getAfterRenderHook();a&&setTimeout(()=>a(this)),this.requestUpdate()}}registerCustomEventListeners(){this._registeredCustomEventListeners.forEach(({target:a,name:i})=>a.removeEventListener(i,this.customEventManager)),this._registeredCustomEventListeners=[],this.component?.triggers?.filter(a=>a.type==je.OnCustomEvent).forEach(a=>{const i=a.source==="DOCUMENT"||a.source==="COMPONENT"?document:this;i.addEventListener(a.eventName,this.customEventManager),this._registeredCustomEventListeners.push({target:i,name:a.eventName})})}disconnectedCallback(){this._registeredCustomEventListeners.forEach(({target:t,name:a})=>t.removeEventListener(a,this.customEventManager)),this._registeredCustomEventListeners=[],super.disconnectedCallback()}}jt([u()],ot.prototype,"state");jt([u()],ot.prototype,"data");jt([u()],ot.prototype,"appData");jt([u()],ot.prototype,"appState");var jr=Object.defineProperty,Wr=Object.getOwnPropertyDescriptor,Wt=(e,t,a,i)=>{for(var s=i>1?void 0:i?Wr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&jr(t,a,s),s};let ut=class extends L{constructor(){super(...arguments),this.notificationOpened=!1,this.fetchStarted=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!0},this.fetchFinished=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!1},this.fetchFailed=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!1,this.error=e.detail.reason,this.openNotification()},this.openNotification=()=>{this.notificationOpened=!0},this.closeNotification=()=>{this.notificationOpened=!1},this.notificationRenderer=()=>n`
     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
       <div>${this.error?.message??String(this.error)}</div>
       <vaadin-button theme="tertiary-inline" @click="${this.closeNotification}" aria-label="Close">
@@ -2466,8 +2582,8 @@ id="${e.id}"
                 position="bottom-end"
                 .opened="${this.notificationOpened}"
                 @opened-changed="${e=>{this.notificationOpened=e.detail.value}}"
-                ${Ca(this.notificationRenderer,[])}
-        ></vaadin-notification>`}};ut.styles=T`
+                ${_a(this.notificationRenderer,[])}
+        ></vaadin-notification>`}};ut.styles=_`
         :host {
         }
 
@@ -2519,7 +2635,7 @@ id="${e.id}"
             animation: l5 1s infinite;
         }
         @keyframes l5 {to{transform: rotate(.5turn)}}
-  `;jt([f()],ut.prototype,"loading",2);jt([f()],ut.prototype,"notificationOpened",2);jt([f()],ut.prototype,"error",2);ut=jt([O("mateu-api-caller")],ut);class Ur{constructor(){this._dirty=!1,this._installed=!1,this.message="You have unsaved changes. Are you sure you want to leave this page?",this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=t=>{this._dirty&&(t.preventDefault(),t.returnValue="")}}install(){this._installed||(this._installed=!0,document.addEventListener("dirty",this._onDirty),document.addEventListener("clean",this._onClean),window.addEventListener("beforeunload",this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;const t=window.confirm(this.message);return t&&(this._dirty=!1),t}}const kt=new Ur;var Mr=Object.defineProperty,Br=Object.getOwnPropertyDescriptor,N=(e,t,a,i)=>{for(var s=i>1?void 0:i?Br(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Mr(t,a,s),s};let F=class extends ot{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedConsumedRoute=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedServerSideType=void 0,this.selectedParams=void 0,this.tilesMenuOption=null,this.railOpenOption=null,this.commandPaletteOpen=!1,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0,this._commandPaletteHandler=null,this.pageCompact=!1,this._compactHandler=e=>{this.pageCompact=e.detail?.compact??!1},this.isDark=document.documentElement.getAttribute("theme")==="dark",this.chatOpen=!1,this.toggleTheme=()=>{this.isDark=!this.isDark;const e=this.isDark?"dark":"light";document.documentElement.setAttribute("theme",e),localStorage.setItem("mateu-theme",e)},this.showHideIa=()=>{this.chat&&(this.chatOpen=!this.chatOpen,this.chat.slot=this.chatOpen?"detail":"detail-hidden")},this.runAction=e=>{const a=this.renderRoot.querySelector?.("mateu-component");a&&a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.getSelectedOption=e=>{if(e)for(let t=0;t<e.length;t++){const a=e[t];if(a.selected)return a;const i=this.getSelectedOption(a.submenus);if(i)return i}return null},this.itemSelected=e=>{const t=e.detail.value;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)},this.itemSelectedTiles=e=>{const t=e.detail.value._menuOption;t.submenus&&t.submenus.length>0?this.tilesMenuOption=t:(this.tilesMenuOption=null,this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix))},this.mapItemsForTiles=e=>e.map(t=>({text:t.label,consumedRoute:t.consumedRoute,route:t.route,baseUrl:t.baseUrl,serverSideType:t.serverSideType,uriPrefix:t.uriPrefix,actionId:t.actionId,selected:t.selected,_menuOption:t})),this.flattenMenuForPalette=(e,t)=>{const a=[];for(const i of e)if(!i.separator)if(i.submenus&&i.submenus.length>0){const s=t?`${t} › ${i.label}`:i.label;a.push(...this.flattenMenuForPalette(i.submenus,s))}else a.push({label:i.label,breadcrumb:t,consumedRoute:i.consumedRoute,route:i.route,actionId:i.actionId,baseUrl:i.baseUrl,serverSideType:i.serverSideType,uriPrefix:i.uriPrefix});return a},this.handleCommandPaletteKeydown=(e,t)=>{if(e.key==="ArrowDown")e.preventDefault(),this.commandPaletteSelectedIndex=Math.min(this.commandPaletteSelectedIndex+1,Math.min(t.length,10)-1);else if(e.key==="ArrowUp")e.preventDefault(),this.commandPaletteSelectedIndex=Math.max(this.commandPaletteSelectedIndex-1,0);else if(e.key==="Enter"){const a=t[this.commandPaletteSelectedIndex];a&&(this.selectRoute(a.consumedRoute,a.route,a.actionId,a.baseUrl,a.serverSideType,a.uriPrefix),this.commandPaletteOpen=!1,this.commandPaletteQuery="")}},this.renderCommandPalette=()=>{if(!this.commandPaletteOpen)return d;const e=this.component?.metadata;if(!e?.menu)return d;const t=this.flattenMenuForPalette(e.menu,""),a=this.commandPaletteQuery.toLowerCase(),i=a?t.filter(s=>s.label.toLowerCase().includes(a)||s.breadcrumb.toLowerCase().includes(a)):t;return n`
+  `;Wt([f()],ut.prototype,"loading",2);Wt([f()],ut.prototype,"notificationOpened",2);Wt([f()],ut.prototype,"error",2);ut=Wt([O("mateu-api-caller")],ut);class Vr{constructor(){this._dirty=!1,this._installed=!1,this.message="You have unsaved changes. Are you sure you want to leave this page?",this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=t=>{this._dirty&&(t.preventDefault(),t.returnValue="")}}install(){this._installed||(this._installed=!0,document.addEventListener("dirty",this._onDirty),document.addEventListener("clean",this._onClean),window.addEventListener("beforeunload",this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;const t=window.confirm(this.message);return t&&(this._dirty=!1),t}}const kt=new Vr;var Hr=Object.defineProperty,Gr=Object.getOwnPropertyDescriptor,N=(e,t,a,i)=>{for(var s=i>1?void 0:i?Gr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Hr(t,a,s),s};let A=class extends ot{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedConsumedRoute=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedServerSideType=void 0,this.selectedParams=void 0,this.tilesMenuOption=null,this.railOpenOption=null,this.commandPaletteOpen=!1,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0,this._commandPaletteHandler=null,this.pageCompact=!1,this._compactHandler=e=>{this.pageCompact=e.detail?.compact??!1},this.isDark=document.documentElement.getAttribute("theme")==="dark",this.chatOpen=!1,this.toggleTheme=()=>{this.isDark=!this.isDark;const e=this.isDark?"dark":"light";document.documentElement.setAttribute("theme",e),localStorage.setItem("mateu-theme",e)},this.showHideIa=()=>{this.chat&&(this.chatOpen=!this.chatOpen,this.chat.slot=this.chatOpen?"detail":"detail-hidden")},this.runAction=e=>{const a=this.renderRoot.querySelector?.("mateu-component");a&&a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.getSelectedOption=e=>{if(e)for(let t=0;t<e.length;t++){const a=e[t];if(a.selected)return a;const i=this.getSelectedOption(a.submenus);if(i)return i}return null},this.itemSelected=e=>{const t=e.detail.value;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)},this.itemSelectedTiles=e=>{const t=e.detail.value._menuOption;t.submenus&&t.submenus.length>0?this.tilesMenuOption=t:(this.tilesMenuOption=null,this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix))},this.mapItemsForTiles=e=>e.map(t=>({text:t.label,consumedRoute:t.consumedRoute,route:t.route,baseUrl:t.baseUrl,serverSideType:t.serverSideType,uriPrefix:t.uriPrefix,actionId:t.actionId,selected:t.selected,_menuOption:t})),this.flattenMenuForPalette=(e,t)=>{const a=[];for(const i of e)if(!i.separator)if(i.submenus&&i.submenus.length>0){const s=t?`${t} › ${i.label}`:i.label;a.push(...this.flattenMenuForPalette(i.submenus,s))}else a.push({label:i.label,breadcrumb:t,consumedRoute:i.consumedRoute,route:i.route,actionId:i.actionId,baseUrl:i.baseUrl,serverSideType:i.serverSideType,uriPrefix:i.uriPrefix});return a},this.handleCommandPaletteKeydown=(e,t)=>{if(e.key==="ArrowDown")e.preventDefault(),this.commandPaletteSelectedIndex=Math.min(this.commandPaletteSelectedIndex+1,Math.min(t.length,10)-1);else if(e.key==="ArrowUp")e.preventDefault(),this.commandPaletteSelectedIndex=Math.max(this.commandPaletteSelectedIndex-1,0);else if(e.key==="Enter"){const a=t[this.commandPaletteSelectedIndex];a&&(this.selectRoute(a.consumedRoute,a.route,a.actionId,a.baseUrl,a.serverSideType,a.uriPrefix),this.commandPaletteOpen=!1,this.commandPaletteQuery="")}},this.renderCommandPalette=()=>{if(!this.commandPaletteOpen)return d;const e=this.component?.metadata;if(!e?.menu)return d;const t=this.flattenMenuForPalette(e.menu,""),a=this.commandPaletteQuery.toLowerCase(),i=a?t.filter(s=>s.label.toLowerCase().includes(a)||s.breadcrumb.toLowerCase().includes(a)):t;return n`
             <div class="cmd-backdrop" @click=${()=>{this.commandPaletteOpen=!1,this.commandPaletteQuery=""}}>
                 <div class="cmd-palette" @click=${s=>s.stopPropagation()}>
                     <div class="cmd-search-wrapper">
@@ -2607,7 +2723,7 @@ id="${e.id}"
                                 </vaadin-side-nav-item>
                         `}
 
-                            `})}`:d,this.updateRoute=e=>{e.preventDefault(),e.stopPropagation();var t=e.detail;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)}}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.isDark=document.documentElement.getAttribute("theme")==="dark",this._commandPaletteHandler=e=>{(e.metaKey||e.ctrlKey)&&e.key==="k"&&(e.preventDefault(),this.commandPaletteOpen=!this.commandPaletteOpen,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0),e.key==="Escape"&&this.commandPaletteOpen&&(this.commandPaletteOpen=!1,this.commandPaletteQuery="")},document.addEventListener("keydown",this._commandPaletteHandler),kt.install(),this.addEventListener("compact-changed",this._compactHandler)}disconnectedCallback(){super.disconnectedCallback(),this._commandPaletteHandler&&document.removeEventListener("keydown",this._commandPaletteHandler),this.removeEventListener("compact-changed",this._compactHandler)}updated(e){if(super.updated(e),this.component){const a=this.component.metadata;if(a){const i=a;if(i.favicon){let s=document.querySelector("link[rel~='icon']");s||(s=document.createElement("link"),s.rel="icon",document.head.appendChild(s)),s.href=i.favicon}e.has("component")&&(this.selectedRoute=i.homeRoute,this.selectedConsumedRoute=i.homeConsumedRoute,this.selectedServerSideType=i.homeServerSideType,this.selectedBaseUrl=i.homeBaseUrl,this.selectedUriPrefix=i.homeUriPrefix)}}e.has("commandPaletteOpen")&&this.commandPaletteOpen&&setTimeout(()=>{this.renderRoot.querySelector(".cmd-input")?.focus()},0)}render(){return W.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}};F.styles=T`
+                            `})}`:d,this.updateRoute=e=>{e.preventDefault(),e.stopPropagation();var t=e.detail;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)}}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.isDark=document.documentElement.getAttribute("theme")==="dark",this._commandPaletteHandler=e=>{(e.metaKey||e.ctrlKey)&&e.key==="k"&&(e.preventDefault(),this.commandPaletteOpen=!this.commandPaletteOpen,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0),e.key==="Escape"&&this.commandPaletteOpen&&(this.commandPaletteOpen=!1,this.commandPaletteQuery="")},document.addEventListener("keydown",this._commandPaletteHandler),kt.install(),this.addEventListener("compact-changed",this._compactHandler)}disconnectedCallback(){super.disconnectedCallback(),this._commandPaletteHandler&&document.removeEventListener("keydown",this._commandPaletteHandler),this.removeEventListener("compact-changed",this._compactHandler)}updated(e){if(super.updated(e),this.component){const a=this.component.metadata;if(a){const i=a;if(i.favicon){let s=document.querySelector("link[rel~='icon']");s||(s=document.createElement("link"),s.rel="icon",document.head.appendChild(s)),s.href=i.favicon}e.has("component")&&(this.selectedRoute=i.homeRoute,this.selectedConsumedRoute=i.homeConsumedRoute,this.selectedServerSideType=i.homeServerSideType,this.selectedBaseUrl=i.homeBaseUrl,this.selectedUriPrefix=i.homeUriPrefix)}}e.has("commandPaletteOpen")&&this.commandPaletteOpen&&setTimeout(()=>{this.renderRoot.querySelector(".cmd-input")?.focus()},0)}render(){return W.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}};A.styles=_`
 
         .app-content {
             padding-left: 2rem;
@@ -2880,14 +2996,14 @@ id="${e.id}"
             transform: scale(1.08);
         }
 
-  `;N([f()],F.prototype,"filter",2);N([f()],F.prototype,"instant",2);N([f()],F.prototype,"selectedConsumedRoute",2);N([f()],F.prototype,"selectedRoute",2);N([f()],F.prototype,"selectedUriPrefix",2);N([f()],F.prototype,"selectedBaseUrl",2);N([f()],F.prototype,"selectedServerSideType",2);N([f()],F.prototype,"selectedParams",2);N([f()],F.prototype,"tilesMenuOption",2);N([f()],F.prototype,"railOpenOption",2);N([f()],F.prototype,"commandPaletteOpen",2);N([f()],F.prototype,"commandPaletteQuery",2);N([f()],F.prototype,"commandPaletteSelectedIndex",2);N([f()],F.prototype,"pageCompact",2);N([Se("mateu-chat")],F.prototype,"chat",2);N([f()],F.prototype,"isDark",2);N([f()],F.prototype,"chatOpen",2);N([Se("vaadin-app-layout")],F.prototype,"vaadinAppLayout",2);F=N([O("mateu-app")],F);var jr=Object.defineProperty,Wr=Object.getOwnPropertyDescriptor,Ce=(e,t,a,i)=>{for(var s=i>1?void 0:i?Wr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&jr(t,a,s),s};let ne=class extends D{constructor(){super(...arguments),this.message="This website uses cookies.",this.dismiss="Ok. Thanks :).",this.learnMore="Learn more",this.learnMoreLink="https://cookiesandyou.com/",this.showLearnMore=!0,this.position="top",this.cookieName="mateu-cookieconsent"}updated(e){super.updated(e)}connectedCallback(){super.connectedCallback(),this._css=document.createElement("style"),this._css.innerText=".cc-window{opacity:1;transition:opacity 1s ease}.cc-window.cc-invisible{opacity:0}.cc-animate.cc-revoke{transition:transform 1s ease}.cc-animate.cc-revoke.cc-top{transform:translateY(-2em)}.cc-animate.cc-revoke.cc-bottom{transform:translateY(2em)}.cc-animate.cc-revoke.cc-active.cc-bottom,.cc-animate.cc-revoke.cc-active.cc-top,.cc-revoke:hover{transform:translateY(0)}.cc-grower{max-height:0;overflow:hidden;transition:max-height 1s}.cc-link,.cc-revoke:hover{text-decoration:underline}.cc-revoke,.cc-window{position:fixed;overflow:hidden;box-sizing:border-box;font-family:Helvetica,Calibri,Arial,sans-serif;font-size:16px;line-height:1.5em;display:flex;flex-wrap:nowrap;z-index:9999}.cc-window.cc-static{position:static}.cc-window.cc-floating{padding:2em;max-width:24em;flex-direction:column}.cc-window.cc-banner{padding:1em 1.8em;width:100%;flex-direction:row}.cc-revoke{padding:.5em}.cc-header{font-size:18px;font-weight:700}.cc-btn,.cc-close,.cc-link,.cc-revoke{cursor:pointer}.cc-link{opacity:.8;display:inline-block;padding:.2em}.cc-link:hover{opacity:1}.cc-link:active,.cc-link:visited{color:initial}.cc-btn{display:block;padding:.4em .8em;font-size:.9em;font-weight:700;border-width:2px;border-style:solid;text-align:center;white-space:nowrap}.cc-banner .cc-btn:last-child{min-width:140px}.cc-highlight .cc-btn:first-child{background-color:transparent;border-color:transparent}.cc-highlight .cc-btn:first-child:focus,.cc-highlight .cc-btn:first-child:hover{background-color:transparent;text-decoration:underline}.cc-close{display:block;position:absolute;top:.5em;right:.5em;font-size:1.6em;opacity:.9;line-height:.75}.cc-close:focus,.cc-close:hover{opacity:1}.cc-revoke.cc-top{top:0;left:3em;border-bottom-left-radius:.5em;border-bottom-right-radius:.5em}.cc-revoke.cc-bottom{bottom:0;left:3em;border-top-left-radius:.5em;border-top-right-radius:.5em}.cc-revoke.cc-left{left:3em;right:unset}.cc-revoke.cc-right{right:3em;left:unset}.cc-top{top:1em}.cc-left{left:1em}.cc-right{right:1em}.cc-bottom{bottom:1em}.cc-floating>.cc-link{margin-bottom:1em}.cc-floating .cc-message{display:block;margin-bottom:1em}.cc-window.cc-floating .cc-compliance{flex:1 0 auto}.cc-window.cc-banner{align-items:center}.cc-banner.cc-top{left:0;right:0;top:0}.cc-banner.cc-bottom{left:0;right:0;bottom:0}.cc-banner .cc-message{flex:1}.cc-compliance{display:flex;align-items:center;align-content:space-between}.cc-compliance>.cc-btn{flex:1}.cc-btn+.cc-btn{margin-left:.5em}@media print{.cc-revoke,.cc-window{display:none}}@media screen and (max-width:900px){.cc-btn{white-space:normal}}@media screen and (max-width:414px) and (orientation:portrait),screen and (max-width:736px) and (orientation:landscape){.cc-window.cc-top{top:0}.cc-window.cc-bottom{bottom:0}.cc-window.cc-banner,.cc-window.cc-left,.cc-window.cc-right{left:0;right:0}.cc-window.cc-banner{flex-direction:column}.cc-window.cc-banner .cc-compliance{flex:1}.cc-window.cc-floating{max-width:none}.cc-window .cc-message{margin-bottom:1em}.cc-window.cc-banner{align-items:unset}}.cc-floating.cc-theme-classic{padding:1.2em;border-radius:5px}.cc-floating.cc-type-info.cc-theme-classic .cc-compliance{text-align:center;display:inline;flex:none}.cc-theme-classic .cc-btn{border-radius:5px}.cc-theme-classic .cc-btn:last-child{min-width:140px}.cc-floating.cc-type-info.cc-theme-classic .cc-btn{display:inline-block}.cc-theme-edgeless.cc-window{padding:0}.cc-floating.cc-theme-edgeless .cc-message{margin:2em 2em 1.5em}.cc-banner.cc-theme-edgeless .cc-btn{margin:0;padding:.8em 1.8em;height:100%}.cc-banner.cc-theme-edgeless .cc-message{margin-left:1em}.cc-floating.cc-theme-edgeless .cc-btn+.cc-btn{margin-left:0}",document.head.appendChild(this._css),this.__updatePopup()}disconnectedCallback(){super.disconnectedCallback(),this.__closePopup(),this._css.isConnected&&this._css.remove()}__closePopup(){const e=this.popup;e&&e.parentNode?.removeChild(e)}_show(){const e=this.popup;e&&(e.classList.remove("cc-invisible"),e.style.display="")}__updatePopup(){this.__closePopup(),window.cookieconsent.initialise({palette:{popup:{background:"#000"},button:{background:"rgba(22, 118, 243, 0.95)",hover:"rgba(22, 118, 243, 1)"}},showLink:this.showLearnMore,content:{message:this.message,dismiss:this.dismiss,link:this.learnMore,href:this.learnMoreLink},cookie:{name:this.cookieName},position:this.position,elements:{messagelink:`<span id="cookieconsent:desc" class="cc-message">${this.message} <a tabindex="0" class="cc-link" href="${this.learnMoreLink}" target="_blank" rel="noopener noreferrer nofollow">${this.learnMore}</a></span>`,dismiss:`<a tabindex="0" class="cc-btn cc-dismiss">${this.dismiss}</a>`}});const e=this.popup;if(e){e.setAttribute("role","alert");const t=e.querySelector("a.cc-btn");t?.addEventListener("keydown",a=>{const r=a.keyCode||a.which;(r===32||r===13)&&t.click()})}}render(){return n`
-       `}};ne.styles=T`
-  `;Ce([u()],ne.prototype,"message",2);Ce([u()],ne.prototype,"dismiss",2);Ce([u()],ne.prototype,"learnMore",2);Ce([u()],ne.prototype,"learnMoreLink",2);Ce([u()],ne.prototype,"showLearnMore",2);Ce([u()],ne.prototype,"position",2);Ce([u()],ne.prototype,"cookieName",2);Ce([f()],ne.prototype,"_css",2);Ce([Se('[aria-label="cookieconsent"]')],ne.prototype,"popup",2);ne=Ce([O("mateu-cookie-consent")],ne);var Vr=Object.defineProperty,Hr=Object.getOwnPropertyDescriptor,Ma=(e,t,a,i)=>{for(var s=i>1?void 0:i?Hr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Vr(t,a,s),s};let zt=class extends D{constructor(){super(...arguments),this.redispatchEvent=e=>{e instanceof CustomEvent&&(e.stopPropagation(),e.preventDefault(),this.target?.dispatchEvent(new CustomEvent(e.type,{detail:e.detail,bubbles:!0,composed:!0})))}}connectedCallback(){super.connectedCallback(),this.addEventListener("value-changed",this.redispatchEvent),this.addEventListener("data-changed",this.redispatchEvent),this.addEventListener("action-requested",this.redispatchEvent),this.addEventListener("server-side-action-requested",this.redispatchEvent),this.addEventListener("route-changed",this.redispatchEvent),this.addEventListener("close-modal-requested",this.redispatchEvent)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("value-changed",this.redispatchEvent),this.removeEventListener("data-changed",this.redispatchEvent),this.removeEventListener("action-requested",this.redispatchEvent),this.removeEventListener("server-side-action-requested",this.redispatchEvent),this.removeEventListener("route-changed",this.redispatchEvent)}render(){return n`<slot></slot>`}};zt.styles=T`
+  `;N([f()],A.prototype,"filter",2);N([f()],A.prototype,"instant",2);N([f()],A.prototype,"selectedConsumedRoute",2);N([f()],A.prototype,"selectedRoute",2);N([f()],A.prototype,"selectedUriPrefix",2);N([f()],A.prototype,"selectedBaseUrl",2);N([f()],A.prototype,"selectedServerSideType",2);N([f()],A.prototype,"selectedParams",2);N([f()],A.prototype,"tilesMenuOption",2);N([f()],A.prototype,"railOpenOption",2);N([f()],A.prototype,"commandPaletteOpen",2);N([f()],A.prototype,"commandPaletteQuery",2);N([f()],A.prototype,"commandPaletteSelectedIndex",2);N([f()],A.prototype,"pageCompact",2);N([Se("mateu-chat")],A.prototype,"chat",2);N([f()],A.prototype,"isDark",2);N([f()],A.prototype,"chatOpen",2);N([Se("vaadin-app-layout")],A.prototype,"vaadinAppLayout",2);A=N([O("mateu-app")],A);var Kr=Object.defineProperty,Jr=Object.getOwnPropertyDescriptor,Ce=(e,t,a,i)=>{for(var s=i>1?void 0:i?Jr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Kr(t,a,s),s};let ne=class extends L{constructor(){super(...arguments),this.message="This website uses cookies.",this.dismiss="Ok. Thanks :).",this.learnMore="Learn more",this.learnMoreLink="https://cookiesandyou.com/",this.showLearnMore=!0,this.position="top",this.cookieName="mateu-cookieconsent"}updated(e){super.updated(e)}connectedCallback(){super.connectedCallback(),this._css=document.createElement("style"),this._css.innerText=".cc-window{opacity:1;transition:opacity 1s ease}.cc-window.cc-invisible{opacity:0}.cc-animate.cc-revoke{transition:transform 1s ease}.cc-animate.cc-revoke.cc-top{transform:translateY(-2em)}.cc-animate.cc-revoke.cc-bottom{transform:translateY(2em)}.cc-animate.cc-revoke.cc-active.cc-bottom,.cc-animate.cc-revoke.cc-active.cc-top,.cc-revoke:hover{transform:translateY(0)}.cc-grower{max-height:0;overflow:hidden;transition:max-height 1s}.cc-link,.cc-revoke:hover{text-decoration:underline}.cc-revoke,.cc-window{position:fixed;overflow:hidden;box-sizing:border-box;font-family:Helvetica,Calibri,Arial,sans-serif;font-size:16px;line-height:1.5em;display:flex;flex-wrap:nowrap;z-index:9999}.cc-window.cc-static{position:static}.cc-window.cc-floating{padding:2em;max-width:24em;flex-direction:column}.cc-window.cc-banner{padding:1em 1.8em;width:100%;flex-direction:row}.cc-revoke{padding:.5em}.cc-header{font-size:18px;font-weight:700}.cc-btn,.cc-close,.cc-link,.cc-revoke{cursor:pointer}.cc-link{opacity:.8;display:inline-block;padding:.2em}.cc-link:hover{opacity:1}.cc-link:active,.cc-link:visited{color:initial}.cc-btn{display:block;padding:.4em .8em;font-size:.9em;font-weight:700;border-width:2px;border-style:solid;text-align:center;white-space:nowrap}.cc-banner .cc-btn:last-child{min-width:140px}.cc-highlight .cc-btn:first-child{background-color:transparent;border-color:transparent}.cc-highlight .cc-btn:first-child:focus,.cc-highlight .cc-btn:first-child:hover{background-color:transparent;text-decoration:underline}.cc-close{display:block;position:absolute;top:.5em;right:.5em;font-size:1.6em;opacity:.9;line-height:.75}.cc-close:focus,.cc-close:hover{opacity:1}.cc-revoke.cc-top{top:0;left:3em;border-bottom-left-radius:.5em;border-bottom-right-radius:.5em}.cc-revoke.cc-bottom{bottom:0;left:3em;border-top-left-radius:.5em;border-top-right-radius:.5em}.cc-revoke.cc-left{left:3em;right:unset}.cc-revoke.cc-right{right:3em;left:unset}.cc-top{top:1em}.cc-left{left:1em}.cc-right{right:1em}.cc-bottom{bottom:1em}.cc-floating>.cc-link{margin-bottom:1em}.cc-floating .cc-message{display:block;margin-bottom:1em}.cc-window.cc-floating .cc-compliance{flex:1 0 auto}.cc-window.cc-banner{align-items:center}.cc-banner.cc-top{left:0;right:0;top:0}.cc-banner.cc-bottom{left:0;right:0;bottom:0}.cc-banner .cc-message{flex:1}.cc-compliance{display:flex;align-items:center;align-content:space-between}.cc-compliance>.cc-btn{flex:1}.cc-btn+.cc-btn{margin-left:.5em}@media print{.cc-revoke,.cc-window{display:none}}@media screen and (max-width:900px){.cc-btn{white-space:normal}}@media screen and (max-width:414px) and (orientation:portrait),screen and (max-width:736px) and (orientation:landscape){.cc-window.cc-top{top:0}.cc-window.cc-bottom{bottom:0}.cc-window.cc-banner,.cc-window.cc-left,.cc-window.cc-right{left:0;right:0}.cc-window.cc-banner{flex-direction:column}.cc-window.cc-banner .cc-compliance{flex:1}.cc-window.cc-floating{max-width:none}.cc-window .cc-message{margin-bottom:1em}.cc-window.cc-banner{align-items:unset}}.cc-floating.cc-theme-classic{padding:1.2em;border-radius:5px}.cc-floating.cc-type-info.cc-theme-classic .cc-compliance{text-align:center;display:inline;flex:none}.cc-theme-classic .cc-btn{border-radius:5px}.cc-theme-classic .cc-btn:last-child{min-width:140px}.cc-floating.cc-type-info.cc-theme-classic .cc-btn{display:inline-block}.cc-theme-edgeless.cc-window{padding:0}.cc-floating.cc-theme-edgeless .cc-message{margin:2em 2em 1.5em}.cc-banner.cc-theme-edgeless .cc-btn{margin:0;padding:.8em 1.8em;height:100%}.cc-banner.cc-theme-edgeless .cc-message{margin-left:1em}.cc-floating.cc-theme-edgeless .cc-btn+.cc-btn{margin-left:0}",document.head.appendChild(this._css),this.__updatePopup()}disconnectedCallback(){super.disconnectedCallback(),this.__closePopup(),this._css.isConnected&&this._css.remove()}__closePopup(){const e=this.popup;e&&e.parentNode?.removeChild(e)}_show(){const e=this.popup;e&&(e.classList.remove("cc-invisible"),e.style.display="")}__updatePopup(){this.__closePopup(),window.cookieconsent.initialise({palette:{popup:{background:"#000"},button:{background:"rgba(22, 118, 243, 0.95)",hover:"rgba(22, 118, 243, 1)"}},showLink:this.showLearnMore,content:{message:this.message,dismiss:this.dismiss,link:this.learnMore,href:this.learnMoreLink},cookie:{name:this.cookieName},position:this.position,elements:{messagelink:`<span id="cookieconsent:desc" class="cc-message">${this.message} <a tabindex="0" class="cc-link" href="${this.learnMoreLink}" target="_blank" rel="noopener noreferrer nofollow">${this.learnMore}</a></span>`,dismiss:`<a tabindex="0" class="cc-btn cc-dismiss">${this.dismiss}</a>`}});const e=this.popup;if(e){e.setAttribute("role","alert");const t=e.querySelector("a.cc-btn");t?.addEventListener("keydown",a=>{const r=a.keyCode||a.which;(r===32||r===13)&&t.click()})}}render(){return n`
+       `}};ne.styles=_`
+  `;Ce([u()],ne.prototype,"message",2);Ce([u()],ne.prototype,"dismiss",2);Ce([u()],ne.prototype,"learnMore",2);Ce([u()],ne.prototype,"learnMoreLink",2);Ce([u()],ne.prototype,"showLearnMore",2);Ce([u()],ne.prototype,"position",2);Ce([u()],ne.prototype,"cookieName",2);Ce([f()],ne.prototype,"_css",2);Ce([Se('[aria-label="cookieconsent"]')],ne.prototype,"popup",2);ne=Ce([O("mateu-cookie-consent")],ne);var Yr=Object.defineProperty,Xr=Object.getOwnPropertyDescriptor,ja=(e,t,a,i)=>{for(var s=i>1?void 0:i?Xr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Yr(t,a,s),s};let Ft=class extends L{constructor(){super(...arguments),this.redispatchEvent=e=>{e instanceof CustomEvent&&(e.stopPropagation(),e.preventDefault(),this.target?.dispatchEvent(new CustomEvent(e.type,{detail:e.detail,bubbles:!0,composed:!0})))}}connectedCallback(){super.connectedCallback(),this.addEventListener("value-changed",this.redispatchEvent),this.addEventListener("data-changed",this.redispatchEvent),this.addEventListener("action-requested",this.redispatchEvent),this.addEventListener("server-side-action-requested",this.redispatchEvent),this.addEventListener("route-changed",this.redispatchEvent),this.addEventListener("close-modal-requested",this.redispatchEvent)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("value-changed",this.redispatchEvent),this.removeEventListener("data-changed",this.redispatchEvent),this.removeEventListener("action-requested",this.redispatchEvent),this.removeEventListener("server-side-action-requested",this.redispatchEvent),this.removeEventListener("route-changed",this.redispatchEvent)}render(){return n`<slot></slot>`}};Ft.styles=_`
         :host {
             /* width: 100%; */
             display: inline-block;
         }
-  `;Ma([u()],zt.prototype,"target",2);zt=Ma([O("mateu-event-interceptor")],zt);var Gr=Object.defineProperty,Kr=Object.getOwnPropertyDescriptor,Ba=(e,t,a,i)=>{for(var s=i>1?void 0:i?Kr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Gr(t,a,s),s};let At=class extends ot{constructor(){super(...arguments),this.opened=!0,this.close=()=>{this.opened=!1,setTimeout(()=>this.parentElement?.removeChild(this),500)}}applyFragment(e){super.applyFragment(e);const t=e.state?._closeAfterMillis;t&&setTimeout(()=>this.close(),t)}updated(e){if(super.updated(e),e.has("component")&&this.component){const t=this.component.metadata;this.state=t.initialData}}render(){const e=this.component.metadata;let t="";e.noPadding&&(t+=" no-padding");const a=Ta(e.headerTitle,this.state,this.data,this.appState,this.appData);return n`
+  `;ja([u()],Ft.prototype,"target",2);Ft=ja([O("mateu-event-interceptor")],Ft);var Qr=Object.defineProperty,Zr=Object.getOwnPropertyDescriptor,Wa=(e,t,a,i)=>{for(var s=i>1?void 0:i?Zr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Qr(t,a,s),s};let At=class extends ot{constructor(){super(...arguments),this.opened=!0,this.close=()=>{this.opened=!1,setTimeout(()=>this.parentElement?.removeChild(this),500)}}applyFragment(e){super.applyFragment(e);const t=e.state?._closeAfterMillis;t&&setTimeout(()=>this.close(),t)}updated(e){if(super.updated(e),e.has("component")&&this.component){const t=this.component.metadata;this.state=t.initialData}}render(){const e=this.component.metadata;let t="";e.noPadding&&(t+=" no-padding");const a=Pa(e.headerTitle,this.state,this.data,this.appState,this.appData);return n`
         <vaadin-dialog
                 header-title="${a}"
                 .opened="${this.opened}"
@@ -2901,20 +3017,20 @@ id="${e.id}"
                 right="${e.right??d}"
                 width="${e.width??d}"
                 height="${e.height??d}"
-                ${e.header||e.closeButtonOnHeader?ri(()=>n`<mateu-event-interceptor .target="${this}" style="width: 100%;">${e.header?g(this,e.header,this.baseUrl,this.state,this.data,this.appState,this.appData):d}${e.closeButtonOnHeader?n`
+                ${e.header||e.closeButtonOnHeader?oi(()=>n`<mateu-event-interceptor .target="${this}" style="width: 100%;">${e.header?b(this,e.header,this.baseUrl,this.state,this.data,this.appState,this.appData):d}${e.closeButtonOnHeader?n`
                             <vaadin-button theme="tertiary" @click="${this.close}">
                                 <vaadin-icon icon="lumo:cross"></vaadin-icon>
                             </vaadin-button>
                         `:d}</mateu-event-interceptor>`,[this.state,this.data]):d}
-                ${e.footer?Ft(()=>n`<mateu-event-interceptor .target="${this}" style="width: 100%;">${g(this,e.footer,this.baseUrl,this.state,this.data,this.appState,this.appData)}</mateu-event-interceptor>`,[this.state,this.data]):d}
-                ${e.content?It(()=>n`<mateu-event-interceptor .target="${this}" style="--mateu-section-border: none; width: 100%;">${g(this,e.content,this.baseUrl,this.state,this.data,this.appState,this.appData)}</mateu-event-interceptor>`,[this.state,this.data]):d}
+                ${e.footer?Nt(()=>n`<mateu-event-interceptor .target="${this}" style="width: 100%;">${b(this,e.footer,this.baseUrl,this.state,this.data,this.appState,this.appData)}</mateu-event-interceptor>`,[this.state,this.data]):d}
+                ${e.content?_t(()=>n`<mateu-event-interceptor .target="${this}" style="--mateu-section-border: none; width: 100%;">${b(this,e.content,this.baseUrl,this.state,this.data,this.appState,this.appData)}</mateu-event-interceptor>`,[this.state,this.data]):d}
                 style="${this.component?.style}" 
                 class="${this.component?.cssClasses}"
         >
         </vaadin-dialog>
 
-       `}};At.styles=T`
-  `;Ba([f()],At.prototype,"opened",2);At=Ba([O("mateu-dialog")],At);var Jr=Object.defineProperty,Yr=Object.getOwnPropertyDescriptor,Q=(e,t,a,i)=>{for(var s=i>1?void 0:i?Yr(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Jr(t,a,s),s};function ga(e){if(e.parentElement)return e.parentElement;const t=e.getRootNode();return t instanceof ShadowRoot?t.host:null}let j=class extends D{constructor(){super(...arguments),this.appState={},this.appData={},this.standalone=!1,this.actionBanners=[],this.dismissedStaticBannerIndices=new Set,this._tocEntries=[],this._activeToc=0,this._tocVisible=!1,this._tocRebuildScheduled=!1,this._headerH=0,this._onResize=()=>this._layoutStickyTops(),this._tocLocked=!1,this._unlockToc=e=>{if(e&&e.type==="keydown"){const t=e;if(t.ctrlKey&&t.altKey&&!t.shiftKey&&!t.metaKey&&/^(?:Digit|Numpad)[1-9]$/.test(t.code))return}this._tocLocked=!1},this._actionBannerTimers=[],this._staticBannerTimers=[],this._bannersHandler=e=>{const t=e.detail,a=t.banners??[],i=t.append??!1;i?this.actionBanners=[...this.actionBanners,...a]:(this._clearActionBannerTimers(),this.actionBanners=a);const s=i?this.actionBanners.length-a.length:0;a.forEach((r,o)=>{if(r.timeoutSeconds&&r.timeoutSeconds>0){const l=s+o;this._actionBannerTimers.push(setTimeout(()=>{this.actionBanners=this.actionBanners.filter((c,h)=>h!==l)},r.timeoutSeconds*1e3))}})},this._onTocKey=e=>{if(!this._tocVisible||!e.ctrlKey||!e.altKey||e.shiftKey||e.metaKey)return;const t=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!t)return;const a=parseInt(t[1],10)-1;a>=this._tocEntries.length||(e.preventDefault(),this._scrollToSection(a))},this._onScrollSpy=()=>{if(this._tocLocked)return;const e=this._sectionCards();if(!e.length)return;const t=12,a=this.shadowRoot?.querySelector("mateu-content-header");let i=a?a.getBoundingClientRect().bottom:0;for(const o of e){if(!o.classList.contains("mateu-section--sticky"))continue;const l=o.getBoundingClientRect();l.top<=i+t+2&&(i=Math.max(i,l.bottom))}const s=i+t+4;let r=0;this._tocEntries.forEach((o,l)=>{o.el.getBoundingClientRect().top<=s&&(r=l)}),this._activeToc=r}}connectedCallback(){super.connectedCallback(),document.addEventListener("page-banners-received",this._bannersHandler),window.addEventListener("resize",this._onResize),document.addEventListener("keydown",this._onTocKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("page-banners-received",this._bannersHandler),window.removeEventListener("resize",this._onResize),document.removeEventListener("keydown",this._onTocKey),this._clearAllTimers(),this._teardownScrollSpy()}updated(e){super.updated(e),e.has("component")&&e.get("component")!==void 0&&(this._clearAllTimers(),this.actionBanners=[],this.dismissedStaticBannerIndices=new Set),e.has("component")&&(this._scheduleStaticBannerTimeouts(),this.dispatchEvent(new CustomEvent("compact-changed",{detail:{compact:!!this.component?.style?.includes("--mateu-compact:1")},bubbles:!0,composed:!0})),this._scheduleTocRebuild())}_scheduleStaticBannerTimeouts(){this._staticBannerTimers.forEach(a=>clearTimeout(a)),this._staticBannerTimers=[],(this.component?.metadata?.banners??[]).forEach((a,i)=>{a.timeoutSeconds&&a.timeoutSeconds>0&&this._staticBannerTimers.push(setTimeout(()=>{this.dismissedStaticBannerIndices=new Set([...this.dismissedStaticBannerIndices,i])},a.timeoutSeconds*1e3))})}_clearActionBannerTimers(){this._actionBannerTimers.forEach(e=>clearTimeout(e)),this._actionBannerTimers=[]}_clearAllTimers(){this._clearActionBannerTimers(),this._staticBannerTimers.forEach(e=>clearTimeout(e)),this._staticBannerTimers=[]}_dismissActionBanner(e){this.actionBanners=this.actionBanners.filter((t,a)=>a!==e)}_dismissStaticBanner(e){this.dismissedStaticBannerIndices=new Set([...this.dismissedStaticBannerIndices,e])}bannerThemeClass(e){const t=e.theme?.toLowerCase()??"info";return t==="none"?"":t}_evalBannerText(e){return De(e,this.state,this.data)}_renderBanner(e,t){const a=this._evalBannerText(e.title),i=this._evalBannerText(e.description);return n`
+       `}};At.styles=_`
+  `;Wa([f()],At.prototype,"opened",2);At=Wa([O("mateu-dialog")],At);var en=Object.defineProperty,tn=Object.getOwnPropertyDescriptor,Q=(e,t,a,i)=>{for(var s=i>1?void 0:i?tn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&en(t,a,s),s};function ya(e){if(e.parentElement)return e.parentElement;const t=e.getRootNode();return t instanceof ShadowRoot?t.host:null}let j=class extends L{constructor(){super(...arguments),this.appState={},this.appData={},this.standalone=!1,this.actionBanners=[],this.dismissedStaticBannerIndices=new Set,this._tocEntries=[],this._activeToc=0,this._tocVisible=!1,this._tocRebuildScheduled=!1,this._headerH=0,this._onResize=()=>this._layoutStickyTops(),this._tocLocked=!1,this._unlockToc=e=>{if(e&&e.type==="keydown"){const t=e;if(t.ctrlKey&&t.altKey&&!t.shiftKey&&!t.metaKey&&/^(?:Digit|Numpad)[1-9]$/.test(t.code))return}this._tocLocked=!1},this._actionBannerTimers=[],this._staticBannerTimers=[],this._bannersHandler=e=>{const t=e.detail,a=t.banners??[],i=t.append??!1;i?this.actionBanners=[...this.actionBanners,...a]:(this._clearActionBannerTimers(),this.actionBanners=a);const s=i?this.actionBanners.length-a.length:0;a.forEach((r,o)=>{if(r.timeoutSeconds&&r.timeoutSeconds>0){const l=s+o;this._actionBannerTimers.push(setTimeout(()=>{this.actionBanners=this.actionBanners.filter((c,h)=>h!==l)},r.timeoutSeconds*1e3))}})},this._onTocKey=e=>{if(!this._tocVisible||!e.ctrlKey||!e.altKey||e.shiftKey||e.metaKey)return;const t=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!t)return;const a=parseInt(t[1],10)-1;a>=this._tocEntries.length||(e.preventDefault(),this._scrollToSection(a))},this._onScrollSpy=()=>{if(this._tocLocked)return;const e=this._sectionCards();if(!e.length)return;const t=12,a=this.shadowRoot?.querySelector("mateu-content-header");let i=a?a.getBoundingClientRect().bottom:0;for(const o of e){if(!o.classList.contains("mateu-section--sticky"))continue;const l=o.getBoundingClientRect();l.top<=i+t+2&&(i=Math.max(i,l.bottom))}const s=i+t+4;let r=0;this._tocEntries.forEach((o,l)=>{o.el.getBoundingClientRect().top<=s&&(r=l)}),this._activeToc=r}}connectedCallback(){super.connectedCallback(),document.addEventListener("page-banners-received",this._bannersHandler),window.addEventListener("resize",this._onResize),document.addEventListener("keydown",this._onTocKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("page-banners-received",this._bannersHandler),window.removeEventListener("resize",this._onResize),document.removeEventListener("keydown",this._onTocKey),this._clearAllTimers(),this._teardownScrollSpy()}updated(e){super.updated(e),e.has("component")&&e.get("component")!==void 0&&(this._clearAllTimers(),this.actionBanners=[],this.dismissedStaticBannerIndices=new Set),e.has("component")&&(this._scheduleStaticBannerTimeouts(),this.dispatchEvent(new CustomEvent("compact-changed",{detail:{compact:!!this.component?.style?.includes("--mateu-compact:1")},bubbles:!0,composed:!0})),this._scheduleTocRebuild())}_scheduleStaticBannerTimeouts(){this._staticBannerTimers.forEach(a=>clearTimeout(a)),this._staticBannerTimers=[],(this.component?.metadata?.banners??[]).forEach((a,i)=>{a.timeoutSeconds&&a.timeoutSeconds>0&&this._staticBannerTimers.push(setTimeout(()=>{this.dismissedStaticBannerIndices=new Set([...this.dismissedStaticBannerIndices,i])},a.timeoutSeconds*1e3))})}_clearActionBannerTimers(){this._actionBannerTimers.forEach(e=>clearTimeout(e)),this._actionBannerTimers=[]}_clearAllTimers(){this._clearActionBannerTimers(),this._staticBannerTimers.forEach(e=>clearTimeout(e)),this._staticBannerTimers=[]}_dismissActionBanner(e){this.actionBanners=this.actionBanners.filter((t,a)=>a!==e)}_dismissStaticBanner(e){this.dismissedStaticBannerIndices=new Set([...this.dismissedStaticBannerIndices,e])}bannerThemeClass(e){const t=e.theme?.toLowerCase()??"info";return t==="none"?"":t}_evalBannerText(e){return De(e,this.state,this.data)}_renderBanner(e,t){const a=this._evalBannerText(e.title),i=this._evalBannerText(e.description);return n`
             <vaadin-card class="page-banner page-banner--${this.bannerThemeClass(e)}">
                 ${a?n`
                     <div slot="title" style="display: flex; align-items: center; justify-content: space-between; color: #1a1a1a; width: 100%;">
@@ -2932,7 +3048,7 @@ id="${e.id}"
                 `:d}
                 ${i?n`<p>${i}</p>`:d}
             </vaadin-card>
-        `}_onSlotChange(){this._scheduleTocRebuild()}_scheduleTocRebuild(){this._tocRebuildScheduled||(this._tocRebuildScheduled=!0,requestAnimationFrame(()=>{this._tocRebuildScheduled=!1,this._rebuildToc()}))}_sectionCards(){return Array.from(this.querySelectorAll("vaadin-card.mateu-section"))}_sectionTitle(e){const t=e.querySelector('[slot="title"]')?.textContent?.trim();return t||e.querySelector("h1,h2,h3,h4,h5,h6")?.textContent?.trim()||void 0}_rebuildToc(){const e=this._sectionCards(),t=e.map(r=>({title:this._sectionTitle(r),el:r})).filter(r=>!!r.title),a=this.component?.metadata?.toc,i=t.length>4&&e.every(r=>!r.closest("vaadin-horizontal-layout")),s=(a===!0?!0:a===!1?!1:i)&&t.length>0;this._tocEntries=t,this._tocVisible=s,this._activeToc>=t.length&&(this._activeToc=0),this._teardownScrollSpy(),s?requestAnimationFrame(()=>{this._layoutStickyTops(),this._setupScrollSpy()}):this._layoutStickyTops()}_layoutStickyTops(){const e=this.shadowRoot?.querySelector("mateu-content-header");this._headerH=this._tocVisible&&e?e.offsetHeight:0,this.style.setProperty("--mateu-header-h",this._headerH+"px");const t=12;let a=this._headerH+t;for(const i of this._sectionCards())i.classList.contains("mateu-section--sticky")&&(i.style.top=a+"px",a+=i.offsetHeight+t)}_scrollContainer(){let e=ga(this);for(;e;){const t=getComputedStyle(e).overflowY;if((t==="auto"||t==="scroll")&&e.scrollHeight>e.clientHeight)return e;e=ga(e)}return null}_setupScrollSpy(){this._tocEntries.length&&(this._spyTarget=this._scrollContainer()??window,this._spyTarget.addEventListener("scroll",this._onScrollSpy,{passive:!0}),window.addEventListener("wheel",this._unlockToc,{passive:!0}),window.addEventListener("touchstart",this._unlockToc,{passive:!0}),window.addEventListener("keydown",this._unlockToc),this._onScrollSpy())}_teardownScrollSpy(){this._spyTarget?.removeEventListener("scroll",this._onScrollSpy),window.removeEventListener("wheel",this._unlockToc),window.removeEventListener("touchstart",this._unlockToc),window.removeEventListener("keydown",this._unlockToc),this._spyTarget=void 0}_scrollToSection(e){const t=this._tocEntries[e];if(!t)return;this._activeToc=e,this._tocLocked=!0;const a=12;let i=this._headerH+a;for(const l of this._sectionCards()){if(l===t.el)break;l.classList.contains("mateu-section--sticky")&&(i+=l.offsetHeight+a)}const s=this._scrollContainer(),r=s?s.getBoundingClientRect().top:0,o=t.el.getBoundingClientRect().top-r-i;(s??window).scrollBy({top:o,behavior:"smooth"})}render(){const e=this.component?.metadata,i=[...(e?.banners??[]).map((r,o)=>({banner:r,index:o})).filter(({index:r})=>!this.dismissedStaticBannerIndices.has(r)).map(({banner:r,index:o})=>({banner:r,onDismiss:()=>this._dismissStaticBanner(o)})),...this.actionBanners.map((r,o)=>({banner:r,onDismiss:()=>this._dismissActionBanner(o)}))],s=n`
+        `}_onSlotChange(){this._scheduleTocRebuild()}_scheduleTocRebuild(){this._tocRebuildScheduled||(this._tocRebuildScheduled=!0,requestAnimationFrame(()=>{this._tocRebuildScheduled=!1,this._rebuildToc()}))}_sectionCards(){return Array.from(this.querySelectorAll("vaadin-card.mateu-section"))}_sectionTitle(e){const t=e.querySelector('[slot="title"]')?.textContent?.trim();return t||e.querySelector("h1,h2,h3,h4,h5,h6")?.textContent?.trim()||void 0}_rebuildToc(){const e=this._sectionCards(),t=e.map(r=>({title:this._sectionTitle(r),el:r})).filter(r=>!!r.title),a=this.component?.metadata?.toc,i=t.length>4&&e.every(r=>!r.closest("vaadin-horizontal-layout")),s=(a===!0?!0:a===!1?!1:i)&&t.length>0;this._tocEntries=t,this._tocVisible=s,this._activeToc>=t.length&&(this._activeToc=0),this._teardownScrollSpy(),s?requestAnimationFrame(()=>{this._layoutStickyTops(),this._setupScrollSpy()}):this._layoutStickyTops()}_layoutStickyTops(){const e=this.shadowRoot?.querySelector("mateu-content-header");this._headerH=this._tocVisible&&e?e.offsetHeight:0,this.style.setProperty("--mateu-header-h",this._headerH+"px");const t=12;let a=this._headerH+t;for(const i of this._sectionCards())i.classList.contains("mateu-section--sticky")&&(i.style.top=a+"px",a+=i.offsetHeight+t)}_scrollContainer(){let e=ya(this);for(;e;){const t=getComputedStyle(e).overflowY;if((t==="auto"||t==="scroll")&&e.scrollHeight>e.clientHeight)return e;e=ya(e)}return null}_setupScrollSpy(){this._tocEntries.length&&(this._spyTarget=this._scrollContainer()??window,this._spyTarget.addEventListener("scroll",this._onScrollSpy,{passive:!0}),window.addEventListener("wheel",this._unlockToc,{passive:!0}),window.addEventListener("touchstart",this._unlockToc,{passive:!0}),window.addEventListener("keydown",this._unlockToc),this._onScrollSpy())}_teardownScrollSpy(){this._spyTarget?.removeEventListener("scroll",this._onScrollSpy),window.removeEventListener("wheel",this._unlockToc),window.removeEventListener("touchstart",this._unlockToc),window.removeEventListener("keydown",this._unlockToc),this._spyTarget=void 0}_scrollToSection(e){const t=this._tocEntries[e];if(!t)return;this._activeToc=e,this._tocLocked=!0;const a=12;let i=this._headerH+a;for(const l of this._sectionCards()){if(l===t.el)break;l.classList.contains("mateu-section--sticky")&&(i+=l.offsetHeight+a)}const s=this._scrollContainer(),r=s?s.getBoundingClientRect().top:0,o=t.el.getBoundingClientRect().top-r-i;(s??window).scrollBy({top:o,behavior:"smooth"})}render(){const e=this.component?.metadata,i=[...(e?.banners??[]).map((r,o)=>({banner:r,index:o})).filter(({index:r})=>!this.dismissedStaticBannerIndices.has(r)).map(({banner:r,index:o})=>({banner:r,onDismiss:()=>this._dismissStaticBanner(o)})),...this.actionBanners.map((r,o)=>({banner:r,onDismiss:()=>this._dismissActionBanner(o)}))],s=n`
             <mateu-content-header
                 class="${this._tocVisible?"sticky-header":""}"
                 .metadata="${e}"
@@ -2970,9 +3086,9 @@ id="${e.id}"
                 `:d}
             </div>
             <div class="form-footer">
-                ${e?.footer?.map(r=>g(this,r,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData))}
+                ${e?.footer?.map(r=>b(this,r,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData))}
             </div>
-        `;return n`<vaadin-vertical-layout style="width: 100%;">${s}</vaadin-vertical-layout>`}};j.styles=T`
+        `;return n`<vaadin-vertical-layout style="width: 100%;">${s}</vaadin-vertical-layout>`}};j.styles=_`
         :host {
             width: 100%;
         }
@@ -3119,7 +3235,7 @@ id="${e.id}"
             --vaadin-card-background: #fdf2f2;
             border-leftx: 4px solid var(--lumo-error-color);
         }
-    `;Q([u()],j.prototype,"component",2);Q([u()],j.prototype,"baseUrl",2);Q([u()],j.prototype,"state",2);Q([u()],j.prototype,"data",2);Q([u()],j.prototype,"appState",2);Q([u()],j.prototype,"appData",2);Q([u()],j.prototype,"value",2);Q([u({type:Boolean})],j.prototype,"standalone",2);Q([f()],j.prototype,"actionBanners",2);Q([f()],j.prototype,"dismissedStaticBannerIndices",2);Q([f()],j.prototype,"_tocEntries",2);Q([f()],j.prototype,"_activeToc",2);Q([f()],j.prototype,"_tocVisible",2);j=Q([O("mateu-page")],j);const Wt=T`
+    `;Q([u()],j.prototype,"component",2);Q([u()],j.prototype,"baseUrl",2);Q([u()],j.prototype,"state",2);Q([u()],j.prototype,"data",2);Q([u()],j.prototype,"appState",2);Q([u()],j.prototype,"appData",2);Q([u()],j.prototype,"value",2);Q([u({type:Boolean})],j.prototype,"standalone",2);Q([f()],j.prototype,"actionBanners",2);Q([f()],j.prototype,"dismissedStaticBannerIndices",2);Q([f()],j.prototype,"_tocEntries",2);Q([f()],j.prototype,"_activeToc",2);Q([f()],j.prototype,"_tocVisible",2);j=Q([O("mateu-page")],j);const Vt=_`
     .nbtn {
         display: inline-flex;
         align-items: center;
@@ -3150,37 +3266,37 @@ id="${e.id}"
     .nbtn svg { width: 1em; height: 1em; flex-shrink: 0; }
 `,ft=e=>V`
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${e}</svg>`,sa=ft(V`
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${e}</svg>`,na=ft(V`
     <circle cx="12" cy="12" r="3"></circle>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>`),ra=ft(V`
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>`),oa=ft(V`
     <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>`),na=ft(V`
+    <line x1="5" y1="12" x2="19" y2="12"></line>`),la=ft(V`
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
     <polyline points="7 10 12 15 17 10"></polyline>
-    <line x1="12" y1="15" x2="12" y2="3"></line>`),Xr=ft(V`
+    <line x1="12" y1="15" x2="12" y2="3"></line>`),an=ft(V`
     <rect x="9" y="2" width="6" height="5" rx="1"></rect>
     <rect x="2" y="17" width="6" height="5" rx="1"></rect>
     <rect x="16" y="17" width="6" height="5" rx="1"></rect>
-    <path d="M12 7v4M5 17v-3h14v3M12 11v3"></path>`),Qr=ft(V`
+    <path d="M12 7v4M5 17v-3h14v3M12 11v3"></path>`),sn=ft(V`
     <rect x="9" y="2" width="6" height="12" rx="3"></rect>
     <path d="M5 10v1a7 7 0 0 0 14 0v-1"></path>
-    <line x1="12" y1="18" x2="12" y2="22"></line>`),Zr=ft(V`
+    <line x1="12" y1="18" x2="12" y2="22"></line>`),rn=ft(V`
     <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>`);var en=Object.defineProperty,tn=Object.getOwnPropertyDescriptor,ce=(e,t,a,i)=>{for(var s=i>1?void 0:i?tn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&en(t,a,s),s};const $a=["#e91e63","#1676f3","#10b981","#8b5cf6","#f59e0b","#ef4444"],an=e=>$a[Math.abs(e??0)%$a.length],sn=e=>(e??"?").split(/\s+/).filter(t=>t).map(t=>t[0]).slice(0,2).join("").toUpperCase()||"?";let Y=class extends D{constructor(){super(...arguments),this.menu=[],this.chatSessionId=se(),this.menuContextSent=!1,this.items=[],this.listening=!1,this.recognitionAvailable=!1,this.loading=!1,this.elapsedSeconds=0,this.startListening=()=>{this.recognition&&(this.listening?(this.recognition.stop(),this.listening=!1):(this.recognition.start(),this.listening=!0))},this.onSpeechResult=e=>{if(this.recognition){const t=e,a=t.results[t.results[0].length-1][0].transcript;this.messageInputElement&&(this.messageInputElement.value=a,this.send(new CustomEvent("submit",{detail:{value:a},bubbles:!0,composed:!0})))}},this.send=async e=>{this.messageInputElement?.setAttribute("disabled","disabled");const t=e.detail.value.trim();if(!t||!this.sseUrl)return;this.addMessage(t,"user");const a=this.addMessage("","agent");this.startLoading();let i="";try{const s={Accept:"text/event-stream","Content-Type":"application/json"},r=localStorage.getItem("__mateu_auth_token");r&&(s.Authorization="Bearer "+r);const o=sessionStorage.getItem("__mateu_sesion_id");o&&(s["X-Session-Id"]=o);const l=JSON.stringify({message:t,sessionId:this.chatSessionId,...!this.menuContextSent&&{menuContext:this.buildMenuContext(this.menu)}});this.menuContextSent=!0;const c=await fetch(this.sseUrl,{method:"POST",headers:s,body:l});if(!c.ok){const y=await c.text();throw new Error(`Servidor respondió ${c.status}: ${y}`)}const h=c.body?.getReader();if(!h)throw new Error("No se pudo obtener el reader del stream.");const p=new TextDecoder;let v="";for(;;){const{done:y,value:_}=await h.read();if(y){if(v.trim().startsWith("data:")){const q=v.trim().slice(5).trim(),U=this.tryParseTokenUsage(q),L=!U&&this.tryParseCustomEvent(q);U?this.tokenUsage={...this.tokenUsage,...U}:L?L.event==="agent-error"?(i="⚠️ "+(L.detail?.message??"Error desconocido del agente"),this.updateMessage(a,i)):this.dispatchEvent(new CustomEvent(L.event,{detail:L.detail,bubbles:!0,composed:!0})):(i+=q,this.updateMessage(a,i))}break}const k=p.decode(_,{stream:!0});v+=k;const b=v.split(`
-`);v=b.pop()||"";let E=!1;for(const q of b)if(q.trim().startsWith("data:")){const U=q.trim().slice(5).trim(),L=this.tryParseTokenUsage(U),Z=!L&&this.tryParseCustomEvent(U);L?this.tokenUsage={...this.tokenUsage,...L}:Z?Z.event==="agent-error"?(i="⚠️ "+(Z.detail?.message??"Error desconocido del agente"),this.updateMessage(a,i)):this.dispatchEvent(new CustomEvent(Z.event,{detail:Z.detail,bubbles:!0,composed:!0})):(i+=U+`
+    <line x1="6" y1="6" x2="18" y2="18"></line>`);var nn=Object.defineProperty,on=Object.getOwnPropertyDescriptor,ce=(e,t,a,i)=>{for(var s=i>1?void 0:i?on(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&nn(t,a,s),s};const wa=["#e91e63","#1676f3","#10b981","#8b5cf6","#f59e0b","#ef4444"],ln=e=>wa[Math.abs(e??0)%wa.length],dn=e=>(e??"?").split(/\s+/).filter(t=>t).map(t=>t[0]).slice(0,2).join("").toUpperCase()||"?";let Y=class extends L{constructor(){super(...arguments),this.menu=[],this.chatSessionId=se(),this.menuContextSent=!1,this.items=[],this.listening=!1,this.recognitionAvailable=!1,this.loading=!1,this.elapsedSeconds=0,this.startListening=()=>{this.recognition&&(this.listening?(this.recognition.stop(),this.listening=!1):(this.recognition.start(),this.listening=!0))},this.onSpeechResult=e=>{if(this.recognition){const t=e,a=t.results[t.results[0].length-1][0].transcript;this.messageInputElement&&(this.messageInputElement.value=a,this.send(new CustomEvent("submit",{detail:{value:a},bubbles:!0,composed:!0})))}},this.send=async e=>{this.messageInputElement?.setAttribute("disabled","disabled");const t=e.detail.value.trim();if(!t||!this.sseUrl)return;this.addMessage(t,"user");const a=this.addMessage("","agent");this.startLoading();let i="";try{const s={Accept:"text/event-stream","Content-Type":"application/json"},r=localStorage.getItem("__mateu_auth_token");r&&(s.Authorization="Bearer "+r);const o=sessionStorage.getItem("__mateu_sesion_id");o&&(s["X-Session-Id"]=o);const l=JSON.stringify({message:t,sessionId:this.chatSessionId,...!this.menuContextSent&&{menuContext:this.buildMenuContext(this.menu)}});this.menuContextSent=!0;const c=await fetch(this.sseUrl,{method:"POST",headers:s,body:l});if(!c.ok){const y=await c.text();throw new Error(`Servidor respondió ${c.status}: ${y}`)}const h=c.body?.getReader();if(!h)throw new Error("No se pudo obtener el reader del stream.");const p=new TextDecoder;let v="";for(;;){const{done:y,value:T}=await h.read();if(y){if(v.trim().startsWith("data:")){const q=v.trim().slice(5).trim(),U=this.tryParseTokenUsage(q),D=!U&&this.tryParseCustomEvent(q);U?this.tokenUsage={...this.tokenUsage,...U}:D?D.event==="agent-error"?(i="⚠️ "+(D.detail?.message??"Error desconocido del agente"),this.updateMessage(a,i)):this.dispatchEvent(new CustomEvent(D.event,{detail:D.detail,bubbles:!0,composed:!0})):(i+=q,this.updateMessage(a,i))}break}const k=p.decode(T,{stream:!0});v+=k;const g=v.split(`
+`);v=g.pop()||"";let E=!1;for(const q of g)if(q.trim().startsWith("data:")){const U=q.trim().slice(5).trim(),D=this.tryParseTokenUsage(U),Z=!D&&this.tryParseCustomEvent(U);D?this.tokenUsage={...this.tokenUsage,...D}:Z?Z.event==="agent-error"?(i="⚠️ "+(Z.detail?.message??"Error desconocido del agente"),this.updateMessage(a,i)):this.dispatchEvent(new CustomEvent(Z.event,{detail:Z.detail,bubbles:!0,composed:!0})):(i+=U+`
 `,E=!0)}E&&this.updateMessage(a,i)}i||this.updateMessage(a,"⚠️ El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).")}catch(s){console.error("Error en el flujo SSE:",s);const r=s?.message??String(s);(r==="Failed to fetch"||r==="network error"||r==="Load failed")&&!i?this.updateMessage(a,"⚠️ No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible."):this.updateMessage(a,"⚠️ Error: "+r)}finally{this.stopLoading(),setTimeout(()=>{this.messageInputElement&&(this.messageInputElement.value="")},250),this.messageInputElement?.removeAttribute("disabled"),this.messageInputElement?.focus()}},this.closeChat=()=>{this.dispatchEvent(new CustomEvent("close-requested",{bubbles:!0,composed:!0}))},this.submitFromInput=()=>{const e=this.messageInputElement?.value?.trim()??"";e&&this.send(new CustomEvent("submit",{detail:{value:e},bubbles:!0,composed:!0}))},this.onInputKeydown=e=>{e.key==="Enter"&&(e.preventDefault(),this.submitFromInput())}}connectedCallback(){super.connectedCallback();const e=window.SpeechRecognition||window.webkitSpeechRecognition;if(e){const t=new e;this.recognition=t,t.lang="es-ES",t.onend=()=>{setTimeout(()=>{if(this.listening&&this.recognition)try{this.recognition.start()}catch{}},250)},this.recognitionAvailable=!0,t.onresult=this.onSpeechResult,t.onerror=a=>{console.error("Error de reconocimiento: "+a.error),this.listening&&this.recognition&&setTimeout(()=>{this.recognition.start()},250)}}}scrollBottom(){setTimeout(()=>{this.scrollContainer&&this.scrollContainer.scrollTo({top:this.scrollContainer.scrollHeight,behavior:"smooth"})},0)}addMessage(e,t){const a={text:e,time:new Date().toLocaleTimeString(),userName:t.includes("agent")?"Asistente":"Tú",userColorIndex:t.includes("agent")?2:1};return this.items=[...this.items,a],this.scrollBottom(),this.items.length-1}updateMessage(e,t){this.items=this.items.map((a,i)=>i===e?{...a,text:t}:a),this.scrollBottom()}tryParseCustomEvent(e){const t=e.trim();if(!t.startsWith("{"))return null;try{const a=JSON.parse(t);if(typeof a.event=="string")return{event:a.event,detail:a.detail??{}}}catch{}return null}tryParseTokenUsage(e){const t=e.trim();if(!t.startsWith("{"))return null;try{const a=JSON.parse(t);if("inputTokens"in a||"outputTokens"in a||"totalTokens"in a)return a}catch{}return null}buildMenuContext(e,t=[]){const a=[];for(const i of e){if(i.separator||i.remote)continue;const s=[...t,i.label];if(i.submenus&&i.submenus.length>0)a.push(...this.buildMenuContext(i.submenus,s));else{const r={path:s,navigation:{route:i.route,consumedRoute:i.consumedRoute,actionId:i.actionId??"",baseUrl:i.baseUrl,serverSideType:i.serverSideType,uriPrefix:i.uriPrefix}};i.description&&(r.description=i.description),a.push(r)}}return a}startLoading(){this.loading=!0,this.elapsedSeconds=0,this._elapsedTimer=setInterval(()=>{this.elapsedSeconds++},1e3)}stopLoading(){this.loading=!1,clearInterval(this._elapsedTimer),this._elapsedTimer=void 0}render(){return n`
             <div class="chat-container">
                 <div class="chat-header">
                     <span class="chat-title">AI Assistant</span>
                     <button class="chat-close" @click="${this.closeChat}" title="Cerrar">
-                        ${Zr}
+                        ${rn}
                     </button>
                 </div>
                 <div class="scroll-container">
                     <div class="message-list" role="list">
                         ${this.items.map(e=>n`
                             <div class="message" role="listitem">
-                                <div class="avatar" style="background: ${an(e.userColorIndex)};">${sn(e.userName)}</div>
+                                <div class="avatar" style="background: ${ln(e.userColorIndex)};">${dn(e.userName)}</div>
                                 <div class="message-body">
                                     <div class="message-meta">
                                         <span class="message-name">${e.userName}</span>
@@ -3212,7 +3328,7 @@ id="${e.id}"
                             style="color: ${this.listening?"red":"var(--lumo-contrast-50pct, #767676)"};"
                             @click="${this.startListening}"
                             ?disabled="${!this.recognitionAvailable}"
-                    >${Qr}</button>
+                    >${sn}</button>
                     <input class="msg-input"
                            placeholder="Message"
                            aria-label="Message"
@@ -3220,7 +3336,7 @@ id="${e.id}"
                     <button class="nbtn primary" ?disabled="${this.loading}" @click="${this.submitFromInput}">Send</button>
                 </div>
             </div>
-        `}};Y.styles=[Wt,T`
+        `}};Y.styles=[Vt,_`
         :host {
             display: block;
             height: 100%;
@@ -3453,15 +3569,15 @@ id="${e.id}"
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-    `];ce([u()],Y.prototype,"sseUrl",2);ce([u({attribute:!1})],Y.prototype,"menu",2);ce([u()],Y.prototype,"items",2);ce([Se(".scroll-container")],Y.prototype,"scrollContainer",2);ce([Se(".msg-input")],Y.prototype,"messageInputElement",2);ce([f()],Y.prototype,"recognition",2);ce([f()],Y.prototype,"listening",2);ce([f()],Y.prototype,"recognitionAvailable",2);ce([f()],Y.prototype,"loading",2);ce([f()],Y.prototype,"elapsedSeconds",2);ce([f()],Y.prototype,"tokenUsage",2);Y=ce([O("mateu-chat")],Y);var rn=Object.defineProperty,nn=Object.getOwnPropertyDescriptor,Rt=(e,t,a,i)=>{for(var s=i>1?void 0:i?nn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&rn(t,a,s),s};let st=class extends D{updated(e){super.updated(e),this.chart&&(this.chart.destroy(),this.chart=void 0),this.data&&this.createChart(this.data)}async createChart(e){const[{default:t}]=await Promise.all([te(()=>import("./vendor-chartjs.js").then(i=>i.a),[]),te(()=>import("./vendor-chartjs.js").then(i=>i.c),[])]);if(e!==this.data)return;this.chart&&this.chart.destroy();const a={type:this.type,data:this.data,options:this.options};this.chart=new t(this.chartElement,a)}handleSlotChange(){}render(){return n`
+    `];ce([u()],Y.prototype,"sseUrl",2);ce([u({attribute:!1})],Y.prototype,"menu",2);ce([u()],Y.prototype,"items",2);ce([Se(".scroll-container")],Y.prototype,"scrollContainer",2);ce([Se(".msg-input")],Y.prototype,"messageInputElement",2);ce([f()],Y.prototype,"recognition",2);ce([f()],Y.prototype,"listening",2);ce([f()],Y.prototype,"recognitionAvailable",2);ce([f()],Y.prototype,"loading",2);ce([f()],Y.prototype,"elapsedSeconds",2);ce([f()],Y.prototype,"tokenUsage",2);Y=ce([O("mateu-chat")],Y);var cn=Object.defineProperty,hn=Object.getOwnPropertyDescriptor,Rt=(e,t,a,i)=>{for(var s=i>1?void 0:i?hn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&cn(t,a,s),s};let st=class extends L{updated(e){super.updated(e),this.chart&&(this.chart.destroy(),this.chart=void 0),this.data&&this.createChart(this.data)}async createChart(e){const[{default:t}]=await Promise.all([te(()=>import("./vendor-chartjs.js").then(i=>i.a),[]),te(()=>import("./vendor-chartjs.js").then(i=>i.c),[])]);if(e!==this.data)return;this.chart&&this.chart.destroy();const a={type:this.type,data:this.data,options:this.options};this.chart=new t(this.chartElement,a)}handleSlotChange(){}render(){return n`
             <div class="container">
                 <canvas id="chart"></canvas>
             </div>
             <div style="display: none;">
                 <slot @slotchange=${this.handleSlotChange}></slot>
             </div>
-       `}};st.styles=T`
-  `;Rt([u()],st.prototype,"type",2);Rt([u()],st.prototype,"data",2);Rt([u()],st.prototype,"options",2);Rt([Se("#chart")],st.prototype,"chartElement",2);st=Rt([O("mateu-chart")],st);var on=Object.defineProperty,ln=Object.getOwnPropertyDescriptor,oa=(e,t,a,i)=>{for(var s=i>1?void 0:i?ln(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&on(t,a,s),s};let Ct=class extends D{updated(e){super.updated(e),this.chart&&(this.chart.destroy(),this.chart=void 0),this.xml&&this.createViewer(this.xml)}async createViewer(e){const{default:t}=await te(async()=>{const{default:i}=await import("./vendor-diagrams.js").then(s=>s.i);return{default:i}},__vite__mapDeps([4,3,1,2]));if(e!==this.xml)return;this.chart&&this.chart.destroy();const a={container:this.divElement};this.chart=new t(a),this.chart.importXML(e)}handleSlotChange(){}render(){return n`
+       `}};st.styles=_`
+  `;Rt([u()],st.prototype,"type",2);Rt([u()],st.prototype,"data",2);Rt([u()],st.prototype,"options",2);Rt([Se("#chart")],st.prototype,"chartElement",2);st=Rt([O("mateu-chart")],st);var un=Object.defineProperty,pn=Object.getOwnPropertyDescriptor,da=(e,t,a,i)=>{for(var s=i>1?void 0:i?pn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&un(t,a,s),s};let It=class extends L{updated(e){super.updated(e),this.chart&&(this.chart.destroy(),this.chart=void 0),this.xml&&this.createViewer(this.xml)}async createViewer(e){const{default:t}=await te(async()=>{const{default:i}=await import("./vendor-diagrams.js").then(s=>s.i);return{default:i}},__vite__mapDeps([4,3,1,2]));if(e!==this.xml)return;this.chart&&this.chart.destroy();const a={container:this.divElement};this.chart=new t(a),this.chart.importXML(e)}handleSlotChange(){}render(){return n`
             <div class="container" style="width: 20rem; height: 15rem; overflow: auto;">
                 <!-- BPMN diagram container -->
                 <div id="canvas" style="width: 60rem; height: 30rem; zoom: 0.5;"></div>
@@ -3469,8 +3585,8 @@ id="${e.id}"
             <div style="display: none;">
                 <slot @slotchange=${this.handleSlotChange}></slot>
             </div>
-       `}};Ct.styles=T`
-  `;oa([u()],Ct.prototype,"xml",2);oa([Se("#canvas")],Ct.prototype,"divElement",2);Ct=oa([O("mateu-bpmn")],Ct);var dn=Object.defineProperty,cn=Object.getOwnPropertyDescriptor,bt=(e,t,a,i)=>{for(var s=i>1?void 0:i?cn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&dn(t,a,s),s};const Jt=160,we=56,hn=220,ya=110,Ue=60,un={ACTION:"#3B82F6",JOIN:"#8B5CF6",FORK:"#F59E0B",END:"#EF4444",USER_TASK:"#10B981",PROCESS:"#6366F1"},pn={ACTION:"▶",JOIN:"⟨",FORK:"⟩",END:"◼",USER_TASK:"👤",PROCESS:"⚙"},vn=["ACTION","JOIN","FORK","END","USER_TASK","PROCESS"];function mn(){return"step-"+Math.random().toString(36).slice(2,8)}let He=class extends D{constructor(){super(...arguments),this.value='{"name":"New Workflow","steps":[]}',this.wf={name:"New Workflow",steps:[]},this.positions={},this.selectedId=null,this.showMeta=!1,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;const t=this.toSvgPoint(e);this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener("mousemove",this.onMouseMove),window.removeEventListener("mouseup",this.onMouseUp)}}updated(e){if(e.has("value")){try{this.wf=JSON.parse(this.value)}catch{}this.autoLayout()}}autoLayout(){const e=this.wf.steps??[],t={};e.forEach(o=>{t[o.id]=0});let a=!0;for(;a;)a=!1,e.forEach(o=>{if(o.preconditionStepId!=null&&t[o.preconditionStepId]!==void 0){const l=t[o.preconditionStepId]+1;l>t[o.id]&&(t[o.id]=l,a=!0)}});const i={};e.forEach(o=>{const l=t[o.id]??0;(i[l]??=[]).push(o.id)});const s={...this.positions};let r=!1;Object.entries(i).forEach(([o,l])=>{const c=Number(o);l.forEach((h,p)=>{s[h]||(s[h]={x:Ue+c*hn,y:Ue+p*ya},r=!0)})}),r&&(this.positions=s)}emit(){const e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){this.wf={...this.wf,steps:this.wf.steps.map(a=>a.id===e?{...a,...t}:a)},this.emit()}addStep(){const e=mn(),t={id:e,type:"ACTION",name:"New Step"};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};const a=Object.values(this.positions).map(s=>s.y),i=a.length?Math.max(...a)+ya:Ue;this.positions={...this.positions,[e]:{x:Ue,y:i}},this.selectedId=e,this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(i=>i.id!==e).map(i=>i.preconditionStepId===e?{...i,preconditionStepId:void 0}:i)};const{[e]:t,...a}=this.positions;this.positions=a,this.selectedId===e&&(this.selectedId=null),this.emit()}onNodeMouseDown(e,t){e.preventDefault(),this.draggingId=t;const a=this.positions[t]??{x:0,y:0},i=this.toSvgPoint(e);this.dragOffset={x:i.x-a.x,y:i.y-a.y},this.svgEl=e.currentTarget.closest("svg"),window.addEventListener("mousemove",this.onMouseMove),window.addEventListener("mouseup",this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};const t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}canvasSize(){const e=Object.values(this.positions),t=e.length?Math.max(...e.map(i=>i.x))+Jt+Ue:600,a=e.length?Math.max(...e.map(i=>i.y))+we+Ue:400;return{w:Math.max(t,600),h:Math.max(a,400)}}render(){const{w:e,h:t}=this.canvasSize(),a=this.wf.steps??[];return n`
+       `}};It.styles=_`
+  `;da([u()],It.prototype,"xml",2);da([Se("#canvas")],It.prototype,"divElement",2);It=da([O("mateu-bpmn")],It);var vn=Object.defineProperty,mn=Object.getOwnPropertyDescriptor,bt=(e,t,a,i)=>{for(var s=i>1?void 0:i?mn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&vn(t,a,s),s};const Yt=160,we=56,fn=220,xa=110,Ue=60,bn={ACTION:"#3B82F6",JOIN:"#8B5CF6",FORK:"#F59E0B",END:"#EF4444",USER_TASK:"#10B981",PROCESS:"#6366F1"},gn={ACTION:"▶",JOIN:"⟨",FORK:"⟩",END:"◼",USER_TASK:"👤",PROCESS:"⚙"},$n=["ACTION","JOIN","FORK","END","USER_TASK","PROCESS"];function yn(){return"step-"+Math.random().toString(36).slice(2,8)}let He=class extends L{constructor(){super(...arguments),this.value='{"name":"New Workflow","steps":[]}',this.wf={name:"New Workflow",steps:[]},this.positions={},this.selectedId=null,this.showMeta=!1,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;const t=this.toSvgPoint(e);this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener("mousemove",this.onMouseMove),window.removeEventListener("mouseup",this.onMouseUp)}}updated(e){if(e.has("value")){try{this.wf=JSON.parse(this.value)}catch{}this.autoLayout()}}autoLayout(){const e=this.wf.steps??[],t={};e.forEach(o=>{t[o.id]=0});let a=!0;for(;a;)a=!1,e.forEach(o=>{if(o.preconditionStepId!=null&&t[o.preconditionStepId]!==void 0){const l=t[o.preconditionStepId]+1;l>t[o.id]&&(t[o.id]=l,a=!0)}});const i={};e.forEach(o=>{const l=t[o.id]??0;(i[l]??=[]).push(o.id)});const s={...this.positions};let r=!1;Object.entries(i).forEach(([o,l])=>{const c=Number(o);l.forEach((h,p)=>{s[h]||(s[h]={x:Ue+c*fn,y:Ue+p*xa},r=!0)})}),r&&(this.positions=s)}emit(){const e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){this.wf={...this.wf,steps:this.wf.steps.map(a=>a.id===e?{...a,...t}:a)},this.emit()}addStep(){const e=yn(),t={id:e,type:"ACTION",name:"New Step"};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};const a=Object.values(this.positions).map(s=>s.y),i=a.length?Math.max(...a)+xa:Ue;this.positions={...this.positions,[e]:{x:Ue,y:i}},this.selectedId=e,this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(i=>i.id!==e).map(i=>i.preconditionStepId===e?{...i,preconditionStepId:void 0}:i)};const{[e]:t,...a}=this.positions;this.positions=a,this.selectedId===e&&(this.selectedId=null),this.emit()}onNodeMouseDown(e,t){e.preventDefault(),this.draggingId=t;const a=this.positions[t]??{x:0,y:0},i=this.toSvgPoint(e);this.dragOffset={x:i.x-a.x,y:i.y-a.y},this.svgEl=e.currentTarget.closest("svg"),window.addEventListener("mousemove",this.onMouseMove),window.addEventListener("mouseup",this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};const t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}canvasSize(){const e=Object.values(this.positions),t=e.length?Math.max(...e.map(i=>i.x))+Yt+Ue:600,a=e.length?Math.max(...e.map(i=>i.y))+we+Ue:400;return{w:Math.max(t,600),h:Math.max(a,400)}}render(){const{w:e,h:t}=this.canvasSize(),a=this.wf.steps??[];return n`
             <div class="root">
                 ${this.renderToolbar()}
                 ${this.showMeta?this.renderMeta():""}
@@ -3497,15 +3613,15 @@ id="${e.id}"
                 <span class="badge badge-${e.toLowerCase()}">${e}</span>
                 <div style="flex:1"></div>
                 <button class="nbtn" @click="${()=>this.showMeta=!this.showMeta}">
-                    ${sa}
+                    ${na}
                     Settings
                 </button>
                 <button class="nbtn primary" @click="${()=>this.addStep()}">
-                    ${ra}
+                    ${oa}
                     Add Step
                 </button>
                 <button class="nbtn" @click="${()=>this.exportJson()}">
-                    ${na}
+                    ${la}
                     Export
                 </button>
             </div>
@@ -3534,16 +3650,16 @@ id="${e.id}"
                     `:""}
                 </div>
             </div>
-        `}renderArrow(e){if(!e.preconditionStepId)return V``;const t=this.positions[e.preconditionStepId],a=this.positions[e.id];if(!t||!a)return V``;const i=t.x+Jt,s=t.y+we/2,r=a.x,o=a.y+we/2,l=(i+r)/2;return V`
+        `}renderArrow(e){if(!e.preconditionStepId)return V``;const t=this.positions[e.preconditionStepId],a=this.positions[e.id];if(!t||!a)return V``;const i=t.x+Yt,s=t.y+we/2,r=a.x,o=a.y+we/2,l=(i+r)/2;return V`
             <path d="M${i},${s} C${l},${s} ${l},${o} ${r},${o}"
                   fill="none" stroke="#94a3b8" stroke-width="2"
                   marker-end="url(#arrow)"/>
-        `}renderNode(e){const t=this.positions[e.id]??{x:Ue,y:Ue},a=un[e.type]??"#64748b",i=pn[e.type]??"•",s=this.selectedId===e.id;return V`
+        `}renderNode(e){const t=this.positions[e.id]??{x:Ue,y:Ue},a=bn[e.type]??"#64748b",i=gn[e.type]??"•",s=this.selectedId===e.id;return V`
             <g transform="translate(${t.x},${t.y})"
                style="cursor:grab"
                @mousedown="${r=>this.onNodeMouseDown(r,e.id)}"
                @click="${r=>{r.stopPropagation(),this.selectedId=e.id}}">
-                <rect width="${Jt}" height="${we}" rx="8"
+                <rect width="${Yt}" height="${we}" rx="8"
                       fill="white"
                       stroke="${s?a:"#e2e8f0"}"
                       stroke-width="${s?2.5:1.5}"
@@ -3579,7 +3695,7 @@ id="${e.id}"
                         @change="${i=>this.updateStep(e.id,{name:i.target.value})}"/>`)}
                     ${a("Type",n`
                         <select class="inp" @change="${i=>this.updateStep(e.id,{type:i.target.value})}">
-                            ${vn.map(i=>n`<option value="${i}" ?selected="${e.type===i}">${i}</option>`)}
+                            ${$n.map(i=>n`<option value="${i}" ?selected="${e.type===i}">${i}</option>`)}
                         </select>`)}
                     ${a("Description",n`<textarea class="inp" rows="2"
                         @change="${i=>this.updateStep(e.id,{description:i.target.value})}">${e.description??""}</textarea>`)}
@@ -3624,7 +3740,7 @@ id="${e.id}"
                         @change="${i=>this.updateStep(e.id,{childWorkflowDefinitionId:i.target.value||void 0})}"/>`):""}
                 </div>
             </div>
-        `}exportJson(){const e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),i=document.createElement("a");i.href=a,i.download=(this.wf.name??"workflow").replace(/\s+/g,"-").toLowerCase()+".json",i.click(),URL.revokeObjectURL(a)}};He.styles=[Wt,T`
+        `}exportJson(){const e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),i=document.createElement("a");i.href=a,i.download=(this.wf.name??"workflow").replace(/\s+/g,"-").toLowerCase()+".json",i.click(),URL.revokeObjectURL(a)}};He.styles=[Vt,_`
         :host { display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif); }
 
         .root { display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff); }
@@ -3702,7 +3818,7 @@ id="${e.id}"
         .inp:focus { border-color: #3B82F6; }
         textarea.inp { resize: vertical; }
         input[readonly].inp { background: #f8fafc; color: #94a3b8; }
-    `];bt([u()],He.prototype,"value",2);bt([f()],He.prototype,"wf",2);bt([f()],He.prototype,"positions",2);bt([f()],He.prototype,"selectedId",2);bt([f()],He.prototype,"showMeta",2);He=bt([O("mateu-workflow")],He);var fn=Object.defineProperty,bn=Object.getOwnPropertyDescriptor,Ae=(e,t,a,i)=>{for(var s=i>1?void 0:i?bn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&fn(t,a,s),s};const yt=160,pe=56,Me=60,gn={ACTION:"#3B82F6",JOIN:"#8B5CF6",FORK:"#F59E0B",END:"#EF4444",USER_TASK:"#10B981",PROCESS:"#6366F1"},$n={ACTION:"▶",JOIN:"⟨",FORK:"⟩",END:"◼",USER_TASK:"👤",PROCESS:"⚙"},yn=["ACTION","JOIN","FORK","END","USER_TASK","PROCESS"];let Yt;const wn=()=>(Yt||(Yt=te(()=>import("./vendor-diagrams.js").then(e=>e.e),__vite__mapDeps([4,3,1,2])).then(e=>new e.default)),Yt);function xn(){return"step-"+Math.random().toString(36).slice(2,8)}let be=class extends D{constructor(){super(...arguments),this.value='{"name":"New Workflow","steps":[]}',this.readOnly=!1,this.wf={name:"New Workflow",steps:[]},this.positions={},this.layoutReady=!1,this.selectedId=null,this.showMeta=!1,this.layoutError=null,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.elkPositioned=new Set,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;const t=this.toSvgPoint(e);this.elkPositioned.add(this.draggingId),this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener("mousemove",this.onMouseMove),window.removeEventListener("mouseup",this.onMouseUp)}}updated(e){if(e.has("value"))try{const t=JSON.parse(this.value),a=new Set((this.wf.steps??[]).map(r=>r.id)),i=new Set((t.steps??[]).map(r=>r.id)),s=a.size!==i.size||[...i].some(r=>!a.has(r))||[...i].some(r=>{const o=(this.wf.steps??[]).find(c=>c.id===r),l=(t.steps??[]).find(c=>c.id===r);return o?.preconditionStepId!==l?.preconditionStepId});this.wf=t,(s||!this.layoutReady)&&this.runElkLayout()}catch{}}async runElkLayout(){const e=this.wf.steps??[];if(e.length===0){this.positions={},this.layoutReady=!0;return}const t={id:"root",layoutOptions:{"elk.algorithm":"layered","elk.direction":"RIGHT","elk.spacing.nodeNode":"40","elk.layered.spacing.nodeNodeBetweenLayers":"80","elk.edgeRouting":"ORTHOGONAL","elk.layered.nodePlacement.strategy":"BRANDES_KOEPF"},children:e.map(a=>({id:a.id,width:yt,height:pe})),edges:e.filter(a=>a.preconditionStepId).map(a=>({id:`${a.preconditionStepId}->${a.id}`,sources:[a.preconditionStepId],targets:[a.id]}))};try{const i=await(await wn()).layout(t),s={...this.positions};for(const r of i.children??[])(!this.elkPositioned.has(r.id)||!s[r.id])&&(s[r.id]={x:(r.x??0)+Me,y:(r.y??0)+Me},this.elkPositioned.add(r.id));this.positions=s,this.layoutReady=!0,this.layoutError=null}catch(a){this.layoutError=a?.message??"ELK layout failed",this.layoutReady=!0}}emit(){const e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){const a=this.wf.steps.map(r=>r.id===e?{...r,...t}:r),i=this.wf.steps.find(r=>r.id===e),s=t.preconditionStepId!==void 0&&t.preconditionStepId!==i?.preconditionStepId;this.wf={...this.wf,steps:a},s&&(this.elkPositioned.clear(),this.runElkLayout()),this.emit()}addStep(){const e=xn(),t={id:e,type:"ACTION",name:"New Step"};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};const a=Object.values(this.positions).map(i=>i.x);this.positions={...this.positions,[e]:{x:a.length?Math.max(...a)+yt+80:Me,y:Me}},this.selectedId=e,this.elkPositioned.clear(),this.runElkLayout(),this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(i=>i.id!==e).map(i=>i.preconditionStepId===e?{...i,preconditionStepId:void 0}:i)};const{[e]:t,...a}=this.positions;this.positions=a,this.elkPositioned.delete(e),this.selectedId===e&&(this.selectedId=null),this.runElkLayout(),this.emit()}onNodeMouseDown(e,t){if(this.readOnly)return;e.preventDefault(),this.draggingId=t;const a=this.positions[t]??{x:0,y:0},i=this.toSvgPoint(e);this.dragOffset={x:i.x-a.x,y:i.y-a.y},this.svgEl=e.currentTarget.closest("svg"),window.addEventListener("mousemove",this.onMouseMove),window.addEventListener("mouseup",this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};const t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}relayout(){this.elkPositioned.clear(),this.runElkLayout()}canvasSize(){const e=Object.values(this.positions),t=e.length?Math.max(...e.map(i=>i.x))+yt+Me:600,a=e.length?Math.max(...e.map(i=>i.y))+pe+Me:400;return{w:Math.max(t,600),h:Math.max(a,400)}}render(){if(!this.layoutReady)return n`<div class="loading">Computing layout…</div>`;const{w:e,h:t}=this.canvasSize(),a=this.wf.steps??[];return n`
+    `];bt([u()],He.prototype,"value",2);bt([f()],He.prototype,"wf",2);bt([f()],He.prototype,"positions",2);bt([f()],He.prototype,"selectedId",2);bt([f()],He.prototype,"showMeta",2);He=bt([O("mateu-workflow")],He);var wn=Object.defineProperty,xn=Object.getOwnPropertyDescriptor,Fe=(e,t,a,i)=>{for(var s=i>1?void 0:i?xn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&wn(t,a,s),s};const yt=160,pe=56,Me=60,kn={ACTION:"#3B82F6",JOIN:"#8B5CF6",FORK:"#F59E0B",END:"#EF4444",USER_TASK:"#10B981",PROCESS:"#6366F1"},Sn={ACTION:"▶",JOIN:"⟨",FORK:"⟩",END:"◼",USER_TASK:"👤",PROCESS:"⚙"},En=["ACTION","JOIN","FORK","END","USER_TASK","PROCESS"];let Xt;const Cn=()=>(Xt||(Xt=te(()=>import("./vendor-diagrams.js").then(e=>e.e),__vite__mapDeps([4,3,1,2])).then(e=>new e.default)),Xt);function In(){return"step-"+Math.random().toString(36).slice(2,8)}let be=class extends L{constructor(){super(...arguments),this.value='{"name":"New Workflow","steps":[]}',this.readOnly=!1,this.wf={name:"New Workflow",steps:[]},this.positions={},this.layoutReady=!1,this.selectedId=null,this.showMeta=!1,this.layoutError=null,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.elkPositioned=new Set,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;const t=this.toSvgPoint(e);this.elkPositioned.add(this.draggingId),this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener("mousemove",this.onMouseMove),window.removeEventListener("mouseup",this.onMouseUp)}}updated(e){if(e.has("value"))try{const t=JSON.parse(this.value),a=new Set((this.wf.steps??[]).map(r=>r.id)),i=new Set((t.steps??[]).map(r=>r.id)),s=a.size!==i.size||[...i].some(r=>!a.has(r))||[...i].some(r=>{const o=(this.wf.steps??[]).find(c=>c.id===r),l=(t.steps??[]).find(c=>c.id===r);return o?.preconditionStepId!==l?.preconditionStepId});this.wf=t,(s||!this.layoutReady)&&this.runElkLayout()}catch{}}async runElkLayout(){const e=this.wf.steps??[];if(e.length===0){this.positions={},this.layoutReady=!0;return}const t={id:"root",layoutOptions:{"elk.algorithm":"layered","elk.direction":"RIGHT","elk.spacing.nodeNode":"40","elk.layered.spacing.nodeNodeBetweenLayers":"80","elk.edgeRouting":"ORTHOGONAL","elk.layered.nodePlacement.strategy":"BRANDES_KOEPF"},children:e.map(a=>({id:a.id,width:yt,height:pe})),edges:e.filter(a=>a.preconditionStepId).map(a=>({id:`${a.preconditionStepId}->${a.id}`,sources:[a.preconditionStepId],targets:[a.id]}))};try{const i=await(await Cn()).layout(t),s={...this.positions};for(const r of i.children??[])(!this.elkPositioned.has(r.id)||!s[r.id])&&(s[r.id]={x:(r.x??0)+Me,y:(r.y??0)+Me},this.elkPositioned.add(r.id));this.positions=s,this.layoutReady=!0,this.layoutError=null}catch(a){this.layoutError=a?.message??"ELK layout failed",this.layoutReady=!0}}emit(){const e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){const a=this.wf.steps.map(r=>r.id===e?{...r,...t}:r),i=this.wf.steps.find(r=>r.id===e),s=t.preconditionStepId!==void 0&&t.preconditionStepId!==i?.preconditionStepId;this.wf={...this.wf,steps:a},s&&(this.elkPositioned.clear(),this.runElkLayout()),this.emit()}addStep(){const e=In(),t={id:e,type:"ACTION",name:"New Step"};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};const a=Object.values(this.positions).map(i=>i.x);this.positions={...this.positions,[e]:{x:a.length?Math.max(...a)+yt+80:Me,y:Me}},this.selectedId=e,this.elkPositioned.clear(),this.runElkLayout(),this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(i=>i.id!==e).map(i=>i.preconditionStepId===e?{...i,preconditionStepId:void 0}:i)};const{[e]:t,...a}=this.positions;this.positions=a,this.elkPositioned.delete(e),this.selectedId===e&&(this.selectedId=null),this.runElkLayout(),this.emit()}onNodeMouseDown(e,t){if(this.readOnly)return;e.preventDefault(),this.draggingId=t;const a=this.positions[t]??{x:0,y:0},i=this.toSvgPoint(e);this.dragOffset={x:i.x-a.x,y:i.y-a.y},this.svgEl=e.currentTarget.closest("svg"),window.addEventListener("mousemove",this.onMouseMove),window.addEventListener("mouseup",this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};const t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}relayout(){this.elkPositioned.clear(),this.runElkLayout()}canvasSize(){const e=Object.values(this.positions),t=e.length?Math.max(...e.map(i=>i.x))+yt+Me:600,a=e.length?Math.max(...e.map(i=>i.y))+pe+Me:400;return{w:Math.max(t,600),h:Math.max(a,400)}}render(){if(!this.layoutReady)return n`<div class="loading">Computing layout…</div>`;const{w:e,h:t}=this.canvasSize(),a=this.wf.steps??[];return n`
             <div class="root">
                 ${this.renderToolbar()}
                 ${this.showMeta?this.renderMeta():""}
@@ -3735,21 +3851,21 @@ id="${e.id}"
                 <div style="flex:1"></div>
                 <button class="nbtn" title="Re-run ELK layout"
                         @click="${()=>this.relayout()}">
-                    ${Xr}
+                    ${an}
                     Re-layout
                 </button>
                 ${this.readOnly?d:n`
                     <button class="nbtn" @click="${()=>this.showMeta=!this.showMeta}">
-                        ${sa}
+                        ${na}
                         Settings
                     </button>
                     <button class="nbtn primary" @click="${()=>this.addStep()}">
-                        ${ra}
+                        ${oa}
                         Add Step
                     </button>
                 `}
                 <button class="nbtn" @click="${()=>this.exportJson()}">
-                    ${na}
+                    ${la}
                     Export
                 </button>
             </div>
@@ -3786,7 +3902,7 @@ id="${e.id}"
             <path d="M${i},${s} C${l},${s} ${l},${o} ${r},${o}"
                   fill="none" stroke="#94a3b8" stroke-width="2"
                   marker-end="url(#arrow)"/>
-        `}renderNode(e){const t=this.positions[e.id]??{x:Me,y:Me},a=gn[e.type]??"#64748b",i=$n[e.type]??"•",s=this.selectedId===e.id,r=e.name.length>16?e.name.slice(0,15)+"…":e.name;return V`
+        `}renderNode(e){const t=this.positions[e.id]??{x:Me,y:Me},a=kn[e.type]??"#64748b",i=Sn[e.type]??"•",s=this.selectedId===e.id,r=e.name.length>16?e.name.slice(0,15)+"…":e.name;return V`
             <g transform="translate(${t.x},${t.y})"
                style="cursor:grab"
                @mousedown="${o=>this.onNodeMouseDown(o,e.id)}"
@@ -3831,7 +3947,7 @@ id="${e.id}"
                     ${i("Type",n`
                         <select class="inp" ?disabled="${a}"
                                 @change="${a?d:s=>this.updateStep(e.id,{type:s.target.value})}">
-                            ${yn.map(s=>n`
+                            ${En.map(s=>n`
                                 <option value="${s}" ?selected="${e.type===s}">${s}</option>`)}
                         </select>`)}
                     ${i("Description",n`<textarea class="inp" rows="2" ?readonly="${a}"
@@ -3888,7 +4004,7 @@ id="${e.id}"
                                @change="${a?d:s=>this.updateStep(e.id,{childWorkflowDefinitionId:s.target.value||void 0})}"/>`):""}
                 </div>
             </div>
-        `}exportJson(){const e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),i=document.createElement("a");i.href=a,i.download=(this.wf.name??"workflow").replace(/\s+/g,"-").toLowerCase()+".json",i.click(),URL.revokeObjectURL(a)}};be.styles=[Wt,T`
+        `}exportJson(){const e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),i=document.createElement("a");i.href=a,i.download=(this.wf.name??"workflow").replace(/\s+/g,"-").toLowerCase()+".json",i.click(),URL.revokeObjectURL(a)}};be.styles=[Vt,_`
         :host {display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif);}
 
         .root {display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff);}
@@ -3966,7 +4082,7 @@ id="${e.id}"
         .inp:focus {border-color: #3B82F6;}
         textarea.inp {resize: vertical;}
         input[readonly].inp {background: #f8fafc; color: #94a3b8;}
-    `];Ae([u()],be.prototype,"value",2);Ae([u({type:Boolean})],be.prototype,"readOnly",2);Ae([f()],be.prototype,"wf",2);Ae([f()],be.prototype,"positions",2);Ae([f()],be.prototype,"layoutReady",2);Ae([f()],be.prototype,"selectedId",2);Ae([f()],be.prototype,"showMeta",2);Ae([f()],be.prototype,"layoutError",2);be=Ae([O("mateu-workflow-elk")],be);var kn=Object.defineProperty,Sn=Object.getOwnPropertyDescriptor,Pt=(e,t,a,i)=>{for(var s=i>1?void 0:i?Sn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&kn(t,a,s),s};const En=["string","integer","number","bool","date","time","dateTime","dateRange","money","file","array","status","component","menu","range","action","actionGroup"],Cn=["regular","radio","checkbox","textarea","toggle","combobox","select","email","password","richText","listBox","html","markdown","image","icon","link","money","grid","color","choice","popover","slider","button","stars"],In={string:"#3B82F6",integer:"#8B5CF6",number:"#6366F1",bool:"#10B981",date:"#F59E0B",time:"#F59E0B",dateTime:"#F59E0B",dateRange:"#F59E0B",money:"#EF4444",file:"#64748B",array:"#0EA5E9",status:"#EC4899",component:"#14B8A6",menu:"#94A3B8",range:"#A855F7",action:"#F97316",actionGroup:"#FB923C"};function wa(){return"field-"+Math.random().toString(36).slice(2,8)}let rt=class extends D{constructor(){super(...arguments),this.value='{"name":"New Form","fields":[]}',this.form={name:"New Form",fields:[]},this.selectedId=null,this.showMeta=!1,this.sortable=null,this.listEl=null}updated(e){if(e.has("value"))try{this.form=JSON.parse(this.value)}catch{}this.attachSortable()}disconnectedCallback(){super.disconnectedCallback(),this.sortable?.destroy(),this.sortable=null}attachSortable(){const e=this.shadowRoot?.querySelector(".field-list");!e||e===this.listEl||(this.listEl=e,this.sortable?.destroy(),this.sortable=di.create(e,{animation:150,handle:".drag-handle",ghostClass:"sortable-ghost",onEnd:t=>{const{oldIndex:a,newIndex:i}=t;if(a===void 0||i===void 0||a===i)return;const s=[...this.form.fields],[r]=s.splice(a,1);s.splice(i,0,r),this.form={...this.form,fields:s},this.emit()}}))}emit(){const e=JSON.stringify(this.form,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateForm(e){this.form={...this.form,...e},this.emit()}updateField(e,t){this.form={...this.form,fields:this.form.fields.map(a=>a.id===e?{...a,...t}:a)},this.emit()}addField(){const e=wa(),t={id:e,label:"New Field",dataType:"string"};this.form={...this.form,fields:[...this.form.fields,t]},this.selectedId=e,this.emit()}deleteField(e){this.form={...this.form,fields:this.form.fields.filter(t=>t.id!==e)},this.selectedId===e&&(this.selectedId=null),this.emit()}duplicateField(e){const t=this.form.fields.find(r=>r.id===e);if(!t)return;const a={...t,id:wa(),label:t.label+" (copy)"},i=this.form.fields.findIndex(r=>r.id===e),s=[...this.form.fields];s.splice(i+1,0,a),this.form={...this.form,fields:s},this.selectedId=a.id,this.emit()}render(){return n`
+    `];Fe([u()],be.prototype,"value",2);Fe([u({type:Boolean})],be.prototype,"readOnly",2);Fe([f()],be.prototype,"wf",2);Fe([f()],be.prototype,"positions",2);Fe([f()],be.prototype,"layoutReady",2);Fe([f()],be.prototype,"selectedId",2);Fe([f()],be.prototype,"showMeta",2);Fe([f()],be.prototype,"layoutError",2);be=Fe([O("mateu-workflow-elk")],be);var _n=Object.defineProperty,Tn=Object.getOwnPropertyDescriptor,Lt=(e,t,a,i)=>{for(var s=i>1?void 0:i?Tn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&_n(t,a,s),s};const On=["string","integer","number","bool","date","time","dateTime","dateRange","money","file","array","status","component","menu","range","action","actionGroup"],Pn=["regular","radio","checkbox","textarea","toggle","combobox","select","email","password","richText","listBox","html","markdown","image","icon","link","money","grid","color","choice","popover","slider","button","stars"],Rn={string:"#3B82F6",integer:"#8B5CF6",number:"#6366F1",bool:"#10B981",date:"#F59E0B",time:"#F59E0B",dateTime:"#F59E0B",dateRange:"#F59E0B",money:"#EF4444",file:"#64748B",array:"#0EA5E9",status:"#EC4899",component:"#14B8A6",menu:"#94A3B8",range:"#A855F7",action:"#F97316",actionGroup:"#FB923C"};function ka(){return"field-"+Math.random().toString(36).slice(2,8)}let rt=class extends L{constructor(){super(...arguments),this.value='{"name":"New Form","fields":[]}',this.form={name:"New Form",fields:[]},this.selectedId=null,this.showMeta=!1,this.sortable=null,this.listEl=null}updated(e){if(e.has("value"))try{this.form=JSON.parse(this.value)}catch{}this.attachSortable()}disconnectedCallback(){super.disconnectedCallback(),this.sortable?.destroy(),this.sortable=null}attachSortable(){const e=this.shadowRoot?.querySelector(".field-list");!e||e===this.listEl||(this.listEl=e,this.sortable?.destroy(),this.sortable=hi.create(e,{animation:150,handle:".drag-handle",ghostClass:"sortable-ghost",onEnd:t=>{const{oldIndex:a,newIndex:i}=t;if(a===void 0||i===void 0||a===i)return;const s=[...this.form.fields],[r]=s.splice(a,1);s.splice(i,0,r),this.form={...this.form,fields:s},this.emit()}}))}emit(){const e=JSON.stringify(this.form,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateForm(e){this.form={...this.form,...e},this.emit()}updateField(e,t){this.form={...this.form,fields:this.form.fields.map(a=>a.id===e?{...a,...t}:a)},this.emit()}addField(){const e=ka(),t={id:e,label:"New Field",dataType:"string"};this.form={...this.form,fields:[...this.form.fields,t]},this.selectedId=e,this.emit()}deleteField(e){this.form={...this.form,fields:this.form.fields.filter(t=>t.id!==e)},this.selectedId===e&&(this.selectedId=null),this.emit()}duplicateField(e){const t=this.form.fields.find(r=>r.id===e);if(!t)return;const a={...t,id:ka(),label:t.label+" (copy)"},i=this.form.fields.findIndex(r=>r.id===e),s=[...this.form.fields];s.splice(i+1,0,a),this.form={...this.form,fields:s},this.selectedId=a.id,this.emit()}render(){return n`
             <div class="root">
                 ${this.renderToolbar()}
                 ${this.showMeta?this.renderMeta():d}
@@ -3980,15 +4096,15 @@ id="${e.id}"
                 <span class="form-name">${this.form.name}</span>
                 <div style="flex:1"></div>
                 <button class="nbtn" @click="${()=>this.showMeta=!this.showMeta}">
-                    ${sa}
+                    ${na}
                     Settings
                 </button>
                 <button class="nbtn primary" @click="${()=>this.addField()}">
-                    ${ra}
+                    ${oa}
                     Add Field
                 </button>
                 <button class="nbtn" @click="${()=>this.exportJson()}">
-                    ${na}
+                    ${la}
                     Export
                 </button>
             </div>
@@ -4013,7 +4129,7 @@ id="${e.id}"
                     ${e.map(t=>this.renderRow(t))}
                 </div>
             </div>
-        `}renderRow(e){const t=In[e.dataType]??"#64748b",a=this.selectedId===e.id;return n`
+        `}renderRow(e){const t=Rn[e.dataType]??"#64748b",a=this.selectedId===e.id;return n`
             <div class="field-row ${a?"selected":""}"
                  data-id="${e.id}"
                  @click="${()=>this.selectedId=this.selectedId===e.id?null:e.id}">
@@ -4048,13 +4164,13 @@ id="${e.id}"
                     ${t("Data type",n`
                         <select class="inp"
                                 @change="${a=>this.updateField(e.id,{dataType:a.target.value})}">
-                            ${En.map(a=>n`
+                            ${On.map(a=>n`
                                 <option value="${a}" ?selected="${e.dataType===a}">${a}</option>`)}
                         </select>`)}
                     ${t("Stereotype",n`
                         <select class="inp"
                                 @change="${a=>this.updateField(e.id,{stereotype:a.target.value||void 0})}">
-                            ${Cn.map(a=>n`
+                            ${Pn.map(a=>n`
                                 <option value="${a}" ?selected="${(e.stereotype??"regular")===a}">${a}</option>`)}
                         </select>`)}
                     <div class="prop-field row">
@@ -4067,7 +4183,7 @@ id="${e.id}"
                                   @change="${a=>this.updateField(e.id,{description:a.target.value||void 0})}">${e.description??""}</textarea>`)}
                 </div>
             </div>
-        `}exportJson(){const e=JSON.stringify(this.form,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),i=document.createElement("a");i.href=a,i.download=(this.form.name??"form").replace(/\s+/g,"-").toLowerCase()+".json",i.click(),URL.revokeObjectURL(a)}};rt.styles=[Wt,T`
+        `}exportJson(){const e=JSON.stringify(this.form,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),i=document.createElement("a");i.href=a,i.download=(this.form.name??"form").replace(/\s+/g,"-").toLowerCase()+".json",i.click(),URL.revokeObjectURL(a)}};rt.styles=[Vt,_`
         :host { display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif); }
 
         .root { display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff); }
@@ -4182,7 +4298,7 @@ id="${e.id}"
         .inp:focus { border-color: #3B82F6; }
         textarea.inp { resize: vertical; }
         input[readonly].inp { background: #f8fafc; color: #94a3b8; }
-    `];Pt([u()],rt.prototype,"value",2);Pt([f()],rt.prototype,"form",2);Pt([f()],rt.prototype,"selectedId",2);Pt([f()],rt.prototype,"showMeta",2);rt=Pt([O("mateu-form-editor")],rt);var _n=Object.defineProperty,Tn=Object.getOwnPropertyDescriptor,Ie=(e,t,a,i)=>{for(var s=i>1?void 0:i?Tn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&_n(t,a,s),s};let oe=class extends D{constructor(){super(...arguments),this.appState={},this.appData={},this.open=!1,this.activeTab="appstate",this.hoveredTag="",this.hoveredId="",this.hoveredState=null,this.hoveredData=null,this.hoveredMeta=null,this._prevTarget=null,this._onMouseover=e=>{let t=e.target;for(;t&&!(t.tagName?.toLowerCase().startsWith("mateu-")&&t!==this);)t=t.parentElement;if(t===this||t===null){t===null&&this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget.style.outlineOffset="",this._prevTarget=null,this.hoveredTag="",this.hoveredId="",this.hoveredState=null,this.hoveredData=null,this.hoveredMeta=null);return}t!==this._prevTarget&&(this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget.style.outlineOffset=""),this._prevTarget=t,t.style.outline="2px solid #0070f3",t.style.outlineOffset="-2px",this.hoveredTag=t.tagName.toLowerCase(),this.hoveredId=t.id||"",this.hoveredState=t.state,this.hoveredData=t.data,this.hoveredMeta=t.component?.metadata)}}connectedCallback(){super.connectedCallback(),document.addEventListener("mouseover",this._onMouseover,!0)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("mouseover",this._onMouseover,!0),this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget=null)}_fmt(e){try{return JSON.stringify(e,null,2)??"null"}catch{return String(e)}}_renderTab(e,t){return n`
+    `];Lt([u()],rt.prototype,"value",2);Lt([f()],rt.prototype,"form",2);Lt([f()],rt.prototype,"selectedId",2);Lt([f()],rt.prototype,"showMeta",2);rt=Lt([O("mateu-form-editor")],rt);var Ln=Object.defineProperty,Dn=Object.getOwnPropertyDescriptor,Ie=(e,t,a,i)=>{for(var s=i>1?void 0:i?Dn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Ln(t,a,s),s};let oe=class extends L{constructor(){super(...arguments),this.appState={},this.appData={},this.open=!1,this.activeTab="appstate",this.hoveredTag="",this.hoveredId="",this.hoveredState=null,this.hoveredData=null,this.hoveredMeta=null,this._prevTarget=null,this._onMouseover=e=>{let t=e.target;for(;t&&!(t.tagName?.toLowerCase().startsWith("mateu-")&&t!==this);)t=t.parentElement;if(t===this||t===null){t===null&&this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget.style.outlineOffset="",this._prevTarget=null,this.hoveredTag="",this.hoveredId="",this.hoveredState=null,this.hoveredData=null,this.hoveredMeta=null);return}t!==this._prevTarget&&(this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget.style.outlineOffset=""),this._prevTarget=t,t.style.outline="2px solid #0070f3",t.style.outlineOffset="-2px",this.hoveredTag=t.tagName.toLowerCase(),this.hoveredId=t.id||"",this.hoveredState=t.state,this.hoveredData=t.data,this.hoveredMeta=t.component?.metadata)}}connectedCallback(){super.connectedCallback(),document.addEventListener("mouseover",this._onMouseover,!0)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("mouseover",this._onMouseover,!0),this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget=null)}_fmt(e){try{return JSON.stringify(e,null,2)??"null"}catch{return String(e)}}_renderTab(e,t){return n`
             <button class="tab ${this.activeTab===e?"tab--active":""}"
                 @click=${()=>{this.activeTab=e}}>
                 ${t}
@@ -4222,7 +4338,7 @@ id="${e.id}"
                 </div>
             `:n`
             <button class="fab" @click=${()=>{this.open=!0}} title="Mateu Debug">🐛</button>
-        `}};oe.styles=T`
+        `}};oe.styles=_`
         :host {
             position: fixed;
             z-index: 9999;
@@ -4355,39 +4471,39 @@ id="${e.id}"
             border-bottom: 1px solid #2a2a3a;
         }
         .section-label:first-of-type { margin-top: 0; }
-    `;Ie([u()],oe.prototype,"appState",2);Ie([u()],oe.prototype,"appData",2);Ie([f()],oe.prototype,"open",2);Ie([f()],oe.prototype,"activeTab",2);Ie([f()],oe.prototype,"hoveredTag",2);Ie([f()],oe.prototype,"hoveredId",2);Ie([f()],oe.prototype,"hoveredState",2);Ie([f()],oe.prototype,"hoveredData",2);Ie([f()],oe.prototype,"hoveredMeta",2);oe=Ie([O("mateu-debug-overlay")],oe);var ve=(e=>(e.SetAppDataValue="SetAppDataValue",e.SetAppStateValue="SetAppStateValue",e.SetDataValue="SetDataValue",e.RunAction="RunAction",e.RunJS="RunJS",e.SetAttributeValue="SetAttributeValue",e.SetStateValue="SetStateValue",e.SetCssClass="SetCssClass",e.SetStyle="SetStyle",e))(ve||{}),ja=(e=>(e.required="required",e.disabled="disabled",e.hidden="hidden",e.pattern="pattern",e.minValue="minValue",e.maxValue="maxValue",e.minLength="minLength",e.maxLength="maxLength",e.css="css",e.style="style",e.theme="theme",e.errorMessage="errorMessage",e.description="description",e.none="none",e))(ja||{}),Wa=(e=>(e.Continue="Continue",e.Stop="Stop",e))(Wa||{}),On=Object.defineProperty,Rn=Object.getOwnPropertyDescriptor,Vt=(e,t,a,i)=>{for(var s=i>1?void 0:i?Rn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&On(t,a,s),s};let wt=null,pt=class extends ot{constructor(){super(...arguments),this.baseUrl="",this.route="",this.consumedRoute="",this.formerState={},this.applyRules=()=>{const e=this.component.rules;if(e&&e.length>0){const t=this.state,a=this.data,i=this.appState,s=this.appData,r=this.component,o=k=>Ra(k,t,a,{appState:i,appData:s,component:r}),l=k=>Oa(k,t,a,i,s,{component:r}),c=["state","data","appState","appData","component"],h=[t,a,i,s,r],p={...this.state},v={...this.data};let y=!1,_=!1;for(let k=0;k<e.length;k++){const b=e[k];try{if(o(b.filter)){if(ve.SetStateValue==b.action||ve.SetDataValue==b.action){const E=ve.SetStateValue==b.action?p:v,q=b.fieldName.split(",");for(let U=0;U<q.length;U++){const L=q[U];if(!E[L]||E[L]!=b.value){const Z=b.expression?l(b.expression):b.value,Ke=ja.none==b.fieldAttribute?L:L+"."+b.fieldAttribute;Z!=E[Ke]&&(E[Ke]=Z,ve.SetStateValue==b.action&&(y=!0),ve.SetDataValue==b.action&&(_=!0))}}}if(ve.RunAction==b.action&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:b.actionId},bubbles:!0,composed:!0})),ve.RunJS==b.action&&new Function(...c,b.value)(...h),ve.SetAttributeValue==b.action){const E=b.expression?o(b.expression):b.value;if(b.fieldAttribute=="disabled"){E?this.shadowRoot?.getElementById(b.fieldName)?.setAttribute(b.fieldAttribute,"disabled"):this.shadowRoot?.getElementById(b.fieldName)?.removeAttribute(b.fieldAttribute);continue}this.shadowRoot?.getElementById(b.fieldName)?.setAttribute(b.fieldAttribute,E)}if(ve.SetCssClass==b.action&&this.shadowRoot?.getElementById(b.fieldName)?.setAttribute("class",b.value),ve.SetStyle==b.action&&this.shadowRoot?.getElementById(b.fieldName)?.style.setProperty(b.expression,b.value),Wa.Stop==b.result)break}}catch(E){console.error("rule failed",b,E)}}y&&(this.state=p),_&&(this.data=v),y&&this.checkValidations()}},this.skipValidation=(e,t)=>e&&t.fieldId&&!e.includes(t.fieldId)||!e&&t.fieldId&&t.fieldId.includes("-"),this.checkValidations=e=>{const t=e?e.split(","):void 0,a=this.component.validations;let i=!0,s=!1;const r=this.data??{},o={...this.data??{},errors:{}};if(a){for(let l=0;l<a.length;l++){const c=a[l];if(this.skipValidation(t,c))continue;const h=(c.fieldId??"_component").split(",");for(let p=0;p<h.length;p++){const v=h[p];o.errors[v]=[]}}for(let l=0;l<a.length;l++){const c=a[l];if(!this.skipValidation(t,c))try{const h=c.condition&&c.condition.includes("${")?this._evalTemplate(c.condition):this._evalExpr(c.condition);if(c.condition&&!h){i=!1;const v=(c.fieldId??"_component").split(",");for(let y=0;y<v.length;y++){const _=v[y];let k=o.errors[_];if(k||(o.errors[_]=[]),k=o.errors[_],!r[_]){let b=c.message;try{b=this._evalTemplate(c.message)}catch{}k.push(b)}}}}catch(h){console.error("validation failed",c,h)}}for(let l=0;l<a.length;l++){const c=a[l];if(this.skipValidation(t,c))continue;const h=(c.fieldId??"_component").split(",");for(let p=0;p<h.length;p++){const v=h[p];if(r.errors?[v].join(","):o.errors==""&&[v].join(",")){s=!0;break}}}(r.errors?["_component"].join(","):o.errors==""&&["_component"].join(","))&&(s=!0)}o._valid=i,o._valid!=r._valid&&(s=!0),s&&(this.data=o)},this._autoSaveTimers=new Map,this.onChange=()=>{this.applyRules()},this.closeModalRequestedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.closeModal()},this.resetFilters=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail,a={};t.fieldIds.forEach(i=>{a[i]=void 0}),a.searchText=void 0,this.state={...this.state,...a}}},this.dataChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail,a={};a[t.key]=t.value,e.type=="data-changed"&&(this.data={...this.data,...a})}},this.valueChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail;if(e.type=="value-changed"){const a={...this.state};a[t.fieldId]=t.value,this.state=a,(this.state[t.fieldId]||this.formerState[t.fieldId])&&this.state[t.fieldId]!=this.formerState[t.fieldId]&&this.component?.confirmOnNavigationIfDirty&&this.dispatchEvent(new CustomEvent("dirty",{detail:e.detail,bubbles:!0,composed:!0}));const i=this.component;i.triggers?.filter(s=>s.type==je.OnValueChange).filter(s=>!s.propertyName||t.fieldId==s.propertyName).forEach(s=>{(!s.condition||this._evalExpr(s.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0}))}),i.triggers?.filter(s=>s.type==je.AutoSave).forEach(s=>{const r=s.actionId,o=this._autoSaveTimers.get(r);o!==void 0&&clearTimeout(o),this._autoSaveTimers.set(r,setTimeout(()=>{this._autoSaveTimers.delete(r),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0}))},s.debounceMillis??800))})}}},this.actionRequestedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.manageActionRequestedEvent(e)},this.manageActionRequestedEvent=e=>{const t=e.detail;if(e.type=="action-requested"){e.preventDefault(),e.stopPropagation();const a=this.component,i=a.actions?.find(s=>s.id==t.actionId||s.id.endsWith("*")&&t.actionId.startsWith(s.id.replace("*","")));if(i){if(i&&i.rowsSelectedRequired&&(!this.state.crud_selected_items||this.state.crud_selected_items.length==0)){this.notify("You first need to select some rows");return}if(i&&i.validationRequired){const r=wt??this;if(wt=null,r.checkValidations(i.fieldsToValidate),!r.data._valid){r.notifyValidationErrors();return}}wt=null;const s={...t,initiatorComponentId:this.id};i&&i.confirmationRequired?this.callAfterConfirmation(i,()=>this.requestActionCallToServerOrBubble(s,a,i)):this.requestActionCallToServerOrBubble(s,a,i)}else{const s={...t.parameters};s.initiatorState||(s.initiatorState=this.state),wt||(wt=this),this.dispatchEvent(new CustomEvent(e.type,{detail:{...e.detail,parameters:s},bubbles:!0,composed:!0}))}}},this.buildFieldLabelMap=()=>{const e={},t=a=>{if(a)for(const i of a){const s=i.metadata;if(s?.type===m.FormField){const r=s;r.fieldId&&r.label&&(e[r.fieldId]=r.label)}t(i.children)}};return t(this.component?.children),e},this.notifyValidationErrors=()=>{const e=this.data?.errors??{},t=this.buildFieldLabelMap(),a=[];if(Object.entries(e).forEach(([s,r])=>{if(!Array.isArray(r))return;const o=s==="_component"?void 0:t[s]??s;r.forEach(l=>{l&&!a.some(c=>c.label===o&&c.msg===l)&&a.push({label:o,msg:l})})}),a.length===0){this.notify("There are validation errors");return}const i=document.createElement("vaadin-notification");i.position="bottom-end",i.setAttribute("theme","error"),i.duration=Math.max(3e3,1500+a.length*1e3),i.renderer=s=>{Ia(n`
+    `;Ie([u()],oe.prototype,"appState",2);Ie([u()],oe.prototype,"appData",2);Ie([f()],oe.prototype,"open",2);Ie([f()],oe.prototype,"activeTab",2);Ie([f()],oe.prototype,"hoveredTag",2);Ie([f()],oe.prototype,"hoveredId",2);Ie([f()],oe.prototype,"hoveredState",2);Ie([f()],oe.prototype,"hoveredData",2);Ie([f()],oe.prototype,"hoveredMeta",2);oe=Ie([O("mateu-debug-overlay")],oe);var ve=(e=>(e.SetAppDataValue="SetAppDataValue",e.SetAppStateValue="SetAppStateValue",e.SetDataValue="SetDataValue",e.RunAction="RunAction",e.RunJS="RunJS",e.SetAttributeValue="SetAttributeValue",e.SetStateValue="SetStateValue",e.SetCssClass="SetCssClass",e.SetStyle="SetStyle",e))(ve||{}),Va=(e=>(e.required="required",e.disabled="disabled",e.hidden="hidden",e.pattern="pattern",e.minValue="minValue",e.maxValue="maxValue",e.minLength="minLength",e.maxLength="maxLength",e.css="css",e.style="style",e.theme="theme",e.errorMessage="errorMessage",e.description="description",e.none="none",e))(Va||{}),Ha=(e=>(e.Continue="Continue",e.Stop="Stop",e))(Ha||{}),zn=Object.defineProperty,Fn=Object.getOwnPropertyDescriptor,Ht=(e,t,a,i)=>{for(var s=i>1?void 0:i?Fn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&zn(t,a,s),s};let wt=null,pt=class extends ot{constructor(){super(...arguments),this.baseUrl="",this.route="",this.consumedRoute="",this.formerState={},this.applyRules=()=>{const e=this.component.rules;if(e&&e.length>0){const t=this.state,a=this.data,i=this.appState,s=this.appData,r=this.component,o=k=>La(k,t,a,{appState:i,appData:s,component:r}),l=k=>Ra(k,t,a,i,s,{component:r}),c=["state","data","appState","appData","component"],h=[t,a,i,s,r],p={...this.state},v={...this.data};let y=!1,T=!1;for(let k=0;k<e.length;k++){const g=e[k];try{if(o(g.filter)){if(ve.SetStateValue==g.action||ve.SetDataValue==g.action){const E=ve.SetStateValue==g.action?p:v,q=g.fieldName.split(",");for(let U=0;U<q.length;U++){const D=q[U];if(!E[D]||E[D]!=g.value){const Z=g.expression?l(g.expression):g.value,Ke=Va.none==g.fieldAttribute?D:D+"."+g.fieldAttribute;Z!=E[Ke]&&(E[Ke]=Z,ve.SetStateValue==g.action&&(y=!0),ve.SetDataValue==g.action&&(T=!0))}}}if(ve.RunAction==g.action&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:g.actionId},bubbles:!0,composed:!0})),ve.RunJS==g.action&&new Function(...c,g.value)(...h),ve.SetAttributeValue==g.action){const E=g.expression?o(g.expression):g.value;if(g.fieldAttribute=="disabled"){E?this.shadowRoot?.getElementById(g.fieldName)?.setAttribute(g.fieldAttribute,"disabled"):this.shadowRoot?.getElementById(g.fieldName)?.removeAttribute(g.fieldAttribute);continue}this.shadowRoot?.getElementById(g.fieldName)?.setAttribute(g.fieldAttribute,E)}if(ve.SetCssClass==g.action&&this.shadowRoot?.getElementById(g.fieldName)?.setAttribute("class",g.value),ve.SetStyle==g.action&&this.shadowRoot?.getElementById(g.fieldName)?.style.setProperty(g.expression,g.value),Ha.Stop==g.result)break}}catch(E){console.error("rule failed",g,E)}}y&&(this.state=p),T&&(this.data=v),y&&this.checkValidations()}},this.skipValidation=(e,t)=>e&&t.fieldId&&!e.includes(t.fieldId)||!e&&t.fieldId&&t.fieldId.includes("-"),this.checkValidations=e=>{const t=e?e.split(","):void 0,a=this.component.validations;let i=!0,s=!1;const r=this.data??{},o={...this.data??{},errors:{}};if(a){for(let l=0;l<a.length;l++){const c=a[l];if(this.skipValidation(t,c))continue;const h=(c.fieldId??"_component").split(",");for(let p=0;p<h.length;p++){const v=h[p];o.errors[v]=[]}}for(let l=0;l<a.length;l++){const c=a[l];if(!this.skipValidation(t,c))try{const h=c.condition&&c.condition.includes("${")?this._evalTemplate(c.condition):this._evalExpr(c.condition);if(c.condition&&!h){i=!1;const v=(c.fieldId??"_component").split(",");for(let y=0;y<v.length;y++){const T=v[y];let k=o.errors[T];if(k||(o.errors[T]=[]),k=o.errors[T],!r[T]){let g=c.message;try{g=this._evalTemplate(c.message)}catch{}k.push(g)}}}}catch(h){console.error("validation failed",c,h)}}for(let l=0;l<a.length;l++){const c=a[l];if(this.skipValidation(t,c))continue;const h=(c.fieldId??"_component").split(",");for(let p=0;p<h.length;p++){const v=h[p];if(r.errors?[v].join(","):o.errors==""&&[v].join(",")){s=!0;break}}}(r.errors?["_component"].join(","):o.errors==""&&["_component"].join(","))&&(s=!0)}o._valid=i,o._valid!=r._valid&&(s=!0),s&&(this.data=o)},this._autoSaveTimers=new Map,this.onChange=()=>{this.applyRules()},this.closeModalRequestedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.closeModal()},this.resetFilters=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail,a={};t.fieldIds.forEach(i=>{a[i]=void 0}),a.searchText=void 0,this.state={...this.state,...a}}},this.dataChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail,a={};a[t.key]=t.value,e.type=="data-changed"&&(this.data={...this.data,...a})}},this.valueChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail;if(e.type=="value-changed"){const a={...this.state};a[t.fieldId]=t.value,this.state=a,(this.state[t.fieldId]||this.formerState[t.fieldId])&&this.state[t.fieldId]!=this.formerState[t.fieldId]&&this.component?.confirmOnNavigationIfDirty&&this.dispatchEvent(new CustomEvent("dirty",{detail:e.detail,bubbles:!0,composed:!0}));const i=this.component;i.triggers?.filter(s=>s.type==je.OnValueChange).filter(s=>!s.propertyName||t.fieldId==s.propertyName).forEach(s=>{(!s.condition||this._evalExpr(s.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0}))}),i.triggers?.filter(s=>s.type==je.AutoSave).forEach(s=>{const r=s.actionId,o=this._autoSaveTimers.get(r);o!==void 0&&clearTimeout(o),this._autoSaveTimers.set(r,setTimeout(()=>{this._autoSaveTimers.delete(r),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0}))},s.debounceMillis??800))})}}},this.actionRequestedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.manageActionRequestedEvent(e)},this.manageActionRequestedEvent=e=>{const t=e.detail;if(e.type=="action-requested"){e.preventDefault(),e.stopPropagation();const a=this.component,i=a.actions?.find(s=>s.id==t.actionId||s.id.endsWith("*")&&t.actionId.startsWith(s.id.replace("*","")));if(i){if(i&&i.rowsSelectedRequired&&(!this.state.crud_selected_items||this.state.crud_selected_items.length==0)){this.notify("You first need to select some rows");return}if(i&&i.validationRequired){const r=wt??this;if(wt=null,r.checkValidations(i.fieldsToValidate),!r.data._valid){r.notifyValidationErrors();return}}wt=null;const s={...t,initiatorComponentId:this.id};i&&i.confirmationRequired?this.callAfterConfirmation(i,()=>this.requestActionCallToServerOrBubble(s,a,i)):this.requestActionCallToServerOrBubble(s,a,i)}else{const s={...t.parameters};s.initiatorState||(s.initiatorState=this.state),wt||(wt=this),this.dispatchEvent(new CustomEvent(e.type,{detail:{...e.detail,parameters:s},bubbles:!0,composed:!0}))}}},this.buildFieldLabelMap=()=>{const e={},t=a=>{if(a)for(const i of a){const s=i.metadata;if(s?.type===m.FormField){const r=s;r.fieldId&&r.label&&(e[r.fieldId]=r.label)}t(i.children)}};return t(this.component?.children),e},this.notifyValidationErrors=()=>{const e=this.data?.errors??{},t=this.buildFieldLabelMap(),a=[];if(Object.entries(e).forEach(([s,r])=>{if(!Array.isArray(r))return;const o=s==="_component"?void 0:t[s]??s;r.forEach(l=>{l&&!a.some(c=>c.label===o&&c.msg===l)&&a.push({label:o,msg:l})})}),a.length===0){this.notify("There are validation errors");return}const i=document.createElement("vaadin-notification");i.position="bottom-end",i.setAttribute("theme","error"),i.duration=Math.max(3e3,1500+a.length*1e3),i.renderer=s=>{Ta(n`
                 <vaadin-vertical-layout style="gap: var(--lumo-space-xs);">
                     <strong>There are validation errors</strong>
                     ${a.map(({label:r,msg:o})=>r?n`<span>• <b>${r}:</b> ${o}</span>`:n`<span>• ${o}</span>`)}
                 </vaadin-vertical-layout>
-            `,s)},document.body.appendChild(i),i.opened=!0,i.addEventListener("opened-changed",s=>{s.detail.value||document.body.removeChild(i)})},this.notify=e=>{_t.show(e,{position:"bottom-end",theme:"error",duration:3e3})},this.callAfterConfirmation=(e,t)=>{let a="One moment, please",i="Are you sure?",s="Yes",r="No";e.confirmationTexts&&(a=e.confirmationTexts.title,i=e.confirmationTexts.message,s=e.confirmationTexts.confirmationText,r=e.confirmationTexts.denialText);const o=document.createElement("vaadin-confirm-dialog");o.setAttribute("header",a),o.setAttribute("cancel-button-visible","cancel-button-visible"),o.setAttribute("confirm-text",s),o.setAttribute("cancel-text",r),o.append(i),o.opened=!0,o.addEventListener("confirm",()=>t()),o.addEventListener("close",()=>document.body.removeChild(o)),o.addEventListener("confirm",()=>document.body.removeChild(o)),o.addEventListener("cancel",()=>document.body.removeChild(o)),o.addEventListener("reject",()=>document.body.removeChild(o)),document.body.append(o)},this.requestActionCallToServerOrBubble=(e,t,a)=>{if(a&&a.bubble){const i={...e.parameters};i.initiatorState||(i.initiatorState=this.state),this.dispatchEvent(new CustomEvent("action-requested",{detail:{...e,parameters:i},bubbles:!0,composed:!0}))}else this.requestActionCallToServer(e,t,a)},this.requestActionCallToServer=(e,t,a)=>{if(a&&a.href){window.location.href=a.href;return}if(a&&a.js)try{new Function("state","data","appState","appData","component",a.js).call(this,this.state??{},this.data??{},this.appState??{},this.appData??{},this.component),this.state={...this.state},this.data={...this.data}}catch(i){console.error("when evaluating "+a.js,i,this.component,this.state,this.data)}if(a&&a.customEvent&&this.dispatchEvent(new CustomEvent(a.customEvent.name,{detail:a.customEvent.detail,bubbles:!0,composed:!0})),!(a&&(a.js||a.customEvent))){if(e.actionId=="search"){const i=e.parameters?._searchState;i?this.state={...this.state,...i}:this.state.size||(this.state={...this.state,size:10,page:0,sort:[]})}this.dispatchEvent(new CustomEvent("server-side-action-requested",{detail:{route:this.route,consumedRoute:this.consumedRoute,componentState:{...this.state},parameters:e.parameters??{},actionId:e.actionId,serverSideType:t.serverSideType,serverSideComponentRoute:t.route,initiatorComponentId:e.initiatorComponentId??t.id,initiator:this,background:a?.background,sse:a?.sse,callback:e.callback,callbackonly:e.callbackonly,callbackToken:e.callbackToken??this.callbackToken},bubbles:!0,composed:!0}))}},this.handleBackendSucceeded=e=>{e.detail.actionId&&this.component.triggers?.filter(i=>i.type==je.OnSuccess).filter(i=>e.detail.actionId==i.calledActionId).forEach(i=>{if(!i.condition||this._evalExpr(i.condition))if(e.preventDefault(),e.stopPropagation(),i.timeoutMillis>0){const s=this.callbackToken;setTimeout(()=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId,callbackToken:s},bubbles:!0,composed:!0}))},i.timeoutMillis)}else this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0}))})},this.handleBackendFailed=e=>{e.detail.actionId&&this.component.triggers?.filter(i=>i.type==je.OnError).filter(i=>e.detail.actionId==i.calledActionId).forEach(i=>{(!i.condition||this._evalExpr(i.condition))&&(e.preventDefault(),e.stopPropagation(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0})))})},this._keydownListener=e=>{if(this._handleTabShortcut(e))return;const t=this.component;if(t)for(const a of t.actions??[]){const i=a.shortcut||(a.runOnEnter?"enter":null);if(i&&this._shortcutMatchesEvent(i,e)){e.preventDefault(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.id},bubbles:!0,composed:!0}));return}}}}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}updated(e){super.updated(e),e.has("state")&&this.state&&JSON.stringify(this.state)!=JSON.stringify({})&&this.onChange(),e.has("component")&&(this.formerState={...this.state},this.component?.confirmOnNavigationIfDirty&&this.dispatchEvent(new CustomEvent("clean",{detail:{},bubbles:!0,composed:!0})),setTimeout(()=>this.triggerOnLoad()))}_shortcutMatchesEvent(e,t){return gi(e,t)}_handleTabShortcut(e){const t=this.renderRoot?.querySelectorAll("vaadin-tab[data-shortcut]");if(!t||t.length===0)return!1;for(const a of Array.from(t)){const i=a.dataset.shortcut;if(!i||!this._shortcutMatchesEvent(i,e))continue;const s=a.closest("vaadin-tabs");if(!s)continue;const r=Array.from(s.querySelectorAll("vaadin-tab")).indexOf(a);if(!(r<0))return e.preventDefault(),s.selected=r,!0}return!1}connectedCallback(){super.connectedCallback(),this.addEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.addEventListener("backend-call-failed",this.handleBackendFailed),document.addEventListener("keydown",this._keydownListener)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.removeEventListener("backend-call-failed",this.handleBackendFailed),document.removeEventListener("keydown",this._keydownListener)}render(){return n`<div>
+            `,s)},document.body.appendChild(i),i.opened=!0,i.addEventListener("opened-changed",s=>{s.detail.value||document.body.removeChild(i)})},this.notify=e=>{Tt.show(e,{position:"bottom-end",theme:"error",duration:3e3})},this.callAfterConfirmation=(e,t)=>{let a="One moment, please",i="Are you sure?",s="Yes",r="No";e.confirmationTexts&&(a=e.confirmationTexts.title,i=e.confirmationTexts.message,s=e.confirmationTexts.confirmationText,r=e.confirmationTexts.denialText);const o=document.createElement("vaadin-confirm-dialog");o.setAttribute("header",a),o.setAttribute("cancel-button-visible","cancel-button-visible"),o.setAttribute("confirm-text",s),o.setAttribute("cancel-text",r),o.append(i),o.opened=!0,o.addEventListener("confirm",()=>t()),o.addEventListener("close",()=>document.body.removeChild(o)),o.addEventListener("confirm",()=>document.body.removeChild(o)),o.addEventListener("cancel",()=>document.body.removeChild(o)),o.addEventListener("reject",()=>document.body.removeChild(o)),document.body.append(o)},this.requestActionCallToServerOrBubble=(e,t,a)=>{if(a&&a.bubble){const i={...e.parameters};i.initiatorState||(i.initiatorState=this.state),this.dispatchEvent(new CustomEvent("action-requested",{detail:{...e,parameters:i},bubbles:!0,composed:!0}))}else this.requestActionCallToServer(e,t,a)},this.requestActionCallToServer=(e,t,a)=>{if(a&&a.href){window.location.href=a.href;return}if(a&&a.js)try{new Function("state","data","appState","appData","component",a.js).call(this,this.state??{},this.data??{},this.appState??{},this.appData??{},this.component),this.state={...this.state},this.data={...this.data}}catch(i){console.error("when evaluating "+a.js,i,this.component,this.state,this.data)}if(a&&a.customEvent&&this.dispatchEvent(new CustomEvent(a.customEvent.name,{detail:a.customEvent.detail,bubbles:!0,composed:!0})),!(a&&(a.js||a.customEvent))){if(e.actionId=="search"){const i=e.parameters?._searchState;i?this.state={...this.state,...i}:this.state.size||(this.state={...this.state,size:10,page:0,sort:[]})}this.dispatchEvent(new CustomEvent("server-side-action-requested",{detail:{route:this.route,consumedRoute:this.consumedRoute,componentState:{...this.state},parameters:e.parameters??{},actionId:e.actionId,serverSideType:t.serverSideType,serverSideComponentRoute:t.route,initiatorComponentId:e.initiatorComponentId??t.id,initiator:this,background:a?.background,sse:a?.sse,callback:e.callback,callbackonly:e.callbackonly,callbackToken:e.callbackToken??this.callbackToken},bubbles:!0,composed:!0}))}},this.handleBackendSucceeded=e=>{e.detail.actionId&&this.component.triggers?.filter(i=>i.type==je.OnSuccess).filter(i=>e.detail.actionId==i.calledActionId).forEach(i=>{if(!i.condition||this._evalExpr(i.condition))if(e.preventDefault(),e.stopPropagation(),i.timeoutMillis>0){const s=this.callbackToken;setTimeout(()=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId,callbackToken:s},bubbles:!0,composed:!0}))},i.timeoutMillis)}else this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0}))})},this.handleBackendFailed=e=>{e.detail.actionId&&this.component.triggers?.filter(i=>i.type==je.OnError).filter(i=>e.detail.actionId==i.calledActionId).forEach(i=>{(!i.condition||this._evalExpr(i.condition))&&(e.preventDefault(),e.stopPropagation(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0})))})},this._keydownListener=e=>{if(this._handleTabShortcut(e))return;const t=this.component;if(t)for(const a of t.actions??[]){const i=a.shortcut||(a.runOnEnter?"enter":null);if(i&&this._shortcutMatchesEvent(i,e)){e.preventDefault(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.id},bubbles:!0,composed:!0}));return}}}}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}updated(e){super.updated(e),e.has("state")&&this.state&&JSON.stringify(this.state)!=JSON.stringify({})&&this.onChange(),e.has("component")&&(this.formerState={...this.state},this.component?.confirmOnNavigationIfDirty&&this.dispatchEvent(new CustomEvent("clean",{detail:{},bubbles:!0,composed:!0})),setTimeout(()=>this.triggerOnLoad()))}_shortcutMatchesEvent(e,t){return yi(e,t)}_handleTabShortcut(e){const t=this.renderRoot?.querySelectorAll("vaadin-tab[data-shortcut]");if(!t||t.length===0)return!1;for(const a of Array.from(t)){const i=a.dataset.shortcut;if(!i||!this._shortcutMatchesEvent(i,e))continue;const s=a.closest("vaadin-tabs");if(!s)continue;const r=Array.from(s.querySelectorAll("vaadin-tab")).indexOf(a);if(!(r<0))return e.preventDefault(),s.selected=r,!0}return!1}connectedCallback(){super.connectedCallback(),this.addEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.addEventListener("backend-call-failed",this.handleBackendFailed),document.addEventListener("keydown",this._keydownListener)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.removeEventListener("backend-call-failed",this.handleBackendFailed),document.removeEventListener("keydown",this._keydownListener)}render(){return n`<div>
             <div>${this._render()}</div>
             ${this.data&&this.data.errors&&this.data.errors._component&&this.data.errors._component.length>0?n`
                 <div><ul>${this.data.errors._component.map(e=>n`<li>${e}</li>`)}</ul></div>
-            `:d}</div>`}_render(){if(this.component?.type==G.ClientSide){const e=this.component;return e.metadata?.type==m.Page?Qt(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!0):e.metadata?.type==m.Crud?Zt(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!0):W.get()?.renderClientSideComponent(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!1)}return n`
+            `:d}</div>`}_render(){if(this.component?.type==G.ClientSide){const e=this.component;return e.metadata?.type==m.Page?Zt(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!0):e.metadata?.type==m.Crud?ea(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!0):W.get()?.renderClientSideComponent(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!1)}return n`
             <mateu-api-caller 
                     @value-changed="${this.valueChangedListener}"
                     @data-changed="${this.dataChangedListener}"
                     @close-modal-requested="${this.closeModalRequestedListener}"
                     @filter-reset-requested="${this.resetFilters}"
                     @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(e=>{if(e.type==G.ClientSide){const t=e;if(t.metadata?.type==m.Page)return Qt(this,t,this.baseUrl,this.state,this.data,this.appState,this.appData,!0);if(t.metadata?.type==m.Crud)return Zt(this,t,this.baseUrl,this.state,this.data,this.appState,this.appData,!0)}return g(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData)})}
+            ${this.component?.children?.map(e=>{if(e.type==G.ClientSide){const t=e;if(t.metadata?.type==m.Page)return Zt(this,t,this.baseUrl,this.state,this.data,this.appState,this.appData,!0);if(t.metadata?.type==m.Crud)return ea(this,t,this.baseUrl,this.state,this.data,this.appState,this.appData,!0)}return b(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData)})}
             </mateu-api-caller>
-        `}};pt.styles=T`
+        `}};pt.styles=_`
         :host {
         }
 
-        ${ni(Le.cssText)}
+        ${li(Le.cssText)}
         
         vaadin-card.image-on-right::part(media) {
             grid-column: 3;
         }
         
-  `;Vt([u()],pt.prototype,"baseUrl",2);Vt([u()],pt.prototype,"route",2);Vt([u()],pt.prototype,"consumedRoute",2);pt=Vt([O("mateu-component")],pt);const xa=e=>{if(e)try{return JSON.parse(e)}catch{return{value:e}}else return{}};class Pn{async handle(t,a){return await t.runAction(a.baseUrl,a.route,a.consumedRoute,a.actionId,a.initiatorComponentId,a.appState,a.serverSideType,a.componentState,a.parameters,a.initiator,a.background)}}const Ln=new Pn;class Dn{constructor(){this.mapPosition=t=>{switch(t){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=(t,a,i)=>{if(t?.fragments?.forEach(s=>{et.next({command:void 0,fragment:s,ui:void 0,error:void 0,callbackToken:i})}),t?.appState&&(B.value={...t.appState},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))),t?.appData){const s=t?.appData;St.value={...t.appData,...s},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))}t?.messages?.forEach(s=>{_t.show(s.text,{position:s.position?this.mapPosition(s.position):void 0,theme:s.variant,duration:s.duration})}),t?.banners&&t.banners.length>0&&document.dispatchEvent(new CustomEvent("page-banners-received",{detail:{banners:t.banners,append:t.appendBanners??!1},bubbles:!1,composed:!1})),t?.commands?.forEach(s=>{et.next({command:s,fragment:void 0,ui:void 0,error:void 0,callbackToken:i})})}}async runAction(t,a,i,s,r,o,l,c,h,p,v,y,_,k,b){try{const E=await Ln.handle(t,{baseUrl:a,route:i,consumedRoute:s,actionId:r,appState:B.value,initiatorComponentId:o,componentState:h,parameters:p,serverSideType:c,initiator:v,background:y});_&&_(E),k||this.handleUIIncrement(E,v,b),E.messages&&E.messages.length==1&&E.messages[0].variant=="error"&&v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0})),v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:r,evevntId:se()},bubbles:!0,composed:!0}))}catch(E){console.warn("Action request failed",E),v.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(E)}})),v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))}}serialize(t){return t?.message?t:JSON.stringify(t)}}const zn=new Dn,An=zn;class Fn{constructor(){this.mapPosition=t=>{switch(t){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=(t,a,i)=>{if(t?.messages?.forEach(s=>{_t.show(s.text,{position:s.position?this.mapPosition(s.position):"bottom-end",theme:s.variant,duration:s.duration})}),t?.banners&&t.banners.length>0&&document.dispatchEvent(new CustomEvent("page-banners-received",{detail:{banners:t.banners,append:t.appendBanners??!1},bubbles:!1,composed:!1})),t?.commands?.forEach(s=>{et.next({command:s,fragment:void 0,ui:void 0,error:void 0,callbackToken:i})}),t?.fragments?.forEach(s=>{et.next({command:void 0,fragment:s,ui:void 0,error:void 0,callbackToken:i})}),t?.appState&&(B.value={...t.appState},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))),t?.appData){const s=t?.appData;St.value={...t.appData,...s},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))}}}async runAction(t,a,i,s,r,o,l,c,h,p,v,y,_,k,b){if(i){i=i||"_no_route",i&&i.startsWith("/")&&(i=i.substring(1));const E={serverSideType:c,appState:B.value,componentState:h,parameters:p,initiatorComponentId:o,consumedRoute:s,route:"/"+i,actionId:r};y||v.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),fetch(a+"/mateu/v3/sse/"+i,{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json"},body:JSON.stringify(E)}).then(async q=>{const U=q.body?.pipeThrough(new TextDecoderStream).getReader();if(U){let L="";for(;;){const{value:Z,done:Ke}=await U.read();if(Ke)break;L+=Z;const gt=L.split(`
+  `;Ht([u()],pt.prototype,"baseUrl",2);Ht([u()],pt.prototype,"route",2);Ht([u()],pt.prototype,"consumedRoute",2);pt=Ht([O("mateu-component")],pt);const Sa=e=>{if(e)try{return JSON.parse(e)}catch{return{value:e}}else return{}};class An{async handle(t,a){return await t.runAction(a.baseUrl,a.route,a.consumedRoute,a.actionId,a.initiatorComponentId,a.appState,a.serverSideType,a.componentState,a.parameters,a.initiator,a.background)}}const Nn=new An;class qn{constructor(){this.mapPosition=t=>{switch(t){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=(t,a,i)=>{if(t?.fragments?.forEach(s=>{et.next({command:void 0,fragment:s,ui:void 0,error:void 0,callbackToken:i})}),t?.appState&&(B.value={...t.appState},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))),t?.appData){const s=t?.appData;St.value={...t.appData,...s},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))}t?.messages?.forEach(s=>{Tt.show(s.text,{position:s.position?this.mapPosition(s.position):void 0,theme:s.variant,duration:s.duration})}),t?.banners&&t.banners.length>0&&document.dispatchEvent(new CustomEvent("page-banners-received",{detail:{banners:t.banners,append:t.appendBanners??!1},bubbles:!1,composed:!1})),t?.commands?.forEach(s=>{et.next({command:s,fragment:void 0,ui:void 0,error:void 0,callbackToken:i})})}}async runAction(t,a,i,s,r,o,l,c,h,p,v,y,T,k,g){try{const E=await Nn.handle(t,{baseUrl:a,route:i,consumedRoute:s,actionId:r,appState:B.value,initiatorComponentId:o,componentState:h,parameters:p,serverSideType:c,initiator:v,background:y});T&&T(E),k||this.handleUIIncrement(E,v,g),E.messages&&E.messages.length==1&&E.messages[0].variant=="error"&&v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0})),v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:r,evevntId:se()},bubbles:!0,composed:!0}))}catch(E){console.warn("Action request failed",E),v.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(E)}})),v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))}}serialize(t){return t?.message?t:JSON.stringify(t)}}const Un=new qn,Mn=Un;class Bn{constructor(){this.mapPosition=t=>{switch(t){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=(t,a,i)=>{if(t?.messages?.forEach(s=>{Tt.show(s.text,{position:s.position?this.mapPosition(s.position):"bottom-end",theme:s.variant,duration:s.duration})}),t?.banners&&t.banners.length>0&&document.dispatchEvent(new CustomEvent("page-banners-received",{detail:{banners:t.banners,append:t.appendBanners??!1},bubbles:!1,composed:!1})),t?.commands?.forEach(s=>{et.next({command:s,fragment:void 0,ui:void 0,error:void 0,callbackToken:i})}),t?.fragments?.forEach(s=>{et.next({command:void 0,fragment:s,ui:void 0,error:void 0,callbackToken:i})}),t?.appState&&(B.value={...t.appState},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))),t?.appData){const s=t?.appData;St.value={...t.appData,...s},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))}}}async runAction(t,a,i,s,r,o,l,c,h,p,v,y,T,k,g){if(i){i=i||"_no_route",i&&i.startsWith("/")&&(i=i.substring(1));const E={serverSideType:c,appState:B.value,componentState:h,parameters:p,initiatorComponentId:o,consumedRoute:s,route:"/"+i,actionId:r};y||v.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),fetch(a+"/mateu/v3/sse/"+i,{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json"},body:JSON.stringify(E)}).then(async q=>{const U=q.body?.pipeThrough(new TextDecoderStream).getReader();if(U){let D="";for(;;){const{value:Z,done:Ke}=await U.read();if(Ke)break;D+=Z;const gt=D.split(`
 
-`);L=gt.pop()??"";for(const $ of gt){const R=$.trim();if(R)if(R.startsWith("data:")){const w=JSON.parse(R.substring(5).trim());_&&_(w),k||this.handleUIIncrement(w,v,b),w.messages&&w.messages.length==1&&w.messages[0].variant=="error"&&v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))}else{let w=R;try{const z=JSON.parse(R);w=z.message,z._embedded?.errors?.length>0&&z._embedded.errors[0].message&&(w=z._embedded.errors[0].message)}catch{}throw new Error(w)}}}}y||v.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:r}})),v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:r},bubbles:!0,composed:!0}))}).catch(q=>{v.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(q)}})),v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))})}}serialize(t){return t?.message?t:JSON.stringify(t)}}const Nn=new Fn;var qn=Object.defineProperty,Un=Object.getOwnPropertyDescriptor,he=(e,t,a,i)=>{for(var s=i>1?void 0:i?Un(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&qn(t,a,s),s};let X=class extends qt{constructor(){super(...arguments),this.consumedRoute="",this.serverSideType=void 0,this.uriPrefix=void 0,this.overrides=void 0,this.homeRoute=void 0,this.route=void 0,this.top=void 0,this.appState={},this.appData={},this.preventNavigation=!1,this.overridesParsed={},this.fragment=void 0,this.actionRequestedListener=e=>{e instanceof CustomEvent&&(e.preventDefault(),e.stopPropagation(),this.manageActionEvent(e))},this.historyPushed=e=>{e instanceof CustomEvent&&(e.preventDefault(),e.stopPropagation(),this.preventNavigation=!0,this.route=e.detail.route)},this.routeChangedListener=e=>{if(e instanceof CustomEvent){e.preventDefault(),e.stopPropagation();let t=e.detail.route;this.uriPrefix&&(t.startsWith("/")&&this.uriPrefix.endsWith("/")?t=this.uriPrefix+t.substring(1):!t.startsWith("/")&&!this.uriPrefix.endsWith("/")?t=this.uriPrefix+"/"+t:t=this.uriPrefix+t),this.dispatchEvent(new CustomEvent("url-update-requested",{detail:{route:t},bubbles:!0,composed:!0}))}},this.backendFailedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&e.detail.actionId==""&&(this.fragment={targetComponentId:this.id,data:{},state:{},component:{type:G.ClientSide,metadata:{type:m.Element,name:"div",content:"Not found"},id:"fieldId"},action:Et.Replace,containerId:void 0})},this.detail1=void 0,this.manageActionEvent=e=>{e.preventDefault(),e.stopPropagation(),this.detail1=e.detail;const t=this.detail1;if(e.type=="server-side-action-requested"){let a=An;t.sse&&(a=Nn),a.runAction(La,this.baseUrl,t.route??"",t.consumedRoute,t.actionId,t.initiatorComponentId,this.getCustomisedAppState(),t.serverSideType,t.componentState,t.parameters,t.initiator,t.background,t.callback,t.callbackonly,t.callbackToken)}},this.getCustomisedAppState=()=>{let e={...B.value};if(this.overrides){const t=xa(this.overrides);e={...e,...t}}return e}}manageActionRequestedEvent(e){throw new Error("Method not implemented.")}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.overridesParsed=xa(this.overrides),this.addEventListener("server-side-action-requested",this.actionRequestedListener),this.addEventListener("backend-call-failed",this.backendFailedListener),this.addEventListener("history-pushed",this.historyPushed),this.addEventListener("route-changed",this.routeChangedListener),window.Vaadin.featureFlags.masterDetailLayoutComponent=!0}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("server-side-action-requested",this.actionRequestedListener),this.removeEventListener("backend-call-failed",this.backendFailedListener),this.removeEventListener("history-pushed",this.historyPushed),this.removeEventListener("route-changed",this.routeChangedListener)}shouldUpdate(e){if(this.fragment?.component&&[...e.keys()].every(a=>a==="appState"||a==="appData")){const a=this.renderRoot.querySelector("mateu-component");if(a)return e.has("appState")&&(a.appState=this.appState),e.has("appData")&&(a.appData=this.appData),!1}return!0}updated(e){(e.has("id")||e.has("baseurl")||e.has("route")||e.has("consumedRoute")||e.has("instant"))&&(this.preventNavigation||(this.callbackToken=this.instant||se(),this.manageActionEvent(new CustomEvent("server-side-action-requested",{detail:{route:this.route,consumedRoute:this.consumedRoute,userData:void 0,actionId:"",serverSideType:this.serverSideType,initiatorComponentId:this.id,initiator:this,callbackToken:this.callbackToken},bubbles:!0,composed:!0})))),e.has("route")&&this.top&&(this.preventNavigation||this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:this.route},bubbles:!0,composed:!0}))),this.preventNavigation&&(this.preventNavigation=!1)}applyFragment(e){this.fragment=e}render(){return n`
-           ${this.fragment?.component?g(this,this.fragment?.component,this.baseUrl,this.fragment?.state??{},this.fragment?.data??{},this.appState,this.appData):d}
-       `}};X.styles=T`
+`);D=gt.pop()??"";for(const $ of gt){const P=$.trim();if(P)if(P.startsWith("data:")){const w=JSON.parse(P.substring(5).trim());T&&T(w),k||this.handleUIIncrement(w,v,g),w.messages&&w.messages.length==1&&w.messages[0].variant=="error"&&v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))}else{let w=P;try{const z=JSON.parse(P);w=z.message,z._embedded?.errors?.length>0&&z._embedded.errors[0].message&&(w=z._embedded.errors[0].message)}catch{}throw new Error(w)}}}}y||v.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:r}})),v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:r},bubbles:!0,composed:!0}))}).catch(q=>{v.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(q)}})),v.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))})}}serialize(t){return t?.message?t:JSON.stringify(t)}}const jn=new Bn;var Wn=Object.defineProperty,Vn=Object.getOwnPropertyDescriptor,he=(e,t,a,i)=>{for(var s=i>1?void 0:i?Vn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Wn(t,a,s),s};let X=class extends Ut{constructor(){super(...arguments),this.consumedRoute="",this.serverSideType=void 0,this.uriPrefix=void 0,this.overrides=void 0,this.homeRoute=void 0,this.route=void 0,this.top=void 0,this.appState={},this.appData={},this.preventNavigation=!1,this.overridesParsed={},this.fragment=void 0,this.actionRequestedListener=e=>{e instanceof CustomEvent&&(e.preventDefault(),e.stopPropagation(),this.manageActionEvent(e))},this.historyPushed=e=>{e instanceof CustomEvent&&(e.preventDefault(),e.stopPropagation(),this.preventNavigation=!0,this.route=e.detail.route)},this.routeChangedListener=e=>{if(e instanceof CustomEvent){e.preventDefault(),e.stopPropagation();let t=e.detail.route;this.uriPrefix&&(t.startsWith("/")&&this.uriPrefix.endsWith("/")?t=this.uriPrefix+t.substring(1):!t.startsWith("/")&&!this.uriPrefix.endsWith("/")?t=this.uriPrefix+"/"+t:t=this.uriPrefix+t),this.dispatchEvent(new CustomEvent("url-update-requested",{detail:{route:t},bubbles:!0,composed:!0}))}},this.backendFailedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&e.detail.actionId==""&&(this.fragment={targetComponentId:this.id,data:{},state:{},component:{type:G.ClientSide,metadata:{type:m.Element,name:"div",content:"Not found"},id:"fieldId"},action:Et.Replace,containerId:void 0})},this.detail1=void 0,this.manageActionEvent=e=>{e.preventDefault(),e.stopPropagation(),this.detail1=e.detail;const t=this.detail1;if(e.type=="server-side-action-requested"){let a=Mn;t.sse&&(a=jn),a.runAction(za,this.baseUrl,t.route??"",t.consumedRoute,t.actionId,t.initiatorComponentId,this.getCustomisedAppState(),t.serverSideType,t.componentState,t.parameters,t.initiator,t.background,t.callback,t.callbackonly,t.callbackToken)}},this.getCustomisedAppState=()=>{let e={...B.value};if(this.overrides){const t=Sa(this.overrides);e={...e,...t}}return e}}manageActionRequestedEvent(e){throw new Error("Method not implemented.")}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.overridesParsed=Sa(this.overrides),this.addEventListener("server-side-action-requested",this.actionRequestedListener),this.addEventListener("backend-call-failed",this.backendFailedListener),this.addEventListener("history-pushed",this.historyPushed),this.addEventListener("route-changed",this.routeChangedListener),window.Vaadin.featureFlags.masterDetailLayoutComponent=!0}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("server-side-action-requested",this.actionRequestedListener),this.removeEventListener("backend-call-failed",this.backendFailedListener),this.removeEventListener("history-pushed",this.historyPushed),this.removeEventListener("route-changed",this.routeChangedListener)}shouldUpdate(e){if(this.fragment?.component&&[...e.keys()].every(a=>a==="appState"||a==="appData")){const a=this.renderRoot.querySelector("mateu-component");if(a)return e.has("appState")&&(a.appState=this.appState),e.has("appData")&&(a.appData=this.appData),!1}return!0}updated(e){(e.has("id")||e.has("baseurl")||e.has("route")||e.has("consumedRoute")||e.has("instant"))&&(this.preventNavigation||(this.callbackToken=this.instant||se(),this.manageActionEvent(new CustomEvent("server-side-action-requested",{detail:{route:this.route,consumedRoute:this.consumedRoute,userData:void 0,actionId:"",serverSideType:this.serverSideType,initiatorComponentId:this.id,initiator:this,callbackToken:this.callbackToken},bubbles:!0,composed:!0})))),e.has("route")&&this.top&&(this.preventNavigation||this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:this.route},bubbles:!0,composed:!0}))),this.preventNavigation&&(this.preventNavigation=!1)}applyFragment(e){this.fragment=e}render(){return n`
+           ${this.fragment?.component?b(this,this.fragment?.component,this.baseUrl,this.fragment?.state??{},this.fragment?.data??{},this.appState,this.appData):d}
+       `}};X.styles=_`
         :host {
             display: block;
             min-height: 100%;
@@ -4399,7 +4515,7 @@ id="${e.id}"
             max-width: 1392px;
             margin: 0 auto;
         }
-  `;he([u()],X.prototype,"consumedRoute",2);he([u()],X.prototype,"serverSideType",2);he([u()],X.prototype,"uriPrefix",2);he([u()],X.prototype,"overrides",2);he([u()],X.prototype,"homeRoute",2);he([u()],X.prototype,"route",2);he([u()],X.prototype,"top",2);he([u()],X.prototype,"instant",2);he([u()],X.prototype,"appState",2);he([u()],X.prototype,"appData",2);he([f()],X.prototype,"fragment",2);X=he([O("mateu-ux")],X);var Mn=Object.defineProperty,Bn=Object.getOwnPropertyDescriptor,Fe=(e,t,a,i)=>{for(var s=i>1?void 0:i?Bn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Mn(t,a,s),s};let ge=class extends D{constructor(){super(...arguments),this.baseUrl="",this.route=void 0,this.consumedRoute="_empty",this.config=void 0,this.top="true",this.pathPrefix=void 0,this.debug=!1,this._lastUrl="",this.routeChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.top=="true"){let t=e.detail.route,a=this.baseUrl??"";!t||t.startsWith("/")?a=window.location.origin+(this.pathPrefix??""):(t=(this.pathPrefix??"")+t,a.indexOf("://")<0&&(a.startsWith("/")||(a="/"+a),a=window.location.origin+a)),t.startsWith(this.pathPrefix+"/")&&(t=t.substring(this.pathPrefix?.length)),a.endsWith("/")&&t.startsWith("/")&&(t=t.substring(1));let i=new URL(a+t);if((window.location.pathname||i.pathname)&&window.location.pathname!=i.pathname){let s=i.pathname;i.search&&(s+=i.search),s&&!s.startsWith("/")&&(s="/"+s),window.history.pushState({},"",s),this._lastUrl=window.location.href}}},this.navigateToRequestedListener=e=>{if(e.preventDefault(),e.stopPropagation(),kt.markClean(),e instanceof CustomEvent){let t=e.detail.route;const a=this.shadowRoot?.querySelector("mateu-ux");a&&(a.setAttribute("route",t),a.setAttribute("instant",se()))}}}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){if(super.connectedCallback(),kt.install(),this._lastUrl=window.location.href,window.onpopstate=e=>{if(!kt.confirmLeave()){window.history.pushState({},"",this._lastUrl);return}const t=e.target;this.loadUrl(t)},this.top=="true"?this.loadUrl(window):this.route&&(this.consumedRoute=""),this.config)try{const e=JSON.parse(this.config);B.value={...B.value,...e}}catch{B.value={...B.value,config:this.config}}this.addEventListener("url-update-requested",this.routeChangedListener),this.addEventListener("navigate-to-requested",this.navigateToRequestedListener)}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe(),this.removeEventListener("url-update-requested",this.routeChangedListener),this.removeEventListener("navigate-to-requested",this.navigateToRequestedListener)}loadUrl(e){if(this.route=this.extractRouteFromUrl(e),this.setAttribute("route",this.route),this.instant=se(),this._lastUrl=e.location.href,e.location.search){const a=new URLSearchParams(e.location.search).get("overrides");if(a&&(this.config=a,this.config))try{const i=JSON.parse(this.config);B.value={...B.value,...i}}catch{B.value={...B.value,config:this.config}}}}extractRouteFromUrl(e){return this.addQueryParams(this.extractRouteWithoutParamsFromUrl(e),e.location)}extractRouteWithoutParamsFromUrl(e){const t=this.extractGrossRouteFromUrl(e);return this.pathPrefix&&t.startsWith(this.pathPrefix)?t.substring(this.pathPrefix.length):t=="/"?"":t}addQueryParams(e,t){return e+(t.search?""+t.search:"")}extractGrossRouteFromUrl(e){const t=e.location.pathname,a=this.baseUrl&&(this.baseUrl.startsWith("http://")||this.baseUrl.startsWith("https://"))?this.baseUrl.substring(this.getContextPathStartingIndex(this.baseUrl)):this.baseUrl;return t.startsWith(a)?t.substring(a.length):t}getContextPathStartingIndex(e){return e.startsWith("http:")?e.indexOf("/",7):e.startsWith("https:")?e.indexOf("/",8):0}render(){return n`
+  `;he([u()],X.prototype,"consumedRoute",2);he([u()],X.prototype,"serverSideType",2);he([u()],X.prototype,"uriPrefix",2);he([u()],X.prototype,"overrides",2);he([u()],X.prototype,"homeRoute",2);he([u()],X.prototype,"route",2);he([u()],X.prototype,"top",2);he([u()],X.prototype,"instant",2);he([u()],X.prototype,"appState",2);he([u()],X.prototype,"appData",2);he([f()],X.prototype,"fragment",2);X=he([O("mateu-ux")],X);var Hn=Object.defineProperty,Gn=Object.getOwnPropertyDescriptor,Ae=(e,t,a,i)=>{for(var s=i>1?void 0:i?Gn(t,a):t,r=e.length-1,o;r>=0;r--)(o=e[r])&&(s=(i?o(t,a,s):o(s))||s);return i&&s&&Hn(t,a,s),s};let ge=class extends L{constructor(){super(...arguments),this.baseUrl="",this.route=void 0,this.consumedRoute="_empty",this.config=void 0,this.top="true",this.pathPrefix=void 0,this.debug=!1,this._lastUrl="",this.routeChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.top=="true"){let t=e.detail.route,a=this.baseUrl??"";!t||t.startsWith("/")?a=window.location.origin+(this.pathPrefix??""):(t=(this.pathPrefix??"")+t,a.indexOf("://")<0&&(a.startsWith("/")||(a="/"+a),a=window.location.origin+a)),t.startsWith(this.pathPrefix+"/")&&(t=t.substring(this.pathPrefix?.length)),a.endsWith("/")&&t.startsWith("/")&&(t=t.substring(1));let i=new URL(a+t);if((window.location.pathname||i.pathname)&&window.location.pathname!=i.pathname){let s=i.pathname;i.search&&(s+=i.search),s&&!s.startsWith("/")&&(s="/"+s),window.history.pushState({},"",s),this._lastUrl=window.location.href}}},this.navigateToRequestedListener=e=>{if(e.preventDefault(),e.stopPropagation(),kt.markClean(),e instanceof CustomEvent){let t=e.detail.route;const a=this.shadowRoot?.querySelector("mateu-ux");a&&(a.setAttribute("route",t),a.setAttribute("instant",se()))}}}createRenderRoot(){return W.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){if(super.connectedCallback(),kt.install(),this._lastUrl=window.location.href,window.onpopstate=e=>{if(!kt.confirmLeave()){window.history.pushState({},"",this._lastUrl);return}const t=e.target;this.loadUrl(t)},this.top=="true"?this.loadUrl(window):this.route&&(this.consumedRoute=""),this.config)try{const e=JSON.parse(this.config);B.value={...B.value,...e}}catch{B.value={...B.value,config:this.config}}this.addEventListener("url-update-requested",this.routeChangedListener),this.addEventListener("navigate-to-requested",this.navigateToRequestedListener)}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe(),this.removeEventListener("url-update-requested",this.routeChangedListener),this.removeEventListener("navigate-to-requested",this.navigateToRequestedListener)}loadUrl(e){if(this.route=this.extractRouteFromUrl(e),this.setAttribute("route",this.route),this.instant=se(),this._lastUrl=e.location.href,e.location.search){const a=new URLSearchParams(e.location.search).get("overrides");if(a&&(this.config=a,this.config))try{const i=JSON.parse(this.config);B.value={...B.value,...i}}catch{B.value={...B.value,config:this.config}}}}extractRouteFromUrl(e){return this.addQueryParams(this.extractRouteWithoutParamsFromUrl(e),e.location)}extractRouteWithoutParamsFromUrl(e){const t=this.extractGrossRouteFromUrl(e);return this.pathPrefix&&t.startsWith(this.pathPrefix)?t.substring(this.pathPrefix.length):t=="/"?"":t}addQueryParams(e,t){return e+(t.search?""+t.search:"")}extractGrossRouteFromUrl(e){const t=e.location.pathname,a=this.baseUrl&&(this.baseUrl.startsWith("http://")||this.baseUrl.startsWith("https://"))?this.baseUrl.substring(this.getContextPathStartingIndex(this.baseUrl)):this.baseUrl;return t.startsWith(a)?t.substring(a.length):t}getContextPathStartingIndex(e){return e.startsWith("http:")?e.indexOf("/",7):e.startsWith("https:")?e.indexOf("/",8):0}render(){return n`
            <mateu-api-caller>
                 <mateu-ux id="_ux"
                           baseurl="${this.baseUrl}"
@@ -4419,18 +4535,18 @@ id="${e.id}"
                    .appData="${St.value}"
                ></mateu-debug-overlay>
            `:d}
-       `}};ge.styles=T`
+       `}};ge.styles=_`
         :host {
             --lumo-clickable-cursor: pointer;
         }
-  `;Fe([u()],ge.prototype,"baseUrl",2);Fe([u()],ge.prototype,"route",2);Fe([u()],ge.prototype,"consumedRoute",2);Fe([u()],ge.prototype,"config",2);Fe([u()],ge.prototype,"top",2);Fe([u()],ge.prototype,"pathPrefix",2);Fe([f()],ge.prototype,"instant",2);Fe([u({type:Boolean})],ge.prototype,"debug",2);ge=Fe([O("mateu-ui")],ge);const Lt=(e,t)=>e.themeToggle?n`
+  `;Ae([u()],ge.prototype,"baseUrl",2);Ae([u()],ge.prototype,"route",2);Ae([u()],ge.prototype,"consumedRoute",2);Ae([u()],ge.prototype,"config",2);Ae([u()],ge.prototype,"top",2);Ae([u()],ge.prototype,"pathPrefix",2);Ae([f()],ge.prototype,"instant",2);Ae([u({type:Boolean})],ge.prototype,"debug",2);ge=Ae([O("mateu-ui")],ge);const Dt=(e,t)=>e.themeToggle?n`
         <vaadin-button theme="tertiary icon" @click="${t.toggleTheme}"
             title="${t.isDark?"Switch to light mode":"Switch to dark mode"}"
             style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
             <vaadin-icon icon="${t.isDark?"vaadin:sun-o":"vaadin:moon"}" style="color: var(--lumo-body-text-color);"></vaadin-icon>
         </vaadin-button>
-    `:d,jn=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},ka=(e,t,a)=>{const i=Be(e,t,a),s=ee(t,a);return i=="list"||i==s?"new":i},Be=(e,t,a)=>{const i=e?._route;if(i!=null&&(i===""||i.startsWith("/"))){const s=a.homeRoute??"",r=s.indexOf("?"),o=r>=0?s.substring(r+1):"",l=ee(t,a)+i;if(!o)return l;const c=l.indexOf("?")>=0?"&":"?";return l+c+o}return t.selectedRoute?t.selectedRoute:a.homeRoute},ee=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,_e=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:t.homeBaseUrl,Te=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,Oe=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,Wn=(e,t,a,i,s,r,o)=>{const l=e.mapItems(t.menu,e.filter?.toLowerCase()??""),c=ee(e,t),h=ka(i,e,t),p=h&&h!=="new"&&h.startsWith(c+"/")?h.substring(c.length+1).split("/")[0]:void 0;return n`
-                    ${t.variant==Re.MEDIATOR?n`
+    `:d,Kn=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},Ea=(e,t,a)=>{const i=Be(e,t,a),s=ee(t,a);return i=="list"||i==s?"new":i},Be=(e,t,a)=>{const i=e?._route;if(i!=null&&(i===""||i.startsWith("/"))){const s=a.homeRoute??"",r=s.indexOf("?"),o=r>=0?s.substring(r+1):"",l=ee(t,a)+i;if(!o)return l;const c=l.indexOf("?")>=0?"&":"?";return l+c+o}return t.selectedRoute?t.selectedRoute:a.homeRoute},ee=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,_e=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:t.homeBaseUrl,Te=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,Oe=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,Jn=(e,t,a,i,s,r,o)=>{const l=e.mapItems(t.menu,e.filter?.toLowerCase()??""),c=ee(e,t),h=Ea(i,e,t),p=h&&h!=="new"&&h.startsWith(c+"/")?h.substring(c.length+1).split("/")[0]:void 0;return n`
+                    ${t.variant==Pe.MEDIATOR?n`
 
                         ${t.layout=="SPLIT"?n`
                             <vaadin-master-detail-layout>
@@ -4454,7 +4570,7 @@ id="${e.id}"
                                 <mateu-api-caller slot="detail">
                                     <div style="padding-left: 1rem; width: calc(100% - 1rem);">
                                     <mateu-ux
-                                            route="${ka(i,e,t)}"
+                                            route="${Ea(i,e,t)}"
                                             id="ux_${e.id}_detail"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${ee(e,t)}"
@@ -4489,18 +4605,18 @@ id="${e.id}"
                         `}
                         
 `:d}
-            ${t.variant==Re.HAMBURGUER_MENU?n`
+            ${t.variant==Pe.HAMBURGUER_MENU?n`
                 <vaadin-app-layout style="${t?.style}" class="${t?.cssClasses}" .drawerOpened=${!t.drawerClosed}>
                     <vaadin-drawer-toggle slot="navbar"></vaadin-drawer-toggle>
                     <h2 slot="navbar" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${t.title}</h2><p slot="navbar">${t.subtitle}</p>
                     <vaadin-horizontal-layout slot="navbar" style="margin-left: auto; align-items: center;">
                         <slot name="widgets"></slot>
-                        ${Lt(t,e)}
+                        ${Dt(t,e)}
                     </vaadin-horizontal-layout>
                     <vaadin-scroller slot="drawer" class="p-s"
                                      @navigation-requested="${e.updateRoute}">
                         ${t.menu&&t.totalMenuOptions>10?n`
-                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${v=>jn(v,e)}">
+                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${v=>Kn(v,e)}">
                                 <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
                             </vaadin-text-field>
                             `:d}
@@ -4535,7 +4651,7 @@ id="${e.id}"
 
             `:d}
             
-            ${t.variant==Re.MENU_ON_TOP?n`
+            ${t.variant==Pe.MENU_ON_TOP?n`
                 <vaadin-vertical-layout style="width: 100%; height: 100vh; overflow: hidden;">
                     <vaadin-horizontal-layout
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
@@ -4557,7 +4673,7 @@ id="${e.id}"
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
-                            ${Lt(t,e)}
+                            ${Dt(t,e)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
@@ -4586,7 +4702,7 @@ id="${e.id}"
 
             `:d}
 
-            ${t.variant==Re.TILES?n`
+            ${t.variant==Pe.TILES?n`
                 <vaadin-vertical-layout style="width: 100%; height: 100vh; overflow: hidden;">
                     <vaadin-horizontal-layout
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
@@ -4608,7 +4724,7 @@ id="${e.id}"
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
-                            ${Lt(t,e)}
+                            ${Dt(t,e)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
@@ -4638,7 +4754,7 @@ id="${e.id}"
                 </vaadin-vertical-layout>
             `:d}
 
-            ${t.variant==Re.RAIL?n`
+            ${t.variant==Pe.RAIL?n`
                 <div style="display: flex; width: 100%; height: 100vh; overflow: hidden;">
                     ${e.renderRail(t.menu)}
                     ${e.railOpenOption?e.renderRailSubPanel(e.railOpenOption):d}
@@ -4667,14 +4783,14 @@ id="${e.id}"
                 </div>
             `:d}
 
-            ${t.variant==Re.MENU_ON_LEFT?n`
+            ${t.variant==Pe.MENU_ON_LEFT?n`
 
                 <vaadin-horizontal-layout>
                     <vaadin-scroller style="width: 16em; border-right: 2px solid var(--lumo-contrast-5pct);">
                         <vaadin-vertical-layout
                                 @navigation-requested="${e.updateRoute}">
                             ${t.menu.map(v=>e.renderOptionOnLeftMenu(v))}
-                            ${Lt(t,e)}
+                            ${Dt(t,e)}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>
                     <div class="${"app-content"+(e.pageCompact?" no-padding":"")}">
@@ -4704,7 +4820,7 @@ id="${e.id}"
 
             `:d}
 
-            ${t.variant==Re.TABS?n`
+            ${t.variant==Pe.TABS?n`
                 <!--
                 
                 box-shadow: inset 0 -1px 0 0 var(--lumo-contrast-10pct);
@@ -4777,7 +4893,7 @@ id="${e.id}"
             `:d}
             ${e.renderCommandPalette()}
             <slot></slot>
-       `},Vn=(e,t)=>t!=null&&e!=null&&!e.has(t),Hn=typeof HTMLElement<"u"?HTMLElement:class{};class Gn extends Hn{static get observedAttributes(){return["type","renderer"]}connectedCallback(){this.render()}attributeChangedCallback(){this.render()}render(){const t=this.getAttribute("type")??"unknown",a=this.getAttribute("renderer")??"unknown";this.shadowRoot||this.attachShadow({mode:"open"}),this.shadowRoot.innerHTML=`
+       `},Yn=(e,t)=>t!=null&&e!=null&&!e.has(t),Xn=typeof HTMLElement<"u"?HTMLElement:class{};class Qn extends Xn{static get observedAttributes(){return["type","renderer"]}connectedCallback(){this.render()}attributeChangedCallback(){this.render()}render(){const t=this.getAttribute("type")??"unknown",a=this.getAttribute("renderer")??"unknown";this.shadowRoot||this.attachShadow({mode:"open"}),this.shadowRoot.innerHTML=`
             <style>
                 :host { display: block; }
                 .mateu-unsupported {
@@ -4796,12 +4912,12 @@ id="${e.id}"
             <div class="mateu-unsupported" role="note">
                 ⚠ Component “${t}” is not supported by the “${a}” renderer yet.
             </div>
-        `}}typeof customElements<"u"&&!customElements.get("mateu-unsupported")&&customElements.define("mateu-unsupported",Gn);const Sa=new Set,Kn=(e,t,a)=>{const i=`${a}/${t}`;return Sa.has(i)||(Sa.add(i),console.warn(`[mateu] Component type "${t}" is not supported by the "${a}" renderer — rendering <mateu-unsupported> placeholder.`)),n`<mateu-unsupported
+        `}}typeof customElements<"u"&&!customElements.get("mateu-unsupported")&&customElements.define("mateu-unsupported",Qn);const Ca=new Set,Zn=(e,t,a)=>{const i=`${a}/${t}`;return Ca.has(i)||(Ca.add(i),console.warn(`[mateu] Component type "${t}" is not supported by the "${a}" renderer — rendering <mateu-unsupported> placeholder.`)),n`<mateu-unsupported
             type="${t}"
             renderer="${a}"
             data-component-id="${e?.id??d}"
             slot="${e?.slot??d}"
-    ></mateu-unsupported>`};class Jn{renderFilterBar(t,a,i,s,r,o,l,c){const h=a?.metadata,p=y=>{const{fieldId:_,value:k}=y.detail;t.state={...t.state,[_]:k}},v=y=>{const{fieldIds:_}=y.detail,k={};_.forEach(b=>{k[b]=void 0}),k.searchText=void 0,t.state={...t.state,...k}};return n`
+    ></mateu-unsupported>`};class eo{renderFilterBar(t,a,i,s,r,o,l,c){const h=a?.metadata,p=y=>{const{fieldId:T,value:k}=y.detail;t.state={...t.state,[T]:k}},v=y=>{const{fieldIds:T}=y.detail,k={};T.forEach(g=>{k[g]=void 0}),k.searchText=void 0,t.state={...t.state,...k}};return n`
             <mateu-filter-bar
                 .metadata="${h}"
                 @search-requested="${t.search}"
@@ -4813,7 +4929,7 @@ id="${e.id}"
                 .appData="${l}"
                 ?searchOnly="${c??!1}"
             >
-                ${h?.header?.map(y=>g(t,y,i,s,r,o,l))}
+                ${h?.header?.map(y=>b(t,y,i,s,r,o,l))}
             </mateu-filter-bar>
         `}renderPagination(t,a){return n`
         <mateu-pagination
@@ -4836,4 +4952,4 @@ id="${e.id}"
                      @fetch-more-elements="${t.fetchMoreElements}"
                      baseUrl="${i}"
         ></mateu-table>
-        `}rendererName(){return this.constructor?.name??"unknown"}supportedClientSideTypes(){}renderClientSideComponent(t,a,i,s,r,o,l,c){const h=a?.metadata?.type??a?.type,p=Object.values(m).includes(h)?h:void 0;return Vn(this.supportedClientSideTypes(),p)?Kn(a,p,this.rendererName()):ia(t,a,i,s,r,o,l,c)}renderAppComponent(t,a,i,s,r,o,l){return Wn(t,a?.metadata,i,s,r,o,l)}}class Yn extends Jn{rendererName(){return"vaadin"}renderClientSideComponent(t,a,i,s,r,o,l,c){return super.renderClientSideComponent(t,a,i,s,r,o,l,c)}}W.set(new Yn);
+        `}rendererName(){return this.constructor?.name??"unknown"}supportedClientSideTypes(){}renderClientSideComponent(t,a,i,s,r,o,l,c){const h=a?.metadata?.type??a?.type,p=Object.values(m).includes(h)?h:void 0;return Yn(this.supportedClientSideTypes(),p)?Zn(a,p,this.rendererName()):ra(t,a,i,s,r,o,l,c)}renderAppComponent(t,a,i,s,r,o,l){return Jn(t,a?.metadata,i,s,r,o,l)}}class to extends eo{rendererName(){return"vaadin"}renderClientSideComponent(t,a,i,s,r,o,l,c){return super.renderClientSideComponent(t,a,i,s,r,o,l,c)}}W.set(new to);

@@ -1,0 +1,9 @@
+import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
+import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutPanelInfo";
+
+// The overview travels as the child slotted "overview"; panel contents as "panel-N"
+export default interface FoldoutLayout extends ComponentMetadata {
+
+    panels?: FoldoutPanelInfo[]
+
+}
