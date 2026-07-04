@@ -78,7 +78,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = DashboardPanelDto.class, name = "DashboardPanel"),
   @JsonSubTypes.Type(value = DashboardLayoutDto.class, name = "DashboardLayout"),
   @JsonSubTypes.Type(value = FoldoutLayoutDto.class, name = "FoldoutLayout"),
-  @JsonSubTypes.Type(value = HeroSectionDto.class, name = "HeroSection")
+  @JsonSubTypes.Type(value = HeroSectionDto.class, name = "HeroSection"),
+  @JsonSubTypes.Type(value = EmptyStateDto.class, name = "EmptyState"),
+  @JsonSubTypes.Type(value = SkeletonDto.class, name = "Skeleton")
 })
 @Schema(
     oneOf = {
@@ -150,6 +152,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
       DashboardPanelDto.class,
       DashboardLayoutDto.class,
       FoldoutLayoutDto.class,
-      HeroSectionDto.class
+      HeroSectionDto.class,
+      EmptyStateDto.class,
+      SkeletonDto.class
     })
 public interface ComponentMetadataDto {}

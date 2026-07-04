@@ -141,6 +141,8 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.DashboardLayout,
     ComponentMetadataType.FoldoutLayout,
     ComponentMetadataType.HeroSection,
+    ComponentMetadataType.EmptyState,
+    ComponentMetadataType.Skeleton,
 ])
 
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

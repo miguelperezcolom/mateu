@@ -30,6 +30,7 @@ Mateu generates all of that from the model. Validate with Bean Validation
 | a search-first landing page | `extends HeroSearch<Filters, Row>` | [hero-search.md](reference/hero-search.md) |
 | a detail page with pinned key info + tabs | `extends ItemOverview` + key-info field + `@Panel` | [item-overview.md](reference/item-overview.md) |
 | a welcome/landing page for a flow | `extends Welcome` + `Button` fields + `@Panel` | [welcome.md](reference/welcome.md) |
+| "nothing here yet" / loading placeholders | `EmptyState` / `Skeleton` components | [empty-states.md](reference/empty-states.md) |
 | read ⇄ edit on one entity | `extends AutoEditableView<T>` | [editor.md](reference/editor.md) |
 | a custom / dynamic layout | `implements ComponentTreeSupplier` | [fluent.md](reference/fluent.md) |
 | an app menu / shell / federation | `@UI("")` + `@Menu` / `RemoteMenu` | [federation.md](reference/federation.md) |

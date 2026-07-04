@@ -311,6 +311,20 @@ AutoEditableView; categories side-by-side → Foldout.
 
 ---
 
+## Empty states & skeletons
+
+```java
+Component empty = EmptyState.builder().icon("📭").title("No bookings yet")
+        .description("When you create a booking it will show up here.")
+        .actionId("createBooking").actionLabel("Create your first booking").build();
+Component loading = Skeleton.builder().variant(SkeletonVariant.form).count(3).build();
+```
+
+Listings render an empty-state block automatically when they have no rows
+(`Listing.emptyStateMessage` sets the message). Skeleton variants: text/card/grid/form.
+
+---
+
 ## Welcome page
 
 ```java

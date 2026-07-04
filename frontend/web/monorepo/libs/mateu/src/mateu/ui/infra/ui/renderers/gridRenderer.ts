@@ -1,4 +1,5 @@
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Grid from "@mateu/shared/apiClients/dtos/componentmetadata/Grid";
 import { GridDataProviderCallback, GridDataProviderParams } from "@vaadin/grid";
@@ -83,7 +84,7 @@ export const renderGrid = (
                                 width="${col?.width ?? nothing}"
             ></vaadin-grid-tree-column>
 `})}
-            <span slot="empty-state">No data.</span>
+            <span slot="empty-state">${emptyStateTemplate()}</span>
         </vaadin-grid>
     `
     }

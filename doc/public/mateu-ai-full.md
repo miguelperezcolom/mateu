@@ -778,6 +778,30 @@ public class ProductOverview extends ItemOverview {
 
 ---
 
+## Empty states & skeletons
+
+Never show a blank void — `EmptyState` for "nothing here yet", `Skeleton` while content loads:
+
+```java
+@Section("Bookings")
+Component empty = EmptyState.builder()
+        .icon("📭").title("No bookings yet")
+        .description("When you create a booking it will show up here.")
+        .actionId("createBooking").actionLabel("Create your first booking")
+        .build();
+
+@Action Object createBooking() { return URI.create("/bookings/new"); }
+
+Component loading = new HorizontalLayout(
+        Skeleton.builder().variant(SkeletonVariant.form).count(3).build(),
+        Skeleton.builder().variant(SkeletonVariant.grid).count(5).build());
+```
+
+- Listings/grids render the empty-state block automatically when they have no rows; `Listing.emptyStateMessage` customises the message.
+- `Skeleton` variants: `text` (lines), `card` (tile), `grid` (rows), `form` (label + field pairs); `count` repeats the shape. Typical use: initial value of a component field that an `OnLoad` action replaces with real content.
+
+---
+
 ## Welcome page
 
 Extend `Welcome` for a friendly entry point to a flow — hero + call-to-action buttons + highlight tiles:

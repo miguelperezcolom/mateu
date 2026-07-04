@@ -1,4 +1,5 @@
 import { customElement, property, query, state } from "lit/decorators.js";
+import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
 import '@vaadin/horizontal-layout'
@@ -299,7 +300,7 @@ export class MateuTable extends LitElement {
                             )}
                     ></vaadin-grid-column>
                 `:nothing}
-                <span slot="empty-state">${this.emptyStateMessage??this.metadata?.emptyStateMessage??'No results found.'}</span>
+                <span slot="empty-state">${emptyStateTemplate(this.emptyStateMessage??this.metadata?.emptyStateMessage)}</span>
                 ${this.metadata?.columns?.find(column => (column.metadata as GridColumn).tooltipPath)?html`<vaadin-tooltip slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>`:nothing}
             </vaadin-grid>
             <slot></slot>

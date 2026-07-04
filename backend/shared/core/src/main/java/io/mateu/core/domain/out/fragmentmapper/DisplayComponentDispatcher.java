@@ -9,6 +9,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ButtonMapper.mapBu
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CardMapper.mapCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ChatMapper.mapChatToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapElementToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.EmptyStateMapper.mapEmptyStateToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.IconMapper.mapIconToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ImageMapper.mapImageToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.KPIMapper.mapKPIToDto;
@@ -16,6 +17,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.map
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MetricCardMapper.mapMetricCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ScoreboardMapper.mapScoreboardToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.SkeletonMapper.mapSkeletonToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TextMapper.mapTextToDto;
 
 import io.mateu.dtos.ComponentDto;
@@ -58,6 +60,12 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Scoreboard scoreboard) {
       return mapScoreboardToDto(scoreboard);
+    }
+    if (component instanceof EmptyState emptyState) {
+      return mapEmptyStateToDto(emptyState);
+    }
+    if (component instanceof Skeleton skeleton) {
+      return mapSkeletonToDto(skeleton);
     }
     if (component instanceof Anchor anchor) {
       return mapAnchorToDto(anchor);

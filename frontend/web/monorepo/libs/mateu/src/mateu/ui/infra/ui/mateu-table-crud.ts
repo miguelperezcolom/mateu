@@ -1,4 +1,5 @@
 import {customElement, property, state} from "lit/decorators.js";
+import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -407,7 +408,7 @@ export class MateuTableCrud extends LitElement {
 
             return html`
                 <vaadin-list-box style="width: 100%;">
-                    ${rows.length === 0 ? html`<vaadin-item disabled>${emptyMsg ?? 'No data.'}</vaadin-item>` : nothing}
+                    ${rows.length === 0 ? html`<vaadin-item disabled>${emptyStateTemplate(emptyMsg)}</vaadin-item>` : nothing}
                     ${rows.map(item => html`
                         <vaadin-item
                             ?selected="${idField && selectedId !== undefined && String(item[idField]) === String(selectedId)}"
@@ -499,7 +500,7 @@ export class MateuTableCrud extends LitElement {
 
             return html`
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--lumo-space-m); padding: var(--lumo-space-s) 0;">
-                    ${rows.length === 0 ? html`<p>${emptyMsg ?? 'No data.'}</p>` : nothing}
+                    ${rows.length === 0 ? html`<div style="grid-column: 1 / -1;">${emptyStateTemplate(emptyMsg)}</div>` : nothing}
                     ${rows.map(item => html`
                         <vaadin-card
                             clickable
@@ -532,7 +533,7 @@ export class MateuTableCrud extends LitElement {
                 <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
                     <div style="width: 260px; flex-shrink: 0; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
                         <vaadin-list-box style="width: 100%;">
-                            ${rows.length === 0 ? html`<vaadin-item disabled>${emptyMsg ?? 'No data.'}</vaadin-item>` : nothing}
+                            ${rows.length === 0 ? html`<vaadin-item disabled>${emptyStateTemplate(emptyMsg)}</vaadin-item>` : nothing}
                             ${rows.map(item => html`
                                 <vaadin-item
                                     ?selected="${this.selectedItem === item}"
@@ -619,7 +620,7 @@ export class MateuTableCrud extends LitElement {
                         <vaadin-button theme="tertiary small" @click="${(e: Event) => openRow(e, item, 'view')}">View</vaadin-button>
                     `, [])}></vaadin-grid-column>` : nothing}
                     ${restCols.map(c => html`<vaadin-grid-column path="${c.id}" header="${c.label ?? nothing}" auto-width></vaadin-grid-column>`)}
-                    <span slot="empty-state">${emptyMsg ?? 'No data.'}</span>
+                    <span slot="empty-state">${emptyStateTemplate(emptyMsg)}</span>
                 </vaadin-grid>`
         }
 
