@@ -3,7 +3,6 @@ package io.mateu.core.domain.out.componentmapper;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
-import io.mateu.uidl.Humanizer;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Menu;
 import io.mateu.uidl.fluent.AppLayout;
@@ -17,7 +16,6 @@ import io.mateu.uidl.interfaces.TitleSupplier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import jdk.jfr.Label;
 
 class AppMetadataExtractor {
 
@@ -140,17 +138,18 @@ class AppMetadataExtractor {
     return null;
   }
 
+  /**
+   * Label of a menu-entry method: {@link Label @Label} value if present (composable via {@link
+   * MetaAnnotations}), else the humanized method name. Delegates to {@link
+   * FieldMetadataExtractor#getLabel(java.lang.reflect.AnnotatedElement)} so menu labels are
+   * resolved (and translated) exactly like form field labels.
+   */
   static String getLabel(Method method) {
-    if (MetaAnnotations.isPresent(method, Label.class)) {
-      return MetaAnnotations.find(method, Label.class).value();
-    }
-    return Humanizer.toUpperCaseFirst(method.getName());
+    return FieldMetadataExtractor.getLabel(method);
   }
 
+  /** Label of a menu-entry field; see {@link #getLabel(Method)}. */
   static String getLabel(Field field) {
-    if (MetaAnnotations.isPresent(field, Label.class)) {
-      return MetaAnnotations.find(field, Label.class).value();
-    }
-    return Humanizer.toUpperCaseFirst(field.getName());
+    return FieldMetadataExtractor.getLabel(field);
   }
 }

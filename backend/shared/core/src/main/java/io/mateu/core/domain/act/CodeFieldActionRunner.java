@@ -16,8 +16,10 @@ import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 
+@Slf4j
 @Named
 public class CodeFieldActionRunner implements ActionRunner {
 
