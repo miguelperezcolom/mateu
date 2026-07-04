@@ -94,11 +94,26 @@ import "@ui5/webcomponents/dist/MessageStrip.js";      // ui5-message-strip (not
 import "@ui5/webcomponents/dist/ProgressIndicator.js"; // ui5-progress-indicator
 import "@ui5/webcomponents/dist/SegmentedButton.js";   // ui5-segmented-button
 
+// Components used by the field renderer (stereotype/dataType parity)
+import "@ui5/webcomponents/dist/RadioButton.js";       // ui5-radio-button (radio)
+import "@ui5/webcomponents/dist/DateRangePicker.js";   // ui5-daterange-picker (dateRange)
+import "@ui5/webcomponents/dist/RangeSlider.js";       // ui5-range-slider (range)
+import "@ui5/webcomponents/dist/StepInput.js";         // ui5-step-input (integer with step buttons)
+import "@ui5/webcomponents/dist/Tree.js";              // ui5-tree (tree grid layout)
+import "@ui5/webcomponents/dist/TreeItem.js";          // ui5-tree-item
+import "@ui5/webcomponents/dist/MenuSeparator.js";     // ui5-menu-separator (context menu)
+
 // Icons used by field and layout renderers
 import "@ui5/webcomponents-icons/dist/favorite.js";
 import "@ui5/webcomponents-icons/dist/unfavorite.js";
 import "@ui5/webcomponents-icons/dist/upload.js";
 import "@ui5/webcomponents-icons/dist/question-mark.js";
+import "@ui5/webcomponents-icons/dist/copy.js";            // read-only copy-to-clipboard suffix
+import "@ui5/webcomponents-icons/dist/search.js";          // searchable stereotype
+import "@ui5/webcomponents-icons/dist/delete.js";          // uploadableImage delete
+import "@ui5/webcomponents-icons/dist/picture.js";         // uploadableImage placeholder
+import "@ui5/webcomponents-icons/dist/slim-arrow-down.js"; // popover stereotype opener
+import "@ui5/webcomponents-icons/dist/less.js";            // read-only bool "false"
 
 // SAP UI5 Table components
 import "@ui5/webcomponents/dist/Table.js";

@@ -43,7 +43,9 @@ export default defineConfig({
       '/images': 'http://localhost:8091',
       '/myassets': 'http://localhost:8091',
       '/sse': 'http://localhost:8091',
-      '/upload': 'http://localhost:8091',
+      // exact match: a plain '/upload' string key is a PREFIX match and would swallow
+      // app routes like /uploadable-image (serving the backend HTML instead of the SPA)
+      '^/upload(/|$)': 'http://localhost:8091',
     },
   },
 })

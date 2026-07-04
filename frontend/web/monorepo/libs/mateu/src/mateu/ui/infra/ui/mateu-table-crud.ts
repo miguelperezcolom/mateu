@@ -623,18 +623,23 @@ export class MateuTableCrud extends LitElement {
                 </vaadin-grid>`
         }
 
+        // A renderer can claim all crud grid layouts (list/cards/masterDetail/tree, not just
+        // table) for itself, so they render with its own design system instead of the shared
+        // Vaadin-flavoured templates below. See ComponentRenderer.rendersCrudLayouts.
+        const rendererOwnsLayouts = componentRenderer.get()?.rendersCrudLayouts?.() === true
+
         const contentHtml = html`
             ${metadata.infiniteScrolling ? html`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             ` : nothing}
-            ${gridLayout === 'list' ? renderTwoLineList()
-            : gridLayout === 'cards' ? (metadata.contentHeight ? html`
+            ${!rendererOwnsLayouts && gridLayout === 'list' ? renderTwoLineList()
+            : !rendererOwnsLayouts && gridLayout === 'cards' ? (metadata.contentHeight ? html`
                 <vaadin-scroller style="width: 100%; height: ${metadata.contentHeight};">
                     ${renderCards()}
                 </vaadin-scroller>
             ` : renderCards())
-            : gridLayout === 'masterDetail' ? renderMasterDetail()
-            : gridLayout === 'tree' ? renderTree()
+            : !rendererOwnsLayouts && gridLayout === 'masterDetail' ? renderMasterDetail()
+            : !rendererOwnsLayouts && gridLayout === 'tree' ? renderTree()
             : componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)}
             <slot></slot>
         `

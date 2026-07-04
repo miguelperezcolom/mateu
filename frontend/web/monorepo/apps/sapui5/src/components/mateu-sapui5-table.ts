@@ -1,15 +1,14 @@
 import { customElement, property, state } from "lit/decorators.js";
 import { html, LitElement, nothing, TemplateResult } from "lit";
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
-import { StatusType } from "@mateu/shared/apiClients/dtos/componentmetadata/StatusType";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import {
     ResolvedGridLayout,
     compactColumns,
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
+import { renderCellValue } from "@/renderers/renderCellValue.ts";
 
 @customElement('mateu-sapui5-table')
 export class MateuSapUI5Table extends LitElement {
@@ -55,8 +54,12 @@ export class MateuSapUI5Table extends LitElement {
     }
 
     private get effectiveGridLayout(): ResolvedGridLayout {
-        const raw = (this.metadata as unknown as Crud)?.gridLayout ?? 'auto'
-        if (raw === 'auto') return selectColumnLayout(this.cols, this.availableWidthPx)
+        const metadata = this.metadata as unknown as Crud
+        const raw = metadata?.gridLayout ?? 'auto'
+        if (raw === 'auto') {
+            if (metadata?.crudlType === 'card') return 'cards'
+            return selectColumnLayout(this.cols, this.availableWidthPx)
+        }
         return raw as ResolvedGridLayout
     }
 
@@ -85,20 +88,6 @@ export class MateuSapUI5Table extends LitElement {
         }))
     }
 
-    private renderStatusCell(value: any): TemplateResult {
-        if (!value) return html``
-        const message = value.message ?? String(value)
-        const colorScheme = (() => {
-            const t = value.type as StatusType
-            if (t === StatusType.SUCCESS) return '8'
-            if (t === StatusType.DANGER) return '1'
-            if (t === StatusType.WARNING) return '6'
-            if (t === StatusType.INFO) return '4'
-            return '5'
-        })()
-        return html`<ui5-tag color-scheme="${colorScheme}">${message}</ui5-tag>`
-    }
-
     private dispatchAction(actionId: string, item: any) {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId, parameters: item },
@@ -108,84 +97,7 @@ export class MateuSapUI5Table extends LitElement {
     }
 
     private renderCellValue(item: any, col: GridColumn): TemplateResult {
-        const type = col.dataType ?? ''
-        const stereotype = col.stereotype ?? ''
-        const value = item[col.id]
-
-        if (type === 'status') return this.renderStatusCell(value)
-
-        if (type === 'bool') {
-            return value
-                ? html`<ui5-icon name="accept"></ui5-icon>`
-                : html`<ui5-icon name="decline"></ui5-icon>`
-        }
-
-        if (type === 'money' || stereotype === 'money') {
-            if (value == null) return html``
-            return html`${new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(Number(value))}`
-        }
-
-        if (type === 'link' || stereotype === 'link') {
-            const text = typeof value === 'object' ? (value?.text ?? '') : (value ?? '')
-            const actionId = col.actionId
-            if (actionId) {
-                return html`<ui5-link @click="${(e: Event) => {
-                    e.preventDefault()
-                    this.dispatchAction(actionId, item)
-                }}">${text}</ui5-link>`
-            }
-            const href = typeof value === 'object' ? (value?.href ?? value?.url ?? '') : ''
-            return html`<a href="${href}">${text}</a>`
-        }
-
-        if (type === 'icon' || stereotype === 'icon') {
-            const icons: string[] = Array.isArray(value)
-                ? value
-                : (value ? String(value).split(',') : [])
-            return html`${icons.map(i => html`<ui5-icon name="${i.trim().replace(/^vaadin:|^lumo:/, '')}"></ui5-icon>`)}`
-        }
-
-        if (stereotype === 'html') {
-            return html`${unsafeHTML(value ?? '')}`
-        }
-
-        if (stereotype === 'image') {
-            const src = typeof value === 'object' ? (value?.url ?? value?.src ?? '') : (value ?? '')
-            if (!src) return html``
-            return html`<img src="${src}" style="max-height: 3rem; object-fit: contain;" />`
-        }
-
-        if (stereotype === 'button') {
-            const label = col.text ?? col.label ?? ''
-            const actionId = col.actionId ?? col.id
-            return html`<ui5-button design="Transparent"
-                @click="${(e: Event) => { e.stopPropagation(); this.dispatchAction(actionId, item) }}"
-            >${label}</ui5-button>`
-        }
-
-        if (type === 'action') {
-            const text = typeof value === 'object' ? (value?.text ?? value?.label ?? '') : ''
-            const actionId = typeof value === 'object'
-                ? (value?.methodNameInCrud ?? value?.actionId ?? value?.id ?? col.id)
-                : (col.actionId ?? col.id)
-            return html`<ui5-button design="Transparent"
-                @click="${(e: Event) => { e.stopPropagation(); this.dispatchAction(actionId, item) }}"
-            >${text}</ui5-button>`
-        }
-
-        if (type === 'actionGroup' || type === 'menu') {
-            const actions: any[] = typeof value === 'object' && value?.actions
-                ? value.actions
-                : (Array.isArray(value) ? value : [])
-            return html`${actions.map(a => {
-                const aId = a.methodNameInCrud ?? a.actionId ?? a.id ?? ''
-                return html`<ui5-button design="Transparent"
-                    @click="${(e: Event) => { e.stopPropagation(); this.dispatchAction(aId, item) }}"
-                >${a.label ?? a.text ?? aId}</ui5-button>`
-            })}`
-        }
-
-        return html`${value ?? ''}`
+        return renderCellValue(item, col, (actionId, it) => this.dispatchAction(actionId, it))
     }
 
     // ── Layout renderers ────────────────────────────────────────────────────────
@@ -319,6 +231,35 @@ export class MateuSapUI5Table extends LitElement {
             </div>`
     }
 
+    // Hierarchical rows (gridLayout tree): rows carry a self-referential `children` list.
+    private renderTree(allCols: GridColumn[]): TemplateResult {
+        const rows = this.getRows()
+        const treeCol = allCols.find(c => c.dataType !== 'action' && c.dataType !== 'actionGroup' && c.dataType !== 'menu') ?? allCols[0]
+        const restCols = allCols.filter(c => c !== treeCol)
+
+        const itemText = (item: any) => String(item[treeCol?.id ?? ''] ?? '')
+        const itemDescription = (item: any) => restCols
+            .map(c => item[c.id] != null ? `${c.label}: ${item[c.id]}` : '')
+            .filter(t => t)
+            .join(' · ')
+
+        const renderTreeItem = (item: any): TemplateResult => html`
+            <ui5-tree-item
+                text="${itemText(item)}"
+                additional-text="${itemDescription(item) || nothing}"
+                ?has-children="${(item.children?.length ?? 0) > 0}"
+                expanded
+                @click="${(e: Event) => { e.stopPropagation(); this.dispatchAction('_rowClick', item) }}"
+            >
+                ${item.children?.map((child: any) => renderTreeItem(child))}
+            </ui5-tree-item>`
+
+        return html`
+            <ui5-tree no-data-text="${this.emptyStateMessage ?? 'No data.'}" style="width: 100%;">
+                ${rows.map((item: any) => renderTreeItem(item))}
+            </ui5-tree>`
+    }
+
     render(): TemplateResult {
         const allCols = this.cols
         const layout = this.effectiveGridLayout
@@ -326,6 +267,7 @@ export class MateuSapUI5Table extends LitElement {
         if (layout === 'list') return this.renderTwoLineList(allCols)
         if (layout === 'cards') return this.renderCards(allCols)
         if (layout === 'masterDetail') return this.renderMasterDetail(allCols)
+        if (layout === 'tree') return this.renderTree(allCols)
         return this.renderTable(allCols)
     }
 }

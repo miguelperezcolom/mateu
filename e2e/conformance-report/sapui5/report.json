@@ -1,7 +1,7 @@
 {
   "renderer": "sapui5",
   "baseUrl": "http://localhost:5199",
-  "date": "2026-07-04T17:53:53.358Z",
+  "date": "2026-07-04T18:31:23.032Z",
   "rendererInfo": {
     "name": "sapui5",
     "supportedTypes": [
@@ -14,28 +14,42 @@
       "BoardLayout",
       "BoardLayoutItem",
       "BoardLayoutRow",
+      "Bpmn",
       "Breadcrumbs",
       "Button",
       "Card",
       "CarouselLayout",
+      "Chart",
+      "Chat",
       "ConfirmDialog",
       "Container",
+      "ContextMenu",
+      "CookieConsent",
       "Crud",
+      "CustomField",
       "Details",
       "Dialog",
+      "Directory",
       "Div",
       "Element",
       "Form",
+      "FormEditor",
       "FormField",
       "FormLayout",
       "FormRow",
       "FormSection",
       "FormSubSection",
       "FullWidth",
+      "Grid",
       "HorizontalLayout",
       "Icon",
       "Image",
+      "Map",
+      "Markdown",
+      "MasterDetailLayout",
       "MenuBar",
+      "MessageInput",
+      "MessageList",
       "MicroFrontend",
       "Notification",
       "Page",
@@ -44,9 +58,13 @@
       "Scroller",
       "SplitLayout",
       "TabLayout",
+      "Table",
       "Text",
       "Tooltip",
-      "VerticalLayout"
+      "VerticalLayout",
+      "VirtualList",
+      "Workflow",
+      "WorkflowElk"
     ]
   },
   "matrix": [
@@ -72,7 +90,7 @@
     },
     {
       "type": "Chart",
-      "declaredSupported": false,
+      "declaredSupported": true,
       "placeholderObserved": false
     },
     {
@@ -136,7 +154,7 @@
         "FormField"
       ],
       "unsupported": [],
-      "textLength": 18325,
+      "textLength": 18327,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -163,7 +181,7 @@
         "FormField"
       ],
       "unsupported": [],
-      "textLength": 19040,
+      "textLength": 19272,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -191,7 +209,7 @@
         "Button"
       ],
       "unsupported": [],
-      "textLength": 18965,
+      "textLength": 19027,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -219,7 +237,7 @@
         "Button"
       ],
       "unsupported": [],
-      "textLength": 18730,
+      "textLength": 18725,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -247,7 +265,7 @@
         "FormField"
       ],
       "unsupported": [],
-      "textLength": 18777,
+      "textLength": 18785,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -275,7 +293,7 @@
         "FormField"
       ],
       "unsupported": [],
-      "textLength": 19040,
+      "textLength": 19048,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -303,7 +321,7 @@
         "FormField"
       ],
       "unsupported": [],
-      "textLength": 18791,
+      "textLength": 18838,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -332,7 +350,7 @@
         "VerticalLayout"
       ],
       "unsupported": [],
-      "textLength": 18857,
+      "textLength": 18865,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -360,7 +378,7 @@
         "FormField"
       ],
       "unsupported": [],
-      "textLength": 18588,
+      "textLength": 18600,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -387,13 +405,8 @@
         "HorizontalLayout",
         "Text"
       ],
-      "unsupported": [
-        {
-          "type": "CustomField",
-          "renderer": "sapui5"
-        }
-      ],
-      "textLength": 19054,
+      "unsupported": [],
+      "textLength": 18582,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -419,7 +432,7 @@
         "Text"
       ],
       "unsupported": [],
-      "textLength": 21154,
+      "textLength": 21156,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -446,7 +459,7 @@
         "Badge"
       ],
       "unsupported": [],
-      "textLength": 19590,
+      "textLength": 19583,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -472,7 +485,7 @@
         "Form"
       ],
       "unsupported": [],
-      "textLength": 19127,
+      "textLength": 19129,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -499,7 +512,7 @@
         "FormField"
       ],
       "unsupported": [],
-      "textLength": 18469,
+      "textLength": 18451,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -526,10 +539,21 @@
         "FormField"
       ],
       "unsupported": [],
-      "textLength": 619,
+      "textLength": 18557,
       "status": "rendered",
       "consoleErrors": [
-        "Failed to load resource: the server responded with a status of 404 (Not Found)"
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip-overlay version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-tooltip version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-avatar version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-area version 24.9.11 when version 24.10.1 is already in use. Something will probably break.",
+        "Tried to define vaadin-lumo-styles version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-button version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-input-container version 24.9.12 when version 24.9.11 is already in use. Something will probably break.",
+        "Tried to define vaadin-text-field version 24.9.12 when version 24.9.11 is already in use. Something will probably break."
       ],
       "screenshot": "screenshots/uploadable-image.png"
     },
@@ -542,7 +566,7 @@
         "Button"
       ],
       "unsupported": [],
-      "textLength": 26012,
+      "textLength": 26014,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -570,7 +594,7 @@
         "Button"
       ],
       "unsupported": [],
-      "textLength": 13767,
+      "textLength": 13771,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -596,7 +620,7 @@
         "Crud"
       ],
       "unsupported": [],
-      "textLength": 57557,
+      "textLength": 57128,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -648,7 +672,7 @@
         "Crud"
       ],
       "unsupported": [],
-      "textLength": 56783,
+      "textLength": 55478,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -673,17 +697,8 @@
         "Page",
         "Crud"
       ],
-      "unsupported": [
-        {
-          "type": "CustomField",
-          "renderer": "sapui5"
-        },
-        {
-          "type": "CustomField",
-          "renderer": "sapui5"
-        }
-      ],
-      "textLength": 48760,
+      "unsupported": [],
+      "textLength": 47724,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -711,13 +726,8 @@
         "FormField",
         "Button"
       ],
-      "unsupported": [
-        {
-          "type": "CustomField",
-          "renderer": "sapui5"
-        }
-      ],
-      "textLength": 19314,
+      "unsupported": [],
+      "textLength": 51385,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",
@@ -745,7 +755,7 @@
         "Button"
       ],
       "unsupported": [],
-      "textLength": 25911,
+      "textLength": 25905,
       "status": "rendered",
       "consoleErrors": [
         "Tried to define vaadin-lumo-styles version 24.10.1 when version 24.9.11 is already in use. Something will probably break.",

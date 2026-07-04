@@ -41,6 +41,18 @@ import {
     renderDetails,
     renderImage
 } from "@/renderers/renderDisplayComponents.ts";
+import {
+    renderMarkdown,
+    renderGrid,
+    renderTable,
+    renderVirtualList,
+    renderContextMenu,
+    renderDirectory,
+    renderCustomField,
+    renderMasterDetailLayout,
+    renderMessageList,
+    renderMessageInput
+} from "@/renderers/renderAdvanced.ts";
 import { MateuComponent } from "@infra/ui/mateu-component.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 
@@ -81,10 +93,20 @@ export const handleButtonClick = (event: Event) => {
 
 /**
  * Types this renderer supports: everything handled by its own switch below, plus types it
- * deliberately delegates to the shared infra (Crud → mateu-table-crud, which calls back into
- * this renderer's table/filter-bar/pagination; Element/Div/Image/MicroFrontend are
- * design-system-agnostic). Anything else renders a visible <mateu-unsupported> placeholder
- * instead of silently falling back to Vaadin-flavoured components (parity phase 0).
+ * deliberately delegates to the shared infra. Two delegation flavours:
+ *
+ * - design-system-agnostic shared components (Element/Div/MicroFrontend markup; Crud →
+ *   mateu-table-crud, which calls back into this renderer's table/filter-bar/pagination and —
+ *   via rendersCrudLayouts() — also its list/cards/masterDetail/tree layouts; Chart/Bpmn/
+ *   CookieConsent render canvas/SVG/plain markup; Map renders an OpenLayers canvas;
+ *   Markdown renders plain HTML typography);
+ * - shared components that still carry some Vaadin-flavoured chrome around a design-system-
+ *   neutral core (Chat side panel, Workflow/WorkflowElk/FormEditor SVG editors). Functional,
+ *   pending native replacements.
+ *
+ * Anything else renders a visible <mateu-unsupported> placeholder instead of silently falling
+ * back to Vaadin-flavoured components (parity phase 0). This set currently covers the full
+ * shared switch (renderClientSideComponent.ts).
  */
 const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     // own switch
@@ -103,6 +125,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.TabLayout,
     ComponentMetadataType.AccordionLayout,
     ComponentMetadataType.SplitLayout,
+    ComponentMetadataType.MasterDetailLayout,
     ComponentMetadataType.Scroller,
     ComponentMetadataType.FullWidth,
     ComponentMetadataType.Container,
@@ -126,11 +149,29 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.CarouselLayout,
     ComponentMetadataType.Popover,
     ComponentMetadataType.MenuBar,
+    ComponentMetadataType.ContextMenu,
+    ComponentMetadataType.Markdown,
+    ComponentMetadataType.Grid,
+    ComponentMetadataType.Table,
+    ComponentMetadataType.VirtualList,
+    ComponentMetadataType.Directory,
+    ComponentMetadataType.CustomField,
+    ComponentMetadataType.MessageList,
+    ComponentMetadataType.MessageInput,
     // deliberate delegation to shared, design-system-agnostic infra
     ComponentMetadataType.Crud,
     ComponentMetadataType.Element,
     ComponentMetadataType.Div,
     ComponentMetadataType.MicroFrontend,
+    ComponentMetadataType.Chart,
+    ComponentMetadataType.Bpmn,
+    ComponentMetadataType.CookieConsent,
+    ComponentMetadataType.Map,
+    // deliberate delegation to shared components with residual Vaadin chrome (documented above)
+    ComponentMetadataType.Chat,
+    ComponentMetadataType.Workflow,
+    ComponentMetadataType.WorkflowElk,
+    ComponentMetadataType.FormEditor,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
@@ -141,6 +182,13 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
 
     supportedClientSideTypes(): ReadonlySet<ComponentMetadataType> {
         return SUPPORTED_TYPES
+    }
+
+    // mateu-table-crud delegates ALL crud grid layouts (table/list/cards/masterDetail/tree) to
+    // renderTableComponent, so mateu-sapui5-table renders them with SAP UI5 components instead
+    // of the shared Vaadin-flavoured templates.
+    rendersCrudLayouts(): boolean {
+        return true
     }
 
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult {
@@ -158,7 +206,7 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
             return renderButton(component, baseUrl, state, data)
         }
         if (ComponentMetadataType.FormField == component?.metadata?.type) {
-            return renderField(component, baseUrl, state, data)
+            return renderField(container, component, baseUrl, state, data)
         }
 
         // Layouts
@@ -262,6 +310,36 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
         }
         if (ComponentMetadataType.MenuBar == component?.metadata?.type) {
             return renderMenuBar(container, component)
+        }
+        if (ComponentMetadataType.ContextMenu == component?.metadata?.type) {
+            return renderContextMenu(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Markdown == component?.metadata?.type) {
+            return renderMarkdown(component)
+        }
+        if (ComponentMetadataType.Grid == component?.metadata?.type) {
+            return renderGrid(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Table == component?.metadata?.type) {
+            return renderTable(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.VirtualList == component?.metadata?.type) {
+            return renderVirtualList(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.Directory == component?.metadata?.type) {
+            return renderDirectory(component)
+        }
+        if (ComponentMetadataType.CustomField == component?.metadata?.type) {
+            return renderCustomField(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.MasterDetailLayout == component?.metadata?.type) {
+            return renderMasterDetailLayout(container, component, baseUrl, state, data, appState, appData)
+        }
+        if (ComponentMetadataType.MessageList == component?.metadata?.type) {
+            return renderMessageList(component)
+        }
+        if (ComponentMetadataType.MessageInput == component?.metadata?.type) {
+            return renderMessageInput(component)
         }
 
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
