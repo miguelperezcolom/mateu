@@ -10,12 +10,12 @@
     "copy": "tsc && vite build && mv dist/index.html dist/_index.html && cp -rf dist/* ../../../../../backend/shared/frontend/sapui5-lit/src/main/resources/META-INF/resources && cp -rf dist/* ../../../../../backend/shared/frontend/sapui5-lit/src/main/resources/static  && cp -rf dist/assets/* ../../../../../demo/sites/sapui5/assets"
   },
   "dependencies": {
-    "@ui5/webcomponents": "^2.13.2",
-    "@ui5/webcomponents-ai": "^2.13.2",
-    "@ui5/webcomponents-fiori": "^2.13.2",
-    "lit": "^3.3.1",
+    "@ui5/webcomponents": "^2.23.2",
+    "@ui5/webcomponents-ai": "^2.23.2",
+    "@ui5/webcomponents-fiori": "^2.23.2",
+    "lit": "^3.3.3",
     "mateu": "*",
-    "minimatch": "10.0.3"
+    "minimatch": "10.2.5"
   },
   "devDependencies": {
     "typescript": "~5.8.3",
