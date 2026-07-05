@@ -173,7 +173,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                         label-hint="Search"
                         label-edge="none"
                         .value="${state.searchText ?? ''}"
-                        @ojValueAction="${(e: CustomEvent) => { state['searchText'] = e.detail.value ?? '' }}"
+                        @valueChanged="${(e: CustomEvent) => { state['searchText'] = e.detail.value ?? '' }}"
                         style="min-width: 220px;"
                     ></oj-c-input-text>
                     <oj-c-button

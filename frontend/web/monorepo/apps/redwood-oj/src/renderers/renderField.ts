@@ -30,6 +30,10 @@ const makeDataProvider = (items: { value: unknown; label: string }[]) => {
     }
 }
 
+// JET Core Pack (oj-c-*) inputs must be bound via @valueChanged (the controlled-property
+// change event, fired on commit for every value-carrying component). @ojValueAction is NOT
+// emitted by oj-c-input-text / text-area / checkbox / input-number — only some components
+// (e.g. oj-c-select-single) fire it, so binding it silently dropped typed values.
 const valueChanged = (event: Event, fieldId: string, value: unknown) => {
     event.target?.dispatchEvent(new CustomEvent('value-changed', {
         detail: { value, fieldId },
@@ -119,7 +123,7 @@ const renderSelectSingle = (metadata: FormField, id: string, label: string, valu
         .data="${dp}"
         ?required="${metadata.required}"
         ?disabled="${metadata.disabled}"
-        @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+        @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
     ></oj-c-select-single>`
 }
 
@@ -135,7 +139,7 @@ const renderSelectMultiple = (metadata: FormField, id: string, label: string, va
         .data="${dp}"
         ?required="${metadata.required}"
         ?disabled="${metadata.disabled}"
-        @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+        @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
     ></oj-c-select-multiple>`
 }
 
@@ -359,7 +363,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             return labeled(label, html`
                 <div style="display: flex; gap: 0.33rem; align-items: center;">
                     <oj-c-input-text data-oj-binding-provider="preact" label-edge="none" style="width: 6rem;"
-                                     .value="${value ?? ''}" @ojValueAction="${searchCode}"></oj-c-input-text>
+                                     .value="${value ?? ''}" @valueChanged="${searchCode}"></oj-c-input-text>
                     <oj-c-input-text data-oj-binding-provider="preact" label-edge="none" readonly style="flex: 1;"
                                      .value="${data?.[fieldId + '-label'] ?? ''}"></oj-c-input-text>
                     <oj-c-button data-oj-binding-provider="preact" label="Search" chroming="outlined" @ojAction="${search}"></oj-c-button>
@@ -375,7 +379,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 ?required="${metadata.required}"
                 ?disabled="${metadata.disabled}"
                 ?readonly="${metadata.readOnly}"
-                @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+                @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
             ></oj-c-text-area>`
         }
         if (stereotype === 'richText' || stereotype === 'richtext') {
@@ -390,7 +394,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 .value="${value ?? ''}"
                 ?disabled="${metadata.disabled}"
                 ?readonly="${metadata.readOnly}"
-                @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+                @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
             ></oj-c-text-area>`
         }
         if (stereotype === 'markdown') {
@@ -407,7 +411,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 .value="${value ?? ''}"
                 ?required="${metadata.required}"
                 ?disabled="${metadata.disabled}"
-                @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+                @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
             ></oj-c-input-password>`
         }
         if (stereotype === 'select' || stereotype === 'combobox') {
@@ -453,7 +457,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 .options="${options}"
                 ?required="${metadata.required}"
                 ?disabled="${metadata.disabled}"
-                @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+                @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
             ></oj-c-radioset>`
         }
         if (stereotype === 'html') {
@@ -475,7 +479,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                     <oj-c-input-text data-oj-binding-provider="preact" label-edge="none" style="flex: 1;"
                                      .value="${value ?? ''}"
                                      ?disabled="${metadata.disabled}"
-                                     @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+                                     @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
                     ></oj-c-input-text>
                     ${value ? html`<span class="${uxIconClass(value)}" style="font-size: 1.25rem;"></span>` : nothing}
                 </div>`)
@@ -511,7 +515,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             ?disabled="${metadata.disabled}"
             ?readonly="${metadata.readOnly}"
             placeholder="${metadata.placeholder ?? nothing}"
-            @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+            @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
         ></oj-c-input-text>`
     }
 
@@ -524,7 +528,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             .value="${value ?? null}"
             ?required="${metadata.required}"
             ?disabled="${metadata.disabled}"
-            @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+            @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
         ></oj-c-input-number>`
     }
 
@@ -551,7 +555,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             step="1"
             ?required="${metadata.required}"
             ?disabled="${metadata.disabled}"
-            @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+            @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
         ></oj-c-input-number>`
     }
 
@@ -565,7 +569,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                     label="${label}"
                     .value="${!!value}"
                     ?disabled="${metadata.disabled}"
-                    @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+                    @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
                 ></oj-c-toggle-button>
             </div>`
         }
@@ -575,7 +579,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             label-hint="${label}"
             .value="${!!value}"
             ?disabled="${metadata.disabled}"
-            @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+            @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
         >${label}</oj-c-checkbox>`
     }
 
@@ -588,7 +592,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             .value="${value ?? null}"
             ?required="${metadata.required}"
             ?disabled="${metadata.disabled}"
-            @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+            @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
         ></oj-c-input-date-text>`
     }
 
@@ -605,7 +609,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 .value="${datePart}"
                 ?required="${metadata.required}"
                 ?disabled="${metadata.disabled}"
-                @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value + 'T' + (timePart ?? '00:00'))}"
+                @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value + 'T' + (timePart ?? '00:00'))}"
             ></oj-c-input-date-text>
             <oj-c-input-time-mask
                 data-oj-binding-provider="preact"
@@ -614,7 +618,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 label-edge="top"
                 .value="${timePart}"
                 ?disabled="${metadata.disabled}"
-                @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, (datePart ?? '') + 'T' + e.detail.value)}"
+                @valueChanged="${(e: CustomEvent) => valueChanged(e, id, (datePart ?? '') + 'T' + e.detail.value)}"
             ></oj-c-input-time-mask>
         </div>`
     }
@@ -628,7 +632,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             .value="${value ?? null}"
             ?required="${metadata.required}"
             ?disabled="${metadata.disabled}"
-            @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+            @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
         ></oj-c-input-time-mask>`
     }
 
@@ -641,7 +645,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 label-hint="${label} From"
                 label-edge="top"
                 .value="${range?.from ?? null}"
-                @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, { ...range, from: e.detail.value })}"
+                @valueChanged="${(e: CustomEvent) => valueChanged(e, id, { ...range, from: e.detail.value })}"
             ></oj-c-input-date-text>
             <oj-c-input-date-text
                 data-oj-binding-provider="preact"
@@ -649,7 +653,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
                 label-hint="${label} To"
                 label-edge="top"
                 .value="${range?.to ?? null}"
-                @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, { ...range, to: e.detail.value })}"
+                @valueChanged="${(e: CustomEvent) => valueChanged(e, id, { ...range, to: e.detail.value })}"
             ></oj-c-input-date-text>
         </div>`
     }
@@ -676,7 +680,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             .options="${options}"
             ?required="${metadata.required}"
             ?disabled="${metadata.disabled}"
-            @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+            @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
         ></oj-c-checkboxset>`
     }
 
@@ -716,7 +720,7 @@ export const renderField = (container: LitElement, component: ClientSideComponen
             .value="${value ?? null}"
             ?required="${metadata.required}"
             ?disabled="${metadata.disabled}"
-            @ojValueAction="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
+            @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
         ></oj-c-input-number>`
     }
 

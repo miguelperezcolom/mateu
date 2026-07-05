@@ -223,7 +223,7 @@ export const renderMessageInput = (component: ClientSideComponent): TemplateResu
              style="display: flex; gap: 0.5rem; align-items: center; ${component.style ?? ''}"
              slot="${component.slot ?? nothing}">
             <oj-c-input-text data-oj-binding-provider="preact" label-edge="none" placeholder="Message" style="flex: 1;"
-                             @ojValueAction="${submit}"></oj-c-input-text>
+                             @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter') submit(e) }}"></oj-c-input-text>
             <oj-c-button data-oj-binding-provider="preact" label="Send" chroming="callToAction" @ojAction="${submit}"></oj-c-button>
         </div>`
 }

@@ -115,7 +115,7 @@ export class MateuRedwoodFilterBar extends LitElement {
                         label-hint="Search"
                         label-edge="none"
                         .value="${this.state.searchText ?? ''}"
-                        @ojValueAction="${(e: CustomEvent) => this.handleValueAction(e)}"
+                        @valueChanged="${(e: CustomEvent) => this.handleValueAction(e)}"
                         style="min-width: 220px;"
                     ></oj-c-input-text>
                     <oj-c-button
