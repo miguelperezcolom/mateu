@@ -43,14 +43,22 @@ const hydrate = (htmlElement: any, element: Element, component: ClientSideCompon
 // their tags. Custom elements upgrade in place once defined, so the element can be created
 // before the module finishes loading. @vaadin/charts bundles highcharts (~840 kB), so it is
 // deliberately kept out of the initial bundle (see mateu-component.ts).
-const ensureElementDefined = (tagName: string) => {
+// Third-party custom elements: an Element carrying an `import` attribute has its module
+// loaded dynamically the first time the tag is used — the URL must be served by the app
+// (same origin) and define the custom element as a side effect.
+const ensureElementDefined = (element: Element) => {
+    const tagName = element.name
     if (tagName.startsWith('vaadin-chart') && !customElements.get(tagName)) {
         import('@vaadin/charts')
+    }
+    const moduleUrl = element.attributes ? element.attributes['import'] : undefined
+    if (moduleUrl && tagName.includes('-') && !customElements.get(tagName)) {
+        import(/* @vite-ignore */ moduleUrl)
     }
 }
 
 export const renderElement = (container: LitElement, element: Element, component: ClientSideComponent): TemplateResult => {
-    ensureElementDefined(element.name)
+    ensureElementDefined(element)
     let selector = element.name
     if (element.attributes && element.attributes['id']) {
         selector = '#' + element.attributes['id']
