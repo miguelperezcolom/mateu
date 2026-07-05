@@ -334,8 +334,12 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                                placeholder="${chips.length === 0 ? 'Search' : ''}"
                                .value="${ui.text ?? ''}"
                                style="flex: 1 1 8rem; min-width: 7rem; border: none; outline: none; background: transparent; font: inherit; font-size: 0.875rem; color: ${TEXT}; padding: 0.25rem 0;"
-                               @focus="${openPanel}"
-                               @input="${(e: Event) => { ui.text = (e.target as HTMLInputElement).value }}"
+                               @input="${(e: Event) => {
+                                   ui.text = (e.target as HTMLInputElement).value
+                                   // open on typing (and on the bar click) rather than on focus:
+                                   // autoFocusOnSearchText would pop the panel on page load
+                                   openPanel()
+                               }}"
                                @keydown="${(e: KeyboardEvent) => {
                                    if (e.key === 'Enter') commitText(e.target as HTMLInputElement)
                                    if (e.key === 'Escape') closePanel()

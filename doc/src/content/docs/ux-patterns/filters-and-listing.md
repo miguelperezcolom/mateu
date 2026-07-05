@@ -46,13 +46,41 @@ public class Product {
 }
 ```
 
-![Listing with filter bar, search and bulk actions](/images/docs/ux-patterns/filters.png)
+![Listing with the smart search bar: keyword and status chips applied](/images/docs/ux-patterns/filters.png)
+
+## The smart search bar
+
+Filters render as a **single search field** (after the Redwood Smart Search pattern), not as a row
+of inputs. The one field hosts both the free-text keyword search and the structured filters:
+
+- **Type and press Enter** to apply a keyword search (matched against `Searchable.searchableText()`
+  or `toString()`).
+- **Click the field** to open the *Filter by* panel listing every filter. Picking one opens a
+  type-specific widget: an option list for enums/selects, Yes/No for booleans, a small input with
+  Apply for text and numbers. Filters already set show their current value next to their name.
+- **Every applied condition becomes a chip** in the bar with its own ✕. Adding or removing a chip
+  re-runs the search immediately, so conditions compose (e.g. keyword + status).
+- **Clear filters** at the bottom of the panel resets everything at once.
+
+![The Filter by panel, opened by clicking the search field](/images/docs/ux-patterns/filters-panel.png)
+
+Which fields become filters is decided server-side, exactly as before: every basic field (strings,
+numbers, booleans, dates) **and every enum** of the filters class. Enums arrive as selects carrying
+their constants as options. There is nothing to configure on the frontend — every renderer that
+ships the shared filter bar (Vaadin, SAP UI5, PatternFly) gets this UX, and the Redwood renderer
+implements the same pattern with its own design system.
 
 ## Structure
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  Name [_________]  Category [___▼]   [Search]                │
+│ 🔍 (Text: widget ✕) (Category: Electronics ✕) [type here…]   │
+│    ┌─ FILTER BY ──────────────┐                              │
+│    │ Name                     │                              │
+│    │ Category     Electronics │                              │
+│    │ Active                   │                              │
+│    │ Clear filters            │                              │
+│    └──────────────────────────┘                              │
 ├──────────────────────────────────────────────────────────────┤
 │ ☐  Name            Category     Active   [Actions]           │
 │ ☑  Product A       Electronics  ✓        [Edit] [▼]          │
@@ -62,6 +90,16 @@ public class Product {
 │  [Deactivate selected]  [New]  [Export PDF] [Excel] [CSV]    │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+## Filtering on the default repository
+
+You don't need to override anything for the filters to work: the default in-memory
+`CrudRepository.find` applies them. A filter counts as **set** when its value differs from a
+freshly-constructed instance of the filters class, so field initializers and primitive
+zeros/falses don't filter on their own. Strings match by case-insensitive containment, everything
+else (enums, booleans, numbers) by equality. The flip side: filtering **by** a field's default
+value (e.g. an initializer like `status = AVAILABLE`) needs an overridden `find` — see
+[CrudRepository](/java-ui-definition/interfaces/crud-repository/) for the DB-side version.
 
 ## Export
 

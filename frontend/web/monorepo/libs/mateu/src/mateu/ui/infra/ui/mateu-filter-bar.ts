@@ -290,8 +290,12 @@ export class MateuFilterBar extends LitElement {
                                placeholder="${chips.length === 0 ? 'Search' : ''}"
                                autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
                                .value="${this.draftText ?? ''}"
-                               @focus="${this.openPanel}"
-                               @input="${(e: Event) => { this.draftText = (e.target as HTMLInputElement).value }}"
+                               @input="${(e: Event) => {
+                                   this.draftText = (e.target as HTMLInputElement).value
+                                   // open on typing (and on the bar click below) rather than on
+                                   // focus: autoFocusOnSearchText would pop the panel on page load
+                                   this.openPanel()
+                               }}"
                                @keydown="${(e: KeyboardEvent) => {
                                    if (e.key === 'Enter') this.commitText(e.target as HTMLInputElement)
                                    if (e.key === 'Escape') this.closePanel()

@@ -166,10 +166,20 @@ You get a working `find` for free. The default implementation:
 
 1. loads `findAll()`,
 2. keeps rows whose text contains `searchText` — using `Searchable.searchableText()` when the entity implements [`Searchable`](/java-ui-definition/interfaces/searchable/), otherwise `toString()`,
-3. sorts by `pageable.sort()` (each `Sort` field is read reflectively via getter / record accessor / field), and
-4. slices out the requested page.
+3. applies the **field-level filters** (see below),
+4. sorts by `pageable.sort()` (each `Sort` field is read reflectively via getter / record accessor / field), and
+5. slices out the requested page.
 
-The `filters` argument is **ignored** by the default — override `find` to apply field-level filtering. This is fine for small/medium datasets; everything happens in memory.
+This is fine for small/medium datasets; everything happens in memory.
+
+**How the default decides a filter is set.** The `filters` object is hydrated from the component
+state, so fields the user never touched keep their initializers (or primitive zeros/falses). To
+tell them apart, the default compares each basic field (strings, numbers, booleans, chars, enums)
+against a freshly-constructed instance of the filters class — the no-arg constructor, or for
+records the canonical constructor fed with null/zero/false. Only fields whose value **differs from
+that baseline** filter the rows: strings by case-insensitive containment, everything else by
+equality. The flip side is that filtering **by** a field's default value (e.g. an initializer like
+`status = AVAILABLE`) is invisible to the default — override `find` if you need that.
 
 ### Overriding for database-side paging
 

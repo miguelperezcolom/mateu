@@ -39,7 +39,7 @@ public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
 
 ![Hotel search](/images/docs/hero-search/hotel-search.png)
 
-- The `Filters` record fields become the **facets** next to the search box (the standard filters bar; layout auto-selects between inline, popover and drawer).
+- The `Filters` record fields become the **facets** of the search box (the standard [smart search bar](/ux-patterns/filters-and-listing/#the-smart-search-bar): they live in its *Filter by* panel and show as removable chips when applied).
 - Results render as **cards** by default — override `gridLayout()` to return `GridLayout.table` or any other layout.
 - The listing starts **empty** (distraction-free) and searches on enter. Add `@Trigger(type = TriggerType.OnLoad, actionId = "search")` on the class to preload results.
 - Override `heroImage()` to set a background image for the hero (a dark overlay keeps the text readable).
