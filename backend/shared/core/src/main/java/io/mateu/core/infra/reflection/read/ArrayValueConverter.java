@@ -35,6 +35,8 @@ final class ArrayValueConverter {
         Object v = l.get(i);
         if (v instanceof Double) t[i] = ((Double) v).doubleValue();
         else if (v instanceof Integer) t[i] = ((Integer) v).doubleValue();
+        // the int[] branch parses strings — keep double[] consistent
+        else if (v instanceof String) t[i] = Double.parseDouble((String) v);
       }
       return t;
     }
