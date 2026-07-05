@@ -84,8 +84,11 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @SneakyThrows
   @SuppressWarnings("unchecked")
   T toEntity(HttpRequest httpRequest) {
+    // parameters is nullable on the wire — without the guard a save with no parameters NPEd
+    // before ever reaching the componentState fallback below.
+    var parameters = httpRequest.runActionRq().parameters();
     var initiatorState =
-        (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
+        parameters != null ? (Map<String, Object>) parameters.get("initiatorState") : null;
     if (initiatorState != null) {
       return (T) MateuInstanceFactory.newInstance(entityClass(), initiatorState, httpRequest);
     }

@@ -21,11 +21,40 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
         new Pageable(
             toInt(httpRequest.runActionRq().componentState().get("page"), 0),
             toInt(httpRequest.runActionRq().componentState().get("size"), 20),
-            (List<Sort>) httpRequest.runActionRq().componentState().get("sort"));
+            toSorts(httpRequest.runActionRq().componentState().get("sort")));
     if (searchText == null) {
       searchText = "";
     }
     return new Data(Map.of("crud", orchestrator.search(searchText, null, pageable, httpRequest)));
+  }
+
+  /**
+   * The sort criteria arrive from the wire as a JSON list of maps, not as {@link Sort} records —
+   * the old unchecked cast let them through and the default in-memory repository blew up with a
+   * ClassCastException on the first sorted search.
+   */
+  private List<Sort> toSorts(Object raw) {
+    if (!(raw instanceof List<?> list)) {
+      return List.of();
+    }
+    return list.stream()
+        .map(
+            item -> {
+              if (item instanceof Sort sort) {
+                return sort;
+              }
+              if (item instanceof Map<?, ?> map && map.get("field") != null) {
+                var direction = map.get("direction");
+                return new Sort(
+                    map.get("field").toString(),
+                    direction == null
+                        ? io.mateu.uidl.data.Direction.ascending
+                        : io.mateu.uidl.data.Direction.valueOf(direction.toString()));
+              }
+              return null;
+            })
+        .filter(sort -> sort != null)
+        .toList();
   }
 
   private int toInt(Object value, int defaultValue) {

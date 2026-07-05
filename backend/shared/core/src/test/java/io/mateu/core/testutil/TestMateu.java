@@ -58,7 +58,9 @@ public final class TestMateu implements AutoCloseable {
   /** Full-control variant: run any action with component state, serverSideType, etc. */
   public UIIncrementDto run(RunActionRqDto rq) {
     try {
-      var httpRequest = new FakeHttpRequest(rq);
+      // Adapters set the "baseUrl" request attribute; internal wraps (e.g. the crud mediator)
+      // read it and NPE without it.
+      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
       Flux<UIIncrementDto> flux = service.runAction("", rq, "", httpRequest);
       var result = flux.blockFirst();
       if (result == null) {
@@ -75,7 +77,7 @@ public final class TestMateu implements AutoCloseable {
   /** All increments (some flows emit several, e.g. remote menus). */
   public List<UIIncrementDto> runAll(RunActionRqDto rq) {
     try {
-      var httpRequest = new FakeHttpRequest(rq);
+      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
       return service.runAction("", rq, "", httpRequest).collectList().block();
     } catch (RuntimeException | Error e) {
       throw e;
