@@ -16,6 +16,7 @@ import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMeta
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import {Tabs} from "@vaadin/tabs";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import "@infra/ui/mateu-adaptive-tabs.ts";
 export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as FormLayout
 
@@ -216,6 +217,46 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
 
     const itemsChanged = (e: Event) => {
         (e.target as Tabs).selected = 0
+    }
+
+    if (metadata.adaptable) {
+        // adaptable=true: the backend allows swapping the concrete widget as long as disclosure
+        // semantics are preserved — wrap in mateu-adaptive-tabs, which degrades the tab strip to a
+        // vertical accordion on narrow containers. The tab strip stays in the light DOM so
+        // 'vaadin-tab[data-shortcut]' keyboard-shortcut lookups keep working in tabs mode.
+        const labels = (component.children ?? []).map(child => {
+            const rawLabel = ((child as ClientSideComponent).metadata as Tab).label
+            return rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
+        })
+        return html`
+            <mateu-adaptive-tabs
+                    .tabLabels="${labels}"
+                    style="${style}"
+                    class="${component.cssClasses}"
+                    slot="${component.slot??nothing}"
+            >
+                <vaadin-tabs slot="tabs"
+                             theme="${variant??nothing}"
+                             orientation="${metadata.orientation??nothing}"
+                             @items-changed=${itemsChanged}
+                >
+                    ${component.children?.map(child => child as ClientSideComponent).map((child, index) => {
+                        const shortcut = (child.metadata as Tab).shortcut
+                        return html`
+                        <vaadin-tab id="${labels[index]}"
+                                    style="${child.style}"
+                                    class="${child.cssClasses}"
+                                    data-shortcut="${shortcut ?? nothing}"
+                        >${labels[index]}</vaadin-tab>`
+                    })}
+                </vaadin-tabs>
+
+                ${component.children?.map((child, index) => html`
+                    <div slot="panel-${index}" style="padding: var(--lumo-space-m) 0;">
+                        ${(child as ClientSideComponent).children?.map(grandChild => renderComponent(container, grandChild, baseUrl, state, data, appState, appData))}
+                    </div>`)}
+            </mateu-adaptive-tabs>
+                `
     }
 
     return html`

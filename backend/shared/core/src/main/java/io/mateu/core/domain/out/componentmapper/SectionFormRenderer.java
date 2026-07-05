@@ -90,6 +90,10 @@ final class SectionFormRenderer {
                 .content(renderSections(sections, ctx))
                 .build());
       }
+      if (LayoutInference.preferTabs(
+          instanceClass, sections, ctx.fieldsPerSection(), ctx.readOnly())) {
+        return List.of(tabsFromSections(sections, ctx));
+      }
       return List.of(
           VerticalLayout.builder()
               .style("width: 100%;")
@@ -101,7 +105,7 @@ final class SectionFormRenderer {
     return sections.stream()
         .map(
             section -> {
-              var formLayout = buildFormLayout(section, ctx);
+              var formLayout = buildSectionBody(section, ctx);
               if (inline) {
                 // Inline embedded mediator: render the section content bare, without the outlined
                 // Card wrapper, so it blends into the host section/tab without duplicate framing.
@@ -208,15 +212,89 @@ final class SectionFormRenderer {
     return TextContainer.h6;
   }
 
-  private static Component buildFormLayout(Section section, Ctx ctx) {
-    // @Section(columns=N) drives the column count when set above the default (1); otherwise fall
-    // back to the form-level column count so forms that don't set it keep their previous behaviour.
-    int columns =
-        section.columns() > 1
-            ? section.columns()
-            : PageFormBuilder.getFormColumns(ctx.instanceClass());
+  /**
+   * The body of a single-section form: the plain form layout, unless the fold-optionals inference
+   * applies — then the required fields stay visible and the optional ones collapse into a "More
+   * options" accordion panel underneath.
+   */
+  private static Component buildSectionBody(Section section, Ctx ctx) {
+    var sectionFields = ctx.fieldsPerSection().get(section);
+    var plan =
+        LayoutInference.foldPlan(
+            ctx.instanceClass(),
+            section,
+            sectionFields.fields(),
+            ctx.instance(),
+            ctx.httpRequest(),
+            ctx.readOnly(),
+            ctx.forCreationForm());
+    if (plan.isEmpty()) {
+      return buildFormLayout(section, ctx);
+    }
+    int columns = sectionColumns(section, ctx);
+    var main =
+        toFormLayout(
+            new SectionFields(sectionFields.label(), plan.get().main(), columns), columns, ctx);
+    var folded =
+        toFormLayout(
+            new SectionFields(LayoutInference.MORE_OPTIONS_LABEL, plan.get().folded(), columns),
+            columns,
+            ctx);
+    return VerticalLayout.builder()
+        .style("width: 100%;")
+        .content(
+            List.of(
+                main,
+                AccordionLayout.builder()
+                    .panels(List.of(new AccordionPanel(LayoutInference.MORE_OPTIONS_LABEL, folded)))
+                    .build()))
+        .build();
+  }
+
+  /**
+   * Read-only view with many substantial sections (see {@link LayoutInference#preferTabs}): each
+   * section becomes a tab. The tab layout carries the group semantics and is marked adaptable so
+   * renderers may degrade it to an accordion on narrow viewports.
+   */
+  private static Component tabsFromSections(List<Section> sections, Ctx ctx) {
+    return TabLayout.builder()
+        .id("_tabs")
+        .style("width: 100%;")
+        .groupRelationship(GroupRelationship.alternative)
+        .adaptable(true)
+        .tabs(
+            sections.stream()
+                .map(
+                    section ->
+                        Tab.builder()
+                            .label(sectionTitle(section, ctx))
+                            .content(buildFormLayout(section, ctx))
+                            .build())
+                .toList())
+        .build();
+  }
+
+  private static String sectionTitle(Section section, Ctx ctx) {
+    if (section.value() != null && !section.value().isEmpty()) {
+      return section.value();
+    }
+    var sectionFields = ctx.fieldsPerSection().get(section);
+    return sectionFields != null ? sectionFields.label() : "";
+  }
+
+  /**
+   * {@code @Section(columns=N)} drives the column count when set above the default (1); otherwise
+   * fall back to the form-level column count so forms that don't set it keep their behaviour.
+   */
+  private static int sectionColumns(Section section, Ctx ctx) {
+    return section.columns() > 1
+        ? section.columns()
+        : PageFormBuilder.getFormColumns(ctx.instanceClass());
+  }
+
+  private static Component toFormLayout(SectionFields sectionFields, int columns, Ctx ctx) {
     return FormLayoutBuilder.toFormLayout(
-        ctx.fieldsPerSection().get(section),
+        sectionFields,
         ctx.prefix(),
         ctx.instance(),
         ctx.baseUrl(),
@@ -228,6 +306,10 @@ final class SectionFormRenderer {
         ctx.readOnly(),
         columns,
         ctx.level());
+  }
+
+  private static Component buildFormLayout(Section section, Ctx ctx) {
+    return toFormLayout(ctx.fieldsPerSection().get(section), sectionColumns(section, ctx), ctx);
   }
 
   /**

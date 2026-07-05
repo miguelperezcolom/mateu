@@ -52,7 +52,7 @@ private fun RenderClientSide(component: JsonNode, state: JsonNode, data: JsonNod
         "FormSection" -> RenderSection(component, metadata, state, data, app)
         "FormSubSection" -> RenderSubSection(component, metadata, state, data, app)
         "Card" -> RenderCard(component, metadata, state, data, app)
-        "TabLayout" -> RenderTabs(component, state, data, app)
+        "TabLayout" -> RenderTabs(component, metadata, state, data, app)
         "AccordionLayout" -> RenderAccordion(component, state, data, app)
         "SplitLayout" -> RenderSplit(component, state, data, app)
         "Badge" -> RenderBadge(metadata)

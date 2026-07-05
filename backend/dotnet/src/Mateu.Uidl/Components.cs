@@ -182,10 +182,22 @@ public sealed record VerticalLayout : ComponentBase
 /// <summary>One tab of a <see cref="TabLayout"/>.</summary>
 public sealed record TabPanel(string Label, IComponent Content);
 
+/// <summary>Semantic relationship between the groups a disclosure layout (tabs, accordion, wizard…)
+/// presents, carried next to the concrete widget so renderers can adapt the presentation without
+/// losing the intent. (C# analogue of io.mateu.dtos.GroupRelationshipDto.)</summary>
+public enum GroupRelationship { Alternative, Sequential, Simultaneous }
+
 /// <summary>A tab strip; the first tab is active by default.</summary>
 public sealed record TabLayout : ComponentBase
 {
     public IReadOnlyList<TabPanel> Tabs { get; init; } = [];
+
+    /// <summary>The semantic relationship between the tabbed groups; null = unspecified.</summary>
+    public GroupRelationship? GroupRelationship { get; init; }
+
+    /// <summary>Whether renderers may swap the concrete widget (e.g. degrade tabs to an accordion
+    /// on narrow viewports) as long as the disclosure semantics are preserved.</summary>
+    public bool Adaptable { get; init; }
 }
 
 // ── [Panel] — archetype tile marker ────────────────────────────────────────────

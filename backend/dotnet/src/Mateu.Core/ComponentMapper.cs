@@ -40,8 +40,10 @@ public static class ComponentMapper
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),
         VerticalLayout vl => Dto(vl, new VerticalLayoutMetadataDto { Spacing = vl.Spacing }, vl.Content.Select(Map)),
-        TabLayout tl => Dto(tl, new TabLayoutMetadataDto(), tl.Tabs.Select((tab, i) =>
-            new ClientSideComponentDto(new TabMetadataDto(tab.Label) { Active = i == 0 }, null, [Map(tab.Content)], null, null, null))),
+        TabLayout tl => Dto(tl,
+            new TabLayoutMetadataDto { GroupRelationship = LowerName(tl.GroupRelationship), Adaptable = tl.Adaptable },
+            tl.Tabs.Select((tab, i) =>
+                new ClientSideComponentDto(new TabMetadataDto(tab.Label) { Active = i == 0 }, null, [Map(tab.Content)], null, null, null))),
 
         _ => throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
     };

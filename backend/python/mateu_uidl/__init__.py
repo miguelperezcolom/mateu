@@ -105,6 +105,12 @@ class PlainText:
 
 
 @dataclass(frozen=True)
+class UseRadioButtons:
+    """Renders an enum field as radio buttons instead of the default dropdown, regardless of how
+    many members the enum has. The Python analogue of Java's ``@UseRadioButtons``."""
+
+
+@dataclass(frozen=True)
 class LinkTo:
     """Renders a navigation icon at the right side of the field that takes the user to the given
     URL or route. ``href``/``title`` travel verbatim and support ``${...}`` state expressions
@@ -204,6 +210,29 @@ def app(title_: str) -> Callable[[type], type]:
 
 def compact(cls: type) -> type:
     cls.__mateu_compact__ = True
+    return cls
+
+
+def auto_layout(arg=True):
+    """Class-level: let Mateu infer the UX patterns (folded optionals, tabs, radio enums…) from
+    the amount and structure of the declared information. Explicit layout markers always win —
+    inference only fills the gaps the developer left open. ``@auto_layout(False)`` opts out.
+    The Python analogue of Java's ``@AutoLayout``."""
+    if isinstance(arg, type):  # used bare: @auto_layout
+        arg.__mateu_auto_layout__ = True
+        return arg
+
+    def deco(cls: type) -> type:
+        cls.__mateu_auto_layout__ = bool(arg)
+        return cls
+
+    return deco
+
+
+def read_only(cls: type) -> type:
+    """Class-level: render every field of the view as read-only (the analogue of Java's
+    ``@ReadOnly``). Also enables the read-only-only layout inference (sections as tabs)."""
+    cls.__mateu_read_only__ = True
     return cls
 
 
@@ -406,8 +435,9 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "HeaderBadge", "Step", "Panel",
-    "ui", "title", "subtitle", "app", "compact", "confirm_on_navigation_if_dirty",
+    "Money", "PlainText", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
+    "confirm_on_navigation_if_dirty",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
     "Crud", "Wizard", "Translator",

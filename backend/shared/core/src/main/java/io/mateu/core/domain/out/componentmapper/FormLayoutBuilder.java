@@ -162,10 +162,13 @@ class FormLayoutBuilder {
               .build());
     }
     if (fieldsPerTab.size() > 0) {
+      var instanceType = instance instanceof Class ? (Class<?>) instance : instance.getClass();
       content.add(
           TabLayout.builder()
               .id("_tabs")
               .style("width: 100%;" + style)
+              .groupRelationship(io.mateu.uidl.data.GroupRelationship.alternative)
+              .adaptable(LayoutInference.enabled(instanceType))
               .tabs(
                   fieldsPerTab.stream()
                       .map(

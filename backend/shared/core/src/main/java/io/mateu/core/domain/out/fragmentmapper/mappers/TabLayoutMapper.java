@@ -3,6 +3,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
 import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.GroupRelationshipDto;
 import io.mateu.dtos.OrientationDto;
 import io.mateu.dtos.TabLayoutDto;
 import io.mateu.dtos.TabLayoutVariantDto;
@@ -28,6 +29,11 @@ public class TabLayoutMapper {
                 tabLayout.orientation() != null
                     ? OrientationDto.valueOf(tabLayout.orientation().name())
                     : null)
+            .groupRelationship(
+                tabLayout.groupRelationship() != null
+                    ? GroupRelationshipDto.valueOf(tabLayout.groupRelationship().name())
+                    : null)
+            .adaptable(tabLayout.adaptable())
             .build();
     return new ClientSideComponentDto(
         metadataDto,

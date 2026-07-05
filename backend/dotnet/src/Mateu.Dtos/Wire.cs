@@ -87,6 +87,8 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(ButtonMetadataDto), "Button")]
 [JsonDerivedType(typeof(TabLayoutMetadataDto), "TabLayout")]
 [JsonDerivedType(typeof(TabMetadataDto), "Tab")]
+[JsonDerivedType(typeof(AccordionLayoutMetadataDto), "AccordionLayout")]
+[JsonDerivedType(typeof(AccordionPanelMetadataDto), "AccordionPanel")]
 [JsonDerivedType(typeof(MetricCardMetadataDto), "MetricCard")]
 [JsonDerivedType(typeof(ScoreboardMetadataDto), "Scoreboard")]
 [JsonDerivedType(typeof(DashboardPanelMetadataDto), "DashboardPanel")]
@@ -143,7 +145,32 @@ public record GanttMetadataDto(IReadOnlyList<GanttTaskDto> Tasks) : ComponentMet
 /// <summary>One Gantt bar; start/end are ISO-8601 dates (yyyy-MM-dd).</summary>
 public record GanttTaskDto(string? Id, string? Title, string? Start, string? End, double Progress, string? Color);
 
-public record TabLayoutMetadataDto : ComponentMetadataDto;
+/// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
+/// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed
+/// groups; Adaptable tells renderers they may swap the concrete widget (e.g. degrade tabs to an
+/// accordion on narrow viewports) as long as the disclosure semantics are preserved.</summary>
+public record TabLayoutMetadataDto : ComponentMetadataDto
+{
+    public string? GroupRelationship { get; init; }
+    public bool Adaptable { get; init; }
+}
+
+/// <summary>Accordion metadata (mirrors io.mateu.dtos.AccordionLayoutDto). Panels is empty on the
+/// wire — the panels travel as component children carrying AccordionPanel metadata.</summary>
+public record AccordionLayoutMetadataDto : ComponentMetadataDto
+{
+    public IReadOnlyList<AccordionPanelMetadataDto> Panels { get; init; } = [];
+    public string? Variant { get; init; }
+}
+
+/// <summary>One collapsible accordion panel (mirrors io.mateu.dtos.AccordionPanelDto); its content
+/// travels as the component's child.</summary>
+public record AccordionPanelMetadataDto(string Label) : ComponentMetadataDto
+{
+    public string? Id { get; init; }
+    public bool Active { get; init; }
+    public bool Disabled { get; init; }
+}
 
 public record TabMetadataDto(string Label) : ComponentMetadataDto
 {

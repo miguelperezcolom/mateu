@@ -31,6 +31,11 @@ public sealed class MoneyAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class PlainTextAttribute : Attribute;
 
+/// <summary>Renders an enum field as radio buttons instead of the default dropdown, regardless of
+/// how many constants the enum has. (C# analogue of Java's @UseRadioButtons.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class UseRadioButtonsAttribute : Attribute;
+
 /// <summary>Renders a navigation icon at the right side of the field that takes the user to the
 /// given URL or route. Href and Title travel verbatim and support <c>${...}</c> state expressions
 /// interpolated client-side, so the link follows the value as the user edits the form. For a
@@ -83,3 +88,21 @@ public sealed class ConfirmOnNavigationIfDirtyAttribute : Attribute;
 /// <summary>High-density rendering (condensed spacing) for information-dense screens.</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class CompactAttribute : Attribute;
+
+/// <summary>Renders the whole view read-only (a display page, not an editable form).
+/// (C# analogue of Java's @ReadOnly.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class ReadOnlyAttribute : Attribute;
+
+/// <summary>Lets Mateu infer the UX patterns of a form from the amount and structure of the
+/// declared information, so the developer only declares the data and Mateu decides how to present
+/// it. Inference only fills the gaps the developer left open — every explicit layout attribute
+/// ([Section], [Tab], [Stereotype], [UseRadioButtons]…) always wins. The rules are deterministic
+/// and based on the declared structure (never on runtime data), so the same class always renders
+/// the same way. [AutoLayout(false)] opts a class out when inference is enabled globally via the
+/// "Mateu.LayoutInference" AppContext switch. (C# analogue of Java's @AutoLayout.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class AutoLayoutAttribute(bool value = true) : Attribute
+{
+    public bool Value { get; } = value;
+}

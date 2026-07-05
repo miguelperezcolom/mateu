@@ -5,8 +5,11 @@
 > page decorations, i18n, events, security scaffolding, the tail features (tabs, stereotypes,
 > KPIs, FABs, shortcuts, compact, unsaved-changes guard), and the UX-pattern components
 > (MetricCard/Scoreboard/DashboardPanel/DashboardLayout, FoldoutLayout, HeroSection, EmptyState,
-> Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome declarative archetypes.
-> 18 golden-JSON tests pass; the live `showcase` view is byte-identical to the C# reference.
+> Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome declarative archetypes, and
+> `@auto_layout` deterministic layout inference (fold-optionals, sections-as-tabs, small-enum
+> radios — the port of the Java `LayoutInference` decision table; `TabLayout` metadata carries
+> `groupRelationship`/`adaptable` on the wire like `TabLayoutDto`).
+> The golden-JSON tests pass; the live `showcase` view is byte-identical to the C# reference.
 
 ## 1. Guiding principle: the renderers are backend-agnostic
 

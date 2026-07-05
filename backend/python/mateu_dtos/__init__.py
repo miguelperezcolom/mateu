@@ -148,7 +148,14 @@ class ButtonMetadata(Wire):
 
 
 class TabLayoutMetadata(Wire):
+    """Mirrors ``TabLayoutDto``: ``group_relationship`` carries the semantic relationship between
+    the tabbed groups ("alternative" | "sequential" | "simultaneous"); ``adaptable`` tells
+    renderers they may swap the concrete widget (e.g. degrade tabs to an accordion on narrow
+    viewports) as long as the disclosure semantics are preserved."""
+
     type: Literal["TabLayout"] = "TabLayout"
+    group_relationship: str | None = None
+    adaptable: bool = False
 
 
 class TabMetadata(Wire):
@@ -156,6 +163,25 @@ class TabMetadata(Wire):
     label: str
     active: bool = False
     shortcut: str | None = None
+
+
+class AccordionLayoutMetadata(Wire):
+    """Mirrors ``AccordionLayoutDto``. Like the Java wire, ``panels`` is empty on the wire — the
+    panels travel as component children carrying :class:`AccordionPanelMetadata`."""
+
+    type: Literal["AccordionLayout"] = "AccordionLayout"
+    panels: list[Any] = Field(default_factory=list)
+    variant: str | None = None
+
+
+class AccordionPanelMetadata(Wire):
+    """Mirrors ``AccordionPanelDto``; the panel content travels as the component's children."""
+
+    type: Literal["AccordionPanel"] = "AccordionPanel"
+    id: str | None = None
+    active: bool = False
+    disabled: bool = False
+    label: str
 
 
 class MetricCardMetadata(Wire):
@@ -278,6 +304,8 @@ ComponentMetadata = Annotated[
         ButtonMetadata,
         TabLayoutMetadata,
         TabMetadata,
+        AccordionLayoutMetadata,
+        AccordionPanelMetadata,
         MetricCardMetadata,
         ScoreboardMetadata,
         DashboardPanelMetadata,

@@ -11,5 +11,7 @@ public record TabLayout(
     String style,
     String cssClasses,
     Orientation orientation,
-    TabLayoutVariant variant)
+    TabLayoutVariant variant,
+    GroupRelationship groupRelationship,
+    boolean adaptable)
     implements Component {}

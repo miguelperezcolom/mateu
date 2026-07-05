@@ -10,6 +10,8 @@ from enum import Enum
 from typing import Any, get_args, get_origin, get_type_hints
 
 from mateu_dtos import (
+    AccordionLayoutMetadata,
+    AccordionPanelMetadata,
     Action,
     AppMetadata,
     Badge,
@@ -74,10 +76,12 @@ from mateu_uidl import (
     Stereotype,
     Tab,
     Translator,
+    UseRadioButtons,
     Welcome,
 )
 from mateu_uidl import components as fluent
 
+from . import layout_inference
 from .naming import camel_case, humanize
 from .reflection import class_flag, methods_with, view_fields
 from .registry import normalize, type_name
@@ -620,10 +624,12 @@ class ReflectionMapper:
 
     # ── Fields & layout ────────────────────────────────────────────────────────
     def form_cards(self, cls, instance, read_only: bool = False) -> list:
+        read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
         fields = view_fields(cls)
         if any(f.has(Tab) for f in fields):
-            return [self.tab_layout(fields, instance, read_only)]
+            return [self.tab_layout(cls, fields, instance, read_only)]
 
+        # Group the declared fields into sections (title None = synthetic/unnamed section).
         sections: list[tuple[str | None, list]] = []
         current: str | None = None
         for f in fields:
@@ -632,10 +638,21 @@ class ReflectionMapper:
                 current = sec.caption
             if not sections or sections[-1][0] != current:
                 sections.append((current, []))
-            sections[-1][1].append(self.map_field(f, instance, read_only))
-        return [self.section_card(t, fs) for t, fs in sections]
+            sections[-1][1].append(f)
 
-    def tab_layout(self, fields, instance, read_only: bool) -> ClientSideComponent:
+        if self.prefer_tabs(cls, sections, read_only):
+            return [self.tabs_from_sections(sections, instance, read_only)]
+
+        plan = self.fold_plan(cls, sections, read_only)
+        if plan is not None:
+            return [self.folded_card(plan[0], plan[1], instance, read_only)]
+
+        return [
+            self.section_card(t, [self.map_field(f, instance, read_only) for f in fs])
+            for t, fs in sections
+        ]
+
+    def tab_layout(self, cls, fields, instance, read_only: bool) -> ClientSideComponent:
         tabs: list[tuple[str, list]] = []
         current = "Tab"
         for f in fields:
@@ -649,7 +666,105 @@ class ReflectionMapper:
         for i, (nm, fs) in enumerate(tabs):
             form_layout = self.client(FormLayoutMetadata(), None, self.form_rows(fs))
             comps.append(self.client(TabMetadata(label=self.T(nm), active=i == 0), None, [form_layout]))
-        return self.client(TabLayoutMetadata(), None, comps)
+        # Developer-declared tabs always carry the group semantics; they are adaptable (renderers
+        # may degrade them, e.g. to an accordion) only when the class opted into auto-layout.
+        return self.client(
+            TabLayoutMetadata(
+                group_relationship="alternative",
+                adaptable=layout_inference.enabled(cls),
+            ),
+            None,
+            comps,
+        )
+
+    # ── Layout inference (the @auto_layout decision table, see layout_inference) ─
+    def field_weight(self, cls, f) -> int:
+        """Estimated visual weight of a declared field, from its effective stereotype."""
+        plain = f.has(PlainText) or bool(class_flag(cls, "__mateu_plain_text__", False))
+        return layout_inference.estimated_weight(
+            self.stereotype_of(f, plain, f.has(Multiline), cls)
+        )
+
+    def fold_plan(self, cls, sections, read_only: bool):
+        """Fold-optionals rule (Java ``LayoutInference.foldPlan``): on an editable form where the
+        developer declared no grouping at all (one unnamed section, no tabs) and the estimated
+        weight exceeds one screen, keep the required fields visible and fold the optional ones
+        into a collapsed "More options" panel. ``None`` when the rule does not apply."""
+        if not layout_inference.enabled(cls) or read_only:
+            return None
+        # Only when the developer declared no grouping: a single synthetic (unnamed) section.
+        # (Java also skips forms with @Tab/@Inline/@Composition/component fields — tabs are
+        # handled before this path and the Python backend has no other embedded form fields.)
+        if len(sections) != 1 or sections[0][0]:
+            return None
+        fields = sections[0][1]
+        total = sum(self.field_weight(cls, f) for f in fields)
+        if total <= layout_inference.FOLD_WEIGHT_THRESHOLD:
+            return None
+        main = [f for f in fields if f.has(Required)]
+        folded = [f for f in fields if not f.has(Required)]
+        if not main or len(folded) < layout_inference.FOLD_MIN_OPTIONAL:
+            return None
+        return main, folded
+
+    def prefer_tabs(self, cls, sections, read_only: bool) -> bool:
+        """Sections-to-tabs rule (Java ``LayoutInference.preferTabs``): a read-only view with many
+        substantial sections reads better with random access (tabs) than as a long vertical stack
+        — and unlike an editable form, hiding groups cannot hide invalid required fields. (Java
+        also bails on sticky sections and explicit @Toc/@Zones/@FoldedLayout — the Python backend
+        has none of those layout features yet.)"""
+        if not layout_inference.enabled(cls) or not read_only:
+            return False
+        if len(sections) < layout_inference.TABS_MIN_SECTIONS:
+            return False
+        total = sum(self.field_weight(cls, f) for _, fs in sections for f in fs)
+        return total >= layout_inference.TABS_WEIGHT_THRESHOLD
+
+    def folded_card(self, main, folded, instance, read_only: bool) -> ClientSideComponent:
+        """The fold-optionals presentation (Java ``SectionFormRenderer.buildSectionBody``): the
+        required fields' form layout, then a collapsed "More options" accordion panel hosting the
+        optional fields — all inside the usual unnamed-section card."""
+        main_layout = self.client(
+            FormLayoutMetadata(),
+            None,
+            self.form_rows([self.map_field(f, instance, read_only) for f in main]),
+        )
+        folded_layout = self.client(
+            FormLayoutMetadata(),
+            None,
+            self.form_rows([self.map_field(f, instance, read_only) for f in folded]),
+        )
+        panel = self.client(
+            AccordionPanelMetadata(label=layout_inference.MORE_OPTIONS_LABEL),
+            None,
+            [folded_layout],
+        )
+        accordion = self.client(AccordionLayoutMetadata(), None, [panel])
+        vlayout = self.client(VerticalLayoutMetadata(), None, [main_layout, accordion])
+        div = self.client(DivMetadata(), "fieldId", [vlayout])
+        return self.client(CardMetadata(content=div), "fieldId", [])
+
+    def tabs_from_sections(self, sections, instance, read_only: bool) -> ClientSideComponent:
+        """Sections-as-tabs presentation (Java ``SectionFormRenderer.tabsFromSections``): one tab
+        per section (label = section title). The tab layout carries the group semantics and is
+        marked adaptable so renderers may degrade it to an accordion on narrow viewports."""
+        comps = []
+        for i, (title_, fs) in enumerate(sections):
+            form_layout = self.client(
+                FormLayoutMetadata(),
+                None,
+                self.form_rows([self.map_field(f, instance, read_only) for f in fs]),
+            )
+            comps.append(
+                self.client(
+                    TabMetadata(label=self.T(title_) if title_ else "", active=i == 0),
+                    None,
+                    [form_layout],
+                )
+            )
+        return self.client(
+            TabLayoutMetadata(group_relationship="alternative", adaptable=True), "_tabs", comps
+        )
 
     def section_card(self, title: str | None, fields) -> ClientSideComponent:
         form_layout = self.client(FormLayoutMetadata(), None, self.form_rows(fields))
@@ -677,7 +792,7 @@ class ReflectionMapper:
 
         plain = f.has(PlainText) or bool(class_flag(instance.__class__, "__mateu_plain_text__", False))
         multiline = f.has(Multiline)
-        stereotype = self.stereotype_of(f, plain, multiline)
+        stereotype = self.stereotype_of(f, plain, multiline, instance.__class__)
 
         meta = FormFieldMetadata(
             field_id=field_id,
@@ -710,7 +825,7 @@ class ReflectionMapper:
             href=link_to.href, icon=link_to.icon, title=link_to.title, target=link_to.target
         )
 
-    def stereotype_of(self, f, plain: bool, multiline: bool) -> str:
+    def stereotype_of(self, f, plain: bool, multiline: bool, owner=None) -> str:
         s = f.marker(Stereotype)
         if s is not None:
             return s.value
@@ -720,6 +835,13 @@ class ReflectionMapper:
             return "plainText" if plain else "money"
         if plain:
             return "plainText"
+        if is_enum(f.type):
+            # Small-enum rule (Java FieldTypeMapper's enum branch): UseRadioButtons forces radio
+            # always; under @auto_layout enums with <= RADIO_MAX_OPTIONS members are radio.
+            # Otherwise "select" — Java parity, matching what Mateu.NET emits since its port.
+            if f.has(UseRadioButtons) or layout_inference.prefer_radio(owner, f.type):
+                return "radio"
+            return "select"
         if multiline:
             return "textarea"
         return "regular"

@@ -28,6 +28,13 @@ for the sibling implementation.
   cards; `@fab` → floating action buttons; `@shortcut`; `@compact`;
   `@confirm_on_navigation_if_dirty`.
 - **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `@secured`.
+- **Layout inference** — `@auto_layout` (opt-in, `@auto_layout(False)` opts out) ports the Java
+  `LayoutInference` decision table (same constants/thresholds): heavy unstructured editable forms
+  fold optional fields into a collapsed "More options" accordion panel; heavy `@read_only` views
+  with ≥ 5 sections become an adaptable `TabLayout` (id `_tabs`, `groupRelationship="alternative"`);
+  enums with ≤ 4 members render as radio buttons (`UseRadioButtons()` forces radio always);
+  developer-declared tabs always carry `groupRelationship="alternative"` and are `adaptable` when
+  the class opted in. Explicit layout markers always win.
 - **UX-pattern components** (`mateu_uidl.components`, same wire JSON as the Java
   `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,
   `DashboardLayout`, `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents

@@ -23,13 +23,20 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   on the view for programmatic links — it wins, null falls back to the attribute); `[Kpi]` methods
 >   → page KPI cards; `[Fab]` methods → floating action buttons; `[Shortcut("ctrl+s")]` on action
 >   methods; `[ConfirmOnNavigationIfDirty]` and `[Compact]` page flags.
+> - **Layout inference (`[AutoLayout]`)** — the deterministic decision table ported 1:1 from the
+>   Java reference (`LayoutInference`, same constants/thresholds): heavy unstructured editable
+>   forms fold optional fields into a collapsed "More options" accordion (required stay visible);
+>   heavy read-only views (`[ReadOnly]`) with ≥ 5 sections present them as tabs (id `_tabs`,
+>   `groupRelationship=alternative`, `adaptable=true`); small enums (≤ 4 constants) render as radio
+>   buttons (`[UseRadioButtons]` forces radio at any size); developer-declared `[Tab]` layouts
+>   always carry `groupRelationship=alternative` and are `adaptable` when the class opts in.
 > - **Fluent components & archetypes** — the nine dashboard/UX component types (`MetricCard`,
 >   `Scoreboard`, `DashboardPanel`, `DashboardLayout`, `FoldoutLayout`, `HeroSection`, `EmptyState`,
 >   `Skeleton`, `Gantt`) as fluent records a view can emit via `IComponentTreeSupplier`, plus the
 >   declarative page archetypes (`Dashboard`, `Foldout`, `Welcome`, `ItemOverview`) that compose them
 >   from component-holding properties (`[Panel]` carries title/subtitle/colSpan/rowSpan/icon/open).
 >
-> The core Mateu surface is covered (22 golden tests). The web renderer renders all of it; the Compose
+> The core Mateu surface is covered (35 golden tests). The web renderer renders all of it; the Compose
 > renderer (a subset) renders forms/CRUD/app-shell/wizards/banners/tabs.
 
 ## Projects

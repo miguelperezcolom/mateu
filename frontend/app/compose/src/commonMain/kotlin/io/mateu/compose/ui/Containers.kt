@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -82,11 +83,41 @@ fun RenderCard(component: JsonNode, metadata: JsonNode, state: JsonNode, data: J
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * TabLayout wire metadata (mirrors the backend DTO). Both fields are newer additions and optional
+ * on the wire, so absence (older backends) falls back to the classic tab rendering.
+ */
+private class TabLayoutMeta(metadata: JsonNode) {
+    /** How the tab groups relate: "alternative" | "sequential" | "simultaneous"; null when absent. */
+    val groupRelationship: String? = metadata.text("groupRelationship").ifBlank { null }
+
+    /** When true the renderer may swap the concrete widget (tabs → accordion on narrow viewports). */
+    val adaptable: Boolean = metadata.bool("adaptable")
+}
+
 @Composable
-fun RenderTabs(component: JsonNode, state: JsonNode, data: JsonNode, app: AppState) {
+fun RenderTabs(component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode, app: AppState) {
     val tabs = component.arr("children")
     if (tabs.isEmpty()) return
+    val meta = TabLayoutMeta(metadata)
+    if (meta.adaptable) {
+        // Adaptive: keep the tab row on wide viewports, fold into an accordion on narrow ones —
+        // same responsive BoxWithConstraints pattern as RenderFormLayout's grid.
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            if (maxWidth >= 600.dp) {
+                TabRowTabs(tabs, state, data, app)
+            } else {
+                TabsAsAccordion(tabs, state, data, app)
+            }
+        }
+    } else {
+        TabRowTabs(tabs, state, data, app)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TabRowTabs(tabs: List<JsonNode>, state: JsonNode, data: JsonNode, app: AppState) {
     var selected by remember { mutableStateOf(0) }
     Column(Modifier.fillMaxWidth()) {
         PrimaryTabRow(selectedTabIndex = selected) {
@@ -100,6 +131,29 @@ fun RenderTabs(component: JsonNode, state: JsonNode, data: JsonNode, app: AppSta
         }
         Column(Modifier.fillMaxWidth().padding(top = 12.dp)) {
             childrenColumn(tabs[selected], state, data, app)
+        }
+    }
+}
+
+/** The tabs' contents as a vertical accordion (one panel per tab, first expanded) — mirrors [RenderAccordion]. */
+@Composable
+private fun TabsAsAccordion(tabs: List<JsonNode>, state: JsonNode, data: JsonNode, app: AppState) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        tabs.forEachIndexed { i, tab ->
+            val label = tab.path("metadata").text("label")
+            var expanded by remember { mutableStateOf(i == 0) }
+            Column(Modifier.fillMaxWidth().border(1.dp, MateuColors.cardBorder, cardShape).padding(12.dp)) {
+                Row(
+                    Modifier.fillMaxWidth().clickable { expanded = !expanded },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(label, fontWeight = FontWeight.Bold)
+                    Text(if (expanded) "▾" else "▸")
+                }
+                if (expanded) {
+                    Column(Modifier.padding(top = 8.dp)) { childrenColumn(tab, state, data, app) }
+                }
+            }
         }
     }
 }

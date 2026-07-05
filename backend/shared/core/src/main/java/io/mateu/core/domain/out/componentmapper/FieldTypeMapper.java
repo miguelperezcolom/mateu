@@ -149,6 +149,10 @@ public class FieldTypeMapper {
       return FieldStereotype.plainText;
     }
     if (field.getType().isEnum()) {
+      if (MetaAnnotations.isPresent(field, UseRadioButtons.class)
+          || LayoutInference.preferRadio(field)) {
+        return FieldStereotype.radio;
+      }
       return FieldStereotype.select;
     }
     if (MetaAnnotations.isPresent(field, Lookup.class)) {

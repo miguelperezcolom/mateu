@@ -76,7 +76,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         }
         else
         {
-            content = FormCards(type, instance);
+            // A [ReadOnly] class renders as a display view (fields read-only, tabs inference may apply).
+            content = FormCards(type, instance, type.GetCustomAttribute<ReadOnlyAttribute>() != null);
         }
 
         var compact = type.GetCustomAttribute<CompactAttribute>() != null;
@@ -166,28 +167,44 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             new Dictionary<string, object?>(), [], [], null, null, null);
     }
 
-    // Groups fields by [Section] into cards (one plain card when there are no sections),
-    // or into a TabLayout when any field carries [Tab].
+    // Groups fields by [Section] into cards (one plain card when there are no sections), or into a
+    // TabLayout when any field carries [Tab]. Under [AutoLayout] the inference decision table
+    // (LayoutInference, ported from the Java reference) may regroup them: a heavy unstructured
+    // editable form folds its optional fields into a "More options" accordion, and a heavy
+    // read-only view with many sections is presented as adaptable tabs.
     private List<ComponentDto> FormCards(Type type, object instance, bool readOnly = false)
     {
         var props = EditableProperties(type).ToList();
         if (props.Any(p => p.GetCustomAttribute<TabAttribute>() != null))
-            return [TabLayout(props, instance, readOnly)];
+            return [TabLayout(type, props, instance, readOnly)];
 
-        var sections = new List<(string? title, List<ClientSideComponentDto> fields)>();
+        var sections = new List<(string? Title, List<PropertyInfo> Props)>();
         string? current = null;
         foreach (var p in props)
         {
             if (p.GetCustomAttribute<SectionAttribute>()?.Caption is { } s) current = s;
-            if (sections.Count == 0 || sections[^1].title != current)
-                sections.Add((current, new List<ClientSideComponentDto>()));
-            sections[^1].fields.Add(MapField(p, instance, readOnly));
+            if (sections.Count == 0 || sections[^1].Title != current)
+                sections.Add((current, new List<PropertyInfo>()));
+            sections[^1].Props.Add(p);
         }
-        return sections.Select(s => (ComponentDto)SectionCard(s.title, s.fields)).ToList();
+
+        // Read-only view with many substantial sections: present the sections as adaptable tabs.
+        if (sections.Count > 1 && LayoutInference.PreferTabs(type, sections, readOnly))
+            return [TabsFromSections(sections, instance, readOnly)];
+
+        // Heavy unstructured editable form: required fields stay visible, optionals fold away.
+        if (sections.Count == 1
+            && LayoutInference.BuildFoldPlan(type, sections[0].Title, sections[0].Props, readOnly) is { } plan)
+            return [FoldedCard(plan, instance)];
+
+        return sections.Select(s => (ComponentDto)SectionCard(
+            s.Title, s.Props.Select(p => MapField(p, instance, readOnly)).ToList())).ToList();
     }
 
     // Groups consecutive fields sharing the same [Tab] name into the tabs of a single TabLayout.
-    private ComponentDto TabLayout(List<PropertyInfo> props, object instance, bool readOnly)
+    // Developer-declared tabs always carry the alternative group semantics; they are adaptable
+    // (renderers may degrade them to an accordion) only when the class opted into [AutoLayout].
+    private ComponentDto TabLayout(Type type, List<PropertyInfo> props, object instance, bool readOnly)
     {
         var tabs = new List<(string name, List<ClientSideComponentDto> fields)>();
         var current = "Tab";
@@ -201,7 +218,42 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var tabComps = tabs.Select((tb, i) => (ComponentDto)Client(
             new TabMetadataDto(T(tb.name)) { Active = i == 0 }, null,
             [Client(new FormLayoutMetadataDto(), null, FormRows(tb.fields))])).ToList();
-        return Client(new TabLayoutMetadataDto(), null, tabComps);
+        var meta = new TabLayoutMetadataDto
+        {
+            GroupRelationship = "alternative",
+            Adaptable = LayoutInference.Enabled(type),
+        };
+        return Client(meta, "_tabs", tabComps);
+    }
+
+    /// <summary>The sections-to-tabs inference presentation: one tab per section, labeled with the
+    /// section title. The tab layout carries the group semantics and is marked adaptable so
+    /// renderers may degrade it to an accordion on narrow viewports.</summary>
+    private ComponentDto TabsFromSections(
+        List<(string? Title, List<PropertyInfo> Props)> sections, object instance, bool readOnly)
+    {
+        var tabs = sections.Select((s, i) => (ComponentDto)Client(
+            new TabMetadataDto(T(s.Title ?? "")) { Active = i == 0 }, null,
+            [Client(new FormLayoutMetadataDto(), null,
+                FormRows(s.Props.Select(p => MapField(p, instance, readOnly)).ToList()))])).ToList();
+        var meta = new TabLayoutMetadataDto { GroupRelationship = "alternative", Adaptable = true };
+        return Client(meta, "_tabs", tabs);
+    }
+
+    /// <summary>The fold-optionals inference presentation: the required fields' form layout stays
+    /// visible and the optional fields collapse into a single "More options" accordion panel
+    /// underneath, inside the usual untitled section card.</summary>
+    private ClientSideComponentDto FoldedCard(LayoutInference.FoldPlan plan, object instance)
+    {
+        var main = Client(new FormLayoutMetadataDto(), null,
+            FormRows(plan.Main.Select(p => MapField(p, instance)).ToList()));
+        var folded = Client(new FormLayoutMetadataDto(), null,
+            FormRows(plan.Folded.Select(p => MapField(p, instance)).ToList()));
+        var panel = Client(new AccordionPanelMetadataDto(LayoutInference.MoreOptionsLabel), null, [folded]);
+        var accordion = Client(new AccordionLayoutMetadataDto(), null, [panel]);
+        var vlayout = Client(new VerticalLayoutMetadataDto(), null, [main, accordion]);
+        var div = Client(new DivMetadataDto(), "fieldId", [vlayout]);
+        return Client(new CardMetadataDto(div), "fieldId", []);
     }
 
     /// <summary>KPI cards from [Kpi] methods (the title is the attribute, the value is the call result).</summary>
@@ -306,15 +358,30 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     }
 
     /// <summary>The field stereotype: explicit [Stereotype] wins, else [Multiline]/[Password]/[Money]
-    /// map to their names, else plain-text context yields "plainText", else "regular".</summary>
+    /// map to their names, else plain-text context yields "plainText", else enums render as a
+    /// dropdown ("select") — or as "radio" when [UseRadioButtons] or the small-enum inference rule
+    /// applies — else "regular".</summary>
     private static string StereotypeOf(PropertyInfo p, bool plainText, bool multiline)
     {
         if (p.GetCustomAttribute<StereotypeAttribute>()?.Value is { } s) return s;
         if (p.GetCustomAttribute<PasswordAttribute>() != null) return "password";
         if (p.GetCustomAttribute<MoneyAttribute>() != null) return plainText ? "plainText" : "money";
         if (plainText) return "plainText";
+        if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType).IsEnum)
+            return p.GetCustomAttribute<UseRadioButtonsAttribute>() != null || LayoutInference.PreferRadio(p)
+                ? "radio"
+                : "select";
         if (multiline) return "textarea";
         return "regular";
+    }
+
+    /// <summary>The stereotype a field renders with, including its plain-text context — the weight
+    /// unit LayoutInference measures thresholds in.</summary>
+    internal static string EffectiveStereotype(PropertyInfo p)
+    {
+        var plainText = p.GetCustomAttribute<PlainTextAttribute>() != null
+                        || p.DeclaringType?.GetCustomAttribute<PlainTextAttribute>() != null;
+        return StereotypeOf(p, plainText, p.GetCustomAttribute<MultilineAttribute>() != null);
     }
 
     private static string? FormatValue(object? value) => value switch
