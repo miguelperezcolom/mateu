@@ -2,6 +2,7 @@ import { html, LitElement, nothing, type TemplateResult } from 'lit';
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
+import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { renderButton } from "@/renderers/renderButton.ts";
 import { renderField } from "@/renderers/renderField.ts";
@@ -184,6 +185,24 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                 ` : nothing}
                 ${metadata?.header?.map(comp => renderComponent(container, comp, baseUrl, state, data, appState, appData))}
             </div>
+        `
+    }
+
+    renderCrudToolbarButton(button: unknown, label: string, onClick: () => void): TemplateResult {
+        const btn = button as Button
+        const chroming =
+            btn.color === 'error' || (btn as any).variant === 'error' || (btn as any).variant === 'danger' ? 'danger'
+            : btn.buttonStyle === 'primary' ? 'callToAction'
+            : 'outlined'
+        return html`
+            <oj-c-button
+                data-oj-binding-provider="preact"
+                data-action-id="${btn.id}"
+                label="${label}"
+                chroming="${chroming}"
+                ?disabled="${btn.disabled}"
+                @ojAction="${onClick}"
+            ></oj-c-button>
         `
     }
 

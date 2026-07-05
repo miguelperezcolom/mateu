@@ -326,6 +326,23 @@ export class MateuTableCrud extends LitElement {
         const isNavButton = (id: string | undefined): boolean =>
             id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
 
+        // One crud header toolbar button. Renderers with their own design system (Redwood, SLDS…)
+        // provide it through the renderCrudToolbarButton hook; the Vaadin default stays here.
+        const renderToolbarButton = (button: Button): TemplateResult => {
+            const custom = componentRenderer.get()?.renderCrudToolbarButton?.(
+                button, this.evalLabel(button.label), () => this.handleToolbarButtonClick(button.actionId))
+            if (custom) {
+                return custom
+            }
+            return html`
+                <vaadin-button
+                        data-action-id="${button.id}"
+                        theme="${buttonTheme(button) || nothing}"
+                        @click="${() => this.handleToolbarButtonClick(button.actionId)}"
+                >${this.evalLabel(button.label)}</vaadin-button>
+            `
+        }
+
 
         if (!this.component) {
             return html`no component`
@@ -696,21 +713,9 @@ export class MateuTableCrud extends LitElement {
                                 <span style="display: block; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s); margin-top: var(--lumo-space-xs);">${this.evalLabel(metadata.subtitle)}</span>
                             ` : nothing}
                         </div>
-                        ${navButtons.map(button => html`
-                            <vaadin-button
-                                    data-action-id="${button.id}"
-                                    theme="${buttonTheme(button) || nothing}"
-                                    @click="${() => this.handleToolbarButtonClick(button.actionId)}"
-                            >${this.evalLabel(button.label)}</vaadin-button>
-                        `)}
+                        ${navButtons.map(button => renderToolbarButton(button))}
                         ${hasDivider ? html`<span class="toolbar-divider"></span>` : nothing}
-                        ${actionButtons.map(button => html`
-                            <vaadin-button
-                                    data-action-id="${button.id}"
-                                    theme="${buttonTheme(button) || nothing}"
-                                    @click="${() => this.handleToolbarButtonClick(button.actionId)}"
-                            >${this.evalLabel(button.label)}</vaadin-button>
-                        `)}
+                        ${actionButtons.map(button => renderToolbarButton(button))}
                         <slot></slot>
                     </vaadin-horizontal-layout>
                 ` : nothing}
