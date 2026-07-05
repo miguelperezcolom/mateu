@@ -143,7 +143,10 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                             httpRequest.runActionRq().route(),
                             httpRequest.runActionRq().consumedRoute(),
                             httpRequest.runActionRq().initiatorComponentId(),
-                            httpRequest))
+                            httpRequest,
+                            // crud semantics: temporals/annotated numerics as ranges, enums as
+                            // multi-selects — their values travel as criteria, not in the example
+                            true))
                     .style("min-width: 30rem; display: block;")
                     .initialPage(parseInitialPage(httpRequest.runActionRq().route()))
                     .gridLayout(orchestrator.gridLayout())

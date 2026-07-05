@@ -129,7 +129,14 @@ export class MateuFilterBar extends LitElement {
     }
 
     private removeChip(fieldId: string) {
-        this.emitValueChanged(fieldId, fieldId === 'searchText' ? '' : undefined)
+        const field = this.filters.find(f => f.fieldId === fieldId)
+        if (field && this.isRangeFilter(field)) {
+            // a range condition lives in two state keys — the chip clears both
+            this.emitValueChanged(`${fieldId}_from`, undefined)
+            this.emitValueChanged(`${fieldId}_to`, undefined)
+        } else {
+            this.emitValueChanged(fieldId, fieldId === 'searchText' ? '' : undefined)
+        }
         this.requestSearch()
     }
 
@@ -141,11 +148,15 @@ export class MateuFilterBar extends LitElement {
     }
 
     private clearAllFilters = () => {
+        const fieldIds = this.filters.flatMap(filter =>
+            this.isRangeFilter(filter)
+                ? [`${filter.fieldId}_from`, `${filter.fieldId}_to`]
+                : [filter.fieldId])
         const cleared: Record<string, any> = { searchText: undefined }
-        this.filters.forEach(filter => { cleared[filter.fieldId] = undefined })
+        fieldIds.forEach(id => { cleared[id] = undefined })
         this.state = { ...this.state, ...cleared }
         this.dispatchEvent(new CustomEvent('filter-reset-requested', {
-            detail: { fieldIds: this.filters.map(filter => filter.fieldId) },
+            detail: { fieldIds },
             bubbles: true,
             composed: true
         }))
@@ -162,11 +173,39 @@ export class MateuFilterBar extends LitElement {
         return ['integer', 'decimal', 'number', 'money'].includes(field.dataType ?? '')
     }
 
+    private isRangeFilter(field: FormField): boolean {
+        return field.stereotype === 'dateRange' || field.stereotype === 'numberRange'
+    }
+
+    private isMultiFilter(field: FormField): boolean {
+        return field.stereotype === 'multiSelect'
+    }
+
     private hasOptions(field: FormField): boolean {
         return (field.options?.length ?? 0) > 0
     }
 
+    // multi-select values are an array on a live client and a comma-joined string after a URL
+    // restore — normalize both
+    private multiValues(field: FormField): string[] {
+        const value = this.state[field.fieldId]
+        if (Array.isArray(value)) return value.map(String)
+        if (typeof value === 'string' && value !== '') return value.split(',').map(v => v.trim()).filter(v => v)
+        return []
+    }
+
+    private rangeBound(field: FormField, bound: 'from' | 'to'): string {
+        const value = this.state[`${field.fieldId}_${bound}`]
+        return value === undefined || value === null ? '' : String(value)
+    }
+
     private isSet(field: FormField): boolean {
+        if (this.isRangeFilter(field)) {
+            return this.rangeBound(field, 'from') !== '' || this.rangeBound(field, 'to') !== ''
+        }
+        if (this.isMultiFilter(field)) {
+            return this.multiValues(field).length > 0
+        }
         const value = this.state[field.fieldId]
         return value !== undefined && value !== null && value !== '' && !Number.isNaN(value)
     }
@@ -178,6 +217,20 @@ export class MateuFilterBar extends LitElement {
         }
         if (typeof value === 'boolean') return value ? 'Yes' : 'No'
         return String(value)
+    }
+
+    /** Human display of the field's whole condition, whatever its kind (chip text). */
+    private conditionDisplay(field: FormField): string {
+        if (this.isRangeFilter(field)) {
+            const from = this.rangeBound(field, 'from')
+            const to = this.rangeBound(field, 'to')
+            if (from && to) return `${from} – ${to}`
+            return from ? `≥ ${from}` : `≤ ${to}`
+        }
+        if (this.isMultiFilter(field)) {
+            return this.multiValues(field).map(v => this.getFilterDisplayValue(field, v)).join(', ')
+        }
+        return this.getFilterDisplayValue(field, this.state[field.fieldId])
     }
 
     private labelOf(field: FormField): string {
@@ -195,7 +248,71 @@ export class MateuFilterBar extends LitElement {
             <div class="${cssClass}" @mousedown="${this.keepFocus}" @click="${onPick}">${label}</div>`
     }
 
+    /** Two bound inputs; Apply (or Enter) commits both ends to <fieldId>_from/_to and searches. */
+    private renderRangeWidget(field: FormField): TemplateResult {
+        const inputType = field.stereotype === 'numberRange'
+            ? 'number'
+            : field.dataType === 'dateTime' ? 'datetime-local'
+            : field.dataType === 'time' ? 'time'
+            : 'date'
+        const apply = (origin: HTMLElement) => {
+            const row = origin.closest('.panel-input-row') as HTMLElement
+            const from = (row.querySelector('input.range-from') as HTMLInputElement).value
+            const to = (row.querySelector('input.range-to') as HTMLInputElement).value
+            this.emitValueChanged(`${field.fieldId}_from`, from === '' ? undefined : from)
+            this.emitValueChanged(`${field.fieldId}_to`, to === '' ? undefined : to)
+            this.requestSearch()
+        }
+        const onKeydown = (e: KeyboardEvent) => {
+            if (e.key === 'Enter') apply(e.target as HTMLElement)
+            if (e.key === 'Escape') this.closePanel()
+        }
+        return html`
+            <div class="panel-input-row">
+                <input class="range-from" type="${inputType}" placeholder="From"
+                       .value="${this.rangeBound(field, 'from')}"
+                       @mousedown="${(e: Event) => e.stopPropagation()}"
+                       @keydown="${onKeydown}"/>
+                <span class="range-separator" aria-hidden="true">–</span>
+                <input class="range-to" type="${inputType}" placeholder="To"
+                       .value="${this.rangeBound(field, 'to')}"
+                       @mousedown="${(e: Event) => e.stopPropagation()}"
+                       @keydown="${onKeydown}"/>
+                <button class="apply-button"
+                        @mousedown="${this.keepFocus}"
+                        @click="${(e: Event) => apply(e.target as HTMLElement)}">Apply</button>
+            </div>`
+    }
+
+    /** Checkable option rows; every toggle re-runs the search but keeps the panel open. */
+    private renderMultiWidget(field: FormField): TemplateResult {
+        const selected = this.multiValues(field)
+        const toggle = (value: string) => {
+            const next = selected.includes(value)
+                ? selected.filter(v => v !== value)
+                : [...selected, value]
+            this.emitValueChanged(field.fieldId, next.length > 0 ? next : undefined)
+            // search right away but keep the panel open so several values can be picked in a row
+            this.dispatchEvent(new CustomEvent('search-requested', {
+                detail: {},
+                bubbles: true,
+                composed: true
+            }))
+        }
+        return html`${(field.options ?? []).map(option => this.panelRow(html`
+            <span class="multi-check ${selected.includes(option.value) ? 'multi-check--on' : ''}"
+                  aria-hidden="true">${selected.includes(option.value) ? '✓' : ''}</span>
+            ${option.label ?? option.value}
+        `, () => toggle(option.value)))}`
+    }
+
     private renderActiveFilterWidget(field: FormField): TemplateResult {
+        if (this.isRangeFilter(field)) {
+            return this.renderRangeWidget(field)
+        }
+        if (this.isMultiFilter(field)) {
+            return this.renderMultiWidget(field)
+        }
         if (this.hasOptions(field)) {
             return html`${field.options!.map(option =>
                 this.panelRow(option.label ?? option.value, () => this.applyFilter(field.fieldId, option.value)))}`
@@ -246,7 +363,7 @@ export class MateuFilterBar extends LitElement {
                 ${this.filters.map(field => this.panelRow(html`
                     ${this.labelOf(field)}
                     ${this.isSet(field)
-                        ? html`<span class="current-value">${this.getFilterDisplayValue(field, this.state[field.fieldId])}</span>`
+                        ? html`<span class="current-value">${this.conditionDisplay(field)}</span>`
                         : nothing}
                 `, () => { this.activeFilter = field }))}
                 ${anySet ? this.panelRow('Clear filters', this.clearAllFilters, 'panel-row panel-footer') : nothing}
@@ -263,7 +380,7 @@ export class MateuFilterBar extends LitElement {
                 chips.push({
                     fieldId: field.fieldId,
                     label: this.labelOf(field),
-                    display: this.getFilterDisplayValue(field, this.state[field.fieldId])
+                    display: this.conditionDisplay(field)
                 })
             }
         })
@@ -418,6 +535,27 @@ export class MateuFilterBar extends LitElement {
             display: flex;
             gap: 0.5rem;
             padding: 0.5rem 0.75rem;
+        }
+        .range-separator {
+            align-self: center;
+            color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.55));
+        }
+        .multi-check {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1rem;
+            height: 1rem;
+            border: 1px solid var(--lumo-contrast-40pct, rgba(0, 0, 0, 0.35));
+            border-radius: 3px;
+            font-size: 0.7rem;
+            line-height: 1;
+            flex: none;
+        }
+        .multi-check--on {
+            background: var(--lumo-primary-color, rgb(0, 100, 200));
+            border-color: var(--lumo-primary-color, rgb(0, 100, 200));
+            color: var(--lumo-primary-contrast-color, #fff);
         }
         .panel-input-row input {
             flex: 1;

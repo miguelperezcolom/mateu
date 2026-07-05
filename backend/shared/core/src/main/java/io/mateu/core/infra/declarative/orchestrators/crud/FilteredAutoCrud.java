@@ -61,6 +61,25 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     return new ListingData<>(repository().find(searchText, rowFilters, pageable));
   }
 
+  /**
+   * Like {@link #fetchRows(String, Object, Pageable, HttpRequest)} plus the range/multi-select
+   * criteria. Without criteria it delegates to the 3-arg repository {@code find} so repositories
+   * that only override that one keep their behaviour for plain searches.
+   */
+  @SuppressWarnings("unchecked")
+  public ListingData<T> fetchRows(
+      String searchText,
+      Filters filters,
+      List<io.mateu.uidl.data.FilterCriterion> criteria,
+      Pageable pageable,
+      HttpRequest httpRequest) {
+    if (criteria == null || criteria.isEmpty()) {
+      return fetchRows(searchText, filters, pageable, httpRequest);
+    }
+    T rowFilters = entityClass().isInstance(filters) ? (T) filters : null;
+    return new ListingData<>(repository().find(searchText, rowFilters, criteria, pageable));
+  }
+
   public AutoNamedView<T> buildNamedView(String id, HttpRequest httpRequest) {
     var entity = repository().findById(id).orElseThrow();
     return new AutoNamedView<>(entityClass(), entity, repository());
@@ -152,6 +171,17 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   public Object search(
       String searchText, Object filters, Pageable pageable, HttpRequest httpRequest) {
     return adapter().search(searchText, (Filters) filters, pageable, httpRequest);
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Object search(
+      String searchText,
+      Object filters,
+      List<io.mateu.uidl.data.FilterCriterion> criteria,
+      Pageable pageable,
+      HttpRequest httpRequest) {
+    return fetchRows(searchText, (Filters) filters, criteria, pageable, httpRequest);
   }
 
   public abstract CrudRepository<T> repository();

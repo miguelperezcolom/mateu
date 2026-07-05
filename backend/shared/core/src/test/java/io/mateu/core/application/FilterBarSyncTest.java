@@ -33,14 +33,25 @@ class FilterBarSyncTest {
     String name = "Thing";
     boolean certified;
     Status status = Status.AVAILABLE;
+    java.time.LocalDate added;
+
+    @io.mateu.uidl.annotations.RangeFilter double price;
 
     public Product() {}
 
-    public Product(String id, String name, boolean certified, Status status) {
+    public Product(
+        String id,
+        String name,
+        boolean certified,
+        Status status,
+        java.time.LocalDate added,
+        double price) {
       this.id = id;
       this.name = name;
       this.certified = certified;
       this.status = status;
+      this.added = added;
+      this.price = price;
     }
 
     @Override
@@ -51,9 +62,17 @@ class FilterBarSyncTest {
 
   private static final List<Product> PRODUCTS =
       List.of(
-          new Product("p1", "Hammer", true, Status.AVAILABLE),
-          new Product("p2", "Wrench", false, Status.OUT_OF_STOCK),
-          new Product("p3", "Screwdriver", true, Status.OUT_OF_STOCK));
+          new Product(
+              "p1", "Hammer", true, Status.AVAILABLE, java.time.LocalDate.of(2026, 1, 10), 10),
+          new Product(
+              "p2", "Wrench", false, Status.OUT_OF_STOCK, java.time.LocalDate.of(2026, 2, 10), 25),
+          new Product(
+              "p3",
+              "Screwdriver",
+              true,
+              Status.OUT_OF_STOCK,
+              java.time.LocalDate.of(2026, 3, 10),
+              40));
 
   @SuppressWarnings("unused")
   @UI("/catalog")
@@ -159,19 +178,31 @@ class FilterBarSyncTest {
         .contains("certified");
   }
 
+  private static io.mateu.dtos.FormFieldDto filterOf(String fieldId) {
+    return listing().filters().stream()
+        .filter(field -> fieldId.equals(field.fieldId()))
+        .findFirst()
+        .orElseThrow();
+  }
+
   @Test
-  void enumFieldsBecomeSelectFiltersWithTheirOptions() {
-    var filters = listing().filters();
-    assertThat(filters).extracting(io.mateu.dtos.FormFieldDto::fieldId).contains("status");
-    var status =
-        filters.stream()
-            .filter(field -> "status".equals(field.fieldId()))
-            .findFirst()
-            .orElseThrow();
-    assertThat(status.stereotype()).isEqualTo("select");
+  void enumFieldsBecomeMultiSelectFiltersWithTheirOptions() {
+    // enums upgrade to multi-select (IN) on the crud filter bar; the options still travel
+    var status = filterOf("status");
+    assertThat(status.stereotype()).isEqualTo("multiSelect");
     assertThat(status.options())
         .extracting(io.mateu.dtos.OptionDto::value)
         .contains("AVAILABLE", "OUT_OF_STOCK");
+  }
+
+  @Test
+  void temporalFieldsBecomeDateRangeFilters() {
+    assertThat(filterOf("added").stereotype()).isEqualTo("dateRange");
+  }
+
+  @Test
+  void rangeAnnotatedNumericFieldsBecomeNumberRangeFilters() {
+    assertThat(filterOf("price").stereotype()).isEqualTo("numberRange");
   }
 
   // ── filter application (default in-memory CrudRepository.find) ────────────────
@@ -237,6 +268,61 @@ class FilterBarSyncTest {
   void filtersCombine() {
     var rows = search(java.util.Map.of("status", "OUT_OF_STOCK", "certified", true));
     assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactly("p3");
+  }
+
+  // ── criteria filters: ranges and multi-select (can't live in the example object) ──
+
+  @Test
+  void enumMultiSelectListFiltersWithInSemantics() {
+    var rows = search(java.util.Map.of("status", List.of("OUT_OF_STOCK")));
+    assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactlyInAnyOrder("p2", "p3");
+    // several values = IN — the single-select example path could never express this
+    assertThat(search(java.util.Map.of("status", List.of("AVAILABLE", "OUT_OF_STOCK")))).hasSize(3);
+  }
+
+  @Test
+  void enumMultiSelectCommaStringComesFromUrlRestore() {
+    var rows = search(java.util.Map.of("status", "AVAILABLE,OUT_OF_STOCK"));
+    assertThat(rows).hasSize(3);
+  }
+
+  @Test
+  void dateRangeFiltersBetween() {
+    var rows = search(java.util.Map.of("added_from", "2026-01-15", "added_to", "2026-02-20"));
+    assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactly("p2");
+  }
+
+  @Test
+  void dateRangeLowerBoundAloneIsGte() {
+    var rows = search(java.util.Map.of("added_from", "2026-02-01"));
+    assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactlyInAnyOrder("p2", "p3");
+  }
+
+  @Test
+  void dateRangeUpperBoundAloneIsLte() {
+    var rows = search(java.util.Map.of("added_to", "2026-01-31"));
+    assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactly("p1");
+  }
+
+  @Test
+  void numberRangeFiltersBetween() {
+    var rows = search(java.util.Map.of("price_from", "20", "price_to", "30"));
+    assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactly("p2");
+  }
+
+  @Test
+  void criteriaAndExampleFiltersCombine() {
+    var rows =
+        search(
+            java.util.Map.of(
+                "price_from", "20", "status", List.of("OUT_OF_STOCK"), "certified", true));
+    assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactly("p3");
+  }
+
+  @Test
+  void unparseableRangeBoundsAreIgnored() {
+    // a broken bound must not blow up the search nor filter anything out
+    assertThat(search(java.util.Map.of("added_from", "not-a-date"))).hasSize(3);
   }
 
   // ── record-based entity (canonical-constructor baseline) ──────────────────────

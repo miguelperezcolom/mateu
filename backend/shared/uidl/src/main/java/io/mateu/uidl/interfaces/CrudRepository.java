@@ -1,6 +1,7 @@
 package io.mateu.uidl.interfaces;
 
 import io.mateu.uidl.data.Direction;
+import io.mateu.uidl.data.FilterCriterion;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
@@ -52,6 +53,19 @@ public interface CrudRepository<T extends Identifiable> {
    * @param pageable page number, size and sort; {@code null} returns a single page with all rows
    */
   default Page<T> find(String searchText, T filters, Pageable pageable) {
+    return find(searchText, filters, List.of(), pageable);
+  }
+
+  /**
+   * Like {@link #find(String, Identifiable, Pageable)} plus the {@code criteria} the example object
+   * can't express: date/number ranges and value lists (see {@link FilterCriterion}). The framework
+   * calls this overload only when such criteria exist, so implementations that override the 3-arg
+   * {@code find} keep working unchanged for plain searches; override this one too to push
+   * range/list filtering to the database (the default applies everything in memory over {@link
+   * #findAll()}).
+   */
+  default Page<T> find(
+      String searchText, T filters, List<FilterCriterion> criteria, Pageable pageable) {
     var all =
         findAll().stream()
             .filter(
@@ -64,6 +78,7 @@ public interface CrudRepository<T extends Identifiable> {
                             .toLowerCase()
                             .contains(searchText.toLowerCase()))
             .filter(matchesFilters(filters))
+            .filter(item -> matchesCriteria(item, criteria))
             .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
     var comparator = comparatorFor(pageable);
     if (comparator != null) {
@@ -74,6 +89,60 @@ public interface CrudRepository<T extends Identifiable> {
     int from = Math.min(pageNumber * pageSize, all.size());
     int to = Math.min(from + pageSize, all.size());
     return new Page<>("", pageSize, pageNumber, all.size(), all.subList(from, to));
+  }
+
+  /**
+   * In-memory evaluation of the range/list criteria: numbers compare numerically whatever their
+   * exact type, everything else through {@link Comparable} (with a toString fallback); {@code in}
+   * accepts a match on equality or on the string form, so enum constants and their names both work.
+   * A null row value never matches a criterion.
+   */
+  private static boolean matchesCriteria(Object item, List<FilterCriterion> criteria) {
+    if (criteria == null || criteria.isEmpty()) {
+      return true;
+    }
+    for (FilterCriterion criterion : criteria) {
+      if (criterion == null || criterion.values() == null || criterion.values().isEmpty()) {
+        continue;
+      }
+      Object rowValue = readProperty(item, criterion.field());
+      if (rowValue == null) {
+        return false;
+      }
+      switch (criterion.operator()) {
+        case between -> {
+          if (compareValues(rowValue, criterion.values().get(0)) < 0
+              || (criterion.values().size() > 1
+                  && compareValues(rowValue, criterion.values().get(1)) > 0)) {
+            return false;
+          }
+        }
+        case gte -> {
+          if (compareValues(rowValue, criterion.values().get(0)) < 0) {
+            return false;
+          }
+        }
+        case lte -> {
+          if (compareValues(rowValue, criterion.values().get(0)) > 0) {
+            return false;
+          }
+        }
+        case in -> {
+          var matched = false;
+          for (Object candidate : criterion.values()) {
+            if (java.util.Objects.equals(rowValue, candidate)
+                || (candidate != null && rowValue.toString().equals(candidate.toString()))) {
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 
   /**
@@ -207,8 +276,9 @@ public interface CrudRepository<T extends Identifiable> {
   }
 
   /**
-   * Natural-order comparison of two property values; {@code null}s sort last, non-Comparables by
-   * {@code toString()}.
+   * Natural-order comparison of two property values; {@code null}s sort last, numbers numerically
+   * whatever their exact type (an Integer row value must compare correctly against a Double coming
+   * from the wire), non-Comparables by {@code toString()}.
    */
   @SuppressWarnings({"unchecked", "rawtypes"})
   private static int compareValues(Object a, Object b) {
@@ -220,6 +290,9 @@ public interface CrudRepository<T extends Identifiable> {
     }
     if (b == null) {
       return -1;
+    }
+    if (a instanceof Number numberA && b instanceof Number numberB) {
+      return Double.compare(numberA.doubleValue(), numberB.doubleValue());
     }
     if (a instanceof Comparable && a.getClass().isInstance(b)) {
       return ((Comparable) a).compareTo(b);

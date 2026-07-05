@@ -26,13 +26,20 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
     if (searchText == null) {
       searchText = "";
     }
-    // The filter values only travel inside the component state — materialize them into the
-    // orchestrator's filters type (same as ExportActionRunner) instead of passing null.
+    // The filter values only travel inside the component state. Ranges and multi-selects can't
+    // live in the entity-shaped example object, so they are split out as criteria FIRST and the
+    // example is hydrated from the remaining state (hydrating a list into an enum field, or
+    // leaving <field>_from keys around, would break it).
+    var extracted =
+        io.mateu.core.infra.declarative.orchestrators.crud.FilterCriteriaBuilder.extract(
+            orchestrator.filtersClass(), httpRequest.runActionRq().componentState());
     Object filters =
         MateuInstanceFactory.newInstance(
-            orchestrator.filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
+            orchestrator.filtersClass(), extracted.exampleState(), httpRequest);
     return new Data(
-        Map.of("crud", orchestrator.search(searchText, filters, pageable, httpRequest)));
+        Map.of(
+            "crud",
+            orchestrator.search(searchText, filters, extracted.criteria(), pageable, httpRequest)));
   }
 
   /**

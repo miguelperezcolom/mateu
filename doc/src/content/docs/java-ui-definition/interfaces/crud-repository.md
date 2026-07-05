@@ -181,6 +181,30 @@ that baseline** filter the rows: strings by case-insensitive containment, everyt
 equality. The flip side is that filtering **by** a field's default value (e.g. an initializer like
 `status = AVAILABLE`) is invisible to the default — override `find` if you need that.
 
+### Range and multi-select criteria
+
+An entity-shaped example object can't say "price between 100 and 150" or "status in (A, B)", so
+those conditions travel separately as `FilterCriterion` records (`io.mateu.uidl.data`):
+
+```java
+public record FilterCriterion(String field, FilterOperator operator, List<Object> values) {}
+// operators: between, gte, lte, in — values already coerced to the field's type
+```
+
+They come from the smart search bar's range widgets (temporal fields by default, numeric fields
+annotated with `@RangeFilter`) and enum multi-selects, and reach the repository through a second
+overload:
+
+```java
+default Page<T> find(String searchText, T filters, List<FilterCriterion> criteria, Pageable pageable)
+```
+
+The framework calls the 4-arg overload **only when such criteria exist**, so a repository that
+only overrides the 3-arg `find` keeps working unchanged for plain searches — but a range/multi
+search on it falls back to the in-memory default over `findAll()`. Override the 4-arg overload too
+when you want ranges and value lists resolved in the database (translate `between`/`gte`/`lte` to
+comparisons and `in` to an IN clause).
+
 ### Overriding for database-side paging
 
 For large tables, override `find` so the search, filtering, sorting and pagination all run in the database. Because `Page` carries `totalElements`, you run a count query plus a paged query:

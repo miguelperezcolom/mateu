@@ -46,7 +46,7 @@ public class Product {
 }
 ```
 
-![Listing with the smart search bar: keyword and status chips applied](/images/docs/ux-patterns/filters.png)
+![Listing with the smart search bar: status, date-range and price-range chips applied](/images/docs/ux-patterns/filters.png)
 
 ## The smart search bar
 
@@ -56,19 +56,34 @@ of inputs. The one field hosts both the free-text keyword search and the structu
 - **Type and press Enter** to apply a keyword search (matched against `Searchable.searchableText()`
   or `toString()`).
 - **Click the field** to open the *Filter by* panel listing every filter. Picking one opens a
-  type-specific widget: an option list for enums/selects, Yes/No for booleans, a small input with
-  Apply for text and numbers. Filters already set show their current value next to their name.
+  type-specific widget. Filters already set show their current condition next to their name.
 - **Every applied condition becomes a chip** in the bar with its own ✕. Adding or removing a chip
-  re-runs the search immediately, so conditions compose (e.g. keyword + status).
+  re-runs the search immediately, so conditions compose (e.g. keyword + status + a date range).
 - **Clear filters** at the bottom of the panel resets everything at once.
 
 ![The Filter by panel, opened by clicking the search field](/images/docs/ux-patterns/filters-panel.png)
 
-Which fields become filters is decided server-side, exactly as before: every basic field (strings,
-numbers, booleans, dates) **and every enum** of the filters class. Enums arrive as selects carrying
-their constants as options. There is nothing to configure on the frontend — every renderer that
-ships the shared filter bar (Vaadin, SAP UI5, PatternFly) gets this UX, and the Redwood renderer
-implements the same pattern with its own design system.
+Which fields become filters is decided server-side: every basic field **and every enum** of the
+filters class. The widget (and the condition semantics) follow the field's type:
+
+| Field type | Widget | Condition | State / URL keys |
+|---|---|---|---|
+| String | text input + Apply | contains (case-insensitive) | `name=widget` |
+| Boolean | Yes / No | equality | `certified=true` |
+| Enum | **multi-select** (checkable options) | IN — any of the picked values | `status=Available,OutOfStock` |
+| Date/time (`LocalDate`, `LocalDateTime`, `LocalTime`) | **from–to range** | between / ≥ / ≤ | `added_from=2026-01-15&added_to=2026-02-28` |
+| Number with `@RangeFilter` | **min–max range** | between / ≥ / ≤ | `price_from=100&price_to=150` |
+| Number (plain) | number input + Apply | equality | `units=5` |
+
+![The date-range widget of a temporal filter](/images/docs/ux-patterns/filters-range.png)
+
+Temporal filters are ranges **by default** (equality on an exact instant is almost never what a
+user wants); numeric ranges are opt-in via `@RangeFilter` on the entity field; enums are
+multi-selects by default (picking a single value behaves exactly like equality). Because every
+condition lives in flat state keys, the URL keeps capturing the full listing state — bookmarks and
+shared links restore ranges and multi-selections too. There is nothing to configure on the
+frontend — every renderer that ships the shared filter bar (Vaadin, SAP UI5, PatternFly) gets this
+UX, and the Redwood renderer implements the same pattern with its own design system.
 
 ## Structure
 
@@ -94,12 +109,20 @@ implements the same pattern with its own design system.
 ## Filtering on the default repository
 
 You don't need to override anything for the filters to work: the default in-memory
-`CrudRepository.find` applies them. A filter counts as **set** when its value differs from a
-freshly-constructed instance of the filters class, so field initializers and primitive
-zeros/falses don't filter on their own. Strings match by case-insensitive containment, everything
-else (enums, booleans, numbers) by equality. The flip side: filtering **by** a field's default
-value (e.g. an initializer like `status = AVAILABLE`) needs an overridden `find` — see
-[CrudRepository](/java-ui-definition/interfaces/crud-repository/) for the DB-side version.
+`CrudRepository.find` applies them. Two mechanisms cooperate:
+
+- **Equality filters travel inside the entity-shaped example object** (query by example). A filter
+  counts as **set** when its value differs from a freshly-constructed instance of the filters
+  class, so field initializers and primitive zeros/falses don't filter on their own. Strings match
+  by case-insensitive containment, everything else by equality. The flip side: filtering **by** a
+  field's default value (e.g. an initializer like `status = AVAILABLE`) needs an overridden `find`.
+- **Ranges and multi-selects travel as `FilterCriterion` entries** (between/gte/lte/in, values
+  already coerced to the field's type) — an entity instance simply has no room for "between 10 and
+  50" or "any of A, B". They reach the repository through the 4-arg
+  `find(searchText, filters, criteria, pageable)` overload, whose default evaluates them in memory.
+
+See [CrudRepository](/java-ui-definition/interfaces/crud-repository/) for pushing both to the
+database.
 
 ## Export
 

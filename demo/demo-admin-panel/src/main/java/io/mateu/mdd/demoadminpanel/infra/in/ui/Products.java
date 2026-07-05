@@ -17,6 +17,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,6 +42,9 @@ record Product(
                        }
                )
                ProductStatus status,
+               LocalDate added,
+               @io.mateu.uidl.annotations.RangeFilter
+               double price,
         @Stereotype(FieldStereotype.textarea)
         @HiddenInList
         String description,
@@ -85,6 +89,8 @@ class ProductRepository implements CrudRepository<Product> {
             map.put(id, new Product(id, "Producto " + i,
                     i % 2 == 0,
                     i % 3 == 0 ? ProductStatus.OutOfStock : ProductStatus.Available,
+                    LocalDate.of(2026, 1, 1).plusDays(i),
+                    i * 5.0,
                     "Descripción del producto " + i, null,
                     List.of(
                             new ProductComponent("x" + i, i, null, false, "yyy"),

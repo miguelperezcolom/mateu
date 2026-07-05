@@ -221,6 +221,20 @@ public abstract class Crud<
   public abstract Object search(
       String searchText, Object filters, Pageable pageable, HttpRequest httpRequest);
 
+  /**
+   * Search with the range/multi-select conditions the example object can't carry (see {@link
+   * io.mateu.uidl.data.FilterCriterion}). Subclasses that don't understand criteria inherit this
+   * default and simply ignore them.
+   */
+  public Object search(
+      String searchText,
+      Object filters,
+      java.util.List<io.mateu.uidl.data.FilterCriterion> criteria,
+      Pageable pageable,
+      HttpRequest httpRequest) {
+    return search(searchText, filters, pageable, httpRequest);
+  }
+
   @Override
   public List<Trigger> triggers(String viewName, HttpRequest httpRequest) {
     return CrudTriggersBuilder.build(this, viewName, httpRequest);

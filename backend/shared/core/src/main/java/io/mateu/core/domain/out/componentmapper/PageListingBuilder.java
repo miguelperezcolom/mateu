@@ -12,6 +12,7 @@ import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnActionGroup;
+import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
 import io.mateu.uidl.fluent.Component;
@@ -150,6 +151,33 @@ public class PageListingBuilder {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    return getFilters(
+        filtersClass,
+        instance,
+        baseUrl,
+        route,
+        consumedRoute,
+        initiatorComponentId,
+        httpRequest,
+        false);
+  }
+
+  /**
+   * With {@code crudFilterSemantics} (the AutoCrud listing path) filters get the richer widgets
+   * whose values travel OUTSIDE the entity-shaped example object: temporals as from/to date ranges,
+   * {@code @RangeFilter} numerics as min/max ranges, enums as multi-selects (IN). Plain declarative
+   * Listings keep the classic single-value widgets — their custom Filters classes are hydrated
+   * as-is and would not survive lists or {@code _from}/{@code _to} keys.
+   */
+  public static Collection<FormField> getFilters(
+      Class filtersClass,
+      Object instance,
+      String baseUrl,
+      String route,
+      String consumedRoute,
+      String initiatorComponentId,
+      HttpRequest httpRequest,
+      boolean crudFilterSemantics) {
     return getAllFields(filtersClass).stream()
         .filter(field -> filterFilterField(field, instance, httpRequest))
         .filter(
@@ -172,6 +200,17 @@ public class PageListingBuilder {
                           false,
                           2,
                           0);
+              if (crudFilterSemantics) {
+                if (io.mateu.core.infra.declarative.orchestrators.crud.FilterCriteriaBuilder
+                    .isTemporal(field.getType())) {
+                  formField = formField.toBuilder().stereotype(FieldStereotype.dateRange).build();
+                } else if (io.mateu.core.infra.declarative.orchestrators.crud.FilterCriteriaBuilder
+                    .isRangeAnnotatedNumeric(field)) {
+                  formField = formField.toBuilder().stereotype(FieldStereotype.numberRange).build();
+                } else if (field.getType().isEnum()) {
+                  formField = formField.toBuilder().stereotype(FieldStereotype.multiSelect).build();
+                }
+              }
               if (MetaAnnotations.isPresent(field, MainFilter.class)) {
                 return formField.toBuilder().mainFilter(true).build();
               }

@@ -218,7 +218,14 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
             doSearch()
         }
         const removeChip = (fieldId: string) => {
-            state[fieldId] = fieldId === 'searchText' ? '' : undefined
+            const field = filters.find(f => f.fieldId === fieldId)
+            if (field && isRangeFilter(field)) {
+                // a range condition lives in two state keys — the chip clears both
+                state[`${fieldId}_from`] = undefined
+                state[`${fieldId}_to`] = undefined
+            } else {
+                state[fieldId] = fieldId === 'searchText' ? '' : undefined
+            }
             doSearch()
         }
         const commitText = (input: HTMLInputElement) => {
@@ -230,20 +237,49 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
 
         const isBooleanFilter = (f: any) => f.dataType === 'boolean' || f.stereotype === 'checkbox' || f.stereotype === 'toggle'
         const isNumericFilter = (f: any) => ['integer', 'decimal', 'number', 'money'].includes(f.dataType)
+        const isRangeFilter = (f: any) => f.stereotype === 'dateRange' || f.stereotype === 'numberRange'
+        const isMultiFilter = (f: any) => f.stereotype === 'multiSelect'
         const hasOptions = (f: any) => (f.options?.length ?? 0) > 0
+        // multi-select values are an array on a live client and a comma-joined string after a
+        // URL restore — normalize both
+        const multiValues = (f: any): string[] => {
+            const value = state[f.fieldId]
+            if (Array.isArray(value)) return value.map(String)
+            if (typeof value === 'string' && value !== '') return value.split(',').map(v => v.trim()).filter(v => v)
+            return []
+        }
+        const rangeBound = (f: any, bound: 'from' | 'to'): string => {
+            const value = state[`${f.fieldId}_${bound}`]
+            return value === undefined || value === null ? '' : String(value)
+        }
+        const isSet = (f: any): boolean => {
+            if (isRangeFilter(f)) return rangeBound(f, 'from') !== '' || rangeBound(f, 'to') !== ''
+            if (isMultiFilter(f)) return multiValues(f).length > 0
+            const value = state[f.fieldId]
+            return value !== undefined && value !== null && value !== ''
+        }
         const displayValue = (f: any, value: unknown): string => {
             const option = f?.options?.find((o: any) => o.value === String(value))
             if (option) return option.label ?? option.value
             if (typeof value === 'boolean') return value ? 'Yes' : 'No'
             return String(value)
         }
+        const conditionDisplay = (f: any): string => {
+            if (isRangeFilter(f)) {
+                const from = rangeBound(f, 'from')
+                const to = rangeBound(f, 'to')
+                if (from && to) return `${from} – ${to}`
+                return from ? `≥ ${from}` : `≤ ${to}`
+            }
+            if (isMultiFilter(f)) return multiValues(f).map(v => displayValue(f, v)).join(', ')
+            return displayValue(f, state[f.fieldId])
+        }
 
         const chips: { fieldId: string, label: string, display: string }[] = []
         if (state.searchText) chips.push({ fieldId: 'searchText', label: 'Text', display: String(state.searchText) })
         filters.forEach(f => {
-            const value = state[f.fieldId]
-            if (value !== undefined && value !== null && value !== '') {
-                chips.push({ fieldId: f.fieldId, label: f.label || f.fieldId, display: displayValue(f, value) })
+            if (isSet(f)) {
+                chips.push({ fieldId: f.fieldId, label: f.label || f.fieldId, display: conditionDisplay(f) })
             }
         })
 
@@ -260,7 +296,68 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                  onmouseover="this.style.background='rgba(22,21,19,0.06)'"
                  onmouseout="this.style.background='transparent'">${label}</div>`
 
+        const INPUT_STYLE = `flex: 1; min-width: 0; font: inherit; font-size: 0.875rem; color: ${TEXT}; border: 1px solid rgba(22,21,19,0.5); border-radius: 4px; padding: 0.35rem 0.5rem; outline: none;`
+        const APPLY_STYLE = 'font: inherit; font-size: 0.875rem; background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); color: #fff; border: 1px solid transparent; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer;'
+
+        // two bound inputs; Apply (or Enter) commits both ends to <fieldId>_from/_to and searches
+        const rangeWidget = (f: any) => {
+            const inputType = f.stereotype === 'numberRange'
+                ? 'number'
+                : f.dataType === 'dateTime' ? 'datetime-local'
+                : f.dataType === 'time' ? 'time'
+                : 'date'
+            const apply = (origin: HTMLElement) => {
+                const row = origin.closest('.range-row') as HTMLElement
+                state[`${f.fieldId}_from`] = (row.querySelector('input.range-from') as HTMLInputElement).value || undefined
+                state[`${f.fieldId}_to`] = (row.querySelector('input.range-to') as HTMLInputElement).value || undefined
+                doSearch()
+            }
+            const onKeydown = (e: KeyboardEvent) => {
+                if (e.key === 'Enter') apply(e.target as HTMLElement)
+                if (e.key === 'Escape') closePanel()
+            }
+            return html`
+                <div class="range-row" style="display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0.75rem;">
+                    <input class="range-from" type="${inputType}" placeholder="From" style="${INPUT_STYLE}"
+                           .value="${rangeBound(f, 'from')}"
+                           @mousedown="${(e: Event) => e.stopPropagation()}"
+                           @keydown="${onKeydown}"/>
+                    <span aria-hidden="true" style="color: rgba(22,21,19,0.55);">–</span>
+                    <input class="range-to" type="${inputType}" placeholder="To" style="${INPUT_STYLE}"
+                           .value="${rangeBound(f, 'to')}"
+                           @mousedown="${(e: Event) => e.stopPropagation()}"
+                           @keydown="${onKeydown}"/>
+                    <button style="${APPLY_STYLE}"
+                            @mousedown="${keepFocus}"
+                            @click="${(e: Event) => apply(e.target as HTMLElement)}">Apply</button>
+                </div>`
+        }
+
+        // checkable option rows; every toggle re-runs the search but keeps the panel open
+        const multiWidget = (f: any) => {
+            const selected = multiValues(f)
+            const toggle = (value: string) => {
+                const next = selected.includes(value) ? selected.filter(v => v !== value) : [...selected, value]
+                state[f.fieldId] = next.length > 0 ? next : undefined
+                container.search()
+                rerender()
+            }
+            const CHECK = 'display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: 3px; font-size: 0.7rem; line-height: 1; flex: none;'
+            return html`${(f.options ?? []).map((o: any) => panelRow(html`
+                <span aria-hidden="true" style="${CHECK} ${selected.includes(o.value)
+                    ? 'background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); border: 1px solid transparent; color: #fff;'
+                    : 'border: 1px solid rgba(22,21,19,0.5);'}">${selected.includes(o.value) ? '✓' : ''}</span>
+                ${o.label ?? o.value}
+            `, () => toggle(o.value)))}`
+        }
+
         const activeFilterWidget = (f: any) => {
+            if (isRangeFilter(f)) {
+                return rangeWidget(f)
+            }
+            if (isMultiFilter(f)) {
+                return multiWidget(f)
+            }
             if (hasOptions(f)) {
                 return html`${f.options.map((o: any) => panelRow(o.label ?? o.value, () => applyFilter(f.fieldId, o.value)))}`
             }
@@ -303,8 +400,8 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                     <div style="padding: 0.35rem 0.75rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(22,21,19,0.6);">Filter by</div>
                     ${filters.map(f => panelRow(html`
                         ${f.label || f.fieldId}
-                        ${state[f.fieldId] !== undefined && state[f.fieldId] !== null && state[f.fieldId] !== ''
-                            ? html`<span style="margin-left: auto; color: rgba(22,21,19,0.55); font-size: 0.8125rem;">${displayValue(f, state[f.fieldId])}</span>`
+                        ${isSet(f)
+                            ? html`<span style="margin-left: auto; color: rgba(22,21,19,0.55); font-size: 0.8125rem;">${conditionDisplay(f)}</span>`
                             : nothing}
                     `, () => { ui.activeFilter = f; rerender() }))}
                 `}

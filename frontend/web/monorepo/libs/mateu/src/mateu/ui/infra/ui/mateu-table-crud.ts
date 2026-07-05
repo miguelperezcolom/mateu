@@ -136,9 +136,15 @@ export class MateuTableCrud extends LitElement {
     }
 
     private _filterIds(metadata: Crud): Set<string> {
+        // range filters keep their bounds in <fieldId>_from / <fieldId>_to state keys (the
+        // entity-shaped filters object has no room for two values), so those are the keys that
+        // must survive URL sync
         return new Set([
             'searchText',
-            ...(metadata.filters ?? []).map(f => f.fieldId)
+            ...(metadata.filters ?? []).flatMap(f =>
+                f.stereotype === 'dateRange' || f.stereotype === 'numberRange'
+                    ? [`${f.fieldId}_from`, `${f.fieldId}_to`]
+                    : [f.fieldId])
         ])
     }
 

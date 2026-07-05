@@ -565,6 +565,7 @@ These are also part of the public DSL and are worth knowing:
 - `@UploadableImage` — image field with upload/replace/delete, stored as data URI or URL
 - `@RowAction` — per-row contextual actions in listings
 - `@MainFilter` / `@Filterable` — mark filter fields for CRUD listings
+- `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the repository as a `FilterCriterion`
 - `@HomeRoute` — designate the default/home route
 - `@Fab` — floating action button (app level or page level)
 - `@KPI` — render a numeric field as a dashboard KPI card

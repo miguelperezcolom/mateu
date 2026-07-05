@@ -37,5 +37,23 @@ public enum FieldStereotype {
   /**
    * Renders the value as plain read-only text instead of an input control (see {@code @PlainText}).
    */
-  plainText
+  plainText,
+  /**
+   * Listing filter over a temporal field as a from/to pair. The values travel in the component
+   * state under {@code <fieldId>_from} / {@code <fieldId>_to} and reach the repository as a {@link
+   * FilterCriterion} (between/gte/lte), never inside the entity-shaped filters object.
+   */
+  dateRange,
+  /**
+   * Listing filter over a numeric field as a min/max pair (opt-in via {@code @RangeFilter}). Same
+   * wire shape as {@link #dateRange}: {@code <fieldId>_from} / {@code <fieldId>_to} state keys and
+   * a {@link FilterCriterion} server-side.
+   */
+  numberRange,
+  /**
+   * Listing filter over an enum as a multi-select (IN semantics). The state carries a list of
+   * constant names (or a comma-joined string when restored from the URL) and reaches the repository
+   * as a {@link FilterCriterion} with the {@code in} operator.
+   */
+  multiSelect
 }
