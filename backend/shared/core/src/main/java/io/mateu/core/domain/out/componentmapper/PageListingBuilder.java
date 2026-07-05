@@ -183,7 +183,9 @@ public class PageListingBuilder {
   private static boolean filterFilterField(Field field, Object instance, HttpRequest httpRequest) {
     var valid = FormFieldFilter.filterField(field, false, false, instance, httpRequest);
     if (valid) {
-      if (!isBasic(field.getType())) {
+      // enums are filterable too (they render as a select with the enum options) — isBasic
+      // doesn't know them, and dropping them here left e.g. status filters silently missing
+      if (!isBasic(field.getType()) && !field.getType().isEnum()) {
         return false;
       }
     }

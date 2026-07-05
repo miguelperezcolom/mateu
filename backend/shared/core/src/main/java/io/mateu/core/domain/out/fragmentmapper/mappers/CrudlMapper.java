@@ -58,6 +58,22 @@ public class CrudlMapper {
                                     .cssClasses(filter.cssClasses())
                                     .description(filter.description())
                                     .placeholder(filter.placeholder())
+                                    // enum/select filters need their options or the dropdown
+                                    // arrives empty
+                                    .options(
+                                        filter.options() != null
+                                            ? filter.options().stream()
+                                                .map(
+                                                    option ->
+                                                        new io.mateu.dtos.OptionDto(
+                                                            option.value(),
+                                                            option.label(),
+                                                            option.description(),
+                                                            option.image(),
+                                                            option.imageStyle(),
+                                                            option.icon()))
+                                                .toList()
+                                            : List.of())
                                     .colspan(filter.colspan() > 0 ? filter.colspan() : 1)
                                     .sliderMin(filter.sliderMin())
                                     .sliderMax(filter.sliderMax())

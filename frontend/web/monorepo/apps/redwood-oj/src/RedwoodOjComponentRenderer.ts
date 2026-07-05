@@ -2,6 +2,7 @@ import { html, LitElement, nothing, type TemplateResult } from 'lit';
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
+import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType"
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { renderButton } from "@/renderers/renderButton.ts";
@@ -183,6 +184,22 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                         @ojAction="${doSearch}"
                     ></oj-c-button>
                 ` : nothing}
+                ${(metadata?.filters ?? []).map(filter => renderComponent(container, {
+                    // the filters travel as bare FormField metadata — wrap them like the shared
+                    // mateu-filter-bar does so they render as real fields (selects with their
+                    // options, checkboxes…) bound to the crud state. The wrapper id must be the
+                    // fieldId: renderField dispatches value-changed with the component id, and an
+                    // empty id would commit the value under state[''] instead of the filter's key
+                    id: (filter as any).fieldId ?? '',
+                    metadata: { ...(filter as any) },
+                    type: ComponentType.ClientSide,
+                    style: '',
+                    children: [],
+                    slot: '',
+                    cssClasses: '',
+                    initialData: {},
+                    confirmOnNavigationIfDirty: false
+                } as ClientSideComponent, baseUrl, state, data, appState, appData))}
                 ${metadata?.header?.map(comp => renderComponent(container, comp, baseUrl, state, data, appState, appData))}
             </div>
         `

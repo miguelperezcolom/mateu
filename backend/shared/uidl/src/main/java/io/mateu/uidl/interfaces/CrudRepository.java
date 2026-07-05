@@ -37,10 +37,15 @@ public interface CrudRepository<T extends Identifiable> {
    *
    * <p>The default implementation loads {@link #findAll()} and filters/sorts/paginates in memory:
    * rows are matched against {@code searchText} using {@link Searchable#searchableText()} (or
-   * {@code toString()} when the entity is not {@link Searchable}), then ordered according to {@link
-   * Pageable#sort()} (reading each sort field reflectively via getter/record-accessor/field). The
-   * {@code filters} argument is ignored by this default — override to apply field-level filtering
-   * (typically DB-side).
+   * {@code toString()} when the entity is not {@link Searchable}), then against each basic field of
+   * {@code filters} whose value differs from a freshly-constructed instance of the filters class —
+   * the difference-from-default check is what tells a filter the user actually set apart from field
+   * initializers and primitive zeros/falses (the filters object is hydrated from the component
+   * state, so untouched fields keep their defaults; the flip side is that filtering BY a default
+   * value needs an overridden {@code find}). String filters match by case-insensitive containment,
+   * everything else by equality. Then rows are ordered according to {@link Pageable#sort()}
+   * (reading each sort field reflectively via getter/record-accessor/field). Override to push the
+   * work to the database.
    *
    * @param searchText free-text query; {@code null}/empty matches everything
    * @param filters an entity-shaped object carrying field-level filter values (may be {@code null})
@@ -58,6 +63,7 @@ public interface CrudRepository<T extends Identifiable> {
                                 : item.toString())
                             .toLowerCase()
                             .contains(searchText.toLowerCase()))
+            .filter(matchesFilters(filters))
             .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
     var comparator = comparatorFor(pageable);
     if (comparator != null) {
@@ -68,6 +74,115 @@ public interface CrudRepository<T extends Identifiable> {
     int from = Math.min(pageNumber * pageSize, all.size());
     int to = Math.min(from + pageSize, all.size());
     return new Page<>("", pageSize, pageNumber, all.size(), all.subList(from, to));
+  }
+
+  /**
+   * Row predicate for the field-level filters: a filter field counts as SET only when its value
+   * differs from a freshly-constructed filters instance (untouched fields keep their initializers /
+   * primitive defaults, since the filters object is hydrated from the component state). Only basic
+   * values (strings, numbers, booleans, chars, enums) are matched — strings by case-insensitive
+   * containment, the rest by equality. If the filters class has no reachable no-arg constructor the
+   * baseline is null-only, so primitive defaults would count as set — acceptable for the in-memory
+   * default; override find() for anything smarter.
+   */
+  private java.util.function.Predicate<T> matchesFilters(T filters) {
+    if (filters == null) {
+      return item -> true;
+    }
+    Object defaults = defaultsInstance(filters.getClass());
+    List<java.lang.reflect.Field> active = new ArrayList<>();
+    List<Object> values = new ArrayList<>();
+    for (Class<?> c = filters.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+      for (var field : c.getDeclaredFields()) {
+        if (field.isSynthetic() || java.lang.reflect.Modifier.isStatic(field.getModifiers())) {
+          continue;
+        }
+        try {
+          field.setAccessible(true);
+          Object value = field.get(filters);
+          if (value == null || !isBasicFilterValue(value)) {
+            continue;
+          }
+          if (value instanceof String s && s.isBlank()) {
+            continue;
+          }
+          if (defaults != null && java.util.Objects.equals(value, field.get(defaults))) {
+            continue;
+          }
+          active.add(field);
+          values.add(value);
+        } catch (ReflectiveOperationException ignored) {
+          // unreadable field: not filterable
+        }
+      }
+    }
+    if (active.isEmpty()) {
+      return item -> true;
+    }
+    return item -> {
+      for (int i = 0; i < active.size(); i++) {
+        Object rowValue = readProperty(item, active.get(i).getName());
+        Object filterValue = values.get(i);
+        if (filterValue instanceof String s) {
+          if (rowValue == null || !rowValue.toString().toLowerCase().contains(s.toLowerCase())) {
+            return false;
+          }
+        } else if (!java.util.Objects.equals(rowValue, filterValue)) {
+          return false;
+        }
+      }
+      return true;
+    };
+  }
+
+  /**
+   * Baseline instance for the difference-from-default check: the no-arg constructor when there is
+   * one, or — for records, which have none — the canonical constructor fed with null/zero/false, so
+   * primitive components left untouched by the state hydration don't count as user-set filters.
+   * Returns {@code null} when neither works (then only null means "unset").
+   */
+  private static Object defaultsInstance(Class<?> type) {
+    try {
+      if (type.isRecord()) {
+        var components = type.getRecordComponents();
+        var argTypes = new Class<?>[components.length];
+        var args = new Object[components.length];
+        for (int i = 0; i < components.length; i++) {
+          argTypes[i] = components[i].getType();
+          args[i] = primitiveDefault(argTypes[i]);
+        }
+        var canonical = type.getDeclaredConstructor(argTypes);
+        canonical.setAccessible(true);
+        return canonical.newInstance(args);
+      }
+      var constructor = type.getDeclaredConstructor();
+      constructor.setAccessible(true);
+      return constructor.newInstance();
+    } catch (ReflectiveOperationException | RuntimeException ignored) {
+      return null;
+    }
+  }
+
+  private static Object primitiveDefault(Class<?> type) {
+    if (!type.isPrimitive()) {
+      return null;
+    }
+    if (type == boolean.class) return false;
+    if (type == char.class) return '\0';
+    if (type == byte.class) return (byte) 0;
+    if (type == short.class) return (short) 0;
+    if (type == int.class) return 0;
+    if (type == long.class) return 0L;
+    if (type == float.class) return 0f;
+    return 0d;
+  }
+
+  private static boolean isBasicFilterValue(Object value) {
+    return value instanceof String
+        || value instanceof Number
+        || value instanceof Boolean
+        || value instanceof Character
+        || value.getClass().isEnum();
   }
 
   /** Builds a {@link Comparator} honouring {@link Pageable#sort()}, or {@code null} if no sort. */
