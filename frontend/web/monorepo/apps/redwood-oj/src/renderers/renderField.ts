@@ -338,7 +338,16 @@ export const renderField = (container: LitElement, component: ClientSideComponen
     if (stereotype === 'grid' && metadata.columns && metadata.columns.length > 0) {
         const rows: any[] = Array.isArray(value) ? value : []
         const cols = metadata.columns.map((c: any) => ({ ...(c.metadata as GridColumn), id: (c.metadata as any).id ?? c.id }))
-        return labeled(label, html`<div style="overflow-x: auto;">${renderPlainGrid(cols, rows)}</div>`)
+        // @OnRowSelected: clicking a row dispatches the field's selection action with the row —
+        // same contract as the reference renderer's mateu-grid (drives master/detail panels).
+        const selectionActionId = (metadata as any).onItemSelectionActionId
+        const onRowClick = selectionActionId
+            ? (e: Event, item: any) => (e.target as HTMLElement)?.dispatchEvent(new CustomEvent('action-requested', {
+                detail: { actionId: selectionActionId, parameters: { _clickedRow: item } },
+                bubbles: true, composed: true,
+            }))
+            : undefined
+        return labeled(label, html`<div style="overflow-x: auto;">${renderPlainGrid(cols, rows, false, onRowClick)}</div>`)
     }
 
     if (metadata.dataType === 'string') {

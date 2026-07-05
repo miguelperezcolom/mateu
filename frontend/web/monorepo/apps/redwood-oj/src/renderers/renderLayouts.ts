@@ -21,9 +21,16 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
     const md = component.metadata as any
     const cols = Math.max(1, md.maxColumns ?? 1)
     const leaves = (component.children ?? []).flatMap(flatten)
+    // Cells honor each field's colspan (clamped to the grid width) and clip their overflow —
+    // otherwise a dense (@Compact) section with nowrap labels bleeds over its neighbours.
+    const span = (c: any): number => {
+        const raw = c?.metadata?.colspan
+        const n = typeof raw === 'number' ? raw : parseInt(raw ?? '1', 10)
+        return Math.min(Math.max(isNaN(n) ? 1 : n, 1), cols)
+    }
     return html`
         <div style="display:grid; grid-template-columns: repeat(${cols}, minmax(0,1fr)); gap:.5rem 1.5rem; align-items:start;">
-            ${leaves.map((c: any) => html`<div>${renderComponent(container, c, baseUrl, state, data, appState, appData)}</div>`)}
+            ${leaves.map((c: any) => html`<div style="grid-column: span ${span(c)}; min-width:0; overflow:hidden;">${renderComponent(container, c, baseUrl, state, data, appState, appData)}</div>`)}
         </div>`
 }
 
@@ -83,8 +90,10 @@ export const renderCard = (container: LitElement, component: ClientSideComponent
         const heading = titleText
             ? html`<h2 class="oj-typography-heading-sm" style="margin: 0;">${titleText}</h2>`
             : (typeof md.title === 'object' && md.title ? render(md.title) : nothing)
+        // min-width/overflow keep dense sections (wide title-row toolbars, @Compact grids) from
+        // bleeding over the neighbouring @Zones column — the overflow scrolls locally instead.
         return html`
-            <section class="${component.cssClasses}" style="margin: 0 0 1.5rem 0; ${component.style ?? ''}"
+            <section class="${component.cssClasses}" style="margin: 0 0 1.5rem 0; min-width: 0; overflow-x: auto; ${component.style ?? ''}"
                  slot="${component.slot ?? nothing}">
                 ${heading !== nothing ? html`
                     <div style="padding-bottom: .5rem; border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.2));">${heading}</div>

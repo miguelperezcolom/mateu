@@ -83,10 +83,10 @@ const flattenColumns = (content: ClientSideComponent[] | undefined): GridColumn[
 }
 
 // Reused by the inline `grid` field stereotype (renderField.ts).
-export const renderPlainGrid = (cols: GridColumn[], rows: any[], tree = false): TemplateResult => {
+export const renderPlainGrid = (cols: GridColumn[], rows: any[], tree = false, onRowClick?: (e: Event, item: any) => void): TemplateResult => {
     const renderRow = (item: any, depth: number): TemplateResult[] => {
         const row = html`
-            <tr>
+            <tr style="${onRowClick ? 'cursor: pointer;' : ''}" @click="${onRowClick ? (e: Event) => onRowClick(e, item) : nothing}">
                 ${cols.map((col, i) => html`
                     <td style="${CELL} ${i === 0 && tree ? `padding-left: ${0.75 + depth * 1.25}rem;` : ''} ${col.align ? `text-align: ${col.align};` : ''}">
                         ${renderGridCellValue(item, col)}

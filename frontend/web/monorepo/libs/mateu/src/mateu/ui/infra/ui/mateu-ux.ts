@@ -300,6 +300,17 @@ export class MateuUx extends ConnectedElement {
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
+        if (!fragment.component && this.fragment?.component) {
+            // A state/data-only fragment (e.g. a host-page push emitted while an embedded
+            // mediator loads) must not blank the routed content — merge it onto the current
+            // fragment instead of replacing it wholesale.
+            this.fragment = {
+                ...this.fragment,
+                state: { ...(this.fragment.state ?? {}), ...(fragment.state ?? {}) },
+                data: { ...(this.fragment.data ?? {}), ...(fragment.data ?? {}) },
+            }
+            return
+        }
         this.fragment = fragment
     }
 

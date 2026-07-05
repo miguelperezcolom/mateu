@@ -58,8 +58,32 @@ export class MateuRedwoodApp extends MateuApp {
     private lastActionServerSideType: string | undefined = undefined
     private lastActionInitiatorComponentId: string | undefined = undefined
 
+
+    // The inner ux DOM id must be STABLE across shell remounts: the App fragment can re-arrive
+    // mid-navigation (its component id is a fresh uuid each time), recreating this element — if
+    // the inner ux id derived from that uuid, responses to in-flight route loads would target the
+    // previous incarnation's id and never apply (blank content on parametrized routes like
+    // /checkin/3). Freeze an id derived from the navigation route instead: equal across
+    // incarnations of the same navigation, distinct for nested shells.
+    private _contentUxId: string | undefined
+    protected get contentUxId(): string {
+        if (!this._contentUxId) {
+            // MateuApp carries no route property; the browser pathname is the navigation key.
+            this._contentUxId = 'ux_' + ((window.location.pathname || 'root').replace(/[^a-zA-Z0-9]/g, '_')) + '_app'
+        }
+        return this._contentUxId
+    }
+
     private captureActionSST = (e: Event) => {
         const detail = (e as CustomEvent).detail
+        // Actions initiated by an embedded mediator island (route marked _embeddedMediator=1)
+        // are the island's own affair: recording their initiator here would make this shell
+        // treat the island's state._route response (e.g. the cardex /view↔/ reload flip) as a
+        // page navigation and remount the whole routed content.
+        if (typeof detail?.serverSideComponentRoute === 'string'
+            && detail.serverSideComponentRoute.indexOf('_embeddedMediator=1') >= 0) {
+            return
+        }
         if (detail?.serverSideType) {
             this.lastActionServerSideType = detail.serverSideType
             this.lastActionInitiatorComponentId = detail.initiatorComponentId
@@ -67,10 +91,16 @@ export class MateuRedwoodApp extends MateuApp {
     }
 
     private handleUnhandledAction = (e: Event) => {
+        // An embedded MEDIATOR shell must NOT swallow unclaimed actions: they may belong to an
+        // ANCESTOR component — e.g. the cardex's reloadPax bubbles from the entity view inside
+        // this shell up to the enclosing AutoEditableView's mateu-component, which advertises
+        // it. Vaadin's mateu-app has no such interceptor, which is why this only broke here.
+        const metadata = (this.component as ClientSideComponent)?.metadata as App
+        if (metadata?.variant == AppVariant.MEDIATOR) return
         const detail = (e as CustomEvent).detail
         e.preventDefault()
         e.stopPropagation()
-        const innerUx = (this.renderRoot as ParentNode)?.querySelector('#ux_' + this.id) as any
+        const innerUx = (this.renderRoot as ParentNode)?.querySelector('#' + this.contentUxId) as any
         if (!innerUx || typeof innerUx.manageActionEvent !== 'function') return
         this.lastActionServerSideType = this.selectedServerSideType
         this.lastActionInitiatorComponentId = innerUx.id
@@ -110,7 +140,7 @@ export class MateuRedwoodApp extends MateuApp {
                 // back to the inner ux's consumedRoute — without it a mediator navigation like the
                 // crud's "/new" would compose the wrong route ("/new" instead of "/products/new")
                 // and reload the listing over the just-opened form.
-                const innerUx = (this.renderRoot as ParentNode)?.querySelector('#ux_' + this.id) as any
+                const innerUx = (this.renderRoot as ParentNode)?.querySelector('#' + this.contentUxId) as any
                 const innerConsumedRoute = innerUx?.consumedRoute && innerUx.consumedRoute !== '_empty' ? innerUx.consumedRoute : ''
                 const effectiveConsumedRoute = componentRoute || this.selectedConsumedRoute || innerConsumedRoute || md?.homeConsumedRoute || ''
                 this.selectedConsumedRoute = effectiveConsumedRoute
@@ -307,7 +337,7 @@ export class MateuRedwoodApp extends MateuApp {
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
                                 route="${chooseRoute(this.state, this, metadata)}"
-                                id="ux_${this.id}"
+                                id="${this.contentUxId}"
                                 baseUrl="${chooseBaseUrl(this, metadata)}"
                                 consumedRoute="${chooseConsumedRoute(this, metadata)}"
                                 serverSideType="${chooseAppServerSideType(this, metadata)}"
@@ -405,7 +435,7 @@ export class MateuRedwoodApp extends MateuApp {
                 <mateu-api-caller style="width: 100%;">
                     <mateu-ux
                             route="${chooseRoute(this.state, this, metadata)}"
-                            id="ux_${this.id}"
+                            id="${this.contentUxId}"
                             baseUrl="${chooseBaseUrl(this, metadata)}"
                             consumedRoute="${chooseConsumedRoute(this, metadata)}"
                             serverSideType="${chooseAppServerSideType(this, metadata)}"
@@ -577,7 +607,7 @@ export class MateuRedwoodApp extends MateuApp {
                             <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
                                         route="${chooseRoute(this.state, this, metadata)}"
-                                        id="ux_${this.id}"
+                                        id="${this.contentUxId}"
                                         baseUrl="${chooseBaseUrl(this, metadata)}"
                                         consumedRoute="${chooseConsumedRoute(this, metadata)}"
                                         serverSideType="${chooseAppServerSideType(this, metadata)}"

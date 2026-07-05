@@ -199,6 +199,17 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
         super.disconnectedCallback()
     }
 
+    // A Lit re-render of an ancestor can detach and re-attach this element without changing its
+    // component property (so updated()/triggerOnLoad() never re-fires). disconnectedCallback
+    // dropped the OnCustomEvent listeners; re-attach them or the component goes deaf to its
+    // subscriptions (e.g. an embedded cardex missing pax-selected). Idempotent by construction.
+    connectedCallback() {
+        super.connectedCallback()
+        if (this.component) {
+            this.registerCustomEventListeners()
+        }
+    }
+
     customEventManager:  EventListenerOrEventListenerObject = (event: Event) => {
         if (!(event instanceof CustomEvent)) {
             return
