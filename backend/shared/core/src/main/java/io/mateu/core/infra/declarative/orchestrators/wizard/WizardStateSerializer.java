@@ -67,8 +67,13 @@ final class WizardStateSerializer {
             field -> {
               var rowType =
                   getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
+              if (rowType == null) {
+                // Non-List collections (e.g. Set<String>) have no resolvable List row type —
+                // without this guard any form carrying one NPEd on every action.
+                return;
+              }
               parentData.put(prefix + field.getName() + "_rowClass", rowType.getName());
-              var list = (List<?>) data.get(field.getName());
+              var list = data.get(field.getName()) instanceof List<?> l ? l : null;
               if (list != null) {
                 for (int i = 0; i < list.size(); i++) {
                   if (list.get(i) instanceof Map map) {
