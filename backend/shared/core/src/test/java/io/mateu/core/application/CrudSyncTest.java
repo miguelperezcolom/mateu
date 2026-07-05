@@ -183,12 +183,44 @@ class CrudSyncTest {
     }
   }
 
+  public record ItemFilters(Boolean activeOnly) {}
+
+  @UI("/filtered-items")
+  @Title("Filtered items")
+  public static class FilteredItemsCrud
+      extends io.mateu.core.infra.declarative.orchestrators.crud.FilteredAutoCrud<
+          ItemFilters, Item> {
+    @Override
+    public Class filtersClass() {
+      return ItemFilters.class;
+    }
+
+    @Override
+    public io.mateu.uidl.data.ListingData<Item> fetchRows(
+        String searchText,
+        ItemFilters filters,
+        io.mateu.uidl.data.Pageable pageable,
+        io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+      if (filters != null && Boolean.TRUE.equals(filters.activeOnly())) {
+        var rows = ITEMS.stream().filter(item -> item.active).toList();
+        return new io.mateu.uidl.data.ListingData<>(
+            new io.mateu.uidl.data.Page<>(searchText, rows.size(), 0, rows.size(), rows));
+      }
+      return super.fetchRows(searchText, filters, pageable, httpRequest);
+    }
+
+    @Override
+    public CrudRepository<Item> repository() {
+      return itemsRepository();
+    }
+  }
+
   static TestMateu mateu;
   static ObjectMapper json;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(ItemsCrud.class, StockCrud.class);
+    mateu = TestMateu.withUis(ItemsCrud.class, StockCrud.class, FilteredItemsCrud.class);
     json = mateu.context().getBean(ObjectMapper.class);
   }
 
@@ -363,6 +395,40 @@ class CrudSyncTest {
     var names = content(increment).stream().map(CrudSyncTest::nameOf).toList();
     org.assertj.core.api.Assertions.assertThat(names)
         .containsExactly("Wrench", "Screwdriver", "Hammer");
+  }
+
+  @org.junit.jupiter.api.Test
+  void searchMaterializesFiltersFromComponentState() {
+    // filter values only travel in the component state — SearchActionHandler must build the
+    // filtersClass() instance from it instead of passing null
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/filtered-items")
+                .consumedRoute("/filtered-items")
+                .serverSideType(FilteredItemsCrud.class.getName())
+                .actionId("search")
+                .initiatorComponentId("c3_app")
+                .componentState(Map.of("page", 0, "size", 10, "searchText", "", "activeOnly", true))
+                .build());
+    var names = content(increment).stream().map(CrudSyncTest::nameOf).toList();
+    org.assertj.core.api.Assertions.assertThat(names)
+        .containsExactlyInAnyOrder("Hammer", "Screwdriver");
+  }
+
+  @org.junit.jupiter.api.Test
+  void searchWithUncheckedFiltersReturnsAllRows() {
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/filtered-items")
+                .consumedRoute("/filtered-items")
+                .serverSideType(FilteredItemsCrud.class.getName())
+                .actionId("search")
+                .initiatorComponentId("c3_app")
+                .componentState(Map.of("page", 0, "size", 10, "searchText", ""))
+                .build());
+    org.assertj.core.api.Assertions.assertThat(content(increment)).hasSize(3);
   }
 
   // ── create / edit / delete lifecycle ────────────────────────────────────────
