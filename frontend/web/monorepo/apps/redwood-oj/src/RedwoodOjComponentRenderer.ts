@@ -2,7 +2,6 @@ import { html, LitElement, nothing, type TemplateResult } from 'lit';
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent"
-import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType"
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts"
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { renderButton } from "@/renderers/renderButton.ts";
@@ -36,6 +35,19 @@ import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 import './components/mateu-redwood-table'
 import './components/mateu-redwood-pagination'
 import './components/mateu-redwood-action-menu'
+
+// Local UI state of the smart-search filter bar, keyed by the crud element: the renderer hook is
+// stateless, so panel-open/active-filter/uncommitted-text live here and re-renders go through the
+// host's requestUpdate(). The document-level outside-click listener is stored so it can be
+// detached when the panel closes (closing always detaches, so a killed crud can't leak it past
+// the next click).
+type SmartSearchUi = {
+    open: boolean
+    text: string
+    activeFilter?: any
+    outsideClick?: (e: Event) => void
+}
+const smartSearchUi = new WeakMap<HTMLElement, SmartSearchUi>()
 
 export const changed = (event: Event, fieldId: string) => {
     const element = event.target as HTMLInputElement
@@ -159,56 +171,178 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         return SUPPORTED_TYPES
     }
 
+    // Smart-search filter bar, after the Redwood Smart Search pattern (oj-sp/smart-search, which
+    // is Fusion-only and not on npm): ONE search field hosting both the free-text keyword search
+    // and the structured filters. Focusing the field opens a panel listing the available filters
+    // (each with a type-specific widget: option list for selects, Yes/No for booleans, an input
+    // for text/number); every applied condition becomes a chip in the bar with its own ✕.
+    // Everything is hand-styled divs for the same reason as renderToolbarButton below.
     renderFilterBar(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult {
         const metadata = component?.metadata as Crud
+        const filters = (metadata?.filters ?? []) as any[]
+        const ui = smartSearchUi.get(container) ?? { open: false, text: '' }
+        smartSearchUi.set(container, ui)
+        const rerender = () => container.requestUpdate()
+
+        const detachOutsideClick = () => {
+            if (ui.outsideClick) {
+                document.removeEventListener('mousedown', ui.outsideClick)
+                ui.outsideClick = undefined
+            }
+        }
+        const closePanel = () => {
+            detachOutsideClick()
+            ui.open = false
+            ui.activeFilter = undefined
+            rerender()
+        }
+        const openPanel = () => {
+            if (ui.open) return
+            ui.open = true
+            ui.outsideClick = (e: Event) => {
+                const inside = e.composedPath().some(el =>
+                    el instanceof HTMLElement && el.classList?.contains('mateu-smart-search'))
+                if (!inside) closePanel()
+            }
+            document.addEventListener('mousedown', ui.outsideClick)
+            rerender()
+        }
         const doSearch = () => {
-            const root = (container as any).renderRoot as (ShadowRoot | HTMLElement) ?? container
-            const input = root.querySelector('oj-c-input-text') as any
-            if (input) state['searchText'] = input.rawValue ?? input.value ?? state['searchText'] ?? ''
+            detachOutsideClick()
+            ui.open = false
+            ui.activeFilter = undefined
             container.search()
         }
-        return html`
-            <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap; padding: 0.25rem 0;">
-                ${metadata?.searchable ? html`
-                    <!-- sizing div: JET rewrites the host style attribute (max-width gets lost),
-                         so the flex sizing lives on a wrapper, same as the filter fields below -->
-                    <div style="flex: 0 1 auto; min-width: 220px; max-width: 320px;">
-                        <oj-c-input-text
-                            data-oj-binding-provider="preact"
-                            label-hint="Search"
-                            label-edge="none"
-                            .value="${state.searchText ?? ''}"
-                            @valueChanged="${(e: CustomEvent) => { state['searchText'] = e.detail.value ?? '' }}"
-                        ></oj-c-input-text>
+        const applyFilter = (fieldId: string, value: unknown) => {
+            state[fieldId] = value
+            doSearch()
+        }
+        const removeChip = (fieldId: string) => {
+            state[fieldId] = fieldId === 'searchText' ? '' : undefined
+            doSearch()
+        }
+        const commitText = (input: HTMLInputElement) => {
+            state['searchText'] = input.value
+            ui.text = ''
+            input.value = ''
+            doSearch()
+        }
+
+        const isBooleanFilter = (f: any) => f.dataType === 'boolean' || f.stereotype === 'checkbox' || f.stereotype === 'toggle'
+        const isNumericFilter = (f: any) => ['integer', 'decimal', 'number', 'money'].includes(f.dataType)
+        const hasOptions = (f: any) => (f.options?.length ?? 0) > 0
+        const displayValue = (f: any, value: unknown): string => {
+            const option = f?.options?.find((o: any) => o.value === String(value))
+            if (option) return option.label ?? option.value
+            if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+            return String(value)
+        }
+
+        const chips: { fieldId: string, label: string, display: string }[] = []
+        if (state.searchText) chips.push({ fieldId: 'searchText', label: 'Text', display: String(state.searchText) })
+        filters.forEach(f => {
+            const value = state[f.fieldId]
+            if (value !== undefined && value !== null && value !== '') {
+                chips.push({ fieldId: f.fieldId, label: f.label || f.fieldId, display: displayValue(f, value) })
+            }
+        })
+
+        const TEXT = 'var(--mateu-redwood-text, rgb(22, 21, 19))'
+        const ROW_STYLE = `display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.75rem; cursor: pointer; color: ${TEXT}; font-size: 0.875rem;`
+        // panel rows preventDefault on mousedown so the search input keeps focus (and the
+        // document-level outside-click handler never sees a click that would close the panel)
+        const keepFocus = (e: Event) => e.preventDefault()
+
+        const panelRow = (label: unknown, onPick: () => void, bold = false) => html`
+            <div style="${ROW_STYLE} ${bold ? 'font-weight: 600;' : ''}"
+                 @mousedown="${keepFocus}"
+                 @click="${onPick}"
+                 onmouseover="this.style.background='rgba(22,21,19,0.06)'"
+                 onmouseout="this.style.background='transparent'">${label}</div>`
+
+        const activeFilterWidget = (f: any) => {
+            if (hasOptions(f)) {
+                return html`${f.options.map((o: any) => panelRow(o.label ?? o.value, () => applyFilter(f.fieldId, o.value)))}`
+            }
+            if (isBooleanFilter(f)) {
+                return html`
+                    ${panelRow('Yes', () => applyFilter(f.fieldId, true))}
+                    ${panelRow('No', () => applyFilter(f.fieldId, false))}`
+            }
+            const numeric = isNumericFilter(f)
+            const apply = (input: HTMLInputElement) => {
+                if (input.value === '') return
+                applyFilter(f.fieldId, numeric ? Number(input.value) : input.value)
+            }
+            return html`
+                <div style="display: flex; gap: 0.5rem; padding: 0.5rem 0.75rem;">
+                    <input type="${numeric ? 'number' : 'text'}"
+                           placeholder="${f.placeholder || f.label || f.fieldId}"
+                           style="flex: 1; font: inherit; font-size: 0.875rem; color: ${TEXT}; border: 1px solid rgba(22,21,19,0.5); border-radius: 4px; padding: 0.35rem 0.5rem; outline: none;"
+                           @mousedown="${(e: Event) => e.stopPropagation()}"
+                           @keydown="${(e: KeyboardEvent) => {
+                               if (e.key === 'Enter') apply(e.target as HTMLInputElement)
+                               if (e.key === 'Escape') closePanel()
+                           }}"/>
+                    <button style="font: inherit; font-size: 0.875rem; background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); color: #fff; border: 1px solid transparent; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer;"
+                            @mousedown="${keepFocus}"
+                            @click="${(e: Event) => apply((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">Apply</button>
+                </div>`
+        }
+
+        const panel = ui.open && filters.length > 0 ? html`
+            <div style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 20rem; max-width: 100%; background: var(--mateu-redwood-panel-bg, #fff); border: 1px solid rgba(22,21,19,0.25); border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); z-index: 30; overflow: hidden; padding: 0.25rem 0;">
+                ${ui.activeFilter ? html`
+                    <div style="${ROW_STYLE} font-weight: 600; border-bottom: 1px solid rgba(22,21,19,0.15);"
+                         @mousedown="${keepFocus}"
+                         @click="${() => { ui.activeFilter = undefined; rerender() }}">
+                        <span aria-hidden="true">←</span> ${ui.activeFilter.label || ui.activeFilter.fieldId}
                     </div>
-                    <oj-c-button
-                        data-oj-binding-provider="preact"
-                        label="Search"
-                        chroming="callToAction"
-                        @ojAction="${doSearch}"
-                    ></oj-c-button>
-                ` : nothing}
-                ${(metadata?.filters ?? []).map(filter => html`
-                    <div style="flex: 0 1 auto; min-width: 180px; max-width: 260px;">
-                        ${renderComponent(container, {
-                            // the filters travel as bare FormField metadata — wrap them like the
-                            // shared mateu-filter-bar does so they render as real fields (selects
-                            // with their options, checkboxes…) bound to the crud state. The wrapper
-                            // id must be the fieldId: renderField dispatches value-changed with the
-                            // component id, and an empty id would commit the value under state['']
-                            // instead of the filter's key. The sizing div keeps the fields inline
-                            // in the bar (JET inputs are 100%-wide, so bare they stack full-width)
-                            id: (filter as any).fieldId ?? '',
-                            metadata: { ...(filter as any) },
-                            type: ComponentType.ClientSide,
-                            style: '',
-                            children: [],
-                            slot: '',
-                            cssClasses: '',
-                            initialData: {},
-                            confirmOnNavigationIfDirty: false
-                        } as ClientSideComponent, baseUrl, state, data, appState, appData)}
-                    </div>`)}
+                    ${activeFilterWidget(ui.activeFilter)}
+                ` : html`
+                    <div style="padding: 0.35rem 0.75rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(22,21,19,0.6);">Filter by</div>
+                    ${filters.map(f => panelRow(html`
+                        ${f.label || f.fieldId}
+                        ${state[f.fieldId] !== undefined && state[f.fieldId] !== null && state[f.fieldId] !== ''
+                            ? html`<span style="margin-left: auto; color: rgba(22,21,19,0.55); font-size: 0.8125rem;">${displayValue(f, state[f.fieldId])}</span>`
+                            : nothing}
+                    `, () => { ui.activeFilter = f; rerender() }))}
+                `}
+            </div>` : nothing
+
+        return html`
+            <div class="mateu-smart-search" style="position: relative; padding: 0.25rem 0;">
+                <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; border: 1px solid rgba(22,21,19,0.5); border-radius: 8px; padding: 0.3rem 0.6rem; background: var(--mateu-redwood-panel-bg, #fff); cursor: text;"
+                     @click="${(e: Event) => {
+                         const bar = e.currentTarget as HTMLElement
+                         ;(bar.querySelector('input.smart-search-input') as HTMLInputElement)?.focus()
+                         openPanel()
+                     }}">
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" style="flex: none; opacity: 0.6;">
+                        <path fill="${TEXT.startsWith('var') ? 'rgb(22,21,19)' : TEXT}" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>
+                    </svg>
+                    ${chips.map(chip => html`
+                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(22,21,19,0.08); border-radius: 1rem; padding: 0.15rem 0.3rem 0.15rem 0.6rem; font-size: 0.8125rem; color: ${TEXT}; white-space: nowrap;">
+                            <span style="opacity: 0.7;">${chip.label}:</span> ${chip.display}
+                            <button aria-label="Remove filter ${chip.label}"
+                                    style="border: none; background: transparent; cursor: pointer; font-size: 0.75rem; line-height: 1; padding: 0.1rem 0.3rem; opacity: 0.6;"
+                                    @mousedown="${keepFocus}"
+                                    @click="${(e: Event) => { e.stopPropagation(); removeChip(chip.fieldId) }}">✕</button>
+                        </span>`)}
+                    ${metadata?.searchable !== false ? html`
+                        <input class="smart-search-input" type="text"
+                               placeholder="${chips.length === 0 ? 'Search' : ''}"
+                               .value="${ui.text ?? ''}"
+                               style="flex: 1 1 8rem; min-width: 7rem; border: none; outline: none; background: transparent; font: inherit; font-size: 0.875rem; color: ${TEXT}; padding: 0.25rem 0;"
+                               @focus="${openPanel}"
+                               @input="${(e: Event) => { ui.text = (e.target as HTMLInputElement).value }}"
+                               @keydown="${(e: KeyboardEvent) => {
+                                   if (e.key === 'Enter') commitText(e.target as HTMLInputElement)
+                                   if (e.key === 'Escape') closePanel()
+                               }}"/>
+                    ` : nothing}
+                </div>
+                ${panel}
                 ${metadata?.header?.map(comp => renderComponent(container, comp, baseUrl, state, data, appState, appData))}
             </div>
         `
