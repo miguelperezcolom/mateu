@@ -41,6 +41,9 @@
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <jacoco.min.coverage>0%</jacoco.min.coverage>
+    <!-- Module-wide (BUNDLE) line-coverage floor; modules with real suites override it
+         (backend/shared/core sets 70%). -->
+    <jacoco.min.bundle.coverage>0%</jacoco.min.bundle.coverage>
   </properties>
 
   <modules>
@@ -353,6 +356,14 @@
           </execution>
         </executions>
         <configuration>
+          <!-- Excluded from coverage: thin wrappers over live HTTP that cannot run in-JVM.
+               RemoteMenuHandler resolves federated menus against a REMOTE Mateu backend (the
+               frontend performs the fetch in normal operation); DefaultMateuHttpClient is the
+               java.net.http adapter behind it. Both are exercised by the e2e suites instead. -->
+          <excludes>
+            <exclude>io/mateu/core/infra/out/DefaultMateuHttpClient*</exclude>
+            <exclude>io/mateu/core/application/runaction/RemoteMenuHandler*</exclude>
+          </excludes>
           <rules>
             <rule>
               <element>PACKAGE</element>
@@ -361,6 +372,16 @@
                   <counter>LINE</counter>
                   <value>COVEREDRATIO</value>
                   <minimum>${jacoco.min.coverage}</minimum>
+                </limit>
+              </limits>
+            </rule>
+            <rule>
+              <element>BUNDLE</element>
+              <limits>
+                <limit>
+                  <counter>LINE</counter>
+                  <value>COVEREDRATIO</value>
+                  <minimum>${jacoco.min.bundle.coverage}</minimum>
                 </limit>
               </limits>
             </rule>
