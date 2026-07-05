@@ -60,3 +60,7 @@ The split layout wires up these actions automatically:
 
 - **Preserve context** — the list stays visible and interactive
 - **Minimize navigation** — zero page transitions for the common case
+
+## Hierarchical collections
+
+When the collection is a **tree** rather than a flat list — categories inside categories, an org chart, a folder structure — render the master list as an expandable tree grid (`gridLayout() = GridLayout.tree`) on the same `@SplitCrud`. See [Tree CRUD](./tree-crud).

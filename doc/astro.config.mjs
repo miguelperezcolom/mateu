@@ -70,6 +70,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
 						{ slug: 'ux-patterns/navigation', label: 'Navigation & Menus' },
 						{ slug: 'ux-patterns/split-view' },
+						{ slug: 'ux-patterns/tree-crud', label: 'Tree CRUD' },
 						{ slug: 'ux-patterns/filters-and-listing' },
 						{ slug: 'ux-patterns/wizard' },
 						{ slug: 'ux-patterns/dashboard' },

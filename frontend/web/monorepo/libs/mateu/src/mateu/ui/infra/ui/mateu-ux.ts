@@ -94,6 +94,17 @@ export class MateuUx extends ConnectedElement {
 
             let effectiveRoute = e.detail.route
 
+            // A mediator's internal navigation (e.g. the crud's PushStateToHistory "/new") is
+            // relative to this ux's consumed route. On renderer shells that serve many routes from
+            // one page (Redwood/SLDS/PatternFly) consumedRoute is e.g. "/products", so the URL must
+            // become "/products/new"; on Vaadin each route is its own page (consumedRoute '' or
+            // '_empty') and this is a no-op.
+            if (typeof effectiveRoute === 'string' && effectiveRoute.startsWith('/')
+                && this.consumedRoute && this.consumedRoute !== '_empty' && this.consumedRoute.startsWith('/')
+                && !effectiveRoute.startsWith(this.consumedRoute)) {
+                effectiveRoute = this.consumedRoute + effectiveRoute
+            }
+
             if (this.uriPrefix) {
                 if (effectiveRoute.startsWith('/') && this.uriPrefix.endsWith('/')) {
                     effectiveRoute = this.uriPrefix + effectiveRoute.substring(1)

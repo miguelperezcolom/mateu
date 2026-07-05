@@ -53,6 +53,15 @@ export class MateuRedwoodTable extends LitElement {
         this._connected = true
     }
 
+    // A data column carrying an actionId (e.g. the first listing column, which the crud marks with
+    // actionId="view") renders as a link-style cell that opens the row — same semantics as the
+    // Vaadin renderer's renderButtonCell for actionId columns.
+    private isLinkColumn(gcol: GridColumn): boolean {
+        return !!gcol.actionId
+            && gcol.stereotype !== 'button'
+            && !['action', 'actionGroup', 'status', 'menu'].includes(gcol.dataType ?? '')
+    }
+
     // oj-c-table's `columns` property is a KEYED OBJECT (component.json declares it type "object" with
     // keyedProperties), i.e. a map of columnKey → column definition — NOT an array.
     private getOjColumns(): Record<string, any> {
@@ -64,7 +73,8 @@ export class MateuRedwoodTable extends LitElement {
                 gcol.dataType === 'action' ||
                 gcol.dataType === 'actionGroup' ||
                 gcol.dataType === 'status' ||
-                gcol.dataType === 'menu'
+                gcol.dataType === 'menu' ||
+                this.isLinkColumn(gcol)
 
             const colDef: any = {
                 headerText: gcol.label,
@@ -91,6 +101,18 @@ export class MateuRedwoodTable extends LitElement {
  data-mateu-row-key="[[cell.item.data._rowNumber]]" 
  data-mateu-action-id="${actionId}"
 data-oj-binding-provider="preact" label="${label}" chroming="borderless"></oj-c-button>`
+                slots += `</span>`
+                slots += `</template>`
+            } else if (this.isLinkColumn(gcol)) {
+                // Link cell: the cell value as a borderless (link-look) button dispatching the
+                // column's action with the row — reuses the ojAction → handleCellButtonAction path.
+                const actionId = escAttr(gcol.actionId ?? '')
+                slots += `<template slot="${gcol.id}Template" data-oj-as="cell">`
+                slots += `<span>`
+                slots += `<oj-c-button
+ data-mateu-row-key="[[cell.item.data._rowNumber]]"
+ data-mateu-action-id="${actionId}"
+data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.data]]" chroming="borderless"></oj-c-button>`
                 slots += `</span>`
                 slots += `</template>`
             } else if (gcol.dataType === 'status') {

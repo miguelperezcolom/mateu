@@ -27,6 +27,7 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 |---------|--------|---------------|
 | [Navigation & Menus](./navigation) | ✅ Implemented | `@App(AppVariant.*)`, `⌘K` command palette |
 | [Split View](./split-view) | ✅ Implemented | `@SplitCrud` |
+| [Tree CRUD](./tree-crud) | ✅ Implemented | `gridLayout() = GridLayout.tree`, `@SplitCrud` |
 | [Filters & Listing](./filters-and-listing) | ✅ Implemented | `@List`, `@Filterable`, `@RowAction` |
 | [Wizard](./wizard) | ✅ Implemented | `@WizardCompletionAction` |
 | [Entity Picker](./entity-picker) | ✅ Implemented | `@Lookup`, `@Composition` |

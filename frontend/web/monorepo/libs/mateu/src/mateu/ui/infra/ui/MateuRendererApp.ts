@@ -106,13 +106,25 @@ export abstract class MateuRendererApp extends MetadataDrivenElement {
                 }
                 const componentRoute = (fragment.state._componentRoute as string) || ''
                 const md = this.appMetadata()
-                const effectiveConsumedRoute = componentRoute || this.selectedConsumedRoute || md?.homeConsumedRoute || ''
+                // On a direct URL load (no menu click) selectedConsumedRoute was never set, so fall
+                // back to the inner ux's consumedRoute — without it a mediator navigation like the
+                // crud's "/new" would compose the wrong route ("/new" instead of "/products/new").
+                const innerUx = (this.renderRoot as ParentNode)?.querySelector('#ux_' + this.id) as any
+                const innerConsumedRoute = innerUx?.consumedRoute && innerUx.consumedRoute !== '_empty' ? innerUx.consumedRoute : ''
+                const effectiveConsumedRoute = componentRoute || this.selectedConsumedRoute || innerConsumedRoute || md?.homeConsumedRoute || ''
                 this.selectedConsumedRoute = effectiveConsumedRoute
                 const newRoute = effectiveConsumedRoute + relRoute
                 this.lastActionInitiatorComponentId = undefined
                 if (newRoute !== this.selectedRoute) {
                     this.selectedRoute = newRoute
                     if (this.lastActionServerSideType) this.selectedServerSideType = this.lastActionServerSideType
+                    // chooseRoute() gives the app state's _route precedence over selectedRoute, so a
+                    // leftover '' (from the initial app load) would make the remounted inner ux
+                    // reload the consumed route (the listing) instead of newRoute (e.g. the crud's
+                    // /new form). Vaadin's mateu-app clears it in _selectRoute; do the same here.
+                    if (this.state && (this.state as any)._route != undefined) {
+                        (this.state as any)._route = undefined
+                    }
                     this.instant = nanoid()
                 }
                 this.lastActionServerSideType = undefined
