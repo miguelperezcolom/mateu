@@ -429,14 +429,33 @@ export class MateuField extends LitElement {
         })
     }
 
+    // True when the render*Field branch chosen in the current render pass displays the field's
+    // description as the control's own helperText (set via helperText() below). Plain private —
+    // it only gates the fallback help div computed within the same render pass.
+    private helperShownInControl = false
+
+    // The field's help (@Help / description), interpolated against the live state, for binding as
+    // a vaadin control's helperText. Marks the description as consumed so render() doesn't repeat
+    // it in the fallback help div below the control.
+    private helperText(): string {
+        this.helperShownInControl = true
+        return evalIfNecessary(this.field?.description ?? '', this.state, this.data) ?? ''
+    }
+
     render() {
         const fieldId = this.field?.fieldId??''
         this.rendered = true
         const navLink = this.renderNavLink()
+        // renderField() must run before the fallback help below is decided: the chosen branch
+        // marks (via helperText()) whether the control already displays the description.
+        this.helperShownInControl = false
+        const field = this.renderField()
+        const help = this.field?.description && !this.helperShownInControl
+            ? evalIfNecessary(this.field.description, this.state, this.data) : undefined
         return html`<div style="display: block;">
-            <div style="${navLink !== nothing ? 'display: flex; gap: var(--lumo-space-xs);' : ''}"><div style="flex: 1; min-width: 0;">${this.renderField()}</div>${navLink}</div>
-            ${this.field?.description?html`
-                <div style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); margin-top: var(--lumo-space-xs);">${evalIfNecessary(this.field?.description, this.state, this.data)}</div>
+            <div style="${navLink !== nothing ? 'display: flex; gap: var(--lumo-space-xs);' : ''}"><div style="flex: 1; min-width: 0;">${field}</div>${navLink}</div>
+            ${help?html`
+                <div style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); margin-top: var(--lumo-space-xs);">${help}</div>
             `:nothing}
             ${this.data.errors && this.data.errors[fieldId] && this.data.errors[fieldId].length > 0?html`
                 <div><ul>${this.data.errors[fieldId].map((error: string) => html`<li>${error}</li>`)}</ul></div>
@@ -618,6 +637,7 @@ export class MateuField extends LitElement {
             const on = value === true || value === 'true'
             return html`<vaadin-custom-field
                     id="${this.field.fieldId}"
+                    .helperText="${this.helperText()}"
                     data-colspan="${this.field?.colspan}"
                     style="${this.field?.style}"
             ><span theme="badge ${on ? 'success' : ''} pill" style="${on ? '' : 'opacity: 0.4;'}">${labelText}</span>
@@ -667,7 +687,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${label}"
                         required="${this.field.required || nothing}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
                 ><img src="${valueToDisplay}" id="${this.field.fieldId}_img" style="${this.field.style}">
                 </vaadin-custom-field>`
@@ -677,7 +697,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${label}"
                         required="${this.field.required || nothing}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
                 ><vaadin-icon icon="${valueToDisplay?'vaadin:check':'vaadin:minus'}" style="height: 20px;"></vaadin-icon>
                 </vaadin-custom-field>`
@@ -690,7 +710,7 @@ export class MateuField extends LitElement {
                         value="${valueToDisplay}"
                         readonly
                         style="${this.field.style}"
-                        .helperText="${this.field.description ?? ''}"
+                        .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
                 >${strValue.length > 15 ? html`<vaadin-icon
                         slot="suffix"
@@ -716,7 +736,7 @@ export class MateuField extends LitElement {
             return html`
                 <vaadin-custom-field
                         label="${label}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
                 >
                     <vaadin-upload
@@ -763,7 +783,7 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${label}"
                             required="${this.field.required || nothing}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     >
                         <vaadin-horizontal-layout theme="spacing" style="--lumo-space-m: 0.33rem;">
@@ -814,7 +834,7 @@ export class MateuField extends LitElement {
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.data[this.id]?.content}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             @value-changed="${this.valueChanged}"
                             .value="${realValue}"
                             ?autofocus="${this.field.wantsFocus}"
@@ -834,7 +854,7 @@ export class MateuField extends LitElement {
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.field.options}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             @value-changed="${this.valueChanged}"
                             .value="${realValue}"
                             ?autofocus="${this.field.wantsFocus}"
@@ -849,7 +869,7 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${label}"
                             required="${this.field.required || nothing}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><vaadin-markdown
                             .content="${value}"
@@ -885,7 +905,7 @@ export class MateuField extends LitElement {
                             item-id-path="value"
                             .dataProvider="${dataProvider}"
                             .selectedItem="${selectedItem}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             @value-changed="${this.valueChanged}"
                             ?autofocus="${this.field.wantsFocus}"
                             ?required="${this.field.required || nothing}"
@@ -912,7 +932,7 @@ export class MateuField extends LitElement {
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.field.options}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
                             ?autofocus="${this.field.wantsFocus}"
@@ -959,7 +979,7 @@ export class MateuField extends LitElement {
                     return html`
                         <vaadin-custom-field
                                 label="${label}"
-                                .helperText="${this.field.description}"
+                                .helperText="${this.helperText()}"
                                 data-colspan="${this.field.colspan}"
                         >
                     <vaadin-list-box
@@ -995,7 +1015,7 @@ export class MateuField extends LitElement {
                 return html`
                     <vaadin-custom-field
                             label="${label}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     >
                     <vaadin-list-box
@@ -1067,7 +1087,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             theme="horizontal"
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
@@ -1102,7 +1122,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             @value-changed="${this.valueChanged}"
                             .value="${value}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
@@ -1135,6 +1155,7 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${label}"
                             required="${this.field.required || nothing}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     >
                         <vaadin-horizontal-layout theme="spacing">
@@ -1167,7 +1188,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
                     >
@@ -1187,12 +1208,12 @@ export class MateuField extends LitElement {
                 return html`
                     <vaadin-custom-field
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     >
                     <vaadin-rich-text-editor
                             .maxlength="${this.field.charLimit}"
                             .value="${value}"
-                            .helperText="${this.field.description}"
                             @value-changed="${this.valueChanged}"
                             ?autofocus="${this.field.wantsFocus}"
                     ></vaadin-rich-text-editor>
@@ -1205,7 +1226,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             .maxlength="${this.field.charLimit}"
                             .value="${value}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             @value-changed="${this.valueChanged}"
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
@@ -1221,6 +1242,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             @value-changed="${this.valueChanged}"
                             value="${value}"
+                            .helperText="${this.helperText()}"
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
@@ -1232,6 +1254,7 @@ export class MateuField extends LitElement {
                     return html`<vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><a href="${value}">${value}</a></vaadin-custom-field>`
                 }
@@ -1242,9 +1265,10 @@ export class MateuField extends LitElement {
                                     required="${this.field.required || nothing}"
                                     @value-changed="${this.valueChanged}"
                                     value="${value}"
+                                    .helperText="${this.helperText()}"
                                     ?autofocus="${this.field.wantsFocus}"
                             >
-                                <vaadin-icon slot="suffix" 
+                                <vaadin-icon slot="suffix"
                                              icon="vaadin:external-link"
                                              style="cursor: pointer;"
                                              @click="${() => window.open(value, '_blank')?.focus()}"
@@ -1266,6 +1290,7 @@ export class MateuField extends LitElement {
                                     required="${this.field.required || nothing}"
                                     @value-changed="${this.valueChanged}"
                                     value="${value}"
+                                    .helperText="${this.helperText()}"
                                     ?autofocus="${this.field.wantsFocus}"
                                     data-colspan="${this.field.colspan}"
                             item-label-path="displayName"
@@ -1285,7 +1310,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             @value-changed="${this.valueChanged}"
                             value="${value}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             ?autofocus="${this.field.wantsFocus}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
@@ -1297,6 +1322,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${unsafeHTML('' + value)}</div></vaadin-custom-field>
                 `
@@ -1306,6 +1332,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><img
                             src="${value}"
@@ -1318,7 +1345,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     >
                         <vaadin-vertical-layout style="align-items: stretch; gap: var(--lumo-space-s); max-width: 320px;">
@@ -1350,6 +1377,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><span style="background-color: ${value}; display: block; height: 20px; width: 40px; margin-top: 5px; margin-bottom: 24px; border: 1px solid var(--lumo-secondary-text-color)"></vaadin-custom-field>
                 `
@@ -1358,6 +1386,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
+                            .helperText="${this.helperText()}"
                     >
                         <input type="color" @input="${(e: Event) => {
                             this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
@@ -1393,7 +1422,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         ?disabled="${this.field.disabled}"
@@ -1410,7 +1439,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
@@ -1432,6 +1461,7 @@ export class MateuField extends LitElement {
                 return html`<vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     >${values.map(index => html`
                     <vaadin-icon 
@@ -1458,6 +1488,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><input type="range" @input="${(e: Event) => {
                         this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
@@ -1477,7 +1508,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
@@ -1494,7 +1525,7 @@ export class MateuField extends LitElement {
             return html `
                 <vaadin-custom-field
                         label="${label}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
                 >
@@ -1533,6 +1564,7 @@ export class MateuField extends LitElement {
                         this.valueChanged(e)
                     }}"
                     value="${drValue}"
+                    .helperText="${this.helperText()}"
                     ?autofocus="${this.field.wantsFocus}"
                     ?required="${this.field.required || nothing}"
                     data-colspan="${this.field.colspan}"
@@ -1546,7 +1578,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
@@ -1560,7 +1592,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
@@ -1574,7 +1606,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         value="${value}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
@@ -1588,7 +1620,7 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
                     >
@@ -1608,6 +1640,7 @@ export class MateuField extends LitElement {
                 return html`
                     <vaadin-custom-field
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                             style="width: 100%;"
                     >
@@ -1659,6 +1692,7 @@ export class MateuField extends LitElement {
                     return html`
                         <vaadin-custom-field
                                 label="${label}"
+                                .helperText="${this.helperText()}"
                                 data-colspan="${this.field.colspan}"
                         >
                     <vaadin-list-box multiple
@@ -1678,9 +1712,10 @@ export class MateuField extends LitElement {
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
+                            .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     >
-                    <vaadin-list-box multiple 
+                    <vaadin-list-box multiple
                                      .selectedValues="${ifDefined(this.selectedIndexes(value))}"
                                      @selected-values-changed="${this.listItemsSelected}"
                                      ?autofocus="${this.field.wantsFocus}"
@@ -1706,7 +1741,7 @@ export class MateuField extends LitElement {
                             item-id-path="value"
                             item-value-path="value"
                             .dataProvider="${dataProvider}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             .selectedItems="${this.selectedItems(value)}"
                             ?autofocus="${this.field.wantsFocus}"
                             ?required="${this.field.required || nothing}"
@@ -1725,7 +1760,7 @@ export class MateuField extends LitElement {
                             item-label-path="label"
                             item-value-path="value"
                             .items="${this.field.options}"
-                            .helperText="${this.field.description}"
+                            .helperText="${this.helperText()}"
                             .selectedItems="${this.selectedItems(value)}"
                             ?autofocus="${this.field.wantsFocus}"
                             ?required="${this.field.required || nothing}"
@@ -1779,7 +1814,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         theme="vertical"
                         @value-changed="${this.valueChanged}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
@@ -1802,7 +1837,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         theme="vertical"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
@@ -1840,7 +1875,7 @@ export class MateuField extends LitElement {
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${label}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
                 ><div style="width: 186px; text-align: right;">${formatted}</div></vaadin-custom-field>`
             }
@@ -1849,7 +1884,7 @@ export class MateuField extends LitElement {
                         label="${label}"
                         @value-changed="${this.valueChanged}"
                         .value="${value}"
-                        .helperText="${this.field.description}"
+                        .helperText="${this.helperText()}"
                         ?autofocus="${this.field.wantsFocus}"
                         ?required="${this.field.required || nothing}"
                         data-colspan="${this.field.colspan}"
@@ -1864,6 +1899,7 @@ export class MateuField extends LitElement {
                         id="${this.field.fieldId}"
                         label="${label}"
                         required="${this.field.required || nothing}"
+                        .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
                 >
                     ${status?html`<span theme="badge pill ${getThemeForBadgetType(status.type)}">${status.message}</span>`:html``}                    
@@ -1881,6 +1917,7 @@ export class MateuField extends LitElement {
                 <vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${label}"
+                        .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
                 ><ui5-range-slider start-value="${range?.from??0}" end-value="${range?.to??0}" 
                                    min="${this.field.sliderMin??0}" 
