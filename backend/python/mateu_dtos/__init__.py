@@ -100,6 +100,19 @@ class FormFieldMetadata(Wire):
     initial_value: Any | None = None
     options: list["Option"] = Field(default_factory=list)
     multiline: bool = False
+    #: Navigation link rendered as an icon at the right side of this field; None = no link.
+    link: "NavLinkRecord | None" = None
+
+
+class NavLinkRecord(Wire):
+    """Navigation link on a form field (mirrors ``io.mateu.dtos.NavLinkDto``; "Record" suffix to
+    avoid clashing with ``mateu_uidl.NavLink``, like ``GanttTaskRecord``). ``href``/``title``
+    travel as raw ``${...}`` templates — the renderer interpolates them against the live state."""
+
+    href: str
+    icon: str | None = None
+    title: str | None = None
+    target: str | None = None
 
 
 class CrudMetadata(Wire):

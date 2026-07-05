@@ -31,6 +31,27 @@ public sealed class MoneyAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class PlainTextAttribute : Attribute;
 
+/// <summary>Renders a navigation icon at the right side of the field that takes the user to the
+/// given URL or route. Href and Title travel verbatim and support <c>${...}</c> state expressions
+/// interpolated client-side, so the link follows the value as the user edits the form. For a
+/// programmatic alternative implement <see cref="ILinkSupplier"/> on the view class (it takes
+/// precedence over this attribute). (C# analogue of Java's @LinkTo.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class LinkToAttribute(string href) : Attribute
+{
+    /// <summary>Destination URL or route. Supports <c>${...}</c> state interpolation.</summary>
+    public string Href { get; } = href;
+
+    /// <summary>Icon to render; the renderer picks a sensible default when empty.</summary>
+    public string Icon { get; set; } = "";
+
+    /// <summary>Tooltip for the icon. Supports <c>${...}</c> state interpolation.</summary>
+    public string Title { get; set; } = "";
+
+    /// <summary>Link target, e.g. <c>_blank</c> to open in a new tab.</summary>
+    public string Target { get; set; } = "";
+}
+
 // ── Page-level features ────────────────────────────────────────────────────────
 /// <summary>A KPI card in the page header. Put on a method returning the value.</summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]

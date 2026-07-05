@@ -12,6 +12,7 @@ from mateu_uidl import (
     Crud,
     Dashboard,
     Foldout,
+    LinkTo,
     Message,
     Money,
     Multiline,
@@ -152,6 +153,11 @@ class Showcase:
     bio: Annotated[str | None, Tab("Profile"), Multiline()] = None
     salary: Annotated[float, Tab("Profile"), Money()] = 0.0
     member_since: Annotated[str | None, Tab("Profile"), PlainText()] = "2021-03-14"
+    homepage: Annotated[
+        str | None,
+        Tab("Profile"),
+        LinkTo("https://mateu.io/${state.name}", icon="vaadin:external-link", target="_blank"),
+    ] = None
 
     @kpi("Open tickets")
     def open_tickets(self) -> str:

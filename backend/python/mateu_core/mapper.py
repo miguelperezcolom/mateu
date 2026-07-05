@@ -40,6 +40,7 @@ from mateu_dtos import (
     Kpi,
     MenuItem,
     MetricCardMetadata,
+    NavLinkRecord,
     Option,
     PageMetadata,
     ProgressBarMetadata,
@@ -60,6 +61,8 @@ from mateu_uidl import (
     HeaderBadge,
     ItemOverview,
     Label,
+    LinkSupplier,
+    LinkTo,
     Money,
     Multiline,
     Panel,
@@ -686,8 +689,26 @@ class ReflectionMapper:
             multiline=multiline,
             options=options,
             initial_value=format_value(value),
+            link=self.link_of(f, instance),
         )
         return self.client(meta, field_id, [])
+
+    def link_of(self, f, instance) -> NavLinkRecord | None:
+        """The field's nav link: a :class:`LinkSupplier` on the view wins; when it returns ``None``
+        the ``LinkTo`` marker applies; no link -> ``None``. href/title travel verbatim — ``${...}``
+        templates are interpolated client-side, never on the server."""
+        if isinstance(instance, LinkSupplier):
+            supplied = instance.link(f.name)
+            if supplied is not None:
+                return NavLinkRecord(
+                    href=supplied.href, icon=supplied.icon, title=supplied.title, target=supplied.target
+                )
+        link_to = f.marker(LinkTo)
+        if link_to is None:
+            return None
+        return NavLinkRecord(
+            href=link_to.href, icon=link_to.icon, title=link_to.title, target=link_to.target
+        )
 
     def stereotype_of(self, f, plain: bool, multiline: bool) -> str:
         s = f.marker(Stereotype)

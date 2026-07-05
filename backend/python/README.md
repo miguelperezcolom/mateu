@@ -8,7 +8,7 @@ for the sibling implementation.
 > **The leverage:** the renderers are backend-agnostic — they POST `/mateu/v3/sync/{route}` and
 > consume the `UIIncrement` JSON. So this is **not** a port of the ~865-file Java framework; it just
 > **emits the same JSON**. Verified by diffing the live output against the C# reference: the
-> `showcase` view is byte-identical (310/310 lines). 18 golden-JSON tests pass.
+> `showcase` view is byte-identical (344/344 lines). 20 golden-JSON tests pass.
 
 ## What works
 
@@ -22,8 +22,11 @@ for the sibling implementation.
 - **Wizards** — `Wizard` base, `Step(n)` fields, progress + Back/Next, state round-trip.
 - **Decorations** — `@subtitle`, `@banner`, `HeaderBadge`.
 - **Tail features** — `Tab` → tab strip; field stereotypes (`Multiline`, `Password`, `Money`,
-  `PlainText`, `Stereotype`); `@kpi` → KPI cards; `@fab` → floating action buttons; `@shortcut`;
-  `@compact`; `@confirm_on_navigation_if_dirty`.
+  `PlainText`, `Stereotype`); `LinkTo(href, icon, title, target)` → a nav-link icon on the field
+  (href/title travel as raw `${...}` templates, interpolated client-side; implement `LinkSupplier`
+  on the view for programmatic links — it wins, `None` falls back to the marker); `@kpi` → KPI
+  cards; `@fab` → floating action buttons; `@shortcut`; `@compact`;
+  `@confirm_on_navigation_if_dirty`.
 - **i18n / events / security** — `Translator`; `@emits` / `@subscribe_to`; `@secured`.
 - **UX-pattern components** (`mateu_uidl.components`, same wire JSON as the Java
   `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,

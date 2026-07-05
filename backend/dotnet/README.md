@@ -18,15 +18,18 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   (`[Secured]`, app login URLs).
 > - **Tail features** — `[Tab]` (fields grouped into a `TabLayout`); field stereotypes (`[Multiline]`
 >   → textarea, `[Password]`, `[Money]` → `money` dataType, `[PlainText]` field/class → read-only text,
->   `[Stereotype("…")]`); `[Kpi]` methods → page KPI cards; `[Fab]` methods → floating action buttons;
->   `[Shortcut("ctrl+s")]` on action methods; `[ConfirmOnNavigationIfDirty]` and `[Compact]` page flags.
+>   `[Stereotype("…")]`); `[LinkTo(href, Icon=…, Title=…, Target=…)]` → a nav-link icon on the field
+>   (href/title travel as raw `${...}` templates, interpolated client-side; implement `ILinkSupplier`
+>   on the view for programmatic links — it wins, null falls back to the attribute); `[Kpi]` methods
+>   → page KPI cards; `[Fab]` methods → floating action buttons; `[Shortcut("ctrl+s")]` on action
+>   methods; `[ConfirmOnNavigationIfDirty]` and `[Compact]` page flags.
 > - **Fluent components & archetypes** — the nine dashboard/UX component types (`MetricCard`,
 >   `Scoreboard`, `DashboardPanel`, `DashboardLayout`, `FoldoutLayout`, `HeroSection`, `EmptyState`,
 >   `Skeleton`, `Gantt`) as fluent records a view can emit via `IComponentTreeSupplier`, plus the
 >   declarative page archetypes (`Dashboard`, `Foldout`, `Welcome`, `ItemOverview`) that compose them
 >   from component-holding properties (`[Panel]` carries title/subtitle/colSpan/rowSpan/icon/open).
 >
-> The core Mateu surface is covered (20 golden tests). The web renderer renders all of it; the Compose
+> The core Mateu surface is covered (22 golden tests). The web renderer renders all of it; the Compose
 > renderer (a subset) renders forms/CRUD/app-shell/wizards/banners/tabs.
 
 ## Projects

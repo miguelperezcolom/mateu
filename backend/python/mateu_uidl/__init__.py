@@ -105,6 +105,32 @@ class PlainText:
 
 
 @dataclass(frozen=True)
+class LinkTo:
+    """Renders a navigation icon at the right side of the field that takes the user to the given
+    URL or route. ``href``/``title`` travel verbatim and support ``${...}`` state expressions
+    interpolated client-side, so the link follows the value as the user edits the form. For a
+    programmatic alternative implement :class:`LinkSupplier` on the view class (it takes
+    precedence over this marker). The Python analogue of Java's ``@LinkTo``."""
+
+    href: str
+    icon: str = ""
+    title: str = ""
+    target: str = ""
+
+
+@dataclass(frozen=True)
+class NavLink:
+    """Navigation link rendered as an icon at the right side of a form field (see :class:`LinkTo`
+    and :class:`LinkSupplier`). ``href``/``title`` may carry ``${...}`` expressions, interpolated
+    client-side against the live component state. The Python analogue of Java's ``NavLink``."""
+
+    href: str
+    icon: str | None = None
+    title: str | None = None
+    target: str | None = None
+
+
+@dataclass(frozen=True)
 class HeaderBadge:
     color: str = "normal"
 
@@ -319,6 +345,17 @@ class ComponentTreeSupplier:
     instead of reflected form fields. The Python analogue of Java's ``ComponentTreeSupplier``."""
 
     def component(self):
+        raise NotImplementedError
+
+
+class LinkSupplier:
+    """Implemented by a view to attach a navigation link icon to fields at runtime (an
+    alternative to the static :class:`LinkTo` marker, over which this takes precedence).
+    :meth:`link` returns the :class:`NavLink` for the field named ``member_name``, or ``None``
+    for no link — a ``LinkTo`` on the field then applies if present. The Python analogue of
+    Java's ``LinkSupplier``."""
+
+    def link(self, member_name: str) -> NavLink | None:
         raise NotImplementedError
 
 

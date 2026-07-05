@@ -295,7 +295,13 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     public object? InitialValue { get; init; }
     public IReadOnlyList<OptionDto> Options { get; init; } = [];
     public bool Multiline { get; init; }
+    /// <summary>Navigation link rendered as an icon at the right side of this field; null = no link.</summary>
+    public NavLinkDto? Link { get; init; }
 }
+
+/// <summary>Navigation link on a form field (mirrors io.mateu.dtos.NavLinkDto). Href/title travel
+/// as raw <c>${...}</c> templates — the renderer interpolates them against the live state.</summary>
+public record NavLinkDto(string Href, string? Icon, string? Title, string? Target);
 
 public record OptionDto(string Value, string Label);
 

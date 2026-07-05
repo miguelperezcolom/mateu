@@ -288,8 +288,21 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             Multiline = multiline,
             Options = options,
             InitialValue = FormatValue(value),
+            Link = LinkOf(p, instance),
         };
         return Client(meta, fieldId, []);
+    }
+
+    /// <summary>The field's nav link: an <see cref="ILinkSupplier"/> on the view wins; when it
+    /// returns null the [LinkTo] attribute applies; no link → null. Href/title travel verbatim —
+    /// ${...} templates are interpolated client-side, never on the server.</summary>
+    private static NavLinkDto? LinkOf(PropertyInfo p, object instance)
+    {
+        if ((instance as ILinkSupplier)?.Link(p.Name) is { } supplied)
+            return new NavLinkDto(supplied.Href, supplied.Icon, supplied.Title, supplied.Target);
+        if (p.GetCustomAttribute<LinkToAttribute>() is { } linkTo)
+            return new NavLinkDto(linkTo.Href, linkTo.Icon, linkTo.Title, linkTo.Target);
+        return null;
     }
 
     /// <summary>The field stereotype: explicit [Stereotype] wins, else [Multiline]/[Password]/[Money]

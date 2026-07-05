@@ -10,3 +10,17 @@ public sealed class Message(string text, MessageVariant variant = MessageVariant
     public string Title { get; } = title;
     public int Duration { get; init; } = 5000;
 }
+
+/// <summary>Navigation link rendered as an icon at the right side of a form field (see [LinkTo]
+/// and <see cref="ILinkSupplier"/>). Href/Title may carry <c>${...}</c> expressions, interpolated
+/// client-side against the live component state. (C# analogue of io.mateu.uidl.data.NavLink.)</summary>
+public sealed record NavLink(string Href, string? Icon = null, string? Title = null, string? Target = null);
+
+/// <summary>Implemented by a view to attach a navigation link icon to fields at runtime (an
+/// alternative to the static [LinkTo] attribute, over which this takes precedence). Return the
+/// <see cref="NavLink"/> for the property named <paramref name="memberName"/>, or null for no link
+/// — a [LinkTo] on the property then applies if present. (C# analogue of Java's LinkSupplier.)</summary>
+public interface ILinkSupplier
+{
+    NavLink? Link(string memberName);
+}

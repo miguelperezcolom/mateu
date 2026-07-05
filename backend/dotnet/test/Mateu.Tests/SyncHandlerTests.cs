@@ -56,6 +56,32 @@ public class Wiz : Wizard
     public override Message Complete() => new("done");
 }
 
+[UI("linked"), Title("Linked")]
+public class LinkedForm
+{
+    public string CustomerId { get; set; } = "42";
+
+    [LinkTo("/customers/${state.customerId}")]
+    public string? CustomerName { get; set; } = "Ada";
+
+    [LinkTo("https://mateu.io", Icon = "vaadin:external-link", Title = "Abrir ${state.customerName}", Target = "_blank")]
+    public string? Website { get; set; }
+
+    public string? Plain { get; set; }
+}
+
+[UI("supplied-links"), Title("Supplied links")]
+public class SuppliedLinkForm : ILinkSupplier
+{
+    [LinkTo("/annotated/${state.customerId}")]
+    public string CustomerId { get; set; } = "42";
+
+    public string OrderId { get; set; } = "A-1";
+
+    public NavLink? Link(string memberName) =>
+        memberName == nameof(OrderId) ? new NavLink("/orders/${state.orderId}", Icon: "vaadin:cart") : null;
+}
+
 [UI("featured"), Title("Featured"), Compact, ConfirmOnNavigationIfDirty]
 public class Featured
 {
@@ -278,6 +304,32 @@ public class SyncHandlerTests
         Assert.Contains("\"shortcut\":\"ctrl", json);
         Assert.Contains("\"confirmOnNavigationIfDirty\":true", json);
         Assert.Contains("--mateu-compact:1", json);
+    }
+
+    [Fact]
+    public void LinkTo_travels_verbatim_for_client_side_interpolation_and_absent_links_are_null()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(LinkedForm).FullName }));
+
+        // The annotation's href/title travel as RAW ${...} templates (interpolated client-side);
+        // unset attribute members travel as "" — exactly like the Java @LinkTo defaults.
+        Assert.Contains("\"link\":{\"href\":\"/customers/${state.customerId}\",\"icon\":\"\",\"title\":\"\",\"target\":\"\"}", json);
+        Assert.Contains("\"link\":{\"href\":\"https://mateu.io\",\"icon\":\"vaadin:external-link\",\"title\":\"Abrir ${state.customerName}\",\"target\":\"_blank\"}", json);
+
+        // Fields without [LinkTo] carry "link":null (Mateu's JSON keeps nulls, like the Java wire).
+        Assert.Contains("\"link\":null", json);
+    }
+
+    [Fact]
+    public void LinkSupplier_wins_over_the_attribute_and_null_falls_back_to_it()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(SuppliedLinkForm).FullName }));
+
+        // The supplier's link (members it leaves unset serialize as null, like Java's builder).
+        Assert.Contains("\"link\":{\"href\":\"/orders/${state.orderId}\",\"icon\":\"vaadin:cart\",\"title\":null,\"target\":null}", json);
+
+        // The supplier returned null for CustomerId → the [LinkTo] attribute applies.
+        Assert.Contains("\"link\":{\"href\":\"/annotated/${state.customerId}\",\"icon\":\"\",\"title\":\"\",\"target\":\"\"}", json);
     }
 
     [Fact]

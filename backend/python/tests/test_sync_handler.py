@@ -12,9 +12,12 @@ from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
 from mateu_uidl import (  # noqa: E402
     BannerTheme,
     Crud,
+    LinkSupplier,
+    LinkTo,
     Message,
     Money,
     Multiline,
+    NavLink,
     Password,
     PlainText,
     Required,
@@ -98,6 +101,35 @@ class Wiz(Wizard):
 
     def complete(self) -> Message:
         return Message("done")
+
+
+@ui("linked")
+@title("Linked")
+class LinkedForm:
+    customer_id: str = "42"
+    customer_name: Annotated[str | None, LinkTo("/customers/${state.customerId}")] = "Ada"
+    website: Annotated[
+        str | None,
+        LinkTo(
+            "https://mateu.io",
+            icon="vaadin:external-link",
+            title="Abrir ${state.customerName}",
+            target="_blank",
+        ),
+    ] = None
+    plain: str | None = None
+
+
+@ui("supplied-links")
+@title("Supplied links")
+class SuppliedLinkForm(LinkSupplier):
+    customer_id: Annotated[str, LinkTo("/annotated/${state.customerId}")] = "42"
+    order_id: str = "A-1"
+
+    def link(self, member_name):
+        if member_name == "order_id":
+            return NavLink(href="/orders/${state.orderId}", icon="vaadin:cart")
+        return None
 
 
 @ui("featured")
@@ -267,6 +299,36 @@ def test_tail_features():
     assert '"shortcut": "ctrl+s"' in j
     assert '"confirmOnNavigationIfDirty": true' in j
     assert "--mateu-compact:1" in j
+
+
+def test_link_to_travels_verbatim_and_absent_links_are_null():
+    j = render(handler().handle(RunActionRq(server_side_type=_name(LinkedForm))))
+    # The marker's href/title travel as RAW ${...} templates (interpolated client-side);
+    # unset marker members travel as "" — exactly like the Java @LinkTo defaults.
+    assert (
+        '"link": {"href": "/customers/${state.customerId}", "icon": "", "title": "", "target": ""}'
+        in j
+    )
+    assert (
+        '"link": {"href": "https://mateu.io", "icon": "vaadin:external-link", '
+        '"title": "Abrir ${state.customerName}", "target": "_blank"}' in j
+    )
+    # Fields without LinkTo carry "link": null (Mateu's JSON keeps nulls, like the Java wire).
+    assert '"link": null' in j
+
+
+def test_link_supplier_wins_over_the_marker_and_none_falls_back_to_it():
+    j = render(handler().handle(RunActionRq(server_side_type=_name(SuppliedLinkForm))))
+    # The supplier's link (members it leaves unset serialize as null, like Java's builder).
+    assert (
+        '"link": {"href": "/orders/${state.orderId}", "icon": "vaadin:cart", '
+        '"title": null, "target": null}' in j
+    )
+    # The supplier returned None for customer_id -> the LinkTo marker applies.
+    assert (
+        '"link": {"href": "/annotated/${state.customerId}", "icon": "", "title": "", "target": ""}'
+        in j
+    )
 
 
 def test_fab_action_invoked():

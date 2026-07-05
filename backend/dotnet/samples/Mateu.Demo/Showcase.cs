@@ -13,6 +13,8 @@ public class Showcase
     [Tab("Profile"), Multiline] public string? Bio { get; set; }
     [Tab("Profile"), Money] public decimal Salary { get; set; }
     [Tab("Profile"), PlainText] public string? MemberSince { get; set; } = "2021-03-14";
+    [Tab("Profile"), LinkTo("https://mateu.io/${state.name}", Icon = "vaadin:external-link", Target = "_blank")]
+    public string? Homepage { get; set; }
 
     [Kpi("Open tickets")] public string OpenTickets() => "42";
     [Kpi("Revenue")] public string Revenue() => "€ 1.2M";
