@@ -15,7 +15,7 @@
         <!-- default for surefire's @{argLine}; jacoco:prepare-agent overrides it with its agent -->
         <argLine></argLine>
         <!-- coverage floor enforced by jacoco:check (mvn verify); ratchet up as suites grow -->
-        <jacoco.min.bundle.coverage>70%</jacoco.min.bundle.coverage>
+        <jacoco.min.bundle.coverage>75%</jacoco.min.bundle.coverage>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
