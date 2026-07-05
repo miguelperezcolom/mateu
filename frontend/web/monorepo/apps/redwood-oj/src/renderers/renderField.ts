@@ -2,9 +2,11 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
-import { html, LitElement, nothing, TemplateResult } from "lit";
+import { html, LitElement, nothing, svg, TemplateResult } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { ref } from "lit/directives/ref.js";
 import { evalIfNecessary } from "@infra/ui/renderers/avatarRenderer.ts";
+import { interpolate } from "@infra/ui/interpolation.ts";
 import { renderPlainGrid } from "@/renderers/renderData.ts";
 import { uxIconClass } from "@/renderers/renderDisplayComponents.ts";
 
@@ -318,9 +320,92 @@ const renderReadOnlyField = (metadata: FormField, value: any, label: unknown, st
     return labeled(label, html`<span style="display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis;">${hasValue ? valueToDisplay : '—'}</span>`)
 }
 
+// ── Field navigation link (@LinkTo / LinkSupplier) ───────────────────────────
+// Icon anchor at the right of the field. href and title arrive as raw ${state.xxx} templates
+// and are interpolated against the live state (re-rendered on every state commit; keystrokes
+// inside the field itself update the anchor eagerly via the wrapper's input listener below).
+
+// Default glyphs are inline SVGs (stroke: currentColor) because the Redwood UX icon font is
+// not bundled with this app; explicit icons map through uxIconClass like everywhere else.
+const EXTERNAL_LINK_GLYPH = svg`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`
+const LINK_GLYPH = svg`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`
+
+const resolveNavLink = (metadata: FormField, state: any, data: any): { href: string; title: string } => {
+    const link = metadata.link!
+    const href = interpolate(link.href, state, data) ?? link.href
+    const title = interpolate(link.title, state, data) || href
+    return { href, title }
+}
+
+// Vertically centers the anchor on the field's input row (label above / messages below would
+// skew a plain flex alignment). The margin is set imperatively — the style attribute in the
+// template is static, so a lit re-render doesn't clobber it. The row keeps reflowing well after
+// first paint (JET Core Pack components upgrade asynchronously and swap in their native <input>;
+// the web font loads later still and changes the label height), so a one-shot measurement goes
+// stale: poll for a few seconds and re-measure when the fonts settle.
+// setTimeout, not requestAnimationFrame: rAF is suspended in background tabs.
+const positionNavLink = (anchor?: Element) => {
+    const a = anchor as (HTMLElement & { __navlinkPositioned?: boolean }) | undefined
+    if (!a || a.__navlinkPositioned) return
+    a.__navlinkPositioned = true
+    const measure = () => {
+        const row = a.parentElement
+        const input = row?.firstElementChild?.querySelector('input, textarea, select') as HTMLElement | null
+        if (!row || !input) return
+        const rect = input.getBoundingClientRect()
+        if (rect.height === 0) return
+        a.style.marginTop = `${Math.max(0, Math.round(
+            rect.top + rect.height / 2 - a.offsetHeight / 2 - row.getBoundingClientRect().top))}px`
+    }
+    let tries = 0
+    const poll = () => { measure(); if (tries++ < 32) setTimeout(poll, 250) }
+    setTimeout(poll)
+    document.fonts?.ready.then(() => setTimeout(measure))
+}
+
+const renderNavLinkAnchor = (metadata: FormField, state: any, data: any): TemplateResult => {
+    const link = metadata.link!
+    const { href, title } = resolveNavLink(metadata, state, data)
+    const icon = link.icon
+        ? html`<span class="${uxIconClass(link.icon)}" style="font-size: 1.125rem;"></span>`
+        : (href.startsWith('http') ? EXTERNAL_LINK_GLYPH : LINK_GLYPH)
+    // Until measured, approximate label height + half the input; positionNavLink() refines it.
+    return html`<a data-navlink
+        href="${href}"
+        title="${title}"
+        target="${link.target || nothing}"
+        ${ref(positionNavLink)}
+        style="display: flex; align-items: center; color: ${SECONDARY}; align-self: flex-start; margin-top: 1.9rem;"
+    >${icon}</a>`
+}
+
+// Keystrokes inside the linked field update the anchor before the value is committed to state
+// (JET Core Pack inputs only fire valueChanged on commit). Cross-field references refresh on
+// the commit re-render, same as the reference renderer.
+const liveNavLinkUpdate = (metadata: FormField, state: any, data: any) => (e: Event) => {
+    const raw = (e.composedPath()[0] as HTMLInputElement)?.value
+    if (raw == null) return
+    const row = e.currentTarget as HTMLElement
+    const anchor = row.querySelector('a[data-navlink]') as HTMLAnchorElement | null
+    if (!anchor) return
+    const { href, title } = resolveNavLink(metadata, { ...state, [metadata.fieldId]: raw }, data)
+    anchor.setAttribute('href', href)
+    anchor.setAttribute('title', title)
+}
+
 // ── Main dispatch ────────────────────────────────────────────────────────────
 
-export const renderField = (container: LitElement, component: ClientSideComponent, _baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+export const renderField = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any): TemplateResult => {
+    const metadata = component.metadata as FormField
+    const control = renderFieldControl(container, component, baseUrl, state, data)
+    if (!metadata?.link?.href) return control
+    return html`<div style="display: flex; gap: 0.5rem;" @input="${liveNavLinkUpdate(metadata, state, data)}">
+        <div style="flex: 1; min-width: 0;">${control}</div>
+        ${renderNavLinkAnchor(metadata, state, data)}
+    </div>`
+}
+
+const renderFieldControl = (container: LitElement, component: ClientSideComponent, _baseUrl: string | undefined, state: any, data: any): TemplateResult => {
     const metadata = component.metadata as FormField
     const fieldId = metadata?.fieldId ?? ''
     const value = state && fieldId in state ? state[fieldId] : metadata?.initialValue
