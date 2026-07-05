@@ -29,7 +29,7 @@ That usually means duplicated business concepts, duplicated validation, more glu
 ## The Mateu approach
 
 ```text
-backend → Mateu UI → browser
+backend (Java · Kotlin · C# · Python) → Mateu wire protocol → browser · desktop · mobile
 ```
 
 > The backend owns the UI.
@@ -65,6 +65,13 @@ Wondering how this differs from a React SPA, Vaadin, or a CRUD generator? See [M
 ## Works with your stack
 
 Mateu works with Spring Boot MVC, Spring WebFlux, Micronaut, Quarkus, and any HTTP-based Java backend. You keep your architecture. Mateu becomes one more inbound adapter.
+
+## One protocol, many stacks
+
+Mateu's UI travels as a wire protocol, not as framework code. That means:
+
+- **Polyglot servers** — write your UI in [Java](/java-user-manual/start-here/quickstart/), [Kotlin](/kotlin-user-manual/), [C#](/csharp-user-manual/) or [Python](/python-user-manual/) (C# and Python are early-stage); they all emit the same UI model.
+- **Multi-frontend** — the same backend renders on [five web design systems](/design-systems/) (Vaadin, SAP UI5, Oracle Redwood, PatternFly, SLDS) and on [native desktop and mobile](/native/) (JavaFX, Compose Multiplatform, React Native), without touching your code.
 
 ## Recommended path
 
