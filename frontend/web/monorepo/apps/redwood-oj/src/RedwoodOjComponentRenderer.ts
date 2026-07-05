@@ -168,16 +168,19 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
             container.search()
         }
         return html`
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.25rem 0;">
+            <div style="display: flex; gap: 0.5rem; align-items: end; flex-wrap: wrap; padding: 0.25rem 0;">
                 ${metadata?.searchable ? html`
-                    <oj-c-input-text
-                        data-oj-binding-provider="preact"
-                        label-hint="Search"
-                        label-edge="none"
-                        .value="${state.searchText ?? ''}"
-                        @valueChanged="${(e: CustomEvent) => { state['searchText'] = e.detail.value ?? '' }}"
-                        style="min-width: 220px;"
-                    ></oj-c-input-text>
+                    <!-- sizing div: JET rewrites the host style attribute (max-width gets lost),
+                         so the flex sizing lives on a wrapper, same as the filter fields below -->
+                    <div style="flex: 0 1 auto; min-width: 220px; max-width: 320px;">
+                        <oj-c-input-text
+                            data-oj-binding-provider="preact"
+                            label-hint="Search"
+                            label-edge="none"
+                            .value="${state.searchText ?? ''}"
+                            @valueChanged="${(e: CustomEvent) => { state['searchText'] = e.detail.value ?? '' }}"
+                        ></oj-c-input-text>
+                    </div>
                     <oj-c-button
                         data-oj-binding-provider="preact"
                         label="Search"
@@ -185,22 +188,27 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                         @ojAction="${doSearch}"
                     ></oj-c-button>
                 ` : nothing}
-                ${(metadata?.filters ?? []).map(filter => renderComponent(container, {
-                    // the filters travel as bare FormField metadata — wrap them like the shared
-                    // mateu-filter-bar does so they render as real fields (selects with their
-                    // options, checkboxes…) bound to the crud state. The wrapper id must be the
-                    // fieldId: renderField dispatches value-changed with the component id, and an
-                    // empty id would commit the value under state[''] instead of the filter's key
-                    id: (filter as any).fieldId ?? '',
-                    metadata: { ...(filter as any) },
-                    type: ComponentType.ClientSide,
-                    style: '',
-                    children: [],
-                    slot: '',
-                    cssClasses: '',
-                    initialData: {},
-                    confirmOnNavigationIfDirty: false
-                } as ClientSideComponent, baseUrl, state, data, appState, appData))}
+                ${(metadata?.filters ?? []).map(filter => html`
+                    <div style="flex: 0 1 auto; min-width: 180px; max-width: 260px;">
+                        ${renderComponent(container, {
+                            // the filters travel as bare FormField metadata — wrap them like the
+                            // shared mateu-filter-bar does so they render as real fields (selects
+                            // with their options, checkboxes…) bound to the crud state. The wrapper
+                            // id must be the fieldId: renderField dispatches value-changed with the
+                            // component id, and an empty id would commit the value under state['']
+                            // instead of the filter's key. The sizing div keeps the fields inline
+                            // in the bar (JET inputs are 100%-wide, so bare they stack full-width)
+                            id: (filter as any).fieldId ?? '',
+                            metadata: { ...(filter as any) },
+                            type: ComponentType.ClientSide,
+                            style: '',
+                            children: [],
+                            slot: '',
+                            cssClasses: '',
+                            initialData: {},
+                            confirmOnNavigationIfDirty: false
+                        } as ClientSideComponent, baseUrl, state, data, appState, appData)}
+                    </div>`)}
                 ${metadata?.header?.map(comp => renderComponent(container, comp, baseUrl, state, data, appState, appData))}
             </div>
         `
