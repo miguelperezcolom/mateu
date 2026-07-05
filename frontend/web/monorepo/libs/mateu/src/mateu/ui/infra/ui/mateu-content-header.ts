@@ -8,6 +8,7 @@ import '@vaadin/icons'
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
+import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
@@ -64,6 +65,13 @@ export class MateuContentHeader extends LitElement {
     renderBtn = (button: Button) => {
         if ((this.data ?? {})[button.actionId + '.hidden']) return nothing
         const label = this.evalLabel(button.label)
+        // Renderers with their own design system (Redwood, SLDS…) provide the button through
+        // the renderToolbarButton hook; the Vaadin default stays here.
+        const custom = componentRenderer.get()?.renderToolbarButton?.(
+            button, label, () => this.handleButtonClick(button.actionId))
+        if (custom) {
+            return custom
+        }
         return html`
         <vaadin-button
                 data-action-id="${button.id}"

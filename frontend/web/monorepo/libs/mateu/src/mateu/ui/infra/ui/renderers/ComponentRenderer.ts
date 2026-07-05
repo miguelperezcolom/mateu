@@ -30,12 +30,13 @@ export interface ComponentRenderer {
      */
     rendersCrudLayouts?(): boolean
     /**
-     * One button of the crud header toolbar (New / Delete / row actions / nav buttons),
-     * rendered with this renderer's design system instead of the shared vaadin-button.
-     * `label` arrives already interpolated. Absent → mateu-table-crud renders its default
-     * vaadin-button (the Vaadin reference renderer keeps working without implementing this).
+     * One header toolbar button (crud listing toolbar and page/form content header: New /
+     * Delete / Save / Cancel / nav buttons), rendered with this renderer's design system
+     * instead of the shared vaadin-button. `label` arrives already interpolated. Absent →
+     * mateu-table-crud / mateu-content-header render their default vaadin-button (the Vaadin
+     * reference renderer keeps working without implementing this).
      */
-    renderCrudToolbarButton?(button: unknown, label: string, onClick: () => void): TemplateResult
+    renderToolbarButton?(button: unknown, label: string, onClick: () => void): TemplateResult
 }
 
 export class ComponentRendererSingleton {

@@ -327,9 +327,9 @@ export class MateuTableCrud extends LitElement {
             id === 'back' || id === 'backToList' || (!!id && id.startsWith('cancel'))
 
         // One crud header toolbar button. Renderers with their own design system (Redwood, SLDS…)
-        // provide it through the renderCrudToolbarButton hook; the Vaadin default stays here.
+        // provide it through the renderToolbarButton hook; the Vaadin default stays here.
         const renderToolbarButton = (button: Button): TemplateResult => {
-            const custom = componentRenderer.get()?.renderCrudToolbarButton?.(
+            const custom = componentRenderer.get()?.renderToolbarButton?.(
                 button, this.evalLabel(button.label), () => this.handleToolbarButtonClick(button.actionId))
             if (custom) {
                 return custom

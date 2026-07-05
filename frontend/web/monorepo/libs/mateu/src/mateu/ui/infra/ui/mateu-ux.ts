@@ -99,7 +99,7 @@ export class MateuUx extends ConnectedElement {
             // one page (Redwood/SLDS/PatternFly) consumedRoute is e.g. "/products", so the URL must
             // become "/products/new"; on Vaadin each route is its own page (consumedRoute '' or
             // '_empty') and this is a no-op.
-            if (typeof effectiveRoute === 'string' && effectiveRoute.startsWith('/')
+            if (typeof effectiveRoute === 'string' && (effectiveRoute === '' || effectiveRoute.startsWith('/'))
                 && this.consumedRoute && this.consumedRoute !== '_empty' && this.consumedRoute.startsWith('/')
                 && !effectiveRoute.startsWith(this.consumedRoute)) {
                 effectiveRoute = this.consumedRoute + effectiveRoute

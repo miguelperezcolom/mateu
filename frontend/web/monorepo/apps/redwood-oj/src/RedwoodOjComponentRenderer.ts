@@ -188,21 +188,29 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         `
     }
 
-    renderCrudToolbarButton(button: unknown, label: string, onClick: () => void): TemplateResult {
+    // Rendered as a hand-styled plain <button> with the Redwood look (values measured from real
+    // oj-c-buttons, themed through the --oj-* vars which DO inherit across shadow roots) instead
+    // of an <oj-c-button>: this template also renders inside the shadow roots of the shared
+    // mateu-content-header / mateu-page, where JET's document-level CSS-module stylesheets can't
+    // reach, so a real oj-c-button mounts unstyled there.
+    renderToolbarButton(button: unknown, label: string, onClick: () => void): TemplateResult {
         const btn = button as Button
-        const chroming =
+        const kind =
             btn.color === 'error' || (btn as any).variant === 'error' || (btn as any).variant === 'danger' ? 'danger'
             : btn.buttonStyle === 'primary' ? 'callToAction'
             : 'outlined'
+        const skin = kind === 'danger'
+            ? 'background: var(--mateu-redwood-danger-bg, rgb(179, 49, 31)); color: #fff; border: 1px solid transparent;'
+            : kind === 'callToAction'
+            ? 'background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); color: #fff; border: 1px solid transparent;'
+            : 'background: transparent; color: var(--mateu-redwood-text, rgb(22, 21, 19)); border: 1px solid rgba(22, 21, 19, 0.5);'
         return html`
-            <oj-c-button
-                data-oj-binding-provider="preact"
+            <button
                 data-action-id="${btn.id}"
-                label="${label}"
-                chroming="${chroming}"
+                style="${skin} border-radius: 4px; height: 40px; padding: 0 16px; font-family: 'Oracle Sans', -apple-system, system-ui, sans-serif; font-size: 0.86rem; font-weight: 600; cursor: pointer; ${btn.disabled ? 'opacity: .4; pointer-events: none;' : ''}"
                 ?disabled="${btn.disabled}"
-                @ojAction="${onClick}"
-            ></oj-c-button>
+                @click="${onClick}"
+            >${label}</button>
         `
     }
 
