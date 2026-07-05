@@ -258,15 +258,36 @@ class LongTailSyncTest {
         .anySatisfy(command -> assertThat(command.type().name()).isEqualTo("DownloadFile"));
   }
 
-  // ── wizard sync with a @Lookup step field ───────────────────────────────────
+  // ── wizard lookup search (through the wizard's own dispatcher) ──────────────
 
   @Test
   void wizardWithALookupStepFieldSyncs() {
-    // NOTE: running "search-hotel" against the wizard is intercepted by the generic
-    // SearchFieldActionRunner (which looks the field up on the WIZARD, not the step) before
-    // WizardActionDispatcher/WizardLookupHandler can claim it — untested semi-broken path.
     var increment = mateu.sync("/booking-wizard");
     assertThat(increment.fragments()).isNotEmpty();
+  }
+
+  @Test
+  void lookupSearchInsideAWizardStepReturnsTheStepSupplierOptions() {
+    // SearchFieldActionRunner declines wizards, so the wizard's dispatcher resolves the
+    // @Lookup(search=...) supplier against the CURRENT STEP's field.
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/booking-wizard")
+                .actionId("search-hotel")
+                .serverSideType(BookingWizard.class.getName())
+                .componentState(Map.of("position", 0))
+                .parameters(Map.of("searchText", "", "page", 0, "size", 10))
+                .initiatorComponentId("bw_app")
+                .build());
+    assertThat(increment).isNotNull();
+    var found = new java.util.ArrayList<String>();
+    for (var fragment : increment.fragments()) {
+      if (fragment.data() instanceof Map<?, ?> data) {
+        data.values().forEach(value -> found.add(String.valueOf(value)));
+      }
+    }
+    assertThat(String.join(",", found)).contains("Palace");
   }
 
   // ── fluent grid + chart mappers ─────────────────────────────────────────────

@@ -161,6 +161,23 @@ class CrudMethodsSyncTest {
   }
 
   @Test
+  void pureListingRowMethodsInvokeReflectively() {
+    // ListingBackend.handleAction routes action-on-row-<method> to handleActionOnRow, which
+    // reflectively invokes the named method on the listing
+    TreeActionsAndCrudNavigationSyncTest.toolbarRan = null;
+    mateu.run(
+        RunActionRqDto.builder()
+            .route("/cities")
+            .consumedRoute("/cities")
+            .serverSideType(TreeActionsAndCrudNavigationSyncTest.CountriesListing.class.getName())
+            .actionId("action-on-row-refreshAll")
+            .componentState(Map.of())
+            .initiatorComponentId("pl_app")
+            .build());
+    assertThat(TreeActionsAndCrudNavigationSyncTest.toolbarRan).isEqualTo("refreshed");
+  }
+
+  @Test
   void rowMethodsReceiveTheClickedRow() {
     run("action-on-row-retry", Map.of("_clickedRow", Map.of("id", "j1", "name", "Backup")));
     assertThat(JobsCrud.ran).isEqualTo("retried:j1");

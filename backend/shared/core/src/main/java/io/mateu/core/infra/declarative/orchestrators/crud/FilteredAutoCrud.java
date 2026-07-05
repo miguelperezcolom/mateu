@@ -54,10 +54,11 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @SuppressWarnings("unchecked")
   public ListingData<T> fetchRows(
       String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {
-    // Filters is the same type as T for FilteredAutoCrud (filtersClass() == entityClass()); cast so
-    // custom repositories can apply field-level filtering. Search + paging live in the repository's
-    // find(...) (in-memory by default, DB-side when overridden).
-    return new ListingData<>(repository().find(searchText, (T) filters, pageable));
+    // For AutoCrud, Filters == T (filtersClass() == entityClass()) and the instance is forwarded so
+    // custom repositories can apply field-level filtering. Subclasses with their own filters type
+    // must override fetchRows to apply them — forwarding an incompatible type would CCE in find().
+    T rowFilters = entityClass().isInstance(filters) ? (T) filters : null;
+    return new ListingData<>(repository().find(searchText, rowFilters, pageable));
   }
 
   public AutoNamedView<T> buildNamedView(String id, HttpRequest httpRequest) {

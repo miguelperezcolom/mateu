@@ -28,6 +28,12 @@ public class SearchFieldActionRunner implements ActionRunner {
 
   @Override
   public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {
+    // Wizards resolve search-<field> against the CURRENT STEP through their own dispatcher
+    // (WizardActionDispatcher → WizardLookupHandler); claiming the action here made @Lookup
+    // fields inside wizard steps unreachable (the field was looked up on the wizard itself).
+    if (instance instanceof io.mateu.core.infra.declarative.orchestrators.wizard.Wizard) {
+      return false;
+    }
     return actionId != null && actionId.startsWith("search-");
   }
 

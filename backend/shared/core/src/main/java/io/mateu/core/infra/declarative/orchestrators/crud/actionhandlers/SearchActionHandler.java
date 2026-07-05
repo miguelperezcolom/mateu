@@ -5,6 +5,7 @@ import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.Sort;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.MateuInstanceFactory;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,13 @@ public class SearchActionHandler implements CrudOrchestratorActionHandler {
     if (searchText == null) {
       searchText = "";
     }
-    return new Data(Map.of("crud", orchestrator.search(searchText, null, pageable, httpRequest)));
+    // The filter values only travel inside the component state — materialize them into the
+    // orchestrator's filters type (same as ExportActionRunner) instead of passing null.
+    Object filters =
+        MateuInstanceFactory.newInstance(
+            orchestrator.filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
+    return new Data(
+        Map.of("crud", orchestrator.search(searchText, filters, pageable, httpRequest)));
   }
 
   /**
