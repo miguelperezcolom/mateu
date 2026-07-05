@@ -74,6 +74,10 @@ Each renderer in `frontend/web/monorepo/apps/<name>/` is a standalone Vite app. 
 
 The shared lib (`libs/mateu`) contains: `MateuApiClient`, SSE support, `mateu-ux` (root web component), `mateu-dialog`, `mateu-grid`, `mateu-choice`, and base infrastructure. Renderers import from `mateu` workspace package and provide renderer-specific web-components for each DTO type.
 
+## Backend testing (core integration harness)
+
+`backend/shared/core/src/test/.../testutil/TestMateu.java` boots the ENTIRE core bean graph in-JVM (Spring test context understands the framework's jakarta.inject annotations), registers fixture classes exactly like the annotation processor's generated `RoutedClassProvider`s, provides the platform beans adapters normally contribute (BeanProvider→MateuBeanProvider, ObjectMapper, "baseUrl" request attribute; extra beans via `withUisAndBeans`, e.g. fake Excel/Pdf exporters), and calls the same `MateuService` entry point the generated controllers call. One `mateu.sync("/route")` exercises route resolution → instance creation → reflective mapping → wire DTOs; `mateu.run(RunActionRqDto...)` drives any action. Feature suites live in `core/src/test/.../application/*SyncTest.java` (fields, layout, app/menu, crud lifecycle, wizards, archetypes, actions/commands/triggers, editable grid fields, validation, nested state). Wire-shape gotchas the suites document: fragment state lives on UIFragmentDto (not the component); grid columns nest inside CrudlDto metadata; Card title/content and form fields nest inside METADATA records (walkers must descend reflectively); AccordionLayoutDto.panels is empty on the wire (panels are children); filtered/sorted listing rows come back as maps; in-JVM the search Data still carries the typed ListingData. Coverage: `mvn org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.12:report` (core's surefire argLine composes via `@{argLine}` — don't overwrite it or JaCoCo silently records nothing); report at `target/site/jacoco/`. Line coverage as of 2026-07-05: 65% (was 11%).
+
 ## Creating a Release
 
 Releases follow the pattern `Mateu v3.0-alpha.N`. To cut a new one:
