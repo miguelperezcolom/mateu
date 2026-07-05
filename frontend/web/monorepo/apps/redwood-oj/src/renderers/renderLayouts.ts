@@ -76,6 +76,26 @@ export const renderCard = (container: LitElement, component: ClientSideComponent
     const md = component.metadata as any
     const render = (c: any) => c ? renderComponent(container, c, baseUrl, state, data, appState, appData) : nothing
     const titleText = typeof md.title === 'string' ? md.title : ''
+    // Form sections (the backend marks their cards with the mateu-section class) follow the
+    // Redwood form convention: a flat section — heading with a divider, content on the page
+    // background — instead of an elevated panel.
+    if (component.cssClasses?.includes('mateu-section')) {
+        const heading = titleText
+            ? html`<h2 class="oj-typography-heading-sm" style="margin: 0;">${titleText}</h2>`
+            : (typeof md.title === 'object' && md.title ? render(md.title) : nothing)
+        return html`
+            <section class="${component.cssClasses}" style="margin: 0 0 1.5rem 0; ${component.style ?? ''}"
+                 slot="${component.slot ?? nothing}">
+                ${heading !== nothing ? html`
+                    <div style="padding-bottom: .5rem; border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.2));">${heading}</div>
+                ` : nothing}
+                <div style="padding-top: .75rem;">
+                    ${render(md.content)}
+                    ${kids(container, component, baseUrl, state, data, appState, appData)}
+                    ${render(md.footer)}
+                </div>
+            </section>`
+    }
     return html`
         <div class="oj-panel oj-panel-shadow-sm" style="border-radius:var(--oj-core-border-radius-lg, 8px); overflow:hidden;"
              slot="${component.slot ?? nothing}">

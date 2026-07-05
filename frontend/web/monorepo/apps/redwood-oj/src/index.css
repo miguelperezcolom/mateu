@@ -2328,3 +2328,11 @@ html:not([dir=rtl]) .componentCategoryItemListview.oj-listview-card-layout li.oj
     width: 200px;
     height: 143px
 }
+
+/* Redwood form sections: the section title (a heading-md Text inside the mateu-section flat
+   section) gets the conventional Redwood heading + divider treatment. */
+section.mateu-section .oj-typography-heading-md {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.2));
+    margin-bottom: 0.75rem;
+}
