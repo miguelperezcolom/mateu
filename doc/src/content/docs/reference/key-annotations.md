@@ -559,6 +559,7 @@ These are also part of the public DSL and are worth knowing:
 
 - `@Label` — set the display label of a field or button (instead of deriving it from the name)
 - `@Help` — help/hint text on a class, field, or method
+- `@LinkTo` — navigation icon at the right of a field pointing to a URL or route; the href supports `${state.…}` templates interpolated live in the browser, so `@LinkTo("/customers/${state.customerId}")` follows the value as the user types (optional `icon`, `title`, `target`; for runtime decisions implement `LinkSupplier`)
 - `@Validation` — declarative cross-field validation (`condition`, `fieldId`, `message`; repeatable)
 - `@Multiline` — let a `@PlainText` value wrap across multiple lines
 - `@UploadableImage` — image field with upload/replace/delete, stored as data URI or URL

@@ -43,7 +43,8 @@ public record FormField(
     String minHeightWhenDetailVisible,
     int optionsColumns,
     boolean mainFilter,
-    boolean multiline)
+    boolean multiline,
+    NavLink link)
     implements Component {
 
   public FormField {

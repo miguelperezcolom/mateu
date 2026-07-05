@@ -33,6 +33,7 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 |---|---|
 | `@Stereotype(FieldStereotype.X)` | override the control (textarea, email, password, money, badge, uploadableImage, …) |
 | `@Label`, `@Help`, `@Icon` | label / tooltip / icon |
+| `@LinkTo("/customers/${state.customerId}")` | navigation icon at the right of the field; href/title interpolate live against state (icon, title, target attrs; programmatic alternative: `LinkSupplier` returning `NavLink`) |
 | `@Status(mappings = @StatusMapping(from, to))` | colored state badge (`StatusType`) |
 | `@Lookup(search=…, label=…)` | relation picker (server-side suppliers) |
 | `@Badge`, `@Avatar`, `@KPI`, `@Banner`, `@BadgeInHeader` | presentation semantics |

@@ -19,6 +19,7 @@ import lombok.Builder;
  * @param badges Badges which must appear close to this field
  * @param attributes Some generic attributes
  * @param colspan Colspan for this field
+ * @param link Navigation link rendered as an icon at the right side of this field
  */
 @Builder
 public record FormFieldDto(
@@ -60,7 +61,8 @@ public record FormFieldDto(
     String minHeightWhenDetailVisible,
     int optionsColumns,
     boolean mainFilter,
-    boolean multiline)
+    boolean multiline,
+    NavLinkDto link)
     implements ComponentMetadataDto {
 
   public FormFieldDto {

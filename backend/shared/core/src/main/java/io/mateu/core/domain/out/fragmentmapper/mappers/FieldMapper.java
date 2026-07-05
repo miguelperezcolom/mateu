@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 
 import io.mateu.dtos.*;
 import io.mateu.uidl.data.FormField;
+import io.mateu.uidl.data.NavLink;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
@@ -79,6 +80,7 @@ public class FieldMapper {
             .minHeightWhenDetailVisible(formField.minHeightWhenDetailVisible())
             .optionsColumns(formField.optionsColumns())
             .multiline(formField.multiline())
+            .link(mapLink(formField.link()))
             .build(),
         formField.id(),
         List.of(),
@@ -94,6 +96,13 @@ public class FieldMapper {
           .toList();
     }
     return null;
+  }
+
+  private static NavLinkDto mapLink(NavLink link) {
+    if (link == null) {
+      return null;
+    }
+    return new NavLinkDto(link.href(), link.icon(), link.title(), link.target());
   }
 
   private static RemoteCoordinatesDto mapRemoteCoordinates(RemoteCoordinates remoteCoordinates) {

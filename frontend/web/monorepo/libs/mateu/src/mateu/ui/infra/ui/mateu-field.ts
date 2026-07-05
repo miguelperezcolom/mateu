@@ -385,11 +385,56 @@ export class MateuField extends LitElement {
         this.rendered = false
     }
 
+    // Navigation icon at the right of the field (@LinkTo / LinkSupplier). href and title are
+    // interpolated here against the live state, so the link follows the value as the user types.
+    private renderNavLink(): TemplateResult | typeof nothing {
+        const link = this.field?.link
+        if (!link?.href) return nothing
+        const href = interpolate(link.href, this.state, this.data) ?? link.href
+        const title = interpolate(link.title, this.state, this.data) || href
+        const icon = link.icon || (href.startsWith('http') ? 'vaadin:external-link' : 'vaadin:link')
+        // Until measured, approximate label height + half the input; positionNavLink() then
+        // centers the icon on the control's real input row once it has been laid out.
+        const marginTop = this.navLinkOffset
+            ?? 'calc(var(--lumo-font-size-s) * 1.6 + (var(--lumo-size-m) - var(--lumo-icon-size-s)) / 2)'
+        return html`<a
+                data-navlink
+                href="${href}"
+                title="${title}"
+                target="${ifDefined(link.target || undefined)}"
+                style="display: flex; align-items: center; color: var(--lumo-secondary-text-color); align-self: flex-start; margin-top: ${marginTop};"
+        ><vaadin-icon icon="${icon}" style="width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s);"></vaadin-icon></a>`
+    }
+
+    // Vertically centers the nav link icon on the field's input row (the [part=input-field] of the
+    // rendered vaadin control), so label above and helper text below don't skew it. The measured
+    // offset is state consumed by the template — imperative styling would be undone on re-render.
+    private positionNavLink() {
+        const anchor = this.renderRoot?.querySelector('a[data-navlink]') as HTMLElement | null
+        if (!anchor) return
+        // setTimeout, not requestAnimationFrame: rAF is suspended in background tabs.
+        setTimeout(() => {
+            const row = anchor.parentElement
+            const control = row?.firstElementChild?.firstElementChild as HTMLElement | null
+            if (!row || !control) return
+            const inputPart = (control.shadowRoot?.querySelector('[part="input-field"]') as HTMLElement | null) ?? control
+            const inputRect = inputPart.getBoundingClientRect()
+            if (inputRect.height === 0) return
+            const offset = Math.max(0,
+                inputRect.top + inputRect.height / 2 - anchor.offsetHeight / 2 - row.getBoundingClientRect().top)
+            const value = `${Math.round(offset)}px`
+            if (this.navLinkOffset !== value) {
+                this.navLinkOffset = value
+            }
+        })
+    }
+
     render() {
         const fieldId = this.field?.fieldId??''
         this.rendered = true
+        const navLink = this.renderNavLink()
         return html`<div style="display: block;">
-            <div>${this.renderField()}</div>
+            <div style="${navLink !== nothing ? 'display: flex; gap: var(--lumo-space-xs);' : ''}"><div style="flex: 1; min-width: 0;">${this.renderField()}</div>${navLink}</div>
             ${this.field?.description?html`
                 <div style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); margin-top: var(--lumo-space-xs);">${evalIfNecessary(this.field?.description, this.state, this.data)}</div>
             `:nothing}
@@ -517,6 +562,9 @@ export class MateuField extends LitElement {
     @state()
     private filteredIcons: string[] = [];
 
+    @state()
+    private navLinkOffset: string | null = null;
+
 
     protected override async firstUpdated() {
         this.filteredIcons = allIcons;
@@ -527,6 +575,11 @@ export class MateuField extends LitElement {
             this.rendered = false
         }
         super.update(changedProperties);
+    }
+
+    protected override updated(changedProperties: PropertyValues) {
+        super.updated(changedProperties);
+        this.positionNavLink()
     }
 
     iconFilterChanged = (event: CustomEvent) => {

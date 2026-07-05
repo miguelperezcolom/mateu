@@ -4,6 +4,7 @@ import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import RemoteCoordinates from "@mateu/shared/apiClients/dtos/componentmetadata/RemoteCoordinates.ts";
+import NavLink from "@mateu/shared/apiClients/dtos/componentmetadata/NavLink.ts";
 
 export default interface FormField extends ComponentMetadata {
 
@@ -52,5 +53,6 @@ export default interface FormField extends ComponentMetadata {
     optionsColumns: number
     mainFilter?: boolean
     multiline?: boolean
+    link?: NavLink | undefined
 
 }

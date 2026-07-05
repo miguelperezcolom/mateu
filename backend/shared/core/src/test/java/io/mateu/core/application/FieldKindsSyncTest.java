@@ -19,6 +19,7 @@ import io.mateu.uidl.annotations.BadgeInHeader;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Help;
 import io.mateu.uidl.annotations.Label;
+import io.mateu.uidl.annotations.LinkTo;
 import io.mateu.uidl.annotations.Multiline;
 import io.mateu.uidl.annotations.OnRowSelected;
 import io.mateu.uidl.annotations.PlainText;
@@ -31,6 +32,9 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.UploadableImage;
 import io.mateu.uidl.data.Amount;
 import io.mateu.uidl.data.FieldStereotype;
+import io.mateu.uidl.data.NavLink;
+import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.LinkSupplier;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
@@ -165,6 +169,41 @@ class FieldKindsSyncTest {
   }
 
   @SuppressWarnings("unused")
+  @UI("/field-kinds/links")
+  public static class LinkedForm {
+    String customerId = "42";
+
+    @LinkTo("/customers/${state.customerId}")
+    String customerName = "Ada";
+
+    @LinkTo(
+        value = "https://mateu.io",
+        icon = "vaadin:external-link",
+        title = "Abrir ${state.customerName}",
+        target = "_blank")
+    String website;
+
+    String plain;
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/field-kinds/supplied-links")
+  public static class SuppliedLinkForm implements LinkSupplier {
+    @LinkTo("/annotated/${state.customerId}")
+    String customerId = "42";
+
+    String orderId = "A-1";
+
+    @Override
+    public NavLink link(String memberName, HttpRequest httpRequest) {
+      if ("orderId".equals(memberName)) {
+        return NavLink.builder().href("/orders/${state.orderId}").icon("vaadin:cart").build();
+      }
+      return null;
+    }
+  }
+
+  @SuppressWarnings("unused")
   public static class Row {
     String concept = "thing";
     int qty = 1;
@@ -196,7 +235,9 @@ class FieldKindsSyncTest {
             PlainTextForm.class,
             SectionedForm.class,
             BadgeHeaderForm.class,
-            GridForm.class);
+            GridForm.class,
+            LinkedForm.class,
+            SuppliedLinkForm.class);
   }
 
   @AfterAll
@@ -452,6 +493,50 @@ class FieldKindsSyncTest {
   void labelExpressionInterpolationTravelsVerbatimForTheFrontend() {
     var field = fieldsOf("/field-kinds/annotated").get("details");
     assertThat(field.label()).isEqualTo("${state.fullName} — details");
+  }
+
+  // ---------------------------------------------------------------------------------------------
+  // @LinkTo + LinkSupplier
+  // ---------------------------------------------------------------------------------------------
+
+  @Test
+  void linkToAnnotationTravelsVerbatimForClientSideInterpolation() {
+    var field = fieldsOf("/field-kinds/links").get("customerName");
+    assertThat(field.link()).isNotNull();
+    assertThat(field.link().href()).isEqualTo("/customers/${state.customerId}");
+    assertThat(field.link().icon()).isEmpty();
+    assertThat(field.link().title()).isEmpty();
+    assertThat(field.link().target()).isEmpty();
+  }
+
+  @Test
+  void linkToAnnotationCarriesIconTitleAndTarget() {
+    var link = fieldsOf("/field-kinds/links").get("website").link();
+    assertThat(link.href()).isEqualTo("https://mateu.io");
+    assertThat(link.icon()).isEqualTo("vaadin:external-link");
+    assertThat(link.title()).isEqualTo("Abrir ${state.customerName}");
+    assertThat(link.target()).isEqualTo("_blank");
+  }
+
+  @Test
+  void fieldsWithoutLinkToHaveNoLink() {
+    assertThat(fieldsOf("/field-kinds/links").get("plain").link()).isNull();
+    assertThat(fieldsOf("/field-kinds/links").get("customerId").link()).isNull();
+  }
+
+  @Test
+  void linkSupplierAttachesLinksProgrammatically() {
+    var link = fieldsOf("/field-kinds/supplied-links").get("orderId").link();
+    assertThat(link).isNotNull();
+    assertThat(link.href()).isEqualTo("/orders/${state.orderId}");
+    assertThat(link.icon()).isEqualTo("vaadin:cart");
+  }
+
+  @Test
+  void linkSupplierReturningNullFallsBackToTheAnnotation() {
+    var link = fieldsOf("/field-kinds/supplied-links").get("customerId").link();
+    assertThat(link).isNotNull();
+    assertThat(link.href()).isEqualTo("/annotated/${state.customerId}");
   }
 
   // ---------------------------------------------------------------------------------------------

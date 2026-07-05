@@ -4,12 +4,14 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.data.NavLink;
 import io.mateu.uidl.data.Option;
 import io.mateu.uidl.data.RemoteCoordinates;
 import io.mateu.uidl.interfaces.ColspanSupplier;
 import io.mateu.uidl.interfaces.DescriptionSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LabelSupplier;
+import io.mateu.uidl.interfaces.LinkSupplier;
 import io.mateu.uidl.interfaces.OptionsSupplier;
 import io.mateu.uidl.interfaces.RequiredSupplier;
 import io.mateu.uidl.interfaces.StyleSupplier;
@@ -101,6 +103,25 @@ public class FieldMetadataExtractor {
       return MetaAnnotations.find(field, Help.class).value();
     }
     return "";
+  }
+
+  static NavLink getLink(Field field, Object instance, HttpRequest httpRequest) {
+    if (instance instanceof LinkSupplier linkSupplier) {
+      var supplied = linkSupplier.link(field.getName(), httpRequest);
+      if (supplied != null) {
+        return supplied;
+      }
+    }
+    if (MetaAnnotations.isPresent(field, LinkTo.class)) {
+      var linkTo = MetaAnnotations.find(field, LinkTo.class);
+      return NavLink.builder()
+          .href(linkTo.value())
+          .icon(linkTo.icon())
+          .title(linkTo.title())
+          .target(linkTo.target())
+          .build();
+    }
+    return null;
   }
 
   static Map<String, String> getAttributes(Field field) {

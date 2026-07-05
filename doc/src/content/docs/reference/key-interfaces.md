@@ -140,6 +140,22 @@ Use it when field labels depend on runtime state (e.g., the same field shows dif
 
 ---
 
+## `LinkSupplier`
+
+Attaches a navigation icon to the right side of form fields at request time, taking precedence over any `@LinkTo` annotation. Return a `NavLink` (`href`, optional `icon`, `title`, `target`) for the given field name, or `null` for no link.
+
+```java
+public interface LinkSupplier {
+    NavLink link(String memberName, HttpRequest httpRequest);
+}
+```
+
+The returned `href` and `title` may contain `${state.…}` expressions — they are interpolated in the browser against the live component state, so the link follows the field values as the user edits the form (e.g. `NavLink.to("/orders/${state.orderId}")`).
+
+Use it when the destination depends on runtime state or permissions; use `@LinkTo` for the static case.
+
+---
+
 ## `Selector<IdType>`
 
 Extension point for `@Searchable` fields. Implement this (typically alongside `Listing`) to define what happens when the user clicks a row in the search modal.
@@ -222,5 +238,5 @@ Mateu interfaces mostly define extension points in four categories:
 - fluent UI composition
 - CRUD integration
 - dynamic option/label/selection resolution (`LookupOptionsSupplier`, `LookupLabelSupplier`, `Selector`)
-- dynamic field metadata (`LabelSupplier`, `DescriptionSupplier`, `StyleSupplier`, `RequiredSupplier`, `ReadOnlySupplier`, `DisabledSupplier`, `VisibilitySupplier`)
+- dynamic field metadata (`LabelSupplier`, `DescriptionSupplier`, `StyleSupplier`, `RequiredSupplier`, `ReadOnlySupplier`, `DisabledSupplier`, `VisibilitySupplier`, `LinkSupplier`)
 - dependency and runtime integration
