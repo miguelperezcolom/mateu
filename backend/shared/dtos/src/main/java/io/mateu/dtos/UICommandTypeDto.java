@@ -11,5 +11,6 @@ public enum UICommandTypeDto {
   PushStateToHistory,
   DispatchEvent,
   MarkAsDirty,
-  MarkAsClean
+  MarkAsClean,
+  DownloadFile
 }

@@ -32,7 +32,20 @@ public final class TestMateu implements AutoCloseable {
 
   /** Boot a backend whose registered routes are the given @UI/@Route fixture classes. */
   public static TestMateu withUis(Class<?>... uiClasses) {
+    return withUisAndBeans(List.of(), uiClasses);
+  }
+
+  /**
+   * Same, additionally registering platform beans an adapter would normally contribute (e.g. an
+   * ExcelExporter for the export actions). Each bean is registered under its concrete class.
+   */
+  public static TestMateu withUisAndBeans(List<Object> extraBeans, Class<?>... uiClasses) {
     var ctx = new AnnotationConfigApplicationContext();
+    for (Object bean : extraBeans) {
+      @SuppressWarnings("unchecked")
+      var type = (Class<Object>) bean.getClass();
+      ctx.registerBean(type, () -> bean);
+    }
     ctx.registerBean(BeanProvider.class, () -> new ContextBeanProvider(ctx));
     // The adapters normally contribute these platform beans.
     ctx.registerBean(
