@@ -127,6 +127,8 @@ public class FieldTypeMapper {
     }
     if (MetaAnnotations.isPresent(field.getDeclaringClass(), PlainText.class)
         && (String.class.equals(field.getType())
+            || boolean.class.equals(field.getType())
+            || Boolean.class.equals(field.getType())
             || int.class.equals(field.getType())
             || Integer.class.equals(field.getType())
             || long.class.equals(field.getType())
