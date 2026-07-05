@@ -1,11 +1,11 @@
 import {customElement, property, state} from "lit/decorators.js";
-import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
+import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import { interpolate } from './interpolation'
+// side-effect element registrations kept from the previous incarnation of this bar — other
+// templates may rely on this module having registered them
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
 import '@vaadin/tabs'
 import '@vaadin/tabs/vaadin-tab'
 import '@vaadin/text-field'
@@ -13,21 +13,26 @@ import '@vaadin/integer-field'
 import '@vaadin/number-field'
 import "@vaadin/menu-bar"
 import "@vaadin/grid"
+import '@vaadin/popover'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
-import {dialogFooterRenderer, dialogRenderer} from "@vaadin/dialog/lit";
-import {popoverRenderer} from "@vaadin/popover/lit";
-import '@vaadin/popover';
-import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
-import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType";
-import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
-import {ResolvedFiltersLayout, selectFiltersLayout} from "@infra/ui/layout/weightEngine.ts";
 import { badge } from "@vaadin/vaadin-lumo-styles";
 
-
+/**
+ * Smart-search filter bar, after the Redwood Smart Search pattern: ONE search field hosting both
+ * the free-text keyword search and the structured filters. Focusing the field opens a panel
+ * listing the crud's filters (each with a type-specific widget: option list for selects, Yes/No
+ * for booleans, an input for text/number); every applied condition becomes a chip in the bar with
+ * its own remove button; Enter commits the typed text as a keyword chip. Chips add/remove re-run
+ * the search.
+ *
+ * The wire contract with the host crud is unchanged: `value-changed` {fieldId, value} per applied
+ * condition, `search-requested` to run the search, `filter-reset-requested` {fieldIds} on clear
+ * all. Styled with Lumo CSS vars (with fallbacks) so every design system that shares this bar
+ * themes it through its own var overrides.
+ */
 @customElement('mateu-filter-bar')
 export class MateuFilterBar extends LitElement {
-
 
     @property()
     metadata: Crud | undefined
@@ -47,292 +52,255 @@ export class MateuFilterBar extends LitElement {
     @property()
     appData: Record<string, any> = {}
 
+    // Kept for API compatibility with the two crud layout variants: the smart bar already IS a
+    // single search field, so both variants render the same thing.
     @property({ type: Boolean })
     searchOnly = false
 
     @state()
-    filtersOpened = false
+    private panelOpened = false
 
-    protected updated(_changedProperties: PropertyValues) {
-        super.updated(_changedProperties)
-        const btn = this.renderRoot?.querySelector('#filters-toggle-btn')
-        const popover = this.renderRoot?.querySelector('vaadin-popover') as any
-        if (btn && popover && popover.target !== btn) {
-            popover.target = btn
-        }
-    }
+    @state()
+    private activeFilter: FormField | undefined
 
-    private get mainFilters(): FormField[] {
-        return (this.metadata?.filters ?? []).filter(f => f.mainFilter)
-    }
+    // Uncommitted free text (committed text lives in state.searchText, shown as a chip)
+    @state()
+    private draftText = ''
 
-    private get secondaryFilters(): FormField[] {
-        return (this.metadata?.filters ?? []).filter(f => !f.mainFilter)
-    }
-
-    private get effectiveFiltersLayout(): ResolvedFiltersLayout {
-        const raw = this.metadata?.filtersLayout ?? 'auto'
-        if (raw === 'auto') return selectFiltersLayout(this.secondaryFilters)
-        return raw as ResolvedFiltersLayout
-    }
-
-    clickedOnClearFilters = () => {
-        const cleared: Record<string, any> = {}
-        this.metadata?.filters.forEach(filter => {
-            cleared[(filter as unknown as FormField).fieldId] = undefined
-        })
-        cleared['searchText'] = undefined
-        this.state = { ...this.state, ...cleared }
-        this.dispatchEvent(new CustomEvent('filter-reset-requested', {
-            detail: {
-                fieldIds: this.metadata?.filters.map(filter => (filter as unknown as FormField).fieldId)
-            },
-            bubbles: true,
-            composed: true
-        }))
-        this.handleButtonClick()
-    }
-    clickedOnFilters = () => {
-        this.filtersOpened = true
-    }
-
-    clickedOnSearch = () => {
-        this.filtersOpened = false
-        this.handleButtonClick()
-    }
-
-    private handleKey(e: KeyboardEvent) {
-        if (e.code == 'Enter') {
-            this.filtersOpened = false
-            this.handleButtonClick()
-        }
-    }
-
-    connectedCallback() {
-        super.connectedCallback();
-        if (this.metadata?.searchOnEnter) {
-            this.addEventListener('keydown', this.handleKey)
-        }
-    }
+    private outsideClick: ((e: Event) => void) | undefined
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        if (this.metadata?.searchOnEnter) {
-            this.removeEventListener('keydown', this.handleKey)
+        this.detachOutsideClick()
+    }
+
+    private get filters(): FormField[] {
+        return (this.metadata?.filters ?? []) as unknown as FormField[]
+    }
+
+    // ── panel open/close ─────────────────────────────────────────────────────
+
+    private detachOutsideClick() {
+        if (this.outsideClick) {
+            document.removeEventListener('mousedown', this.outsideClick)
+            this.outsideClick = undefined
         }
     }
 
-    valueChanged = (e: CustomEvent) => {
-        const value = e.detail.value
-        if (typeof value === 'number' && Number.isNaN(value)) return
-        const fieldId = (e.target as HTMLElement).id
-        this.dispatchEvent(new CustomEvent('value-changed', {
-            detail: {
-                value,
-                fieldId
-            },
+    private openPanel = () => {
+        if (this.panelOpened || this.filters.length === 0) return
+        this.panelOpened = true
+        this.outsideClick = (e: Event) => {
+            if (!e.composedPath().includes(this)) this.closePanel()
+        }
+        document.addEventListener('mousedown', this.outsideClick)
+    }
+
+    private closePanel = () => {
+        this.detachOutsideClick()
+        this.panelOpened = false
+        this.activeFilter = undefined
+    }
+
+    // ── applying/removing conditions ─────────────────────────────────────────
+
+    private requestSearch() {
+        this.closePanel()
+        this.dispatchEvent(new CustomEvent('search-requested', {
+            detail: {},
             bubbles: true,
             composed: true
         }))
     }
 
-    handleButtonClick = () => {
-        this.dispatchEvent(new CustomEvent('search-requested', {
-            detail: {
-            },
+    private emitValueChanged(fieldId: string, value: unknown) {
+        // local echo so the chips update immediately; the host mirrors it into the crud state
+        this.state = { ...this.state, [fieldId]: value }
+        this.dispatchEvent(new CustomEvent('value-changed', {
+            detail: { value, fieldId },
             bubbles: true,
             composed: true
         }))
+    }
+
+    private applyFilter(fieldId: string, value: unknown) {
+        this.emitValueChanged(fieldId, value)
+        this.requestSearch()
+    }
+
+    private removeChip(fieldId: string) {
+        this.emitValueChanged(fieldId, fieldId === 'searchText' ? '' : undefined)
+        this.requestSearch()
+    }
+
+    private commitText(input: HTMLInputElement) {
+        this.emitValueChanged('searchText', input.value)
+        this.draftText = ''
+        input.value = ''
+        this.requestSearch()
+    }
+
+    private clearAllFilters = () => {
+        const cleared: Record<string, any> = { searchText: undefined }
+        this.filters.forEach(filter => { cleared[filter.fieldId] = undefined })
+        this.state = { ...this.state, ...cleared }
+        this.dispatchEvent(new CustomEvent('filter-reset-requested', {
+            detail: { fieldIds: this.filters.map(filter => filter.fieldId) },
+            bubbles: true,
+            composed: true
+        }))
+        this.requestSearch()
+    }
+
+    // ── filter typing helpers ────────────────────────────────────────────────
+
+    private isBooleanFilter(field: FormField): boolean {
+        return field.dataType === 'boolean' || field.stereotype === 'checkbox' || field.stereotype === 'toggle'
+    }
+
+    private isNumericFilter(field: FormField): boolean {
+        return ['integer', 'decimal', 'number', 'money'].includes(field.dataType ?? '')
+    }
+
+    private hasOptions(field: FormField): boolean {
+        return (field.options?.length ?? 0) > 0
+    }
+
+    private isSet(field: FormField): boolean {
+        const value = this.state[field.fieldId]
+        return value !== undefined && value !== null && value !== '' && !Number.isNaN(value)
     }
 
     private getFilterDisplayValue(field: FormField, value: any): string {
         if (field.options?.length) {
-            const opt = field.options.find(o => o.value === String(value))
-            if (opt) return opt.label
+            const option = field.options.find(o => o.value === String(value))
+            if (option) return option.label ?? option.value
         }
         if (typeof value === 'boolean') return value ? 'Yes' : 'No'
         return String(value)
     }
 
-    private clearFilter(fieldId: string) {
-        this.state = { ...this.state, [fieldId]: undefined }
-        this.dispatchEvent(new CustomEvent('value-changed', {
-            detail: { value: undefined, fieldId },
-            bubbles: true,
-            composed: true
-        }))
-        this.handleButtonClick()
+    private labelOf(field: FormField): string {
+        return interpolate(field.label, this.state, this.data) || field.fieldId
     }
 
-    renderActiveFilterBadges = () => {
-        const active = (this.metadata?.filters ?? [])
-            .map(f => f as unknown as FormField)
-            .filter(field => {
-                const v = this.state[field.fieldId]
-                return v !== undefined && v !== null && v !== '' && !Number.isNaN(v)
-            })
-        if (active.length === 0) return nothing
+    // ── rendering ────────────────────────────────────────────────────────────
+
+    // panel rows preventDefault on mousedown so the search input keeps focus (and the
+    // document-level outside-click handler never sees a click that would close the panel)
+    private keepFocus = (e: Event) => e.preventDefault()
+
+    private panelRow(label: unknown, onPick: () => void, cssClass = 'panel-row'): TemplateResult {
         return html`
-            <div class="active-filters">
-                ${active.map(field => {
-                    const fieldLabel = interpolate(field.label, this.state, this.data)
-                    return html`
-                    <span theme="badge contrast pill" class="active-filter-badge">
-                        <span>${fieldLabel}: ${this.getFilterDisplayValue(field, this.state[field.fieldId])}</span>
-                        <button
-                            class="active-filter-remove"
-                            @click="${() => this.clearFilter(field.fieldId)}"
-                            aria-label="Remove filter"
-                        >✕</button>
-                    </span>
-                `})}
-                <vaadin-button theme="tertiary small" style="margin-left: 0.5rem;" @click="${this.clickedOnClearFilters}">Clear filters</vaadin-button>
-            </div>
-        `
+            <div class="${cssClass}" @mousedown="${this.keepFocus}" @click="${onPick}">${label}</div>`
     }
 
-    private wrapFilter(filter: any): ClientSideComponent {
-        return {
-            id: '',
-            metadata: { ...(filter as unknown as FormField), wantsFocus: true },
-            type: ComponentType.ClientSide,
-            style: '',
-            children: [],
-            slot: '',
-            cssClasses: '',
-            initialData: {},
-            confirmOnNavigationIfDirty: false
-        } as ClientSideComponent
-    }
-
-    private renderFilterControls() {
+    private renderActiveFilterWidget(field: FormField): TemplateResult {
+        if (this.hasOptions(field)) {
+            return html`${field.options!.map(option =>
+                this.panelRow(option.label ?? option.value, () => this.applyFilter(field.fieldId, option.value)))}`
+        }
+        if (this.isBooleanFilter(field)) {
+            return html`
+                ${this.panelRow('Yes', () => this.applyFilter(field.fieldId, true))}
+                ${this.panelRow('No', () => this.applyFilter(field.fieldId, false))}`
+        }
+        const numeric = this.isNumericFilter(field)
+        const apply = (input: HTMLInputElement) => {
+            if (input.value === '') return
+            this.applyFilter(field.fieldId, numeric ? Number(input.value) : input.value)
+        }
         return html`
-            <mateu-event-interceptor .target="${this}">
-                <vaadin-form-layout max-columns="1" @keydown="${this.handleKey}" auto-responsive>
-                    <vaadin-form-row>
-                        ${this.secondaryFilters.map(filter =>
-                            renderComponent(this, this.wrapFilter(filter), this.baseUrl, this.state, this.data, this.appState, this.appData)
-                        )}
-                    </vaadin-form-row>
-                </vaadin-form-layout>
-            </mateu-event-interceptor>`
+            <div class="panel-input-row">
+                <input type="${numeric ? 'number' : 'text'}"
+                       placeholder="${field.placeholder || this.labelOf(field)}"
+                       @mousedown="${(e: Event) => e.stopPropagation()}"
+                       @keydown="${(e: KeyboardEvent) => {
+                           if (e.key === 'Enter') apply(e.target as HTMLInputElement)
+                           if (e.key === 'Escape') this.closePanel()
+                       }}"/>
+                <button class="apply-button"
+                        @mousedown="${this.keepFocus}"
+                        @click="${(e: Event) => apply((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">Apply</button>
+            </div>`
     }
 
-    private renderFilterActionButtons() {
-        return html`
-            <vaadin-button theme="tertiary" @click="${() => { this.filtersOpened = false; this.clickedOnClearFilters() }}">Clear</vaadin-button>
-            <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;">Search</vaadin-button>`
-    }
-
-    renderSearchBar = () => {
-        return html`
-        <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: baseline;">
-            ${this.metadata?.searchable ? html`
-                <vaadin-text-field
-                        id="searchText"
-                        @value-changed="${this.valueChanged}"
-                        .value="${this.state.searchText ?? ''}"
-                        autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
-                        style="flex: 1;"
-                        placeholder="Search..."
-                ></vaadin-text-field>
-            ` : nothing}
-
-            ${this.mainFilters.length > 0 ? html`
-                ${this.mainFilters.map(filter =>
-                    renderComponent(this, this.wrapFilter(filter), this.baseUrl, this.state, this.data, this.appState, this.appData)
-                )}
-            ` : nothing}
-
-            ${this.effectiveFiltersLayout === 'inline' ? html`
-                ${this.secondaryFilters.map(filter =>
-                    renderComponent(this, this.wrapFilter(filter), this.baseUrl, this.state, this.data, this.appState, this.appData)
-                )}
-            ` : nothing}
-
-            ${(this.effectiveFiltersLayout === 'popover' || this.effectiveFiltersLayout === 'drawer' || this.effectiveFiltersLayout === 'dialog')
-                && this.secondaryFilters.length > 0 ? html`
-                <vaadin-button id="filters-toggle-btn" @click="${() => { this.filtersOpened = !this.filtersOpened }}">Filters</vaadin-button>
-            ` : nothing}
-
-            <vaadin-button @click="${() => this.handleButtonClick()}" theme="primary">Search</vaadin-button>
-        </vaadin-horizontal-layout>
-        `
-    }
-
-    /** Popover: Vaadin popover anchored to the Filters button. */
-    private renderPopover() {
-        return html`
-            <vaadin-popover
-                position="bottom-start"
-                .trigger="${([] as string[])}"
-                .opened="${this.filtersOpened}"
-                @opened-changed="${(e: CustomEvent) => { this.filtersOpened = e.detail.value }}"
-                content-width="400px"
-                ${popoverRenderer(() => html`
-                    <div style="padding: var(--lumo-space-m);">
-                        ${this.renderFilterControls()}
-                        <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-end; padding-top: var(--lumo-space-s);">
-                            ${this.renderFilterActionButtons()}
-                        </vaadin-horizontal-layout>
+    private renderPanel(): TemplateResult | typeof nothing {
+        if (!this.panelOpened || this.filters.length === 0) return nothing
+        if (this.activeFilter) {
+            const field = this.activeFilter
+            return html`
+                <div class="panel">
+                    <div class="panel-row panel-header"
+                         @mousedown="${this.keepFocus}"
+                         @click="${() => { this.activeFilter = undefined }}">
+                        <span aria-hidden="true">←</span> ${this.labelOf(field)}
                     </div>
-                `, [this.state])}
-            ></vaadin-popover>`
-    }
-
-    /** Side drawer sliding in from the right. */
-    private renderDrawer() {
+                    ${this.renderActiveFilterWidget(field)}
+                </div>`
+        }
+        const anySet = !!this.state.searchText || this.filters.some(field => this.isSet(field))
         return html`
-            <div class="filter-drawer ${this.filtersOpened ? 'filter-drawer--open' : ''}">
-                <vaadin-horizontal-layout theme="spacing" style="align-items: center; margin-bottom: var(--lumo-space-m);">
-                    <span style="font-size: var(--lumo-font-size-l); font-weight: 600; flex: 1;">Filters</span>
-                    <vaadin-button theme="icon tertiary" @click="${() => this.filtersOpened = false}" aria-label="Close">✕</vaadin-button>
-                </vaadin-horizontal-layout>
-                ${this.renderFilterControls()}
-                <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-end; margin-top: var(--lumo-space-m);">
-                    ${this.renderFilterActionButtons()}
-                </vaadin-horizontal-layout>
-            </div>
-            ${this.filtersOpened ? html`
-                <div class="filter-drawer-overlay" @click="${() => this.filtersOpened = false}"></div>
-            ` : nothing}`
+            <div class="panel">
+                <div class="panel-caption">Filter by</div>
+                ${this.filters.map(field => this.panelRow(html`
+                    ${this.labelOf(field)}
+                    ${this.isSet(field)
+                        ? html`<span class="current-value">${this.getFilterDisplayValue(field, this.state[field.fieldId])}</span>`
+                        : nothing}
+                `, () => { this.activeFilter = field }))}
+                ${anySet ? this.panelRow('Clear filters', this.clearAllFilters, 'panel-row panel-footer') : nothing}
+            </div>`
     }
-
-    /** Modal dialog (existing Vaadin behavior). */
-    renderFiltersDialog = () => html`
-        <vaadin-dialog
-                header-title="Filters"
-                .opened="${this.filtersOpened}"
-                @closed="${() => this.filtersOpened = false}"
-                ${dialogRenderer(() => this.renderFilterControls(), [])}
-                ${dialogFooterRenderer(() => html`
-                    <vaadin-button theme="tertiary" @click="${() => this.filtersOpened = false}">Cancel</vaadin-button>
-                    <vaadin-button theme="primary" @click="${this.clickedOnSearch}" style="margin-left: auto;">Search</vaadin-button>
-                `, [])}
-        ></vaadin-dialog>
-    `
 
     render(): TemplateResult {
-        const layout = this.effectiveFiltersLayout
-
-        if (this.searchOnly) {
-            return html`
-                ${this.metadata?.searchable ? this.renderSearchBar() : nothing}
-                ${this.renderActiveFilterBadges()}
-                ${layout === 'dialog' ? this.renderFiltersDialog() : nothing}
-                ${layout === 'drawer' ? this.renderDrawer() : nothing}
-                ${layout === 'popover' ? this.renderPopover() : nothing}
-            `
+        const chips: { fieldId: string, label: string, display: string }[] = []
+        if (this.state.searchText) {
+            chips.push({ fieldId: 'searchText', label: 'Text', display: String(this.state.searchText) })
         }
-
+        this.filters.forEach(field => {
+            if (this.isSet(field)) {
+                chips.push({
+                    fieldId: field.fieldId,
+                    label: this.labelOf(field),
+                    display: this.getFilterDisplayValue(field, this.state[field.fieldId])
+                })
+            }
+        })
         return html`
-            <vaadin-vertical-layout style="width: 100%; position: relative;">
-                ${this.metadata?.searchable ? this.renderSearchBar() : nothing}
-                ${this.renderActiveFilterBadges()}
-                ${layout === 'popover' ? this.renderPopover() : nothing}
-            </vaadin-vertical-layout>
-            ${layout === 'dialog' ? this.renderFiltersDialog() : nothing}
-            ${layout === 'drawer' ? this.renderDrawer() : nothing}
+            <div class="smart-search">
+                <div class="bar"
+                     @click="${(e: Event) => {
+                         const bar = e.currentTarget as HTMLElement
+                         ;(bar.querySelector('input.free-text') as HTMLInputElement)?.focus()
+                         this.openPanel()
+                     }}">
+                    <svg aria-hidden="true" class="magnifier" width="16" height="16" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>
+                    </svg>
+                    ${chips.map(chip => html`
+                        <span theme="badge contrast pill" class="chip">
+                            <span class="chip-label">${chip.label}:</span> ${chip.display}
+                            <button class="chip-remove" aria-label="Remove filter ${chip.label}"
+                                    @mousedown="${this.keepFocus}"
+                                    @click="${(e: Event) => { e.stopPropagation(); this.removeChip(chip.fieldId) }}">✕</button>
+                        </span>`)}
+                    ${this.metadata?.searchable !== false ? html`
+                        <input class="free-text" type="text" id="searchText"
+                               placeholder="${chips.length === 0 ? 'Search' : ''}"
+                               autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
+                               .value="${this.draftText ?? ''}"
+                               @focus="${this.openPanel}"
+                               @input="${(e: Event) => { this.draftText = (e.target as HTMLInputElement).value }}"
+                               @keydown="${(e: KeyboardEvent) => {
+                                   if (e.key === 'Enter') this.commitText(e.target as HTMLInputElement)
+                                   if (e.key === 'Escape') this.closePanel()
+                               }}"/>
+                    ` : nothing}
+                </div>
+                ${this.renderPanel()}
+            </div>
+            <slot></slot>
         `
     }
 
@@ -341,52 +309,132 @@ export class MateuFilterBar extends LitElement {
         :host {
             width: 100%;
         }
-        .active-filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.25rem;
-            padding: 0.25rem 0;
+        .smart-search {
+            position: relative;
+            padding: var(--lumo-space-xs, 0.25rem) 0;
         }
-        .active-filter-badge {
+        .bar {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            flex-wrap: wrap;
+            background: var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.06));
+            border-radius: var(--lumo-border-radius-m, 0.25rem);
+            padding: 0.3rem 0.6rem;
+            cursor: text;
+        }
+        .bar:focus-within {
+            box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct, rgba(0, 100, 200, 0.5));
+        }
+        .magnifier {
+            flex: none;
+            opacity: 0.6;
+            color: var(--lumo-body-text-color, #1a1a1a);
+        }
+        .chip {
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.3rem;
+            white-space: nowrap;
         }
-        .active-filter-remove {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0 0 0 2px;
-            line-height: 1;
-            font-size: 0.7rem;
-            color: inherit;
+        .chip-label {
             opacity: 0.7;
         }
-        .active-filter-remove:hover {
+        .chip-remove {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.7rem;
+            line-height: 1;
+            padding: 0.1rem 0.2rem;
+            color: inherit;
+            opacity: 0.6;
+        }
+        .chip-remove:hover {
             opacity: 1;
         }
-.filter-drawer {
-            position: fixed;
-            inset: 0 0 0 auto;
-            width: min(360px, 90vw);
-            background: var(--lumo-base-color);
-            box-shadow: var(--lumo-box-shadow-xl);
+        .free-text {
+            flex: 1 1 8rem;
+            min-width: 7rem;
+            border: none;
+            outline: none;
+            background: transparent;
+            font: inherit;
+            font-size: var(--lumo-font-size-m, 1rem);
+            color: var(--lumo-body-text-color, #1a1a1a);
+            padding: 0.25rem 0;
+        }
+        .panel {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 20rem;
+            max-width: 100%;
+            background: var(--lumo-base-color, #fff);
+            border: 1px solid var(--lumo-contrast-20pct, rgba(0, 0, 0, 0.15));
+            border-radius: var(--lumo-border-radius-m, 0.25rem);
+            box-shadow: var(--lumo-box-shadow-m, 0 6px 16px rgba(0, 0, 0, 0.15));
             z-index: 200;
-            padding: var(--lumo-space-l);
+            overflow: hidden;
+            padding: 0.25rem 0;
+        }
+        .panel-caption {
+            padding: 0.35rem 0.75rem;
+            font-size: var(--lumo-font-size-xs, 0.75rem);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.6));
+        }
+        .panel-row {
             display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            transform: translateX(100%);
-            transition: transform 0.2s ease;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.45rem 0.75rem;
+            cursor: pointer;
+            color: var(--lumo-body-text-color, #1a1a1a);
+            font-size: var(--lumo-font-size-s, 0.875rem);
         }
-        .filter-drawer--open {
-            transform: translateX(0);
+        .panel-row:hover {
+            background: var(--lumo-contrast-5pct, rgba(0, 0, 0, 0.04));
         }
-        .filter-drawer-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.32);
-            z-index: 199;
+        .panel-header {
+            font-weight: 600;
+            border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.08));
+        }
+        .panel-footer {
+            border-top: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.08));
+            color: var(--lumo-primary-text-color, rgb(0, 100, 200));
+        }
+        .current-value {
+            margin-left: auto;
+            color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.55));
+            font-size: var(--lumo-font-size-xs, 0.8125rem);
+        }
+        .panel-input-row {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+        }
+        .panel-input-row input {
+            flex: 1;
+            font: inherit;
+            font-size: var(--lumo-font-size-s, 0.875rem);
+            color: var(--lumo-body-text-color, #1a1a1a);
+            background: var(--lumo-base-color, #fff);
+            border: 1px solid var(--lumo-contrast-30pct, rgba(0, 0, 0, 0.3));
+            border-radius: var(--lumo-border-radius-s, 4px);
+            padding: 0.35rem 0.5rem;
+            outline: none;
+        }
+        .apply-button {
+            font: inherit;
+            font-size: var(--lumo-font-size-s, 0.875rem);
+            background: var(--lumo-primary-color, rgb(0, 100, 200));
+            color: var(--lumo-primary-contrast-color, #fff);
+            border: 1px solid transparent;
+            border-radius: var(--lumo-border-radius-s, 4px);
+            padding: 0.35rem 0.75rem;
+            cursor: pointer;
         }
     `
 }
