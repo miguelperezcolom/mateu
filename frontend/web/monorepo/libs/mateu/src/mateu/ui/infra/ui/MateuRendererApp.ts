@@ -5,6 +5,7 @@ import MetadataDrivenElement from '@infra/ui/MetadataDrivenElement'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import {AppVariant} from '@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts'
+import {dirtyGuard} from '@infra/ui/dirtyGuard.ts'
 import MenuOption from '@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts'
 import { upstream } from '@domain/state'
 import Message from '@domain/Message'
@@ -175,6 +176,29 @@ export abstract class MateuRendererApp extends MetadataDrivenElement {
 
     /** Menu navigation — point the inner ux at the chosen menu option. */
     protected navigate(option: MenuOption) {
+        // A LOCAL menu option carries no target-specific serverSideType (or just echoes the
+        // app's own class), so loading it into the content ux makes the server resolve the
+        // route from scratch and answer with a FULL App — booting a nested shell inside the
+        // content area (double chrome, double round-trips). Navigate like a direct URL load
+        // instead: push the URL and re-route the top-level <mateu-ux> (mateu-ui handles
+        // navigate-to-requested), which swaps the whole shell for the target route's own App
+        // with its correct home* metadata. Embedded MEDIATOR shells, remote apps (own baseUrl
+        // or a foreign serverSideType) and action menu entries keep the in-place load.
+        const md = this.appMetadata()
+        if (md?.variant != AppVariant.MEDIATOR
+            && !option.actionId
+            && (!option.baseUrl || option.baseUrl === this.baseUrl)
+            && (!option.serverSideType || option.serverSideType === md?.serverSideType)
+            && option.path != undefined) {
+            if (!dirtyGuard.confirmLeave()) return
+            this.dispatchEvent(new CustomEvent('route-changed', {
+                detail: { route: option.path }, bubbles: true, composed: true,
+            }))
+            this.dispatchEvent(new CustomEvent('navigate-to-requested', {
+                detail: { route: option.path }, bubbles: true, composed: true,
+            }))
+            return
+        }
         this.selectedConsumedRoute = option.consumedRoute
         this.selectedBaseUrl = option.baseUrl
         this.selectedRoute = option.path

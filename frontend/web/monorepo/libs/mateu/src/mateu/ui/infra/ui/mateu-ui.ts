@@ -107,7 +107,8 @@ export class MateuUi extends LitElement {
 
         if (e instanceof CustomEvent) {
             let route = e.detail.route
-            const uxElement = this.shadowRoot?.querySelector('mateu-ux');
+            // renderRoot: works both with a shadow root and with light-DOM renderers.
+            const uxElement = (this.renderRoot as ParentNode).querySelector('mateu-ux');
             if (uxElement) {
 //                uxElement.setAttribute("baseUrl", _baseUrl??this.baseUrl)
 //                uxElement.setAttribute("appServerSideType", appServerSideType??metadata.appServerSideType)

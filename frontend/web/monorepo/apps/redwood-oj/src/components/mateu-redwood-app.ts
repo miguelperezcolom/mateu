@@ -21,6 +21,8 @@ import {
 } from "@infra/ui/renderers/appRenderer.ts";
 import {nanoid} from "nanoid";
 import {MateuApp} from "@infra/ui/mateu-app.ts";
+import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
+import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import {upstream} from "@domain/state";
 import Message from "@domain/Message";
 import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode.js";
@@ -176,6 +178,31 @@ export class MateuRedwoodApp extends MateuApp {
     }
 
     selectRoute = (consumedRoute: string | undefined, route: string | undefined, _actionId: string | undefined, _baseUrl: string | undefined, serverSideType: string | undefined, uriPrefix: string | undefined ) => {
+        // A LOCAL menu option carries no target-specific serverSideType (or just echoes the
+        // app's own class), so loading it into the content ux makes the server resolve the
+        // route from scratch and answer with a FULL App — booting a nested shell inside the
+        // content area (double chrome, double round-trips). Navigate like a direct URL load
+        // instead: push the URL and re-route the top-level <mateu-ux> (mateu-ui handles
+        // navigate-to-requested), which swaps the whole shell for the target route's own App
+        // with its correct home* metadata. Embedded MEDIATOR shells, remote apps (own baseUrl
+        // or a foreign serverSideType) and action menu entries keep the in-place load.
+        {
+            const metadata = (this.component as ClientSideComponent)?.metadata as App
+            if (metadata?.variant != AppVariant.MEDIATOR
+                && !_actionId
+                && (!_baseUrl || _baseUrl === this.baseUrl)
+                && (!serverSideType || serverSideType === metadata?.serverSideType)
+                && route != undefined) {
+                if (!dirtyGuard.confirmLeave()) return
+                this.dispatchEvent(new CustomEvent('route-changed', {
+                    detail: { route }, bubbles: true, composed: true,
+                }))
+                this.dispatchEvent(new CustomEvent('navigate-to-requested', {
+                    detail: { route }, bubbles: true, composed: true,
+                }))
+                return
+            }
+        }
         if (true) {
             this.selectedConsumedRoute = consumedRoute
             this.selectedBaseUrl = _baseUrl
@@ -243,14 +270,19 @@ export class MateuRedwoodApp extends MateuApp {
         this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix)
     }
 
+    // Lit renders an undefined interpolation in attribute position as the literal string
+    // "undefined" — normalize it (and empty) back to undefined before routing decisions.
+    private ds = (value: string | undefined): string | undefined =>
+        value && value !== 'undefined' && value !== 'null' ? value : undefined
+
     tabSelected = (event: CustomEvent, _container: LitElement, _baseUrl: string) => {
         this.selectRoute(
-            event.detail.tab.dataset.consumedRoute,
-        event.detail.tab.dataset.route,
-            event.detail.tab.dataset.actionId,
-        event.detail.tab.dataset.baseUrl,
-        event.detail.tab.dataset.serverSideType,
-        event.detail.tab.dataset.uriPrefix // faltan los params
+            this.ds(event.detail.tab.dataset.consumedRoute),
+        this.ds(event.detail.tab.dataset.route),
+            this.ds(event.detail.tab.dataset.actionId),
+        this.ds(event.detail.tab.dataset.baseUrl),
+        this.ds(event.detail.tab.dataset.serverSideType),
+        this.ds(event.detail.tab.dataset.uriPrefix) // faltan los params
         )
     }
 
@@ -266,13 +298,29 @@ export class MateuRedwoodApp extends MateuApp {
         const item = this.renderRoot.querySelector('[data-path = "' + event.detail.value + '"]') as HTMLElement
         if (item) {
             this.selectRoute(
-                item.dataset.consumedRoute,
-                item.dataset.route,
-                item.dataset.actionId,
-                item.dataset.baseUrl,
-                item.dataset.serverSideType,
-                item.dataset.uriPrefix // faltan los params
+                this.ds(item.dataset.consumedRoute),
+                this.ds(item.dataset.route),
+                this.ds(item.dataset.actionId),
+                this.ds(item.dataset.baseUrl),
+                this.ds(item.dataset.serverSideType),
+                this.ds(item.dataset.uriPrefix) // faltan los params
             )
+            return
+        }
+        // The TABS variant renders no [data-path] elements (oj-c-tab-bar builds its tabs from
+        // data objects) — resolve the clicked option from the app metadata instead.
+        const find = (options: MenuOption[] | undefined): MenuOption | undefined => {
+            for (const option of options ?? []) {
+                if (option.route === event.detail.value || option.path === event.detail.value) return option
+                const sub = find(option.submenus)
+                if (sub) return sub
+            }
+            return undefined
+        }
+        const option = find(_metadata?.menu)
+        if (option) {
+            this.selectRoute(option.consumedRoute, option.route, option.actionId,
+                option.baseUrl, option.serverSideType, option.uriPrefix)
         } else {
             console.error('No item found for selected route', event.detail.value)
         }
@@ -574,11 +622,11 @@ export class MateuRedwoodApp extends MateuApp {
 
                                             data-path="${menu.path}"
                                             data-route="${menu.route}"
-                                            data-consumedroute="${menu.consumedRoute}"
-                                            data-actionid="${menu.actionId}"
-                                            data-serversidetype="${menu.serverSideType}"
-                                            data-uriprefix="${menu.uriPrefix}"
-                                            data-baseurl="${menu.baseUrl}"
+                                            data-consumed-route="${menu.consumedRoute}"
+                                            data-action-id="${menu.actionId}"
+                                            data-server-side-type="${menu.serverSideType}"
+                                            data-uri-prefix="${menu.uriPrefix}"
+                                            data-base-url="${menu.baseUrl}"
                                             .data-params="${menu.params}"
                                             
                                             id="${menu.path}"><a href="#"
@@ -590,11 +638,11 @@ export class MateuRedwoodApp extends MateuApp {
                                                 <li
                                                         data-path="${sub.path}"
                                                         data-route="${sub.route}"
-                                                        data-consumedroute="${sub.consumedRoute}"
-                                                        data-actionid="${sub.actionId}"
-                                                        data-serversidetype="${sub.serverSideType}"
-                                                        data-uriprefix="${sub.uriPrefix}"
-                                                        data-baseurl="${sub.baseUrl}"
+                                                        data-consumed-route="${sub.consumedRoute}"
+                                                        data-action-id="${sub.actionId}"
+                                                        data-server-side-type="${sub.serverSideType}"
+                                                        data-uri-prefix="${sub.uriPrefix}"
+                                                        data-base-url="${sub.baseUrl}"
                                                         .data-params="${sub.params}"
                                                         
                                                         id="${sub.path}"><a href="#">${sub.label}</a></li>
