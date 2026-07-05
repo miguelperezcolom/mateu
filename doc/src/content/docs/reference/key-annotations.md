@@ -180,6 +180,55 @@ Use it when the Java type is not enough to express how the field should be rende
 
 ---
 
+## `@UseRadioButtons`
+
+Renders an enum field as radio buttons instead of the default dropdown, regardless of how many
+constants the enum has. Equivalent to `@Stereotype(FieldStereotype.radio)`, but self-documenting
+on the field.
+
+```java
+@UseRadioButtons
+Weekday deliveryDay;
+```
+
+> Under [`@AutoLayout`](#autolayout), enums with up to 4 constants get radio buttons automatically —
+> use `@UseRadioButtons` to force them on larger enums or on classes without inference.
+
+---
+
+## `@AutoLayout`
+
+Lets Mateu **infer the UX patterns** of a form from the amount and structure of the declared
+information, so the class only declares the data and Mateu decides how to present it. Inference is
+deterministic (based on the declared structure, never on runtime data) and only fills the gaps the
+developer left open — every explicit layout annotation (`@Section`, `@Tab`, `@Zones`,
+`@FoldedLayout`, `@Toc`, `@Stereotype`, `@UseRadioButtons`…) always wins.
+
+```java
+@UI("/customers/new")
+@AutoLayout
+public class NewCustomerForm { ... }   // just declare the fields
+```
+
+Current rules:
+
+- **Fold optionals** — a heavy editable form with no declared grouping keeps its required fields
+  visible and collapses the optional ones into a "More options" panel.
+- **Sections → tabs** — a read-only view with many substantial sections is presented as tabs
+  (marked `adaptable`, so renderers may degrade them to an accordion on narrow viewports); a sticky
+  section or an explicit `@Toc` disables this.
+- **Small enums → radio buttons** — enums with up to 4 constants render as radios.
+
+### Key fields
+
+- `value()` — `@AutoLayout(false)` opts a class out when inference is enabled globally via the
+  `mateu.layout.inference` system property.
+
+See [Layout inference](/ux-patterns/layout-inference/) for the full rules, thresholds and wire
+semantics.
+
+---
+
 ## `@OnRowSelected`
 
 Binds row selection of a grid field (a `List` field rendered with `@Stereotype(FieldStereotype.grid)`)

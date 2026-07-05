@@ -93,6 +93,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/sections-index', label: 'Sticky Sections Index' },
 						{ slug: 'ux-patterns/editable-table', label: 'Editable Table' },
 						{ slug: 'ux-patterns/inline-crud-editing', label: 'Inline Editing in Listings' },
+						{ slug: 'ux-patterns/layout-inference', label: 'Layout Inference' },
 					],
 				},
 				{
