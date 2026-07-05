@@ -11,7 +11,10 @@ import io.mateu.uidl.data.AppData;
 import io.mateu.uidl.data.AppState;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.PageBanner;
+import io.mateu.uidl.data.PageBanners;
 import io.mateu.uidl.data.State;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.App;
@@ -21,6 +24,8 @@ import io.mateu.uidl.interfaces.Page;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URI;
+import java.net.URL;
 
 public final class ViewTypeClassifier {
 
@@ -42,6 +47,14 @@ public final class ViewTypeClassifier {
     if (instance instanceof State) return false;
     if (instance instanceof AppData) return false;
     if (instance instanceof AppState) return false;
+    // action-result payloads (same exclusions as FragmentListMapper) — never pages;
+    // UICommand is a record, so without this it fell through to isRecord() and its
+    // toString() ended up as the window title
+    if (instance instanceof UICommand) return false;
+    if (instance instanceof PageBanner) return false;
+    if (instance instanceof PageBanners) return false;
+    if (instance instanceof URI) return false;
+    if (instance instanceof URL) return false;
     if (route != null && (route.endsWith("_page") || route.endsWith("_no_home_route"))) {
       return true;
     }

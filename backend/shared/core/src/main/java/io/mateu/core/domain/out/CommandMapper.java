@@ -32,25 +32,29 @@ public class CommandMapper {
               httpRequest.getAttribute("updateUrl")));
     }
 
-    if (httpRequest.getAttribute("windowTitle") != null) {
-      result.add(
-          new UICommandDto(
-              targetComponentId,
-              UICommandTypeDto.SetWindowTitle,
-              httpRequest.getAttribute("windowTitle")));
-    }
-
-    if (isPage(instance, httpRequest.runActionRq().route())) {
-      if (httpRequest.getAttribute("windowTitle") == null) {
-        result.add(
-            new UICommandDto(
-                targetComponentId, UICommandTypeDto.SetWindowTitle, getTitle(instance)));
-      } else {
+    // an embedded mediator island is not the window — its (often suppressed/empty) title must
+    // not clobber the host page's tab title
+    if (!isEmbeddedMediatorRequest(httpRequest)) {
+      if (httpRequest.getAttribute("windowTitle") != null) {
         result.add(
             new UICommandDto(
                 targetComponentId,
                 UICommandTypeDto.SetWindowTitle,
                 httpRequest.getAttribute("windowTitle")));
+      }
+
+      if (isPage(instance, httpRequest.runActionRq().route())) {
+        if (httpRequest.getAttribute("windowTitle") == null) {
+          result.add(
+              new UICommandDto(
+                  targetComponentId, UICommandTypeDto.SetWindowTitle, getTitle(instance)));
+        } else {
+          result.add(
+              new UICommandDto(
+                  targetComponentId,
+                  UICommandTypeDto.SetWindowTitle,
+                  httpRequest.getAttribute("windowTitle")));
+        }
       }
     }
 
@@ -78,6 +82,17 @@ public class CommandMapper {
               .toList());
     }
     return result;
+  }
+
+  // same marker check as EditableView.isEmbedded / EmbeddedOrchestratorFieldBuilder
+  private static boolean isEmbeddedMediatorRequest(HttpRequest httpRequest) {
+    var rq = httpRequest.runActionRq();
+    if (rq == null) {
+      return false;
+    }
+    return (rq.route() != null && rq.route().contains("_embeddedMediator"))
+        || (rq.serverSideComponentRoute() != null
+            && rq.serverSideComponentRoute().contains("_embeddedMediator"));
   }
 
   private static UICommandDto mapCommand(String targetComponentId, UICommand command) {

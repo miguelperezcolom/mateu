@@ -161,7 +161,8 @@ public class TriggerMapper {
           .actionId(onLoadTrigger.actionId())
           .condition(onLoadTrigger.condition())
           .timeoutMillis(onLoadTrigger.timeoutMillis())
-          .timeoutMillis(onLoadTrigger.timeoutMillis())
+          // was a duplicated .timeoutMillis(...) — times never reached the wire (always 0)
+          .times(onLoadTrigger.times())
           .build();
     }
     throw new RuntimeException("not supported trigger: " + trigger.getClass().getName());
