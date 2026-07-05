@@ -44,7 +44,8 @@ public final class TestMateu implements AutoCloseable {
     for (Object bean : extraBeans) {
       @SuppressWarnings("unchecked")
       var type = (Class<Object>) bean.getClass();
-      ctx.registerBean(type, () -> bean);
+      // primary, so a fake can override a scanned default implementing the same port
+      ctx.registerBean(type, () -> bean, bd -> bd.setPrimary(true));
     }
     ctx.registerBean(BeanProvider.class, () -> new ContextBeanProvider(ctx));
     // The adapters normally contribute these platform beans.
