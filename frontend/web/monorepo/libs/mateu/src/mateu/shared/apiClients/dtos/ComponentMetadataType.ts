@@ -43,6 +43,7 @@ export enum ComponentMetadataType {
     CookieConsent = "CookieConsent",
     Details = "Details",
     Dialog = "Dialog",
+    Drawer = "Drawer",
     Image = "Image",
     Map = "Map",
     Markdown = "Markdown",

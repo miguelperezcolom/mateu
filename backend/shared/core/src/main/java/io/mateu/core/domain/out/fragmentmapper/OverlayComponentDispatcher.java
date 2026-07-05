@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.CookieConsentMappe
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CustomFieldMapper.mapCustomFieldToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DetailsMapper.mapDetailsToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.DialogMapper.mapDialogToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.DrawerMapper.mapDrawerToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MessageInputMapper.mapMessageInputToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MessageListMapper.mapMessageListToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.NotificationMapper.mapNotificationToDto;
@@ -44,6 +45,10 @@ final class OverlayComponentDispatcher {
     if (component instanceof Dialog dialog) {
       return mapDialogToDto(
           dialog, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof Drawer drawer) {
+      return mapDrawerToDto(
+          drawer, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Notification notification) {
       return mapNotificationToDto(notification);

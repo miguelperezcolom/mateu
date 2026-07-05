@@ -55,6 +55,7 @@ import './mateu-cookie-consent'
 import './mateu-ux'
 import './mateu-event-interceptor'
 import './mateu-dialog'
+import './mateu-drawer'
 import './mateu-page'
 import './mateu-chat'
 import ComponentElement from "@infra/ui/ComponentElement";

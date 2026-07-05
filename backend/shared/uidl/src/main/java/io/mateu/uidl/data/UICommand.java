@@ -20,6 +20,27 @@ public record UICommand(UICommandType type, Object data) {
     return new UICommand(UICommandType.DispatchEvent, new CustomEvent(eventName, payload));
   }
 
+  /** Closes the topmost open overlay (dialog or drawer). */
+  public static UICommand closeModal() {
+    return new UICommand(UICommandType.CloseModal, null);
+  }
+
+  /**
+   * Closes the topmost open overlay and emits {@code eventName} so the host page can react (e.g.
+   * reload itself) via {@code @SubscribeTo}.
+   */
+  public static UICommand closeModal(String eventName) {
+    return new UICommand(UICommandType.CloseModal, new CustomEvent(eventName, null));
+  }
+
+  /**
+   * Closes the topmost open overlay and emits {@code eventName} carrying {@code payload} as its
+   * detail — the way to return a result (e.g. the selected or saved record) to the host page.
+   */
+  public static UICommand closeModal(String eventName, Object payload) {
+    return new UICommand(UICommandType.CloseModal, new CustomEvent(eventName, payload));
+  }
+
   public static UICommand runAction(String actionId) {
     return new UICommand(UICommandType.RunAction, Map.of("actionId", actionId));
   }

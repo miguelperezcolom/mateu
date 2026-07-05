@@ -114,6 +114,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.TabLayout,
     ComponentMetadataType.AccordionLayout,
     ComponentMetadataType.Dialog,
+    ComponentMetadataType.Drawer,
     ComponentMetadataType.ConfirmDialog,
     ComponentMetadataType.Grid,
     ComponentMetadataType.Table,

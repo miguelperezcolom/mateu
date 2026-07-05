@@ -38,6 +38,7 @@ import { renderConfirmDialog } from "@infra/ui/renderers/confirmDialogRenderer";
 import { renderCookieConsent } from "@infra/ui/renderers/cookieConsentRenderer";
 import { renderDetails } from "@infra/ui/renderers/detailsRenderer";
 import { renderDialog } from "@infra/ui/renderers/dialogRenderer";
+import { renderDrawer } from "@infra/ui/renderers/drawerRenderer";
 import { renderMicroFrontend } from "@infra/ui/renderers/microFrontendRenderer";
 import { renderMarkdown } from "@infra/ui/renderers/markdownRenderer";
 import { renderNotification } from "@infra/ui/renderers/notificationrenderer";
@@ -245,6 +246,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.CookieConsent]: ({ component }) => renderCookieConsent(component),
     [ComponentMetadataType.Details]: full(renderDetails),
     [ComponentMetadataType.Dialog]: ({ component, baseUrl, state, data, appState, appData }) => renderDialog(component, baseUrl, state, data, appState, appData),
+    [ComponentMetadataType.Drawer]: ({ component, baseUrl, state, data, appState, appData }) => renderDrawer(component, baseUrl, state, data, appState, appData),
     [ComponentMetadataType.Image]: ({ component }) => renderImage(component),
     [ComponentMetadataType.Map]: ({ component }) => renderMap(component),
     [ComponentMetadataType.Markdown]: ({ component }) => renderMarkdown(component),

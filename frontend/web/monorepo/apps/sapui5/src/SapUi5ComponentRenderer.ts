@@ -139,6 +139,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Image,
     ComponentMetadataType.Anchor,
     ComponentMetadataType.Dialog,
+    ComponentMetadataType.Drawer,
     ComponentMetadataType.ConfirmDialog,
     ComponentMetadataType.Avatar,
     ComponentMetadataType.AvatarGroup,

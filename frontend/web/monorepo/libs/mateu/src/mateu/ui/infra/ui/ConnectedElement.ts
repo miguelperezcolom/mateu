@@ -166,29 +166,11 @@ export default abstract class ConnectedElement extends LitElement {
             this.changeFavicon(command.data as string)
         }
         if ('DispatchEvent' == command.type) {
-            const data = command.data as {
+            this.dispatchNamedEvent(command.data as {
                 eventName: string
                 payload?: unknown
                 detail?: unknown
-            }
-            if (data && data.eventName) {
-                // Stamp the emitting component's logical source name so that COMPONENT-scoped
-                // subscribers (@SubscribeTo(source = COMPONENT, from = ...)) can filter by origin.
-                // Falls back to the server-side type when @Emits(name=...) is not set. Only added to
-                // object payloads, so legacy events with null/primitive detail keep their exact shape.
-                const emitter = (this as any).component as
-                    { emitsName?: string, serverSideType?: string } | undefined
-                const source = emitter?.emitsName ?? emitter?.serverSideType
-                let detail = data.payload ?? data.detail
-                if (source && detail && typeof detail === 'object') {
-                    detail = { ...detail as object, __source: source }
-                }
-                this.dispatchEvent(new CustomEvent(data.eventName, {
-                    detail,
-                    bubbles: true,
-                    composed: true
-                }))
-            }
+            })
         }
         if ('NavigateTo' == command.type) {
             const destination = command.data as string
@@ -296,6 +278,9 @@ export default abstract class ConnectedElement extends LitElement {
         }
         if ('CloseModal' == command.type) {
             this.closeModal()
+            // closeModal(eventName[, payload]) also emits the named event, so the host page can
+            // react via @SubscribeTo — refresh itself or receive the overlay's result.
+            this.dispatchNamedEvent(command.data as { eventName: string, payload?: unknown, detail?: unknown })
         }
         if ('AddContentToHead' == command.type) {
             const data = command.data as Element
@@ -344,16 +329,40 @@ export default abstract class ConnectedElement extends LitElement {
             return element
     }
 
+    // Shared by DispatchEvent and CloseModal(eventName): emit a named DOM custom event.
+    // Stamps the emitting component's logical source name so that COMPONENT-scoped
+    // subscribers (@SubscribeTo(source = COMPONENT, from = ...)) can filter by origin.
+    // Falls back to the server-side type when @Emits(name=...) is not set. Only added to
+    // object payloads, so legacy events with null/primitive detail keep their exact shape.
+    private dispatchNamedEvent(data: { eventName: string, payload?: unknown, detail?: unknown } | undefined) {
+        if (data && data.eventName) {
+            const emitter = (this as any).component as
+                { emitsName?: string, serverSideType?: string } | undefined
+            const source = emitter?.emitsName ?? emitter?.serverSideType
+            let detail = data.payload ?? data.detail
+            if (source && detail && typeof detail === 'object') {
+                detail = { ...detail as object, __source: source }
+            }
+            this.dispatchEvent(new CustomEvent(data.eventName, {
+                detail,
+                bubbles: true,
+                composed: true
+            }))
+        }
+    }
+
     closeModal = () => {
-        const dialogs = this.shadowRoot?.querySelectorAll('mateu-dialog')
-        if (dialogs && dialogs.length > 0) {
-            dialogs[dialogs.length - 1].close()
+        // Overlays (dialogs and drawers) are appended to the initiator's shadow root in opening
+        // order, so the last one in DOM order is the top of the stack.
+        const overlays = this.shadowRoot?.querySelectorAll('mateu-dialog, mateu-drawer')
+        if (overlays && overlays.length > 0) {
+            (overlays[overlays.length - 1] as unknown as { close: () => void }).close()
             return
         }
-        // No dialog lives in our own shadow root: we are a component embedded INSIDE the
-        // dialog (e.g. a selectable grid returned as the dialog content). Bubble a close
-        // request up — the mateu-event-interceptor that wraps the dialog content forwards
-        // it to the dialog owner, whose closeModal() does find the dialog and closes it.
+        // No overlay lives in our own shadow root: we are a component embedded INSIDE the
+        // overlay (e.g. a selectable grid returned as the dialog content). Bubble a close
+        // request up — the mateu-event-interceptor that wraps the overlay content forwards
+        // it to the overlay owner, whose closeModal() does find the overlay and closes it.
         this.dispatchEvent(new CustomEvent('close-modal-requested', { bubbles: true, composed: true }))
     }
 

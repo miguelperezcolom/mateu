@@ -7,6 +7,7 @@ import static io.mateu.core.infra.JsonSerializer.toJson;
 import io.mateu.core.infra.declarative.FormViewModel;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DialogDto;
+import io.mateu.dtos.DrawerDto;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import java.util.Collection;
@@ -21,14 +22,17 @@ final class FragmentDataSerializer {
         fragment.component(),
         toMap(fragment.state()),
         toMap(fragment.data()),
-        isDialog(fragment) ? UIFragmentActionDto.Add : UIFragmentActionDto.Replace,
+        isOverlay(fragment) ? UIFragmentActionDto.Add : UIFragmentActionDto.Replace,
         fragment.containerId());
   }
 
-  private static boolean isDialog(UIFragmentDto fragment) {
+  // Overlays (dialogs, drawers) are ADDED on top of the initiator component instead of
+  // replacing its content, so the page underneath stays alive while the overlay is open.
+  private static boolean isOverlay(UIFragmentDto fragment) {
     return fragment.component() != null
         && fragment.component() instanceof ClientSideComponentDto
-        && ((ClientSideComponentDto) fragment.component()).metadata() instanceof DialogDto;
+        && (((ClientSideComponentDto) fragment.component()).metadata() instanceof DialogDto
+            || ((ClientSideComponentDto) fragment.component()).metadata() instanceof DrawerDto);
   }
 
   @SneakyThrows
