@@ -141,10 +141,15 @@ export abstract class MateuRendererApp extends MetadataDrivenElement {
                 const innerUx = (this.renderRoot as ParentNode)?.querySelector('#' + this.contentUxId) as any
                 const innerConsumedRoute = innerUx?.consumedRoute && innerUx.consumedRoute !== '_empty' ? innerUx.consumedRoute : ''
                 const effectiveConsumedRoute = componentRoute || this.selectedConsumedRoute || innerConsumedRoute || md?.homeConsumedRoute || ''
-                this.selectedConsumedRoute = effectiveConsumedRoute
                 const newRoute = effectiveConsumedRoute + relRoute
                 this.lastActionInitiatorComponentId = undefined
                 if (newRoute !== this.selectedRoute) {
+                    // Assign selectedConsumedRoute only when actually re-routing: it is reactive,
+                    // and setting it on a no-op fragment (e.g. the App echo after a menu click)
+                    // changes the inner ux's consumedRoute property, firing a spurious extra load
+                    // with the app's own serverSideType — which the server answers "Not found",
+                    // wiping the just-rendered content (menu navigation from /checkin/:id).
+                    this.selectedConsumedRoute = effectiveConsumedRoute
                     this.selectedRoute = newRoute
                     if (this.lastActionServerSideType) this.selectedServerSideType = this.lastActionServerSideType
                     // chooseRoute() gives the app state's _route precedence over selectedRoute, so a
