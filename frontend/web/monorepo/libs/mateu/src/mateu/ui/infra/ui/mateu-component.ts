@@ -747,9 +747,23 @@ export class MateuComponent extends ComponentElement {
     // Select a tab whose @Tab(shortcut=...) matches the keystroke. The shortcut travels in the
     // DOM as data-shortcut on each <vaadin-tab>, so this is a pure DOM lookup scoped to this
     // component's render root (nested mateu-components keep their own tabs in their own shadow root).
+    private _collectShortcutTabs(): HTMLElement[] {
+        const root = this.renderRoot
+        if (!root) return []
+        const tabs = Array.from(root.querySelectorAll('vaadin-tab[data-shortcut]')) as HTMLElement[]
+        // Tabs rendered inside an overlay (drawer/dialog) live behind the overlay's own shadow root,
+        // which querySelectorAll does not pierce — collect those too so tab shortcuts work when the
+        // tab strip is inside a drawer or dialog opened by this component.
+        root.querySelectorAll('mateu-drawer, mateu-dialog').forEach(overlay => {
+            const sr = (overlay as HTMLElement).shadowRoot
+            if (sr) tabs.push(...(Array.from(sr.querySelectorAll('vaadin-tab[data-shortcut]')) as HTMLElement[]))
+        })
+        return tabs
+    }
+
     private _handleTabShortcut(e: KeyboardEvent): boolean {
-        const tabEls = this.renderRoot?.querySelectorAll('vaadin-tab[data-shortcut]')
-        if (!tabEls || tabEls.length === 0) return false
+        const tabEls = this._collectShortcutTabs()
+        if (tabEls.length === 0) return false
         for (const tabEl of Array.from(tabEls)) {
             const shortcut = (tabEl as HTMLElement).dataset.shortcut
             if (!shortcut || !this._shortcutMatchesEvent(shortcut, e)) continue

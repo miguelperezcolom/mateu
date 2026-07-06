@@ -21,7 +21,8 @@ for the sibling implementation.
 - **App shell** — `@app` + a menu from `@menu_item` methods + route navigation.
 - **Wizards** — `Wizard` base, `Step(n)` fields, progress + Back/Next, state round-trip.
 - **Decorations** — `@subtitle`, `@banner`, `HeaderBadge`.
-- **Tail features** — `Tab` → tab strip; field stereotypes (`Multiline`, `Password`, `Money`,
+- **Tail features** — `Tab` → tab strip (`Tab("Name", open=True)` makes that tab the one selected on
+  first render instead of the first-declared one); field stereotypes (`Multiline`, `Password`, `Money`,
   `PlainText`, `Stereotype`); `LinkTo(href, icon, title, target)` → a nav-link icon on the field
   (href/title travel as raw `${...}` templates, interpolated client-side; implement `LinkSupplier`
   on the view for programmatic links — it wins, `None` falls back to the marker); `@kpi` → KPI

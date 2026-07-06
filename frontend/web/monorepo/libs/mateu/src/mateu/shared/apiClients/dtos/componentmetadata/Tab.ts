@@ -6,4 +6,7 @@ export default interface Tab extends ComponentMetadata {
 
     shortcut?: string
 
+    /** When true this tab is the one selected when the strip first renders. */
+    active?: boolean
+
 }

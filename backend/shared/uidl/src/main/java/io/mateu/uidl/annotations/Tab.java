@@ -20,4 +20,11 @@ public @interface Tab {
    * alt}, {@code shift}, {@code meta}) and the key. Empty means no shortcut.
    */
   String shortcut() default "";
+
+  /**
+   * When {@code true} this tab is the one selected when its tab strip first renders (instead of the
+   * default first tab). If several tabs in the same strip declare {@code open=true}, the first one
+   * wins. Independent of {@link #shortcut()}, which only selects the tab on demand.
+   */
+  boolean open() default false;
 }

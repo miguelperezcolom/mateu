@@ -176,6 +176,7 @@ class FormLayoutBuilder {
                               io.mateu.uidl.data.Tab.builder()
                                   .label(getTabName(pair))
                                   .shortcut(pair.first().shortcut())
+                                  .active(pair.first().open())
                                   .content(
                                       TabFormLayoutBuilder.toFormLayout(
                                           new TabFields(

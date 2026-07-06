@@ -81,6 +81,27 @@ Tabs are grouped by consecutive fields that share the same `@Tab` name. Avoid pu
 splits the form into several separate one-tab strips.
 :::
 
+### Default open tab — `@Tab(open = true)`
+
+By default the first declared tab is selected when the strip first renders. Mark a different tab
+with `open = true` to have it be the one shown initially instead:
+
+```java
+@Tab(value = "Customer", shortcut = "alt+1")
+String customer;
+
+@Tab(value = "Items", shortcut = "alt+2", open = true)   // ← selected on first render
+String items;
+
+@Tab(value = "Billing", shortcut = "alt+3")
+String billing;
+```
+
+`open` is independent of `shortcut`: the shortcut selects the tab on demand, `open` only sets the
+initial selection. If several tabs in the same strip declare `open = true`, the first one wins.
+Useful when the most relevant tab isn't the first — e.g. a detail drawer whose most-used section
+should be front and center as soon as it opens.
+
 ### Section index shortcuts — `@Toc`
 
 On a long page with a [sticky sections index](/ux-patterns/sections-index/), `Ctrl+Alt+1..9` jump to

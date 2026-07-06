@@ -20,6 +20,7 @@ public class TabMapper {
     var metadataDto =
         TabDto.builder()
             .label(tab.label())
+            .active(tab.active())
             .shortcut(tab.shortcut() == null || tab.shortcut().isEmpty() ? null : tab.shortcut())
             .build();
     return new ClientSideComponentDto(

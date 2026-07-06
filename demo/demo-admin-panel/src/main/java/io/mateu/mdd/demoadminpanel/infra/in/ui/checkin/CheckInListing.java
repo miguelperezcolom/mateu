@@ -56,7 +56,8 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
                         .actions(new ColumnActionGroup(new ColumnAction[]{
                                 new ColumnAction("checkin", "Check-in"),
                                 new ColumnAction("checkinV2", "Check-in v2"),
-                                new ColumnAction("checkinV3", "Check-in v3")
+                                new ColumnAction("checkinV3", "Check-in v3"),
+                                new ColumnAction("checkinV4", "Check-in v4")
                         }))
                         .build())
                 .toList();
@@ -74,5 +75,9 @@ public class CheckInListing extends Listing<CheckInFilters, CheckInRow> {
 
     public Object checkinV3(CheckInRow row) {
         return io.mateu.uidl.data.UICommand.navigateTo("/checkin/" + row.id() + "/v3");
+    }
+
+    public Object checkinV4(CheckInRow row) {
+        return io.mateu.uidl.data.UICommand.navigateTo("/checkin/" + row.id() + "/v4");
     }
 }

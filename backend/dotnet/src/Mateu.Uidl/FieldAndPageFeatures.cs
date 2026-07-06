@@ -6,6 +6,10 @@ namespace Mateu.Uidl;
 public sealed class TabAttribute(string name) : Attribute
 {
     public string Name { get; } = name;
+
+    /// <summary>When true this tab is the one selected when its strip first renders (instead of the
+    /// default first tab). If several tabs in the same strip set it, the first one wins.</summary>
+    public bool Open { get; init; }
 }
 
 /// <summary>Sets a field stereotype explicitly (textarea, password, money, plainText, …).</summary>

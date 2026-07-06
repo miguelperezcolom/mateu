@@ -16,7 +16,8 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   page decorations (`[Subtitle]`, `[Banner]`, `[HeaderBadge]`); **i18n** (`ITranslator`); **events**
 >   (`[Emits]` → `emitsName`, `[SubscribeTo]` → OnCustomEvent trigger); **security** scaffolding
 >   (`[Secured]`, app login URLs).
-> - **Tail features** — `[Tab]` (fields grouped into a `TabLayout`); field stereotypes (`[Multiline]`
+> - **Tail features** — `[Tab]` (fields grouped into a `TabLayout`; `[Tab("Name", Open = true)]` makes
+>   that tab the one selected on first render instead of the first-declared one); field stereotypes (`[Multiline]`
 >   → textarea, `[Password]`, `[Money]` → `money` dataType, `[PlainText]` field/class → read-only text,
 >   `[Stereotype("…")]`); `[LinkTo(href, Icon=…, Title=…, Target=…)]` → a nav-link icon on the field
 >   (href/title travel as raw `${...}` templates, interpolated client-side; implement `ILinkSupplier`

@@ -158,7 +158,8 @@ class AutoDevTabsForm:
 @title("Dev tabs off")
 class PlainDevTabsForm:
     first: Annotated[str, Tab("Uno")] = "1"
-    second: Annotated[str, Tab("Dos")] = "2"
+    # open=True → this tab is selected when the strip first renders, not the first-declared one.
+    second: Annotated[str, Tab("Dos", open=True)] = "2"
 
 
 MODULE = sys.modules[__name__]
@@ -298,3 +299,10 @@ def test_developer_tabs_without_auto_layout_carry_semantics_but_are_not_adaptabl
     (tab_layout,) = all_metadata(component_tree(PlainDevTabsForm), "TabLayout")
     assert tab_layout["metadata"]["adaptable"] is False
     assert tab_layout["metadata"]["groupRelationship"] == "alternative"
+
+
+def test_tab_marked_open_is_active_on_the_wire_and_others_are_not():
+    (tab_layout,) = all_metadata(component_tree(PlainDevTabsForm), "TabLayout")
+    active = [t["metadata"]["active"] for t in tab_layout["children"]]
+    # "Dos" declares Tab(open=True) → active; the first tab ("Uno") is no longer the default.
+    assert active == [False, True]

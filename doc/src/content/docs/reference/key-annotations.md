@@ -650,6 +650,7 @@ These are also part of the public DSL and are worth knowing:
 - `@SplitLayout`
 - `@Accordion`
 - `@Tabs`
+- `@Tab` — group fields into a tab (`value` = label; `shortcut` = keyboard shortcut to select it; `open = true` makes it the tab selected on first render instead of the first-declared one); see [Keyboard shortcuts](/ux-patterns/keyboard-shortcuts/)
 
 ## Mental model
 

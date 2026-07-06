@@ -112,7 +112,8 @@ public class AutoDevTabsForm
 public class PlainDevTabsForm
 {
     [Tab("Uno")] public string? First { get; set; } = "1";
-    [Tab("Dos")] public string? Second { get; set; } = "2";
+    // Open=true → this tab is selected when the strip first renders, not the first-declared one.
+    [Tab("Dos", Open = true)] public string? Second { get; set; } = "2";
 }
 
 // ── Tests (mirrors the Java LayoutInferenceSyncTest assertions) ───────────────
@@ -260,6 +261,16 @@ public class LayoutInferenceTests
 
         Assert.False(metadata.GetProperty("adaptable").GetBoolean());
         Assert.Equal("alternative", metadata.GetProperty("groupRelationship").GetString());
+    }
+
+    [Fact]
+    public void Tab_marked_open_is_active_on_the_wire_and_others_are_not()
+    {
+        var tabLayout = ComponentOfType(RenderView(typeof(PlainDevTabsForm)), "TabLayout")!;
+        var active = tabLayout.Value.GetProperty("children").EnumerateArray()
+            .Select(tab => tab.GetProperty("metadata").GetProperty("active").GetBoolean()).ToList();
+        // "Dos" declares [Tab(Open=true)] → active; the first tab ("Uno") is no longer the default.
+        Assert.Equal(new List<bool> { false, true }, active);
     }
 
     // ── helpers ────────────────────────────────────────────────────────────────

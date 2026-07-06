@@ -215,8 +215,14 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
         variant = 'equal-width-tabs'
     }
 
+    // Initial selection: the tab flagged active (open=true) wins, else the first tab.
+    const activeIndex = Math.max(
+        0,
+        (component.children ?? []).findIndex(
+            child => ((child as ClientSideComponent).metadata as Tab).active))
+
     const itemsChanged = (e: Event) => {
-        (e.target as Tabs).selected = 0
+        (e.target as Tabs).selected = activeIndex
     }
 
     if (metadata.adaptable) {

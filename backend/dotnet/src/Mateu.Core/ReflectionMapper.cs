@@ -206,17 +206,22 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     // (renderers may degrade them to an accordion) only when the class opted into [AutoLayout].
     private ComponentDto TabLayout(Type type, List<PropertyInfo> props, object instance, bool readOnly)
     {
-        var tabs = new List<(string name, List<ClientSideComponentDto> fields)>();
+        var tabs = new List<(string name, bool open, List<ClientSideComponentDto> fields)>();
         var current = "Tab";
         foreach (var p in props)
         {
-            if (p.GetCustomAttribute<TabAttribute>()?.Name is { } n) current = n;
+            var attr = p.GetCustomAttribute<TabAttribute>();
+            if (attr?.Name is { } n) current = n;
             if (tabs.Count == 0 || tabs[^1].name != current)
-                tabs.Add((current, new List<ClientSideComponentDto>()));
+                // The field that opens a group carries its [Tab(Open=...)] flag (mirrors the Java
+                // pair.first().open() rule); fields before any [Tab] fall into the default group.
+                tabs.Add((current, attr?.Open ?? false, new List<ClientSideComponentDto>()));
             tabs[^1].fields.Add(MapField(p, instance, readOnly));
         }
+        // The tab selected on first render is the first one flagged Open, else the first tab.
+        var activeIndex = Math.Max(0, tabs.FindIndex(tb => tb.open));
         var tabComps = tabs.Select((tb, i) => (ComponentDto)Client(
-            new TabMetadataDto(T(tb.name)) { Active = i == 0 }, null,
+            new TabMetadataDto(T(tb.name)) { Active = i == activeIndex }, null,
             [Client(new FormLayoutMetadataDto(), null, FormRows(tb.fields))])).ToList();
         var meta = new TabLayoutMetadataDto
         {

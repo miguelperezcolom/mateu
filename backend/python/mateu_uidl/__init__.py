@@ -77,6 +77,9 @@ class Section:
 @dataclass(frozen=True)
 class Tab:
     name: str
+    # When true this tab is the one selected when its strip first renders (instead of the default
+    # first tab). If several tabs in the same strip set it, the first one wins.
+    open: bool = False
 
 
 @dataclass(frozen=True)

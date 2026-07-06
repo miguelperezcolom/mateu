@@ -103,7 +103,8 @@ class LayoutSyncTest {
 
     String second = "2";
 
-    @Tab("Dos")
+    // open=true → this tab is the one selected when the strip first renders (not the first tab).
+    @Tab(value = "Dos", open = true)
     String third = "3";
   }
 
@@ -382,6 +383,18 @@ class LayoutSyncTest {
             .toList();
     assertThat(tabs.get(0).shortcut()).isEqualTo("alt+1");
     assertThat(tabs.get(1).shortcut()).isNull();
+  }
+
+  @Test
+  void tabMarkedOpenIsActiveOnTheWireAndOthersAreNot() {
+    var tabLayout = findComponentWithMetadata(mateu.sync("/layout/tabs"), TabLayoutDto.class);
+    var tabs =
+        tabLayout.children().stream()
+            .map(tab -> (TabDto) ((ClientSideComponentDto) tab).metadata())
+            .toList();
+    // "Dos" declares @Tab(open=true) → active; the first tab ("Uno") is not the default anymore.
+    assertThat(tabs.get(0).active()).isFalse();
+    assertThat(tabs.get(1).active()).isTrue();
   }
 
   @Test

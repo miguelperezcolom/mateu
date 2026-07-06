@@ -653,19 +653,27 @@ class ReflectionMapper:
         ]
 
     def tab_layout(self, cls, fields, instance, read_only: bool) -> ClientSideComponent:
-        tabs: list[tuple[str, list]] = []
+        tabs: list[tuple[str, bool, list]] = []
         current = "Tab"
         for f in fields:
             tb = f.marker(Tab)
             if tb is not None:
                 current = tb.name
             if not tabs or tabs[-1][0] != current:
-                tabs.append((current, []))
-            tabs[-1][1].append(self.map_field(f, instance, read_only))
+                # The field that opens a group carries its Tab.open flag (mirrors the Java
+                # pair.first().open() rule); fields before any Tab fall into the default group.
+                tabs.append((current, tb.open if tb is not None else False, []))
+            tabs[-1][2].append(self.map_field(f, instance, read_only))
+        # The tab selected on first render is the first one flagged open, else the first tab.
+        active_index = next((i for i, t in enumerate(tabs) if t[1]), 0)
         comps = []
-        for i, (nm, fs) in enumerate(tabs):
+        for i, (nm, _open, fs) in enumerate(tabs):
             form_layout = self.client(FormLayoutMetadata(), None, self.form_rows(fs))
-            comps.append(self.client(TabMetadata(label=self.T(nm), active=i == 0), None, [form_layout]))
+            comps.append(
+                self.client(
+                    TabMetadata(label=self.T(nm), active=i == active_index), None, [form_layout]
+                )
+            )
         # Developer-declared tabs always carry the group semantics; they are adaptable (renderers
         # may degrade them, e.g. to an accordion) only when the class opted into auto-layout.
         return self.client(

@@ -180,7 +180,12 @@ public sealed record VerticalLayout : ComponentBase
 }
 
 /// <summary>One tab of a <see cref="TabLayout"/>.</summary>
-public sealed record TabPanel(string Label, IComponent Content);
+public sealed record TabPanel(string Label, IComponent Content)
+{
+    /// <summary>When true this tab is the one selected when the strip first renders (instead of the
+    /// default first tab). If several tabs set it, the first one wins.</summary>
+    public bool Active { get; init; }
+}
 
 /// <summary>Semantic relationship between the groups a disclosure layout (tabs, accordion, wizard…)
 /// presents, carried next to the concrete widget so renderers can adapt the presentation without

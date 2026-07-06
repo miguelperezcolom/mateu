@@ -42,8 +42,10 @@ public static class ComponentMapper
         VerticalLayout vl => Dto(vl, new VerticalLayoutMetadataDto { Spacing = vl.Spacing }, vl.Content.Select(Map)),
         TabLayout tl => Dto(tl,
             new TabLayoutMetadataDto { GroupRelationship = LowerName(tl.GroupRelationship), Adaptable = tl.Adaptable },
+            // The tab selected on first render is the first one flagged Active, else the first tab.
             tl.Tabs.Select((tab, i) =>
-                new ClientSideComponentDto(new TabMetadataDto(tab.Label) { Active = i == 0 }, null, [Map(tab.Content)], null, null, null))),
+                new ClientSideComponentDto(
+                    new TabMetadataDto(tab.Label) { Active = i == TabActiveIndex(tl.Tabs) }, null, [Map(tab.Content)], null, null, null))),
 
         _ => throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
     };
@@ -107,4 +109,12 @@ public static class ComponentMapper
         value.ToString().ToLowerInvariant();
 
     private static string? Iso(DateOnly? d) => d?.ToString("yyyy-MM-dd");
+
+    // Index of the tab selected on first render: the first one flagged Active, else the first tab.
+    private static int TabActiveIndex(IReadOnlyList<TabPanel> tabs)
+    {
+        for (var i = 0; i < tabs.Count; i++)
+            if (tabs[i].Active) return i;
+        return 0;
+    }
 }
