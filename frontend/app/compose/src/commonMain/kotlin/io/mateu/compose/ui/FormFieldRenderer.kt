@@ -89,7 +89,7 @@ fun FormFieldRenderer(metadata: JsonNode, state: JsonNode, data: JsonNode, app: 
                 SignatureField(fieldId, value, enabled, app)
 
             stereotype == "camera" ->
-                PhotoCaptureField(value)
+                PhotoCaptureField(fieldId, value, enabled, app)
 
             stereotype == "treeSelect" ->
                 TreeSelectField(fieldId, options, metadata.bool("treeLeavesOnly"), value, enabled, app)
@@ -341,7 +341,16 @@ private fun SignatureField(fieldId: String, value: String, enabled: Boolean, app
     var committed by remember { mutableStateOf(value) }
     if (!signing && committed.isNotBlank()) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("✍ Signed", fontSize = 14.sp)
+            val bitmap = remember(committed) { decodeDataUriToImageBitmap(committed) }
+            if (bitmap != null) {
+                androidx.compose.foundation.Image(
+                    bitmap,
+                    contentDescription = "Signature",
+                    modifier = Modifier.height(120.dp).border(1.dp, Color(0xFFD0D0D0)),
+                )
+            } else {
+                Text("✍ Signed", fontSize = 14.sp)
+            }
             if (enabled) {
                 Text(
                     "Sign again",
@@ -413,14 +422,55 @@ private fun SignatureField(fieldId: String, value: String, enabled: Boolean, app
     }
 }
 
-/** @PhotoCapture: Compose Multiplatform has no common camera API yet — honest placeholder. */
+/**
+ * @PhotoCapture: platform capture through rememberPhotoCaptureLauncher (system camera intent on
+ * Android, UIImagePickerController on iOS, image file dialog on desktop — the JVM has no camera
+ * API); the shot lands in the value as a JPEG data URI and previews inline.
+ */
 @Composable
-private fun PhotoCaptureField(value: String) {
-    Text(
-        if (value.isNotBlank()) "📷 Photo present" else "📷 Photo capture is not available on this renderer yet",
-        fontSize = 13.sp,
-        color = Color(0xFF707070),
-    )
+private fun PhotoCaptureField(fieldId: String, value: String, enabled: Boolean, app: AppState) {
+    var committed by remember { mutableStateOf(value) }
+    val launcher = rememberPhotoCaptureLauncher { dataUri ->
+        if (dataUri != null) {
+            app.currentComponentState[fieldId] = dataUri
+            committed = dataUri
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        val bitmap = remember(committed) {
+            committed.takeIf { it.startsWith("data:image") }?.let { decodeDataUriToImageBitmap(it) }
+        }
+        if (bitmap != null) {
+            androidx.compose.foundation.Image(
+                bitmap,
+                contentDescription = "Photo",
+                modifier = Modifier.height(160.dp).border(1.dp, Color(0xFFD0D0D0)),
+            )
+        }
+        when {
+            launcher == null ->
+                Text(
+                    "📷 No camera available on this device",
+                    fontSize = 13.sp,
+                    color = Color(0xFF707070),
+                )
+            else ->
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.material3.Button(onClick = launcher, enabled = enabled) {
+                        Text(if (committed.isBlank()) "Take photo" else "Retake")
+                    }
+                    if (committed.isNotBlank()) {
+                        androidx.compose.material3.OutlinedButton(
+                            enabled = enabled,
+                            onClick = {
+                                app.currentComponentState[fieldId] = ""
+                                committed = ""
+                            },
+                        ) { Text("Delete") }
+                    }
+                }
+        }
+    }
 }
 
 /** @TreeSelect: a dropdown whose menu unfolds the option TREE (options carry children). */
