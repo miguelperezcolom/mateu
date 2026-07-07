@@ -33,7 +33,10 @@ public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
     var searchText = httpRequest.getString("searchText");
     Filters filters =
         MateuInstanceFactory.newInstance(
-            filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
+            filtersClass(),
+            FilterStateAssembler.assemble(
+                filtersClass(), httpRequest.runActionRq().componentState()),
+            httpRequest);
 
     return search(
             searchText,

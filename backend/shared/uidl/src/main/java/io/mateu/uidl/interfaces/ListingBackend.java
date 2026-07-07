@@ -52,7 +52,10 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
     var searchText = httpRequest.getString("searchText");
     Filters filters =
         MateuInstanceFactory.newInstance(
-            filtersClass(), httpRequest.runActionRq().componentState(), httpRequest);
+            filtersClass(),
+            FilterStateAssembler.assemble(
+                filtersClass(), httpRequest.runActionRq().componentState()),
+            httpRequest);
 
     var found =
         search(

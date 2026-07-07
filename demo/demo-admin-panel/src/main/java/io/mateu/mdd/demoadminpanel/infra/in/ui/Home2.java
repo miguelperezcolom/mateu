@@ -91,6 +91,9 @@ public class Home2 implements WidgetSupplier {
     io.mateu.mdd.demoadminpanel.infra.in.ui.tree.TreeSelectDemo treeSelect;
 
     @Menu
+    io.mateu.mdd.demoadminpanel.infra.in.ui.typedfilters.BookingsListing typedFilters;
+
+    @Menu
     io.mateu.mdd.demoadminpanel.infra.in.ui.partialforms.PartialFormDemo partialForms;
 
 

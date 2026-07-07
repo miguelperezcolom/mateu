@@ -184,23 +184,29 @@ public class FieldMetadataExtractor {
     if (instance instanceof OptionsSupplier optionsSupplier) {
       return optionsSupplier.options(field.getName(), httpRequest);
     }
-    List<Option> options = new ArrayList<>();
     if (field.getType().isEnum()) {
-      for (Object enumConstant : field.getType().getEnumConstants()) {
-        try {
-          Field enumField = field.getType().getField(enumConstant.toString());
-          Label label = MetaAnnotations.find(enumField, Label.class);
-          String labelValue = label != null ? label.value() : enumConstant.toString();
-          Icon icon = MetaAnnotations.find(enumField, Icon.class);
-          options.add(
-              Option.builder()
-                  .value(enumConstant.toString())
-                  .label(labelValue)
-                  .icon(icon != null ? icon.value().iconName : null)
-                  .build());
-        } catch (NoSuchFieldException e) {
-          throw new RuntimeException(e);
-        }
+      return enumOptions(field.getType());
+    }
+    return new ArrayList<>();
+  }
+
+  /** One option per constant of {@code enumType}, honouring per-constant @Label/@Icon. */
+  static List<Option> enumOptions(Class<?> enumType) {
+    List<Option> options = new ArrayList<>();
+    for (Object enumConstant : enumType.getEnumConstants()) {
+      try {
+        Field enumField = enumType.getField(enumConstant.toString());
+        Label label = MetaAnnotations.find(enumField, Label.class);
+        String labelValue = label != null ? label.value() : enumConstant.toString();
+        Icon icon = MetaAnnotations.find(enumField, Icon.class);
+        options.add(
+            Option.builder()
+                .value(enumConstant.toString())
+                .label(labelValue)
+                .icon(icon != null ? icon.value().iconName : null)
+                .build());
+      } catch (NoSuchFieldException e) {
+        throw new RuntimeException(e);
       }
     }
     return options;

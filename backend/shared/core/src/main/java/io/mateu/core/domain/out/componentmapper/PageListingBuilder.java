@@ -12,9 +12,13 @@ import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ColumnActionGroup;
+import io.mateu.uidl.data.DateRange;
+import io.mateu.uidl.data.FieldDataType;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
+import io.mateu.uidl.data.NumberRange;
+import io.mateu.uidl.data.Option;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.FiltersLayout;
 import io.mateu.uidl.fluent.GridLayout;
@@ -183,32 +187,39 @@ public class PageListingBuilder {
         .filter(
             field ->
                 !ColumnActionGroup.class.equals(field.getType())
-                    && !ColumnActionGroup.class.equals(field.getType())
-                    && !Collection.class.isAssignableFrom(field.getType()))
+                    && (!Collection.class.isAssignableFrom(field.getType())
+                        || FilterStateAssembler.enumSetElementType(field) != null))
         .map(
             field -> {
-              var formField =
-                  (FormField)
-                      getFormField(
-                          field,
-                          instance,
-                          baseUrl,
-                          route,
-                          consumedRoute,
-                          initiatorComponentId,
-                          httpRequest,
-                          false,
-                          2,
-                          0);
-              if (crudFilterSemantics) {
-                if (io.mateu.core.infra.declarative.orchestrators.crud.FilterCriteriaBuilder
-                    .isTemporal(field.getType())) {
-                  formField = formField.toBuilder().stereotype(FieldStereotype.dateRange).build();
-                } else if (io.mateu.core.infra.declarative.orchestrators.crud.FilterCriteriaBuilder
-                    .isRangeAnnotatedNumeric(field)) {
-                  formField = formField.toBuilder().stereotype(FieldStereotype.numberRange).build();
-                } else if (field.getType().isEnum()) {
-                  formField = formField.toBuilder().stereotype(FieldStereotype.multiSelect).build();
+              FormField formField;
+              if (isTypedFilter(field)) {
+                formField = buildTypedFilterField(field, instance, httpRequest);
+              } else {
+                formField =
+                    (FormField)
+                        getFormField(
+                            field,
+                            instance,
+                            baseUrl,
+                            route,
+                            consumedRoute,
+                            initiatorComponentId,
+                            httpRequest,
+                            false,
+                            2,
+                            0);
+                if (crudFilterSemantics) {
+                  if (io.mateu.core.infra.declarative.orchestrators.crud.FilterCriteriaBuilder
+                      .isTemporal(field.getType())) {
+                    formField = formField.toBuilder().stereotype(FieldStereotype.dateRange).build();
+                  } else if (io.mateu.core.infra.declarative.orchestrators.crud
+                      .FilterCriteriaBuilder.isRangeAnnotatedNumeric(field)) {
+                    formField =
+                        formField.toBuilder().stereotype(FieldStereotype.numberRange).build();
+                  } else if (field.getType().isEnum()) {
+                    formField =
+                        formField.toBuilder().stereotype(FieldStereotype.multiSelect).build();
+                  }
                 }
               }
               if (MetaAnnotations.isPresent(field, MainFilter.class)) {
@@ -219,12 +230,56 @@ public class PageListingBuilder {
         .toList();
   }
 
+  /**
+   * A TYPED filter field ({@link DateRange}, {@link NumberRange}, {@code Set<SomeEnum>}) gets its
+   * range/multi-select widget on ANY listing — the type is the developer's explicit ask, unlike the
+   * crud-semantics inference which only applies on the AutoCrud path. These types would confuse the
+   * standard form-field mapper (a record field becomes a nested form), so the filter FormField is
+   * built directly: the smart search bar only needs id, label, stereotype and (for multi-selects)
+   * the options.
+   */
+  private static boolean isTypedFilter(Field field) {
+    return DateRange.class.equals(field.getType())
+        || NumberRange.class.equals(field.getType())
+        || FilterStateAssembler.enumSetElementType(field) != null;
+  }
+
+  private static FormField buildTypedFilterField(
+      Field field, Object instance, HttpRequest httpRequest) {
+    FieldStereotype stereotype;
+    FieldDataType dataType;
+    List<Option> options = List.of();
+    if (DateRange.class.equals(field.getType())) {
+      stereotype = FieldStereotype.dateRange;
+      dataType = FieldDataType.date;
+    } else if (NumberRange.class.equals(field.getType())) {
+      stereotype = FieldStereotype.numberRange;
+      dataType = FieldDataType.number;
+    } else {
+      stereotype = FieldStereotype.multiSelect;
+      dataType = FieldDataType.string;
+      options = FieldMetadataExtractor.getOptions(field, instance, httpRequest);
+      if (options.isEmpty()) {
+        options =
+            FieldMetadataExtractor.enumOptions(FilterStateAssembler.enumSetElementType(field));
+      }
+    }
+    return FormField.builder()
+        .id(field.getName())
+        .label(FieldMetadataExtractor.getLabel(field, instance, httpRequest))
+        .dataType(dataType)
+        .stereotype(stereotype)
+        .options(options)
+        .build();
+  }
+
   private static boolean filterFilterField(Field field, Object instance, HttpRequest httpRequest) {
     var valid = FormFieldFilter.filterField(field, false, false, instance, httpRequest);
     if (valid) {
       // enums are filterable too (they render as a select with the enum options) — isBasic
-      // doesn't know them, and dropping them here left e.g. status filters silently missing
-      if (!isBasic(field.getType()) && !field.getType().isEnum()) {
+      // doesn't know them, and dropping them here left e.g. status filters silently missing;
+      // same for the explicit typed filters (DateRange/NumberRange/Set-of-enum)
+      if (!isBasic(field.getType()) && !field.getType().isEnum() && !isTypedFilter(field)) {
         return false;
       }
     }

@@ -29,7 +29,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | Capture fields (`@Signature`, `@PhotoCapture`) | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
-| Smart-search listing filters (enums, ranges, multi-select, criteria) | ✅ | — | — |
+| Smart-search listing filters (enums, ranges, multi-select, criteria, typed `DateRange`/`NumberRange`/`Set` filter fields) | ✅ | — | — |
 | Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | — | — |
 | Lookup fields (`@Searchable` selector dialogs) | ✅ | — | — |
 | Editable grids / inline CRUD editing | ✅ | — | — |

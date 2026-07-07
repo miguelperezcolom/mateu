@@ -15,6 +15,12 @@ final class FieldValueConverter {
     if (targetType.equals(value.getClass())) {
       return value;
     }
+    // an already-assignable value needs no conversion — e.g. a LinkedHashSet assembled by
+    // FilterStateAssembler pouring into a Set<SomeEnum> filter field (primitives are unaffected:
+    // isInstance is always false for them)
+    if (targetType.isInstance(value)) {
+      return value;
+    }
     if (int.class.equals(targetType) && value instanceof Integer integer) {
       return integer.intValue();
     }

@@ -65,7 +65,9 @@ of inputs. The one field hosts both the free-text keyword search and the structu
 ![The Filter by panel, opened by clicking the search field](/images/docs/ux-patterns/filters-panel.png)
 
 Which fields become filters is decided server-side: every basic field **and every enum** of the
-filters class. The widget (and the condition semantics) follow the field's type:
+filters class — plus the explicit typed filter fields (`DateRange`, `NumberRange`, `Set<SomeEnum>`,
+see [below](#typed-filters-on-declarative-listings)). The widget (and the condition semantics)
+follow the field's type:
 
 | Field type | Widget | Condition | State / URL keys |
 |---|---|---|---|
@@ -124,6 +126,46 @@ You don't need to override anything for the filters to work: the default in-memo
 
 See [CrudRepository](/java-ui-definition/interfaces/crud-repository/) for pushing both to the
 database.
+
+## Typed filters on declarative listings
+
+The table above describes the **AutoCrud** path, where the entity doubles as the filters class and
+Mateu infers the widgets. A declarative `Listing<Filters, Row>` has its own Filters class — there
+the richer widgets are **opt-in by type**: declare the field as `DateRange`, `NumberRange`
+(both in `io.mateu.uidl.data`) or `Set<SomeEnum>` and it renders as a from–to range or a
+multi-select, on any listing:
+
+```java
+@Data
+public class BookingsFilters {
+    @Label("Created") DateRange created;      // from–to date widget
+    @Label("Total")   NumberRange total;      // min–max number widget
+    @Label("Channel") Set<Channel> channels;  // multi-select with the enum's options
+}
+
+@UI("/bookings")
+public class BookingsListing extends Listing<BookingsFilters, BookingRow> {
+    @Override
+    public ListingData<BookingRow> search(String searchText, BookingsFilters filters,
+                                          Pageable pageable, HttpRequest httpRequest) {
+        // filters arrives fully typed — apply it however your data source needs
+        var rows = bookings.stream()
+                .filter(b -> filters.getCreated() == null || filters.getCreated().contains(b.created()))
+                .filter(b -> filters.getTotal() == null || filters.getTotal().contains(b.total()))
+                .filter(b -> filters.getChannels() == null || filters.getChannels().isEmpty()
+                        || filters.getChannels().contains(b.channel()))
+                .toList();
+        return ListingData.from(rows);
+    }
+}
+```
+
+On the wire the conditions still travel as flat state keys (`created_from=…&created_to=…`,
+`channels=WEB,PHONE`), so URL sync, bookmarks and shared links keep working; before your
+`search(...)` runs they are assembled back into the typed instances (`FilterStateAssembler`), with
+open bounds as nulls. `DateRange`/`NumberRange` bring `contains(...)` and `isEmpty()` helpers for
+in-memory application; against a database, translate the bounds into the query. Fields of other
+types keep the classic single-value widgets.
 
 ## Export
 
