@@ -38,15 +38,16 @@ public interface CrudRepository<T extends Identifiable> {
    *
    * <p>The default implementation loads {@link #findAll()} and filters/sorts/paginates in memory:
    * rows are matched against {@code searchText} using {@link Searchable#searchableText()} (or
-   * {@code toString()} when the entity is not {@link Searchable}), then against each basic field of
-   * {@code filters} whose value differs from a freshly-constructed instance of the filters class —
-   * the difference-from-default check is what tells a filter the user actually set apart from field
-   * initializers and primitive zeros/falses (the filters object is hydrated from the component
-   * state, so untouched fields keep their defaults; the flip side is that filtering BY a default
-   * value needs an overridden {@code find}). String filters match by case-insensitive containment,
-   * everything else by equality. Then rows are ordered according to {@link Pageable#sort()}
-   * (reading each sort field reflectively via getter/record-accessor/field). Override to push the
-   * work to the database.
+   * {@code toString()} when the entity is not {@link Searchable}) — word by word: every
+   * whitespace-separated word must be contained, case-insensitively and in any order — then against
+   * each basic field of {@code filters} whose value differs from a freshly-constructed instance of
+   * the filters class — the difference-from-default check is what tells a filter the user actually
+   * set apart from field initializers and primitive zeros/falses (the filters object is hydrated
+   * from the component state, so untouched fields keep their defaults; the flip side is that
+   * filtering BY a default value needs an overridden {@code find}). String filters match by
+   * case-insensitive containment, everything else by equality. Then rows are ordered according to
+   * {@link Pageable#sort()} (reading each sort field reflectively via
+   * getter/record-accessor/field). Override to push the work to the database.
    *
    * @param searchText free-text query; {@code null}/empty matches everything
    * @param filters an entity-shaped object carrying field-level filter values (may be {@code null})
@@ -68,15 +69,7 @@ public interface CrudRepository<T extends Identifiable> {
       String searchText, T filters, List<FilterCriterion> criteria, Pageable pageable) {
     var all =
         findAll().stream()
-            .filter(
-                item ->
-                    searchText == null
-                        || searchText.isEmpty()
-                        || (item instanceof Searchable searchable
-                                ? searchable.searchableText()
-                                : item.toString())
-                            .toLowerCase()
-                            .contains(searchText.toLowerCase()))
+            .filter(item -> matchesSearchText(item, searchText))
             .filter(matchesFilters(filters))
             .filter(item -> matchesCriteria(item, criteria))
             .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
@@ -89,6 +82,27 @@ public interface CrudRepository<T extends Identifiable> {
     int from = Math.min(pageNumber * pageSize, all.size());
     int to = Math.min(from + pageSize, all.size());
     return new Page<>("", pageSize, pageNumber, all.size(), all.subList(from, to));
+  }
+
+  /**
+   * Word-based free-text match: the search text is split on whitespace and a row matches when its
+   * searchable text ({@link Searchable#searchableText()} or {@code toString()}) contains EVERY
+   * word, case-insensitively and in any order — "13 producto" finds "Producto 13", while requiring
+   * the literal whole phrase would not.
+   */
+  private static boolean matchesSearchText(Object item, String searchText) {
+    if (searchText == null || searchText.isBlank()) {
+      return true;
+    }
+    var haystack =
+        (item instanceof Searchable searchable ? searchable.searchableText() : item.toString())
+            .toLowerCase();
+    for (String word : searchText.trim().split("\\s+")) {
+      if (!haystack.contains(word.toLowerCase())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

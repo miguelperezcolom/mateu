@@ -54,7 +54,8 @@ Filters render as a **single search field** (after the Redwood Smart Search patt
 of inputs. The one field hosts both the free-text keyword search and the structured filters:
 
 - **Type and press Enter** to apply a keyword search (matched against `Searchable.searchableText()`
-  or `toString()`).
+  or `toString()`). Several words search for rows containing **all of them**, case-insensitively
+  and in any order — "13 producto" finds "Producto 13".
 - **Click the field** to open the *Filter by* panel listing every filter. Picking one opens a
   type-specific widget. Filters already set show their current condition next to their name.
 - **Every applied condition becomes a chip** in the bar with its own ✕. Adding or removing a chip

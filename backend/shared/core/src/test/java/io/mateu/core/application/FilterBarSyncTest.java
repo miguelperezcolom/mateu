@@ -58,6 +58,11 @@ class FilterBarSyncTest {
     public String id() {
       return id;
     }
+
+    @Override
+    public String toString() {
+      return name + " " + status;
+    }
   }
 
   private static final List<Product> PRODUCTS =
@@ -323,6 +328,28 @@ class FilterBarSyncTest {
   void unparseableRangeBoundsAreIgnored() {
     // a broken bound must not blow up the search nor filter anything out
     assertThat(search(java.util.Map.of("added_from", "not-a-date"))).hasSize(3);
+  }
+
+  // ── multi-word free-text search (AND over words, any order) ──────────────────
+
+  @Test
+  void multiWordSearchTextMatchesRowsContainingAllWords() {
+    // toString is "<name> <status>" — the words live apart, so the literal phrase
+    // "hammer available" reversed would never match as a whole string
+    var rows = search(java.util.Map.of("searchText", "available hammer"));
+    assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactly("p1");
+  }
+
+  @Test
+  void multiWordSearchTextRequiresEveryWord() {
+    // "wrench" matches p2 and "available" matches p1: no row contains both words
+    assertThat(search(java.util.Map.of("searchText", "wrench available"))).isEmpty();
+  }
+
+  @Test
+  void multiWordSearchTextIsCaseInsensitiveAndTolerantOfExtraSpaces() {
+    var rows = search(java.util.Map.of("searchText", "  OUT_OF_STOCK   screw  "));
+    assertThat(rows).extracting(FilterBarSyncTest::idOf).containsExactly("p3");
   }
 
   // ── record-based entity (canonical-constructor baseline) ──────────────────────

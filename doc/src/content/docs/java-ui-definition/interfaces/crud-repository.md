@@ -165,7 +165,7 @@ The `Page` already carries `totalElements`, so **no separate `count` method is n
 You get a working `find` for free. The default implementation:
 
 1. loads `findAll()`,
-2. keeps rows whose text contains `searchText` — using `Searchable.searchableText()` when the entity implements [`Searchable`](/java-ui-definition/interfaces/searchable/), otherwise `toString()`,
+2. keeps rows whose text contains **every whitespace-separated word** of `searchText`, case-insensitively and in any order — using `Searchable.searchableText()` when the entity implements [`Searchable`](/java-ui-definition/interfaces/searchable/), otherwise `toString()`,
 3. applies the **field-level filters** (see below),
 4. sorts by `pageable.sort()` (each `Sort` field is read reflectively via getter / record accessor / field), and
 5. slices out the requested page.
