@@ -24,6 +24,24 @@ public sealed class AppContextAttribute(string label = "") : Attribute
     public string Label { get; } = label;
 }
 
+/// <summary>Signature capture on a string property: a drawing canvas whose accepted strokes land
+/// in the value as a PNG data URI (same self-contained contract as the uploadable image).</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SignatureAttribute : Attribute;
+
+/// <summary>Photo capture on a string property: the device camera, storing the shot in the value
+/// as a JPEG data URI (file-input fallback opens the native camera on phones).</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class PhotoCaptureAttribute : Attribute;
+
+/// <summary>Renders the property's dropdown as a TREE: the options carry children (supply them by
+/// implementing IOptionsSupplier). With LeavesOnly only leaf nodes are selectable.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class TreeSelectAttribute(bool leavesOnly = false) : Attribute
+{
+    public bool LeavesOnly { get; } = leavesOnly;
+}
+
 /// <summary>A method exposed as a button at the bottom of the page.</summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class ButtonAttribute(string? label = null) : Attribute

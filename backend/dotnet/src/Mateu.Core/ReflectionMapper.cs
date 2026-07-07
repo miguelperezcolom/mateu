@@ -366,9 +366,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var label = T(p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
         var required = p.GetCustomAttribute<RequiredAttribute>() != null;
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
-        var options = t.IsEnum
-            ? Enum.GetNames(t).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList()
-            : new List<OptionDto>();
+        // an IOptionsSupplier view wins (its options may carry Children → tree selects);
+        // enums keep contributing their constants
+        var options = instance is IOptionsSupplier supplier
+                      && supplier.Options(fieldId) is { Count: > 0 } supplied
+            ? supplied.Select(MapOption).ToList()
+            : t.IsEnum
+                ? Enum.GetNames(t).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList()
+                : new List<OptionDto>();
         var value = p.GetValue(instance);
 
         // A [PlainText] field — or any field of a [PlainText] class — renders as read-only text.
@@ -384,6 +389,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             ReadOnly = readOnly || plainText,
             Multiline = multiline,
             Options = options,
+            TreeLeavesOnly = p.GetCustomAttribute<TreeSelectAttribute>()?.LeavesOnly ?? false,
             InitialValue = FormatValue(value),
             Link = LinkOf(p, instance),
         };
@@ -402,6 +408,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         return null;
     }
 
+    /// <summary>Maps a uidl Option including its children, so hierarchical option sets survive.</summary>
+    private static OptionDto MapOption(Option option) => new(option.Value, option.Label)
+    {
+        Children = (option.Children ?? []).Select(MapOption).ToList(),
+    };
+
     /// <summary>The field stereotype: explicit [Stereotype] wins, else [Multiline]/[Password]/[Money]
     /// map to their names, else plain-text context yields "plainText", else enums render as a
     /// dropdown ("select") — or as "radio" when [UseRadioButtons] or the small-enum inference rule
@@ -409,6 +421,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     private static string StereotypeOf(PropertyInfo p, bool plainText, bool multiline)
     {
         if (p.GetCustomAttribute<StereotypeAttribute>()?.Value is { } s) return s;
+        if (p.GetCustomAttribute<SignatureAttribute>() != null) return "signature";
+        if (p.GetCustomAttribute<PhotoCaptureAttribute>() != null) return "camera";
+        if (p.GetCustomAttribute<TreeSelectAttribute>() != null) return "treeSelect";
         if (p.GetCustomAttribute<PasswordAttribute>() != null) return "password";
         if (p.GetCustomAttribute<MoneyAttribute>() != null) return plainText ? "plainText" : "money";
         if (plainText) return "plainText";

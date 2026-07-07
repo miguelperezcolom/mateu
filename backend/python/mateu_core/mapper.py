@@ -70,7 +70,10 @@ from mateu_uidl import (
     Multiline,
     Panel,
     Password,
+    PhotoCapture,
     PlainText,
+    Signature,
+    TreeSelect,
     Required,
     Section,
     Step,
@@ -829,9 +832,13 @@ class ReflectionMapper:
         label = self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
         required = f.has(Required)
         t = f.type
-        options = (
-            [Option(value=m.name, label=humanize(m.name)) for m in t] if is_enum(t) else []
-        )
+        # the view's options(field_name) method wins (its options may carry children → tree
+        # selects); enums keep contributing their constants
+        options = self._supplied_options(instance, field_id)
+        if not options:
+            options = (
+                [Option(value=m.name, label=humanize(m.name)) for m in t] if is_enum(t) else []
+            )
         value = getattr(instance, f.name, None)
 
         plain = f.has(PlainText) or bool(class_flag(instance.__class__, "__mateu_plain_text__", False))
@@ -847,6 +854,7 @@ class ReflectionMapper:
             read_only=read_only or plain,
             multiline=multiline,
             options=options,
+            tree_leaves_only=bool(getattr(f.marker(TreeSelect), "leaves_only", False)) if f.has(TreeSelect) else False,
             initial_value=format_value(value),
             link=self.link_of(f, instance),
         )
@@ -869,10 +877,40 @@ class ReflectionMapper:
             href=link_to.href, icon=link_to.icon, title=link_to.title, target=link_to.target
         )
 
+    def _supplied_options(self, instance, field_id: str) -> list:
+        """Options from the view's ``options(field_name)`` method, mapped recursively (children
+        survive) — Option objects or (value, label) pairs; anything else is ignored."""
+        supplier = getattr(instance, "options", None)
+        if not callable(supplier):
+            return []
+        try:
+            raw = supplier(field_id) or []
+        except Exception:
+            return []
+        return [o for o in (self._as_option(item) for item in raw) if o is not None]
+
+    def _as_option(self, item):
+        if isinstance(item, Option):
+            return item
+        if isinstance(item, (tuple, list)) and len(item) == 2:
+            return Option(value=str(item[0]), label=str(item[1]))
+        if hasattr(item, "value") and hasattr(item, "label"):
+            children = [
+                o for o in (self._as_option(c) for c in getattr(item, "children", []) or []) if o
+            ]
+            return Option(value=str(item.value), label=str(item.label), children=children)
+        return None
+
     def stereotype_of(self, f, plain: bool, multiline: bool, owner=None) -> str:
         s = f.marker(Stereotype)
         if s is not None:
             return s.value
+        if f.has(Signature):
+            return "signature"
+        if f.has(PhotoCapture):
+            return "camera"
+        if f.has(TreeSelect):
+            return "treeSelect"
         if f.has(Password):
             return "password"
         if f.has(Money):

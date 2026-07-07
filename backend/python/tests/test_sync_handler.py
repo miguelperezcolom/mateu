@@ -9,8 +9,12 @@ from typing import Annotated
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
+from mateu_dtos import Option  # noqa: E402
 from mateu_uidl import (  # noqa: E402
     BannerTheme,
+    PhotoCapture,
+    Signature,
+    TreeSelect,
     app_context,
     Crud,
     LinkSupplier,
@@ -68,6 +72,22 @@ class TestApp:
 class Thing:
     id: str = ""
     name: Annotated[str, Required()] = ""
+
+
+@ui("capture")
+@title("Capture")
+class CaptureForm:
+    firma: Annotated[str, Signature()] = ""
+    foto: Annotated[str, PhotoCapture()] = ""
+    zone: Annotated[str, TreeSelect(leaves_only=True)] = ""
+
+    def options(self, field_name):
+        if field_name == "zone":
+            return [
+                Option(value="es", label="Spain", children=[Option(value="mca", label="Mallorca")]),
+                Option(value="pt", label="Portugal"),
+            ]
+        return []
 
 
 @ui("things")
@@ -209,6 +229,16 @@ def test_app_shell_menu():
     assert "Test App" in j
     assert "Things" in j
     assert '"/things"' in j
+
+
+def test_capture_and_tree_fields_on_the_wire():
+    inc = handler().handle(RunActionRq(route="/capture", server_side_type=_name(CaptureForm)))
+    j = render(inc)
+    assert '"stereotype": "signature"' in j
+    assert '"stereotype": "camera"' in j
+    assert '"stereotype": "treeSelect"' in j
+    assert '"treeLeavesOnly": true' in j
+    assert '"label": "Mallorca"' in j
 
 
 def test_app_context_selectors_on_the_wire():

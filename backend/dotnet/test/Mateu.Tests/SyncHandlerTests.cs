@@ -31,6 +31,19 @@ public class Thing
     [Required] public string Name { get; set; } = "";
 }
 
+[UI("capture"), Title("Capture")]
+public class CaptureForm : IOptionsSupplier
+{
+    [Signature] public string Firma { get; set; } = "";
+    [PhotoCapture] public string Foto { get; set; } = "";
+    [TreeSelect(leavesOnly: true)] public string Zone { get; set; } = "";
+
+    public IReadOnlyList<Option> Options(string fieldName) =>
+        fieldName == "zone"
+            ? [new Option("es", "Spain", [new Option("mca", "Mallorca")]), new Option("pt", "Portugal")]
+            : [];
+}
+
 [UI("things"), Title("Things")]
 public class Things : Crud<Thing>
 {
@@ -158,6 +171,19 @@ public class SyncHandlerTests
         Assert.Contains("\"title\":\"Test App\"", json);
         Assert.Contains("\"label\":\"Things\"", json);
         Assert.Contains("\"route\":\"/things\"", json);
+    }
+
+    [Fact]
+    public void Capture_and_tree_fields_reach_the_wire()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "/capture", ServerSideType = typeof(CaptureForm).FullName });
+        var json = Render(inc);
+
+        Assert.Contains("\"stereotype\":\"signature\"", json);
+        Assert.Contains("\"stereotype\":\"camera\"", json);
+        Assert.Contains("\"stereotype\":\"treeSelect\"", json);
+        Assert.Contains("\"treeLeavesOnly\":true", json);
+        Assert.Contains("\"label\":\"Mallorca\"", json);
     }
 
     [Fact]

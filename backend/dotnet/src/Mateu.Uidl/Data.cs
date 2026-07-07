@@ -24,3 +24,14 @@ public interface ILinkSupplier
 {
     NavLink? Link(string memberName);
 }
+
+/// <summary>A selectable option; Children makes it a node of a hierarchical option set
+/// ([TreeSelect] fields). (C# analogue of Java's Option.)</summary>
+public sealed record Option(string Value, string Label, IReadOnlyList<Option>? Children = null);
+
+/// <summary>Supplies the fixed set of selectable options for a field (C# analogue of Java's
+/// OptionsSupplier). Options may carry Children → hierarchical sets for [TreeSelect].</summary>
+public interface IOptionsSupplier
+{
+    IReadOnlyList<Option> Options(string fieldName);
+}

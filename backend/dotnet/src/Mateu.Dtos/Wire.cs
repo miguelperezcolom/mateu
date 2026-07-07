@@ -322,6 +322,7 @@ public record FormRowMetadataDto : ComponentMetadataDto;
 public record FormFieldMetadataDto(string FieldId, string DataType, string Label) : ComponentMetadataDto
 {
     public string Stereotype { get; init; } = "regular";
+    public bool TreeLeavesOnly { get; init; }
     public bool Required { get; init; }
     public bool ReadOnly { get; init; }
     public int Colspan { get; init; } = 1;
@@ -336,7 +337,11 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
 /// as raw <c>${...}</c> templates — the renderer interpolates them against the live state.</summary>
 public record NavLinkDto(string Href, string? Icon, string? Title, string? Target);
 
-public record OptionDto(string Value, string Label);
+public record OptionDto(string Value, string Label)
+{
+    /// <summary>Sub-options of a hierarchical option set (tree selects); empty on flat lists.</summary>
+    public IReadOnlyList<OptionDto> Children { get; init; } = [];
+}
 
 // A button (ButtonDto in Java) — a flat record carrying its own "type":"Button".
 public record ButtonDto(string Label, string ActionId)

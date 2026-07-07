@@ -105,6 +105,7 @@ class FormFieldMetadata(Wire):
     data_type: str
     label: str
     stereotype: str = "regular"
+    tree_leaves_only: bool = False
     required: bool = False
     read_only: bool = False
     colspan: int = 1
@@ -376,6 +377,8 @@ class Button(Wire):
 class Option(Wire):
     value: str
     label: str
+    # sub-options of a hierarchical option set (tree selects); empty on flat lists
+    children: list["Option"] = Field(default_factory=list)
 
 
 class GridColumnMeta(Wire):

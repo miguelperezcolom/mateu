@@ -103,6 +103,24 @@ class Money:
 
 
 @dataclass(frozen=True)
+class Signature:
+    """Signature capture on a str field: a drawing canvas whose accepted strokes land in the
+    value as a PNG data URI (same self-contained contract as the uploadable image)."""
+
+
+class PhotoCapture:
+    """Photo capture on a str field: the device camera, storing the shot in the value as a JPEG
+    data URI (file-input fallback opens the native camera on phones)."""
+
+
+class TreeSelect:
+    """Renders the field's dropdown as a TREE: the options carry children (supply them from the
+    view's ``options(field_name)`` method). With ``leaves_only=True`` only leaves select."""
+
+    def __init__(self, leaves_only: bool = False):
+        self.leaves_only = leaves_only
+
+
 class PlainText:
     """Renders the field as read-only plain text."""
 
@@ -453,7 +471,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "Signature", "PhotoCapture", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty",
     "plain_text", "emits", "subscribe_to", "secured",
