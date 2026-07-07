@@ -221,6 +221,10 @@ public record CrudMetadataDto(
     public bool CanEdit { get; init; }
     public string? DetailPath { get; init; }
     public string CrudlType { get; init; } = "table";
+
+    /// <summary>The smart search bar's filters, one FormField per filterable entity property
+    /// (enums as multi-selects, temporals as date ranges, [RangeFilter] numerics as min–max).</summary>
+    public IReadOnlyList<FormFieldMetadataDto> Filters { get; init; } = [];
 }
 
 public record GridColumnDto(GridColumnMetaDto Metadata);

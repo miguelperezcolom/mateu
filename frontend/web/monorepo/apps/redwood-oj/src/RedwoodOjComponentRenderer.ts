@@ -235,7 +235,8 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
             doSearch()
         }
 
-        const isBooleanFilter = (f: any) => f.dataType === 'boolean' || f.stereotype === 'checkbox' || f.stereotype === 'toggle'
+        // the Java server emits dataType 'bool', the .NET one 'boolean' — accept both
+        const isBooleanFilter = (f: any) => f.dataType === 'boolean' || f.dataType === 'bool' || f.stereotype === 'checkbox' || f.stereotype === 'toggle'
         const isNumericFilter = (f: any) => ['integer', 'decimal', 'number', 'money'].includes(f.dataType)
         const isRangeFilter = (f: any) => f.stereotype === 'dateRange' || f.stereotype === 'numberRange'
         const isMultiFilter = (f: any) => f.stereotype === 'multiSelect'

@@ -104,6 +104,23 @@ public class Reservations : Crud<Reservation>
 }
 ```
 
+The listing renders a **smart search bar** whose filters come straight from the entity: enums
+become multi-selects (IN over the picked values), `DateOnly`/`DateTime` properties become from–to
+date ranges, numerics annotated `[RangeFilter]` become min–max ranges, and strings/bools/plain
+numbers keep single-value widgets. The values are applied automatically over what `Fetch` returns
+— no filter code to write:
+
+```csharp
+public class Reservation
+{
+    public string Id { get; set; } = "";
+    public string Guest { get; set; } = "";
+    public Channel Channel { get; set; }          // multi-select filter
+    public DateOnly Arrival { get; set; }         // date-range filter
+    [RangeFilter] public double Total { get; set; } // number-range filter
+}
+```
+
 ## App shell & navigation
 
 An `[App]` class is the application shell; each `[MenuItem]` method contributes a menu entry that
@@ -320,7 +337,7 @@ save / delete), the `[App]` shell + menu navigation, wizards, page decorations, 
 security scaffolding, the tail features above (tabs, stereotypes, KPIs, FABs, shortcuts, compact,
 unsaved-changes guard), the nine dashboard/UX component types (MetricCard, Scoreboard,
 DashboardPanel, DashboardLayout, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
-declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). 38 golden-JSON tests
+declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). 43 golden-JSON tests
 assert wire compatibility with the Java backend.
 
 Beyond the core, the remaining Java features (component adapters, federated microfrontends, framework

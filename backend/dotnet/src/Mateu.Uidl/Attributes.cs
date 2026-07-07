@@ -42,6 +42,12 @@ public sealed class TreeSelectAttribute(bool leavesOnly = false) : Attribute
     public bool LeavesOnly { get; } = leavesOnly;
 }
 
+/// <summary>On a numeric property of a Crud entity: the listing filter becomes a min–max RANGE
+/// widget (the from/to bounds travel as &lt;field&gt;_from/&lt;field&gt;_to state keys) instead of
+/// an equality input. Temporal properties are ranges by default; numerics opt in with this.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class RangeFilterAttribute : Attribute;
+
 /// <summary>A method exposed as a button at the bottom of the page.</summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class ButtonAttribute(string? label = null) : Attribute

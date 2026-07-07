@@ -113,6 +113,13 @@ class PhotoCapture:
     data URI (file-input fallback opens the native camera on phones)."""
 
 
+@dataclass(frozen=True)
+class RangeFilter:
+    """On a numeric field of a Crud entity: the listing filter becomes a min-max RANGE widget
+    (the bounds travel as <field>_from/<field>_to state keys) instead of an equality input.
+    Temporal fields are ranges by default; numerics opt in with this."""
+
+
 class TreeSelect:
     """Renders the field's dropdown as a TREE: the options carry children (supply them from the
     view's ``options(field_name)`` method). With ``leaves_only=True`` only leaves select."""
@@ -471,7 +478,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "Signature", "PhotoCapture", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty",
     "plain_text", "emits", "subscribe_to", "secured",

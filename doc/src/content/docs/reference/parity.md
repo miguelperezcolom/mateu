@@ -29,7 +29,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | Capture fields (`@Signature`, `@PhotoCapture`) | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
-| Smart-search listing filters (enums, ranges, multi-select, criteria, typed `DateRange`/`NumberRange`/`Set` filter fields) | ✅ | — | — |
+| Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | 🟡 | 🟡 |
+| — typed `DateRange`/`NumberRange`/`Set` filter fields, repository criteria | ✅ | — | — |
 | Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | — | — |
 | Lookup fields (`@Searchable` selector dialogs) | ✅ | — | — |
 | Editable grids / inline CRUD editing | ✅ | — | — |
@@ -38,6 +39,11 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 
 🟡 Hero search: the HeroSection component is emitted, but the full archetype (facet bar wired to a
 listing) is Java-only.
+
+🟡 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
+(enums → multi-select IN, temporals → date ranges, `[RangeFilter]`/`RangeFilter()` numerics →
+min–max) and the values are applied in-memory over `Fetch()`; Java's pluggable repository layer
+(`find/4` criteria for DB pushdown) and declarative-Listing typed filters have no equivalent yet.
 
 ## Renderers
 

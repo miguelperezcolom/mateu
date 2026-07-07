@@ -17,7 +17,7 @@ from mateu_uidl import Label, Message, Required, Step, Wizard
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from .mapper import ReflectionMapper, crud_element_type
+from .mapper import ReflectionMapper, crud_element_type, is_enum
 from .naming import camel_case, humanize
 from .reflection import view_fields
 from .registry import MateuRegistry, normalize
@@ -114,7 +114,7 @@ class SyncHandler:
         aid = rq.action_id
 
         if aid == "search":
-            return self.crud_search(crud, element, self.search_text(rq))
+            return self.crud_search(crud, element, rq)
         if aid in ("create", "save"):
             return self.crud_save(crud, element, id_, rq, base_route)
         if aid == "delete":
@@ -163,10 +163,13 @@ class SyncHandler:
         crud.save(entity)
         return self.navigate(base_route, "Saved")
 
-    def crud_search(self, crud, element, search) -> UIIncrement:
+    def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
         props = view_fields(element)
+        state = rq.component_state or {}
         rows = []
-        for item in crud.fetch(search):
+        for item in crud.fetch(self.search_text(rq)):
+            if not self._matches_filters(item, props, state):
+                continue
             rows.append({camel_case(p.name): self.cell_value(getattr(item, p.name, None)) for p in props})
         data = {
             "crud": {
@@ -176,6 +179,103 @@ class SyncHandler:
         return UIIncrement.of(
             fragments=[UIFragment(target_component_id="crud", data=data, action="Replace")]
         )
+
+    @staticmethod
+    def _matches_filters(item, props, state: dict) -> bool:
+        """Applies the smart search bar's filter values (component state) over the fetched rows,
+        mirroring the Java defaults: strings by case-insensitive containment, bools/numbers by
+        equality, enums as IN over the multi-select values (a list, or comma-joined after a URL
+        restore), and <field>_from/<field>_to range bounds for temporals and RangeFilter numerics.
+        A filter counts as applied when its key is present and non-blank."""
+        for p in props:
+            key = camel_case(p.name)
+            t = p.type
+            value = getattr(item, p.name, None)
+
+            if not SyncHandler._in_range(value, t, state.get(key + "_from"), state.get(key + "_to")):
+                return False
+
+            if key not in state:
+                continue
+            raw = state[key]
+            if is_enum(t):
+                wanted = SyncHandler._multi_values(raw)
+                current = value.name if isinstance(value, Enum) else ("" if value is None else str(value))
+                if wanted and current not in wanted:
+                    return False
+                continue
+            if raw is None or (isinstance(raw, str) and raw.strip() == ""):
+                continue
+            if t is str:
+                if str(raw).lower() not in ("" if value is None else str(value)).lower():
+                    return False
+            elif t is bool:
+                wanted_bool = raw if isinstance(raw, bool) else str(raw).lower() == "true"
+                if value is not wanted_bool:
+                    return False
+            elif t in (int, float, Decimal):
+                try:
+                    if value is None or float(value) != float(str(raw)):
+                        return False
+                except (TypeError, ValueError):
+                    pass  # unparseable filter value: ignored rather than fatal
+            elif str(value).lower() != str(raw).lower():
+                return False
+        return True
+
+    @staticmethod
+    def _in_range(value, t, from_, to) -> bool:
+        """Range bounds compare at date granularity for temporals (the widget picks days) and as
+        floats for numerics; blank/unparseable bounds are ignored rather than fatal."""
+
+        def blank(bound) -> bool:
+            return bound is None or (isinstance(bound, str) and bound.strip() == "")
+
+        if blank(from_) and blank(to):
+            return True
+        if value is None:
+            return False
+        if t in (date, datetime):
+            day = value.date() if isinstance(value, datetime) else value
+
+            def parse(bound):
+                try:
+                    return date.fromisoformat(str(bound).strip()[:10])
+                except ValueError:
+                    return None
+
+            lower = None if blank(from_) else parse(from_)
+            upper = None if blank(to) else parse(to)
+            if lower is not None and day < lower:
+                return False
+            if upper is not None and day > upper:
+                return False
+            return True
+        if t in (int, float, Decimal):
+
+            def parse_num(bound):
+                try:
+                    return float(str(bound).strip())
+                except ValueError:
+                    return None
+
+            v = float(value)
+            lower = None if blank(from_) else parse_num(from_)
+            upper = None if blank(to) else parse_num(to)
+            if lower is not None and v < lower:
+                return False
+            if upper is not None and v > upper:
+                return False
+        return True
+
+    @staticmethod
+    def _multi_values(raw) -> list[str]:
+        # multi-select values arrive as a list from a live client, comma-joined after a URL restore
+        if raw is None:
+            return []
+        if isinstance(raw, list):
+            return [str(v) for v in raw if str(v) != ""]
+        return [v.strip() for v in str(raw).split(",") if v.strip()]
 
     @staticmethod
     def get_or_new(crud, element, id_):

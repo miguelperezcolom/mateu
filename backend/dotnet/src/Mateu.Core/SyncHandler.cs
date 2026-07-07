@@ -78,7 +78,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
         return rq.ActionId switch
         {
-            "search" => CrudSearch(crud, element, SearchText(rq)),
+            "search" => CrudSearch(crud, element, rq),
             "create" or "save" => CrudSave(crud, crudType, element, id, rq, baseRoute),
             "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id)),
             null or "" => mode switch
@@ -124,13 +124,14 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         return Navigate(baseRoute, "Saved");
     }
 
-    private static UIIncrementDto CrudSearch(object instance, Type element, string? search)
+    private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
     {
-        var items = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [search])!;
+        var items = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
         var props = ReflectionMapper.EditableProperties(element).ToList();
         var rows = new List<Dictionary<string, object?>>();
         foreach (var item in items)
         {
+            if (!MatchesFilters(item, props, rq.ComponentState)) continue;
             var row = new Dictionary<string, object?>();
             foreach (var p in props) row[Naming.CamelCase(p.Name)] = CellValue(p.GetValue(item));
             rows.Add(row);
@@ -138,6 +139,101 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var data = new { crud = new { page = new { content = rows, pageSize = rows.Count, pageNumber = 0, totalElements = rows.Count } } };
         return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, data, "Replace", null)]);
     }
+
+    /// <summary>Applies the smart search bar's filter values (component state) over the fetched
+    /// rows, mirroring the Java defaults: strings by case-insensitive containment, bools/numbers
+    /// by equality, enums as IN over the multi-select values (list, or comma-joined after a URL
+    /// restore), and &lt;field&gt;_from/&lt;field&gt;_to range bounds for temporals and
+    /// [RangeFilter] numerics. A filter counts as applied when its key is present and non-blank.</summary>
+    private static bool MatchesFilters(object item, List<PropertyInfo> props, IReadOnlyDictionary<string, object?> state)
+    {
+        foreach (var p in props)
+        {
+            var key = Naming.CamelCase(p.Name);
+            var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+            var value = p.GetValue(item);
+
+            var from = state.TryGetValue(key + "_from", out var rawFrom) ? StateString(rawFrom) : null;
+            var to = state.TryGetValue(key + "_to", out var rawTo) ? StateString(rawTo) : null;
+            if (!InRange(value, t, from, to)) return false;
+
+            if (!state.TryGetValue(key, out var raw)) continue;
+            if (t.IsEnum)
+            {
+                var wanted = MultiValues(raw);
+                if (wanted.Count > 0 && !wanted.Contains(value?.ToString() ?? "")) return false;
+                continue;
+            }
+            var text = StateString(raw);
+            if (string.IsNullOrWhiteSpace(text)) continue;
+            if (t == typeof(string))
+            {
+                if (!(value?.ToString() ?? "").Contains(text, StringComparison.OrdinalIgnoreCase)) return false;
+            }
+            else if (t == typeof(bool))
+            {
+                if (bool.TryParse(text, out var wanted) && !Equals(value, wanted)) return false;
+            }
+            else if (ReflectionMapper.IsNumeric(t))
+            {
+                if (decimal.TryParse(text, System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture, out var wanted)
+                    && (value is null || Convert.ToDecimal(value) != wanted)) return false;
+            }
+            else if (!string.Equals(value?.ToString(), text, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /// <summary>Range bounds compare at date granularity for temporals (the widget picks days)
+    /// and as decimals for numerics; blank/unparseable bounds are ignored rather than fatal.</summary>
+    private static bool InRange(object? value, Type t, string? from, string? to)
+    {
+        if (string.IsNullOrWhiteSpace(from) && string.IsNullOrWhiteSpace(to)) return true;
+        if (value is null) return false;
+        var invariant = System.Globalization.CultureInfo.InvariantCulture;
+        if (ReflectionMapper.IsTemporal(t))
+        {
+            var day = value is DateOnly d ? d : DateOnly.FromDateTime((DateTime)value);
+            if (!string.IsNullOrWhiteSpace(from) && DateOnly.TryParse(from, invariant, out var lower) && day < lower) return false;
+            if (!string.IsNullOrWhiteSpace(to) && DateOnly.TryParse(to, invariant, out var upper) && day > upper) return false;
+            return true;
+        }
+        if (ReflectionMapper.IsNumeric(t))
+        {
+            var v = Convert.ToDecimal(value);
+            if (!string.IsNullOrWhiteSpace(from)
+                && decimal.TryParse(from, System.Globalization.NumberStyles.Any, invariant, out var lower) && v < lower) return false;
+            if (!string.IsNullOrWhiteSpace(to)
+                && decimal.TryParse(to, System.Globalization.NumberStyles.Any, invariant, out var upper) && v > upper) return false;
+        }
+        return true;
+    }
+
+    private static string? StateString(object? raw) => raw switch
+    {
+        null => null,
+        JsonElement { ValueKind: JsonValueKind.String } el => el.GetString(),
+        JsonElement { ValueKind: JsonValueKind.Number } el => el.GetRawText(),
+        JsonElement { ValueKind: JsonValueKind.True } => "true",
+        JsonElement { ValueKind: JsonValueKind.False } => "false",
+        JsonElement { ValueKind: JsonValueKind.Null or JsonValueKind.Undefined } => null,
+        _ => raw.ToString(),
+    };
+
+    // multi-select values arrive as an array from a live client and comma-joined after a URL restore
+    private static List<string> MultiValues(object? raw) => raw switch
+    {
+        JsonElement { ValueKind: JsonValueKind.Array } el =>
+            el.EnumerateArray()
+                .Select(e => e.ValueKind == JsonValueKind.String ? e.GetString() ?? "" : e.GetRawText())
+                .Where(v => v != "").ToList(),
+        _ => (StateString(raw) ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
+    };
 
     private static object New(Type element) => Activator.CreateInstance(element)!;
 

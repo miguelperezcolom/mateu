@@ -348,7 +348,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
                 p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))))
             .ToList();
         var toolbar = new List<ButtonDto> { new("New", "new"), new("Delete", "delete") };
-        var crud = Client(new CrudMetadataDto(title, columns, toolbar), "crud", []);
+        var crud = Client(new CrudMetadataDto(title, columns, toolbar) { Filters = MapCrudFilters(element) }, "crud", []);
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
         var actions = new List<ActionDto> { new("search"), new("new"), new("delete") };
         return new ServerSideComponentDto(
@@ -359,6 +359,42 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     internal static IEnumerable<PropertyInfo> EditableProperties(Type type) =>
         type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p is { CanRead: true, CanWrite: true });
+
+    /// <summary>The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud
+    /// semantics): every basic property and every enum becomes a filter — enums upgrade to
+    /// multi-selects (IN) with their constants as options, temporals to from–to date ranges,
+    /// [RangeFilter] numerics to min–max ranges.</summary>
+    private static List<FormFieldMetadataDto> MapCrudFilters(Type element) =>
+        EditableProperties(element)
+            .Select(p => (Property: p, Type: Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType))
+            .Where(x => x.Type.IsEnum || x.Type == typeof(string) || x.Type == typeof(bool)
+                        || IsNumeric(x.Type) || IsTemporal(x.Type))
+            .Select(x =>
+            {
+                var label = x.Property.GetCustomAttribute<LabelAttribute>()?.Value
+                            ?? Naming.Humanize(x.Property.Name);
+                var stereotype =
+                    x.Type.IsEnum ? "multiSelect"
+                    : IsTemporal(x.Type) ? "dateRange"
+                    : IsNumeric(x.Type) && x.Property.GetCustomAttribute<RangeFilterAttribute>() != null ? "numberRange"
+                    : "regular";
+                var options = x.Type.IsEnum
+                    ? Enum.GetNames(x.Type).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList()
+                    : new List<OptionDto>();
+                return new FormFieldMetadataDto(
+                    Naming.CamelCase(x.Property.Name), InferDataType(x.Type, x.Property), label)
+                {
+                    Stereotype = stereotype,
+                    Options = options,
+                };
+            })
+            .ToList();
+
+    internal static bool IsNumeric(Type t) =>
+        t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)
+        || t == typeof(float) || t == typeof(double) || t == typeof(decimal);
+
+    internal static bool IsTemporal(Type t) => t == typeof(DateOnly) || t == typeof(DateTime);
 
     private ClientSideComponentDto MapField(PropertyInfo p, object instance, bool readOnly = false)
     {

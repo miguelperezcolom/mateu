@@ -34,6 +34,7 @@ patterns, execution model, wire contract) applies to all three.
 | Signature capture | `@Signature` | `[Signature]` | `Annotated[str, Signature()]` |
 | Photo capture | `@PhotoCapture` | `[PhotoCapture]` | `Annotated[str, PhotoCapture()]` |
 | Tree select | `@TreeSelect(leavesOnly=…)` | `[TreeSelect(leavesOnly: …)]` | `Annotated[str, TreeSelect(leaves_only=…)]` |
+| Numeric range filter (crud listing) | `@RangeFilter` | `[RangeFilter]` | `Annotated[float, RangeFilter()]` |
 | Static options | class implements `OptionsSupplier` | class implements `IOptionsSupplier` | the view's `options(field_name)` method |
 
 ## Actions & page features

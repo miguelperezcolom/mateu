@@ -99,6 +99,21 @@ class Reservations(Crud[Reservation]):
     def delete(self, id): store_by_id.pop(id, None)
 ```
 
+The listing renders a **smart search bar** whose filters come straight from the entity: enums
+become multi-selects (IN over the picked values), `date`/`datetime` fields become from–to date
+ranges, numerics annotated `RangeFilter()` become min–max ranges, and strings/bools/plain numbers
+keep single-value widgets. The values are applied automatically over what `fetch` returns — no
+filter code to write:
+
+```python
+class Reservation:
+    id: str = ""
+    guest: str = ""
+    channel: Channel = Channel.WEB                       # multi-select filter
+    arrival: date = date(2026, 1, 1)                     # date-range filter
+    total: Annotated[float, RangeFilter()] = 0.0         # number-range filter
+```
+
 ## App shell & navigation
 
 An `@app` class is the application shell; each `@menu_item` method contributes a menu entry that
@@ -326,5 +341,5 @@ the `@app` shell + menu navigation, wizards, page decorations, tabs, stereotypes
 shortcuts, compact, the unsaved-changes guard, i18n, events, security scaffolding, and the
 UX-pattern components (MetricCard/Scoreboard/DashboardPanel/DashboardLayout, FoldoutLayout,
 HeroSection, EmptyState, Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome
-declarative archetypes. 38 golden-JSON tests assert wire compatibility; the live `showcase` view
+declarative archetypes. 43 golden-JSON tests assert wire compatibility; the live `showcase` view
 is byte-identical to the C# reference.

@@ -72,6 +72,7 @@ from mateu_uidl import (
     Password,
     PhotoCapture,
     PlainText,
+    RangeFilter,
     Signature,
     TreeSelect,
     Required,
@@ -625,13 +626,49 @@ class ReflectionMapper:
             for f in view_fields(element)
         ]
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
-        crud = self.client(CrudMetadata(title=title, columns=columns, toolbar=toolbar), "crud", [])
+        crud = self.client(
+            CrudMetadata(title=title, columns=columns, toolbar=toolbar, filters=self.crud_filters(element)),
+            "crud",
+            [],
+        )
         page = self.client(PageMetadata(), None, [crud])
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions, triggers=[Trigger(type="OnLoad", action_id="search")],
         )
+
+    def crud_filters(self, element) -> list[FormFieldMetadata]:
+        """The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud
+        semantics): every basic field and every enum becomes a filter — enums upgrade to
+        multi-selects (IN) with their members as options, temporals to from-to date ranges,
+        RangeFilter numerics to min-max ranges."""
+        out: list[FormFieldMetadata] = []
+        for f in view_fields(element):
+            t = f.type
+            if not (is_enum(t) or t in (str, bool, int, float, Decimal, date, datetime)):
+                continue
+            label = f.marker(Label).value if f.has(Label) else humanize(f.name)
+            options: list[Option] = []
+            if is_enum(t):
+                stereotype = "multiSelect"
+                options = [Option(value=m.name, label=humanize(m.name)) for m in t]
+            elif t in (date, datetime):
+                stereotype = "dateRange"
+            elif t in (int, float, Decimal) and f.has(RangeFilter):
+                stereotype = "numberRange"
+            else:
+                stereotype = "regular"
+            out.append(
+                FormFieldMetadata(
+                    field_id=camel_case(f.name),
+                    data_type=self.infer_data_type(t, f),
+                    label=label,
+                    stereotype=stereotype,
+                    options=options,
+                )
+            )
+        return out
 
     def map_entity_form(self, crud_type, element, entity, mode: str, route: str) -> ServerSideComponent:
         title = getattr(crud_type, "__mateu_title__", humanize(element.__name__))

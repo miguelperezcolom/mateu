@@ -137,6 +137,9 @@ class CrudMetadata(Wire):
     can_edit: bool = False
     detail_path: str | None = None
     crudl_type: str = "table"
+    # the smart search bar's filters, one FormField per filterable entity field (enums as
+    # multi-selects, temporals as date ranges, RangeFilter numerics as min-max)
+    filters: list["FormFieldMetadata"] = Field(default_factory=list)
 
 
 class ProgressBarMetadata(Wire):

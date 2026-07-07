@@ -2,6 +2,8 @@
 
 import json
 import sys
+from datetime import date
+from enum import Enum
 from pathlib import Path
 from typing import Annotated
 
@@ -13,6 +15,7 @@ from mateu_dtos import Option  # noqa: E402
 from mateu_uidl import (  # noqa: E402
     BannerTheme,
     PhotoCapture,
+    RangeFilter,
     Signature,
     TreeSelect,
     app_context,
@@ -98,6 +101,37 @@ class Things(Crud[Thing]):
         a.id, a.name = "1", "Alpha"
         b.id, b.name = "2", "Beta"
         return [a, b]
+
+
+class BookingChannel(Enum):
+    WEB = "WEB"
+    PHONE = "PHONE"
+    AGENCY = "AGENCY"
+
+
+class Booking:
+    id: str = ""
+    guest: str = ""
+    paid: bool = False
+    channel: BookingChannel = BookingChannel.WEB
+    created: date = date(2026, 1, 1)
+    total: Annotated[float, RangeFilter()] = 0.0
+
+
+@ui("bookings")
+@title("Bookings")
+class Bookings(Crud[Booking]):
+    def fetch(self, search):
+        def booking(id_, guest, paid, channel, created, total):
+            b = Booking()
+            b.id, b.guest, b.paid, b.channel, b.created, b.total = id_, guest, paid, channel, created, total
+            return b
+
+        return [
+            booking("b1", "Smith", True, BookingChannel.WEB, date(2026, 1, 10), 100.0),
+            booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
+            booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
+        ]
 
 
 class UpperTranslator(Translator):
@@ -379,6 +413,55 @@ def test_link_supplier_wins_over_the_marker_and_none_falls_back_to_it():
 def test_fab_action_invoked():
     inc = handler().handle(RunActionRq(action_id="add", server_side_type=_name(Featured)))
     assert inc.messages[0].text == "Added"
+
+
+# ── Smart-search listing filters ─────────────────────────────────────────────
+
+
+def test_crud_list_metadata_carries_the_smart_search_filters():
+    j = render(handler().handle(RunActionRq(route="/bookings", server_side_type=_name(Bookings))))
+    assert '"filters": [' in j
+    # enum → multi-select with the members as options
+    assert '"fieldId": "channel"' in j
+    assert '"stereotype": "multiSelect"' in j
+    assert '"value": "WEB"' in j
+    # temporal → date range by default; RangeFilter numeric → number range
+    assert '"stereotype": "dateRange"' in j
+    assert '"stereotype": "numberRange"' in j
+
+
+def search_bookings(state: dict):
+    state.setdefault("searchText", "")
+    return handler().handle(
+        RunActionRq(action_id="search", server_side_type=_name(Bookings), component_state=state)
+    )
+
+
+def test_crud_search_applies_the_enum_multi_select_as_in():
+    j = render(search_bookings({"channel": ["WEB", "PHONE"]}))
+    assert "Smith" in j and "Jones" in j and "Brown" not in j
+    # comma-joined after a URL restore behaves the same
+    restored = render(search_bookings({"channel": "WEB,AGENCY"}))
+    assert "Smith" in restored and "Brown" in restored and "Jones" not in restored
+
+
+def test_crud_search_applies_date_and_number_ranges():
+    j = render(search_bookings({"created_from": "2026-01-15", "created_to": "2026-02-20"}))
+    assert "Jones" in j and "Smith" not in j and "Brown" not in j
+    numeric = render(search_bookings({"total_from": "200"}))
+    assert "Jones" in numeric and "Brown" in numeric and "Smith" not in numeric
+
+
+def test_crud_search_applies_string_containment_and_bool_equality():
+    j = render(search_bookings({"guest": "mi"}))
+    assert "Smith" in j and "Jones" not in j
+    paid = render(search_bookings({"paid": False}))
+    assert "Jones" in paid and "Smith" not in paid and "Brown" not in paid
+
+
+def test_crud_search_ignores_blank_bounds_and_empty_selections():
+    j = render(search_bookings({"created_from": "", "channel": [], "guest": ""}))
+    assert '"totalElements": 3' in j
 
 
 def _name(cls) -> str:

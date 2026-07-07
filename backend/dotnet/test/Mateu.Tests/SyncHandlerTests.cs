@@ -51,6 +51,29 @@ public class Things : Crud<Thing>
         [new() { Id = "1", Name = "Alpha" }, new() { Id = "2", Name = "Beta" }];
 }
 
+public enum BookingChannel { Web, Phone, Agency }
+
+public class Booking
+{
+    public string Id { get; set; } = "";
+    public string Guest { get; set; } = "";
+    public bool Paid { get; set; }
+    public BookingChannel Channel { get; set; }
+    public DateOnly Created { get; set; }
+    [RangeFilter] public double Total { get; set; }
+}
+
+[UI("bookings"), Title("Bookings")]
+public class Bookings : Crud<Booking>
+{
+    public override IEnumerable<Booking> Fetch(string? search) =>
+    [
+        new() { Id = "b1", Guest = "Smith", Paid = true, Channel = BookingChannel.Web, Created = new DateOnly(2026, 1, 10), Total = 100 },
+        new() { Id = "b2", Guest = "Jones", Paid = false, Channel = BookingChannel.Phone, Created = new DateOnly(2026, 2, 10), Total = 250 },
+        new() { Id = "b3", Guest = "Brown", Paid = true, Channel = BookingChannel.Agency, Created = new DateOnly(2026, 3, 10), Total = 400 },
+    ];
+}
+
 public class UpperTranslator : ITranslator
 {
     public string Translate(string key) => key.ToUpperInvariant();
@@ -381,5 +404,111 @@ public class SyncHandlerTests
             ServerSideType = typeof(Featured).FullName,
         });
         Assert.Equal("Added", Assert.Single(inc.Messages).Text);
+    }
+
+    // ── Smart-search listing filters ─────────────────────────────────────────────
+
+    [Fact]
+    public void Crud_list_metadata_carries_the_smart_search_filters()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto
+        {
+            Route = "/bookings", ServerSideType = typeof(Bookings).FullName,
+        }));
+
+        Assert.Contains("\"filters\":[", json);
+        // enum → multi-select with the constants as options
+        Assert.Contains("\"fieldId\":\"channel\",\"dataType\":\"string\",\"label\":\"Channel\",\"stereotype\":\"multiSelect\"", json);
+        Assert.Contains("{\"value\":\"Web\",\"label\":\"Web\"", json);
+        // temporal → date range by default; [RangeFilter] numeric → number range
+        Assert.Contains("\"fieldId\":\"created\",\"dataType\":\"date\",\"label\":\"Created\",\"stereotype\":\"dateRange\"", json);
+        Assert.Contains("\"fieldId\":\"total\",\"dataType\":\"number\",\"label\":\"Total\",\"stereotype\":\"numberRange\"", json);
+        // strings and bools keep the single-value widget
+        Assert.Contains("\"fieldId\":\"guest\",\"dataType\":\"string\",\"label\":\"Guest\",\"stereotype\":\"regular\"", json);
+        Assert.Contains("\"fieldId\":\"paid\",\"dataType\":\"boolean\",\"label\":\"Paid\",\"stereotype\":\"regular\"", json);
+    }
+
+    private static UIIncrementDto SearchBookings(Dictionary<string, object?> state)
+    {
+        state.TryAdd("searchText", JsonSerializer.SerializeToElement(""));
+        return Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(Bookings).FullName,
+            ComponentState = state,
+        });
+    }
+
+    [Fact]
+    public void Crud_search_applies_the_enum_multi_select_as_IN()
+    {
+        var json = Render(SearchBookings(new()
+        {
+            ["channel"] = JsonSerializer.SerializeToElement(new[] { "Web", "Phone" }),
+        }));
+        Assert.Contains("Smith", json);
+        Assert.Contains("Jones", json);
+        Assert.DoesNotContain("Brown", json);
+
+        // comma-joined after a URL restore behaves the same
+        var restored = Render(SearchBookings(new()
+        {
+            ["channel"] = JsonSerializer.SerializeToElement("Web,Agency"),
+        }));
+        Assert.Contains("Smith", restored);
+        Assert.Contains("Brown", restored);
+        Assert.DoesNotContain("Jones", restored);
+    }
+
+    [Fact]
+    public void Crud_search_applies_date_and_number_ranges()
+    {
+        var json = Render(SearchBookings(new()
+        {
+            ["created_from"] = JsonSerializer.SerializeToElement("2026-01-15"),
+            ["created_to"] = JsonSerializer.SerializeToElement("2026-02-20"),
+        }));
+        Assert.Contains("Jones", json);
+        Assert.DoesNotContain("Smith", json);
+        Assert.DoesNotContain("Brown", json);
+
+        var numeric = Render(SearchBookings(new()
+        {
+            ["total_from"] = JsonSerializer.SerializeToElement("200"),
+        }));
+        Assert.Contains("Jones", numeric);
+        Assert.Contains("Brown", numeric);
+        Assert.DoesNotContain("Smith", numeric);
+    }
+
+    [Fact]
+    public void Crud_search_applies_string_containment_and_bool_equality()
+    {
+        var json = Render(SearchBookings(new()
+        {
+            ["guest"] = JsonSerializer.SerializeToElement("mi"),
+        }));
+        Assert.Contains("Smith", json);
+        Assert.DoesNotContain("Jones", json);
+
+        var paid = Render(SearchBookings(new()
+        {
+            ["paid"] = JsonSerializer.SerializeToElement(false),
+        }));
+        Assert.Contains("Jones", paid);
+        Assert.DoesNotContain("Smith", paid);
+        Assert.DoesNotContain("Brown", paid);
+    }
+
+    [Fact]
+    public void Crud_search_ignores_blank_bounds_and_empty_selections()
+    {
+        var json = Render(SearchBookings(new()
+        {
+            ["created_from"] = JsonSerializer.SerializeToElement(""),
+            ["channel"] = JsonSerializer.SerializeToElement(Array.Empty<string>()),
+            ["guest"] = JsonSerializer.SerializeToElement(""),
+        }));
+        Assert.Contains("\"totalElements\":3", json);
     }
 }
