@@ -21,6 +21,12 @@ interface MenuItem {
   submenus?: MenuItem[];
 }
 
+interface AppContextSelector {
+  fieldName: string;
+  label?: string;
+  options?: { value: unknown; label?: string }[];
+}
+
 interface AppMeta {
   title?: string;
   homeRoute?: string;
@@ -29,6 +35,7 @@ interface AppMeta {
   serverSideType?: string;
   variant?: string;
   menu?: MenuItem[];
+  contextSelectors?: AppContextSelector[];
 }
 
 interface ContentScreenState {
@@ -91,8 +98,61 @@ function flattenMenuItems(items: MenuItem[]): MenuItem[] {
   return result;
 }
 
+// Application-level context selectors (@AppContext fields of the app class), rendered at the top
+// of the drawer: tapping an option fixes the value in the appState sent with every request and
+// remounts the current screen so it rebuilds against the new context. Session-scoped for now
+// (persisting would need AsyncStorage, which this renderer doesn't depend on yet).
+function ContextSelectors({ selectors, onChanged }: { selectors: AppContextSelector[]; onChanged: () => void }) {
+  const { appState } = useAppContext();
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  if (selectors.length === 0) return null;
+  return (
+    <View>
+      {selectors.map((selector) => {
+        const current = appState[selector.fieldName] != null ? String(appState[selector.fieldName]) : '';
+        const currentLabel =
+          selector.options?.find((o) => String(o.value) === current)?.label ?? (current || '—');
+        const open = expanded === selector.fieldName;
+        return (
+          <View key={selector.fieldName}>
+            <TouchableOpacity
+              style={styles.contextRow}
+              onPress={() => setExpanded(open ? null : selector.fieldName)}
+            >
+              <Text style={styles.contextLabel}>{selector.label ?? selector.fieldName}</Text>
+              <Text style={styles.contextValue}>{currentLabel} {open ? '▾' : '▸'}</Text>
+            </TouchableOpacity>
+            {open &&
+              [{ value: '', label: '—' }, ...(selector.options ?? [])].map((option, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.contextOption}
+                  onPress={() => {
+                    if (option.value === '' || option.value == null) {
+                      delete appState[selector.fieldName];
+                    } else {
+                      appState[selector.fieldName] = option.value;
+                    }
+                    setExpanded(null);
+                    onChanged();
+                  }}
+                >
+                  <Text style={[styles.contextOptionText, String(option.value) === current && styles.contextOptionSelected]}>
+                    {option.label ?? String(option.value)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+          </View>
+        );
+      })}
+      <View style={styles.separator} />
+    </View>
+  );
+}
+
 // Drawer content with sidebar menu
-function SidebarContent({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
+function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void; onContextChanged: () => void }) {
   const renderItems = (items: MenuItem[], depth = 0): React.ReactNode[] => {
     return items.map((item, i) => {
       if (item.separator) {
@@ -118,6 +178,7 @@ function SidebarContent({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate:
   return (
     <DrawerContentScrollView style={styles.sidebar}>
       <Text style={styles.sidebarTitle}>{appMeta.title ?? 'Mateu'}</Text>
+      <ContextSelectors selectors={appMeta.contextSelectors ?? []} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
     </DrawerContentScrollView>
   );
@@ -133,6 +194,9 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   const variant = appMeta.variant ?? 'NAVIGATION_LAYOUT';
   const menuItems = flattenMenuItems(appMeta.menu ?? []);
+  // bumped when an @AppContext selector changes so the current screen remounts (and thus reloads
+  // with the new appState)
+  const [contextVersion, setContextVersion] = useState(0);
 
   const handleMenuNav = (item: MenuItem) => {
     setCurrentNav({
@@ -144,7 +208,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   const mainScreen = (
     <ContentScreen
-      key={`${currentNav.route}-${currentNav.consumedRoute}`}
+      key={`${currentNav.route}-${currentNav.consumedRoute}-${contextVersion}`}
       route={currentNav.route}
       consumedRoute={currentNav.consumedRoute}
       serverSideType={currentNav.serverSideType}
@@ -179,7 +243,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     return (
       <NavigationContainer>
         <Drawer.Navigator
-          drawerContent={() => <SidebarContent appMeta={appMeta} onNavigate={handleMenuNav} />}
+          drawerContent={() => <SidebarContent appMeta={appMeta} onNavigate={handleMenuNav} onContextChanged={() => setContextVersion((v) => v + 1)} />}
           screenOptions={{ headerShown: true, title: appMeta.title ?? 'Mateu' }}
         >
           <Drawer.Screen name="Main" children={() => mainScreen} />
@@ -207,4 +271,10 @@ const styles = StyleSheet.create({
   menuItem: { paddingVertical: 12, paddingRight: 20 },
   menuItemText: { color: '#fff', fontSize: 14 },
   separator: { height: 1, backgroundColor: '#4a6070', marginVertical: 4 },
+  contextRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10 },
+  contextLabel: { color: '#aac0d0', fontSize: 12, fontWeight: '600', letterSpacing: 1 },
+  contextValue: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  contextOption: { paddingVertical: 8, paddingLeft: 32, paddingRight: 20 },
+  contextOptionText: { color: '#d5e2ec', fontSize: 14 },
+  contextOptionSelected: { fontWeight: '700', color: '#fff' },
 });

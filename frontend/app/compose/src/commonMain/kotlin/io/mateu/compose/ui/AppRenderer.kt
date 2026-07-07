@@ -64,7 +64,7 @@ fun AppRenderer(component: JsonNode, appMetadata: JsonNode, app: AppState) {
 
         Column(Modifier.fillMaxSize()) {
             when {
-                showHeader -> Shellbar(title, homeRoute, homeConsumed, homeSst, app, showSidebar, { menuOpen = !menuOpen }, closeOnNavigate)
+                showHeader -> Shellbar(title, homeRoute, homeConsumed, homeSst, app, appMetadata, showSidebar, { menuOpen = !menuOpen }, closeOnNavigate)
                 showSidebar -> ToggleStrip { menuOpen = !menuOpen }
             }
             Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -122,6 +122,7 @@ private fun Shellbar(
     homeConsumed: String,
     homeSst: String,
     app: AppState,
+    appMetadata: JsonNode,
     showToggle: Boolean,
     onToggleMenu: () -> Unit,
     onNavigate: () -> Unit,
@@ -142,6 +143,50 @@ private fun Shellbar(
                     app.navigate(homeRoute, homeConsumed, homeSst, ""); onNavigate()
                 },
             )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            appMetadata.arr("contextSelectors").forEach { ContextSelector(it, app) }
+        }
+    }
+}
+
+/**
+ * One application-level context selector (@AppContext field of the app class) on the shellbar:
+ * label + current value opening a dropdown with the options. Picking a value persists it, updates
+ * the appState sent with every request, and reloads the current route (AppState.setAppContext).
+ */
+@Composable
+private fun ContextSelector(selector: JsonNode, app: AppState) {
+    val fieldName = selector.text("fieldName")
+    if (fieldName.isBlank()) return
+    var expanded by remember { mutableStateOf(false) }
+    val options = selector.arr("options")
+    val current = app.appState[fieldName]?.toString() ?: ""
+    val currentLabel = options.firstOrNull { it.text("value") == current }?.text("label")
+        ?: current.ifBlank { "—" }
+
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 16.dp)) {
+        Text(selector.text("label", fieldName), color = MateuColors.sidebarGroup, fontSize = 13.sp)
+        Box {
+            Text(
+                "$currentLabel ▾",
+                color = MateuColors.sidebarText,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable { expanded = true }.padding(start = 6.dp),
+            )
+            androidx.compose.material3.DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                androidx.compose.material3.DropdownMenuItem(
+                    text = { Text("—") },
+                    onClick = { expanded = false; app.setAppContext(fieldName, null) },
+                )
+                options.forEach { option ->
+                    androidx.compose.material3.DropdownMenuItem(
+                        text = { Text(option.text("label")) },
+                        onClick = { expanded = false; app.setAppContext(fieldName, option.text("value")) },
+                    )
+                }
+            }
         }
     }
 }

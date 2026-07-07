@@ -47,6 +47,9 @@ public class AppShell {
     public AppShell(String baseUrl) {
         this.baseUrl = baseUrl;
         this.apiClient = new MateuApiClient(baseUrl, UUID.randomUUID().toString());
+        // App-level context (@AppContext header selectors): restore the persisted values so they
+        // travel in the appState of every request from the very first load.
+        appState.putAll(loadAppContext());
 
         tabPane.setCloseIfEmpty(false);
         // Explicit, app-wide dock scope: tabs only dock among panes sharing this scope. With a
@@ -187,6 +190,67 @@ public class AppShell {
             return true;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    // ── Application context (@AppContext) persistence ─────────────────────────────
+    // The header context selectors' values, kept per backend in a dot-file so they survive
+    // restarts (the desktop analogue of the web renderers' localStorage entry).
+
+    private File appContextFile() {
+        return new File(System.getProperty("user.home"), ".mateu-javafx-appcontext.json");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> loadAppContext() {
+        try {
+            File f = appContextFile();
+            if (!f.exists()) return Map.of();
+            Map<String, Object> all = mapper.readValue(f, Map.class);
+            Object mine = all.get(baseUrl);
+            return mine instanceof Map ? (Map<String, Object>) mine : Map.of();
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    /** Persists a context selection, updates the live appState, and reloads every open tab. */
+    @SuppressWarnings("unchecked")
+    public void setAppContext(String fieldName, Object value) {
+        if (value == null || "".equals(value)) {
+            appState.remove(fieldName);
+        } else {
+            appState.put(fieldName, value);
+        }
+        try {
+            File f = appContextFile();
+            Map<String, Object> all = f.exists() ? mapper.readValue(f, Map.class) : new HashMap<>();
+            Map<String, Object> mine = new HashMap<>();
+            Object existing = all.get(baseUrl);
+            if (existing instanceof Map) mine.putAll((Map<String, Object>) existing);
+            if (value == null || "".equals(value)) mine.remove(fieldName); else mine.put(fieldName, value);
+            all.put(baseUrl, mine);
+            mapper.writeValue(f, all);
+        } catch (Exception ignored) {
+            // persistence is best-effort; the in-memory appState is already updated
+        }
+        reloadOpenTabs();
+    }
+
+    /** Re-opens every open tab so all screens rebuild against the new application context. */
+    private void reloadOpenTabs() {
+        List<TabRef> refs = new ArrayList<>();
+        for (Tab t : tabPane.getTabs()) {
+            if (t.getUserData() instanceof TabRef r) refs.add(r);
+        }
+        int selected = tabPane.getSelectionModel().getSelectedIndex();
+        tabPane.getTabs().clear();
+        tabsByKey.clear();
+        for (TabRef r : refs) {
+            openTab(r.label(), r.route(), r.consumedRoute(), r.serverSideType(), "");
+        }
+        if (selected >= 0 && selected < tabPane.getTabs().size()) {
+            tabPane.getSelectionModel().select(selected);
         }
     }
 

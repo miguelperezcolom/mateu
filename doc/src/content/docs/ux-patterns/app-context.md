@@ -109,6 +109,21 @@ class BackofficeApp:
         return [(h.id, h.name) for h in hotels]   # or Option(...) objects, or an Enum return type
 ```
 
+## Native renderers
+
+The native shells render the same wire field:
+
+- **JavaFX** — one ComboBox per selector on the right of the shellbar; the selection is persisted
+  per backend in `~/.mateu-javafx-appcontext.json` and picking a value reloads every open tab of
+  the dockable workspace.
+- **Compose Multiplatform** — dropdowns on the shellbar (desktop/iOS/Android); persisted per
+  backend (a properties file on desktop, `NSUserDefaults` on iOS; session-scoped on Android until
+  the entry point threads a `Context` through) and picking a value re-navigates the current route.
+- **React Native** — selectors at the top of the drawer; session-scoped, picking a value remounts
+  the current screen.
+
+Native pickers show the loaded options (first page) without the web picker's remote search.
+
 ## Principles served
 
 - **Workflow over screens** — set once, applies everywhere

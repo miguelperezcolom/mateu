@@ -139,7 +139,61 @@ public class AppRenderer {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         header.getChildren().addAll(hamburger, titleLabel, spacer);
+        addContextSelectors(header, appMetadata);
         return header;
+    }
+
+    /**
+     * Application-level context selectors (@AppContext fields of the app class): one ComboBox per
+     * selector on the right of the shellbar. Picking a value persists it, updates the appState
+     * sent with every request, and reloads every open tab (see AppShell.setAppContext).
+     */
+    private void addContextSelectors(HBox header, JsonNode appMetadata) {
+        JsonNode selectors = appMetadata.path("contextSelectors");
+        if (!selectors.isArray()) return;
+        for (JsonNode selector : selectors) {
+            String fieldName = selector.path("fieldName").asText("");
+            if (fieldName.isBlank()) continue;
+            Label label = new Label(selector.path("label").asText(fieldName));
+            label.getStyleClass().add("app-context-label");
+
+            javafx.scene.control.ComboBox<ContextOption> combo = new javafx.scene.control.ComboBox<>();
+            combo.getItems().add(new ContextOption("", "—"));
+            JsonNode options = selector.path("options");
+            if (options.isArray()) {
+                for (JsonNode option : options) {
+                    combo.getItems().add(new ContextOption(
+                            option.path("value").asText(""), option.path("label").asText("")));
+                }
+            }
+            Object current = ctx.shell.appState.get(fieldName);
+            String currentValue = current == null ? "" : String.valueOf(current);
+            combo.getSelectionModel().select(combo.getItems().stream()
+                    .filter(item -> item.value().equals(currentValue))
+                    .findFirst()
+                    // a persisted value beyond the loaded options still shows (as its raw value)
+                    .orElseGet(() -> {
+                        if (currentValue.isEmpty()) return combo.getItems().get(0);
+                        ContextOption extra = new ContextOption(currentValue, currentValue);
+                        combo.getItems().add(extra);
+                        return extra;
+                    }));
+            combo.setOnAction(e -> {
+                ContextOption picked = combo.getSelectionModel().getSelectedItem();
+                if (picked != null) {
+                    ctx.shell.setAppContext(fieldName, picked.value());
+                }
+            });
+            header.getChildren().addAll(label, combo);
+        }
+    }
+
+    /** ComboBox item for a context option: displays the label, carries the value. */
+    private record ContextOption(String value, String label) {
+        @Override
+        public String toString() {
+            return label;
+        }
     }
 
     private VBox buildSidebar(JsonNode appMetadata, String defaultConsumedRoute) {

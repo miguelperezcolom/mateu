@@ -49,7 +49,11 @@ class AppState(
     val message = mutableStateOf<UiMessage?>(null)
 
     // ── Navigation / action context (plain control data, mirrors the JavaFX renderer) ──
-    val appState = HashMap<String, Any?>()
+    val appState = HashMap<String, Any?>().apply {
+        // @AppContext header selectors: restore the persisted values so they travel in the
+        // appState of every request from the very first load
+        putAll(loadPersistedAppContext(baseUrl))
+    }
     var currentRoute = ""
     var currentConsumedRoute = ""
     var currentServerSideType = ""
@@ -109,6 +113,22 @@ class AppState(
             val drained = pendingData.values.toList()
             pendingData.clear()
             drained.forEach { handler(it) }
+        }
+    }
+
+    /**
+     * Fixes an application-context value (@AppContext header selector): updates the appState sent
+     * with every request, persists the selection per backend, and re-navigates the current route
+     * so the screen rebuilds against the new context.
+     */
+    fun setAppContext(fieldName: String, value: String?) {
+        if (value.isNullOrBlank()) appState.remove(fieldName) else appState[fieldName] = value
+        persistAppContext(
+            baseUrl,
+            appState.mapNotNull { (k, v) -> v?.toString()?.let { k to it } }.toMap(),
+        )
+        if (currentRoute.isNotBlank() || currentServerSideType.isNotBlank()) {
+            navigate(currentRoute, currentConsumedRoute, currentServerSideType, "")
         }
     }
 
