@@ -7,6 +7,10 @@ Mateu has a **C# server-side implementation** (Mateu.NET). You annotate plain C#
 **existing renderers** (web, JavaFX, Compose) render them with **zero client changes** — exactly as
 they render the Java backend.
 
+> Coming from Java? The [Language Rosetta](/reference/language-rosetta/) maps every declaration
+> idiom side by side, and the [parity matrix](/reference/parity/) shows exactly what this server
+> supports today.
+
 ## How it works
 
 Every Mateu renderer speaks one protocol: `POST /{baseUrl}/mateu/v3/sync/{route}` in, a
@@ -261,6 +265,53 @@ public class UpperTranslator : ITranslator
 public class Orders { /* … */ }
 ```
 
+## Navigation links, radio groups & adaptive layout
+
+`[LinkTo("/customers/${state.customerId}")]` puts a navigation icon on a field (templates are
+interpolated client-side); implement `ILinkSupplier.Link(memberName)` for runtime decisions.
+`[UseRadioButtons]` forces an enum to render as a radio group, and `[AutoLayout]` enables the
+adaptive layout inference (small enums become radios, long forms fold, section-heavy forms become
+tabs) — the same heuristics as the Java server.
+
+## Application context selector
+
+An `[AppContext]` member of the app class becomes a selector on the app header that fixes a value
+for EVERY screen (the active hotel, the company…). An enum property contributes its constants; a
+method returns the options. The picked value travels in the `appState` of every request:
+
+```csharp
+[App("Backoffice")]
+public class BackofficeApp
+{
+    [AppContext("Hotel")]
+    public IReadOnlyList<OptionDto> Hotel() =>
+        hotels.Select(h => new OptionDto(h.Id, h.Name)).ToList();
+}
+```
+
+## Capture fields & tree selects
+
+`[Signature]` renders a string property as a drawing pad (the accepted strokes land in the value
+as a PNG data URI) and `[PhotoCapture]` as a camera capture (JPEG data URI) — no upload endpoint,
+the image travels in the string. `[TreeSelect(leavesOnly: true)]` unfolds the field's dropdown as
+a TREE; the hierarchy comes from the view implementing `IOptionsSupplier` with options carrying
+`Children`:
+
+```csharp
+[UI("checkin")]
+public class CheckIn : IOptionsSupplier
+{
+    [Signature] public string GuestSignature { get; set; } = "";
+    [PhotoCapture] public string DocumentPhoto { get; set; } = "";
+    [TreeSelect] public string Zone { get; set; } = "";
+
+    public IReadOnlyList<Option> Options(string fieldName) =>
+        fieldName == "zone"
+            ? [new Option("es", "Spain", [new Option("mca", "Mallorca")]), new Option("pt", "Portugal")]
+            : [];
+}
+```
+
 ## Status
 
 The core Mateu surface is covered and verified live in the Compose renderer (desktop + iOS) against
@@ -269,7 +320,7 @@ save / delete), the `[App]` shell + menu navigation, wizards, page decorations, 
 security scaffolding, the tail features above (tabs, stereotypes, KPIs, FABs, shortcuts, compact,
 unsaved-changes guard), the nine dashboard/UX component types (MetricCard, Scoreboard,
 DashboardPanel, DashboardLayout, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
-declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). 20 golden-JSON tests
+declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). 38 golden-JSON tests
 assert wire compatibility with the Java backend.
 
 Beyond the core, the remaining Java features (component adapters, federated microfrontends, framework

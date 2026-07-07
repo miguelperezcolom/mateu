@@ -7,6 +7,10 @@ Mateu has a **Python server-side implementation**. You annotate plain Python cla
 **existing renderers** (web, JavaFX, Compose) render them with **zero client changes** — exactly as
 they render the Java backend.
 
+> Coming from Java? The [Language Rosetta](/reference/language-rosetta/) maps every declaration
+> idiom side by side, and the [parity matrix](/reference/parity/) shows exactly what this server
+> supports today.
+
 ## How it works
 
 Every Mateu renderer speaks one protocol: `POST /{baseUrl}/mateu/v3/sync/{route}` in, a
@@ -262,6 +266,53 @@ class UpperTranslator(Translator):
     def translate(self, key: str) -> str: return key.upper()
 ```
 
+## Navigation links, radio groups & adaptive layout
+
+`Annotated[str, LinkTo("/customers/${state.customerId}")]` puts a navigation icon on a field
+(templates interpolate client-side); give the view a `link(member_name)` method for runtime
+decisions. `UseRadioButtons()` forces an enum to render as a radio group, and `@auto_layout`
+enables the adaptive layout inference (small enums become radios, long forms fold, section-heavy
+forms become tabs) — the same heuristics as the Java server.
+
+## Application context selector
+
+An `@app_context` method of the app class becomes a selector on the app header that fixes a value
+for EVERY screen (the active hotel, the company…) — return the options as `Option` objects or
+`(value, label)` pairs, or annotate the return type as an Enum. The picked value travels in the
+`app_state` of every request:
+
+```python
+@app("Backoffice")
+class BackofficeApp:
+    @app_context("Hotel")
+    def hotel(self):
+        return [(h.id, h.name) for h in hotels]
+```
+
+## Capture fields & tree selects
+
+`Annotated[str, Signature()]` renders a drawing pad (the accepted strokes land in the value as a
+PNG data URI) and `Annotated[str, PhotoCapture()]` a camera capture (JPEG data URI) — no upload
+endpoint, the image travels in the string. `Annotated[str, TreeSelect(leaves_only=True)]` unfolds
+the field's dropdown as a TREE; the hierarchy comes from the view's `options(field_name)` method
+returning options with children:
+
+```python
+@ui("checkin")
+class CheckIn:
+    guest_signature: Annotated[str, Signature()] = ""
+    document_photo: Annotated[str, PhotoCapture()] = ""
+    zone: Annotated[str, TreeSelect()] = ""
+
+    def options(self, field_name):
+        if field_name == "zone":
+            return [
+                Option(value="es", label="Spain", children=[Option(value="mca", label="Mallorca")]),
+                Option(value="pt", label="Portugal"),
+            ]
+        return []
+```
+
 ## Python 3.14+ note
 
 Under [PEP 649](https://peps.python.org/pep-0649/) annotations evaluate lazily and are no longer
@@ -275,5 +326,5 @@ the `@app` shell + menu navigation, wizards, page decorations, tabs, stereotypes
 shortcuts, compact, the unsaved-changes guard, i18n, events, security scaffolding, and the
 UX-pattern components (MetricCard/Scoreboard/DashboardPanel/DashboardLayout, FoldoutLayout,
 HeroSection, EmptyState, Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome
-declarative archetypes. 18 golden-JSON tests assert wire compatibility; the live `showcase` view
+declarative archetypes. 38 golden-JSON tests assert wire compatibility; the live `showcase` view
 is byte-identical to the C# reference.

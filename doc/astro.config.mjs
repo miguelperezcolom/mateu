@@ -307,6 +307,8 @@ export default defineConfig({
 						{ slug: 'reference/key-interfaces' },
 						{ slug: 'reference/fluent-model' },
 						{ slug: 'reference/useful-types' },
+						{ slug: 'reference/language-rosetta', label: 'Language Rosetta (Java/C#/Python)' },
+						{ slug: 'reference/parity', label: 'Feature parity matrix' },
 					],
 				},
 				{
@@ -315,6 +317,8 @@ export default defineConfig({
 						{ slug: 'kotlin-user-manual', label: 'Kotlin' },
 						{ slug: 'csharp-user-manual', label: 'C#' },
 						{ slug: 'python-user-manual', label: 'Python' },
+						{ slug: 'reference/language-rosetta', label: 'Language Rosetta' },
+						{ slug: 'reference/parity', label: 'Feature parity' },
 					],
 				},
 			],
