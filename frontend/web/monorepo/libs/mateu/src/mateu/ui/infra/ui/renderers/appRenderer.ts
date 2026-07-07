@@ -3,29 +3,15 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
-import { readAppContext, writeAppContext } from "@infra/appContextStore.ts";
-// Application-level context selectors (@AppContext fields on the app class): compact selects on
-// the header that fix a value for every screen. Picking a value persists it client-side (the API
-// client sends it in the appState of every request) and reloads the current route so the whole
-// screen rebuilds against the new context.
-const renderContextSelectors = (metadata: App) => {
+import "@infra/ui/mateu-app-context-picker.ts";
+// Application-level context selectors (@AppContext fields on the app class): compact pickers on
+// the header that fix a value for every screen (searchable panel for large option sets). See
+// mateu-app-context-picker.
+const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const selectors = metadata.contextSelectors ?? []
     if (selectors.length === 0) return nothing
-    const context = readAppContext()
     return html`${selectors.map(selector => html`
-        <label style="display: inline-flex; align-items: center; gap: 0.35rem; margin-left: 0.5rem; flex-shrink: 0; font-size: var(--lumo-font-size-s, 0.875rem); color: var(--lumo-secondary-text-color, rgba(0,0,0,0.6));">
-            ${selector.label}
-            <select
-                style="font: inherit; color: var(--lumo-body-text-color, #1a1a1a); background: var(--lumo-contrast-10pct, rgba(0,0,0,0.06)); border: none; border-radius: var(--lumo-border-radius-m, 0.25rem); padding: 0.3rem 0.5rem; cursor: pointer; outline: none;"
-                @change="${(e: Event) => {
-                    writeAppContext(selector.fieldName, (e.target as HTMLSelectElement).value)
-                    window.location.reload()
-                }}">
-                <option value="">—</option>
-                ${selector.options.map(option => html`
-                    <option value="${String(option.value)}" ?selected="${String(context[selector.fieldName] ?? '') === String(option.value)}">${option.label}</option>`)}
-            </select>
-        </label>`)}`
+        <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}`
 }
 
 const renderThemeToggle = (metadata: App, container: MateuApp) =>
@@ -172,7 +158,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <h2 slot="navbar" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2><p slot="navbar">${metadata.subtitle}</p>
                     <vaadin-horizontal-layout slot="navbar" style="margin-left: auto; align-items: center;">
                         <slot name="widgets"></slot>
-                        ${renderContextSelectors(metadata)}${renderThemeToggle(metadata, container)}
+                        ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                     </vaadin-horizontal-layout>
                     <vaadin-scroller slot="drawer" class="p-s"
                                      @navigation-requested="${container.updateRoute}">
@@ -234,7 +220,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
-                            ${renderContextSelectors(metadata)}${renderThemeToggle(metadata, container)}
+                            ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
@@ -285,7 +271,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout>
                             <slot name="widgets"></slot>
-                            ${renderContextSelectors(metadata)}${renderThemeToggle(metadata, container)}
+                            ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
@@ -351,7 +337,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <vaadin-vertical-layout
                                 @navigation-requested="${container.updateRoute}">
                             ${metadata.menu.map(option => container.renderOptionOnLeftMenu(option))}
-                            ${renderContextSelectors(metadata)}${renderThemeToggle(metadata, container)}
+                            ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>
                     <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}">

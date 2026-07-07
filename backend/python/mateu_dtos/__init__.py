@@ -33,6 +33,17 @@ class AppMetadata(Wire):
     subtitle: str | None = None
     login_url: str | None = None
     logout_url: str | None = None
+    context_selectors: list["AppContextSelector"] = Field(default_factory=list)
+
+
+class AppContextSelector(Wire):
+    """An application-level context selector shown on the app header: fixes a value for every
+    screen (the active hotel, the company…). The picked value lives in the app state under
+    field_name and travels with every request."""
+
+    field_name: str
+    label: str
+    options: list["Option"] = Field(default_factory=list)
 
 
 class PageMetadata(Wire):

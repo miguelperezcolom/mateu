@@ -78,6 +78,12 @@ public class Home2 implements WidgetSupplier {
     @io.mateu.uidl.annotations.AppContext(label = "Hotel")
     HotelSelector hotel;
 
+    enum Environment { DEV, STAGING, PRODUCTION }
+
+    // enum-backed context: its constants are the options (renders as a compact select)
+    @io.mateu.uidl.annotations.AppContext(label = "Env")
+    Environment environment;
+
     @Menu
     BannerDemoPage bannerDemo;
 

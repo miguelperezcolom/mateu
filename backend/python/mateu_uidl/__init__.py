@@ -211,6 +211,21 @@ def app(title_: str) -> Callable[[type], type]:
     return deco
 
 
+def app_context(label: str = "") -> Callable:
+    """Application-level context selector on the app header (the active hotel, the company…).
+
+    Put it on a zero-arg method of the app class returning the options (a list of
+    ``Option(value=…, label=…)`` objects or ``(value, label)`` tuples), or annotate the method's
+    return type as an Enum (its members become the options). The picked value is sent in the app
+    state of every request under the method's name."""
+
+    def deco(fn):
+        fn.__mateu_app_context__ = label
+        return fn
+
+    return deco
+
+
 def compact(cls: type) -> type:
     cls.__mateu_compact__ = True
     return cls

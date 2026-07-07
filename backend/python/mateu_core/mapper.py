@@ -11,6 +11,7 @@ from typing import Any, get_args, get_origin, get_type_hints
 
 from mateu_dtos import (
     AccordionLayoutMetadata,
+    AppContextSelector,
     AccordionPanelMetadata,
     Action,
     AppMetadata,
@@ -146,8 +147,43 @@ class ReflectionMapper:
             home_consumed_route=home.consumed_route if home else "",
             home_server_side_type=home.server_side_type if home else "",
             server_side_type=type_name(cls),
+            context_selectors=self.map_context_selectors(cls),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
+
+    def map_context_selectors(self, cls) -> list[AppContextSelector]:
+        """@app_context methods of the app class become header context selectors: the method's
+        return annotation may be an Enum (its members are the options), or the method is called
+        (zero args, on a fresh instance) and must return Option-likes or (value, label) pairs."""
+        selectors: list[AppContextSelector] = []
+        for name, fn in methods_with(cls, "__mateu_app_context__"):
+            marker = getattr(fn, "__mateu_app_context__")
+            label = self.T(marker) if marker else humanize(name)
+            options: list[Option] = []
+            try:
+                return_type = get_type_hints(fn).get("return")
+            except Exception:
+                return_type = None
+            if isinstance(return_type, type) and issubclass(return_type, Enum):
+                options = [
+                    Option(value=member.name, label=humanize(member.name))
+                    for member in return_type
+                ]
+            else:
+                try:
+                    for item in fn(cls()) or []:
+                        if isinstance(item, Option):
+                            options.append(item)
+                        elif isinstance(item, (tuple, list)) and len(item) == 2:
+                            options.append(Option(value=str(item[0]), label=str(item[1])))
+                        elif hasattr(item, "value") and hasattr(item, "label"):
+                            options.append(Option(value=str(item.value), label=str(item.label)))
+                except Exception:
+                    options = []
+            selectors.append(
+                AppContextSelector(field_name=name, label=label, options=options)
+            )
+        return selectors
 
     def map_menu_item(self, name: str, fn) -> MenuItem:
         try:

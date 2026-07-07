@@ -31,5 +31,6 @@ export default interface App extends ComponentMetadata {
     fabs: Fab[] | undefined
     themeToggle: boolean
     contextSelectors: AppContextSelector[] | undefined
+    rootRoute: string | undefined
 
 }

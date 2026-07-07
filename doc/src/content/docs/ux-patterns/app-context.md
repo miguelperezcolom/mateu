@@ -72,13 +72,42 @@ stays fully decoupled from the screens.
 
 ## Behaviour
 
-- **Persistent** — the selection is stored client-side (one entry per origin) and survives
-  reloads, navigation and new tabs.
+- **Compact select or searchable picker** — up to 7 options render as a plain select; more options
+  render as a button opening a **searchable panel**: typing filters the loaded options and asks
+  the server for matches beyond the first page (the `_appcontext-search-<field>` action, answered
+  by the field's `LookupOptionsSupplier` or the enum constants).
+- **Persistent** — the selection (and its label) is stored client-side (one entry per origin) and
+  survives reloads, navigation and new tabs.
 - **Uniform reactivity** — picking a different value reloads the current route, so whatever screen
   the user is on rebuilds against the new context. No per-screen wiring.
+- **Cross-tab sync** — when another tab of the same origin changes the context, every open tab
+  reloads and rebuilds against the new value.
 - **Explicit app state wins** — the persisted context is merged under any appState entries the
   components set programmatically.
 - Several `@AppContext` fields render several selectors (e.g. hotel + fiscal year).
+
+## Other servers
+
+The pattern is wire-level, so the .NET and Python backends emit the same selectors:
+
+```csharp
+[App("Backoffice")]
+public class BackofficeApp
+{
+    [AppContext("Hotel")]
+    public IReadOnlyList<OptionDto> Hotel() => hotels.Select(h => new OptionDto(h.Id, h.Name)).ToList();
+
+    [AppContext] public Environment Environment { get; set; }   // enum property
+}
+```
+
+```python
+@app("Backoffice")
+class BackofficeApp:
+    @app_context("Hotel")
+    def hotel(self):
+        return [(h.id, h.name) for h in hotels]   # or Option(...) objects, or an Enum return type
+```
 
 ## Principles served
 

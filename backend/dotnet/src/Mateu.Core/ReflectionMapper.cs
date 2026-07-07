@@ -34,8 +34,48 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             HomeConsumedRoute = home?.ConsumedRoute ?? "",
             HomeServerSideType = home?.ServerSideType ?? "",
             ServerSideType = appType.FullName!,
+            ContextSelectors = MapContextSelectors(appType),
         };
         return new ClientSideComponentDto(meta, "ux_main_app", [], null, null, null);
+    }
+
+    /// <summary>[AppContext] members of the app class become header context selectors: an enum
+    /// property contributes its constants, a method its returned (value, label) pairs.</summary>
+    private IReadOnlyList<AppContextSelectorDto> MapContextSelectors(Type appType)
+    {
+        var selectors = new List<AppContextSelectorDto>();
+        foreach (var property in appType.GetProperties())
+        {
+            var attribute = property.GetCustomAttribute<AppContextAttribute>();
+            if (attribute is null || !property.PropertyType.IsEnum) continue;
+            var options = Enum.GetNames(property.PropertyType)
+                .Select(name => new OptionDto(name, Naming.Humanize(name)))
+                .ToList();
+            selectors.Add(new AppContextSelectorDto(
+                Naming.CamelCase(property.Name),
+                attribute.Label != "" ? T(attribute.Label) : Naming.Humanize(property.Name),
+                options));
+        }
+        foreach (var method in appType.GetMethods())
+        {
+            var attribute = method.GetCustomAttribute<AppContextAttribute>();
+            if (attribute is null) continue;
+            var options = new List<OptionDto>();
+            if (method.GetParameters().Length == 0
+                && Activator.CreateInstance(appType) is { } instance
+                && method.Invoke(instance, null) is System.Collections.IEnumerable values)
+            {
+                foreach (var value in values)
+                {
+                    if (value is OptionDto option) options.Add(option);
+                }
+            }
+            selectors.Add(new AppContextSelectorDto(
+                Naming.CamelCase(method.Name),
+                attribute.Label != "" ? T(attribute.Label) : Naming.Humanize(method.Name),
+                options));
+        }
+        return selectors;
     }
 
     private MenuItemDto MapMenuItem(MethodInfo m)

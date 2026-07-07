@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
 from mateu_uidl import (  # noqa: E402
     BannerTheme,
+    app_context,
     Crud,
     LinkSupplier,
     LinkTo,
@@ -58,6 +59,10 @@ class TestApp:
     @menu_item("Things")
     def things(self) -> "Things":
         return Things()
+
+    @app_context("Hotel")
+    def hotel(self):
+        return [("1", "Hotel 1"), ("2", "Hotel 2")]
 
 
 class Thing:
@@ -204,6 +209,16 @@ def test_app_shell_menu():
     assert "Test App" in j
     assert "Things" in j
     assert '"/things"' in j
+
+
+def test_app_context_selectors_on_the_wire():
+    inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
+    j = json.loads(render(inc))
+    app_meta = j["fragments"][0]["component"]["metadata"]
+    selectors = app_meta["contextSelectors"]
+    assert selectors[0]["fieldName"] == "hotel"
+    assert selectors[0]["label"] == "Hotel"
+    assert [o["label"] for o in selectors[0]["options"]] == ["Hotel 1", "Hotel 2"]
 
 
 def test_crud_search_returns_rows():

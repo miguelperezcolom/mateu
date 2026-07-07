@@ -20,6 +20,9 @@ public class SimpleForm
 public class TestApp
 {
     [MenuItem("Things")] public Things Things() => new();
+
+    [AppContext("Hotel")]
+    public IReadOnlyList<OptionDto> Hotel() => [new("1", "Hotel 1"), new("2", "Hotel 2")];
 }
 
 public class Thing
@@ -155,6 +158,17 @@ public class SyncHandlerTests
         Assert.Contains("\"title\":\"Test App\"", json);
         Assert.Contains("\"label\":\"Things\"", json);
         Assert.Contains("\"route\":\"/things\"", json);
+    }
+
+    [Fact]
+    public void App_context_selectors_reach_the_wire()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName });
+        var json = Render(inc);
+
+        Assert.Contains("\"contextSelectors\"", json);
+        Assert.Contains("\"fieldName\":\"hotel\"", json);
+        Assert.Contains("\"label\":\"Hotel 2\"", json);
     }
 
     [Fact]

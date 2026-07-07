@@ -39,7 +39,13 @@ class AppContextSyncTest {
     @Override
     public ListingData<Option> search(
         String fieldName, String searchText, Pageable pageable, HttpRequest httpRequest) {
-      return ListingData.of(new Option("1", "Hotel 1"), new Option("2", "Hotel 2"));
+      return ListingData.of(
+          java.util.stream.Stream.of(new Option("1", "Hotel 1"), new Option("2", "Hotel 2"))
+              .filter(
+                  option ->
+                      searchText == null
+                          || option.label().toLowerCase().contains(searchText.toLowerCase()))
+              .toArray(Option[]::new));
     }
   }
 
@@ -123,6 +129,44 @@ class AppContextSyncTest {
                 .appState(Map.of("hotel", "2"))
                 .build());
     assertThat(increment.messages()).extracting(m -> m.text()).contains("hotel 2");
+  }
+
+  @Test
+  void appContextSearchActionReturnsMatchingOptions() {
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/ctx")
+                .serverSideType(ContextApp.class.getName())
+                .actionId("_appcontext-search-hotel")
+                .initiatorComponentId("ctx_app")
+                .componentState(Map.of())
+                .parameters(Map.of("searchText", "hotel 2"))
+                .build());
+    var data = (Map<?, ?>) increment.fragments().get(0).data();
+    var page = (io.mateu.uidl.data.Page<?>) data.get("_appcontext_hotel");
+    assertThat(page.content())
+        .extracting(option -> ((Option) option).label())
+        .containsExactly("Hotel 2");
+  }
+
+  @Test
+  void appContextSearchActionFiltersEnumConstants() {
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/ctx")
+                .serverSideType(ContextApp.class.getName())
+                .actionId("_appcontext-search-environment")
+                .initiatorComponentId("ctx_app")
+                .componentState(Map.of())
+                .parameters(Map.of("searchText", "prod"))
+                .build());
+    var data = (Map<?, ?>) increment.fragments().get(0).data();
+    var page = (io.mateu.uidl.data.Page<?>) data.get("_appcontext_environment");
+    assertThat(page.content())
+        .extracting(option -> ((Option) option).value())
+        .containsExactly("PRODUCTION");
   }
 
   @Test

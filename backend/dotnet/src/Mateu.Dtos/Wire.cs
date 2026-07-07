@@ -246,7 +246,13 @@ public record AppMetadataDto(
     public string? Subtitle { get; init; }
     public string? LoginUrl { get; init; }
     public string? LogoutUrl { get; init; }
+    public IReadOnlyList<AppContextSelectorDto> ContextSelectors { get; init; } = [];
 }
+
+/// <summary>An application-level context selector shown on the app header: fixes a value for
+/// every screen (the active hotel, the company…). The picked value lives in the app state under
+/// FieldName and travels with every request.</summary>
+public record AppContextSelectorDto(string FieldName, string Label, IReadOnlyList<OptionDto> Options);
 
 public record MenuItemDto(string Label, string Route, string ServerSideType)
 {

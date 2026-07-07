@@ -21,14 +21,10 @@ record Row(String id, String name, String address) {}
 @Style("min-width: 40rem;")
 public class HotelSelector extends Listing<Filters, Row> implements Selector<String>, LookupLabelSupplier, io.mateu.uidl.interfaces.LookupOptionsSupplier {
 
-    static final List<Row> rows = List.of(
-            new Row("1", "Hotel 1", "Calle 1"),
-            new Row("2", "Hotel 2", "Calle 2"),
-            new Row("3", "Hotel 3", "Calle 3"),
-            new Row("4", "Hotel 4", "Calle 4"),
-            new Row("5", "Hotel 5", "Calle 5"),
-            new Row("6", "Hotel 6", "Calle 6")
-    );
+    // 30 hotels so the app-context picker shows its SEARCHABLE variant (> 7 options)
+    static final List<Row> rows = java.util.stream.IntStream.rangeClosed(1, 30)
+            .mapToObj(i -> new Row("" + i, "Hotel " + i, "Calle " + i))
+            .toList();
 
     @Override
     public ListingData<Row> search(String searchText, Filters filters, Pageable pageable, HttpRequest httpRequest) {

@@ -14,6 +14,16 @@ public sealed class TitleAttribute(string value) : Attribute
     public string Value { get; } = value;
 }
 
+/// <summary>An application-level context selector on the app header (the active hotel, the
+/// company…): on an enum property its constants are the options, on a method the returned
+/// (value, label) pairs are. The picked value is sent in the app state of every request under the
+/// member's (camelCased) name.</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+public sealed class AppContextAttribute(string label = "") : Attribute
+{
+    public string Label { get; } = label;
+}
+
 /// <summary>A method exposed as a button at the bottom of the page.</summary>
 [AttributeUsage(AttributeTargets.Method)]
 public sealed class ButtonAttribute(string? label = null) : Attribute
