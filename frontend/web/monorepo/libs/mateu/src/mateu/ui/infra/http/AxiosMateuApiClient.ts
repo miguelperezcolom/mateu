@@ -1,4 +1,5 @@
 import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios"
+import { readAppContext } from '@infra/appContextStore.ts';
 import {nanoid} from "nanoid"
 import {MateuApiClient} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
@@ -115,6 +116,9 @@ export class AxiosMateuApiClient implements MateuApiClient {
         if (route && route.startsWith('/')) {
             route = route.substring(1)
         }
+        // the app-level context (@AppContext header selectors) travels with EVERY request:
+        // explicit appState entries win over the persisted context
+        appState = { ...readAppContext(), ...appState }
         return await this.wrap<UIIncrement>(this.post(baseUrl + '/mateu/v3/sync/' +
             ((route && route != '')?route:'_no_route'), {
             serverSideType,

@@ -1,4 +1,5 @@
 import {customElement, state} from "lit/decorators.js";
+import { readAppContext, writeAppContext } from '@infra/appContextStore.ts';
 import {css, html, LitElement, nothing} from "lit";
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
@@ -553,6 +554,20 @@ export class MateuRedwoodApp extends MateuApp {
                         </div>
                         <div 
                              class="oj-flex-bar-end  oj-sm-align-items-center oj-sm-only-width-full">
+                            ${(metadata.contextSelectors ?? []).map(selector => html`
+                                <label style="display: inline-flex; align-items: center; gap: 0.35rem; margin-right: 0.75rem; flex-shrink: 0; font-size: 0.875rem; color: rgba(22,21,19,0.7);">
+                                    ${selector.label}
+                                    <select
+                                        style="font: inherit; color: rgb(22,21,19); background: #fff; border: 1px solid rgba(22,21,19,0.5); border-radius: 4px; padding: 0.25rem 0.4rem; cursor: pointer; outline: none;"
+                                        @change="${(e: Event) => {
+                                            writeAppContext(selector.fieldName, (e.target as HTMLSelectElement).value)
+                                            window.location.reload()
+                                        }}">
+                                        <option value="">—</option>
+                                        ${selector.options.map(option => html`
+                                            <option value="${String(option.value)}" ?selected="${String(readAppContext()[selector.fieldName] ?? '') === String(option.value)}">${option.label}</option>`)}
+                                    </select>
+                                </label>`)}
                             <div class="oj-flex-item oj-sm-padding-2x-end">
                                 <oj-button title="JET Website Home" chroming="borderless"
                                             display="icons"

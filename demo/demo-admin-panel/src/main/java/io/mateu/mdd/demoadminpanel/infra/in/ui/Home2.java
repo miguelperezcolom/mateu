@@ -73,6 +73,11 @@ public class Home2 implements WidgetSupplier {
     @Menu
     HotelSelector hotelSelector;
 
+    // application-level context: the active hotel, shown as a selector on the app header; every
+    // screen can read it via httpRequest.appContext("hotel")
+    @io.mateu.uidl.annotations.AppContext(label = "Hotel")
+    HotelSelector hotel;
+
     @Menu
     BannerDemoPage bannerDemo;
 
@@ -84,8 +89,9 @@ public class Home2 implements WidgetSupplier {
     String name;
 
     @Button
-    public Message greet() {
-        return new Message("Hello " + name);
+    public Message greet(HttpRequest httpRequest) {
+        var hotel = httpRequest.appContext("hotel");
+        return new Message("Hello " + name + (hotel != null ? " (hotel " + hotel + ")" : " (no hotel selected)"));
     }
 
     @Override

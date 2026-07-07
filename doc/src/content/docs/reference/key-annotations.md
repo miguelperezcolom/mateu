@@ -617,6 +617,7 @@ These are also part of the public DSL and are worth knowing:
 - `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the repository as a `FilterCriterion`
 - `@HomeRoute` — designate the default/home route
 - `@Fab` — floating action button (app level or page level)
+- `@AppContext` — application-level context selector on the app header (active hotel, company…); options from an enum or a `LookupOptionsSupplier`, value readable everywhere via `httpRequest.appContext(fieldName)`
 - `@KPI` — render a numeric field as a dashboard KPI card
 - `@WizardCompletionAction` — the method that completes a `Wizard` (shown on the penultimate step)
 - `@AutoSave`

@@ -42,6 +42,10 @@ final class FormFieldFilter {
     if (MetaAnnotations.isPresent(field, BadgeInHeader.class)) {
       return false;
     }
+    // @AppContext fields render as HEADER context selectors, never as form fields
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)) {
+      return false;
+    }
     if (MetaAnnotations.isPresent(field, Menu.class)) {
       return false;
     }

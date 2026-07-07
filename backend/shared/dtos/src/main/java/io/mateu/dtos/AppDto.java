@@ -35,7 +35,8 @@ public record AppDto(
     String rootRoute,
     String sseUrl,
     List<FabDto> fabs,
-    boolean themeToggle)
+    boolean themeToggle,
+    List<AppContextSelectorDto> contextSelectors)
     implements ComponentMetadataDto {
 
   public AppDto {
@@ -43,6 +44,8 @@ public record AppDto(
     layout = layout != null ? layout : AppLayoutDto.SINGLE_SLOT;
     menu = Collections.unmodifiableList(menu != null ? menu : List.of());
     apps = Collections.unmodifiableList(apps != null ? apps : List.of());
+    contextSelectors =
+        Collections.unmodifiableList(contextSelectors != null ? contextSelectors : List.of());
   }
 
   @Override

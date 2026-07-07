@@ -155,6 +155,21 @@ public interface HttpRequest {
     return MateuInstanceFactory.newInstance(appStateType, runActionRq().appState(), this);
   }
 
+  /**
+   * Value fixed by an application-level context selector ({@code @AppContext} field on the app
+   * class), e.g. the active hotel or company. Lives in the app state under the selector's field
+   * name and travels with every request; {@code null} when nothing is selected (or on requests that
+   * carry no app state).
+   */
+  default Object appContext(String fieldName) {
+    var runActionRq = runActionRq();
+    if (runActionRq == null || runActionRq.appState() == null) {
+      return null;
+    }
+    var value = runActionRq.appState().get(fieldName);
+    return value instanceof String text && text.isBlank() ? null : value;
+  }
+
   default <T> T getComponentState(Class<T> componentStateType) {
     return MateuInstanceFactory.newInstance(
         componentStateType, runActionRq().componentState(), this);

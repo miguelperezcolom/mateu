@@ -87,6 +87,7 @@ public final class AppMapper {
             .sseUrl(getSseUrl(app))
             .fabs(getAppFabs(app))
             .themeToggle(getThemeToggle(app))
+            .contextSelectors(getContextSelectors(app, httpRequest))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -123,6 +124,78 @@ public final class AppMapper {
         .actionId(method.getName())
         .buttonStyle(ann.buttonStyle().name())
         .build();
+  }
+
+  /**
+   * Application-level context selectors: {@code @AppContext} fields of the app class. The field's
+   * type provides the choices — an enum's constants, or a {@code LookupOptionsSupplier} searched
+   * with an empty text (first page). The selected value lives in the app state under the field's
+   * name; see {@code HttpRequest.appContext(String)}.
+   */
+  @SneakyThrows
+  private static List<AppContextSelectorDto> getContextSelectors(
+      AppShell app, HttpRequest httpRequest) {
+    if (app.serverSideType() == null) return List.of();
+    var appClass = Class.forName(app.serverSideType());
+    var selectors = new java.util.ArrayList<AppContextSelectorDto>();
+    for (var field : appClass.getDeclaredFields()) {
+      if (!MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)) {
+        continue;
+      }
+      var annotation = MetaAnnotations.find(field, io.mateu.uidl.annotations.AppContext.class);
+      var label =
+          !annotation.label().isEmpty()
+              ? annotation.label()
+              : io.mateu.uidl.Humanizer.toUpperCaseFirst(field.getName());
+      selectors.add(
+          AppContextSelectorDto.builder()
+              .fieldName(field.getName())
+              .label(label)
+              .options(getContextOptions(field, httpRequest))
+              .build());
+    }
+    return selectors;
+  }
+
+  @SneakyThrows
+  private static List<OptionDto> getContextOptions(
+      java.lang.reflect.Field field, HttpRequest httpRequest) {
+    if (field.getType().isEnum()) {
+      return Arrays.stream(field.getType().getEnumConstants())
+          .map(
+              constant ->
+                  new OptionDto(
+                      ((Enum<?>) constant).name(),
+                      io.mateu.uidl.Humanizer.toUpperCaseFirst(((Enum<?>) constant).name()),
+                      null,
+                      null,
+                      null,
+                      null))
+          .toList();
+    }
+    if (io.mateu.uidl.interfaces.LookupOptionsSupplier.class.isAssignableFrom(field.getType())) {
+      var supplier =
+          (io.mateu.uidl.interfaces.LookupOptionsSupplier)
+              io.mateu.uidl.di.MateuBeanProvider.getBean(
+                      io.mateu.uidl.interfaces.InstanceFactory.class)
+                  .newInstance(field.getType(), java.util.Map.of(), httpRequest);
+      var listing =
+          supplier.search(
+              field.getName(), "", new io.mateu.uidl.data.Pageable(0, 100, List.of()), httpRequest);
+      if (listing == null || listing.page() == null) return List.of();
+      return listing.page().content().stream()
+          .map(
+              option ->
+                  new OptionDto(
+                      option.value(),
+                      option.label(),
+                      option.description(),
+                      option.image(),
+                      option.imageStyle(),
+                      option.icon()))
+          .toList();
+    }
+    return List.of();
   }
 
   @SneakyThrows

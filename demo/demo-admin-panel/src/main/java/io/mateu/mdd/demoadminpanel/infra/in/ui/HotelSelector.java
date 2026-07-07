@@ -19,7 +19,7 @@ record Row(String id, String name, String address) {}
 
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
 @Style("min-width: 40rem;")
-public class HotelSelector extends Listing<Filters, Row> implements Selector<String>, LookupLabelSupplier {
+public class HotelSelector extends Listing<Filters, Row> implements Selector<String>, LookupLabelSupplier, io.mateu.uidl.interfaces.LookupOptionsSupplier {
 
     static final List<Row> rows = List.of(
             new Row("1", "Hotel 1", "Calle 1"),
@@ -44,6 +44,14 @@ public class HotelSelector extends Listing<Filters, Row> implements Selector<Str
     @Override
     public String label(String fieldName, Object id, HttpRequest httpRequest) {
         return rows.stream().filter(r -> r.id().equals(id)).findFirst().orElseThrow().name();
+    }
+
+    @Override
+    public ListingData<io.mateu.uidl.data.Option> search(String fieldName, String searchText, Pageable pageable, HttpRequest httpRequest) {
+        return ListingData.of(rows.stream()
+                .filter(r -> searchText == null || searchText.isBlank() || r.name().toLowerCase().contains(searchText.toLowerCase()))
+                .map(r -> new io.mateu.uidl.data.Option(r.id(), r.name()))
+                .toArray(io.mateu.uidl.data.Option[]::new));
     }
 
 }

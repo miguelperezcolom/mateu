@@ -8,6 +8,7 @@ export default {
     strictPort: true,
     proxy: {
       '/fluent/mateu': 'http://localhost:8593',
+      '/home2/mateu': 'http://localhost:8593',
       '/mateu': 'http://localhost:8593',
       '/myassets': 'http://localhost:8593',
       '/sse': 'http://localhost:8593',
