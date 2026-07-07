@@ -62,6 +62,18 @@ class AppContextSyncTest {
     @AppContext Environment environment;
   }
 
+  /** A ROOT app ("" route, like most real apps): the search action must dispatch here too. */
+  @SuppressWarnings("unused")
+  @UI("")
+  @Title("Root context demo")
+  public static class ContextRootApp {
+
+    @Menu String home = "/";
+
+    @AppContext(label = "Hotel")
+    HotelPicker hotel;
+  }
+
   /** A regular screen of the app: reads the context fixed by the header selector. */
   @SuppressWarnings("unused")
   @UI("/ctxprobe")
@@ -148,6 +160,32 @@ class AppContextSyncTest {
     assertThat(page.content())
         .extracting(option -> ((Option) option).label())
         .containsExactly("Hotel 2");
+  }
+
+  @Test
+  void appContextSearchActionWorksOnTheRootApp() {
+    // most real apps live at the ROOT route ("") — the native renderers and the web picker send
+    // route "" + the app's serverSideType, and the search must dispatch exactly like on a routed
+    // app (own harness: a root app changes route resolution for every other fixture)
+    try (var rootMateu = TestMateu.withUis(ContextRootApp.class)) {
+      var increment =
+          rootMateu.run(
+              RunActionRqDto.builder()
+                  .route("")
+                  .consumedRoute("")
+                  .serverSideType(ContextRootApp.class.getName())
+                  .actionId("_appcontext-search-hotel")
+                  .initiatorComponentId("appcontext-hotel")
+                  .componentState(Map.of())
+                  .parameters(Map.of("searchText", "hotel 2"))
+                  .build());
+      var data = (Map<?, ?>) increment.fragments().get(0).data();
+      assertThat(data).isNotNull();
+      var page = (io.mateu.uidl.data.Page<?>) data.get("_appcontext_hotel");
+      assertThat(page.content())
+          .extracting(option -> ((Option) option).label())
+          .containsExactly("Hotel 2");
+    }
   }
 
   @Test

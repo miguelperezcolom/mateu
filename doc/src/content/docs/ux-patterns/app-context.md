@@ -122,7 +122,10 @@ The native shells render the same wire field:
 - **React Native** — selectors at the top of the drawer; session-scoped, picking a value remounts
   the current screen.
 
-Native pickers show the loaded options (first page) without the web picker's remote search.
+Like the web picker, a selector with more than 7 options gains a **search box**: typing filters
+the loaded options and (debounced) asks the server for matches beyond the loaded page via the same
+`_appcontext-search-<field>` action — JavaFX shows it in a popup panel, Compose inside the
+dropdown, React Native under the drawer selector.
 
 ## Principles served
 

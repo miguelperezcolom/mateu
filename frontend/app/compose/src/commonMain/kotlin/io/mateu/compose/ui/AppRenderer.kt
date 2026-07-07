@@ -145,7 +145,7 @@ private fun Shellbar(
             )
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            appMetadata.arr("contextSelectors").forEach { ContextSelector(it, app) }
+            appMetadata.arr("contextSelectors").forEach { ContextSelector(it, app, appMetadata) }
         }
     }
 }
@@ -155,8 +155,11 @@ private fun Shellbar(
  * label + current value opening a dropdown with the options. Picking a value persists it, updates
  * the appState sent with every request, and reloads the current route (AppState.setAppContext).
  */
+// beyond this many options the dropdown gains a search field (like the web picker)
+private const val CONTEXT_SEARCHABLE_THRESHOLD = 7
+
 @Composable
-private fun ContextSelector(selector: JsonNode, app: AppState) {
+private fun ContextSelector(selector: JsonNode, app: AppState, appMetadata: JsonNode) {
     val fieldName = selector.text("fieldName")
     if (fieldName.isBlank()) return
     var expanded by remember { mutableStateOf(false) }
@@ -164,6 +167,21 @@ private fun ContextSelector(selector: JsonNode, app: AppState) {
     val current = app.appState[fieldName]?.toString() ?: ""
     val currentLabel = options.firstOrNull { it.text("value") == current }?.text("label")
         ?: current.ifBlank { "—" }
+    val searchable = options.size > CONTEXT_SEARCHABLE_THRESHOLD
+
+    var searchText by remember { mutableStateOf("") }
+    // server results replacing the loaded options while a remote search is active
+    var searched by remember { mutableStateOf<List<Pair<String, String>>?>(null) }
+
+    // debounced remote search: the loaded options may be a truncated first page
+    LaunchedEffect(searchText) {
+        if (!searchable || searchText.isBlank()) {
+            searched = null
+            return@LaunchedEffect
+        }
+        kotlinx.coroutines.delay(300)
+        searched = remoteContextSearch(app, appMetadata, fieldName, searchText)
+    }
 
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 16.dp)) {
         Text(selector.text("label", fieldName), color = MateuColors.sidebarGroup, fontSize = 13.sp)
@@ -173,22 +191,68 @@ private fun ContextSelector(selector: JsonNode, app: AppState) {
                 color = MateuColors.sidebarText,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable { expanded = true }.padding(start = 6.dp),
+                modifier = Modifier.clickable { searchText = ""; expanded = true }.padding(start = 6.dp),
             )
             androidx.compose.material3.DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                if (searchable) {
+                    androidx.compose.material3.OutlinedTextField(
+                        value = searchText,
+                        onValueChange = { searchText = it },
+                        placeholder = { Text("Search…") },
+                        singleLine = true,
+                        modifier = Modifier.padding(horizontal = 8.dp).width(220.dp),
+                    )
+                }
                 androidx.compose.material3.DropdownMenuItem(
                     text = { Text("—") },
                     onClick = { expanded = false; app.setAppContext(fieldName, null) },
                 )
-                options.forEach { option ->
+                val loaded = options.map { it.text("value") to it.text("label") }
+                val text = searchText.trim().lowercase()
+                val visible =
+                    if (text.isEmpty()) loaded
+                    else (searched ?: loaded).filter { it.second.lowercase().contains(text) }
+                visible.forEach { (value, label) ->
                     androidx.compose.material3.DropdownMenuItem(
-                        text = { Text(option.text("label")) },
-                        onClick = { expanded = false; app.setAppContext(fieldName, option.text("value")) },
+                        text = { Text(label) },
+                        onClick = { expanded = false; app.setAppContext(fieldName, value) },
                     )
                 }
             }
         }
     }
+}
+
+/**
+ * Asks the server for context options matching [text] via the standard
+ * `_appcontext-search-<field>` action; null when unavailable (the client-side filter still applies).
+ */
+private suspend fun remoteContextSearch(
+    app: AppState,
+    appMetadata: JsonNode,
+    fieldName: String,
+    text: String,
+): List<Pair<String, String>>? = try {
+    val route = appMetadata.text("homeRoute")
+    val increment = app.api.runAction(
+        route,
+        route,
+        "_appcontext-search-$fieldName",
+        appMetadata.text("serverSideType").ifBlank { null },
+        "appcontext-$fieldName",
+        emptyMap(),
+        app.appState,
+        mapOf("searchText" to text),
+    )
+    val results = mutableListOf<Pair<String, String>>()
+    increment.arr("fragments").forEach { fragment ->
+        fragment.path("data").path("_appcontext_$fieldName").path("content").toList().forEach { option ->
+            results += option.text("value") to option.text("label", option.text("value"))
+        }
+    }
+    results.ifEmpty { null }
+} catch (e: Exception) {
+    null
 }
 
 @Composable

@@ -3,7 +3,7 @@ import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigatio
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { ComponentRenderer } from './ComponentRenderer';
 
@@ -98,13 +98,60 @@ function flattenMenuItems(items: MenuItem[]): MenuItem[] {
   return result;
 }
 
+// beyond this many options the open selector shows a search box (like the web picker)
+const CONTEXT_SEARCHABLE_THRESHOLD = 7;
+
 // Application-level context selectors (@AppContext fields of the app class), rendered at the top
 // of the drawer: tapping an option fixes the value in the appState sent with every request and
 // remounts the current screen so it rebuilds against the new context. Session-scoped for now
-// (persisting would need AsyncStorage, which this renderer doesn't depend on yet).
-function ContextSelectors({ selectors, onChanged }: { selectors: AppContextSelector[]; onChanged: () => void }) {
-  const { appState } = useAppContext();
+// (persisting would need AsyncStorage, which this renderer doesn't depend on yet). With many
+// options a search box filters the loaded ones client-side and (debounced) asks the server for
+// matches beyond the loaded page via the standard `_appcontext-search-<field>` action.
+function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppContextSelector[]; appMeta: AppMeta; onChanged: () => void }) {
+  const { api, appState } = useAppContext();
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [searchText, setSearchText] = useState('');
+  // server results replacing the loaded options while a remote search is active
+  const [searched, setSearched] = useState<{ value: unknown; label?: string }[] | null>(null);
+  const searchTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const remoteSearch = (fieldName: string, text: string) => {
+    const route = appMeta.homeRoute ?? '';
+    api
+      .runAction({
+        route,
+        consumedRoute: route || '_empty',
+        actionId: `_appcontext-search-${fieldName}`,
+        serverSideType: appMeta.serverSideType ?? null,
+        initiatorComponentId: `appcontext-${fieldName}`,
+        componentState: {},
+        appState,
+        parameters: { searchText: text },
+      })
+      .then((increment) => {
+        const fragments = (increment as { fragments?: { data?: Record<string, unknown> }[] })?.fragments ?? [];
+        for (const fragment of fragments) {
+          const page = fragment.data?.[`_appcontext_${fieldName}`] as { content?: { value: unknown; label?: string }[] } | undefined;
+          if (Array.isArray(page?.content)) {
+            setSearched(page.content);
+            return;
+          }
+        }
+      })
+      .catch(() => {
+        // server search unavailable: the client-side filter still applies
+      });
+  };
+
+  const onSearchInput = (fieldName: string, text: string) => {
+    setSearchText(text);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    if (!text.trim()) {
+      setSearched(null);
+      return;
+    }
+    searchTimer.current = setTimeout(() => remoteSearch(fieldName, text), 300);
+  };
 
   if (selectors.length === 0) return null;
   return (
@@ -114,17 +161,36 @@ function ContextSelectors({ selectors, onChanged }: { selectors: AppContextSelec
         const currentLabel =
           selector.options?.find((o) => String(o.value) === current)?.label ?? (current || '—');
         const open = expanded === selector.fieldName;
+        const searchable = (selector.options?.length ?? 0) > CONTEXT_SEARCHABLE_THRESHOLD;
+        const text = searchText.trim().toLowerCase();
+        const base = text ? (searched ?? selector.options ?? []) : (selector.options ?? []);
+        const visible = text
+          ? base.filter((o) => (o.label ?? String(o.value)).toLowerCase().includes(text))
+          : base;
         return (
           <View key={selector.fieldName}>
             <TouchableOpacity
               style={styles.contextRow}
-              onPress={() => setExpanded(open ? null : selector.fieldName)}
+              onPress={() => {
+                setSearchText('');
+                setSearched(null);
+                setExpanded(open ? null : selector.fieldName);
+              }}
             >
               <Text style={styles.contextLabel}>{selector.label ?? selector.fieldName}</Text>
               <Text style={styles.contextValue}>{currentLabel} {open ? '▾' : '▸'}</Text>
             </TouchableOpacity>
+            {open && searchable && (
+              <TextInput
+                style={styles.contextSearch}
+                placeholder="Search…"
+                placeholderTextColor="#8a97a5"
+                value={searchText}
+                onChangeText={(value) => onSearchInput(selector.fieldName, value)}
+              />
+            )}
             {open &&
-              [{ value: '', label: '—' }, ...(selector.options ?? [])].map((option, i) => (
+              [{ value: '', label: '—' }, ...visible].map((option, i) => (
                 <TouchableOpacity
                   key={i}
                   style={styles.contextOption}
@@ -178,7 +244,7 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
   return (
     <DrawerContentScrollView style={styles.sidebar}>
       <Text style={styles.sidebarTitle}>{appMeta.title ?? 'Mateu'}</Text>
-      <ContextSelectors selectors={appMeta.contextSelectors ?? []} onChanged={onContextChanged} />
+      <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
     </DrawerContentScrollView>
   );
@@ -275,6 +341,7 @@ const styles = StyleSheet.create({
   contextLabel: { color: '#aac0d0', fontSize: 12, fontWeight: '600', letterSpacing: 1 },
   contextValue: { color: '#fff', fontSize: 14, fontWeight: '700' },
   contextOption: { paddingVertical: 8, paddingLeft: 32, paddingRight: 20 },
+  contextSearch: { marginHorizontal: 20, marginBottom: 4, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: 6, color: '#ffffff', fontSize: 13 },
   contextOptionText: { color: '#d5e2ec', fontSize: 14 },
   contextOptionSelected: { fontWeight: '700', color: '#fff' },
 });

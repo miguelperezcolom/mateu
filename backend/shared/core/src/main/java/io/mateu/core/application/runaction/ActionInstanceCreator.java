@@ -76,7 +76,7 @@ public class ActionInstanceCreator {
     var mono =
         createInstanceAndPostHydrate(command.serverSideType(), command)
             .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
-    if (isTerminalRoute(command.route())) {
+    if (isTerminalRoute(command.route()) || isAppLevelAction(command.actionId())) {
       return mono;
     }
     RunActionCommand finalCommand = command;
@@ -89,6 +89,17 @@ public class ActionInstanceCreator {
 
   private boolean isTerminalRoute(String route) {
     return route.endsWith("_page") || route.endsWith("_no_home_route");
+  }
+
+  /**
+   * An action addressed to the APP INSTANCE itself (e.g. the header context selectors' {@code
+   * _appcontext-search-<field>}) must skip menu/home resolution: on a ROOT app (route "") there is
+   * no menu actionable for the empty route, so resolving would come back empty and the action would
+   * answer "Not found." instead of dispatching to its runner.
+   */
+  private boolean isAppLevelAction(String actionId) {
+    return actionId != null
+        && actionId.startsWith(io.mateu.core.domain.act.AppContextSearchActionRunner.ACTION_PREFIX);
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {

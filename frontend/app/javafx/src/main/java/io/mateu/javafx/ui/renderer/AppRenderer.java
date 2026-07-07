@@ -148,6 +148,9 @@ public class AppRenderer {
      * selector on the right of the shellbar. Picking a value persists it, updates the appState
      * sent with every request, and reloads every open tab (see AppShell.setAppContext).
      */
+    // beyond this many options the selector renders as a searchable picker (like the web one)
+    private static final int SEARCHABLE_THRESHOLD = 7;
+
     private void addContextSelectors(HBox header, JsonNode appMetadata) {
         JsonNode selectors = appMetadata.path("contextSelectors");
         if (!selectors.isArray()) return;
@@ -156,6 +159,13 @@ public class AppRenderer {
             if (fieldName.isBlank()) continue;
             Label label = new Label(selector.path("label").asText(fieldName));
             label.getStyleClass().add("app-context-label");
+
+            JsonNode selectorOptions = selector.path("options");
+            if (selectorOptions.isArray() && selectorOptions.size() > SEARCHABLE_THRESHOLD) {
+                header.getChildren().addAll(
+                        label, buildSearchableContextPicker(fieldName, selector, appMetadata));
+                continue;
+            }
 
             javafx.scene.control.ComboBox<ContextOption> combo = new javafx.scene.control.ComboBox<>();
             combo.getItems().add(new ContextOption("", "—"));
@@ -194,6 +204,121 @@ public class AppRenderer {
         public String toString() {
             return label;
         }
+    }
+
+    /**
+     * Searchable picker for context selectors with many options (mirrors the web
+     * mateu-app-context-picker): a MenuButton whose popup holds a search field + option list.
+     * Typing filters the loaded options client-side and (debounced 300ms) asks the server for
+     * real matches beyond the loaded page via the {@code _appcontext-search-<field>} action.
+     */
+    private Node buildSearchableContextPicker(String fieldName, JsonNode selector, JsonNode appMetadata) {
+        JsonNode loadedOptions = selector.path("options");
+
+        Object current = ctx.shell.appState.get(fieldName);
+        String currentValue = current == null ? "" : String.valueOf(current);
+        String currentLabel = currentValue.isEmpty() ? "—" : currentValue;
+        if (loadedOptions.isArray()) {
+            for (JsonNode option : loadedOptions) {
+                if (option.path("value").asText("").equals(currentValue)) {
+                    currentLabel = option.path("label").asText(currentValue);
+                }
+            }
+        }
+
+        javafx.scene.control.MenuButton button = new javafx.scene.control.MenuButton(currentLabel);
+
+        javafx.scene.control.TextField search = new javafx.scene.control.TextField();
+        search.setPromptText("Search…");
+        javafx.scene.control.ListView<ContextOption> list = new javafx.scene.control.ListView<>();
+        list.setPrefHeight(220);
+        java.util.List<ContextOption> loaded = new java.util.ArrayList<>();
+        loaded.add(new ContextOption("", "—"));
+        if (loadedOptions.isArray()) {
+            for (JsonNode option : loadedOptions) {
+                loaded.add(new ContextOption(
+                        option.path("value").asText(""), option.path("label").asText("")));
+            }
+        }
+        list.getItems().setAll(loaded);
+
+        // server results replacing the loaded options while a remote search is active
+        java.util.List<ContextOption> searched = new java.util.ArrayList<>();
+        Runnable refilter = () -> {
+            String text = search.getText() == null ? "" : search.getText().trim().toLowerCase();
+            java.util.List<ContextOption> base = searched.isEmpty() ? loaded : searched;
+            if (text.isEmpty()) {
+                list.getItems().setAll(loaded);
+                return;
+            }
+            list.getItems().setAll(base.stream()
+                    .filter(option -> option.label().toLowerCase().contains(text))
+                    .toList());
+        };
+
+        javafx.animation.PauseTransition debounce =
+                new javafx.animation.PauseTransition(javafx.util.Duration.millis(300));
+        search.textProperty().addListener((obs, old, text) -> {
+            refilter.run();
+            debounce.setOnFinished(e -> remoteContextSearch(fieldName, appMetadata, text, searched, refilter));
+            debounce.playFromStart();
+        });
+
+        list.getSelectionModel().selectedItemProperty().addListener((obs, old, picked) -> {
+            if (picked == null) return;
+            button.setText(picked.value().isEmpty() ? "—" : picked.label());
+            button.hide();
+            ctx.shell.setAppContext(fieldName, picked.value());
+        });
+
+        VBox panel = new VBox(6, search, list);
+        panel.setPadding(new Insets(6));
+        javafx.scene.control.CustomMenuItem item = new javafx.scene.control.CustomMenuItem(panel, false);
+        button.getItems().add(item);
+        button.setOnShowing(e -> javafx.application.Platform.runLater(search::requestFocus));
+        return button;
+    }
+
+    /** Asks the server for context options matching {@code text}; updates {@code searched} on the FX thread. */
+    private void remoteContextSearch(String fieldName, JsonNode appMetadata, String text,
+                                     java.util.List<ContextOption> searched, Runnable refilter) {
+        String route = appMetadata.path("homeRoute").asText("");
+        String serverSideType = appMetadata.path("serverSideType").asText("");
+        Thread worker = new Thread(() -> {
+            try {
+                JsonNode increment = ctx.apiClient.runAction(
+                        route,
+                        route,
+                        "_appcontext-search-" + fieldName,
+                        serverSideType.isBlank() ? null : serverSideType,
+                        "appcontext-" + fieldName,
+                        java.util.Map.of(),
+                        ctx.shell.appState,
+                        java.util.Map.of("searchText", text == null ? "" : text));
+                java.util.List<ContextOption> results = new java.util.ArrayList<>();
+                for (JsonNode fragment : increment.path("fragments")) {
+                    JsonNode content = fragment.path("data").path("_appcontext_" + fieldName).path("content");
+                    if (content.isArray()) {
+                        for (JsonNode option : content) {
+                            results.add(new ContextOption(
+                                    option.path("value").asText(""),
+                                    option.path("label").asText(option.path("value").asText(""))));
+                        }
+                    }
+                }
+                if (!results.isEmpty()) {
+                    javafx.application.Platform.runLater(() -> {
+                        searched.clear();
+                        searched.addAll(results);
+                        refilter.run();
+                    });
+                }
+            } catch (Exception ignored) {
+                // server search unavailable: the client-side filter still applies
+            }
+        }, "appcontext-search");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     private VBox buildSidebar(JsonNode appMetadata, String defaultConsumedRoute) {

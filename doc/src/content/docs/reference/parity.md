@@ -48,7 +48,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | — | — | — |
 | App context selector | ✅ | ✅ | ✅ (shared) | ✅ | ✅ | ✅ |
-| — searchable picker w/ remote search | ✅ | ✅ | ✅ | 🟡 loaded options only | 🟡 loaded options only | 🟡 loaded options only |
+| — searchable picker w/ remote search | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas | ✅ (shared) | ✅ canvas | ✅ canvas | ✅ svg + view-shot |
 | Photo capture | ✅ getUserMedia | ✅ | ✅ (shared) | 🟡 file picker (no desktop camera API) | ✅ Android/iOS camera · 🟡 desktop file dialog | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (shared) | ✅ | ✅ | ✅ |
