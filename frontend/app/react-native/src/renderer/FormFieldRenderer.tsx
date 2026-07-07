@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import { PhotoCaptureField, SignatureField } from './CaptureFields';
 
 interface Option {
   children?: Option[];
@@ -67,14 +68,13 @@ export function FormFieldRenderer({ metadata, state, onStateChange }: Props) {
       );
     }
 
-    // Capture fields: no camera/rasterizing without extra native deps — honest placeholders
-    if (stereotype === 'signature' || stereotype === 'camera') {
-      const kind = stereotype === 'signature' ? 'Signature' : 'Photo';
-      return (
-        <Text style={styles.placeholder}>
-          {stringValue ? `${kind} present` : `${kind} capture is not available on this renderer yet`}
-        </Text>
-      );
+    // Capture fields: signature pad (svg strokes rasterized by view-shot) and expo-camera —
+    // both commit a data URI, the same wire contract as the web renderers
+    if (stereotype === 'signature') {
+      return <SignatureField value={stringValue} editable={editable} onChange={(v) => onStateChange(fieldId, v)} />;
+    }
+    if (stereotype === 'camera') {
+      return <PhotoCaptureField value={stringValue} editable={editable} onChange={(v) => onStateChange(fieldId, v)} />;
     }
 
     // Options (enum / static list)
