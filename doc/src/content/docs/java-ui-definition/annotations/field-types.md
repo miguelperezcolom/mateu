@@ -46,6 +46,9 @@ public @interface Stereotype {
 | `markdown` | Markdown editor / renderer |
 | `image` | Image display (`<img>` from a URL / data-URI value) |
 | `uploadableImage` | Image preview + upload (replace) + delete actions — see [`@UploadableImage`](#uploadableimage) |
+| `signature` | Drawing canvas that stores the accepted strokes as a PNG data URI — see [`@Signature`](#signature) |
+| `camera` | Device camera with live preview; the shot lands as a JPEG data URI — see [`@PhotoCapture`](#photocapture) |
+| `treeSelect` | A select whose dropdown unfolds a TREE of options — see `@TreeSelect` |
 | `icon` | Icon picker |
 | `link` | Hyperlink |
 | `money` | Currency amount |
@@ -129,6 +132,39 @@ public class Profile {
 In read-only mode the field shows just the image (same as `@Stereotype(FieldStereotype.image)`).
 
 ---
+
+
+## @Signature
+
+**Target:** `FIELD`
+
+Renders a `String` field as a **signature capture**: a drawing canvas (mouse or touch) with
+*Clear* and *Accept*. Accepting stores the strokes as a **PNG data URI** in the field value — the
+same self-contained contract as `@UploadableImage`, no upload endpoint involved. An existing value
+shows as the signature image with *Sign again* / *Delete* actions, and the read-only rendering
+shows the image.
+
+```java
+@Signature
+@Label("Firma del huésped")
+String signature;
+```
+
+## @PhotoCapture
+
+**Target:** `FIELD`
+
+Renders a `String` field as a **photo capture**: opens the device camera (`getUserMedia`) with a
+live preview and a shutter; the shot is stored as a **JPEG data URI** in the field value. When the
+camera is unavailable (no device, permission denied, insecure context) the widget offers a file
+input with `capture`, which on phones opens the native camera. Same self-contained round-trip as
+`@UploadableImage`.
+
+```java
+@PhotoCapture
+@Label("Foto del documento")
+String documentPhoto;
+```
 
 ## @SliderMin
 

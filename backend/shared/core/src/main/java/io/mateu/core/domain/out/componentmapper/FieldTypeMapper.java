@@ -116,6 +116,15 @@ public class FieldTypeMapper {
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.UploadableImage.class)) {
       return FieldStereotype.uploadableImage;
     }
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.TreeSelect.class)) {
+      return FieldStereotype.treeSelect;
+    }
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Signature.class)) {
+      return FieldStereotype.signature;
+    }
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.PhotoCapture.class)) {
+      return FieldStereotype.camera;
+    }
     if (MetaAnnotations.isPresent(field, Stereotype.class)) {
       var stereotype = MetaAnnotations.find(field, Stereotype.class).value();
       // A money field in a plain-text class keeps the dense plain-text rendering; the money

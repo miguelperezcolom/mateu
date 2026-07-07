@@ -51,6 +51,22 @@ public enum FieldStereotype {
    */
   numberRange,
   /**
+   * A select whose dropdown is a TREE: the options carry {@code children} and selecting a node
+   * stores its value (see {@code @TreeSelect}; {@code FormField.treeLeavesOnly} restricts selection
+   * to leaves).
+   */
+  treeSelect,
+  /**
+   * Signature capture on a String field: a drawing canvas whose accepted strokes are stored as a
+   * PNG data URI in the field value (see {@code @Signature}).
+   */
+  signature,
+  /**
+   * Photo capture on a String field: the device camera with live preview, storing the shot as a
+   * JPEG data URI in the field value (see {@code @PhotoCapture}).
+   */
+  camera,
+  /**
    * Listing filter over an enum as a multi-select (IN semantics). The state carries a list of
    * constant names (or a comma-joined string when restored from the URL) and reaches the repository
    * as a {@link FilterCriterion} with the {@code in} operator.

@@ -88,6 +88,9 @@ public class Home2 implements WidgetSupplier {
     BannerDemoPage bannerDemo;
 
     @Menu
+    io.mateu.mdd.demoadminpanel.infra.in.ui.tree.TreeSelectDemo treeSelect;
+
+    @Menu
     io.mateu.mdd.demoadminpanel.infra.in.ui.partialforms.PartialFormDemo partialForms;
 
 

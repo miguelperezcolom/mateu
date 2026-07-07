@@ -61,6 +61,7 @@ public record FormFieldDto(
     String minHeightWhenDetailVisible,
     int optionsColumns,
     boolean mainFilter,
+    boolean treeLeavesOnly,
     boolean multiline,
     NavLinkDto link)
     implements ComponentMetadataDto {

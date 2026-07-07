@@ -1,4 +1,7 @@
 import { customElement, property, state } from "lit/decorators.js";
+import './mateu-signature-pad.ts';
+import './mateu-tree-select.ts';
+import './mateu-camera-capture.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from './interpolation'
 import '@vaadin/horizontal-layout'
@@ -682,7 +685,8 @@ export class MateuField extends LitElement {
             if (valueToDisplay && (valueToDisplay as any).value) {
                 valueToDisplay = (valueToDisplay as any).value
             }
-            if ('image' == this.field.stereotype || 'uploadableImage' == this.field.stereotype) {
+            if ('image' == this.field.stereotype || 'uploadableImage' == this.field.stereotype
+                || 'signature' == this.field.stereotype || 'camera' == this.field.stereotype) {
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${label}"
@@ -1337,6 +1341,47 @@ export class MateuField extends LitElement {
                     ><img
                             src="${value}"
                             style="${this.component?.style}" class="${this.component?.cssClasses}"></vaadin-custom-field>
+                `
+            }
+            if (this.field?.stereotype == 'treeSelect') {
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            .helperText="${this.helperText()}"
+                            data-colspan="${this.field.colspan}"
+                    >
+                        <mateu-tree-select
+                                .fieldId="${this.field.fieldId}"
+                                .value="${value}"
+                                .options="${this.field.options ?? []}"
+                                .leavesOnly="${this.field.treeLeavesOnly ?? false}"
+                        ></mateu-tree-select>
+                    </vaadin-custom-field>
+                `
+            }
+            if (this.field?.stereotype == 'signature') {
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            .helperText="${this.helperText()}"
+                            data-colspan="${this.field.colspan}"
+                    >
+                        <mateu-signature-pad .fieldId="${this.field.fieldId}" .value="${value}"></mateu-signature-pad>
+                    </vaadin-custom-field>
+                `
+            }
+            if (this.field?.stereotype == 'camera') {
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            .helperText="${this.helperText()}"
+                            data-colspan="${this.field.colspan}"
+                    >
+                        <mateu-camera-capture .fieldId="${this.field.fieldId}" .value="${value}"></mateu-camera-capture>
+                    </vaadin-custom-field>
                 `
             }
             if (this.field?.stereotype == 'uploadableImage') {

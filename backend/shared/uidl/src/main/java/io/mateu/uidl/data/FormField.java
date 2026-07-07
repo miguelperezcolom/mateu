@@ -43,6 +43,8 @@ public record FormField(
     String minHeightWhenDetailVisible,
     int optionsColumns,
     boolean mainFilter,
+    // tree selects (stereotype treeSelect): restrict selection to leaf nodes
+    boolean treeLeavesOnly,
     boolean multiline,
     NavLink link)
     implements Component {

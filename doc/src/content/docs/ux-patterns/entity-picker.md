@@ -126,6 +126,30 @@ Order form
 |---|---|---|
 | UI | Inline dropdown | "Search" button → modal |
 | Selector | `LookupOptionsSupplier` | `Listing` + `Selector` |
+
+## Tree selectors
+
+A selector can present its rows as a **tree**: override `gridLayout()` to return
+`GridLayout.tree` and give the row record a self-referential `children` list. The lookup dialog
+then shows the hierarchy with expand/collapse carets and a per-row *Select* action — clicking
+*Select* on any node picks it (`selected()` receives the clicked row as usual).
+
+```java
+public class ZoneSelector extends Listing<Filters, ZoneRow>
+        implements Selector<String>, LookupLabelSupplier {
+
+    public record ZoneRow(String id, String name, List<ZoneRow> children) {}
+
+    @Override
+    public GridLayout gridLayout() { return GridLayout.tree; }
+    ...
+}
+```
+
+For an INLINE tree dropdown (no dialog), see `@TreeSelect`: the field's options carry `children`
+(supplied by the view's `OptionsSupplier`) and the dropdown unfolds the hierarchy in place, with
+`leavesOnly = true` restricting selection to leaf nodes.
+
 | Best for | Simple option lists | Complex grids, filters, row actions, CRUD |
 
 ## Principles served

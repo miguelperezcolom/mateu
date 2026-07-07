@@ -28,18 +28,8 @@ public class FieldMapper {
             .description(formField.description())
             .cssClasses(formField.cssClasses())
             .colspan(formField.colspan() > 0 ? formField.colspan() : 1)
-            .options(
-                formField.options().stream()
-                    .map(
-                        option ->
-                            new OptionDto(
-                                option.value(),
-                                option.label(),
-                                option.description(),
-                                option.image(),
-                                option.imageStyle(),
-                                option.icon()))
-                    .toList())
+            .options(formField.options().stream().map(FieldMapper::mapOption).toList())
+            .treeLeavesOnly(formField.treeLeavesOnly())
             .remoteCoordinates(mapRemoteCoordinates(formField.remoteCoordinates()))
             .initialValue(formField.initialValue())
             .readOnly(formField.readOnly())
@@ -115,5 +105,17 @@ public class FieldMapper {
         remoteCoordinates.consumedRoute(),
         remoteCoordinates.action(),
         remoteCoordinates.params());
+  }
+
+  /** Maps an option INCLUDING its children, so hierarchical option sets (tree selects) survive. */
+  private static OptionDto mapOption(io.mateu.uidl.data.Option option) {
+    return new OptionDto(
+        option.value(),
+        option.label(),
+        option.description(),
+        option.image(),
+        option.imageStyle(),
+        option.icon(),
+        option.children().stream().map(FieldMapper::mapOption).toList());
   }
 }

@@ -612,6 +612,9 @@ These are also part of the public DSL and are worth knowing:
 - `@Validation` — declarative cross-field validation (`condition`, `fieldId`, `message`; repeatable)
 - `@Multiline` — let a `@PlainText` value wrap across multiple lines
 - `@UploadableImage` — image field with upload/replace/delete, stored as data URI or URL
+- `@Signature` — signature capture on a String field (drawing canvas → PNG data URI in the value)
+- `@PhotoCapture` — photo capture on a String field (device camera → JPEG data URI; file-input fallback opens the native camera on phones)
+- `@TreeSelect` — the field's dropdown unfolds a TREE of options (children come from the view's `OptionsSupplier`); `leavesOnly = true` restricts selection to leaves
 - `@RowAction` — per-row contextual actions in listings
 - `@MainFilter` / `@Filterable` — mark filter fields for CRUD listings
 - `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the repository as a `FilterCriterion`

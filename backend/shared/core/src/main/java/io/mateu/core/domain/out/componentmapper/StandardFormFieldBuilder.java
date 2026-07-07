@@ -33,6 +33,12 @@ final class StandardFormFieldBuilder {
         .readOnly(
             readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm, httpRequest))
         .options(getOptions(field, instance, httpRequest))
+        .treeLeavesOnly(
+            io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+                    field, io.mateu.uidl.annotations.TreeSelect.class)
+                && io.mateu.core.infra.reflection.MetaAnnotations.find(
+                        field, io.mateu.uidl.annotations.TreeSelect.class)
+                    .leavesOnly())
         .colspan(getColspan(field, instance, httpRequest))
         .description(getDescription(field, instance, httpRequest))
         .attributes(getAttributes(field))

@@ -642,7 +642,20 @@ export class MateuTableCrud extends LitElement {
                     <vaadin-grid-column width="6rem" flex-grow="0" text-align="end" ${columnBodyRenderer((item: any) => item?.viewable === false ? nothing : html`
                         <vaadin-button theme="tertiary small" @click="${(e: Event) => openRow(e, item, 'view')}">View</vaadin-button>
                     `, [])}></vaadin-grid-column>` : nothing}
-                    ${restCols.map(c => html`<vaadin-grid-column path="${c.id}" header="${c.label ?? nothing}" auto-width></vaadin-grid-column>`)}
+                    ${restCols.map(c => c.id === 'select'
+                        // the lookup selector's Select column: same dispatch as the flat grids'
+                        // renderActionCell, so picking a TREE node round-trips through selected()
+                        ? html`<vaadin-grid-column width="7rem" flex-grow="0" text-align="end" header="${c.label ?? nothing}" ${columnBodyRenderer((item: any) => html`
+                            <vaadin-button theme="tertiary small" @click="${(e: Event) => {
+                                e.stopPropagation()
+                                this.dispatchEvent(new CustomEvent('action-requested', {
+                                    detail: { actionId: 'action-on-row-select', parameters: { _clickedRow: item } },
+                                    bubbles: true,
+                                    composed: true
+                                }))
+                            }}">Select</vaadin-button>
+                        `, [])}></vaadin-grid-column>`
+                        : html`<vaadin-grid-column path="${c.id}" header="${c.label ?? nothing}" auto-width></vaadin-grid-column>`)}
                     <span slot="empty-state">${emptyStateTemplate(emptyMsg)}</span>
                 </vaadin-grid>`
         }

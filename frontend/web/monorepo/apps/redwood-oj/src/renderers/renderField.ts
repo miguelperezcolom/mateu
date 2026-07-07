@@ -1,4 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import '@infra/ui/mateu-signature-pad.ts';
+import '@infra/ui/mateu-tree-select.ts';
+import '@infra/ui/mateu-camera-capture.ts';
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
@@ -304,7 +307,8 @@ const renderReadOnlyField = (metadata: FormField, value: any, label: unknown, st
     if (valueToDisplay && valueToDisplay.value) {
         valueToDisplay = valueToDisplay.value
     }
-    if (metadata.stereotype == 'image' || metadata.stereotype == 'uploadableImage') {
+    if (metadata.stereotype == 'image' || metadata.stereotype == 'uploadableImage'
+        || metadata.stereotype == 'signature' || metadata.stereotype == 'camera') {
         return labeled(label, html`<img src="${valueToDisplay}" style="${metadata.style ?? nothing}">`)
     }
     if (metadata.dataType == 'bool') {
@@ -556,6 +560,18 @@ const renderFieldControl = (container: LitElement, component: ClientSideComponen
         }
         if (stereotype === 'uploadableImage') {
             return labeled(label, renderUploadableImage(metadata, id, value))
+        }
+        if (stereotype === 'treeSelect') {
+            return labeled(label, html`<mateu-tree-select
+                .fieldId="${id}" .value="${value}"
+                .options="${metadata.options ?? []}"
+                .leavesOnly="${metadata.treeLeavesOnly ?? false}"></mateu-tree-select>`)
+        }
+        if (stereotype === 'signature') {
+            return labeled(label, html`<mateu-signature-pad .fieldId="${id}" .value="${value}"></mateu-signature-pad>`)
+        }
+        if (stereotype === 'camera') {
+            return labeled(label, html`<mateu-camera-capture .fieldId="${id}" .value="${value}"></mateu-camera-capture>`)
         }
         if (stereotype === 'icon') {
             // Icon ids arrive as "vaadin:name"; the preview uses the Oracle UX icon font.
