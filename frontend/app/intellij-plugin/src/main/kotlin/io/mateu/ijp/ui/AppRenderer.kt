@@ -22,6 +22,13 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
     // Through the CONTEXT: the navigator's App title reaches the tool window (session fallback),
     // while a crud MEDIATOR's App title stays within its view (its tab title), not the navigator's.
     r.ctx.setWindowTitle(metadata.text("title", "Mateu App"))
+    if (r.ctx.appShell) {
+        // Publish the app menu/title for the IDE menu-bar group (MateuAppMenuGroup) and nudge the
+        // action system so the menu bar picks it up.
+        session.appMenu = metadata.path("menu")
+        session.appTitle = metadata.text("title")
+        com.intellij.ide.ActivityTracker.getInstance().inc()
+    }
     return JBScrollPane(buildSidebar(session, metadata.path("menu")))
 }
 

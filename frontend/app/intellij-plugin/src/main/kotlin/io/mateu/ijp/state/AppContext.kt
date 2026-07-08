@@ -64,6 +64,10 @@ class AppContext(val session: AppSession) {
     /** When true, load/action failures are logged instead of shown in a dialog (used by embedded islands). */
     var silentErrors = false
 
+    /** True only on the navigator's context (the app shell) — its App feeds the IDE menu bar/title;
+     *  mediator Apps rendered inside views must not. */
+    var appShell = false
+
     /**
      * True when the host renders this view's toolbar natively (an ActionToolbar in the editor-tab
      * header, or the bottom tool window's title actions) — the desktop-idiomatic spot for view

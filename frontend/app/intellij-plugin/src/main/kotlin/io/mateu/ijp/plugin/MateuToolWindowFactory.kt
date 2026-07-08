@@ -2,12 +2,16 @@ package io.mateu.ijp.plugin
 
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import io.mateu.ijp.state.AppContext
 import io.mateu.ijp.state.AppSession
 import javax.swing.SwingUtilities
+
+/** The project's Mateu [AppSession] (set when the navigator tool window boots the app). */
+val MATEU_SESSION: Key<AppSession> = Key.create("mateu.session")
 
 /**
  * The main **"Mateu" tool window** — a navigator hosting the app shell's menu. Each menu entry opens
@@ -23,8 +27,11 @@ class MateuToolWindowFactory : ToolWindowFactory, DumbAware {
         val viewManager = MateuViewManager(project, session)
         session.openViewHandler = viewManager::openView
         session.openDetailHandler = viewManager::openDetail
+        // The menu-bar group (MateuAppMenuGroup) finds the session through the project.
+        project.putUserData(MATEU_SESSION, session)
 
         val ctx = AppContext(session)
+        ctx.appShell = true
         val root = ctx.newSlot()
         ctx.contentPane = root
         // The APP's SetWindowTitle → the tool window's title suffix (there is no JFrame here).

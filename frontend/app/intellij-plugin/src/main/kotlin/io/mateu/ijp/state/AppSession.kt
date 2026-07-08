@@ -32,6 +32,11 @@ class AppSession(
     /** Optional top-level window (standalone). In the plugin the host is a ToolWindow, so this is null. */
     var frame: JFrame? = null
 
+    /** The app shell's menu JSON + title, published by the navigator's renderApp — the plugin also
+     *  surfaces this as a top-level menu in the IDE menu bar (like the VCS menu). */
+    var appMenu: com.fasterxml.jackson.databind.JsonNode? = null
+    var appTitle: String? = null
+
     /** Where `SetWindowTitle` goes when there is no [frame] (e.g. the ToolWindow content title). */
     var titleConsumer: ((String) -> Unit)? = null
 

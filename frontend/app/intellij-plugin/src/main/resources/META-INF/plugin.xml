@@ -14,7 +14,8 @@
     </extensions>
 
     <actions>
-        <group id="io.mateu.MateuMenu" text="_Mateu" description="Mateu" popup="true">
+        <group id="io.mateu.MateuMenu" class="io.mateu.ijp.plugin.MateuAppMenuGroup"
+               text="_Mateu" description="Mateu" popup="true">
             <add-to-group group-id="MainMenu" anchor="last"/>
             <action id="io.mateu.ShowMateu" class="io.mateu.ijp.plugin.ShowMateuAction"
                     text="Show Mateu Window" description="Activate the Mateu tool window"
