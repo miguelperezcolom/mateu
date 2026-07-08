@@ -132,6 +132,12 @@ class MateuViewManager(private val project: Project, private val session: AppSes
     private fun placeEditor(ctx: AppContext, panel: JComponent, title: String): () -> Unit {
         val toolbar = ActionManager.getInstance().createActionToolbar(ActionPlaces.EDITOR_TOOLBAR, viewActionGroup(ctx), true)
         toolbar.targetComponent = panel
+        // Refresh the strip the moment the view republishes its buttons (e.g. view → edit) —
+        // ActivityTracker alone leaves the toolbar waiting for the IDE's lazy update tick.
+        ctx.onViewActionsChanged = {
+            ActivityTracker.getInstance().inc()
+            toolbar.updateActionsAsync()
+        }
         val wrapper = JPanel(BorderLayout())
         wrapper.add(toolbar.component, BorderLayout.NORTH)
         wrapper.add(panel, BorderLayout.CENTER)
