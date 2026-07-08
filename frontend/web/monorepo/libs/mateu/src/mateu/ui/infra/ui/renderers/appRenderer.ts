@@ -204,7 +204,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             theme="spacing"
                             @navigation-requested="${container.updateRoute}">
-                        <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
+                        <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
                         <vaadin-horizontal-layout style="align-items: center;">
                             ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                             ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
@@ -214,11 +214,11 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 .items="${items}"
                                 @item-selected="${container.itemSelected}"
                                 theme="dropdown-indicators"
-                                style="flex-grow: 1; margin-left: 4rem; margin-top: 1.3rem;"
+                                style="flex-grow: 1; min-width: 0; margin-left: 4rem; margin-top: 1.3rem;"
                                 class="menu"
                         >
                         </vaadin-menu-bar>
-                        <vaadin-horizontal-layout>
+                        <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </vaadin-horizontal-layout>
@@ -255,7 +255,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             theme="spacing"
                             @navigation-requested="${container.updateRoute}">
-                        <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" style="text-decoration: none; color: inherit;">
+                        <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
                         <vaadin-horizontal-layout style="align-items: center;">
                             ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                             ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
@@ -265,11 +265,11 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 .items="${container.mapItemsForTiles(metadata.menu)}"
                                 @item-selected="${container.itemSelectedTiles}"
                                 theme="dropdown-indicators"
-                                style="flex-grow: 1; margin-left: 4rem; margin-top: 1.3rem;"
+                                style="flex-grow: 1; min-width: 0; margin-left: 4rem; margin-top: 1.3rem;"
                                 class="menu"
                         >
                         </vaadin-menu-bar>
-                        <vaadin-horizontal-layout>
+                        <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
                             ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}
                         </vaadin-horizontal-layout>
@@ -380,14 +380,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 style="width: 100%;   align-items: center; border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
-                            <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit;">
+                            <a href="javascript: void(0);" @click="${() => container.goHome()}" style="text-decoration: none; color: inherit; flex-shrink: 0;">
                             <vaadin-horizontal-layout style="align-items: center;">
                                 ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px;">`:nothing}
                                 ${metadata.title?html`<h2 style="margin: 0; margin-left: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
                             </vaadin-horizontal-layout>
                             </a>
                             <vaadin-tabs selected="${container.getSelectedIndex(metadata.menu)}"
-                                         style="box-shadow: unset;"
+                                         style="box-shadow: unset; flex-grow: 1; min-width: 0;"
                                          class="${container.component?.cssClasses}">
                                 ${metadata.menu.map(option => {
                                     return html`
@@ -397,8 +397,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             `
                                 })}
                             </vaadin-tabs>
-                            <vaadin-horizontal-layout>
+                            <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
                                 <slot name="widgets"></slot>
+                                ${renderContextSelectors(metadata, container)}
                             </vaadin-horizontal-layout>
                         </vaadin-horizontal-layout>
                     </div>
