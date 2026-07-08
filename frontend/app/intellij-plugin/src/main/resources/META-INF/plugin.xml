@@ -19,12 +19,5 @@
                 text="Mateu" description="Mateu application menu">
             <add-to-group group-id="MainToolbarLeft" anchor="last"/>
         </action>
-        <group id="io.mateu.MateuMenu" class="io.mateu.ijp.plugin.MateuAppMenuGroup"
-               text="_Mateu" description="Mateu" popup="true">
-            <add-to-group group-id="MainMenu" anchor="last"/>
-            <action id="io.mateu.ShowMateu" class="io.mateu.ijp.plugin.ShowMateuAction"
-                    text="Show Mateu Window" description="Activate the Mateu tool window"
-                    icon="/icons/mateu.svg"/>
-        </group>
     </actions>
 </idea-plugin>

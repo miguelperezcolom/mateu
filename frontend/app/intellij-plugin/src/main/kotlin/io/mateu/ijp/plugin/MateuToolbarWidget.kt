@@ -1,13 +1,20 @@
 package io.mateu.ijp.plugin
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.wm.impl.ExpandableComboAction
+import io.mateu.ijp.api.bool
+import io.mateu.ijp.api.text
+import io.mateu.ijp.state.AppSession
 
 /**
  * The app's menu as a **new-UI main-toolbar widget** — a combo button with the app title and a
@@ -43,5 +50,43 @@ class MateuToolbarWidget : ExpandableComboAction(), DumbAware {
 
     companion object {
         private val ICON = IconLoader.getIcon("/icons/mateu.svg", MateuToolbarWidget::class.java)
+    }
+}
+
+/** The app menu JSON → IDE actions: submenus as nested popup groups, leaves opening their view. */
+internal fun appMenuActions(session: AppSession, menu: JsonNode): Array<AnAction> {
+    if (!menu.isArray) return AnAction.EMPTY_ARRAY
+    val actions = ArrayList<AnAction>()
+    for (item in menu) {
+        if (item.bool("separator")) {
+            actions.add(Separator.getInstance())
+            continue
+        }
+        val label = item.text("label")
+        val submenus = item.path("submenus")
+        if (submenus.isArray && !submenus.isEmpty) {
+            actions.add(object : ActionGroup(label, true), DumbAware {
+                override fun getChildren(e: AnActionEvent?): Array<AnAction> = appMenuActions(session, submenus)
+            })
+        } else {
+            actions.add(MenuEntryAction(session, label, item))
+        }
+    }
+    return actions.toTypedArray()
+}
+
+private class MenuEntryAction(
+    private val session: AppSession,
+    label: String,
+    private val item: JsonNode,
+) : AnAction(label), DumbAware {
+    override fun actionPerformed(e: AnActionEvent) {
+        session.openViewHandler?.invoke(
+            item.text("label"),
+            item.text("route"),
+            item.text("consumedRoute"),
+            item.text("serverSideType"),
+            item.text("actionId"),
+        )
     }
 }
