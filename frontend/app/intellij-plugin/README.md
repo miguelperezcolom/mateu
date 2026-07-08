@@ -22,7 +22,8 @@ windows/docking and menus only exist inside a running IDE with a project open.
 - **Native date fields**: `FormFieldRenderer` renders date fields with `org.jdesktop.swingx.JXDatePicker`
   (a formatted field + a real calendar dropdown), bundled in the platform.
 
-Rendering (`api` / `state` / `ui`) is shared with the lightweight `intellij-platform` renderer.
+Rendering (`api` / `state` / `ui`) ports the imperative `AppContext`/`MateuApiClient` model from the
+JavaFX renderer (`frontend/app/javafx`) to Swing + Kotlin UI DSL v2.
 
 ## Run / debug
 
