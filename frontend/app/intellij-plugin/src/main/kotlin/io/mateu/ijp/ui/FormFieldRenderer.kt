@@ -113,13 +113,15 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 }
 
 /**
- * EDITABLE grid field (the form is in edit mode): cells edit in place — strings as text editors,
- * bools as checkboxes, numbers coerced back on commit — and the platform's [ToolbarDecorator]
- * contributes add/remove/move-up/move-down. Everything mutates the live row list stored in
+ * EDITABLE grid field (the form is in edit mode). Two flavours, per the wire's `inlineEditing`
+ * flag: marked (@InlineEditing) → cells edit in place; unmarked (the default) → cells stay
+ * read-only and rows are added/edited through a ROW FORM dialog (double-click or the + button),
+ * like the web's row sub-editor. Either way everything mutates the live row list stored in
  * `ctx.currentComponentState[fieldId]`, which the form's save action round-trips to the server
  * (the entity is rebuilt from the component state — no per-cell server calls).
  */
 private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNode, rows: JsonNode): JComponent {
+    val inlineEditing = metadata.bool("inlineEditing")
     // The web's editable grid adds a `_select` marker column; Swing uses the table selection itself.
     val cols = metadata.arr("columns").mapNotNull { col ->
         val cm = col.path("metadata")
@@ -143,7 +145,7 @@ private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNo
         override fun getColumnName(column: Int): String = cols[column].second
         override fun getColumnClass(columnIndex: Int): Class<*> =
             if (cols[columnIndex].third in BOOL_TYPES) java.lang.Boolean::class.java else String::class.java
-        override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = true
+        override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = inlineEditing
         override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
             val v = rowsLive[rowIndex][cols[columnIndex].first]
             return if (cols[columnIndex].third in BOOL_TYPES) (v as? Boolean) ?: false else v?.toString() ?: ""
@@ -167,21 +169,55 @@ private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNo
     table.putClientProperty("terminateEditOnFocusLost", true)
     runCatching { com.intellij.ui.TableSpeedSearch.installOn(table) }
 
+    fun editRowInDialog(index: Int?) {
+        val existing = index?.let { rowsLive.getOrNull(it) }
+        val edited = showRowFormDialog(table, cols, existing) ?: return
+        if (existing != null) {
+            existing.putAll(edited)
+        } else {
+            edited["_rowNumber"] = rowsLive.size
+            rowsLive.add(edited)
+        }
+        model.fireTableDataChanged()
+        ctx.markUserEdit()
+    }
+
+    // Row-form editing (the default): double-click a row to edit it in a form dialog.
+    if (!inlineEditing) {
+        table.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                if (e.clickCount < 2) return
+                val row = table.rowAtPoint(e.point)
+                if (row >= 0) editRowInDialog(table.convertRowIndexToModel(row))
+            }
+        })
+    }
+
     // A small manual add/remove/reorder toolbar over the proven header+table block. (The platform
     // ToolbarDecorator was tried first, but its inner scroll pane collapses the rows inside the
     // vertically-stacked form — and it can't run under the render probe to verify a fix.)
     val toolbar = JPanel(java.awt.FlowLayout(java.awt.FlowLayout.LEFT, JBUI.scale(2), 0))
     toolbar.isOpaque = false
     toolbar.add(gridToolButton({ com.intellij.icons.AllIcons.General.Add }, "+", "Add row") {
-        val fresh = LinkedHashMap<String, Any?>()
-        for ((id, _, colType) in cols) fresh[id] = if (colType in BOOL_TYPES) false else null
-        fresh["_rowNumber"] = rowsLive.size
-        rowsLive.add(fresh)
-        model.fireTableRowsInserted(rowsLive.size - 1, rowsLive.size - 1)
-        val last = rowsLive.size - 1
-        table.setRowSelectionInterval(last, last)
-        ctx.markUserEdit()
+        if (inlineEditing) {
+            val fresh = LinkedHashMap<String, Any?>()
+            for ((id, _, colType) in cols) fresh[id] = if (colType in BOOL_TYPES) false else null
+            fresh["_rowNumber"] = rowsLive.size
+            rowsLive.add(fresh)
+            model.fireTableRowsInserted(rowsLive.size - 1, rowsLive.size - 1)
+            val last = rowsLive.size - 1
+            table.setRowSelectionInterval(last, last)
+            ctx.markUserEdit()
+        } else {
+            editRowInDialog(null)
+        }
     })
+    if (!inlineEditing) {
+        toolbar.add(gridToolButton({ com.intellij.icons.AllIcons.Actions.Edit }, "✎", "Edit selected row") {
+            val i = table.selectedRow.takeIf { it >= 0 }?.let(table::convertRowIndexToModel)
+            if (i != null) editRowInDialog(i)
+        })
+    }
     toolbar.add(gridToolButton({ com.intellij.icons.AllIcons.General.Remove }, "−", "Remove selected rows") {
         val selected = table.selectedRows.map(table::convertRowIndexToModel).sortedDescending()
         for (i in selected) if (i in rowsLive.indices) rowsLive.removeAt(i)
@@ -205,6 +241,86 @@ private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNo
     wrapper.add(toolbar, BorderLayout.NORTH)
     wrapper.add(tableBlock, BorderLayout.CENTER)
     return wrapper
+}
+
+/**
+ * Modal row form for a grid field: one input per column (checkbox for bools, text otherwise,
+ * numbers coerced back on OK). Returns the edited values, or null when cancelled.
+ */
+private fun showRowFormDialog(
+    host: JComponent,
+    cols: List<Triple<String, String, String>>,
+    existing: Map<String, Any?>?,
+): LinkedHashMap<String, Any?>? {
+    val owner = javax.swing.SwingUtilities.getWindowAncestor(host)
+    val dialog = javax.swing.JDialog(owner, if (existing == null) "New row" else "Edit row", java.awt.Dialog.ModalityType.APPLICATION_MODAL)
+    val form = JPanel(java.awt.GridBagLayout())
+    form.border = JBUI.Borders.empty(12)
+    val editors = LinkedHashMap<String, JComponent>()
+    var rowIdx = 0
+    for ((id, label, colType) in cols) {
+        val gbcLabel = java.awt.GridBagConstraints().apply {
+            gridx = 0; gridy = rowIdx; anchor = java.awt.GridBagConstraints.WEST
+            insets = JBUI.insets(0, 0, 6, 8)
+        }
+        val gbcField = java.awt.GridBagConstraints().apply {
+            gridx = 1; gridy = rowIdx; weightx = 1.0
+            fill = java.awt.GridBagConstraints.HORIZONTAL
+            insets = JBUI.insets(0, 0, 6, 0)
+        }
+        val current = existing?.get(id)
+        if (colType in BOOL_TYPES) {
+            val cb = JBCheckBox(label, (current as? Boolean) ?: false)
+            form.add(JBLabel(""), gbcLabel)
+            form.add(cb, gbcField)
+            editors[id] = cb
+        } else {
+            val tf = JBTextField(current?.toString() ?: "", 18)
+            form.add(JBLabel(label), gbcLabel)
+            form.add(tf, gbcField)
+            editors[id] = tf
+        }
+        rowIdx++
+    }
+
+    var accepted = false
+    val ok = javax.swing.JButton(if (existing == null) "Add" else "OK")
+    ok.addActionListener { accepted = true; dialog.dispose() }
+    val cancel = javax.swing.JButton("Cancel")
+    cancel.addActionListener { dialog.dispose() }
+    val buttons = JPanel(java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, JBUI.scale(6), 0))
+    buttons.add(cancel)
+    buttons.add(ok)
+    form.add(
+        buttons,
+        java.awt.GridBagConstraints().apply {
+            gridx = 0; gridy = rowIdx; gridwidth = 2
+            fill = java.awt.GridBagConstraints.HORIZONTAL
+            insets = JBUI.insets(8, 0, 0, 0)
+        },
+    )
+    dialog.contentPane.add(form)
+    dialog.rootPane.defaultButton = ok
+    dialog.rootPane.registerKeyboardAction(
+        { dialog.dispose() },
+        javax.swing.KeyStroke.getKeyStroke("ESCAPE"),
+        JComponent.WHEN_IN_FOCUSED_WINDOW,
+    )
+    dialog.pack()
+    dialog.setLocationRelativeTo(owner)
+    dialog.isVisible = true
+
+    if (!accepted) return null
+    val result = LinkedHashMap<String, Any?>()
+    existing?.let { result.putAll(it) }
+    for ((id, _, colType) in cols) {
+        val editor = editors[id] ?: continue
+        result[id] = when {
+            colType in BOOL_TYPES -> (editor as JBCheckBox).isSelected
+            else -> coerceCellValue((editor as JBTextField).text.trim(), existing?.get(id))
+        }
+    }
+    return result
 }
 
 /** A compact icon button for the grid toolbar; falls back to [fallbackText] without the platform icon. */

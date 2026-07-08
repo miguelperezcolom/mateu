@@ -45,12 +45,12 @@ class MateuViewManager(private val project: Project, private val session: AppSes
                 override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
                     if (file !is MateuVirtualFile) return
                     val ctx = file.ctx ?: return
-                    println("[Mateu] fileClosed '${file.presentableTitle}' trackDirty=${ctx.trackDirty} dirty=${ctx.dirty}")
                     if (!ctx.dirty) return
+                    // Veto semantics (the platform has no real veto for editor tabs): restore the
+                    // tab SYNCHRONOUSLY — same EDT event, so the gap never paints — then ask, and
+                    // close again only if the user discards.
+                    source.openFile(file, true)
                     ApplicationManager.getApplication().invokeLater {
-                        // Veto semantics (the platform has no real veto for editor tabs): restore
-                        // the tab FIRST, ask, and only close it again if the user discards.
-                        source.openFile(file, true)
                         val choice = Messages.showYesNoDialog(
                             project,
                             "\"${file.presentableTitle}\" has unsaved changes. Discard them?",
