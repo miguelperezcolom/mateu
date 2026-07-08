@@ -75,11 +75,13 @@ internal fun appMenuActions(session: AppSession, menu: JsonNode): Array<AnAction
     return actions.toTypedArray()
 }
 
-private class MenuEntryAction(
+internal class MenuEntryAction(
     private val session: AppSession,
     label: String,
     private val item: JsonNode,
-) : AnAction(label), DumbAware {
+    description: String? = null,
+    icon: javax.swing.Icon? = null,
+) : AnAction(label, description, icon), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
         session.openViewHandler?.invoke(
             item.text("label"),

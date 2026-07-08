@@ -37,6 +37,9 @@ class AppSession(
     var appMenu: com.fasterxml.jackson.databind.JsonNode? = null
     var appTitle: String? = null
 
+    /** Fired after [appMenu]/[appTitle] are (re)published, so the host syncs menu-derived actions. */
+    var onAppMenuChanged: (() -> Unit)? = null
+
     // ── overlays (Drawer/Dialog) — close callbacks, topmost last (CloseModal unwinds one) ──
     private val overlays = ArrayDeque<() -> Unit>()
 

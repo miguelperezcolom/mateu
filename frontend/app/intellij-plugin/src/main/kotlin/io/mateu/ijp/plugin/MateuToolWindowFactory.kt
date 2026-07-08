@@ -27,8 +27,10 @@ class MateuToolWindowFactory : ToolWindowFactory, DumbAware {
         val viewManager = MateuViewManager(project, session)
         session.openViewHandler = viewManager::openView
         session.openDetailHandler = viewManager::openDetail
-        // The menu-bar group (MateuAppMenuGroup) finds the session through the project.
+        // The toolbar widget finds the session through the project; the app menu also registers its
+        // entries as real IDE actions (Search Everywhere / Find Action).
         project.putUserData(MATEU_SESSION, session)
+        session.onAppMenuChanged = { MateuMenuActions.sync(session) }
 
         val ctx = AppContext(session)
         ctx.appShell = true
