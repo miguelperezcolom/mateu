@@ -7,20 +7,24 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPasswordField
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import io.mateu.ijp.api.arr
 import io.mateu.ijp.api.bool
+import io.mateu.ijp.api.displayString
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
 import org.jdesktop.swingx.JXDatePicker
 import java.awt.Color
 import java.awt.Component
+import java.awt.Dimension
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JScrollPane
+import javax.swing.table.AbstractTableModel
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.AbstractDocument
@@ -54,6 +58,21 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     val value = if (rawValue.isNull || rawValue.isMissingNode) "" else rawValue.asText("")
 
     val container = verticalPanel(2)
+
+    // Grid field (e.g. a List<T> of nested records): a table built from `metadata.columns`, rows
+    // from the field's state value. Read-only cells for now (the web's inline-editable grid and
+    // add/remove-row controls are not ported yet).
+    if (stereotype == "grid" || dataType == "array") {
+        if (label.isNotBlank()) {
+            val caption = JBLabel(label)
+            caption.alignmentX = Component.LEFT_ALIGNMENT
+            container.add(caption)
+        }
+        val grid = gridField(ctx, metadata, rawValue)
+        grid.alignmentX = Component.LEFT_ALIGNMENT
+        container.add(grid)
+        return container
+    }
 
     // Boolean → inline checkbox carrying its own label, no separate caption.
     if (dataType in BOOL_TYPES) {
@@ -92,6 +111,57 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         container.add(err)
     }
     return container
+}
+
+/**
+ * A grid FormField ({@code stereotype=grid} / {@code dataType=array}): columns from the
+ * `metadata.columns` GridColumn nodes, rows from the field's state array. Bool columns render as
+ * checkboxes; everything else as text. When the field declares `onItemSelectionActionId`
+ * (`@OnRowSelected`), selecting a row dispatches that action with the row as `_clickedRow`.
+ */
+private fun gridField(ctx: AppContext, metadata: JsonNode, rows: JsonNode): JComponent {
+    val cols = metadata.arr("columns").mapNotNull { col ->
+        val cm = col.path("metadata")
+        val id = cm.text("id", col.text("id"))
+        if (id.isBlank()) null else Triple(id, cm.text("label", id), cm.text("dataType"))
+    }
+    val rowList = if (rows.isArray) rows.toList() else emptyList()
+
+    val model = object : AbstractTableModel() {
+        override fun getRowCount(): Int = rowList.size
+        override fun getColumnCount(): Int = cols.size
+        override fun getColumnName(column: Int): String = cols[column].second
+        override fun getColumnClass(columnIndex: Int): Class<*> =
+            if (cols[columnIndex].third in BOOL_TYPES) java.lang.Boolean::class.java else String::class.java
+        override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
+        override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
+            val cell = rowList[rowIndex].path(cols[columnIndex].first)
+            return if (cols[columnIndex].third in BOOL_TYPES) cell.asBoolean(false) else cell.displayString()
+        }
+    }
+    val table = JBTable(model)
+    table.setShowGrid(true)
+    table.rowHeight = JBUI.scale(28)
+    // Inside the vertically-stacked form the scroll pane gets its preferred size — size the
+    // viewport to the actual rows (capped) so short grids don't reserve a huge empty area.
+    table.preferredScrollableViewportSize = Dimension(
+        table.preferredScrollableViewportSize.width,
+        table.rowHeight * rowList.size.coerceIn(1, 10),
+    )
+
+    val onItemSelection = metadata.text("onItemSelectionActionId")
+    if (onItemSelection.isNotBlank()) {
+        table.selectionModel.addListSelectionListener { e ->
+            if (e.valueIsAdjusting) return@addListSelectionListener
+            val viewRow = table.selectedRow
+            if (viewRow < 0) return@addListSelectionListener
+            val row = rowList.getOrNull(table.convertRowIndexToModel(viewRow)) ?: return@addListSelectionListener
+            @Suppress("UNCHECKED_CAST")
+            val params = ctx.mapper.convertValue(row, Map::class.java) as Map<String, Any?>
+            ctx.runAction(onItemSelection, mapOf("_clickedRow" to params))
+        }
+    }
+    return JScrollPane(table)
 }
 
 private fun plainField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean): JComponent {
