@@ -48,6 +48,9 @@ class MateuViewManager(private val project: Project, private val session: AppSes
                     println("[Mateu] fileClosed '${file.presentableTitle}' trackDirty=${ctx.trackDirty} dirty=${ctx.dirty}")
                     if (!ctx.dirty) return
                     ApplicationManager.getApplication().invokeLater {
+                        // Veto semantics (the platform has no real veto for editor tabs): restore
+                        // the tab FIRST, ask, and only close it again if the user discards.
+                        source.openFile(file, true)
                         val choice = Messages.showYesNoDialog(
                             project,
                             "\"${file.presentableTitle}\" has unsaved changes. Discard them?",
@@ -56,8 +59,10 @@ class MateuViewManager(private val project: Project, private val session: AppSes
                             "Keep Editing",
                             Messages.getWarningIcon(),
                         )
-                        if (choice == Messages.YES) ctx.setDirtyState(false)
-                        else source.openFile(file, true)
+                        if (choice == Messages.YES) {
+                            ctx.setDirtyState(false)
+                            source.closeFile(file)
+                        }
                     }
                 }
             },
