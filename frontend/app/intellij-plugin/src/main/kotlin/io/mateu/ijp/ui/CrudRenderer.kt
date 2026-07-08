@@ -1,9 +1,12 @@
 package io.mateu.ijp.ui
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.intellij.openapi.ui.JBMenuItem
+import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.ui.SearchTextField
+import com.intellij.ui.TableSpeedSearch
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.JBTextField
 import com.intellij.ui.table.JBTable
 import com.intellij.util.ui.JBUI
 import io.mateu.ijp.api.arr
@@ -85,6 +88,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val table = JBTable(model)
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(30)
+    // Speed search: type over the table to jump to matching rows (guarded: needs no full IDE, but
+    // keep the render probe safe).
+    runCatching { TableSpeedSearch.installOn(table) }
 
     // Per-column renderers + interactive editor for action columns.
     for ((i, spec) in specs.withIndex()) {
@@ -115,9 +121,43 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             if (viewRow < 0) return
             if (viewCol in specs.indices && specs[viewCol].kind == ColKind.ACTIONS) return
             val row = model.rowAt(table.convertRowIndexToModel(viewRow)) ?: return
-            @Suppress("UNCHECKED_CAST")
-            val params = ctx.mapper.convertValue(row, Map::class.java) as Map<String, Any?>
-            ctx.runAction(rowLinkActionId, params)
+            ctx.runAction(rowLinkActionId, rowAsParams(ctx, row))
+        }
+    })
+
+    // Right-click a row → context menu with the row link ("Open") + the row's column actions
+    // (e.g. "Set as blue") — the IDE-native way to reach row actions.
+    table.addMouseListener(object : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent) = maybePopup(e)
+        override fun mouseReleased(e: MouseEvent) = maybePopup(e)
+        private fun maybePopup(e: MouseEvent) {
+            if (!e.isPopupTrigger) return
+            val viewRow = table.rowAtPoint(e.point)
+            if (viewRow < 0) return
+            table.setRowSelectionInterval(viewRow, viewRow)
+            val row = model.rowAt(table.convertRowIndexToModel(viewRow)) ?: return
+            val menu = JBPopupMenu()
+            if (rowLinkActionId.isNotBlank()) {
+                menu.add(JBMenuItem("Open").apply {
+                    addActionListener { ctx.runAction(rowLinkActionId, rowAsParams(ctx, row)) }
+                })
+            }
+            var hadRowActions = false
+            for (spec in specs) {
+                if (spec.kind != ColKind.ACTIONS) continue
+                for (a in collectActions(row.path(spec.id), spec.dataType)) {
+                    val method = a.text("methodNameInCrud")
+                    val label = a.text("label", method)
+                    if (label.isBlank()) continue
+                    if (!hadRowActions && menu.componentCount > 0) menu.addSeparator()
+                    hadRowActions = true
+                    menu.add(JBMenuItem(label).apply {
+                        isEnabled = !a.bool("disabled")
+                        addActionListener { ctx.runAction("action-on-row-$method", mapOf("_clickedRow" to row)) }
+                    })
+                }
+            }
+            if (menu.componentCount > 0) menu.show(table, e.x, e.y)
         }
     })
 
@@ -133,22 +173,23 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val center = JPanel(BorderLayout(0, JBUI.scale(4)))
     center.isOpaque = false
 
-    // ── search bar ──
+    // ── search bar: the IDE's SearchTextField (magnifier, clear button, history popup) ──
     if (metadata.bool("searchable")) {
-        val searchField = JBTextField(24)
-        searchField.emptyText.text = "Search…"
+        val searchField = SearchTextField(true)
+        searchField.textEditor.emptyText.text = "Search…"
+        searchField.textEditor.columns = 24
         val doSearch = {
+            searchField.addCurrentTextToHistory()
             ctx.currentComponentState["searchText"] = searchField.text
             ctx.currentComponentState["page"] = 0
             ctx.currentComponentState["size"] = 10
             ctx.currentComponentState["sort"] = emptyList<Any>()
             ctx.runAction("search", null)
         }
-        searchField.addActionListener { doSearch() }
+        searchField.textEditor.addActionListener { doSearch() }
         val searchBar = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0)).apply {
             isOpaque = false
             add(searchField)
-            add(JButton("Search").apply { addActionListener { doSearch() } })
         }
         center.add(searchBar, BorderLayout.NORTH)
     }
@@ -174,6 +215,10 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     return panel
 }
+
+@Suppress("UNCHECKED_CAST")
+private fun rowAsParams(ctx: io.mateu.ijp.state.AppContext, row: JsonNode): Map<String, Any?> =
+    ctx.mapper.convertValue(row, Map::class.java) as Map<String, Any?>
 
 private enum class ColKind { TEXT, STATUS, LINK, ACTIONS }
 

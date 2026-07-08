@@ -297,6 +297,7 @@ class AppContext(val session: AppSession) {
         currentActionValidationRequired = validationFlags
         currentActionBubble = bubbleFlags
         currentComponentValidations = sscNode.path("validations")
+        registerShortcutActions(actionNodes)
 
         val initialData = sscNode.path("initialData")
         val componentRoute = initialData.text("componentRoute", initialData.text("_componentRoute"))
@@ -304,6 +305,57 @@ class AppContext(val session: AppSession) {
             orchestratorServerSideType = serverSideType
             orchestratorComponentRoute = componentRoute
         }
+    }
+
+    // Actions with a Mateu shortcut (`@Action(shortcut="ctrl+alt+d")`), registered as REAL IDE
+    // shortcuts scoped to this view's root component — they show in tooltips, respect focus, and
+    // never fight the editor's keymap outside the view. Re-registered on every component (re)load.
+    private val shortcutActions = ArrayList<com.intellij.openapi.actionSystem.AnAction>()
+
+    private fun registerShortcutActions(actionNodes: JsonNode) {
+        val root = contentPane ?: return
+        for (a in shortcutActions) a.unregisterCustomShortcutSet(root)
+        shortcutActions.clear()
+        if (!actionNodes.isArray) return
+        for (a in actionNodes) {
+            val id = a.text("id")
+            val keyStroke = toKeyStroke(a.text("shortcut")) ?: continue
+            if (id.isBlank()) continue
+            val action = object : com.intellij.openapi.actionSystem.AnAction() {
+                override fun actionPerformed(e: com.intellij.openapi.actionSystem.AnActionEvent) {
+                    runAction(id, null)
+                }
+            }
+            action.registerCustomShortcutSet(
+                com.intellij.openapi.actionSystem.CustomShortcutSet(keyStroke), root,
+            )
+            shortcutActions.add(action)
+        }
+    }
+
+    /** Mateu's "ctrl+alt+d" → a Swing [javax.swing.KeyStroke] ("ctrl alt D"); null when unparseable. */
+    private fun toKeyStroke(shortcut: String): javax.swing.KeyStroke? {
+        if (shortcut.isBlank()) return null
+        val parts = shortcut.lowercase().split('+').map { it.trim() }.filter { it.isNotEmpty() }
+        if (parts.isEmpty()) return null
+        val mods = parts.dropLast(1).map {
+            when (it) {
+                "ctrl", "control" -> "ctrl"
+                "alt" -> "alt"
+                "shift" -> "shift"
+                "meta", "cmd" -> "meta"
+                else -> return null
+            }
+        }
+        val key = when (val k = parts.last()) {
+            "enter" -> "ENTER"
+            "esc", "escape" -> "ESCAPE"
+            "space" -> "SPACE"
+            "del", "delete" -> "DELETE"
+            "tab" -> "TAB"
+            else -> k.uppercase()
+        }
+        return javax.swing.KeyStroke.getKeyStroke((mods + key).joinToString(" "))
     }
 
     private fun ownsAction(actionId: String?): Boolean {

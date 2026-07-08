@@ -143,6 +143,8 @@ private fun gridField(ctx: AppContext, metadata: JsonNode, rows: JsonNode): JCom
     val table = JBTable(model)
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(28)
+    // Speed search: type over the grid to jump to matching rows (guarded for the render probe).
+    runCatching { com.intellij.ui.TableSpeedSearch.installOn(table) }
 
     val onItemSelection = metadata.text("onItemSelectionActionId")
     if (onItemSelection.isNotBlank()) {
