@@ -19,7 +19,9 @@ import javax.swing.JSeparator
  */
 fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JComponent {
     val session = r.ctx.session
-    session.setWindowTitle(metadata.text("title", "Mateu App"))
+    // Through the CONTEXT: the navigator's App title reaches the tool window (session fallback),
+    // while a crud MEDIATOR's App title stays within its view (its tab title), not the navigator's.
+    r.ctx.setWindowTitle(metadata.text("title", "Mateu App"))
     return JBScrollPane(buildSidebar(session, metadata.path("menu")))
 }
 

@@ -4,6 +4,7 @@ import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.wm.ToolWindowAnchor
@@ -49,6 +50,9 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         // Both hosts (editor header / tool window title) show the view's toolbar natively.
         ctx.nativeToolbarHost = true
         ctx.onViewActionsChanged = { ActivityTracker.getInstance().inc() }
+        // Swallow SetWindowTitle until a host mounts (else it would clobber the navigator's tool
+        // window title); the host reads ctx.lastWindowTitle on attach and takes over.
+        ctx.titleConsumer = {}
         ctx.onFirstContent = { isCrud ->
             focusByKey[key] = if (isCrud && !preferEditor) {
                 // Row detail / New / Edit navigations from this listing open in a central editor tab.
@@ -76,6 +80,9 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         }
         val content = ContentFactory.getInstance().createContent(panel, title, false)
         content.putUserData(MATEU_VIEW_CTX, ctx)
+        // This view's SetWindowTitle names its own tab (e.g. "All products").
+        ctx.titleConsumer = { t -> content.displayName = t }
+        ctx.lastWindowTitle?.let { content.displayName = it }
         tw.contentManager.addContent(content)
         tw.contentManager.setSelectedContent(content)
         tw.activate(null)
@@ -95,6 +102,12 @@ class MateuViewManager(private val project: Project, private val session: AppSes
 
         val file = MateuVirtualFile(title, wrapper)
         val fem = FileEditorManager.getInstance(project)
+        // This view's SetWindowTitle names its editor tab (e.g. "Product Producto 1").
+        ctx.titleConsumer = { t ->
+            file.presentableTitle = t
+            FileEditorManagerEx.getInstanceEx(project).updateFilePresentation(file)
+        }
+        ctx.lastWindowTitle?.let { file.presentableTitle = it }
         fem.openFile(file, true)
         return { fem.openFile(file, true) }
     }

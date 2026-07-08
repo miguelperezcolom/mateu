@@ -78,6 +78,24 @@ class AppContext(val session: AppSession) {
     /** Fired after [viewActions] changes so the host can nudge its toolbar to refresh. */
     var onViewActionsChanged: (() -> Unit)? = null
 
+    /**
+     * Where THIS view's `SetWindowTitle` goes (its editor-tab / tool-window-tab title). Unset →
+     * falls back to the session-wide consumer (the navigator's tool window). Hosts that mount after
+     * the first load read [lastWindowTitle] on attach.
+     */
+    var titleConsumer: ((String) -> Unit)? = null
+
+    /** Latest `SetWindowTitle` seen by this context (views usually receive it on first load). */
+    var lastWindowTitle: String? = null
+        private set
+
+    fun setWindowTitle(title: String) {
+        lastWindowTitle = title
+        val consumer = titleConsumer
+        if (consumer != null) SwingUtilities.invokeLater { consumer(title) }
+        else session.setWindowTitle(title)
+    }
+
     /** Claim [buttons] for the native host toolbar; false → the renderer keeps them inline. */
     fun publishToolbar(buttons: List<JsonNode>): Boolean {
         if (!nativeToolbarHost) return false
@@ -504,7 +522,7 @@ class AppContext(val session: AppSession) {
         when (type) {
             "SetWindowTitle" -> {
                 val title = if (cmdData.isTextual) cmdData.asText() else cmdData.text("title")
-                if (title.isNotBlank() && !title.startsWith("[")) session.setWindowTitle(title)
+                if (title.isNotBlank() && !title.startsWith("[")) setWindowTitle(title)
             }
             "NavigateTo" -> {
                 val href = if (cmdData.isTextual) cmdData.asText() else cmdData.text("href")
@@ -556,6 +574,8 @@ class AppContext(val session: AppSession) {
                     val island = AppContext(session)
                     island.contentPane = container
                     island.silentErrors = true
+                    // An island's SetWindowTitle must not leak to the navigator tool window.
+                    island.titleConsumer = {}
                     if (homeRoute.isNotBlank() || homeSST.isNotBlank()) {
                         island.navigate(homeRoute, homeConsumedRoute, homeSST, "")
                     }

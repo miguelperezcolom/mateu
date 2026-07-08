@@ -27,10 +27,11 @@ class MateuToolWindowFactory : ToolWindowFactory, DumbAware {
         val ctx = AppContext(session)
         val root = ctx.newSlot()
         ctx.contentPane = root
-        // SetWindowTitle → the tool window's title suffix (there is no JFrame here).
+        // The APP's SetWindowTitle → the tool window's title suffix (there is no JFrame here).
+        // Views/mediators route their titles to their own tab via AppContext.titleConsumer.
         session.titleConsumer = { title -> SwingUtilities.invokeLater { toolWindow.title = title } }
 
-        val content = ContentFactory.getInstance().createContent(root, "", false)
+        val content = ContentFactory.getInstance().createContent(root, "Menu", false)
         content.isCloseable = false
         toolWindow.contentManager.addContent(content)
 
