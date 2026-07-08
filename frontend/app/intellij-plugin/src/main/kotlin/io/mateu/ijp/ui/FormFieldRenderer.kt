@@ -18,6 +18,7 @@ import org.jdesktop.swingx.JXDatePicker
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.Dimension
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
@@ -61,15 +62,16 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     val container = verticalPanel(2)
 
     // Grid field (e.g. a List<T> of nested records): a table built from `metadata.columns`, rows
-    // from the field's state value. Read-only cells for now (the web's inline-editable grid and
-    // add/remove-row controls are not ported yet).
+    // from the field's state value. Read-only view → plain table; editable form → editable cells
+    // plus the IDE's ToolbarDecorator (add/remove/reorder rows), all mutating the live state array
+    // that the form's save round-trips.
     if (stereotype == "grid" || dataType == "array") {
         if (label.isNotBlank()) {
             val caption = JBLabel(label)
             caption.alignmentX = Component.LEFT_ALIGNMENT
             container.add(caption)
         }
-        val grid = gridField(ctx, metadata, rawValue)
+        val grid = if (enabled) editableGridField(ctx, fieldId, metadata, rawValue) else gridField(ctx, metadata, rawValue)
         grid.alignmentX = Component.LEFT_ALIGNMENT
         container.add(grid)
         return container
@@ -112,6 +114,115 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         container.add(err)
     }
     return container
+}
+
+/**
+ * EDITABLE grid field (the form is in edit mode): cells edit in place — strings as text editors,
+ * bools as checkboxes, numbers coerced back on commit — and the platform's [ToolbarDecorator]
+ * contributes add/remove/move-up/move-down. Everything mutates the live row list stored in
+ * `ctx.currentComponentState[fieldId]`, which the form's save action round-trips to the server
+ * (the entity is rebuilt from the component state — no per-cell server calls).
+ */
+private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNode, rows: JsonNode): JComponent {
+    // The web's editable grid adds a `_select` marker column; Swing uses the table selection itself.
+    val cols = metadata.arr("columns").mapNotNull { col ->
+        val cm = col.path("metadata")
+        val id = cm.text("id", col.text("id"))
+        if (id.isBlank() || id.startsWith("_")) null else Triple(id, cm.text("label", id), cm.text("dataType"))
+    }
+    // Live rows: plain mutable maps hydrated from the state array; the SAME list instance is put
+    // into the component state so every mutation is already "in the form".
+    val rowsLive = ArrayList<LinkedHashMap<String, Any?>>()
+    if (rows.isArray) {
+        for (r in rows) {
+            @Suppress("UNCHECKED_CAST")
+            rowsLive.add(LinkedHashMap(ctx.mapper.convertValue(r, Map::class.java) as Map<String, Any?>))
+        }
+    }
+    ctx.currentComponentState[fieldId] = rowsLive
+
+    val model = object : AbstractTableModel() {
+        override fun getRowCount(): Int = rowsLive.size
+        override fun getColumnCount(): Int = cols.size
+        override fun getColumnName(column: Int): String = cols[column].second
+        override fun getColumnClass(columnIndex: Int): Class<*> =
+            if (cols[columnIndex].third in BOOL_TYPES) java.lang.Boolean::class.java else String::class.java
+        override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = true
+        override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
+            val v = rowsLive[rowIndex][cols[columnIndex].first]
+            return if (cols[columnIndex].third in BOOL_TYPES) (v as? Boolean) ?: false else v?.toString() ?: ""
+        }
+        override fun setValueAt(aValue: Any?, rowIndex: Int, columnIndex: Int) {
+            val (id, _, colType) = cols[columnIndex]
+            val old = rowsLive[rowIndex][id]
+            val coerced: Any? = when {
+                colType in BOOL_TYPES -> aValue as? Boolean ?: false
+                else -> coerceCellValue(aValue?.toString() ?: "", old)
+            }
+            if (coerced == old) return
+            rowsLive[rowIndex][id] = coerced
+            fireTableCellUpdated(rowIndex, columnIndex)
+        }
+    }
+    val table = JBTable(model)
+    table.setShowGrid(true)
+    table.rowHeight = JBUI.scale(28)
+    table.putClientProperty("terminateEditOnFocusLost", true)
+    runCatching { com.intellij.ui.TableSpeedSearch.installOn(table) }
+
+    // ToolbarDecorator needs the ActionManager (full IDE); without it (render probe) fall back to
+    // the plain header+table block — cells stay editable either way.
+    val decorated = runCatching {
+        com.intellij.ui.ToolbarDecorator.createDecorator(table)
+            .setAddAction {
+                val fresh = LinkedHashMap<String, Any?>()
+                for ((id, _, colType) in cols) fresh[id] = if (colType in BOOL_TYPES) false else null
+                fresh["_rowNumber"] = rowsLive.size
+                rowsLive.add(fresh)
+                model.fireTableRowsInserted(rowsLive.size - 1, rowsLive.size - 1)
+            }
+            .setRemoveAction {
+                val selected = table.selectedRows.map(table::convertRowIndexToModel).sortedDescending()
+                for (i in selected) if (i in rowsLive.indices) rowsLive.removeAt(i)
+                model.fireTableDataChanged()
+            }
+            .setMoveUpAction { moveRow(table, model, rowsLive, -1) }
+            .setMoveDownAction { moveRow(table, model, rowsLive, +1) }
+            .createPanel()
+    }.getOrNull()
+
+    if (decorated != null) {
+        // The decorator wraps the table in its own scroll pane, which collapses inside the
+        // vertically-stacked form — pin an explicit preferred height (header + toolbar + rows).
+        val rowsShown = (rowsLive.size + 1).coerceIn(3, 12)
+        decorated.preferredSize = Dimension(JBUI.scale(400), JBUI.scale(28) * rowsShown + JBUI.scale(70))
+        return decorated
+    }
+    val wrapper = JPanel(BorderLayout())
+    wrapper.isOpaque = false
+    wrapper.add(table.tableHeader, BorderLayout.NORTH)
+    wrapper.add(table, BorderLayout.CENTER)
+    return wrapper
+}
+
+private fun moveRow(table: JBTable, model: AbstractTableModel, rowsLive: MutableList<LinkedHashMap<String, Any?>>, delta: Int) {
+    val i = table.selectedRow.takeIf { it >= 0 }?.let(table::convertRowIndexToModel) ?: return
+    val j = i + delta
+    if (j !in rowsLive.indices) return
+    val tmp = rowsLive[i]; rowsLive[i] = rowsLive[j]; rowsLive[j] = tmp
+    model.fireTableRowsUpdated(minOf(i, j), maxOf(i, j))
+    table.setRowSelectionInterval(j, j)
+}
+
+/** Coerce an edited cell back to the value's original type (numbers stay numbers on the wire). */
+private fun coerceCellValue(text: String, old: Any?): Any? {
+    if (text.isEmpty()) return if (old is String || old == null) text.ifEmpty { null } else null
+    return when (old) {
+        is Int -> text.toIntOrNull() ?: old
+        is Long -> text.toLongOrNull() ?: old
+        is Double, is Float -> text.replace(',', '.').toDoubleOrNull() ?: old
+        else -> text.toIntOrNull() ?: text.replace(',', '.').toDoubleOrNull()?.takeIf { text.any { c -> c == '.' || c == ',' } } ?: text
+    }
 }
 
 /**

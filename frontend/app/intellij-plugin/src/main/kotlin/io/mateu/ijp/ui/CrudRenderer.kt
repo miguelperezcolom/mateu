@@ -76,7 +76,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             actionId.isNotBlank() -> ColKind.LINK
             else -> ColKind.TEXT
         }
-        ColSpec(id, label, kind, dataType, actionId, text)
+        ColSpec(id, label, kind, dataType, actionId, text, cm.bool("editable"), cm.text("editorType"))
     }
     // The action id used to open a row's detail: the first link column (e.g. the id column's "view").
     val rowLinkActionId = allSpecs.firstOrNull { it.kind == ColKind.LINK }?.actionId ?: ""
@@ -84,21 +84,27 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val actionSpecs = allSpecs.filter { it.kind == ColKind.ACTIONS }
     val specs = allSpecs.filterNot { it.kind == ColKind.ACTIONS }
 
-    val model = CrudTableModel(specs)
+    // Inline editing (@InlineEditing crud): committing an edited cell persists its row right away
+    // through the crud's `update-row` action, like the web's renderEditableCell.
+    val model = CrudTableModel(specs) { updatedRow ->
+        ctx.runAction("update-row", mapOf("_editedRow" to updatedRow))
+    }
     val table = JBTable(model)
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(30)
+    table.putClientProperty("terminateEditOnFocusLost", true)
     // Speed search: type over the table to jump to matching rows (guarded: needs no full IDE, but
     // keep the render probe safe).
     runCatching { TableSpeedSearch.installOn(table) }
 
-    // Per-column renderers.
+    // Custom renderers only for STATUS/LINK; the rest use JTable's class-based defaults
+    // (Boolean → checkbox, String → label), which also provide the inline-editing editors.
     for ((i, spec) in specs.withIndex()) {
         val column = table.columnModel.getColumn(i)
         when (spec.kind) {
             ColKind.STATUS -> column.cellRenderer = StatusCellRenderer()
             ColKind.LINK -> column.cellRenderer = LinkCellRenderer(spec.text)
-            else -> column.cellRenderer = NodeTextRenderer()
+            else -> {}
         }
     }
 
@@ -217,6 +223,8 @@ private data class ColSpec(
     val dataType: String,
     val actionId: String,
     val text: String,
+    val editable: Boolean = false,
+    val editorType: String = "",
 )
 
 private fun extractRows(node: JsonNode): List<JsonNode> {
@@ -229,15 +237,6 @@ private fun extractRows(node: JsonNode): List<JsonNode> {
 }
 
 // ── cell renderers ─────────────────────────────────────────────────────────────────────
-
-/** Plain text: unwraps `{message}`/`{value}` objects via [displayString]. */
-private class NodeTextRenderer : DefaultTableCellRenderer() {
-    override fun getTableCellRendererComponent(
-        table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
-    ): Component = super.getTableCellRendererComponent(
-        table, (value as? JsonNode).displayString(), isSelected, hasFocus, row, column,
-    )
-}
 
 /** Link-styled cell (an identifier column with an `actionId`); the row double-click opens it. */
 private class LinkCellRenderer(private val fixedText: String) : DefaultTableCellRenderer() {
@@ -297,11 +296,18 @@ private fun collectActions(fieldNode: JsonNode?, dataType: String): List<JsonNod
 }
 
 /**
- * JTable model backed by a live list of row [JsonNode]s. Each cell returns the row's field node
- * (`row[colId]`) so the per-column renderers can inspect its shape (status object, …).
+ * JTable model backed by a live list of row [JsonNode]s. STATUS/LINK cells return the row's field
+ * node (their renderers inspect its shape); bool cells return Boolean (checkbox rendering/editor);
+ * the rest return display strings. `editable` columns (an @InlineEditing crud) edit in place: a
+ * committed change rebuilds the row map, updates the local node and invokes [onRowEdited] —
+ * no-op commits are skipped (a checkbox editor fires on initialization).
  */
-private class CrudTableModel(private val specs: List<ColSpec>) : AbstractTableModel() {
+private class CrudTableModel(
+    private val specs: List<ColSpec>,
+    private val onRowEdited: (Map<String, Any?>) -> Unit = {},
+) : AbstractTableModel() {
     private val rows = ArrayList<JsonNode>()
+    private val mapper = com.fasterxml.jackson.databind.ObjectMapper()
 
     fun setRows(newRows: List<JsonNode>) {
         rows.clear()
@@ -314,9 +320,53 @@ private class CrudTableModel(private val specs: List<ColSpec>) : AbstractTableMo
     override fun getRowCount(): Int = rows.size
     override fun getColumnCount(): Int = specs.size
     override fun getColumnName(column: Int): String = specs.getOrNull(column)?.label ?: ""
-    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean = false
+    override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean =
+        specs.getOrNull(columnIndex)?.editable == true
+
+    override fun getColumnClass(columnIndex: Int): Class<*> {
+        val spec = specs.getOrNull(columnIndex) ?: return Any::class.java
+        return when {
+            spec.kind == ColKind.STATUS || spec.kind == ColKind.LINK -> JsonNode::class.java
+            spec.dataType == "bool" || spec.editorType == "boolean" -> java.lang.Boolean::class.java
+            else -> String::class.java
+        }
+    }
+
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
         val row = rows.getOrNull(rowIndex) ?: return null
-        return row.path(specs[columnIndex].id)
+        val spec = specs[columnIndex]
+        val node = row.path(spec.id)
+        return when {
+            spec.kind == ColKind.STATUS || spec.kind == ColKind.LINK -> node
+            spec.dataType == "bool" || spec.editorType == "boolean" -> node.asBoolean(false)
+            else -> node.displayString()
+        }
+    }
+
+    override fun setValueAt(aValue: Any?, rowIndex: Int, columnIndex: Int) {
+        val spec = specs.getOrNull(columnIndex) ?: return
+        if (!spec.editable) return
+        val row = rows.getOrNull(rowIndex) ?: return
+        val newValue: Any? = when (spec.editorType) {
+            "boolean" -> aValue as? Boolean ?: false
+            "integer" -> (aValue?.toString() ?: "").toLongOrNull() ?: return
+            "number" -> (aValue?.toString() ?: "").replace(',', '.').toDoubleOrNull() ?: return
+            else -> aValue?.toString() ?: ""
+        }
+        val oldNode = row.path(spec.id)
+        val oldValue: Any? = when {
+            oldNode.isMissingNode || oldNode.isNull -> null
+            oldNode.isBoolean -> oldNode.asBoolean()
+            oldNode.isIntegralNumber -> oldNode.asLong()
+            oldNode.isNumber -> oldNode.asDouble()
+            else -> oldNode.asText()
+        }
+        if (newValue == oldValue) return
+        @Suppress("UNCHECKED_CAST")
+        val updated = LinkedHashMap(mapper.convertValue(row, Map::class.java) as Map<String, Any?>)
+        updated[spec.id] = newValue
+        rows[rowIndex] = mapper.valueToTree(updated)
+        fireTableCellUpdated(rowIndex, columnIndex)
+        onRowEdited(updated)
     }
 }
