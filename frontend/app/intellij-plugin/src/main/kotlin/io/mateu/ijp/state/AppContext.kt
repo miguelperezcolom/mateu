@@ -81,18 +81,19 @@ class AppContext(val session: AppSession) {
     /** Claim [buttons] for the native host toolbar; false → the renderer keeps them inline. */
     fun publishToolbar(buttons: List<JsonNode>): Boolean {
         if (!nativeToolbarHost) return false
-        for (b in buttons) {
+        val specs = buttons.mapNotNull { b ->
             val actionId = b.text("actionId", b.text("id"))
-            if (actionId.isBlank()) continue
-            viewActions.add(
-                ToolbarSpec(
-                    actionId = actionId,
-                    label = b.text("label", actionId),
-                    disabled = b.bool("disabled"),
-                    primary = b.text("buttonStyle").equals("Primary", ignoreCase = true),
-                ),
+            if (actionId.isBlank()) null else ToolbarSpec(
+                actionId = actionId,
+                label = b.text("label", actionId),
+                disabled = b.bool("disabled"),
+                primary = b.text("buttonStyle").equals("Primary", ignoreCase = true),
             )
         }
+        // Idempotent: an in-place re-render of the same view (state-only update, validation error)
+        // republishes the same buttons — replace, don't accumulate.
+        viewActions.removeAll(specs)
+        viewActions.addAll(specs)
         onViewActionsChanged?.invoke()
         return true
     }
@@ -451,6 +452,14 @@ class AppContext(val session: AppSession) {
                     currentInnerRoute = routeSuffix.trim('/')
                     SwingUtilities.invokeLater { navigate(fullRoute, base, sst, "") }
                 }
+                return
+            }
+            // State-only update with NO navigation route: an action mutated its model and the server
+            // sent the fresh state (e.g. a @Toolbar method adding a grid row). The web merges it into
+            // the component state and re-renders — do the same with the captured form children.
+            if (state.isObject && state.fieldNames().hasNext()) {
+                state.fields().forEach { (k, v) -> currentComponentState[k] = v }
+                rerenderCurrentForm()
             }
             return
         }

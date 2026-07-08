@@ -64,6 +64,7 @@ tasks.register<JavaExec>("renderProbe") {
     (findProperty("probe.json") as String?)?.let { systemProperty("probe.json", it) }
     (findProperty("probe.png") as String?)?.let { systemProperty("probe.png", it) }
     (findProperty("probe.nativeToolbar") as String?)?.let { systemProperty("probe.nativeToolbar", it) }
+    (findProperty("probe.followUp") as String?)?.let { systemProperty("probe.followUp", it) }
     jvmArgs(
         "--add-exports=java.desktop/sun.swing=ALL-UNNAMED",
         "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",

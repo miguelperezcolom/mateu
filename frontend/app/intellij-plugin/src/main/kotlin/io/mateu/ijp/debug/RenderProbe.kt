@@ -41,6 +41,14 @@ fun main() {
     // loadServerSideComponent defers its putChildren via invokeLater; drain a few EDT hops.
     repeat(3) { Thread.sleep(200); SwingUtilities.invokeAndWait {} }
 
+    // -Dprobe.followUp=<json>: a second increment applied on top (e.g. an action's response),
+    // to exercise in-place updates (state-only merges, toolbar republish…).
+    System.getProperty("probe.followUp")?.let { followUp ->
+        val second = session.mapper.readTree(File(followUp))
+        SwingUtilities.invokeAndWait { ctx.applyIncrement(second) }
+        repeat(3) { Thread.sleep(200); SwingUtilities.invokeAndWait {} }
+    }
+
     SwingUtilities.invokeAndWait {
         val frame = JFrame("probe")
         frame.defaultCloseOperation = JFrame.DISPOSE_ON_CLOSE

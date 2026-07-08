@@ -9,7 +9,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow id="Mateu" anchor="right" canCloseContents="false"
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
-                    icon="AllIcons.Toolwindows.ToolWindowStructure"/>
+                    icon="/icons/mateu.svg"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
     </extensions>
 
@@ -17,7 +17,8 @@
         <group id="io.mateu.MateuMenu" text="_Mateu" description="Mateu" popup="true">
             <add-to-group group-id="MainMenu" anchor="last"/>
             <action id="io.mateu.ShowMateu" class="io.mateu.ijp.plugin.ShowMateuAction"
-                    text="Show Mateu Window" description="Activate the Mateu tool window"/>
+                    text="Show Mateu Window" description="Activate the Mateu tool window"
+                    icon="/icons/mateu.svg"/>
         </group>
     </actions>
 </idea-plugin>

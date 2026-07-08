@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentFactory
@@ -67,9 +68,14 @@ class MateuViewManager(private val project: Project, private val session: AppSes
             anchor = ToolWindowAnchor.BOTTOM
             canCloseContent = true
             stripeTitle = Supplier { "Mateu" }
+            icon = IconLoader.getIcon("/icons/mateu.svg", MateuViewManager::class.java)
+        }.also {
+            // One delegating group for the whole tool window: it surfaces the SELECTED tab's actions
+            // (plain tool windows don't render per-Content action groups).
+            it.setTitleActions(listOf(toolWindowTitleGroup(it)))
         }
         val content = ContentFactory.getInstance().createContent(panel, title, false)
-        content.setActions(viewActionGroup(ctx), ActionPlaces.TOOLWINDOW_TITLE, panel)
+        content.putUserData(MATEU_VIEW_CTX, ctx)
         tw.contentManager.addContent(content)
         tw.contentManager.setSelectedContent(content)
         tw.activate(null)
