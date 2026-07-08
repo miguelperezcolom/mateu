@@ -171,41 +171,54 @@ private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNo
     table.putClientProperty("terminateEditOnFocusLost", true)
     runCatching { com.intellij.ui.TableSpeedSearch.installOn(table) }
 
-    // ToolbarDecorator needs the ActionManager (full IDE); without it (render probe) fall back to
-    // the plain header+table block — cells stay editable either way.
-    val decorated = runCatching {
-        com.intellij.ui.ToolbarDecorator.createDecorator(table)
-            .setAddAction {
-                val fresh = LinkedHashMap<String, Any?>()
-                for ((id, _, colType) in cols) fresh[id] = if (colType in BOOL_TYPES) false else null
-                fresh["_rowNumber"] = rowsLive.size
-                rowsLive.add(fresh)
-                model.fireTableRowsInserted(rowsLive.size - 1, rowsLive.size - 1)
-                ctx.markUserEdit()
-            }
-            .setRemoveAction {
-                val selected = table.selectedRows.map(table::convertRowIndexToModel).sortedDescending()
-                for (i in selected) if (i in rowsLive.indices) rowsLive.removeAt(i)
-                model.fireTableDataChanged()
-                ctx.markUserEdit()
-            }
-            .setMoveUpAction { moveRow(table, model, rowsLive, -1); ctx.markUserEdit() }
-            .setMoveDownAction { moveRow(table, model, rowsLive, +1); ctx.markUserEdit() }
-            .createPanel()
-    }.getOrNull()
+    // A small manual add/remove/reorder toolbar over the proven header+table block. (The platform
+    // ToolbarDecorator was tried first, but its inner scroll pane collapses the rows inside the
+    // vertically-stacked form — and it can't run under the render probe to verify a fix.)
+    val toolbar = JPanel(java.awt.FlowLayout(java.awt.FlowLayout.LEFT, JBUI.scale(2), 0))
+    toolbar.isOpaque = false
+    toolbar.add(gridToolButton({ com.intellij.icons.AllIcons.General.Add }, "+", "Add row") {
+        val fresh = LinkedHashMap<String, Any?>()
+        for ((id, _, colType) in cols) fresh[id] = if (colType in BOOL_TYPES) false else null
+        fresh["_rowNumber"] = rowsLive.size
+        rowsLive.add(fresh)
+        model.fireTableRowsInserted(rowsLive.size - 1, rowsLive.size - 1)
+        val last = rowsLive.size - 1
+        table.setRowSelectionInterval(last, last)
+        ctx.markUserEdit()
+    })
+    toolbar.add(gridToolButton({ com.intellij.icons.AllIcons.General.Remove }, "−", "Remove selected rows") {
+        val selected = table.selectedRows.map(table::convertRowIndexToModel).sortedDescending()
+        for (i in selected) if (i in rowsLive.indices) rowsLive.removeAt(i)
+        model.fireTableDataChanged()
+        ctx.markUserEdit()
+    })
+    toolbar.add(gridToolButton({ com.intellij.icons.AllIcons.Actions.MoveUp }, "↑", "Move row up") {
+        moveRow(table, model, rowsLive, -1); ctx.markUserEdit()
+    })
+    toolbar.add(gridToolButton({ com.intellij.icons.AllIcons.Actions.MoveDown }, "↓", "Move row down") {
+        moveRow(table, model, rowsLive, +1); ctx.markUserEdit()
+    })
 
-    if (decorated != null) {
-        // The decorator wraps the table in its own scroll pane, which collapses inside the
-        // vertically-stacked form — pin an explicit preferred height (header + toolbar + rows).
-        val rowsShown = (rowsLive.size + 1).coerceIn(3, 12)
-        decorated.preferredSize = Dimension(JBUI.scale(400), JBUI.scale(28) * rowsShown + JBUI.scale(70))
-        return decorated
-    }
-    val wrapper = JPanel(BorderLayout())
+    val tableBlock = JPanel(BorderLayout())
+    tableBlock.isOpaque = false
+    tableBlock.add(table.tableHeader, BorderLayout.NORTH)
+    tableBlock.add(table, BorderLayout.CENTER)
+
+    val wrapper = JPanel(BorderLayout(0, JBUI.scale(2)))
     wrapper.isOpaque = false
-    wrapper.add(table.tableHeader, BorderLayout.NORTH)
-    wrapper.add(table, BorderLayout.CENTER)
+    wrapper.add(toolbar, BorderLayout.NORTH)
+    wrapper.add(tableBlock, BorderLayout.CENTER)
     return wrapper
+}
+
+/** A compact icon button for the grid toolbar; falls back to [fallbackText] without the platform icon. */
+private fun gridToolButton(icon: () -> javax.swing.Icon, fallbackText: String, tooltip: String, onClick: () -> Unit): javax.swing.JButton {
+    val b = javax.swing.JButton()
+    runCatching { b.icon = icon() }.onFailure { b.text = fallbackText }
+    b.toolTipText = tooltip
+    b.preferredSize = Dimension(JBUI.scale(28), JBUI.scale(24))
+    b.addActionListener { onClick() }
+    return b
 }
 
 private fun moveRow(table: JBTable, model: AbstractTableModel, rowsLive: MutableList<LinkedHashMap<String, Any?>>, delta: Int) {
