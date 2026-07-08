@@ -31,6 +31,14 @@ class AppContext(val session: AppSession) {
     var currentRoute: String = ""
     var currentConsumedRoute: String = ""
     var currentServerSideType: String = ""
+
+    /**
+     * The CRUD mediator's internal route currently rendered in this context (e.g. "list",
+     * "0001/view"), seeded from the `_route` a content fragment carries. A state-only fragment whose
+     * `_route` matches it is a stay-in-place response (e.g. a row action's "/list" + re-search) —
+     * the web mediator only remounts on a route CHANGE, so neither do we.
+     */
+    private var currentInnerRoute: String = ""
     var currentComponentId: String = "ux_main"
     var currentComponentState: MutableMap<String, Any?> = HashMap()
 
@@ -378,6 +386,13 @@ class AppContext(val session: AppSession) {
                 // nothing (or back to the listing).
                 val base = stateComp.ifBlank { currentConsumedRoute }
                 val routeSuffix = state.text("_route")
+                if (currentInnerRoute.isNotBlank() && routeSuffix.trim('/') == currentInnerRoute) {
+                    // Same inner route as what's already rendered (e.g. a row action answering
+                    // "/list" to a listing): stay put — a RunAction command (e.g. "search") in the
+                    // same increment refreshes the data.
+                    state.fields().forEach { (k, v) -> currentComponentState[k] = v }
+                    return
+                }
                 val fullRoute = base + routeSuffix
                 val sst = if (orchestratorServerSideType.isNotBlank() && orchestratorComponentRoute == stateComp) {
                     orchestratorServerSideType
@@ -388,10 +403,11 @@ class AppContext(val session: AppSession) {
                 val isDetail = routeSuffix.isNotBlank() && fullRoute != base
                 if (opener != null && isDetail) {
                     // CRUD list → detail/new/edit: open in a central editor tab; the listing stays
-                    // in the bottom tool window untouched.
+                    // in the bottom tool window untouched (its inner route doesn't change).
                     val label = detailLabel(routeSuffix)
                     SwingUtilities.invokeLater { opener(label, fullRoute, base, sst) }
                 } else {
+                    currentInnerRoute = routeSuffix.trim('/')
                     SwingUtilities.invokeLater { navigate(fullRoute, base, sst, "") }
                 }
             }
@@ -399,6 +415,11 @@ class AppContext(val session: AppSession) {
         }
 
         if (target == null) return
+        // A content fragment carrying the mediator's `_route` tells us which inner route is being
+        // rendered (e.g. "list" on the listing load) — the baseline for stay-in-place detection.
+        if (target === contentPane && state.isObject && state.has("_route")) {
+            currentInnerRoute = state.text("_route").trim('/')
+        }
         // Already on the EDT (applyIncrement is invoked from a background() onOk hop), so render
         // synchronously — this lets navigate() detect afterwards whether the slot was replaced.
         val renderer = ComponentRenderer(this)
@@ -435,6 +456,19 @@ class AppContext(val session: AppSession) {
             "NavigateTo" -> {
                 val href = if (cmdData.isTextual) cmdData.asText() else cmdData.text("href")
                 if (href.isNotBlank()) SwingUtilities.invokeLater { navigate(href, "", null, "") }
+            }
+            "RunAction" -> {
+                // E.g. a row action's follow-up `search` that refreshes the listing in place.
+                val actionId = cmdData.text("actionId")
+                if (actionId.isNotBlank()) {
+                    if (actionId == "search") {
+                        currentComponentState.putIfAbsent("page", 0)
+                        currentComponentState.putIfAbsent("size", 10)
+                        currentComponentState.putIfAbsent("sort", emptyList<Any>())
+                        currentComponentState.putIfAbsent("searchText", "")
+                    }
+                    SwingUtilities.invokeLater { runAction(actionId, null, silent = true) }
+                }
             }
             // PushStateToHistory: no browser history on desktop. CloseModal: no-op for v1.
         }
