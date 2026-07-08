@@ -164,6 +164,12 @@ class AppContext(val session: AppSession) {
     private var orchestratorServerSideType: String = ""
     private var orchestratorComponentRoute: String = ""
 
+    // The serverSideType this view was NAVIGATED with (for a crud detail: the orchestrator, e.g.
+    // Products) — the inner fragment then loads its own sst (e.g. Product), but actions the inner
+    // view doesn't own (edit/new/cancel-view/save…) must bubble back to the navigation target,
+    // like the web's DOM bubbling up to the mediator's component.
+    private var navigationServerSideType: String = ""
+
     private val registry: MutableMap<String, JComponent> = HashMap()
     private val dataHandlers: MutableMap<String, (JsonNode) -> Unit> = HashMap()
 
@@ -250,6 +256,7 @@ class AppContext(val session: AppSession) {
                 currentRoute = route ?: ""
                 currentConsumedRoute = consumedRoute ?: ""
                 currentServerSideType = serverSideType ?: ""
+                navigationServerSideType = serverSideType ?: ""
                 currentComponentState = HashMap()
                 applyIncrement(increment)
                 // If the response carried no component for the content slot (e.g. a backend error
@@ -409,6 +416,11 @@ class AppContext(val session: AppSession) {
         ) {
             return orchestratorServerSideType
         }
+        // Unowned action on an inner view (e.g. "edit" on a crud detail whose ServerSide is the
+        // entity view): bubble to the sst the view was navigated with (the crud orchestrator).
+        if (bubble && navigationServerSideType.isNotBlank() && navigationServerSideType != currentServerSideType) {
+            return navigationServerSideType
+        }
         return currentServerSideType
     }
 
@@ -554,7 +566,9 @@ class AppContext(val session: AppSession) {
                 val sst = if (orchestratorServerSideType.isNotBlank() && orchestratorComponentRoute == stateComp) {
                     orchestratorServerSideType
                 } else {
-                    currentServerSideType
+                    // The navigation target (the crud orchestrator on detail views) resolves crud
+                    // sub-routes like /0001/edit; the inner view's own sst does not.
+                    navigationServerSideType.ifBlank { currentServerSideType }
                 }
                 val opener = detailOpener
                 val isDetail = routeSuffix.isNotBlank() && fullRoute != base
@@ -586,8 +600,11 @@ class AppContext(val session: AppSession) {
             currentInnerRoute = state.text("_route").trim('/')
         }
         // Fresh top-level content → the native host toolbar starts from scratch; the render below
-        // republishes the new view's buttons through publishToolbar.
-        if (target === contentPane && nativeToolbarHost) viewActions.clear()
+        // republishes the new view's buttons through publishToolbar. A Replace of the current
+        // form's slot (e.g. a server-driven view swap targeting the inner component) counts too.
+        if (nativeToolbarHost && (target === contentPane || target === currentFormContainer)) {
+            viewActions.clear()
+        }
         // Already on the EDT (applyIncrement is invoked from a background() onOk hop), so render
         // synchronously — this lets navigate() detect afterwards whether the slot was replaced.
         val renderer = ComponentRenderer(this)

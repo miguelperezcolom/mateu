@@ -72,8 +72,11 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         open(label, route, consumedRoute, serverSideType, actionId, preferEditor = true)
 
     private fun open(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?, preferEditor: Boolean) {
+        // "New" views are never cached/re-focused: every New opens a FRESH editor tab, so several
+        // drafts can be edited side by side (each with its own context and state).
+        val cacheable = !route.orEmpty().trimEnd('/').endsWith("/new")
         val key = "${serverSideType.orEmpty()}::${route.orEmpty()}"
-        focusByKey[key]?.let { it(); return }
+        if (cacheable) focusByKey[key]?.let { it(); return }
 
         val title = label.ifBlank { route ?: "View" }
         val ctx = AppContext(session)
@@ -86,13 +89,14 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         // window title); the host reads ctx.lastWindowTitle on attach and takes over.
         ctx.titleConsumer = {}
         ctx.onFirstContent = { isCrud ->
-            focusByKey[key] = if (isCrud && !preferEditor) {
+            val focus = if (isCrud && !preferEditor) {
                 // Row detail / New / Edit navigations from this listing open in a central editor tab.
                 ctx.detailOpener = { dLabel, dRoute, dConsumed, dSst -> openDetail(dLabel, dRoute, dConsumed, dSst, null) }
                 placeCrudList(ctx, panel, title)
             } else {
                 placeEditor(ctx, panel, title)
             }
+            if (cacheable) focusByKey[key] = focus
         }
         ctx.navigate(route, consumedRoute, serverSideType, actionId)
     }
