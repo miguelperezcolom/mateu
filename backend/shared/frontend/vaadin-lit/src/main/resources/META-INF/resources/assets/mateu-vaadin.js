@@ -5285,35 +5285,29 @@ id="${e.id}"
         :host {
             --lumo-clickable-cursor: pointer;
         }
-  `;Ue([u()],$e.prototype,"baseUrl",2);Ue([u()],$e.prototype,"route",2);Ue([u()],$e.prototype,"consumedRoute",2);Ue([u()],$e.prototype,"config",2);Ue([u()],$e.prototype,"top",2);Ue([u()],$e.prototype,"pathPrefix",2);Ue([f()],$e.prototype,"instant",2);Ue([u({type:Boolean})],$e.prototype,"debug",2);$e=Ue([E("mateu-ui")],$e);var Wn=Object.defineProperty,Vn=Object.getOwnPropertyDescriptor,mt=(e,t,a,i)=>{for(var s=i>1?void 0:i?Vn(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(s=(i?n(t,a,s):n(s))||s);return i&&s&&Wn(t,a,s),s};let ye=class extends R{constructor(){super(...arguments),this.baseUrl="",this.opened=!1,this.searchText=""}connectedCallback(){super.connectedCallback(),as()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(ya()[this.selector.fieldName]??"")}currentLabel(){const e=this.currentValue();if(!e)return"—";const t=this.selector.options?.find(i=>String(i.value)===e);if(t)return t.label;const a=oi()[this.selector.fieldName];return a!==void 0?String(a):e}pick(e,t){ts(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText="",this.searchedOptions=void 0,this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector("input.picker-search")?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){const e=this.app;if(e?.serverSideType)try{const t=await xa.runAction(this.baseUrl??"",e.rootRoute??e.initialRoute??"","",`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(const a of t?.fragments??[]){const r=a.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(r)){this.searchedOptions=r.map(n=>({value:n.value,label:n.label??String(n.value)}));return}}}catch{}}visibleOptions(){const e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(a=>a.label.toLowerCase().includes(t)):this.selector.options??[]}renderSelect(){const e=this.currentValue();return o`
-            <select class="picker-select"
-                    @change="${t=>this.pick(t.target.value)}">
-                <option value="">—</option>
-                ${(this.selector.options??[]).map(t=>o`
-                    <option value="${String(t.value)}"
-                            ?selected="${e===String(t.value)}">${t.label}</option>`)}
-            </select>`}renderSearchable(){const e=this.currentValue();return o`
-            <button class="picker-button" @click="${()=>this.opened?this.closePanel():this.openPanel()}">
-                ${this.currentLabel()} <span aria-hidden="true" class="caret">▾</span>
-            </button>
-            ${this.opened?o`
-                <div class="panel">
+  `;Ue([u()],$e.prototype,"baseUrl",2);Ue([u()],$e.prototype,"route",2);Ue([u()],$e.prototype,"consumedRoute",2);Ue([u()],$e.prototype,"config",2);Ue([u()],$e.prototype,"top",2);Ue([u()],$e.prototype,"pathPrefix",2);Ue([f()],$e.prototype,"instant",2);Ue([u({type:Boolean})],$e.prototype,"debug",2);$e=Ue([E("mateu-ui")],$e);var Wn=Object.defineProperty,Vn=Object.getOwnPropertyDescriptor,mt=(e,t,a,i)=>{for(var s=i>1?void 0:i?Vn(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(s=(i?n(t,a,s):n(s))||s);return i&&s&&Wn(t,a,s),s};let ye=class extends R{constructor(){super(...arguments),this.baseUrl="",this.opened=!1,this.searchText=""}connectedCallback(){super.connectedCallback(),as()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(ya()[this.selector.fieldName]??"")}currentLabel(){const e=this.currentValue();if(!e)return"—";const t=(this.searchedOptions??this.selector.options)?.find(i=>String(i.value)===e);if(t)return t.label;const a=oi()[this.selector.fieldName];return a!==void 0?String(a):e}pick(e,t){ts(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText="",this.searchedOptions=void 0,this.remoteSearch(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector("input.picker-search")?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){const e=this.app;if(e?.serverSideType)try{const t=await xa.runAction(this.baseUrl??"",e.rootRoute??e.initialRoute??"","",`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(const a of t?.fragments??[]){const r=a.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(r)){this.searchedOptions=r.map(n=>({value:n.value,label:n.label??String(n.value)}));return}}}catch{}}visibleOptions(){const e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(a=>a.label.toLowerCase().includes(t)):e}renderPanel(){const e=this.currentValue(),t=this.visibleOptions(),a=this.searchText!==""||t.length>ye.SEARCHABLE_THRESHOLD;return o`
+            <div class="panel">
+                ${a?o`
                     <input class="picker-search" type="text" placeholder="Search"
                            .value="${this.searchText}"
                            @input="${this.onSearchInput}"
-                           @keydown="${t=>{t.key==="Escape"&&this.closePanel()}}"/>
-                    <div class="options">
-                        ${e?o`
-                            <div class="option option--clear" @click="${()=>this.pick("")}">— (clear)</div>`:d}
-                        ${this.visibleOptions().map(t=>o`
-                            <div class="option ${e===String(t.value)?"option--selected":""}"
-                                 @click="${()=>this.pick(t.value,t.label)}">${t.label}</div>`)}
-                    </div>
-                </div>`:d}`}render(){if(!this.selector)return o``;const e=(this.selector.options?.length??0)>ye.SEARCHABLE_THRESHOLD;return o`
+                           @keydown="${i=>{i.key==="Escape"&&this.closePanel()}}"/>`:d}
+                <div class="options">
+                    ${e?o`
+                        <div class="option option--clear" @click="${()=>this.pick("")}">— (clear)</div>`:d}
+                    ${t.map(i=>o`
+                        <div class="option ${e===String(i.value)?"option--selected":""}"
+                             @click="${()=>this.pick(i.value,i.label)}">${i.label}</div>`)}
+                </div>
+            </div>`}render(){return this.selector?o`
             <label class="root">
                 <span class="label">${this.selector.label}</span>
-                ${e?this.renderSearchable():this.renderSelect()}
-            </label>`}};ye.SEARCHABLE_THRESHOLD=7;ye.styles=C`
+                <button class="picker-button"
+                        @click="${()=>this.opened?this.closePanel():this.openPanel()}">
+                    ${this.currentLabel()} <span aria-hidden="true" class="caret">▾</span>
+                </button>
+                ${this.opened?this.renderPanel():d}
+            </label>`:o``}};ye.SEARCHABLE_THRESHOLD=7;ye.styles=C`
         :host {
             display: inline-flex;
             position: relative;

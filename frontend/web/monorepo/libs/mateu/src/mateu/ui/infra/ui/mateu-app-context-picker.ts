@@ -12,16 +12,17 @@ import {
 
 /**
  * One application-level context selector on the app header (an @AppContext field of the app
- * class). Small option sets render as a compact native select; larger ones as a button opening a
- * SEARCHABLE panel — typing filters the loaded options client-side and (debounced) asks the server
- * for matches beyond the loaded page via the _appcontext-search-<field> action. Picking a value
- * persists it client-side (the API client sends it in the appState of every request) and reloads
- * the current route. Styled with Lumo CSS vars with fallbacks so every design system can theme it.
+ * class). A button opening a SEARCHABLE panel (same shape as the lookup fields' picker): opening
+ * it queries the server via the _appcontext-search-<field> action, so options created after the
+ * app metadata was built still show up; typing narrows the results (debounced server search plus
+ * client-side filter). Picking a value persists it client-side (the API client sends it in the
+ * appState of every request) and reloads the current route. Styled with Lumo CSS vars with
+ * fallbacks so every design system can theme it.
  */
 @customElement('mateu-app-context-picker')
 export class MateuAppContextPicker extends LitElement {
 
-    // options beyond this render the searchable panel instead of the plain select
+    // below this many options the panel skips the search input
     static readonly SEARCHABLE_THRESHOLD = 7
 
     @property()
@@ -65,7 +66,8 @@ export class MateuAppContextPicker extends LitElement {
     private currentLabel(): string {
         const value = this.currentValue()
         if (!value) return '—'
-        const option = this.selector.options?.find(o => String(o.value) === value)
+        const option = (this.searchedOptions ?? this.selector.options)
+            ?.find(o => String(o.value) === value)
         if (option) return option.label
         const label = readAppContextLabels()[this.selector.fieldName]
         return label !== undefined ? String(label) : value
@@ -90,6 +92,8 @@ export class MateuAppContextPicker extends LitElement {
         this.opened = true
         this.searchText = ''
         this.searchedOptions = undefined
+        // the baked options date from when the app metadata was built — refresh on open
+        this.remoteSearch()
         this.outsideClick = (e: Event) => {
             if (!e.composedPath().includes(this)) this.closePanel()
         }
@@ -145,54 +149,44 @@ export class MateuAppContextPicker extends LitElement {
     private visibleOptions(): { value: unknown, label: string }[] {
         const base = this.searchedOptions ?? this.selector.options ?? []
         const text = this.searchText.trim().toLowerCase()
-        if (!text) return this.selector.options ?? []
+        if (!text) return base
         return base.filter(option => option.label.toLowerCase().includes(text))
     }
 
     // ── rendering ────────────────────────────────────────────────────────────
 
-    private renderSelect(): TemplateResult {
+    private renderPanel(): TemplateResult {
         const value = this.currentValue()
+        const options = this.visibleOptions()
+        const searchable = this.searchText !== ''
+            || options.length > MateuAppContextPicker.SEARCHABLE_THRESHOLD
         return html`
-            <select class="picker-select"
-                    @change="${(e: Event) => this.pick((e.target as HTMLSelectElement).value)}">
-                <option value="">—</option>
-                ${(this.selector.options ?? []).map(option => html`
-                    <option value="${String(option.value)}"
-                            ?selected="${value === String(option.value)}">${option.label}</option>`)}
-            </select>`
-    }
-
-    private renderSearchable(): TemplateResult {
-        const value = this.currentValue()
-        return html`
-            <button class="picker-button" @click="${() => this.opened ? this.closePanel() : this.openPanel()}">
-                ${this.currentLabel()} <span aria-hidden="true" class="caret">▾</span>
-            </button>
-            ${this.opened ? html`
-                <div class="panel">
+            <div class="panel">
+                ${searchable ? html`
                     <input class="picker-search" type="text" placeholder="Search"
                            .value="${this.searchText}"
                            @input="${this.onSearchInput}"
-                           @keydown="${(e: KeyboardEvent) => { if (e.key === 'Escape') this.closePanel() }}"/>
-                    <div class="options">
-                        ${value ? html`
-                            <div class="option option--clear" @click="${() => this.pick('')}">— (clear)</div>` : nothing}
-                        ${this.visibleOptions().map(option => html`
-                            <div class="option ${value === String(option.value) ? 'option--selected' : ''}"
-                                 @click="${() => this.pick(option.value, option.label)}">${option.label}</div>`)}
-                    </div>
-                </div>` : nothing}`
+                           @keydown="${(e: KeyboardEvent) => { if (e.key === 'Escape') this.closePanel() }}"/>` : nothing}
+                <div class="options">
+                    ${value ? html`
+                        <div class="option option--clear" @click="${() => this.pick('')}">— (clear)</div>` : nothing}
+                    ${options.map(option => html`
+                        <div class="option ${value === String(option.value) ? 'option--selected' : ''}"
+                             @click="${() => this.pick(option.value, option.label)}">${option.label}</div>`)}
+                </div>
+            </div>`
     }
 
     render(): TemplateResult {
         if (!this.selector) return html``
-        const searchable =
-            (this.selector.options?.length ?? 0) > MateuAppContextPicker.SEARCHABLE_THRESHOLD
         return html`
             <label class="root">
                 <span class="label">${this.selector.label}</span>
-                ${searchable ? this.renderSearchable() : this.renderSelect()}
+                <button class="picker-button"
+                        @click="${() => this.opened ? this.closePanel() : this.openPanel()}">
+                    ${this.currentLabel()} <span aria-hidden="true" class="caret">▾</span>
+                </button>
+                ${this.opened ? this.renderPanel() : nothing}
             </label>`
     }
 
