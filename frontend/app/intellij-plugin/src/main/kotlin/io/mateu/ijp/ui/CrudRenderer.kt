@@ -167,17 +167,21 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val center = JPanel(BorderLayout(0, JBUI.scale(4)))
     center.isOpaque = false
 
-    // ── search bar: the IDE's SearchTextField (magnifier, clear button, history popup) ──
+    // ── search bar: the IDE's SearchTextField (magnifier, clear button, history popup) plus a
+    //    collapsible "Filter by" panel with a type-specific widget per filter (smart search port) ──
     if (metadata.bool("searchable")) {
         val searchField = SearchTextField(true)
         searchField.textEditor.emptyText.text = "Search…"
         searchField.textEditor.columns = 24
+
+        var filterBar: FilterBar? = null
         val doSearch = {
             searchField.addCurrentTextToHistory()
             ctx.currentComponentState["searchText"] = searchField.text
             ctx.currentComponentState["page"] = 0
             ctx.currentComponentState["size"] = 10
             ctx.currentComponentState["sort"] = emptyList<Any>()
+            filterBar?.collectInto(ctx.currentComponentState)
             ctx.runAction("search", null)
         }
         searchField.textEditor.addActionListener { doSearch() }
@@ -185,7 +189,17 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             isOpaque = false
             add(searchField)
         }
-        center.add(searchBar, BorderLayout.NORTH)
+
+        val north = verticalPanel(0)
+        north.addStacked(searchBar, 2)
+        val filtersMeta = metadata.arr("filters")
+        if (filtersMeta.isNotEmpty()) {
+            val bar = FilterBar(ctx, filtersMeta) { doSearch() }
+            filterBar = bar
+            searchBar.add(bar.toggle)
+            north.addStacked(bar.panel, 2)
+        }
+        center.add(north, BorderLayout.NORTH)
     }
     center.add(JBScrollPane(table), BorderLayout.CENTER)
     center.add(pager, BorderLayout.SOUTH)

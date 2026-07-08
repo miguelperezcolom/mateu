@@ -100,6 +100,7 @@ private fun dump(c: JComponent, depth: Int) {
                 (0 until c.columnCount).joinToString(",") { col -> "${c.getValueAt(r, col)}" }
             }
         is javax.swing.JLabel -> " text='${c.text}'"
+        is javax.swing.AbstractButton -> " text='${c.text}'"
         is javax.swing.text.JTextComponent -> " text='${c.text.take(40)}'"
         else -> ""
     }
