@@ -32,45 +32,47 @@ class MateuAppMenuGroup : DefaultActionGroup(), DumbAware {
         val statics = super.getChildren(e)
         val session = e?.project?.getUserData(MATEU_SESSION) ?: return statics
         val menu = session.appMenu ?: return statics
-        val dynamic = menuActions(session, menu)
+        val dynamic = appMenuActions(session, menu)
         if (dynamic.isEmpty()) return statics
         return dynamic + Separator.getInstance() + statics
     }
+}
 
-    private fun menuActions(session: AppSession, menu: JsonNode): Array<AnAction> {
-        if (!menu.isArray) return EMPTY_ARRAY
-        val actions = ArrayList<AnAction>()
-        for (item in menu) {
-            if (item.bool("separator")) {
-                actions.add(Separator.getInstance())
-                continue
-            }
-            val label = item.text("label")
-            val submenus = item.path("submenus")
-            if (submenus.isArray && !submenus.isEmpty) {
-                actions.add(object : ActionGroup(label, true), DumbAware {
-                    override fun getChildren(e: AnActionEvent?): Array<AnAction> = menuActions(session, submenus)
-                })
-            } else {
-                actions.add(MenuEntryAction(session, label, item))
-            }
+/** The app menu JSON → IDE actions: submenus as nested popup groups, leaves opening their view.
+ *  Shared by the menu-bar group and the main-toolbar widget. */
+internal fun appMenuActions(session: AppSession, menu: JsonNode): Array<AnAction> {
+    if (!menu.isArray) return AnAction.EMPTY_ARRAY
+    val actions = ArrayList<AnAction>()
+    for (item in menu) {
+        if (item.bool("separator")) {
+            actions.add(Separator.getInstance())
+            continue
         }
-        return actions.toTypedArray()
+        val label = item.text("label")
+        val submenus = item.path("submenus")
+        if (submenus.isArray && !submenus.isEmpty) {
+            actions.add(object : ActionGroup(label, true), DumbAware {
+                override fun getChildren(e: AnActionEvent?): Array<AnAction> = appMenuActions(session, submenus)
+            })
+        } else {
+            actions.add(MenuEntryAction(session, label, item))
+        }
     }
+    return actions.toTypedArray()
+}
 
-    private class MenuEntryAction(
-        private val session: AppSession,
-        label: String,
-        private val item: JsonNode,
-    ) : AnAction(label), DumbAware {
-        override fun actionPerformed(e: AnActionEvent) {
-            session.openViewHandler?.invoke(
-                item.text("label"),
-                item.text("route"),
-                item.text("consumedRoute"),
-                item.text("serverSideType"),
-                item.text("actionId"),
-            )
-        }
+private class MenuEntryAction(
+    private val session: AppSession,
+    label: String,
+    private val item: JsonNode,
+) : AnAction(label), DumbAware {
+    override fun actionPerformed(e: AnActionEvent) {
+        session.openViewHandler?.invoke(
+            item.text("label"),
+            item.text("route"),
+            item.text("consumedRoute"),
+            item.text("serverSideType"),
+            item.text("actionId"),
+        )
     }
 }

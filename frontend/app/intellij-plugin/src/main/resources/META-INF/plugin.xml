@@ -14,6 +14,11 @@
     </extensions>
 
     <actions>
+        <!-- New-UI main toolbar: the app menu as a combo widget next to the VCS widget. -->
+        <action id="io.mateu.AppToolbarWidget" class="io.mateu.ijp.plugin.MateuToolbarWidget"
+                text="Mateu" description="Mateu application menu">
+            <add-to-group group-id="MainToolbarLeft" anchor="last"/>
+        </action>
         <group id="io.mateu.MateuMenu" class="io.mateu.ijp.plugin.MateuAppMenuGroup"
                text="_Mateu" description="Mateu" popup="true">
             <add-to-group group-id="MainMenu" anchor="last"/>
