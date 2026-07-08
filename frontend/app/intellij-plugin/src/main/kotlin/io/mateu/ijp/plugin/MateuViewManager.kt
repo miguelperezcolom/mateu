@@ -3,10 +3,14 @@ package io.mateu.ijp.plugin
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentFactory
@@ -30,6 +34,34 @@ class MateuViewManager(private val project: Project, private val session: AppSes
 
     // key ("sst::route") → a function that re-focuses the already-open view.
     private val focusByKey = HashMap<String, () -> Unit>()
+
+    init {
+        // Dirty guard on tab close (@ConfirmOnNavigationIfDirty): there is no veto API for editor
+        // tabs, so when a dirty Mateu tab is closed we ask — "Keep Editing" reopens the SAME file,
+        // whose panel and state travel on the MateuVirtualFile, restoring everything intact.
+        project.messageBus.connect().subscribe(
+            FileEditorManagerListener.FILE_EDITOR_MANAGER,
+            object : FileEditorManagerListener {
+                override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
+                    if (file !is MateuVirtualFile) return
+                    val ctx = file.ctx ?: return
+                    if (!ctx.dirty) return
+                    ApplicationManager.getApplication().invokeLater {
+                        val choice = Messages.showYesNoDialog(
+                            project,
+                            "\"${file.presentableTitle}\" has unsaved changes. Discard them?",
+                            "Unsaved Changes",
+                            "Discard",
+                            "Keep Editing",
+                            Messages.getWarningIcon(),
+                        )
+                        if (choice == Messages.YES) ctx.setDirtyState(false)
+                        else source.openFile(file, true)
+                    }
+                }
+            },
+        )
+    }
 
     /** Menu entry → view (Crud listing to the bottom tool window, everything else to an editor tab). */
     fun openView(label: String, route: String?, consumedRoute: String?, serverSideType: String?, actionId: String?) =
@@ -100,7 +132,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         wrapper.add(toolbar.component, BorderLayout.NORTH)
         wrapper.add(panel, BorderLayout.CENTER)
 
-        val file = MateuVirtualFile(title, wrapper)
+        val file = MateuVirtualFile(title, wrapper, ctx)
         val fem = FileEditorManager.getInstance(project)
         // This view's SetWindowTitle names its editor tab (e.g. "Product Producto 1").
         ctx.titleConsumer = { t ->

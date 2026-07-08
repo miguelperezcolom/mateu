@@ -68,6 +68,35 @@ class AppContext(val session: AppSession) {
      *  mediator Apps rendered inside views must not. */
     var appShell = false
 
+    // ── unsaved-changes tracking (@ConfirmOnNavigationIfDirty) ────────────────────────
+    /** Whether the currently-loaded component asked for the dirty guard (wire flag). */
+    var trackDirty = false
+        private set
+
+    /** True when the user changed a tracked form and hasn't saved (drives the tab's modified dot). */
+    var dirty = false
+        private set
+
+    /** Fired on dirty transitions so the host can refresh its modified marker. */
+    var onDirtyChanged: ((Boolean) -> Unit)? = null
+
+    fun setDirtyState(value: Boolean) {
+        if (dirty == value) return
+        dirty = value
+        onDirtyChanged?.invoke(value)
+    }
+
+    /** Field editors funnel user edits here: writes the state AND flips the dirty flag when tracked. */
+    fun putState(fieldId: String, value: Any?) {
+        currentComponentState[fieldId] = value
+        markUserEdit()
+    }
+
+    /** A user edit that mutates state in place (e.g. editable-grid rows) — just flips the flag. */
+    fun markUserEdit() {
+        if (trackDirty) setDirtyState(true)
+    }
+
     /**
      * True when the host renders this view's toolbar natively (an ActionToolbar in the editor-tab
      * header, or the bottom tool window's title actions) — the desktop-idiomatic spot for view
@@ -298,6 +327,10 @@ class AppContext(val session: AppSession) {
         currentActionBubble = bubbleFlags
         currentComponentValidations = sscNode.path("validations")
         registerShortcutActions(actionNodes)
+        // A freshly-(re)loaded component starts clean; the wire flag says whether to track edits
+        // (mirrors the web dirtyGuard reset tied to the lifecycle that rebuilds formerState).
+        trackDirty = sscNode.bool("confirmOnNavigationIfDirty")
+        setDirtyState(false)
 
         val initialData = sscNode.path("initialData")
         val componentRoute = initialData.text("componentRoute", initialData.text("_componentRoute"))
@@ -597,6 +630,8 @@ class AppContext(val session: AppSession) {
                     SwingUtilities.invokeLater { runAction(actionId, null, silent = true) }
                 }
             }
+            "MarkAsDirty" -> setDirtyState(true)
+            "MarkAsClean" -> setDirtyState(false)
             // PushStateToHistory: no browser history on desktop. CloseModal: no-op for v1.
         }
     }

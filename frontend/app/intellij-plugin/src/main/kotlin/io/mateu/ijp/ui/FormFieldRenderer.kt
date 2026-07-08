@@ -81,7 +81,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     if (dataType in BOOL_TYPES) {
         val cb = JBCheckBox(label, rawValue.asBoolean(false))
         cb.isEnabled = enabled
-        cb.addActionListener { ctx.currentComponentState[fieldId] = cb.isSelected }
+        cb.addActionListener { ctx.putState(fieldId, cb.isSelected) }
         cb.alignmentX = Component.LEFT_ALIGNMENT
         container.add(cb)
         return container
@@ -162,6 +162,7 @@ private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNo
             if (coerced == old) return
             rowsLive[rowIndex][id] = coerced
             fireTableCellUpdated(rowIndex, columnIndex)
+            ctx.markUserEdit()
         }
     }
     val table = JBTable(model)
@@ -180,14 +181,16 @@ private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNo
                 fresh["_rowNumber"] = rowsLive.size
                 rowsLive.add(fresh)
                 model.fireTableRowsInserted(rowsLive.size - 1, rowsLive.size - 1)
+                ctx.markUserEdit()
             }
             .setRemoveAction {
                 val selected = table.selectedRows.map(table::convertRowIndexToModel).sortedDescending()
                 for (i in selected) if (i in rowsLive.indices) rowsLive.removeAt(i)
                 model.fireTableDataChanged()
+                ctx.markUserEdit()
             }
-            .setMoveUpAction { moveRow(table, model, rowsLive, -1) }
-            .setMoveDownAction { moveRow(table, model, rowsLive, +1) }
+            .setMoveUpAction { moveRow(table, model, rowsLive, -1); ctx.markUserEdit() }
+            .setMoveDownAction { moveRow(table, model, rowsLive, +1); ctx.markUserEdit() }
             .createPanel()
     }.getOrNull()
 
@@ -282,7 +285,7 @@ private fun gridField(ctx: AppContext, metadata: JsonNode, rows: JsonNode): JCom
 private fun plainField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean): JComponent {
     val tf = JBTextField(initial)
     tf.isEnabled = enabled
-    tf.onTextChange { ctx.currentComponentState[fieldId] = tf.text }
+    tf.onTextChange { ctx.putState(fieldId, tf.text) }
     return tf
 }
 
@@ -290,7 +293,7 @@ private fun passwordField(ctx: AppContext, fieldId: String, initial: String, ena
     val pf = JBPasswordField()
     pf.text = initial
     pf.isEnabled = enabled
-    pf.onTextChange { ctx.currentComponentState[fieldId] = String(pf.password) }
+    pf.onTextChange { ctx.putState(fieldId, String(pf.password)) }
     return pf
 }
 
@@ -300,9 +303,9 @@ private fun textArea(ctx: AppContext, fieldId: String, initial: String, enabled:
     ta.lineWrap = true
     ta.wrapStyleWord = true
     ta.document.addDocumentListener(object : DocumentListener {
-        override fun insertUpdate(e: DocumentEvent) { ctx.currentComponentState[fieldId] = ta.text }
-        override fun removeUpdate(e: DocumentEvent) { ctx.currentComponentState[fieldId] = ta.text }
-        override fun changedUpdate(e: DocumentEvent) { ctx.currentComponentState[fieldId] = ta.text }
+        override fun insertUpdate(e: DocumentEvent) { ctx.putState(fieldId, ta.text) }
+        override fun removeUpdate(e: DocumentEvent) { ctx.putState(fieldId, ta.text) }
+        override fun changedUpdate(e: DocumentEvent) { ctx.putState(fieldId, ta.text) }
     })
     return JScrollPane(ta)
 }
@@ -315,7 +318,7 @@ private fun dateField(ctx: AppContext, fieldId: String, initial: String, enabled
     parseIsoDate(initial)?.let { picker.date = it.toDate() }
     picker.addActionListener {
         val iso = picker.date?.toLocalDate()?.toString() ?: ""
-        ctx.currentComponentState[fieldId] = iso
+        ctx.putState(fieldId, iso)
     }
     return picker
 }
@@ -333,8 +336,8 @@ private fun numberField(ctx: AppContext, fieldId: String, initial: String, enabl
     (tf.document as AbstractDocument).documentFilter = NumericDocumentFilter(integer)
     tf.onTextChange {
         val raw = tf.text
-        if (integer) raw.toIntOrNull()?.let { ctx.currentComponentState[fieldId] = it }
-        else raw.replace(',', '.').toDoubleOrNull()?.let { ctx.currentComponentState[fieldId] = it }
+        if (integer) raw.toIntOrNull()?.let { ctx.putState(fieldId, it) }
+        else raw.replace(',', '.').toDoubleOrNull()?.let { ctx.putState(fieldId, it) }
     }
     return tf
 }
@@ -367,7 +370,7 @@ private fun optionsCombo(ctx: AppContext, fieldId: String, options: List<JsonNod
     if (selectedIdx >= 0) combo.selectedIndex = selectedIdx
     combo.addActionListener {
         val i = combo.selectedIndex
-        if (i in values.indices) ctx.currentComponentState[fieldId] = values[i]
+        if (i in values.indices) ctx.putState(fieldId, values[i])
     }
     return combo
 }
@@ -386,7 +389,7 @@ private fun referenceCombo(ctx: AppContext, fieldId: String, data: JsonNode, ena
     combo.selectedIndex = -1
     combo.addActionListener {
         val i = combo.selectedIndex
-        if (i in labels.indices) ctx.currentComponentState[fieldId] = labels[i]
+        if (i in labels.indices) ctx.putState(fieldId, labels[i])
     }
     return combo
 }

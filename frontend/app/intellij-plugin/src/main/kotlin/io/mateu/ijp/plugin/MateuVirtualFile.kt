@@ -13,6 +13,7 @@ import javax.swing.JComponent
 class MateuVirtualFile(
     val label: String,
     val ui: JComponent,
+    val ctx: io.mateu.ijp.state.AppContext? = null,
 ) : LightVirtualFile(label, PlainTextFileType.INSTANCE, "") {
     var presentableTitle: String = label
     override fun getPresentableName(): String = presentableTitle
