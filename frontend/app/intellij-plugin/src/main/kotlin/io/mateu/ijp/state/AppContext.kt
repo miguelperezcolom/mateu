@@ -630,13 +630,25 @@ class AppContext(val session: AppSession) {
         val rendered = renderer.render(component, state, data)
         fill(target, rendered, add = action.equals("Add", ignoreCase = true))
 
-        // First time this view's real content (a Crud/Page/Form, not a bare mediator) lands in its
-        // root slot, tell the host whether it's a Crud — so it can place the listing in the bottom
-        // tool window and everything else (incl. row details) in the central editor.
-        if (!firstContentFired && target === contentPane && containsType(component, REAL_CONTENT)) {
+        // First time this view's real content lands in its root slot — anything that isn't a bare
+        // mediator shell (whose inner navigation is still coming) counts, so composed views like
+        // wizards (no Page/Form/Crud in their tree) get placed too — tell the host whether it's a
+        // Crud, so listings go to the bottom tool window and the rest to the central editor.
+        if (!firstContentFired && target === contentPane && !isMediatorShell(component)) {
             firstContentFired = true
             onFirstContent?.invoke(containsType(component, CRUD_ONLY))
         }
+    }
+
+    /** A bare mediator/app shell: an App, or a ServerSide whose only child is an App. */
+    private fun isMediatorShell(component: JsonNode): Boolean {
+        if (component.path("metadata").text("type") == "App") return true
+        if (component.text("type") == "ServerSide") {
+            val children = component.path("children")
+            return children.isArray && children.size() == 1 &&
+                children.get(0).path("metadata").text("type") == "App"
+        }
+        return false
     }
 
     private fun containsType(node: JsonNode, types: Set<String>): Boolean {
@@ -712,7 +724,21 @@ class AppContext(val session: AppSession) {
             }
             "NavigateTo" -> {
                 val href = if (cmdData.isTextual) cmdData.asText() else cmdData.text("href")
-                if (href.isNotBlank()) SwingUtilities.invokeLater { navigate(href, "", null, "") }
+                if (href.isNotBlank()) {
+                    val opener = detailOpener
+                    SwingUtilities.invokeLater {
+                        when {
+                            // A hosted listing (bottom tool window): navigation targets open as a
+                            // detail — a central editor tab — never inside the listing panel.
+                            opener != null -> opener(href.trim('/'), href, "", "")
+                            // Any other hosted view: open through the host (auto-placement), so the
+                            // page gets its own tab instead of hijacking this one.
+                            nativeToolbarHost && session.openViewHandler != null ->
+                                session.openViewHandler?.invoke(href.trim('/'), href, "", null, null)
+                            else -> navigate(href, "", null, "")
+                        }
+                    }
+                }
             }
             "RunAction" -> {
                 // E.g. a row action's follow-up `search` that refreshes the listing in place.
@@ -937,7 +963,6 @@ class AppContext(val session: AppSession) {
     }
 
     companion object {
-        private val REAL_CONTENT = setOf("Crud", "Page", "Form")
         private val CRUD_ONLY = setOf("Crud")
 
         /** Actions that abandon a tracked form's edits — guarded by the dirty confirm. */
