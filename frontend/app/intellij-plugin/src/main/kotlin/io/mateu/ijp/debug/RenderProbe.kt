@@ -32,6 +32,9 @@ fun main() {
     val panel = ctx.newSlot()
     ctx.contentPane = panel
     ctx.silentErrors = true
+    // -Dprobe.nativeToolbar=true simulates an IDE host (editor tab / tool window): toolbar buttons
+    // publish into ctx.viewActions instead of rendering inline; they're printed after the tree.
+    ctx.nativeToolbarHost = System.getProperty("probe.nativeToolbar") == "true"
 
     val increment = session.mapper.readTree(File(jsonPath))
     SwingUtilities.invokeAndWait { ctx.applyIncrement(increment) }
@@ -48,6 +51,10 @@ fun main() {
 
         println("=== component tree ===")
         dump(panel, 0)
+        if (ctx.nativeToolbarHost) {
+            println("=== published view actions ===")
+            ctx.viewActions.forEach { println("  $it") }
+        }
 
         val img = BufferedImage(frame.width, frame.height, BufferedImage.TYPE_INT_RGB)
         val g = img.createGraphics()

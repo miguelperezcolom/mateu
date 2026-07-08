@@ -12,6 +12,14 @@ import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.SwingUtilities
 
+/** A toolbar button published to a native host toolbar (editor header / tool window title). */
+data class ToolbarSpec(
+    val actionId: String,
+    val label: String,
+    val disabled: Boolean,
+    val primary: Boolean,
+)
+
 /**
  * Per-view session/navigation state and the UIIncrement applier — the Swing port of the JavaFX
  * `AppContext`. Keeps the imperative model intact: a [registry] of slot panels mutated in place, a
@@ -55,6 +63,39 @@ class AppContext(val session: AppSession) {
 
     /** When true, load/action failures are logged instead of shown in a dialog (used by embedded islands). */
     var silentErrors = false
+
+    /**
+     * True when the host renders this view's toolbar natively (an ActionToolbar in the editor-tab
+     * header, or the bottom tool window's title actions) — the desktop-idiomatic spot for view
+     * actions. Page/Crud toolbar buttons then publish into [viewActions] via [publishToolbar]
+     * instead of rendering as inline Swing buttons. Embedded islands keep it false (inline).
+     */
+    var nativeToolbarHost = false
+
+    /** The current view's toolbar buttons, refreshed on every top-level render (host reads it live). */
+    val viewActions: MutableList<ToolbarSpec> = ArrayList()
+
+    /** Fired after [viewActions] changes so the host can nudge its toolbar to refresh. */
+    var onViewActionsChanged: (() -> Unit)? = null
+
+    /** Claim [buttons] for the native host toolbar; false → the renderer keeps them inline. */
+    fun publishToolbar(buttons: List<JsonNode>): Boolean {
+        if (!nativeToolbarHost) return false
+        for (b in buttons) {
+            val actionId = b.text("actionId", b.text("id"))
+            if (actionId.isBlank()) continue
+            viewActions.add(
+                ToolbarSpec(
+                    actionId = actionId,
+                    label = b.text("label", actionId),
+                    disabled = b.bool("disabled"),
+                    primary = b.text("buttonStyle").equals("Primary", ignoreCase = true),
+                ),
+            )
+        }
+        onViewActionsChanged?.invoke()
+        return true
+    }
 
     // Action ids the currently-loaded server-side component declares (for action bubbling).
     private var currentComponentActions: List<String> = emptyList()
@@ -420,6 +461,9 @@ class AppContext(val session: AppSession) {
         if (target === contentPane && state.isObject && state.has("_route")) {
             currentInnerRoute = state.text("_route").trim('/')
         }
+        // Fresh top-level content → the native host toolbar starts from scratch; the render below
+        // republishes the new view's buttons through publishToolbar.
+        if (target === contentPane && nativeToolbarHost) viewActions.clear()
         // Already on the EDT (applyIncrement is invoked from a background() onOk hop), so render
         // synchronously — this lets navigate() detect afterwards whether the slot was replaced.
         val renderer = ComponentRenderer(this)

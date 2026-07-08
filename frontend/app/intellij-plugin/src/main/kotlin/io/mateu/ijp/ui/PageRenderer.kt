@@ -35,8 +35,10 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         l.foreground = JBUI.CurrentTheme.Label.disabledForeground()
         header.addStacked(l, 8)
     }
+    // Toolbar actions go to the native host toolbar (editor header / tool window title) when the
+    // host provides one — the IntelliJ-idiomatic spot; otherwise render the inline button row.
     val toolbar = metadata.arr("toolbar")
-    if (toolbar.isNotEmpty()) header.addStacked(buttonRow(r, toolbar), 8)
+    if (toolbar.isNotEmpty() && !r.ctx.publishToolbar(toolbar)) header.addStacked(buttonRow(r, toolbar), 8)
     for (banner in metadata.arr("banners")) header.addStacked(renderBanner(banner), 8)
     if (header.componentCount > 0) root.add(header, BorderLayout.NORTH)
 

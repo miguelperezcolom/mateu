@@ -63,6 +63,7 @@ tasks.register<JavaExec>("renderProbe") {
     mainClass.set("io.mateu.ijp.debug.RenderProbeKt")
     (findProperty("probe.json") as String?)?.let { systemProperty("probe.json", it) }
     (findProperty("probe.png") as String?)?.let { systemProperty("probe.png", it) }
+    (findProperty("probe.nativeToolbar") as String?)?.let { systemProperty("probe.nativeToolbar", it) }
     jvmArgs(
         "--add-exports=java.desktop/sun.swing=ALL-UNNAMED",
         "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",

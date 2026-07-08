@@ -57,8 +57,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         l.foreground = JBUI.CurrentTheme.Label.disabledForeground()
         header.addStacked(l, 4)
     }
+    // Crud toolbar (New, export…) → the native host toolbar when available (tool window title).
     val toolbar = metadata.arr("toolbar")
-    if (toolbar.isNotEmpty()) header.addStacked(buttonRow(r, toolbar), 4)
+    if (toolbar.isNotEmpty() && !ctx.publishToolbar(toolbar)) header.addStacked(buttonRow(r, toolbar), 4)
     panel.add(header, BorderLayout.NORTH)
 
     // ── column specs ──
