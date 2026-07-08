@@ -11,6 +11,7 @@
                     factoryClass="io.mateu.ijp.plugin.MateuToolWindowFactory"
                     icon="/icons/mateu.svg"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
+        <postStartupActivity implementation="io.mateu.ijp.plugin.MateuFocusedModeActivity"/>
     </extensions>
 
     <actions>
