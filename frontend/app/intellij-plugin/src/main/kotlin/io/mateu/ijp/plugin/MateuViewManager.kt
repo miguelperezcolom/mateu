@@ -144,9 +144,14 @@ class MateuViewManager(private val project: Project, private val session: AppSes
             ActivityTracker.getInstance().inc()
             toolbar.updateActionsAsync()
         }
+        // Scrollable wrapper: the view fills the tab while it fits and scrolls vertically when it
+        // outgrows it (tracksViewportHeight flips on fit, avoiding the collapsed-content trap).
+        val scroll = com.intellij.ui.components.JBScrollPane(FillOrScrollPanel(panel))
+        scroll.border = null
+        scroll.horizontalScrollBarPolicy = javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
         val wrapper = JPanel(BorderLayout())
         wrapper.add(toolbar.component, BorderLayout.NORTH)
-        wrapper.add(panel, BorderLayout.CENTER)
+        wrapper.add(scroll, BorderLayout.CENTER)
 
         val file = MateuVirtualFile(title, wrapper, ctx)
         val fem = FileEditorManager.getInstance(project)
@@ -162,5 +167,27 @@ class MateuViewManager(private val project: Project, private val session: AppSes
 
     companion object {
         private const val RESULTS_ID = "MateuResults"
+    }
+}
+
+/**
+ * Scroll-pane view that FILLS the viewport while the content fits and scrolls (vertically) once the
+ * content's preferred height exceeds it — so filling layouts (tables) keep working and long forms
+ * become scrollable instead of being squashed.
+ */
+private class FillOrScrollPanel(content: JComponent) : JPanel(BorderLayout()), javax.swing.Scrollable {
+    init {
+        add(content, BorderLayout.CENTER)
+    }
+
+    override fun getPreferredScrollableViewportSize(): java.awt.Dimension = preferredSize
+    override fun getScrollableUnitIncrement(visibleRect: java.awt.Rectangle, orientation: Int, direction: Int): Int =
+        com.intellij.util.ui.JBUI.scale(16)
+    override fun getScrollableBlockIncrement(visibleRect: java.awt.Rectangle, orientation: Int, direction: Int): Int =
+        visibleRect.height
+    override fun getScrollableTracksViewportWidth(): Boolean = true
+    override fun getScrollableTracksViewportHeight(): Boolean {
+        val viewport = parent as? javax.swing.JViewport ?: return true
+        return viewport.height >= preferredSize.height
     }
 }

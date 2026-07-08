@@ -170,16 +170,22 @@ private fun editableGridField(ctx: AppContext, fieldId: String, metadata: JsonNo
     runCatching { com.intellij.ui.TableSpeedSearch.installOn(table) }
 
     fun editRowInDialog(index: Int?) {
-        val existing = index?.let { rowsLive.getOrNull(it) }
-        val edited = showRowFormDialog(table, cols, existing) ?: return
-        if (existing != null) {
-            existing.putAll(edited)
-        } else {
+        if (index == null) {
+            // New row: empty form, Add appends.
+            val edited = showRowFormDialog(table, cols, null) ?: return
             edited["_rowNumber"] = rowsLive.size
             rowsLive.add(edited)
+            model.fireTableDataChanged()
+            ctx.markUserEdit()
+            return
         }
-        model.fireTableDataChanged()
-        ctx.markUserEdit()
+        // Existing row: the dialog navigates prev/next across the rows, applying edits as it moves.
+        showRowFormNavigator(table, cols, rowsLive, index) { changedIndex, edited ->
+            rowsLive[changedIndex].putAll(edited)
+            model.fireTableRowsUpdated(changedIndex, changedIndex)
+            table.setRowSelectionInterval(changedIndex, changedIndex)
+            ctx.markUserEdit()
+        }
     }
 
     // Row-form editing (the default): double-click a row to edit it in a form dialog.
@@ -311,6 +317,14 @@ private fun showRowFormDialog(
     dialog.isVisible = true
 
     if (!accepted) return null
+    return collectRowEditors(cols, editors, existing)
+}
+
+private fun collectRowEditors(
+    cols: List<Triple<String, String, String>>,
+    editors: Map<String, JComponent>,
+    existing: Map<String, Any?>?,
+): LinkedHashMap<String, Any?> {
     val result = LinkedHashMap<String, Any?>()
     existing?.let { result.putAll(it) }
     for ((id, _, colType) in cols) {
@@ -321,6 +335,104 @@ private fun showRowFormDialog(
         }
     }
     return result
+}
+
+/**
+ * Row form with ◀/▶ navigation across the grid's rows (the row sub-editor's prev/next): moving to
+ * another row APPLIES the current edits via [onApply]; OK applies and closes; Cancel closes
+ * discarding only the current form (edits applied while navigating stay).
+ */
+private fun showRowFormNavigator(
+    host: JComponent,
+    cols: List<Triple<String, String, String>>,
+    rowsLive: List<LinkedHashMap<String, Any?>>,
+    startIndex: Int,
+    onApply: (Int, LinkedHashMap<String, Any?>) -> Unit,
+) {
+    val owner = javax.swing.SwingUtilities.getWindowAncestor(host)
+    val dialog = javax.swing.JDialog(owner, "", java.awt.Dialog.ModalityType.APPLICATION_MODAL)
+    var index = startIndex
+
+    val form = JPanel(java.awt.GridBagLayout())
+    form.border = JBUI.Borders.empty(12)
+    val editors = LinkedHashMap<String, JComponent>()
+    var rowIdx = 0
+    for ((id, label, colType) in cols) {
+        val gbcLabel = java.awt.GridBagConstraints().apply {
+            gridx = 0; gridy = rowIdx; anchor = java.awt.GridBagConstraints.WEST
+            insets = JBUI.insets(0, 0, 6, 8)
+        }
+        val gbcField = java.awt.GridBagConstraints().apply {
+            gridx = 1; gridy = rowIdx; weightx = 1.0
+            fill = java.awt.GridBagConstraints.HORIZONTAL
+            insets = JBUI.insets(0, 0, 6, 0)
+        }
+        if (colType in BOOL_TYPES) {
+            val cb = JBCheckBox(label)
+            form.add(JBLabel(""), gbcLabel)
+            form.add(cb, gbcField)
+            editors[id] = cb
+        } else {
+            val tf = JBTextField(18)
+            form.add(JBLabel(label), gbcLabel)
+            form.add(tf, gbcField)
+            editors[id] = tf
+        }
+        rowIdx++
+    }
+
+    fun fill() {
+        val row = rowsLive.getOrNull(index) ?: return
+        dialog.title = "Edit row ${index + 1} of ${rowsLive.size}"
+        for ((id, _, colType) in cols) {
+            val editor = editors[id] ?: continue
+            val v = row[id]
+            if (colType in BOOL_TYPES) (editor as JBCheckBox).isSelected = (v as? Boolean) ?: false
+            else (editor as JBTextField).text = v?.toString() ?: ""
+        }
+    }
+
+    fun apply() = onApply(index, collectRowEditors(cols, editors, rowsLive.getOrNull(index)))
+
+    val prev = javax.swing.JButton("◀")
+    val next = javax.swing.JButton("▶")
+    fun refreshNav() {
+        prev.isEnabled = index > 0
+        next.isEnabled = index < rowsLive.size - 1
+    }
+    prev.addActionListener { if (index > 0) { apply(); index--; fill(); refreshNav() } }
+    next.addActionListener { if (index < rowsLive.size - 1) { apply(); index++; fill(); refreshNav() } }
+
+    val ok = javax.swing.JButton("OK")
+    ok.addActionListener { apply(); dialog.dispose() }
+    val cancel = javax.swing.JButton("Cancel")
+    cancel.addActionListener { dialog.dispose() }
+
+    val buttons = JPanel(BorderLayout())
+    val navSide = JPanel(java.awt.FlowLayout(java.awt.FlowLayout.LEFT, JBUI.scale(4), 0)).apply { add(prev); add(next) }
+    val okSide = JPanel(java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, JBUI.scale(6), 0)).apply { add(cancel); add(ok) }
+    buttons.add(navSide, BorderLayout.WEST)
+    buttons.add(okSide, BorderLayout.EAST)
+    form.add(
+        buttons,
+        java.awt.GridBagConstraints().apply {
+            gridx = 0; gridy = rowIdx; gridwidth = 2
+            fill = java.awt.GridBagConstraints.HORIZONTAL
+            insets = JBUI.insets(8, 0, 0, 0)
+        },
+    )
+    dialog.contentPane.add(form)
+    dialog.rootPane.defaultButton = ok
+    dialog.rootPane.registerKeyboardAction(
+        { dialog.dispose() },
+        javax.swing.KeyStroke.getKeyStroke("ESCAPE"),
+        JComponent.WHEN_IN_FOCUSED_WINDOW,
+    )
+    fill()
+    refreshNav()
+    dialog.pack()
+    dialog.setLocationRelativeTo(owner)
+    dialog.isVisible = true
 }
 
 /** A compact icon button for the grid toolbar; falls back to [fallbackText] without the platform icon. */
