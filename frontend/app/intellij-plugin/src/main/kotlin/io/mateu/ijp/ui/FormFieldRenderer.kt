@@ -14,14 +14,10 @@ import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.displayString
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
-import org.jdesktop.swingx.JXDatePicker
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.Date
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -323,24 +319,9 @@ private fun textArea(ctx: AppContext, fieldId: String, initial: String, enabled:
     return JScrollPane(ta)
 }
 
-private fun dateField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean): JComponent {
-    // Native platform date picker (SwingX): a formatted field + a real calendar dropdown.
-    val picker = JXDatePicker()
-    picker.setFormats("yyyy-MM-dd")
-    picker.isEnabled = enabled
-    parseIsoDate(initial)?.let { picker.date = it.toDate() }
-    picker.addActionListener {
-        val iso = picker.date?.toLocalDate()?.toString() ?: ""
-        ctx.putState(fieldId, iso)
-    }
-    return picker
-}
-
-private fun parseIsoDate(s: String): LocalDate? =
-    if (s.isEmpty()) null else runCatching { LocalDate.parse(s) }.getOrNull()
-
-private fun LocalDate.toDate(): Date = Date.from(atStartOfDay(ZoneId.systemDefault()).toInstant())
-private fun Date.toLocalDate(): LocalDate = toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+private fun dateField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean): JComponent =
+    // IDE-style composite (JBTextField + calendar popup) — see DateField.
+    DateField(initial, enabled) { iso -> ctx.putState(fieldId, iso) }
 
 private fun numberField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean, integer: Boolean): JComponent {
     val tf = JBTextField(initial)

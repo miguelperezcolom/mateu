@@ -134,7 +134,9 @@ class AppContext(val session: AppSession) {
         if (!nativeToolbarHost) return false
         val specs = buttons.mapNotNull { b ->
             val actionId = b.text("actionId", b.text("id"))
-            if (actionId.isBlank()) null else ToolbarSpec(
+            // "Back to list" (cancel-view) is pointless in the IDE: the listing stays visible in
+            // its own tool window while the detail lives in an editor tab.
+            if (actionId.isBlank() || actionId == "cancel-view") null else ToolbarSpec(
                 actionId = actionId,
                 label = b.text("label", actionId),
                 disabled = b.bool("disabled"),

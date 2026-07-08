@@ -10,11 +10,9 @@ import com.intellij.util.ui.JBUI
 import io.mateu.ijp.api.arr
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
-import org.jdesktop.swingx.JXDatePicker
 import java.awt.Component
 import java.awt.FlowLayout
 import java.awt.GridLayout
-import java.time.ZoneId
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JButton
 import javax.swing.JComponent
@@ -183,17 +181,15 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
     }
 
     private fun dateRange(fieldId: String, actives: MutableList<() -> Boolean>): JComponent {
-        val from = JXDatePicker().apply { setFormats("yyyy-MM-dd") }
-        val to = JXDatePicker().apply { setFormats("yyyy-MM-dd") }
+        val from = DateField()
+        val to = DateField()
         val row = rangeRow(from, to)
-        fun iso(p: JXDatePicker): String? =
-            p.date?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDate()?.toString()
         collectors.add { st ->
-            iso(from)?.let { st["${fieldId}_from"] = it }
-            iso(to)?.let { st["${fieldId}_to"] = it }
+            from.isoValue.takeIf { it.isNotEmpty() }?.let { st["${fieldId}_from"] = it }
+            to.isoValue.takeIf { it.isNotEmpty() }?.let { st["${fieldId}_to"] = it }
         }
-        clearers.add { from.date = null; to.date = null }
-        actives.add { from.date != null || to.date != null }
+        clearers.add { from.clear(); to.clear() }
+        actives.add { from.isoValue.isNotEmpty() || to.isoValue.isNotEmpty() }
         return row
     }
 

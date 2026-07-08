@@ -45,6 +45,7 @@ class MateuViewManager(private val project: Project, private val session: AppSes
                 override fun fileClosed(source: FileEditorManager, file: VirtualFile) {
                     if (file !is MateuVirtualFile) return
                     val ctx = file.ctx ?: return
+                    println("[Mateu] fileClosed '${file.presentableTitle}' trackDirty=${ctx.trackDirty} dirty=${ctx.dirty}")
                     if (!ctx.dirty) return
                     ApplicationManager.getApplication().invokeLater {
                         val choice = Messages.showYesNoDialog(

@@ -63,6 +63,9 @@ fun main() {
             println("=== published view actions ===")
             ctx.viewActions.forEach { println("  $it") }
         }
+        println("=== dirty chain: trackDirty=${ctx.trackDirty} dirty=${ctx.dirty}")
+        ctx.putState("__probe__", "x")
+        println("=== after putState: dirty=${ctx.dirty}")
 
         val img = BufferedImage(frame.width, frame.height, BufferedImage.TYPE_INT_RGB)
         val g = img.createGraphics()
