@@ -284,6 +284,23 @@ class AppContext(val session: AppSession) {
     fun runAction(actionId: String, parameters: Map<String, Any?>?, silent: Boolean = false) {
         if (contentPane == null) return
 
+        // Dirty guard on discarding actions (Cancel on an edit form): confirm before throwing away
+        // unsaved changes on a tracked form.
+        if (trackDirty && dirty && actionId in DISCARD_ACTIONS) {
+            val choice = JOptionPane.showOptionDialog(
+                contentPane,
+                "There are unsaved changes. Discard them?",
+                "Unsaved Changes",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE,
+                null,
+                arrayOf("Discard changes", "Keep editing"),
+                "Keep editing",
+            )
+            if (choice != JOptionPane.YES_OPTION) return
+            setDirtyState(false)
+        }
+
         // Client-side validation: actions flagged validationRequired only fire if every validation
         // condition holds; otherwise surface inline field errors and re-render in place.
         if (currentActionValidationRequired[actionId] == true) {
@@ -922,6 +939,9 @@ class AppContext(val session: AppSession) {
     companion object {
         private val REAL_CONTENT = setOf("Crud", "Page", "Form")
         private val CRUD_ONLY = setOf("Crud")
+
+        /** Actions that abandon a tracked form's edits — guarded by the dirty confirm. */
+        private val DISCARD_ACTIONS = setOf("cancel-edit", "cancel-view", "cancel")
         private val COMPARISON: java.util.regex.Pattern =
             java.util.regex.Pattern.compile("state\\['([^']+)'\\]\\s*(>=|<=|==|!=|>|<)\\s*(-?\\d+(?:\\.\\d+)?)")
         private val TRUTHY: java.util.regex.Pattern =
