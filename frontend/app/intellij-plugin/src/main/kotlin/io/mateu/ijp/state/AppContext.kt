@@ -515,6 +515,14 @@ class AppContext(val session: AppSession) {
         val state = fragment.path("state")
         val data = fragment.path("data")
 
+        // Overlay fragments (action Add + Drawer/Dialog component) stack over the page instead of
+        // replacing it — shown as a side panel anchored to the IDE window.
+        val overlayType = component.path("metadata").text("type")
+        if (action.equals("Add", ignoreCase = true) && (overlayType == "Drawer" || overlayType == "Dialog")) {
+            SwingUtilities.invokeLater { openOverlay(component, state, data) }
+            return
+        }
+
         val target = if (targetId.isBlank()) contentPane else (registry[targetId] ?: contentPane)
 
         if (component.isNull || component.isMissingNode) {
@@ -605,6 +613,59 @@ class AppContext(val session: AppSession) {
         return false
     }
 
+    /**
+     * A Drawer/Dialog overlay: its content renders in a CHILD context (its own component state and
+     * actions — like an embedded island), shown in a modeless [javax.swing.JDialog] anchored to the
+     * side of the IDE window (the desktop stand-in for the web's slide-in panel). Esc or the window
+     * close button dismiss without saving; the server closes it with `UICommand.closeModal(...)`.
+     */
+    private fun openOverlay(component: JsonNode, state: JsonNode, data: JsonNode) {
+        val meta = component.path("metadata")
+        val child = AppContext(session)
+        child.titleConsumer = {}
+        val panel = child.newSlot()
+        child.contentPane = panel
+        val renderer = ComponentRenderer(child)
+        // Header/content/footer nest inside the Drawer's METADATA record (like Card), not children.
+        panel.layout = java.awt.BorderLayout()
+        meta.path("header").takeIf { it.isObject }?.let { panel.add(renderer.render(it, state, data), java.awt.BorderLayout.NORTH) }
+        meta.path("content").takeIf { it.isObject }?.let { panel.add(renderer.render(it, state, data), java.awt.BorderLayout.CENTER) }
+        meta.path("footer").takeIf { it.isObject }?.let { panel.add(renderer.render(it, state, data), java.awt.BorderLayout.SOUTH) }
+        val children = component.path("children")
+        if (children.isArray) for (c in children) panel.add(renderer.render(c, state, data), java.awt.BorderLayout.CENTER)
+
+        val owner = contentPane?.let { javax.swing.SwingUtilities.getWindowAncestor(it) }
+        val dialog = javax.swing.JDialog(owner, meta.text("headerTitle"), java.awt.Dialog.ModalityType.MODELESS)
+        dialog.contentPane.add(javax.swing.JScrollPane(panel).apply { border = null })
+        val width = remToPx(meta.text("width"), 448)
+        if (owner != null) {
+            val h = (owner.height - 80).coerceAtLeast(300)
+            dialog.setSize(width, h)
+            val x = if (meta.text("position") == "start") owner.x + 10 else owner.x + owner.width - width - 10
+            dialog.setLocation(x, owner.y + 60)
+        } else {
+            dialog.setSize(width, 600)
+        }
+        val close: () -> Unit = { dialog.dispose() }
+        session.pushOverlay(close)
+        dialog.addWindowListener(object : java.awt.event.WindowAdapter() {
+            override fun windowClosed(e: java.awt.event.WindowEvent) {
+                session.removeOverlay(close)
+            }
+        })
+        dialog.rootPane.registerKeyboardAction(
+            { dialog.dispose() },
+            javax.swing.KeyStroke.getKeyStroke("ESCAPE"),
+            JComponent.WHEN_IN_FOCUSED_WINDOW,
+        )
+        dialog.isVisible = true
+    }
+
+    private fun remToPx(size: String, def: Int): Int {
+        val rem = size.removeSuffix("rem").trim().toDoubleOrNull() ?: return def
+        return (rem * 16).toInt()
+    }
+
     private fun handleCommand(cmd: JsonNode) {
         val type = cmd.text("type")
         val cmdData = cmd.path("data")
@@ -632,7 +693,14 @@ class AppContext(val session: AppSession) {
             }
             "MarkAsDirty" -> setDirtyState(true)
             "MarkAsClean" -> setDirtyState(false)
-            // PushStateToHistory: no browser history on desktop. CloseModal: no-op for v1.
+            "DispatchEvent" -> dispatchNamedEvent(cmdData)
+            "CloseModal" -> {
+                // closeModal([eventName[, payload]]): close the topmost overlay, then emit the
+                // named event so the host page can react (e.g. reload) — same contract as the web.
+                SwingUtilities.invokeLater { session.closeTopOverlay() }
+                dispatchNamedEvent(cmdData)
+            }
+            // PushStateToHistory: no browser history on desktop.
         }
     }
 
@@ -759,6 +827,38 @@ class AppContext(val session: AppSession) {
                 }
             }
         }
+        registerCustomEventTriggers(triggers)
+    }
+
+    /** `@SubscribeTo` / OnCustomEvent triggers → the session event bus: when the named event fires
+     *  (a `DispatchEvent`/`closeModal(eventName)` from any view), run the trigger's action with the
+     *  payload as parameters. Re-registered per component load (old subscriptions dropped). */
+    private fun registerCustomEventTriggers(triggers: JsonNode) {
+        session.unsubscribeAll(this)
+        if (!triggers.isArray) return
+        for (trigger in triggers) {
+            if (!trigger.text("type").equals("OnCustomEvent", ignoreCase = true)) continue
+            val eventName = trigger.text("eventName")
+            val actionId = trigger.text("actionId")
+            if (eventName.isBlank() || actionId.isBlank()) continue
+            session.subscribe(this, eventName) { payload ->
+                val params: Map<String, Any?> = if (payload != null && payload.isObject) {
+                    @Suppress("UNCHECKED_CAST")
+                    mapper.convertValue(payload, Map::class.java) as Map<String, Any?>
+                } else {
+                    emptyMap()
+                }
+                SwingUtilities.invokeLater { runAction(actionId, params, silent = true) }
+            }
+        }
+    }
+
+    /** DispatchEvent / CloseModal(eventName) payload → the session bus (no-op without eventName). */
+    private fun dispatchNamedEvent(cmdData: JsonNode) {
+        val eventName = cmdData.text("eventName")
+        if (eventName.isBlank()) return
+        val payload = cmdData.path("payload").let { if (it.isMissingNode || it.isNull) cmdData.path("detail") else it }
+        session.dispatchEvent(eventName, if (payload.isMissingNode || payload.isNull) null else payload)
     }
 
     // ── misc ─────────────────────────────────────────────────────────────────────────

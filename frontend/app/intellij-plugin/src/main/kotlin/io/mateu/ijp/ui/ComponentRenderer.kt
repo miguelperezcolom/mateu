@@ -49,6 +49,12 @@ class ComponentRenderer(val ctx: AppContext) {
             "Badge" -> renderBadge(metadata)
             "Anchor" -> renderAnchor(ctx, metadata)
             "ProgressBar" -> renderProgressBar(metadata, state)
+            "DashboardLayout" -> renderDashboardLayout(this, component, metadata, state, data)
+            "Scoreboard" -> renderScoreboard(this, component, state, data)
+            "MetricCard" -> renderMetricCard(this, metadata)
+            "DashboardPanel" -> renderDashboardPanel(this, component, metadata, state, data)
+            "Chart" -> renderChart(metadata)
+            "Markdown" -> renderMarkdown(metadata)
             else -> {
                 val t = metadata.text("type")
                 if (t.isNotBlank()) JBLabel("Unsupported component: $t")

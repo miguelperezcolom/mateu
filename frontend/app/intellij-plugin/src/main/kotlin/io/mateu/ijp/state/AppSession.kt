@@ -37,6 +37,31 @@ class AppSession(
     var appMenu: com.fasterxml.jackson.databind.JsonNode? = null
     var appTitle: String? = null
 
+    // ── overlays (Drawer/Dialog) — close callbacks, topmost last (CloseModal unwinds one) ──
+    private val overlays = ArrayDeque<() -> Unit>()
+
+    fun pushOverlay(close: () -> Unit) = overlays.addLast(close)
+    fun removeOverlay(close: () -> Unit) = overlays.remove(close)
+    fun closeTopOverlay() {
+        overlays.removeLastOrNull()?.invoke()
+    }
+
+    // ── in-app event bus (@SubscribeTo / UICommand.dispatchEvent / closeModal(eventName)) ──
+    private data class Subscription(val owner: Any, val eventName: String, val handler: (com.fasterxml.jackson.databind.JsonNode?) -> Unit)
+    private val subscriptions = java.util.concurrent.CopyOnWriteArrayList<Subscription>()
+
+    fun subscribe(owner: Any, eventName: String, handler: (com.fasterxml.jackson.databind.JsonNode?) -> Unit) {
+        subscriptions.add(Subscription(owner, eventName, handler))
+    }
+
+    fun unsubscribeAll(owner: Any) {
+        subscriptions.removeIf { it.owner === owner }
+    }
+
+    fun dispatchEvent(eventName: String, payload: com.fasterxml.jackson.databind.JsonNode?) {
+        for (s in subscriptions) if (s.eventName == eventName) s.handler(payload)
+    }
+
     /** Where `SetWindowTitle` goes when there is no [frame] (e.g. the ToolWindow content title). */
     var titleConsumer: ((String) -> Unit)? = null
 

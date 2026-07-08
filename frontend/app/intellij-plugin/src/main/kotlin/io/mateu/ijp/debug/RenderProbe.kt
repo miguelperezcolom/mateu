@@ -72,7 +72,25 @@ fun main() {
         println("=== png written to $pngPath ===")
         frame.dispose()
     }
+    // Overlays (drawer dialogs) may keep displayable windows around — capture them first, then exit.
+    SwingUtilities.invokeAndWait {
+        for (w in java.awt.Window.getWindows()) {
+            if (w.isVisible && w !is JFrame) {
+                println("=== overlay window: ${w.javaClass.simpleName} '${(w as? java.awt.Dialog)?.title}' ${w.width}x${w.height} ===")
+                (w as? javax.swing.RootPaneContainer)?.let { rpc ->
+                    val img = BufferedImage(w.width.coerceAtLeast(1), w.height.coerceAtLeast(1), BufferedImage.TYPE_INT_RGB)
+                    val g = img.createGraphics()
+                    rpc.contentPane.paint(g)
+                    g.dispose()
+                    ImageIO.write(img, "png", File("$pngPath.overlay.png"))
+                    println("=== overlay png written to $pngPath.overlay.png ===")
+                }
+            }
+            w.dispose()
+        }
+    }
     session.executor.shutdownNow()
+    kotlin.system.exitProcess(0)
 }
 
 private fun dump(c: JComponent, depth: Int) {
