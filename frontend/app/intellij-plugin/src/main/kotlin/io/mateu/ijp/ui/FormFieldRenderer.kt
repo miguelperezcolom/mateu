@@ -15,14 +15,15 @@ import io.mateu.ijp.api.displayString
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
 import org.jdesktop.swingx.JXDatePicker
+import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
-import java.awt.Dimension
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
+import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.table.AbstractTableModel
 import javax.swing.event.DocumentEvent
@@ -142,12 +143,6 @@ private fun gridField(ctx: AppContext, metadata: JsonNode, rows: JsonNode): JCom
     val table = JBTable(model)
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(28)
-    // Inside the vertically-stacked form the scroll pane gets its preferred size — size the
-    // viewport to the actual rows (capped) so short grids don't reserve a huge empty area.
-    table.preferredScrollableViewportSize = Dimension(
-        table.preferredScrollableViewportSize.width,
-        table.rowHeight * rowList.size.coerceIn(1, 10),
-    )
 
     val onItemSelection = metadata.text("onItemSelectionActionId")
     if (onItemSelection.isNotBlank()) {
@@ -161,7 +156,14 @@ private fun gridField(ctx: AppContext, metadata: JsonNode, rows: JsonNode): JCom
             ctx.runAction(onItemSelection, mapOf("_clickedRow" to params))
         }
     }
-    return JScrollPane(table)
+    // NO scroll pane: inside the vertically-stacked form a JScrollPane collapses to its header
+    // height (JBTable ignores preferredScrollableViewportSize here — see the render probe). Header
+    // + table stacked in a BorderLayout report exactly header+rows as preferred height instead.
+    val wrapper = JPanel(BorderLayout())
+    wrapper.isOpaque = false
+    wrapper.add(table.tableHeader, BorderLayout.NORTH)
+    wrapper.add(table, BorderLayout.CENTER)
+    return wrapper
 }
 
 private fun plainField(ctx: AppContext, fieldId: String, initial: String, enabled: Boolean): JComponent {

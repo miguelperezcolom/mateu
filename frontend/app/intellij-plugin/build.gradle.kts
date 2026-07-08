@@ -53,3 +53,25 @@ tasks.runIde {
     // Skip the data-sharing consent + trust-project prompts on a fresh dev sandbox.
     jvmArgs("-Djb.consents.confirmation.enabled=false", "-Didea.trust.all.projects=true")
 }
+
+// Dev-only: render a captured UIIncrement JSON through the real pipeline without booting an IDE —
+// prints the resulting Swing tree and writes a PNG. See io.mateu.ijp.debug.RenderProbe.
+tasks.register<JavaExec>("renderProbe") {
+    // The intellij-platform plugin wires the IDE jars into compileClasspath only, so compose the
+    // exec classpath from output + compileClasspath (runtimeClasspath lacks the platform).
+    classpath = sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    mainClass.set("io.mateu.ijp.debug.RenderProbeKt")
+    (findProperty("probe.json") as String?)?.let { systemProperty("probe.json", it) }
+    (findProperty("probe.png") as String?)?.let { systemProperty("probe.png", it) }
+    jvmArgs(
+        "--add-exports=java.desktop/sun.swing=ALL-UNNAMED",
+        "--add-opens=java.desktop/sun.awt=ALL-UNNAMED",
+        "--add-opens=java.desktop/sun.font=ALL-UNNAMED",
+        "--add-opens=java.desktop/sun.java2d=ALL-UNNAMED",
+        "--add-opens=java.desktop/sun.swing=ALL-UNNAMED",
+        "--add-opens=java.desktop/java.awt=ALL-UNNAMED",
+        "--add-opens=java.desktop/javax.swing=ALL-UNNAMED",
+        "--add-opens=java.base/java.lang=ALL-UNNAMED",
+        "--add-opens=java.base/java.util=ALL-UNNAMED",
+    )
+}
