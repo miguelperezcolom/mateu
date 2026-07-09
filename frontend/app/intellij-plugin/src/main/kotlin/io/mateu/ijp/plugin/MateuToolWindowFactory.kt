@@ -31,6 +31,19 @@ class MateuToolWindowFactory : ToolWindowFactory, DumbAware {
         // entries as real IDE actions (Search Everywhere / Find Action).
         project.putUserData(MATEU_SESSION, session)
         session.onAppMenuChanged = { MateuMenuActions.sync(session) }
+        // Backend messages (toasts on the web) surface as IDE notifications: non-blocking
+        // balloons, collected in the Notifications tool window.
+        session.notifier = { title, text, variant ->
+            val type = when (variant) {
+                "error" -> com.intellij.notification.NotificationType.ERROR
+                "warning" -> com.intellij.notification.NotificationType.WARNING
+                else -> com.intellij.notification.NotificationType.INFORMATION
+            }
+            com.intellij.notification.NotificationGroupManager.getInstance()
+                .getNotificationGroup("Mateu")
+                .createNotification(title ?: "Mateu", text, type)
+                .notify(project)
+        }
 
         val ctx = AppContext(session)
         ctx.appShell = true

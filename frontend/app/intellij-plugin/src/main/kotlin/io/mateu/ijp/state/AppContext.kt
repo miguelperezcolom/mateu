@@ -526,7 +526,8 @@ class AppContext(val session: AppSession) {
             for (msg in messages) {
                 val text = msg.text("text")
                 val variant = msg.text("variant", "info")
-                if (text.isNotBlank()) SwingUtilities.invokeLater { showMessage(text, variant) }
+                val title = msg.text("title")
+                if (text.isNotBlank()) SwingUtilities.invokeLater { showMessage(text, variant, title) }
             }
         }
 
@@ -857,7 +858,7 @@ class AppContext(val session: AppSession) {
                 if (messages.isArray) {
                     for (msg in messages) {
                         val text = msg.text("text")
-                        if (text.isNotBlank()) showMessage(text, msg.text("variant", "info"))
+                        if (text.isNotBlank()) showMessage(text, msg.text("variant", "info"), msg.text("title"))
                     }
                 }
             },
@@ -947,8 +948,10 @@ class AppContext(val session: AppSession) {
         }
     }
 
-    private fun showMessage(text: String, variant: String) {
+    private fun showMessage(text: String, variant: String, title: String = "") {
         if (silentErrors) { println("[Mateu] $variant: $text"); return }
+        // The IDE way: non-blocking balloons through the host's Notifications channel.
+        session.notifier?.let { it(title.ifBlank { null }, text, variant); return }
         val type = when (variant) {
             "error" -> JOptionPane.ERROR_MESSAGE
             "warning" -> JOptionPane.WARNING_MESSAGE
@@ -959,6 +962,7 @@ class AppContext(val session: AppSession) {
 
     private fun showError(message: String?) {
         if (silentErrors) { println("[Mateu] error: $message"); return }
+        session.notifier?.let { it(null, message ?: "Error", "error"); return }
         JOptionPane.showMessageDialog(session.frame, message ?: "Error", "Error", JOptionPane.ERROR_MESSAGE)
     }
 

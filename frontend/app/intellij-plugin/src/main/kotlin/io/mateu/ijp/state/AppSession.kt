@@ -68,6 +68,10 @@ class AppSession(
     /** Where `SetWindowTitle` goes when there is no [frame] (e.g. the ToolWindow content title). */
     var titleConsumer: ((String) -> Unit)? = null
 
+    /** Host notification channel (title, text, variant info|warning|error) — the plugin routes it
+     *  to the IDE's Notifications system (balloons + event log); unset → dialog fallback. */
+    var notifier: ((String?, String, String) -> Unit)? = null
+
     /** Set by the host so **menu entries** open a view: (label, route, consumedRoute, sst, actionId).
      *  A Crud listing is placed in the bottom tool window; anything else in a central editor tab. */
     var openViewHandler: ((String, String?, String?, String?, String?) -> Unit)? = null

@@ -12,6 +12,7 @@
                     icon="/icons/mateu.svg"/>
         <fileEditorProvider implementation="io.mateu.ijp.plugin.MateuFileEditorProvider"/>
         <postStartupActivity implementation="io.mateu.ijp.plugin.MateuFocusedModeActivity"/>
+        <notificationGroup id="Mateu" displayType="BALLOON"/>
     </extensions>
 
     <actions>
