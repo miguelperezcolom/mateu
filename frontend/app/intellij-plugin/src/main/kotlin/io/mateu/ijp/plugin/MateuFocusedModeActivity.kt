@@ -56,11 +56,37 @@ class MateuFocusedModeActivity : ProjectActivity {
         for (delaySeconds in longArrayOf(2, 5, 15)) {
             com.intellij.util.concurrency.AppExecutorUtil.getAppScheduledExecutorService().schedule({
                 com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater {
-                    if (!project.isDisposed) hideForeignToolWindows(ToolWindowManager.getInstance(project))
+                    if (!project.isDisposed) {
+                        hideForeignToolWindows(ToolWindowManager.getInstance(project))
+                        unregisterForeignToolWindowEps()
+                    }
                 }
             }, delaySeconds, java.util.concurrent.TimeUnit.SECONDS)
         }
+        // 'More tool windows' lists the DECLARED extensions, registered lazily — setAvailable can't
+        // touch what doesn't exist yet. Unregister the foreign declarations outright.
+        unregisterForeignToolWindowEps()
         stripVcsFromMainToolbar()
+        // The run/debug widget on the window header (new-UI main toolbar, right side).
+        stripFromMainToolbar("MainToolbarRight") {
+            it.contains("run", ignoreCase = true) ||
+                it.contains("debug", ignoreCase = true) ||
+                it.contains("profil", ignoreCase = true) ||
+                it.contains("coverage", ignoreCase = true)
+        }
+    }
+
+    /** Drop the tool-window EXTENSION declarations that aren't ours: they vanish from every
+     *  list (including More tool windows) and can no longer lazily register. */
+    private fun unregisterForeignToolWindowEps() {
+        runCatching {
+            val epName = com.intellij.openapi.wm.ToolWindowEP.EP_NAME
+            for (ext in epName.extensionList.toList()) {
+                if (ext.id in KEEP) continue
+                @Suppress("DEPRECATION")
+                runCatching { epName.point.unregisterExtension(ext) }
+            }
+        }
     }
 
     private fun hideForeignToolWindows(twm: ToolWindowManager) {
@@ -75,12 +101,17 @@ class MateuFocusedModeActivity : ProjectActivity {
     }
 
     private fun stripVcsFromMainToolbar() {
+        stripFromMainToolbar("MainToolbarLeft") { it.contains("vcs", ignoreCase = true) }
+    }
+
+    /** Remove children of a main-toolbar group whose action id matches [matches]. */
+    private fun stripFromMainToolbar(groupId: String, matches: (String) -> Boolean) {
         runCatching {
             val am = ActionManager.getInstance()
-            val group = am.getAction("MainToolbarLeft") as? DefaultActionGroup ?: return
+            val group = am.getAction(groupId) as? DefaultActionGroup ?: return
             for (child in group.getChildActionsOrStubs()) {
                 val id = am.getId(child) ?: continue
-                if (id.contains("vcs", ignoreCase = true)) group.remove(child)
+                if (matches(id)) group.remove(child)
             }
         }
     }
