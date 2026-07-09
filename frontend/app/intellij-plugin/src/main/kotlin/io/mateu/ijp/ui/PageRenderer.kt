@@ -60,6 +60,9 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         row.border = JBUI.Borders.emptyTop(JBGap)
         root.add(row, BorderLayout.SOUTH)
     }
+    // The page's own CSS style caps the content width (e.g. `max-width:900px;margin:auto`, how the
+    // web keeps forms readable) — anchored left, the IDE way, instead of centered.
+    parseMaxWidth(component.text("style"))?.let { return MaxWidthPanel(it, root) }
     return root
 }
 

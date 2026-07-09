@@ -28,3 +28,27 @@ fun JPanel.addStacked(child: JComponent, gap: Int = JBGap) {
     add(child)
     if (gap > 0) add(Box.createVerticalStrut(JBUI.scale(gap)))
 }
+
+
+/** Lays its single child out at full height but capped width, anchored left (IDE-style) — the
+ *  Swing rendering of a CSS `max-width` (e.g. the Page's `max-width:900px;margin:auto`). */
+internal class MaxWidthPanel(private val maxWidth: Int, private val content: javax.swing.JComponent) :
+    javax.swing.JPanel(null) {
+    init {
+        isOpaque = false
+        add(content)
+    }
+    override fun doLayout() {
+        content.setBounds(0, 0, minOf(width, maxWidth), height)
+    }
+    override fun getPreferredSize(): java.awt.Dimension {
+        val p = content.preferredSize
+        return java.awt.Dimension(minOf(p.width, maxWidth), p.height)
+    }
+    override fun getMinimumSize(): java.awt.Dimension = content.minimumSize
+}
+
+/** CSS `max-width: NNNpx` in a style string, scaled to the current UI scale; null when absent. */
+internal fun parseMaxWidth(style: String): Int? =
+    Regex("max-width:\\s*(\\d+)px").find(style)?.groupValues?.get(1)?.toIntOrNull()
+        ?.let { com.intellij.util.ui.JBUI.scale(it) }
