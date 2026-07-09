@@ -45,8 +45,21 @@ class MateuFocusedModeActivity : ProjectActivity {
                     // Some windows re-enable themselves (VCS on repo detection, Services…): re-hide.
                     hideForeignToolWindows(toolWindowManager)
                 }
+
+                override fun toolWindowShown(toolWindow: com.intellij.openapi.wm.ToolWindow) {
+                    if (toolWindow.id !in KEEP) toolWindow.setAvailable(false)
+                }
             },
         )
+        // Late registrants (Commit on VCS detection, Run/Debug on first execution, Hierarchy…)
+        // slip between events on some startups: sweep again a few times after opening.
+        for (delaySeconds in longArrayOf(2, 5, 15)) {
+            com.intellij.util.concurrency.AppExecutorUtil.getAppScheduledExecutorService().schedule({
+                com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater {
+                    if (!project.isDisposed) hideForeignToolWindows(ToolWindowManager.getInstance(project))
+                }
+            }, delaySeconds, java.util.concurrent.TimeUnit.SECONDS)
+        }
         stripVcsFromMainToolbar()
     }
 
@@ -55,6 +68,9 @@ class MateuFocusedModeActivity : ProjectActivity {
             if (id in KEEP) continue
             val tw = twm.getToolWindow(id) ?: continue
             if (tw.isAvailable) tw.setAvailable(false)
+            // Stubborn ones (Commit/Run/Debug/Hierarchy) can flip availability back on their own
+            // triggers even without a visible state change — force them off unconditionally.
+            if (id in STUBBORN) tw.setAvailable(false)
         }
     }
 
@@ -71,5 +87,6 @@ class MateuFocusedModeActivity : ProjectActivity {
 
     companion object {
         private val KEEP = setOf("Mateu", "MateuResults")
+        private val STUBBORN = setOf("Commit", "Run", "Debug", "Hierarchy", "Services", "Problems View")
     }
 }
