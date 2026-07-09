@@ -3,6 +3,7 @@ package io.mateu.ijp.plugin
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.EDT
+import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.wm.ToolWindowManager
@@ -21,8 +22,13 @@ import kotlinx.coroutines.withContext
 class MateuFocusedModeActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
-        if (!loadMateuConfig().focused) return
-        withContext(Dispatchers.EDT) { applyFocusedMode(project) }
+        val focused = loadMateuConfig().focused
+        withContext(Dispatchers.EDT) {
+            // Boot the Mateu app right away: the app-menu toolbar widget and the Search
+            // Everywhere actions must exist without opening the navigator panel first.
+            project.service<MateuProjectService>().ensureBooted()
+            if (focused) applyFocusedMode(project)
+        }
     }
 
     private fun applyFocusedMode(project: Project) {
