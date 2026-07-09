@@ -20,15 +20,41 @@ fun renderVBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     return panel
 }
 
-/** HorizontalLayout → a horizontal row of children. */
+/** HorizontalLayout → a horizontal row of children. Children carrying flex bases in their style
+ *  (`flex: 0 0 64%`, the zones layout) become top-anchored proportional columns; otherwise a
+ *  simple left-aligned flow row (buttons etc.). */
 fun renderHBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val gap = if (metadata.bool("spacing", true)) JBGap else 0
+    val children = component.path("children").let { if (it.isArray) it.toList() else emptyList() }
+    val weights = children.map { flexPercent(it.text("style")) }
+    if (weights.any { it != null }) {
+        val row = JPanel(java.awt.GridBagLayout())
+        row.isOpaque = false
+        children.forEachIndexed { i, child ->
+            val gbc = java.awt.GridBagConstraints().apply {
+                gridx = i
+                gridy = 0
+                weightx = weights[i] ?: 10.0
+                weighty = 1.0
+                // Preferred height anchored NORTH: every column starts at the top of the row
+                // (the wire even says so: align-items: flex-start).
+                fill = java.awt.GridBagConstraints.HORIZONTAL
+                anchor = java.awt.GridBagConstraints.NORTH
+                insets = JBUI.insets(0, if (i == 0) 0 else gap, 0, 0)
+            }
+            row.add(r.render(child, state, data), gbc)
+        }
+        return row
+    }
     val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(gap), 0))
     row.isOpaque = false
-    val children = component.path("children")
-    if (children.isArray) for (child in children) row.add(r.render(child, state, data))
+    for (child in children) row.add(r.render(child, state, data))
     return row
 }
+
+/** The flex-basis percentage in a CSS style (`flex: G S NN%`); null when absent. */
+private fun flexPercent(style: String): Double? =
+    Regex("flex:\\s*\\d+\\s+\\d+\\s+(\\d+(?:\\.\\d+)?)%").find(style)?.groupValues?.get(1)?.toDoubleOrNull()
 
 /** TabLayout → a [JBTabbedPane]; each child is a tab (label from its metadata, body = its children). */
 fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data: JsonNode): JComponent {

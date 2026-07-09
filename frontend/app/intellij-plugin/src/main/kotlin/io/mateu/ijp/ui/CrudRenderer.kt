@@ -108,15 +108,24 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         }
     }
 
-    // Double-click a row → open its detail via the row link action (e.g. "view"), passing the whole
-    // row as parameters (matching the JavaFX renderer).
+    // Double-click a row → open its detail via the row link action (e.g. "view"), passing the
+    // whole row as parameters. Listings without a link column (e.g. the check-in board) fall back
+    // to the row's FIRST action — its primary (e.g. "Check-in").
     table.addMouseListener(object : MouseAdapter() {
         override fun mouseClicked(e: MouseEvent) {
-            if (e.clickCount < 2 || rowLinkActionId.isBlank()) return
+            if (e.clickCount < 2) return
             val viewRow = table.rowAtPoint(e.point)
             if (viewRow < 0) return
             val row = model.rowAt(table.convertRowIndexToModel(viewRow)) ?: return
-            ctx.runAction(rowLinkActionId, rowAsParams(ctx, row))
+            if (rowLinkActionId.isNotBlank()) {
+                ctx.runAction(rowLinkActionId, rowAsParams(ctx, row))
+                return
+            }
+            val firstAction = actionSpecs.firstNotNullOfOrNull { spec ->
+                collectActions(row.path(spec.id), spec.dataType).firstOrNull()
+            } ?: return
+            val method = firstAction.text("methodNameInCrud")
+            if (method.isNotBlank()) ctx.runAction("action-on-row-$method", mapOf("_clickedRow" to row))
         }
     })
 
