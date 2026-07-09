@@ -91,8 +91,9 @@ fun renderFormLayout(r: ComponentRenderer, component: JsonNode, metadata: JsonNo
         col += span
     }
     // Bottom filler so fields stay top-aligned when the grid is placed in a filling container.
+    // Zero preferred size: a default JPanel measures 10x10 and added a phantom bottom margin.
     panel.add(
-        JPanel().apply { isOpaque = false },
+        JPanel().apply { isOpaque = false; preferredSize = java.awt.Dimension(0, 0) },
         GridBagConstraints().apply {
             gridx = 0; gridy = rowIdx + 1; gridwidth = maxColumns
             weightx = 1.0; weighty = 1.0; fill = GridBagConstraints.BOTH

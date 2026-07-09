@@ -54,10 +54,15 @@ fun renderCard(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         panel.addStacked(r.render(titleNode, state, data), 6)
     }
     val content = metadata.path("content")
-    if (content.isObject) panel.addStacked(r.render(content, state, data), JBGap)
-    stackChildren(r, panel, component, state, data)
+    val hasChildren = component.path("children").let { it.isArray && !it.isEmpty }
     val footer = metadata.path("footer")
-    if (footer.isObject) panel.addStacked(r.render(footer, state, data), 0)
+    // No trailing gap after the LAST block — cards otherwise pile up bottom slack.
+    if (content.isObject) panel.addStacked(r.render(content, state, data), if (hasChildren || footer.isObject) JBGap else 0)
+    stackChildren(r, panel, component, state, data)
+    if (footer.isObject) {
+        if (hasChildren || content.isObject) panel.add(javax.swing.Box.createVerticalStrut(com.intellij.util.ui.JBUI.scale(JBGap)))
+        panel.addStacked(r.render(footer, state, data), 0)
+    }
     return panel
 }
 
@@ -121,7 +126,11 @@ fun renderProgressBar(metadata: JsonNode, state: JsonNode): JComponent {
 
 private fun stackChildren(r: ComponentRenderer, panel: javax.swing.JPanel, component: JsonNode, state: JsonNode, data: JsonNode) {
     val children = component.path("children")
-    if (children.isArray) for (child in children) panel.addStacked(r.render(child, state, data), JBGap)
+    if (children.isArray) {
+        children.forEachIndexed { i, child ->
+            panel.addStackedBetween(r.render(child, state, data), JBGap, first = i == 0 && panel.componentCount == 0)
+        }
+    }
 }
 
 internal fun badgeColor(color: String): Color = when (color.lowercase()) {

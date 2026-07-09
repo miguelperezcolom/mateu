@@ -16,7 +16,11 @@ fun renderVBox(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val gap = if (metadata.bool("spacing", true)) JBGap else 0
     val panel = verticalPanel(gap)
     val children = component.path("children")
-    if (children.isArray) for (child in children) panel.addStacked(r.render(child, state, data), gap)
+    if (children.isArray) {
+        children.forEachIndexed { i, child ->
+            panel.addStackedBetween(r.render(child, state, data), gap, first = i == 0)
+        }
+    }
     return panel
 }
 

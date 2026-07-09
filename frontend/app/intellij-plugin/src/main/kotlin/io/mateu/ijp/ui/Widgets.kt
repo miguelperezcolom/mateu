@@ -29,6 +29,15 @@ fun JPanel.addStacked(child: JComponent, gap: Int = JBGap) {
     if (gap > 0) add(Box.createVerticalStrut(JBUI.scale(gap)))
 }
 
+/** Like [addStacked] but the gap goes BEFORE the child (skip for the first): stacking a list this
+ *  way leaves no trailing bottom slack after the last element. */
+fun JPanel.addStackedBetween(child: JComponent, gap: Int, first: Boolean) {
+    if (!first && gap > 0) add(Box.createVerticalStrut(JBUI.scale(gap)))
+    child.alignmentX = Component.LEFT_ALIGNMENT
+    child.maximumSize = Dimension(Int.MAX_VALUE, child.preferredSize.height.coerceAtLeast(1))
+    add(child)
+}
+
 
 /** Lays its single child out at full height but capped width, anchored left (IDE-style) — the
  *  Swing rendering of a CSS `max-width` (e.g. the Page's `max-width:900px;margin:auto`). */
