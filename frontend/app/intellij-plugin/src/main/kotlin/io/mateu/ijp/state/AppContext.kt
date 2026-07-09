@@ -302,13 +302,19 @@ class AppContext(val session: AppSession) {
         }
 
         // Client-side validation: actions flagged validationRequired only fire if every validation
-        // condition holds; otherwise surface inline field errors and re-render in place.
-        if (currentActionValidationRequired[actionId] == true) {
+        // condition holds; otherwise surface inline field errors and re-render in place. Unowned
+        // SUBMIT actions bubble to the crud mediator, whose flags we never see (the plugin loads
+        // the inner view directly) — the mediator's validating set is stable framework knowledge
+        // (CrudActionsBuilder: create / create-and-stay / save), so they validate here too.
+        val requiresValidation = currentActionValidationRequired[actionId] == true ||
+            (!ownsAction(actionId) && actionId in BUBBLED_SUBMIT_ACTIONS)
+        if (requiresValidation) {
             val fieldErrors = collectFieldErrors()
             currentFieldErrors.clear()
             if (fieldErrors.isNotEmpty()) {
                 currentFieldErrors.putAll(fieldErrors)
                 rerenderCurrentForm()
+                showMessage(fieldErrors.entries.joinToString("; ") { "${it.key}: ${it.value}" }, "warning", "Revisa los campos")
                 return
             }
         }
@@ -971,6 +977,9 @@ class AppContext(val session: AppSession) {
 
         /** Actions that abandon a tracked form's edits — guarded by the dirty confirm. */
         private val DISCARD_ACTIONS = setOf("cancel-edit", "cancel-view", "cancel")
+
+        /** Crud-mediator submits (validationRequired there — see CrudActionsBuilder). */
+        private val BUBBLED_SUBMIT_ACTIONS = setOf("create", "create-and-stay", "save", "update")
         private val COMPARISON: java.util.regex.Pattern =
             java.util.regex.Pattern.compile("state\\['([^']+)'\\]\\s*(>=|<=|==|!=|>|<)\\s*(-?\\d+(?:\\.\\d+)?)")
         private val TRUTHY: java.util.regex.Pattern =
