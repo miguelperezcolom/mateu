@@ -10,7 +10,7 @@ export interface RunActionParams {
 }
 
 export class MateuApiClient {
-  private readonly baseUrl: string;
+  readonly baseUrl: string;
   private readonly sessionId: string;
 
   constructor(baseUrl: string, sessionId: string) {

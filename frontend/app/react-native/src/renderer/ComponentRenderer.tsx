@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
+import { MateuSession } from '../core/MateuSession';
+import { RichText } from './FieldWidgets';
 import { ChartRenderer } from './ChartRenderer';
 import { FormFieldRenderer } from './FormFieldRenderer';
 import { FormRenderer } from './FormRenderer';
@@ -46,6 +48,31 @@ export function ComponentRenderer({ component, state, data }: Props) {
 function ServerSideIsland({ component }: { component: Record<string, unknown> }) {
   const { session } = useAppContext();
   return <MateuViewHost session={session} serverSideNode={component} silent />;
+}
+
+/**
+ * A federated remote app (MicroFrontend): host it in its own MateuViewHost. When it declares its
+ * own baseUrl we spin a dedicated session for that origin; otherwise it shares the host session.
+ */
+function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }) {
+  const { session } = useAppContext();
+  const baseUrl = (metadata['baseUrl'] as string) ?? '';
+  const remoteSession = React.useMemo(
+    () => (baseUrl && baseUrl !== session.api.baseUrl ? new MateuSession(baseUrl, 'microfrontend', { ...session.appState }) : session),
+    [baseUrl, session],
+  );
+  return (
+    <MateuViewHost
+      session={remoteSession}
+      target={{
+        label: '',
+        route: (metadata['route'] as string) ?? '',
+        consumedRoute: (metadata['consumedRoute'] as string) ?? '',
+        serverSideType: (metadata['serverSideType'] as string) ?? '',
+      }}
+      silent
+    />
+  );
 }
 
 function ClientSideComponent({ component, state, data }: { component: Record<string, unknown>; state: Record<string, unknown>; data: unknown }) {
@@ -169,6 +196,18 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Gantt':
       return <GanttRenderer component={component} />;
 
+    case 'Markdown':
+      return <RichText value={(metadata['markdown'] as string) ?? ''} kind="markdown" />;
+    case 'Image': {
+      const src = (metadata['src'] as string) ?? '';
+      return src ? <Image source={{ uri: src }} style={styles.image} resizeMode="contain" /> : null;
+    }
+    case 'CustomField':
+      // ComponentAdapter's nested island / a custom field: render its content node.
+      return metadata['content'] ? <ComponentRenderer component={metadata['content']} state={state} /> : null;
+    case 'MicroFrontend':
+      return <MicroFrontendIsland metadata={metadata} />;
+
     default: {
       if (metaType) {
         return <Text style={styles.unknown}>Unsupported component: {metaType}</Text>;
@@ -192,6 +231,7 @@ const styles = StyleSheet.create({
   error: { color: '#cc0000', padding: 8, fontSize: 13 },
   text: { fontSize: 14, color: '#333', flexShrink: 1 },
   unknown: { fontSize: 12, color: '#999', fontStyle: 'italic' },
+  image: { width: '100%', height: 200, borderRadius: 6, backgroundColor: '#f5f5f5' },
   btnDefault: { backgroundColor: '#f5f5f5', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: '#ccc', alignSelf: 'flex-start' },
   btnDefaultText: { color: '#333', fontSize: 14 },
 });
