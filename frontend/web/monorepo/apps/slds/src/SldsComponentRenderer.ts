@@ -9,7 +9,7 @@ import {
     renderSldsButton, renderSldsText, renderSldsFormLayout, renderSldsForm, renderSldsFormSection,
     renderSldsTable, renderSldsHorizontalLayout, renderSldsVerticalLayout, renderSldsSplitLayout,
     renderSldsCard, renderSldsBadge, renderSldsProgressBar, renderSldsAnchor,
-    renderSldsDialog, renderSldsConfirmDialog, renderSldsFilterBar, renderSldsPagination,
+    renderSldsDialog, renderSldsConfirmDialog, renderSldsPagination,
 } from './renderers/sldsRenderers.ts'
 import './components/mateu-slds-field.ts'
 import './components/mateu-slds-tabs.ts'

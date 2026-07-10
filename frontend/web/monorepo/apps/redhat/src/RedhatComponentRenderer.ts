@@ -8,7 +8,7 @@ import { renderApp } from '@/renderers/renderApp.ts'
 import {
     renderButton, renderText, renderFormLayout, renderForm, renderFormSection, renderFormSubSection,
     renderCard, renderHorizontalLayout, renderVerticalLayout, renderSplitLayout, renderBadge,
-    renderAnchor, renderDialog, renderConfirmDialog, renderTable, renderFilterBar, renderPagination,
+    renderAnchor, renderDialog, renderConfirmDialog, renderTable, renderPagination,
 } from '@/renderers/patternfly.ts'
 import './components/mateu-redhat-field.ts'
 import './components/mateu-redhat-tabs.ts'
