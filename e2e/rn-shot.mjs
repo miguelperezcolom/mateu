@@ -17,6 +17,15 @@ if (actions.includes('row')) {
   await page.getByText('Producto 10', { exact: false }).first().click();
   await page.waitForTimeout(2500);
 }
+if (actions.includes('edit')) {
+  await page.getByText('Edit', { exact: true }).first().click();
+  await page.waitForTimeout(2500);
+}
+if (actions.includes('gridrow')) {
+  // tap the first grid row inside the edit form (opens the row form modal)
+  await page.getByText('x10', { exact: true }).first().click();
+  await page.waitForTimeout(1200);
+}
 await page.screenshot({ path: out, fullPage: false });
 await browser.close();
 console.log('saved', out);

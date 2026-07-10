@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Modal,
   Switch,
   Text,
   TextInput,
@@ -16,6 +17,12 @@ interface Option {
   value: string;
 }
 
+interface GridColumnMeta {
+  id: string;
+  label?: string;
+  dataType?: string;
+}
+
 interface FieldMeta {
   fieldId: string;
   label?: string;
@@ -26,6 +33,8 @@ interface FieldMeta {
   disabled?: boolean;
   initialValue?: unknown;
   options?: Option[];
+  /** Grid fields: ClientSide GridColumn nodes. */
+  columns?: { metadata?: GridColumnMeta }[];
 }
 
 interface Props {
@@ -45,6 +54,19 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
   const editable = !readOnly && !disabled;
 
   const renderInput = () => {
+    // Grid: an array-of-rows field (nested collection). Read-only shows the table; editable
+    // opens a row form on tap (mobile-friendly counterpart of the web's inline editors).
+    if (stereotype === 'grid' || (dataType === 'array' && (metadata.columns?.length ?? 0) > 0)) {
+      return (
+        <GridField
+          columns={(metadata.columns ?? []).map((c) => c.metadata).filter(Boolean) as GridColumnMeta[]}
+          rows={Array.isArray(rawValue) ? (rawValue as Record<string, unknown>[]) : []}
+          editable={editable}
+          onChange={(rows) => onStateChange(fieldId, rows)}
+        />
+      );
+    }
+
     // Boolean
     if (dataType === 'bool' || dataType === 'boolean' || dataType === 'Boolean') {
       return (
@@ -159,6 +181,154 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       {renderInput()}
       {!!error && <Text style={styles.fieldError}>{error}</Text>}
     </View>
+  );
+}
+
+/** Table for an array field. Columns come from the wire GridColumn metadata; when a fragment
+ *  omits them (edit-mode responses), they derive from the first row's keys. */
+function GridField({ columns, rows, editable, onChange }: {
+  columns: GridColumnMeta[];
+  rows: Record<string, unknown>[];
+  editable: boolean;
+  onChange: (rows: Record<string, unknown>[]) => void;
+}) {
+  // editingIndex: -1 closed, rows.length = new row
+  const [editingIndex, setEditingIndex] = useState(-1);
+
+  // internal columns (_select, _rowNumber…) are wire plumbing, not data
+  const cols: GridColumnMeta[] = (
+    columns.length > 0
+      ? columns
+      : Object.keys(rows[0] ?? {}).map((k) => ({ id: k, label: k }))
+  ).filter((c) => !c.id.startsWith('_'));
+
+  const cellText = (v: unknown): string => {
+    if (v === null || v === undefined) return '';
+    if (typeof v === 'boolean') return v ? '✓' : '—';
+    return String(v);
+  };
+
+  const commitRow = (row: Record<string, unknown>) => {
+    const next = [...rows];
+    if (editingIndex >= rows.length) next.push({ ...row, _rowNumber: rows.length });
+    else next[editingIndex] = { ...next[editingIndex], ...row };
+    onChange(next);
+    setEditingIndex(-1);
+  };
+
+  const deleteRow = () => {
+    onChange(rows.filter((_, i) => i !== editingIndex).map((r, i) => ({ ...r, _rowNumber: i })));
+    setEditingIndex(-1);
+  };
+
+  return (
+    <View style={styles.gridBox}>
+      <View style={[styles.gridRow, styles.gridHeader]}>
+        {cols.map((c) => (
+          <Text key={c.id} style={[styles.gridCell, styles.gridHeaderText]} numberOfLines={1}>
+            {c.label || c.id}
+          </Text>
+        ))}
+      </View>
+      {rows.length === 0 && <Text style={styles.gridEmpty}>No data</Text>}
+      {rows.map((row, i) => (
+        <TouchableOpacity
+          key={i}
+          style={[styles.gridRow, i % 2 === 1 && styles.gridRowAlt]}
+          disabled={!editable}
+          onPress={() => setEditingIndex(i)}
+        >
+          {cols.map((c) => (
+            <Text key={c.id} style={styles.gridCell} numberOfLines={1}>
+              {cellText(row[c.id])}
+            </Text>
+          ))}
+        </TouchableOpacity>
+      ))}
+      {editable && (
+        <TouchableOpacity style={styles.gridAdd} onPress={() => setEditingIndex(rows.length)}>
+          <Text style={styles.gridAddText}>+ Add</Text>
+        </TouchableOpacity>
+      )}
+      {editingIndex >= 0 && (
+        <GridRowForm
+          columns={cols}
+          row={rows[editingIndex] ?? {}}
+          isNew={editingIndex >= rows.length}
+          onSave={commitRow}
+          onDelete={deleteRow}
+          onCancel={() => setEditingIndex(-1)}
+        />
+      )}
+    </View>
+  );
+}
+
+/** Modal row editor: one input per column, typed by the column dataType (falling back to the
+ *  current value's type — column dataType is often 'string' even for numeric cells). */
+function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }: {
+  columns: GridColumnMeta[];
+  row: Record<string, unknown>;
+  isNew: boolean;
+  onSave: (row: Record<string, unknown>) => void;
+  onDelete: () => void;
+  onCancel: () => void;
+}) {
+  const [draft, setDraft] = useState<Record<string, unknown>>({ ...row });
+
+  const isBool = (c: GridColumnMeta) =>
+    ['bool', 'boolean', 'Boolean'].includes(c.dataType ?? '') || typeof row[c.id] === 'boolean';
+  const isNumber = (c: GridColumnMeta) =>
+    ['integer', 'int', 'long', 'number', 'double', 'float', 'decimal'].includes(c.dataType ?? '') ||
+    typeof row[c.id] === 'number';
+
+  return (
+    <Modal animationType="fade" transparent onRequestClose={onCancel}>
+      <View style={styles.rowFormBackdrop}>
+        <View style={styles.rowFormCard}>
+          <ScrollView>
+            {columns.map((c) => (
+              <View key={c.id} style={styles.container}>
+                <Text style={styles.label}>{c.label || c.id}</Text>
+                {isBool(c) ? (
+                  <Switch
+                    value={Boolean(draft[c.id])}
+                    onValueChange={(v) => setDraft({ ...draft, [c.id]: v })}
+                  />
+                ) : (
+                  <TextInput
+                    style={styles.input}
+                    value={draft[c.id] === null || draft[c.id] === undefined ? '' : String(draft[c.id])}
+                    keyboardType={isNumber(c) ? 'decimal-pad' : 'default'}
+                    onChangeText={(v) =>
+                      setDraft({
+                        ...draft,
+                        [c.id]: isNumber(c) ? (v === '' ? null : Number(v)) : v,
+                      })
+                    }
+                    autoCapitalize="none"
+                  />
+                )}
+              </View>
+            ))}
+          </ScrollView>
+          <View style={styles.rowFormButtons}>
+            {!isNew && (
+              <TouchableOpacity style={[styles.rowFormButton, styles.rowFormDelete]} onPress={onDelete}>
+                <Text style={styles.rowFormDeleteText}>Delete</Text>
+              </TouchableOpacity>
+            )}
+            <View style={{ flex: 1 }} />
+            <TouchableOpacity style={styles.rowFormButton} onPress={onCancel}>
+              <Text>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.rowFormButton, styles.rowFormSave]} onPress={() => onSave(draft)}>
+              <Text style={styles.rowFormSaveText}>Save</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -294,4 +464,21 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   dropdownItem: { paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  gridBox: { borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 6, overflow: 'hidden' },
+  gridRow: { flexDirection: 'row', paddingHorizontal: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  gridRowAlt: { backgroundColor: '#fafafa' },
+  gridHeader: { backgroundColor: '#f0f0f0' },
+  gridHeaderText: { fontWeight: '600', color: '#333' },
+  gridCell: { flex: 1, fontSize: 13, color: '#1a1a1a', paddingHorizontal: 4 },
+  gridEmpty: { padding: 12, fontSize: 13, color: '#999', fontStyle: 'italic' },
+  gridAdd: { padding: 10, alignItems: 'center' },
+  gridAddText: { color: '#0070f3', fontWeight: '600', fontSize: 13 },
+  rowFormBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
+  rowFormCard: { backgroundColor: '#fff', borderRadius: 12, padding: 16, maxHeight: '80%' },
+  rowFormButtons: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
+  rowFormButton: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 6, borderWidth: 1, borderColor: '#ccc' },
+  rowFormSave: { backgroundColor: '#0070f3', borderColor: '#0070f3' },
+  rowFormSaveText: { color: '#fff', fontWeight: '600' },
+  rowFormDelete: { borderColor: '#cc0000' },
+  rowFormDeleteText: { color: '#cc0000' },
 });
