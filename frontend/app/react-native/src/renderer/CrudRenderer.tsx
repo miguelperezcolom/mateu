@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useViewController } from './MateuViewHost';
+import { DateField } from './DateField';
 import { FormFieldRenderer } from './FormFieldRenderer';
 
 interface FilterFieldMeta {
@@ -296,22 +297,45 @@ function FilterPanel({ filters, values, onChange, onApply, onClear }: {
             <View key={f.fieldId} style={styles.filterItem}>
               <Text style={styles.filterLabel}>{f.label || f.fieldId}</Text>
               <View style={styles.filterRangeRow}>
-                <TextInput
-                  style={[styles.searchInput, styles.filterRangeInput]}
-                  value={String(values[`${f.fieldId}_from`] ?? '')}
-                  onChangeText={(v) => set(`${f.fieldId}_from`, v)}
-                  placeholder={isDate ? 'From (YYYY-MM-DD)' : 'From'}
-                  keyboardType={isDate ? 'default' : 'decimal-pad'}
-                  autoCapitalize="none"
-                />
-                <TextInput
-                  style={[styles.searchInput, styles.filterRangeInput]}
-                  value={String(values[`${f.fieldId}_to`] ?? '')}
-                  onChangeText={(v) => set(`${f.fieldId}_to`, v)}
-                  placeholder={isDate ? 'To (YYYY-MM-DD)' : 'To'}
-                  keyboardType={isDate ? 'default' : 'decimal-pad'}
-                  autoCapitalize="none"
-                />
+                {isDate ? (
+                  <>
+                    <View style={styles.filterRangeInput}>
+                      <DateField
+                        value={String(values[`${f.fieldId}_from`] ?? '')}
+                        editable
+                        placeholder="From"
+                        onChange={(v) => set(`${f.fieldId}_from`, v)}
+                      />
+                    </View>
+                    <View style={styles.filterRangeInput}>
+                      <DateField
+                        value={String(values[`${f.fieldId}_to`] ?? '')}
+                        editable
+                        placeholder="To"
+                        onChange={(v) => set(`${f.fieldId}_to`, v)}
+                      />
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <TextInput
+                      style={[styles.searchInput, styles.filterRangeInput]}
+                      value={String(values[`${f.fieldId}_from`] ?? '')}
+                      onChangeText={(v) => set(`${f.fieldId}_from`, v)}
+                      placeholder="From"
+                      keyboardType="decimal-pad"
+                      autoCapitalize="none"
+                    />
+                    <TextInput
+                      style={[styles.searchInput, styles.filterRangeInput]}
+                      value={String(values[`${f.fieldId}_to`] ?? '')}
+                      onChangeText={(v) => set(`${f.fieldId}_to`, v)}
+                      placeholder="To"
+                      keyboardType="decimal-pad"
+                      autoCapitalize="none"
+                    />
+                  </>
+                )}
               </View>
             </View>
           );

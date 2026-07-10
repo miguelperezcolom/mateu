@@ -10,6 +10,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { PhotoCaptureField, SignatureField } from './CaptureFields';
+import { DateField } from './DateField';
 
 interface Option {
   children?: Option[];
@@ -48,8 +49,16 @@ interface Props {
 export function FormFieldRenderer({ metadata, state, onStateChange, error }: Props) {
   const { fieldId, label, dataType = 'string', stereotype = '', required = false, readOnly = false, disabled = false, options = [] } = metadata;
 
-  const rawValue = state[fieldId] ?? metadata.initialValue ?? '';
+  // putState mutates the controller state WITHOUT re-publishing (a full re-render per keystroke
+  // would be wasteful), so widgets that derive their display from props (switch, date, selects,
+  // grid) keep a local echo of the last committed value until the next real publish remounts us.
+  const [localValue, setLocalValue] = useState<unknown>(undefined);
+  const rawValue = (localValue !== undefined ? localValue : state[fieldId] ?? metadata.initialValue) ?? '';
   const stringValue = rawValue === null || rawValue === undefined ? '' : String(rawValue);
+  const commit = (id: string, v: unknown) => {
+    setLocalValue(v);
+    onStateChange(id, v);
+  };
 
   const editable = !readOnly && !disabled;
 
@@ -62,7 +71,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           columns={(metadata.columns ?? []).map((c) => c.metadata).filter(Boolean) as GridColumnMeta[]}
           rows={Array.isArray(rawValue) ? (rawValue as Record<string, unknown>[]) : []}
           editable={editable}
-          onChange={(rows) => onStateChange(fieldId, rows)}
+          onChange={(rows) => commit(fieldId, rows)}
         />
       );
     }
@@ -72,8 +81,21 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       return (
         <Switch
           value={Boolean(rawValue)}
-          onValueChange={(v) => onStateChange(fieldId, v)}
+          onValueChange={(v) => commit(fieldId, v)}
           disabled={!editable}
+        />
+      );
+    }
+
+    // Date / datetime: calendar picker committing the ISO wire format
+    if (dataType === 'date' || dataType === 'datetime') {
+      return (
+        <DateField
+          value={stringValue}
+          editable={editable}
+          withTime={dataType === 'datetime'}
+          placeholder={label}
+          onChange={(v) => commit(fieldId, v)}
         />
       );
     }
@@ -86,7 +108,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           leavesOnly={(metadata as { treeLeavesOnly?: boolean }).treeLeavesOnly === true}
           value={stringValue}
           editable={editable}
-          onChange={(v) => onStateChange(fieldId, v)}
+          onChange={(v) => commit(fieldId, v)}
         />
       );
     }
@@ -94,15 +116,15 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     // Capture fields: signature pad (svg strokes rasterized by view-shot) and expo-camera —
     // both commit a data URI, the same wire contract as the web renderers
     if (stereotype === 'signature') {
-      return <SignatureField value={stringValue} editable={editable} onChange={(v) => onStateChange(fieldId, v)} />;
+      return <SignatureField value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
     }
     if (stereotype === 'camera') {
-      return <PhotoCaptureField value={stringValue} editable={editable} onChange={(v) => onStateChange(fieldId, v)} />;
+      return <PhotoCaptureField value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
     }
 
     // Options (enum / static list)
     if (options.length > 0) {
-      return <OptionsField options={options} value={stringValue} editable={editable} onChange={(v) => onStateChange(fieldId, v)} />;
+      return <OptionsField options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
     }
 
     // Textarea
@@ -111,7 +133,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
         <TextInput
           style={[styles.input, styles.textarea]}
           value={stringValue}
-          onChangeText={(v) => onStateChange(fieldId, v)}
+          onChangeText={(v) => commit(fieldId, v)}
           multiline
           numberOfLines={4}
           editable={editable}
@@ -126,7 +148,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
         <TextInput
           style={styles.input}
           value={stringValue}
-          onChangeText={(v) => onStateChange(fieldId, v)}
+          onChangeText={(v) => commit(fieldId, v)}
           secureTextEntry
           editable={editable}
           placeholder={label}
@@ -140,7 +162,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
         <TextInput
           style={styles.input}
           value={stringValue}
-          onChangeText={(v) => onStateChange(fieldId, v === '' ? null : parseInt(v, 10))}
+          onChangeText={(v) => commit(fieldId, v === '' ? null : parseInt(v, 10))}
           keyboardType="number-pad"
           editable={editable}
           placeholder={label}
@@ -154,7 +176,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
         <TextInput
           style={styles.input}
           value={stringValue}
-          onChangeText={(v) => onStateChange(fieldId, v === '' ? null : parseFloat(v))}
+          onChangeText={(v) => commit(fieldId, v === '' ? null : parseFloat(v))}
           keyboardType="decimal-pad"
           editable={editable}
           placeholder={label}
@@ -167,7 +189,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       <TextInput
         style={styles.input}
         value={stringValue}
-        onChangeText={(v) => onStateChange(fieldId, v)}
+        onChangeText={(v) => commit(fieldId, v)}
         editable={editable}
         placeholder={label}
         autoCapitalize="none"
@@ -294,6 +316,13 @@ function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }: {
                   <Switch
                     value={Boolean(draft[c.id])}
                     onValueChange={(v) => setDraft({ ...draft, [c.id]: v })}
+                  />
+                ) : c.dataType === 'date' || c.dataType === 'datetime' ? (
+                  <DateField
+                    value={draft[c.id] == null ? '' : String(draft[c.id])}
+                    editable
+                    withTime={c.dataType === 'datetime'}
+                    onChange={(v) => setDraft({ ...draft, [c.id]: v })}
                   />
                 ) : (
                   <TextInput

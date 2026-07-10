@@ -126,7 +126,8 @@ export class MateuViewController {
       this.fieldErrors = {};
       if (Object.keys(errors).length > 0) {
         this.fieldErrors = errors;
-        this.publish({ ...this.view, version: this.view.version + 1 });
+        // the version bump remounts the field tree — render against the EDITED state
+        this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
         this.session.notify(
           'Revisa los campos',
           Object.entries(errors).map(([f, m]) => `${f}: ${m}`).join('; '),
