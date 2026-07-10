@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ComponentRenderer } from './ComponentRenderer';
+import { interpolate } from '../core/expressions';
 import { useViewController } from './MateuViewHost';
 
 type Dict = Record<string, unknown>;
@@ -19,7 +20,7 @@ function Children({ component, state }: { component: unknown; state: Dict }) {
 
 // ── Sections / cards ──────────────────────────────────────────────────────────
 export function SectionRenderer({ component, state }: { component: unknown; state: Dict }) {
-  const title = (meta(component)['title'] as string) ?? '';
+  const title = interpolate((meta(component)['title'] as string) ?? '', { state });
   return (
     <View style={styles.card}>
       {!!title && <Text style={styles.cardTitle}>{title}</Text>}
@@ -29,7 +30,7 @@ export function SectionRenderer({ component, state }: { component: unknown; stat
 }
 
 export function SubSectionRenderer({ component, state }: { component: unknown; state: Dict }) {
-  const title = (meta(component)['title'] as string) ?? '';
+  const title = interpolate((meta(component)['title'] as string) ?? '', { state });
   return (
     <View style={styles.subsection}>
       {!!title && <Text style={styles.subTitle}>{title}</Text>}
@@ -43,7 +44,7 @@ export function CardRenderer({ component, state }: { component: unknown; state: 
   const title = m['title'];
   return (
     <View style={styles.card}>
-      {typeof title === 'string' && !!title && <Text style={styles.cardTitle}>{title}</Text>}
+      {typeof title === 'string' && !!title && <Text style={styles.cardTitle}>{interpolate(title, { state })}</Text>}
       {typeof title === 'object' && title && <ComponentRenderer component={title} state={state} />}
       {!!m['content'] && typeof m['content'] === 'object' && <ComponentRenderer component={m['content']} state={state} />}
       <Children component={component} state={state} />
@@ -55,14 +56,15 @@ export function CardRenderer({ component, state }: { component: unknown; state: 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 export function TabsRenderer({ component, state }: { component: unknown; state: Dict }) {
   const tabs = childrenOf(component);
-  const [selected, setSelected] = useState(0);
+  // @Tab(open=true) marks the initially-selected tab (first-declared wins, else index 0)
+  const [selected, setSelected] = useState(() => Math.max(0, tabs.findIndex((t) => meta(t)['active'] === true)));
   const active = tabs[selected] as Dict | undefined;
   return (
     <View>
       <View style={styles.tabBar}>
         {tabs.map((t, i) => (
           <TouchableOpacity key={i} style={[styles.tab, i === selected && styles.tabActive]} onPress={() => setSelected(i)}>
-            <Text style={[styles.tabText, i === selected && styles.tabTextActive]}>{(meta(t)['label'] as string) ?? ''}</Text>
+            <Text style={[styles.tabText, i === selected && styles.tabTextActive]}>{interpolate((meta(t)['label'] as string) ?? '', { state })}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -86,7 +88,7 @@ export function AccordionRenderer({ component, state }: { component: unknown; st
       {panels.map((p, i) => (
         <View key={i} style={styles.panel}>
           <TouchableOpacity style={styles.panelHeader} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
-            <Text style={styles.panelTitle}>{(meta(p)['label'] as string) ?? ''}</Text>
+            <Text style={styles.panelTitle}>{interpolate((meta(p)['label'] as string) ?? '', { state })}</Text>
             <Text style={styles.panelChevron}>{open[i] ? '▾' : '▸'}</Text>
           </TouchableOpacity>
           {open[i] && <View style={styles.panelBody}><Children component={p} state={state} /></View>}

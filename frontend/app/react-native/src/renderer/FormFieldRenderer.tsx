@@ -26,6 +26,7 @@ import {
   UploadableImageField,
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
+import { interpolate } from '../core/expressions';
 import { useViewController } from './MateuViewHost';
 
 interface Option {
@@ -74,7 +75,7 @@ interface Props {
 }
 
 export function FormFieldRenderer({ metadata, state, onStateChange, error }: Props) {
-  const { fieldId, label, dataType = 'string', stereotype = '', required = false, readOnly = false, disabled = false, options = [] } = metadata;
+  const { fieldId, dataType = 'string', stereotype = '', readOnly = false, disabled = false, options = [] } = metadata;
   const controller = useViewController();
 
   // putState mutates the controller state WITHOUT re-publishing (a full re-render per keystroke
@@ -88,7 +89,13 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     onStateChange(id, v);
   };
 
-  const editable = !readOnly && !disabled;
+  // Rule-driven attribute overrides (SetAttributeValue: hidden/disabled/required) + interpolation
+  const ruleAttrs = controller.fieldAttributes[fieldId] ?? {};
+  const label = interpolate(metadata.label ?? '', { state, appState: controller.session.appState });
+  const required = ruleAttrs['required'] !== undefined ? Boolean(ruleAttrs['required']) : metadata.required === true;
+  if (ruleAttrs['hidden']) return null;
+
+  const editable = !readOnly && !disabled && !ruleAttrs['disabled'];
 
   const renderInput = () => {
     // Grid: an array-of-rows field (nested collection). Read-only shows the table; editable

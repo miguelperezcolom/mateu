@@ -1,6 +1,15 @@
+import { evaluateExpression } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
 
 type Json = Record<string, any>;
+
+export interface PageBanner {
+  theme?: string;
+  title?: string;
+  description?: string;
+  hasCloseButton?: boolean;
+  timeoutSeconds?: number;
+}
 
 export interface RenderedView {
   /** The root component to render (null while loading). */
@@ -47,6 +56,14 @@ export class MateuViewController {
   private actionValidationRequired: Record<string, boolean> = {};
   private actionBubble: Record<string, boolean> = {};
   private currentValidations: Json[] = [];
+  /** Client-side rules of the current component (RuleMapper wire shape). */
+  private currentRules: Json[] = [];
+
+  /** Rule-driven field attribute overrides (SetAttributeValue): fieldId → {hidden, disabled, …}. */
+  fieldAttributes: Record<string, Json> = {};
+
+  /** Action-returned banners (UIIncrementDto.banners) — cleared on navigation. */
+  actionBanners: PageBanner[] = [];
 
   /** Inline field validation errors (fieldId → message), consumed by the field renderers. */
   fieldErrors: Record<string, string> = {};
@@ -110,6 +127,7 @@ export class MateuViewController {
       this.currentServerSideType = serverSideType ?? '';
       this.navigationServerSideType = serverSideType ?? '';
       this.currentComponentState = {};
+      this.actionBanners = []; // action banners don't survive page navigations
       this.applyIncrement(increment as Json);
       if (this.view.loading) this.publish({ ...this.view, loading: false });
     } catch (e) {
@@ -173,6 +191,8 @@ export class MateuViewController {
   putState(fieldId: string, value: unknown): void {
     this.currentComponentState[fieldId] = value;
     this.markUserEdit();
+    // Rules react to edits (observed fields, conditional visibility/disabling).
+    this.applyRulesAndRepublish();
   }
 
   markUserEdit(): void {
@@ -202,6 +222,8 @@ export class MateuViewController {
     this.actionValidationRequired = validationFlags;
     this.actionBubble = bubbleFlags;
     this.currentValidations = asArray(sscNode['validations']);
+    this.currentRules = asArray(sscNode['rules']);
+    this.fieldAttributes = {};
 
     const initialData = (sscNode['initialData'] as Json) ?? {};
     const componentRoute = str(initialData['componentRoute']) || str(initialData['_componentRoute']);
@@ -226,6 +248,80 @@ export class MateuViewController {
         const params = payload && typeof payload === 'object' ? (payload as Json) : {};
         void this.runAction(actionId, params, true);
       });
+    }
+  }
+
+  // ── client-side rules (RuleMapper wire: filter → action on fields/state) ─────────────
+
+  /** Evaluates the component's rules against the live state. Returns true when something the
+   *  renderers read (state values / field attributes) changed and a re-render is due. */
+  applyRules(): boolean {
+    if (this.currentRules.length === 0) return false;
+    const ctx = {
+      state: this.currentComponentState,
+      data: this.view.data,
+      appState: this.session.appState,
+      appData: {},
+      component: this.view.component,
+    };
+    let changed = false;
+    for (const rule of this.currentRules) {
+      let matches = true;
+      const filter = str(rule['filter']);
+      if (filter) {
+        try {
+          matches = Boolean(evaluateExpression(filter, ctx));
+        } catch {
+          matches = false;
+        }
+      }
+      if (!matches) continue;
+      const action = str(rule['action']);
+      const value = () => {
+        const expression = str(rule['expression']);
+        if (expression) {
+          try {
+            return evaluateExpression(expression, ctx);
+          } catch {
+            return rule['value'];
+          }
+        }
+        return rule['value'];
+      };
+      if (action === 'SetStateValue' || action === 'SetDataValue') {
+        for (const fieldName of str(rule['fieldName']).split(',')) {
+          const attr = str(rule['fieldAttribute']);
+          const key = !attr || attr === 'none' ? fieldName : `${fieldName}.${attr}`;
+          const v = value();
+          if (this.currentComponentState[key] !== v) {
+            this.currentComponentState[key] = v;
+            changed = true;
+          }
+        }
+      } else if (action === 'SetAttributeValue') {
+        for (const fieldName of str(rule['fieldName']).split(',')) {
+          const attr = str(rule['fieldAttribute']);
+          if (!attr || attr === 'none') continue;
+          const v = value();
+          const attrs = (this.fieldAttributes[fieldName] ??= {});
+          if (attrs[attr] !== v) {
+            attrs[attr] = v;
+            changed = true;
+          }
+        }
+      } else if (action === 'RunAction') {
+        const actionId = str(rule['actionId']);
+        if (actionId) void this.runAction(actionId, undefined, true);
+      }
+      // RunJS / SetCssClass / SetStyle need a DOM + eval — not applicable on this renderer.
+      if (str(rule['result']) === 'Stop') break;
+    }
+    return changed;
+  }
+
+  private applyRulesAndRepublish(): void {
+    if (this.applyRules()) {
+      this.publish({ ...this.view, state: { ...this.currentComponentState }, version: this.view.version + 1 });
     }
   }
 
@@ -259,12 +355,27 @@ export class MateuViewController {
     const errors: Record<string, string> = {};
     for (const v of this.currentValidations) {
       const condition = str(v['condition']);
-      if (condition && !evalCondition(condition, this.currentComponentState)) {
+      if (condition && !this.evalValidationCondition(condition)) {
         const fieldId = str(v['fieldId']);
         if (!(fieldId in errors)) errors[fieldId] = str(v['message']) || 'Invalid value';
       }
     }
     return errors;
+  }
+
+  private evalValidationCondition(condition: string): boolean {
+    try {
+      return Boolean(
+        evaluateExpression(condition, {
+          state: this.currentComponentState,
+          data: this.view.data,
+          appState: this.session.appState,
+        }),
+      );
+    } catch {
+      // legacy regex matcher as the safety net for syntax the parser doesn't cover
+      return evalCondition(condition, this.currentComponentState);
+    }
   }
 
   // ── increment application ───────────────────────────────────────────────────────────
@@ -281,6 +392,13 @@ export class MateuViewController {
     }
 
     for (const cmd of asArray(increment['commands'])) this.handleCommand(cmd);
+
+    // Action-returned banners (PageBanner/PageBanners): bare returns replace, .append accumulates.
+    const banners = asArray(increment['banners']) as PageBanner[];
+    if (banners.length > 0) {
+      this.actionBanners = increment['appendBanners'] === true ? [...this.actionBanners, ...banners] : banners;
+      this.publish({ ...this.view, version: this.view.version + 1 });
+    }
 
     const newAppState = increment['appState'];
     if (newAppState && typeof newAppState === 'object') {
@@ -419,9 +537,11 @@ export class MateuViewController {
         const initialData = (component['initialData'] as Json) ?? {};
         this.currentComponentState = { ...initialData };
         this.fieldErrors = {};
+        this.view = { ...this.view, component: children.length === 1 ? children[0] : { children }, data };
+        this.applyRules(); // initial pass: conditional visibility/disabling on first render
         this.publish({
           component: children.length === 1 ? children[0] : { children },
-          state: initialData,
+          state: { ...this.currentComponentState },
           data,
           loading: false,
           error: null,

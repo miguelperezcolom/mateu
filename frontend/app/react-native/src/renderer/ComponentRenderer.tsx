@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CrudRenderer } from './CrudRenderer';
+import { interpolate } from '../core/expressions';
 import { FormFieldRenderer } from './FormFieldRenderer';
 import { FormRenderer } from './FormRenderer';
 import { LayoutRenderer } from './LayoutRenderer';
@@ -103,7 +104,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
 
     case 'Button': {
       const id = (metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
-      const label = (metadata['label'] as string) ?? id;
+      const label = interpolate((metadata['label'] as string) ?? id, { state });
       return (
         <TouchableOpacity style={styles.btnDefault} onPress={() => runAction(id)}>
           <Text style={styles.btnDefaultText}>{label}</Text>
@@ -112,7 +113,7 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     }
 
     case 'Text': {
-      const text = (metadata['text'] as string) ?? '';
+      const text = interpolate((metadata['text'] as string) ?? '', { state });
       return <Text style={styles.text}>{text}</Text>;
     }
 
