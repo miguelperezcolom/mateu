@@ -4,9 +4,15 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "build:apk": "eas build --platform android --profile preview",
+    "build:android": "eas build --platform android --profile production",
+    "build:ios": "eas build --platform ios --profile production",
+    "build:apk:local": "eas build --platform android --profile preview --local",
+    "submit:android": "eas submit --platform android --profile production",
+    "submit:ios": "eas submit --platform ios --profile production"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",

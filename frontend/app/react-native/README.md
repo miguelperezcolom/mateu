@@ -42,6 +42,28 @@ npm run ios        # macOS + Xcode only
 > From IntelliJ: use the integrated terminal, or create an **npm Run Configuration**
 > (Run → Edit Configurations → `+` → npm → this module's `package.json`, script `web` or `start`).
 
+## Building installables (APK / App Store / Play Store)
+
+Builds go through [EAS](https://docs.expo.dev/build/introduction/) (Expo's build service — sign in
+once with a free Expo account: `npx eas-cli login`). Profiles live in `eas.json`; application ids
+(`io.mateu.native`) in `app.json`. Set the app-registry coordinates for the installable in the
+profile's `env` block (`EXPO_PUBLIC_MATEU_REGISTRY_URL` / `EXPO_PUBLIC_MATEU_APP_ID`).
+
+```bash
+npm run build:apk           # installable .apk (internal distribution / sideload / QA)
+npm run build:apk:local     # same, built on THIS machine (needs Android SDK; no cloud)
+npm run build:android       # .aab for the Play Store (auto-incremented version code)
+npm run build:ios           # .ipa for the App Store (EAS manages certificates/profiles)
+
+npm run submit:android      # upload the last build to the Play Store (internal track)
+npm run submit:ios          # upload the last build to App Store Connect
+```
+
+Submissions need store credentials once: a Play Console **service-account JSON**
+(`play-service-account.json`, see `eas.json`) and an App Store Connect **API key**
+(`asc-api-key.p8` + key/issuer ids). Both file names are gitignored. `runtimeVersion` follows the
+app version, so EAS OTA updates (the registry's update path) only reach compatible installables.
+
 ## App registry (production installables)
 
 A production installable carries only a **registry URL + app id** (`app.json` → `expo.extra.mateuRegistryUrl`

@@ -156,6 +156,26 @@ both plugin and platform updates — and opens the entry's `downloadUrl` when on
 Headless verification: `./gradlew -q registryProbe` (entry URL resolution, fetch/parse against a
 throwaway local registry, version comparator, gate decisions).
 
+### Building installables — APK, Play Store, App Store
+
+Packaging and store submission go through **EAS**, preconfigured in the module (`eas.json` +
+npm scripts; sign in once with `npx eas-cli login`):
+
+```bash
+cd frontend/app/react-native
+npm run build:apk           # .apk for sideloading / QA (or build:apk:local with an Android SDK)
+npm run build:android       # .aab for the Play Store
+npm run build:ios           # .ipa for the App Store
+npm run submit:android      # upload to the Play Store (service-account JSON, internal track)
+npm run submit:ios          # upload to App Store Connect (API key)
+```
+
+Set the installable's [app-registry](#app-registry-pointing-installables-at-their-backend)
+coordinates in the build profile's `env` block in `eas.json` — that is how a store build knows its
+registry. EAS also hosts the **over-the-air updates** the registry's version gate triggers
+(`expo-updates`; `runtimeVersion` is pinned to the app version so updates only reach compatible
+installables).
+
 ### Running and testing the mobile renderer
 
 All options assume a Mateu backend running locally (e.g. the demo at `http://localhost:8592` — the port is configured in `App.tsx`, `MATEU_BACKEND_PORT`). From your IDE (IntelliJ included) the commands below run fine from the integrated terminal, or as an **npm Run Configuration** (Run → Edit Configurations → `+` → npm → pick the module's `package.json` and the `web`/`start` script) so launching the renderer is one click.

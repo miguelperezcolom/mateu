@@ -12,13 +12,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "io.mateu.native"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "io.mateu.native"
     },
     "plugins": [
       "expo-asset",
@@ -33,6 +35,12 @@
     "extra": {
       "mateuRegistryUrl": "",
       "mateuAppId": ""
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }

@@ -11,3 +11,9 @@ web-build/
 *.mobileprovision
 *.orig.*
 web-build/
+
+# expo prebuild artifacts (EAS generates them in the cloud)
+android/
+ios/
+play-service-account.json
+asc-api-key.p8

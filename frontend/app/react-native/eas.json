@@ -1,0 +1,38 @@
+{
+  "cli": {
+    "version": ">= 13.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_MATEU_REGISTRY_URL": "",
+        "EXPO_PUBLIC_MATEU_APP_ID": ""
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_MATEU_REGISTRY_URL": "",
+        "EXPO_PUBLIC_MATEU_APP_ID": ""
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./play-service-account.json",
+        "track": "internal"
+      },
+      "ios": {
+        "ascApiKeyPath": "./asc-api-key.p8",
+        "ascApiKeyId": "REPLACE_ME",
+        "ascApiKeyIssuerId": "REPLACE_ME"
+      }
+    }
+  }
+}
