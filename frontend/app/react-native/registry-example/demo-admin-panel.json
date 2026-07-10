@@ -6,5 +6,10 @@
   "storeUrl": {
     "android": "https://play.google.com/store/apps/details?id=io.mateu.native",
     "ios": "https://apps.apple.com/app/id0000000000"
+  },
+  "intellij": {
+    "requiredPluginVersion": "0.1.0",
+    "requiredIdeBuild": "243.0",
+    "downloadUrl": "https://plugins.example.com/mateu-latest.zip"
   }
 }

@@ -29,6 +29,8 @@ export interface RegistryEntry {
   requiredRendererVersion?: string;
   /** Store fallback when the renderer cannot self-update over the air. */
   storeUrl?: { android?: string; ios?: string };
+  /** Desktop (IntelliJ plugin) requirements — ignored by this renderer, documented for the contract. */
+  intellij?: { requiredPluginVersion?: string; requiredIdeBuild?: string; downloadUrl?: string };
 }
 
 export interface RegistryConfig {

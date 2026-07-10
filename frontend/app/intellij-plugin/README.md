@@ -25,6 +25,23 @@ windows/docking and menus only exist inside a running IDE with a project open.
 Rendering (`api` / `state` / `ui`) uses an imperative `AppContext`/`MateuApiClient` model
 (originally ported from the retired JavaFX renderer) on Swing + Kotlin UI DSL v2.
 
+## App registry (production installables)
+
+A production build of the plugin should not hardcode its backend: set `mateu.registryUrl` +
+`mateu.appId` in the bundled `application.properties` (system properties override them, e.g.
+`./gradlew runIde -Dmateu.registryUrl=… -Dmateu.appId=…`). At boot the plugin fetches
+`{registryUrl}/{appId}.json` — the same renderer-agnostic contract the React Native renderer
+uses — and reads the Mateu `baseUrl`, the launch `parameters` (seeded into `appState`) and the
+`intellij` requirements block (`requiredPluginVersion`, `requiredIdeBuild`, `downloadUrl`).
+An unmet requirement blocks the app behind an **Update required** panel whose *Update now* button
+runs the IDE's own **Check for Updates** flow (installs plugin AND platform updates) and opens the
+`downloadUrl` when provided; *Check again* re-reads the registry. See `plugin/AppRegistry.kt` and
+the boot gate in `plugin/MateuProjectService.kt`. Headless verification:
+
+```bash
+./gradlew -q registryProbe
+```
+
 ## Run / debug
 
 ```bash

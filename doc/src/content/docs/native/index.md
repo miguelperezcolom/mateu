@@ -90,6 +90,11 @@ a registry edit — no republishing:
   "storeUrl": {
     "android": "https://play.google.com/store/apps/details?id=…",
     "ios": "https://apps.apple.com/app/id…"
+  },
+  "intellij": {
+    "requiredPluginVersion": "0.2.0",
+    "requiredIdeBuild": "243.0",
+    "downloadUrl": "https://plugins.example.com/mateu-latest.zip"
   }
 }
 ```
@@ -103,6 +108,9 @@ a registry edit — no republishing:
   installables via `expo-updates`; the app relaunches on the new bundle), and falls back to the
   platform **store link** (`storeUrl`) when no OTA update is available. A **Check again** button
   re-reads the registry, so lowering the requirement unblocks users without reinstalling.
+- **`intellij`** — desktop requirements: `requiredPluginVersion` (minimum Mateu plugin version)
+  and `requiredIdeBuild` (minimum IntelliJ build number, e.g. `243.0` = 2024.3). Each renderer
+  reads its own block and ignores the others'.
 - From there on, everything works as usual — the registry is only consulted at boot.
 
 **React Native wiring** (`src/core/AppRegistry.ts` + the boot gate in `App.tsx`): the registry
@@ -123,8 +131,16 @@ EXPO_PUBLIC_MATEU_APP_ID=demo-admin-panel \
 npx expo start --web
 ```
 
-The registry contract is renderer-agnostic — the IntelliJ plugin can adopt the same JSON (its
-"update" path being a plugin-repository update rather than an OTA reload).
+**IntelliJ plugin wiring** (`plugin/AppRegistry.kt` + the boot gate in `MateuProjectService`):
+the coordinates live in the plugin's bundled `application.properties` (`mateu.registryUrl` +
+`mateu.appId`; system properties override them, e.g. `./gradlew runIde -Dmateu.registryUrl=…`).
+The gate resolves the entry off the EDT before the app boots; an unmet `intellij` requirement
+replaces the navigator with an **Update required** panel whose *Update now* button runs the IDE's
+own **Check for Updates** flow — the same one behind *Help ▸ Check for Updates*, which installs
+both plugin and platform updates — and opens the entry's `downloadUrl` when one is provided;
+*Check again* re-reads the registry. Registry errors show a Retry panel + an IDE notification.
+Headless verification: `./gradlew -q registryProbe` (entry URL resolution, fetch/parse against a
+throwaway local registry, version comparator, gate decisions).
 
 ### Running and testing the mobile renderer
 

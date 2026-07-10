@@ -62,7 +62,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | — | — |
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | 🟡 subset | 🟡 subset |
 | Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
-| App registry boot (installable → registry → backend) | — | — | — | — | ✅ |
+| App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
 
 "Shared" = SAP UI5 and PatternFly reuse the shared web components (Lumo-variable theming), so they
 inherit those features automatically.

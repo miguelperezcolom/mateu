@@ -54,6 +54,12 @@ tasks.runIde {
     jvmArgs("-Djb.consents.confirmation.enabled=false", "-Didea.trust.all.projects=true")
 }
 
+// Dev-only: exercise the app-registry client (entry URL, fetch/parse, version gate) headlessly.
+tasks.register<JavaExec>("registryProbe") {
+    classpath = sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    mainClass.set("io.mateu.ijp.debug.RegistryProbeKt")
+}
+
 // Dev-only: render a captured UIIncrement JSON through the real pipeline without booting an IDE —
 // prints the resulting Swing tree and writes a PNG. See io.mateu.ijp.debug.RenderProbe.
 tasks.register<JavaExec>("renderProbe") {
