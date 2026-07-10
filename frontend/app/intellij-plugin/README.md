@@ -42,6 +42,23 @@ the boot gate in `plugin/MateuProjectService.kt`. Headless verification:
 ./gradlew -q registryProbe
 ```
 
+## Installer (plugin + IntelliJ in one bundle)
+
+```bash
+./gradlew buildInstaller                             # linux tar.gz (default)
+./gradlew buildInstaller -Pinstaller.platform=windows
+./gradlew buildInstaller -Pmateu.registryUrl=https://registry.example.com -Pmateu.appId=demo-admin-panel
+```
+
+Produces `build/installer/mateu-desktop-<version>-<platform>.tar.gz|.zip` (~1.2 GB): **IntelliJ IDEA
+Community with the Mateu plugin preinstalled**, fully **portable** (config/system/log live in `data/`
+inside the bundle — it never touches an existing IDE install), first-boot prompts pre-answered, and a
+`mateu.sh` / `mateu.bat` launcher that opens the bundled workspace directly, so the end user unpacks
+and double-clicks. Passing `-Pmateu.registryUrl`/`-Pmateu.appId` bakes the app-registry coordinates
+into the launcher VM options (they override the plugin's bundled `application.properties`).
+The IDE archive downloads once into `build/installer/downloads/` and is reused. macOS is not
+supported by this task (JetBrains ships it only as `.dmg`) — install the plugin zip there instead.
+
 ## Run / debug
 
 ```bash

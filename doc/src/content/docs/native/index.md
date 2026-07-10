@@ -33,6 +33,20 @@ cd frontend/app/intellij-plugin
 
 Then open a project and reveal the **Mateu** tool window. See `frontend/app/intellij-plugin/README.md` for platform overrides and the `renderProbe` verification harness (render the captured wire JSON to a Swing tree + PNG without booting the IDE).
 
+**Ship it as an installer** — one Gradle task bundles the plugin *with* the IDE:
+
+```bash
+./gradlew buildInstaller \
+  -Pmateu.registryUrl=https://registry.example.com -Pmateu.appId=demo-admin-panel
+```
+
+This produces a portable `mateu-desktop-<version>-linux.tar.gz` (or `-Pinstaller.platform=windows`
+for a `.zip`): IntelliJ IDEA Community with the Mateu plugin preinstalled, isolated `data/`
+config (it never interferes with an IDE the user already has), first-boot prompts pre-answered,
+and a `mateu.sh`/`mateu.bat` launcher that opens the bundled workspace directly — unpack and
+double-click. The optional registry properties bake the [app registry](#app-registry-pointing-installables-at-their-backend)
+coordinates into the launcher, which is how a production desktop installable gets its backend.
+
 **Source:** `frontend/app/intellij-plugin/`
 
 ## Mobile — React Native

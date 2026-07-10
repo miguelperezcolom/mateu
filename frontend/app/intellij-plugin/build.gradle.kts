@@ -54,6 +54,109 @@ tasks.runIde {
     jvmArgs("-Djb.consents.confirmation.enabled=false", "-Didea.trust.all.projects=true")
 }
 
+// ── Installer: a self-contained "plugin + IntelliJ" distribution ──────────────────────────────
+// ./gradlew buildInstaller [-Pinstaller.platform=linux|windows]
+//                          [-Pmateu.registryUrl=… -Pmateu.appId=…]   (baked into the launcher VM options)
+//
+// Produces build/installer/mateu-desktop-<version>-<platform>.tar.gz|.zip: IntelliJ IDEA Community
+// with the Mateu plugin preinstalled, PORTABLE config/system dirs (data/ inside the bundle — it
+// never touches an existing IDE install), a bundled workspace project, and a `mateu` launcher that
+// opens it directly. macOS is not supported from this task (JetBrains ships it only as .dmg).
+tasks.register("buildInstaller") {
+    group = "distribution"
+    description = "Builds a portable IntelliJ IDEA Community + Mateu plugin bundle"
+    dependsOn(tasks.buildPlugin)
+    doLast {
+        val platform = (findProperty("installer.platform") as String?) ?: "linux"
+        require(platform in setOf("linux", "windows")) {
+            "installer.platform must be linux or windows (macOS ships only as .dmg — install the plugin zip there instead)"
+        }
+        fun run(vararg cmd: String, dir: File) {
+            val p = ProcessBuilder(*cmd).directory(dir).redirectErrorStream(true).start()
+            val out = p.inputStream.readBytes().decodeToString()
+            check(p.waitFor() == 0) { "command failed: ${cmd.joinToString(" ")}\n$out" }
+        }
+
+        val installerDir = layout.buildDirectory.dir("installer").get().asFile
+        val downloads = File(installerDir, "downloads").apply { mkdirs() }
+        val archiveName = if (platform == "linux") "ideaIC-$ideVersion.tar.gz" else "ideaIC-$ideVersion.win.zip"
+        val archive = File(downloads, archiveName)
+        if (!archive.exists()) {
+            logger.lifecycle("Downloading https://download.jetbrains.com/idea/$archiveName …")
+            run("curl", "-fL", "-o", archive.absolutePath, "https://download.jetbrains.com/idea/$archiveName", dir = downloads)
+        }
+
+        val work = File(installerDir, "work/$platform")
+        work.deleteRecursively()
+        work.mkdirs()
+        val bundleName = "mateu-desktop-${project.version}"
+        val root = File(work, bundleName)
+
+        logger.lifecycle("Unpacking the IDE…")
+        if (platform == "linux") {
+            run("tar", "-xzf", archive.absolutePath, dir = work)
+            val ideDir = work.listFiles()!!.single { it.isDirectory }
+            check(ideDir.renameTo(root)) { "could not rename ${ideDir.name}" }
+        } else {
+            root.mkdirs()
+            run("unzip", "-q", archive.absolutePath, dir = root) // the win zip has no top-level dir
+        }
+
+        logger.lifecycle("Installing the Mateu plugin…")
+        val pluginZip = tasks.buildPlugin.get().outputs.files.singleFile
+        run("unzip", "-q", "-o", pluginZip.absolutePath, "-d", File(root, "plugins").absolutePath, dir = root)
+
+        // Portable mode: config/system/log live INSIDE the bundle, isolated from any installed IDE.
+        File(root, "bin/idea.properties").appendText(
+            """
+
+            # ── Mateu portable bundle ──
+            idea.config.path=${'$'}{idea.home.path}/data/config
+            idea.system.path=${'$'}{idea.home.path}/data/system
+            idea.plugins.path=${'$'}{idea.home.path}/data/plugins
+            idea.log.path=${'$'}{idea.home.path}/data/log
+            """.trimIndent() + "\n",
+        )
+
+        // Skip first-boot prompts; optionally bake the app-registry coordinates into the VM options.
+        val vmOptionsFile = File(root, if (platform == "linux") "bin/idea64.vmoptions" else "bin/idea64.exe.vmoptions")
+        val registryProps = listOfNotNull(
+            (findProperty("mateu.registryUrl") as String?)?.let { "-Dmateu.registryUrl=$it" },
+            (findProperty("mateu.appId") as String?)?.let { "-Dmateu.appId=$it" },
+        )
+        vmOptionsFile.appendText(
+            (listOf("-Djb.consents.confirmation.enabled=false", "-Didea.trust.all.projects=true") + registryProps)
+                .joinToString("\n", prefix = "\n", postfix = "\n"),
+        )
+
+        // Bundled workspace the launcher opens (the plugin boots per-project, so a project must open).
+        File(root, "workspace").mkdirs()
+        File(root, "workspace/README.txt").writeText("Mateu desktop workspace — opened automatically by the launcher.\n")
+
+        if (platform == "linux") {
+            File(root, "mateu.sh").apply {
+                writeText("#!/bin/sh\nDIR=\"$(cd \"$(dirname \"$0\")\" && pwd)\"\nexec \"\$DIR/bin/idea.sh\" \"\$DIR/workspace\" \"\$@\"\n")
+                setExecutable(true)
+            }
+        } else {
+            File(root, "mateu.bat").writeText("@echo off\r\nstart \"\" \"%~dp0bin\\idea64.exe\" \"%~dp0workspace\"\r\n")
+        }
+
+        logger.lifecycle("Packing the bundle…")
+        val out = File(
+            installerDir,
+            "$bundleName-$platform." + if (platform == "linux") "tar.gz" else "zip",
+        )
+        out.delete()
+        if (platform == "linux") {
+            run("tar", "-czf", out.absolutePath, bundleName, dir = work)
+        } else {
+            run("zip", "-qr", out.absolutePath, bundleName, dir = work)
+        }
+        logger.lifecycle("Installer ready: $out (${out.length() / (1024 * 1024)} MB)")
+    }
+}
+
 // Dev-only: exercise the app-registry client (entry URL, fetch/parse, version gate) headlessly.
 tasks.register<JavaExec>("registryProbe") {
     classpath = sourceSets.main.get().output + sourceSets.main.get().compileClasspath
