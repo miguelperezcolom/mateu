@@ -110,14 +110,17 @@ The React Native renderer runs your Mateu backend as a **native mobile applicati
 
 | File | Role |
 |---|---|
-| `App.tsx` | Entry point — initial load and root component dispatch |
+| `App.tsx` | Entry point — root load, toast/overlay/dirty-guard hosts, backend URL config |
 | `src/api/MateuApiClient.ts` | HTTP client — calls `POST /mateu/v3/sync/{route}` |
-| `src/context/AppContext.tsx` | React context — holds `navigate()`, `runAction()`, and app state |
-| `src/renderer/AppRenderer.tsx` | Builds navigation structure from app metadata |
+| `src/core/MateuViewController.ts` | Pure-TS increment pipeline for ONE view — fragments, commands, action bubbling, client-side validation, dirty tracking |
+| `src/core/MateuSession.ts` | App-wide services — HTTP client, `appState`, event bus (`@SubscribeTo`), host hooks (toasts, overlays, confirm) |
+| `src/renderer/MateuViewHost.tsx` | Hosts one view controller and re-renders on every increment |
+| `src/renderer/AppRenderer.tsx` | Builds navigation structure from app metadata + the per-screen view stack |
 | `src/renderer/PageRenderer.tsx` | Renders pages with header, toolbar, children, and buttons |
 | `src/renderer/FormRenderer.tsx` | Renders forms with scrollable field list |
-| `src/renderer/FormFieldRenderer.tsx` | Renders individual fields (text, boolean, options, password, numbers) |
-| `src/renderer/CrudRenderer.tsx` | Renders tables with search, pagination, and row navigation |
+| `src/renderer/FormFieldRenderer.tsx` | Renders individual fields (text, boolean, date, options, grids, capture fields…) |
+| `src/renderer/DateField.tsx` | Dependency-free calendar picker for `date`/`datetime` fields and date filters |
+| `src/renderer/CrudRenderer.tsx` | Renders tables with search, filters panel, pagination, and row navigation |
 | `src/renderer/ComponentRenderer.tsx` | Dispatcher — routes each component node to the right renderer |
 | `src/renderer/LayoutRenderer.tsx` | Renders horizontal and vertical layouts |
 | `src/renderer/DashboardRenderer.tsx` | Renders `MetricCard`, `Scoreboard`, `DashboardPanel`, `DashboardLayout` |
@@ -126,15 +129,33 @@ The React Native renderer runs your Mateu backend as a **native mobile applicati
 
 **Source:** `frontend/app/react-native/`
 
-**To run:**
+### Running and testing the mobile renderer
+
+All options assume a Mateu backend running locally (e.g. the demo at `http://localhost:8592` — the port is configured in `App.tsx`, `MATEU_BACKEND_PORT`). From your IDE (IntelliJ included) the commands below run fine from the integrated terminal, or as an **npm Run Configuration** (Run → Edit Configurations → `+` → npm → pick the module's `package.json` and the `web`/`start` script) so launching the renderer is one click.
+
+**1. Browser with a phone viewport — fastest, zero install**
 
 ```bash
 cd frontend/app/react-native
-# edit MATEU_CONFIG in App.tsx to point to your backend
-npx expo start --port 8084
+npm run web            # expo start --web
 ```
 
-Scan the QR code with **Expo Go** on your phone, or press `i` for iOS simulator / `a` for Android emulator.
+Open the printed URL in Chrome and turn on device mode (`F12` → phone icon, or `Ctrl+Shift+M`), then pick a device preset ("iPhone 14", "Pixel 7"…). You get the mobile viewport, touch events, and hot reload as you edit the renderer code. It is not a real phone (no native camera, system gestures, etc.), but for iterating on UI it is very faithful.
+
+**2. Your real phone with Expo Go — the genuine experience, ~2 minutes**
+
+Install the free **Expo Go** app (App Store / Play Store), put the phone on the same Wi-Fi as your machine, and:
+
+```bash
+cd frontend/app/react-native
+npm start              # expo start — prints a QR code
+```
+
+Scan the QR with the camera (iOS) or from Expo Go (Android). The app opens on the phone with hot reload. The backend host is **derived automatically** from the Expo dev server the bundle was loaded from (`hostUri`), so as long as the backend runs on the same machine as `expo start`, no configuration is needed — just make sure your firewall allows ports **8081** (Metro) and your backend port (e.g. **8592**). If your network isolates Wi-Fi clients, `npx expo start --tunnel` routes around it (over the internet, slower).
+
+**3. Android emulator / iOS simulator**
+
+With Android Studio installed and an AVD created (Device Manager → any Pixel image), `npm run android` starts Expo and launches the app in the emulator. On macOS, `npm run ios` does the same with the iOS Simulator (requires Xcode). This is the heaviest option to set up, but gives you a full mobile OS in a window — useful for testing the real camera flow (Android emulator) or platform-specific behaviors.
 
 ## Desktop & mobile — Compose Multiplatform
 
