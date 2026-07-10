@@ -52,15 +52,24 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Feature | Vaadin (web) | Redwood (web) | SAP UI5 / PatternFly (web) | IntelliJ plugin | React Native |
 |---|---|---|---|---|---|
 | Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | ✅ (native panel) | 🟡 panel (no chips) |
+| Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
+| Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ | 🟡 table only | ✅ |
+| Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
 | Date picker | ✅ | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
+| Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | — | ✅ |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ | ✅ | 🟡 subset | ✅ |
+| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ | ✅ | — | ✅ (no-eval engine) |
+| Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | — | ✅ |
+| FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ | 🟡 charts only | ✅ |
+| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | 🟡 partial | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ | — | ✅ |
 | App context selector | ✅ | ✅ | ✅ (shared) | — | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | ✅ | — | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas | ✅ (shared) | — | ✅ svg + view-shot |
 | Photo capture | ✅ getUserMedia | ✅ | ✅ (shared) | — | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (shared) | — | ✅ |
-| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | — | — |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | 🟡 subset | 🟡 subset |
+| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | — | ✅ (tree layout) |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | 🟡 subset | ✅ |
 | Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
 
