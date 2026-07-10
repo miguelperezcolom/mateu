@@ -129,6 +129,61 @@ The React Native renderer runs your Mateu backend as a **native mobile applicati
 
 **Source:** `frontend/app/react-native/`
 
+### App registry: pointing installables at their backend
+
+A native installable should not hardcode its backend URL — app-store releases are slow, and the
+same renderer binary often serves several environments. Instead, the installable carries only
+**two values**: a **registry URL** and an **app id**. A public registry maps the app id to
+everything else, so retargeting a backend, changing launch parameters, or forcing an upgrade is
+a registry edit — no republishing:
+
+```json
+// GET {registryUrl}/{appId}.json   (any static hosting works: S3, GitHub Pages, nginx…)
+// or   {registryUrl} with an {appId} placeholder, for dynamic registries
+{
+  "appId": "demo-admin-panel",
+  "baseUrl": "https://apps.example.com/admin",
+  "parameters": { "tenantId": "1111" },
+  "requiredRendererVersion": "1.2.0",
+  "storeUrl": {
+    "android": "https://play.google.com/store/apps/details?id=…",
+    "ios": "https://apps.apple.com/app/id…"
+  }
+}
+```
+
+- **`baseUrl`** — the Mateu backend the renderer talks to from then on.
+- **`parameters`** — seeded into the `appState` sent with every request (the server reads them
+  via `HttpRequest`, like `@AppContext` values).
+- **`requiredRendererVersion`** — minimum installable version able to run this app. When the
+  installed renderer is older, the app shows a blocking **Update required** screen *before*
+  touching the backend: it first tries an **over-the-air update** (real for EAS-built Expo
+  installables via `expo-updates`; the app relaunches on the new bundle), and falls back to the
+  platform **store link** (`storeUrl`) when no OTA update is available. A **Check again** button
+  re-reads the registry, so lowering the requirement unblocks users without reinstalling.
+- From there on, everything works as usual — the registry is only consulted at boot.
+
+**React Native wiring** (`src/core/AppRegistry.ts` + the boot gate in `App.tsx`): the registry
+coordinates live in the installable's `app.json` under `expo.extra` —
+
+```json
+"extra": { "mateuRegistryUrl": "https://registry.example.com", "mateuAppId": "demo-admin-panel" }
+```
+
+— or, during development, in the `EXPO_PUBLIC_MATEU_REGISTRY_URL` / `EXPO_PUBLIC_MATEU_APP_ID`
+environment variables. With neither set, the renderer boots against its dev config (localhost /
+the Expo dev-server host). A ready-to-copy entry lives in `registry-example/demo-admin-panel.json`;
+to try the whole flow locally, serve that folder over HTTP (with CORS for web) and run:
+
+```bash
+EXPO_PUBLIC_MATEU_REGISTRY_URL=http://localhost:8765 \
+EXPO_PUBLIC_MATEU_APP_ID=demo-admin-panel \
+npx expo start --web
+```
+
+The registry contract is renderer-agnostic — the JavaFX and Compose renderers can adopt the same
+JSON (their "update" path being a download link rather than an OTA reload).
+
 ### Running and testing the mobile renderer
 
 All options assume a Mateu backend running locally (e.g. the demo at `http://localhost:8592` — the port is configured in `App.tsx`, `MATEU_BACKEND_PORT`). From your IDE (IntelliJ included) the commands below run fine from the integrated terminal, or as an **npm Run Configuration** (Run → Edit Configurations → `+` → npm → pick the module's `package.json` and the `web`/`start` script) so launching the renderer is one click.

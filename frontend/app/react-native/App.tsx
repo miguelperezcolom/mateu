@@ -1,21 +1,40 @@
 import Constants from 'expo-constants';
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import * as Updates from 'expo-updates';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Linking, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MateuAppProvider, useAppContext } from './src/context/AppContext';
+import {
+  fetchRegistryEntry,
+  installedRendererVersion,
+  readRegistryConfig,
+  RegistryEntry,
+  updateRequired,
+} from './src/core/AppRegistry';
 import { AppRenderer } from './src/renderer/AppRenderer';
 import { MateuViewHost } from './src/renderer/MateuViewHost';
 
-// ─── Configure your Mateu backend here ───────────────────────────────────────
-// On a real device (Expo Go) "localhost" is the PHONE, so the backend host is derived from
-// the Expo dev server the app was loaded from (hostUri, e.g. "192.168.1.30:8081") — run the
-// backend on the same machine as `expo start` and it just works. Web/simulators keep localhost.
+// ─── Backend resolution ──────────────────────────────────────────────────────
+// PRODUCTION: the installable carries only a registry URL + app id (app.json `expo.extra`
+// mateuRegistryUrl/mateuAppId, or EXPO_PUBLIC_MATEU_REGISTRY_URL/EXPO_PUBLIC_MATEU_APP_ID in
+// dev) — the public registry maps the app id to the Mateu base URL, the launch parameters and
+// the required renderer version (see src/core/AppRegistry.ts). No registry configured →
+// DEV fallback: on a real device (Expo Go) "localhost" is the PHONE, so the backend host is
+// derived from the Expo dev server the bundle was loaded from (hostUri).
 const MATEU_BACKEND_PORT = 8592;
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
-const MATEU_CONFIG = {
+const DEV_CONFIG = {
   baseUrl: `http://${Platform.OS === 'web' || !devHost ? 'localhost' : devHost}:${MATEU_BACKEND_PORT}`,
   sessionId: 'native-session-1',
-  appState: { tenantId: '1111', profile: 'dev' },
+  appState: { tenantId: '1111', profile: 'dev' } as Record<string, unknown>,
 };
+
+function configFromEntry(entry: RegistryEntry) {
+  return {
+    baseUrl: entry.baseUrl.replace(/\/+$/, ''),
+    sessionId: 'native-session-1',
+    appState: { ...(entry.parameters ?? {}) },
+  };
+}
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface Toast {
@@ -167,15 +186,128 @@ function MateuRoot() {
   return <MateuViewHost session={session} target={{ label: '', route: '', consumedRoute: '_empty', serverSideType: '' }} />;
 }
 
+/** Blocking screen shown when the registry demands a newer renderer. "Update now" first tries
+ *  an over-the-air update (expo-updates, real for EAS-built installables), then falls back to
+ *  the platform store link from the registry entry. */
+function UpdateRequiredScreen({ entry, onRecheck }: { entry: RegistryEntry; onRecheck: () => void }) {
+  const [updating, setUpdating] = useState(false);
+  const [otaUnavailable, setOtaUnavailable] = useState(false);
+  const storeUrl = Platform.OS === 'ios' ? entry.storeUrl?.ios : entry.storeUrl?.android;
+
+  const update = async () => {
+    setUpdating(true);
+    try {
+      if (Updates.isEnabled) {
+        const check = await Updates.checkForUpdateAsync();
+        if (check.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync(); // relaunches on the new bundle — never returns
+          return;
+        }
+      }
+      setOtaUnavailable(true);
+    } catch {
+      setOtaUnavailable(true);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  return (
+    <View style={styles.centered}>
+      <Text style={styles.updateTitle}>Update required</Text>
+      <Text style={styles.updateDetail}>
+        This app needs renderer version {entry.requiredRendererVersion} — you have {installedRendererVersion()}.
+      </Text>
+      {updating ? (
+        <ActivityIndicator size="large" color="#0070f3" style={styles.updateSpinner} />
+      ) : (
+        <TouchableOpacity style={styles.updateButton} onPress={update}>
+          <Text style={styles.updateButtonText}>Update now</Text>
+        </TouchableOpacity>
+      )}
+      {otaUnavailable && (
+        <View style={styles.updateFallback}>
+          <Text style={styles.updateDetail}>No over-the-air update is available.</Text>
+          {storeUrl ? (
+            <TouchableOpacity style={styles.updateButton} onPress={() => Linking.openURL(storeUrl)}>
+              <Text style={styles.updateButtonText}>Open the store</Text>
+            </TouchableOpacity>
+          ) : (
+            <Text style={styles.updateDetail}>Please install the latest version from your app store.</Text>
+          )}
+        </View>
+      )}
+      <TouchableOpacity onPress={onRecheck} style={styles.updateRecheck}>
+        <Text style={styles.updateRecheckText}>Check again</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+/** Boot gate: no registry configured → dev config straight away; otherwise resolve the registry
+ *  entry (baseUrl + parameters), enforce the required renderer version, then boot as usual. */
+function RegistryBoot() {
+  const [regConfig] = useState(readRegistryConfig);
+  const [phase, setPhase] = useState<'loading' | 'error' | 'update' | 'ready'>(regConfig ? 'loading' : 'ready');
+  const [entry, setEntry] = useState<RegistryEntry | null>(null);
+  const [error, setError] = useState('');
+
+  const load = useCallback(async () => {
+    if (!regConfig) return;
+    setPhase('loading');
+    try {
+      const e = await fetchRegistryEntry(regConfig);
+      setEntry(e);
+      setPhase(updateRequired(e) ? 'update' : 'ready');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+      setPhase('error');
+    }
+  }, [regConfig]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  if (phase === 'loading') {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#0070f3" />
+        <Text style={styles.loadingText}>Contacting app registry…</Text>
+      </View>
+    );
+  }
+  if (phase === 'error') {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.errorTitle}>Could not reach the app registry</Text>
+        <Text style={styles.errorDetail}>{error}</Text>
+        <TouchableOpacity style={styles.updateButton} onPress={() => void load()}>
+          <Text style={styles.updateButtonText}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+  if (phase === 'update' && entry) {
+    return <UpdateRequiredScreen entry={entry} onRecheck={() => void load()} />;
+  }
+
+  const config = entry ? configFromEntry(entry) : DEV_CONFIG;
+  return (
+    <MateuAppProvider config={config}>
+      <MateuRoot />
+      <OverlayHost />
+      <ToastHost />
+      <DirtyGuardHost />
+    </MateuAppProvider>
+  );
+}
+
 export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
-      <MateuAppProvider config={MATEU_CONFIG}>
-        <MateuRoot />
-        <OverlayHost />
-        <ToastHost />
-        <DirtyGuardHost />
-      </MateuAppProvider>
+      <RegistryBoot />
     </SafeAreaView>
   );
 }
@@ -198,4 +330,12 @@ const styles = StyleSheet.create({
   overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
   overlayTitle: { fontSize: 16, fontWeight: '600', color: '#1a1a1a' },
   overlayClose: { fontSize: 18, color: '#666', paddingHorizontal: 8 },
+  updateTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
+  updateDetail: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 },
+  updateSpinner: { marginVertical: 8 },
+  updateButton: { backgroundColor: '#0070f3', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, marginTop: 4 },
+  updateButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  updateFallback: { marginTop: 16, alignItems: 'center' },
+  updateRecheck: { marginTop: 20, padding: 8 },
+  updateRecheckText: { color: '#0070f3', fontSize: 13, fontWeight: '600' },
 });

@@ -29,6 +29,10 @@
           "cameraPermission": "The app captures photos for @PhotoCapture fields."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "mateuRegistryUrl": "",
+      "mateuAppId": ""
+    }
   }
 }

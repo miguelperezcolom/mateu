@@ -1,0 +1,10 @@
+{
+  "appId": "demo-admin-panel",
+  "baseUrl": "http://localhost:8592",
+  "parameters": { "tenantId": "1111", "profile": "dev" },
+  "requiredRendererVersion": "1.0.0",
+  "storeUrl": {
+    "android": "https://play.google.com/store/apps/details?id=io.mateu.native",
+    "ios": "https://apps.apple.com/app/id0000000000"
+  }
+}

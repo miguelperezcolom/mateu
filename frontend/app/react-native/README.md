@@ -42,6 +42,16 @@ npm run ios        # macOS + Xcode only
 > From IntelliJ: use the integrated terminal, or create an **npm Run Configuration**
 > (Run → Edit Configurations → `+` → npm → this module's `package.json`, script `web` or `start`).
 
+## App registry (production installables)
+
+A production installable carries only a **registry URL + app id** (`app.json` → `expo.extra.mateuRegistryUrl`
+/ `mateuAppId`, or the `EXPO_PUBLIC_MATEU_REGISTRY_URL` / `EXPO_PUBLIC_MATEU_APP_ID` env vars in dev).
+At boot the app fetches `{registryUrl}/{appId}.json`, which maps the app id to the Mateu `baseUrl`,
+the launch `parameters` (seeded into `appState`) and the `requiredRendererVersion` — if the installed
+renderer is older, a blocking screen tries an OTA update (`expo-updates`, real on EAS builds) and
+falls back to the store link. No registry configured → dev config (localhost / Expo host).
+See `src/core/AppRegistry.ts` and `registry-example/demo-admin-panel.json`.
+
 ## Architecture (short version)
 
 - `src/core/MateuViewController.ts` — pure-TS UIIncrement pipeline for one view: fragments,
