@@ -53,23 +53,23 @@ Every renderer speaks the same wire; the depth of widget support varies.
 |---|---|---|---|---|---|
 | Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
-| Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ | 🟡 table only | ✅ |
+| Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ | ✅ (tree = JTree; cards/list adapt to the table) | ✅ |
 | Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
 | Date picker | ✅ | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
-| Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | — | ✅ |
-| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ | ✅ | 🟡 subset | ✅ |
-| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ | ✅ | — | ✅ (no-eval engine) |
-| Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | — | ✅ |
-| FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ | 🟡 charts only | ✅ |
-| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | 🟡 partial | ✅ |
-| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ | — | ✅ |
-| App context selector | ✅ | ✅ | ✅ (shared) | — | ✅ |
-| — searchable picker w/ remote search | ✅ | ✅ | ✅ | — | ✅ |
-| Signature capture | ✅ canvas | ✅ canvas | ✅ (shared) | — | ✅ svg + view-shot |
-| Photo capture | ✅ getUserMedia | ✅ | ✅ (shared) | — | ✅ expo-camera |
-| Tree select dropdown | ✅ | ✅ | ✅ (shared) | — | ✅ |
-| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | — | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | 🟡 subset | ✅ |
+| Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ | ✅ | ✅ (shared engine) | ✅ (no-eval engine) |
+| Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ | ✅ (FABs as header buttons) | ✅ |
+| @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | ✅ | ✅ | ✅ chat (theme = the IDE's own) | ✅ |
+| App context selector | ✅ | ✅ | ✅ (shared) | ✅ (navigator combos) | ✅ |
+| — searchable picker w/ remote search | ✅ | ✅ | ✅ | 🟡 loaded options only | ✅ |
+| Signature capture | ✅ canvas | ✅ canvas | ✅ (shared) | ✅ mouse canvas | ✅ svg + view-shot |
+| Photo capture | ✅ getUserMedia | ✅ | ✅ (shared) | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
+| Tree select dropdown | ✅ | ✅ | ✅ (shared) | ✅ (JTree popup) | ✅ |
+| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | ✅ (tree layout) | ✅ (tree layout) |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
 
