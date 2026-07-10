@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CrudRenderer } from './CrudRenderer';
 import { interpolate } from '../core/expressions';
+import { ChartRenderer } from './ChartRenderer';
 import { FormFieldRenderer } from './FormFieldRenderer';
 import { FormRenderer } from './FormRenderer';
 import { LayoutRenderer } from './LayoutRenderer';
@@ -163,6 +164,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <EmptyStateRenderer metadata={metadata as unknown as EmptyState} />;
     case 'Skeleton':
       return <SkeletonRenderer metadata={metadata as unknown as Skeleton} />;
+    case 'Chart':
+      return <ChartRenderer metadata={metadata} />;
     case 'Gantt':
       return <GanttRenderer component={component} />;
 

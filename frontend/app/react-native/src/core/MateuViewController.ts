@@ -62,6 +62,12 @@ export class MateuViewController {
   /** Rule-driven field attribute overrides (SetAttributeValue): fieldId → {hidden, disabled, …}. */
   fieldAttributes: Record<string, Json> = {};
 
+  /** @Emits name stamped as __source on dispatched events. */
+  private emitsName = '';
+  /** @AutoSave: debounced action fired after edits. */
+  private autoSave: { actionId: string; debounceMillis: number } | null = null;
+  private autoSaveTimer: ReturnType<typeof setTimeout> | undefined;
+
   /** Action-returned banners (UIIncrementDto.banners) — cleared on navigation. */
   actionBanners: PageBanner[] = [];
 
@@ -193,6 +199,11 @@ export class MateuViewController {
     this.markUserEdit();
     // Rules react to edits (observed fields, conditional visibility/disabling).
     this.applyRulesAndRepublish();
+    // @AutoSave: fire the configured action once the user has been idle for the debounce window.
+    if (this.autoSave) {
+      if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
+      this.autoSaveTimer = setTimeout(() => void this.runAction(this.autoSave!.actionId, undefined, true), this.autoSave.debounceMillis);
+    }
   }
 
   markUserEdit(): void {
@@ -237,15 +248,30 @@ export class MateuViewController {
     this.trackDirty = sscNode['confirmOnNavigationIfDirty'] === true;
     this.setDirty(false);
 
-    // @SubscribeTo / OnCustomEvent triggers → the session event bus.
+    // @Emits: the logical name stamped as __source on events this component dispatches.
+    this.emitsName = str(sscNode['emitsName']) || str(sscNode['serverSideType']);
+
+    // Triggers: @SubscribeTo / OnCustomEvent → the session event bus (COMPONENT scope filters by
+    // the emitter's __source); @AutoSave → debounced save on every edit.
+    this.autoSave = null;
     this.session.unsubscribeAll(this);
     for (const trigger of asArray(sscNode['triggers'])) {
-      if (String(trigger['type']).toLowerCase() !== 'oncustomevent') continue;
+      const type = String(trigger['type']).toLowerCase();
+      if (type === 'autosave') {
+        const actionId = str(trigger['actionId']) || 'save';
+        const debounceMillis = Number(trigger['debounceMillis']) || 800;
+        this.autoSave = { actionId, debounceMillis };
+        continue;
+      }
+      if (type !== 'oncustomevent') continue;
       const eventName = str(trigger['eventName']);
       const actionId = str(trigger['actionId']);
       if (!eventName || !actionId) continue;
+      const from = str(trigger['from']);
+      const scope = str(trigger['source']).toUpperCase();
       this.session.subscribe(this, eventName, (payload) => {
         const params = payload && typeof payload === 'object' ? (payload as Json) : {};
+        if (scope === 'COMPONENT' && from && str(params['__source']) !== from) return;
         void this.runAction(actionId, params, true);
       });
     }
@@ -654,7 +680,11 @@ export class MateuViewController {
   private dispatchNamedEvent(cmdData: Json | null | undefined): void {
     const eventName = str(cmdData?.['eventName']);
     if (!eventName) return;
-    const payload = cmdData?.['payload'] ?? cmdData?.['detail'] ?? null;
+    let payload = cmdData?.['payload'] ?? cmdData?.['detail'] ?? null;
+    // Only object payloads get the __source stamp, so legacy events keep their shape.
+    if (payload && typeof payload === 'object' && !Array.isArray(payload) && this.emitsName) {
+      payload = { ...(payload as Json), __source: this.emitsName };
+    }
     this.session.dispatchEvent(eventName, payload);
   }
 

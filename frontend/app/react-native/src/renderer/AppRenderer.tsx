@@ -1,11 +1,12 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { NavTarget } from '../core/MateuSession';
+import { ChatPanel } from './ChatPanel';
 import { MateuViewHost } from './MateuViewHost';
 
 const Stack = createStackNavigator();
@@ -30,6 +31,9 @@ interface AppContextSelector {
 
 interface AppMeta {
   title?: string;
+  sseUrl?: string | null;
+  themeToggle?: boolean;
+  fabs?: { id?: string; label?: string; actionId?: string; icon?: string }[];
   homeRoute?: string;
   homeConsumedRoute?: string;
   homeServerSideType?: string;
@@ -251,6 +255,53 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
   );
 }
 
+/** App-level floating layer: @Fab buttons of the @UI app class + the AI chat FAB (sseUrl).
+ *  App fab actions run against the app's home route (the class that declared them). */
+function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
+  const { session } = useAppContext();
+  const [chatOpen, setChatOpen] = useState(false);
+  const fabs = appMeta.fabs ?? [];
+
+  const runAppAction = async (actionId: string) => {
+    if (!actionId) return;
+    try {
+      const inc = (await session.api.runFormAction(
+        appMeta.homeRoute ?? '',
+        appMeta.homeConsumedRoute ?? '',
+        actionId,
+        appMeta.serverSideType ?? '',
+        'ux_main',
+        {},
+        session.appState,
+      )) as { messages?: { title?: string; text?: string; variant?: string }[] };
+      for (const m of inc.messages ?? []) {
+        if (m.text) session.notify(m.title ?? null, m.text, (m.variant as 'info' | 'warning' | 'error') ?? 'info');
+      }
+    } catch (e) {
+      session.notify(null, e instanceof Error ? e.message : String(e), 'error');
+    }
+  };
+
+  if (fabs.length === 0 && !appMeta.sseUrl) return null;
+  return (
+    <>
+      <View style={styles.appFabStack} pointerEvents="box-none">
+        {fabs.map((fab, i) => (
+          <TouchableOpacity key={i} style={styles.appFab} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')}>
+            <Text style={styles.appFabText}>{fab.label || '+'}</Text>
+          </TouchableOpacity>
+        ))}
+        {!!appMeta.sseUrl && (
+          <TouchableOpacity style={[styles.appFab, styles.chatFab]} onPress={() => setChatOpen(true)}>
+            <Text style={styles.appFabText}>💬</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      {chatOpen && !!appMeta.sseUrl && <ChatPanel session={session} sseUrl={appMeta.sseUrl} onClose={() => setChatOpen(false)} />}
+    </>
+  );
+}
+
 export function AppRenderer({ component, appMeta }: { component: Record<string, unknown>; appMeta: AppMeta }) {
   const [currentNav, setCurrentNav] = useState<{ route: string; consumedRoute: string; serverSideType: string }>({
     route: appMeta.homeRoute ?? '',
@@ -263,6 +314,9 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // bumped when an @AppContext selector changes so the current screen remounts (and thus reloads
   // with the new appState)
   const [contextVersion, setContextVersion] = useState(0);
+  // themeToggle = true on @App: light/dark switch applied to the navigation chrome
+  const [dark, setDark] = useState(false);
+  const navTheme = dark ? DarkTheme : DefaultTheme;
 
   const handleMenuNav = (item: MenuItem) => {
     setCurrentNav({
@@ -283,7 +337,8 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   if (variant === 'TABS' && menuItems.length > 0) {
     return (
-      <NavigationContainer>
+      <NavigationContainer theme={navTheme}>
+        <AppOverlays appMeta={appMeta} />
         <Tab.Navigator screenOptions={{ headerShown: false }}>
           {menuItems.map((item, i) => (
             <Tab.Screen
@@ -307,7 +362,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   // (including HAMBURGUER_MENU and AUTO) render through it.
   if (variant !== 'TABS' && menuItems.length > 0) {
     return (
-      <NavigationContainer>
+      <NavigationContainer theme={navTheme}>
         <Drawer.Navigator
           drawerContent={(props) => (
             <SidebarContent
@@ -319,20 +374,32 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
               onContextChanged={() => setContextVersion((v) => v + 1)}
             />
           )}
-          screenOptions={{ headerShown: true, title: appMeta.title ?? 'Mateu' }}
+          screenOptions={{
+            headerShown: true,
+            title: appMeta.title ?? 'Mateu',
+            headerRight: appMeta.themeToggle
+              ? () => (
+                  <TouchableOpacity style={styles.themeToggle} onPress={() => setDark(!dark)}>
+                    <Text style={styles.themeToggleText}>{dark ? '☀️' : '🌙'}</Text>
+                  </TouchableOpacity>
+                )
+              : undefined,
+          }}
         >
           <Drawer.Screen name="Main" children={() => mainScreen} />
         </Drawer.Navigator>
+        <AppOverlays appMeta={appMeta} />
       </NavigationContainer>
     );
   }
 
   // MEDIATOR / no menu
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Main" children={() => mainScreen} />
       </Stack.Navigator>
+      <AppOverlays appMeta={appMeta} />
     </NavigationContainer>
   );
 }
@@ -341,6 +408,12 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: '#cc0000', padding: 16, fontSize: 14 },
   stackHost: { flex: 1 },
+  appFabStack: { position: 'absolute', right: 16, bottom: 90, gap: 10, alignItems: 'flex-end', zIndex: 50 },
+  appFab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: '#0070f3', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
+  chatFab: { backgroundColor: '#1a1a2e' },
+  appFabText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  themeToggle: { paddingHorizontal: 14 },
+  themeToggleText: { fontSize: 18 },
   backBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee', backgroundColor: '#fafafa' },
   backButton: { paddingVertical: 4, paddingRight: 12 },
   backText: { color: '#0070f3', fontSize: 15, fontWeight: '600' },

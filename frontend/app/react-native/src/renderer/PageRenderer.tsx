@@ -19,6 +19,14 @@ interface Props {
   data: unknown;
 }
 
+const BADGE_COLORS: Record<string, string> = {
+  normal: '#e8eaed',
+  success: '#e6f4ea',
+  error: '#fce8e6',
+  warning: '#fef7e0',
+  contrast: '#dadce0',
+};
+
 const BANNER_COLORS: Record<string, { bg: string; border: string }> = {
   info: { bg: '#e8f0fe', border: '#1a73e8' },
   success: { bg: '#e6f4ea', border: '#1e8e3e' },
@@ -77,6 +85,9 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const subtitle = interpolate((metadata['subtitle'] as string) ?? '', ctx);
   const toolbar = (metadata['toolbar'] as ButtonDto[]) ?? [];
   const buttons = (metadata['buttons'] as ButtonDto[]) ?? [];
+  const badges = (metadata['badges'] as { text?: string; color?: string }[]) ?? [];
+  const kpis = (metadata['kpis'] as { title?: string; text?: string }[]) ?? [];
+  const fabs = (metadata['fabs'] as { id?: string; label?: string; actionId?: string; icon?: string }[]) ?? [];
   const children = (component['children'] as unknown[]) ?? [];
 
   const handleAction = (actionId: string) => runAction(actionId);
@@ -87,6 +98,25 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         <View style={styles.header}>
           {!!title && <Text style={styles.title}>{title}</Text>}
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+          {badges.length > 0 && (
+            <View style={styles.badges}>
+              {badges.map((b, i) => (
+                <View key={i} style={[styles.badge, { backgroundColor: BADGE_COLORS[String(b.color ?? 'normal').toLowerCase()] ?? BADGE_COLORS.normal }]}>
+                  <Text style={styles.badgeText}>{interpolate(b.text ?? '', ctx)}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+          {kpis.length > 0 && (
+            <View style={styles.kpis}>
+              {kpis.map((k, i) => (
+                <View key={i} style={styles.kpi}>
+                  <Text style={styles.kpiText}>{interpolate(k.text ?? '', ctx)}</Text>
+                  <Text style={styles.kpiTitle}>{interpolate(k.title ?? '', ctx)}</Text>
+                </View>
+              ))}
+            </View>
+          )}
           {toolbar.length > 0 && (
             <View style={styles.toolbar}>
               {toolbar.map((btn, i) => {
@@ -112,6 +142,16 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
           <ComponentRenderer key={i} component={child} state={state} data={data} />
         ))}
       </ScrollView>
+
+      {fabs.length > 0 && (
+        <View style={styles.fabStack} pointerEvents="box-none">
+          {fabs.map((fab, i) => (
+            <TouchableOpacity key={i} style={styles.fab} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')}>
+              <Text style={styles.fabText}>{fab.label ? interpolate(fab.label, ctx) : '+'}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {buttons.length > 0 && (
         <View style={styles.bottomBar}>
@@ -144,6 +184,16 @@ const styles = StyleSheet.create({
   bannerTitle: { fontWeight: '700', fontSize: 13, color: '#1a1a1a', marginBottom: 2 },
   bannerText: { fontSize: 13, color: '#1a1a1a' },
   bannerClose: { fontSize: 14, color: '#666', paddingHorizontal: 4 },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
+  badgeText: { fontSize: 11, fontWeight: '600', color: '#1a1a1a' },
+  kpis: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 10 },
+  kpi: { alignItems: 'flex-start' },
+  kpiText: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
+  kpiTitle: { fontSize: 11, color: '#888' },
+  fabStack: { position: 'absolute', right: 16, bottom: 24, gap: 10, alignItems: 'flex-end' },
+  fab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: '#0070f3', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 5, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
+  fabText: { color: '#fff', fontWeight: '600', fontSize: 15 },
   bottomBar: {
     flexDirection: 'row',
     padding: 16,
