@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAppContext } from '../context/AppContext';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CrudRenderer } from './CrudRenderer';
 import { FormFieldRenderer } from './FormFieldRenderer';
 import { FormRenderer } from './FormRenderer';
@@ -17,6 +16,8 @@ import {
   FoldoutRenderer, HeroSectionRenderer, EmptyStateRenderer, SkeletonRenderer, GanttRenderer,
 } from './DisplayRenderer';
 import { EmptyState, MetricCard, Skeleton } from '../api/metadata';
+import { useAppContext } from '../context/AppContext';
+import { MateuViewHost, useViewController } from './MateuViewHost';
 
 interface Props {
   component: unknown;
@@ -25,47 +26,29 @@ interface Props {
 }
 
 export function ComponentRenderer({ component, state, data }: Props) {
-  const { runAction, loadServerSideComponent } = useAppContext();
-
   if (!component) return null;
 
   const comp = component as Record<string, unknown>;
   const type = (comp['type'] as string) ?? 'ClientSide';
 
   if (type === 'ServerSide') {
-    return <ServerSideComponent component={comp} />;
+    // A nested ServerSide inside a rendered tree is an embedded ISLAND (an @Inline
+    // orchestrator, a CustomField adapter, an overlay's content): it gets its own
+    // controller so its state/actions never clobber the host view's.
+    return <ServerSideIsland component={comp} />;
   }
 
   return <ClientSideComponent component={comp} state={state} data={data} />;
 }
 
-function ServerSideComponent({ component }: { component: Record<string, unknown> }) {
-  const { loadServerSideComponent } = useAppContext();
-  const [result, setResult] = useState<unknown>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadServerSideComponent(component)
-      .then(setResult)
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <ActivityIndicator style={styles.centered} />;
-  if (error) return <Text style={styles.error}>Error: {error}</Text>;
-  if (!result) return null;
-
-  const res = result as Record<string, unknown>;
-  const comp = (res['components'] as unknown[])?.[0] ?? result;
-  const st = (res['state'] as Record<string, unknown>) ?? {};
-  const dt = res['data'];
-
-  return <ComponentRenderer component={comp} state={st} data={dt} />;
+function ServerSideIsland({ component }: { component: Record<string, unknown> }) {
+  const { session } = useAppContext();
+  return <MateuViewHost session={session} serverSideNode={component} silent />;
 }
 
 function ClientSideComponent({ component, state, data }: { component: Record<string, unknown>; state: Record<string, unknown>; data: unknown }) {
-  const { runAction } = useAppContext();
+  const controller = useViewController();
+  const runAction = (actionId: string) => void controller.runAction(actionId);
 
   const metadata = (component['metadata'] as Record<string, unknown>) ?? {};
   const metaType = (metadata['type'] as string) ?? '';
@@ -89,7 +72,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
         <FormFieldRenderer
           metadata={metadata as any}
           state={state}
-          onStateChange={() => {}}
+          onStateChange={(fieldId, value) => controller.putState(fieldId, value)}
+          error={controller.fieldErrors[(metadata['fieldId'] as string) ?? '']}
         />
       );
 

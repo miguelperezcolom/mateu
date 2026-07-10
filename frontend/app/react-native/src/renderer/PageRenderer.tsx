@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAppContext } from '../context/AppContext';
+import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 
 interface ButtonDto {
@@ -18,7 +18,8 @@ interface Props {
 }
 
 export function PageRenderer({ component, metadata, state, data }: Props) {
-  const { runAction } = useAppContext();
+  const controller = useViewController();
+  const runAction = (actionId: string) => void controller.runAction(actionId);
 
   const title = (metadata['title'] as string) ?? (metadata['pageTitle'] as string) ?? '';
   const subtitle = (metadata['subtitle'] as string) ?? '';

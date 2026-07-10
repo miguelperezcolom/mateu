@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAppContext } from '../context/AppContext';
+import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { DashboardPanel, MetricCard } from '../api/metadata';
 
@@ -13,7 +13,8 @@ const displayIcon = (icon?: string): string => (icon && !icon.includes(':') ? ic
 
 // ── MetricCard ────────────────────────────────────────────────────────────────
 export function MetricCardRenderer({ metadata }: { metadata: MetricCard }) {
-  const { runAction } = useAppContext();
+  const controller = useViewController();
+  const runAction = (actionId: string) => void controller.runAction(actionId);
   const trend = metadata.trend ?? 'neutral';
   const trendColor = trend === 'up' ? '#1a7f37' : trend === 'down' ? '#c5221f' : '#666';
   const trendArrow = trend === 'up' ? '▲ ' : trend === 'down' ? '▼ ' : '';

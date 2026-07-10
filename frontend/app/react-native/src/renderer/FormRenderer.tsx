@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAppContext } from '../context/AppContext';
-import { FormFieldRenderer } from './FormFieldRenderer';
+import { ComponentRenderer } from './ComponentRenderer';
+import { useViewController } from './MateuViewHost';
 
 interface ButtonDto {
   actionId?: string;
@@ -16,9 +16,8 @@ interface Props {
   state: Record<string, unknown>;
 }
 
-export function FormRenderer({ component, metadata, state: initialState }: Props) {
-  const { runAction } = useAppContext();
-  const [state, setState] = useState<Record<string, unknown>>(initialState ?? {});
+export function FormRenderer({ component, metadata, state }: Props) {
+  const controller = useViewController();
 
   const title = (metadata['title'] as string) ?? '';
   const subtitle = (metadata['subtitle'] as string) ?? '';
@@ -27,29 +26,11 @@ export function FormRenderer({ component, metadata, state: initialState }: Props
   const actions = (metadata['actions'] as ButtonDto[]) ?? [];
   const children = (component['children'] as unknown[]) ?? [];
 
-  const handleStateChange = (fieldId: string, value: unknown) => {
-    setState((prev) => ({ ...prev, [fieldId]: value }));
-  };
+  const handleAction = (actionId: string) => void controller.runAction(actionId);
 
-  const handleAction = async (actionId: string) => {
-    await runAction(actionId, state);
-  };
-
-  const renderChild = (child: unknown) => {
-    const c = child as Record<string, unknown>;
-    const type = (c['type'] as string) ?? 'ClientSide';
-    if (type === 'ServerSide') return null; // handled by ComponentRenderer
-
-    const meta = (c['metadata'] as Record<string, unknown>) ?? {};
-    const metaType = (meta['type'] as string) ?? '';
-
-    switch (metaType) {
-      case 'FormField':
-        return <FormFieldRenderer metadata={meta as any} state={state} onStateChange={handleStateChange} />;
-      default:
-        return null;
-    }
-  };
+  // Children render through the shared dispatcher: nested layouts, sections, grids and fields
+  // all reach FormFieldRenderer wired to the controller's live state.
+  const renderChild = (child: unknown) => <ComponentRenderer component={child} state={state} />;
 
   return (
     <View style={styles.root}>

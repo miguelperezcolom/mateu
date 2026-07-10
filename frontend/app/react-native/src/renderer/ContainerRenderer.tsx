@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ComponentRenderer } from './ComponentRenderer';
-import { useAppContext } from '../context/AppContext';
+import { useViewController } from './MateuViewHost';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -117,11 +117,12 @@ export function BadgeRenderer({ metadata }: { metadata: Dict }) {
 }
 
 export function AnchorRenderer({ metadata }: { metadata: Dict }) {
-  const { navigate } = useAppContext();
+  const controller = useViewController();
+  const navigate = (url: string) => controller.session.openView({ label: url, route: url, consumedRoute: '', serverSideType: '' });
   const url = (metadata['url'] as string) ?? '';
   const text = (metadata['text'] as string) ?? url;
   return (
-    <TouchableOpacity onPress={() => { if (url.startsWith('/')) navigate(url, '', ''); }}>
+    <TouchableOpacity onPress={() => { if (url.startsWith('/')) navigate(url); }}>
       <Text style={styles.link}>{text}</Text>
     </TouchableOpacity>
   );
@@ -154,7 +155,8 @@ export function DialogRenderer({ component, state }: { component: unknown; state
 }
 
 export function ConfirmDialogRenderer({ metadata, state }: { metadata: Dict; state: Dict }) {
-  const { runAction } = useAppContext();
+  const controller = useViewController();
+  const runAction = (actionId: string) => void controller.runAction(actionId);
   const m = metadata;
   return (
     <View style={styles.dialog}>

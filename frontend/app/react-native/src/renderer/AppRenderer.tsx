@@ -3,9 +3,10 @@ import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigatio
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../context/AppContext';
-import { ComponentRenderer } from './ComponentRenderer';
+import { NavTarget } from '../core/MateuSession';
+import { MateuViewHost } from './MateuViewHost';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -38,51 +39,44 @@ interface AppMeta {
   contextSelectors?: AppContextSelector[];
 }
 
-interface ContentScreenState {
-  component: unknown;
-  state: Record<string, unknown>;
-  data: unknown;
-  loading: boolean;
-  error: string | null;
-}
-
-function useContentLoader() {
-  const { navigate } = useAppContext();
-  const [screen, setScreen] = useState<ContentScreenState>({ component: null, state: {}, data: null, loading: false, error: null });
-
-  const loadRoute = useCallback(
-    async (route: string, consumedRoute: string, serverSideType: string) => {
-      setScreen((s) => ({ ...s, loading: true, error: null }));
-      try {
-        const result = await navigate(route, consumedRoute, serverSideType);
-        const res = result as Record<string, unknown>;
-        const comp = (res['components'] as unknown[])?.[0] ?? result;
-        const st = (res['state'] as Record<string, unknown>) ?? {};
-        const dt = res['data'];
-        setScreen({ component: comp, state: st, data: dt, loading: false, error: null });
-      } catch (e: unknown) {
-        const err = e instanceof Error ? e.message : String(e);
-        setScreen((s) => ({ ...s, loading: false, error: err }));
-      }
-    },
-    [navigate],
-  );
-
-  return { screen, loadRoute };
-}
-
+/**
+ * A navigation stack of Mateu views: the base screen (menu target) plus pushed details
+ * (row → detail/new/edit, NavigateTo). The top view shows a back header when stacked.
+ */
 function ContentScreen({ route: routeArg, consumedRoute, serverSideType }: { route: string; consumedRoute: string; serverSideType: string }) {
-  const { screen, loadRoute } = useContentLoader();
+  const { session } = useAppContext();
+  const [stack, setStack] = useState<NavTarget[]>([]);
 
   React.useEffect(() => {
-    loadRoute(routeArg, consumedRoute, serverSideType);
-  }, [routeArg, consumedRoute, serverSideType]);
+    setStack([]);
+    // The session-level opener (NavigateTo from any view) pushes onto whichever screen is live.
+    session.openView = (target) => setStack((s) => [...s, target]);
+  }, [routeArg, consumedRoute, serverSideType, session]);
 
-  if (screen.loading) return <ActivityIndicator style={styles.centered} size="large" />;
-  if (screen.error) return <Text style={styles.error}>{screen.error}</Text>;
-  if (!screen.component) return <View style={styles.centered} />;
+  const push = useCallback((target: NavTarget) => setStack((s) => [...s, target]), []);
+  const pop = useCallback(() => setStack((s) => s.slice(0, -1)), []);
 
-  return <ComponentRenderer component={screen.component} state={screen.state} data={screen.data} />;
+  const base: NavTarget = { label: '', route: routeArg, consumedRoute, serverSideType };
+  const top = stack.length > 0 ? stack[stack.length - 1] : base;
+
+  return (
+    <View style={styles.stackHost}>
+      {stack.length > 0 && (
+        <View style={styles.backBar}>
+          <TouchableOpacity onPress={pop} style={styles.backButton}>
+            <Text style={styles.backText}>‹ Back</Text>
+          </TouchableOpacity>
+          {!!top.label && <Text style={styles.backTitle}>{top.label}</Text>}
+        </View>
+      )}
+      <MateuViewHost
+        key={`${top.route}|${top.consumedRoute}|${stack.length}`}
+        session={session}
+        target={top}
+        onOpenDetail={push}
+      />
+    </View>
+  );
 }
 
 function flattenMenuItems(items: MenuItem[]): MenuItem[] {
@@ -251,7 +245,6 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
 }
 
 export function AppRenderer({ component, appMeta }: { component: Record<string, unknown>; appMeta: AppMeta }) {
-  const { navigate } = useAppContext();
   const [currentNav, setCurrentNav] = useState<{ route: string; consumedRoute: string; serverSideType: string }>({
     route: appMeta.homeRoute ?? '',
     consumedRoute: appMeta.homeConsumedRoute ?? '',
@@ -331,6 +324,11 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: '#cc0000', padding: 16, fontSize: 14 },
+  stackHost: { flex: 1 },
+  backBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee', backgroundColor: '#fafafa' },
+  backButton: { paddingVertical: 4, paddingRight: 12 },
+  backText: { color: '#0070f3', fontSize: 15, fontWeight: '600' },
+  backTitle: { fontSize: 15, fontWeight: '600', color: '#333' },
   sidebar: { flex: 1, backgroundColor: '#354a5e' },
   sidebarTitle: { color: '#fff', fontSize: 18, fontWeight: '700', padding: 20, paddingTop: 16 },
   menuGroupLabel: { color: '#aac0d0', fontSize: 11, fontWeight: '600', paddingHorizontal: 20, paddingVertical: 8, letterSpacing: 1 },

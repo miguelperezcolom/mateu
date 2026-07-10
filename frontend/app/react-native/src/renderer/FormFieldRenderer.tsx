@@ -8,7 +8,6 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
-import { useAppContext } from '../context/AppContext';
 import { PhotoCaptureField, SignatureField } from './CaptureFields';
 
 interface Option {
@@ -33,9 +32,11 @@ interface Props {
   metadata: FieldMeta;
   state: Record<string, unknown>;
   onStateChange: (fieldId: string, value: unknown) => void;
+  /** Client-side validation error to surface under the input. */
+  error?: string;
 }
 
-export function FormFieldRenderer({ metadata, state, onStateChange }: Props) {
+export function FormFieldRenderer({ metadata, state, onStateChange, error }: Props) {
   const { fieldId, label, dataType = 'string', stereotype = '', required = false, readOnly = false, disabled = false, options = [] } = metadata;
 
   const rawValue = state[fieldId] ?? metadata.initialValue ?? '';
@@ -156,6 +157,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange }: Props) {
     <View style={styles.container}>
       <Text style={styles.label}>{label ?? fieldId}{required ? ' *' : ''}</Text>
       {renderInput()}
+      {!!error && <Text style={styles.fieldError}>{error}</Text>}
     </View>
   );
 }
@@ -262,6 +264,7 @@ function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
 }
 
 const styles = StyleSheet.create({
+  fieldError: { color: '#cc0000', fontSize: 12, marginTop: 4 },
   container: { marginBottom: 12 },
   label: { fontSize: 12, color: '#555', marginBottom: 4, fontWeight: '500' },
   input: {

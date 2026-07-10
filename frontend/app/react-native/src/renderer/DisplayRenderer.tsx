@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAppContext } from '../context/AppContext';
+import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, Skeleton } from '../api/metadata';
 
@@ -103,7 +103,8 @@ export function HeroSectionRenderer({ component, state }: { component: unknown; 
 
 // ── EmptyState ────────────────────────────────────────────────────────────────
 export function EmptyStateRenderer({ metadata }: { metadata: EmptyState }) {
-  const { runAction } = useAppContext();
+  const controller = useViewController();
+  const runAction = (actionId: string) => void controller.runAction(actionId);
   const actionId = metadata.actionId;
   return (
     <View style={styles.emptyState}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   FlatList,
   ScrollView,
@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useAppContext } from '../context/AppContext';
+import { useViewController } from './MateuViewHost';
 
 interface ColumnMeta {
   id?: string;
@@ -28,6 +28,12 @@ interface Props {
   metadata: Record<string, unknown>;
   state: Record<string, unknown>;
   data: unknown;
+}
+
+function normalizeCrudData(data: unknown): unknown {
+  const d = data as Record<string, unknown> | null;
+  const page = (d?.['crud'] as Record<string, unknown> | undefined)?.['page'];
+  return page ?? data;
 }
 
 function extractRows(data: unknown): Record<string, unknown>[] {
@@ -55,42 +61,82 @@ function cellText(value: unknown): string {
 }
 
 export function CrudRenderer({ component, metadata, state, data }: Props) {
-  const { runAction, currentRoute, currentConsumedRoute, currentServerSideType, navigate } = useAppContext();
+  const controller = useViewController();
 
   const title = (metadata['title'] as string) ?? '';
   const subtitle = (metadata['subtitle'] as string) ?? '';
-  const canEdit = Boolean(metadata['canEdit']);
   const searchable = Boolean(metadata['searchable']);
-  const detailPath = (metadata['detailPath'] as string) ?? '';
   const columns = (metadata['columns'] as ColumnMeta[]) ?? [];
   const toolbar = (metadata['toolbar'] as ButtonDto[]) ?? [];
 
-  const rawRows = extractRows(data);
-  const d = data as Record<string, unknown> | undefined;
+  // Live listing data: seeded from the initial fragment, refreshed by every data-only
+  // fragment (search/pagination responses) through the registered data handler.
+  const [liveData, setLiveData] = useState<unknown>(data);
+  useEffect(() => {
+    const id = (component['id'] as string) || 'crud';
+    controller.registerDataHandler(id, (d) => setLiveData(normalizeCrudData(d)));
+    controller.registerDataHandler('crud', (d) => setLiveData(normalizeCrudData(d)));
+  }, [component, controller]);
+
+  const rawRows = extractRows(liveData);
+  const d = liveData as Record<string, unknown> | undefined;
   const totalElements = Number(d?.['totalElements'] ?? rawRows.length);
   const pageSize = Number(d?.['pageSize'] ?? rawRows.length) || rawRows.length;
   const pageNumber = Number(d?.['pageNumber'] ?? 0);
   const totalPages = pageSize > 0 ? Math.ceil(totalElements / pageSize) : 1;
 
   const [searchText, setSearchText] = useState('');
-  const [componentState, setComponentState] = useState<Record<string, unknown>>(state ?? {});
 
-  const doSearch = async () => {
-    const s = { ...componentState, searchText, page: 0, size: 10, sort: [] };
-    setComponentState(s);
-    await runAction('search', s);
+  const doSearch = () => {
+    controller.seedSearchState();
+    controller.currentComponentState['searchText'] = searchText;
+    controller.currentComponentState['page'] = 0;
+    void controller.runAction('search');
   };
 
+  const changePage = (actionId: 'prevPage' | 'nextPage') => {
+    controller.seedSearchState();
+    void controller.runAction(actionId);
+  };
+
+  // Row press → the row LINK action (e.g. "view"); without one, the row's first
+  // group action (its primary — e.g. "Check-in"). The state-only _route response
+  // then drives the detail navigation (a pushed screen via the detail opener).
+  const linkActionId =
+    columns.map((c) => (c.metadata as Record<string, unknown> | undefined)?.['actionId'] as string | undefined)
+      .find((a) => !!a) ?? '';
+  const firstRowAction = (row: Record<string, unknown>): string => {
+    for (const col of columns) {
+      const cm = (col.metadata ?? {}) as Record<string, unknown>;
+      const dataType = String(cm['dataType'] ?? '');
+      if (dataType === 'actionGroup' || dataType === 'menu' || dataType === 'action') {
+        const cell = row[String(cm['id'] ?? '')] as Record<string, unknown> | undefined;
+        const actions = (cell?.['actions'] as Record<string, unknown>[]) ?? [];
+        const method = actions[0]?.['methodNameInCrud'];
+        if (method) return `action-on-row-${method}`;
+      }
+    }
+    return '';
+  };
   const handleRowPress = (row: Record<string, unknown>) => {
-    const rowId = extractRowId(row);
-    const route = detailPath || `${currentRoute}/${rowId}`;
-    navigate(route, currentConsumedRoute, currentServerSideType);
+    if (linkActionId) {
+      void controller.runAction(linkActionId, { ...row });
+      return;
+    }
+    const fallback = firstRowAction(row);
+    if (fallback) void controller.runAction(fallback, { _clickedRow: row });
   };
 
-  const colDefs = columns.map((col) => ({
-    fieldId: col.metadata?.id ?? col.id ?? col.fieldId ?? '',
-    label: col.metadata?.label ?? col.label ?? col.id ?? '',
-  }));
+  const colDefs = columns
+    .map((col) => {
+      const cm = (col.metadata ?? {}) as Record<string, unknown>;
+      return {
+        fieldId: (cm['id'] as string) ?? col.id ?? col.fieldId ?? '',
+        label: (cm['label'] as string) ?? col.label ?? col.id ?? '',
+        dataType: (cm['dataType'] as string) ?? '',
+      };
+    })
+    .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
 
   return (
     <View style={styles.root}>
@@ -104,7 +150,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 const id = btn.id ?? '';
                 const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
                 return (
-                  <TouchableOpacity key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => runAction(id)}>
+                  <TouchableOpacity key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => void controller.runAction(id)}>
                     <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>{btn.label ?? id}</Text>
                   </TouchableOpacity>
                 );
@@ -139,32 +185,20 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 <Text style={styles.headerText}>{col.label}</Text>
               </View>
             ))}
-            {(!!detailPath || canEdit) && (
-              <View style={[styles.headerCell, styles.actionCell]}>
-                <Text style={styles.headerText}>Actions</Text>
-              </View>
-            )}
           </View>
 
-          {/* Rows */}
+          {/* Rows: tapping one opens its detail (link action / primary row action). */}
           <FlatList
             data={rawRows}
             keyExtractor={(_, i) => String(i)}
             renderItem={({ item }) => (
-              <View style={styles.tableRow}>
+              <TouchableOpacity style={styles.tableRow} onPress={() => handleRowPress(item)}>
                 {colDefs.map((col) => (
                   <View key={col.fieldId} style={styles.cell}>
                     <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId])}</Text>
                   </View>
                 ))}
-                {(!!detailPath || canEdit) && (
-                  <View style={[styles.cell, styles.actionCell]}>
-                    <TouchableOpacity style={styles.btnDefault} onPress={() => handleRowPress(item)}>
-                      <Text style={styles.btnDefaultText}>{canEdit ? 'Edit' : 'View'}</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
+              </TouchableOpacity>
             )}
           />
         </View>
@@ -174,7 +208,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         <View style={styles.paginationBar}>
           <TouchableOpacity
             style={[styles.btnDefault, pageNumber <= 0 && styles.btnDisabled]}
-            onPress={() => pageNumber > 0 && runAction('prevPage')}
+            onPress={() => pageNumber > 0 && changePage('prevPage')}
             disabled={pageNumber <= 0}
           >
             <Text style={styles.btnDefaultText}>← Prev</Text>
@@ -184,7 +218,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           </Text>
           <TouchableOpacity
             style={[styles.btnDefault, (pageNumber + 1) * pageSize >= totalElements && styles.btnDisabled]}
-            onPress={() => (pageNumber + 1) * pageSize < totalElements && runAction('nextPage')}
+            onPress={() => (pageNumber + 1) * pageSize < totalElements && changePage('nextPage')}
             disabled={(pageNumber + 1) * pageSize >= totalElements}
           >
             <Text style={styles.btnDefaultText}>Next →</Text>
