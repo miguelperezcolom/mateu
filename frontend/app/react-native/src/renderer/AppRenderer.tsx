@@ -302,7 +302,16 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     return (
       <NavigationContainer>
         <Drawer.Navigator
-          drawerContent={() => <SidebarContent appMeta={appMeta} onNavigate={handleMenuNav} onContextChanged={() => setContextVersion((v) => v + 1)} />}
+          drawerContent={(props) => (
+            <SidebarContent
+              appMeta={appMeta}
+              onNavigate={(item) => {
+                handleMenuNav(item);
+                props.navigation.closeDrawer();
+              }}
+              onContextChanged={() => setContextVersion((v) => v + 1)}
+            />
+          )}
           screenOptions={{ headerShown: true, title: appMeta.title ?? 'Mateu' }}
         >
           <Drawer.Screen name="Main" children={() => mainScreen} />

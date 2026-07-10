@@ -38,6 +38,8 @@ export class MateuViewController {
   /** The sst this view was NAVIGATED with (crud orchestrator) — bubbling fallback. */
   private navigationServerSideType = '';
   private orchestratorServerSideType = '';
+  /** Guards the bare-App-shell unwrap against a misresolving backend bouncing us forever. */
+  private appShellHops = 0;
   private orchestratorComponentRoute = '';
 
   // Action metadata of the currently-loaded server-side component.
@@ -355,6 +357,21 @@ export class MateuViewController {
   /** Renders a component fragment: ServerSide wrappers unwrap here (mediator App → follow-up
    *  navigation; inline children → captured + rendered; no children → background load). */
   private renderComponentFragment(component: Json, state: Json, data: unknown): void {
+    // A bare App shell answering a MENU navigation (route resolved through the app class):
+    // don't render the chrome — follow its home route to the actual content.
+    const meta = (component['metadata'] as Json) ?? {};
+    if (component['type'] !== 'ServerSide' && meta['type'] === 'App') {
+      const homeRoute = str(meta['homeRoute']);
+      const homeConsumed = str(meta['homeConsumedRoute']);
+      const homeSst = str(meta['homeServerSideType']) || str(meta['serverSideType']);
+      const same = homeRoute === this.currentRoute && homeSst === this.currentServerSideType;
+      if ((homeRoute || homeSst) && !same && this.appShellHops < 2) {
+        this.appShellHops++;
+        void this.navigate(homeRoute, homeConsumed, homeSst);
+        return;
+      }
+    }
+    this.appShellHops = 0;
     if (component['type'] === 'ServerSide') {
       const id = str(component['id']);
       const route = str(component['route']);

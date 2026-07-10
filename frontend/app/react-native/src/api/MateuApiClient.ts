@@ -86,7 +86,9 @@ export class MateuApiClient {
   ): Promise<unknown> {
     return this.runAction({
       route,
-      consumedRoute: consumedRoute || '_empty',
+      // '' means "nothing consumed yet" (a full URL load); '_empty' would make the backend
+      // treat the route as relative to the root shell and answer with the App chrome again.
+      consumedRoute: consumedRoute ?? '',
       actionId: '',
       serverSideType: serverSideType || null,
       initiatorComponentId: 'ux_main',
