@@ -14,6 +14,7 @@ from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
 from mateu_dtos import Option  # noqa: E402
 from mateu_uidl import (  # noqa: E402
     BannerTheme,
+    PageBanner,
     PhotoCapture,
     RangeFilter,
     Signature,
@@ -59,6 +60,14 @@ class SimpleForm:
     @button()
     def greet(self) -> Message:
         return Message(f"Hello {self.name}!")
+
+    @button()
+    def warn(self):
+        return PageBanner(BannerTheme.WARNING, "Heads up", "Something to note", closeable=True)
+
+    @button()
+    def go_home(self):
+        return "/things"
 
 
 @app("Test App")
@@ -501,3 +510,19 @@ def test_crud_search_sorts_and_paginates():
     page2 = inc2.fragments[0].data["crud"]["page"]
     assert page2["content"][0]["name"] == "Alpha"
     assert page2["pageNumber"] == 1
+
+
+def test_action_returns_page_banner():
+    inc = handler().handle(
+        RunActionRq(action_id="warn", server_side_type=_name(SimpleForm), component_state={})
+    )
+    assert len(inc.banners) == 1
+    b = inc.banners[0]
+    assert b.theme == "WARNING" and b.title == "Heads up" and b.has_close_button is True
+
+
+def test_action_returns_route_navigates():
+    inc = handler().handle(
+        RunActionRq(action_id="goHome", server_side_type=_name(SimpleForm), component_state={})
+    )
+    assert any(c.type == "NavigateTo" and c.data == "/things" for c in inc.commands)

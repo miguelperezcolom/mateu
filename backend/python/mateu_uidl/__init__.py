@@ -197,6 +197,17 @@ class _Banner:
 
 
 @dataclass(frozen=True)
+class PageBanner:
+    """An action-returned page banner (shown below the header). Return one, or a list, from an
+    @action/@toolbar method."""
+    theme: BannerTheme = BannerTheme.INFO
+    title: str | None = None
+    description: str | None = None
+    closeable: bool = False
+    timeout_seconds: int = 0
+
+
+@dataclass(frozen=True)
 class _Fab:
     icon: str
     label: str | None
@@ -476,7 +487,7 @@ class Welcome(ComponentTreeSupplier):
 
 
 __all__ = [
-    "Message", "MessageVariant", "BannerTheme",
+    "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",

@@ -8,12 +8,13 @@ from enum import Enum
 from typing import Any
 
 from mateu_dtos import (
+    Banner as BannerDto,
     Message as MessageDto,
     UICommand,
     UIFragment,
     UIIncrement,
 )
-from mateu_uidl import Label, Message, Required, Step, Wizard
+from mateu_uidl import Label, Message, PageBanner, Required, Step, Wizard
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
@@ -361,6 +362,8 @@ class SyncHandler:
         return None
 
     def map_result(self, result) -> UIIncrement:
+        if result is None:
+            return UIIncrement.of()
         if isinstance(result, Message):
             return UIIncrement.of(
                 messages=[
@@ -373,6 +376,31 @@ class SyncHandler:
                     )
                 ]
             )
+        # Action-returned page banner(s): PageBanner or a list of them → UIIncrement.banners.
+        if isinstance(result, PageBanner) or (
+            isinstance(result, list) and result and all(isinstance(b, PageBanner) for b in result)
+        ):
+            banners = result if isinstance(result, list) else [result]
+            return UIIncrement.of(
+                banners=[
+                    BannerDto(
+                        theme=b.theme.value,
+                        title=b.title,
+                        description=b.description,
+                        has_icon=True,
+                        has_close_button=b.closeable,
+                        timeout_seconds=b.timeout_seconds,
+                    )
+                    for b in banners
+                ]
+            )
+        # A route string → navigate; a UICommand (dispatchEvent / closeModal) → pass through.
+        if isinstance(result, str) and result.startswith("/"):
+            return UIIncrement.of(
+                commands=[UICommand(target_component_id="ux_main", type="NavigateTo", data=result)]
+            )
+        if isinstance(result, UICommand):
+            return UIIncrement.of(commands=[result])
         return UIIncrement.of()
 
     # ── Helpers ──────────────────────────────────────────────────────────────────

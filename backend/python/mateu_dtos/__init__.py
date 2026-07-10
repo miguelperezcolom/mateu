@@ -486,11 +486,13 @@ class UIIncrement(Wire):
     app_state: Any | None = None
 
     @staticmethod
-    def of(commands=None, messages=None, fragments=None) -> "UIIncrement":
+    def of(commands=None, messages=None, fragments=None, banners=None, append_banners=False) -> "UIIncrement":
         return UIIncrement(
             commands=commands or [],
             messages=messages or [],
             fragments=fragments or [],
+            banners=banners or [],
+            append_banners=append_banners,
         )
 
 
