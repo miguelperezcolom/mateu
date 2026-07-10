@@ -92,6 +92,9 @@ public sealed class SubtitleAttribute(string value) : Attribute
 
 public enum BannerTheme { Info, Success, Warning, Danger }
 
+/// <summary>An action-returned page banner: return one, or a list, from an action/toolbar method.</summary>
+public sealed record PageBanner(BannerTheme Theme = BannerTheme.Info, string? Title = null, string? Description = null);
+
 /// <summary>A page banner. Put on a method returning the description (string), or a void method.</summary>
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
 public sealed class BannerAttribute(BannerTheme theme = BannerTheme.Info, string? title = null) : Attribute

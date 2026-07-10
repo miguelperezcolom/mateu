@@ -14,6 +14,8 @@ public class SimpleForm
     [Required] public string? Name { get; set; }
 
     [Button] public Message Greet() => new($"Hello {Name}!");
+    [Button] public PageBanner Warn() => new(BannerTheme.Warning, "Heads up", "Something to note");
+    [Button] public string GoHome() => "/things";
 }
 
 [App("Test App")]
@@ -535,5 +537,22 @@ public class SyncHandlerTests
             ["guest"] = JsonSerializer.SerializeToElement(""),
         }));
         Assert.Contains("\"totalElements\":3", json);
+    }
+
+    [Fact]
+    public void Action_returns_page_banner()
+    {
+        var rq = new RunActionRqDto { ActionId = "warn", ServerSideType = typeof(SimpleForm).FullName };
+        var json = Render(Handler().Handle(rq));
+        Assert.Contains("\"theme\":\"WARNING\"", json);
+        Assert.Contains("Heads up", json);
+    }
+
+    [Fact]
+    public void Action_returns_route_navigates()
+    {
+        var rq = new RunActionRqDto { ActionId = "goHome", ServerSideType = typeof(SimpleForm).FullName };
+        var inc = Handler().Handle(rq);
+        Assert.Contains(inc.Commands, c => c.Type == "NavigateTo" && (string?)c.Data == "/things");
     }
 }

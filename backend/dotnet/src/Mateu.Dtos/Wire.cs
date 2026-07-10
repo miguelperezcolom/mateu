@@ -15,8 +15,10 @@ public record UIIncrementDto(
     public static UIIncrementDto Of(
         IEnumerable<UICommandDto>? commands = null,
         IEnumerable<MessageDto>? messages = null,
-        IEnumerable<UIFragmentDto>? fragments = null) =>
-        new(commands?.ToList() ?? [], messages?.ToList() ?? [], fragments?.ToList() ?? [], [], false, null, null);
+        IEnumerable<UIFragmentDto>? fragments = null,
+        IEnumerable<object>? banners = null,
+        bool appendBanners = false) =>
+        new(commands?.ToList() ?? [], messages?.ToList() ?? [], fragments?.ToList() ?? [], banners?.ToList() ?? [], appendBanners, null, null);
 }
 
 public record UICommandDto(string TargetComponentId, string Type, object? Data);

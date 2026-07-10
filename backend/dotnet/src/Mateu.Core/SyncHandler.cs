@@ -339,10 +339,21 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private static UIIncrementDto MapResult(object? result) => result switch
     {
+        null => UIIncrementDto.Of(),
         Message msg => UIIncrementDto.Of(messages:
             [new MessageDto(msg.Variant.ToString().ToLowerInvariant(), "middle", msg.Title, msg.Text, msg.Duration)]),
+        // Action-returned page banner(s) → UIIncrement.banners.
+        PageBanner b => UIIncrementDto.Of(banners: [BannerOf(b)]),
+        IEnumerable<PageBanner> bs => UIIncrementDto.Of(banners: bs.Select(BannerOf).Cast<object>().ToList()),
+        // A route string → navigate; a UICommand → pass through (dispatchEvent / closeModal).
+        string route when route.StartsWith('/') =>
+            UIIncrementDto.Of(commands: [new UICommandDto("ux_main", "NavigateTo", route)]),
+        UICommandDto cmd => UIIncrementDto.Of(commands: [cmd]),
         _ => UIIncrementDto.Of(),
     };
+
+    private static BannerDto BannerOf(PageBanner b) =>
+        new(b.Theme.ToString().ToUpperInvariant(), b.Title, b.Description);
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
     private static string Title(Type type) =>
