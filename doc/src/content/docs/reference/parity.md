@@ -45,6 +45,13 @@ listing) is Java-only.
 min–max) and the values are applied in-memory over `Fetch()`; Java's pluggable repository layer
 (`find/4` criteria for DB pushdown) and declarative-Listing typed filters have no equivalent yet.
 
+**Recent .NET/Python parity gains (2026-07-10)**: CRUD search now **sorts and paginates**
+(`Pageable.sort` + page/size over the filtered rows, real `totalElements`) instead of returning one
+full page — Python verified with tests, .NET a mechanical mirror. Actions can now **return page
+banners, a `/route` (NavigateTo) or a UICommand** (not just a `Message`). Still Java-only on both
+backends: Drawer/Dialog overlays, the client-side rules engine, `@InlineEditing`/`@OnRowSelected`,
+`@Zones`/`@FoldedLayout`/`@Toc`, component adapters and semantic annotations.
+
 ## Renderers
 
 Every renderer speaks the same wire; the depth of widget support varies.
@@ -72,6 +79,17 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
+
+🟡 PatternFly (redhat) & SLDS: as of 2026-07-10 both reuse the shared design-system-neutral
+`<mateu-filter-bar>` (full smart-search) and the shared capture/tree field widgets
+(`mateu-signature-pad`, `mateu-camera-capture`, `mateu-tree-select`) + money formatting, so those
+stereotypes work. PatternFly still renders dashboards/gantt/foldout/hero as `<mateu-unsupported>`
+placeholders (its `SUPPORTED_TYPES` is small); SLDS falls through to off-theme Vaadin components for
+types its own switch misses. Both remain lighter than Vaadin/SAP UI5.
+
+MessageList/MessageInput (Vaadin): as of 2026-07-10 these carry a real data model
+(`List<MessageListItem>` / an `actionId` that fires on submit) — they were previously stubs that
+rendered hardcoded demo data.
 
 "Shared" = SAP UI5 and PatternFly reuse the shared web components (Lumo-variable theming), so they
 inherit those features automatically.
