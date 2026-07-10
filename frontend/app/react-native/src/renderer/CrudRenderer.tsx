@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { DateField } from './DateField';
-import { FormFieldRenderer } from './FormFieldRenderer';
+import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
 
 interface FilterFieldMeta {
   fieldId: string;
@@ -128,6 +128,35 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     void controller.runAction(actionId);
   };
 
+  // Sorting: header tap cycles ascending → descending → none; state shape is
+  // sort=[{field, direction:'ascending'|'descending'}] (Pageable.sort on the wire).
+  const [sortState, setSortState] = useState<{ field: string; direction: 'ascending' | 'descending' } | null>(null);
+  const toggleSort = (field: string) => {
+    const next =
+      sortState?.field !== field
+        ? ({ field, direction: 'ascending' } as const)
+        : sortState.direction === 'ascending'
+          ? ({ field, direction: 'descending' } as const)
+          : null;
+    setSortState(next);
+    controller.seedSearchState();
+    controller.currentComponentState['sort'] = next ? [next] : [];
+    controller.currentComponentState['page'] = 0;
+    void controller.runAction('search');
+  };
+  const sortMark = (field: string) =>
+    sortState?.field === field ? (sortState.direction === 'ascending' ? ' ▲' : ' ▼') : '';
+
+  // Inline editing (@InlineEditing): rows with editable columns get a pencil opening a row form;
+  // saving dispatches the crud's update-row with the edited row (the web's cell-commit contract).
+  const editableCols = columns.filter((c) => (c.metadata as Record<string, unknown> | undefined)?.['editable'] === true);
+  const [editingRow, setEditingRow] = useState<Record<string, unknown> | null>(null);
+  const saveEditedRow = async (row: Record<string, unknown>) => {
+    setEditingRow(null);
+    await controller.runAction('update-row', { _editedRow: { ...editingRow, ...row } });
+    doSearch();
+  };
+
   // Row press → the row LINK action (e.g. "view"); without one, the row's first
   // group action (its primary — e.g. "Check-in"). The state-only _route response
   // then drives the detail navigation (a pushed screen via the detail opener).
@@ -156,6 +185,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (fallback) void controller.runAction(fallback, { _clickedRow: row });
   };
 
+  const gridLayout = String(metadata['gridLayout'] ?? 'auto');
+
   const colDefs = columns
     .map((col) => {
       const cm = (col.metadata ?? {}) as Record<string, unknown>;
@@ -163,6 +194,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         fieldId: (cm['id'] as string) ?? col.id ?? col.fieldId ?? '',
         label: (cm['label'] as string) ?? col.label ?? col.id ?? '',
         dataType: (cm['dataType'] as string) ?? '',
+        sortable: cm['sortable'] === true,
+        sortingProperty: (cm['sortingProperty'] as string) ?? '',
       };
     })
     .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
@@ -222,33 +255,116 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         />
       )}
 
-      <ScrollView horizontal>
-        <View>
-          {/* Table header */}
-          <View style={styles.tableHeader}>
-            {colDefs.map((col) => (
-              <View key={col.fieldId} style={styles.headerCell}>
-                <Text style={styles.headerText}>{col.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Rows: tapping one opens its detail (link action / primary row action). */}
-          <FlatList
-            data={rawRows}
-            keyExtractor={(_, i) => String(i)}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.tableRow} onPress={() => handleRowPress(item)}>
-                {colDefs.map((col) => (
-                  <View key={col.fieldId} style={styles.cell}>
-                    <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId])}</Text>
-                  </View>
-                ))}
-              </TouchableOpacity>
-            )}
-          />
+      {rawRows.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateIcon}>🗂</Text>
+          <Text style={styles.emptyStateText}>{(metadata['emptyStateMessage'] as string) || 'No data'}</Text>
         </View>
-      </ScrollView>
+      ) : gridLayout === 'cards' ? (
+        // Cards: one card per row — the mobile-first layout
+        <FlatList
+          data={rawRows}
+          keyExtractor={(_, i) => String(i)}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.cardRow} onPress={() => handleRowPress(item)}>
+              {editableCols.length > 0 && (
+                <TouchableOpacity style={styles.editPencilCard} onPress={() => setEditingRow(item)}>
+                  <Text style={styles.editPencilText}>✎</Text>
+                </TouchableOpacity>
+              )}
+              {colDefs.map((col, i) => (
+                <View key={col.fieldId} style={styles.cardLine}>
+                  {i > 0 && <Text style={styles.cardLabel}>{col.label}</Text>}
+                  <Text style={i === 0 ? styles.cardPrimary : styles.cardValue} numberOfLines={2}>
+                    {cellText(item[col.fieldId])}
+                  </Text>
+                </View>
+              ))}
+            </TouchableOpacity>
+          )}
+        />
+      ) : gridLayout === 'list' ? (
+        // List: compact single-line rows (first column primary, the rest secondary)
+        <FlatList
+          data={rawRows}
+          keyExtractor={(_, i) => String(i)}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.listRow} onPress={() => handleRowPress(item)}>
+              <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''])}</Text>
+              <Text style={styles.listSecondary} numberOfLines={1}>
+                {colDefs.slice(1).map((c) => cellText(item[c.fieldId])).filter(Boolean).join(' · ')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      ) : gridLayout === 'tree' ? (
+        // Tree: hierarchical rows carrying a self-referential `children` list
+        <ScrollView>
+          <TreeRows rows={rawRows} colDefs={colDefs} depth={0} onPress={handleRowPress} />
+        </ScrollView>
+      ) : (
+        <ScrollView horizontal>
+          <View>
+            {/* Table header — tapping a sortable column cycles the sort */}
+            <View style={styles.tableHeader}>
+              {colDefs.map((col) => (
+                <TouchableOpacity
+                  key={col.fieldId}
+                  style={styles.headerCell}
+                  disabled={!col.sortable}
+                  onPress={() => toggleSort(col.sortingProperty || col.fieldId)}
+                >
+                  <Text style={styles.headerText}>
+                    {col.label}
+                    {sortMark(col.sortingProperty || col.fieldId)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              {editableCols.length > 0 && <View style={styles.editHeaderCell} />}
+            </View>
+
+            {/* Rows: tapping one opens its detail (link action / primary row action). */}
+            <FlatList
+              data={rawRows}
+              keyExtractor={(_, i) => String(i)}
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.tableRow} onPress={() => handleRowPress(item)}>
+                  {colDefs.map((col) => (
+                    <View key={col.fieldId} style={styles.cell}>
+                      <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId])}</Text>
+                    </View>
+                  ))}
+                  {editableCols.length > 0 && (
+                    <TouchableOpacity style={styles.editPencilCell} onPress={() => setEditingRow(item)}>
+                      <Text style={styles.editPencilText}>✎</Text>
+                    </TouchableOpacity>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </ScrollView>
+      )}
+
+      {editingRow && (
+        <GridRowForm
+          columns={editableCols.map((c) => {
+            const cm = (c.metadata ?? {}) as Record<string, unknown>;
+            return {
+              id: String(cm['id'] ?? ''),
+              label: (cm['label'] as string) ?? '',
+              dataType: (cm['dataType'] as string) ?? '',
+              editorType: cm['editorType'] as string | null,
+              editorOptions: cm['editorOptions'] as { value: string; label: string }[] | null,
+            };
+          })}
+          row={editingRow}
+          isNew={false}
+          onSave={(row) => void saveEditedRow(row)}
+          onDelete={() => setEditingRow(null)}
+          onCancel={() => setEditingRow(null)}
+        />
+      )}
 
       {totalElements > pageSize && pageSize > 0 && (
         <View style={styles.paginationBar}>
@@ -271,6 +387,49 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           </TouchableOpacity>
         </View>
       )}
+    </View>
+  );
+}
+
+/** Hierarchical rows (GridLayout.tree): indentation + expand carets; the caret is its own tap
+ *  target so selectable group rows can still expand (same rule as the tree select). */
+function TreeRows({ rows, colDefs, depth, onPress }: {
+  rows: Record<string, unknown>[];
+  colDefs: { fieldId: string; label: string }[];
+  depth: number;
+  onPress: (row: Record<string, unknown>) => void;
+}) {
+  const [openRows, setOpenRows] = useState<number[]>([]);
+  return (
+    <View>
+      {rows.map((row, i) => {
+        const children = Array.isArray(row['children']) ? (row['children'] as Record<string, unknown>[]) : [];
+        const open = openRows.includes(i);
+        return (
+          <View key={i}>
+            <View style={[styles.listRow, { paddingLeft: 12 + depth * 20, flexDirection: 'row', alignItems: 'center' }]}>
+              {children.length > 0 ? (
+                <TouchableOpacity
+                  style={styles.treeCaret}
+                  onPress={() => setOpenRows(open ? openRows.filter((n) => n !== i) : [...openRows, i])}
+                >
+                  <Text>{open ? '▾' : '▸'}</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.treeCaret} />
+              )}
+              <TouchableOpacity style={{ flex: 1 }} onPress={() => onPress(row)}>
+                <Text style={styles.cardPrimary} numberOfLines={1}>
+                  {String(row[colDefs[0]?.fieldId ?? ''] ?? '')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {open && children.length > 0 && (
+              <TreeRows rows={children} colDefs={colDefs} depth={depth + 1} onPress={onPress} />
+            )}
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -419,4 +578,19 @@ const styles = StyleSheet.create({
   filterChipOn: { backgroundColor: '#0070f3', borderColor: '#0070f3' },
   filterChipOnText: { color: '#fff', fontSize: 13 },
   filterButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 4 },
+  emptyState: { alignItems: 'center', padding: 32 },
+  emptyStateIcon: { fontSize: 32, marginBottom: 8 },
+  emptyStateText: { fontSize: 14, color: '#888' },
+  cardRow: { margin: 8, marginBottom: 0, padding: 12, borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, backgroundColor: '#fff' },
+  cardLine: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 2 },
+  cardLabel: { fontSize: 11, color: '#888', minWidth: 90 },
+  cardPrimary: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
+  cardValue: { fontSize: 13, color: '#444', flex: 1 },
+  listRow: { paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
+  listSecondary: { fontSize: 12, color: '#888', marginTop: 2 },
+  treeCaret: { width: 24, alignItems: 'center' },
+  editHeaderCell: { width: 44 },
+  editPencilCell: { width: 44, alignItems: 'center', justifyContent: 'center' },
+  editPencilCard: { position: 'absolute', top: 8, right: 8, zIndex: 2, padding: 4 },
+  editPencilText: { fontSize: 16, color: '#0070f3' },
 });

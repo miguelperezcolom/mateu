@@ -26,6 +26,7 @@ import {
   UploadableImageField,
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
+import { useViewController } from './MateuViewHost';
 
 interface Option {
   children?: Option[];
@@ -60,6 +61,8 @@ interface FieldMeta {
   step?: number;
   stepButtonsVisible?: boolean;
   multiline?: boolean;
+  /** @OnRowSelected on grid fields: routed action id run with parameters._clickedRow. */
+  onItemSelectionActionId?: string | null;
 }
 
 interface Props {
@@ -72,6 +75,7 @@ interface Props {
 
 export function FormFieldRenderer({ metadata, state, onStateChange, error }: Props) {
   const { fieldId, label, dataType = 'string', stereotype = '', required = false, readOnly = false, disabled = false, options = [] } = metadata;
+  const controller = useViewController();
 
   // putState mutates the controller state WITHOUT re-publishing (a full re-render per keystroke
   // would be wasteful), so widgets that derive their display from props (switch, date, selects,
@@ -96,6 +100,11 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           rows={Array.isArray(rawValue) ? (rawValue as Record<string, unknown>[]) : []}
           editable={editable}
           onChange={(rows) => commit(fieldId, rows)}
+          onRowSelected={
+            metadata.onItemSelectionActionId
+              ? (row) => void controller.runAction(metadata.onItemSelectionActionId!, { _clickedRow: row })
+              : undefined
+          }
         />
       );
     }
@@ -352,11 +361,13 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
 /** Table for an array field. Columns come from the wire GridColumn metadata; when a fragment
  *  omits them (edit-mode responses), they derive from the first row's keys. */
-function GridField({ columns, rows, editable, onChange }: {
+function GridField({ columns, rows, editable, onChange, onRowSelected }: {
   columns: GridColumnMeta[];
   rows: Record<string, unknown>[];
   editable: boolean;
   onChange: (rows: Record<string, unknown>[]) => void;
+  /** @OnRowSelected: tapping a row runs the developer action with _clickedRow (works read-only). */
+  onRowSelected?: (row: Record<string, unknown>) => void;
 }) {
   // editingIndex: -1 closed, rows.length = new row
   const [editingIndex, setEditingIndex] = useState(-1);
@@ -401,8 +412,8 @@ function GridField({ columns, rows, editable, onChange }: {
         <TouchableOpacity
           key={i}
           style={[styles.gridRow, i % 2 === 1 && styles.gridRowAlt]}
-          disabled={!editable}
-          onPress={() => setEditingIndex(i)}
+          disabled={!editable && !onRowSelected}
+          onPress={() => (onRowSelected ? onRowSelected(row) : setEditingIndex(i))}
         >
           {cols.map((c) => (
             <Text key={c.id} style={styles.gridCell} numberOfLines={1}>
@@ -432,7 +443,7 @@ function GridField({ columns, rows, editable, onChange }: {
 
 /** Modal row editor: one input per column, typed by the column dataType (falling back to the
  *  current value's type — column dataType is often 'string' even for numeric cells). */
-function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }: {
+export function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }: {
   columns: GridColumnMeta[];
   row: Record<string, unknown>;
   isNew: boolean;
