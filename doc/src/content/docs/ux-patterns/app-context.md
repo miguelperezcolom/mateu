@@ -113,19 +113,12 @@ class BackofficeApp:
 
 The native shells render the same wire field:
 
-- **JavaFX** — one ComboBox per selector on the right of the shellbar; the selection is persisted
-  per backend in `~/.mateu-javafx-appcontext.json` and picking a value reloads every open tab of
-  the dockable workspace.
-- **Compose Multiplatform** — dropdowns on the shellbar (desktop/iOS/Android); persisted per
-  backend (a properties file on desktop, `NSUserDefaults` on iOS; session-scoped on Android until
-  the entry point threads a `Context` through) and picking a value re-navigates the current route.
 - **React Native** — selectors at the top of the drawer; session-scoped, picking a value remounts
   the current screen.
 
 Like the web picker, a selector with more than 7 options gains a **search box**: typing filters
 the loaded options and (debounced) asks the server for matches beyond the loaded page via the same
-`_appcontext-search-<field>` action — JavaFX shows it in a popup panel, Compose inside the
-dropdown, React Native under the drawer selector.
+`_appcontext-search-<field>` action — React Native shows it under the drawer selector.
 
 ## Principles served
 

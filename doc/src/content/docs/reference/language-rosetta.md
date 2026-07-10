@@ -63,7 +63,7 @@ Exact signatures can drift — the per-language manuals ([C#](/csharp-user-manua
 ## What stays identical
 
 - The **wire**: `POST /{baseUrl}/mateu/v3/sync/{route}` → `UIIncrement` JSON.
-- The **renderers**: web (Vaadin, Redwood, SAP UI5, PatternFly) and native (JavaFX, Compose,
+- The **renderers**: web (Vaadin, Redwood, SAP UI5, PatternFly) and native (the IntelliJ plugin,
   React Native) render any server without client changes.
 - The **concepts**: everything under [UX Patterns](/ux-patterns/) and the execution model.
 

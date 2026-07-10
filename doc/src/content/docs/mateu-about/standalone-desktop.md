@@ -13,12 +13,12 @@ native launcher) and a normal-looking desktop app appears.
 
 ## Two ways to run it as a desktop tool
 
-**Native desktop renderer — no browser.** Mateu ships native renderers:
-[JavaFX on the desktop and Compose Multiplatform](/native/) (desktop, plus iOS
-and Android). With these there is **no browser involved at all** — you ship a
-genuine native desktop application, a real window like any other app. The
-renderer speaks the same `/mateu/v3/sync` contract to the Mateu backend, which
-you run embedded in the same process, so nothing external is required.
+**Native desktop renderer — no browser.** Mateu ships an
+[IntelliJ plugin](/native/) that renders the app **inside IntelliJ IDEA** with
+native Swing components — tool windows, editor tabs, docking. There is no
+browser involved at all; the plugin speaks the same `/mateu/v3/sync` contract
+to the Mateu backend. It is the right fit when the users are developers or
+power users who already live in the IDE.
 
 **Web shell — browser + local server.** Alternatively, reuse the web renderer:
 run the normal Mateu web service on `localhost` and open the default browser

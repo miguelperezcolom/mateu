@@ -49,18 +49,20 @@ min–max) and the values are applied in-memory over `Fetch()`; Java's pluggable
 
 Every renderer speaks the same wire; the depth of widget support varies.
 
-| Feature | Vaadin (web) | Redwood (web) | SAP UI5 / PatternFly (web) | JavaFX | Compose | React Native |
-|---|---|---|---|---|---|---|
-| Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | — | — | — |
-| App context selector | ✅ | ✅ | ✅ (shared) | ✅ | ✅ | ✅ |
-| — searchable picker w/ remote search | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Signature capture | ✅ canvas | ✅ canvas | ✅ (shared) | ✅ canvas | ✅ canvas | ✅ svg + view-shot |
-| Photo capture | ✅ getUserMedia | ✅ | ✅ (shared) | 🟡 file picker (no desktop camera API) | ✅ Android/iOS camera · 🟡 desktop file dialog | ✅ expo-camera |
-| Tree select dropdown | ✅ | ✅ | ✅ (shared) | ✅ | ✅ | ✅ |
-| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | — | — | — |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | 🟡 subset | 🟡 subset | 🟡 subset |
-| Dockable multi-tab workspace | — | — | — | ✅ | — | — |
+| Feature | Vaadin (web) | Redwood (web) | SAP UI5 / PatternFly (web) | IntelliJ plugin | React Native |
+|---|---|---|---|---|---|
+| Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (shared bar) | ✅ (native panel) | 🟡 panel (no chips) |
+| Date picker | ✅ | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
+| App context selector | ✅ | ✅ | ✅ (shared) | — | ✅ |
+| — searchable picker w/ remote search | ✅ | ✅ | ✅ | — | ✅ |
+| Signature capture | ✅ canvas | ✅ canvas | ✅ (shared) | — | ✅ svg + view-shot |
+| Photo capture | ✅ getUserMedia | ✅ | ✅ (shared) | — | ✅ expo-camera |
+| Tree select dropdown | ✅ | ✅ | ✅ (shared) | — | ✅ |
+| Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | — | — |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | 🟡 subset | 🟡 subset |
+| Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
+| App registry boot (installable → registry → backend) | — | — | — | — | ✅ |
 
 "Shared" = SAP UI5 and PatternFly reuse the shared web components (Lumo-variable theming), so they
 inherit those features automatically.

@@ -12,7 +12,7 @@ All renderers consume the same Mateu API, so you can switch or support multiple 
 Each renderer family serves a different goal. The same `@UI` backend can drive all of them at once, so you pick per deployment — or offer several.
 
 - **Web renderers** (with multiple design systems) — best when you want a **zero-install** UI delivered through the browser, and when you need to **drop Mateu into an application you already have without breaking its UX**. Choose the design system that matches the host application — [Vaadin](/design-systems/vaadin/), [SAP Fiori](/design-systems/sapui5/), [Oracle Redwood](/design-systems/oracle-redwood/), [Red Hat PatternFly](/design-systems/redhat/), [Salesforce SLDS](/design-systems/slds2/) — and the Mateu screens blend in seamlessly.
-- **Native renderers** — best when you want **better performance** and an OS-native feel. The [desktop (JavaFX)](/native/) renderer additionally gives power users a productivity workspace with **docking and tabs** — detach views into floating windows, dock them side by side, keep several screens open at once. The [mobile (React Native)](/native/) renderer ships your app to iOS and Android.
+- **Native renderers** — best when you want **better performance** and an OS-native feel. The [desktop (IntelliJ plugin)](/native/) renderer runs your app inside IntelliJ IDEA and gives power users the IDE's productivity workspace — **docking, split editor tabs, Search Everywhere, keyboard-first navigation**. The [mobile (React Native)](/native/) renderer ships your app to iOS and Android.
 
 You don't have to pick just one: the identical backend can serve a web UI, a native desktop app, and a mobile app simultaneously.
 
@@ -62,7 +62,7 @@ Beyond the browser, Mateu also supports native renderers for desktop and mobile:
 
 | Renderer | Platform | Technology |
 |---|---|---|
-| [Desktop (JavaFX)](/native/) | Windows, macOS, Linux | JavaFX |
+| [Desktop (IntelliJ plugin)](/native/) | Windows, macOS, Linux (inside IntelliJ IDEA) | IntelliJ platform / Swing |
 | [Mobile (React Native)](/native/) | iOS, Android | Expo / React Native |
 
 Both native renderers consume the same Mateu API as the web renderers. The same backend serves web, desktop, and mobile clients simultaneously with no code changes.

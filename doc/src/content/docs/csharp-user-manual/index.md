@@ -4,7 +4,7 @@ description: "Build Mateu apps with a .NET / C# server — annotate C# classes a
 ---
 
 Mateu has a **C# server-side implementation** (Mateu.NET). You annotate plain C# classes, and the
-**existing renderers** (web, JavaFX, Compose) render them with **zero client changes** — exactly as
+**existing renderers** (web and native) render them with **zero client changes** — exactly as
 they render the Java backend.
 
 > Coming from Java? The [Language Rosetta](/reference/language-rosetta/) maps every declaration

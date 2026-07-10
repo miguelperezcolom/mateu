@@ -43,7 +43,7 @@ The reference renderer is a JavaScript web component (`<mateu-ui>`). It loads th
 Because the renderer consumes an abstract UI description, it can be replaced. Any client that speaks HTTP and understands the Mateu component tree can serve as a renderer:
 
 - **Web renderers** — JavaScript web components built on different design systems: Vaadin Lumo, SAP Fiori, Red Hat PatternFly, Oracle Redwood, Salesforce Lightning.
-- **Desktop renderer** — a JavaFX application that renders native controls on Windows, macOS, and Linux.
+- **Desktop renderer** — an IntelliJ IDEA plugin that renders native Swing controls inside the IDE (tool windows, editor tabs, docking) on Windows, macOS, and Linux.
 - **Mobile renderer** — an Expo / React Native application that renders native components on iOS and Android.
 
 All renderers consume the same API. The same backend serves web, desktop, and mobile clients simultaneously.

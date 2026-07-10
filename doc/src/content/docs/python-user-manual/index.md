@@ -4,7 +4,7 @@ description: "Build Mateu apps with a Python server — annotate Python classes 
 ---
 
 Mateu has a **Python server-side implementation**. You annotate plain Python classes, and the
-**existing renderers** (web, JavaFX, Compose) render them with **zero client changes** — exactly as
+**existing renderers** (web and native) render them with **zero client changes** — exactly as
 they render the Java backend.
 
 > Coming from Java? The [Language Rosetta](/reference/language-rosetta/) maps every declaration
