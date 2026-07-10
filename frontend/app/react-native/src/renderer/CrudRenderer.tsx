@@ -9,6 +9,15 @@ import {
   View,
 } from 'react-native';
 import { useViewController } from './MateuViewHost';
+import { FormFieldRenderer } from './FormFieldRenderer';
+
+interface FilterFieldMeta {
+  fieldId: string;
+  label?: string;
+  dataType?: string;
+  stereotype?: string;
+  options?: { value: string; label: string }[];
+}
 
 interface ColumnMeta {
   id?: string;
@@ -86,12 +95,31 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const totalPages = pageSize > 0 ? Math.ceil(totalElements / pageSize) : 1;
 
   const [searchText, setSearchText] = useState('');
+  const filters = (metadata['filters'] as FilterFieldMeta[]) ?? [];
+  const [filterValues, setFilterValues] = useState<Record<string, unknown>>({});
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = Object.values(filterValues).filter(
+    (v) => v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && v.length === 0),
+  ).length;
 
-  const doSearch = () => {
+  const doSearch = (values?: Record<string, unknown>) => {
     controller.seedSearchState();
     controller.currentComponentState['searchText'] = searchText;
     controller.currentComponentState['page'] = 0;
+    for (const [k, v] of Object.entries(values ?? filterValues)) {
+      if (v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0)) {
+        delete controller.currentComponentState[k];
+      } else {
+        controller.currentComponentState[k] = v;
+      }
+    }
     void controller.runAction('search');
+  };
+
+  const clearFilters = () => {
+    for (const k of Object.keys(filterValues)) delete controller.currentComponentState[k];
+    setFilterValues({});
+    doSearch({});
   };
 
   const changePage = (actionId: 'prevPage' | 'nextPage') => {
@@ -167,13 +195,30 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             value={searchText}
             onChangeText={setSearchText}
             placeholder="Search..."
-            onSubmitEditing={doSearch}
+            onSubmitEditing={() => doSearch()}
             returnKeyType="search"
           />
-          <TouchableOpacity style={styles.btnPrimary} onPress={doSearch}>
+          {filters.length > 0 && (
+            <TouchableOpacity style={styles.btnDefault} onPress={() => setFiltersOpen(!filtersOpen)}>
+              <Text style={styles.btnDefaultText}>
+                Filters{activeFilters > 0 ? ` (${activeFilters})` : ''}
+              </Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.btnPrimary} onPress={() => doSearch()}>
             <Text style={styles.btnPrimaryText}>Search</Text>
           </TouchableOpacity>
         </View>
+      )}
+
+      {filtersOpen && filters.length > 0 && (
+        <FilterPanel
+          filters={filters}
+          values={filterValues}
+          onChange={setFilterValues}
+          onApply={() => { setFiltersOpen(false); doSearch(); }}
+          onClear={() => { setFiltersOpen(false); clearFilters(); }}
+        />
       )}
 
       <ScrollView horizontal>
@@ -229,6 +274,93 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   );
 }
 
+/** Filter widgets under the search bar. Range stereotypes (dateRange/numberRange) write the
+ *  crud's `<field>_from`/`<field>_to` state keys; multiSelect writes a value list; everything
+ *  else reuses the standard form field widgets against the local filter-values map. */
+function FilterPanel({ filters, values, onChange, onApply, onClear }: {
+  filters: FilterFieldMeta[];
+  values: Record<string, unknown>;
+  onChange: (values: Record<string, unknown>) => void;
+  onApply: () => void;
+  onClear: () => void;
+}) {
+  const set = (key: string, value: unknown) => onChange({ ...values, [key]: value });
+
+  return (
+    <View style={styles.filterPanel}>
+      {filters.map((f) => {
+        const stereotype = f.stereotype ?? '';
+        if (stereotype === 'dateRange' || stereotype === 'numberRange') {
+          const isDate = stereotype === 'dateRange';
+          return (
+            <View key={f.fieldId} style={styles.filterItem}>
+              <Text style={styles.filterLabel}>{f.label || f.fieldId}</Text>
+              <View style={styles.filterRangeRow}>
+                <TextInput
+                  style={[styles.searchInput, styles.filterRangeInput]}
+                  value={String(values[`${f.fieldId}_from`] ?? '')}
+                  onChangeText={(v) => set(`${f.fieldId}_from`, v)}
+                  placeholder={isDate ? 'From (YYYY-MM-DD)' : 'From'}
+                  keyboardType={isDate ? 'default' : 'decimal-pad'}
+                  autoCapitalize="none"
+                />
+                <TextInput
+                  style={[styles.searchInput, styles.filterRangeInput]}
+                  value={String(values[`${f.fieldId}_to`] ?? '')}
+                  onChangeText={(v) => set(`${f.fieldId}_to`, v)}
+                  placeholder={isDate ? 'To (YYYY-MM-DD)' : 'To'}
+                  keyboardType={isDate ? 'default' : 'decimal-pad'}
+                  autoCapitalize="none"
+                />
+              </View>
+            </View>
+          );
+        }
+        if (stereotype === 'multiSelect') {
+          const selected = Array.isArray(values[f.fieldId]) ? (values[f.fieldId] as string[]) : [];
+          return (
+            <View key={f.fieldId} style={styles.filterItem}>
+              <Text style={styles.filterLabel}>{f.label || f.fieldId}</Text>
+              <View style={styles.filterChips}>
+                {(f.options ?? []).map((opt) => {
+                  const on = selected.includes(opt.value);
+                  return (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[styles.filterChip, on && styles.filterChipOn]}
+                      onPress={() =>
+                        set(f.fieldId, on ? selected.filter((v) => v !== opt.value) : [...selected, opt.value])
+                      }
+                    >
+                      <Text style={on ? styles.filterChipOnText : styles.btnDefaultText}>{opt.label}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          );
+        }
+        return (
+          <FormFieldRenderer
+            key={f.fieldId}
+            metadata={f as never}
+            state={values}
+            onStateChange={set}
+          />
+        );
+      })}
+      <View style={styles.filterButtons}>
+        <TouchableOpacity style={styles.btnDefault} onPress={onClear}>
+          <Text style={styles.btnDefaultText}>Clear filters</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.btnPrimary} onPress={onApply}>
+          <Text style={styles.btnPrimaryText}>Apply</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 const CELL_WIDTH = 140;
 
 const styles = StyleSheet.create({
@@ -253,4 +385,14 @@ const styles = StyleSheet.create({
   btnDefault: { backgroundColor: '#f5f5f5', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: '#ccc' },
   btnDefaultText: { color: '#333', fontSize: 13 },
   btnDisabled: { opacity: 0.4 },
+  filterPanel: { padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee', backgroundColor: '#fafafa' },
+  filterItem: { marginBottom: 12 },
+  filterLabel: { fontSize: 12, color: '#555', marginBottom: 4, fontWeight: '500' },
+  filterRangeRow: { flexDirection: 'row', gap: 8 },
+  filterRangeInput: { flex: 1 },
+  filterChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: '#ccc', backgroundColor: '#fff' },
+  filterChipOn: { backgroundColor: '#0070f3', borderColor: '#0070f3' },
+  filterChipOnText: { color: '#fff', fontSize: 13 },
+  filterButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 4 },
 });

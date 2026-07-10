@@ -13,6 +13,16 @@ if (actions.includes('menu')) {
   await page.getByText('Products', { exact: true }).first().click();
   await page.waitForTimeout(3000);
 }
+if (actions.includes('checkin')) {
+  await page.mouse.click(26, 32);
+  await page.waitForTimeout(1000);
+  await page.getByText('Check-in', { exact: true }).first().click();
+  await page.waitForTimeout(3000);
+}
+if (actions.includes('filters')) {
+  await page.getByText('Filters', { exact: false }).first().click();
+  await page.waitForTimeout(800);
+}
 if (actions.includes('row')) {
   await page.getByText('Producto 10', { exact: false }).first().click();
   await page.waitForTimeout(2500);
