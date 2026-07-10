@@ -170,3 +170,23 @@ fun renderGantt(metadata: JsonNode): JComponent {
     panel.preferredSize = Dimension(480, tasks.size * 26 + 8)
     return panel
 }
+
+/** A standalone Image component (metadata.src — data URI or URL). */
+fun renderStandaloneImage(metadata: JsonNode): JComponent {
+    val src = metadata.text("src")
+    if (src.isBlank()) return JPanel().apply { isOpaque = false }
+    val img = runCatching {
+        if (src.startsWith("data:")) {
+            val base64 = src.substringAfter("base64,", "")
+            if (base64.isNotBlank()) javax.imageio.ImageIO.read(java.util.Base64.getDecoder().decode(base64).inputStream()) else null
+        } else {
+            javax.imageio.ImageIO.read(java.net.URI.create(src).toURL())
+        }
+    }.getOrNull()
+    return if (img != null) {
+        val scale = minOf(1.0, 360.0 / img.width)
+        JBLabel(javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH)))
+    } else {
+        JBLabel(src)
+    }
+}

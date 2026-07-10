@@ -60,6 +60,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Skeleton" -> renderSkeleton(metadata)
             "FoldoutLayout" -> renderFoldout(this, component, metadata, state, data)
             "Gantt" -> renderGantt(metadata)
+            "Image" -> renderStandaloneImage(metadata)
             else -> {
                 val t = metadata.text("type")
                 if (t.isNotBlank()) JBLabel("Unsupported component: $t")

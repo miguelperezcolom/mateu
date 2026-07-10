@@ -247,7 +247,43 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         }
         center.add(north, BorderLayout.NORTH)
     }
-    center.add(JBScrollPane(table), BorderLayout.CENTER)
+    // GridLayout.masterDetail: table on the left, a read-only detail form of the selected row on
+    // the right (a JBSplitter). Every other layout keeps the plain full-width table.
+    if (metadata.text("gridLayout") == "masterDetail") {
+        val detail = JPanel(BorderLayout())
+        detail.border = JBUI.Borders.emptyLeft(12)
+        val hint = JBLabel("Select a row to see its details.")
+        hint.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        detail.add(hint, BorderLayout.NORTH)
+        table.selectionModel.addListSelectionListener { e ->
+            if (e.valueIsAdjusting) return@addListSelectionListener
+            val viewRow = table.selectedRow
+            detail.removeAll()
+            if (viewRow >= 0) {
+                val row = model.rowAt(table.convertRowIndexToModel(viewRow))
+                if (row != null) {
+                    val form = verticalPanel(6)
+                    for (spec in specs) {
+                        val cell = JBLabel(row.path(spec.id).displayString())
+                        val cap = JBLabel(spec.label)
+                        cap.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                        form.addStacked(cap, 0)
+                        form.addStacked(cell, 6)
+                    }
+                    detail.add(JBScrollPane(form), BorderLayout.CENTER)
+                }
+            } else {
+                detail.add(hint, BorderLayout.NORTH)
+            }
+            detail.revalidate(); detail.repaint()
+        }
+        val splitter = com.intellij.ui.OnePixelSplitter(false, 0.55f)
+        splitter.firstComponent = JBScrollPane(table)
+        splitter.secondComponent = detail
+        center.add(splitter, BorderLayout.CENTER)
+    } else {
+        center.add(JBScrollPane(table), BorderLayout.CENTER)
+    }
     center.add(pager, BorderLayout.SOUTH)
     panel.add(center, BorderLayout.CENTER)
 
