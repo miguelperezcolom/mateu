@@ -37,7 +37,10 @@ final class ConstructorResolver {
         }
       }
     }
-    if (con != null && !Modifier.isPublic(con.getModifiers())) {
+    if (con != null
+        && (!Modifier.isPublic(con.getModifiers())
+            || !Modifier.isPublic(con.getDeclaringClass().getModifiers()))) {
+      // a public constructor on a package-private class is still inaccessible reflectively
       con.setAccessible(true);
     }
     return con;

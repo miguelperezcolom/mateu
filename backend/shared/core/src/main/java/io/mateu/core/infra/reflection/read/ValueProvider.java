@@ -71,9 +71,12 @@ public class ValueProvider {
     }
     Object v = null;
     try {
-      if (getter != null) v = getter.invoke(o);
-      else {
-        if (!Modifier.isPublic(f.getModifiers())) f.setAccessible(true);
+      if (getter != null) {
+        // a public getter on a package-private class is still inaccessible reflectively
+        if (!getter.canAccess(o)) getter.setAccessible(true);
+        v = getter.invoke(o);
+      } else {
+        if (!f.canAccess(o)) f.setAccessible(true);
         v = f.get(o);
       }
     } catch (IllegalAccessException | InvocationTargetException e) {
