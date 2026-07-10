@@ -2,6 +2,11 @@ import { customElement, property } from 'lit/decorators.js'
 import { html, nothing, type TemplateResult, LitElement } from 'lit'
 import FormField from '@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts'
 import Option from '@mateu/shared/apiClients/dtos/componentmetadata/Option.ts'
+// Shared design-system-neutral widgets (Lumo vars + fallbacks) — reused so PatternFly gets the
+// full field set instead of collapsing capture/tree fields to a plain text input.
+import '@infra/ui/mateu-signature-pad.ts'
+import '@infra/ui/mateu-camera-capture.ts'
+import '@infra/ui/mateu-tree-select.ts'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -45,7 +50,25 @@ export class MateuRedhatField extends LitElement {
     private control(): TemplateResult {
         const f = this.field!
         const disabled = f.disabled || f.readOnly
-        if (f.stereotype === 'plainText') return html`<div class="pf-v6-c-content"><p>${this.value ?? ''}</p></div>`
+        const editable = !disabled
+        if (f.stereotype === 'plainText') {
+            const text = f.dataType === 'money' ? formatMoney(this.value) : (this.value ?? '')
+            return html`<div class="pf-v6-c-content"><p>${text}</p></div>`
+        }
+        if (f.stereotype === 'money' && !editable) return html`<div class="pf-v6-c-content"><p>${formatMoney(this.value)}</p></div>`
+        // Shared DS-neutral widgets for the capture/tree/rich stereotypes.
+        if (f.stereotype === 'signature') {
+            return html`<mateu-signature-pad .fieldId="${f.fieldId}" .value="${this.value ?? ''}" .editable="${editable}"></mateu-signature-pad>`
+        }
+        if (f.stereotype === 'camera') {
+            return html`<mateu-camera-capture .fieldId="${f.fieldId}" .value="${this.value ?? ''}" .editable="${editable}"></mateu-camera-capture>`
+        }
+        if (f.stereotype === 'treeSelect') {
+            return html`<mateu-tree-select .fieldId="${f.fieldId}" .value="${this.value ?? ''}" .options="${this.options}" .leavesOnly="${(f as any).treeLeavesOnly === true}"></mateu-tree-select>`
+        }
+        if ((f.stereotype === 'image' || f.stereotype === 'uploadableImage') && this.value) {
+            return html`<img src="${this.value}" style="max-width: 100%; max-height: 200px; border-radius: 4px;" />`
+        }
         if (this.isCheckbox()) {
             return html`<div class="pf-v6-c-check">
                 <input class="pf-v6-c-check__input" type="checkbox" id="${f.fieldId}_cb" .checked="${!!this.value}" ?disabled="${disabled}" @change="${this.onCheck}" />
@@ -100,4 +123,12 @@ export class MateuRedhatField extends LitElement {
 
 declare global {
     interface HTMLElementTagNameMap { 'mateu-redhat-field': MateuRedhatField }
+}
+
+/** de-DE thousands + 2 decimals, for money read-only rendering. */
+function formatMoney(v: unknown): string {
+    const n = typeof v === 'number' ? v : parseFloat(String(v ?? ''))
+    if (isNaN(n)) return String(v ?? '')
+    try { return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n) }
+    catch { return n.toFixed(2) }
 }

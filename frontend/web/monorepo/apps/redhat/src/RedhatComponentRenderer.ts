@@ -104,8 +104,11 @@ export class RedhatComponentRenderer extends BasicComponentRenderer implements C
     renderTableComponent(container: any, component: ClientSideComponent | undefined): TemplateResult {
         return renderTable(container, component!)
     }
-    renderFilterBar(container: any, component: ClientSideComponent | undefined): TemplateResult {
-        return renderFilterBar(container, component)
+    renderFilterBar(container: any, component: ClientSideComponent | undefined, baseUrl?: string, state?: any, data?: any, appState?: any, appData?: any, searchOnly?: boolean): TemplateResult {
+        // The shared <mateu-filter-bar> is design-system-neutral (Lumo vars + fallbacks) and
+        // renders the full smart-search UI (ranges, multi-select, booleans, date pickers). The
+        // old PatternFly-local filter bar only had a search box, so use the shared one.
+        return super.renderFilterBar(container, component, baseUrl, state, data, appState, appData, searchOnly)
     }
     renderPagination(container: any, component: ClientSideComponent | undefined): TemplateResult {
         return renderPagination(container, component)

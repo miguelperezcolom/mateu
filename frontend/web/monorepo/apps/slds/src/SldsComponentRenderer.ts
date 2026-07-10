@@ -125,8 +125,10 @@ export class SldsComponentRenderer extends BasicComponentRenderer implements Com
         return renderSldsTable(container, component!)
     }
 
-    renderFilterBar(container: any, component: ClientSideComponent | undefined, _baseUrl: string | undefined, _state: any, _data: any, _appState: any, _appData: any, searchOnly?: boolean): TemplateResult {
-        return renderSldsFilterBar(container, component, searchOnly)
+    renderFilterBar(container: any, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, searchOnly?: boolean): TemplateResult {
+        // Use the shared design-system-neutral <mateu-filter-bar> (full smart-search UI) instead of
+        // the SLDS-local one, which rendered each filter as a bare text input.
+        return super.renderFilterBar(container, component, baseUrl, state, data, appState, appData, searchOnly)
     }
 
     renderPagination(container: any, component: ClientSideComponent | undefined): TemplateResult {
