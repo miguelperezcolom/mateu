@@ -30,7 +30,54 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.onAppMenuChanged?.invoke()
         com.intellij.ide.ActivityTracker.getInstance().inc()
     }
-    return JBScrollPane(buildSidebar(session, metadata.path("menu")))
+    val sidebar = verticalPanel(4)
+    // @AppContext selectors: one combo per selector at the top of the navigator; picking a value
+    // fixes it in the appState sent with every request and reloads the app shell.
+    val selectors = metadata.path("contextSelectors")
+    if (selectors.isArray && !selectors.isEmpty) {
+        for (selector in selectors) {
+            val fieldName = selector.text("fieldName")
+            val row = javax.swing.JPanel(java.awt.BorderLayout(JBUI.scale(6), 0))
+            row.isOpaque = false
+            row.border = JBUI.Borders.empty(4, 8)
+            row.add(JBLabel(selector.text("label", fieldName)), java.awt.BorderLayout.WEST)
+            val combo = com.intellij.openapi.ui.ComboBox<Pair<String, String>>()
+            combo.renderer = javax.swing.DefaultListCellRenderer().let { base ->
+                javax.swing.ListCellRenderer<Any> { list, value, index, isSelected, cellHasFocus ->
+                    @Suppress("UNCHECKED_CAST")
+                    val pair = value as? Pair<String, String>
+                    base.getListCellRendererComponent(list, pair?.second ?: "—", index, isSelected, cellHasFocus)
+                }
+            }
+            combo.addItem("" to "—")
+            val current = session.appState[fieldName]?.let { if (it is JsonNode) it.asText() else it.toString() } ?: ""
+            var selectedIndex = 0
+            selector.path("options").forEachIndexed { i, opt ->
+                val v = opt.text("value")
+                combo.addItem(v to opt.text("label", v))
+                if (v == current) selectedIndex = i + 1
+            }
+            combo.selectedIndex = selectedIndex
+            combo.addActionListener {
+                @Suppress("UNCHECKED_CAST")
+                val picked = combo.selectedItem as? Pair<String, String> ?: return@addActionListener
+                if (picked.first.isBlank()) session.appState.remove(fieldName) else session.appState[fieldName] = picked.first
+                session.onAppContextChanged?.invoke()
+            }
+            row.add(combo, java.awt.BorderLayout.CENTER)
+            sidebar.addStacked(row, 2)
+        }
+        sidebar.addStacked(JSeparator(), 4)
+    }
+    sidebar.addStacked(buildSidebar(session, metadata.path("menu")), 0)
+    // AI chat (App.sseUrl): the assistant opens in a modeless dialog from the navigator.
+    val sseUrl = metadata.text("sseUrl")
+    if (sseUrl.isNotBlank()) {
+        val chat = ActionLink("💬 Assistant") { openChatDialog(sseUrl) }
+        chat.border = JBUI.Borders.empty(8)
+        sidebar.addStacked(chat, 2)
+    }
+    return JBScrollPane(sidebar)
 }
 
 private fun buildSidebar(session: AppSession, menu: JsonNode): JComponent {
@@ -69,4 +116,52 @@ private fun addMenuItems(session: AppSession, panel: javax.swing.JPanel, menu: J
             panel.addStacked(link, 2)
         }
     }
+}
+
+/** Minimal assistant dialog speaking the mateu-chat contract: POST {message, sessionId} to the
+ *  SSE endpoint and show the accumulated `data:` payloads as the agent reply. */
+private fun openChatDialog(sseUrl: String) {
+    val dialog = javax.swing.JDialog(null as java.awt.Frame?, "Assistant", false)
+    val messages = javax.swing.JTextArea()
+    messages.isEditable = false
+    messages.lineWrap = true
+    messages.wrapStyleWord = true
+    val input = com.intellij.ui.components.JBTextField()
+    val sessionId = "chat-" + java.util.UUID.randomUUID().toString().take(8)
+    val client = java.net.http.HttpClient.newHttpClient()
+    val mapper = com.fasterxml.jackson.databind.ObjectMapper()
+
+    fun send() {
+        val text = input.text.trim()
+        if (text.isBlank()) return
+        input.text = ""
+        messages.append("You: $text\n")
+        Thread {
+            val reply = runCatching {
+                val body = mapper.writeValueAsString(mapOf("message" to text, "sessionId" to sessionId))
+                val request = java.net.http.HttpRequest.newBuilder(java.net.URI.create(sseUrl))
+                    .header("Accept", "text/event-stream")
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body))
+                    .build()
+                val response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
+                response.body().lineSequence()
+                    .filter { it.startsWith("data:") }
+                    .map { it.removePrefix("data:").trim() }
+                    .filter { it.isNotBlank() && !it.startsWith("{") }
+                    .joinToString("")
+            }.getOrElse { "⚠️ ${it.message}" }
+            javax.swing.SwingUtilities.invokeLater { messages.append("Agent: $reply\n\n") }
+        }.apply { isDaemon = true }.start()
+    }
+    input.addActionListener { send() }
+
+    val root = javax.swing.JPanel(java.awt.BorderLayout(0, JBUI.scale(6)))
+    root.border = JBUI.Borders.empty(10)
+    root.add(JBScrollPane(messages), java.awt.BorderLayout.CENTER)
+    root.add(input, java.awt.BorderLayout.SOUTH)
+    dialog.contentPane = root
+    dialog.setSize(420, 480)
+    dialog.setLocationRelativeTo(null)
+    dialog.isVisible = true
 }

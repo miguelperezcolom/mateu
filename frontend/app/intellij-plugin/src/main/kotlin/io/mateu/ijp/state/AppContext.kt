@@ -90,6 +90,90 @@ class AppContext(val session: AppSession) {
     fun putState(fieldId: String, value: Any?) {
         currentComponentState[fieldId] = value
         markUserEdit()
+        // Rules react to edits (conditional visibility/disabling); re-render only on real changes.
+        if (applyRules()) rerenderCurrentForm()
+        // @AutoSave: fire the configured action once the user has been idle for the debounce window.
+        autoSaveActionId?.let { actionId ->
+            autoSaveTimer?.stop()
+            autoSaveTimer = javax.swing.Timer(autoSaveDebounceMillis) {
+                runAction(actionId, null, silent = true)
+            }.apply { isRepeats = false; start() }
+        }
+    }
+
+    private var autoSaveDebounceMillis = 800
+
+    /**
+     * Evaluates the component's rules against the live state (same semantics as the web's
+     * applyRules, minus the DOM-bound actions). Returns true when state values or field
+     * attributes changed and the form should re-render.
+     */
+    fun applyRules(): Boolean {
+        val rules = currentRules ?: return false
+        val ctx = mapOf<String, Any?>(
+            "state" to currentComponentState,
+            "data" to null,
+            "appState" to appState,
+            "appData" to emptyMap<String, Any?>(),
+        )
+        var changed = false
+        for (rule in rules) {
+            val filter = rule.text("filter")
+            val matches = if (filter.isBlank()) true else try {
+                Expressions.truthy(Expressions.evaluate(filter, ctx))
+            } catch (e: Exception) {
+                false
+            }
+            if (!matches) continue
+            fun value(): Any? {
+                val expression = rule.text("expression")
+                if (expression.isNotBlank()) {
+                    try {
+                        return Expressions.evaluate(expression, ctx)
+                    } catch (e: Exception) { /* fall through to the literal */ }
+                }
+                val v = rule.path("value")
+                return when {
+                    v.isMissingNode || v.isNull -> null
+                    v.isNumber -> v.asDouble()
+                    v.isBoolean -> v.asBoolean()
+                    v.isTextual -> v.asText()
+                    else -> v
+                }
+            }
+            when (rule.text("action")) {
+                "SetStateValue", "SetDataValue" -> {
+                    for (fieldName in rule.text("fieldName").split(',')) {
+                        val attr = rule.text("fieldAttribute")
+                        val key = if (attr.isBlank() || attr == "none") fieldName else "$fieldName.$attr"
+                        val v = value()
+                        if (currentComponentState[key] != v) {
+                            currentComponentState[key] = v
+                            changed = true
+                        }
+                    }
+                }
+                "SetAttributeValue" -> {
+                    for (fieldName in rule.text("fieldName").split(',')) {
+                        val attr = rule.text("fieldAttribute")
+                        if (attr.isBlank() || attr == "none") continue
+                        val attrs = fieldAttributes.getOrPut(fieldName) { HashMap() }
+                        val v = value()
+                        if (attrs[attr] != v) {
+                            attrs[attr] = v
+                            changed = true
+                        }
+                    }
+                }
+                "RunAction" -> {
+                    val actionId = rule.text("actionId")
+                    if (actionId.isNotBlank()) runAction(actionId, null, silent = true)
+                }
+                // RunJS / SetCssClass / SetStyle are DOM-bound — not applicable on Swing.
+            }
+            if (rule.text("result") == "Stop") break
+        }
+        return changed
     }
 
     /** A user edit that mutates state in place (e.g. editable-grid rows) — just flips the flag. */
@@ -159,6 +243,22 @@ class AppContext(val session: AppSession) {
 
     /** Inline field validation errors (fieldId → message), consumed by the form field renderer. */
     val currentFieldErrors: MutableMap<String, String> = HashMap()
+
+    /** Client-side rules of the current component (RuleMapper wire shape). */
+    private var currentRules: JsonNode? = null
+
+    /** Rule-driven field attribute overrides (SetAttributeValue): fieldId → {hidden, disabled, …}. */
+    val fieldAttributes: MutableMap<String, MutableMap<String, Any?>> = HashMap()
+
+    /** Action-returned banners (UIIncrementDto.banners) — cleared when a new component loads. */
+    val actionBanners: MutableList<JsonNode> = ArrayList()
+
+    /** @Emits name stamped as __source on dispatched events. */
+    private var emitsName = ""
+
+    /** @AutoSave: debounced action fired after edits. */
+    private var autoSaveActionId: String? = null
+    private var autoSaveTimer: javax.swing.Timer? = null
     private var currentFormChildren: JsonNode? = null
     private var currentFormContainer: JComponent? = null
 
@@ -225,6 +325,17 @@ class AppContext(val session: AppSession) {
 
     fun registerDataHandler(id: String?, handler: (JsonNode) -> Unit) {
         if (!id.isNullOrBlank()) dataHandlers[id] = handler
+    }
+
+    /** Field-scoped data (lookup `search-<field>` results arrive as `{ <fieldId>: page }`). */
+    private val fieldDataHandlers: MutableMap<String, (JsonNode) -> Unit> = HashMap()
+
+    fun registerFieldDataHandler(fieldId: String, handler: (JsonNode) -> Unit) {
+        if (fieldId.isNotBlank()) fieldDataHandlers[fieldId] = handler
+    }
+
+    fun unregisterFieldDataHandler(fieldId: String) {
+        fieldDataHandlers.remove(fieldId)
     }
 
     // ── navigation / actions ─────────────────────────────────────────────────────────
@@ -358,6 +469,10 @@ class AppContext(val session: AppSession) {
         currentActionValidationRequired = validationFlags
         currentActionBubble = bubbleFlags
         currentComponentValidations = sscNode.path("validations")
+        currentRules = sscNode.path("rules").takeIf { it.isArray && it.size() > 0 }
+        fieldAttributes.clear()
+        actionBanners.clear() // action banners don't survive a component (re)load
+        emitsName = sscNode.text("emitsName", sscNode.text("serverSideType"))
         registerShortcutActions(actionNodes)
         // A freshly-(re)loaded component starts clean; the wire flag says whether to track edits
         // (mirrors the web dirtyGuard reset tied to the lifecycle that rebuilds formerState).
@@ -464,6 +579,9 @@ class AppContext(val session: AppSession) {
         return errors
     }
 
+    /** Public re-render hook for widgets that swap their own subtree (signature accept, etc.). */
+    fun rerenderForm() = rerenderCurrentForm()
+
     private fun rerenderCurrentForm() {
         val container = currentFormContainer ?: return
         val children = currentFormChildren ?: return
@@ -474,6 +592,11 @@ class AppContext(val session: AppSession) {
     }
 
     private fun evalCondition(condition: String, state: Map<String, Any?>): Boolean {
+        try {
+            return Expressions.truthy(Expressions.evaluate(condition, mapOf("state" to state, "appState" to appState)))
+        } catch (e: Exception) {
+            // legacy regex matcher as the safety net for syntax the parser doesn't cover
+        }
         val cond = condition.trim()
         val c = COMPARISON.matcher(cond)
         if (c.matches()) {
@@ -540,6 +663,14 @@ class AppContext(val session: AppSession) {
         val commands = increment.path("commands")
         if (commands.isArray) for (cmd in commands) handleCommand(cmd)
 
+        // Action-returned banners (PageBanner/PageBanners): bare returns replace, .append accumulates.
+        val banners = increment.path("banners")
+        if (banners.isArray && banners.size() > 0) {
+            if (!increment.bool("appendBanners")) actionBanners.clear()
+            for (b in banners) actionBanners.add(b)
+            rerenderCurrentForm()
+        }
+
         val newAppState = increment.path("appState")
         if (!newAppState.isNull && newAppState.isObject) {
             newAppState.fields().forEach { (k, v) -> appState[k] = v }
@@ -566,6 +697,15 @@ class AppContext(val session: AppSession) {
         if (component.isNull || component.isMissingNode) {
             // Data-only fragment — push to a registered data handler (e.g. Crud search results).
             if (!data.isNull && !data.isMissingNode) {
+                // Field-scoped first: lookup responses are keyed by fieldId and must not hit the
+                // crud fallback.
+                if (data.isObject) {
+                    var consumed = false
+                    data.fieldNames().forEach { key ->
+                        fieldDataHandlers[key]?.let { it(data.path(key)); consumed = true }
+                    }
+                    if (consumed) return
+                }
                 val key = targetId.ifBlank { "ux_main" }
                 val handler = dataHandlers[key] ?: dataHandlers["crud"]
                 if (handler != null) handler(data)
@@ -823,6 +963,7 @@ class AppContext(val session: AppSession) {
                     currentComponentState = HashMap()
                     initialData.fields().forEach { (k, v) -> currentComponentState[k] = v }
                 }
+                applyRules() // initial pass (needs the hydrated state): conditional visibility etc.
                 val state = sscNode.path("initialData")
                 val triggers = sscNode.path("triggers")
                 currentFormChildren = children
@@ -904,13 +1045,23 @@ class AppContext(val session: AppSession) {
      *  payload as parameters. Re-registered per component load (old subscriptions dropped). */
     private fun registerCustomEventTriggers(triggers: JsonNode) {
         session.unsubscribeAll(this)
+        autoSaveActionId = null
         if (!triggers.isArray) return
         for (trigger in triggers) {
+            if (trigger.text("type").equals("AutoSave", ignoreCase = true)) {
+                autoSaveActionId = trigger.text("actionId").ifBlank { "save" }
+                autoSaveDebounceMillis = trigger.path("debounceMillis").asInt(800).coerceAtLeast(100)
+                continue
+            }
             if (!trigger.text("type").equals("OnCustomEvent", ignoreCase = true)) continue
             val eventName = trigger.text("eventName")
             val actionId = trigger.text("actionId")
             if (eventName.isBlank() || actionId.isBlank()) continue
+            // COMPONENT scope: only react to events stamped with the expected emitter (__source).
+            val scope = trigger.text("source").uppercase()
+            val from = trigger.text("from")
             session.subscribe(this, eventName) { payload ->
+                if (scope == "COMPONENT" && from.isNotBlank() && payload?.path("__source")?.asText("") != from) return@subscribe
                 val params: Map<String, Any?> = if (payload != null && payload.isObject) {
                     @Suppress("UNCHECKED_CAST")
                     mapper.convertValue(payload, Map::class.java) as Map<String, Any?>
@@ -926,7 +1077,11 @@ class AppContext(val session: AppSession) {
     private fun dispatchNamedEvent(cmdData: JsonNode) {
         val eventName = cmdData.text("eventName")
         if (eventName.isBlank()) return
-        val payload = cmdData.path("payload").let { if (it.isMissingNode || it.isNull) cmdData.path("detail") else it }
+        var payload = cmdData.path("payload").let { if (it.isMissingNode || it.isNull) cmdData.path("detail") else it }
+        // Only object payloads get the __source stamp, so legacy events keep their shape.
+        if (payload.isObject && emitsName.isNotBlank()) {
+            payload = (payload.deepCopy() as com.fasterxml.jackson.databind.node.ObjectNode).put("__source", emitsName)
+        }
         session.dispatchEvent(eventName, if (payload.isMissingNode || payload.isNull) null else payload)
     }
 

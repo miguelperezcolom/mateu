@@ -55,6 +55,11 @@ class ComponentRenderer(val ctx: AppContext) {
             "DashboardPanel" -> renderDashboardPanel(this, component, metadata, state, data)
             "Chart" -> renderChart(metadata)
             "Markdown" -> renderMarkdown(metadata)
+            "HeroSection" -> renderHeroSection(this, component, metadata, state, data)
+            "EmptyState" -> renderEmptyState(this, metadata)
+            "Skeleton" -> renderSkeleton(metadata)
+            "FoldoutLayout" -> renderFoldout(this, component, metadata, state, data)
+            "Gantt" -> renderGantt(metadata)
             else -> {
                 val t = metadata.text("type")
                 if (t.isNotBlank()) JBLabel("Unsupported component: $t")

@@ -49,6 +49,9 @@ class AppSession(
         overlays.removeLastOrNull()?.invoke()
     }
 
+    /** Fired when an @AppContext selector changes — the host reloads the app shell. */
+    var onAppContextChanged: (() -> Unit)? = null
+
     // ── in-app event bus (@SubscribeTo / UICommand.dispatchEvent / closeModal(eventName)) ──
     private data class Subscription(val owner: Any, val eventName: String, val handler: (com.fasterxml.jackson.databind.JsonNode?) -> Unit)
     private val subscriptions = java.util.concurrent.CopyOnWriteArrayList<Subscription>()

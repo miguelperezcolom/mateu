@@ -42,11 +42,21 @@ private val MONEY_STEREOTYPES = setOf("money", "currency")
  */
 fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val fieldId = metadata.text("fieldId")
-    val label = metadata.text("label", fieldId)
     val dataType = metadata.text("dataType", "string")
     val stereotype = metadata.text("stereotype")
-    val required = metadata.bool("required")
-    val enabled = !metadata.bool("readOnly") && !metadata.bool("disabled")
+
+    // Rule-driven attribute overrides (SetAttributeValue: hidden/disabled/required) + interpolation
+    val ruleAttrs = ctx.fieldAttributes[fieldId] ?: emptyMap()
+    if (io.mateu.ijp.state.Expressions.truthy(ruleAttrs["hidden"])) return JPanel().apply { isOpaque = false }
+    val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
+    val label = io.mateu.ijp.state.Expressions.interpolate(metadata.text("label", fieldId), exprCtx)
+    val required = if (ruleAttrs.containsKey("required")) {
+        io.mateu.ijp.state.Expressions.truthy(ruleAttrs["required"])
+    } else {
+        metadata.bool("required")
+    }
+    val enabled = !metadata.bool("readOnly") && !metadata.bool("disabled") &&
+        !io.mateu.ijp.state.Expressions.truthy(ruleAttrs["disabled"])
 
     val rawValue: JsonNode = if (!state.isNull && !state.isMissingNode && state.has(fieldId)) {
         state.path(fieldId)
@@ -61,15 +71,28 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
     // from the field's state value. Read-only view → plain table; editable form → editable cells
     // plus the IDE's ToolbarDecorator (add/remove/reorder rows), all mutating the live state array
     // that the form's save round-trips.
-    if (stereotype == "grid" || dataType == "array") {
+    if (stereotype == "grid" || (dataType == "array" && stereotype != "multiSelect")) {
         if (label.isNotBlank()) {
             val caption = JBLabel(label)
             caption.alignmentX = Component.LEFT_ALIGNMENT
             container.add(caption)
         }
-        val grid = if (enabled) editableGridField(ctx, fieldId, metadata, rawValue) else gridField(ctx, metadata, rawValue)
+        // @OnRowSelected grids stay read-only selectors (the action drives the master/detail).
+        val grid = when {
+            metadata.text("onItemSelectionActionId").isNotBlank() -> gridField(ctx, metadata, rawValue)
+            enabled -> editableGridField(ctx, fieldId, metadata, rawValue)
+            else -> gridField(ctx, metadata, rawValue)
+        }
         grid.alignmentX = Component.LEFT_ALIGNMENT
         container.add(grid)
+        return container
+    }
+
+    // Boolean badge chip (@Badge): lit when true, shows the label.
+    if (stereotype == "badge") {
+        val chip = badgeChip(label, io.mateu.ijp.state.Expressions.truthy(rawValue.asBoolean(false) || rawValue.asText("").isNotBlank() && rawValue.asText() != "false"))
+        chip.alignmentX = Component.LEFT_ALIGNMENT
+        container.add(chip)
         return container
     }
 
@@ -89,13 +112,32 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 
     val options = metadata.arr("options")
     val input: JComponent = when {
-        stereotype == "textarea" -> textArea(ctx, fieldId, value, enabled)
+        stereotype == "badge" -> badgeChip(label, io.mateu.ijp.state.Expressions.truthy(value))
+        stereotype == "plainText" -> JBLabel(if (dataType == "money") formatMoney(value) else value)
+        stereotype == "searchable" || (stereotype == "combobox" && metadata.path("remoteCoordinates").isObject) ->
+            lookupField(ctx, fieldId, metadata, value, enabled)
+        stereotype == "treeSelect" -> treeSelectField(ctx, fieldId, metadata, value, enabled)
+        stereotype == "radio" && options.isNotEmpty() -> radioField(ctx, fieldId, options, value, enabled)
+        stereotype == "multiSelect" -> multiSelectField(ctx, fieldId, options, rawValue, enabled)
+        stereotype == "slider" -> sliderField(ctx, fieldId, metadata, value, enabled)
+        stereotype == "stars" -> starsField(ctx, fieldId, value, enabled)
+        stereotype == "color" -> colorField(ctx, fieldId, value, enabled)
+        stereotype == "uploadableImage" || stereotype == "camera" -> uploadableImageField(ctx, fieldId, value, enabled)
+        stereotype == "signature" -> signatureField(ctx, fieldId, value, enabled)
+        stereotype == "image" -> imagePreviewField(value)
+        stereotype == "link" && !enabled -> linkField(value)
+        stereotype in setOf("markdown", "html", "richText") && !enabled -> richTextField(value, stereotype)
+        stereotype == "textarea" || (stereotype in setOf("markdown", "html", "richText") && enabled) ->
+            textArea(ctx, fieldId, value, enabled)
         options.isNotEmpty() -> optionsCombo(ctx, fieldId, options, value, enabled)
         dataType == "reference" -> referenceCombo(ctx, fieldId, data, enabled)
         stereotype == "password" -> passwordField(ctx, fieldId, value, enabled)
-        dataType in DATE_TYPES -> dateField(ctx, fieldId, value, enabled)
+        dataType in DATE_TYPES || dataType == "datetime" -> dateField(ctx, fieldId, value, enabled)
+        dataType in INT_TYPES && metadata.bool("stepButtonsVisible") -> stepperField(ctx, fieldId, metadata, value, enabled)
         dataType in INT_TYPES -> numberField(ctx, fieldId, value, enabled, integer = true)
-        dataType in NUMBER_TYPES || stereotype in MONEY_STEREOTYPES ->
+        (dataType in NUMBER_TYPES || dataType == "money" || stereotype in MONEY_STEREOTYPES) && !enabled ->
+            JBLabel(formatMoney(value))
+        dataType in NUMBER_TYPES || dataType == "money" || stereotype in MONEY_STEREOTYPES ->
             numberField(ctx, fieldId, value, enabled, integer = false)
         else -> plainField(ctx, fieldId, value, enabled)
     }

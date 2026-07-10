@@ -116,6 +116,9 @@ class MateuProjectService(private val project: Project) {
         // Loads the App fragment → renderApp publishes the menu (toolbar widget, IDE actions)
         // and draws the navigator into navigatorRoot.
         ctx.initialLoad(route)
+        // @AppContext selector changed → rebuild the shell against the new context; open views
+        // pick the new appState up on their next request (it travels with every call).
+        s.onAppContextChanged = { ctx.initialLoad(route) }
     }
 
     // ── registry boot screens (shown inside the navigator panel) ────────────────────────────

@@ -23,13 +23,14 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     // Header (NORTH): title / subtitle / toolbar / banners.
     val header = verticalPanel(4)
-    val title = metadata.text("title", metadata.text("pageTitle"))
+    val exprCtx = mapOf<String, Any?>("state" to r.ctx.currentComponentState, "appState" to r.ctx.appState)
+    val title = io.mateu.ijp.state.Expressions.interpolate(metadata.text("title", metadata.text("pageTitle")), exprCtx)
     if (title.isNotBlank()) {
         val l = JBLabel(title)
         l.font = l.font.deriveFont(Font.BOLD, 20f)
         header.addStacked(l, 4)
     }
-    val subtitle = metadata.text("subtitle")
+    val subtitle = io.mateu.ijp.state.Expressions.interpolate(metadata.text("subtitle"), exprCtx)
     if (subtitle.isNotBlank()) {
         val l = JBLabel(subtitle)
         l.foreground = JBUI.CurrentTheme.Label.disabledForeground()
@@ -37,9 +38,38 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     }
     // Toolbar actions go to the native host toolbar (editor header / tool window title) when the
     // host provides one — the IntelliJ-idiomatic spot; otherwise render the inline button row.
+    // @BadgeInHeader chips + KPI band under the title.
+    val badges = metadata.arr("badges")
+    if (badges.isNotEmpty()) {
+        val row = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0))
+        row.isOpaque = false
+        for (b in badges) row.add(headerBadge(b, exprCtx))
+        header.addStacked(row, 6)
+    }
+    val kpis = metadata.arr("kpis")
+    if (kpis.isNotEmpty()) {
+        val row = JPanel(FlowLayout(FlowLayout.LEFT, 18, 0))
+        row.isOpaque = false
+        for (k in kpis) {
+            val cell = verticalPanel(0)
+            val value = JBLabel(io.mateu.ijp.state.Expressions.interpolate(k.text("text"), exprCtx))
+            value.font = value.font.deriveFont(Font.BOLD, 18f)
+            cell.addStacked(value, 0)
+            cell.addStacked(JBLabel(io.mateu.ijp.state.Expressions.interpolate(k.text("title"), exprCtx)).apply {
+                foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            }, 0)
+            row.add(cell)
+        }
+        header.addStacked(row, 8)
+    }
     val toolbar = metadata.arr("toolbar")
     if (toolbar.isNotEmpty() && !r.ctx.publishToolbar(toolbar)) header.addStacked(buttonRow(r, toolbar), 8)
+    // @Fab actions surface as header buttons — the desktop has no floating layer over the editor.
+    val fabs = metadata.arr("fabs")
+    if (fabs.isNotEmpty()) header.addStacked(buttonRow(r, fabs), 8)
     for (banner in metadata.arr("banners")) header.addStacked(renderBanner(banner), 8)
+    // Action-returned banners (UIIncrementDto.banners) render after the static ones.
+    for (banner in r.ctx.actionBanners) header.addStacked(renderBanner(banner), 8)
     if (header.componentCount > 0) root.add(header, BorderLayout.NORTH)
 
     // Body (CENTER): a single child fills; several stack vertically.
@@ -102,4 +132,20 @@ private fun renderBanner(banner: JsonNode): JComponent {
         panel.add(l)
     }
     return panel
+}
+
+
+private fun headerBadge(badge: JsonNode, exprCtx: Map<String, Any?>): JComponent {
+    val bg = when (badge.text("color").lowercase()) {
+        "success" -> Color(0xE6, 0xF4, 0xEA)
+        "error" -> Color(0xFC, 0xE8, 0xE6)
+        "warning" -> Color(0xFE, 0xF7, 0xE0)
+        "contrast" -> Color(0xDA, 0xDC, 0xE0)
+        else -> Color(0xE8, 0xEA, 0xED)
+    }
+    return JBLabel(io.mateu.ijp.state.Expressions.interpolate(badge.text("text"), exprCtx)).apply {
+        isOpaque = true
+        background = bg
+        border = JBUI.Borders.empty(2, 8)
+    }
 }

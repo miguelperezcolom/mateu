@@ -39,6 +39,10 @@ import javax.swing.table.TableCellRenderer
  * a pagination bar drive the usual `search`/`prevPage`/`nextPage` actions.
  */
 fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
+    // GridLayout.tree: hierarchical rows carrying a self-referential `children` list render as a
+    // real JTree (double-click = the row link/select action). cards/list variants stay tables on
+    // the desktop — the richer widget is the platform-appropriate adaptation.
+    if (metadata.text("gridLayout") == "tree") return renderTreeCrud(r, component, metadata, data)
     val ctx = r.ctx
     val panel = JPanel(BorderLayout(0, JBUI.scale(JBGap)))
     panel.border = JBUI.Borders.empty(16)
@@ -96,6 +100,39 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Speed search: type over the table to jump to matching rows (guarded: needs no full IDE, but
     // keep the render probe safe).
     runCatching { TableSpeedSearch.installOn(table) }
+
+    // Empty listings show the wire's emptyStateMessage through the IDE's StatusText.
+    table.emptyText.text = metadata.text("emptyStateMessage").ifBlank { "No data" }
+
+    // Header click cycles the column sort (ascending → descending → none) and re-runs the search
+    // with the Pageable shape [{field, direction}].
+    run {
+        val sortables = metadata.arr("columns").mapNotNull { col ->
+            val cm = col.path("metadata")
+            val id = cm.text("id", col.text("id"))
+            if (cm.bool("sortable")) id to cm.text("sortingProperty").ifBlank { id } else null
+        }.toMap()
+        var sortField = ""
+        var sortAscending = true
+        table.tableHeader.addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                val viewCol = table.columnModel.getColumnIndexAtX(e.x)
+                if (viewCol < 0) return
+                val spec = specs.getOrNull(table.convertColumnIndexToModel(viewCol)) ?: return
+                val property = sortables[spec.id] ?: return
+                when {
+                    sortField != property -> { sortField = property; sortAscending = true }
+                    sortAscending -> sortAscending = false
+                    else -> sortField = ""
+                }
+                ctx.currentComponentState["sort"] =
+                    if (sortField.isBlank()) emptyList<Any>()
+                    else listOf(mapOf("field" to sortField, "direction" to if (sortAscending) "ascending" else "descending"))
+                ctx.currentComponentState["page"] = 0
+                ctx.runAction("search", null, silent = true)
+            }
+        })
+    }
 
     // Custom renderers only for STATUS/LINK; the rest use JTable's class-based defaults
     // (Boolean → checkbox, String → label), which also provide the inline-editing editors.
@@ -392,4 +429,64 @@ private class CrudTableModel(
         fireTableCellUpdated(rowIndex, columnIndex)
         onRowEdited(updated)
     }
+}
+
+
+/** GridLayout.tree — rows (and their nested `children`) as a JTree; double-click dispatches the
+ *  first LINK/select action with the clicked row, which is how tree lookup selectors resolve. */
+private fun renderTreeCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, data: JsonNode): JComponent {
+    val ctx = r.ctx
+    val panel = JPanel(BorderLayout(0, JBUI.scale(8)))
+    panel.border = JBUI.Borders.empty(16)
+    val title = metadata.text("title")
+    if (title.isNotBlank()) {
+        val l = JBLabel(title)
+        l.font = l.font.deriveFont(Font.BOLD, 18f)
+        panel.add(l, BorderLayout.NORTH)
+    }
+    val firstColumn = metadata.arr("columns").firstNotNullOfOrNull { col ->
+        val cm = col.path("metadata")
+        val id = cm.text("id", col.text("id"))
+        if (id.isBlank() || id.startsWith("_") || cm.text("dataType") in setOf("actionGroup", "menu", "action")) null else id
+    } ?: "name"
+    val linkActionId = metadata.arr("columns").firstNotNullOfOrNull { col ->
+        col.path("metadata").text("actionId").ifBlank { null }
+    } ?: "select"
+
+    val root = javax.swing.tree.DefaultMutableTreeNode("root")
+    val treeModel = javax.swing.tree.DefaultTreeModel(root)
+    val tree = javax.swing.JTree(treeModel)
+    tree.isRootVisible = false
+    tree.setCellRenderer { _, value, _, _, _, _, _ ->
+        val row = (value as? javax.swing.tree.DefaultMutableTreeNode)?.userObject as? JsonNode
+        JBLabel(row?.path(firstColumn)?.displayString() ?: "").apply { border = JBUI.Borders.empty(2, 4) }
+    }
+    fun fill(parent: javax.swing.tree.DefaultMutableTreeNode, rows: List<JsonNode>) {
+        for (row in rows) {
+            val node = javax.swing.tree.DefaultMutableTreeNode(row)
+            parent.add(node)
+            val children = row.path("children")
+            if (children.isArray) fill(node, children.toList())
+        }
+    }
+    fun publish(rows: List<JsonNode>) {
+        root.removeAllChildren()
+        fill(root, rows)
+        treeModel.reload()
+        for (i in 0 until tree.rowCount) tree.expandRow(i)
+    }
+    publish(extractRows(data))
+    ctx.registerDataHandler(component.text("id").ifBlank { "crud" }) { d -> javax.swing.SwingUtilities.invokeLater { publish(extractRows(d)) } }
+    ctx.registerDataHandler("crud") { d -> javax.swing.SwingUtilities.invokeLater { publish(extractRows(d)) } }
+
+    tree.addMouseListener(object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+            if (e.clickCount < 2) return
+            val node = tree.lastSelectedPathComponent as? javax.swing.tree.DefaultMutableTreeNode ?: return
+            val row = node.userObject as? JsonNode ?: return
+            ctx.runAction("action-on-row-$linkActionId", mapOf("_clickedRow" to row))
+        }
+    })
+    panel.add(javax.swing.JScrollPane(tree), BorderLayout.CENTER)
+    return panel
 }
