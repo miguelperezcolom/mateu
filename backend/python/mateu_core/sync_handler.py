@@ -23,6 +23,18 @@ from .reflection import view_fields
 from .registry import MateuRegistry, normalize
 
 
+def _sort_key(value):
+    """None-safe, type-stable sort key: (is_none, coerced) so None sorts first and mixed
+    numeric/string columns never raise a TypeError."""
+    if value is None:
+        return (0, 0.0, "")
+    if isinstance(value, bool):
+        return (1, float(value), "")
+    if isinstance(value, (int, float)):
+        return (1, float(value), "")
+    return (1, 0.0, str(value).lower())
+
+
 class RunActionRq(BaseModel):
     """Inbound request (mirrors io.mateu.dtos.RunActionRqDto / the C# RunActionRqDto)."""
 
@@ -166,14 +178,40 @@ class SyncHandler:
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
         props = view_fields(element)
         state = rq.component_state or {}
-        rows = []
-        for item in crud.fetch(self.search_text(rq)):
-            if not self._matches_filters(item, props, state):
+        # filter
+        items = [
+            item
+            for item in crud.fetch(self.search_text(rq))
+            if self._matches_filters(item, props, state)
+        ]
+        # sort — Pageable.sort is a list of {field, direction:'ascending'|'descending'}; the field
+        # is the camelCased column, mapped back to the item attribute.
+        prop_by_camel = {camel_case(p.name): p.name for p in props}
+        for spec in reversed(state.get("sort") or []):
+            field = prop_by_camel.get(spec.get("field", ""), spec.get("field", ""))
+            if not field:
                 continue
-            rows.append({camel_case(p.name): self.cell_value(getattr(item, p.name, None)) for p in props})
+            reverse = spec.get("direction", "ascending") == "descending"
+            items.sort(key=lambda it, f=field: _sort_key(getattr(it, f, None)), reverse=reverse)
+        total = len(items)
+        # paginate in memory
+        page = int(state.get("page", 0) or 0)
+        size = int(state.get("size", 10) or 10)
+        if size <= 0:
+            size = total or 1
+        window = items[page * size : page * size + size]
+        rows = [
+            {camel_case(p.name): self.cell_value(getattr(item, p.name, None)) for p in props}
+            for item in window
+        ]
         data = {
             "crud": {
-                "page": {"content": rows, "pageSize": len(rows), "pageNumber": 0, "totalElements": len(rows)}
+                "page": {
+                    "content": rows,
+                    "pageSize": size,
+                    "pageNumber": page,
+                    "totalElements": total,
+                }
             }
         }
         return UIIncrement.of(

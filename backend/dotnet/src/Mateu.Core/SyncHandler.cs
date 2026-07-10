@@ -126,18 +126,82 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
     {
-        var items = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
+        var fetched = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
         var props = ReflectionMapper.EditableProperties(element).ToList();
-        var rows = new List<Dictionary<string, object?>>();
-        foreach (var item in items)
+        var propByCamel = props.ToDictionary(p => Naming.CamelCase(p.Name), p => p);
+
+        // filter
+        var items = fetched.Cast<object>().Where(item => MatchesFilters(item, props, rq.ComponentState)).ToList();
+
+        // sort — Pageable.sort is a list of { field, direction:'ascending'|'descending' }; applied
+        // last-spec-first so the first spec is the primary key.
+        foreach (var spec in EnumerateSort(rq.ComponentState).AsEnumerable().Reverse())
         {
-            if (!MatchesFilters(item, props, rq.ComponentState)) continue;
+            if (!propByCamel.TryGetValue(spec.field, out var prop)) continue;
+            var ordered = spec.descending
+                ? items.OrderByDescending(it => prop.GetValue(it), SortKeyComparer.Instance)
+                : items.OrderBy(it => prop.GetValue(it), SortKeyComparer.Instance);
+            items = ordered.ToList();
+        }
+
+        var total = items.Count;
+        // paginate in memory
+        var page = ToInt(GetState(rq.ComponentState, "page"), 0);
+        var size = ToInt(GetState(rq.ComponentState, "size"), 10);
+        if (size <= 0) size = total == 0 ? 1 : total;
+        var window = items.Skip(page * size).Take(size);
+
+        var rows = new List<Dictionary<string, object?>>();
+        foreach (var item in window)
+        {
             var row = new Dictionary<string, object?>();
             foreach (var p in props) row[Naming.CamelCase(p.Name)] = CellValue(p.GetValue(item));
             rows.Add(row);
         }
-        var data = new { crud = new { page = new { content = rows, pageSize = rows.Count, pageNumber = 0, totalElements = rows.Count } } };
+        var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
         return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, data, "Replace", null)]);
+    }
+
+    private static IEnumerable<(string field, bool descending)> EnumerateSort(Dictionary<string, object?>? state)
+    {
+        if (state is null || !state.TryGetValue("sort", out var raw) || raw is null) yield break;
+        if (raw is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Array)
+        {
+            foreach (var el in je.EnumerateArray())
+            {
+                var field = el.TryGetProperty("field", out var f) ? f.GetString() ?? "" : "";
+                var dir = el.TryGetProperty("direction", out var d) ? d.GetString() ?? "ascending" : "ascending";
+                if (field.Length > 0) yield return (field, dir == "descending");
+            }
+        }
+    }
+
+    private static object? GetState(Dictionary<string, object?>? state, string key)
+        => state is not null && state.TryGetValue(key, out var v) ? v : null;
+
+    private static int ToInt(object? v, int fallback)
+    {
+        if (v is null) return fallback;
+        if (v is System.Text.Json.JsonElement je)
+            return je.ValueKind == System.Text.Json.JsonValueKind.Number && je.TryGetInt32(out var n) ? n : fallback;
+        return int.TryParse(v.ToString(), out var m) ? m : fallback;
+    }
+
+    /// <summary>None-safe, type-stable comparer: nulls first, numbers numerically, otherwise by
+    /// case-insensitive string, so mixed columns never throw.</summary>
+    private sealed class SortKeyComparer : IComparer<object?>
+    {
+        public static readonly SortKeyComparer Instance = new();
+        public int Compare(object? a, object? b)
+        {
+            if (a is null && b is null) return 0;
+            if (a is null) return -1;
+            if (b is null) return 1;
+            if (IsNumeric(a) && IsNumeric(b))
+                return Convert.ToDouble(a).CompareTo(Convert.ToDouble(b));
+            return string.Compare(a.ToString(), b.ToString(), StringComparison.OrdinalIgnoreCase);
+        }
+        private static bool IsNumeric(object o) => o is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
     }
 
     /// <summary>Applies the smart search bar's filter values (component state) over the fetched

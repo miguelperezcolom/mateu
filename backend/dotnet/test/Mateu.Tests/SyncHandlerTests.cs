@@ -242,6 +242,31 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void Crud_search_sorts_and_paginates()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(Things).FullName,
+            ComponentState = new()
+            {
+                ["searchText"] = JsonSerializer.SerializeToElement(""),
+                ["sort"] = JsonSerializer.SerializeToElement(new[] { new { field = "name", direction = "descending" } }),
+                ["page"] = JsonSerializer.SerializeToElement(0),
+                ["size"] = JsonSerializer.SerializeToElement(1),
+            },
+        };
+
+        var inc = Handler().Handle(rq);
+        var json = Render(inc);
+        // total is the full dataset (2), the page carries one row, and descending sort puts Beta first
+        Assert.Contains("\"totalElements\":2", json);
+        Assert.Contains("\"pageSize\":1", json);
+        Assert.Contains("Beta", json);
+        Assert.DoesNotContain("Alpha", json);
+    }
+
+    [Fact]
     public void Crud_view_renders_prefilled_readonly_form_with_view_toolbar()
     {
         var inc = Handler().Handle(new RunActionRqDto

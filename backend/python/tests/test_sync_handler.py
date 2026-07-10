@@ -468,3 +468,36 @@ def _name(cls) -> str:
     from mateu_core import type_name
 
     return type_name(cls)
+
+
+def test_crud_search_sorts_and_paginates():
+    # sort by name descending → Beta before Alpha; page 0 size 1 → only the first row + real total
+    inc = handler().handle(
+        RunActionRq(
+            action_id="search",
+            server_side_type=_name(Things),
+            component_state={
+                "searchText": "",
+                "sort": [{"field": "name", "direction": "descending"}],
+                "page": 0,
+                "size": 1,
+            },
+        )
+    )
+    page = inc.fragments[0].data["crud"]["page"]
+    assert page["totalElements"] == 2  # total is the full dataset, not the page
+    assert page["pageSize"] == 1 and page["pageNumber"] == 0
+    assert len(page["content"]) == 1
+    assert page["content"][0]["name"] == "Beta"  # descending
+
+    # page 1 → the second row
+    inc2 = handler().handle(
+        RunActionRq(
+            action_id="search",
+            server_side_type=_name(Things),
+            component_state={"searchText": "", "sort": [{"field": "name", "direction": "descending"}], "page": 1, "size": 1},
+        )
+    )
+    page2 = inc2.fragments[0].data["crud"]["page"]
+    assert page2["content"][0]["name"] == "Alpha"
+    assert page2["pageNumber"] == 1
