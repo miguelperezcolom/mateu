@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MateuAppProvider, useAppContext } from './src/context/AppContext';
@@ -5,9 +6,13 @@ import { AppRenderer } from './src/renderer/AppRenderer';
 import { MateuViewHost } from './src/renderer/MateuViewHost';
 
 // ─── Configure your Mateu backend here ───────────────────────────────────────
+// On a real device (Expo Go) "localhost" is the PHONE, so the backend host is derived from
+// the Expo dev server the app was loaded from (hostUri, e.g. "192.168.1.30:8081") — run the
+// backend on the same machine as `expo start` and it just works. Web/simulators keep localhost.
+const MATEU_BACKEND_PORT = 8592;
+const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 const MATEU_CONFIG = {
-  // iOS simulator / web reach the host at localhost; on a real device use the machine's LAN IP.
-  baseUrl: 'http://localhost:8592',
+  baseUrl: `http://${Platform.OS === 'web' || !devHost ? 'localhost' : devHost}:${MATEU_BACKEND_PORT}`,
   sessionId: 'native-session-1',
   appState: { tenantId: '1111', profile: 'dev' },
 };
