@@ -1,4 +1,4 @@
 package io.mateu.dtos;
 
-/** Metadata for a html element */
-public record MessageInputDto() implements ComponentMetadataDto {}
+/** Chat-style message input; submitting fires {@code actionId} with the text as {@code message}. */
+public record MessageInputDto(String actionId) implements ComponentMetadataDto {}

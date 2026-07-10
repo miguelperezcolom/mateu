@@ -2,6 +2,7 @@ package com.example.demo.infra.in.ui.fluent.components;
 
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.data.MessageList;
+import io.mateu.uidl.data.MessageListItem;
 import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -15,7 +16,11 @@ public class MessageListComponentPage implements ComponentTreeSupplier {
         return Form.builder()
                 .title("Message list")
                 .content(List.of(
-                        MessageList.builder().build()
+                        MessageList.builder()
+                                .items(List.of(
+                                        new MessageListItem("**Hola equipo** — ¿habéis revisado el diseño?", "Ana García"),
+                                        new MessageListItem("Sí, todo listo por mi parte ✅", "Sam Rivera")))
+                                .build()
                 ))
                 .build();
     }

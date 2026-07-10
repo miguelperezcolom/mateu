@@ -10,6 +10,6 @@ export const renderBreadcrumbs = (component: ClientSideComponent) => {
             <a href="${breadcrumb.link}">${breadcrumb.text}</a>
             <span>/</span>
         `)}
-        <div style="${component.style}" class="${component.cssClasses}">${metadata.currentItemText}</span>
+        <span style="${component.style}" class="${component.cssClasses}">${metadata.currentItemText}</span>
     </vaadin-horizontal-layout>`
 }

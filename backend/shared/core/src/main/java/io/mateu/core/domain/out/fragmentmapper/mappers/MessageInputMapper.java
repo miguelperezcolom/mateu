@@ -9,8 +9,8 @@ public class MessageInputMapper {
 
   public static ClientSideComponentDto mapMessageInputToDto(MessageInput messageInput) {
     return new ClientSideComponentDto(
-        new MessageInputDto(),
-        "fieldId",
+        new MessageInputDto(messageInput.actionId()),
+        messageInput.id() != null ? messageInput.id() : "messageInput",
         List.of(),
         messageInput.style(),
         messageInput.cssClasses(),

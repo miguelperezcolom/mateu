@@ -4,29 +4,20 @@ import { html, nothing } from "lit";
 
 export const renderMessageList = (component: ClientSideComponent) => {
     const metadata = component.metadata as MessageList
-    void metadata
+    const items = (metadata.items ?? []).map(item => ({
+        text: item.text,
+        time: item.time,
+        userName: item.userName,
+        userImg: item.userImg,
+        userAbbr: item.userAbbr,
+        userColorIndex: item.userColorIndex,
+    }))
     return html`
         <vaadin-message-list
+                markdown
                 style="${component.style}" class="${component.cssClasses}"
-                slot="${component.slot??nothing}"
-                .items="${[
-        {
-            text: '**Hello team!** Did everyone review the *design document* for the new project?',
-            userName: 'Alex Johnson',
-        },
-        {
-            text: `## Project Update
-I've completed the initial research phase and documented my findings.
-
-* UI mockups ✅
-* Market analysis ✅
-* [See detailed report](https://vaadin.com)
-
-Let me know your thoughts!`,
-            userName: 'Sam Rivera',
-        },
-    ]
-    }"
+                slot="${component.slot ?? nothing}"
+                .items="${items}"
         ></vaadin-message-list>
     `
 }
