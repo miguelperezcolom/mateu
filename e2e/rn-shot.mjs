@@ -13,6 +13,14 @@ if (actions.includes('menu')) {
   await page.getByText('Products', { exact: true }).first().click();
   await page.waitForTimeout(3000);
 }
+if (actions.startsWith('open:')) {
+  // open the drawer and tap a menu entry by (partial) label, e.g. open:Wizard
+  const label = actions.slice('open:'.length).split('+')[0];
+  await page.mouse.click(26, 32);
+  await page.waitForTimeout(1000);
+  await page.getByText(label, { exact: false }).first().click();
+  await page.waitForTimeout(3000);
+}
 if (actions.includes('checkin')) {
   await page.mouse.click(26, 32);
   await page.waitForTimeout(1000);

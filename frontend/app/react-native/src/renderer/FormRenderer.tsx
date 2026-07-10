@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   header: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
   title: { fontSize: 20, fontWeight: '600', color: '#1a1a1a' },
   subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
-  actionBar: { flexDirection: 'row', marginTop: 12, gap: 8 },
+  actionBar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, gap: 8 },
   fields: { padding: 16, paddingBottom: 24 },
   bottomBar: {
     flexDirection: 'row',

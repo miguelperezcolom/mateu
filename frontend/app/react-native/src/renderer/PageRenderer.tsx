@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   header: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
   title: { fontSize: 22, fontWeight: '700', color: '#1a1a1a' },
   subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
-  toolbar: { flexDirection: 'row', marginTop: 12, gap: 8 },
+  toolbar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, gap: 8 },
   body: { padding: 16, paddingBottom: 24 },
   bottomBar: {
     flexDirection: 'row',
