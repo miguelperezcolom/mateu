@@ -11,6 +11,21 @@ import {
 } from 'react-native';
 import { PhotoCaptureField, SignatureField } from './CaptureFields';
 import { DateField } from './DateField';
+import {
+  BadgeChip,
+  ColorField,
+  formatMoney,
+  ImagePreview,
+  LinkText,
+  MultiSelectField,
+  RadioField,
+  RichText,
+  SliderField,
+  StarsField,
+  StepperField,
+  UploadableImageField,
+} from './FieldWidgets';
+import { LookupField } from './LookupField';
 
 interface Option {
   children?: Option[];
@@ -22,6 +37,8 @@ interface GridColumnMeta {
   id: string;
   label?: string;
   dataType?: string;
+  editorType?: string | null;
+  editorOptions?: Option[] | null;
 }
 
 interface FieldMeta {
@@ -36,6 +53,13 @@ interface FieldMeta {
   options?: Option[];
   /** Grid fields: ClientSide GridColumn nodes. */
   columns?: { metadata?: GridColumnMeta }[];
+  /** Lookup fields: remote search coordinates (action = `search-<fieldId>` by convention). */
+  remoteCoordinates?: { action?: string | null } | null;
+  sliderMin?: number;
+  sliderMax?: number;
+  step?: number;
+  stepButtonsVisible?: boolean;
+  multiline?: boolean;
 }
 
 interface Props {
@@ -76,13 +100,91 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       );
     }
 
-    // Boolean
+    // Boolean badge chip (@Badge): lit when true, shows the label
+    if (stereotype === 'badge') {
+      return <BadgeChip label={label || fieldId} on={Boolean(rawValue)} />;
+    }
+
+    // Boolean (also the toggle/checkbox stereotypes)
     if (dataType === 'bool' || dataType === 'boolean' || dataType === 'Boolean') {
       return (
         <Switch
           value={Boolean(rawValue)}
           onValueChange={(v) => commit(fieldId, v)}
           disabled={!editable}
+        />
+      );
+    }
+
+    // Plain read-only text (@PlainText context): money formats, @Multiline wraps
+    if (stereotype === 'plainText') {
+      const text = dataType === 'money' ? formatMoney(rawValue) : stringValue;
+      return (
+        <Text style={styles.plainText} numberOfLines={metadata.multiline ? undefined : 1}>
+          {text}
+        </Text>
+      );
+    }
+
+    // Radio buttons (small enums / @UseRadioButtons)
+    if (stereotype === 'radio' && options.length > 0) {
+      return <RadioField options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // Multi-select (Set<Enum> fields) — value is a list
+    if (stereotype === 'multiSelect') {
+      const selected = Array.isArray(rawValue) ? (rawValue as string[]).map(String) : [];
+      return <MultiSelectField options={options} value={selected} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // Stars rating
+    if (stereotype === 'stars') {
+      return <StarsField value={Number(rawValue) || 0} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // Slider
+    if (stereotype === 'slider') {
+      return (
+        <SliderField
+          min={metadata.sliderMin ?? 0}
+          max={metadata.sliderMax ?? 100}
+          step={metadata.step ?? 1}
+          value={Number(rawValue) || 0}
+          editable={editable}
+          onChange={(v) => commit(fieldId, v)}
+        />
+      );
+    }
+
+    // Color picker
+    if (stereotype === 'color') {
+      return <ColorField value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // Images: read-only preview / @UploadableImage picker (data URI round-trip)
+    if (stereotype === 'uploadableImage') {
+      return <UploadableImageField value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+    if (stereotype === 'image') {
+      return <ImagePreview value={stringValue} />;
+    }
+
+    // Link (read-only navigations)
+    if (stereotype === 'link' && !editable) {
+      return <LinkText value={stringValue} />;
+    }
+
+    // Rich content: rendered read-only, textarea when editable
+    if (['markdown', 'html', 'richText'].includes(stereotype)) {
+      if (!editable) return <RichText value={stringValue} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
+      return (
+        <TextInput
+          style={[styles.input, styles.textarea]}
+          value={stringValue}
+          onChangeText={(v) => commit(fieldId, v)}
+          multiline
+          numberOfLines={6}
+          placeholder={label}
         />
       );
     }
@@ -95,6 +197,20 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           editable={editable}
           withTime={dataType === 'datetime'}
           placeholder={label}
+          onChange={(v) => commit(fieldId, v)}
+        />
+      );
+    }
+
+    // Lookup / searchable selects: remote search through the `search-<fieldId>` action
+    if (stereotype === 'searchable' || (stereotype === 'combobox' && metadata.remoteCoordinates)) {
+      return (
+        <LookupField
+          fieldId={fieldId}
+          label={label}
+          value={stringValue}
+          editable={editable}
+          action={metadata.remoteCoordinates?.action}
           onChange={(v) => commit(fieldId, v)}
         />
       );
@@ -156,8 +272,32 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       );
     }
 
-    // Integer / long
+    // Time (LocalTime): HH:MM input
+    if (dataType === 'time') {
+      return (
+        <TextInput
+          style={styles.input}
+          value={stringValue}
+          onChangeText={(v) => commit(fieldId, v)}
+          placeholder="HH:MM"
+          editable={editable}
+          autoCapitalize="none"
+        />
+      );
+    }
+
+    // Integer / long — step buttons when the wire asks for them
     if (['integer', 'int', 'long', 'Integer', 'Long'].includes(dataType)) {
+      if (metadata.stepButtonsVisible) {
+        return (
+          <StepperField
+            value={Number(rawValue) || 0}
+            step={metadata.step ?? 1}
+            editable={editable}
+            onChange={(v) => commit(fieldId, v)}
+          />
+        );
+      }
       return (
         <TextInput
           style={styles.input}
@@ -170,8 +310,11 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       );
     }
 
-    // Decimal / money
-    if (['number', 'double', 'float', 'decimal', 'BigDecimal'].includes(dataType) || ['money', 'currency'].includes(stereotype)) {
+    // Decimal / money (money formats when read-only)
+    if (['number', 'double', 'float', 'decimal', 'BigDecimal', 'money'].includes(dataType) || ['money', 'currency'].includes(stereotype)) {
+      if (!editable && (dataType === 'money' || ['money', 'currency'].includes(stereotype))) {
+        return <Text style={styles.plainText}>{formatMoney(rawValue)}</Text>;
+      }
       return (
         <TextInput
           style={styles.input}
@@ -184,7 +327,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       );
     }
 
-    // Default text
+    // Default text (email keyboard for the email stereotype)
     return (
       <TextInput
         style={styles.input}
@@ -192,6 +335,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
         onChangeText={(v) => commit(fieldId, v)}
         editable={editable}
         placeholder={label}
+        keyboardType={stereotype === 'email' ? 'email-address' : 'default'}
         autoCapitalize="none"
       />
     );
@@ -316,6 +460,13 @@ function GridRowForm({ columns, row, isNew, onSave, onDelete, onCancel }: {
                   <Switch
                     value={Boolean(draft[c.id])}
                     onValueChange={(v) => setDraft({ ...draft, [c.id]: v })}
+                  />
+                ) : (c.editorOptions?.length ?? 0) > 0 ? (
+                  <OptionsField
+                    options={c.editorOptions!}
+                    value={draft[c.id] == null ? '' : String(draft[c.id])}
+                    editable
+                    onChange={(v) => setDraft({ ...draft, [c.id]: v })}
                   />
                 ) : c.dataType === 'date' || c.dataType === 'datetime' ? (
                   <DateField
@@ -464,6 +615,7 @@ function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
 
 const styles = StyleSheet.create({
   fieldError: { color: '#cc0000', fontSize: 12, marginTop: 4 },
+  plainText: { fontSize: 14, color: '#1a1a1a', paddingVertical: 6 },
   container: { marginBottom: 12 },
   label: { fontSize: 12, color: '#555', marginBottom: 4, fontWeight: '500' },
   input: {

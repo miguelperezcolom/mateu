@@ -64,6 +64,8 @@ export class MateuViewController {
   silentErrors = false;
 
   private dataHandlers: Record<string, (data: unknown) => void> = {};
+  /** Field-scoped data (lookup `search-<field>` results arrive as `{ <fieldId>: page }`). */
+  private fieldDataHandlers: Record<string, (data: unknown) => void> = {};
   private view: RenderedView = { component: null, state: {}, data: null, loading: false, error: null, version: 0 };
 
   constructor(session: MateuSession) {
@@ -76,6 +78,14 @@ export class MateuViewController {
 
   registerDataHandler(id: string, handler: (data: unknown) => void): void {
     if (id) this.dataHandlers[id] = handler;
+  }
+
+  registerFieldDataHandler(fieldId: string, handler: (data: unknown) => void): void {
+    if (fieldId) this.fieldDataHandlers[fieldId] = handler;
+  }
+
+  unregisterFieldDataHandler(fieldId: string): void {
+    delete this.fieldDataHandlers[fieldId];
   }
 
   // ── navigation / actions ────────────────────────────────────────────────────────────
@@ -295,6 +305,18 @@ export class MateuViewController {
     if (!component) {
       // Data-only fragment — push to a registered data handler (e.g. Crud search results).
       if (data !== null && data !== undefined) {
+        // Field-scoped first: lookup responses are keyed by fieldId and must not hit the crud fallback.
+        if (typeof data === 'object' && !Array.isArray(data)) {
+          let consumed = false;
+          for (const key of Object.keys(data as Json)) {
+            const fieldHandler = this.fieldDataHandlers[key];
+            if (fieldHandler) {
+              fieldHandler((data as Json)[key]);
+              consumed = true;
+            }
+          }
+          if (consumed) return;
+        }
         const handler = this.dataHandlers[targetId || 'ux_main'] ?? this.dataHandlers['crud'];
         if (handler) handler(data);
         return;

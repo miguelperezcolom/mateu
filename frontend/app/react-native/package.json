@@ -26,6 +26,7 @@
     "expo-constants": "~17.0.8",
     "expo-file-system": "~18.0.12",
     "expo-font": "~13.0.4",
+    "expo-image-picker": "~16.0.6",
     "expo-modules-core": "~2.2.3",
     "expo-status-bar": "~2.0.0",
     "expo-updates": "~0.27.5",
