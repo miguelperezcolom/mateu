@@ -605,8 +605,18 @@ export class MateuTableCrud extends LitElement {
             // (e.g. "aggregate:123") reaches the view route intact (the id in the row, not the opened form).
             const navigable = !!treeCol?.actionId
 
+            // Vaadin's itemHasChildrenPath treats ANY non-null value as "has children", and an empty
+            // array `[]` is truthy — so leaf rows carrying `children: []` (records always serialize
+            // the field) wrongly show an expand toggle. Strip empty children arrays to undefined so
+            // leaves render without the caret.
+            const sanitize = (items: any[]): any[] => (items ?? []).map(it => {
+                const kids = Array.isArray(it.children) ? it.children : []
+                return kids.length > 0 ? { ...it, children: sanitize(kids) } : { ...it, children: undefined }
+            })
+            const treeRows = sanitize(rows)
+
             const dataProvider = (params: any, callback: any) => {
-                const items = params.parentItem ? (params.parentItem.children ?? []) : rows
+                const items = params.parentItem ? (params.parentItem.children ?? []) : treeRows
                 callback(items, items.length)
             }
 
@@ -618,7 +628,7 @@ export class MateuTableCrud extends LitElement {
                 }
                 return undefined
             }
-            const selectedItem = (idField && selectedId !== undefined) ? findById(rows, String(selectedId)) : undefined
+            const selectedItem = (idField && selectedId !== undefined) ? findById(treeRows, String(selectedId)) : undefined
 
             const openRow = (e: Event, item: any, action: string) => {
                 e.stopPropagation()
