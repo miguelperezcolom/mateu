@@ -46,6 +46,8 @@ interface AppMeta {
 function ContentScreen({ route: routeArg, consumedRoute, serverSideType }: { route: string; consumedRoute: string; serverSideType: string }) {
   const { session } = useAppContext();
   const [stack, setStack] = useState<NavTarget[]>([]);
+  // live controller of the TOP view, for the dirty check on back navigation
+  const topController = React.useRef<import('../core/MateuViewController').MateuViewController | null>(null);
 
   React.useEffect(() => {
     setStack([]);
@@ -54,7 +56,11 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType }: { rou
   }, [routeArg, consumedRoute, serverSideType, session]);
 
   const push = useCallback((target: NavTarget) => setStack((s) => [...s, target]), []);
-  const pop = useCallback(() => setStack((s) => s.slice(0, -1)), []);
+  const pop = useCallback(async () => {
+    const c = topController.current;
+    if (c && c.trackDirty && c.dirty && !(await session.confirmDiscard())) return;
+    setStack((s) => s.slice(0, -1));
+  }, [session]);
 
   const base: NavTarget = { label: '', route: routeArg, consumedRoute, serverSideType };
   const top = stack.length > 0 ? stack[stack.length - 1] : base;
@@ -74,6 +80,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType }: { rou
         session={session}
         target={top}
         onOpenDetail={push}
+        onController={(c) => (topController.current = c)}
       />
     </View>
   );

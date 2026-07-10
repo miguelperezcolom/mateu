@@ -34,6 +34,9 @@ export class MateuSession {
   /** Host hook: close the topmost overlay. */
   closeTopOverlay: () => void = () => {};
 
+  /** Host hook: dirty-guard confirmation — resolve true to discard unsaved changes and leave. */
+  confirmDiscard: () => Promise<boolean> = async () => true;
+
   private subscriptions: { owner: unknown; eventName: string; handler: (payload: unknown) => void }[] = [];
 
   constructor(baseUrl: string, sessionId: string, appState: Record<string, unknown> = {}) {

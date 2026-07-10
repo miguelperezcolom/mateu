@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Modal, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { MateuAppProvider, useAppContext } from './src/context/AppContext';
 import { AppRenderer } from './src/renderer/AppRenderer';
 import { MateuViewHost } from './src/renderer/MateuViewHost';
@@ -45,6 +45,25 @@ function ToastHost() {
       ))}
     </View>
   );
+}
+
+/** Dirty guard (@ConfirmOnNavigationIfDirty): native Alert on iOS/Android, window.confirm on web. */
+function DirtyGuardHost() {
+  const { session } = useAppContext();
+  useEffect(() => {
+    session.confirmDiscard = () =>
+      new Promise<boolean>((resolve) => {
+        if (Platform.OS === 'web') {
+          resolve(window.confirm('There are unsaved changes. Discard them?'));
+          return;
+        }
+        Alert.alert('Unsaved changes', 'Discard your changes?', [
+          { text: 'Keep editing', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Discard', style: 'destructive', onPress: () => resolve(true) },
+        ]);
+      });
+  }, [session]);
+  return null;
 }
 
 /** Drawer/Dialog fragments (action=Add overlays): shown as a native modal sheet; the server
@@ -150,6 +169,7 @@ export default function App() {
         <MateuRoot />
         <OverlayHost />
         <ToastHost />
+        <DirtyGuardHost />
       </MateuAppProvider>
     </SafeAreaView>
   );
