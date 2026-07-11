@@ -54,7 +54,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         return "TABS";
     }
 
-    public ClientSideComponentDto MapApp(Type appType)
+    public ClientSideComponentDto MapApp(Type appType, string? requestBaseUrl = null)
     {
         var app = appType.GetCustomAttribute<AppAttribute>()!;
         // [MenuItem(Group = "…")] entries sharing a Group nest as that folder's submenu (the
@@ -97,6 +97,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         {
             HomeRoute = home?.Route ?? "",
             HomeConsumedRoute = home?.ConsumedRoute ?? "",
+            HomeBaseUrl = requestBaseUrl ?? "",
             HomeServerSideType = home?.ServerSideType ?? "",
             ServerSideType = appType.FullName!,
             SseUrl = appType.Find<AIAttribute>()?.Sse,
@@ -899,7 +900,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     private static ClientSideComponentDto Client(ComponentMetadataDto meta, string? id, IReadOnlyList<ComponentDto> children) =>
         new(meta, id, children, null, null, null);
 
-    private static string InferDataType(Type t, PropertyInfo? p = null) => p?.Find<MoneyAttribute>() != null ? "money" : t switch
+    private static string InferDataType(Type t, PropertyInfo? p = null) => t switch
     {
         _ when t.IsEnum => "string",
         _ when t == typeof(bool) => "boolean",

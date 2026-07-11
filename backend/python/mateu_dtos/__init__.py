@@ -27,6 +27,9 @@ class AppMetadata(Wire):
     layout: str = "SINGLE_SLOT"
     home_route: str = ""
     home_consumed_route: str = ""
+    #: The backend's public base URL — the shell loads its home content against it (mirrors
+    #: AppDto.homeBaseUrl; without it the first auto-load fires page-relative).
+    home_base_url: str = ""
     home_server_side_type: str = ""
     server_side_type: str = ""
     root_route: str = ""

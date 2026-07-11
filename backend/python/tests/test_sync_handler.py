@@ -617,7 +617,8 @@ def test_crud_search_returns_rows():
         RunActionRq(action_id="search", server_side_type=_name(Things), component_state={"searchText": ""})
     )
     assert len(inc.fragments) == 1
-    assert inc.fragments[0].target_component_id == "crud"
+    # The data fragment goes back to the component that initiated the search.
+    assert inc.fragments[0].target_component_id == "ux_main"
     assert inc.fragments[0].component is None
     j = render(inc)
     assert '"totalElements": 2' in j
@@ -828,10 +829,9 @@ def test_semantic_annotated_alias_bundles_framework_configuration():
     inc = handler().handle(RunActionRq(route="invoice", consumed_route="invoice"))
     j = render(inc)
 
-    # The ImporteTotal alias behaves as if the field carried Money() + Label() directly.
-    assert '"dataType": "money"' in j
-    assert '"stereotype": "money"' in j
-    assert '"label": "Importe total"' in j
+    # The ImporteTotal alias behaves as if the field carried Money() + Label() directly
+    # (editable money fields keep the numeric data type; the stereotype carries the intent).
+    assert '"dataType": "number", "label": "Importe total", "stereotype": "money"' in j
 
 
 def test_tree_selector_emits_the_tree_grid_layout_without_a_children_column():
@@ -1227,7 +1227,7 @@ def test_tail_features():
     assert '"stereotype": "password"' in j
     assert '"stereotype": "textarea"' in j
     assert '"multiline": true' in j
-    assert '"dataType": "money"' in j
+    assert '"stereotype": "money"' in j
     assert '"stereotype": "plainText"' in j
     assert '"Tickets"' in j and '"42"' in j
     assert '"icon": "plus"' in j

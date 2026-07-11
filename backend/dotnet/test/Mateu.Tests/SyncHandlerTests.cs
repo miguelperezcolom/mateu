@@ -671,9 +671,9 @@ public class SyncHandlerTests
     {
         var json = Render(Handler().Handle(new RunActionRqDto { Route = "invoice", ConsumedRoute = "invoice" }));
 
-        // [ImporteTotal] behaves as if the property carried [Money] + [Label] directly.
-        Assert.Contains("\"dataType\":\"money\"", json);
-        Assert.Contains("\"stereotype\":\"money\"", json);
+        // [ImporteTotal] behaves as if the property carried [Money] + [Label] directly
+        // (editable money fields keep the numeric data type; the stereotype carries the intent).
+        Assert.Contains("\"dataType\":\"number\",\"label\":\"Importe total\",\"stereotype\":\"money\"", json);
         Assert.Contains("\"label\":\"Importe total\"", json);
     }
 
@@ -1092,7 +1092,8 @@ public class SyncHandlerTests
         var inc = Handler().Handle(rq);
 
         var frag = Assert.Single(inc.Fragments);
-        Assert.Equal("crud", frag.TargetComponentId);
+        // The data fragment goes back to the component that initiated the search.
+        Assert.Equal("ux_main", frag.TargetComponentId);
         Assert.Null(frag.Component);
         var json = Render(inc);
         Assert.Contains("\"totalElements\":2", json);
@@ -1234,11 +1235,12 @@ public class SyncHandlerTests
         Assert.Contains("\"label\":\"One\"", json);
         Assert.Contains("\"label\":\"Two\"", json);
 
-        // Field stereotypes.
+        // Field stereotypes. Editable [Money] fields keep the numeric data type — the money
+        // STEREOTYPE carries the formatting intent (the money editor takes a plain number).
         Assert.Contains("\"stereotype\":\"password\"", json);
         Assert.Contains("\"stereotype\":\"textarea\"", json);
         Assert.Contains("\"multiline\":true", json);
-        Assert.Contains("\"dataType\":\"money\"", json);
+        Assert.Contains("\"stereotype\":\"money\"", json);
         Assert.Contains("\"stereotype\":\"plainText\"", json);
 
         // KPIs and FABs.

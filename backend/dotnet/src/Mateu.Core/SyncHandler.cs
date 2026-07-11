@@ -11,13 +11,13 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 {
     private readonly ReflectionMapper _mapper = new(translator, identity);
 
-    public UIIncrementDto Handle(RunActionRqDto rq)
+    public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0
             && t0.GetCustomAttribute<AppAttribute>() is { } app)
-            return RenderApp(t0, app.Title);
+            return RenderApp(t0, app.Title, rq, requestBaseUrl);
 
         // 2. A Crud (resolved by serverSideType or by route prefix) — list / detail / new / edit + actions.
         if (ResolveCrud(rq) is { } c)
@@ -65,7 +65,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             case "next" when step >= total: return MapResult(((Wizard)wizard).Complete());
             case "next": step++; break;
         }
-        return FragmentResponse(Title(type), _mapper.MapWizard(type, wizard, route, step));
+        return FragmentResponse(Title(type), _mapper.MapWizard(type, wizard, route, step), rq);
     }
 
     private static int StepOf(RunActionRqDto rq) =>
@@ -101,13 +101,13 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             "search" => CrudSearch(crud, element, rq),
             "create" or "save" => CrudSave(crud, crudType, element, id, rq, baseRoute),
             "update-row" => UpdateRow(crud, crudType, element, rq),
-            "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id)),
+            "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id), rq),
             null or "" => mode switch
             {
-                "new" => RenderEntity(crudType, element, New(element), "new", $"{baseRoute}/new"),
-                "view" => RenderEntity(crudType, element, GetOrNew(crud, crudType, element, id), "view", $"{baseRoute}/{id}"),
-                "edit" => RenderEntity(crudType, element, GetOrNew(crud, crudType, element, id), "edit", $"{baseRoute}/{id}/edit"),
-                _ => RenderCrudList(crudType, crud, baseRoute),
+                "new" => RenderEntity(crudType, element, New(element), "new", $"{baseRoute}/new", rq),
+                "view" => RenderEntity(crudType, element, GetOrNew(crud, crudType, element, id), "view", $"{baseRoute}/{id}", rq),
+                "edit" => RenderEntity(crudType, element, GetOrNew(crud, crudType, element, id), "edit", $"{baseRoute}/{id}/edit", rq),
+                _ => RenderCrudList(crudType, crud, baseRoute, rq),
             },
             _ => Error($"Action not found: {rq.ActionId}"),
         };
@@ -124,11 +124,11 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         return parts.Length >= 2 && parts[1] == "edit" ? ("edit", parts[0]) : ("view", parts[0]);
     }
 
-    private UIIncrementDto RenderCrudList(Type crudType, object crud, string baseRoute) =>
-        FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute));
+    private UIIncrementDto RenderCrudList(Type crudType, object crud, string baseRoute, RunActionRqDto rq) =>
+        FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute), rq);
 
-    private UIIncrementDto RenderEntity(Type crudType, Type element, object entity, string mode, string route) =>
-        FragmentResponse(Title(crudType), _mapper.MapEntityForm(crudType, element, entity, mode, route),
+    private UIIncrementDto RenderEntity(Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq) =>
+        FragmentResponse(Title(crudType), _mapper.MapEntityForm(crudType, element, entity, mode, route), rq,
             LookupLabels(element, entity, Activator.CreateInstance(crudType)!));
 
     private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
@@ -143,7 +143,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             return Error("Please fill: " + string.Join(", ", missing));
 
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
-        return Navigate(baseRoute, "Saved");
+        return Navigate(baseRoute, "Saved", rq);
     }
 
     /// <summary>Answers a lookup field's search-&lt;fieldId&gt; action: the view's
@@ -229,11 +229,11 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var fieldId = StateString(GetState(rq.ComponentState, "_fieldId")) ?? "";
         return UIIncrementDto.Of(commands:
         [
-            new UICommandDto("ux_main", "DispatchEvent", new CustomEventDto("value-changed",
+            new UICommandDto(Target(rq), "DispatchEvent", new CustomEventDto("value-changed",
                 new Dictionary<string, object?> { ["fieldId"] = fieldId, ["value"] = selected.Id })),
-            new UICommandDto("ux_main", "DispatchEvent", new CustomEventDto("data-changed",
+            new UICommandDto(Target(rq), "DispatchEvent", new CustomEventDto("data-changed",
                 new Dictionary<string, object?> { ["key"] = fieldId + "-label", ["value"] = selected.Label })),
-            new UICommandDto("ux_main", "DispatchEvent", new CustomEventDto("close-modal-requested", null)),
+            new UICommandDto(Target(rq), "DispatchEvent", new CustomEventDto("close-modal-requested", null)),
         ]);
     }
 
@@ -307,7 +307,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         if (size <= 0) size = total == 0 ? 1 : total;
         var rows = items.Skip(page * size).Take(size).Select(item => RowDict(item, props)).ToList();
         var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
-        return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, data, "Replace", null)]);
+        return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, data, "Replace", null)]);
     }
 
     /// <summary>A row as a camelCase dict; a self-referential children list (tree layouts)
@@ -342,7 +342,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             var totalElements = (long)found.GetType().GetProperty("TotalElements")!.GetValue(found)!;
             var pushedRows = content.Cast<object>().Select(item => RowDict(item, props)).ToList();
             var pushedData = new { crud = new { page = new { content = pushedRows, pageSize = pageable.Size, pageNumber = pageable.Page, totalElements } } };
-            return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, pushedData, "Replace", null)]);
+            return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, pushedData, "Replace", null)]);
         }
 
         var fetched = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
@@ -377,7 +377,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             rows.Add(row);
         }
         var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
-        return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, data, "Replace", null)]);
+        return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, data, "Replace", null)]);
     }
 
     private static IEnumerable<(string field, bool descending)> EnumerateSort(Dictionary<string, object?>? state)
@@ -536,15 +536,15 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             .ToList();
 
     // ── Plain views ─────────────────────────────────────────────────────────────
-    private UIIncrementDto RenderApp(Type appType, string title) =>
+    private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl) =>
         UIIncrementDto.Of(
-            commands: [new UICommandDto("ux_main", "SetWindowTitle", title)],
-            fragments: [new UIFragmentDto("ux_main", _mapper.MapApp(appType), null, null, "Replace", null)]);
+            commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
+            fragments: [new UIFragmentDto(Target(rq), _mapper.MapApp(appType, requestBaseUrl), null, null, "Replace", null)]);
 
     private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq)
     {
         var route = string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!;
-        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route),
+        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route), rq,
             LookupLabels(type, instance, instance));
     }
 
@@ -592,10 +592,13 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         Drawer or Dialog => UIIncrementDto.Of(fragments:
             [new UIFragmentDto(rq?.InitiatorComponentId ?? "ux_main",
                 ComponentMapper.Map((IComponent)result), null, null, "Add", null)]),
-        // A route string → navigate; a UICommand → pass through (dispatchEvent / closeModal).
+        // A route string → navigate; a UICommand → pass through (dispatchEvent / closeModal),
+        // retargeting the "ux_main" placeholder at the initiator (the frontend drops commands
+        // whose target matches no component id).
         string route when route.StartsWith('/') =>
-            UIIncrementDto.Of(commands: [new UICommandDto("ux_main", "NavigateTo", route)]),
-        UICommandDto cmd => UIIncrementDto.Of(commands: [cmd]),
+            UIIncrementDto.Of(commands: [new UICommandDto(rq is null ? "ux_main" : Target(rq), "NavigateTo", route)]),
+        UICommandDto cmd => UIIncrementDto.Of(commands:
+            [cmd.TargetComponentId == "ux_main" && rq is not null ? cmd with { TargetComponentId = Target(rq) } : cmd]),
         _ => UIIncrementDto.Of(),
     };
 
@@ -606,10 +609,15 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static string Title(Type type) =>
         type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
 
-    private static UIIncrementDto FragmentResponse(string title, ComponentDto component, object? data = null) =>
+    private static UIIncrementDto FragmentResponse(string title, ComponentDto component, RunActionRqDto rq, object? data = null) =>
         UIIncrementDto.Of(
-            commands: [new UICommandDto("ux_main", "SetWindowTitle", title)],
-            fragments: [new UIFragmentDto("ux_main", component, null, data, "Replace", null)]);
+            commands: [new UICommandDto(Target(rq), "SetWindowTitle", title)],
+            fragments: [new UIFragmentDto(Target(rq), component, null, data, "Replace", null)]);
+
+    /// <summary>Fragments and commands address the component that initiated the request (the
+    /// web frontend's top ux id is "_ux" — Java echoes the initiator the same way).</summary>
+    private static string Target(RunActionRqDto rq) =>
+        string.IsNullOrEmpty(rq.InitiatorComponentId) ? "ux_main" : rq.InitiatorComponentId!;
 
     /// <summary>Display labels for reference fields whose value is already set when the form
     /// renders: [Searchable] fields ask their selector, [Lookup] fields the view's
@@ -640,9 +648,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         return data;
     }
 
-    private static UIIncrementDto Navigate(string route, string? successText) =>
+    private static UIIncrementDto Navigate(string route, string? successText, RunActionRqDto rq) =>
         UIIncrementDto.Of(
-            commands: [new UICommandDto("ux_main", "NavigateTo", route)],
+            commands: [new UICommandDto(Target(rq), "NavigateTo", route)],
             messages: successText is null ? [] : [new MessageDto("success", "middle", "", successText, 3000)]);
 
     private static UIIncrementDto Error(string text) =>

@@ -37,7 +37,8 @@ def add_mateu(
         rq = RunActionRq.model_validate_json(body) if body else RunActionRq()
         if not rq.route:
             rq.route = route
-        increment = handler.handle(rq)
+        request_base_url = str(request.base_url).rstrip("/") + (f"/{base_url.strip('/')}" if base_url else "")
+        increment = handler.handle(rq, request_base_url)
         return JSONResponse(increment.model_dump(by_alias=True, mode="json"))
 
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])

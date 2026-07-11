@@ -34,7 +34,7 @@ public static class MateuExtensions
         {
             var rq = await JsonSerializer.DeserializeAsync<RunActionRqDto>(ctx.Request.Body, Json)
                      ?? new RunActionRqDto();
-            var increment = handler.Handle(rq);
+            var increment = handler.Handle(rq, $"{ctx.Request.Scheme}://{ctx.Request.Host}{prefix}");
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json);
         });

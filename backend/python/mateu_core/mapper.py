@@ -220,7 +220,7 @@ class ReflectionMapper:
         return None if s is None else self.T(s)
 
     # ── App shell ──────────────────────────────────────────────────────────────
-    def map_app(self, cls) -> ClientSideComponent:
+    def map_app(self, cls, request_base_url: str | None = None) -> ClientSideComponent:
         app_title = getattr(cls, "__mateu_app__")
         # menu_item(group=...) entries sharing a group nest as that folder's submenu (the
         # folder appears where its first entry was declared); ungrouped entries stay leaves.
@@ -252,6 +252,7 @@ class ReflectionMapper:
             menu=items,
             home_route=home.route if home else "",
             home_consumed_route=home.consumed_route if home else "",
+            home_base_url=request_base_url or "",
             home_server_side_type=home.server_side_type if home else "",
             server_side_type=type_name(cls),
             sse_url=getattr(cls, "__mateu_ai_sse__", None),
@@ -1405,8 +1406,6 @@ class ReflectionMapper:
         return "regular"
 
     def infer_data_type(self, t, f=None) -> str:
-        if f is not None and f.has(Money):
-            return "money"
         if is_enum(t):
             return "string"
         if t is bool:

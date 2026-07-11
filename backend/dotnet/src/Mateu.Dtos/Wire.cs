@@ -307,6 +307,11 @@ public record AppMetadataDto(
     public string Layout { get; init; } = "SINGLE_SLOT";
     public string HomeRoute { get; init; } = "";
     public string HomeConsumedRoute { get; init; } = "";
+
+    /// <summary>The backend's public base URL — the shell loads its home content against it
+    /// (mirrors AppDto.homeBaseUrl; without it the first auto-load fires page-relative).</summary>
+    public string HomeBaseUrl { get; init; } = "";
+
     public string HomeServerSideType { get; init; } = "";
     public string ServerSideType { get; init; } = "";
     public string RootRoute { get; init; } = "";

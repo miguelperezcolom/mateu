@@ -76,12 +76,12 @@ class SyncHandler:
         self.registry = registry
         self.mapper = ReflectionMapper(translator, identity_provider)
 
-    def handle(self, rq: RunActionRq) -> UIIncrement:
+    def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         # 1. App shell at the root route.
         if not rq.action_id:
             t0 = self.registry.resolve(rq.server_side_type, rq.route)
             if t0 is not None and "__mateu_app__" in t0.__dict__:
-                return self.render_app(t0)
+                return self.render_app(t0, rq, request_base_url)
 
         # 2. A Crud (by serverSideType or route prefix) — list / detail / new / edit + actions.
         c = self.resolve_crud(rq)
@@ -133,7 +133,7 @@ class SyncHandler:
             return self.map_result(wizard.complete())
         elif rq.action_id == "next":
             step += 1
-        return self.fragment_response(self.title(type_), self.mapper.map_wizard(type_, wizard, route, step))
+        return self.fragment_response(self.title(type_), self.mapper.map_wizard(type_, wizard, route, step), rq)
 
     @staticmethod
     def step_of(rq: RunActionRq) -> int:
@@ -174,7 +174,7 @@ class SyncHandler:
         if aid == "update-row":
             return self.update_row(crud, element, rq)
         if aid == "delete":
-            return self.navigate(base_route, None if id_ is None else self.delete(crud, id_))
+            return self.navigate(base_route, None if id_ is None else self.delete(crud, id_), rq)
         if aid in (None, ""):
             if mode == "new":
                 return self.render_entity(crud_type, element, element(), "new", f"{base_route}/new")
@@ -186,7 +186,7 @@ class SyncHandler:
                 return self.render_entity(
                     crud_type, element, self.get_or_new(crud, element, id_), "edit", f"{base_route}/{id_}/edit"
                 )
-            return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route))
+            return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
         return self.error(f"Action not found: {aid}")
 
     @staticmethod
@@ -203,10 +203,11 @@ class SyncHandler:
             return "edit", parts[0]
         return "view", parts[0]
 
-    def render_entity(self, crud_type, element, entity, mode, route) -> UIIncrement:
+    def render_entity(self, crud_type, element, entity, mode, route, rq: RunActionRq | None = None) -> UIIncrement:
         return self.fragment_response(
             self.title(crud_type),
             self.mapper.map_entity_form(crud_type, element, entity, mode, route),
+            rq,
             self.lookup_labels(element, entity, crud_type()),
         )
 
@@ -219,7 +220,7 @@ class SyncHandler:
         if missing:
             return self.error("Please fill: " + ", ".join(missing))
         crud.save(entity)
-        return self.navigate(base_route, "Saved")
+        return self.navigate(base_route, "Saved", rq)
 
     def field_search(self, instance, rq: RunActionRq) -> UIIncrement:
         """Answers a lookup field's ``search-<fieldId>`` action: the view's ``options(field_name)``
@@ -319,13 +320,13 @@ class SyncHandler:
         field_id = str((rq.component_state or {}).get("_fieldId") or "")
         return UIIncrement.of(
             commands=[
-                UICommand(target_component_id="ux_main", type="DispatchEvent",
+                UICommand(target_component_id=self.target(rq), type="DispatchEvent",
                           data=CustomEventRecord(event_name="value-changed",
                                                  detail={"fieldId": field_id, "value": selected.id})),
-                UICommand(target_component_id="ux_main", type="DispatchEvent",
+                UICommand(target_component_id=self.target(rq), type="DispatchEvent",
                           data=CustomEventRecord(event_name="data-changed",
                                                  detail={"key": field_id + "-label", "value": selected.label})),
-                UICommand(target_component_id="ux_main", type="DispatchEvent",
+                UICommand(target_component_id=self.target(rq), type="DispatchEvent",
                           data=CustomEventRecord(event_name="close-modal-requested")),
             ]
         )
@@ -415,7 +416,7 @@ class SyncHandler:
         rows = [self._row_dict(item, props) for item in window]
         data = {"crud": {"page": {"content": rows, "pageSize": size, "pageNumber": page, "totalElements": total}}}
         return UIIncrement.of(
-            fragments=[UIFragment(target_component_id="crud", data=data, action="Replace")]
+            fragments=[UIFragment(target_component_id=self.target(rq), data=data, action="Replace")]
         )
 
     def _row_dict(self, item, props) -> dict:
@@ -454,7 +455,7 @@ class SyncHandler:
                 "totalElements": found.total_elements,
             }}}
             return UIIncrement.of(
-                fragments=[UIFragment(target_component_id="crud", data=data, action="Replace")]
+                fragments=[UIFragment(target_component_id=self.target(rq), data=data, action="Replace")]
             )
 
         # filter
@@ -494,7 +495,7 @@ class SyncHandler:
             }
         }
         return UIIncrement.of(
-            fragments=[UIFragment(target_component_id="crud", data=data, action="Replace")]
+            fragments=[UIFragment(target_component_id=self.target(rq), data=data, action="Replace")]
         )
 
     @staticmethod
@@ -614,11 +615,11 @@ class SyncHandler:
         return out
 
     # ── Plain views ─────────────────────────────────────────────────────────────
-    def render_app(self, app_type) -> UIIncrement:
+    def render_app(self, app_type, rq: RunActionRq | None = None, request_base_url: str | None = None) -> UIIncrement:
         title = getattr(app_type, "__mateu_app__")
         return UIIncrement.of(
-            commands=[UICommand(target_component_id="ux_main", type="SetWindowTitle", data=self.mapper.T(title))],
-            fragments=[UIFragment(target_component_id="ux_main", component=self.mapper.map_app(app_type), action="Replace")],
+            commands=[UICommand(target_component_id=self.target(rq), type="SetWindowTitle", data=self.mapper.T(title))],
+            fragments=[UIFragment(target_component_id=self.target(rq), component=self.mapper.map_app(app_type, request_base_url), action="Replace")],
         )
 
     def render(self, type_, instance, rq: RunActionRq) -> UIIncrement:
@@ -626,6 +627,7 @@ class SyncHandler:
         return self.fragment_response(
             self.title(type_),
             self.mapper.map_view(type_, instance, route),
+            rq,
             self.lookup_labels(type_, instance, instance),
         )
 
@@ -715,9 +717,13 @@ class SyncHandler:
         # A route string → navigate; a UICommand (dispatchEvent / closeModal) → pass through.
         if isinstance(result, str) and result.startswith("/"):
             return UIIncrement.of(
-                commands=[UICommand(target_component_id="ux_main", type="NavigateTo", data=result)]
+                commands=[UICommand(target_component_id=self.target(rq), type="NavigateTo", data=result)]
             )
         if isinstance(result, UICommand):
+            # Retarget the "ux_main" placeholder at the initiator (the frontend drops commands
+            # whose target matches no component id).
+            if result.target_component_id == "ux_main" and rq is not None:
+                result = result.model_copy(update={"target_component_id": self.target(rq)})
             return UIIncrement.of(commands=[result])
         return UIIncrement.of()
 
@@ -726,10 +732,17 @@ class SyncHandler:
     def title(type_) -> str:
         return getattr(type_, "__mateu_title__", humanize(type_.__name__))
 
-    def fragment_response(self, title: str, component, data=None) -> UIIncrement:
+    @staticmethod
+    def target(rq: RunActionRq | None) -> str:
+        """Fragments and commands address the component that initiated the request (the web
+        frontend's top ux id is "_ux" — Java echoes the initiator the same way)."""
+        return (rq.initiator_component_id if rq else None) or "ux_main"
+
+    def fragment_response(self, title: str, component, rq: RunActionRq | None = None, data=None) -> UIIncrement:
+        t = self.target(rq)
         return UIIncrement.of(
-            commands=[UICommand(target_component_id="ux_main", type="SetWindowTitle", data=title)],
-            fragments=[UIFragment(target_component_id="ux_main", component=component, data=data, action="Replace")],
+            commands=[UICommand(target_component_id=t, type="SetWindowTitle", data=title)],
+            fragments=[UIFragment(target_component_id=t, component=component, data=data, action="Replace")],
         )
 
     def lookup_labels(self, cls, instance, supplier_host) -> dict | None:
@@ -763,10 +776,9 @@ class SyncHandler:
                 data[field_id + "-label"] = label
         return data
 
-    @staticmethod
-    def navigate(route: str, success_text: str | None) -> UIIncrement:
+    def navigate(self, route: str, success_text: str | None, rq: RunActionRq | None = None) -> UIIncrement:
         return UIIncrement.of(
-            commands=[UICommand(target_component_id="ux_main", type="NavigateTo", data=route)],
+            commands=[UICommand(target_component_id=self.target(rq), type="NavigateTo", data=route)],
             messages=[]
             if success_text is None
             else [MessageDto(variant="success", position="middle", title="", text=success_text, duration=3000)],
