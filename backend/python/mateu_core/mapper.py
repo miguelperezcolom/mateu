@@ -64,6 +64,7 @@ from mateu_uidl import (
     ComponentTreeSupplier,
     Crud,
     Dashboard,
+    DateRange,
     Disabled,
     Foldout,
     HeaderBadge,
@@ -73,9 +74,11 @@ from mateu_uidl import (
     Label,
     LinkSupplier,
     LinkTo,
+    Listing,
     Lookup,
     Money,
     Multiline,
+    NumberRange,
     OnRowSelected,
     Panel,
     Password,
@@ -109,6 +112,29 @@ def _id() -> str:
 
 def is_enum(t) -> bool:
     return isinstance(t, type) and issubclass(t, Enum)
+
+
+def listing_types(cls) -> tuple[type, type] | None:
+    """If ``cls`` derives from ``Listing[Filters, Row]``, return ``(Filters, Row)``; else None."""
+    if not (isinstance(cls, type) and issubclass(cls, Listing)):
+        return None
+    for c in cls.__mro__:
+        for base in getattr(c, "__orig_bases__", ()):
+            origin = get_origin(base)
+            if isinstance(origin, type) and issubclass(origin, Listing):
+                args = get_args(base)
+                if len(args) == 2 and all(isinstance(a, type) for a in args):
+                    return args[0], args[1]
+    return None
+
+
+def enum_set_element_type(t) -> type | None:
+    """The enum element of a ``set[SomeEnum]`` annotation; None otherwise."""
+    if get_origin(t) is not set:
+        return None
+    args = get_args(t)
+    arg = args[0] if args else None
+    return arg if isinstance(arg, type) and is_enum(arg) else None
 
 
 def crud_element_type(cls) -> type | None:
@@ -236,6 +262,9 @@ class ReflectionMapper:
         element = crud_element_type(cls)
         if element is not None:
             return self.map_crud(cls, element, route, instance)
+        listing = listing_types(cls)
+        if listing is not None:
+            return self.map_listing(cls, listing[0], listing[1], route)
 
         title = self.T(getattr(cls, "__mateu_title__", humanize(cls.__name__)))
         buttons = [self.map_button(n, f) for n, f in methods_with(cls, "__mateu_button__")]
@@ -756,6 +785,58 @@ class ReflectionMapper:
         if t is datetime:
             return "datetime"
         return "text"
+
+    def map_listing(self, cls, filters_type, row_type, route: str) -> ServerSideComponent:
+        """A declarative Listing view: a read-only searchable listing — columns from the Row
+        type, the smart search bar from the Filters type (typed DateRange/NumberRange/set fields
+        render range and multi-select widgets — the type is the developer's explicit ask,
+        mirroring Java's PageListingBuilder.isTypedFilter)."""
+        title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
+        columns = [
+            GridColumn(metadata=GridColumnMeta(
+                id=camel_case(f.name),
+                label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
+                data_type=self.infer_data_type(f.type, f),
+            ))
+            for f in view_fields(row_type)
+        ]
+        crud = self.client(
+            CrudMetadata(title=title, columns=columns, toolbar=[],
+                         can_edit=False, filters=self.listing_filters(filters_type)),
+            "crud",
+            [],
+        )
+        page = self.client(PageMetadata(), None, [crud])
+        return ServerSideComponent(
+            id=_id(), server_side_type=type_name(cls), route=route, children=[page],
+            initial_data={}, actions=[Action(id="search")],
+            triggers=[Trigger(type="OnLoad", action_id="search")],
+        )
+
+    def listing_filters(self, filters_type) -> list[FormFieldMetadata]:
+        out: list[FormFieldMetadata] = []
+        for f in view_fields(filters_type):
+            fid = camel_case(f.name)
+            label = f.marker(Label).value if f.has(Label) else humanize(f.name)
+            t = f.type
+            if t is DateRange:
+                out.append(FormFieldMetadata(field_id=fid, data_type="date", label=label, stereotype="dateRange"))
+            elif t is NumberRange:
+                out.append(FormFieldMetadata(field_id=fid, data_type="number", label=label, stereotype="numberRange"))
+            elif enum_set_element_type(t) is not None:
+                el = enum_set_element_type(t)
+                out.append(FormFieldMetadata(
+                    field_id=fid, data_type="string", label=label, stereotype="multiSelect",
+                    options=[Option(value=m.name, label=humanize(m.name)) for m in el],
+                ))
+            elif is_enum(t):
+                out.append(FormFieldMetadata(
+                    field_id=fid, data_type="string", label=label, stereotype="select",
+                    options=[Option(value=m.name, label=humanize(m.name)) for m in t],
+                ))
+            else:
+                out.append(FormFieldMetadata(field_id=fid, data_type=self.infer_data_type(t, f), label=label))
+        return out
 
     def crud_filters(self, element) -> list[FormFieldMetadata]:
         """The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud

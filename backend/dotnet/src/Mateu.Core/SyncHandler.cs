@@ -26,6 +26,15 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var type = registry.Resolve(rq.ServerSideType, rq.Route);
         if (type is null) return Error($"Route not found: {rq.Route}");
 
+        // 2b. A declarative Listing — a read-only searchable listing with typed filters.
+        if (ReflectionMapper.ListingTypes(type) is { } listing)
+        {
+            var view = Activator.CreateInstance(type)!;
+            return rq.ActionId == "search"
+                ? ListingSearch(view, listing.Filters, listing.Row, rq)
+                : Render(type, view, rq);
+        }
+
         // 3. A wizard.
         if (typeof(Wizard).IsAssignableFrom(type)) return HandleWizard(type, rq);
 
@@ -173,6 +182,81 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         BindState(entity, row);
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
         return UIIncrementDto.Of(messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
+    }
+
+    /// <summary>A declarative Listing's search: hydrates the TYPED filters from the component
+    /// state — &lt;field&gt;_from/&lt;field&gt;_to keys assemble into DateRange/NumberRange, value
+    /// lists (or comma-joined strings after a URL restore) into enum sets, blank/unparseable
+    /// bounds and stale constants dropped (mirrors Java's FilterStateAssembler) — calls
+    /// Search(searchText, filters) and sorts + paginates the returned rows.</summary>
+    private static UIIncrementDto ListingSearch(object view, Type filtersType, Type rowType, RunActionRqDto rq)
+    {
+        var filters = AssembleFilters(filtersType, rq.ComponentState);
+        var search = view.GetType().GetMethod("Search")!;
+        var fetched = (System.Collections.IEnumerable)search.Invoke(view, [SearchText(rq), filters])!;
+        return PageRows(fetched.Cast<object>().ToList(), ReflectionMapper.EditableProperties(rowType).ToList(), rq);
+    }
+
+    private static object AssembleFilters(Type filtersType, IReadOnlyDictionary<string, object?> state)
+    {
+        var invariant = System.Globalization.CultureInfo.InvariantCulture;
+        var filters = Activator.CreateInstance(filtersType)!;
+        string? Bound(string key) => state.TryGetValue(key, out var raw) ? StateString(raw) : null;
+        foreach (var p in ReflectionMapper.EditableProperties(filtersType))
+        {
+            var key = Naming.CamelCase(p.Name);
+            var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+            if (t == typeof(DateRange))
+            {
+                DateOnly? lower = DateOnly.TryParse(Bound(key + "_from") ?? "", invariant, out var l) ? l : null;
+                DateOnly? upper = DateOnly.TryParse(Bound(key + "_to") ?? "", invariant, out var u) ? u : null;
+                if (lower is not null || upper is not null) p.SetValue(filters, new DateRange(lower, upper));
+            }
+            else if (t == typeof(NumberRange))
+            {
+                decimal? lower = decimal.TryParse(Bound(key + "_from") ?? "", System.Globalization.NumberStyles.Any, invariant, out var l) ? l : null;
+                decimal? upper = decimal.TryParse(Bound(key + "_to") ?? "", System.Globalization.NumberStyles.Any, invariant, out var u) ? u : null;
+                if (lower is not null || upper is not null) p.SetValue(filters, new NumberRange(lower, upper));
+            }
+            else if (ReflectionMapper.EnumSetElementType(p) is { } el)
+            {
+                if (!state.TryGetValue(key, out var raw)) continue;
+                var set = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(el))!;
+                var add = set.GetType().GetMethod("Add")!;
+                foreach (var v in MultiValues(raw))
+                    if (Enum.TryParse(el, v, ignoreCase: true, out var constant)) add.Invoke(set, [constant]);
+                p.SetValue(filters, set);
+            }
+            else if (state.TryGetValue(key, out var raw) && raw is not null)
+            {
+                var value = ConvertValue(raw, p.PropertyType);
+                if (value is not null) p.SetValue(filters, value);
+            }
+        }
+        return filters;
+    }
+
+    /// <summary>Sorts (Pageable.sort), paginates and serializes rows into the standard listing
+    /// data fragment — shared by crud and declarative-listing searches.</summary>
+    private static UIIncrementDto PageRows(List<object> items, List<PropertyInfo> props, RunActionRqDto rq)
+    {
+        var propByCamel = props.ToDictionary(p => Naming.CamelCase(p.Name), p => p);
+        foreach (var spec in EnumerateSort(rq.ComponentState).AsEnumerable().Reverse())
+        {
+            if (!propByCamel.TryGetValue(spec.field, out var prop)) continue;
+            items = (spec.descending
+                ? items.OrderByDescending(it => prop.GetValue(it), SortKeyComparer.Instance)
+                : items.OrderBy(it => prop.GetValue(it), SortKeyComparer.Instance)).ToList();
+        }
+        var total = items.Count;
+        var page = ToInt(GetState(rq.ComponentState, "page"), 0);
+        var size = ToInt(GetState(rq.ComponentState, "size"), 10);
+        if (size <= 0) size = total == 0 ? 1 : total;
+        var rows = items.Skip(page * size).Take(size)
+            .Select(item => props.ToDictionary(p => Naming.CamelCase(p.Name), p => CellValue(p.GetValue(item))))
+            .ToList();
+        var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
+        return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, data, "Replace", null)]);
     }
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)

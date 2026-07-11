@@ -537,6 +537,62 @@ class Crud(Generic[T]):
         return None if v is None else str(v)
 
 
+@dataclass(frozen=True)
+class DateRange:
+    """A from/to date interval for TYPED filter fields on declarative listings: declare a
+    ``DateRange`` field in the Filters class and the smart search bar renders a from–to date
+    widget; on search the ``<field>_from``/``<field>_to`` state keys are assembled back into a
+    ``DateRange``, so ``search(...)`` receives it ready to apply. Either bound may be ``None``
+    (open-ended). The Python analogue of ``io.mateu.uidl.data.DateRange``."""
+
+    from_: "date | None" = None
+    to: "date | None" = None
+
+    @property
+    def is_empty(self) -> bool:
+        return self.from_ is None and self.to is None
+
+    def contains(self, value) -> bool:
+        """True when ``value`` falls inside the interval (``None`` bounds open)."""
+        if value is None:
+            return False
+        return (self.from_ is None or value >= self.from_) and (self.to is None or value <= self.to)
+
+
+@dataclass(frozen=True)
+class NumberRange:
+    """A min/max numeric interval for TYPED filter fields on declarative listings (the numeric
+    counterpart of :class:`DateRange`)."""
+
+    from_: "float | None" = None
+    to: "float | None" = None
+
+    @property
+    def is_empty(self) -> bool:
+        return self.from_ is None and self.to is None
+
+    def contains(self, value) -> bool:
+        if value is None:
+            return False
+        return (self.from_ is None or value >= self.from_) and (self.to is None or value <= self.to)
+
+
+F = TypeVar("F")
+R = TypeVar("R")
+
+
+class Listing(Generic[F, R]):
+    """A declarative read-only listing: a Filters class (its fields become the smart search bar,
+    with ``DateRange``/``NumberRange``/``set[SomeEnum]`` fields rendering range and multi-select
+    widgets) and a Row class (its fields become the columns). Implement ``search`` — it receives
+    the hydrated typed filters; the framework sorts and paginates the returned rows. The Python
+    analogue of Java's declarative ``Listing<Filters, Row>``."""
+
+    def search(self, search_text: str | None, filters: F) -> Iterable[R]:
+        """Rows matching the free-text search and the applied filters."""
+        raise NotImplementedError
+
+
 class HeroSearch(Crud[T]):
     """A search-first page: a centered hero header (title, subtitle, background image) over the
     standard crud listing, results as cards. Starts empty — the user searches. The Python
@@ -638,6 +694,6 @@ __all__ = [
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
-    "Crud", "HeroSearch", "Wizard", "Translator",
+    "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome",
 ]

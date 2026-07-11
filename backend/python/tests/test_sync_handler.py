@@ -26,8 +26,11 @@ from mateu_uidl import (  # noqa: E402
     TreeSelect,
     app_context,
     Crud,
+    DateRange,
     HeroSearch,
     LinkSupplier,
+    Listing,
+    NumberRange,
     LinkTo,
     Lookup,
     Message,
@@ -164,6 +167,54 @@ class ZonedForm:
     b: str | None = None
     c: Annotated[str | None, Section("Side", zone="right")] = None
     d: Annotated[str | None, Section("Loose")] = None
+
+
+class BookingSource(Enum):
+    WEB = "WEB"
+    PHONE = "PHONE"
+    AGENCY = "AGENCY"
+
+
+class ListedBooking:
+    locator: str = ""
+    guest: str = ""
+    source: BookingSource = BookingSource.WEB
+    created: date = date(2026, 1, 1)
+    total: float = 0.0
+
+
+class ListedBookingFilters:
+    created: DateRange | None = None
+    total: NumberRange | None = None
+    sources: set[BookingSource] | None = None
+    guest: str | None = None
+
+
+def _listed_booking(locator, guest, source, created, total):
+    b = ListedBooking()
+    b.locator, b.guest, b.source, b.created, b.total = locator, guest, source, created, total
+    return b
+
+
+_LISTED_BOOKINGS = [
+    _listed_booking("B-001", "Smith", BookingSource.WEB, date(2026, 7, 2), 320.0),
+    _listed_booking("B-002", "Jones", BookingSource.PHONE, date(2026, 7, 5), 149.5),
+    _listed_booking("B-003", "Garcia", BookingSource.AGENCY, date(2026, 7, 9), 890.0),
+    _listed_booking("B-004", "Brown", BookingSource.WEB, date(2026, 7, 12), 260.0),
+]
+
+
+@ui("bookings-listing")
+@title("Bookings (typed filters)")
+class BookingsListing(Listing[ListedBookingFilters, ListedBooking]):
+    def search(self, search_text, filters):
+        return [
+            r for r in _LISTED_BOOKINGS
+            if (not search_text or search_text.lower() in f"{r.guest} {r.locator}".lower())
+            and (filters.created is None or filters.created.contains(r.created))
+            and (filters.total is None or filters.total.contains(r.total))
+            and (not filters.sources or r.source in filters.sources)
+        ]
 
 
 @ui("folded")
@@ -467,6 +518,60 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_declarative_listing_emits_typed_filter_widgets_and_read_only_columns():
+    inc = handler().handle(RunActionRq(route="bookings-listing", consumed_route="bookings-listing"))
+    j = render(inc)
+
+    # Typed filters render range/multi widgets — the type is the developer's explicit ask…
+    assert '"fieldId": "created", "dataType": "date", "label": "Created", "stereotype": "dateRange"' in j
+    assert '"fieldId": "total", "dataType": "number", "label": "Total", "stereotype": "numberRange"' in j
+    assert '"fieldId": "sources", "dataType": "string", "label": "Sources", "stereotype": "multiSelect"' in j
+    # …plain fields keep single-value widgets, and the listing is read-only.
+    assert '"fieldId": "guest", "dataType": "string", "label": "Guest", "stereotype": "regular"' in j
+    assert '"canEdit": false' in j
+    assert '"id": "locator"' in j
+
+
+def test_listing_search_assembles_typed_filters_from_flat_state_keys():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="search",
+            server_side_type=_name(BookingsListing),
+            component_state={
+                "searchText": "",
+                "created_from": "2026-07-04",
+                "created_to": "2026-07-10",
+                "sources": ["PHONE", "AGENCY"],
+            },
+        )
+    )
+    j = render(inc)
+
+    # Only Jones (PHONE, 07-05) and Garcia (AGENCY, 07-09) fall in range AND source set.
+    assert '"totalElements": 2' in j
+    assert "Jones" in j and "Garcia" in j
+    assert "Smith" not in j and "Brown" not in j
+
+
+def test_listing_search_assembles_number_ranges_and_comma_joined_sets():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="search",
+            server_side_type=_name(BookingsListing),
+            component_state={
+                "total_from": "200",
+                # Comma-joined after a URL restore; a stale constant is dropped, not fatal.
+                "sources": "WEB,GONE",
+            },
+        )
+    )
+    j = render(inc)
+
+    assert '"totalElements": 2' in j
+    assert "Smith" in j and "Brown" in j
+    assert "Garcia" not in j
 
 
 def test_folded_layout_puts_the_section_cards_in_one_horizontal_row():

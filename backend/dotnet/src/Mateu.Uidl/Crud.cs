@@ -45,3 +45,40 @@ public abstract class HeroSearch<T> : Crud<T>, IHeroSearch where T : class, new(
     /// <summary>Background image URL, rendered with a dark overlay.</summary>
     public virtual string? HeroImage() => null;
 }
+
+/// <summary>A from/to date interval for TYPED filter fields on declarative listings: declare a
+/// DateRange property in the Filters class and the smart search bar renders a from–to date
+/// widget; on search the &lt;field&gt;_from/&lt;field&gt;_to state keys are assembled back into a
+/// DateRange, so Search(...) receives it ready to apply. Either bound may be null (open-ended).
+/// (C# analogue of io.mateu.uidl.data.DateRange.)</summary>
+public sealed record DateRange(DateOnly? From = null, DateOnly? To = null)
+{
+    public bool IsEmpty => From is null && To is null;
+
+    /// <summary>True when <paramref name="date"/> falls inside the interval (null bounds open).</summary>
+    public bool Contains(DateOnly date) =>
+        (From is null || date >= From) && (To is null || date <= To);
+}
+
+/// <summary>A min/max numeric interval for TYPED filter fields on declarative listings (the
+/// numeric counterpart of <see cref="DateRange"/>).</summary>
+public sealed record NumberRange(decimal? From = null, decimal? To = null)
+{
+    public bool IsEmpty => From is null && To is null;
+
+    public bool Contains(decimal value) =>
+        (From is null || value >= From) && (To is null || value <= To);
+}
+
+/// <summary>
+/// A declarative read-only listing: a Filters class (its properties become the smart search bar,
+/// with DateRange/NumberRange/ISet&lt;TEnum&gt; properties rendering range and multi-select
+/// widgets) and a Row class (its properties become the columns). Implement Search — it receives
+/// the hydrated typed filters; the framework sorts and paginates the returned rows.
+/// (C# analogue of Java's declarative Listing&lt;Filters, Row&gt;.)
+/// </summary>
+public abstract class Listing<TFilters, TRow> where TFilters : class, new() where TRow : class
+{
+    /// <summary>Rows matching the free-text search and the applied filters.</summary>
+    public abstract IEnumerable<TRow> Search(string? searchText, TFilters filters);
+}

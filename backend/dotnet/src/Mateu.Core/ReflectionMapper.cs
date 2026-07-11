@@ -92,6 +92,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     {
         var crudElement = CrudElementType(type);
         if (crudElement is not null) return MapCrud(type, crudElement, route, instance);
+        if (ListingTypes(type) is { } listing) return MapListing(type, listing.Filters, listing.Row, route);
 
         var title = T(type.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
 
@@ -429,6 +430,80 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
                 return t.GetGenericArguments()[0];
         return null;
     }
+
+    /// <summary>If <paramref name="type"/> derives from Listing&lt;TFilters, TRow&gt;, returns
+    /// (TFilters, TRow); else null.</summary>
+    internal static (Type Filters, Type Row)? ListingTypes(Type type)
+    {
+        for (var t = type; t is not null; t = t.BaseType)
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Listing<,>))
+                return (t.GetGenericArguments()[0], t.GetGenericArguments()[1]);
+        return null;
+    }
+
+    /// <summary>A declarative Listing view: a read-only searchable listing — columns from the Row
+    /// type, the smart search bar from the Filters type (typed DateRange/NumberRange/ISet
+    /// properties render range and multi-select widgets — the type is the developer's explicit
+    /// ask, mirroring Java's PageListingBuilder.isTypedFilter).</summary>
+    private ServerSideComponentDto MapListing(Type viewType, Type filters, Type row, string route)
+    {
+        var title = viewType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
+        var columns = EditableProperties(row)
+            .Select(p => new GridColumnDto(new GridColumnMetaDto(
+                Naming.CamelCase(p.Name),
+                p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
+            {
+                DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
+            }))
+            .ToList();
+        var crud = Client(new CrudMetadataDto(title, columns, [])
+        {
+            CanEdit = false,
+            Filters = MapListingFilters(filters),
+        }, "crud", []);
+        var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
+        return new ServerSideComponentDto(
+            Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
+            new Dictionary<string, object?>(), [new ActionDto("search")],
+            [new TriggerDto("OnLoad", "search")], null, null, null);
+    }
+
+    internal static Type? EnumSetElementType(PropertyInfo p)
+    {
+        var t = p.PropertyType;
+        if (!t.IsGenericType) return null;
+        var def = t.GetGenericTypeDefinition();
+        if (def != typeof(ISet<>) && def != typeof(HashSet<>)) return null;
+        var arg = t.GetGenericArguments()[0];
+        return arg.IsEnum ? arg : null;
+    }
+
+    private static List<FormFieldMetadataDto> MapListingFilters(Type filters) =>
+        EditableProperties(filters)
+            .Select(p =>
+            {
+                var label = p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name);
+                var id = Naming.CamelCase(p.Name);
+                var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+                if (t == typeof(DateRange))
+                    return new FormFieldMetadataDto(id, "date", label) { Stereotype = "dateRange" };
+                if (t == typeof(NumberRange))
+                    return new FormFieldMetadataDto(id, "number", label) { Stereotype = "numberRange" };
+                if (EnumSetElementType(p) is { } el)
+                    return new FormFieldMetadataDto(id, "string", label)
+                    {
+                        Stereotype = "multiSelect",
+                        Options = Enum.GetNames(el).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList(),
+                    };
+                if (t.IsEnum)
+                    return new FormFieldMetadataDto(id, "string", label)
+                    {
+                        Stereotype = "select",
+                        Options = Enum.GetNames(t).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList(),
+                    };
+                return new FormFieldMetadataDto(id, InferDataType(t, p), label);
+            })
+            .ToList();
 
     private ServerSideComponentDto MapCrud(Type viewType, Type element, string route, object? instance = null)
     {

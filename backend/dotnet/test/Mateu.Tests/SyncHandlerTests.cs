@@ -97,6 +97,44 @@ public class ZonedForm
     [Section("Loose")] public string? D { get; set; }
 }
 
+public enum BookingSource { Web, Phone, Agency }
+
+public class BookingRow
+{
+    public string Locator { get; set; } = "";
+    public string Guest { get; set; } = "";
+    public BookingSource Source { get; set; }
+    public DateOnly Created { get; set; }
+    public double Total { get; set; }
+}
+
+public class BookingFilters
+{
+    public DateRange? Created { get; set; }
+    public NumberRange? Total { get; set; }
+    public ISet<BookingSource>? Sources { get; set; }
+    public string? Guest { get; set; }
+}
+
+[UI("bookings-listing"), Title("Bookings (typed filters)")]
+public class BookingsListing : Listing<BookingFilters, BookingRow>
+{
+    private static readonly List<BookingRow> Rows =
+    [
+        new() { Locator = "B-001", Guest = "Smith", Source = BookingSource.Web, Created = new DateOnly(2026, 7, 2), Total = 320 },
+        new() { Locator = "B-002", Guest = "Jones", Source = BookingSource.Phone, Created = new DateOnly(2026, 7, 5), Total = 149.5 },
+        new() { Locator = "B-003", Guest = "Garcia", Source = BookingSource.Agency, Created = new DateOnly(2026, 7, 9), Total = 890 },
+        new() { Locator = "B-004", Guest = "Brown", Source = BookingSource.Web, Created = new DateOnly(2026, 7, 12), Total = 260 },
+    ];
+
+    public override IEnumerable<BookingRow> Search(string? searchText, BookingFilters filters) =>
+        Rows.Where(r => string.IsNullOrWhiteSpace(searchText)
+                        || (r.Guest + " " + r.Locator).Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .Where(r => filters.Created is null || filters.Created.Contains(r.Created))
+            .Where(r => filters.Total is null || filters.Total.Contains((decimal)r.Total))
+            .Where(r => filters.Sources is null || filters.Sources.Count == 0 || filters.Sources.Contains(r.Source));
+}
+
 [UI("folded"), Title("Folded"), FoldedLayout]
 public class FoldedForm
 {
@@ -348,6 +386,71 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Declarative_listing_emits_typed_filter_widgets_and_read_only_columns()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "bookings-listing", ConsumedRoute = "bookings-listing" }));
+
+        // Typed filters render range/multi widgets — the type is the developer's explicit ask…
+        Assert.Contains("\"fieldId\":\"created\",\"dataType\":\"date\",\"label\":\"Created\",\"stereotype\":\"dateRange\"", json);
+        Assert.Contains("\"fieldId\":\"total\",\"dataType\":\"number\",\"label\":\"Total\",\"stereotype\":\"numberRange\"", json);
+        Assert.Contains("\"fieldId\":\"sources\",\"dataType\":\"string\",\"label\":\"Sources\",\"stereotype\":\"multiSelect\"", json);
+        // …plain fields keep single-value widgets, and the listing is read-only.
+        Assert.Contains("\"fieldId\":\"guest\",\"dataType\":\"string\",\"label\":\"Guest\",\"stereotype\":\"regular\"", json);
+        Assert.Contains("\"canEdit\":false", json);
+        Assert.Contains("\"id\":\"locator\"", json);
+    }
+
+    [Fact]
+    public void Listing_search_assembles_typed_filters_from_flat_state_keys()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(BookingsListing).FullName,
+            ComponentState = new()
+            {
+                ["searchText"] = JsonSerializer.SerializeToElement(""),
+                ["created_from"] = JsonSerializer.SerializeToElement("2026-07-04"),
+                ["created_to"] = JsonSerializer.SerializeToElement("2026-07-10"),
+                ["sources"] = JsonSerializer.SerializeToElement(new[] { "Phone", "Agency" }),
+            },
+        };
+
+        var inc = Handler().Handle(rq);
+        var json = Render(inc);
+
+        // Only Jones (Phone, 07-05) and Garcia (Agency, 07-09) fall in range AND source set.
+        Assert.Contains("\"totalElements\":2", json);
+        Assert.Contains("Jones", json);
+        Assert.Contains("Garcia", json);
+        Assert.DoesNotContain("Smith", json);
+        Assert.DoesNotContain("Brown", json);
+    }
+
+    [Fact]
+    public void Listing_search_assembles_number_ranges_and_comma_joined_sets()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(BookingsListing).FullName,
+            ComponentState = new()
+            {
+                ["total_from"] = JsonSerializer.SerializeToElement("200"),
+                // Comma-joined after a URL restore; a stale constant is dropped, not fatal.
+                ["sources"] = JsonSerializer.SerializeToElement("Web,Gone"),
+            },
+        };
+
+        var json = Render(Handler().Handle(rq));
+
+        Assert.Contains("\"totalElements\":2", json);
+        Assert.Contains("Smith", json);
+        Assert.Contains("Brown", json);
+        Assert.DoesNotContain("Garcia", json);
     }
 
     [Fact]

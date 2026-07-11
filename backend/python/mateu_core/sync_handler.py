@@ -15,12 +15,12 @@ from mateu_dtos import (
     UIFragment,
     UIIncrement,
 )
-from mateu_uidl import Label, Message, PageBanner, Required, Step, Wizard
+from mateu_uidl import DateRange, Label, Message, NumberRange, PageBanner, Required, Step, Wizard
 from mateu_uidl import components as fluent
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from .mapper import ReflectionMapper, crud_element_type, is_enum
+from .mapper import ReflectionMapper, crud_element_type, enum_set_element_type, is_enum, listing_types
 from .naming import camel_case, humanize
 from .reflection import view_fields
 from .registry import MateuRegistry, normalize
@@ -78,6 +78,14 @@ class SyncHandler:
         # 3. A wizard.
         if issubclass(type_, Wizard):
             return self.handle_wizard(type_, rq)
+
+        # 3b. A declarative Listing — a read-only searchable listing with typed filters.
+        listing = listing_types(type_)
+        if listing is not None:
+            view = type_()
+            if rq.action_id == "search":
+                return self.listing_search(view, listing[0], listing[1], rq)
+            return self.render(type_, view, rq)
 
         # 4. A plain view.
         instance = type_()
@@ -235,6 +243,97 @@ class SyncHandler:
         crud.save(entity)
         return UIIncrement.of(
             messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)]
+        )
+
+    def listing_search(self, view, filters_type, row_type, rq: RunActionRq) -> UIIncrement:
+        """A declarative Listing's search: hydrates the TYPED filters from the component state —
+        ``<field>_from``/``<field>_to`` keys assemble into DateRange/NumberRange, value lists (or
+        comma-joined strings after a URL restore) into enum sets, blank/unparseable bounds and
+        stale constants dropped (mirrors Java's FilterStateAssembler) — calls
+        ``search(search_text, filters)`` and sorts + paginates the returned rows."""
+        filters = self.assemble_filters(filters_type, rq.component_state or {})
+        items = list(view.search(self.search_text(rq), filters))
+        return self._page_rows(items, view_fields(row_type), rq)
+
+    def assemble_filters(self, filters_type, state: dict):
+        filters = filters_type()
+
+        def bound(key: str) -> str | None:
+            raw = state.get(key)
+            return str(raw) if raw is not None and str(raw).strip() != "" else None
+
+        for f in view_fields(filters_type):
+            key = camel_case(f.name)
+            t = f.type
+            if t is DateRange:
+                lower = self._parse_date(bound(key + "_from"))
+                upper = self._parse_date(bound(key + "_to"))
+                if lower is not None or upper is not None:
+                    setattr(filters, f.name, DateRange(from_=lower, to=upper))
+            elif t is NumberRange:
+                lower = self._parse_number(bound(key + "_from"))
+                upper = self._parse_number(bound(key + "_to"))
+                if lower is not None or upper is not None:
+                    setattr(filters, f.name, NumberRange(from_=lower, to=upper))
+            elif enum_set_element_type(t) is not None:
+                if key not in state:
+                    continue
+                el = enum_set_element_type(t)
+                values = set()
+                for v in self._multi_values(state[key]):
+                    try:
+                        values.add(el[v])
+                    except KeyError:
+                        continue  # stale constant after a URL restore — dropped, not fatal
+                setattr(filters, f.name, values)
+            elif key in state and state[key] is not None:
+                value = self.convert_value(state[key], t)
+                if value is not None:
+                    setattr(filters, f.name, value)
+        return filters
+
+    @staticmethod
+    def _parse_date(raw: str | None):
+        if not raw:
+            return None
+        try:
+            return date.fromisoformat(raw[:10])
+        except ValueError:
+            return None
+
+    @staticmethod
+    def _parse_number(raw: str | None):
+        if not raw:
+            return None
+        try:
+            return float(raw)
+        except ValueError:
+            return None
+
+    def _page_rows(self, items: list, props, rq: RunActionRq) -> UIIncrement:
+        """Sorts (Pageable.sort), paginates and serializes rows into the standard listing data
+        fragment — shared by crud and declarative-listing searches."""
+        state = rq.component_state or {}
+        prop_by_camel = {camel_case(p.name): p.name for p in props}
+        for spec in reversed(state.get("sort") or []):
+            field = prop_by_camel.get(spec.get("field", ""), spec.get("field", ""))
+            if not field:
+                continue
+            reverse = spec.get("direction", "ascending") == "descending"
+            items.sort(key=lambda it, f=field: _sort_key(getattr(it, f, None)), reverse=reverse)
+        total = len(items)
+        page = int(state.get("page", 0) or 0)
+        size = int(state.get("size", 10) or 10)
+        if size <= 0:
+            size = total or 1
+        window = items[page * size : page * size + size]
+        rows = [
+            {camel_case(p.name): self.cell_value(getattr(item, p.name, None)) for p in props}
+            for item in window
+        ]
+        data = {"crud": {"page": {"content": rows, "pageSize": size, "pageNumber": page, "totalElements": total}}}
+        return UIIncrement.of(
+            fragments=[UIFragment(target_component_id="crud", data=data, action="Replace")]
         )
 
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
