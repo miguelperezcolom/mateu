@@ -56,6 +56,8 @@ class PageMetadata(Wire):
     level: int = 0
     read_only: bool = False
     actions: Any | None = None
+    #: Sticky sections index: None = renderer decides (auto), True = force, False = off.
+    toc: bool | None = None
     badges: list["Badge"] = Field(default_factory=list)
     kpis: list["Kpi"] = Field(default_factory=list)
     banners: list["Banner"] = Field(default_factory=list)

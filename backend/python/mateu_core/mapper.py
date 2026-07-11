@@ -65,6 +65,7 @@ from mateu_uidl import (
     Dashboard,
     Foldout,
     HeaderBadge,
+    HeroSearch,
     ItemOverview,
     Label,
     LinkSupplier,
@@ -113,7 +114,9 @@ def crud_element_type(cls) -> type | None:
         return cls.element_type
     for c in cls.__mro__:
         for base in getattr(c, "__orig_bases__", ()):
-            if get_origin(base) is Crud:
+            origin = get_origin(base)
+            # Any Crud[T] subscription counts — including subclasses like HeroSearch[T].
+            if isinstance(origin, type) and issubclass(origin, Crud):
                 args = get_args(base)
                 if args and isinstance(args[0], type):
                     return args[0]
@@ -213,7 +216,7 @@ class ReflectionMapper:
     def map_view(self, cls, instance, route: str) -> ServerSideComponent:
         element = crud_element_type(cls)
         if element is not None:
-            return self.map_crud(cls, element, route)
+            return self.map_crud(cls, element, route, instance)
 
         title = self.T(getattr(cls, "__mateu_title__", humanize(cls.__name__)))
         buttons = [self.map_button(n, f) for n, f in methods_with(cls, "__mateu_button__")]
@@ -237,6 +240,7 @@ class ReflectionMapper:
             subtitle=self._opt_t(class_flag(cls, "__mateu_subtitle__", None)),
             toolbar=[],
             buttons=buttons,
+            toc=getattr(cls, "__mateu_toc__", None),
             banners=self.banners(cls, instance),
             badges=self.badges(cls, instance),
             kpis=self.kpis(cls, instance),
@@ -649,8 +653,12 @@ class ReflectionMapper:
         )
 
     # ── CRUD ───────────────────────────────────────────────────────────────────
-    def map_crud(self, cls, element, route: str) -> ServerSideComponent:
+    def map_crud(self, cls, element, route: str, instance=None) -> ServerSideComponent:
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
+        # HeroSearch: a centered hero header over the listing, results as cards, no auto-search.
+        hero = instance if isinstance(instance, HeroSearch) else (
+            cls() if isinstance(cls, type) and issubclass(cls, HeroSearch) else None
+        )
         # Class-level @inline_editing: every data column (except ReadOnly() ones) is edited in
         # place; each committed cell dispatches the crud's update-row action (Java parity).
         inline = getattr(cls, "__mateu_inline_editing__", False)
@@ -669,17 +677,35 @@ class ReflectionMapper:
             )))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
         crud = self.client(
-            CrudMetadata(title=title, columns=columns, toolbar=toolbar, filters=self.crud_filters(element)),
+            CrudMetadata(
+                title=title,
+                columns=columns,
+                toolbar=toolbar,
+                filters=self.crud_filters(element),
+                crudl_type="cards" if hero is not None else "table",
+            ),
             "crud",
             [],
         )
-        page = self.client(PageMetadata(), None, [crud])
+        page_children = []
+        if hero is not None:
+            page_children.append(self.client(
+                HeroSectionMetadata(
+                    title=hero.hero_title(), subtitle=hero.hero_subtitle(),
+                    image=hero.hero_image(), centered=True,
+                ),
+                None, [],
+            ))
+        page_children.append(crud)
+        page = self.client(PageMetadata(), None, page_children)
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
         if inline:
             actions.append(Action(id="update-row"))
+        # A hero-search page starts EMPTY (the user searches); plain cruds preload their rows.
+        triggers = [] if hero is not None else [Trigger(type="OnLoad", action_id="search")]
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
-            initial_data={}, actions=actions, triggers=[Trigger(type="OnLoad", action_id="search")],
+            initial_data={}, actions=actions, triggers=triggers,
         )
 
     @staticmethod

@@ -97,6 +97,15 @@ public sealed class ShortcutAttribute(string keys) : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class ConfirmOnNavigationIfDirtyAttribute : Attribute;
 
+/// <summary>Sticky right-hand index (table of contents) on long docs-style pages: lists every
+/// section title, click scroll-jumps, the active entry highlights on scroll. Tri-state like
+/// Java's @Toc: absent → the renderer decides (auto), [Toc] → force on, [Toc(false)] → suppress.</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class TocAttribute(bool value = true) : Attribute
+{
+    public bool Value { get; } = value;
+}
+
 /// <summary>High-density rendering (condensed spacing) for information-dense screens.</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class CompactAttribute : Attribute;

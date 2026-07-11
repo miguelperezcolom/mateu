@@ -311,6 +311,8 @@ public record PageMetadataDto(
     public int Level { get; init; }
     public bool ReadOnly { get; init; }
     public object? Actions { get; init; }
+    /// <summary>Sticky sections index: null = renderer decides (auto), true = force, false = off.</summary>
+    public bool? Toc { get; init; }
     public IReadOnlyList<BadgeDto> Badges { get; init; } = [];
     public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];

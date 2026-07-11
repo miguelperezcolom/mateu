@@ -91,7 +91,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     public ServerSideComponentDto MapView(Type type, object instance, string route)
     {
         var crudElement = CrudElementType(type);
-        if (crudElement is not null) return MapCrud(type, crudElement, route);
+        if (crudElement is not null) return MapCrud(type, crudElement, route, instance);
 
         var title = T(type.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
 
@@ -124,6 +124,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var pageMeta = new PageMetadataDto(
             title, title, OptT(type.GetCustomAttribute<SubtitleAttribute>()?.Value), [], buttons)
         {
+            Toc = type.GetCustomAttribute<TocAttribute>()?.Value,
             Banners = Banners(type, instance),
             Badges = Badges(type, instance),
             Kpis = Kpis(type, instance),
@@ -339,8 +340,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         return null;
     }
 
-    private ServerSideComponentDto MapCrud(Type viewType, Type element, string route)
+    private ServerSideComponentDto MapCrud(Type viewType, Type element, string route, object? instance = null)
     {
+        // HeroSearch: a centered hero header over the listing, results as cards, no auto-search.
+        var hero = (instance ?? Activator.CreateInstance(viewType)) as IHeroSearch;
         var title = viewType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
         // Class-level [InlineEditing]: every data column (except [ReadOnly] ones) is edited in
         // place; each committed cell dispatches the crud's update-row action (Java parity).
@@ -360,13 +363,24 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             })
             .ToList();
         var toolbar = new List<ButtonDto> { new("New", "new"), new("Delete", "delete") };
-        var crud = Client(new CrudMetadataDto(title, columns, toolbar) { Filters = MapCrudFilters(element) }, "crud", []);
-        var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
+        var crud = Client(new CrudMetadataDto(title, columns, toolbar)
+        {
+            Filters = MapCrudFilters(element),
+            CrudlType = hero is not null ? "cards" : "table",
+        }, "crud", []);
+        var pageChildren = new List<ComponentDto>();
+        if (hero is not null)
+            pageChildren.Add(Client(new HeroSectionMetadataDto(
+                hero.HeroTitle(), hero.HeroSubtitle(), hero.HeroImage(), null, true), null, []));
+        pageChildren.Add(crud);
+        var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren);
         var actions = new List<ActionDto> { new("search"), new("new"), new("delete") };
         if (inlineEditing) actions.Add(new ActionDto("update-row"));
+        // A hero-search page starts EMPTY (the user searches); plain cruds preload their rows.
+        var triggers = hero is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
-            new Dictionary<string, object?>(), actions, [new TriggerDto("OnLoad", "search")], null, null, null);
+            new Dictionary<string, object?>(), actions, triggers, null, null, null);
     }
 
     internal static IEnumerable<PropertyInfo> EditableProperties(Type type) =>

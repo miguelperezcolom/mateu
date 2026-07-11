@@ -24,3 +24,24 @@ public abstract class Crud<T> where T : class, new()
     public static string? IdOf(T entity) =>
         typeof(T).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance)?.GetValue(entity)?.ToString();
 }
+
+/// <summary>The hero header of a <see cref="HeroSearch{T}"/> page (non-generic view of it).</summary>
+public interface IHeroSearch
+{
+    string? HeroTitle();
+    string? HeroSubtitle();
+    string? HeroImage();
+}
+
+/// <summary>
+/// A search-first page: a centered hero header (title, subtitle, background image) over the
+/// standard crud listing, results as cards. Starts empty — the user searches. (C# analogue of
+/// Java's HeroSearch archetype.)
+/// </summary>
+public abstract class HeroSearch<T> : Crud<T>, IHeroSearch where T : class, new()
+{
+    public virtual string? HeroTitle() => null;
+    public virtual string? HeroSubtitle() => null;
+    /// <summary>Background image URL, rendered with a dark overlay.</summary>
+    public virtual string? HeroImage() => null;
+}

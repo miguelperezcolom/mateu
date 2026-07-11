@@ -87,6 +87,29 @@ public class OrderForm : IOptionsSupplier
             : [];
 }
 
+[UI("long-doc"), Title("Long Doc"), Toc]
+public class LongDocForm
+{
+    [Section("One")] public string? A { get; set; }
+    [Section("Two")] public string? B { get; set; }
+}
+
+public class Hotel
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+}
+
+[UI("hotel-search"), Title("Hotel Search")]
+public class HotelSearch : HeroSearch<Hotel>
+{
+    public override string? HeroTitle() => "Find your stay";
+    public override string? HeroSubtitle() => "Search 200 hotels";
+
+    public override IEnumerable<Hotel> Fetch(string? search) =>
+        [new() { Id = "h1", Name = "Palace" }];
+}
+
 [UI("overlays"), Title("Overlays")]
 public class OverlayDemo
 {
@@ -276,6 +299,26 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Toc_marks_the_page_for_a_sticky_sections_index()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "long-doc", ConsumedRoute = "long-doc" }));
+        Assert.Contains("\"toc\":true", json);
+    }
+
+    [Fact]
+    public void Hero_search_renders_a_hero_over_a_cards_listing_and_does_not_preload()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "hotel-search", ConsumedRoute = "hotel-search" });
+        var json = Render(inc);
+
+        Assert.Contains("\"type\":\"HeroSection\"", json);
+        Assert.Contains("\"title\":\"Find your stay\"", json);
+        Assert.Contains("\"crudlType\":\"cards\"", json);
+        // Starts empty: no OnLoad→search trigger (the user searches).
+        Assert.DoesNotContain("\"OnLoad\"", json);
     }
 
     [Fact]

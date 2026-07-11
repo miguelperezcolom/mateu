@@ -317,6 +317,22 @@ def inline_editing(cls: type) -> type:
     return cls
 
 
+def toc(arg=True):
+    """Sticky right-hand index (table of contents) on long docs-style pages: lists every section
+    title, click scroll-jumps, the active entry highlights on scroll. Tri-state like Java's
+    ``@Toc``: absent → the renderer decides (auto), ``@toc`` / ``@toc(True)`` → force on,
+    ``@toc(False)`` → suppress."""
+    if isinstance(arg, type):  # bare @toc
+        arg.__mateu_toc__ = True
+        return arg
+
+    def deco(cls: type) -> type:
+        cls.__mateu_toc__ = bool(arg)
+        return cls
+
+    return deco
+
+
 def plain_text(cls: type) -> type:
     """Class-level: render every field as read-only plain text."""
     cls.__mateu_plain_text__ = True
@@ -431,6 +447,22 @@ class Crud(Generic[T]):
         return None if v is None else str(v)
 
 
+class HeroSearch(Crud[T]):
+    """A search-first page: a centered hero header (title, subtitle, background image) over the
+    standard crud listing, results as cards. Starts empty — the user searches. The Python
+    analogue of Java's HeroSearch archetype."""
+
+    def hero_title(self) -> str | None:
+        return None
+
+    def hero_subtitle(self) -> str | None:
+        return None
+
+    def hero_image(self) -> str | None:
+        """Background image URL, rendered with a dark overlay."""
+        return None
+
+
 class Wizard:
     """A multi-step form; fields carry ``Step(n)`` and ``complete()`` runs on the last step."""
 
@@ -513,9 +545,9 @@ __all__ = [
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Lookup", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
-    "confirm_on_navigation_if_dirty", "inline_editing",
+    "confirm_on_navigation_if_dirty", "inline_editing", "toc",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
-    "Crud", "Wizard", "Translator",
+    "Crud", "HeroSearch", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome",
 ]

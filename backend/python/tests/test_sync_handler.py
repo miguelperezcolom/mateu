@@ -22,6 +22,7 @@ from mateu_uidl import (  # noqa: E402
     TreeSelect,
     app_context,
     Crud,
+    HeroSearch,
     LinkSupplier,
     LinkTo,
     Lookup,
@@ -52,6 +53,7 @@ from mateu_uidl import (  # noqa: E402
     subscribe_to,
     subtitle,
     title,
+    toc,
     ui,
 )
 
@@ -145,6 +147,34 @@ class Bookings(Crud[Booking]):
             booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
             booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
         ]
+
+
+@ui("long-doc")
+@title("Long Doc")
+@toc
+class LongDocForm:
+    a: Annotated[str | None, Section("One")] = None
+    b: Annotated[str | None, Section("Two")] = None
+
+
+class Hotel:
+    id: str = ""
+    name: str = ""
+
+
+@ui("hotel-search")
+@title("Hotel Search")
+class HotelSearch(HeroSearch[Hotel]):
+    def hero_title(self):
+        return "Find your stay"
+
+    def hero_subtitle(self):
+        return "Search 200 hotels"
+
+    def fetch(self, search):
+        h = Hotel()
+        h.id, h.name = "h1", "Palace"
+        return [h]
 
 
 @ui("overlays")
@@ -376,6 +406,22 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_toc_marks_the_page_for_a_sticky_sections_index():
+    inc = handler().handle(RunActionRq(route="long-doc", consumed_route="long-doc"))
+    assert '"toc": true' in render(inc)
+
+
+def test_hero_search_renders_a_hero_over_a_cards_listing_and_does_not_preload():
+    inc = handler().handle(RunActionRq(route="hotel-search", consumed_route="hotel-search"))
+    j = render(inc)
+
+    assert '"type": "HeroSection"' in j
+    assert '"title": "Find your stay"' in j
+    assert '"crudlType": "cards"' in j
+    # Starts empty: no OnLoad→search trigger (the user searches).
+    assert '"OnLoad"' not in j
 
 
 def test_action_returned_drawer_is_an_add_fragment_on_the_initiator():
