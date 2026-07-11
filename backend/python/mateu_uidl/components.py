@@ -210,10 +210,58 @@ class Gantt(Component):
         object.__setattr__(self, "tasks", tuple(self.tasks))
 
 
+class DrawerPosition(Enum):
+    start = "start"
+    end = "end"
+
+
+@dataclass(frozen=True)
+class Drawer(Component):
+    """A panel sliding in from a viewport edge, returned from any action to open its ``content``
+    on top of the current page — the side-panel counterpart of :class:`Dialog`. Close it from a
+    later action with ``UICommand.close_modal(...)``; ✕/Esc/backdrop dismiss without a result.
+    The Python analogue of ``io.mateu.uidl.data.Drawer``."""
+
+    header_title: str | None = None
+    header: Component | None = None
+    content: Component | None = None
+    footer: Component | None = None
+    position: DrawerPosition = DrawerPosition.end
+    width: str | None = None
+    no_padding: bool = False
+    #: No backdrop — the page behind stays interactive.
+    modeless: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Dialog(Component):
+    """A modal window, returned from any action to open its ``content`` on top of the current
+    page. The Python analogue of ``io.mateu.uidl.data.Dialog``."""
+
+    header_title: str | None = None
+    header: Component | None = None
+    content: Component | None = None
+    footer: Component | None = None
+    width: str | None = None
+    height: str | None = None
+    no_padding: bool = False
+    modeless: bool = False
+    close_button_on_header: bool = True
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
 __all__ = [
     "Component",
     "MetricTrend",
     "SkeletonVariant",
+    "DrawerPosition",
+    "Drawer",
+    "Dialog",
     "Text",
     "Button",
     "MetricCard",

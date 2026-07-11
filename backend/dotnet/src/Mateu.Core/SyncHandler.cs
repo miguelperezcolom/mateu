@@ -385,10 +385,10 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .FirstOrDefault(m => !m.IsSpecialName && Naming.CamelCase(m.Name) == rq.ActionId);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
-        return MapResult(method.Invoke(instance, []));
+        return MapResult(method.Invoke(instance, []), rq);
     }
 
-    private static UIIncrementDto MapResult(object? result) => result switch
+    private static UIIncrementDto MapResult(object? result, RunActionRqDto? rq = null) => result switch
     {
         null => UIIncrementDto.Of(),
         Message msg => UIIncrementDto.Of(messages:
@@ -396,6 +396,11 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // Action-returned page banner(s) → UIIncrement.banners.
         PageBanner b => UIIncrementDto.Of(banners: [BannerOf(b)]),
         IEnumerable<PageBanner> bs => UIIncrementDto.Of(banners: bs.Select(BannerOf).Cast<object>().ToList()),
+        // An overlay (drawer/dialog) → an ADD fragment on the initiator, so it stacks on top of
+        // the page instead of replacing it (mirrors Java's FragmentDataSerializer.isOverlay).
+        Drawer or Dialog => UIIncrementDto.Of(fragments:
+            [new UIFragmentDto(rq?.InitiatorComponentId ?? "ux_main",
+                ComponentMapper.Map((IComponent)result), null, null, "Add", null)]),
         // A route string → navigate; a UICommand → pass through (dispatchEvent / closeModal).
         string route when route.StartsWith('/') =>
             UIIncrementDto.Of(commands: [new UICommandDto("ux_main", "NavigateTo", route)]),

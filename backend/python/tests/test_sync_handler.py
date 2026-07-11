@@ -11,7 +11,8 @@ from typing import Annotated
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
-from mateu_dtos import Option  # noqa: E402
+from mateu_dtos import Option, UICommand  # noqa: E402
+from mateu_uidl.components import Dialog, Drawer, Text  # noqa: E402
 from mateu_uidl import (  # noqa: E402
     BannerTheme,
     PageBanner,
@@ -144,6 +145,22 @@ class Bookings(Crud[Booking]):
             booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
             booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
         ]
+
+
+@ui("overlays")
+@title("Overlays")
+class OverlayDemo:
+    @button()
+    def open_panel(self):
+        return Drawer(header_title="Edit contact", width="480px", content=Text(text="drawer body"))
+
+    @button()
+    def open_dialog(self):
+        return Dialog(header_title="Confirm", content=Text(text="dialog body"))
+
+    @button()
+    def save_and_close(self):
+        return UICommand.close_modal("contact-saved", {"id": 7})
 
 
 @ui("order")
@@ -359,6 +376,48 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_action_returned_drawer_is_an_add_fragment_on_the_initiator():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="openPanel",
+            route="overlays",
+            server_side_type=_name(OverlayDemo),
+            initiator_component_id="comp-9",
+        )
+    )
+    assert len(inc.fragments) == 1
+    assert inc.fragments[0].target_component_id == "comp-9"
+    assert inc.fragments[0].action == "Add"
+    j = render(inc)
+    assert '"type": "Drawer"' in j
+    assert '"headerTitle": "Edit contact"' in j
+    assert '"position": "end"' in j
+    assert "drawer body" in j
+
+
+def test_action_returned_dialog_is_an_add_fragment_too():
+    inc = handler().handle(
+        RunActionRq(action_id="openDialog", route="overlays", server_side_type=_name(OverlayDemo))
+    )
+    assert len(inc.fragments) == 1
+    assert inc.fragments[0].action == "Add"
+    j = render(inc)
+    assert '"type": "Dialog"' in j
+    assert '"closeButtonOnHeader": true' in j
+    assert "dialog body" in j
+
+
+def test_close_modal_command_carries_the_named_event_and_detail():
+    inc = handler().handle(
+        RunActionRq(action_id="saveAndClose", route="overlays", server_side_type=_name(OverlayDemo))
+    )
+    assert len(inc.commands) == 1
+    assert inc.commands[0].type == "CloseModal"
+    j = render(inc)
+    assert '"eventName": "contact-saved"' in j
+    assert '"id": 7' in j
 
 
 def test_lookup_field_renders_a_remote_combobox_on_the_wire():

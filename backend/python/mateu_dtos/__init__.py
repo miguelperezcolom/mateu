@@ -314,6 +314,42 @@ class GanttMetadata(Wire):
     tasks: list[GanttTaskRecord] = Field(default_factory=list)
 
 
+class DrawerMetadata(Wire):
+    """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
+    edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
+    on the page instead of replacing it."""
+
+    type: Literal["Drawer"] = "Drawer"
+    id: str | None = None
+    header_title: str | None = None
+    header: "Component | None" = None
+    content: "Component | None" = None
+    footer: "Component | None" = None
+    #: start|end (the viewport edge the drawer slides from).
+    position: str = "end"
+    width: str | None = None
+    no_padding: bool = False
+    modeless: bool = False
+    initial_data: Any | None = None
+
+
+class DialogMetadata(Wire):
+    """A modal dialog overlay (mirrors ``io.mateu.dtos.DialogDto``)."""
+
+    type: Literal["Dialog"] = "Dialog"
+    id: str | None = None
+    header_title: str | None = None
+    header: "Component | None" = None
+    content: "Component | None" = None
+    footer: "Component | None" = None
+    no_padding: bool = False
+    modeless: bool = False
+    width: str | None = None
+    height: str | None = None
+    close_button_on_header: bool = True
+    initial_data: Any | None = None
+
+
 ComponentMetadata = Annotated[
     Union[
         AppMetadata,
@@ -343,6 +379,8 @@ ComponentMetadata = Annotated[
         EmptyStateMetadata,
         SkeletonMetadata,
         GanttMetadata,
+        DrawerMetadata,
+        DialogMetadata,
     ],
     Field(discriminator="type"),
 ]
@@ -476,6 +514,32 @@ class UICommand(Wire):
     target_component_id: str
     type: str
     data: Any | None = None
+
+    @staticmethod
+    def close_modal(event_name: str | None = None, detail: Any | None = None) -> "UICommand":
+        """Closes the topmost open overlay (dialog or drawer). With ``event_name`` it also emits
+        that event (carrying ``detail``) through the custom-event bus so the host page can react —
+        refresh itself or receive the overlay's result (mirrors Java's UICommand.closeModal)."""
+        data = None if event_name is None else CustomEventRecord(event_name=event_name, detail=detail)
+        return UICommand(target_component_id="ux_main", type="CloseModal", data=data)
+
+    @staticmethod
+    def dispatch_event(event_name: str, detail: Any | None = None) -> "UICommand":
+        """Emits a named custom event from the current component (mirrors Java's
+        UICommand.dispatchEvent) — @subscribe_to counterparts react to it."""
+        return UICommand(
+            target_component_id="ux_main",
+            type="DispatchEvent",
+            data=CustomEventRecord(event_name=event_name, detail=detail),
+        )
+
+
+class CustomEventRecord(Wire):
+    """A named custom event riding on a CloseModal/DispatchEvent command (mirrors
+    ``io.mateu.uidl.fluent.CustomEvent``)."""
+
+    event_name: str
+    detail: Any | None = None
 
 
 class Message(Wire):

@@ -205,6 +205,42 @@ public sealed record TabLayout : ComponentBase
     public bool Adaptable { get; init; }
 }
 
+// ── Overlays ───────────────────────────────────────────────────────────────────
+
+public enum DrawerPosition { Start, End }
+
+/// <summary>A panel sliding in from a viewport edge, returned from any action to open its Content
+/// on top of the current page — the side-panel counterpart of <see cref="Dialog"/>. Close it from
+/// a later action with <c>UICommandDto.CloseModal(...)</c>; ✕/Esc/backdrop dismiss without a
+/// result. (C# analogue of io.mateu.uidl.data.Drawer.)</summary>
+public sealed record Drawer : ComponentBase
+{
+    public string? HeaderTitle { get; init; }
+    public IComponent? Header { get; init; }
+    public IComponent? Content { get; init; }
+    public IComponent? Footer { get; init; }
+    public DrawerPosition Position { get; init; } = DrawerPosition.End;
+    public string? Width { get; init; }
+    public bool NoPadding { get; init; }
+    /// <summary>No backdrop — the page behind stays interactive.</summary>
+    public bool Modeless { get; init; }
+}
+
+/// <summary>A modal window, returned from any action to open its Content on top of the current
+/// page. (C# analogue of io.mateu.uidl.data.Dialog.)</summary>
+public sealed record Dialog : ComponentBase
+{
+    public string? HeaderTitle { get; init; }
+    public IComponent? Header { get; init; }
+    public IComponent? Content { get; init; }
+    public IComponent? Footer { get; init; }
+    public string? Width { get; init; }
+    public string? Height { get; init; }
+    public bool NoPadding { get; init; }
+    public bool Modeless { get; init; }
+    public bool CloseButtonOnHeader { get; init; } = true;
+}
+
 // ── [Panel] — archetype tile marker ────────────────────────────────────────────
 
 /// <summary>Marks a component property of an archetype (Dashboard, Foldout, Welcome, ItemOverview)

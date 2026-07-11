@@ -15,6 +15,7 @@ from mateu_dtos import (
     UIIncrement,
 )
 from mateu_uidl import Label, Message, PageBanner, Required, Step, Wizard
+from mateu_uidl import components as fluent
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
@@ -410,7 +411,7 @@ class SyncHandler:
         name = self._resolve_action(type_, rq.action_id)
         if name is None:
             return self.error(f"Action not found: {rq.action_id}")
-        return self.map_result(getattr(instance, name)())
+        return self.map_result(getattr(instance, name)(), rq)
 
     @staticmethod
     def _resolve_action(type_, action_id):
@@ -420,9 +421,21 @@ class SyncHandler:
                     return name
         return None
 
-    def map_result(self, result) -> UIIncrement:
+    def map_result(self, result, rq: RunActionRq | None = None) -> UIIncrement:
         if result is None:
             return UIIncrement.of()
+        # An overlay (drawer/dialog) → an ADD fragment on the initiator, so it stacks on top of
+        # the page instead of replacing it (mirrors Java's FragmentDataSerializer.isOverlay).
+        if isinstance(result, (fluent.Drawer, fluent.Dialog)):
+            return UIIncrement.of(
+                fragments=[
+                    UIFragment(
+                        target_component_id=(rq.initiator_component_id if rq else None) or "ux_main",
+                        component=self.mapper.map_component(result),
+                        action="Add",
+                    )
+                ]
+            )
         if isinstance(result, Message):
             return UIIncrement.of(
                 messages=[

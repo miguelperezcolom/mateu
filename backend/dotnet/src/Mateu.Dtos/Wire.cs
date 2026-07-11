@@ -21,7 +21,27 @@ public record UIIncrementDto(
         new(commands?.ToList() ?? [], messages?.ToList() ?? [], fragments?.ToList() ?? [], banners?.ToList() ?? [], appendBanners, null, null);
 }
 
-public record UICommandDto(string TargetComponentId, string Type, object? Data);
+public record UICommandDto(string TargetComponentId, string Type, object? Data)
+{
+    /// <summary>Closes the topmost open overlay (dialog or drawer).</summary>
+    public static UICommandDto CloseModal() => new("ux_main", "CloseModal", null);
+
+    /// <summary>Closes the topmost open overlay and emits <paramref name="eventName"/> (with
+    /// <paramref name="detail"/> as its payload) through the custom-event bus, so the host page
+    /// can react — refresh itself or receive the overlay's result (mirrors Java's
+    /// UICommand.closeModal).</summary>
+    public static UICommandDto CloseModal(string eventName, object? detail = null) =>
+        new("ux_main", "CloseModal", new CustomEventDto(eventName, detail));
+
+    /// <summary>Emits a named custom event from the current component (mirrors Java's
+    /// UICommand.dispatchEvent) — @SubscribeTo counterparts react to it.</summary>
+    public static UICommandDto DispatchEvent(string eventName, object? detail = null) =>
+        new("ux_main", "DispatchEvent", new CustomEventDto(eventName, detail));
+}
+
+/// <summary>A named custom event riding on a CloseModal/DispatchEvent command (mirrors
+/// io.mateu.uidl.fluent.CustomEvent).</summary>
+public record CustomEventDto(string EventName, object? Detail);
 
 public record MessageDto(string Variant, string Position, string Title, string Text, int Duration);
 
@@ -100,6 +120,8 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(EmptyStateMetadataDto), "EmptyState")]
 [JsonDerivedType(typeof(SkeletonMetadataDto), "Skeleton")]
 [JsonDerivedType(typeof(GanttMetadataDto), "Gantt")]
+[JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
+[JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 public abstract record ComponentMetadataDto;
 
 // ── Dashboards, foldouts, heroes, empty states, skeletons, Gantt ───────────────
@@ -361,6 +383,34 @@ public record RemoteCoordinatesDto(string Action)
     public string? BaseUrl { get; init; }
     public string? Route { get; init; }
     public Dictionary<string, object?>? Params { get; init; }
+}
+
+/// <summary>A drawer overlay (mirrors io.mateu.dtos.DrawerDto): a panel sliding in from a
+/// viewport edge whose content travels in the Content field. Emitted as an Add fragment so it
+/// stacks on the page instead of replacing it.</summary>
+public record DrawerMetadataDto(string? Id, string? HeaderTitle, ComponentDto? Content) : ComponentMetadataDto
+{
+    public ComponentDto? Header { get; init; }
+    public ComponentDto? Footer { get; init; }
+    /// <summary>start|end (the viewport edge the drawer slides from).</summary>
+    public string Position { get; init; } = "end";
+    public string? Width { get; init; }
+    public bool NoPadding { get; init; }
+    public bool Modeless { get; init; }
+    public object? InitialData { get; init; }
+}
+
+/// <summary>A modal dialog overlay (mirrors io.mateu.dtos.DialogDto).</summary>
+public record DialogMetadataDto(string? Id, string? HeaderTitle, ComponentDto? Content) : ComponentMetadataDto
+{
+    public ComponentDto? Header { get; init; }
+    public ComponentDto? Footer { get; init; }
+    public bool NoPadding { get; init; }
+    public bool Modeless { get; init; }
+    public string? Width { get; init; }
+    public string? Height { get; init; }
+    public bool CloseButtonOnHeader { get; init; } = true;
+    public object? InitialData { get; init; }
 }
 
 /// <summary>Navigation link on a form field (mirrors io.mateu.dtos.NavLinkDto). Href/title travel

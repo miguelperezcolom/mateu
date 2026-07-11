@@ -87,6 +87,25 @@ public class OrderForm : IOptionsSupplier
             : [];
 }
 
+[UI("overlays"), Title("Overlays")]
+public class OverlayDemo
+{
+    [Button] public Drawer OpenPanel() => new()
+    {
+        HeaderTitle = "Edit contact",
+        Width = "480px",
+        Content = new Text("drawer body"),
+    };
+
+    [Button] public Dialog OpenDialog() => new()
+    {
+        HeaderTitle = "Confirm",
+        Content = new Text("dialog body"),
+    };
+
+    [Button] public UICommandDto SaveAndClose() => UICommandDto.CloseModal("contact-saved", new { id = 7 });
+}
+
 public enum StockStatus { Ok, Low, Out }
 
 public class StockItem
@@ -257,6 +276,68 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Action_returned_drawer_is_an_add_fragment_on_the_initiator()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "openPanel",
+            Route = "overlays",
+            ServerSideType = typeof(OverlayDemo).FullName,
+            InitiatorComponentId = "comp-9",
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Equal("comp-9", frag.TargetComponentId);
+        Assert.Equal("Add", frag.Action);
+        var json = Render(inc);
+        Assert.Contains("\"type\":\"Drawer\"", json);
+        Assert.Contains("\"headerTitle\":\"Edit contact\"", json);
+        Assert.Contains("\"position\":\"end\"", json);
+        Assert.Contains("drawer body", json);
+    }
+
+    [Fact]
+    public void Action_returned_dialog_is_an_add_fragment_too()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "openDialog",
+            Route = "overlays",
+            ServerSideType = typeof(OverlayDemo).FullName,
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Equal("Add", frag.Action);
+        var json = Render(inc);
+        Assert.Contains("\"type\":\"Dialog\"", json);
+        Assert.Contains("\"closeButtonOnHeader\":true", json);
+        Assert.Contains("dialog body", json);
+    }
+
+    [Fact]
+    public void Close_modal_command_carries_the_named_event_and_detail()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "saveAndClose",
+            Route = "overlays",
+            ServerSideType = typeof(OverlayDemo).FullName,
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var cmd = Assert.Single(inc.Commands);
+        Assert.Equal("CloseModal", cmd.Type);
+        var json = Render(inc);
+        Assert.Contains("\"eventName\":\"contact-saved\"", json);
+        Assert.Contains("\"id\":7", json);
     }
 
     [Fact]

@@ -47,6 +47,27 @@ public static class ComponentMapper
                 new ClientSideComponentDto(
                     new TabMetadataDto(tab.Label) { Active = i == TabActiveIndex(tl.Tabs) }, null, [Map(tab.Content)], null, null, null))),
 
+        // Overlays — returned from actions; SyncHandler emits them as Add fragments.
+        Drawer dr => Dto(dr, new DrawerMetadataDto(dr.Id, dr.HeaderTitle, dr.Content is null ? null : Map(dr.Content))
+        {
+            Header = dr.Header is null ? null : Map(dr.Header),
+            Footer = dr.Footer is null ? null : Map(dr.Footer),
+            Position = LowerName(dr.Position),
+            Width = dr.Width,
+            NoPadding = dr.NoPadding,
+            Modeless = dr.Modeless,
+        }),
+        Dialog dg => Dto(dg, new DialogMetadataDto(dg.Id, dg.HeaderTitle, dg.Content is null ? null : Map(dg.Content))
+        {
+            Header = dg.Header is null ? null : Map(dg.Header),
+            Footer = dg.Footer is null ? null : Map(dg.Footer),
+            Width = dg.Width,
+            Height = dg.Height,
+            NoPadding = dg.NoPadding,
+            Modeless = dg.Modeless,
+            CloseButtonOnHeader = dg.CloseButtonOnHeader,
+        }),
+
         _ => throw new NotSupportedException($"Unmapped component type: {component.GetType().Name}"),
     };
 

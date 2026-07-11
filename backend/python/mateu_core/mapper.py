@@ -25,7 +25,9 @@ from mateu_dtos import (
     CustomTrigger,
     DashboardLayoutMetadata,
     DashboardPanelMetadata,
+    DialogMetadata,
     DivMetadata,
+    DrawerMetadata,
     EmptyStateMetadata,
     Fab,
     FoldoutLayoutMetadata,
@@ -495,6 +497,34 @@ class ReflectionMapper:
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Text):
             return self._fluent_client(TextMetadata(text=self.T(c.text)), c)
+        # Overlays — returned from actions; the sync handler emits them as Add fragments.
+        if isinstance(c, fluent.Drawer):
+            meta = DrawerMetadata(
+                id=c.id,
+                header_title=c.header_title,
+                header=self.map_component(c.header) if c.header is not None else None,
+                content=self.map_component(c.content) if c.content is not None else None,
+                footer=self.map_component(c.footer) if c.footer is not None else None,
+                position=c.position.value,
+                width=c.width,
+                no_padding=c.no_padding,
+                modeless=c.modeless,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.Dialog):
+            meta = DialogMetadata(
+                id=c.id,
+                header_title=c.header_title,
+                header=self.map_component(c.header) if c.header is not None else None,
+                content=self.map_component(c.content) if c.content is not None else None,
+                footer=self.map_component(c.footer) if c.footer is not None else None,
+                width=c.width,
+                height=c.height,
+                no_padding=c.no_padding,
+                modeless=c.modeless,
+                close_button_on_header=c.close_button_on_header,
+            )
+            return self._fluent_client(meta, c)
         raise TypeError(f"Unsupported fluent component: {type(c).__name__}")
 
     def _fluent_client(self, meta, c, children=None) -> ClientSideComponent:
