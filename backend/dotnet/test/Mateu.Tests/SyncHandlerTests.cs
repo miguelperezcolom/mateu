@@ -87,6 +87,16 @@ public class OrderForm : IOptionsSupplier
             : [];
 }
 
+[UI("zoned"), Title("Zoned")]
+[Zone("left", "64%"), Zone("right", "36%")]
+public class ZonedForm
+{
+    [Section("Main", Zone = "left")] public string? A { get; set; }
+    public string? B { get; set; }
+    [Section("Side", Zone = "right")] public string? C { get; set; }
+    [Section("Loose")] public string? D { get; set; }
+}
+
 public class Guest
 {
     public string Name { get; set; } = "";
@@ -331,6 +341,24 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Zones_lay_sections_out_as_side_by_side_columns()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "zoned", ConsumedRoute = "zoned" }));
+
+        // A horizontal row of vertical columns…
+        Assert.Contains("\"type\":\"HorizontalLayout\"", json);
+        Assert.Contains("width: 100%; align-items: flex-start;", json);
+        // …declared zones size by their width, the unzoned section falls into a flexible column…
+        Assert.Contains("flex: 0 0 64%; min-width: 0;", json);
+        Assert.Contains("flex: 0 0 36%; min-width: 0;", json);
+        Assert.Contains("flex: 1; min-width: 0;", json);
+        // …and every section card survives.
+        Assert.Contains("Main", json);
+        Assert.Contains("Side", json);
+        Assert.Contains("Loose", json);
     }
 
     [Fact]

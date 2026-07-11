@@ -858,14 +858,23 @@ class ReflectionMapper:
 
         # Group the declared fields into sections (title None = synthetic/unnamed section).
         sections: list[tuple[str | None, list]] = []
+        section_zones: list[str] = []
         current: str | None = None
+        current_zone = ""
         for f in fields:
             sec = f.marker(Section)
             if sec is not None:
                 current = sec.caption
+                current_zone = sec.zone
             if not sections or sections[-1][0] != current:
                 sections.append((current, []))
+                section_zones.append(current_zone)
             sections[-1][1].append(f)
+
+        # @zones columns on the class: sections lay out side by side (zones win over inference).
+        declared_zones = getattr(cls, "__mateu_zones__", None)
+        if declared_zones and len(sections) > 1:
+            return [self.build_zones(declared_zones, sections, section_zones, instance, read_only)]
 
         if self.prefer_tabs(cls, sections, read_only):
             return [self.tabs_from_sections(sections, instance, read_only)]
@@ -999,6 +1008,39 @@ class ReflectionMapper:
             )
         return self.client(
             TabLayoutMetadata(group_relationship="alternative", adaptable=True), "_tabs", comps
+        )
+
+    def build_zones(self, declared_zones, sections, section_zones, instance, read_only) -> ClientSideComponent:
+        """Distributes sections into the @zones columns and lays them out side by side — each
+        zone a VerticalLayout stacking its section cards, its width from the zone declaration;
+        sections with an unrecognised zone fall into a trailing flexible column (mirrors Java's
+        SectionFormRenderer.renderZones)."""
+
+        def card_of(section):
+            title, fields = section
+            return self.section_card(title, [self.map_field(f, instance, read_only) for f in fields])
+
+        def column(cards, width: str) -> ClientSideComponent:
+            style = f"flex: 0 0 {width}; min-width: 0;" if width else "flex: 1; min-width: 0;"
+            return ClientSideComponent(
+                metadata=VerticalLayoutMetadata(spacing=True), children=list(cards), style=style,
+            )
+
+        columns = []
+        remaining = list(range(len(sections)))
+        for name, width in declared_zones:
+            mine = [i for i in remaining if section_zones[i] == name]
+            if not mine:
+                continue
+            remaining = [i for i in remaining if i not in mine]
+            columns.append(column((card_of(sections[i]) for i in mine), width))
+        if remaining:
+            columns.append(column((card_of(sections[i]) for i in remaining), ""))
+
+        return ClientSideComponent(
+            metadata=HorizontalLayoutMetadata(spacing=True),
+            children=columns,
+            style="width: 100%; align-items: flex-start;",
         )
 
     def section_card(self, title: str | None, fields) -> ClientSideComponent:

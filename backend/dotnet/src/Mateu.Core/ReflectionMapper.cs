@@ -251,14 +251,28 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             return [TabLayout(type, props, instance, readOnly)];
 
         var sections = new List<(string? Title, List<PropertyInfo> Props)>();
+        var sectionZones = new List<string>();
         string? current = null;
+        var currentZone = "";
         foreach (var p in props)
         {
-            if (p.GetCustomAttribute<SectionAttribute>()?.Caption is { } s) current = s;
+            if (p.GetCustomAttribute<SectionAttribute>() is { } sec)
+            {
+                current = sec.Caption;
+                currentZone = sec.Zone;
+            }
             if (sections.Count == 0 || sections[^1].Title != current)
+            {
                 sections.Add((current, new List<PropertyInfo>()));
+                sectionZones.Add(currentZone);
+            }
             sections[^1].Props.Add(p);
         }
+
+        // [Zone] columns on the class: sections lay out side by side (zones win over inference).
+        var zones = type.GetCustomAttributes<ZoneAttribute>().ToList();
+        if (zones.Count > 0 && sections.Count > 1)
+            return [BuildZones(zones, sections, sectionZones, instance, readOnly)];
 
         // Read-only view with many substantial sections: present the sections as adaptable tabs.
         if (sections.Count > 1 && LayoutInference.PreferTabs(type, sections, readOnly))
@@ -271,6 +285,43 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
 
         return sections.Select(s => (ComponentDto)SectionCard(
             s.Title, s.Props.Select(p => MapField(p, instance, readOnly)).ToList())).ToList();
+    }
+
+    /// <summary>Distributes sections into the [Zone] columns and lays them out side by side —
+    /// each zone a VerticalLayout stacking its section cards, its width from Zone.Width;
+    /// sections with an unrecognised zone fall into a trailing flexible column (mirrors Java's
+    /// SectionFormRenderer.renderZones).</summary>
+    private ComponentDto BuildZones(
+        List<ZoneAttribute> zones,
+        List<(string? Title, List<PropertyInfo> Props)> sections,
+        List<string> sectionZones,
+        object instance,
+        bool readOnly)
+    {
+        ComponentDto CardOf((string? Title, List<PropertyInfo> Props) s) =>
+            SectionCard(s.Title, s.Props.Select(p => MapField(p, instance, readOnly)).ToList());
+
+        ComponentDto Column(IEnumerable<ComponentDto> cards, string width) =>
+            new ClientSideComponentDto(
+                new VerticalLayoutMetadataDto { Spacing = true }, null, cards.ToList(),
+                width.Length > 0 ? $"flex: 0 0 {width}; min-width: 0;" : "flex: 1; min-width: 0;",
+                null, null);
+
+        var columns = new List<ComponentDto>();
+        var remaining = Enumerable.Range(0, sections.Count).ToList();
+        foreach (var zone in zones)
+        {
+            var mine = remaining.Where(i => sectionZones[i] == zone.Name).ToList();
+            if (mine.Count == 0) continue;
+            remaining.RemoveAll(mine.Contains);
+            columns.Add(Column(mine.Select(i => CardOf(sections[i])), zone.Width));
+        }
+        if (remaining.Count > 0)
+            columns.Add(Column(remaining.Select(i => CardOf(sections[i])), ""));
+
+        return new ClientSideComponentDto(
+            new HorizontalLayoutMetadataDto { Spacing = true }, null, columns,
+            "width: 100%; align-items: flex-start;", null, null);
     }
 
     // Groups consecutive fields sharing the same [Tab] name into the tabs of a single TabLayout.

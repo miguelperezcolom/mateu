@@ -72,6 +72,9 @@ class Label:
 @dataclass(frozen=True)
 class Section:
     caption: str
+    #: Assigns the section to a @zones column (zones lay sections out side by side);
+    #: unrecognised zones fall into a trailing flexible column.
+    zone: str = ""
 
 
 @dataclass(frozen=True)
@@ -380,6 +383,22 @@ def inline_editing(cls: type) -> type:
     return cls
 
 
+def zones(*zone_list: tuple[str, str] | str):
+    """Class-level multi-column form layout: declare the columns (order matters) and assign each
+    ``Section(caption, zone=...)`` to one — the sections lay out side by side, each zone a
+    vertical column of its section cards. Each zone is ``(name, width)`` (width like ``"64%"``
+    fixes the column) or just ``name`` (shares the remaining space). The Python analogue of
+    Java's ``@Zones``/``@Zone``."""
+
+    normalized = [(z, "") if isinstance(z, str) else (z[0], z[1]) for z in zone_list]
+
+    def deco(cls: type) -> type:
+        cls.__mateu_zones__ = normalized
+        return cls
+
+    return deco
+
+
 def toc(arg=True):
     """Sticky right-hand index (table of contents) on long docs-style pages: lists every section
     title, click scroll-jumps, the active entry highlights on scroll. Tri-state like Java's
@@ -608,7 +627,7 @@ __all__ = [
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
-    "confirm_on_navigation_if_dirty", "inline_editing", "toc",
+    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
     "Crud", "HeroSearch", "Wizard", "Translator",

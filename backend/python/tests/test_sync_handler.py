@@ -60,6 +60,7 @@ from mateu_uidl import (  # noqa: E402
     title,
     toc,
     ui,
+    zones,
 )
 
 
@@ -152,6 +153,16 @@ class Bookings(Crud[Booking]):
             booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
             booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
         ]
+
+
+@ui("zoned")
+@title("Zoned")
+@zones(("left", "64%"), ("right", "36%"))
+class ZonedForm:
+    a: Annotated[str | None, Section("Main", zone="left")] = None
+    b: str | None = None
+    c: Annotated[str | None, Section("Side", zone="right")] = None
+    d: Annotated[str | None, Section("Loose")] = None
 
 
 class Guest:
@@ -447,6 +458,21 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_zones_lay_sections_out_as_side_by_side_columns():
+    inc = handler().handle(RunActionRq(route="zoned", consumed_route="zoned"))
+    j = render(inc)
+
+    # A horizontal row of vertical columns…
+    assert '"type": "HorizontalLayout"' in j
+    assert "width: 100%; align-items: flex-start;" in j
+    # …declared zones size by their width, the unzoned section falls into a flexible column…
+    assert "flex: 0 0 64%; min-width: 0;" in j
+    assert "flex: 0 0 36%; min-width: 0;" in j
+    assert "flex: 1; min-width: 0;" in j
+    # …and every section card survives.
+    assert "Main" in j and "Side" in j and "Loose" in j
 
 
 def test_list_of_rows_field_renders_as_a_grid_form_field():

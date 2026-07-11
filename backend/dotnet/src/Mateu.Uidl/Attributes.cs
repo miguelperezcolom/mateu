@@ -81,6 +81,21 @@ public sealed class MenuItemAttribute(string? label = null) : Attribute
 public sealed class SectionAttribute(string caption) : Attribute
 {
     public string Caption { get; } = caption;
+
+    /// <summary>Assigns the section to a [Zone] column ([Zone]s on the class lay sections out
+    /// side by side); unrecognised zones fall into a trailing flexible column.</summary>
+    public string Zone { get; set; } = "";
+}
+
+/// <summary>A named column of a multi-column form. Declare several on the class (order matters)
+/// and assign each [Section(Zone = ...)] to one — the sections lay out side by side, each zone a
+/// vertical column of its section cards. Width like "64%" fixes the column; empty shares the
+/// remaining space. (C# analogue of Java's @Zones/@Zone.)</summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class ZoneAttribute(string name, string width = "") : Attribute
+{
+    public string Name { get; } = name;
+    public string Width { get; } = width;
 }
 
 /// <summary>A subtitle shown under the page title.</summary>
