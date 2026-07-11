@@ -1,6 +1,7 @@
 import { customElement } from 'lit/decorators.js'
 import { html, nothing, type TemplateResult } from 'lit'
 import { MateuRendererApp } from '@infra/ui/MateuRendererApp.ts'
+import '@infra/ui/mateu-app-context-picker.ts'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import MenuOption from '@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts'
@@ -41,12 +42,16 @@ export class MateuRedhatApp extends MateuRendererApp {
         // conflicts with an extra wrapper) — pf classes are kept only for visual styling.
         return html`
             <div style="display:flex; flex-direction:column; min-height:100vh;">
-                <header class="pf-v6-c-masthead" style="flex:0 0 auto;">
+                <header class="pf-v6-c-masthead" style="flex:0 0 auto; display:flex;">
                     <!-- explicit flex row: without the PF grid styles the masthead collapsed to
                          ~1ch and the title rendered one character per line -->
-                    <div class="pf-v6-c-masthead__main" style="display:flex; align-items:center; width:100%; padding:.5rem 1rem;">
+                    <div class="pf-v6-c-masthead__main" style="display:flex; align-items:center; flex:1 1 auto; width:100%; padding:.5rem 1rem;">
                         ${md.logo ? html`<img src="${md.logo}" alt="" style="height:1.75rem; margin-right:.75rem;" />` : nothing}
                         <span class="pf-v6-c-title pf-m-lg" style="white-space:nowrap;">${md.title ?? ''}</span>
+                        <div style="margin-left:auto; display:flex; align-items:center;">
+                            ${(md.contextSelectors ?? []).map(selector => html`
+                                <mateu-app-context-picker style="margin-right:.75rem;" .selector="${selector}" .app="${md}" .baseUrl="${''}"></mateu-app-context-picker>`)}
+                        </div>
                     </div>
                     ${md.subtitle ? html`<div class="pf-v6-c-masthead__content"><span class="pf-v6-c-content">${md.subtitle}</span></div>` : nothing}
                 </header>

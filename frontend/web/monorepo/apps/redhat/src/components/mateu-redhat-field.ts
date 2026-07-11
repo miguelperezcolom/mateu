@@ -7,6 +7,7 @@ import Option from '@mateu/shared/apiClients/dtos/componentmetadata/Option.ts'
 import '@infra/ui/mateu-signature-pad.ts'
 import '@infra/ui/mateu-camera-capture.ts'
 import '@infra/ui/mateu-tree-select.ts'
+import '@infra/ui/mateu-grid'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -16,6 +17,9 @@ export class MateuRedhatField extends LitElement {
 
     @property({ attribute: false }) field: FormField | undefined
     @property({ attribute: false }) state: any
+    @property({ attribute: false }) data: any
+    @property({ attribute: false }) appState: any
+    @property({ attribute: false }) appData: any
     @property({ attribute: false }) labelAlreadyRendered: boolean | undefined
 
     createRenderRoot() { return this }
@@ -51,8 +55,21 @@ export class MateuRedhatField extends LitElement {
         const f = this.field!
         const disabled = f.disabled || f.readOnly
         const editable = !disabled
+        if (f.stereotype === 'grid') {
+            // Delegate to the shared design-system-neutral grid (same contract as mateu-field's
+            // grid branch) instead of falling through to a text input showing [object Object].
+            return html`<mateu-grid id="${f.fieldId}" .field="${f}" .state="${this.state}" .data="${this.data}"
+                                    .appState="${this.appState}" .appdata="${this.appData}"></mateu-grid>`
+        }
+        if (f.stereotype === 'badge') {
+            const on = !!this.value
+            return html`<span class="pf-v6-c-label ${on ? 'pf-m-green' : ''}" style="${on ? '' : 'opacity:.4;'}">
+                <span class="pf-v6-c-label__content">${f.label ?? f.fieldId ?? ''}</span></span>`
+        }
         if (f.stereotype === 'plainText') {
-            const text = f.dataType === 'money' ? formatMoney(this.value) : (this.value ?? '')
+            const text = f.dataType === 'money' ? formatMoney(this.value)
+                : (f.dataType === 'bool' || f.dataType === 'boolean') ? (this.value ? '✓' : '✗')
+                : (this.value ?? '')
             return html`<div class="pf-v6-c-content"><p>${text}</p></div>`
         }
         if (f.stereotype === 'money' && !editable) return html`<div class="pf-v6-c-content"><p>${formatMoney(this.value)}</p></div>`
@@ -103,7 +120,7 @@ export class MateuRedhatField extends LitElement {
     render() {
         const f = this.field
         if (!f) return nothing
-        const showLabel = !this.labelAlreadyRendered && !this.isCheckbox()
+        const showLabel = !this.labelAlreadyRendered && !this.isCheckbox() && f.stereotype !== 'badge'
         return html`
             <div class="pf-v6-c-form__group">
                 ${showLabel ? html`

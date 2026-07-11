@@ -62,11 +62,14 @@ const flattenFormItems = (comp: any): any[] => {
 }
 export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
     const md = component.metadata as any
-    const cols = Math.max(1, md.maxColumns ?? 1)
     const leaves = (component.children ?? []).flatMap(flattenFormItems)
+    // maxColumns is a CAP (Vaadin auto-responsive semantics), not a fixed count — a compact form
+    // may declare e.g. 24; laying 7 fields on 24 fixed tracks gives ~25px columns and the labels
+    // paint over each other. Clamp to the actual number of fields.
+    const cols = Math.max(1, Math.min(md.maxColumns ?? 1, leaves.length))
     return html`
-        <div class="pf-v6-c-form" style="display:grid; grid-template-columns: repeat(${cols}, minmax(0,1fr)); gap: var(--pf-t--global--spacer--md, 1rem) var(--pf-t--global--spacer--xl, 1.5rem); align-items:start;">
-            ${leaves.map((c: any) => html`<div>${renderComponent(container, c, baseUrl, state, data, appState, appData)}</div>`)}
+        <div class="pf-v6-c-form" style="display:grid; width:100%; flex:1 1 auto; grid-template-columns: repeat(${cols}, minmax(0,1fr)); gap: var(--pf-t--global--spacer--md, 1rem) var(--pf-t--global--spacer--xl, 1.5rem); align-items:start;">
+            ${leaves.map((c: any) => html`<div style="min-width:0;">${renderComponent(container, c, baseUrl, state, data, appState, appData)}</div>`)}
         </div>`
 }
 

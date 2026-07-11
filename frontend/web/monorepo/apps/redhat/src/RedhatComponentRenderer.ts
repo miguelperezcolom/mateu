@@ -57,6 +57,21 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Div,
     ComponentMetadataType.Image,
     ComponentMetadataType.MicroFrontend,
+    ComponentMetadataType.Markdown,
+    ComponentMetadataType.Chart,
+    ComponentMetadataType.ProgressBar,
+    ComponentMetadataType.CustomField,
+    ComponentMetadataType.MessageList,
+    ComponentMetadataType.MessageInput,
+    ComponentMetadataType.MetricCard,
+    ComponentMetadataType.Scoreboard,
+    ComponentMetadataType.DashboardPanel,
+    ComponentMetadataType.DashboardLayout,
+    ComponentMetadataType.FoldoutLayout,
+    ComponentMetadataType.HeroSection,
+    ComponentMetadataType.EmptyState,
+    ComponentMetadataType.Skeleton,
+    ComponentMetadataType.Gantt,
 ])
 
 export class RedhatComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
@@ -76,7 +91,7 @@ export class RedhatComponentRenderer extends BasicComponentRenderer implements C
         if (ComponentMetadataType.App == t) return renderApp(container as MateuComponent, c, baseUrl, state, data)
         if (ComponentMetadataType.Form == t) return renderForm(container, c, baseUrl, state, data, appState, appData)
         if (ComponentMetadataType.FormField == t) {
-            return html`<mateu-redhat-field id="${c.id}" .component="${c}" .field="${c.metadata}" .state="${state}" .labelAlreadyRendered="${labelAlreadyRendered}"></mateu-redhat-field>`
+            return html`<mateu-redhat-field id="${c.id}" .component="${c}" .field="${c.metadata}" .state="${state}" .data="${data}" .appState="${appState}" .appData="${appData}" .labelAlreadyRendered="${labelAlreadyRendered}"></mateu-redhat-field>`
         }
         if (ComponentMetadataType.FormLayout == t) return renderFormLayout(container, c, baseUrl, state, data, appState, appData)
         if (ComponentMetadataType.FormSection == t) return renderFormSection(container, c, baseUrl, state, data, appState, appData)

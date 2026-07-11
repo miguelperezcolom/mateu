@@ -1,6 +1,7 @@
 import { customElement } from 'lit/decorators.js'
 import { html, nothing, type TemplateResult } from 'lit'
 import { MateuRendererApp } from '@infra/ui/MateuRendererApp.ts'
+import '@infra/ui/mateu-app-context-picker.ts'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
 import MenuOption from '@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts'
@@ -40,7 +41,7 @@ export class MateuSldsApp extends MateuRendererApp {
 
         return html`
             <div class="slds-grid slds-grid_vertical" style="height: 100vh;">
-                <header class="slds-global-header_container" style="flex: 0 0 auto;">
+                <header class="slds-global-header_container" style="flex: 0 0 auto; position: static;">
                     <div class="slds-global-header slds-grid slds-grid_align-spread slds-p-horizontal_medium">
                         <div class="slds-global-header__item">
                             ${metadata.logo
@@ -48,9 +49,13 @@ export class MateuSldsApp extends MateuRendererApp {
                                 : nothing}
                             <span class="slds-text-heading_small">${metadata.title ?? ''}</span>
                         </div>
-                        ${metadata.subtitle
-                            ? html`<div class="slds-global-header__item slds-text-body_small">${metadata.subtitle}</div>`
-                            : nothing}
+                        <div class="slds-global-header__item slds-grid" style="align-items: center;">
+                            ${metadata.subtitle
+                                ? html`<span class="slds-text-body_small slds-m-right_medium">${metadata.subtitle}</span>`
+                                : nothing}
+                            ${(metadata.contextSelectors ?? []).map(selector => html`
+                                <mateu-app-context-picker style="margin-right: .75rem;" .selector="${selector}" .app="${metadata}" .baseUrl="${''}"></mateu-app-context-picker>`)}
+                        </div>
                     </div>
                 </header>
 

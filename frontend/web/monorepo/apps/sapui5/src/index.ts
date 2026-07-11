@@ -38,6 +38,9 @@ import "@ui5/webcomponents-fiori/dist/ShellBar.js";
 import "@ui5/webcomponents-fiori/dist/ShellBarBranding.js";
 import "@ui5/webcomponents-fiori/dist/ShellBarItem.js";
 
+// The whole SAP-icons collection: backend-declared views can reference any icon name, so
+// cherry-picked imports leave "No loader registered" landmines on less-visited screens.
+import "@ui5/webcomponents-icons/dist/AllIcons.js";
 import "@ui5/webcomponents-icons/dist/home.js";
 import "@ui5/webcomponents-icons/dist/group.js";
 import "@ui5/webcomponents-icons/dist/menu.js";

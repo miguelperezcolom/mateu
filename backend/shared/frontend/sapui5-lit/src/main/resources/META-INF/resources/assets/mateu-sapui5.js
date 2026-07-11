@@ -6516,6 +6516,8 @@ id="${e.id}"
             >
                 <ui5-shellbar-branding slot="branding" @click="${()=>this.goHome()}" style="cursor: pointer;">${e.title}</ui5-shellbar-branding>
                 <ui5-button icon="menu" slot="startButton" id="startButton" @click="${()=>this.toggle(this)}"></ui5-button>
+                ${(e.contextSelectors??[]).map(t=>o`
+                    <mateu-app-context-picker slot="content" data-hide-order="1" .selector="${t}" .app="${e}" .baseUrl="${""}"></mateu-app-context-picker>`)}
             </ui5-shellbar>
             <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${t=>this.selected(t,this,this.baseUrl??"",e)}" collapsed>
                 <!-- Items -->

@@ -17,6 +17,7 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import {upstream} from "@domain/state";
 import {Subscription} from "rxjs";
 import Message from "@domain/Message";
+import "@infra/ui/mateu-app-context-picker.ts";
 
 @customElement('mateu-sapui5-app')
 export class MateuSapUI5App extends MateuApp {
@@ -442,6 +443,8 @@ export class MateuSapUI5App extends MateuApp {
             >
                 <ui5-shellbar-branding slot="branding" @click="${() => this.goHome()}" style="cursor: pointer;">${metadata.title}</ui5-shellbar-branding>
                 <ui5-button icon="menu" slot="startButton" id="startButton" @click="${() => this.toggle(this)}"></ui5-button>
+                ${(metadata.contextSelectors ?? []).map(selector => html`
+                    <mateu-app-context-picker slot="content" data-hide-order="1" .selector="${selector}" .app="${metadata}" .baseUrl="${''}"></mateu-app-context-picker>`)}
             </ui5-shellbar>
             <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e: any) => this.selected(e, this, this.baseUrl??'', metadata)}" collapsed>
                 <!-- Items -->
