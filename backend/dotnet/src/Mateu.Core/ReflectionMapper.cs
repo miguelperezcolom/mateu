@@ -342,15 +342,28 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     private ServerSideComponentDto MapCrud(Type viewType, Type element, string route)
     {
         var title = viewType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
+        // Class-level [InlineEditing]: every data column (except [ReadOnly] ones) is edited in
+        // place; each committed cell dispatches the crud's update-row action (Java parity).
+        var inlineEditing = viewType.GetCustomAttribute<InlineEditingAttribute>() != null;
         var columns = EditableProperties(element)
-            .Select(p => new GridColumnDto(new GridColumnMetaDto(
-                Naming.CamelCase(p.Name),
-                p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))))
+            .Select(p =>
+            {
+                var editable = inlineEditing && p.GetCustomAttribute<ReadOnlyAttribute>() == null;
+                return new GridColumnDto(new GridColumnMetaDto(
+                    Naming.CamelCase(p.Name),
+                    p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
+                {
+                    Editable = editable,
+                    EditorType = editable ? EditorTypeOf(p) : null,
+                    EditorOptions = editable ? EditorOptionsOf(p) : null,
+                });
+            })
             .ToList();
         var toolbar = new List<ButtonDto> { new("New", "new"), new("Delete", "delete") };
         var crud = Client(new CrudMetadataDto(title, columns, toolbar) { Filters = MapCrudFilters(element) }, "crud", []);
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
         var actions = new List<ActionDto> { new("search"), new("new"), new("delete") };
+        if (inlineEditing) actions.Add(new ActionDto("update-row"));
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
             new Dictionary<string, object?>(), actions, [new TriggerDto("OnLoad", "search")], null, null, null);
@@ -389,6 +402,30 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
                 };
             })
             .ToList();
+
+    /// <summary>The in-place editor widget for an [InlineEditing] column (mirrors Java's
+    /// GridColumnBuilder.getEditorType): enums edit as a select, [Money] as a number, the rest by
+    /// data type.</summary>
+    private static string EditorTypeOf(PropertyInfo p)
+    {
+        var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        if (t.IsEnum) return "select";
+        if (p.GetCustomAttribute<MoneyAttribute>() != null) return "number";
+        if (t == typeof(bool)) return "boolean";
+        if (t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)) return "integer";
+        if (IsNumeric(t)) return "number";
+        if (t == typeof(DateOnly)) return "date";
+        if (t == typeof(DateTime)) return "datetime";
+        return "text";
+    }
+
+    private static List<OptionDto>? EditorOptionsOf(PropertyInfo p)
+    {
+        var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        return t.IsEnum
+            ? Enum.GetNames(t).Select(n => new OptionDto(n, n)).ToList()
+            : null;
+    }
 
     internal static bool IsNumeric(Type t) =>
         t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)

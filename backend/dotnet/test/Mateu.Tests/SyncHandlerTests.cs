@@ -76,6 +76,32 @@ public class Bookings : Crud<Booking>
     ];
 }
 
+public enum StockStatus { Ok, Low, Out }
+
+public class StockItem
+{
+    [ReadOnly] public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public int Units { get; set; }
+    public bool Active { get; set; }
+    public StockStatus Status { get; set; }
+}
+
+[UI("stock"), Title("Stock"), InlineEditing]
+public class StockCrud : Crud<StockItem>
+{
+    public static readonly Dictionary<string, StockItem> Store = new()
+    {
+        ["s1"] = new StockItem { Id = "s1", Name = "Bolts", Units = 12, Active = true, Status = StockStatus.Ok },
+    };
+
+    public override IEnumerable<StockItem> Fetch(string? search) => Store.Values;
+
+    public override StockItem? Get(string id) => Store.GetValueOrDefault(id);
+
+    public override void Save(StockItem entity) => Store[entity.Id] = entity;
+}
+
 public class UpperTranslator : ITranslator
 {
     public string Translate(string key) => key.ToUpperInvariant();
@@ -220,6 +246,50 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Inline_editing_marks_data_columns_editable_and_advertises_update_row()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "stock", ConsumedRoute = "stock" });
+        var json = Render(inc);
+
+        // Data columns edit in place with the widget matching their type…
+        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"editable\":true,\"editorType\":\"text\"", json);
+        Assert.Contains("\"editorType\":\"integer\"", json);
+        Assert.Contains("\"editorType\":\"boolean\"", json);
+        Assert.Contains("\"editorType\":\"select\"", json);
+        // …enum editors carry their constants as options…
+        Assert.Contains("\"editorOptions\":[{\"value\":\"Ok\"", json);
+        // …[ReadOnly] columns stay display-only…
+        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"editable\":false", json);
+        // …and the crud advertises the update-row action.
+        Assert.Contains("update-row", json);
+    }
+
+    [Fact]
+    public void Update_row_rebuilds_the_entity_and_saves_it()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "update-row",
+            ServerSideType = typeof(StockCrud).FullName,
+            Parameters = new()
+            {
+                ["_editedRow"] = JsonSerializer.SerializeToElement(
+                    new { id = "s1", name = "Bolts XL", units = 20, active = false, status = "Low" }),
+            },
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var msg = Assert.Single(inc.Messages);
+        Assert.Equal("success", msg.Variant);
+        var saved = StockCrud.Store["s1"];
+        Assert.Equal("Bolts XL", saved.Name);
+        Assert.Equal(20, saved.Units);
+        Assert.False(saved.Active);
+        Assert.Equal(StockStatus.Low, saved.Status);
     }
 
     [Fact]

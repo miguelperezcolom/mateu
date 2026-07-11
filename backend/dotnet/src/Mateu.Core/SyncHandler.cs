@@ -80,6 +80,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         {
             "search" => CrudSearch(crud, element, rq),
             "create" or "save" => CrudSave(crud, crudType, element, id, rq, baseRoute),
+            "update-row" => UpdateRow(crud, crudType, element, rq),
             "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id)),
             null or "" => mode switch
             {
@@ -122,6 +123,23 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
         return Navigate(baseRoute, "Saved");
+    }
+
+    /// <summary>Persists a single row edited in place in the listing grid (inline editing). The
+    /// edited row travels in the _editedRow action parameter (mirrors Java's
+    /// UpdateRowActionHandler → FilteredAutoCrud.updateRow: rebuild the entity, save).</summary>
+    private static UIIncrementDto UpdateRow(object crud, Type crudType, Type element, RunActionRqDto rq)
+    {
+        if (!rq.Parameters.TryGetValue("_editedRow", out var raw)
+            || raw is not JsonElement { ValueKind: JsonValueKind.Object } rowEl)
+            return Error("update-row requires an _editedRow parameter");
+
+        var row = rowEl.EnumerateObject()
+            .ToDictionary(prop => prop.Name, prop => (object?)prop.Value);
+        var entity = New(element);
+        BindState(entity, row);
+        crudType.GetMethod("Save")!.Invoke(crud, [entity]);
+        return UIIncrementDto.Of(messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
     }
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)

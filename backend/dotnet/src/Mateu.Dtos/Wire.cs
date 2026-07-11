@@ -234,6 +234,16 @@ public record GridColumnDto(GridColumnMetaDto Metadata);
 public record GridColumnMetaDto(string Id, string Label)
 {
     public string Type { get; init; } = "GridColumn";
+
+    /// <summary>Inline editing (class-level [InlineEditing] on the crud): the cell renders an
+    /// in-place editor and each commit dispatches the crud's update-row action.</summary>
+    public bool Editable { get; init; }
+
+    /// <summary>Editor widget when Editable: select|boolean|integer|number|date|datetime|text.</summary>
+    public string? EditorType { get; init; }
+
+    /// <summary>Options of a select editor (enum constants); null otherwise.</summary>
+    public IReadOnlyList<OptionDto>? EditorOptions { get; init; }
 }
 
 public record TriggerDto(string Type, string ActionId);

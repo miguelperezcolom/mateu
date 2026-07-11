@@ -388,6 +388,12 @@ class GridColumnMeta(Wire):
     id: str
     label: str
     type: str = "GridColumn"
+    # Inline editing (class-level @inline_editing on the crud): the cell renders an in-place
+    # editor (select|boolean|integer|number|date|datetime|text) and each commit dispatches the
+    # crud's update-row action. editor_options carries a select editor's enum constants.
+    editable: bool = False
+    editor_type: str | None = None
+    editor_options: list[Option] | None = None
 
 
 class GridColumn(Wire):

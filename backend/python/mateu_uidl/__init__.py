@@ -133,6 +133,12 @@ class PlainText:
 
 
 @dataclass(frozen=True)
+class ReadOnly:
+    """On a field of an ``@inline_editing`` Crud entity: keeps that column display-only while the
+    rest edit in place. The field-level analogue of Java's ``@ReadOnly``."""
+
+
+@dataclass(frozen=True)
 class UseRadioButtons:
     """Renders an enum field as radio buttons instead of the default dropdown, regardless of how
     many members the enum has. The Python analogue of Java's ``@UseRadioButtons``."""
@@ -292,6 +298,14 @@ def read_only(cls: type) -> type:
 
 def confirm_on_navigation_if_dirty(cls: type) -> type:
     cls.__mateu_confirm_dirty__ = True
+    return cls
+
+
+def inline_editing(cls: type) -> type:
+    """Class-level, on a Crud view: every data column of the table listing becomes an in-place
+    editor (``ReadOnly()`` fields stay display-only); each committed cell persists its row
+    immediately through the crud's update-row action. The analogue of Java's ``@InlineEditing``."""
+    cls.__mateu_inline_editing__ = True
     return cls
 
 
@@ -489,9 +503,9 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
-    "confirm_on_navigation_if_dirty",
+    "confirm_on_navigation_if_dirty", "inline_editing",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
     "Crud", "Wizard", "Translator",

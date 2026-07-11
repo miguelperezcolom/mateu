@@ -130,6 +130,8 @@ class SyncHandler:
             return self.crud_search(crud, element, rq)
         if aid in ("create", "save"):
             return self.crud_save(crud, element, id_, rq, base_route)
+        if aid == "update-row":
+            return self.update_row(crud, element, rq)
         if aid == "delete":
             return self.navigate(base_route, None if id_ is None else self.delete(crud, id_))
         if aid in (None, ""):
@@ -175,6 +177,20 @@ class SyncHandler:
             return self.error("Please fill: " + ", ".join(missing))
         crud.save(entity)
         return self.navigate(base_route, "Saved")
+
+    def update_row(self, crud, element, rq: RunActionRq) -> UIIncrement:
+        """Persists a single row edited in place in the listing grid (inline editing). The edited
+        row travels in the _editedRow action parameter (mirrors Java's UpdateRowActionHandler →
+        FilteredAutoCrud.updateRow: rebuild the entity, save)."""
+        row = (rq.parameters or {}).get("_editedRow")
+        if not isinstance(row, dict):
+            return self.error("update-row requires an _editedRow parameter")
+        entity = element()
+        self.bind_state(entity, row)
+        crud.save(entity)
+        return UIIncrement.of(
+            messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)]
+        )
 
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
         props = view_fields(element)

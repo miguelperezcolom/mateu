@@ -29,6 +29,7 @@ from mateu_uidl import (  # noqa: E402
     NavLink,
     Password,
     PlainText,
+    ReadOnly,
     Required,
     Section,
     Step,
@@ -42,6 +43,7 @@ from mateu_uidl import (  # noqa: E402
     confirm_on_navigation_if_dirty,
     emits,
     fab,
+    inline_editing,
     kpi,
     menu_item,
     shortcut,
@@ -141,6 +143,43 @@ class Bookings(Crud[Booking]):
             booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
             booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
         ]
+
+
+class StockStatus(Enum):
+    OK = "OK"
+    LOW = "LOW"
+    OUT = "OUT"
+
+
+class StockItem:
+    id: Annotated[str, ReadOnly()] = ""
+    name: str = ""
+    units: int = 0
+    active: bool = False
+    status: StockStatus = StockStatus.OK
+
+
+_STOCK_STORE: dict[str, StockItem] = {}
+
+
+def _stock_item(id_, name, units, active, status):
+    s = StockItem()
+    s.id, s.name, s.units, s.active, s.status = id_, name, units, active, status
+    return s
+
+
+@ui("stock")
+@title("Stock")
+@inline_editing
+class StockCrud(Crud[StockItem]):
+    def fetch(self, search):
+        return _STOCK_STORE.values()
+
+    def get(self, id_):
+        return _STOCK_STORE.get(id_)
+
+    def save(self, entity):
+        _STOCK_STORE[entity.id] = entity
 
 
 class UpperTranslator(Translator):
@@ -304,6 +343,44 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
+    _STOCK_STORE.clear()
+    _STOCK_STORE["s1"] = _stock_item("s1", "Bolts", 12, True, StockStatus.OK)
+    inc = handler().handle(RunActionRq(route="stock", consumed_route="stock"))
+    j = render(inc)
+
+    # Data columns edit in place with the widget matching their type…
+    assert '"id": "name", "label": "Name", "type": "GridColumn", "editable": true, "editorType": "text"' in j
+    assert '"editorType": "integer"' in j
+    assert '"editorType": "boolean"' in j
+    assert '"editorType": "select"' in j
+    # …enum editors carry their constants as options…
+    assert '"editorOptions": [{"value": "OK"' in j
+    # …ReadOnly() columns stay display-only…
+    assert '"id": "id", "label": "Id", "type": "GridColumn", "editable": false' in j
+    # …and the crud advertises the update-row action.
+    assert '"update-row"' in j
+
+
+def test_update_row_rebuilds_the_entity_and_saves_it():
+    _STOCK_STORE.clear()
+    _STOCK_STORE["s1"] = _stock_item("s1", "Bolts", 12, True, StockStatus.OK)
+    inc = handler().handle(
+        RunActionRq(
+            action_id="update-row",
+            server_side_type=_name(StockCrud),
+            parameters={"_editedRow": {"id": "s1", "name": "Bolts XL", "units": 20, "active": False, "status": "LOW"}},
+        )
+    )
+    assert len(inc.messages) == 1
+    assert inc.messages[0].variant == "success"
+    saved = _STOCK_STORE["s1"]
+    assert saved.name == "Bolts XL"
+    assert saved.units == 20
+    assert saved.active is False
+    assert saved.status == StockStatus.LOW
 
 
 def test_crud_view_prefilled_readonly():

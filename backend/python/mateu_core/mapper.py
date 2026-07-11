@@ -73,6 +73,7 @@ from mateu_uidl import (
     PhotoCapture,
     PlainText,
     RangeFilter,
+    ReadOnly,
     Signature,
     TreeSelect,
     Required,
@@ -618,13 +619,22 @@ class ReflectionMapper:
     # ── CRUD ───────────────────────────────────────────────────────────────────
     def map_crud(self, cls, element, route: str) -> ServerSideComponent:
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
-        columns = [
-            GridColumn(metadata=GridColumnMeta(
+        # Class-level @inline_editing: every data column (except ReadOnly() ones) is edited in
+        # place; each committed cell dispatches the crud's update-row action (Java parity).
+        inline = getattr(cls, "__mateu_inline_editing__", False)
+        columns = []
+        for f in view_fields(element):
+            editable = inline and not f.has(ReadOnly)
+            columns.append(GridColumn(metadata=GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
-            ))
-            for f in view_fields(element)
-        ]
+                editable=editable,
+                editor_type=self.editor_type_of(f) if editable else None,
+                editor_options=(
+                    [Option(value=m.name, label=str(m.name)) for m in f.type]
+                    if editable and is_enum(f.type) else None
+                ),
+            )))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
         crud = self.client(
             CrudMetadata(title=title, columns=columns, toolbar=toolbar, filters=self.crud_filters(element)),
@@ -633,10 +643,34 @@ class ReflectionMapper:
         )
         page = self.client(PageMetadata(), None, [crud])
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
+        if inline:
+            actions.append(Action(id="update-row"))
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions, triggers=[Trigger(type="OnLoad", action_id="search")],
         )
+
+    @staticmethod
+    def editor_type_of(f) -> str:
+        """The in-place editor widget for an @inline_editing column (mirrors Java's
+        GridColumnBuilder.getEditorType): enums edit as a select, Money() as a number, the rest
+        by data type."""
+        t = f.type
+        if is_enum(t):
+            return "select"
+        if f.has(Money):
+            return "number"
+        if t is bool:
+            return "boolean"
+        if t is int:
+            return "integer"
+        if t in (float, Decimal):
+            return "number"
+        if t is date:
+            return "date"
+        if t is datetime:
+            return "datetime"
+        return "text"
 
     def crud_filters(self, element) -> list[FormFieldMetadata]:
         """The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud

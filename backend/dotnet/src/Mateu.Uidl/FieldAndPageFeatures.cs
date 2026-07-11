@@ -93,10 +93,17 @@ public sealed class ConfirmOnNavigationIfDirtyAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class CompactAttribute : Attribute;
 
-/// <summary>Renders the whole view read-only (a display page, not an editable form).
+/// <summary>Renders the whole view read-only (a display page, not an editable form). On a
+/// property of an [InlineEditing] crud entity it keeps that column display-only.
 /// (C# analogue of Java's @ReadOnly.)</summary>
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
 public sealed class ReadOnlyAttribute : Attribute;
+
+/// <summary>Makes every data column of the crud's table listing an in-place editor ([ReadOnly]
+/// properties stay display-only); each committed cell persists its row immediately through the
+/// crud's update-row action. (C# analogue of Java's class-level @InlineEditing.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class InlineEditingAttribute : Attribute;
 
 /// <summary>Lets Mateu infer the UX patterns of a form from the amount and structure of the
 /// declared information, so the developer only declares the data and Mateu decides how to present
