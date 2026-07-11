@@ -33,7 +33,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Declarative listings (`Listing<Filters, Row>`) | ✅ | ✅ | ✅ |
 | — typed `DateRange`/`NumberRange`/`Set` filter fields | ✅ | ✅ | ✅ |
 | — repository criteria (`find/4` DB pushdown) | ✅ | — | — |
-| Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | — | — |
+| Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | ✅ | ✅ |
 | Lookup fields (`@Lookup` remote combobox + `search-<field>` action) | ✅ | ✅ | ✅ |
 | — `@Searchable` full selector dialogs (`Selector` + `codesearch`) | ✅ | ✅ | ✅ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
@@ -65,9 +65,10 @@ CRUD search sorts and paginates; actions can return page banners, a `/route` or 
 Declarative listings (`Listing<Filters, Row>` / `Listing[F, R]`) landed the same day with the
 typed `DateRange`/`NumberRange`/`Set` filters, the `_from`/`_to` state assembly, and the
 `Selector` contract on top: `@Searchable` fields open their selector listing in a modal
-(`codesearch-<field>` → Dialog; row pick → value-changed/data-changed/close-modal-requested).
-Still Java-only on both backends: tree lookup selectors (`GridLayout.tree` — hierarchical rows),
-repository criteria (DB pushdown), component adapters, semantic annotations and federation/SSE.
+(`codesearch-<field>` → Dialog; row pick → value-changed/data-changed/close-modal-requested),
+including TREE-shaped selectors (`gridLayout()` override → `"tree"`, rows carrying nested
+`children` arrays). Still Java-only on both backends: repository criteria (DB pushdown),
+component adapters, semantic annotations and federation/SSE.
 
 ## Renderers
 
