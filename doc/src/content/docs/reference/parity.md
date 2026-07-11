@@ -81,7 +81,14 @@ entries — the frontend fetches the remote menu itself — and the `MicroFronte
 and component adapters resolved as a documented idiom: both ports render plain classes
 reflectively, so a thin wrapper view over the foreign object (fields exposing its data, an action
 writing back) replaces Java's `ComponentAdapter` SPI — see "Adapting foreign classes" in each
-manual. Nothing on the server surface remains Java-only.
+manual. The four depth tails inside ✅ rows closed too: pre-existing `@Lookup`/`@Searchable`
+values resolve their display label (`ILookupLabelSupplier`/`LookupLabelSupplier` →
+`<fieldId>-label` fragment data), grid form fields edit in place (`@InlineEditing` on the
+property, rows binding back into the typed list), permission-driven field states
+(`@EyesOnly`/`@ReadOnlyUnless`/`@DisabledUnless` against an adapter-supplied Identity), and the
+full `@App(AUTO)` variant decision table (explicit wins; menu folders via `Group`/`group` →
+TILES/HAMBURGUER_MENU/MENU_ON_TOP; flat menus → TABS). Nothing on the server surface remains
+Java-only.
 
 ## Renderers
 
