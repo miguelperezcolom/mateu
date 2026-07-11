@@ -212,20 +212,20 @@ const renderChoiceOptions = (metadata: FormField, value: any, options: Option[],
     </div>`
 
 // ── Stars (integer stereotype) ───────────────────────────────────────────────
-// Plain star icons: deterministic (oj-c-rating-gauge would need one more AMD module and its
-// Core-Pack property-changed event wiring).
+// Real Redwood rating gauge (oj-c/rating-gauge is in the demo.js require list). `value` is a
+// writeback property — commits arrive as the valueChanged property-changed event.
 const renderStars = (value: any, fieldId: string, disabled: boolean): TemplateResult => {
-    let renderValue = value
+    let renderValue = typeof value === 'number' ? value : parseInt('' + value, 10)
     if (isNaN(renderValue)) renderValue = 0
-    const stars = [1, 2, 3, 4, 5]
-    return html`<div style="display: flex; align-items: center; gap: 0.25rem;">
-        ${stars.map(index => html`
-            <span role="${disabled ? nothing : 'button'}"
-                  style="cursor: ${disabled ? 'default' : 'pointer'}; font-size: 1.5rem; line-height: 1; color: ${index <= renderValue ? 'var(--oj-core-warning-color, #efb73e)' : SECONDARY};"
-                  @click="${disabled ? nothing : (e: Event) => dispatchValueChanged(e.target, fieldId, index)}"
-            >${index <= renderValue ? '★' : '☆'}</span>
-        `)}
-    </div>`
+    return html`<oj-c-rating-gauge
+        data-oj-binding-provider="preact"
+        .value="${renderValue}"
+        max="5"
+        step="1"
+        size="md"
+        ?readonly="${disabled}"
+        @valueChanged="${(e: CustomEvent) => dispatchValueChanged(e.target, fieldId, e.detail.value)}"
+    ></oj-c-rating-gauge>`
 }
 
 // ── Uploadable image (stereotype `uploadableImage`) ──────────────────────────
@@ -685,7 +685,7 @@ const renderFieldControl = (container: LitElement, component: ClientSideComponen
     }
 
     if (metadata.dataType === 'date') {
-        return html`<oj-c-input-date-text
+        return html`<oj-c-input-date-picker
             data-oj-binding-provider="preact"
             id="${id}"
             label-hint="${label}"
@@ -694,7 +694,7 @@ const renderFieldControl = (container: LitElement, component: ClientSideComponen
             ?required="${metadata.required}"
             ?disabled="${metadata.disabled}"
             @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value)}"
-        ></oj-c-input-date-text>`
+        ></oj-c-input-date-picker>`
     }
 
     if (metadata.dataType === 'dateTime') {
@@ -702,7 +702,7 @@ const renderFieldControl = (container: LitElement, component: ClientSideComponen
         const datePart = dtValue ? dtValue.split('T')[0] : null
         const timePart = dtValue ? dtValue.split('T')[1]?.substring(0, 5) : null
         return html`<div style="display:flex;gap:0.5rem;align-items:flex-end;">
-            <oj-c-input-date-text
+            <oj-c-input-date-picker
                 data-oj-binding-provider="preact"
                 id="${id}_date"
                 label-hint="${label}"
@@ -711,7 +711,7 @@ const renderFieldControl = (container: LitElement, component: ClientSideComponen
                 ?required="${metadata.required}"
                 ?disabled="${metadata.disabled}"
                 @valueChanged="${(e: CustomEvent) => valueChanged(e, id, e.detail.value + 'T' + (timePart ?? '00:00'))}"
-            ></oj-c-input-date-text>
+            ></oj-c-input-date-picker>
             <oj-c-input-time-mask
                 data-oj-binding-provider="preact"
                 id="${id}_time"
@@ -740,22 +740,22 @@ const renderFieldControl = (container: LitElement, component: ClientSideComponen
     if (metadata.dataType === 'dateRange') {
         const range = value as { from: string; to: string } | undefined
         return html`<div style="display:flex;gap:0.5rem;align-items:flex-end;">
-            <oj-c-input-date-text
+            <oj-c-input-date-picker
                 data-oj-binding-provider="preact"
                 id="${id}_from"
                 label-hint="${label} From"
                 label-edge="top"
                 .value="${range?.from ?? null}"
                 @valueChanged="${(e: CustomEvent) => valueChanged(e, id, { ...range, from: e.detail.value })}"
-            ></oj-c-input-date-text>
-            <oj-c-input-date-text
+            ></oj-c-input-date-picker>
+            <oj-c-input-date-picker
                 data-oj-binding-provider="preact"
                 id="${id}_to"
                 label-hint="${label} To"
                 label-edge="top"
                 .value="${range?.to ?? null}"
                 @valueChanged="${(e: CustomEvent) => valueChanged(e, id, { ...range, to: e.detail.value })}"
-            ></oj-c-input-date-text>
+            ></oj-c-input-date-picker>
         </div>`
     }
 

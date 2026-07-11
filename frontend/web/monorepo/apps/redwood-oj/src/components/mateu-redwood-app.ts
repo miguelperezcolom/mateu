@@ -1,15 +1,6 @@
 import {customElement, state} from "lit/decorators.js";
 import '@infra/ui/mateu-app-context-picker.ts';
 import {css, html, LitElement, nothing} from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import "@vaadin/menu-bar"
-import '@vaadin/button'
 import '@infra/ui/mateu-field'
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import {AppVariant} from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";

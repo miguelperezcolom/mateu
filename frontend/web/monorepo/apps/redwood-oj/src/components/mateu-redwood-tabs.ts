@@ -3,9 +3,9 @@ import { html, type TemplateResult, LitElement } from 'lit'
 import { renderComponent } from '@infra/ui/renderers/renderComponent.ts'
 
 /**
- * Redwood (Oracle JET) tab set. Light-DOM tab strip styled with oj-typography; renders the active
- * tab's content through renderComponent. Avoids the oj-c-tab-bar data-provider binding for a simple
- * self-contained component.
+ * Redwood (Oracle JET) tab set. Real oj-c-tab-bar strip (it takes a plain TabData array, no data
+ * provider needed — same pattern as the app shell's TABS variant); renders the active tab's
+ * content through renderComponent. Light DOM so JET's document-level CSS reaches the tab bar.
  */
 @customElement('mateu-redwood-tabs')
 export class MateuRedwoodTabs extends LitElement {
@@ -30,22 +30,17 @@ export class MateuRedwoodTabs extends LitElement {
 
     render(): TemplateResult {
         const tabs: any[] = this.component?.children ?? []
+        const data = tabs.map((tab, i) => ({ itemKey: String(i), label: this.label(tab) }))
         const active = tabs[this.selected]
         return html`
             <div>
-                <div role="tablist" style="display:flex; gap:.25rem; border-bottom:1px solid var(--oj-core-divider-color, #e0e0e0); margin-bottom:1rem;">
-                    ${tabs.map((tab, i) => html`
-                        <button role="tab" aria-selected="${i === this.selected}"
-                                class="oj-typography-body-md"
-                                @click="${() => { this.selected = i }}"
-                                style="border:none; background:none; cursor:pointer; padding:.5rem 1rem;
-                                       border-bottom:2px solid ${i === this.selected ? 'var(--oj-core-text-color-brand, #1b6fdb)' : 'transparent'};
-                                       color:${i === this.selected ? 'var(--oj-core-text-color-brand, #1b6fdb)' : 'inherit'};
-                                       font-weight:${i === this.selected ? '700' : '400'};">
-                            ${this.label(tab)}
-                        </button>`)}
-                </div>
-                <div role="tabpanel">
+                <oj-c-tab-bar data-oj-binding-provider="preact"
+                        .data="${data}"
+                        .selection="${String(this.selected)}"
+                        edge="top"
+                        @ojSelectionAction="${(e: CustomEvent) => { this.selected = parseInt(e.detail.value, 10) || 0 }}"
+                ></oj-c-tab-bar>
+                <div role="tabpanel" style="padding-top: 1rem;">
                     ${(active?.children ?? []).map((child: any) =>
                         renderComponent(this.container, child, this.baseUrl, this.compState, this.compData, this.appState, this.appData))}
                 </div>

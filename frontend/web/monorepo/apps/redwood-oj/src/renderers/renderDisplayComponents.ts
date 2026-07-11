@@ -91,23 +91,24 @@ export const renderProgressBar = (component: ClientSideComponent, state: Record<
         </div>`
 }
 
-// Native <details> styled as a Redwood panel: deterministic under JET's async bootstrap
-// (oj-c-collapsible would need one more AMD module plus slotted-content lifecycle care).
+// Real Redwood disclosure (oj-c/collapsible is in the demo.js require list): summary goes in the
+// `header` slot, body in the default slot; open/closed state stays local to the element.
 export const renderDetails = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
     const metadata = component.metadata as Details
     return html`
-        <details ?open="${metadata.opened}"
-                 class="oj-panel ${component.cssClasses ?? ''}"
-                 style="padding: 0.75rem 1rem; border-radius: var(--oj-core-border-radius-lg, 8px); ${component.style ?? ''}"
+        <oj-c-collapsible data-oj-binding-provider="preact"
+                 ?expanded="${metadata.opened}"
+                 class="${component.cssClasses ?? nothing}"
+                 style="${component.style ?? nothing}"
                  slot="${component.slot ?? nothing}">
-            <summary class="oj-typography-subheading-sm" style="cursor: pointer;">
+            <div slot="header" class="oj-typography-subheading-sm">
                 ${renderComponent(container, metadata.summary, baseUrl, state, data, appState, appData)}
-            </summary>
+            </div>
             <div style="padding-top: 0.5rem;">
                 ${renderComponent(container, metadata.content, baseUrl, state, data, appState, appData)}
                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
             </div>
-        </details>`
+        </oj-c-collapsible>`
 }
 
 const initialsOf = (avatar: { abbreviation?: string, name?: string }): string =>
