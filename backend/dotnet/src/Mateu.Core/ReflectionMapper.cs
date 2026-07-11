@@ -409,6 +409,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     private static string EditorTypeOf(PropertyInfo p)
     {
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        if (p.GetCustomAttribute<LookupAttribute>() != null) return "lookup";
         if (t.IsEnum) return "select";
         if (p.GetCustomAttribute<MoneyAttribute>() != null) return "number";
         if (t == typeof(bool)) return "boolean";
@@ -465,6 +466,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             TreeLeavesOnly = p.GetCustomAttribute<TreeSelectAttribute>()?.LeavesOnly ?? false,
             InitialValue = FormatValue(value),
             Link = LinkOf(p, instance),
+            // [Lookup]: the combo box loads its options remotely through the field's
+            // search-<fieldId> action (answered from the view's IOptionsSupplier).
+            RemoteCoordinates = p.GetCustomAttribute<LookupAttribute>() != null
+                ? new RemoteCoordinatesDto("search-" + fieldId)
+                : null,
         };
         return Client(meta, fieldId, []);
     }
@@ -499,6 +505,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         if (p.GetCustomAttribute<TreeSelectAttribute>() != null) return "treeSelect";
         if (p.GetCustomAttribute<PasswordAttribute>() != null) return "password";
         if (p.GetCustomAttribute<MoneyAttribute>() != null) return plainText ? "plainText" : "money";
+        if (p.GetCustomAttribute<LookupAttribute>() != null) return "combobox";
         if (plainText) return "plainText";
         if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType).IsEnum)
             return p.GetCustomAttribute<UseRadioButtonsAttribute>() != null || LayoutInference.PreferRadio(p)

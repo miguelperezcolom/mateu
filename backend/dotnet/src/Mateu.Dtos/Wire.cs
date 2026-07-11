@@ -347,6 +347,20 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     public bool Multiline { get; init; }
     /// <summary>Navigation link rendered as an icon at the right side of this field; null = no link.</summary>
     public NavLinkDto? Link { get; init; }
+
+    /// <summary>Where a lookup (remote combo) field searches its options: the renderer fires
+    /// Action with {searchText, page, size} and expects a page of options back. Null on
+    /// non-lookup fields.</summary>
+    public RemoteCoordinatesDto? RemoteCoordinates { get; init; }
+}
+
+/// <summary>Coordinates of a remote data source (mirrors io.mateu.dtos.RemoteCoordinatesDto);
+/// only Action is set for same-backend lookups.</summary>
+public record RemoteCoordinatesDto(string Action)
+{
+    public string? BaseUrl { get; init; }
+    public string? Route { get; init; }
+    public Dictionary<string, object?>? Params { get; init; }
 }
 
 /// <summary>Navigation link on a form field (mirrors io.mateu.dtos.NavLinkDto). Href/title travel

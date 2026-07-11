@@ -114,6 +114,19 @@ class FormFieldMetadata(Wire):
     multiline: bool = False
     #: Navigation link rendered as an icon at the right side of this field; None = no link.
     link: "NavLinkRecord | None" = None
+    #: Where a lookup (remote combo) field searches its options: the renderer fires ``action``
+    #: with {searchText, page, size} and expects a page of options back. None on other fields.
+    remote_coordinates: "RemoteCoordinates | None" = None
+
+
+class RemoteCoordinates(Wire):
+    """Coordinates of a remote data source (mirrors ``io.mateu.dtos.RemoteCoordinatesDto``);
+    only ``action`` is set for same-backend lookups."""
+
+    action: str
+    base_url: str | None = None
+    route: str | None = None
+    params: dict[str, Any] | None = None
 
 
 class NavLinkRecord(Wire):

@@ -80,6 +80,8 @@ class SyncHandler:
         # 4. A plain view.
         instance = type_()
         self.bind_state(instance, rq.component_state)
+        if rq.action_id and rq.action_id.startswith("search-"):
+            return self.field_search(instance, rq)
         if not rq.action_id:
             return self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq)
@@ -125,6 +127,10 @@ class SyncHandler:
         crud = crud_type()
         mode, id_ = self.parse_crud_route(base_route, rq.route)
         aid = rq.action_id
+
+        # A Lookup() field on the entity form searches its options through the crud view.
+        if aid and aid.startswith("search-"):
+            return self.field_search(crud, rq)
 
         if aid == "search":
             return self.crud_search(crud, element, rq)
@@ -177,6 +183,43 @@ class SyncHandler:
             return self.error("Please fill: " + ", ".join(missing))
         crud.save(entity)
         return self.navigate(base_route, "Saved")
+
+    def field_search(self, instance, rq: RunActionRq) -> UIIncrement:
+        """Answers a lookup field's ``search-<fieldId>`` action: the view's ``options(field_name)``
+        options for that field, filtered by the typed text (case-insensitive containment on the
+        label) and paged, returned as a data-only fragment keyed by the field (mirrors Java's
+        SearchFieldActionRunner)."""
+        field_id = rq.action_id[len("search-"):]
+        options = self.mapper._supplied_options(instance, field_id)
+        if not options:
+            return self.error(f"no lookup options supplier found for field {field_id}")
+
+        params = rq.parameters or {}
+        search_text = str(params.get("searchText") or "").lower()
+        page = int(params.get("page") or 0)
+        size = int(params.get("size") or 50)
+        if size <= 0:
+            size = 50
+
+        matching = [o for o in options if not search_text or search_text in o.label.lower()]
+        content = matching[page * size : (page + 1) * size]
+        data = {
+            field_id: {
+                "content": [o.model_dump(by_alias=True) for o in content],
+                "pageSize": size,
+                "pageNumber": page,
+                "totalElements": len(matching),
+            }
+        }
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(
+                    target_component_id=rq.initiator_component_id or "ux_main",
+                    data=data,
+                    action="Replace",
+                )
+            ]
+        )
 
     def update_row(self, crud, element, rq: RunActionRq) -> UIIncrement:
         """Persists a single row edited in place in the listing grid (inline editing). The edited

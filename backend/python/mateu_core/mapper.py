@@ -47,6 +47,7 @@ from mateu_dtos import (
     Option,
     PageMetadata,
     ProgressBarMetadata,
+    RemoteCoordinates,
     ScoreboardMetadata,
     ServerSideComponent,
     SkeletonMetadata,
@@ -66,6 +67,7 @@ from mateu_uidl import (
     Label,
     LinkSupplier,
     LinkTo,
+    Lookup,
     Money,
     Multiline,
     Panel,
@@ -656,6 +658,8 @@ class ReflectionMapper:
         GridColumnBuilder.getEditorType): enums edit as a select, Money() as a number, the rest
         by data type."""
         t = f.type
+        if f.has(Lookup):
+            return "lookup"
         if is_enum(t):
             return "select"
         if f.has(Money):
@@ -928,6 +932,11 @@ class ReflectionMapper:
             tree_leaves_only=bool(getattr(f.marker(TreeSelect), "leaves_only", False)) if f.has(TreeSelect) else False,
             initial_value=format_value(value),
             link=self.link_of(f, instance),
+            # Lookup(): the combo box loads its options remotely through the field's
+            # search-<fieldId> action (answered from the view's options(field_name) method).
+            remote_coordinates=(
+                RemoteCoordinates(action=f"search-{field_id}") if f.has(Lookup) else None
+            ),
         )
         return self.client(meta, field_id, [])
 
@@ -986,6 +995,8 @@ class ReflectionMapper:
             return "password"
         if f.has(Money):
             return "plainText" if plain else "money"
+        if f.has(Lookup):
+            return "combobox"
         if plain:
             return "plainText"
         if is_enum(f.type):

@@ -40,6 +40,14 @@ public sealed class PlainTextAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class UseRadioButtonsAttribute : Attribute;
 
+/// <summary>A remote, search-as-you-type reference field: renders a combo box whose options come
+/// from the server page by page — the view (or crud) answers the field's
+/// <c>search-&lt;fieldId&gt;</c> action from its <see cref="IOptionsSupplier"/>, filtered by the
+/// typed text. Use it when the option set is too large to embed in the form.
+/// (C# analogue of Java's @Lookup.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class LookupAttribute : Attribute;
+
 /// <summary>Renders a navigation icon at the right side of the field that takes the user to the
 /// given URL or route. Href and Title travel verbatim and support <c>${...}</c> state expressions
 /// interpolated client-side, so the link follows the value as the user edits the form. For a

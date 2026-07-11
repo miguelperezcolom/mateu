@@ -32,6 +32,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // 4. A plain view.
         var instance = Activator.CreateInstance(type)!;
         BindState(instance, rq.ComponentState);
+        if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(instance, rq);
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }
 
@@ -75,6 +76,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     {
         var crud = Activator.CreateInstance(crudType)!;
         var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
+
+        // A [Lookup] field on the entity form searches its options through the crud view.
+        if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(crud, rq);
 
         return rq.ActionId switch
         {
@@ -123,6 +127,35 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
         return Navigate(baseRoute, "Saved");
+    }
+
+    /// <summary>Answers a lookup field's search-&lt;fieldId&gt; action: the view's
+    /// IOptionsSupplier options for that field, filtered by the typed text (case-insensitive
+    /// containment on the label) and paged, returned as a data-only fragment keyed by the field
+    /// (mirrors Java's SearchFieldActionRunner).</summary>
+    private static UIIncrementDto FieldSearch(object instance, RunActionRqDto rq)
+    {
+        var fieldId = rq.ActionId!["search-".Length..];
+        if (instance is not IOptionsSupplier supplier)
+            return Error($"no lookup options supplier found for field {fieldId}");
+
+        var searchText = StateString(GetState(rq.Parameters, "searchText"))?.ToLowerInvariant() ?? "";
+        var page = ToInt(GetState(rq.Parameters, "page"), 0);
+        var size = ToInt(GetState(rq.Parameters, "size"), 50);
+        if (size <= 0) size = 50;
+
+        var all = supplier.Options(fieldId)
+            .Where(o => searchText.Length == 0
+                        || o.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var content = all.Skip(page * size).Take(size)
+            .Select(o => new OptionDto(o.Value, o.Label)).ToList();
+        var data = new Dictionary<string, object?>
+        {
+            [fieldId] = new { content, pageSize = size, pageNumber = page, totalElements = all.Count },
+        };
+        return UIIncrementDto.Of(fragments:
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
     }
 
     /// <summary>Persists a single row edited in place in the listing grid (inline editing). The

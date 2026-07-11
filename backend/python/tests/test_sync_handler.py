@@ -23,6 +23,7 @@ from mateu_uidl import (  # noqa: E402
     Crud,
     LinkSupplier,
     LinkTo,
+    Lookup,
     Message,
     Money,
     Multiline,
@@ -143,6 +144,21 @@ class Bookings(Crud[Booking]):
             booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
             booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
         ]
+
+
+@ui("order")
+@title("Order")
+class OrderForm:
+    supplier: Annotated[str, Lookup()] = ""
+
+    def options(self, field_name):
+        if field_name == "supplier":
+            return [
+                Option(value="a1", label="Acme Tools"),
+                Option(value="a2", label="Acme Paint"),
+                Option(value="b1", label="Bolts Inc"),
+            ]
+        return []
 
 
 class StockStatus(Enum):
@@ -343,6 +359,32 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_lookup_field_renders_a_remote_combobox_on_the_wire():
+    inc = handler().handle(RunActionRq(route="order", consumed_route="order"))
+    j = render(inc)
+
+    assert '"stereotype": "combobox"' in j
+    assert '"remoteCoordinates": {"action": "search-supplier"' in j
+
+
+def test_lookup_search_filters_and_pages_the_suppliers_options():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="search-supplier",
+            route="order",
+            server_side_type=_name(OrderForm),
+            initiator_component_id="comp-1",
+            parameters={"searchText": "acme", "page": 0, "size": 10},
+        )
+    )
+    assert len(inc.fragments) == 1
+    assert inc.fragments[0].target_component_id == "comp-1"
+    j = render(inc)
+    assert '"totalElements": 2' in j
+    assert "Acme Tools" in j and "Acme Paint" in j
+    assert "Bolts Inc" not in j
 
 
 def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():

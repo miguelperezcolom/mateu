@@ -76,6 +76,17 @@ public class Bookings : Crud<Booking>
     ];
 }
 
+[UI("order"), Title("Order")]
+public class OrderForm : IOptionsSupplier
+{
+    [Lookup] public string Supplier { get; set; } = "";
+
+    public IReadOnlyList<Option> Options(string fieldName) =>
+        fieldName == "supplier"
+            ? [new Option("a1", "Acme Tools"), new Option("a2", "Acme Paint"), new Option("b1", "Bolts Inc")]
+            : [];
+}
+
 public enum StockStatus { Ok, Low, Out }
 
 public class StockItem
@@ -246,6 +257,44 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Lookup_field_renders_a_remote_combobox_on_the_wire()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "order", ConsumedRoute = "order" });
+        var json = Render(inc);
+
+        Assert.Contains("\"stereotype\":\"combobox\"", json);
+        Assert.Contains("\"remoteCoordinates\":{\"action\":\"search-supplier\"", json);
+    }
+
+    [Fact]
+    public void Lookup_search_filters_and_pages_the_suppliers_options()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search-supplier",
+            Route = "order",
+            ServerSideType = typeof(OrderForm).FullName,
+            InitiatorComponentId = "comp-1",
+            Parameters = new()
+            {
+                ["searchText"] = JsonSerializer.SerializeToElement("acme"),
+                ["page"] = JsonSerializer.SerializeToElement(0),
+                ["size"] = JsonSerializer.SerializeToElement(10),
+            },
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Equal("comp-1", frag.TargetComponentId);
+        var json = Render(inc);
+        Assert.Contains("\"totalElements\":2", json);
+        Assert.Contains("Acme Tools", json);
+        Assert.Contains("Acme Paint", json);
+        Assert.DoesNotContain("Bolts Inc", json);
     }
 
     [Fact]

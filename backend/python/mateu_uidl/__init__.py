@@ -145,6 +145,14 @@ class UseRadioButtons:
 
 
 @dataclass(frozen=True)
+class Lookup:
+    """A remote, search-as-you-type reference field: renders a combo box whose options come from
+    the server page by page — the view (or crud) answers the field's ``search-<fieldId>`` action
+    from its ``options(field_name)`` method, filtered by the typed text. Use it when the option
+    set is too large to embed in the form. The Python analogue of Java's ``@Lookup``."""
+
+
+@dataclass(frozen=True)
 class LinkTo:
     """Renders a navigation icon at the right side of the field that takes the user to the given
     URL or route. ``href``/``title`` travel verbatim and support ``${...}`` state expressions
@@ -503,7 +511,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Lookup", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing",
     "plain_text", "emits", "subscribe_to", "secured",
