@@ -98,6 +98,12 @@ public sealed class ZoneAttribute(string name, string width = "") : Attribute
     public string Width { get; } = width;
 }
 
+/// <summary>Lays the form's section cards out side by side in one horizontal row (equal shares)
+/// instead of stacking them. [Zone] columns take precedence when both are declared.
+/// (C# analogue of Java's @FoldedLayout.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class FoldedLayoutAttribute : Attribute;
+
 /// <summary>A subtitle shown under the page title.</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class SubtitleAttribute(string value) : Attribute

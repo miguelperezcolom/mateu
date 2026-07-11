@@ -399,6 +399,14 @@ def zones(*zone_list: tuple[str, str] | str):
     return deco
 
 
+def folded_layout(cls: type) -> type:
+    """Class-level: lays the form's section cards out side by side in one horizontal row (equal
+    shares) instead of stacking them. ``@zones`` columns take precedence when both are declared.
+    The Python analogue of Java's ``@FoldedLayout``."""
+    cls.__mateu_folded_layout__ = True
+    return cls
+
+
 def toc(arg=True):
     """Sticky right-hand index (table of contents) on long docs-style pages: lists every section
     title, click scroll-jumps, the active entry highlights on scroll. Tri-state like Java's
@@ -627,7 +635,7 @@ __all__ = [
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
-    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones",
+    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
     "Crud", "HeroSearch", "Wizard", "Translator",

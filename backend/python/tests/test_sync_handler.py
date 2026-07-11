@@ -51,6 +51,7 @@ from mateu_uidl import (  # noqa: E402
     confirm_on_navigation_if_dirty,
     emits,
     fab,
+    folded_layout,
     inline_editing,
     kpi,
     menu_item,
@@ -163,6 +164,14 @@ class ZonedForm:
     b: str | None = None
     c: Annotated[str | None, Section("Side", zone="right")] = None
     d: Annotated[str | None, Section("Loose")] = None
+
+
+@ui("folded")
+@title("Folded")
+@folded_layout
+class FoldedForm:
+    a: Annotated[str | None, Section("One")] = None
+    b: Annotated[str | None, Section("Two")] = None
 
 
 class Guest:
@@ -458,6 +467,13 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_folded_layout_puts_the_section_cards_in_one_horizontal_row():
+    inc = handler().handle(RunActionRq(route="folded", consumed_route="folded"))
+    j = render(inc)
+    assert '"type": "HorizontalLayout"' in j
+    assert "One" in j and "Two" in j
 
 
 def test_zones_lay_sections_out_as_side_by_side_columns():

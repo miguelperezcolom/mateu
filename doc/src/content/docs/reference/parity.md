@@ -37,6 +37,9 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Dialog/Drawer overlays from actions + `closeModal`/`dispatchEvent` | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
+| Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
+| Grid form fields + `@OnRowSelected` row-click actions | ✅ | ✅ | ✅ |
+| Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
 | Component adapters, federation/microfrontends, SSE/AI chat | ✅ | — | — |
 | Hero search archetype | ✅ | ✅ | ✅ |
 
@@ -50,13 +53,17 @@ min–max) and the values are applied in-memory over `Fetch()`; Java's pluggable
 the update-row action rebuilding and saving the row), lookup fields (`[Lookup]`/`Lookup()` →
 combobox + remoteCoordinates, the handler answers `search-<field>` from the options supplier,
 filtered and paged), Dialog/Drawer overlays returned from actions (Add fragments on the initiator,
-with `CloseModal`/`DispatchEvent` command factories carrying `{eventName, detail}`), `[Toc]`/`@toc`
-and the full HeroSearch archetype (hero header + cards listing, starts empty). Earlier (2026-07-10):
+with `CloseModal`/`DispatchEvent` command factories carrying `{eventName, detail}`), `[Toc]`/`@toc`,
+the full HeroSearch archetype (hero header + cards listing, starts empty), client-side rules
+(`[Hidden(expr)]`/`[Disabled]` + `IRuleSupplier`/`RuleSupplier` → `ServerSideComponent.rules`),
+grid form fields (list-of-rows properties → dataType `array` + stereotype `grid` + columns) with
+`[OnRowSelected]`/`OnRowSelected()` injecting the clicked row into the handler method, and the
+`[Zone]`/`@zones` + `[FoldedLayout]`/`@folded_layout` multi-column layouts. Earlier (2026-07-10):
 CRUD search sorts and paginates; actions can return page banners, a `/route` or a UICommand.
-Still Java-only on both backends: the client-side rules engine, `@OnRowSelected` and typed
-`DateRange`/`NumberRange`/`Set` filters (both need grid form fields / declarative Listings, which
-the ports don't map yet), `@Zones`/`@FoldedLayout`, tree lookup selectors (need `Selector`
-listings), component adapters and semantic annotations.
+Still Java-only on both backends: `@Searchable` selector dialogs, typed
+`DateRange`/`NumberRange`/`Set` filters and tree lookup selectors (all need declarative
+Listings/`Selector`, which the ports don't map yet), component adapters, semantic annotations and
+federation/SSE.
 
 ## Renderers
 

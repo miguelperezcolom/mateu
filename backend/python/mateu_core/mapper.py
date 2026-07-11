@@ -876,6 +876,16 @@ class ReflectionMapper:
         if declared_zones and len(sections) > 1:
             return [self.build_zones(declared_zones, sections, section_zones, instance, read_only)]
 
+        # @folded_layout: the section cards side by side in one horizontal row (zones win).
+        if class_flag(cls, "__mateu_folded_layout__", False) and len(sections) > 1:
+            return [ClientSideComponent(
+                metadata=HorizontalLayoutMetadata(spacing=True),
+                children=[
+                    self.section_card(t, [self.map_field(f, instance, read_only) for f in fs])
+                    for t, fs in sections
+                ],
+            )]
+
         if self.prefer_tabs(cls, sections, read_only):
             return [self.tabs_from_sections(sections, instance, read_only)]
 

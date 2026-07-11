@@ -274,6 +274,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         if (zones.Count > 0 && sections.Count > 1)
             return [BuildZones(zones, sections, sectionZones, instance, readOnly)];
 
+        // [FoldedLayout]: the section cards side by side in one horizontal row (zones win).
+        if (type.GetCustomAttribute<FoldedLayoutAttribute>() != null && sections.Count > 1)
+            return [new ClientSideComponentDto(
+                new HorizontalLayoutMetadataDto { Spacing = true }, null,
+                sections.Select(s => (ComponentDto)SectionCard(
+                    s.Title, s.Props.Select(p => MapField(p, instance, readOnly)).ToList())).ToList(),
+                null, null, null)];
+
         // Read-only view with many substantial sections: present the sections as adaptable tabs.
         if (sections.Count > 1 && LayoutInference.PreferTabs(type, sections, readOnly))
             return [TabsFromSections(sections, instance, readOnly)];

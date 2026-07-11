@@ -97,6 +97,13 @@ public class ZonedForm
     [Section("Loose")] public string? D { get; set; }
 }
 
+[UI("folded"), Title("Folded"), FoldedLayout]
+public class FoldedForm
+{
+    [Section("One")] public string? A { get; set; }
+    [Section("Two")] public string? B { get; set; }
+}
+
 public class Guest
 {
     public string Name { get; set; } = "";
@@ -341,6 +348,16 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Folded_layout_puts_the_section_cards_in_one_horizontal_row()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "folded", ConsumedRoute = "folded" }));
+
+        Assert.Contains("\"type\":\"HorizontalLayout\"", json);
+        Assert.Contains("One", json);
+        Assert.Contains("Two", json);
     }
 
     [Fact]
