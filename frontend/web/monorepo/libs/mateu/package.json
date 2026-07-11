@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@alenaksu/json-viewer": "^2.1.1",
-    "@fabricelements/skeleton-carousel": "3.0.0",
+    "@fabricelements/skeleton-carousel": "3.0.2",
     "@ngyewch/chartjs-v4-webcomponent": "^0.4.0",
     "@polymer/paper-toggle-button": "^3.0.1",
     "@types/sortablejs": "^1.15.9",
