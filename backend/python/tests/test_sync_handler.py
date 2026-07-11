@@ -201,6 +201,40 @@ class ReservationForm:
     hotel: Annotated[str | None, Searchable(HotelSelector)] = None
 
 
+class ZoneRow:
+    id: str = ""
+    name: str = ""
+    children: "list[ZoneRow]" = []
+
+
+class ZoneFilters:
+    pass
+
+
+def _zone(id_, name, children=()):
+    z = ZoneRow()
+    z.id, z.name, z.children = id_, name, list(children)
+    return z
+
+
+@ui("zone-selector")
+@title("Zones")
+class ZoneSelector(Listing[ZoneFilters, ZoneRow], Selector):
+    def grid_layout(self):
+        return "tree"
+
+    def search(self, search_text, filters):
+        return [
+            _zone("espana", "España", [
+                _zone("baleares", "Baleares", [_zone("mallorca", "Mallorca")]),
+            ]),
+            _zone("portugal", "Portugal"),
+        ]
+
+    def selected(self, row):
+        return SelectedItem(id=row.id, label=row.name)
+
+
 class BookingSource(Enum):
     WEB = "WEB"
     PHONE = "PHONE"
@@ -550,6 +584,30 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_tree_selector_emits_the_tree_grid_layout_without_a_children_column():
+    inc = handler().handle(RunActionRq(route="zone-selector", consumed_route="zone-selector"))
+    j = render(inc)
+
+    assert '"gridLayout": "tree"' in j
+    # The children list rides inside the rows, never as a column…
+    assert '"id": "children"' not in j
+    # …and the selector wiring is intact.
+    assert '"id": "select"' in j
+    assert "action-on-row-select" in j
+
+
+def test_tree_search_returns_hierarchical_rows_with_nested_children():
+    inc = handler().handle(
+        RunActionRq(action_id="search", server_side_type=_name(ZoneSelector))
+    )
+    j = render(inc)
+
+    # Two roots; the whole hierarchy rides in one payload as nested children arrays.
+    assert '"totalElements": 2' in j
+    assert '"name": "Baleares", "children": [{"id": "mallorca", "name": "Mallorca", "children": []}]' in j
+    assert '"id": "portugal", "name": "Portugal", "children": []' in j
 
 
 def test_searchable_field_renders_with_the_searchable_stereotype():

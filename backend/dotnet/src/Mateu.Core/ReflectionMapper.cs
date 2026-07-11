@@ -452,7 +452,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     internal ServerSideComponentDto MapListing(Type viewType, Type filters, Type row, string route)
     {
         var title = viewType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
+        // A self-referential children list makes rows hierarchical (GridLayout "tree"); it rides
+        // inside the row dicts, never as a column.
         var columns = EditableProperties(row)
+            .Where(p => GridRowType(p) is null)
             .Select(p => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
                 p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
@@ -472,10 +475,13 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             }));
             actions.Add(new ActionDto("action-on-row-select", ValidationRequired: false));
         }
+        var gridLayout = viewType.GetMethod("GridLayout")!
+            .Invoke(Activator.CreateInstance(viewType), []) as string ?? "auto";
         var crud = Client(new CrudMetadataDto(title, columns, [])
         {
             CanEdit = false,
             Filters = MapListingFilters(filters),
+            GridLayout = gridLayout,
         }, "crud", []);
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
         return new ServerSideComponentDto(

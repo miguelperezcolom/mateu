@@ -304,12 +304,24 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var page = ToInt(GetState(rq.ComponentState, "page"), 0);
         var size = ToInt(GetState(rq.ComponentState, "size"), 10);
         if (size <= 0) size = total == 0 ? 1 : total;
-        var rows = items.Skip(page * size).Take(size)
-            .Select(item => props.ToDictionary(p => Naming.CamelCase(p.Name), p => CellValue(p.GetValue(item))))
-            .ToList();
+        var rows = items.Skip(page * size).Take(size).Select(item => RowDict(item, props)).ToList();
         var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
         return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, data, "Replace", null)]);
     }
+
+    /// <summary>A row as a camelCase dict; a self-referential children list (tree layouts)
+    /// recurses so every level of the hierarchy rides in the same payload.</summary>
+    private static Dictionary<string, object?> RowDict(object item, List<PropertyInfo> props) =>
+        props.ToDictionary(p => Naming.CamelCase(p.Name), p =>
+        {
+            if (ReflectionMapper.GridRowType(p) is { } childType
+                && p.GetValue(item) is System.Collections.IEnumerable children)
+            {
+                var childProps = ReflectionMapper.EditableProperties(childType).ToList();
+                return (object?)children.Cast<object>().Select(child => RowDict(child, childProps)).ToList();
+            }
+            return CellValue(p.GetValue(item));
+        });
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
     {

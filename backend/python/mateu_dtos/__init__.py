@@ -161,6 +161,9 @@ class CrudMetadata(Wire):
     can_edit: bool = False
     detail_path: str | None = None
     crudl_type: str = "table"
+    #: The renderer's grid layout: auto (renderer decides) | table | list | cards | masterDetail
+    #: | tree (hierarchical rows carrying a self-referential children list — never auto-selected).
+    grid_layout: str = "auto"
     # the smart search bar's filters, one FormField per filterable entity field (enums as
     # multi-selects, temporals as date ranges, RangeFilter numerics as min-max)
     filters: list["FormFieldMetadata"] = Field(default_factory=list)

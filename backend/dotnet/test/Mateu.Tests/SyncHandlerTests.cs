@@ -139,6 +139,36 @@ public class ReservationForm
     [Searchable(typeof(HotelSelector))] public string? Hotel { get; set; }
 }
 
+public class ZoneRow
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public List<ZoneRow> Children { get; set; } = [];
+}
+
+public class ZoneFilters;
+
+[UI("zone-selector"), Title("Zones")]
+public class ZoneSelector : Listing<ZoneFilters, ZoneRow>, ISelector<ZoneRow>
+{
+    public override string GridLayout() => "tree";
+
+    public override IEnumerable<ZoneRow> Search(string? searchText, ZoneFilters filters) =>
+    [
+        new()
+        {
+            Id = "espana", Name = "España",
+            Children =
+            [
+                new() { Id = "baleares", Name = "Baleares", Children = [new() { Id = "mallorca", Name = "Mallorca" }] },
+            ],
+        },
+        new() { Id = "portugal", Name = "Portugal" },
+    ];
+
+    public SelectedItem Selected(ZoneRow row) => new(row.Id, row.Name);
+}
+
 [UI("bookings-listing"), Title("Bookings (typed filters)")]
 public class BookingsListing : Listing<BookingFilters, BookingRow>
 {
@@ -409,6 +439,38 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Tree_selector_emits_the_tree_grid_layout_without_a_children_column()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "zone-selector", ConsumedRoute = "zone-selector" }));
+
+        Assert.Contains("\"gridLayout\":\"tree\"", json);
+        // The children list rides inside the rows, never as a column…
+        Assert.DoesNotContain("\"id\":\"children\"", json);
+        // …and the selector wiring is intact.
+        Assert.Contains("\"id\":\"select\"", json);
+        Assert.Contains("action-on-row-select", json);
+    }
+
+    [Fact]
+    public void Tree_search_returns_hierarchical_rows_with_nested_children()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(ZoneSelector).FullName,
+        };
+
+        var json = Render(Handler().Handle(rq));
+
+        // Two roots; the whole hierarchy rides in one payload as nested children arrays.
+        Assert.Contains("\"totalElements\":2", json);
+        Assert.Contains(
+            "\"name\":\"Baleares\",\"children\":[{\"id\":\"mallorca\",\"name\":\"Mallorca\",\"children\":[]}]",
+            json);
+        Assert.Contains("\"id\":\"portugal\",\"name\":\"Portugal\",\"children\":[]", json);
     }
 
     [Fact]

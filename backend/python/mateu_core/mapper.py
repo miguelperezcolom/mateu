@@ -794,6 +794,8 @@ class ReflectionMapper:
         render range and multi-select widgets — the type is the developer's explicit ask,
         mirroring Java's PageListingBuilder.isTypedFilter)."""
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
+        # A self-referential children list makes rows hierarchical (grid_layout "tree"); it rides
+        # inside the row dicts, never as a column.
         columns = [
             GridColumn(metadata=GridColumnMeta(
                 id=camel_case(f.name),
@@ -801,6 +803,7 @@ class ReflectionMapper:
                 data_type=self.infer_data_type(f.type, f),
             ))
             for f in view_fields(row_type)
+            if self.grid_row_type(f) is None
         ]
         actions = [Action(id="search")]
         if issubclass(cls, Selector):
@@ -812,7 +815,8 @@ class ReflectionMapper:
             actions.append(Action(id="action-on-row-select", validation_required=False))
         crud = self.client(
             CrudMetadata(title=title, columns=columns, toolbar=[],
-                         can_edit=False, filters=self.listing_filters(filters_type)),
+                         can_edit=False, filters=self.listing_filters(filters_type),
+                         grid_layout=cls().grid_layout()),
             "crud",
             [],
         )

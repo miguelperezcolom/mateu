@@ -406,14 +406,25 @@ class SyncHandler:
         if size <= 0:
             size = total or 1
         window = items[page * size : page * size + size]
-        rows = [
-            {camel_case(p.name): self.cell_value(getattr(item, p.name, None)) for p in props}
-            for item in window
-        ]
+        rows = [self._row_dict(item, props) for item in window]
         data = {"crud": {"page": {"content": rows, "pageSize": size, "pageNumber": page, "totalElements": total}}}
         return UIIncrement.of(
             fragments=[UIFragment(target_component_id="crud", data=data, action="Replace")]
         )
+
+    def _row_dict(self, item, props) -> dict:
+        """A row as a camelCase dict; a self-referential children list (tree layouts) recurses so
+        every level of the hierarchy rides in the same payload."""
+        row = {}
+        for p in props:
+            child_type = ReflectionMapper.grid_row_type(p)
+            value = getattr(item, p.name, None)
+            if child_type is not None:
+                child_props = view_fields(child_type)
+                row[camel_case(p.name)] = [self._row_dict(c, child_props) for c in (value or [])]
+            else:
+                row[camel_case(p.name)] = self.cell_value(value)
+        return row
 
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
         props = view_fields(element)

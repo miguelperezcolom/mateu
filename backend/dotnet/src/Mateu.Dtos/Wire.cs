@@ -263,6 +263,11 @@ public record CrudMetadataDto(
     public string? DetailPath { get; init; }
     public string CrudlType { get; init; } = "table";
 
+    /// <summary>The renderer's grid layout: auto (renderer decides) | table | list | cards |
+    /// masterDetail | tree (hierarchical rows carrying a self-referential children list —
+    /// never auto-selected).</summary>
+    public string GridLayout { get; init; } = "auto";
+
     /// <summary>The smart search bar's filters, one FormField per filterable entity property
     /// (enums as multi-selects, temporals as date ranges, [RangeFilter] numerics as min–max).</summary>
     public IReadOnlyList<FormFieldMetadataDto> Filters { get; init; } = [];

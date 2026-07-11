@@ -81,6 +81,12 @@ public abstract class Listing<TFilters, TRow> where TFilters : class, new() wher
 {
     /// <summary>Rows matching the free-text search and the applied filters.</summary>
     public abstract IEnumerable<TRow> Search(string? searchText, TFilters filters);
+
+    /// <summary>The grid layout the renderer uses: "auto" (renderer decides), "table", "list",
+    /// "cards", "masterDetail" or "tree" — tree shows hierarchical rows whose row type carries a
+    /// self-referential children list, and is never auto-selected.
+    /// (C# analogue of ListingBackend.gridLayout.)</summary>
+    public virtual string GridLayout() => "auto";
 }
 
 /// <summary>The item a <see cref="ISelector{TRow}"/> reports as chosen: its id (stored as the

@@ -622,6 +622,13 @@ class Listing(Generic[F, R]):
         """Rows matching the free-text search and the applied filters."""
         raise NotImplementedError
 
+    def grid_layout(self) -> str:
+        """The grid layout the renderer uses: ``"auto"`` (renderer decides), ``"table"``,
+        ``"list"``, ``"cards"``, ``"masterDetail"`` or ``"tree"`` — tree shows hierarchical rows
+        whose row type carries a self-referential children list, and is never auto-selected. The
+        Python analogue of ``ListingBackend.gridLayout``."""
+        return "auto"
+
 
 class HeroSearch(Crud[T]):
     """A search-first page: a centered hero header (title, subtitle, background image) over the
