@@ -119,6 +119,15 @@ class FormFieldMetadata(Wire):
     #: Where a lookup (remote combo) field searches its options: the renderer fires ``action``
     #: with {searchText, page, size} and expects a page of options back. None on other fields.
     remote_coordinates: "RemoteCoordinates | None" = None
+    #: Grid (list-of-rows) fields: one GridColumn per row-type field. None on non-grid fields.
+    columns: "list[GridColumn] | None" = None
+    #: Grid fields: the row-identity path ("_rowNumber" — rows are identified by position).
+    item_id_path: str | None = None
+    #: Grid fields: action dispatched when the user selects (clicks) a row, carrying the row as
+    #: the _clickedRow parameter (OnRowSelected()).
+    on_item_selection_action_id: str | None = None
+    #: Grid fields: keyboard base combo for selecting a row by position.
+    row_selection_shortcut: str | None = None
 
 
 class RemoteCoordinates(Wire):
@@ -459,6 +468,10 @@ class GridColumnMeta(Wire):
     id: str
     label: str
     type: str = "GridColumn"
+    #: The column's value type (string|integer|number|boolean|date|money) — drives the renderer's
+    #: cell formatting. None on legacy crud columns.
+    data_type: str | None = None
+    stereotype: str | None = None
     # Inline editing (class-level @inline_editing on the crud): the cell renders an in-place
     # editor (select|boolean|integer|number|date|datetime|text) and each commit dispatches the
     # crud's update-row action. editor_options carries a select editor's enum constants.

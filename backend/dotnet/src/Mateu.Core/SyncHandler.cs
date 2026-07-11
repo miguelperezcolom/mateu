@@ -385,7 +385,30 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var method = type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .FirstOrDefault(m => !m.IsSpecialName && Naming.CamelCase(m.Name) == rq.ActionId);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
-        return MapResult(method.Invoke(instance, []), rq);
+        return MapResult(method.Invoke(instance, BuildArguments(method, rq)), rq);
+    }
+
+    /// <summary>Fills a method's parameters from the action request: a row-click's _clickedRow
+    /// parameter is rebuilt into the parameter's type ([OnRowSelected] methods take the clicked
+    /// row); anything unfillable is null (mirrors Java's RunMethodActionRunner.createParameters).</summary>
+    private static object?[] BuildArguments(MethodInfo method, RunActionRqDto rq)
+    {
+        var parameters = method.GetParameters();
+        if (parameters.Length == 0) return [];
+        var clickedRow = rq.Parameters.TryGetValue("_clickedRow", out var raw)
+                         && raw is JsonElement { ValueKind: JsonValueKind.Object } el
+            ? el
+            : (JsonElement?)null;
+        return parameters.Select(p =>
+        {
+            if (clickedRow is { } row && p.ParameterType is { IsClass: true } t && t != typeof(string))
+            {
+                var entity = Activator.CreateInstance(t)!;
+                BindState(entity, row.EnumerateObject().ToDictionary(x => x.Name, x => (object?)x.Value));
+                return (object?)entity;
+            }
+            return null;
+        }).ToArray();
     }
 
     private static UIIncrementDto MapResult(object? result, RunActionRqDto? rq = null) => result switch

@@ -63,6 +63,21 @@ public sealed class HiddenAttribute(string value) : Attribute
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class DisabledAttribute : Attribute;
 
+/// <summary>On a grid (list-of-rows) property: runs the named method when the user selects
+/// (clicks) a row — the clicked row is injected into a method parameter typed as the row class.
+/// Works on read-only grids, so it is the way to build master/detail. Optional Shortcut (e.g.
+/// "ctrl+shift") lets the base combo plus a digit select the row by position.
+/// (C# analogue of Java's @OnRowSelected.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class OnRowSelectedAttribute(string value) : Attribute
+{
+    /// <summary>The method to run (its camelCase name becomes the action id).</summary>
+    public string Value { get; } = value;
+
+    /// <summary>Keyboard base combo for selecting a row by position (combo+1 → first row…).</summary>
+    public string Shortcut { get; set; } = "";
+}
+
 /// <summary>A client-side rule (the uidl mirror of io.mateu.uidl.data.Rule): while Filter is
 /// truthy the renderer applies Action — most commonly SetDataValue of a field attribute (hidden,
 /// disabled, required…) to the value of Expression, both evaluated against the live state.</summary>

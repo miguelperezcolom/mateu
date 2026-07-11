@@ -34,6 +34,7 @@ from mateu_uidl import (  # noqa: E402
     Money,
     Multiline,
     NavLink,
+    OnRowSelected,
     Password,
     PlainText,
     ReadOnly,
@@ -151,6 +152,31 @@ class Bookings(Crud[Booking]):
             booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
             booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
         ]
+
+
+class Guest:
+    name: str = ""
+    age: int = 0
+
+
+_LAST_SELECTED: list = []
+
+
+@ui("checkin")
+@title("Check-in")
+class CheckInForm:
+    guests: Annotated[list[Guest], OnRowSelected("onGuestSelected", shortcut="ctrl+shift")] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        a = Guest()
+        a.name, a.age = "Alice", 34
+        b = Guest()
+        b.name, b.age = "Bob", 29
+        self.guests = [a, b]
+
+    def on_guest_selected(self, guest: Guest):
+        _LAST_SELECTED.append(f"{guest.name}/{guest.age}")
+        return Message(f"Selected {guest.name}")
 
 
 @ui("ruled")
@@ -423,6 +449,38 @@ def test_crud_search_returns_rows():
     assert "Alpha" in j and "Beta" in j
 
 
+def test_list_of_rows_field_renders_as_a_grid_form_field():
+    inc = handler().handle(RunActionRq(route="checkin", consumed_route="checkin"))
+    j = render(inc)
+
+    assert '"dataType": "array"' in j
+    assert '"stereotype": "grid"' in j
+    assert '"itemIdPath": "_rowNumber"' in j
+    # Columns come from the row type, initial rows ride as camelCase dicts…
+    assert '"id": "name", "label": "Name"' in j
+    assert '"id": "age", "label": "Age"' in j
+    assert "Alice" in j
+    # …and OnRowSelected() wires the click + shortcut and advertises the action.
+    assert '"onItemSelectionActionId": "onGuestSelected"' in j
+    assert '"rowSelectionShortcut": "ctrl+shift"' in j
+    assert '"id": "onGuestSelected"' in j
+
+
+def test_row_click_injects_the_clicked_row_into_the_method():
+    _LAST_SELECTED.clear()
+    inc = handler().handle(
+        RunActionRq(
+            action_id="onGuestSelected",
+            route="checkin",
+            server_side_type=_name(CheckInForm),
+            parameters={"_clickedRow": {"name": "Bob", "age": 29}},
+        )
+    )
+    assert len(inc.messages) == 1
+    assert inc.messages[0].text == "Selected Bob"
+    assert _LAST_SELECTED == ["Bob/29"]
+
+
 def test_hidden_disabled_and_supplier_rules_ride_on_the_server_side_component():
     inc = handler().handle(RunActionRq(route="ruled", consumed_route="ruled"))
     j = render(inc)
@@ -528,14 +586,20 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     j = render(inc)
 
     # Data columns edit in place with the widget matching their type…
-    assert '"id": "name", "label": "Name", "type": "GridColumn", "editable": true, "editorType": "text"' in j
+    assert (
+        '"id": "name", "label": "Name", "type": "GridColumn", "dataType": null, "stereotype": null, '
+        '"editable": true, "editorType": "text"'
+    ) in j
     assert '"editorType": "integer"' in j
     assert '"editorType": "boolean"' in j
     assert '"editorType": "select"' in j
     # …enum editors carry their constants as options…
     assert '"editorOptions": [{"value": "OK"' in j
     # …ReadOnly() columns stay display-only…
-    assert '"id": "id", "label": "Id", "type": "GridColumn", "editable": false' in j
+    assert (
+        '"id": "id", "label": "Id", "type": "GridColumn", "dataType": null, "stereotype": null, '
+        '"editable": false'
+    ) in j
     # …and the crud advertises the update-row action.
     assert '"update-row"' in j
 

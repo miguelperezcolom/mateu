@@ -274,6 +274,12 @@ public record GridColumnMetaDto(string Id, string Label)
 {
     public string Type { get; init; } = "GridColumn";
 
+    /// <summary>The column's value type (string|integer|number|boolean|date|money) — drives the
+    /// renderer's cell formatting. Null on legacy crud columns.</summary>
+    public string? DataType { get; init; }
+
+    public string? Stereotype { get; init; }
+
     /// <summary>Inline editing (class-level [InlineEditing] on the crud): the cell renders an
     /// in-place editor and each commit dispatches the crud's update-row action.</summary>
     public bool Editable { get; init; }
@@ -393,6 +399,21 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     /// Action with {searchText, page, size} and expects a page of options back. Null on
     /// non-lookup fields.</summary>
     public RemoteCoordinatesDto? RemoteCoordinates { get; init; }
+
+    /// <summary>Grid (list-of-rows) fields: one GridColumn per row-type property. Null on
+    /// non-grid fields.</summary>
+    public IReadOnlyList<GridColumnDto>? Columns { get; init; }
+
+    /// <summary>Grid fields: the row-identity path ("_rowNumber" — rows are identified by
+    /// position).</summary>
+    public string? ItemIdPath { get; init; }
+
+    /// <summary>Grid fields: action dispatched when the user selects (clicks) a row, carrying
+    /// the row as the _clickedRow parameter ([OnRowSelected]).</summary>
+    public string? OnItemSelectionActionId { get; init; }
+
+    /// <summary>Grid fields: keyboard base combo for selecting a row by position.</summary>
+    public string? RowSelectionShortcut { get; init; }
 }
 
 /// <summary>Coordinates of a remote data source (mirrors io.mateu.dtos.RemoteCoordinatesDto);

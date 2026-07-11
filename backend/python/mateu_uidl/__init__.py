@@ -160,6 +160,18 @@ class Disabled:
 
 
 @dataclass(frozen=True)
+class OnRowSelected:
+    """On a grid (list-of-rows) field: runs the named method when the user selects (clicks) a
+    row — the clicked row is injected into a method parameter annotated with the row class.
+    Works on read-only grids, so it is the way to build master/detail. Optional ``shortcut``
+    (e.g. ``"ctrl+shift"``) lets the base combo plus a digit select the row by position. The
+    Python analogue of Java's ``@OnRowSelected``."""
+
+    value: str
+    shortcut: str = ""
+
+
+@dataclass(frozen=True)
 class Rule:
     """A client-side rule (the uidl mirror of ``io.mateu.uidl.data.Rule``): while ``filter`` is
     truthy the renderer applies ``action`` — most commonly SetDataValue of a field attribute
@@ -594,7 +606,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc",
     "plain_text", "emits", "subscribe_to", "secured",

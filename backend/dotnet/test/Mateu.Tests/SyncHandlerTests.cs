@@ -87,6 +87,28 @@ public class OrderForm : IOptionsSupplier
             : [];
 }
 
+public class Guest
+{
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
+}
+
+[UI("checkin"), Title("Check-in")]
+public class CheckInForm
+{
+    public static string? LastSelected;
+
+    [OnRowSelected("onGuestSelected", Shortcut = "ctrl+shift")]
+    public List<Guest> Guests { get; set; } =
+        [new() { Name = "Alice", Age = 34 }, new() { Name = "Bob", Age = 29 }];
+
+    public Message OnGuestSelected(Guest guest)
+    {
+        LastSelected = $"{guest.Name}/{guest.Age}";
+        return new Message($"Selected {guest.Name}");
+    }
+}
+
 [UI("ruled"), Title("Ruled")]
 public class RuledForm : IRuleSupplier
 {
@@ -312,6 +334,45 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void List_of_rows_property_renders_as_a_grid_form_field()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "checkin", ConsumedRoute = "checkin" }));
+
+        Assert.Contains("\"dataType\":\"array\"", json);
+        Assert.Contains("\"stereotype\":\"grid\"", json);
+        Assert.Contains("\"itemIdPath\":\"_rowNumber\"", json);
+        // Columns come from the row type, initial rows ride as camelCase dicts…
+        Assert.Contains("\"id\":\"name\",\"label\":\"Name\"", json);
+        Assert.Contains("\"id\":\"age\",\"label\":\"Age\"", json);
+        Assert.Contains("Alice", json);
+        // …and [OnRowSelected] wires the click + shortcut and advertises the action.
+        Assert.Contains("\"onItemSelectionActionId\":\"onGuestSelected\"", json);
+        Assert.Contains("\"rowSelectionShortcut\":\"ctrl\\u002Bshift\"", json);
+        Assert.Contains("\"id\":\"onGuestSelected\"", json);
+    }
+
+    [Fact]
+    public void Row_click_injects_the_clicked_row_into_the_method()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "onGuestSelected",
+            Route = "checkin",
+            ServerSideType = typeof(CheckInForm).FullName,
+            Parameters = new()
+            {
+                ["_clickedRow"] = JsonSerializer.SerializeToElement(new { name = "Bob", age = 29 }),
+            },
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var msg = Assert.Single(inc.Messages);
+        Assert.Equal("Selected Bob", msg.Text);
+        Assert.Equal("Bob/29", CheckInForm.LastSelected);
+    }
+
+    [Fact]
     public void Hidden_disabled_and_supplier_rules_ride_on_the_server_side_component()
     {
         var json = Render(Handler().Handle(new RunActionRqDto { Route = "ruled", ConsumedRoute = "ruled" }));
@@ -453,14 +514,14 @@ public class SyncHandlerTests
         var json = Render(inc);
 
         // Data columns edit in place with the widget matching their type…
-        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"editable\":true,\"editorType\":\"text\"", json);
+        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"dataType\":null,\"stereotype\":null,\"editable\":true,\"editorType\":\"text\"", json);
         Assert.Contains("\"editorType\":\"integer\"", json);
         Assert.Contains("\"editorType\":\"boolean\"", json);
         Assert.Contains("\"editorType\":\"select\"", json);
         // …enum editors carry their constants as options…
         Assert.Contains("\"editorOptions\":[{\"value\":\"Ok\"", json);
         // …[ReadOnly] columns stay display-only…
-        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"editable\":false", json);
+        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":null,\"stereotype\":null,\"editable\":false", json);
         // …and the crud advertises the update-row action.
         Assert.Contains("update-row", json);
     }

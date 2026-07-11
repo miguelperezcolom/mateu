@@ -76,6 +76,7 @@ from mateu_uidl import (
     Lookup,
     Money,
     Multiline,
+    OnRowSelected,
     Panel,
     Password,
     PhotoCapture,
@@ -137,6 +138,20 @@ def format_value(value) -> Any:
     if isinstance(value, Enum):
         return value.name
     return str(value)
+
+
+def _row_cell(value) -> Any:
+    """A grid row cell for the wire: dates ISO, enums by name, scalars as-is (numbers and
+    booleans keep their JSON type, unlike format_value's strings)."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, Enum):
+        return value.name
+    return value
 
 
 class ReflectionMapper:
@@ -226,6 +241,11 @@ class ReflectionMapper:
         buttons = [self.map_button(n, f) for n, f in methods_with(cls, "__mateu_button__")]
         fabs = self.fabs(cls)
         actions = [Action(id=b.action_id) for b in buttons] + [Action(id=f.action_id) for f in fabs]
+        # OnRowSelected() grid actions must be advertised or the renderer drops the row click.
+        for f in view_fields(cls):
+            on_row = f.marker(OnRowSelected)
+            if on_row is not None and all(a.id != camel_case(on_row.value) for a in actions):
+                actions.append(Action(id=camel_case(on_row.value), validation_required=False))
 
         tree = self.component_tree(instance)
         if tree is not None:
@@ -995,8 +1015,55 @@ class ReflectionMapper:
             rows.append(self.client(FormRowMetadata(), None, fields[i : i + max_columns]))
         return rows
 
+    @staticmethod
+    def grid_row_type(f) -> type | None:
+        """The row type of a grid (list-of-complex-rows) field; None when the field is not a
+        grid (scalars, strings, enums…)."""
+        if get_origin(f.type) is not list:
+            return None
+        args = get_args(f.type)
+        arg = args[0] if args else None
+        return arg if isinstance(arg, type) and arg is not str and not is_enum(arg) else None
+
+    def map_grid_field(self, f, row_type, instance, read_only: bool) -> ClientSideComponent:
+        """A list-of-rows field → a grid FormField (dataType "array", stereotype "grid", one
+        GridColumn per row field, rows identified by position). Mirrors Java's
+        GridColumnBuilder.getFormFieldForArray."""
+        field_id = camel_case(f.name)
+        columns = [
+            GridColumn(metadata=GridColumnMeta(
+                id=camel_case(c.name),
+                label=(c.marker(Label).value if c.has(Label) else humanize(c.name)),
+                data_type=self.infer_data_type(c.type, c),
+            ))
+            for c in view_fields(row_type)
+        ]
+        rows = []
+        for item in getattr(instance, f.name, None) or []:
+            rows.append({
+                camel_case(c.name): _row_cell(getattr(item, c.name, None))
+                for c in view_fields(row_type)
+            })
+        on_row = f.marker(OnRowSelected)
+        meta = FormFieldMetadata(
+            field_id=field_id,
+            data_type="array",
+            label=self.T(f.marker(Label).value if f.has(Label) else humanize(f.name)),
+            stereotype="grid",
+            read_only=read_only,
+            columns=columns,
+            item_id_path="_rowNumber",
+            initial_value=rows,
+            on_item_selection_action_id=camel_case(on_row.value) if on_row else None,
+            row_selection_shortcut=on_row.shortcut if on_row and on_row.shortcut else None,
+        )
+        return self.client(meta, field_id, [])
+
     def map_field(self, f, instance, read_only: bool = False) -> ClientSideComponent:
         field_id = camel_case(f.name)
+        row_type = self.grid_row_type(f)
+        if row_type is not None:
+            return self.map_grid_field(f, row_type, instance, read_only)
         label = self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
         required = f.has(Required)
         t = f.type

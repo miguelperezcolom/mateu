@@ -102,6 +102,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         // Both [Button] and [Fab] methods are server-side actions the renderer can invoke.
         var actions = buttons.Select(b => new ActionDto(b.ActionId))
             .Concat(fabs.Select(f => new ActionDto(f.ActionId))).ToList();
+        // [OnRowSelected] grid actions must be advertised or the renderer drops the row click.
+        actions.AddRange(EditableProperties(type)
+            .Select(p => p.GetCustomAttribute<OnRowSelectedAttribute>())
+            .Where(a => a is not null)
+            .Select(a => new ActionDto(Naming.CamelCase(a!.Value), ValidationRequired: false))
+            .Where(a => actions.All(x => x.Id != a.Id)));
 
         // A component-tree view (an archetype like Dashboard/Foldout, or any IComponentTreeSupplier)
         // renders its fluent tree as the page content; actionIds referenced by the tree (metric-card
@@ -473,9 +479,67 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
 
     internal static bool IsTemporal(Type t) => t == typeof(DateOnly) || t == typeof(DateTime);
 
+    /// <summary>The row type of a grid (list-of-complex-rows) property; null when the property is
+    /// not a grid field (scalars, strings, enums, options-backed lists…).</summary>
+    internal static Type? GridRowType(PropertyInfo p)
+    {
+        var t = p.PropertyType;
+        if (!t.IsGenericType || !typeof(System.Collections.IEnumerable).IsAssignableFrom(t)) return null;
+        var arg = t.GetGenericArguments().FirstOrDefault();
+        return arg is { IsClass: true } && arg != typeof(string) ? arg : null;
+    }
+
+    /// <summary>A list-of-rows property → a grid FormField (dataType "array", stereotype "grid",
+    /// one GridColumn per row property, rows identified by position). Mirrors Java's
+    /// GridColumnBuilder.getFormFieldForArray.</summary>
+    private ClientSideComponentDto MapGridField(PropertyInfo p, Type rowType, object instance, bool readOnly)
+    {
+        var fieldId = Naming.CamelCase(p.Name);
+        var columns = EditableProperties(rowType)
+            .Select(c => new GridColumnDto(new GridColumnMetaDto(
+                Naming.CamelCase(c.Name),
+                c.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(c.Name))
+            {
+                DataType = InferDataType(Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType, c),
+            }))
+            .ToList();
+        var rows = new List<Dictionary<string, object?>>();
+        if (p.GetValue(instance) is System.Collections.IEnumerable items)
+            foreach (var item in items)
+            {
+                var row = new Dictionary<string, object?>();
+                foreach (var c in EditableProperties(rowType))
+                    row[Naming.CamelCase(c.Name)] = CellValueOf(c.GetValue(item));
+                rows.Add(row);
+            }
+        var onRow = p.GetCustomAttribute<OnRowSelectedAttribute>();
+        var meta = new FormFieldMetadataDto(fieldId, "array", T(
+            p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
+        {
+            Stereotype = "grid",
+            ReadOnly = readOnly,
+            Columns = columns,
+            ItemIdPath = "_rowNumber",
+            InitialValue = rows,
+            OnItemSelectionActionId = onRow is null ? null : Naming.CamelCase(onRow.Value),
+            RowSelectionShortcut = onRow is { Shortcut.Length: > 0 } ? onRow.Shortcut : null,
+        };
+        return Client(meta, fieldId, []);
+    }
+
+    private static object? CellValueOf(object? value) => value switch
+    {
+        null => null,
+        DateOnly d => d.ToString("yyyy-MM-dd"),
+        DateTime dt => dt.ToString("yyyy-MM-dd"),
+        Enum e => e.ToString(),
+        _ => value,
+    };
+
     private ClientSideComponentDto MapField(PropertyInfo p, object instance, bool readOnly = false)
     {
         var fieldId = Naming.CamelCase(p.Name);
+        if (GridRowType(p) is { } rowType) return MapGridField(p, rowType, instance, readOnly);
         var label = T(p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
         var required = p.GetCustomAttribute<RequiredAttribute>() != null;
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
@@ -411,7 +412,31 @@ class SyncHandler:
         name = self._resolve_action(type_, rq.action_id)
         if name is None:
             return self.error(f"Action not found: {rq.action_id}")
-        return self.map_result(getattr(instance, name)(), rq)
+        method = getattr(instance, name)
+        return self.map_result(method(*self._build_arguments(method, rq)), rq)
+
+    def _build_arguments(self, method, rq: RunActionRq) -> list:
+        """Fills a method's parameters from the action request: a row-click's _clickedRow
+        parameter is rebuilt into the parameter's annotated class (OnRowSelected() methods take
+        the clicked row); anything unfillable is None (mirrors Java's
+        RunMethodActionRunner.createParameters)."""
+        params = [
+            p for p in inspect.signature(method).parameters.values()
+            if p.kind in (p.POSITIONAL_OR_KEYWORD, p.POSITIONAL_ONLY)
+        ]
+        if not params:
+            return []
+        clicked = (rq.parameters or {}).get("_clickedRow")
+        args = []
+        for p in params:
+            ann = p.annotation
+            if isinstance(clicked, dict) and isinstance(ann, type) and ann is not str:
+                row = ann()
+                self.bind_state(row, clicked)
+                args.append(row)
+            else:
+                args.append(None)
+        return args
 
     @staticmethod
     def _resolve_action(type_, action_id):
