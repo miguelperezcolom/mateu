@@ -35,3 +35,12 @@ public interface IOptionsSupplier
 {
     IReadOnlyList<Option> Options(string fieldName);
 }
+
+/// <summary>Resolves the display label of a reference field's PRE-EXISTING value: when a form
+/// loads with a [Lookup]/[Searchable] field already set, the framework asks the view (or the
+/// [Searchable] selector) for the label so the raw id is never shown. (C# analogue of Java's
+/// LookupLabelSupplier.)</summary>
+public interface ILookupLabelSupplier
+{
+    string? Label(string fieldName, object id);
+}

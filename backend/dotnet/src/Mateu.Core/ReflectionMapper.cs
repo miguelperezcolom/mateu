@@ -6,10 +6,29 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Turns an annotated C# view instance into the Mateu component tree (App→Page→Card→…→FormField).</summary>
-public sealed class ReflectionMapper(ITranslator? translator = null)
+public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identity?>? identity = null)
 {
     /// <summary>Translates a user-facing string when a translator is registered, else returns it unchanged.</summary>
     private string T(string s) => translator?.Translate(s) ?? s;
+
+    /// <summary>Whether the caller passes <paramref name="gate"/> (mirrors Java's Authorizer):
+    /// AND across declared dimensions, OR within each; nothing declared → unrestricted; no
+    /// identity → unauthorized.</summary>
+    private bool Authorized(IdentityGatedAttribute? gate)
+    {
+        if (gate is null) return true;
+        if (gate.Roles.Length + gate.Groups.Length + gate.Scopes.Length + gate.Permissions.Length == 0)
+            return true;
+        if (identity?.Invoke() is not { } id) return false;
+        return Matches(gate.Roles, id.Roles) && Matches(gate.Groups, id.Groups)
+               && Matches(gate.Scopes, id.Scopes) && Matches(gate.Permissions, id.Permissions);
+
+        static bool Matches(string[] declared, IReadOnlyList<string>? held) =>
+            declared.Length == 0 || (held is not null && declared.Any(held.Contains));
+    }
+
+    /// <summary>[EyesOnly]: the member is visible only to authorized callers.</summary>
+    private bool Visible(MemberInfo member) => Authorized(member.Find<EyesOnlyAttribute>());
 
     /// <summary>OnCustomEvent triggers (from [SubscribeTo]) and the [Emits] name for a view type.</summary>
     private static (List<object> Triggers, string? EmitsName) EventsOf(Type type)
@@ -20,12 +39,48 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     }
 
     /// <summary>Builds the App shell (header + menu) from an [App] class's [MenuItem] methods.</summary>
+    /// <summary>The navigation chrome (mirrors Java's AppMetadataExtractor.getVariant): an
+    /// explicit [App(Variant = …)] always wins; a menu with folders → TILES when a folder nests
+    /// another folder, HAMBURGUER_MENU past 7 top-level entries, else MENU_ON_TOP; a flat menu of
+    /// leaf entries → TABS.</summary>
+    private static string VariantOf(AppAttribute app, List<MenuItemDto> items)
+    {
+        if (app.Variant.Length > 0) return app.Variant;
+        if (items.Any(i => i.Submenus.Count > 0))
+        {
+            if (items.Any(i => i.Submenus.Any(s => s.Submenus.Count > 0))) return "TILES";
+            return items.Count > 7 ? "HAMBURGUER_MENU" : "MENU_ON_TOP";
+        }
+        return "TABS";
+    }
+
     public ClientSideComponentDto MapApp(Type appType)
     {
         var app = appType.GetCustomAttribute<AppAttribute>()!;
-        var items = appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.Find<MenuItemAttribute>() != null)
-            .Select(MapMenuItem).ToList();
+        // [MenuItem(Group = "…")] entries sharing a Group nest as that folder's submenu (the
+        // folder appears where its first entry was declared); ungrouped entries stay leaves.
+        var items = new List<MenuItemDto>();
+        var folders = new Dictionary<string, List<MenuItemDto>>();
+        foreach (var m in appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                     .Where(m => m.Find<MenuItemAttribute>() != null))
+        {
+            var entry = MapMenuItem(m);
+            var group = m.Find<MenuItemAttribute>()!.Group;
+            if (group.Length == 0)
+            {
+                items.Add(entry);
+            }
+            else if (folders.TryGetValue(group, out var submenu))
+            {
+                submenu.Add(entry);
+            }
+            else
+            {
+                var submenus = new List<MenuItemDto> { entry };
+                folders[group] = submenus;
+                items.Add(new MenuItemDto(T(group), "", "") { Submenus = submenus });
+            }
+        }
         // [RemoteMenu] entries: federated options — the frontend fetches the remote backend's
         // menu itself and mounts its views (no server-side proxying).
         items.AddRange(appType.GetCustomAttributes<RemoteMenuAttribute>()
@@ -36,7 +91,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
                 Explode = r.Explode,
                 ConsumedRoute = "_empty",
             }));
-        var variant = items.Count > 7 ? "HAMBURGUER_MENU" : "MENU_ON_LEFT";
+        var variant = VariantOf(app, items);
         var home = items.FirstOrDefault();
         var meta = new AppMetadataDto(T(app.Title), variant, items)
         {
@@ -165,13 +220,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     /// <summary>Client-side rules of a view (mirrors Java's RuleMapper.createRules): [Disabled]
     /// fields disable unconditionally, [Hidden(expr)] fields hide while the expression is truthy,
     /// and an IRuleSupplier contributes programmatic rules.</summary>
-    internal static List<RuleDto> MapRules(Type type, object? instance)
+    internal List<RuleDto> MapRules(Type type, object? instance)
     {
         var rules = new List<RuleDto>();
         foreach (var p in EditableProperties(type))
         {
             var fieldId = Naming.CamelCase(p.Name);
-            if (p.Find<DisabledAttribute>() != null)
+            if (p.Find<DisabledAttribute>() != null
+                || !Authorized(p.Find<DisabledUnlessAttribute>()))
                 rules.Add(new RuleDto("true", "SetDataValue", fieldId, "disabled", null, "true", "Continue", null));
             if (p.Find<HiddenAttribute>() is { Value.Length: > 0 } hidden)
                 rules.Add(new RuleDto("true", "SetDataValue", fieldId, "hidden", null, hidden.Value, "Continue", null));
@@ -258,7 +314,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     // read-only view with many sections is presented as adaptable tabs.
     private List<ComponentDto> FormCards(Type type, object instance, bool readOnly = false)
     {
-        var props = EditableProperties(type).ToList();
+        var props = EditableProperties(type).Where(Visible).ToList();
         if (props.Any(p => p.Find<TabAttribute>() != null))
             return [TabLayout(type, props, instance, readOnly)];
 
@@ -466,7 +522,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         // A self-referential children list makes rows hierarchical (GridLayout "tree"); it rides
         // inside the row dicts, never as a column.
         var columns = EditableProperties(row)
-            .Where(p => GridRowType(p) is null)
+            .Where(p => GridRowType(p) is null && Visible(p))
             .Select(p => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
@@ -547,6 +603,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         // place; each committed cell dispatches the crud's update-row action (Java parity).
         var inlineEditing = viewType.Find<InlineEditingAttribute>() != null;
         var columns = EditableProperties(element)
+            .Where(Visible)
             .Select(p =>
             {
                 var editable = inlineEditing && p.Find<ReadOnlyAttribute>() == null;
@@ -662,13 +719,24 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     private ClientSideComponentDto MapGridField(PropertyInfo p, Type rowType, object instance, bool readOnly)
     {
         var fieldId = Naming.CamelCase(p.Name);
+        // [InlineEditing] on the grid property: cells edit in place, commits accumulate in the
+        // form state (the frontend's renderEditableCell form-grid path) and save with the form.
+        var inline = !readOnly && p.Find<InlineEditingAttribute>() != null;
         var columns = EditableProperties(rowType)
-            .Select(c => new GridColumnDto(new GridColumnMetaDto(
-                Naming.CamelCase(c.Name),
-                c.Find<LabelAttribute>()?.Value ?? Naming.Humanize(c.Name))
+            .Where(Visible)
+            .Select(c =>
             {
-                DataType = InferDataType(Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType, c),
-            }))
+                var editable = inline && c.Find<ReadOnlyAttribute>() == null;
+                return new GridColumnDto(new GridColumnMetaDto(
+                    Naming.CamelCase(c.Name),
+                    c.Find<LabelAttribute>()?.Value ?? Naming.Humanize(c.Name))
+                {
+                    DataType = InferDataType(Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType, c),
+                    Editable = editable,
+                    EditorType = editable ? EditorTypeOf(c) : null,
+                    EditorOptions = editable ? EditorOptionsOf(c) : null,
+                });
+            })
             .ToList();
         var rows = new List<Dictionary<string, object?>>();
         if (p.GetValue(instance) is System.Collections.IEnumerable items)
@@ -726,11 +794,15 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var multiline = p.Find<MultilineAttribute>() != null;
         var stereotype = StereotypeOf(p, plainText, multiline);
 
+        // [ReadOnlyUnless] (field or class level): read-only unless the caller is authorized.
+        var readOnlyByPermission =
+            !Authorized(p.Find<ReadOnlyUnlessAttribute>())
+            || (p.DeclaringType is { } owner && !Authorized(owner.Find<ReadOnlyUnlessAttribute>()));
         var meta = new FormFieldMetadataDto(fieldId, InferDataType(t, p), label)
         {
             Stereotype = stereotype,
             Required = required,
-            ReadOnly = readOnly || plainText,
+            ReadOnly = readOnly || plainText || readOnlyByPermission,
             Multiline = multiline,
             Options = options,
             TreeLeavesOnly = p.Find<TreeSelectAttribute>()?.LeavesOnly ?? false,
@@ -811,6 +883,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         return new ButtonDto(T(label), Naming.CamelCase(m.Name))
         {
             Shortcut = m.Find<ShortcutAttribute>()?.Keys,
+            Disabled = !Authorized(m.Find<DisabledUnlessAttribute>()),
         };
     }
 

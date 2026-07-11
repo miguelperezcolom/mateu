@@ -67,6 +67,11 @@ public sealed class LabelAttribute(string value) : Attribute
 public sealed class AppAttribute(string title) : Attribute
 {
     public string Title { get; } = title;
+
+    /// <summary>Navigation chrome: "" = auto (Java's @App(AUTO) decision table: grouped menu →
+    /// MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS), or an
+    /// explicit TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGUER_MENU | TILES, which always wins.</summary>
+    public string Variant { get; set; } = "";
 }
 
 /// <summary>AI chat on the app: a floating button opens a chat panel that streams its answers
@@ -85,6 +90,10 @@ public sealed class AIAttribute(string sse) : Attribute
 public sealed class MenuItemAttribute(string? label = null) : Attribute
 {
     public string? Label { get; } = label;
+
+    /// <summary>Folder this entry nests under (entries sharing a Group become its submenu);
+    /// empty = a top-level leaf entry.</summary>
+    public string Group { get; set; } = "";
 }
 
 /// <summary>A FEDERATED menu entry on the [App] class: the option points at another Mateu backend

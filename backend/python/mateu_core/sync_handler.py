@@ -21,6 +21,8 @@ from mateu_dtos import (
 from mateu_uidl import (
     DateRange,
     Label,
+    LookupLabelSupplier,
+    Lookup,
     Message,
     NumberRange,
     PageBanner,
@@ -70,9 +72,9 @@ class RunActionRq(BaseModel):
 
 
 class SyncHandler:
-    def __init__(self, registry: MateuRegistry, translator=None):
+    def __init__(self, registry: MateuRegistry, translator=None, identity_provider=None):
         self.registry = registry
-        self.mapper = ReflectionMapper(translator)
+        self.mapper = ReflectionMapper(translator, identity_provider)
 
     def handle(self, rq: RunActionRq) -> UIIncrement:
         # 1. App shell at the root route.
@@ -203,7 +205,9 @@ class SyncHandler:
 
     def render_entity(self, crud_type, element, entity, mode, route) -> UIIncrement:
         return self.fragment_response(
-            self.title(crud_type), self.mapper.map_entity_form(crud_type, element, entity, mode, route)
+            self.title(crud_type),
+            self.mapper.map_entity_form(crud_type, element, entity, mode, route),
+            self.lookup_labels(element, entity, crud_type()),
         )
 
     def crud_save(self, crud, element, id_, rq: RunActionRq, base_route) -> UIIncrement:
@@ -619,7 +623,11 @@ class SyncHandler:
 
     def render(self, type_, instance, rq: RunActionRq) -> UIIncrement:
         route = rq.consumed_route if rq.consumed_route else "_empty"
-        return self.fragment_response(self.title(type_), self.mapper.map_view(type_, instance, route))
+        return self.fragment_response(
+            self.title(type_),
+            self.mapper.map_view(type_, instance, route),
+            self.lookup_labels(type_, instance, instance),
+        )
 
     def run_action(self, type_, instance, rq: RunActionRq) -> UIIncrement:
         name = self._resolve_action(type_, rq.action_id)
@@ -718,11 +726,42 @@ class SyncHandler:
     def title(type_) -> str:
         return getattr(type_, "__mateu_title__", humanize(type_.__name__))
 
-    def fragment_response(self, title: str, component) -> UIIncrement:
+    def fragment_response(self, title: str, component, data=None) -> UIIncrement:
         return UIIncrement.of(
             commands=[UICommand(target_component_id="ux_main", type="SetWindowTitle", data=title)],
-            fragments=[UIFragment(target_component_id="ux_main", component=component, action="Replace")],
+            fragments=[UIFragment(target_component_id="ux_main", component=component, data=data, action="Replace")],
         )
+
+    def lookup_labels(self, cls, instance, supplier_host) -> dict | None:
+        """Display labels for reference fields whose value is already set when the form renders:
+        ``Searchable()`` fields ask their selector, ``Lookup()`` fields the view's
+        :class:`LookupLabelSupplier` (falling back to a match among its ``options(field_name)``).
+        They ride as ``<fieldId>-label`` entries in the fragment data — where the renderer's
+        combo looks before showing the raw id (mirrors Java's LookupLabelSupplier)."""
+        data = None
+        for f in view_fields(cls):
+            value = getattr(instance, f.name, None)
+            if value is None or str(value) == "":
+                continue
+            field_id = camel_case(f.name)
+            label = None
+            searchable = f.marker(Searchable)
+            if searchable is not None:
+                selector = searchable.selector()
+                if isinstance(selector, LookupLabelSupplier):
+                    label = selector.label(field_id, value)
+            elif f.has(Lookup):
+                if isinstance(supplier_host, LookupLabelSupplier):
+                    label = supplier_host.label(field_id, value)
+                if label is None:
+                    for o in self.mapper._supplied_options(supplier_host, field_id):
+                        if o.value == str(value):
+                            label = o.label
+                            break
+            if label is not None:
+                data = data or {}
+                data[field_id + "-label"] = label
+        return data
 
     @staticmethod
     def navigate(route: str, success_text: str | None) -> UIIncrement:
@@ -760,6 +799,17 @@ class SyncHandler:
         for f in view_fields(type(instance)):
             key = camel_case(f.name)
             if key not in state or state[key] is None:
+                continue
+            row_type = ReflectionMapper.grid_row_type(f)
+            if row_type is not None and isinstance(state[key], list):
+                # Grid rows arrive as camelCase dicts — rebuild them as typed row objects.
+                rows = []
+                for raw in state[key]:
+                    if isinstance(raw, dict):
+                        row = row_type()
+                        self.bind_state(row, raw)
+                        rows.append(row)
+                setattr(instance, f.name, rows)
                 continue
             value = self.convert_value(state[key], f.type)
             if value is not None:

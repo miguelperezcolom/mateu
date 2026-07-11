@@ -201,6 +201,82 @@ class Rule:
         return Rule("true", "SetDataValue", field_name, "disabled", None, expression)
 
 
+@dataclass(frozen=True)
+class Identity:
+    """The caller's identity, as the framework adapter resolves it (e.g. from the JWT Bearer
+    token): the dimensions EyesOnly/ReadOnlyUnless/DisabledUnless match against. The Python
+    analogue of what Java's Authorizer reads."""
+
+    roles: tuple[str, ...] = ()
+    groups: tuple[str, ...] = ()
+    scopes: tuple[str, ...] = ()
+    permissions: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class EyesOnly:
+    """HIDES the field (form and listing columns) unless the caller is authorized. Matching is
+    AND across declared dimensions, OR within each; nothing declared → unrestricted; no identity
+    → unauthorized. The Python analogue of Java's ``@EyesOnly`` on fields."""
+
+    roles: tuple[str, ...] = ()
+    groups: tuple[str, ...] = ()
+    scopes: tuple[str, ...] = ()
+    permissions: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class ReadOnlyUnless:
+    """The field is READ-ONLY unless the caller is authorized. Composes with ``EyesOnly()`` for
+    layered access. The Python analogue of Java's ``@ReadOnlyUnless``."""
+
+    roles: tuple[str, ...] = ()
+    groups: tuple[str, ...] = ()
+    scopes: tuple[str, ...] = ()
+    permissions: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class DisabledUnless:
+    """The field (or a ``@button`` method, via ``disabled_unless``) is DISABLED unless the
+    caller is authorized. The Python analogue of Java's ``@DisabledUnless``."""
+
+    roles: tuple[str, ...] = ()
+    groups: tuple[str, ...] = ()
+    scopes: tuple[str, ...] = ()
+    permissions: tuple[str, ...] = ()
+
+
+def disabled_unless(roles=(), groups=(), scopes=(), permissions=()):
+    """Method decorator: the button is disabled unless the caller is authorized."""
+
+    def deco(fn):
+        fn.__mateu_disabled_unless__ = DisabledUnless(
+            roles=tuple(roles), groups=tuple(groups), scopes=tuple(scopes),
+            permissions=tuple(permissions),
+        )
+        return fn
+
+    return deco
+
+
+class LookupLabelSupplier:
+    """Resolves the display label of a reference field's PRE-EXISTING value: when a form loads
+    with a ``Lookup()``/``Searchable()`` field already set, the framework asks the view (or the
+    ``Searchable()`` selector) for the label so the raw id is never shown. The Python analogue of
+    Java's ``LookupLabelSupplier``."""
+
+    def label(self, field_name: str, id) -> str | None:
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class InlineEditing:
+    """On a grid (list-of-rows) field: cells edit in place (``ReadOnly()`` row fields stay
+    display-only) and the committed rows accumulate in the form state, travelling with the next
+    save. The field-level face of Java's ``@InlineEditing``."""
+
+
 class RuleSupplier:
     """Implemented by a view to contribute programmatic client-side rules (the Python analogue of
     Java's ``RuleSupplier``); they complement the ``Hidden()``/``Disabled()`` marker-derived
@@ -329,9 +405,15 @@ def subtitle(value: str) -> Callable[[type], type]:
     return deco
 
 
-def app(title_: str) -> Callable[[type], type]:
+def app(title_: str, variant: str = "") -> Callable[[type], type]:
+    """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
+    menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS),
+    or an explicit TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGUER_MENU | TILES, which always
+    wins."""
+
     def deco(cls: type) -> type:
         cls.__mateu_app__ = title_
+        cls.__mateu_app_variant__ = variant
         return cls
 
     return deco
@@ -512,7 +594,18 @@ def button(arg=None):
     return _maybe_bare(arg, "__mateu_button__", lambda label: label or True)
 
 
-def menu_item(arg=None):
+def menu_item(arg=None, group: str = ""):
+    """A menu entry. ``group`` nests the entry under that folder (entries sharing a group become
+    its submenu); empty = a top-level leaf entry."""
+    if group:
+        label = arg if isinstance(arg, str) else None
+
+        def deco(fn):
+            fn.__mateu_menu_item__ = label or True
+            fn.__mateu_menu_group__ = group
+            return fn
+
+        return deco
     return _maybe_bare(arg, "__mateu_menu_item__", lambda label: label or True)
 
 
@@ -790,7 +883,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "LookupLabelSupplier", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout",
     "plain_text", "emits", "subscribe_to", "secured",

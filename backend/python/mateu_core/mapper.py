@@ -67,10 +67,13 @@ from mateu_uidl import (
     Dashboard,
     DateRange,
     Disabled,
+    DisabledUnless,
+    EyesOnly,
     Foldout,
     HeaderBadge,
     HeroSearch,
     Hidden,
+    InlineEditing,
     ItemOverview,
     Label,
     LinkSupplier,
@@ -87,6 +90,7 @@ from mateu_uidl import (
     PlainText,
     RangeFilter,
     ReadOnly,
+    ReadOnlyUnless,
     RuleSupplier,
     Searchable,
     Selector,
@@ -184,8 +188,30 @@ def _row_cell(value) -> Any:
 
 
 class ReflectionMapper:
-    def __init__(self, translator: Translator | None = None):
+    def __init__(self, translator: Translator | None = None, identity_provider=None):
         self.translator = translator
+        self.identity_provider = identity_provider
+
+    def authorized(self, gate) -> bool:
+        """Whether the caller passes ``gate`` (mirrors Java's Authorizer): AND across declared
+        dimensions, OR within each; nothing declared → unrestricted; no identity → unauthorized."""
+        if gate is None:
+            return True
+        declared = (gate.roles, gate.groups, gate.scopes, gate.permissions)
+        if not any(declared):
+            return True
+        identity = self.identity_provider() if self.identity_provider else None
+        if identity is None:
+            return False
+        held = (identity.roles, identity.groups, identity.scopes, identity.permissions)
+        return all(
+            not wanted or any(v in have for v in wanted)
+            for wanted, have in zip(declared, held)
+        )
+
+    def visible(self, f) -> bool:
+        """``EyesOnly()``: the field is visible only to authorized callers."""
+        return self.authorized(f.marker(EyesOnly))
 
     def T(self, s: str) -> str:
         return self.translator.translate(s) if self.translator else s
@@ -196,7 +222,21 @@ class ReflectionMapper:
     # ── App shell ──────────────────────────────────────────────────────────────
     def map_app(self, cls) -> ClientSideComponent:
         app_title = getattr(cls, "__mateu_app__")
-        items = [self.map_menu_item(n, f) for n, f in methods_with(cls, "__mateu_menu_item__")]
+        # menu_item(group=...) entries sharing a group nest as that folder's submenu (the
+        # folder appears where its first entry was declared); ungrouped entries stay leaves.
+        items = []
+        folders: dict[str, MenuItem] = {}
+        for n, f in methods_with(cls, "__mateu_menu_item__"):
+            entry = self.map_menu_item(n, f)
+            group = getattr(f, "__mateu_menu_group__", "")
+            if not group:
+                items.append(entry)
+            elif group in folders:
+                folders[group].submenus.append(entry)
+            else:
+                folder = MenuItem(label=self.T(group), route="", server_side_type="", submenus=[entry])
+                folders[group] = folder
+                items.append(folder)
         # @remote_menu entries: federated options — the frontend fetches the remote backend's
         # menu itself and mounts its views (no server-side proxying).
         for label, base_url, route, explode in getattr(cls, "__mateu_remote_menus__", []):
@@ -204,7 +244,7 @@ class ReflectionMapper:
                 label=self.T(label), route=route, server_side_type="",
                 consumed_route="_empty", remote=True, base_url=base_url, explode=explode,
             ))
-        variant = "HAMBURGUER_MENU" if len(items) > 7 else "MENU_ON_LEFT"
+        variant = self.variant_of(cls, items)
         home = items[0] if items else None
         meta = AppMetadata(
             title=self.T(app_title),
@@ -252,6 +292,21 @@ class ReflectionMapper:
                 AppContextSelector(field_name=name, label=label, options=options)
             )
         return selectors
+
+    @staticmethod
+    def variant_of(cls, items) -> str:
+        """The navigation chrome (mirrors Java's AppMetadataExtractor.getVariant): an explicit
+        @app(variant=...) always wins; a menu with folders → TILES when a folder nests another
+        folder, HAMBURGUER_MENU past 7 top-level entries, else MENU_ON_TOP; a flat menu of leaf
+        entries → TABS."""
+        explicit = getattr(cls, "__mateu_app_variant__", "")
+        if explicit:
+            return explicit
+        if any(i.submenus for i in items):
+            if any(s.submenus for i in items for s in i.submenus):
+                return "TILES"
+            return "HAMBURGUER_MENU" if len(items) > 7 else "MENU_ON_TOP"
+        return "TABS"
 
     def map_menu_item(self, name: str, fn) -> MenuItem:
         try:
@@ -736,6 +791,8 @@ class ReflectionMapper:
         inline = getattr(cls, "__mateu_inline_editing__", False)
         columns = []
         for f in view_fields(element):
+            if not self.visible(f):
+                continue
             editable = inline and not f.has(ReadOnly)
             columns.append(GridColumn(metadata=GridColumnMeta(
                 id=camel_case(f.name),
@@ -819,7 +876,7 @@ class ReflectionMapper:
                 data_type=self.infer_data_type(f.type, f),
             ))
             for f in view_fields(row_type)
-            if self.grid_row_type(f) is None
+            if self.grid_row_type(f) is None and self.visible(f)
         ]
         actions = [Action(id="search")]
         if issubclass(cls, Selector):
@@ -930,15 +987,14 @@ class ReflectionMapper:
             rules=self.map_rules(element, entity),
         )
 
-    @staticmethod
-    def map_rules(cls, instance) -> list[RuleRecord]:
+    def map_rules(self, cls, instance) -> list[RuleRecord]:
         """Client-side rules of a view (mirrors Java's RuleMapper.createRules): ``Disabled()``
         fields disable unconditionally, ``Hidden(expr)`` fields hide while the expression is
         truthy, and a :class:`RuleSupplier` contributes programmatic rules."""
         rules: list[RuleRecord] = []
         for f in view_fields(cls):
             field_id = camel_case(f.name)
-            if f.has(Disabled):
+            if f.has(Disabled) or not self.authorized(f.marker(DisabledUnless)):
                 rules.append(RuleRecord(
                     filter="true", action="SetDataValue", field_name=field_id,
                     field_attribute="disabled", expression="true",
@@ -963,7 +1019,7 @@ class ReflectionMapper:
     # ── Fields & layout ────────────────────────────────────────────────────────
     def form_cards(self, cls, instance, read_only: bool = False) -> list:
         read_only = read_only or bool(class_flag(cls, "__mateu_read_only__", False))
-        fields = view_fields(cls)
+        fields = [f for f in view_fields(cls) if self.visible(f)]
         if any(f.has(Tab) for f in fields):
             return [self.tab_layout(cls, fields, instance, read_only)]
 
@@ -1193,14 +1249,25 @@ class ReflectionMapper:
         GridColumn per row field, rows identified by position). Mirrors Java's
         GridColumnBuilder.getFormFieldForArray."""
         field_id = camel_case(f.name)
-        columns = [
-            GridColumn(metadata=GridColumnMeta(
+        # InlineEditing() on the grid field: cells edit in place, commits accumulate in the form
+        # state (the frontend's renderEditableCell form-grid path) and save with the form.
+        inline = not read_only and f.has(InlineEditing)
+        columns = []
+        for c in view_fields(row_type):
+            if not self.visible(c):
+                continue
+            editable = inline and not c.has(ReadOnly)
+            columns.append(GridColumn(metadata=GridColumnMeta(
                 id=camel_case(c.name),
                 label=(c.marker(Label).value if c.has(Label) else humanize(c.name)),
                 data_type=self.infer_data_type(c.type, c),
-            ))
-            for c in view_fields(row_type)
-        ]
+                editable=editable,
+                editor_type=self.editor_type_of(c) if editable else None,
+                editor_options=(
+                    [Option(value=m.name, label=str(m.name)) for m in c.type]
+                    if editable and is_enum(c.type) else None
+                ),
+            )))
         rows = []
         for item in getattr(instance, f.name, None) or []:
             rows.append({
@@ -1239,6 +1306,8 @@ class ReflectionMapper:
             )
         value = getattr(instance, f.name, None)
 
+        # ReadOnlyUnless(): read-only unless the caller is authorized.
+        read_only = read_only or not self.authorized(f.marker(ReadOnlyUnless))
         plain = f.has(PlainText) or bool(class_flag(instance.__class__, "__mateu_plain_text__", False))
         multiline = f.has(Multiline)
         stereotype = self.stereotype_of(f, plain, multiline, instance.__class__)
@@ -1357,6 +1426,7 @@ class ReflectionMapper:
             label=self.T(label),
             action_id=camel_case(name),
             shortcut=getattr(fn, "__mateu_shortcut__", None),
+            disabled=not self.authorized(getattr(fn, "__mateu_disabled_unless__", None)),
         )
 
     @staticmethod

@@ -186,10 +186,12 @@ public sealed class CompactAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
 public sealed class ReadOnlyAttribute : Attribute;
 
-/// <summary>Makes every data column of the crud's table listing an in-place editor ([ReadOnly]
-/// properties stay display-only); each committed cell persists its row immediately through the
-/// crud's update-row action. (C# analogue of Java's class-level @InlineEditing.)</summary>
-[AttributeUsage(AttributeTargets.Class)]
+/// <summary>Makes every data column an in-place editor ([ReadOnly] properties stay
+/// display-only). On a Crud class each committed cell persists its row immediately through the
+/// crud's update-row action; on a grid (list-of-rows) PROPERTY the committed cells accumulate in
+/// the form state and travel with the next save. (C# analogue of Java's @InlineEditing, which
+/// targets both.)</summary>
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
 public sealed class InlineEditingAttribute : Attribute;
 
 /// <summary>Lets Mateu infer the UX patterns of a form from the amount and structure of the
@@ -204,3 +206,40 @@ public sealed class AutoLayoutAttribute(bool value = true) : Attribute
 {
     public bool Value { get; } = value;
 }
+
+// ── Permission-driven field states ─────────────────────────────────────────────
+
+/// <summary>The caller's identity, as the framework adapter resolves it (e.g. from the JWT
+/// Bearer token): the dimensions [EyesOnly]/[ReadOnlyUnless]/[DisabledUnless] match against.
+/// (C# analogue of what Java's Authorizer reads.)</summary>
+public sealed record Identity(
+    IReadOnlyList<string>? Roles = null,
+    IReadOnlyList<string>? Groups = null,
+    IReadOnlyList<string>? Scopes = null,
+    IReadOnlyList<string>? Permissions = null);
+
+/// <summary>Base of the three permission attributes: matching is AND across declared dimensions,
+/// OR within each; nothing declared → unrestricted; no identity → unauthorized.</summary>
+public abstract class IdentityGatedAttribute : Attribute
+{
+    public string[] Roles { get; set; } = [];
+    public string[] Groups { get; set; } = [];
+    public string[] Scopes { get; set; } = [];
+    public string[] Permissions { get; set; } = [];
+}
+
+/// <summary>HIDES the field (form and listing columns) unless the caller is authorized.
+/// (C# analogue of Java's @EyesOnly on fields.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class EyesOnlyAttribute : IdentityGatedAttribute;
+
+/// <summary>The field (or every field of the class) is READ-ONLY unless the caller is
+/// authorized. Composes with [EyesOnly] for layered access — e.g. hidden to non-staff,
+/// read-only to staff, editable to managers. (C# analogue of Java's @ReadOnlyUnless.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class ReadOnlyUnlessAttribute : IdentityGatedAttribute;
+
+/// <summary>The field or [Button] method is DISABLED unless the caller is authorized.
+/// (C# analogue of Java's @DisabledUnless.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class)]
+public sealed class DisabledUnlessAttribute : IdentityGatedAttribute;

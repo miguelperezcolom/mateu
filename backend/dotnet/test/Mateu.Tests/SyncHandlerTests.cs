@@ -117,6 +117,60 @@ public class InvoiceForm
     [ImporteTotal] public decimal Total { get; set; }
 }
 
+[UI("booking-form"), Title("Booking")]
+public class BookingWithLookup : IOptionsSupplier, ILookupLabelSupplier
+{
+    [Lookup] public string Supplier { get; set; } = "a2";
+    [Searchable(typeof(HotelSelector))] public string Hotel { get; set; } = "h2";
+
+    public IReadOnlyList<Option> Options(string fieldName) =>
+        fieldName == "supplier" ? [new Option("a1", "Acme Tools"), new Option("a2", "Acme Paint")] : [];
+
+    public string? Label(string fieldName, object id) =>
+        fieldName == "supplier" && (string)id == "a2" ? "Acme Paint" : null;
+}
+
+[UI("secured-form"), Title("Secured")]
+public class SecuredForm
+{
+    public string? Name { get; set; }
+    [EyesOnly(Roles = ["staff"])] public string? InternalNotes { get; set; }
+    [ReadOnlyUnless(Roles = ["manager"])] public decimal Discount { get; set; }
+    [DisabledUnless(Permissions = ["approve"])] public bool Approved { get; set; }
+
+    [Button, DisabledUnless(Roles = ["manager"])] public Message Close() => new("Closed");
+}
+
+public class EditableGuest
+{
+    [ReadOnly] public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    public int Age { get; set; }
+}
+
+[UI("editable-grid"), Title("Editable grid")]
+public class EditableGridForm
+{
+    [InlineEditing]
+    public List<EditableGuest> Guests { get; set; } = [new() { Id = "g1", Name = "Alice", Age = 34 }];
+
+    [Button] public Message Save() => new($"{Guests.Count} guests: {Guests[0].Name}/{Guests[0].Age}");
+}
+
+[App("Grouped App", Variant = "TILES")]
+public class ExplicitVariantApp
+{
+    [MenuItem("Things")] public Things T1() => new();
+}
+
+[App("Grouped Auto App")]
+public class GroupedApp
+{
+    [MenuItem("Products", Group = "Catalog")] public Things P1() => new();
+    [MenuItem("Prices", Group = "Catalog")] public Things P2() => new();
+    [MenuItem("Home")] public Things H1() => new();
+}
+
 [UI("zoned"), Title("Zoned")]
 [Zone("left", "64%"), Zone("right", "36%")]
 public class ZonedForm
@@ -155,12 +209,15 @@ public class HotelRow
 public class HotelFilters;
 
 [UI("hotel-selector"), Title("Hotels")]
-public class HotelSelector : Listing<HotelFilters, HotelRow>, ISelector<HotelRow>
+public class HotelSelector : Listing<HotelFilters, HotelRow>, ISelector<HotelRow>, ILookupLabelSupplier
 {
     public override IEnumerable<HotelRow> Search(string? searchText, HotelFilters filters) =>
         [new() { Id = "h1", Name = "Palace" }, new() { Id = "h2", Name = "Marina" }];
 
     public SelectedItem Selected(HotelRow row) => new(row.Id, row.Name);
+
+    public string? Label(string fieldName, object id) =>
+        Search(null, new HotelFilters()).FirstOrDefault(h => h.Id == (string)id)?.Name;
 }
 
 [UI("reservation"), Title("Reservation")]
@@ -525,6 +582,88 @@ public class SyncHandlerTests
     {
         var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName }));
         Assert.Contains("\"sseUrl\":\"/ai/chat\"", json);
+    }
+
+    [Fact]
+    public void Preexisting_lookup_and_searchable_values_resolve_their_labels()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "booking-form", ConsumedRoute = "booking-form" });
+
+        var frag = Assert.Single(inc.Fragments);
+        var json = JsonSerializer.Serialize(frag.Data, Json);
+        // [Lookup] resolves via the view's ILookupLabelSupplier / options…
+        Assert.Contains("\"supplier-label\":\"Acme Paint\"", json);
+        // …[Searchable] asks its selector (HotelSelector implements nothing → falls to null? It
+        // must implement ILookupLabelSupplier to resolve; Marina comes from its Selected source).
+        Assert.Contains("\"hotel-label\":\"Marina\"", json);
+    }
+
+    [Fact]
+    public void Permission_gates_hide_readonly_and_disable_without_identity()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "secured-form", ConsumedRoute = "secured-form" }));
+
+        // No identity: [EyesOnly] hides, [ReadOnlyUnless] locks, [DisabledUnless] disables.
+        Assert.DoesNotContain("internalNotes", json);
+        Assert.Contains("\"label\":\"Discount\",\"stereotype\":\"regular\",\"treeLeavesOnly\":false,\"required\":false,\"readOnly\":true", json);
+        Assert.Contains("\"fieldId\":\"approved\"", json);
+        Assert.Contains("\"fieldName\":\"approved\",\"fieldAttribute\":\"disabled\"", json);
+        Assert.Contains("\"actionId\":\"close\",\"type\":\"Button\",\"disabled\":true", json);
+    }
+
+    [Fact]
+    public void Permission_gates_open_up_for_an_authorized_identity()
+    {
+        var handler = new SyncHandler(new MateuRegistry(typeof(SimpleForm).Assembly), null,
+            () => new Identity(Roles: ["staff", "manager"], Permissions: ["approve"]));
+        var json = JsonSerializer.Serialize(
+            handler.Handle(new RunActionRqDto { Route = "secured-form", ConsumedRoute = "secured-form" }), Json);
+
+        Assert.Contains("internalNotes", json);
+        Assert.DoesNotContain("\"fieldName\":\"approved\",\"fieldAttribute\":\"disabled\"", json);
+        Assert.Contains("\"actionId\":\"close\",\"type\":\"Button\",\"disabled\":false", json);
+    }
+
+    [Fact]
+    public void Inline_editing_grid_field_emits_editable_cells_and_rows_bind_back()
+    {
+        var renderJson = Render(Handler().Handle(new RunActionRqDto { Route = "editable-grid", ConsumedRoute = "editable-grid" }));
+        // Cells edit in place, [ReadOnly] row columns stay display-only.
+        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":null,\"editable\":true,\"editorType\":\"text\"", renderJson);
+        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":null,\"editable\":false", renderJson);
+
+        // The edited rows travel in the form state and bind back into List<EditableGuest>.
+        var rq = new RunActionRqDto
+        {
+            ActionId = "save",
+            Route = "editable-grid",
+            ServerSideType = typeof(EditableGridForm).FullName,
+            ComponentState = new()
+            {
+                ["guests"] = JsonSerializer.SerializeToElement(
+                    new[] { new { id = "g1", name = "Alice B.", age = 35 } }),
+            },
+        };
+        var msg = Assert.Single(Handler().Handle(rq).Messages);
+        Assert.Equal("1 guests: Alice B./35", msg.Text);
+    }
+
+    [Fact]
+    public void App_variant_follows_the_java_auto_decision_table()
+    {
+        // Flat leaf menu → TABS.
+        var flat = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName }));
+        Assert.Contains("\"variant\":\"TABS\"", flat);
+
+        // Grouped menu (folders, ≤7 top-level) → MENU_ON_TOP, entries nested as submenus.
+        var grouped = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(GroupedApp).FullName }));
+        Assert.Contains("\"variant\":\"MENU_ON_TOP\"", grouped);
+        Assert.Contains("\"label\":\"Catalog\"", grouped);
+        Assert.Contains("\"label\":\"Prices\"", grouped);
+
+        // An explicit [App(Variant = ...)] always wins.
+        var explicitVariant = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(ExplicitVariantApp).FullName }));
+        Assert.Contains("\"variant\":\"TILES\"", explicitVariant);
     }
 
     [Fact]

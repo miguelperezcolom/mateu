@@ -7,9 +7,9 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
-public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null)
+public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null)
 {
-    private readonly ReflectionMapper _mapper = new(translator);
+    private readonly ReflectionMapper _mapper = new(translator, identity);
 
     public UIIncrementDto Handle(RunActionRqDto rq)
     {
@@ -128,7 +128,8 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute));
 
     private UIIncrementDto RenderEntity(Type crudType, Type element, object entity, string mode, string route) =>
-        FragmentResponse(Title(crudType), _mapper.MapEntityForm(crudType, element, entity, mode, route));
+        FragmentResponse(Title(crudType), _mapper.MapEntityForm(crudType, element, entity, mode, route),
+            LookupLabels(element, entity, Activator.CreateInstance(crudType)!));
 
     private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
     {
@@ -543,7 +544,8 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private UIIncrementDto Render(Type type, object instance, RunActionRqDto rq)
     {
         var route = string.IsNullOrEmpty(rq.ConsumedRoute) ? "_empty" : rq.ConsumedRoute!;
-        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route));
+        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route),
+            LookupLabels(type, instance, instance));
     }
 
     private static UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq)
@@ -604,10 +606,39 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static string Title(Type type) =>
         type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
 
-    private static UIIncrementDto FragmentResponse(string title, ComponentDto component) =>
+    private static UIIncrementDto FragmentResponse(string title, ComponentDto component, object? data = null) =>
         UIIncrementDto.Of(
             commands: [new UICommandDto("ux_main", "SetWindowTitle", title)],
-            fragments: [new UIFragmentDto("ux_main", component, null, null, "Replace", null)]);
+            fragments: [new UIFragmentDto("ux_main", component, null, data, "Replace", null)]);
+
+    /// <summary>Display labels for reference fields whose value is already set when the form
+    /// renders: [Searchable] fields ask their selector, [Lookup] fields the view's
+    /// ILookupLabelSupplier (falling back to a match among its IOptionsSupplier options). They
+    /// ride as &lt;fieldId&gt;-label entries in the fragment data — where the renderer's combo
+    /// looks before showing the raw id (mirrors Java's LookupLabelSupplier).</summary>
+    private static Dictionary<string, object?>? LookupLabels(Type type, object instance, object supplierHost)
+    {
+        Dictionary<string, object?>? data = null;
+        foreach (var p in ReflectionMapper.EditableProperties(type))
+        {
+            if (p.GetValue(instance)?.ToString() is not { Length: > 0 } id) continue;
+            var fieldId = Naming.CamelCase(p.Name);
+            string? label = null;
+            if (p.Find<SearchableAttribute>() is { } searchable)
+            {
+                label = (Activator.CreateInstance(searchable.Selector) as ILookupLabelSupplier)
+                    ?.Label(fieldId, id);
+            }
+            else if (p.Find<LookupAttribute>() is not null)
+            {
+                label = (supplierHost as ILookupLabelSupplier)?.Label(fieldId, id)
+                        ?? (supplierHost as IOptionsSupplier)?.Options(fieldId)
+                            .FirstOrDefault(o => o.Value == id)?.Label;
+            }
+            if (label is not null) (data ??= new Dictionary<string, object?>())[fieldId + "-label"] = label;
+        }
+        return data;
+    }
 
     private static UIIncrementDto Navigate(string route, string? successText) =>
         UIIncrementDto.Of(
@@ -616,6 +647,8 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private static UIIncrementDto Error(string text) =>
         UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", text, 5000)]);
+
+    private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
 
     private static string? SearchText(RunActionRqDto rq) =>
         rq.ComponentState.TryGetValue("searchText", out var v) && v is JsonElement { ValueKind: JsonValueKind.String } el
@@ -658,7 +691,8 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             if (target == typeof(DateOnly)) return DateOnly.Parse(el.GetString() ?? "");
             if (target == typeof(DateTime)) return DateTime.Parse(el.GetString() ?? "");
             if (target.IsEnum) return Enum.Parse(target, el.GetString() ?? "", ignoreCase: true);
-            return el.Deserialize(target);
+            // Complex values (grid row lists…) arrive with camelCase keys — bind them as the web wire.
+            return el.Deserialize(target, WebJson);
         }
         catch
         {

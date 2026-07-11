@@ -69,7 +69,21 @@ from mateu_uidl import (  # noqa: E402
     ui,
     zones,
 )
-from mateu_uidl import Label, Pageable, PageResult, SortSpec, ai, remote_menu  # noqa: E402
+from mateu_uidl import (  # noqa: E402
+    DisabledUnless,
+    EyesOnly,
+    Identity,
+    InlineEditing,
+    Label,
+    LookupLabelSupplier,
+    Pageable,
+    PageResult,
+    ReadOnlyUnless,
+    SortSpec,
+    ai,
+    disabled_unless,
+    remote_menu,
+)
 from mateu_uidl.components import MicroFrontend  # noqa: E402
 
 
@@ -204,7 +218,7 @@ class SelectorHotelFilters:
 
 @ui("hotel-selector")
 @title("Hotels")
-class HotelSelector(Listing[SelectorHotelFilters, SelectorHotelRow], Selector):
+class HotelSelector(Listing[SelectorHotelFilters, SelectorHotelRow], Selector, LookupLabelSupplier):
     def search(self, search_text, filters):
         a = SelectorHotelRow()
         a.id, a.name = "h1", "Palace"
@@ -214,6 +228,9 @@ class HotelSelector(Listing[SelectorHotelFilters, SelectorHotelRow], Selector):
 
     def selected(self, row):
         return SelectedItem(id=row.id, label=row.name)
+
+    def label(self, field_name, id):
+        return next((h.name for h in self.search(None, None) if h.id == str(id)), None)
 
 
 @ui("reservation")
@@ -607,6 +624,79 @@ def test_crud_search_returns_rows():
     assert "Alpha" in j and "Beta" in j
 
 
+@ui("booking-form")
+@title("Booking")
+class BookingWithLookup(LookupLabelSupplier):
+    supplier: Annotated[str, Lookup()] = "a2"
+    hotel: Annotated[str, Searchable(HotelSelector)] = "h2"
+
+    def options(self, field_name):
+        if field_name == "supplier":
+            return [Option(value="a1", label="Acme Tools"), Option(value="a2", label="Acme Paint")]
+        return []
+
+    def label(self, field_name, id):
+        return "Acme Paint" if field_name == "supplier" and id == "a2" else None
+
+
+@ui("secured-form")
+@title("Secured")
+class SecuredForm:
+    name: str | None = None
+    internal_notes: Annotated[str | None, EyesOnly(roles=("staff",))] = None
+    discount: Annotated[float, ReadOnlyUnless(roles=("manager",))] = 0.0
+    approved: Annotated[bool, DisabledUnless(permissions=("approve",))] = False
+
+    @button()
+    @disabled_unless(roles=("manager",))
+    def close(self):
+        return Message("Closed")
+
+
+class EditableGuest:
+    id: Annotated[str, ReadOnly()] = ""
+    name: str = ""
+    age: int = 0
+
+
+@ui("editable-grid")
+@title("Editable grid")
+class EditableGridForm:
+    guests: Annotated[list[EditableGuest], InlineEditing()] = None  # type: ignore[assignment]
+
+    def __init__(self):
+        g = EditableGuest()
+        g.id, g.name, g.age = "g1", "Alice", 34
+        self.guests = [g]
+
+    @button()
+    def save(self):
+        g = self.guests[0]
+        return Message(f"{len(self.guests)} guests: {g.name}/{g.age}")
+
+
+@app("Grouped App", variant="TILES")
+class ExplicitVariantApp:
+    @menu_item("Things")
+    def t1(self) -> "Things":
+        return Things()
+
+
+@app("Grouped Auto App")
+class GroupedApp:
+    @menu_item("Products", group="Catalog")
+    def p1(self) -> "Things":
+        return Things()
+
+    @menu_item("Prices", group="Catalog")
+    def p2(self) -> "Things":
+        return Things()
+
+    @menu_item("Home")
+    def h1(self) -> "Things":
+        return Things()
+
+
 # A SEMANTIC annotation: one domain word bundling framework configuration — the Python analogue
 # of Java's composed annotations is simply a reusable Annotated alias.
 ImporteTotal = Annotated[float, Money(), Label("Importe total")]
@@ -667,6 +757,71 @@ def test_micro_frontend_component_mounts_a_remote_island():
 def test_app_metadata_carries_the_sse_chat_url():
     inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
     assert '"sseUrl": "/ai/chat"' in render(inc)
+
+
+def test_preexisting_lookup_and_searchable_values_resolve_their_labels():
+    inc = handler().handle(RunActionRq(route="booking-form", consumed_route="booking-form"))
+    assert len(inc.fragments) == 1
+    data = inc.fragments[0].data
+    # Lookup() resolves via the view's LookupLabelSupplier / options…
+    assert data["supplier-label"] == "Acme Paint"
+    # …Searchable() asks its selector.
+    assert data["hotel-label"] == "Marina"
+
+
+def test_permission_gates_hide_readonly_and_disable_without_identity():
+    j = render(handler().handle(RunActionRq(route="secured-form", consumed_route="secured-form")))
+
+    # No identity: EyesOnly() hides, ReadOnlyUnless() locks, DisabledUnless() disables.
+    assert "internalNotes" not in j
+    assert '"label": "Discount", "stereotype": "regular", "treeLeavesOnly": false, "required": false, "readOnly": true' in j
+    assert '"fieldId": "approved"' in j
+    assert '"fieldName": "approved", "fieldAttribute": "disabled"' in j
+    assert '"actionId": "close"' in j and '"disabled": true' in j
+
+
+def test_permission_gates_open_up_for_an_authorized_identity():
+    h = SyncHandler(
+        MateuRegistry(MODULE),
+        identity_provider=lambda: Identity(roles=("staff", "manager"), permissions=("approve",)),
+    )
+    j = render(h.handle(RunActionRq(route="secured-form", consumed_route="secured-form")))
+
+    assert "internalNotes" in j
+    assert '"fieldName": "approved", "fieldAttribute": "disabled"' not in j
+    assert '"disabled": true' not in j
+
+
+def test_inline_editing_grid_field_emits_editable_cells_and_rows_bind_back():
+    j = render(handler().handle(RunActionRq(route="editable-grid", consumed_route="editable-grid")))
+    # Cells edit in place, ReadOnly() row columns stay display-only.
+    assert '"id": "name", "label": "Name", "type": "GridColumn", "dataType": "string", "stereotype": null, "editable": true, "editorType": "text"' in j
+    assert '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": null, "editable": false' in j
+
+    # The edited rows travel in the form state and bind back into list[EditableGuest].
+    inc = handler().handle(
+        RunActionRq(
+            action_id="save",
+            route="editable-grid",
+            server_side_type=_name(EditableGridForm),
+            component_state={"guests": [{"id": "g1", "name": "Alice B.", "age": 35}]},
+        )
+    )
+    assert inc.messages[0].text == "1 guests: Alice B./35"
+
+
+def test_app_variant_follows_the_java_auto_decision_table():
+    # Flat leaf menu → TABS.
+    assert '"variant": "TABS"' in render(handler().handle(RunActionRq(server_side_type=_name(TestApp))))
+
+    # Grouped menu (folders, ≤7 top-level) → MENU_ON_TOP, entries nested as submenus.
+    grouped = render(handler().handle(RunActionRq(server_side_type=_name(GroupedApp))))
+    assert '"variant": "MENU_ON_TOP"' in grouped
+    assert '"label": "Catalog"' in grouped
+    assert '"label": "Prices"' in grouped
+
+    # An explicit @app(variant=...) always wins.
+    assert '"variant": "TILES"' in render(handler().handle(RunActionRq(server_side_type=_name(ExplicitVariantApp))))
 
 
 def test_semantic_annotated_alias_bundles_framework_configuration():
