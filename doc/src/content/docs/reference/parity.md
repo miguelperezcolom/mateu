@@ -32,25 +32,31 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | 🟡 | 🟡 |
 | — typed `DateRange`/`NumberRange`/`Set` filter fields, repository criteria | ✅ | — | — |
 | Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | — | — |
-| Lookup fields (`@Searchable` selector dialogs) | ✅ | — | — |
-| Editable grids / inline CRUD editing | ✅ | — | — |
+| Lookup fields (`@Lookup` remote combobox + `search-<field>` action) | ✅ | ✅ | ✅ |
+| — `@Searchable` full selector dialogs | ✅ | — | — |
+| Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
+| Dialog/Drawer overlays from actions + `closeModal`/`dispatchEvent` | ✅ | ✅ | ✅ |
+| Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Component adapters, federation/microfrontends, SSE/AI chat | ✅ | — | — |
-| Hero search archetype | ✅ | 🟡 | 🟡 |
-
-🟡 Hero search: the HeroSection component is emitted, but the full archetype (facet bar wired to a
-listing) is Java-only.
+| Hero search archetype | ✅ | ✅ | ✅ |
 
 🟡 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
 (enums → multi-select IN, temporals → date ranges, `[RangeFilter]`/`RangeFilter()` numerics →
 min–max) and the values are applied in-memory over `Fetch()`; Java's pluggable repository layer
 (`find/4` criteria for DB pushdown) and declarative-Listing typed filters have no equivalent yet.
 
-**Recent .NET/Python parity gains (2026-07-10)**: CRUD search now **sorts and paginates**
-(`Pageable.sort` + page/size over the filtered rows, real `totalElements`) instead of returning one
-full page — Python verified with tests, .NET a mechanical mirror. Actions can now **return page
-banners, a `/route` (NavigateTo) or a UICommand** (not just a `Message`). Still Java-only on both
-backends: Drawer/Dialog overlays, the client-side rules engine, `@InlineEditing`/`@OnRowSelected`,
-`@Zones`/`@FoldedLayout`/`@Toc`, component adapters and semantic annotations.
+**Recent .NET/Python parity gains (2026-07-11)**: inline CRUD editing
+(`[InlineEditing]`/`@inline_editing` — editable columns with typed in-place editors +
+the update-row action rebuilding and saving the row), lookup fields (`[Lookup]`/`Lookup()` →
+combobox + remoteCoordinates, the handler answers `search-<field>` from the options supplier,
+filtered and paged), Dialog/Drawer overlays returned from actions (Add fragments on the initiator,
+with `CloseModal`/`DispatchEvent` command factories carrying `{eventName, detail}`), `[Toc]`/`@toc`
+and the full HeroSearch archetype (hero header + cards listing, starts empty). Earlier (2026-07-10):
+CRUD search sorts and paginates; actions can return page banners, a `/route` or a UICommand.
+Still Java-only on both backends: the client-side rules engine, `@OnRowSelected` and typed
+`DateRange`/`NumberRange`/`Set` filters (both need grid form fields / declarative Listings, which
+the ports don't map yet), `@Zones`/`@FoldedLayout`, tree lookup selectors (need `Selector`
+listings), component adapters and semantic annotations.
 
 ## Renderers
 
