@@ -123,9 +123,13 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     doSearch({});
   };
 
-  const changePage = (actionId: 'prevPage' | 'nextPage') => {
+  // Pagination is a SEARCH with the new page in the component state (the same idiom the web
+  // renderer and toggleSort use) — there is no nextPage/prevPage server action.
+  const changePage = (delta: number) => {
     controller.seedSearchState();
-    void controller.runAction(actionId);
+    const current = Number(controller.currentComponentState['page'] ?? 0);
+    controller.currentComponentState['page'] = Math.max(0, current + delta);
+    void controller.runAction('search');
   };
 
   // Sorting: header tap cycles ascending → descending → none; state shape is
@@ -370,7 +374,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         <View style={styles.paginationBar}>
           <TouchableOpacity
             style={[styles.btnDefault, pageNumber <= 0 && styles.btnDisabled]}
-            onPress={() => pageNumber > 0 && changePage('prevPage')}
+            onPress={() => pageNumber > 0 && changePage(-1)}
             disabled={pageNumber <= 0}
           >
             <Text style={styles.btnDefaultText}>← Prev</Text>
@@ -380,7 +384,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           </Text>
           <TouchableOpacity
             style={[styles.btnDefault, (pageNumber + 1) * pageSize >= totalElements && styles.btnDisabled]}
-            onPress={() => (pageNumber + 1) * pageSize < totalElements && changePage('nextPage')}
+            onPress={() => (pageNumber + 1) * pageSize < totalElements && changePage(1)}
             disabled={(pageNumber + 1) * pageSize >= totalElements}
           >
             <Text style={styles.btnDefaultText}>Next →</Text>
