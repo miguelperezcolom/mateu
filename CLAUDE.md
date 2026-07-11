@@ -32,7 +32,10 @@ backend/dotnet/   ← C# server-side (Mateu.NET) — ASP.NET reflection mapper e
 backend/python/   ← Python server-side — FastAPI + Pydantic reflection mapper emitting the same
                     /mateu/v3/sync wire model. Field modifiers via Annotated[...], class/method
                     features via decorators. See backend/python/DESIGN.md + README.md.
-                    (backend/go is still a placeholder.)
+                    (A Go port was CONSIDERED AND DISCARDED 2026-07-11: struct tags can't carry
+                    the declarative surface with acceptable DX and a 4th lockstep port isn't
+                    worth it without demand — if it ever comes back, start as a fluent/builder
+                    SDK emitting the wire DTOs, not a reflective mapper.)
 
 frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo
   libs/mateu/             ← Shared lib: API client, domain state, base web-components
