@@ -29,7 +29,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | Capture fields (`@Signature`, `@PhotoCapture`) | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
-| Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | 🟡 | 🟡 |
+| Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | ✅ | ✅ |
 | Declarative listings (`Listing<Filters, Row>`) | ✅ | ✅ | ✅ |
 | — typed `DateRange`/`NumberRange`/`Set` filter fields | ✅ | ✅ | ✅ |
 | — DB pushdown (override `find`: one query, real total, in-memory pipeline skipped) | ✅ | ✅ | ✅ |
@@ -48,10 +48,11 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Component adapters | ✅ | 🟡 wrapper idiom | 🟡 wrapper idiom |
 | Hero search archetype | ✅ | ✅ | ✅ |
 
-🟡 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
+Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
 (enums → multi-select IN, temporals → date ranges, `[RangeFilter]`/`RangeFilter()` numerics →
-min–max) and the values are applied in-memory over `Fetch()`; Java's pluggable repository layer
-(`find/4` criteria for DB pushdown) and declarative-Listing typed filters have no equivalent yet.
+min–max), applied in-memory over `Fetch()` by default — same as Java's default repository — or
+pushed to the database by overriding `Find`/`find` (the filters arrive as the raw component state
+rather than Java's typed `FilterCriterion` objects; a contract difference, not a capability gap).
 
 **Recent .NET/Python parity gains (2026-07-11)**: inline CRUD editing
 (`[InlineEditing]`/`@inline_editing` — editable columns with typed in-place editors +
