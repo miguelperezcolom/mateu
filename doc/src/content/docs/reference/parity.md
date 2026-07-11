@@ -30,7 +30,9 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Capture fields (`@Signature`, `@PhotoCapture`) | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
 | Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | 🟡 | 🟡 |
-| — typed `DateRange`/`NumberRange`/`Set` filter fields, repository criteria | ✅ | — | — |
+| Declarative listings (`Listing<Filters, Row>`) | ✅ | ✅ | ✅ |
+| — typed `DateRange`/`NumberRange`/`Set` filter fields | ✅ | ✅ | ✅ |
+| — repository criteria (`find/4` DB pushdown) | ✅ | — | — |
 | Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | — | — |
 | Lookup fields (`@Lookup` remote combobox + `search-<field>` action) | ✅ | ✅ | ✅ |
 | — `@Searchable` full selector dialogs | ✅ | — | — |
@@ -60,10 +62,11 @@ grid form fields (list-of-rows properties → dataType `array` + stereotype `gri
 `[OnRowSelected]`/`OnRowSelected()` injecting the clicked row into the handler method, and the
 `[Zone]`/`@zones` + `[FoldedLayout]`/`@folded_layout` multi-column layouts. Earlier (2026-07-10):
 CRUD search sorts and paginates; actions can return page banners, a `/route` or a UICommand.
-Still Java-only on both backends: `@Searchable` selector dialogs, typed
-`DateRange`/`NumberRange`/`Set` filters and tree lookup selectors (all need declarative
-Listings/`Selector`, which the ports don't map yet), component adapters, semantic annotations and
-federation/SSE.
+Declarative listings (`Listing<Filters, Row>` / `Listing[F, R]`) landed the same day with the
+typed `DateRange`/`NumberRange`/`Set` filters and the `_from`/`_to` state assembly.
+Still Java-only on both backends: `@Searchable` selector dialogs and tree lookup selectors (the
+`Selector` contract on top of Listing), repository criteria (DB pushdown), component adapters,
+semantic annotations and federation/SSE.
 
 ## Renderers
 
