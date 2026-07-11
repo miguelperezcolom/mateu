@@ -42,7 +42,9 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
 | Grid form fields + `@OnRowSelected` row-click actions | ✅ | ✅ | ✅ |
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
-| Component adapters, federation/microfrontends, SSE/AI chat | ✅ | — | — |
+| AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
+| Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
+| Component adapters, federation/microfrontends | ✅ | — | — |
 | Hero search archetype | ✅ | ✅ | ✅ |
 
 🟡 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
@@ -67,8 +69,12 @@ typed `DateRange`/`NumberRange`/`Set` filters, the `_from`/`_to` state assembly,
 `Selector` contract on top: `@Searchable` fields open their selector listing in a modal
 (`codesearch-<field>` → Dialog; row pick → value-changed/data-changed/close-modal-requested),
 including TREE-shaped selectors (`gridLayout()` override → `"tree"`, rows carrying nested
-`children` arrays). Still Java-only on both backends: repository criteria (DB pushdown),
-component adapters, semantic annotations and federation/SSE.
+`children` arrays). Semantic annotations and the AI chat landed too: .NET resolves composed
+attributes transitively (`Meta.Find`, attributes decorating attribute classes) while in Python a
+reusable `Annotated` alias needs no machinery at all; `[AI]`/`@ai` emit `sseUrl` and both manuals
+document the SSE endpoint contract (POST `{message, sessionId, menuContext?}` → `data:` chunks).
+Still Java-only on both backends: repository criteria (DB pushdown), component adapters and
+federation/microfrontends.
 
 ## Renderers
 

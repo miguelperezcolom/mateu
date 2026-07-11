@@ -2,7 +2,7 @@ namespace Mateu.Uidl;
 
 // ── Field rendering modes ──────────────────────────────────────────────────────
 /// <summary>Groups the following fields under a tab (instead of a section).</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class TabAttribute(string name) : Attribute
 {
     public string Name { get; } = name;
@@ -20,15 +20,15 @@ public sealed class StereotypeAttribute(string value) : Attribute
 }
 
 /// <summary>Renders the field as a multi-line text area.</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class MultilineAttribute : Attribute;
 
 /// <summary>Renders the field as a password input.</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class PasswordAttribute : Attribute;
 
 /// <summary>Renders a numeric field as a formatted currency amount.</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class MoneyAttribute : Attribute;
 
 /// <summary>Renders the field (or every field of the class) as read-only plain text.</summary>
@@ -37,7 +37,7 @@ public sealed class PlainTextAttribute : Attribute;
 
 /// <summary>Renders an enum field as radio buttons instead of the default dropdown, regardless of
 /// how many constants the enum has. (C# analogue of Java's @UseRadioButtons.)</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class UseRadioButtonsAttribute : Attribute;
 
 /// <summary>A remote, search-as-you-type reference field: renders a combo box whose options come
@@ -45,14 +45,14 @@ public sealed class UseRadioButtonsAttribute : Attribute;
 /// <c>search-&lt;fieldId&gt;</c> action from its <see cref="IOptionsSupplier"/>, filtered by the
 /// typed text. Use it when the option set is too large to embed in the form.
 /// (C# analogue of Java's @Lookup.)</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class LookupAttribute : Attribute;
 
 /// <summary>A reference field picked through a full selector DIALOG instead of a combo: clicking
 /// the field fires <c>codesearch-&lt;fieldId&gt;</c>, which opens the given selector — a Listing
 /// implementing ISelector — in a modal; selecting a row writes its (id, label) back into the
 /// field and closes the dialog. (C# analogue of Java's @Searchable.)</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class SearchableAttribute(Type selector) : Attribute
 {
     /// <summary>The Listing + ISelector view that backs the dialog.</summary>
@@ -62,7 +62,7 @@ public sealed class SearchableAttribute(Type selector) : Attribute
 /// <summary>Hides the field while the client-side expression is truthy, re-evaluated on every
 /// state change without a server round-trip — e.g. <c>[Hidden("!state.special")]</c> shows the
 /// field only when Special is set. (C# analogue of Java's @Hidden.)</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class HiddenAttribute(string value) : Attribute
 {
     /// <summary>Client-side expression over <c>state</c>; truthy → the field hides.</summary>
@@ -71,7 +71,7 @@ public sealed class HiddenAttribute(string value) : Attribute
 
 /// <summary>Renders the field permanently disabled (visible but not editable).
 /// (C# analogue of Java's @Disabled.)</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class DisabledAttribute : Attribute;
 
 /// <summary>On a grid (list-of-rows) property: runs the named method when the user selects
@@ -79,7 +79,7 @@ public sealed class DisabledAttribute : Attribute;
 /// Works on read-only grids, so it is the way to build master/detail. Optional Shortcut (e.g.
 /// "ctrl+shift") lets the base combo plus a digit select the row by position.
 /// (C# analogue of Java's @OnRowSelected.)</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class OnRowSelectedAttribute(string value) : Attribute
 {
     /// <summary>The method to run (its camelCase name becomes the action id).</summary>
@@ -123,7 +123,7 @@ public interface IRuleSupplier
 /// interpolated client-side, so the link follows the value as the user edits the form. For a
 /// programmatic alternative implement <see cref="ILinkSupplier"/> on the view class (it takes
 /// precedence over this attribute). (C# analogue of Java's @LinkTo.)</summary>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class LinkToAttribute(string href) : Attribute
 {
     /// <summary>Destination URL or route. Supports <c>${...}</c> state interpolation.</summary>
@@ -141,14 +141,14 @@ public sealed class LinkToAttribute(string href) : Attribute
 
 // ── Page-level features ────────────────────────────────────────────────────────
 /// <summary>A KPI card in the page header. Put on a method returning the value.</summary>
-[AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = true)]
 public sealed class KpiAttribute(string title) : Attribute
 {
     public string Title { get; } = title;
 }
 
 /// <summary>A floating action button. Put on a method (the action).</summary>
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class FabAttribute(string icon, string? label = null, int order = 0) : Attribute
 {
     public string Icon { get; } = icon;
@@ -157,7 +157,7 @@ public sealed class FabAttribute(string icon, string? label = null, int order = 
 }
 
 /// <summary>Binds a keyboard shortcut to a [Button]/action method, e.g. "ctrl+s".</summary>
-[AttributeUsage(AttributeTargets.Method)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class ShortcutAttribute(string keys) : Attribute
 {
     public string Keys { get; } = keys;

@@ -328,6 +328,51 @@ class CheckIn:
         return []
 ```
 
+## Semantic annotations
+
+The Python analogue of Java's composed annotations needs **no framework machinery at all**: a
+reusable `Annotated` alias IS the semantic annotation — one domain word bundling markers —
+
+```python
+ImporteTotal = Annotated[float, Money(), Label("Importe total")]
+
+@ui("/invoice")
+class Invoice:
+    total: ImporteTotal = 0.0   # behaves as Money() + Label(...) directly
+```
+
+and class/method decorators compose as plain functions:
+
+```python
+def pantalla_compacta(cls):
+    return compact(read_only(cls))
+```
+
+## AI chat (SSE)
+
+`@ai(sse="/ai/chat")` on the `@app` class emits `sseUrl` in the app metadata; every renderer then
+shows the floating AI chat button. The endpoint is yours to implement — the chat panel POSTs
+
+```json
+{ "message": "user text", "sessionId": "…", "menuContext": "… (first message only)" }
+```
+
+with `Accept: text/event-stream` (plus `Authorization: Bearer …` and `X-Session-Id` when
+available) and renders the streamed `data:` lines as the reply. Special `data:` payloads: a JSON
+`{"event": "...", "detail": {...}}` is re-dispatched on the client event bus (`agent-error` shows
+an error bubble), and a token-usage JSON updates the usage footer. A minimal FastAPI endpoint:
+
+```python
+from fastapi.responses import StreamingResponse
+
+@fastapi_app.post("/ai/chat")
+async def chat(rq: dict):
+    async def stream():
+        async for chunk in my_agent.stream(rq["message"], rq.get("sessionId")):
+            yield f"data: {chunk}\n\n"
+    return StreamingResponse(stream(), media_type="text/event-stream")
+```
+
 ## Python 3.14+ note
 
 Under [PEP 649](https://peps.python.org/pep-0649/) annotations evaluate lazily and are no longer

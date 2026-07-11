@@ -16,7 +16,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     {
         var triggers = type.GetCustomAttributes<SubscribeToAttribute>()
             .Select(s => (object)new CustomTriggerDto(s.Event, s.Action)).ToList();
-        return (triggers, type.GetCustomAttribute<EmitsAttribute>()?.Name);
+        return (triggers, type.Find<EmitsAttribute>()?.Name);
     }
 
     /// <summary>Builds the App shell (header + menu) from an [App] class's [MenuItem] methods.</summary>
@@ -24,7 +24,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     {
         var app = appType.GetCustomAttribute<AppAttribute>()!;
         var items = appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.GetCustomAttribute<MenuItemAttribute>() != null)
+            .Where(m => m.Find<MenuItemAttribute>() != null)
             .Select(MapMenuItem).ToList();
         var variant = items.Count > 7 ? "HAMBURGUER_MENU" : "MENU_ON_LEFT";
         var home = items.FirstOrDefault();
@@ -34,6 +34,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             HomeConsumedRoute = home?.ConsumedRoute ?? "",
             HomeServerSideType = home?.ServerSideType ?? "",
             ServerSideType = appType.FullName!,
+            SseUrl = appType.Find<AIAttribute>()?.Sse,
             ContextSelectors = MapContextSelectors(appType),
         };
         return new ClientSideComponentDto(meta, "ux_main_app", [], null, null, null);
@@ -46,7 +47,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var selectors = new List<AppContextSelectorDto>();
         foreach (var property in appType.GetProperties())
         {
-            var attribute = property.GetCustomAttribute<AppContextAttribute>();
+            var attribute = property.Find<AppContextAttribute>();
             if (attribute is null || !property.PropertyType.IsEnum) continue;
             var options = Enum.GetNames(property.PropertyType)
                 .Select(name => new OptionDto(name, Naming.Humanize(name)))
@@ -58,7 +59,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         }
         foreach (var method in appType.GetMethods())
         {
-            var attribute = method.GetCustomAttribute<AppContextAttribute>();
+            var attribute = method.Find<AppContextAttribute>();
             if (attribute is null) continue;
             var options = new List<OptionDto>();
             if (method.GetParameters().Length == 0
@@ -82,8 +83,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     {
         var viewType = m.ReturnType;
         var route = "/" + (viewType.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
-        var label = m.GetCustomAttribute<MenuItemAttribute>()?.Label
-                    ?? viewType.GetCustomAttribute<TitleAttribute>()?.Value
+        var label = m.Find<MenuItemAttribute>()?.Label
+                    ?? viewType.Find<TitleAttribute>()?.Value
                     ?? Naming.Humanize(m.Name);
         return new MenuItemDto(T(label), route, viewType.FullName!) { ConsumedRoute = route };
     }
@@ -94,10 +95,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         if (crudElement is not null) return MapCrud(type, crudElement, route, instance);
         if (ListingTypes(type) is { } listing) return MapListing(type, listing.Filters, listing.Row, route);
 
-        var title = T(type.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
+        var title = T(type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
 
         var buttons = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.GetCustomAttribute<ButtonAttribute>() != null)
+            .Where(m => m.Find<ButtonAttribute>() != null)
             .Select(MapButton).ToList();
         var fabs = Fabs(type);
         // Both [Button] and [Fab] methods are server-side actions the renderer can invoke.
@@ -105,7 +106,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             .Concat(fabs.Select(f => new ActionDto(f.ActionId))).ToList();
         // [OnRowSelected] grid actions must be advertised or the renderer drops the row click.
         actions.AddRange(EditableProperties(type)
-            .Select(p => p.GetCustomAttribute<OnRowSelectedAttribute>())
+            .Select(p => p.Find<OnRowSelectedAttribute>())
             .Where(a => a is not null)
             .Select(a => new ActionDto(Naming.CamelCase(a!.Value), ValidationRequired: false))
             .Where(a => actions.All(x => x.Id != a.Id)));
@@ -124,14 +125,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         else
         {
             // A [ReadOnly] class renders as a display view (fields read-only, tabs inference may apply).
-            content = FormCards(type, instance, type.GetCustomAttribute<ReadOnlyAttribute>() != null);
+            content = FormCards(type, instance, type.Find<ReadOnlyAttribute>() != null);
         }
 
-        var compact = type.GetCustomAttribute<CompactAttribute>() != null;
+        var compact = type.Find<CompactAttribute>() != null;
         var pageMeta = new PageMetadataDto(
-            title, title, OptT(type.GetCustomAttribute<SubtitleAttribute>()?.Value), [], buttons)
+            title, title, OptT(type.Find<SubtitleAttribute>()?.Value), [], buttons)
         {
-            Toc = type.GetCustomAttribute<TocAttribute>()?.Value,
+            Toc = type.Find<TocAttribute>()?.Value,
             Banners = Banners(type, instance),
             Badges = Badges(type, instance),
             Kpis = Kpis(type, instance),
@@ -146,7 +147,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             [page], new Dictionary<string, object?>(), actions, triggers, null, null, null)
         {
             EmitsName = emits,
-            ConfirmOnNavigationIfDirty = type.GetCustomAttribute<ConfirmOnNavigationIfDirtyAttribute>() != null,
+            ConfirmOnNavigationIfDirty = type.Find<ConfirmOnNavigationIfDirtyAttribute>() != null,
             Rules = MapRules(type, instance),
         };
     }
@@ -160,9 +161,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         foreach (var p in EditableProperties(type))
         {
             var fieldId = Naming.CamelCase(p.Name);
-            if (p.GetCustomAttribute<DisabledAttribute>() != null)
+            if (p.Find<DisabledAttribute>() != null)
                 rules.Add(new RuleDto("true", "SetDataValue", fieldId, "disabled", null, "true", "Continue", null));
-            if (p.GetCustomAttribute<HiddenAttribute>() is { Value.Length: > 0 } hidden)
+            if (p.Find<HiddenAttribute>() is { Value.Length: > 0 } hidden)
                 rules.Add(new RuleDto("true", "SetDataValue", fieldId, "hidden", null, hidden.Value, "Continue", null));
         }
         if (instance is IRuleSupplier supplier)
@@ -175,10 +176,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
 
     private static List<BannerDto> Banners(Type type, object instance) =>
         type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.GetCustomAttribute<BannerAttribute>() != null)
+            .Where(m => m.Find<BannerAttribute>() != null)
             .Select(m =>
             {
-                var a = m.GetCustomAttribute<BannerAttribute>()!;
+                var a = m.Find<BannerAttribute>()!;
                 var desc = m.ReturnType == typeof(string) ? m.Invoke(instance, [])?.ToString() : null;
                 return new BannerDto(a.Theme.ToString().ToUpperInvariant(), a.Title, desc);
             })
@@ -186,8 +187,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
 
     private static List<BadgeDto> Badges(Type type, object instance) =>
         EditableProperties(type)
-            .Where(p => p.GetCustomAttribute<HeaderBadgeAttribute>() != null)
-            .Select(p => (text: p.GetValue(instance)?.ToString(), color: p.GetCustomAttribute<HeaderBadgeAttribute>()!.Color))
+            .Where(p => p.Find<HeaderBadgeAttribute>() != null)
+            .Select(p => (text: p.GetValue(instance)?.ToString(), color: p.Find<HeaderBadgeAttribute>()!.Color))
             .Where(x => !string.IsNullOrWhiteSpace(x.text))
             .Select(x => new BadgeDto(x.text!, x.color))
             .ToList();
@@ -197,13 +198,13 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     public ServerSideComponentDto MapWizard(Type type, object instance, string route, int step)
     {
         var stepProps = EditableProperties(type)
-            .Select(p => (p, step: p.GetCustomAttribute<StepAttribute>()?.Step ?? 1))
+            .Select(p => (p, step: p.Find<StepAttribute>()?.Step ?? 1))
             .ToList();
         var total = stepProps.Count == 0 ? 1 : stepProps.Max(x => x.step);
         var current = Math.Clamp(step, 1, total);
         var fields = stepProps.Where(x => x.step == current).Select(x => MapField(x.p, instance)).ToList();
 
-        var title = type.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
+        var title = type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
         var titleText = Client(new TextMetadataDto(title), null, []);
         var progress = Client(new ProgressBarMetadataDto((double)current / total), "fieldId", []);
         var card = Client(new CardMetadataDto(Client(new FormLayoutMetadataDto(), null, FormRows(fields))), "fieldId", []);
@@ -222,7 +223,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     /// <summary>Detail/edit/new form for a single CRUD entity, with a mode-specific toolbar.</summary>
     public ServerSideComponentDto MapEntityForm(Type crudType, Type element, object entity, string mode, string route)
     {
-        var title = crudType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(element.Name);
+        var title = crudType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(element.Name);
         IReadOnlyList<ButtonDto> toolbar = mode switch
         {
             "view" => [new("Back to list", "cancel-view"), new("Edit", "edit"), new("Add another", "new")],
@@ -248,7 +249,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     private List<ComponentDto> FormCards(Type type, object instance, bool readOnly = false)
     {
         var props = EditableProperties(type).ToList();
-        if (props.Any(p => p.GetCustomAttribute<TabAttribute>() != null))
+        if (props.Any(p => p.Find<TabAttribute>() != null))
             return [TabLayout(type, props, instance, readOnly)];
 
         var sections = new List<(string? Title, List<PropertyInfo> Props)>();
@@ -257,7 +258,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var currentZone = "";
         foreach (var p in props)
         {
-            if (p.GetCustomAttribute<SectionAttribute>() is { } sec)
+            if (p.Find<SectionAttribute>() is { } sec)
             {
                 current = sec.Caption;
                 currentZone = sec.Zone;
@@ -276,7 +277,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             return [BuildZones(zones, sections, sectionZones, instance, readOnly)];
 
         // [FoldedLayout]: the section cards side by side in one horizontal row (zones win).
-        if (type.GetCustomAttribute<FoldedLayoutAttribute>() != null && sections.Count > 1)
+        if (type.Find<FoldedLayoutAttribute>() != null && sections.Count > 1)
             return [new ClientSideComponentDto(
                 new HorizontalLayoutMetadataDto { Spacing = true }, null,
                 sections.Select(s => (ComponentDto)SectionCard(
@@ -342,7 +343,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var current = "Tab";
         foreach (var p in props)
         {
-            var attr = p.GetCustomAttribute<TabAttribute>();
+            var attr = p.Find<TabAttribute>();
             if (attr?.Name is { } n) current = n;
             if (tabs.Count == 0 || tabs[^1].name != current)
                 // The field that opens a group carries its [Tab(Open=...)] flag (mirrors the Java
@@ -396,17 +397,17 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     /// <summary>KPI cards from [Kpi] methods (the title is the attribute, the value is the call result).</summary>
     private static List<KpiDto> Kpis(Type type, object instance) =>
         type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.GetCustomAttribute<KpiAttribute>() != null && m.GetParameters().Length == 0)
-            .Select(m => new KpiDto(m.GetCustomAttribute<KpiAttribute>()!.Title, m.Invoke(instance, [])?.ToString() ?? ""))
+            .Where(m => m.Find<KpiAttribute>() != null && m.GetParameters().Length == 0)
+            .Select(m => new KpiDto(m.Find<KpiAttribute>()!.Title, m.Invoke(instance, [])?.ToString() ?? ""))
             .ToList();
 
     /// <summary>Floating action buttons from [Fab] methods (the method name is the action id).</summary>
     private static List<FabDto> Fabs(Type type) =>
         type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.GetCustomAttribute<FabAttribute>() != null)
+            .Where(m => m.Find<FabAttribute>() != null)
             .Select(m =>
             {
-                var a = m.GetCustomAttribute<FabAttribute>()!;
+                var a = m.Find<FabAttribute>()!;
                 return new FabDto(a.Icon, Naming.CamelCase(m.Name)) { Label = a.Label, Order = a.Order };
             })
             .OrderBy(f => f.Order)
@@ -451,14 +452,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
 
     internal ServerSideComponentDto MapListing(Type viewType, Type filters, Type row, string route)
     {
-        var title = viewType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
+        var title = viewType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
         // A self-referential children list makes rows hierarchical (GridLayout "tree"); it rides
         // inside the row dicts, never as a column.
         var columns = EditableProperties(row)
             .Where(p => GridRowType(p) is null)
             .Select(p => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(p.Name),
-                p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
+                p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
             {
                 DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
             }))
@@ -504,7 +505,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         EditableProperties(filters)
             .Select(p =>
             {
-                var label = p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name);
+                var label = p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name);
                 var id = Naming.CamelCase(p.Name);
                 var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
                 if (t == typeof(DateRange))
@@ -531,17 +532,17 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     {
         // HeroSearch: a centered hero header over the listing, results as cards, no auto-search.
         var hero = (instance ?? Activator.CreateInstance(viewType)) as IHeroSearch;
-        var title = viewType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
+        var title = viewType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
         // Class-level [InlineEditing]: every data column (except [ReadOnly] ones) is edited in
         // place; each committed cell dispatches the crud's update-row action (Java parity).
-        var inlineEditing = viewType.GetCustomAttribute<InlineEditingAttribute>() != null;
+        var inlineEditing = viewType.Find<InlineEditingAttribute>() != null;
         var columns = EditableProperties(element)
             .Select(p =>
             {
-                var editable = inlineEditing && p.GetCustomAttribute<ReadOnlyAttribute>() == null;
+                var editable = inlineEditing && p.Find<ReadOnlyAttribute>() == null;
                 return new GridColumnDto(new GridColumnMetaDto(
                     Naming.CamelCase(p.Name),
-                    p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
+                    p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
                 {
                     Editable = editable,
                     EditorType = editable ? EditorTypeOf(p) : null,
@@ -585,12 +586,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
                         || IsNumeric(x.Type) || IsTemporal(x.Type))
             .Select(x =>
             {
-                var label = x.Property.GetCustomAttribute<LabelAttribute>()?.Value
+                var label = x.Property.Find<LabelAttribute>()?.Value
                             ?? Naming.Humanize(x.Property.Name);
                 var stereotype =
                     x.Type.IsEnum ? "multiSelect"
                     : IsTemporal(x.Type) ? "dateRange"
-                    : IsNumeric(x.Type) && x.Property.GetCustomAttribute<RangeFilterAttribute>() != null ? "numberRange"
+                    : IsNumeric(x.Type) && x.Property.Find<RangeFilterAttribute>() != null ? "numberRange"
                     : "regular";
                 var options = x.Type.IsEnum
                     ? Enum.GetNames(x.Type).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList()
@@ -610,9 +611,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     private static string EditorTypeOf(PropertyInfo p)
     {
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
-        if (p.GetCustomAttribute<LookupAttribute>() != null) return "lookup";
+        if (p.Find<LookupAttribute>() != null) return "lookup";
         if (t.IsEnum) return "select";
-        if (p.GetCustomAttribute<MoneyAttribute>() != null) return "number";
+        if (p.Find<MoneyAttribute>() != null) return "number";
         if (t == typeof(bool)) return "boolean";
         if (t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)) return "integer";
         if (IsNumeric(t)) return "number";
@@ -654,7 +655,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var columns = EditableProperties(rowType)
             .Select(c => new GridColumnDto(new GridColumnMetaDto(
                 Naming.CamelCase(c.Name),
-                c.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(c.Name))
+                c.Find<LabelAttribute>()?.Value ?? Naming.Humanize(c.Name))
             {
                 DataType = InferDataType(Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType, c),
             }))
@@ -668,9 +669,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
                     row[Naming.CamelCase(c.Name)] = CellValueOf(c.GetValue(item));
                 rows.Add(row);
             }
-        var onRow = p.GetCustomAttribute<OnRowSelectedAttribute>();
+        var onRow = p.Find<OnRowSelectedAttribute>();
         var meta = new FormFieldMetadataDto(fieldId, "array", T(
-            p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
+            p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
         {
             Stereotype = "grid",
             ReadOnly = readOnly,
@@ -696,8 +697,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     {
         var fieldId = Naming.CamelCase(p.Name);
         if (GridRowType(p) is { } rowType) return MapGridField(p, rowType, instance, readOnly);
-        var label = T(p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
-        var required = p.GetCustomAttribute<RequiredAttribute>() != null;
+        var label = T(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
+        var required = p.Find<RequiredAttribute>() != null;
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
         // an IOptionsSupplier view wins (its options may carry Children → tree selects);
         // enums keep contributing their constants
@@ -710,9 +711,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var value = p.GetValue(instance);
 
         // A [PlainText] field — or any field of a [PlainText] class — renders as read-only text.
-        var plainText = p.GetCustomAttribute<PlainTextAttribute>() != null
-                        || p.DeclaringType?.GetCustomAttribute<PlainTextAttribute>() != null;
-        var multiline = p.GetCustomAttribute<MultilineAttribute>() != null;
+        var plainText = p.Find<PlainTextAttribute>() != null
+                        || p.DeclaringType?.Find<PlainTextAttribute>() != null;
+        var multiline = p.Find<MultilineAttribute>() != null;
         var stereotype = StereotypeOf(p, plainText, multiline);
 
         var meta = new FormFieldMetadataDto(fieldId, InferDataType(t, p), label)
@@ -722,12 +723,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             ReadOnly = readOnly || plainText,
             Multiline = multiline,
             Options = options,
-            TreeLeavesOnly = p.GetCustomAttribute<TreeSelectAttribute>()?.LeavesOnly ?? false,
+            TreeLeavesOnly = p.Find<TreeSelectAttribute>()?.LeavesOnly ?? false,
             InitialValue = FormatValue(value),
             Link = LinkOf(p, instance),
             // [Lookup]: the combo box loads its options remotely through the field's
             // search-<fieldId> action (answered from the view's IOptionsSupplier).
-            RemoteCoordinates = p.GetCustomAttribute<LookupAttribute>() != null
+            RemoteCoordinates = p.Find<LookupAttribute>() != null
                 ? new RemoteCoordinatesDto("search-" + fieldId)
                 : null,
         };
@@ -741,7 +742,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     {
         if ((instance as ILinkSupplier)?.Link(p.Name) is { } supplied)
             return new NavLinkDto(supplied.Href, supplied.Icon, supplied.Title, supplied.Target);
-        if (p.GetCustomAttribute<LinkToAttribute>() is { } linkTo)
+        if (p.Find<LinkToAttribute>() is { } linkTo)
             return new NavLinkDto(linkTo.Href, linkTo.Icon, linkTo.Title, linkTo.Target);
         return null;
     }
@@ -758,17 +759,17 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     /// applies — else "regular".</summary>
     private static string StereotypeOf(PropertyInfo p, bool plainText, bool multiline)
     {
-        if (p.GetCustomAttribute<StereotypeAttribute>()?.Value is { } s) return s;
-        if (p.GetCustomAttribute<SignatureAttribute>() != null) return "signature";
-        if (p.GetCustomAttribute<PhotoCaptureAttribute>() != null) return "camera";
-        if (p.GetCustomAttribute<TreeSelectAttribute>() != null) return "treeSelect";
-        if (p.GetCustomAttribute<PasswordAttribute>() != null) return "password";
-        if (p.GetCustomAttribute<MoneyAttribute>() != null) return plainText ? "plainText" : "money";
-        if (p.GetCustomAttribute<LookupAttribute>() != null) return "combobox";
-        if (p.GetCustomAttribute<SearchableAttribute>() != null) return "searchable";
+        if (p.Find<StereotypeAttribute>()?.Value is { } s) return s;
+        if (p.Find<SignatureAttribute>() != null) return "signature";
+        if (p.Find<PhotoCaptureAttribute>() != null) return "camera";
+        if (p.Find<TreeSelectAttribute>() != null) return "treeSelect";
+        if (p.Find<PasswordAttribute>() != null) return "password";
+        if (p.Find<MoneyAttribute>() != null) return plainText ? "plainText" : "money";
+        if (p.Find<LookupAttribute>() != null) return "combobox";
+        if (p.Find<SearchableAttribute>() != null) return "searchable";
         if (plainText) return "plainText";
         if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType).IsEnum)
-            return p.GetCustomAttribute<UseRadioButtonsAttribute>() != null || LayoutInference.PreferRadio(p)
+            return p.Find<UseRadioButtonsAttribute>() != null || LayoutInference.PreferRadio(p)
                 ? "radio"
                 : "select";
         if (multiline) return "textarea";
@@ -779,9 +780,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     /// unit LayoutInference measures thresholds in.</summary>
     internal static string EffectiveStereotype(PropertyInfo p)
     {
-        var plainText = p.GetCustomAttribute<PlainTextAttribute>() != null
-                        || p.DeclaringType?.GetCustomAttribute<PlainTextAttribute>() != null;
-        return StereotypeOf(p, plainText, p.GetCustomAttribute<MultilineAttribute>() != null);
+        var plainText = p.Find<PlainTextAttribute>() != null
+                        || p.DeclaringType?.Find<PlainTextAttribute>() != null;
+        return StereotypeOf(p, plainText, p.Find<MultilineAttribute>() != null);
     }
 
     private static string? FormatValue(object? value) => value switch
@@ -794,12 +795,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
 
     private ButtonDto MapButton(MethodInfo m)
     {
-        var label = m.GetCustomAttribute<ButtonAttribute>()?.Label
-                    ?? m.GetCustomAttribute<LabelAttribute>()?.Value
+        var label = m.Find<ButtonAttribute>()?.Label
+                    ?? m.Find<LabelAttribute>()?.Value
                     ?? Naming.Humanize(m.Name);
         return new ButtonDto(T(label), Naming.CamelCase(m.Name))
         {
-            Shortcut = m.GetCustomAttribute<ShortcutAttribute>()?.Keys,
+            Shortcut = m.Find<ShortcutAttribute>()?.Keys,
         };
     }
 
@@ -815,7 +816,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     private static ClientSideComponentDto Client(ComponentMetadataDto meta, string? id, IReadOnlyList<ComponentDto> children) =>
         new(meta, id, children, null, null, null);
 
-    private static string InferDataType(Type t, PropertyInfo? p = null) => p?.GetCustomAttribute<MoneyAttribute>() != null ? "money" : t switch
+    private static string InferDataType(Type t, PropertyInfo? p = null) => p?.Find<MoneyAttribute>() != null ? "money" : t switch
     {
         _ when t.IsEnum => "string",
         _ when t == typeof(bool) => "boolean",

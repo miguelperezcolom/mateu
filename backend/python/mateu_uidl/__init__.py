@@ -337,6 +337,19 @@ def app(title_: str) -> Callable[[type], type]:
     return deco
 
 
+def ai(sse: str) -> Callable[[type], type]:
+    """AI chat on the app: a floating button opens a chat panel that streams its answers from the
+    given Server-Sent-Events endpoint. The endpoint is yours to implement — the panel POSTs
+    ``{message, sessionId, menuContext?}`` with ``Accept: text/event-stream`` and renders the
+    ``data:`` chunks as the streamed reply. The Python analogue of Java's ``@AI``."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_ai_sse__ = sse
+        return cls
+
+    return deco
+
+
 def app_context(label: str = "") -> Callable:
     """Application-level context selector on the app header (the active hotel, the company…).
 
@@ -727,7 +740,7 @@ __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
-    "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
+    "ai", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",

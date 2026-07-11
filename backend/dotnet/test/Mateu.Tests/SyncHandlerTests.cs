@@ -18,7 +18,7 @@ public class SimpleForm
     [Button] public string GoHome() => "/things";
 }
 
-[App("Test App")]
+[App("Test App"), AI("/ai/chat")]
 public class TestApp
 {
     [MenuItem("Things")] public Things Things() => new();
@@ -85,6 +85,18 @@ public class OrderForm : IOptionsSupplier
         fieldName == "supplier"
             ? [new Option("a1", "Acme Tools"), new Option("a2", "Acme Paint"), new Option("b1", "Bolts Inc")]
             : [];
+}
+
+// A SEMANTIC attribute: one domain word bundling framework configuration — the C# analogue of
+// Java's composed annotations, resolved transitively by Meta.Find.
+[AttributeUsage(AttributeTargets.Property)]
+[Money, Label("Importe total")]
+public sealed class ImporteTotalAttribute : Attribute;
+
+[UI("invoice"), Title("Invoice")]
+public class InvoiceForm
+{
+    [ImporteTotal] public decimal Total { get; set; }
 }
 
 [UI("zoned"), Title("Zoned")]
@@ -439,6 +451,24 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void App_metadata_carries_the_sse_chat_url()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName }));
+        Assert.Contains("\"sseUrl\":\"/ai/chat\"", json);
+    }
+
+    [Fact]
+    public void Semantic_attribute_bundles_framework_configuration()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "invoice", ConsumedRoute = "invoice" }));
+
+        // [ImporteTotal] behaves as if the property carried [Money] + [Label] directly.
+        Assert.Contains("\"dataType\":\"money\"", json);
+        Assert.Contains("\"stereotype\":\"money\"", json);
+        Assert.Contains("\"label\":\"Importe total\"", json);
     }
 
     [Fact]

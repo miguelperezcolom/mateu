@@ -69,6 +69,7 @@ from mateu_uidl import (  # noqa: E402
     ui,
     zones,
 )
+from mateu_uidl import Label, ai  # noqa: E402
 
 
 @ui("")
@@ -90,6 +91,7 @@ class SimpleForm:
 
 
 @app("Test App")
+@ai("/ai/chat")
 class TestApp:
     @menu_item("Things")
     def things(self) -> "Things":
@@ -584,6 +586,32 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+# A SEMANTIC annotation: one domain word bundling framework configuration — the Python analogue
+# of Java's composed annotations is simply a reusable Annotated alias.
+ImporteTotal = Annotated[float, Money(), Label("Importe total")]
+
+
+@ui("invoice")
+@title("Invoice")
+class InvoiceForm:
+    total: ImporteTotal = 0.0
+
+
+def test_app_metadata_carries_the_sse_chat_url():
+    inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
+    assert '"sseUrl": "/ai/chat"' in render(inc)
+
+
+def test_semantic_annotated_alias_bundles_framework_configuration():
+    inc = handler().handle(RunActionRq(route="invoice", consumed_route="invoice"))
+    j = render(inc)
+
+    # The ImporteTotal alias behaves as if the field carried Money() + Label() directly.
+    assert '"dataType": "money"' in j
+    assert '"stereotype": "money"' in j
+    assert '"label": "Importe total"' in j
 
 
 def test_tree_selector_emits_the_tree_grid_layout_without_a_children_column():

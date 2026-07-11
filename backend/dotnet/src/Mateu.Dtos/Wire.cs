@@ -312,6 +312,10 @@ public record AppMetadataDto(
     public string? Subtitle { get; init; }
     public string? LoginUrl { get; init; }
     public string? LogoutUrl { get; init; }
+
+    /// <summary>SSE chat endpoint ([AI]); when set the renderer shows the floating AI chat.</summary>
+    public string? SseUrl { get; init; }
+
     public IReadOnlyList<AppContextSelectorDto> ContextSelectors { get; init; } = [];
 }
 

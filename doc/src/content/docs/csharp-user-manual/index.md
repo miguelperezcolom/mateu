@@ -329,6 +329,50 @@ public class CheckIn : IOptionsSupplier
 }
 ```
 
+## Semantic attributes
+
+Any Mateu property/method attribute can decorate an attribute **class**, so one domain word can
+bundle framework configuration — the C# analogue of Java's composed annotations, resolved
+transitively by the mapper (first match wins, no attribute overriding):
+
+```csharp
+[AttributeUsage(AttributeTargets.Property)]
+[Money, Label("Importe total")]
+public sealed class ImporteTotalAttribute : Attribute;
+
+public class Invoice
+{
+    [ImporteTotal] public decimal Total { get; set; }   // behaves as [Money] + [Label(...)]
+}
+```
+
+Routing attributes (`[UI]`, `[App]`) are the exception — they stay direct, like in Java.
+
+## AI chat (SSE)
+
+`[AI("/ai/chat")]` on the `[App]` class emits `sseUrl` in the app metadata; every renderer then
+shows the floating AI chat button. The endpoint is yours to implement — the chat panel POSTs
+
+```json
+{ "message": "user text", "sessionId": "…", "menuContext": "… (first message only)" }
+```
+
+with `Accept: text/event-stream` (plus `Authorization: Bearer …` and `X-Session-Id` when
+available) and renders the streamed `data:` lines as the reply. Special `data:` payloads: a JSON
+`{"event": "...", "detail": {...}}` is re-dispatched on the client event bus (`agent-error` shows
+an error bubble), and a token-usage JSON updates the usage footer. A minimal ASP.NET endpoint:
+
+```csharp
+app.MapPost("/ai/chat", async (HttpContext ctx, ChatRq rq) =>
+{
+    ctx.Response.ContentType = "text/event-stream";
+    await foreach (var chunk in myAgent.StreamAsync(rq.Message, rq.SessionId))
+        await ctx.Response.WriteAsync($"data: {chunk}\n\n");
+});
+
+public record ChatRq(string Message, string? SessionId, string? MenuContext);
+```
+
 ## Status
 
 The core Mateu surface is covered and verified live in the Compose renderer (desktop + iOS) against

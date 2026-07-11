@@ -33,6 +33,8 @@ class AppMetadata(Wire):
     subtitle: str | None = None
     login_url: str | None = None
     logout_url: str | None = None
+    #: SSE chat endpoint (@ai); when set the renderer shows the floating AI chat.
+    sse_url: str | None = None
     context_selectors: list["AppContextSelector"] = Field(default_factory=list)
 
 

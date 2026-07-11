@@ -56,7 +56,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         BindState(wizard, rq.ComponentState);
         var step = StepOf(rq);
         var total = ReflectionMapper.EditableProperties(type)
-            .Select(p => p.GetCustomAttribute<StepAttribute>()?.Step ?? 1).DefaultIfEmpty(1).Max();
+            .Select(p => p.Find<StepAttribute>()?.Step ?? 1).DefaultIfEmpty(1).Max();
         var route = "/" + (type.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
 
         switch (rq.ActionId)
@@ -200,7 +200,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var fieldId = rq.ActionId!["codesearch-".Length..];
         var property = ReflectionMapper.EditableProperties(hostType)
             .FirstOrDefault(p => Naming.CamelCase(p.Name) == fieldId);
-        var selectorType = property?.GetCustomAttribute<SearchableAttribute>()?.Selector;
+        var selectorType = property?.Find<SearchableAttribute>()?.Selector;
         if (selectorType is null || ReflectionMapper.ListingTypes(selectorType) is not { } listing)
             return Error($"no selector found for field {fieldId}");
 
@@ -511,9 +511,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private static List<string> RequiredMissing(object entity, Type element) =>
         ReflectionMapper.EditableProperties(element)
-            .Where(p => p.GetCustomAttribute<RequiredAttribute>() != null
+            .Where(p => p.Find<RequiredAttribute>() != null
                         && string.IsNullOrWhiteSpace(p.GetValue(entity)?.ToString()))
-            .Select(p => p.GetCustomAttribute<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
+            .Select(p => p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
             .ToList();
 
     // ── Plain views ─────────────────────────────────────────────────────────────
@@ -584,7 +584,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     // ── Helpers ──────────────────────────────────────────────────────────────────
     private static string Title(Type type) =>
-        type.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
+        type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
 
     private static UIIncrementDto FragmentResponse(string title, ComponentDto component) =>
         UIIncrementDto.Of(

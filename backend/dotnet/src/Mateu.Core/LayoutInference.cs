@@ -41,7 +41,7 @@ public static class LayoutInference
     public static bool Enabled(Type? type)
     {
         if (type is null) return false;
-        if (type.GetCustomAttribute<AutoLayoutAttribute>() is { } auto) return auto.Value;
+        if (type.Find<AutoLayoutAttribute>() is { } auto) return auto.Value;
         return AppContext.TryGetSwitch("Mateu.LayoutInference", out var on) && on;
     }
 
@@ -89,7 +89,7 @@ public static class LayoutInference
         return new FoldPlan(main, folded);
     }
 
-    private static bool IsRequired(PropertyInfo p) => p.GetCustomAttribute<RequiredAttribute>() != null;
+    private static bool IsRequired(PropertyInfo p) => p.Find<RequiredAttribute>() != null;
 
     /// <summary>Sections-to-tabs rule: a read-only view with many substantial sections reads
     /// better with random access (tabs) than as a long vertical stack — and unlike an editable

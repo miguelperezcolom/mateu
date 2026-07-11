@@ -206,6 +206,7 @@ class ReflectionMapper:
             home_consumed_route=home.consumed_route if home else "",
             home_server_side_type=home.server_side_type if home else "",
             server_side_type=type_name(cls),
+            sse_url=getattr(cls, "__mateu_ai_sse__", None),
             context_selectors=self.map_context_selectors(cls),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
