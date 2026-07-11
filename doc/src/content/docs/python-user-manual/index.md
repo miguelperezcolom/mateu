@@ -328,6 +328,71 @@ class CheckIn:
         return []
 ```
 
+## Database pushdown
+
+By default `fetch()` returns rows and the framework filters/sorts/paginates in memory. For real
+databases override `find` — run search+filter+sort+paginate as **one query** (count + page
+inside) and the in-memory pipeline is skipped entirely:
+
+```python
+class Orders(Crud[Order]):
+    def find(self, search_text, filters, pageable):
+        # filters = raw component state: <field> values, <field>_from/_to bounds,
+        # multi-selects as value lists. pageable = Pageable(page, size, sort).
+        query = build_query(search_text, filters)
+        total = query.count()
+        rows = query.order_by(*pageable.sort).offset(pageable.page * pageable.size).limit(pageable.size)
+        return PageResult(content=list(rows), total_elements=total)
+```
+
+(The Python analogue of Java's `CrudRepository.find`.)
+
+## Federation (microfrontends)
+
+Several Mateu backends compose into one shell **at runtime** — the frontend does the fetching, no
+server-side proxying:
+
+```python
+@app("Back office")
+@remote_menu("Payments", "https://payments.example.com")           # nests the remote menu
+@remote_menu("Billing", "https://billing.example.com", explode=True)  # inlines its entries
+class Shell: ...
+```
+
+To embed a remote view as an island *inside a page*, put a `MicroFrontend` in a component tree:
+
+```python
+def component(self):
+    return MicroFrontend(base_url="https://billing.example.com", route="/invoices")
+```
+
+The island mounts its own `mateu-ux` against the remote backend and runs its own sync loop.
+
+## Adapting foreign classes (component adapters)
+
+Java's `ComponentAdapter` SPI renders third-party classes that carry no Mateu annotations. In
+Python the idiomatic equivalent needs no SPI: **wrap** the foreign object in a view — the mapper
+renders plain fields reflectively, and your actions write back:
+
+```python
+@ui("/pedido")
+class PedidoView:            # Pedido is a third-party class you cannot touch
+    cliente: str = ""
+    importe: float = 0.0
+
+    def __init__(self):
+        self._pedido = pedido_repo.load()
+        self.cliente, self.importe = self._pedido.cliente, self._pedido.importe
+
+    @button()
+    def guardar(self):
+        self._pedido.cliente, self._pedido.importe = self.cliente, self.importe
+        pedido_repo.save(self._pedido)
+        return Message("Saved")
+```
+
+For full control of the UI, make the wrapper a `ComponentTreeSupplier` and emit a fluent tree.
+
 ## Semantic annotations
 
 The Python analogue of Java's composed annotations needs **no framework machinery at all**: a

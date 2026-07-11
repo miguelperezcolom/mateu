@@ -329,6 +329,74 @@ public class CheckIn : IOptionsSupplier
 }
 ```
 
+## Database pushdown
+
+By default `Fetch()` returns rows and the framework filters/sorts/paginates in memory. For real
+databases override `Find` — run search+filter+sort+paginate as **one query** (count + page
+inside) and the in-memory pipeline is skipped entirely:
+
+```csharp
+public class Orders : Crud<Order>
+{
+    public override IEnumerable<Order> Fetch(string? s) => throw new NotSupportedException();
+
+    public override PageResult<Order>? Find(
+        string? searchText, IReadOnlyDictionary<string, object?> filters, Pageable pageable)
+    {
+        var query = db.Orders.Where(...searchText, filters...);     // filters = raw component
+        var total = query.Count();                                  // state: <field>, and
+        var page = query.OrderBy(...pageable.Sort...)               // <field>_from/_to bounds,
+            .Skip(pageable.Page * pageable.Size).Take(pageable.Size); // multi-selects as lists
+        return new PageResult<Order>(page.ToList(), total);
+    }
+}
+```
+
+(The C# analogue of Java's `CrudRepository.find`.)
+
+## Federation (microfrontends)
+
+Several Mateu backends compose into one shell **at runtime** — the frontend does the fetching, no
+server-side proxying:
+
+```csharp
+[App("Back office")]
+[RemoteMenu("Payments", "https://payments.example.com")]          // nests the remote menu
+[RemoteMenu("Billing", "https://billing.example.com", Explode = true)] // inlines its entries
+public class Shell { ... }
+```
+
+To embed a remote view as an island *inside a page*, put a `MicroFrontend` in a component tree:
+
+```csharp
+public IComponent Component() =>
+    new VerticalLayout { Content = [new MicroFrontend("https://billing.example.com", "/invoices")] };
+```
+
+The island mounts its own `mateu-ux` against the remote backend and runs its own sync loop.
+
+## Adapting foreign classes (component adapters)
+
+Java's `ComponentAdapter` SPI renders third-party classes that carry no Mateu annotations. In C#
+the idiomatic equivalent needs no SPI: **wrap** the foreign object in a view — the mapper renders
+any plain properties reflectively, and your actions write back:
+
+```csharp
+[UI("/pedido")]
+public class PedidoView   // Pedido is a third-party class you cannot touch
+{
+    private readonly Pedido _pedido = PedidoRepo.Load();
+
+    public string Cliente { get => _pedido.Cliente; set => _pedido.Cliente = value; }
+    public decimal Importe { get => _pedido.Importe; set => _pedido.Importe = value; }
+
+    [Button] public Message Guardar() { PedidoRepo.Save(_pedido); return new Message("Saved"); }
+}
+```
+
+For full control of the UI, implement `IComponentTreeSupplier` on the wrapper instead and emit a
+fluent tree.
+
 ## Semantic attributes
 
 Any Mateu property/method attribute can decorate an attribute **class**, so one domain word can

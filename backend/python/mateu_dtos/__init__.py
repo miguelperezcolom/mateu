@@ -349,6 +349,22 @@ class DrawerMetadata(Wire):
     initial_data: Any | None = None
 
 
+class MicroFrontendMetadata(Wire):
+    """A remote Mateu UI embedded as an island inside this page (mirrors
+    ``io.mateu.dtos.MicroFrontendDto``): the renderer mounts a mateu-ux against
+    ``base_url``/``route`` and the island runs its own sync loop against the remote backend."""
+
+    type: Literal["MicroFrontend"] = "MicroFrontend"
+    base_url: str
+    route: str = ""
+    consumed_route: str = "_empty"
+    style: str | None = None
+    css_classes: str | None = None
+    server_side_type: str = ""
+    app_state: Any | None = None
+    action_id: str | None = None
+
+
 class DialogMetadata(Wire):
     """A modal dialog overlay (mirrors ``io.mateu.dtos.DialogDto``)."""
 
@@ -397,6 +413,7 @@ ComponentMetadata = Annotated[
         GanttMetadata,
         DrawerMetadata,
         DialogMetadata,
+        MicroFrontendMetadata,
     ],
     Field(discriminator="type"),
 ]
@@ -498,6 +515,12 @@ class MenuItem(Wire):
     separator: bool = False
     visible: bool = True
     submenus: list["MenuItem"] = Field(default_factory=list)
+    #: Federated entry (@remote_menu): the frontend fetches the remote backend's menu from
+    #: base_url and mounts its views under this option.
+    remote: bool = False
+    base_url: str | None = None
+    #: Inline the remote entries at this level instead of nesting under label.
+    explode: bool = False
 
 
 class Kpi(Wire):

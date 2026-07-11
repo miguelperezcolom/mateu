@@ -337,6 +337,22 @@ def app(title_: str) -> Callable[[type], type]:
     return deco
 
 
+def remote_menu(label: str, base_url: str, route: str = "", explode: bool = False) -> Callable[[type], type]:
+    """A FEDERATED menu entry on the ``@app`` class: the option points at another Mateu backend
+    by base URL — the frontend fetches the remote app's menu itself and mounts its views, so
+    several services compose into one shell at runtime. With ``explode=True`` the remote menu's
+    entries are inlined at this level instead of nesting under ``label``. Repeatable. The Python
+    analogue of Java's ``RemoteMenu``."""
+
+    def deco(cls: type) -> type:
+        entries = list(getattr(cls, "__mateu_remote_menus__", []))
+        entries.append((label, base_url, route, explode))
+        cls.__mateu_remote_menus__ = entries
+        return cls
+
+    return deco
+
+
 def ai(sse: str) -> Callable[[type], type]:
     """AI chat on the app: a floating button opens a chat panel that streams its answers from the
     given Server-Sent-Events endpoint. The endpoint is yours to implement — the panel POSTs
@@ -533,6 +549,32 @@ def shortcut(keys: str):
 
 
 # ── Base classes ───────────────────────────────────────────────────────────────
+@dataclass(frozen=True)
+class SortSpec:
+    """One sort criterion of a listing request."""
+
+    field: str
+    descending: bool = False
+
+
+@dataclass(frozen=True)
+class Pageable:
+    """The page a listing request asks for (0-based page, page size, sort criteria)."""
+
+    page: int = 0
+    size: int = 10
+    sort: tuple[SortSpec, ...] = ()
+
+
+@dataclass(frozen=True)
+class PageResult:
+    """One page of results plus the total count — what a database-backed ``Crud.find`` returns
+    (run the count + page queries inside)."""
+
+    content: list
+    total_elements: int
+
+
 class Crud(Generic[T]):
     """Base for a CRUD view of ``T`` (the analogue of Java's AutoCrud / C#'s Crud<T>)."""
 
@@ -541,6 +583,15 @@ class Crud(Generic[T]):
 
     def fetch(self, search: str | None) -> Iterable[T]:
         raise NotImplementedError
+
+    def find(self, search_text: str | None, filters: dict, pageable: Pageable) -> PageResult | None:
+        """Database pushdown: override to run the search+filter+sort+paginate as ONE query
+        (count + page inside) and return the page with its real total — the framework then skips
+        its in-memory pipeline entirely. Filters arrive as the raw component state (camelCase
+        keys; range bounds as ``<field>_from``/``<field>_to``, multi-selects as value lists).
+        Default ``None`` = keep the in-memory ``fetch`` pipeline. The Python analogue of Java's
+        ``CrudRepository.find``."""
+        return None
 
     def get(self, id: str) -> T | None:
         for e in self.fetch(None):
@@ -740,10 +791,10 @@ __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
-    "ai", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
+    "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
-    "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
+    "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome",
 ]

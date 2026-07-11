@@ -32,7 +32,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | 🟡 | 🟡 |
 | Declarative listings (`Listing<Filters, Row>`) | ✅ | ✅ | ✅ |
 | — typed `DateRange`/`NumberRange`/`Set` filter fields | ✅ | ✅ | ✅ |
-| — repository criteria (`find/4` DB pushdown) | ✅ | — | — |
+| — DB pushdown (override `find`: one query, real total, in-memory pipeline skipped) | ✅ | ✅ | ✅ |
 | Tree lookup selectors (`GridLayout.tree` + `Selector`) | ✅ | ✅ | ✅ |
 | Lookup fields (`@Lookup` remote combobox + `search-<field>` action) | ✅ | ✅ | ✅ |
 | — `@Searchable` full selector dialogs (`Selector` + `codesearch`) | ✅ | ✅ | ✅ |
@@ -44,7 +44,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
 | AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
-| Component adapters, federation/microfrontends | ✅ | — | — |
+| Federation (remote menus + `MicroFrontend` islands) | ✅ | ✅ | ✅ |
+| Component adapters | ✅ | 🟡 wrapper idiom | 🟡 wrapper idiom |
 | Hero search archetype | ✅ | ✅ | ✅ |
 
 🟡 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
@@ -73,8 +74,13 @@ including TREE-shaped selectors (`gridLayout()` override → `"tree"`, rows carr
 attributes transitively (`Meta.Find`, attributes decorating attribute classes) while in Python a
 reusable `Annotated` alias needs no machinery at all; `[AI]`/`@ai` emit `sseUrl` and both manuals
 document the SSE endpoint contract (POST `{message, sessionId, menuContext?}` → `data:` chunks).
-Still Java-only on both backends: repository criteria (DB pushdown), component adapters and
-federation/microfrontends.
+The final gaps closed the same day: DB pushdown (`Find`/`find` override — one query with the real
+total, the in-memory pipeline skipped), federation (`[RemoteMenu]`/`@remote_menu` federated menu
+entries — the frontend fetches the remote menu itself — and the `MicroFrontend` island component),
+and component adapters resolved as a documented idiom: both ports render plain classes
+reflectively, so a thin wrapper view over the foreign object (fields exposing its data, an action
+writing back) replaces Java's `ComponentAdapter` SPI — see "Adapting foreign classes" in each
+manual. Nothing on the server surface remains Java-only.
 
 ## Renderers
 

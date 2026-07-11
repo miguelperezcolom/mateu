@@ -11,6 +11,15 @@ public abstract class Crud<T> where T : class, new()
     /// <summary>Rows to show, optionally filtered by the search box text.</summary>
     public abstract IEnumerable<T> Fetch(string? search);
 
+    /// <summary>Database pushdown: override to run the search+filter+sort+paginate as ONE query
+    /// (count + page inside) and return the page with its real total — the framework then skips
+    /// its in-memory pipeline entirely. Filters arrive as the raw component state (camelCase
+    /// keys; range bounds as &lt;field&gt;_from/&lt;field&gt;_to, multi-selects as value lists).
+    /// Default null = keep the in-memory Fetch pipeline. (C# analogue of Java's
+    /// CrudRepository.find.)</summary>
+    public virtual PageResult<T>? Find(
+        string? searchText, IReadOnlyDictionary<string, object?> filters, Pageable pageable) => null;
+
     /// <summary>Loads one entity by id (default: linear scan of <see cref="Fetch"/>).</summary>
     public virtual T? Get(string id) => Fetch(null).FirstOrDefault(e => IdOf(e) == id);
 
@@ -101,3 +110,13 @@ public interface ISelector<in TRow>
 {
     SelectedItem Selected(TRow row);
 }
+
+/// <summary>One sort criterion of a listing request.</summary>
+public sealed record SortSpec(string Field, bool Descending);
+
+/// <summary>The page a listing request asks for (0-based page, page size, sort criteria).</summary>
+public sealed record Pageable(int Page, int Size, IReadOnlyList<SortSpec> Sort);
+
+/// <summary>One page of results plus the total count — what a database-backed
+/// <see cref="Crud{T}.Find"/> returns (run the count + page queries inside).</summary>
+public sealed record PageResult<T>(IReadOnlyList<T> Content, long TotalElements);

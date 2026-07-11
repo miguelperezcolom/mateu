@@ -69,7 +69,8 @@ from mateu_uidl import (  # noqa: E402
     ui,
     zones,
 )
-from mateu_uidl import Label, ai  # noqa: E402
+from mateu_uidl import Label, Pageable, PageResult, SortSpec, ai, remote_menu  # noqa: E402
+from mateu_uidl.components import MicroFrontend  # noqa: E402
 
 
 @ui("")
@@ -90,8 +91,12 @@ class SimpleForm:
         return "/things"
 
 
+_LAST_PAGEABLE: list = []
+
+
 @app("Test App")
 @ai("/ai/chat")
+@remote_menu("Payments", "https://payments.example.com", explode=True)
 class TestApp:
     @menu_item("Things")
     def things(self) -> "Things":
@@ -105,6 +110,20 @@ class TestApp:
 class Thing:
     id: str = ""
     name: Annotated[str, Required()] = ""
+
+
+@ui("orders-db")
+@title("Orders (DB)")
+class DbOrders(Crud[Thing]):
+    def fetch(self, search):
+        raise RuntimeError("pushdown must skip fetch")
+
+    # Simulates a database query: count + page inside, real total.
+    def find(self, search_text, filters, pageable):
+        _LAST_PAGEABLE.append(pageable)
+        t = Thing()
+        t.id, t.name = "42", "From the DB"
+        return PageResult(content=[t], total_elements=1234)
 
 
 @ui("capture")
@@ -597,6 +616,52 @@ ImporteTotal = Annotated[float, Money(), Label("Importe total")]
 @title("Invoice")
 class InvoiceForm:
     total: ImporteTotal = 0.0
+
+
+def test_find_override_pushes_search_down_and_skips_the_in_memory_pipeline():
+    _LAST_PAGEABLE.clear()
+    inc = handler().handle(
+        RunActionRq(
+            action_id="search",
+            server_side_type=_name(DbOrders),
+            component_state={
+                "page": 2,
+                "size": 25,
+                "sort": [{"field": "name", "direction": "descending"}],
+            },
+        )
+    )
+    j = render(inc)
+
+    # The page comes back verbatim with the query's real total (fetch would have raised)…
+    assert '"totalElements": 1234' in j
+    assert "From the DB" in j
+    # …and the request's paging + sort reached the override.
+    assert _LAST_PAGEABLE == [Pageable(page=2, size=25, sort=(SortSpec("name", True),))]
+
+
+def test_remote_menu_emits_a_federated_entry():
+    inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
+    j = render(inc)
+
+    assert '"label": "Payments"' in j
+    assert '"remote": true' in j
+    assert '"baseUrl": "https://payments.example.com"' in j
+    assert '"explode": true' in j
+
+
+def test_micro_frontend_component_mounts_a_remote_island():
+    from mateu_core.mapper import ReflectionMapper
+
+    dto = ReflectionMapper(None).map_component(
+        MicroFrontend(base_url="https://billing.example.com", route="/invoices")
+    )
+    j = json.dumps(dto.model_dump(by_alias=True, mode="json"))
+
+    assert '"type": "MicroFrontend"' in j
+    assert '"baseUrl": "https://billing.example.com"' in j
+    assert '"route": "/invoices"' in j
+    assert '"consumedRoute": "_empty"' in j
 
 
 def test_app_metadata_carries_the_sse_chat_url():

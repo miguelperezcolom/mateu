@@ -26,6 +26,16 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var items = appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.Find<MenuItemAttribute>() != null)
             .Select(MapMenuItem).ToList();
+        // [RemoteMenu] entries: federated options — the frontend fetches the remote backend's
+        // menu itself and mounts its views (no server-side proxying).
+        items.AddRange(appType.GetCustomAttributes<RemoteMenuAttribute>()
+            .Select(r => new MenuItemDto(T(r.Label), r.Route, "")
+            {
+                Remote = true,
+                BaseUrl = r.BaseUrl,
+                Explode = r.Explode,
+                ConsumedRoute = "_empty",
+            }));
         var variant = items.Count > 7 ? "HAMBURGUER_MENU" : "MENU_ON_LEFT";
         var home = items.FirstOrDefault();
         var meta = new AppMetadataDto(T(app.Title), variant, items)

@@ -18,7 +18,25 @@ public class SimpleForm
     [Button] public string GoHome() => "/things";
 }
 
+[UI("orders-db"), Title("Orders (DB)")]
+public class DbOrders : Crud<Thing>
+{
+    public static Pageable? LastPageable;
+
+    public override IEnumerable<Thing> Fetch(string? search) =>
+        throw new InvalidOperationException("pushdown must skip Fetch");
+
+    // Simulates a database query: count + page inside, real total.
+    public override PageResult<Thing>? Find(
+        string? searchText, IReadOnlyDictionary<string, object?> filters, Pageable pageable)
+    {
+        LastPageable = pageable;
+        return new PageResult<Thing>([new Thing { Id = "42", Name = "From the DB" }], 1234);
+    }
+}
+
 [App("Test App"), AI("/ai/chat")]
+[RemoteMenu("Payments", "https://payments.example.com", Explode = true)]
 public class TestApp
 {
     [MenuItem("Things")] public Things Things() => new();
@@ -451,6 +469,55 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Find_override_pushes_search_down_and_skips_the_in_memory_pipeline()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(DbOrders).FullName,
+            ComponentState = new()
+            {
+                ["page"] = JsonSerializer.SerializeToElement(2),
+                ["size"] = JsonSerializer.SerializeToElement(25),
+                ["sort"] = JsonSerializer.SerializeToElement(new[] { new { field = "name", direction = "descending" } }),
+            },
+        };
+
+        var json = Render(Handler().Handle(rq));
+
+        // The page comes back verbatim with the query's real total (Fetch would have thrown)…
+        Assert.Contains("\"totalElements\":1234", json);
+        Assert.Contains("From the DB", json);
+        // …and the request's paging + sort reached the override.
+        Assert.Equal(2, DbOrders.LastPageable!.Page);
+        Assert.Equal(25, DbOrders.LastPageable.Size);
+        Assert.Equal(new SortSpec("name", true), Assert.Single(DbOrders.LastPageable.Sort));
+    }
+
+    [Fact]
+    public void Remote_menu_emits_a_federated_entry()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName }));
+
+        Assert.Contains("\"label\":\"Payments\"", json);
+        Assert.Contains("\"remote\":true", json);
+        Assert.Contains("\"baseUrl\":\"https://payments.example.com\"", json);
+        Assert.Contains("\"explode\":true", json);
+    }
+
+    [Fact]
+    public void Micro_frontend_component_mounts_a_remote_island()
+    {
+        var dto = ComponentMapper.Map(new Mateu.Uidl.MicroFrontend("https://billing.example.com", "/invoices"));
+        var json = JsonSerializer.Serialize<ComponentDto>(dto, Json);
+
+        Assert.Contains("\"type\":\"MicroFrontend\"", json);
+        Assert.Contains("\"baseUrl\":\"https://billing.example.com\"", json);
+        Assert.Contains("\"route\":\"/invoices\"", json);
+        Assert.Contains("\"consumedRoute\":\"_empty\"", json);
     }
 
     [Fact]

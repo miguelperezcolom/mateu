@@ -47,6 +47,14 @@ public static class ComponentMapper
                 new ClientSideComponentDto(
                     new TabMetadataDto(tab.Label) { Active = i == TabActiveIndex(tl.Tabs) }, null, [Map(tab.Content)], null, null, null))),
 
+        // Federation — a remote Mateu UI mounted as an island inside this page.
+        MicroFrontend mf => Dto(mf, new MicroFrontendMetadataDto(mf.BaseUrl, mf.Route)
+        {
+            Style = mf.Style,
+            CssClasses = mf.CssClasses,
+            AppState = mf.AppState,
+        }),
+
         // Overlays — returned from actions; SyncHandler emits them as Add fragments.
         Drawer dr => Dto(dr, new DrawerMetadataDto(dr.Id, dr.HeaderTitle, dr.Content is null ? null : Map(dr.Content))
         {

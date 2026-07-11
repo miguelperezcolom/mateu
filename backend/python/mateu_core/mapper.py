@@ -45,6 +45,7 @@ from mateu_dtos import (
     Kpi,
     MenuItem,
     MetricCardMetadata,
+    MicroFrontendMetadata,
     NavLinkRecord,
     Option,
     PageMetadata,
@@ -196,6 +197,13 @@ class ReflectionMapper:
     def map_app(self, cls) -> ClientSideComponent:
         app_title = getattr(cls, "__mateu_app__")
         items = [self.map_menu_item(n, f) for n, f in methods_with(cls, "__mateu_menu_item__")]
+        # @remote_menu entries: federated options — the frontend fetches the remote backend's
+        # menu itself and mounts its views (no server-side proxying).
+        for label, base_url, route, explode in getattr(cls, "__mateu_remote_menus__", []):
+            items.append(MenuItem(
+                label=self.T(label), route=route, server_side_type="",
+                consumed_route="_empty", remote=True, base_url=base_url, explode=explode,
+            ))
         variant = "HAMBURGUER_MENU" if len(items) > 7 else "MENU_ON_LEFT"
         home = items[0] if items else None
         meta = AppMetadata(
@@ -558,6 +566,13 @@ class ReflectionMapper:
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Text):
             return self._fluent_client(TextMetadata(text=self.T(c.text)), c)
+        # Federation — a remote Mateu UI mounted as an island inside this page.
+        if isinstance(c, fluent.MicroFrontend):
+            meta = MicroFrontendMetadata(
+                base_url=c.base_url, route=c.route, style=c.style,
+                css_classes=c.css_classes, app_state=c.app_state,
+            )
+            return self._fluent_client(meta, c)
         # Overlays — returned from actions; the sync handler emits them as Add fragments.
         if isinstance(c, fluent.Drawer):
             meta = DrawerMetadata(

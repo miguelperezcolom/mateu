@@ -24,8 +24,10 @@ from mateu_uidl import (
     Message,
     NumberRange,
     PageBanner,
+    Pageable,
     Required,
     Searchable,
+    SortSpec,
     Step,
     Wizard,
 )
@@ -429,6 +431,28 @@ class SyncHandler:
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
         props = view_fields(element)
         state = rq.component_state or {}
+
+        # Database pushdown: an overridden find runs search+filter+sort+paginate as one query
+        # and returns the page with its real total — skip the in-memory pipeline entirely.
+        pageable = Pageable(
+            page=int(state.get("page", 0) or 0),
+            size=int(state.get("size", 10) or 10),
+            sort=tuple(
+                SortSpec(field=s.get("field", ""), descending=s.get("direction") == "descending")
+                for s in (state.get("sort") or [])
+            ),
+        )
+        found = crud.find(self.search_text(rq), state, pageable)
+        if found is not None:
+            rows = [self._row_dict(item, props) for item in found.content]
+            data = {"crud": {"page": {
+                "content": rows, "pageSize": pageable.size, "pageNumber": pageable.page,
+                "totalElements": found.total_elements,
+            }}}
+            return UIIncrement.of(
+                fragments=[UIFragment(target_component_id="crud", data=data, action="Replace")]
+            )
+
         # filter
         items = [
             item

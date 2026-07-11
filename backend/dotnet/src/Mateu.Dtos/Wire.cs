@@ -139,6 +139,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(GanttMetadataDto), "Gantt")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
+[JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
 public abstract record ComponentMetadataDto;
 
 // ── Dashboards, foldouts, heroes, empty states, skeletons, Gantt ───────────────
@@ -331,6 +332,15 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
     public bool Separator { get; init; }
     public bool Visible { get; init; } = true;
     public IReadOnlyList<MenuItemDto> Submenus { get; init; } = [];
+
+    /// <summary>Federated entry ([RemoteMenu]): the frontend fetches the remote backend's menu
+    /// from BaseUrl and mounts its views under this option.</summary>
+    public bool Remote { get; init; }
+
+    public string? BaseUrl { get; init; }
+
+    /// <summary>Inline the remote entries at this level instead of nesting under Label.</summary>
+    public bool Explode { get; init; }
 }
 
 public record PageMetadataDto(
@@ -447,6 +457,19 @@ public record DrawerMetadataDto(string? Id, string? HeaderTitle, ComponentDto? C
     public bool NoPadding { get; init; }
     public bool Modeless { get; init; }
     public object? InitialData { get; init; }
+}
+
+/// <summary>A remote Mateu UI embedded as an island inside this page (mirrors
+/// io.mateu.dtos.MicroFrontendDto): the renderer mounts a mateu-ux against BaseUrl/Route and the
+/// island runs its own sync loop against the remote backend.</summary>
+public record MicroFrontendMetadataDto(string BaseUrl, string Route) : ComponentMetadataDto
+{
+    public string ConsumedRoute { get; init; } = "_empty";
+    public string? Style { get; init; }
+    public string? CssClasses { get; init; }
+    public string ServerSideType { get; init; } = "";
+    public object? AppState { get; init; }
+    public string? ActionId { get; init; }
 }
 
 /// <summary>A modal dialog overlay (mirrors io.mateu.dtos.DialogDto).</summary>

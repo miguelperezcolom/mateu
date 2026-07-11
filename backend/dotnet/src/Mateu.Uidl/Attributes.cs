@@ -87,6 +87,24 @@ public sealed class MenuItemAttribute(string? label = null) : Attribute
     public string? Label { get; } = label;
 }
 
+/// <summary>A FEDERATED menu entry on the [App] class: the option points at another Mateu backend
+/// by base URL — the frontend fetches the remote app's menu itself and mounts its views, so
+/// several services compose into one shell at runtime. With Explode the remote menu's entries are
+/// inlined at this level instead of nesting under the label.
+/// (C# analogue of Java's RemoteMenu.)</summary>
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class RemoteMenuAttribute(string label, string baseUrl) : Attribute
+{
+    public string Label { get; } = label;
+    public string BaseUrl { get; } = baseUrl;
+
+    /// <summary>Route inside the remote backend ("" = its root app).</summary>
+    public string Route { get; set; } = "";
+
+    /// <summary>Inline the remote entries at this level instead of nesting under Label.</summary>
+    public bool Explode { get; set; }
+}
+
 /// <summary>Groups the following fields under a titled section (card) in a form.</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class, AllowMultiple = false)]
 public sealed class SectionAttribute(string caption) : Attribute

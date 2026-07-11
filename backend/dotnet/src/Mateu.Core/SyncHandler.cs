@@ -325,8 +325,26 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
     {
-        var fetched = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
         var props = ReflectionMapper.EditableProperties(element).ToList();
+
+        // Database pushdown: an overridden Find runs search+filter+sort+paginate as one query
+        // and returns the page with its real total — skip the in-memory pipeline entirely.
+        var pageable = new Pageable(
+            ToInt(GetState(rq.ComponentState, "page"), 0),
+            ToInt(GetState(rq.ComponentState, "size"), 10),
+            EnumerateSort(rq.ComponentState).Select(s => new SortSpec(s.field, s.descending)).ToList());
+        var found = instance.GetType().GetMethod("Find")!
+            .Invoke(instance, [SearchText(rq), rq.ComponentState, pageable]);
+        if (found is not null)
+        {
+            var content = (System.Collections.IEnumerable)found.GetType().GetProperty("Content")!.GetValue(found)!;
+            var totalElements = (long)found.GetType().GetProperty("TotalElements")!.GetValue(found)!;
+            var pushedRows = content.Cast<object>().Select(item => RowDict(item, props)).ToList();
+            var pushedData = new { crud = new { page = new { content = pushedRows, pageSize = pageable.Size, pageNumber = pageable.Page, totalElements } } };
+            return UIIncrementDto.Of(fragments: [new UIFragmentDto("crud", null, null, pushedData, "Replace", null)]);
+        }
+
+        var fetched = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
         var propByCamel = props.ToDictionary(p => Naming.CamelCase(p.Name), p => p);
 
         // filter

@@ -205,6 +205,17 @@ public sealed record TabLayout : ComponentBase
     public bool Adaptable { get; init; }
 }
 
+// ── Federation ─────────────────────────────────────────────────────────────────
+
+/// <summary>A remote Mateu UI embedded as an island inside this page: the renderer mounts the
+/// remote backend's view at BaseUrl/Route and it runs its own sync loop — compose UIs owned by
+/// other services without proxying them. (C# analogue of io.mateu.uidl.data.MicroFrontend.)</summary>
+public sealed record MicroFrontend(string BaseUrl, string Route = "") : ComponentBase
+{
+    /// <summary>Extra app state seeded into the island's requests.</summary>
+    public object? AppState { get; init; }
+}
+
 // ── Overlays ───────────────────────────────────────────────────────────────────
 
 public enum DrawerPosition { Start, End }
