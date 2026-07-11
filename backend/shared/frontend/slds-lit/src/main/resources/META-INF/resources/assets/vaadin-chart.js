@@ -802,6 +802,10 @@ import{i,r as registerStyles,d as defineCustomElement,P as PolymerElement,R as R
     fill: inherit;
   }
 
+  :where([styled-mode]) .highcharts-label text {
+    fill: var(--vaadin-charts-data-label, hsla(214, 42%, 18%, 0.72));
+  }
+
   :where([styled-mode]) .highcharts-candlestick-series .highcharts-point {
     stroke: var(--vaadin-charts-contrast-60pct, hsla(214, 43%, 19%, 0.61));
     stroke-width: 1px;

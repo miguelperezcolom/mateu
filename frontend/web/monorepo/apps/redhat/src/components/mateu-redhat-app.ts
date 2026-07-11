@@ -42,9 +42,11 @@ export class MateuRedhatApp extends MateuRendererApp {
         return html`
             <div style="display:flex; flex-direction:column; min-height:100vh;">
                 <header class="pf-v6-c-masthead" style="flex:0 0 auto;">
-                    <div class="pf-v6-c-masthead__main">
+                    <!-- explicit flex row: without the PF grid styles the masthead collapsed to
+                         ~1ch and the title rendered one character per line -->
+                    <div class="pf-v6-c-masthead__main" style="display:flex; align-items:center; width:100%; padding:.5rem 1rem;">
                         ${md.logo ? html`<img src="${md.logo}" alt="" style="height:1.75rem; margin-right:.75rem;" />` : nothing}
-                        <span class="pf-v6-c-title pf-m-lg">${md.title ?? ''}</span>
+                        <span class="pf-v6-c-title pf-m-lg" style="white-space:nowrap;">${md.title ?? ''}</span>
                     </div>
                     ${md.subtitle ? html`<div class="pf-v6-c-masthead__content"><span class="pf-v6-c-content">${md.subtitle}</span></div>` : nothing}
                 </header>

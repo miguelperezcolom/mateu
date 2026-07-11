@@ -11,9 +11,11 @@
     "test": "yarn workspace mateu test"
   },
   "resolutions": {
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "@vaadin/*": "~24.10.4"
   },
   "overrides": {
-    "esbuild": "^0.28.1"
+    "esbuild": "^0.28.1",
+    "@vaadin/*": "~24.10.4"
   }
 }

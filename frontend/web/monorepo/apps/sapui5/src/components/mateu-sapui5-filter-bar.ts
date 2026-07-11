@@ -108,13 +108,6 @@ export class MateuSapUI5FilterBar extends LitElement {
             </div>`
     }
 
-    private dispatchToolbarAction(actionId: string) {
-        this.dispatchEvent(new CustomEvent('action-requested', {
-            detail: { actionId },
-            bubbles: true, composed: true
-        }))
-    }
-
     private wrapFilter(filter: any): ClientSideComponent {
         return {
             id: (filter as FormField).fieldId ?? '',
@@ -228,12 +221,6 @@ export class MateuSapUI5FilterBar extends LitElement {
                 ${this.metadata?.searchable ? html`
                     <ui5-button design="Emphasized" @click="${() => this.triggerSearch()}">Search</ui5-button>
                 ` : nothing}
-
-                ${this.metadata?.toolbar?.map(button => html`
-                    <ui5-button @click="${() => this.dispatchToolbarAction(button.actionId)}">
-                        ${button.label}
-                    </ui5-button>
-                `)}
 
                 <slot></slot>
             </div>
