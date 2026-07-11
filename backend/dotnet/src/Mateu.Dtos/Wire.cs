@@ -81,7 +81,24 @@ public record ServerSideComponentDto(
 {
     public string? EmitsName { get; init; }
     public bool ConfirmOnNavigationIfDirty { get; init; }
+
+    /// <summary>Client-side rules ([Hidden]/[Disabled] fields, IRuleSupplier): the renderer's
+    /// no-eval engine re-evaluates them on every state change.</summary>
+    public IReadOnlyList<RuleDto> Rules { get; init; } = [];
 }
+
+/// <summary>A client-side rule (mirrors io.mateu.dtos.RuleDto): when Filter evaluates truthy the
+/// renderer applies Action — e.g. SetDataValue of FieldAttribute (hidden, disabled, required…) to
+/// the value of Expression, both evaluated against the live state.</summary>
+public record RuleDto(
+    string Filter,
+    string Action,
+    string? FieldName,
+    string? FieldAttribute,
+    object? Value,
+    string? Expression,
+    string Result,
+    string? ActionId);
 
 public record ActionDto(string Id, bool ValidationRequired = true);
 

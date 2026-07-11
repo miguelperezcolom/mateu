@@ -15,9 +15,13 @@ from mateu_dtos import Option, UICommand  # noqa: E402
 from mateu_uidl.components import Dialog, Drawer, Text  # noqa: E402
 from mateu_uidl import (  # noqa: E402
     BannerTheme,
+    Disabled,
+    Hidden,
     PageBanner,
     PhotoCapture,
     RangeFilter,
+    Rule,
+    RuleSupplier,
     Signature,
     TreeSelect,
     app_context,
@@ -147,6 +151,17 @@ class Bookings(Crud[Booking]):
             booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
             booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
         ]
+
+
+@ui("ruled")
+@title("Ruled")
+class RuledForm(RuleSupplier):
+    special: bool = False
+    special_code: Annotated[str | None, Hidden("!state.special")] = None
+    locked: Annotated[str | None, Disabled()] = "fixed"
+
+    def rules(self):
+        return [Rule.disable("specialCode", "state.locked == 'frozen'")]
 
 
 @ui("long-doc")
@@ -406,6 +421,20 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_hidden_disabled_and_supplier_rules_ride_on_the_server_side_component():
+    inc = handler().handle(RunActionRq(route="ruled", consumed_route="ruled"))
+    j = render(inc)
+
+    # Hidden(expr) → a hidden rule with the client-side expression…
+    assert '"fieldName": "specialCode", "fieldAttribute": "hidden", "value": null, "expression": "!state.special"' in j
+    # …Disabled() → an unconditional disabled rule…
+    assert '"fieldName": "locked", "fieldAttribute": "disabled", "value": null, "expression": "true"' in j
+    # …and RuleSupplier contributes programmatic rules.
+    assert "state.locked == 'frozen'" in j
+    assert '"action": "SetDataValue"' in j
+    assert '"result": "Continue"' in j
 
 
 def test_toc_marks_the_page_for_a_sticky_sections_index():

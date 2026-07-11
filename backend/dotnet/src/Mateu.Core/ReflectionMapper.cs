@@ -140,7 +140,28 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         {
             EmitsName = emits,
             ConfirmOnNavigationIfDirty = type.GetCustomAttribute<ConfirmOnNavigationIfDirtyAttribute>() != null,
+            Rules = MapRules(type, instance),
         };
+    }
+
+    /// <summary>Client-side rules of a view (mirrors Java's RuleMapper.createRules): [Disabled]
+    /// fields disable unconditionally, [Hidden(expr)] fields hide while the expression is truthy,
+    /// and an IRuleSupplier contributes programmatic rules.</summary>
+    internal static List<RuleDto> MapRules(Type type, object? instance)
+    {
+        var rules = new List<RuleDto>();
+        foreach (var p in EditableProperties(type))
+        {
+            var fieldId = Naming.CamelCase(p.Name);
+            if (p.GetCustomAttribute<DisabledAttribute>() != null)
+                rules.Add(new RuleDto("true", "SetDataValue", fieldId, "disabled", null, "true", "Continue", null));
+            if (p.GetCustomAttribute<HiddenAttribute>() is { Value.Length: > 0 } hidden)
+                rules.Add(new RuleDto("true", "SetDataValue", fieldId, "hidden", null, hidden.Value, "Continue", null));
+        }
+        if (instance is IRuleSupplier supplier)
+            rules.AddRange(supplier.Rules().Select(r => new RuleDto(
+                r.Filter, r.Action, r.FieldName, r.FieldAttribute, r.Value, r.Expression, r.Result, r.ActionId)));
+        return rules;
     }
 
     private string? OptT(string? s) => s is null ? null : T(s);
@@ -205,7 +226,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
             FormCards(element, entity, readOnly: mode == "view"));
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), crudType.FullName!, route, [page],
-            new Dictionary<string, object?>(), [], [], null, null, null);
+            new Dictionary<string, object?>(), [], [], null, null, null)
+        {
+            // [Hidden]/[Disabled] on entity fields rule the detail form too.
+            Rules = MapRules(element, entity),
+        };
     }
 
     // Groups fields by [Section] into cards (one plain card when there are no sections), or into a

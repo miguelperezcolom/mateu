@@ -87,6 +87,16 @@ public class OrderForm : IOptionsSupplier
             : [];
 }
 
+[UI("ruled"), Title("Ruled")]
+public class RuledForm : IRuleSupplier
+{
+    public bool Special { get; set; }
+    [Hidden("!state.special")] public string? SpecialCode { get; set; }
+    [Disabled] public string? Locked { get; set; } = "fixed";
+
+    public IReadOnlyList<Rule> Rules() => [Rule.Disable("specialCode", "state.locked == 'frozen'")];
+}
+
 [UI("long-doc"), Title("Long Doc"), Toc]
 public class LongDocForm
 {
@@ -299,6 +309,21 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Hidden_disabled_and_supplier_rules_ride_on_the_server_side_component()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "ruled", ConsumedRoute = "ruled" }));
+
+        // [Hidden(expr)] → a hidden rule with the client-side expression…
+        Assert.Contains("\"fieldName\":\"specialCode\",\"fieldAttribute\":\"hidden\",\"value\":null,\"expression\":\"!state.special\"", json);
+        // …[Disabled] → an unconditional disabled rule…
+        Assert.Contains("\"fieldName\":\"locked\",\"fieldAttribute\":\"disabled\",\"value\":null,\"expression\":\"true\"", json);
+        // …and IRuleSupplier contributes programmatic rules (the apostrophes JSON-escape to ').
+        Assert.Contains("state.locked == \\u0027frozen\\u0027", json);
+        Assert.Contains("\"action\":\"SetDataValue\"", json);
+        Assert.Contains("\"result\":\"Continue\"", json);
     }
 
     [Fact]

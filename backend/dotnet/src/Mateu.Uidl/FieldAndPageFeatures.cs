@@ -48,6 +48,50 @@ public sealed class UseRadioButtonsAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class LookupAttribute : Attribute;
 
+/// <summary>Hides the field while the client-side expression is truthy, re-evaluated on every
+/// state change without a server round-trip — e.g. <c>[Hidden("!state.special")]</c> shows the
+/// field only when Special is set. (C# analogue of Java's @Hidden.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class HiddenAttribute(string value) : Attribute
+{
+    /// <summary>Client-side expression over <c>state</c>; truthy → the field hides.</summary>
+    public string Value { get; } = value;
+}
+
+/// <summary>Renders the field permanently disabled (visible but not editable).
+/// (C# analogue of Java's @Disabled.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class DisabledAttribute : Attribute;
+
+/// <summary>A client-side rule (the uidl mirror of io.mateu.uidl.data.Rule): while Filter is
+/// truthy the renderer applies Action — most commonly SetDataValue of a field attribute (hidden,
+/// disabled, required…) to the value of Expression, both evaluated against the live state.</summary>
+public sealed record Rule(
+    string Filter,
+    string Action,
+    string? FieldName,
+    string? FieldAttribute,
+    object? Value,
+    string? Expression,
+    string Result = "Continue",
+    string? ActionId = null)
+{
+    /// <summary>Hide <paramref name="fieldName"/> while <paramref name="expression"/> is truthy.</summary>
+    public static Rule Hide(string fieldName, string expression) =>
+        new("true", "SetDataValue", fieldName, "hidden", null, expression);
+
+    /// <summary>Disable <paramref name="fieldName"/> while <paramref name="expression"/> is truthy.</summary>
+    public static Rule Disable(string fieldName, string expression = "true") =>
+        new("true", "SetDataValue", fieldName, "disabled", null, expression);
+}
+
+/// <summary>Programmatic client-side rules for a view (the C# analogue of Java's RuleSupplier);
+/// they complement the [Hidden]/[Disabled] attribute-derived rules.</summary>
+public interface IRuleSupplier
+{
+    IReadOnlyList<Rule> Rules();
+}
+
 /// <summary>Renders a navigation icon at the right side of the field that takes the user to the
 /// given URL or route. Href and Title travel verbatim and support <c>${...}</c> state expressions
 /// interpolated client-side, so the link follows the value as the user edits the form. For a

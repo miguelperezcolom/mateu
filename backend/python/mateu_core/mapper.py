@@ -50,6 +50,7 @@ from mateu_dtos import (
     PageMetadata,
     ProgressBarMetadata,
     RemoteCoordinates,
+    RuleRecord,
     ScoreboardMetadata,
     ServerSideComponent,
     SkeletonMetadata,
@@ -63,9 +64,11 @@ from mateu_uidl import (
     ComponentTreeSupplier,
     Crud,
     Dashboard,
+    Disabled,
     Foldout,
     HeaderBadge,
     HeroSearch,
+    Hidden,
     ItemOverview,
     Label,
     LinkSupplier,
@@ -79,6 +82,7 @@ from mateu_uidl import (
     PlainText,
     RangeFilter,
     ReadOnly,
+    RuleSupplier,
     Signature,
     TreeSelect,
     Required,
@@ -262,6 +266,7 @@ class ReflectionMapper:
             triggers=triggers,
             emits_name=emits,
             confirm_on_navigation_if_dirty=bool(class_flag(cls, "__mateu_confirm_dirty__", False)),
+            rules=self.map_rules(cls, instance),
         )
 
     # ── Fluent component trees & declarative archetypes ───────────────────────
@@ -790,7 +795,39 @@ class ReflectionMapper:
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(crud_type), route=route, children=[page],
             initial_data={}, actions=[], triggers=[],
+            # Hidden()/Disabled() on entity fields rule the detail form too.
+            rules=self.map_rules(element, entity),
         )
+
+    @staticmethod
+    def map_rules(cls, instance) -> list[RuleRecord]:
+        """Client-side rules of a view (mirrors Java's RuleMapper.createRules): ``Disabled()``
+        fields disable unconditionally, ``Hidden(expr)`` fields hide while the expression is
+        truthy, and a :class:`RuleSupplier` contributes programmatic rules."""
+        rules: list[RuleRecord] = []
+        for f in view_fields(cls):
+            field_id = camel_case(f.name)
+            if f.has(Disabled):
+                rules.append(RuleRecord(
+                    filter="true", action="SetDataValue", field_name=field_id,
+                    field_attribute="disabled", expression="true",
+                ))
+            hidden = f.marker(Hidden)
+            if hidden is not None and hidden.value:
+                rules.append(RuleRecord(
+                    filter="true", action="SetDataValue", field_name=field_id,
+                    field_attribute="hidden", expression=hidden.value,
+                ))
+        if isinstance(instance, RuleSupplier):
+            rules.extend(
+                RuleRecord(
+                    filter=r.filter, action=r.action, field_name=r.field_name,
+                    field_attribute=r.field_attribute, value=r.value, expression=r.expression,
+                    result=r.result, action_id=r.action_id,
+                )
+                for r in instance.rules()
+            )
+        return rules
 
     # ── Fields & layout ────────────────────────────────────────────────────────
     def form_cards(self, cls, instance, read_only: bool = False) -> list:

@@ -145,6 +145,57 @@ class UseRadioButtons:
 
 
 @dataclass(frozen=True)
+class Hidden:
+    """Hides the field while the client-side ``value`` expression is truthy, re-evaluated on
+    every state change without a server round-trip — e.g. ``Hidden("!state.special")`` shows the
+    field only when ``special`` is set. The Python analogue of Java's ``@Hidden``."""
+
+    value: str = ""
+
+
+@dataclass(frozen=True)
+class Disabled:
+    """Renders the field permanently disabled (visible but not editable). The Python analogue of
+    Java's ``@Disabled``."""
+
+
+@dataclass(frozen=True)
+class Rule:
+    """A client-side rule (the uidl mirror of ``io.mateu.uidl.data.Rule``): while ``filter`` is
+    truthy the renderer applies ``action`` — most commonly SetDataValue of a field attribute
+    (hidden, disabled, required…) to the value of ``expression``, both evaluated against the live
+    state."""
+
+    filter: str
+    action: str
+    field_name: str | None = None
+    field_attribute: str | None = None
+    value: object | None = None
+    expression: str | None = None
+    result: str = "Continue"
+    action_id: str | None = None
+
+    @staticmethod
+    def hide(field_name: str, expression: str) -> "Rule":
+        """Hide ``field_name`` while ``expression`` is truthy."""
+        return Rule("true", "SetDataValue", field_name, "hidden", None, expression)
+
+    @staticmethod
+    def disable(field_name: str, expression: str = "true") -> "Rule":
+        """Disable ``field_name`` while ``expression`` is truthy."""
+        return Rule("true", "SetDataValue", field_name, "disabled", None, expression)
+
+
+class RuleSupplier:
+    """Implemented by a view to contribute programmatic client-side rules (the Python analogue of
+    Java's ``RuleSupplier``); they complement the ``Hidden()``/``Disabled()`` marker-derived
+    rules."""
+
+    def rules(self) -> list[Rule]:
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
 class Lookup:
     """A remote, search-as-you-type reference field: renders a combo box whose options come from
     the server page by page — the view (or crud) answers the field's ``search-<fieldId>`` action
@@ -543,7 +594,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Lookup", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc",
     "plain_text", "emits", "subscribe_to", "secured",

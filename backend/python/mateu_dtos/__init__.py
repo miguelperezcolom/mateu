@@ -413,6 +413,24 @@ class ServerSideComponent(Wire):
     slot: str | None = None
     emits_name: str | None = None
     confirm_on_navigation_if_dirty: bool = False
+    #: Client-side rules (Hidden()/Disabled() fields, RuleSupplier): the renderer's no-eval
+    #: engine re-evaluates them on every state change.
+    rules: list["RuleRecord"] = Field(default_factory=list)
+
+
+class RuleRecord(Wire):
+    """A client-side rule (mirrors ``io.mateu.dtos.RuleDto``): while ``filter`` is truthy the
+    renderer applies ``action`` — most commonly SetDataValue of ``field_attribute`` (hidden,
+    disabled, required…) to the value of ``expression``, both evaluated against the live state."""
+
+    filter: str
+    action: str
+    field_name: str | None = None
+    field_attribute: str | None = None
+    value: Any | None = None
+    expression: str | None = None
+    result: str = "Continue"
+    action_id: str | None = None
 
 
 Component = Annotated[
