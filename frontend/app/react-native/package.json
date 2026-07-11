@@ -46,5 +46,34 @@
     "@types/react": "~18.3.12",
     "@types/react-native": "^0.73.0",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "tar": "^7.5.16",
+    "undici": "^6.27.0",
+    "postcss": "^8.5.10",
+    "@expo/cli": {
+      "form-data": "^3.0.5"
+    },
+    "@expo/plist": {
+      "@xmldom/xmldom": "^0.8.13"
+    },
+    "@expo/xcpretty": {
+      "js-yaml": "^4.2.0"
+    },
+    "xcode": {
+      "uuid": "^11.1.1"
+    },
+    "cosmiconfig": {
+      "js-yaml": "^3.15.0"
+    },
+    "@istanbuljs/load-nyc-config": {
+      "js-yaml": "^3.15.0"
+    },
+    "@expo/bunyan": {
+      "uuid": "^11.1.1"
+    },
+    "@expo/rudder-sdk-node": {
+      "uuid": "^11.1.1"
+    }
   }
 }
