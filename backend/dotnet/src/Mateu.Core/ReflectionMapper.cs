@@ -445,7 +445,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
     /// type, the smart search bar from the Filters type (typed DateRange/NumberRange/ISet
     /// properties render range and multi-select widgets — the type is the developer's explicit
     /// ask, mirroring Java's PageListingBuilder.isTypedFilter).</summary>
-    private ServerSideComponentDto MapListing(Type viewType, Type filters, Type row, string route)
+    /// <summary>Whether the listing view acts as a selector dialog (implements ISelector).</summary>
+    internal static bool IsSelector(Type viewType) =>
+        viewType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISelector<>));
+
+    internal ServerSideComponentDto MapListing(Type viewType, Type filters, Type row, string route)
     {
         var title = viewType.GetCustomAttribute<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
         var columns = EditableProperties(row)
@@ -456,6 +460,18 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
                 DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
             }))
             .ToList();
+        var actions = new List<ActionDto> { new("search") };
+        if (IsSelector(viewType))
+        {
+            // The rows of a selector dialog show a Select button (the frontend keys on the
+            // "select" action column) and clicking dispatches action-on-row-select.
+            columns.Add(new GridColumnDto(new GridColumnMetaDto("select", "Select")
+            {
+                DataType = "action",
+                Stereotype = "button",
+            }));
+            actions.Add(new ActionDto("action-on-row-select", ValidationRequired: false));
+        }
         var crud = Client(new CrudMetadataDto(title, columns, [])
         {
             CanEdit = false,
@@ -464,7 +480,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
-            new Dictionary<string, object?>(), [new ActionDto("search")],
+            new Dictionary<string, object?>(), actions,
             [new TriggerDto("OnLoad", "search")], null, null, null);
     }
 
@@ -743,6 +759,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null)
         if (p.GetCustomAttribute<PasswordAttribute>() != null) return "password";
         if (p.GetCustomAttribute<MoneyAttribute>() != null) return plainText ? "plainText" : "money";
         if (p.GetCustomAttribute<LookupAttribute>() != null) return "combobox";
+        if (p.GetCustomAttribute<SearchableAttribute>() != null) return "searchable";
         if (plainText) return "plainText";
         if ((Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType).IsEnum)
             return p.GetCustomAttribute<UseRadioButtonsAttribute>() != null || LayoutInference.PreferRadio(p)

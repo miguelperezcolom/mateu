@@ -116,6 +116,29 @@ public class BookingFilters
     public string? Guest { get; set; }
 }
 
+public class HotelRow
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+}
+
+public class HotelFilters;
+
+[UI("hotel-selector"), Title("Hotels")]
+public class HotelSelector : Listing<HotelFilters, HotelRow>, ISelector<HotelRow>
+{
+    public override IEnumerable<HotelRow> Search(string? searchText, HotelFilters filters) =>
+        [new() { Id = "h1", Name = "Palace" }, new() { Id = "h2", Name = "Marina" }];
+
+    public SelectedItem Selected(HotelRow row) => new(row.Id, row.Name);
+}
+
+[UI("reservation"), Title("Reservation")]
+public class ReservationForm
+{
+    [Searchable(typeof(HotelSelector))] public string? Hotel { get; set; }
+}
+
 [UI("bookings-listing"), Title("Bookings (typed filters)")]
 public class BookingsListing : Listing<BookingFilters, BookingRow>
 {
@@ -386,6 +409,65 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Searchable_field_renders_with_the_searchable_stereotype()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "reservation", ConsumedRoute = "reservation" }));
+        Assert.Contains("\"stereotype\":\"searchable\"", json);
+    }
+
+    [Fact]
+    public void Codesearch_opens_the_selector_listing_in_a_dialog()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "codesearch-hotel",
+            Route = "reservation",
+            ServerSideType = typeof(ReservationForm).FullName,
+            InitiatorComponentId = "comp-3",
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Equal("comp-3", frag.TargetComponentId);
+        Assert.Equal("Add", frag.Action);
+        var json = Render(inc);
+        // A Dialog whose content is the selector's own server-side listing…
+        Assert.Contains("\"type\":\"Dialog\"", json);
+        Assert.Contains(typeof(HotelSelector).FullName!, json);
+        // …with the Select action column, the host field id, and its own search wiring.
+        Assert.Contains("\"id\":\"select\",\"label\":\"Select\",\"type\":\"GridColumn\",\"dataType\":\"action\"", json);
+        Assert.Contains("\"_fieldId\":\"hotel\"", json);
+        Assert.Contains("action-on-row-select", json);
+        Assert.Contains("\"OnLoad\"", json);
+    }
+
+    [Fact]
+    public void Selecting_a_row_writes_id_and_label_back_and_closes_the_dialog()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "action-on-row-select",
+            ServerSideType = typeof(HotelSelector).FullName,
+            ComponentState = new() { ["_fieldId"] = JsonSerializer.SerializeToElement("hotel") },
+            Parameters = new()
+            {
+                ["_clickedRow"] = JsonSerializer.SerializeToElement(new { id = "h2", name = "Marina" }),
+            },
+        };
+
+        var inc = Handler().Handle(rq);
+
+        Assert.Equal(3, inc.Commands.Count);
+        var json = Render(inc);
+        Assert.Contains("\"eventName\":\"value-changed\"", json);
+        Assert.Contains("\"fieldId\":\"hotel\",\"value\":\"h2\"", json);
+        Assert.Contains("\"eventName\":\"data-changed\"", json);
+        Assert.Contains("\"key\":\"hotel-label\",\"value\":\"Marina\"", json);
+        Assert.Contains("\"eventName\":\"close-modal-requested\"", json);
     }
 
     [Fact]

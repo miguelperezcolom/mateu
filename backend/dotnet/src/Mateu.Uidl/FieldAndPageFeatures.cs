@@ -48,6 +48,17 @@ public sealed class UseRadioButtonsAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class LookupAttribute : Attribute;
 
+/// <summary>A reference field picked through a full selector DIALOG instead of a combo: clicking
+/// the field fires <c>codesearch-&lt;fieldId&gt;</c>, which opens the given selector — a Listing
+/// implementing ISelector — in a modal; selecting a row writes its (id, label) back into the
+/// field and closes the dialog. (C# analogue of Java's @Searchable.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SearchableAttribute(Type selector) : Attribute
+{
+    /// <summary>The Listing + ISelector view that backs the dialog.</summary>
+    public Type Selector { get; } = selector;
+}
+
 /// <summary>Hides the field while the client-side expression is truthy, re-evaluated on every
 /// state change without a server round-trip — e.g. <c>[Hidden("!state.special")]</c> shows the
 /// field only when Special is set. (C# analogue of Java's @Hidden.)</summary>

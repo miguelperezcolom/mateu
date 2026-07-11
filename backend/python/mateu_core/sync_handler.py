@@ -10,12 +10,25 @@ from typing import Any
 
 from mateu_dtos import (
     Banner as BannerDto,
+    ClientSideComponent,
+    CustomEventRecord,
+    DialogMetadata,
     Message as MessageDto,
     UICommand,
     UIFragment,
     UIIncrement,
 )
-from mateu_uidl import DateRange, Label, Message, NumberRange, PageBanner, Required, Step, Wizard
+from mateu_uidl import (
+    DateRange,
+    Label,
+    Message,
+    NumberRange,
+    PageBanner,
+    Required,
+    Searchable,
+    Step,
+    Wizard,
+)
 from mateu_uidl import components as fluent
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -85,6 +98,9 @@ class SyncHandler:
             view = type_()
             if rq.action_id == "search":
                 return self.listing_search(view, listing[0], listing[1], rq)
+            # A selector dialog's row pick: write (id, label) back into the host field.
+            if rq.action_id == "action-on-row-select":
+                return self.selector_row_selected(view, listing[1], rq)
             return self.render(type_, view, rq)
 
         # 4. A plain view.
@@ -92,6 +108,8 @@ class SyncHandler:
         self.bind_state(instance, rq.component_state)
         if rq.action_id and rq.action_id.startswith("search-"):
             return self.field_search(instance, rq)
+        if rq.action_id and rq.action_id.startswith("codesearch-"):
+            return self.field_code_search(type_, rq)
         if not rq.action_id:
             return self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq)
@@ -141,6 +159,9 @@ class SyncHandler:
         # A Lookup() field on the entity form searches its options through the crud view.
         if aid and aid.startswith("search-"):
             return self.field_search(crud, rq)
+        # A Searchable() field on the entity form opens its selector dialog.
+        if aid and aid.startswith("codesearch-"):
+            return self.field_code_search(element, rq)
 
         if aid == "search":
             return self.crud_search(crud, element, rq)
@@ -243,6 +264,64 @@ class SyncHandler:
         crud.save(entity)
         return UIIncrement.of(
             messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)]
+        )
+
+    def field_code_search(self, host_type, rq: RunActionRq) -> UIIncrement:
+        """Opens a ``Searchable()`` field's selector dialog: the selector Listing (with its Select
+        column, own actions and OnLoad search) rides as the content of a Dialog emitted as an Add
+        fragment; the host field id travels in the selector's initial data so the row pick can
+        address it back (mirrors Java's CodeSearchFieldActionRunner)."""
+        field_id = rq.action_id[len("codesearch-"):]
+        selector_type = None
+        for f in view_fields(host_type):
+            if camel_case(f.name) == field_id and f.has(Searchable):
+                selector_type = f.marker(Searchable).selector
+                break
+        listing = listing_types(selector_type) if selector_type is not None else None
+        if listing is None:
+            return self.error(f"no selector found for field {field_id}")
+
+        component = self.mapper.map_listing(
+            selector_type, listing[0], listing[1], rq.consumed_route or ""
+        )
+        component.initial_data = {"_fieldId": field_id}
+        dialog = ClientSideComponent(
+            metadata=DialogMetadata(content=component), children=[],
+        )
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(
+                    target_component_id=rq.initiator_component_id or "ux_main",
+                    component=dialog,
+                    action="Add",
+                )
+            ]
+        )
+
+    def selector_row_selected(self, view, row_type, rq: RunActionRq) -> UIIncrement:
+        """A selector dialog's row pick: rebuilds the clicked row, asks the Selector for the
+        (id, label) pair and writes it back into the host field via the event bus —
+        value-changed sets the value, data-changed the display label, close-modal-requested
+        dismisses the dialog (mirrors Java's Listing.handleActionOnRow("select"))."""
+        raw = (rq.parameters or {}).get("_clickedRow")
+        if not isinstance(raw, dict):
+            return self.error("action-on-row-select requires a _clickedRow parameter")
+        row = row_type()
+        self.bind_state(row, raw)
+
+        selected = view.selected(row)
+        field_id = str((rq.component_state or {}).get("_fieldId") or "")
+        return UIIncrement.of(
+            commands=[
+                UICommand(target_component_id="ux_main", type="DispatchEvent",
+                          data=CustomEventRecord(event_name="value-changed",
+                                                 detail={"fieldId": field_id, "value": selected.id})),
+                UICommand(target_component_id="ux_main", type="DispatchEvent",
+                          data=CustomEventRecord(event_name="data-changed",
+                                                 detail={"key": field_id + "-label", "value": selected.label})),
+                UICommand(target_component_id="ux_main", type="DispatchEvent",
+                          data=CustomEventRecord(event_name="close-modal-requested")),
+            ]
         )
 
     def listing_search(self, view, filters_type, row_type, rq: RunActionRq) -> UIIncrement:

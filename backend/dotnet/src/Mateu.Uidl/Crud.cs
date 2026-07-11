@@ -82,3 +82,16 @@ public abstract class Listing<TFilters, TRow> where TFilters : class, new() wher
     /// <summary>Rows matching the free-text search and the applied filters.</summary>
     public abstract IEnumerable<TRow> Search(string? searchText, TFilters filters);
 }
+
+/// <summary>The item a <see cref="ISelector{TRow}"/> reports as chosen: its id (stored as the
+/// field value) and its human label (shown next to it). (C# analogue of
+/// io.mateu.uidl.interfaces.SelectedItem.)</summary>
+public sealed record SelectedItem(object? Id, string Label);
+
+/// <summary>Implemented by a Listing that acts as a [Searchable] field's selector dialog: the
+/// listing opens in a modal, every row shows a Select button, and Selected maps the clicked row
+/// to the (id, label) pair written back into the field. (C# analogue of Java's Selector.)</summary>
+public interface ISelector<in TRow>
+{
+    SelectedItem Selected(TRow row);
+}

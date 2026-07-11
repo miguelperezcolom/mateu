@@ -30,9 +30,13 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         if (ReflectionMapper.ListingTypes(type) is { } listing)
         {
             var view = Activator.CreateInstance(type)!;
-            return rq.ActionId == "search"
-                ? ListingSearch(view, listing.Filters, listing.Row, rq)
-                : Render(type, view, rq);
+            return rq.ActionId switch
+            {
+                "search" => ListingSearch(view, listing.Filters, listing.Row, rq),
+                // A selector dialog's row pick: write (id, label) back into the host field.
+                "action-on-row-select" => SelectorRowSelected(view, listing.Row, rq),
+                _ => Render(type, view, rq),
+            };
         }
 
         // 3. A wizard.
@@ -42,6 +46,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var instance = Activator.CreateInstance(type)!;
         BindState(instance, rq.ComponentState);
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(instance, rq);
+        if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(type, rq);
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }
 
@@ -88,6 +93,8 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
         // A [Lookup] field on the entity form searches its options through the crud view.
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(crud, rq);
+        // A [Searchable] field on the entity form opens its selector dialog.
+        if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(element, rq);
 
         return rq.ActionId switch
         {
@@ -182,6 +189,51 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         BindState(entity, row);
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
         return UIIncrementDto.Of(messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
+    }
+
+    /// <summary>Opens a [Searchable] field's selector dialog: the selector Listing (with its
+    /// Select column, own actions and OnLoad search) rides as the content of a Dialog emitted as
+    /// an Add fragment; the host field id travels in the selector's initial data so the row pick
+    /// can address it back (mirrors Java's CodeSearchFieldActionRunner).</summary>
+    private UIIncrementDto FieldCodeSearch(Type hostType, RunActionRqDto rq)
+    {
+        var fieldId = rq.ActionId!["codesearch-".Length..];
+        var property = ReflectionMapper.EditableProperties(hostType)
+            .FirstOrDefault(p => Naming.CamelCase(p.Name) == fieldId);
+        var selectorType = property?.GetCustomAttribute<SearchableAttribute>()?.Selector;
+        if (selectorType is null || ReflectionMapper.ListingTypes(selectorType) is not { } listing)
+            return Error($"no selector found for field {fieldId}");
+
+        var component = _mapper.MapListing(selectorType, listing.Filters, listing.Row, rq.ConsumedRoute ?? "")
+            with { InitialData = new Dictionary<string, object?> { ["_fieldId"] = fieldId } };
+        var dialog = new ClientSideComponentDto(
+            new DialogMetadataDto(null, null, component), null, [], null, null, null);
+        return UIIncrementDto.Of(fragments:
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", dialog, null, null, "Add", null)]);
+    }
+
+    /// <summary>A selector dialog's row pick: rebuilds the clicked row, asks the ISelector for
+    /// the (id, label) pair and writes it back into the host field via the event bus —
+    /// value-changed sets the value, data-changed the display label, close-modal-requested
+    /// dismisses the dialog (mirrors Java's Listing.handleActionOnRow("select")).</summary>
+    private static UIIncrementDto SelectorRowSelected(object view, Type rowType, RunActionRqDto rq)
+    {
+        if (!rq.Parameters.TryGetValue("_clickedRow", out var raw)
+            || raw is not JsonElement { ValueKind: JsonValueKind.Object } rowEl)
+            return Error("action-on-row-select requires a _clickedRow parameter");
+        var row = Activator.CreateInstance(rowType)!;
+        BindState(row, rowEl.EnumerateObject().ToDictionary(x => x.Name, x => (object?)x.Value));
+
+        var selected = (SelectedItem)view.GetType().GetMethod("Selected")!.Invoke(view, [row])!;
+        var fieldId = StateString(GetState(rq.ComponentState, "_fieldId")) ?? "";
+        return UIIncrementDto.Of(commands:
+        [
+            new UICommandDto("ux_main", "DispatchEvent", new CustomEventDto("value-changed",
+                new Dictionary<string, object?> { ["fieldId"] = fieldId, ["value"] = selected.Id })),
+            new UICommandDto("ux_main", "DispatchEvent", new CustomEventDto("data-changed",
+                new Dictionary<string, object?> { ["key"] = fieldId + "-label", ["value"] = selected.Label })),
+            new UICommandDto("ux_main", "DispatchEvent", new CustomEventDto("close-modal-requested", null)),
+        ]);
     }
 
     /// <summary>A declarative Listing's search: hydrates the TYPED filters from the component

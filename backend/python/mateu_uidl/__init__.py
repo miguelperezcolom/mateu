@@ -219,6 +219,16 @@ class Lookup:
 
 
 @dataclass(frozen=True)
+class Searchable:
+    """A reference field picked through a full selector DIALOG instead of a combo: clicking the
+    field fires ``codesearch-<fieldId>``, which opens the given selector — a :class:`Listing`
+    with the :class:`Selector` mixin — in a modal; selecting a row writes its (id, label) back
+    into the field and closes the dialog. The Python analogue of Java's ``@Searchable``."""
+
+    selector: type
+
+
+@dataclass(frozen=True)
 class LinkTo:
     """Renders a navigation icon at the right side of the field that takes the user to the given
     URL or route. ``href``/``title`` travel verbatim and support ``${...}`` state expressions
@@ -577,6 +587,26 @@ class NumberRange:
         return (self.from_ is None or value >= self.from_) and (self.to is None or value <= self.to)
 
 
+@dataclass(frozen=True)
+class SelectedItem:
+    """The item a :class:`Selector` reports as chosen: its id (stored as the field value) and
+    its human label (shown next to it). The Python analogue of
+    ``io.mateu.uidl.interfaces.SelectedItem``."""
+
+    id: object
+    label: str
+
+
+class Selector:
+    """Mixin for a :class:`Listing` that acts as a ``Searchable()`` field's selector dialog: the
+    listing opens in a modal, every row shows a Select button, and ``selected`` maps the clicked
+    row to the (id, label) pair written back into the field. The Python analogue of Java's
+    ``Selector``."""
+
+    def selected(self, row) -> SelectedItem:
+        raise NotImplementedError
+
+
 F = TypeVar("F")
 R = TypeVar("R")
 
@@ -694,6 +724,6 @@ __all__ = [
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
-    "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Wizard", "Translator",
+    "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome",
 ]

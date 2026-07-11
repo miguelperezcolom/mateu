@@ -22,6 +22,9 @@ from mateu_uidl import (  # noqa: E402
     RangeFilter,
     Rule,
     RuleSupplier,
+    Searchable,
+    SelectedItem,
+    Selector,
     Signature,
     TreeSelect,
     app_context,
@@ -167,6 +170,35 @@ class ZonedForm:
     b: str | None = None
     c: Annotated[str | None, Section("Side", zone="right")] = None
     d: Annotated[str | None, Section("Loose")] = None
+
+
+class SelectorHotelRow:
+    id: str = ""
+    name: str = ""
+
+
+class SelectorHotelFilters:
+    pass
+
+
+@ui("hotel-selector")
+@title("Hotels")
+class HotelSelector(Listing[SelectorHotelFilters, SelectorHotelRow], Selector):
+    def search(self, search_text, filters):
+        a = SelectorHotelRow()
+        a.id, a.name = "h1", "Palace"
+        b = SelectorHotelRow()
+        b.id, b.name = "h2", "Marina"
+        return [a, b]
+
+    def selected(self, row):
+        return SelectedItem(id=row.id, label=row.name)
+
+
+@ui("reservation")
+@title("Reservation")
+class ReservationForm:
+    hotel: Annotated[str | None, Searchable(HotelSelector)] = None
 
 
 class BookingSource(Enum):
@@ -518,6 +550,52 @@ def test_crud_search_returns_rows():
     j = render(inc)
     assert '"totalElements": 2' in j
     assert "Alpha" in j and "Beta" in j
+
+
+def test_searchable_field_renders_with_the_searchable_stereotype():
+    inc = handler().handle(RunActionRq(route="reservation", consumed_route="reservation"))
+    assert '"stereotype": "searchable"' in render(inc)
+
+
+def test_codesearch_opens_the_selector_listing_in_a_dialog():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="codesearch-hotel",
+            route="reservation",
+            server_side_type=_name(ReservationForm),
+            initiator_component_id="comp-3",
+        )
+    )
+    assert len(inc.fragments) == 1
+    assert inc.fragments[0].target_component_id == "comp-3"
+    assert inc.fragments[0].action == "Add"
+    j = render(inc)
+    # A Dialog whose content is the selector's own server-side listing…
+    assert '"type": "Dialog"' in j
+    assert _name(HotelSelector) in j
+    # …with the Select action column, the host field id, and its own search wiring.
+    assert '"id": "select", "label": "Select", "type": "GridColumn", "dataType": "action"' in j
+    assert '"_fieldId": "hotel"' in j
+    assert "action-on-row-select" in j
+    assert '"OnLoad"' in j
+
+
+def test_selecting_a_row_writes_id_and_label_back_and_closes_the_dialog():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="action-on-row-select",
+            server_side_type=_name(HotelSelector),
+            component_state={"_fieldId": "hotel"},
+            parameters={"_clickedRow": {"id": "h2", "name": "Marina"}},
+        )
+    )
+    assert len(inc.commands) == 3
+    j = render(inc)
+    assert '"eventName": "value-changed"' in j
+    assert '"fieldId": "hotel", "value": "h2"' in j
+    assert '"eventName": "data-changed"' in j
+    assert '"key": "hotel-label", "value": "Marina"' in j
+    assert '"eventName": "close-modal-requested"' in j
 
 
 def test_declarative_listing_emits_typed_filter_widgets_and_read_only_columns():

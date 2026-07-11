@@ -87,6 +87,8 @@ from mateu_uidl import (
     RangeFilter,
     ReadOnly,
     RuleSupplier,
+    Searchable,
+    Selector,
     Signature,
     TreeSelect,
     Required,
@@ -800,6 +802,14 @@ class ReflectionMapper:
             ))
             for f in view_fields(row_type)
         ]
+        actions = [Action(id="search")]
+        if issubclass(cls, Selector):
+            # The rows of a selector dialog show a Select button (the frontend keys on the
+            # "select" action column) and clicking dispatches action-on-row-select.
+            columns.append(GridColumn(metadata=GridColumnMeta(
+                id="select", label="Select", data_type="action", stereotype="button",
+            )))
+            actions.append(Action(id="action-on-row-select", validation_required=False))
         crud = self.client(
             CrudMetadata(title=title, columns=columns, toolbar=[],
                          can_edit=False, filters=self.listing_filters(filters_type)),
@@ -809,7 +819,7 @@ class ReflectionMapper:
         page = self.client(PageMetadata(), None, [crud])
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
-            initial_data={}, actions=[Action(id="search")],
+            initial_data={}, actions=actions,
             triggers=[Trigger(type="OnLoad", action_id="search")],
         )
 
@@ -1290,6 +1300,8 @@ class ReflectionMapper:
             return "plainText" if plain else "money"
         if f.has(Lookup):
             return "combobox"
+        if f.has(Searchable):
+            return "searchable"
         if plain:
             return "plainText"
         if is_enum(f.type):
