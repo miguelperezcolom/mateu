@@ -19,6 +19,21 @@ export const renderStatusValue = (value: any): TemplateResult => {
     return html`<ui5-tag color-scheme="${statusColorScheme(value.type)}">${message}</ui5-tag>`
 }
 
+/**
+ * Plain-text rendering of a cell value, for contexts that can only take a string (the ui5-li
+ * `description` line in the list/masterDetail layouts). Status objects print their message,
+ * booleans print ✓/✗ — everything else stringifies (never [object Object]).
+ */
+export const cellText = (item: any, col: GridColumn): string => {
+    const value = item[col.id]
+    if (value == null) return ''
+    if (col.dataType === 'bool' || typeof value === 'boolean') return value ? '✓' : '✗'
+    if (typeof value === 'object') {
+        return String(value.message ?? value.label ?? value.text ?? value.value ?? '')
+    }
+    return String(value)
+}
+
 export type CellActionDispatcher = (actionId: string, item: any) => void
 
 /**

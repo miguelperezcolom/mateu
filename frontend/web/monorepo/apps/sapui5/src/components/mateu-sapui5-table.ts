@@ -8,7 +8,7 @@ import {
     compactColumns,
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
-import { renderCellValue } from "@/renderers/renderCellValue.ts";
+import { renderCellValue, cellText } from "@/renderers/renderCellValue.ts";
 
 @customElement('mateu-sapui5-table')
 export class MateuSapUI5Table extends LitElement {
@@ -147,7 +147,7 @@ export class MateuSapUI5Table extends LitElement {
             <ui5-list no-data-text="${this.emptyStateMessage ?? 'No data.'}" style="width: 100%;">
                 ${rows.map((item: any) => html`
                     <ui5-li
-                        description="${secondaryCols.map(c => `${c.label}: ${item[c.id] ?? ''}`).join(' · ')}"
+                        description="${secondaryCols.map(c => `${c.label}: ${cellText(item, c)}`).join(' · ')}"
                         @click="${() => this.dispatchAction('_rowClick', item)}"
                         style="cursor: pointer;"
                     >
@@ -202,7 +202,7 @@ export class MateuSapUI5Table extends LitElement {
                     <ui5-list no-data-text="${this.emptyStateMessage ?? 'No data.'}" style="width: 100%;">
                         ${rows.map((item: any) => html`
                             <ui5-li
-                                description="${compact.filter(c => c !== idCol).map(c => `${c.label}: ${item[c.id] ?? ''}`).join(' · ')}"
+                                description="${compact.filter(c => c !== idCol).map(c => `${c.label}: ${cellText(item, c)}`).join(' · ')}"
                                 ?selected="${this.selectedItem === item}"
                                 @click="${() => { this.selectedItem = item }}"
                                 style="cursor: pointer;"

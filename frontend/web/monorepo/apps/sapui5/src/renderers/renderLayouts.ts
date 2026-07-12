@@ -45,18 +45,23 @@ export const renderVerticalLayout = (container: LitElement, component: ClientSid
 
 const renderFormChild = (container: LitElement, child: Component, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, cols: number): TemplateResult => {
     const clientChild = child as ClientSideComponent
-    // FormRow: transparent wrapper — render its children directly into the grid
-    if (clientChild.type === ComponentType.ClientSide && clientChild.metadata?.type === ComponentMetadataType.FormRow) {
+    // FormRow / FormItem: transparent wrappers — render their children directly into the grid
+    if (clientChild.type === ComponentType.ClientSide
+        && (clientChild.metadata?.type === ComponentMetadataType.FormRow || clientChild.metadata?.type === ComponentMetadataType.FormItem)) {
         return html`${clientChild.children?.map(grandchild =>
             renderFormChild(container, grandchild, baseUrl, state, data, appState, appData, cols)
         )}`
     }
-    // FormField with colspan > 1 needs a spanning wrapper
+    // FormField with colspan > 1 needs a spanning wrapper. Grid-stereotype fields without an
+    // explicit colspan take the FULL row: a ui5-table in a single ~230px form cell responsively
+    // pops all but the first couple of columns into popins (the guests grid on /checkin showed
+    // 2 of its 11 columns) — unlike a plain <table>, it never overflows its cell.
     if (clientChild.type === ComponentType.ClientSide && clientChild.metadata?.type === ComponentMetadataType.FormField) {
         const fieldMeta = clientChild.metadata as FormField
         const colspan = fieldMeta?.colspan ?? 1
-        if (colspan > 1) {
-            return html`<div style="grid-column: span ${Math.min(colspan, cols)};">
+        const fullRow = fieldMeta?.stereotype === 'grid' && (fieldMeta?.colspan ?? 1) <= 1
+        if (colspan > 1 || fullRow) {
+            return html`<div style="grid-column: ${fullRow ? '1 / -1' : `span ${Math.min(colspan, cols)}`}; min-width: 0;">
                 ${renderComponent(container, child, baseUrl, state, data, appState, appData)}
             </div>`
         }
@@ -71,9 +76,23 @@ export const renderFormRow = (container: LitElement, component: ClientSideCompon
     )}`
 }
 
+// maxColumns is a CAP (Vaadin auto-responsive semantics), not a fixed track count: a 2-column
+// grid holding a single field wastes half the row (nested @Inline forms compounded this — the
+// guests grid on /checkin ended up in a quarter of its card). Clamp to the actual leaf count.
+const countLeaves = (children: Component[] | undefined): number =>
+    (children ?? []).reduce((n, child) => {
+        const c = child as ClientSideComponent
+        const t = c.metadata?.type
+        if (t === ComponentMetadataType.FormRow || t === ComponentMetadataType.FormItem) {
+            return n + countLeaves(c.children)
+        }
+        return n + 1
+    }, 0)
+
 export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
     const metadata = component.metadata as FormLayout
-    const cols = metadata?.maxColumns && metadata.maxColumns > 0 ? metadata.maxColumns : 2
+    const maxCols = metadata?.maxColumns && metadata.maxColumns > 0 ? metadata.maxColumns : 2
+    const cols = Math.max(1, Math.min(maxCols, countLeaves(component.children)))
     let style = component.style ?? ''
     if (metadata?.fullWidth) style += 'width: 100%;'
     return html`

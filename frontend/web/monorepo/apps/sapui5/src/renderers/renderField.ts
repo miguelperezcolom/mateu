@@ -1,12 +1,13 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { html, LitElement, nothing, TemplateResult } from "lit";
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { ref } from "lit/directives/ref.js";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import { interpolate } from "@infra/ui/interpolation";
 import { evalIfNecessary } from "@infra/ui/renderers/avatarRenderer.ts";
 import { changed, checkboxChanged } from "@/SapUi5ComponentRenderer.ts";
-import { renderStatusValue } from "@/renderers/renderCellValue.ts";
+import { renderStatusValue, renderCellValue } from "@/renderers/renderCellValue.ts";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SAP UI5 form field renderer. Mirrors the dispatch of the reference renderer
@@ -343,20 +344,28 @@ const renderUploadableImage = (metadata: FormField, id: string, value: any): Tem
 }
 
 // ── Inline grid (stereotype `grid`) — read-only display ─────────────────────
-
-const renderGridCell = (item: any, col: any): TemplateResult => {
-    const value = item[col.id]
-    if (col.dataType === 'bool' || col.dataType === 'boolean') {
-        return html`<ui5-icon name="${value ? 'accept' : 'decline'}"></ui5-icon>`
-    }
-    return html`${value ?? ''}`
-}
+// Cells go through the shared renderCellValue (status → ui5-tag, bool → icon, money, link,
+// action buttons…) — the old local cell renderer only handled booleans, so status objects
+// printed as [object Object].
 
 const renderInlineGrid = (metadata: FormField, value: any): TemplateResult => {
     const rows: any[] = Array.isArray(value) ? value : []
     const cols = metadata.columns!.map((c: any) => c.metadata as any)
+    // Cell actions bubble as the standard action-requested with the clicked row; the dispatch
+    // element is the ui5-table itself, captured via ref (renderCellValue's callback carries no
+    // event target).
+    const tableRef: { el?: Element } = {}
+    const dispatchCellAction = (actionId: string, item: any) =>
+        tableRef.el?.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId, parameters: { _clickedRow: item } }, bubbles: true, composed: true,
+        }))
+    // overflow-x wrapper + per-column min-width: without them the ui5-table shrinks to its
+    // container and responsively pops all but the first columns into popins (the guests grid
+    // on /checkin showed 2 of its 11 columns); with a floor per column the table overflows and
+    // scrolls horizontally instead, like vaadin-grid and the redwood plain table.
     return html`
-        <ui5-table style="width: 100%; margin-top: 0.5rem;">
+        <div style="overflow-x: auto;">
+        <ui5-table style="width: 100%; min-width: ${Math.max(cols.length * 7, 24)}rem; margin-top: 0.5rem;" ${ref(el => { tableRef.el = el })}>
             <ui5-table-header-row slot="headerRow">
                 ${cols.map((col: any) => html`
                     <ui5-table-header-cell width="${col.width ?? nothing}">${col.label}</ui5-table-header-cell>
@@ -365,11 +374,12 @@ const renderInlineGrid = (metadata: FormField, value: any): TemplateResult => {
             ${rows.map((item: any, idx: number) => html`
                 <ui5-table-row row-key="${item._rowNumber ?? idx}">
                     ${cols.map((col: any) => html`
-                        <ui5-table-cell>${renderGridCell(item, col)}</ui5-table-cell>
+                        <ui5-table-cell>${renderCellValue(item, col, dispatchCellAction)}</ui5-table-cell>
                     `)}
                 </ui5-table-row>
             `)}
-        </ui5-table>`
+        </ui5-table>
+        </div>`
 }
 
 // ── Special top-level fields ─────────────────────────────────────────────────
