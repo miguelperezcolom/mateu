@@ -4,6 +4,7 @@ import { MateuRendererApp } from '@infra/ui/MateuRendererApp.ts'
 import '@infra/ui/mateu-app-context-picker.ts'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
+import { AppVariant } from '@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts'
 import MenuOption from '@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts'
 
 /**
@@ -37,6 +38,12 @@ export class MateuSldsApp extends MateuRendererApp {
     render() {
         const metadata = (this.component as ClientSideComponent)?.metadata as App
         if (!metadata) return nothing
+        // Embedded MEDIATOR shells (e.g. the crud mediator inside a listing route) are
+        // chrome-less: no global header, no nav — just the routed content. Rendering the header
+        // here painted an empty white bar above every crud listing.
+        if (metadata.variant === AppVariant.MEDIATOR) {
+            return this.renderContent()
+        }
         const hasMenu = (metadata.menu ?? []).length > 0
 
         return html`

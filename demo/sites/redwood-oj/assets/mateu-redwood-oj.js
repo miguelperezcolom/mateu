@@ -6427,7 +6427,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                 <div id="togglePinnedNavListButtonDiv"
                                      class="togglePinnedNavListButtonSet oj-sm-only-hide oj-md-only-hide">
                                     <oj-button chroming="borderless" id="borderlessPushIcon"
-                                               @ojAction="${open}" display="icons"
+                                               @ojAction="${a}" display="icons"
                                                class="oj-button oj-button-half-chrome oj-button-icon-only oj-enabled oj-complete oj-default"
                                                title="Cookbook navigation">
                                         <button aria-labelledby="borderlessPushIcon_oj1|text" class="oj-button-button">
@@ -6485,7 +6485,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     </oj-c-avatar>
                 </div>
                 -->
-                <oj-c-drawer-layout start-opened="${t}"
+                <oj-c-drawer-layout .startOpened="${t}"
                                     start-display="reflow"
                                     class="demo-full-height"
                                     style="height: calc(100vh - 165px);"

@@ -4,6 +4,7 @@ import { MateuRendererApp } from '@infra/ui/MateuRendererApp.ts'
 import '@infra/ui/mateu-app-context-picker.ts'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
+import { AppVariant } from '@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts'
 import MenuOption from '@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts'
 
 /**
@@ -37,6 +38,11 @@ export class MateuRedhatApp extends MateuRendererApp {
     render() {
         const md = (this.component as ClientSideComponent)?.metadata as App
         if (!md) return nothing
+        // Embedded MEDIATOR shells (e.g. the crud mediator inside a listing route) are
+        // chrome-less: no masthead, no sidebar — just the routed content.
+        if (md.variant === AppVariant.MEDIATOR) {
+            return this.renderContent()
+        }
         const hasMenu = (md.menu ?? []).length > 0
         // Plain flex layout (not pf-v6-c-page, which is a CSS grid with fixed grid-areas that
         // conflicts with an extra wrapper) — pf classes are kept only for visual styling.

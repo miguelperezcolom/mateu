@@ -237,7 +237,8 @@ export const renderPagination = (container: any, component: ClientSideComponent 
     if (total === 0) return html``
     return html`
         <div class="pf-v6-c-pagination pf-m-bottom" style="display:flex; justify-content:flex-end; align-items:center; gap:.5rem; padding:.5rem 0;">
-            <span class="pf-v6-c-pagination__total-items">${total} item${total === 1 ? '' : 's'} · page ${pageNumber + 1} of ${totalPages}</span>
+            <!-- plain span: PF's __total-items class is display:none below its md breakpoint -->
+            <span style="color: var(--pf-t--global--text--color--subtle, #4d4d4d); font-size: .875rem;">${total} item${total === 1 ? '' : 's'} · page ${pageNumber + 1} of ${totalPages}</span>
             <button class="pf-v6-c-button pf-m-plain" type="button" ?disabled="${pageNumber <= 0}" @click="${() => go(pageNumber - 1)}">‹</button>
             <button class="pf-v6-c-button pf-m-plain" type="button" ?disabled="${pageNumber >= totalPages - 1}" @click="${() => go(pageNumber + 1)}">›</button>
         </div>`

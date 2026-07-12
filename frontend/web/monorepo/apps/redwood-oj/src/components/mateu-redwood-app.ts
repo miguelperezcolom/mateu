@@ -522,7 +522,7 @@ export class MateuRedwoodApp extends MateuApp {
                                 <div id="togglePinnedNavListButtonDiv"
                                      class="togglePinnedNavListButtonSet oj-sm-only-hide oj-md-only-hide">
                                     <oj-button chroming="borderless" id="borderlessPushIcon"
-                                               @ojAction="${open}" display="icons"
+                                               @ojAction="${toggle}" display="icons"
                                                class="oj-button oj-button-half-chrome oj-button-icon-only oj-enabled oj-complete oj-default"
                                                title="Cookbook navigation">
                                         <button aria-labelledby="borderlessPushIcon_oj1|text" class="oj-button-button">
@@ -580,7 +580,7 @@ export class MateuRedwoodApp extends MateuApp {
                     </oj-c-avatar>
                 </div>
                 -->
-                <oj-c-drawer-layout start-opened="${opened}"
+                <oj-c-drawer-layout .startOpened="${opened}"
                                     start-display="reflow"
                                     class="demo-full-height"
                                     style="height: calc(100vh - 165px);"

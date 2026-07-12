@@ -8,6 +8,7 @@ import Option from '@mateu/shared/apiClients/dtos/componentmetadata/Option.ts'
 import '@infra/ui/mateu-signature-pad.ts'
 import '@infra/ui/mateu-camera-capture.ts'
 import '@infra/ui/mateu-tree-select.ts'
+import '@infra/ui/mateu-grid'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -80,9 +81,20 @@ export class MateuSldsField extends LitElement {
         const disabled = f.disabled || f.readOnly
         const editable = !disabled
 
-        // Read-only / plain text (money formats)
+        if (f.stereotype === 'grid') {
+            // Delegate to the shared design-system-neutral grid (same contract as mateu-field's
+            // grid branch) instead of falling through to a text input showing [object Object].
+            return html`<mateu-grid id="${f.fieldId}" .field="${f}" .state="${this.state}" .data="${this.data}"></mateu-grid>`
+        }
+        if (f.stereotype === 'badge') {
+            const on = !!this.value
+            return html`<span class="slds-badge ${on ? 'slds-theme_success' : ''}" style="${on ? '' : 'opacity:.4;'}">${f.label ?? f.fieldId ?? ''}</span>`
+        }
+        // Read-only / plain text (money formats, booleans as ✓/✗)
         if (f.stereotype === 'plainText') {
-            const text = f.dataType === 'money' ? formatSldsMoney(this.value) : (this.value ?? '')
+            const text = f.dataType === 'money' ? formatSldsMoney(this.value)
+                : (f.dataType === 'bool' || f.dataType === 'boolean') ? (this.value ? '✓' : '✗')
+                : (this.value ?? '')
             return html`<div class="slds-form-element__static">${text}</div>`
         }
         if (f.stereotype === 'money' && !editable) {

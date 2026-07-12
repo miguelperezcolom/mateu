@@ -87,13 +87,26 @@ export const renderSldsFormLayout = (
     appData: ComponentData,
 ): TemplateResult => {
     const metadata = component.metadata as FormLayout
-    const columns = Math.max(1, metadata.maxColumns ?? 1)
     const leaves = (component.children ?? []).flatMap(flattenFormItems)
+    // maxColumns is a CAP (Vaadin auto-responsive semantics), not a fixed track count — laying a
+    // handful of fields on e.g. 24 fixed tracks gives ~25px columns and the labels paint over
+    // each other (the /checkin sections were unreadable). Clamp to the actual field count.
+    const columns = Math.max(1, Math.min(metadata.maxColumns ?? 1, leaves.length))
+    // Fields honor their colspan; grid-stereotype fields without a real colspan take the full
+    // row (a data table squeezed into one ~230px cell truncates all its columns).
+    const cellStyle = (child: any): string => {
+        const md = child?.metadata
+        if (md?.type !== 'FormField') return 'min-width: 0;'
+        const colspan = md?.colspan ?? 1
+        if (md?.stereotype === 'grid' && colspan <= 1) return 'min-width: 0; grid-column: 1 / -1;'
+        if (colspan > 1) return `min-width: 0; grid-column: span ${Math.min(colspan, columns)};`
+        return 'min-width: 0;'
+    }
     return html`
         <div class="slds-form" role="list"
              style="display:grid; grid-template-columns: repeat(${columns}, minmax(0, 1fr)); gap: .75rem 1.5rem; align-items:start;">
             ${leaves.map(child =>
-                html`<div>${renderComponent(container, child, baseUrl, state, data, appState, appData)}</div>`)}
+                html`<div style="${cellStyle(child)}">${renderComponent(container, child, baseUrl, state, data, appState, appData)}</div>`)}
         </div>`
 }
 
@@ -165,7 +178,8 @@ export const renderSldsFormSection = (
 
 const fmtCell = (v: any): string => {
     if (v === null || v === undefined) return ''
-    if (typeof v === 'object') return v.text ?? v.label ?? v.name ?? JSON.stringify(v)
+    if (typeof v === 'boolean') return v ? '✓' : '✗'
+    if (typeof v === 'object') return v.message ?? v.text ?? v.label ?? v.name ?? JSON.stringify(v)
     return String(v)
 }
 
