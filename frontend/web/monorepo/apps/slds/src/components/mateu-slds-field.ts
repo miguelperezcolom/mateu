@@ -8,7 +8,7 @@ import Option from '@mateu/shared/apiClients/dtos/componentmetadata/Option.ts'
 import '@infra/ui/mateu-signature-pad.ts'
 import '@infra/ui/mateu-camera-capture.ts'
 import '@infra/ui/mateu-tree-select.ts'
-import '@infra/ui/mateu-grid'
+import { renderSldsCellValue } from '../renderers/sldsRenderers.ts'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -74,6 +74,51 @@ export class MateuSldsField extends LitElement {
         return 'text'
     }
 
+    // ── grid field ────────────────────────────────────────────────────────────
+
+    // Collection field (@Stereotype grid) as an SLDS plain data table — same cell semantics as
+    // the crud listing (status → slds-badge, booleans → ✓/✗, action cells dispatch
+    // action-on-row-*, never [object Object]). Row click fires the @OnRowSelected action with
+    // the clicked row (mateu-grid's selectRow contract: parameters { _clickedRow }).
+    private renderGridField(f: FormField): TemplateResult {
+        const cols: any[] = (f.columns ?? []).map((c: any) => c.metadata)
+        const fieldId = f.fieldId ?? ''
+        const stateRows = fieldId && this.state ? this.state[fieldId] : undefined
+        const rowsRaw = Array.isArray(stateRows) ? stateRows : this.data?.[fieldId]?.content
+        const rows: any[] = Array.isArray(rowsRaw) ? rowsRaw : []
+        const dispatch = (actionId: string, parameters: any) => {
+            this.dispatchEvent(new CustomEvent('action-requested', {
+                detail: { actionId, parameters },
+                bubbles: true,
+                composed: true,
+            }))
+        }
+        const clickable = !!f.onItemSelectionActionId
+        return html`
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_fixed-layout">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        ${cols.map(col => html`
+                            <th scope="col"><div class="slds-truncate" title="${col.label ?? ''}">${col.label ?? ''}</div></th>`)}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.length === 0 ? html`
+                        <tr><td colspan="${Math.max(cols.length, 1)}">
+                            <div class="slds-text-align_center slds-text-color_weak slds-p-vertical_small">
+                                ${f.label ? `No ${f.label.toLowerCase()} added yet.` : 'No items added yet.'}
+                            </div>
+                        </td></tr>` : nothing}
+                    ${rows.map(item => html`
+                        <tr class="slds-hint-parent" style="${clickable ? 'cursor: pointer;' : ''}"
+                            @click="${clickable ? () => dispatch(f.onItemSelectionActionId!, { _clickedRow: item }) : nothing}">
+                            ${cols.map(col => html`
+                                <td><div class="slds-truncate">${renderSldsCellValue(item, col, dispatch)}</div></td>`)}
+                        </tr>`)}
+                </tbody>
+            </table>`
+    }
+
     // ── controls ──────────────────────────────────────────────────────────────
 
     private renderControl(): TemplateResult {
@@ -82,9 +127,7 @@ export class MateuSldsField extends LitElement {
         const editable = !disabled
 
         if (f.stereotype === 'grid') {
-            // Delegate to the shared design-system-neutral grid (same contract as mateu-field's
-            // grid branch) instead of falling through to a text input showing [object Object].
-            return html`<mateu-grid id="${f.fieldId}" .field="${f}" .state="${this.state}" .data="${this.data}"></mateu-grid>`
+            return this.renderGridField(f)
         }
         if (f.stereotype === 'badge') {
             const on = !!this.value

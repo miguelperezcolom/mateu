@@ -1,7 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
 import '@vaadin/button'
 import '@vaadin/icon'
 import '@vaadin/icons'
@@ -102,24 +100,24 @@ export class MateuContentHeader extends LitElement {
 
         return html`
             ${metadata.breadcrumbs && metadata.breadcrumbs.length > 0 ? html`
-                <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="breadcrumbs-bar">
+                <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center;" class="breadcrumbs-bar">
                     ${metadata.breadcrumbs.map((breadcrumb, index: number) => html`
                         ${index > 0 ? html`<span>/</span>` : nothing}
                         ${breadcrumb.link
-                            ? html`<vaadin-button theme="tertiary" @click="${() => window.location.href = `${breadcrumb.link}`}">${breadcrumb.text}</vaadin-button>`
+                            ? html`<button class="breadcrumb-link" @click="${() => window.location.href = `${breadcrumb.link}`}">${breadcrumb.text}</button>`
                             : html`<span>${breadcrumb.text}</span>`}
                     `)}
-                </vaadin-horizontal-layout>
+                </div>
             ` : nothing}
             ${metadata.noHeader ? html`
-                <vaadin-horizontal-layout theme="spacing">
+                <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                     ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
                     ${navButtons.map(this.renderBtn)}
                     ${divider}
                     ${actionButtons.map(this.renderBtn)}
-                </vaadin-horizontal-layout>
+                </div>
             ` : hasMainHeader ? html`
-                <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: center;" class="form-header">
+                <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center;" class="form-header">
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
                     <div style="flex: 1; min-width: 0; overflow: hidden;">
                         ${metadata?.title && level == 0?html`<h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h2>`:nothing}
@@ -130,24 +128,24 @@ export class MateuContentHeader extends LitElement {
 
                         ${metadata?.subtitle ? html`<span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
                     </div>
-                    <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
+                    <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                         ${metadata?.kpis?.map((kpi) => html`
-                            <vaadin-vertical-layout style="align-items: center">
+                            <div style="display: flex; flex-direction: column; align-items: center;">
                                 <div>${this.evalLabel(kpi.title)}</div>
                                 <div>${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</div>
-                            </vaadin-vertical-layout>
+                            </div>
                         `)}
                         ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
                         ${navButtons.map(this.renderBtn)}
                         ${divider}
                         ${actionButtons.map(this.renderBtn)}
-                    </vaadin-horizontal-layout>
-                </vaadin-horizontal-layout>
+                    </div>
+                </div>
             ` : nothing}
             ${metadata.badges && metadata.badges.length > 0 ? html`
-                <vaadin-horizontal-layout style="padding-bottom: var(--lumo-space-s);">
+                <div style="display: flex; gap: var(--lumo-space-s, .5rem); padding-bottom: var(--lumo-space-s, .5rem);">
                     ${metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}))}
-                </vaadin-horizontal-layout>
+                </div>
             ` : nothing}
         `
     }
@@ -163,6 +161,15 @@ export class MateuContentHeader extends LitElement {
            section/card already provides top spacing, so suppress this header's own padding-top. */
         :host([data-nested]) {
             padding-top: 0;
+        }
+
+        .breadcrumb-link {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font: inherit;
+            color: var(--lumo-primary-text-color, #1676f3);
+            padding: 0;
         }
 
         .toolbar-divider {

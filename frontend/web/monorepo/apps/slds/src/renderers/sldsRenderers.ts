@@ -1,6 +1,8 @@
 import { html, nothing, type TemplateResult } from 'lit'
 import { LitElement } from 'lit'
+import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent.ts'
+import { compactColumns } from '@infra/ui/layout/weightEngine.ts'
 import Button from '@mateu/shared/apiClients/dtos/componentmetadata/Button.ts'
 import Text from '@mateu/shared/apiClients/dtos/componentmetadata/Text.ts'
 import FormLayout from '@mateu/shared/apiClients/dtos/componentmetadata/FormLayout.ts'
@@ -183,37 +185,434 @@ const fmtCell = (v: any): string => {
     return String(v)
 }
 
+/** Dispatches an action-requested event; `parameters` shape depends on the action (see callers). */
+export type SldsCellDispatcher = (actionId: string, parameters: any) => void
+
+const statusBadgeClass = (type: string | undefined): string => {
+    const t = (type ?? '').toLowerCase()
+    if (t === 'success') return 'slds-theme_success'
+    if (t === 'danger' || t === 'error') return 'slds-theme_error'
+    if (t === 'warning') return 'slds-theme_warning'
+    return ''
+}
+
+/** Status objects ({ message, type }) render as an slds-badge with the matching theme color. */
+export const renderSldsStatus = (value: any): TemplateResult => {
+    if (!value) return html``
+    return html`<span class="slds-badge ${statusBadgeClass(value.type)}">${value.message ?? String(value)}</span>`
+}
+
+/** Cell value honouring the column dataType/stereotype: badge for status, text otherwise. */
+const listValue = (col: any, item: any): TemplateResult =>
+    col.dataType === 'status' ? renderSldsStatus(item[col.id]) : html`${fmtCell(item[col.id])}`
+
+const isActionButtonCol = (c: any) =>
+    c.dataType === 'action' || c.dataType === 'actionGroup' || c.dataType === 'menu' || c.stereotype === 'button'
+
+const identifierFieldOf = (cols: any[]): string | undefined => {
+    const annotated = cols.find(c => c.identifier)
+    if (annotated) return annotated.id
+    return cols.find(c => c.id === 'id')?.id
+}
+
+/**
+ * Renders one grid/table cell honouring the column dataType/stereotype, with the exact event
+ * semantics of the shared Vaadin column renderers:
+ * - link cells / button-stereotype cells / columns carrying an actionId (e.g. the crud's
+ *   navigable first column, actionId 'view') dispatch the column's actionId with the ROW as
+ *   `parameters` (linkColumnRenderer / renderButtonCell).
+ * - `action` cells dispatch 'action-on-row-<methodNameInCrud>' with `{ _clickedRow: row }`;
+ *   the lookup selector's `select` column dispatches 'action-on-row-select' (renderActionCell).
+ * - `actionGroup`/`menu` cells render one button per action, same action-on-row dispatch.
+ */
+export const renderSldsCellValue = (item: any, col: any, dispatch: SldsCellDispatcher): TemplateResult => {
+    const type = col.dataType ?? ''
+    const stereotype = col.stereotype ?? ''
+    const value = item[col.id]
+
+    if (type === 'status') return renderSldsStatus(value)
+    if (type === 'bool') return html`${value ? '✓' : '✗'}`
+    if (type === 'money' || stereotype === 'money') {
+        if (value == null) return html``
+        return html`${new Intl.NumberFormat(undefined, { minimumFractionDigits: 2 }).format(Number(value))}`
+    }
+    if (type === 'link' || stereotype === 'link') {
+        const text = typeof value === 'object' ? (value?.text ?? '') : (value ?? '')
+        if (col.actionId) {
+            return html`<a href="javascript: void(0);"
+                @click="${(e: Event) => { e.stopPropagation(); dispatch(col.actionId, item) }}">${text}</a>`
+        }
+        const href = typeof value === 'object' ? (value?.href ?? value?.url ?? '') : ''
+        return html`<a href="${href}">${text}</a>`
+    }
+    if (stereotype === 'html') return html`${unsafeHTML(value ?? '')}`
+    if (stereotype === 'image') {
+        const src = typeof value === 'object' ? (value?.url ?? value?.src ?? '') : (value ?? '')
+        return src ? html`<img src="${src}" style="max-height: 3rem; object-fit: contain;" alt="" />` : html``
+    }
+    if (type === 'action') {
+        if (col.id === 'select') {
+            return html`<button class="slds-button" title="Select"
+                @click="${(e: Event) => { e.stopPropagation(); dispatch('action-on-row-select', { _clickedRow: item }) }}">Select</button>`
+        }
+        const action = value?.methodNameInCrud ? value
+            : (item as any).action?.methodNameInCrud ? (item as any).action
+            : { methodNameInCrud: col.id, label: col.label }
+        return html`<button class="slds-button" title="${action.label || nothing}"
+            @click="${(e: Event) => { e.stopPropagation(); dispatch('action-on-row-' + action.methodNameInCrud, { _clickedRow: item }) }}"
+        >${action.label ?? ''}</button>`
+    }
+    if (type === 'actionGroup' || type === 'menu') {
+        const actions: any[] = (typeof value === 'object' && value?.actions) ? value.actions : (Array.isArray(value) ? value : [])
+        return html`${actions.map(a => html`<button class="slds-button" title="${a.label || nothing}"
+            @click="${(e: Event) => { e.stopPropagation(); dispatch('action-on-row-' + a.methodNameInCrud, { _clickedRow: item }) }}"
+        >${a.label ?? a.methodNameInCrud}</button>`)}`
+    }
+    if (stereotype === 'button' || col.actionId) {
+        const label = col.text || fmtCell(value)
+        return html`<button class="slds-button"
+            @click="${(e: Event) => { e.stopPropagation(); dispatch(col.actionId ?? col.id, item) }}">${label}</button>`
+    }
+    return html`${fmtCell(value)}`
+}
+
+/** Row-level action buttons (action/actionGroup/menu columns) for the list/cards layouts. */
+const renderSldsRowActionButtons = (actionCols: any[], item: any, dispatch: SldsCellDispatcher): TemplateResult | typeof nothing => {
+    if (!actionCols.length) return nothing
+    return html`
+        <div style="display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .25rem;">
+            ${actionCols.map(col => renderSldsCellValue(item, col, dispatch))}
+        </div>`
+}
+
+const crudDispatch = (container: any): SldsCellDispatcher => (actionId, parameters) => {
+    container.dispatchEvent(new CustomEvent('action-requested', {
+        detail: { actionId, parameters },
+        bubbles: true,
+        composed: true
+    }))
+}
+
+const crudCols = (component: ClientSideComponent): any[] =>
+    ((component.metadata as any)?.columns ?? []).map((c: any) => c.metadata)
+
+const crudRows = (container: any): any[] => container?.data?.[container.id]?.page?.content ?? []
+
+const crudEmptyMessage = (container: any, component: ClientSideComponent): string =>
+    container?.state?.[component.id ?? '']?.emptyStateMessage
+        ?? (component.metadata as any)?.emptyStateMessage
+        ?? 'No data.'
+
+const sldsEmptyState = (message: string): TemplateResult => html`
+    <div class="slds-text-align_center slds-text-color_weak slds-p-vertical_small">${message}</div>`
+
+const SELECTED_ROW_STYLE = 'background: rgba(1, 118, 211, .08);'
+
 export const renderSldsTable = (container: any, component: ClientSideComponent): TemplateResult => {
     const metadata = component.metadata as any
-    const cols: any[] = (metadata.columns ?? []).map((c: any) => c.metadata)
-    const rows: any[] = container?.data?.[container.id]?.page?.content ?? []
+    const cols: any[] = crudCols(component)
+    const rows: any[] = crudRows(container)
+    const dispatch = crudDispatch(container)
     const align = (a: string | undefined) => (a === 'end' || a === 'right' ? 'slds-text-align_right' : a === 'center' ? 'slds-text-align_center' : '')
+
+    // Server-side sorting: same state shape as the shared vaadin sorters (state.sort =
+    // [{ fieldId, direction }]) — toggling cycles ascending → descending → none.
+    const currentSort: any[] = container?.state?.sort ?? []
+    const sortFor = (colId: string) => currentSort.find((s: any) => s.fieldId === colId)
+    const toggleSort = (col: any) => {
+        const s = sortFor(col.id)
+        const next = !s ? [{ fieldId: col.id, direction: 'ascending' }]
+            : s.direction === 'ascending' ? [{ fieldId: col.id, direction: 'descending' }]
+            : []
+        container.state = { ...container.state, sort: next }
+        container.handleSearchRequested?.(undefined)
+    }
+    const sortIndicator = (col: any) => {
+        const s = sortFor(col.id)
+        if (!s) return ''
+        return s.direction === 'ascending' ? ' ▲' : ' ▼'
+    }
+
     return html`
         <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_striped slds-table_fixed-layout">
             <thead>
                 <tr class="slds-line-height_reset">
                     ${cols.map(col => html`
-                        <th scope="col" class="${align(col.align)}">
-                            <div class="slds-truncate" title="${col.label ?? ''}">${col.label ?? ''}</div>
+                        <th scope="col" class="${align(col.align)} ${col.sortable ? 'slds-is-sortable' : ''}"
+                            style="${col.sortable ? 'cursor: pointer;' : ''}"
+                            @click="${col.sortable ? () => toggleSort(col) : nothing}">
+                            <div class="slds-truncate" title="${col.label ?? ''}">${col.label ?? ''}${col.sortable ? sortIndicator(col) : ''}</div>
                         </th>`)}
                 </tr>
             </thead>
             <tbody>
                 ${rows.length === 0 ? html`
                     <tr><td colspan="${cols.length}">
-                        <div class="slds-text-align_center slds-text-color_weak slds-p-vertical_small">
-                            ${metadata.emptyStateMessage ?? 'No items.'}
-                        </div>
+                        ${sldsEmptyState(metadata.emptyStateMessage ?? 'No items.')}
                     </td></tr>` : nothing}
                 ${rows.map(row => html`
                     <tr class="slds-hint-parent">
                         ${cols.map(col => html`
                             <td class="${align(col.align)}">
-                                <div class="slds-truncate" title="${fmtCell(row[col.id])}">${fmtCell(row[col.id])}</div>
+                                <div class="slds-truncate" title="${fmtCell(row[col.id])}">${renderSldsCellValue(row, col, dispatch)}</div>
                             </td>`)}
                     </tr>`)}
             </tbody>
         </table>`
+}
+
+// ── CRUD grid layouts (list / cards / masterDetail / tree) ─────────────────────
+// SLDS counterparts of the shared Vaadin-flavoured templates in mateu-table-crud
+// (renderTwoLineList / renderCards / renderMasterDetail / renderTree) — same event
+// semantics, SLDS markup. `container` is the MateuTableCrud host (light DOM).
+
+/** Two-line list: identifier line + secondary "label: value" line; row click opens the row. */
+export const renderSldsCrudList = (container: any, component: ClientSideComponent): TemplateResult => {
+    const allCols = crudCols(component)
+    const compact = compactColumns(allCols)
+    const rows = crudRows(container)
+    const dispatch = crudDispatch(container)
+    const idField = identifierFieldOf(allCols)
+    const selectedId = container.state?._selectedId ?? container.appState?._splitDetailId
+    const idCol = compact.find((c: any) => c.identifier) ?? compact[0]
+    const secCols = compact.filter((c: any) => c !== idCol && !isActionButtonCol(c))
+    const actionCols = allCols.filter(isActionButtonCol)
+
+    return html`
+        <ul class="slds-has-dividers_bottom-space" style="width: 100%; margin: 0; padding: 0; list-style: none;">
+            ${rows.length === 0 ? html`<li class="slds-item">${sldsEmptyState(crudEmptyMessage(container, component))}</li>` : nothing}
+            ${rows.map(item => {
+                const selected = idField && selectedId !== undefined && String(item[idField]) === String(selectedId)
+                return html`
+                <li class="slds-item" style="cursor: pointer; padding: .5rem .75rem; ${selected ? SELECTED_ROW_STYLE : ''}"
+                    @click="${() => {
+                        if (idField && item[idField] !== undefined) {
+                            container.state = { ...container.state, _selectedId: String(item[idField]) }
+                        }
+                        dispatch('view', item)
+                    }}">
+                    <div style="font-weight: 600;">${idCol ? fmtCell(item[(idCol as any).id]) : ''}</div>
+                    <div class="slds-text-body_small slds-text-color_weak" style="display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;">
+                        ${secCols.map((c: any) => html`<span>${c.label}: ${listValue(c, item)}</span>`)}
+                    </div>
+                    ${renderSldsRowActionButtons(actionCols, item, dispatch)}
+                </li>`})}
+        </ul>`
+}
+
+/** Card grid: slds-card boxes on a responsive CSS grid; card click opens (or selects) the row. */
+export const renderSldsCrudCards = (container: any, component: ClientSideComponent): TemplateResult => {
+    const allCols = crudCols(component)
+    const rows = crudRows(container)
+    const dispatch = crudDispatch(container)
+    const idField = identifierFieldOf(allCols)
+    const selectedId = container.state?._selectedId ?? container.appState?._splitDetailId
+    const visibleCols = allCols.slice(0, 6)
+    const imageCols = visibleCols.filter((c: any) => c.stereotype === 'image')
+    const titleCol = visibleCols.find((c: any) => c.identifier) ?? visibleCols[0]
+    const isNavCol = (c: any) => !!c.actionId
+    const selectCol = visibleCols.find((c: any) => c.id === 'select' && c.dataType === 'action')
+    const isSelector = !!selectCol
+    const dataCols = visibleCols.filter((c: any) => c !== titleCol && !imageCols.includes(c) && !isNavCol(c) && !isActionButtonCol(c))
+    const actionCols = visibleCols.filter((c: any) => isActionButtonCol(c) && !(isSelector && c === selectCol))
+
+    return html`
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; padding: .5rem 0;">
+            ${rows.length === 0 ? html`<div style="grid-column: 1 / -1;">${sldsEmptyState(crudEmptyMessage(container, component))}</div>` : nothing}
+            ${rows.map(item => {
+                const selected = idField && selectedId !== undefined && String(item[idField]) === String(selectedId)
+                return html`
+                <article class="slds-card" style="cursor: pointer; margin: 0; ${selected ? 'outline: 2px solid #0176d3; outline-offset: -2px;' : ''}"
+                    @click="${(e: Event) => {
+                        if (isSelector) {
+                            e.stopPropagation()
+                            dispatch('action-on-row-select', { _clickedRow: item })
+                            return
+                        }
+                        if (idField && item[idField] !== undefined) {
+                            container.state = { ...container.state, _selectedId: String(item[idField]) }
+                        }
+                        dispatch('view', item)
+                    }}">
+                    ${imageCols.length ? html`<img src="${item[(imageCols[0] as any).id] ?? ''}" alt=""
+                        style="width: 100%; max-height: 160px; object-fit: cover; border-radius: .25rem .25rem 0 0;" />` : nothing}
+                    ${titleCol ? html`
+                        <div class="slds-card__header slds-grid">
+                            <h2 class="slds-card__header-title slds-text-heading_small">${fmtCell(item[(titleCol as any).id])}</h2>
+                        </div>` : nothing}
+                    <div class="slds-card__body slds-card__body_inner">
+                        <div style="display: flex; flex-direction: column; gap: .25rem;">
+                            ${dataCols.map((col: any) => html`
+                                <div style="display: flex; gap: .5rem; font-size: .8125rem;">
+                                    <span class="slds-text-color_weak" style="min-width: 80px;">${col.label}</span>
+                                    <span>${listValue(col, item)}</span>
+                                </div>`)}
+                        </div>
+                        ${renderSldsRowActionButtons(actionCols, item, dispatch)}
+                    </div>
+                </article>`})}
+        </div>`
+}
+
+/** Master/detail: compact list at the left, full read-only detail for the selected row at the right. */
+export const renderSldsCrudMasterDetail = (container: any, component: ClientSideComponent): TemplateResult => {
+    const allCols = crudCols(component)
+    const compact = compactColumns(allCols)
+    const rows = crudRows(container)
+    const idCol = compact.find((c: any) => c.identifier) ?? compact[0]
+    const secCols = compact.filter((c: any) => c !== idCol)
+    // Local selection lives on the crud host (@state selectedItem, same slot the shared
+    // renderMasterDetail uses), so assigning it re-renders.
+    const selected = container.selectedItem
+
+    return html`
+        <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
+            <div style="width: 260px; flex-shrink: 0; border-right: 1px solid #e5e5e5; overflow-y: auto;">
+                <ul style="width: 100%; margin: 0; padding: 0; list-style: none;">
+                    ${rows.length === 0 ? html`<li class="slds-item">${sldsEmptyState(crudEmptyMessage(container, component))}</li>` : nothing}
+                    ${rows.map(item => html`
+                        <li class="slds-item" style="cursor: pointer; padding: .5rem .75rem; ${selected === item ? SELECTED_ROW_STYLE : ''}"
+                            @click="${() => { container.selectedItem = item }}">
+                            <div style="font-weight: 600;">${idCol ? fmtCell(item[(idCol as any).id]) : ''}</div>
+                            <div class="slds-text-body_small slds-text-color_weak" style="display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;">
+                                ${secCols.map((c: any) => html`${listValue(c, item)} `)}
+                            </div>
+                        </li>`)}
+                </ul>
+            </div>
+            <div style="flex: 1; padding: 1rem; overflow-y: auto;">
+                ${selected ? html`
+                    <div style="display: flex; flex-direction: column; gap: .5rem;">
+                        ${allCols.map((col: any) => html`
+                            <div class="slds-form-element">
+                                <span class="slds-form-element__label">${col.label}</span>
+                                <div class="slds-form-element__control">
+                                    <div class="slds-form-element__static">${listValue(col, selected)}</div>
+                                </div>
+                            </div>`)}
+                    </div>
+                ` : html`<p class="slds-text-color_weak">Select a row to view details.</p>`}
+            </div>
+        </div>`
+}
+
+// Expand/collapse state for the tree layout, per crud host (module-scope WeakMap: these are
+// stateless render functions — same pattern as redwood-oj's renderFilterBar). Rows collapse
+// by identity; a re-fetch rebuilds the rows and resets to the default (everything expanded).
+const collapsedTreeRows = new WeakMap<object, Set<any>>()
+
+/** Hierarchical tree: rows carry a self-referential `children` list; indent + caret per level. */
+export const renderSldsCrudTree = (container: any, component: ClientSideComponent): TemplateResult => {
+    const allCols = crudCols(component)
+    const rows = crudRows(container)
+    const dispatch = crudDispatch(container)
+    const idField = identifierFieldOf(allCols)
+    const selectedId = container.state?._selectedId ?? container.appState?._splitDetailId
+    const treeCol = allCols[0]
+    const restCols = allCols.slice(1)
+    // The list resolver injects actionId 'view' on the first column when the crud is navigable
+    // (same signal the shared renderTree uses) — render a per-row View button so the caret only
+    // expands/collapses and never opens by accident.
+    const navigable = !!treeCol?.actionId
+
+    let collapsed = collapsedTreeRows.get(container)
+    if (!collapsed) {
+        collapsed = new Set()
+        collapsedTreeRows.set(container, collapsed)
+    }
+    const toggle = (e: Event, item: any) => {
+        e.stopPropagation()
+        collapsed!.has(item) ? collapsed!.delete(item) : collapsed!.add(item)
+        container.requestUpdate?.()
+    }
+    const openRow = (e: Event, item: any, action: string) => {
+        e.stopPropagation()
+        if (idField && item[idField] !== undefined) {
+            container.state = { ...container.state, _selectedId: String(item[idField]) }
+        }
+        dispatch(action, item)
+    }
+
+    const colCount = 1 + (navigable ? 1 : 0) + restCols.length
+
+    const renderRow = (item: any, depth: number): TemplateResult[] => {
+        const kids: any[] = Array.isArray(item.children) ? item.children : []
+        const isCollapsed = collapsed!.has(item)
+        const selected = idField && selectedId !== undefined && String(item[idField]) === String(selectedId)
+        const row = html`
+            <tr class="slds-hint-parent" style="${selected ? SELECTED_ROW_STYLE : ''}">
+                <td>
+                    <div style="display: flex; align-items: center; gap: .25rem; padding-left: ${depth * 1.25}rem;">
+                        ${kids.length ? html`
+                            <button class="slds-button slds-button_icon" title="${isCollapsed ? 'Expand' : 'Collapse'}"
+                                style="width: 1.25rem; justify-content: center;"
+                                @click="${(e: Event) => toggle(e, item)}">${isCollapsed ? '▸' : '▾'}</button>
+                        ` : html`<span style="display: inline-block; width: 1.25rem;"></span>`}
+                        <span class="slds-truncate" title="${treeCol ? fmtCell(item[treeCol.id]) : ''}">${treeCol ? fmtCell(item[treeCol.id]) : ''}</span>
+                    </div>
+                </td>
+                ${navigable ? html`
+                    <td class="slds-text-align_right">
+                        ${item?.viewable === false ? nothing : html`
+                            <button class="slds-button" @click="${(e: Event) => openRow(e, item, 'view')}">View</button>`}
+                    </td>` : nothing}
+                ${restCols.map((c: any) => c.id === 'select'
+                    // the lookup selector's Select column: same dispatch as the flat grids'
+                    // renderActionCell, so picking a TREE node round-trips through selected()
+                    ? html`<td class="slds-text-align_right">
+                        <button class="slds-button" @click="${(e: Event) => {
+                            e.stopPropagation()
+                            dispatch('action-on-row-select', { _clickedRow: item })
+                        }}">Select</button>
+                    </td>`
+                    : html`<td><div class="slds-truncate" title="${fmtCell(item[c.id])}">${listValue(c, item)}</div></td>`)}
+            </tr>`
+        return [row, ...(!isCollapsed ? kids.flatMap((k: any) => renderRow(k, depth + 1)) : [])]
+    }
+
+    return html`
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+            <thead>
+                <tr class="slds-line-height_reset">
+                    <th scope="col"><div class="slds-truncate" title="${treeCol?.label ?? ''}">${treeCol?.label ?? ''}</div></th>
+                    ${navigable ? html`<th scope="col"></th>` : nothing}
+                    ${restCols.map((c: any) => html`<th scope="col" class="${c.id === 'select' ? 'slds-text-align_right' : ''}">
+                        <div class="slds-truncate" title="${c.label ?? ''}">${c.label ?? ''}</div>
+                    </th>`)}
+                </tr>
+            </thead>
+            <tbody>
+                ${rows.length === 0 ? html`<tr><td colspan="${colCount}">${sldsEmptyState(crudEmptyMessage(container, component))}</td></tr>` : nothing}
+                ${rows.flatMap(item => renderRow(item, 0))}
+            </tbody>
+        </table>`
+}
+
+// ── CustomField ───────────────────────────────────────────────────────────────
+
+// Shared fallback wraps CustomField content in a <vaadin-custom-field>; render the same
+// label + content contract as an SLDS form element instead (embedded orchestrator islands,
+// composed fields).
+export const renderSldsCustomField = (
+    container: LitElement,
+    component: ClientSideComponent,
+    baseUrl: string | undefined,
+    state: ComponentState,
+    data: ComponentData,
+    appState: ComponentState,
+    appData: ComponentData,
+): TemplateResult => {
+    const md = component.metadata as any
+    return html`
+        <div class="slds-form-element ${component.cssClasses ?? ''}"
+             style="${component.style ?? nothing}"
+             slot="${component.slot ?? nothing}"
+             data-colspan="${md.colspan || nothing}">
+            ${md.label ? html`<label class="slds-form-element__label">${md.label}</label>` : nothing}
+            <div class="slds-form-element__control">
+                ${renderComponent(container, md.content, baseUrl, state, data, appState, appData)}
+            </div>
+        </div>`
 }
 
 // ── Layouts (flex) ─────────────────────────────────────────────────────────────

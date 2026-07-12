@@ -197,6 +197,19 @@ export class SapUi5ComponentRenderer extends BasicComponentRenderer implements C
         return true
     }
 
+    // Crud header toolbar buttons render as real ui5-buttons (the shared default is a
+    // vaadin-button). buttonStyle primary → Emphasized, error/danger color → Negative.
+    renderToolbarButton(button: unknown, label: string, onClick: () => void): TemplateResult {
+        const btn = button as { id?: string, buttonStyle?: string, color?: string, variant?: string, disabled?: boolean }
+        const design =
+            btn.color === 'error' || btn.variant === 'error' || btn.variant === 'danger' ? 'Negative'
+            : btn.buttonStyle === 'primary' ? 'Emphasized'
+            : 'Default'
+        return html`
+            <ui5-button data-action-id="${btn.id}" design="${design}" ?disabled="${btn.disabled}"
+                        @click="${onClick}">${label}</ui5-button>`
+    }
+
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult {
 
         if (ComponentMetadataType.App == component?.metadata?.type) {

@@ -1,6 +1,4 @@
 import {css, html, nothing, TemplateResult} from "lit";
-import '@vaadin/button'
-import '@vaadin/icon'
 import {customElement, state} from 'lit/decorators.js';
 import Drawer from "@mateu/shared/apiClients/dtos/componentmetadata/Drawer";
 import {renderComponent} from "@infra/ui/renderers/renderComponent.ts";
@@ -90,9 +88,7 @@ export class MateuDrawer extends ComponentElement {
                 ${metadata.header ? html`
                     <mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>
                 ` : nothing}
-                <vaadin-button theme="tertiary" aria-label="Close" @click="${this.close}">
-                    <vaadin-icon icon="lumo:cross"></vaadin-icon>
-                </vaadin-button>
+                <button class="drawer-close" aria-label="Close" @click="${this.close}">✕</button>
             </header>
             <div class="content ${metadata.noPadding ? 'no-padding' : ''}">
                 ${metadata.content ? html`
@@ -109,6 +105,20 @@ export class MateuDrawer extends ComponentElement {
     }
 
     static styles = css`
+        .drawer-close {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            padding: .35rem .5rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            color: var(--lumo-secondary-text-color, #555);
+        }
+        .drawer-close:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.05));
+        }
+
         .backdrop {
             position: fixed;
             inset: 0;

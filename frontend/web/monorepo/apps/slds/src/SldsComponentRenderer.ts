@@ -10,6 +10,8 @@ import {
     renderSldsTable, renderSldsHorizontalLayout, renderSldsVerticalLayout, renderSldsSplitLayout,
     renderSldsCard, renderSldsBadge, renderSldsProgressBar, renderSldsAnchor,
     renderSldsDialog, renderSldsConfirmDialog, renderSldsPagination,
+    renderSldsCrudList, renderSldsCrudCards, renderSldsCrudMasterDetail, renderSldsCrudTree,
+    renderSldsCustomField,
 } from './renderers/sldsRenderers.ts'
 import './components/mateu-slds-field.ts'
 import './components/mateu-slds-tabs.ts'
@@ -117,12 +119,42 @@ export class SldsComponentRenderer extends BasicComponentRenderer implements Com
             return renderSldsConfirmDialog(container, component!, baseUrl, state, data, appState, appData)
         }
 
+        if (ComponentMetadataType.CustomField == type) {
+            return renderSldsCustomField(container, component!, baseUrl, state, data, appState, appData)
+        }
+
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
-    // CRUD surface: render the listing as an SLDS data table.
+    // mateu-table-crud delegates ALL crud grid layouts (table/list/cards/masterDetail/tree) to
+    // renderTableComponent, so every listing renders with SLDS markup instead of the shared
+    // Vaadin-flavoured templates.
+    rendersCrudLayouts(): boolean {
+        return true
+    }
+
+    // CRUD surface: dispatch on the crud's effective grid layout (explicit gridLayout, or the
+    // weight-engine auto pick mateu-table-crud already resolves against its own width).
     renderTableComponent(container: any, component: ClientSideComponent | undefined, _baseUrl: string | undefined, _state: any, _data: any, _appState: any, _appData: any): TemplateResult {
+        const layout = container?.effectiveGridLayout ?? 'table'
+        if (layout === 'list') return renderSldsCrudList(container, component!)
+        if (layout === 'cards') return renderSldsCrudCards(container, component!)
+        if (layout === 'masterDetail') return renderSldsCrudMasterDetail(container, component!)
+        if (layout === 'tree') return renderSldsCrudTree(container, component!)
         return renderSldsTable(container, component!)
+    }
+
+    // Crud/page header toolbar buttons render as SLDS buttons (the shared default is a
+    // vaadin-button). buttonStyle primary → brand, error/danger color → destructive.
+    renderToolbarButton(button: unknown, label: string, onClick: () => void): TemplateResult {
+        const btn = button as { id?: string, buttonStyle?: string, color?: string, variant?: string, disabled?: boolean }
+        const variant =
+            btn.color === 'error' || btn.variant === 'error' || btn.variant === 'danger' ? 'slds-button_destructive'
+            : btn.buttonStyle === 'primary' ? 'slds-button_brand'
+            : 'slds-button_neutral'
+        return html`
+            <button class="slds-button ${variant}" data-action-id="${btn.id}" ?disabled="${btn.disabled}"
+                    @click="${onClick}">${label}</button>`
     }
 
     renderFilterBar(container: any, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any, searchOnly?: boolean): TemplateResult {

@@ -532,12 +532,12 @@ export class MateuComponent extends ComponentElement {
         notification.duration = Math.max(3000, 1500 + lines.length * 1000)
         notification.renderer = (root: HTMLElement) => {
             render(html`
-                <vaadin-vertical-layout style="gap: var(--lumo-space-xs);">
+                <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs, .25rem);">
                     <strong>There are validation errors</strong>
                     ${lines.map(({label, msg}) => label
                         ? html`<span>• <b>${label}:</b> ${msg}</span>`
                         : html`<span>• ${msg}</span>`)}
-                </vaadin-vertical-layout>
+                </div>
             `, root)
         }
         document.body.appendChild(notification)

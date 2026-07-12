@@ -7,7 +7,8 @@ import Option from '@mateu/shared/apiClients/dtos/componentmetadata/Option.ts'
 import '@infra/ui/mateu-signature-pad.ts'
 import '@infra/ui/mateu-camera-capture.ts'
 import '@infra/ui/mateu-tree-select.ts'
-import '@infra/ui/mateu-grid'
+import type GridColumn from '@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts'
+import { renderCellValue } from '@/renderers/patternflyCrud.ts'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -51,15 +52,57 @@ export class MateuRedhatField extends LitElement {
         return 'text'
     }
 
+    /**
+     * Grid-stereotype field as a plain PF table. Rows come from the field's state collection
+     * (or the remote fetch for remoteCoordinates grids); a row click fires the field's
+     * @OnRowSelected action with { _clickedRow } — same contract as the shared mateu-grid.
+     */
+    private renderGrid(f: FormField): TemplateResult {
+        // flatten column groups (a group wraps its columns as children)
+        const flatten = (list: any[]): any[] => list.flatMap((c: any) => c.children?.length ? flatten(c.children) : [c])
+        const cols: GridColumn[] = flatten(f.columns ?? []).map((c: any) => c.metadata as GridColumn).filter(Boolean)
+        const rows: any[] = Array.isArray(this.value) ? this.value
+            : ((f as any).remoteCoordinates ? this.data?.[f.fieldId ?? '']?.content ?? [] : [])
+        const dispatch = (actionId: string, parameters: any) =>
+            this.dispatchEvent(new CustomEvent('action-requested', {
+                detail: { actionId, parameters }, bubbles: true, composed: true,
+            }))
+        const selectionActionId = (f as any).onItemSelectionActionId as string | undefined
+        const onRowClick = selectionActionId
+            ? (item: any) => dispatch(selectionActionId, { _clickedRow: item })
+            : undefined
+        return html`
+            <div style="overflow-x: auto;">
+                <table class="pf-v6-c-table pf-m-compact pf-m-grid-md" role="grid">
+                    <thead class="pf-v6-c-table__thead"><tr class="pf-v6-c-table__tr" role="row">
+                        ${cols.map(c => html`<th class="pf-v6-c-table__th" role="columnheader" scope="col">${c.label ?? ''}</th>`)}
+                    </tr></thead>
+                    <tbody class="pf-v6-c-table__tbody" role="rowgroup">
+                        ${rows.length === 0 ? html`<tr class="pf-v6-c-table__tr" role="row"><td class="pf-v6-c-table__td" role="cell" colspan="${cols.length}">
+                            <div class="pf-v6-c-content" style="text-align: center; padding: .5rem; color: var(--pf-t--global--text--color--subtle, #4d4d4d);">
+                                ${f.label ? `No ${f.label.toLowerCase()} added yet.` : 'No items added yet.'}
+                            </div></td></tr>` : nothing}
+                        ${rows.map(item => html`
+                            <tr class="pf-v6-c-table__tr" role="row"
+                                style="${onRowClick ? 'cursor: pointer;' : ''}"
+                                @click="${onRowClick ? () => onRowClick(item) : nothing}">
+                                ${cols.map(c => html`<td class="pf-v6-c-table__td" role="cell" data-label="${c.label ?? ''}">${renderCellValue(item, c, dispatch)}</td>`)}
+                            </tr>
+                        `)}
+                    </tbody>
+                </table>
+            </div>`
+    }
+
     private control(): TemplateResult {
         const f = this.field!
         const disabled = f.disabled || f.readOnly
         const editable = !disabled
         if (f.stereotype === 'grid') {
-            // Delegate to the shared design-system-neutral grid (same contract as mateu-field's
-            // grid branch) instead of falling through to a text input showing [object Object].
-            return html`<mateu-grid id="${f.fieldId}" .field="${f}" .state="${this.state}" .data="${this.data}"
-                                    .appState="${this.appState}" .appdata="${this.appData}"></mateu-grid>`
+            // Plain PatternFly table (light DOM, pf-v6-c-table) instead of the shared vaadin-grid.
+            // Cell rendering (status → PF label, booleans → ✓/✗, action buttons, never
+            // [object Object]) is shared with the crud layouts in patternflyCrud.ts.
+            return this.renderGrid(f)
         }
         if (f.stereotype === 'badge') {
             const on = !!this.value

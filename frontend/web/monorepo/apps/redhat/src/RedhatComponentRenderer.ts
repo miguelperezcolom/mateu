@@ -1,4 +1,4 @@
-import { LitElement, html, type TemplateResult } from 'lit'
+import { LitElement, html, nothing, type TemplateResult } from 'lit'
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
@@ -8,8 +8,9 @@ import { renderApp } from '@/renderers/renderApp.ts'
 import {
     renderButton, renderText, renderFormLayout, renderForm, renderFormSection, renderFormSubSection,
     renderCard, renderHorizontalLayout, renderVerticalLayout, renderSplitLayout, renderBadge,
-    renderAnchor, renderDialog, renderConfirmDialog, renderTable, renderPagination,
+    renderAnchor, renderDialog, renderConfirmDialog, renderPagination,
 } from '@/renderers/patternfly.ts'
+import { renderCrudLayout } from '@/renderers/patternflyCrud.ts'
 import './components/mateu-redhat-field.ts'
 import './components/mateu-redhat-tabs.ts'
 import './components/mateu-redhat-accordion.ts'
@@ -116,8 +117,47 @@ export class RedhatComponentRenderer extends BasicComponentRenderer implements C
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
 
+    /**
+     * mateu-table-crud delegates ALL crud grid layouts (table, list, cards, masterDetail, tree)
+     * to renderTableComponent instead of rendering the non-table ones with the shared
+     * Vaadin-flavoured templates.
+     */
+    rendersCrudLayouts(): boolean {
+        return true
+    }
     renderTableComponent(container: any, component: ClientSideComponent | undefined): TemplateResult {
-        return renderTable(container, component!)
+        return renderCrudLayout(container, component!)
+    }
+    /**
+     * Crud/content-header toolbar buttons as PatternFly buttons (instead of the shared
+     * vaadin-button default). `label` arrives already interpolated.
+     *
+     * The button carries BOTH the pf-v6-c-button classes and equivalent inline styles: the hook
+     * is consumed from mateu-table-crud (light DOM here → global PF CSS applies) but ALSO from
+     * mateu-content-header, which renders in its own shadow root where the global stylesheet
+     * cannot reach — the inline PF-token styles keep the button looking like PF6 there too
+     * (same reason redwood hand-styles its toolbar button).
+     */
+    renderToolbarButton(button: unknown, label: string, onClick: () => void): TemplateResult {
+        const btn = button as { id?: string; actionId?: string; label?: string; buttonStyle?: string; color?: string; variant?: string; disabled?: boolean }
+        const kind =
+            btn.color === 'error' || btn.color === 'danger' || btn.variant === 'error' || btn.variant === 'danger' ? 'danger'
+            : btn.buttonStyle === 'primary' || btn.color === 'primary' ? 'primary'
+            : 'secondary'
+        const skin = kind === 'danger'
+            ? 'background: var(--pf-t--global--color--status--danger--default, #b1380b); color: #fff; border: 1px solid transparent;'
+            : kind === 'primary'
+            ? 'background: var(--pf-t--global--color--brand--default, #0066cc); color: #fff; border: 1px solid transparent;'
+            : 'background: transparent; color: var(--pf-t--global--color--brand--default, #0066cc); border: 1px solid var(--pf-t--global--color--brand--default, #0066cc);'
+        return html`
+            <button type="button"
+                    class="pf-v6-c-button pf-m-${kind}"
+                    style="${skin} border-radius: 999px; height: 2.25rem; padding: 0 1rem; font-family: inherit; font-size: .875rem; cursor: pointer; ${btn.disabled ? 'opacity: .5; pointer-events: none;' : ''}"
+                    data-action-id="${btn.id ?? nothing}"
+                    ?disabled="${btn.disabled}"
+                    @click="${onClick}">
+                <span class="pf-v6-c-button__text">${label}</span>
+            </button>`
     }
     renderFilterBar(container: any, component: ClientSideComponent | undefined, baseUrl?: string, state?: any, data?: any, appState?: any, appData?: any, searchOnly?: boolean): TemplateResult {
         // The shared <mateu-filter-bar> is design-system-neutral (Lumo vars + fallbacks) and

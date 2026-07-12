@@ -193,25 +193,9 @@ export const renderConfirmDialog = (container: LitElement, component: ClientSide
         ${md.canCancel ? btn(md.cancelText ?? 'Cancel', md.cancelActionId, 'pf-m-link') : nothing}`)
 }
 
-// ── Table (CRUD listing) ────────────────────────────────────────────────────────
-const fmtCell = (v: any): string => {
-    if (v === null || v === undefined) return ''
-    if (typeof v === 'object') return v.text ?? v.label ?? v.name ?? JSON.stringify(v)
-    return String(v)
-}
-export const renderTable = (container: any, component: ClientSideComponent): TemplateResult => {
-    const md = component.metadata as any
-    const cols: any[] = (md.columns ?? []).map((c: any) => c.metadata)
-    const rows: any[] = container?.data?.[container.id]?.page?.content ?? []
-    return html`
-        <table class="pf-v6-c-table pf-m-grid-md" role="grid">
-            <thead><tr role="row">${cols.map(c => html`<th role="columnheader" scope="col">${c.label ?? ''}</th>`)}</tr></thead>
-            <tbody role="rowgroup">
-                ${rows.length === 0 ? html`<tr role="row"><td role="cell" colspan="${cols.length}"><div class="pf-v6-c-content" style="text-align:center; padding:1rem;">${md.emptyStateMessage ?? 'No items.'}</div></td></tr>` : nothing}
-                ${rows.map(row => html`<tr role="row">${cols.map(c => html`<td role="cell" data-label="${c.label ?? ''}">${fmtCell(row[c.id])}</td>`)}</tr>`)}
-            </tbody>
-        </table>`
-}
+// ── CRUD listing ────────────────────────────────────────────────────────────────
+// The crud grid layouts (table/list/cards/masterDetail/tree) live in patternflyCrud.ts —
+// mateu-table-crud delegates ALL of them there because the renderer declares rendersCrudLayouts().
 export const renderFilterBar = (container: any, _component: ClientSideComponent | undefined): TemplateResult => {
     const setState = (id: string, value: any) => { container.state = { ...container.state, [id]: value } }
     const doSearch = () => container.search?.(new CustomEvent('search-requested'))

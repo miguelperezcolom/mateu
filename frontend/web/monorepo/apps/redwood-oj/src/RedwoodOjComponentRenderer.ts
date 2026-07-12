@@ -171,6 +171,13 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         return SUPPORTED_TYPES
     }
 
+    // mateu-table-crud delegates ALL crud grid layouts (table/list/cards/masterDetail/tree) to
+    // renderTableComponent, so mateu-redwood-table renders them with Redwood-styled markup
+    // instead of the shared Vaadin-flavoured templates.
+    rendersCrudLayouts(): boolean {
+        return true
+    }
+
     // Smart-search filter bar, after the Redwood Smart Search pattern (oj-sp/smart-search, which
     // is Fusion-only and not on npm): ONE search field hosting both the free-text keyword search
     // and the structured filters. Focusing the field opens a panel listing the available filters
@@ -490,7 +497,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         `
     }
 
-    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, _data: any, _appState: any, _appData: any): TemplateResult {
+    renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, _data: any, appState: any, appData: any): TemplateResult {
         return html`
         <mateu-redwood-table id="${container.id}"
                      .metadata="${component?.metadata}"
@@ -499,6 +506,8 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                      @sort-direction-changed="${container.directionChanged}"
                      @fetch-more-elements="${container.fetchMoreElements}"
                      .state="${state}"
+                     .appState="${appState}"
+                     .appData="${appData}"
                      baseUrl="${baseUrl}"
         ></mateu-redwood-table>
         `

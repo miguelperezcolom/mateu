@@ -1,11 +1,4 @@
 import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/card'
-import '@vaadin/button'
-import '@vaadin/icon'
-import '@vaadin/icons'
-import '@vaadin/master-detail-layout'
 import { customElement, property, state } from 'lit/decorators.js';
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
@@ -202,24 +195,19 @@ export class MateuPage extends LitElement {
     private _renderBanner(banner: Banner, onDismiss: () => void): TemplateResult {
         const title = this._evalBannerText(banner.title)
         const description = this._evalBannerText(banner.description)
+        // Neutral markup (was a vaadin-card): the banner strip renders on EVERY design system.
         return html`
-            <vaadin-card class="page-banner page-banner--${this.bannerThemeClass(banner)}">
-                ${title ? html`
-                    <div slot="title" style="display: flex; align-items: center; justify-content: space-between; color: #1a1a1a; width: 100%;">
-                        <span>${title}</span>
+            <div class="page-banner page-banner--${this.bannerThemeClass(banner)}">
+                ${title || banner.hasCloseButton ? html`
+                    <div style="display: flex; align-items: center; justify-content: space-between; color: #1a1a1a; width: 100%;">
+                        <span style="font-weight: 600;">${title ?? ''}</span>
                         ${banner.hasCloseButton ? html`
-                            <vaadin-button theme="icon tertiary small" class="banner-close" @click=${onDismiss} title="Dismiss">
-                                <vaadin-icon icon="vaadin:close"></vaadin-icon>
-                            </vaadin-button>
+                            <button class="banner-close" @click=${onDismiss} title="Dismiss" aria-label="Dismiss">✕</button>
                         ` : nothing}
                     </div>
-                ` : banner.hasCloseButton ? html`
-                    <vaadin-button slot="title" theme="icon tertiary small" class="banner-close" style="margin-left: auto;" @click=${onDismiss} title="Dismiss">
-                        <vaadin-icon icon="vaadin:close"></vaadin-icon>
-                    </vaadin-button>
                 ` : nothing}
                 ${description ? html`<p>${description}</p>` : nothing}
-            </vaadin-card>
+            </div>
         `
     }
 
@@ -239,9 +227,9 @@ export class MateuPage extends LitElement {
         })
     }
 
-    /** Section cards live inside the slotted <vaadin-vertical-layout> as ordinary light-DOM descendants. */
+    /** Section cards are slotted light-DOM descendants carrying the mateu-section marker class (any design system). */
     private _sectionCards(): HTMLElement[] {
-        return Array.from(this.querySelectorAll('vaadin-card.mateu-section')) as HTMLElement[]
+        return Array.from(this.querySelectorAll('.mateu-section')) as HTMLElement[]
     }
 
     private _sectionTitle(card: HTMLElement): string | undefined {
@@ -412,9 +400,9 @@ export class MateuPage extends LitElement {
             <div class="page-body ${this._tocVisible ? 'with-toc' : ''}">
                 <div class="form-content">
                     <slot @slotchange=${this._onSlotChange}></slot>
-                    <vaadin-horizontal-layout theme="spacing" class="form-buttons">
+                    <div style="display: flex; gap: var(--lumo-space-m, 1rem);" class="form-buttons">
                         <slot name="buttons"></slot>
-                    </vaadin-horizontal-layout>
+                    </div>
                 </div>
                 ${this._tocVisible ? html`
                     <aside class="page-toc">
@@ -435,9 +423,7 @@ export class MateuPage extends LitElement {
                 ${metadata?.footer?.map(component => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
             </div>
         `
-        return (false && this.standalone)
-            ? html`<vaadin-card style="width: 100%;">${inner}</vaadin-card>`
-            : html`<vaadin-vertical-layout style="width: 100%;">${inner}</vaadin-vertical-layout>`
+        return html`<div style="display: flex; flex-direction: column; width: 100%;">${inner}</div>`
     }
 
     static styles = css`
@@ -555,7 +541,10 @@ export class MateuPage extends LitElement {
 
         .page-banner {
             width: 100%;
+            box-sizing: border-box;
             color: #1a1a1a;
+            padding: var(--lumo-space-m, 1rem);
+            border-radius: var(--lumo-border-radius-l, 12px);
         }
 
         .page-banner p {
@@ -566,25 +555,31 @@ export class MateuPage extends LitElement {
         .banner-close {
             color: #1a1a1a;
             flex-shrink: 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: .875rem;
+            line-height: 1;
+            padding: .25rem .4rem;
         }
 
         .page-banner--info {
-            --vaadin-card-background: #e8f4fd;
+            background: #e8f4fd;
             border-leftx: 4px solid var(--lumo-primary-color);
         }
 
         .page-banner--success {
-            --vaadin-card-background: #eafaf1;
+            background: #eafaf1;
             border-leftx: 4px solid var(--lumo-success-color);
         }
 
         .page-banner--warning {
-            --vaadin-card-background: #fef9e7;
+            background: #fef9e7;
             border-leftx: 4px solid var(--lumo-warning-color, #f59e0b);
         }
 
         .page-banner--danger {
-            --vaadin-card-background: #fdf2f2;
+            background: #fdf2f2;
             border-leftx: 4px solid var(--lumo-error-color);
         }
     `

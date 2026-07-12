@@ -733,7 +733,7 @@ export class MateuTableCrud extends LitElement {
         return html`
             ${importDialog}
             ${hasHeader ? html`
-                    <vaadin-horizontal-layout theme="spacing" style="width: 100%; align-items: flex-end; padding-bottom: var(--lumo-space-m);">
+                    <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem);">
                         <div style="flex: 1; min-width: 0;">
                             ${metadata?.title ? html`
                                 <h2 style="margin: 0; font-size: var(--lumo-font-size-xxl); font-weight: 700; color: var(--lumo-header-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${this.evalLabel(metadata.title)}</h2>
@@ -746,7 +746,7 @@ export class MateuTableCrud extends LitElement {
                         ${hasDivider ? html`<span class="toolbar-divider"></span>` : nothing}
                         ${actionButtons.map(button => renderToolbarButton(button))}
                         <slot></slot>
-                    </vaadin-horizontal-layout>
+                    </div>
                 ` : nothing}
             <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--lumo-space-m); display: flex; flex-direction: column;">
                 <div style="flex-shrink: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
