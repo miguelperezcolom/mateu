@@ -90,19 +90,41 @@ That is all that is required on the Java side.
 
 - `message` — the user's text input.
 - `sessionId` — a stable per-chat-panel ID (generated with nanoid), useful for conversational memory or logging on the backend.
-- `menuContext` — the full application menu flattened into a list of navigable screens. Each entry includes the breadcrumb `path` (e.g. `["Bookings", "List"]`) and the exact `navigation` payload the LLM should emit to open that screen.
+- `menuContext` — the full application menu flattened into a list of navigable screens. Each entry includes the breadcrumb `path` (e.g. `["Bookings", "List"]`), an optional `description`, and the exact `navigation` payload the LLM should emit to open that screen. It is sent **only with the first message** of a chat session — cache it against `sessionId` if you need it later in the conversation.
 
 ### Response
 
-Streamed Server-Sent Events, one per token or chunk:
+The response is a stream of Server-Sent Events, and the contract is **line-oriented**: every `data:` event carries **one line of the reply**. `mateu-chat` appends a newline after each data payload, so markdown structure (headings, lists, code fences, tables) survives streaming. Don't stream token-by-token in separate events — buffer until you have a full line.
 
-```
-data: Hello
-data:  world
-data: [DONE]
-```
+Each `data:` payload is interpreted, in order of precedence, as:
+
+1. **Token usage** — a JSON object with any of `inputTokens`, `outputTokens`, `totalTokens`. It is not shown as text; the values are merged into the token bar under the message list:
+
+   ```
+   data: {"inputTokens": 1200, "outputTokens": 340, "totalTokens": 1540}
+   ```
+
+2. **UI event** — a JSON object with a string `event` field (`detail` is optional and defaults to `{}`). It is consumed silently and dispatched as a DOM `CustomEvent` — except the reserved `agent-error` event, whose `detail.message` is rendered as a warning in the reply bubble instead:
+
+   ```
+   data: {"event": "navigation-requested", "detail": { ... }}
+   data: {"event": "agent-error", "detail": {"message": "The agent timed out."}}
+   ```
+
+3. **Text** — anything else is one line of the agent's markdown reply, appended to the current bubble.
+
+There is no end-of-stream sentinel (no `[DONE]`): the reply is finished when the server closes the stream. If the stream closes without any text, the chat shows a warning suggesting the LLM is not configured.
 
 Mateu also forwards the current JWT and session-id as request headers so your endpoint can authenticate and personalise responses.
+
+### Message rendering: markdown, images, and inline SVG
+
+Agent replies render as **markdown** (via `mateu-markdown`: marked + DOMPurify). Sanitization uses the **html + svg** profiles, so replies may safely embed:
+
+- **Images**, including `data:` URIs — e.g. a chart generated server-side and inlined as `![sales](data:image/png;base64,...)`.
+- **Inline `<svg>`** — e.g. a diagram of the user's model rendered by a tool and pasted straight into the reply.
+
+The chat bubble sizes both to its width (`max-width: 100%`, height auto), so diagrams and images fit the panel without horizontal scrolling. Custom elements also pass sanitization, so a reply can even instantiate web components available in the host page.
 
 ## Supported app variants
 
@@ -155,15 +177,47 @@ public class AiChatController {
             Only emit one event. Never show the raw JSON to the user.
             """.formatted(menuDescription);
 
+        // The contract is line-oriented: each SSE data event must be ONE line
+        // of the reply, so buffer the token stream and emit complete lines.
         return chatClient.prompt()
             .system(systemPrompt)
             .user(req.message())
             .stream()
             .content()
-            .map(token -> "data: " + token + "\n\n");
+            .bufferUntil(token -> token.contains("\n"))
+            .map(tokens -> String.join("", tokens).stripTrailing());
     }
 }
 ```
+
+## No API key? Use the CLI pseudo-agent (local development)
+
+If you develop with an LLM CLI already authenticated on your machine (`claude`, `gemini`), you don't need to implement — or configure a key for — an SSE endpoint at all. The `io.mateu:agent-cli` module is a **pseudo-agent for local development** that serves the whole contract above by bridging to that CLI.
+
+```xml
+<dependency>
+  <groupId>io.mateu</groupId>
+  <artifactId>agent-cli</artifactId>
+</dependency>
+```
+
+```java
+@UI("")
+@AI(sse = "/mateu/agent/stream")
+public class MyApp { ... }
+```
+
+What it does:
+
+- Auto-detects the CLI on the `PATH` (`claude` preferred, then `gemini`); override with `mateu.agent.cli.command`.
+- Streams the answer line by line, exactly as the contract requires.
+- With `claude`, keeps conversation continuity (`--resume`, mapping the chat's `sessionId` to the CLI's session) and reports token usage.
+- Teaches the model the `{"event": "navigation-requested", ...}` protocol using the `menuContext`, so "take me to bookings" navigates the app.
+- Runs the CLI in a throwaway temp directory and reports failures as `agent-error` events.
+
+Configuration: `mateu.agent.cli.command` (`auto` | `claude` | `gemini`), `mateu.agent.cli.path` (default `/mateu/agent/stream`), `mateu.agent.cli.timeout-seconds` (default `180`).
+
+**Security note:** this is meant for localhost — it lends the caller your locally authenticated CLI. An exposed server should run a real agent (an API-backed endpoint like the one above). See the module's README (`backend/shared/agent-cli`) for details.
 
 ## LLM-driven UI interactions
 
@@ -248,6 +302,7 @@ Only emit one event per response. Never show the raw JSON to the user.
 ## Summary
 
 - Annotate your root UI class with `@AI(sse = "<url>")`.
-- Implement an SSE endpoint at that URL.
+- Implement an SSE endpoint at that URL — or, for local development, add `io.mateu:agent-cli` and point at `/mateu/agent/stream` (no API key needed).
 - Mateu handles the rest: button, panel, streaming UI.
-- Emit `{"event": "...", "detail": {...}}` in the stream to trigger UI actions from the LLM.
+- Stream the reply line by line; replies render as markdown and may embed images (`data:` URIs included) and inline SVG.
+- Emit `{"event": "...", "detail": {...}}` in the stream to trigger UI actions from the LLM; emit token-usage JSON to feed the token bar.
