@@ -282,9 +282,20 @@ public class CliAgentService {
     }
     var builder =
         new ProcessBuilder(args)
-            .directory(Files.createTempDirectory("mateu-agent-").toFile())
+            .directory(workingDir(request.sessionId()).toFile())
             .redirectErrorStream(false);
     return builder.start();
+  }
+
+  /**
+   * The CLI's working directory. When the session has attached files we run IN their upload dir:
+   * the filesystem MCP scopes to the client's working directory (the roots claude advertises), not
+   * to its CLI argument, so this is what actually makes the uploads visible to the model. With no
+   * files a throwaway temp dir keeps the assistant away from the server's working directory.
+   */
+  private java.nio.file.Path workingDir(String sessionId) throws IOException {
+    if (sessionId != null && uploads.hasFiles(sessionId)) return uploads.sessionDir(sessionId);
+    return Files.createTempDirectory("mateu-agent-");
   }
 
   private void forward(Provider provider, Process process, String chatSessionId, SseEmitter emitter)
