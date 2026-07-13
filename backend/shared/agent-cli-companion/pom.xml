@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>shared</artifactId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+  <artifactId>agent-cli-companion</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Agent CLI Companion</name>
+  <description>Runnable local companion: serves the chat's SSE contract on localhost by bridging to
+    the user's authenticated LLM CLI (claude, gemini) — so a REMOTELY served app still talks to an
+    LLM with no api key. Start it with an explicit --allow-origin; the chat auto-detects it.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>agent-cli</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals><goal>repackage</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

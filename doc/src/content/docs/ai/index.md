@@ -197,6 +197,15 @@ public class AiChatController {
 }
 ```
 
+## Remote server, local CLI: the companion
+
+With the app deployed on a server, the user's authenticated CLI is unreachable — so the
+`agent-cli-companion` runnable jar serves the same SSE contract on the user's own
+`127.0.0.1:8776`. Start it naming which origin may use it
+(`--mateu.agent.companion.allow-origins=https://app.acme.com`); the chat probes `/health`,
+prefers the companion when alive, and wears an «agente local» badge so the user knows who
+they are talking to. No api key at any point.
+
 ## No API key? Use the CLI pseudo-agent (local development)
 
 If you develop with an LLM CLI already authenticated on your machine (`claude`, `gemini`), you don't need to implement — or configure a key for — an SSE endpoint at all. The `io.mateu:agent-cli` module is a **pseudo-agent for local development** that serves the whole contract above by bridging to that CLI.

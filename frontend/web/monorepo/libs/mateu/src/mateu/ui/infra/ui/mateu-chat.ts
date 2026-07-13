@@ -58,6 +58,17 @@ export class MateuChat extends LitElement {
     @property({attribute: false})
     contextProvider?: () => unknown;
 
+    /**
+     * Base url of the LOCAL agent companion. When a companion answers /health
+     * there, the chat prefers it over the server's sseUrl: the LLM runs through
+     * the USER's authenticated CLI — no api key, even with a remote server.
+     */
+    @property()
+    localAgentUrl = 'http://127.0.0.1:8776';
+
+    @state()
+    private localAgentAlive = false;
+
     @property()
     sseUrl: string | undefined
 
@@ -128,8 +139,22 @@ export class MateuChat extends LitElement {
         }
     }
 
+    private probeLocalAgent = async () => {
+        if (!this.localAgentUrl) return;
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 1200);
+            const response = await fetch(this.localAgentUrl + '/health', { signal: controller.signal });
+            clearTimeout(timer);
+            this.localAgentAlive = response.ok;
+        } catch {
+            this.localAgentAlive = false;
+        }
+    };
+
     connectedCallback() {
-        super.connectedCallback();
+        super.connectedCallback()
+        void this.probeLocalAgent();
 
 // Comprobar si el navegador es compatible
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -286,7 +311,10 @@ export class MateuChat extends LitElement {
     send = async (e: CustomEvent) => {
         this.messageInputElement?.setAttribute("disabled", "disabled");
         const text = e.detail.value.trim();
-        if (!text || !this.sseUrl) return;
+        const effectiveSseUrl = this.localAgentAlive
+            ? this.localAgentUrl + '/mateu/agent/stream'
+            : this.sseUrl;
+        if (!text || !effectiveSseUrl) return;
 
         this.addMessage(text, 'user');
         const agentIdx = this.addMessage('', 'agent');
@@ -315,7 +343,7 @@ export class MateuChat extends LitElement {
             });
             this.menuContextSent = true;
 
-            const response = await fetch(this.sseUrl, { method: 'POST', headers, body });
+            const response = await fetch(effectiveSseUrl, { method: 'POST', headers, body });
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -434,6 +462,9 @@ export class MateuChat extends LitElement {
             <div class="chat-container">
                 <div class="chat-header">
                     <span class="chat-title">AI Assistant</span>
+                    ${this.localAgentAlive
+                        ? html`<span class="local-agent-badge" title="Hablando con tu CLI local (companion en ${this.localAgentUrl}) — sin api key">agente local</span>`
+                        : nothing}
                     <button class="chat-close" @click="${this.closeChat}" title="Cerrar">
                         ${iconClose}
                     </button>
@@ -497,6 +528,18 @@ export class MateuChat extends LitElement {
             flex-direction: column;
             box-sizing: border-box;
             background: var(--lumo-base-color, #fff);
+        }
+
+        .local-agent-badge {
+            font: 600 10px ui-sans-serif, system-ui, sans-serif;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #047857;
+            background: #d1fae5;
+            border-radius: 999px;
+            padding: 2px 8px;
+            margin-left: 8px;
+            cursor: default;
         }
 
         .chat-header {

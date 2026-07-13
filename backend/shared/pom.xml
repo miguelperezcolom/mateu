@@ -24,6 +24,7 @@
     <module>frontend</module>
     <module>integration-tests</module>
     <module>agent-cli</module>
+    <module>agent-cli-companion</module>
   </modules>
 
 </project>

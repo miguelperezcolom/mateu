@@ -100,3 +100,19 @@ Two more properties turn the chat's assistant into an actor:
 The host app typically points `mcp-config` at its own MCP endpoint — e.g.
 `{"mcpServers":{"app":{"type":"http","url":"http://localhost:${server.port}/mcp"}}}` —
 so the assistant operates the very instance the user is looking at.
+
+
+## Remote server? The local companion
+
+When the app is served from a REMOTE server, the CLI lives on the user's machine — out of the
+server's reach. The `agent-cli-companion` module is a runnable jar that serves this same SSE
+contract on `127.0.0.1:8776`:
+
+```bash
+java -jar agent-cli-companion.jar --mateu.agent.companion.allow-origins=https://app.acme.com
+```
+
+The chat probes `http://127.0.0.1:8776/health` on load and, when a companion answers, prefers
+it over the server's sseUrl — showing an «agente local» badge. Consent is explicit twice: the
+user starts the companion naming which origin may use it (CORS enforced), and the badge tells
+them who they are talking to. `localAgentUrl` on `<mateu-chat>` overrides the default base.
