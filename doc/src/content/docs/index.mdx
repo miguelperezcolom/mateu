@@ -4,28 +4,25 @@ description: Build backoffice UIs without building a frontend. Backend-driven UI
 template: splash
 hero:
   title: Mateu
+  tagline: Build backoffice UIs without building a frontend. Backend-driven UI for distributed systems.
+  actions:
+    - text: Quickstart
+      link: /java-user-manual/start-here/quickstart/
+      icon: right-arrow
+    - text: What is Mateu?
+      link: /mateu-about/what-is-mateu/
+      variant: minimal
 ---
 
-import { Card, CardGrid, LinkButton } from '@astrojs/starlight/components';
+import { Card, CardGrid } from '@astrojs/starlight/components';
 
-{/* The reel opens with the Mateu logo, so it goes FIRST — the Starlight hero (which always
-    renders before the content) is hidden and the title/tagline/actions are hand-rolled after
-    the video, matching the original hero layout. */}
-<style>{`
-  .hero { display: none; }
-`}</style>
+{/* UX: the hero answers "what is this?" in two seconds; the reel comes right
+    after as the proof — never as a gate the value proposition hides behind. */}
 
-<div style={{ maxWidth: '920px', margin: '2.5rem auto 0', aspectRatio: '16 / 10.2', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 30px 90px -40px rgba(0,0,0,.6)' }}>
+## See it in 30 seconds
+
+<div style={{ maxWidth: '920px', margin: '1.5rem auto 0', aspectRatio: '16 / 10.2', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 30px 90px -40px rgba(0,0,0,.6)' }}>
   <iframe src="/reel.html" title="Mateu — a 30-second tour" loading="lazy" allow="autoplay" style={{ width: '100%', height: '100%', border: 0, display: 'block' }}></iframe>
-</div>
-
-<h1 style={{ textAlign: 'center', fontSize: 'clamp(2.5rem, 1.75rem + 2.5vw, 4rem)', lineHeight: 1.1, margin: '2.5rem auto 1rem', color: 'var(--sl-color-white)' }}>Mateu</h1>
-
-<div style={{ textAlign: 'center', maxWidth: '60ch', margin: '0 auto', fontSize: 'clamp(1.0625rem, 0.5rem + 1.5vw, 1.5rem)', lineHeight: 1.5, color: 'var(--sl-color-gray-2)' }}>Build backoffice UIs without building a frontend. Backend-driven UI for distributed systems.</div>
-
-<div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', margin: '1.5rem auto 2.5rem' }}>
-  <LinkButton href="/java-user-manual/start-here/quickstart/" icon="right-arrow">Quickstart</LinkButton>
-  <LinkButton href="/mateu-about/what-is-mateu/" variant="minimal">What is Mateu?</LinkButton>
 </div>
 
 ## The problem
