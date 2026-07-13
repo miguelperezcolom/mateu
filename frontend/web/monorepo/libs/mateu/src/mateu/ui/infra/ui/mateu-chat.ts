@@ -588,6 +588,14 @@ export class MateuChat extends LitElement {
             overflow-wrap: anywhere;
         }
 
+        .message-text img,
+        .message-text svg {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }
+
         .message-text > :first-child {
             margin-top: 0.15rem;
         }

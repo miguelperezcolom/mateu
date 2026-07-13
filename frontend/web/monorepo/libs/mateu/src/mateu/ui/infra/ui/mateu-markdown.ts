@@ -52,7 +52,11 @@ export class MateuMarkdown extends Base {
         if (seq !== this.#renderSeq) {
             return
         }
+        // html + svg profiles: agents answer with markdown that may embed images
+        // (data: URIs included) and inline <svg> renders — e.g. a model diagram —
+        // which must survive sanitization; custom elements keep passing through.
         this.innerHTML = DOMPurify.sanitize(await marked.parse(content), {
+            USE_PROFILES: { html: true, svg: true, svgFilters: true },
             CUSTOM_ELEMENT_HANDLING: {
                 tagNameCheck: (_tagName: string) => true,
             },
