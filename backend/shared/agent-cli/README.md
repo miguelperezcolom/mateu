@@ -97,7 +97,16 @@ Two more properties turn the chat's assistant into an actor:
 | `mateu.agent.cli.mcp-config` | MCP servers for the CLI (claude only): inline JSON or a file path, passed as `--mcp-config` with `--strict-mcp-config` so only these servers load. |
 | `mateu.agent.cli.allowed-tools` | Tools the CLI may use without prompting (`--allowedTools`), e.g. `mcp__modux`. |
 
-The host app typically points `mcp-config` at its own MCP endpoint — e.g.
+### Dynamic MCP: the app advertises, the agent verifies
+
+When the app is annotated `@AI(mcp = "/mcp")`, the chat forwards that endpoint (absolute,
+same-origin) with every message. The agent accepts it **only when its origin is allowed** —
+localhost always, plus `mateu.agent.cli.allowed-mcp-origins` (and, in the companion, its CORS
+allowlist doubles as consent) — and passes the user's own `Authorization` header along, so the
+remote MCP sees the actual user. This is what lets the local companion operate a REMOTE app:
+`browser → companion (user's CLI) → remote /mcp with the user's token`.
+
+The host app can also point `mcp-config` at its own MCP endpoint statically — e.g.
 `{"mcpServers":{"app":{"type":"http","url":"http://localhost:${server.port}/mcp"}}}` —
 so the assistant operates the very instance the user is looking at.
 

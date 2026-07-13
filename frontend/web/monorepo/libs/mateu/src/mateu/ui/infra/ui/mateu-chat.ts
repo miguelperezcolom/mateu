@@ -66,11 +66,19 @@ export class MateuChat extends LitElement {
     @property()
     localAgentUrl = 'http://127.0.0.1:8776';
 
+    /** The app's MCP endpoint (from @AI(mcp=…)): forwarded so the agent — local companion included — can operate THIS app. */
+    @property({attribute: false})
+    mcpUrl?: string;
+
     @state()
     private localAgentAlive = false;
 
     @property()
     sseUrl: string | undefined
+
+    /** Endpoint (from @AI(upload=…)) the attach button POSTs files to. When unset, no attach UI. */
+    @property()
+    uploadUrl: string | undefined
 
     /** Menu passed from the app shell; used to build LLM context. */
     @property({ attribute: false })
@@ -78,6 +86,21 @@ export class MateuChat extends LitElement {
 
     readonly chatSessionId: string = nanoid();
     private menuContextSent = false;
+
+    /** Files uploaded for the NEXT message: shown as chips, sent as `attachments`, cleared on send. */
+    @state()
+    private attachments: { name: string; path: string }[] = [];
+    @state()
+    private uploading = false;
+    @query('.file-input')
+    private fileInputElement?: HTMLInputElement;
+
+    /** Full-screen mode: the panel covers the viewport so the conversation is the whole focus
+     *  (for when you care about the LLM, not the UI behind it). Reflected so CSS can react. */
+    @property({ type: Boolean, reflect: true })
+    expanded = false;
+
+    private toggleExpanded = () => { this.expanded = !this.expanded; };
 
     @property()
     items: ChatMessageItem[] = []
@@ -308,15 +331,57 @@ export class MateuChat extends LitElement {
         this._elapsedTimer = undefined;
     }
 
+    /** The attach button — opens the file picker (only rendered when uploadUrl is set). */
+    private pickFiles = () => this.fileInputElement?.click();
+
+    /** Uploads the picked files (multipart) to uploadUrl; the endpoint saves them and returns the
+     *  paths (relative to the agent's file root), which we keep as chips + send with the message. */
+    private onFilesPicked = async (e: Event) => {
+        const input = e.target as HTMLInputElement;
+        const files = Array.from(input.files ?? []);
+        input.value = ''; // allow re-picking the same file later
+        if (!files.length || !this.uploadUrl) return;
+        this.uploading = true;
+        try {
+            const form = new FormData();
+            form.append('sessionId', this.chatSessionId);
+            for (const f of files) form.append('files', f, f.name);
+            const headers: Record<string, string> = {};
+            const token = localStorage.getItem('__mateu_auth_token');
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            const sessionId = sessionStorage.getItem('__mateu_sesion_id');
+            if (sessionId) headers['X-Session-Id'] = sessionId;
+            const response = await fetch(this.uploadUrl, { method: 'POST', headers, body: form });
+            if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
+            const result = await response.json() as { files?: { name: string; path: string }[] };
+            const saved = (result.files ?? []).filter(f => f && f.path);
+            this.attachments = [...this.attachments, ...saved];
+        } catch (err) {
+            this.addMessage(`⚠️ No se pudieron subir los ficheros: ${err instanceof Error ? err.message : err}`, 'agent');
+        } finally {
+            this.uploading = false;
+        }
+    };
+
+    private removeAttachment = (path: string) => {
+        this.attachments = this.attachments.filter(a => a.path !== path);
+    };
+
     send = async (e: CustomEvent) => {
         this.messageInputElement?.setAttribute("disabled", "disabled");
         const text = e.detail.value.trim();
         const effectiveSseUrl = this.localAgentAlive
             ? this.localAgentUrl + '/mateu/agent/stream'
             : this.sseUrl;
-        if (!text || !effectiveSseUrl) return;
+        // a message with only attachments (no text) is still worth sending
+        const attachments = this.attachments;
+        if ((!text && attachments.length === 0) || !effectiveSseUrl) return;
 
-        this.addMessage(text, 'user');
+        const shown = attachments.length
+            ? `${text}${text ? '\n\n' : ''}📎 ${attachments.map(a => a.name).join(', ')}`
+            : text;
+        this.addMessage(shown, 'user');
+        this.attachments = [];
         const agentIdx = this.addMessage('', 'agent');
         this.startLoading();
 
@@ -338,7 +403,9 @@ export class MateuChat extends LitElement {
             const body = JSON.stringify({
                 message: text,
                 sessionId: this.chatSessionId,
+                ...(attachments.length && { attachments }),
                 ...(context !== undefined && context !== null && { context }),
+                ...(this.mcpUrl && { mcpUrl: new URL(this.mcpUrl, window.location.origin).href }),
                 ...(!this.menuContextSent && { menuContext: this.buildMenuContext(this.menu) }),
             });
             this.menuContextSent = true;
@@ -465,6 +532,11 @@ export class MateuChat extends LitElement {
                     ${this.localAgentAlive
                         ? html`<span class="local-agent-badge" title="Hablando con tu CLI local (companion en ${this.localAgentUrl}) — sin api key">agente local</span>`
                         : nothing}
+                    <button class="chat-icon-btn" @click="${this.toggleExpanded}"
+                            title="${this.expanded ? 'Contraer' : 'Expandir a pantalla completa'}"
+                            aria-label="${this.expanded ? 'Contraer el chat' : 'Expandir el chat'}">
+                        ${this.expanded ? '⤡' : '⤢'}
+                    </button>
                     <button class="chat-close" @click="${this.closeChat}" title="Cerrar">
                         ${iconClose}
                     </button>
@@ -499,7 +571,23 @@ export class MateuChat extends LitElement {
                         <span class="loading-text">Thinking… ${this.elapsedSeconds}s</span>
                     </div>
                 ` : nothing}
+                ${this.attachments.length ? html`
+                    <div class="attachments">
+                        ${this.attachments.map(a => html`
+                            <span class="attachment-chip" title="${a.path}">
+                                📎 ${a.name}
+                                <button class="attachment-remove" @click="${() => this.removeAttachment(a.path)}" aria-label="Quitar ${a.name}">✕</button>
+                            </span>`)}
+                    </div>
+                ` : nothing}
                 <div class="input-bar">
+                    ${this.uploadUrl ? html`
+                        <button class="mic-btn" title="Adjuntar ficheros"
+                                @click="${this.pickFiles}" ?disabled="${this.uploading}"
+                                aria-label="Adjuntar ficheros">${this.uploading ? '…' : '📎'}</button>
+                        <input class="file-input" type="file" multiple hidden
+                               @change="${this.onFilesPicked}"/>
+                    ` : nothing}
                     <button class="mic-btn"
                             title="Dictar"
                             style="color: ${this.listening ? 'red' : 'var(--lumo-contrast-50pct, #767676)'};"
@@ -522,6 +610,29 @@ export class MateuChat extends LitElement {
             height: 100%;
         }
 
+        /* Full-screen: the panel leaves its side slot and covers the whole viewport, so the
+           conversation is all there is. Toggled from the header expand button. */
+        :host([expanded]) {
+            position: fixed;
+            inset: 0;
+            width: 100vw !important;
+            max-width: none !important;
+            height: 100vh;
+            z-index: 1000;
+            border-left: none !important;
+        }
+        :host([expanded]) .message-list,
+        :host([expanded]) .input-bar,
+        :host([expanded]) .attachments,
+        :host([expanded]) .token-bar,
+        :host([expanded]) .loading-bar {
+            max-width: 820px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
         .chat-container {
             height: 100%;
             display: flex;
@@ -529,6 +640,55 @@ export class MateuChat extends LitElement {
             box-sizing: border-box;
             background: var(--lumo-base-color, #fff);
         }
+
+        .chat-icon-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 15px;
+            line-height: 1;
+            color: var(--lumo-contrast-60pct, #6b6b6b);
+            padding: 4px 6px;
+            border-radius: 6px;
+        }
+        .chat-icon-btn:hover {
+            background: var(--lumo-contrast-10pct, #eee);
+            color: var(--lumo-body-text-color, #222);
+        }
+
+        .attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 6px 12px 0;
+        }
+        .attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font: 500 12px ui-sans-serif, system-ui, sans-serif;
+            background: var(--lumo-contrast-10pct, #eef1f4);
+            color: var(--lumo-body-text-color, #222);
+            border-radius: 999px;
+            padding: 3px 6px 3px 10px;
+            max-width: 220px;
+        }
+        .attachment-chip > :not(.attachment-remove) {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .attachment-remove {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: var(--lumo-contrast-60pct, #767676);
+            font-size: 11px;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 50%;
+        }
+        .attachment-remove:hover { background: var(--lumo-contrast-20pct, #dcdcdc); }
 
         .local-agent-badge {
             font: 600 10px ui-sans-serif, system-ui, sans-serif;

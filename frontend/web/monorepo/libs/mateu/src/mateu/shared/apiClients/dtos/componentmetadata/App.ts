@@ -28,6 +28,8 @@ export default interface App extends ComponentMetadata {
     uriPrefix: string
     baseUrl: string
     sseUrl: string | undefined
+    mcpUrl: string | undefined
+    uploadUrl: string | undefined
     fabs: Fab[] | undefined
     themeToggle: boolean
     contextSelectors: AppContextSelector[] | undefined

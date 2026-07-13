@@ -9,6 +9,11 @@ public class ChatMapper {
 
   public static ClientSideComponentDto mapChatToDto(Chat chat) {
     return new ClientSideComponentDto(
-        new ChatDto(chat.sseUrl()), "fieldId", List.of(), chat.style(), chat.cssClasses(), null);
+        new ChatDto(chat.sseUrl(), chat.uploadUrl()),
+        "fieldId",
+        List.of(),
+        chat.style(),
+        chat.cssClasses(),
+        null);
   }
 }

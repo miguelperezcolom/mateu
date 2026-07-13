@@ -21,7 +21,8 @@ public class CliAgentController {
    * menuContext stays an Object on purpose: the host may run Jackson 2 or Jackson 3 (Spring 7), and
    * either one binds plain maps/lists happily.
    */
-  public record ChatRequest(String message, String sessionId, Object menuContext, Object context) {}
+  public record ChatRequest(
+      String message, String sessionId, Object menuContext, Object context, String mcpUrl) {}
 
   private final CliAgentService service;
 
@@ -40,9 +41,14 @@ public class CliAgentController {
   @PostMapping(
       value = "${mateu.agent.cli.path:/mateu/agent/stream}",
       produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-  public SseEmitter stream(@RequestBody ChatRequest request) {
+  public SseEmitter stream(
+      @RequestBody ChatRequest request,
+      @org.springframework.web.bind.annotation.RequestHeader(
+              value = "Authorization",
+              required = false)
+          String authorization) {
     var emitter = new SseEmitter(0L);
-    executor.submit(() -> service.run(request, emitter));
+    executor.submit(() -> service.run(request, authorization, emitter));
     return emitter;
   }
 }

@@ -85,6 +85,8 @@ public final class AppMapper {
             .cssClasses(app.cssClasses())
             .home(null)
             .sseUrl(getSseUrl(app))
+            .mcpUrl(getMcpUrl(app))
+            .uploadUrl(getUploadUrl(app))
             .fabs(getAppFabs(app))
             .themeToggle(getThemeToggle(app))
             .contextSelectors(getContextSelectors(app, httpRequest))
@@ -206,6 +208,28 @@ public final class AppMapper {
       return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).themeToggle();
     }
     return false;
+  }
+
+  @SneakyThrows
+  private static String getMcpUrl(AppShell app) {
+    if (app.serverSideType() == null) return null;
+    var appClass = Class.forName(app.serverSideType());
+    if (MetaAnnotations.isPresent(appClass, AI.class)) {
+      var mcp = MetaAnnotations.find(appClass, AI.class).mcp();
+      return mcp.isBlank() ? null : mcp;
+    }
+    return null;
+  }
+
+  @SneakyThrows
+  private static String getUploadUrl(AppShell app) {
+    if (app.serverSideType() == null) return null;
+    var appClass = Class.forName(app.serverSideType());
+    if (MetaAnnotations.isPresent(appClass, AI.class)) {
+      var upload = MetaAnnotations.find(appClass, AI.class).upload();
+      return upload.isBlank() ? null : upload;
+    }
+    return null;
   }
 
   @SneakyThrows

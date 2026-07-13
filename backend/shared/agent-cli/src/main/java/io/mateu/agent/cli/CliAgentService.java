@@ -46,10 +46,19 @@ public class CliAgentService {
   @Value("${mateu.agent.cli.allowed-tools:}")
   String allowedTools;
 
+  /** Origins (besides localhost) whose app-advertised mcpUrl the agent will accept. */
+  @Value("${mateu.agent.cli.allowed-mcp-origins:}")
+  String allowedMcpOrigins;
+
+  /** The companion's CORS allowlist doubles as consent for that origin's mcpUrl. */
+  @Value("${mateu.agent.companion.allow-origins:}")
+  String companionAllowOrigins;
+
   /** chat session id → CLI session id (claude --resume). */
   private final Map<String, String> cliSessions = new ConcurrentHashMap<>();
 
-  public void run(CliAgentController.ChatRequest request, SseEmitter emitter) {
+  public void run(
+      CliAgentController.ChatRequest request, String authorization, SseEmitter emitter) {
     Process process = null;
     try {
       var provider = resolveProvider();
@@ -62,7 +71,7 @@ public class CliAgentService {
         return;
       }
       var menuContext = Optional.ofNullable(request.menuContext()).map(CliAgentService::toJson);
-      process = start(provider, request, menuContext);
+      process = start(provider, request, authorization, menuContext);
       try (var stdin = process.getOutputStream()) {
         stdin.write(withScreenContext(request).getBytes(StandardCharsets.UTF_8));
       }
@@ -133,8 +142,50 @@ public class CliAgentService {
     return false;
   }
 
+  /**
+   * The MCP the CLI gets: the statically configured one wins; otherwise the one the APP advertised
+   * with the message (mcpUrl), accepted only when its origin is allowed (the same consent that lets
+   * the app use this agent) and carrying the user's own Authorization so the remote MCP sees THEM.
+   */
+  private String resolveMcpConfig(CliAgentController.ChatRequest request, String authorization) {
+    if (!mcpConfig.isBlank()) return mcpConfig;
+    var url = request.mcpUrl();
+    if (url == null || url.isBlank()) return "";
+    if (!mcpOriginAllowed(url)) {
+      log.warn("mcpUrl {} rechazada: su origen no está permitido", url);
+      return "";
+    }
+    var headers =
+        authorization == null || authorization.isBlank()
+            ? ""
+            : ",\"headers\":{\"Authorization\":" + quote(authorization) + "}";
+    return "{\"mcpServers\":{\"app\":{\"type\":\"http\",\"url\":" + quote(url) + headers + "}}}";
+  }
+
+  private boolean mcpOriginAllowed(String url) {
+    try {
+      var uri = java.net.URI.create(url);
+      var host = uri.getHost();
+      if ("127.0.0.1".equals(host) || "localhost".equals(host)) return true;
+      var target = uri.getScheme() + "://" + uri.getAuthority();
+      for (var candidate : (allowedMcpOrigins + "," + companionAllowOrigins).split(",")) {
+        if (!candidate.isBlank() && candidate.trim().equals(target)) return true;
+      }
+      return false;
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  private static String quote(String value) {
+    return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+  }
+
   private Process start(
-      Provider provider, CliAgentController.ChatRequest request, Optional<String> menuContext)
+      Provider provider,
+      CliAgentController.ChatRequest request,
+      String authorization,
+      Optional<String> menuContext)
       throws IOException {
     var args = new ArrayList<String>();
     if (provider == Provider.CLAUDE) {
@@ -148,14 +199,13 @@ public class CliAgentService {
               "--verbose",
               "--append-system-prompt",
               CliAgentBridge.systemPreamble(menuContext)));
-      if (!mcpConfig.isBlank()) {
+      var effectiveMcp = resolveMcpConfig(request, authorization);
+      if (!effectiveMcp.isBlank()) {
         args.add("--mcp-config");
-        args.add(mcpConfig);
+        args.add(effectiveMcp);
         args.add("--strict-mcp-config");
-      }
-      if (!allowedTools.isBlank()) {
         args.add("--allowedTools");
-        args.add(allowedTools);
+        args.add(allowedTools.isBlank() ? "mcp__app" : allowedTools);
       }
       var resumed = request.sessionId() == null ? null : cliSessions.get(request.sessionId());
       if (resumed != null) {

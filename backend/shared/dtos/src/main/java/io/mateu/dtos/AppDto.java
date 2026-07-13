@@ -34,6 +34,8 @@ public record AppDto(
     ComponentDto home,
     String rootRoute,
     String sseUrl,
+    String mcpUrl,
+    String uploadUrl,
     List<FabDto> fabs,
     boolean themeToggle,
     List<AppContextSelectorDto> contextSelectors)
