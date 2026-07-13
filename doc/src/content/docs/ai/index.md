@@ -88,6 +88,13 @@ That is all that is required on the Java side.
 }
 ```
 
+Every message also carries a `context` field — a snapshot of what the user is LOOKING AT,
+supplied by the shell (`mateu-chat`'s `contextProvider` property): current url and screen
+title, `appState`, `appData`, and the active component's state and data. The agent grounds
+its answers and actions on it — if the user is already on the relevant screen, it acts
+there instead of navigating away.
+
+
 - `message` — the user's text input.
 - `sessionId` — a stable per-chat-panel ID (generated with nanoid), useful for conversational memory or logging on the backend.
 - `menuContext` — the full application menu flattened into a list of navigable screens. Each entry includes the breadcrumb `path` (e.g. `["Bookings", "List"]`), an optional `description`, and the exact `navigation` payload the LLM should emit to open that screen. It is sent **only with the first message** of a chat session — cache it against `sessionId` if you need it later in the conversation.

@@ -54,6 +54,10 @@ interface MenuContextEntry {
 @customElement('mateu-chat')
 export class MateuChat extends LitElement {
 
+    /** Supplied by the host: a snapshot of what the user is looking at (route, states). */
+    @property({attribute: false})
+    contextProvider?: () => unknown;
+
     @property()
     sseUrl: string | undefined
 
@@ -299,9 +303,14 @@ export class MateuChat extends LitElement {
             const sessionId = sessionStorage.getItem('__mateu_sesion_id');
             if (sessionId) headers['X-Session-Id'] = sessionId;
 
+            // The screen rides with every message: the assistant should know what
+            // the user is LOOKING AT (route, app/component state), not just what
+            // they typed — so it acts in place instead of navigating blindly.
+            const context = this.contextProvider?.();
             const body = JSON.stringify({
                 message: text,
                 sessionId: this.chatSessionId,
+                ...(context !== undefined && context !== null && { context }),
                 ...(!this.menuContextSent && { menuContext: this.buildMenuContext(this.menu) }),
             });
             this.menuContextSent = true;

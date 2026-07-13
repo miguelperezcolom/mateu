@@ -64,7 +64,7 @@ public class CliAgentService {
       var menuContext = Optional.ofNullable(request.menuContext()).map(CliAgentService::toJson);
       process = start(provider, request, menuContext);
       try (var stdin = process.getOutputStream()) {
-        stdin.write(request.message().getBytes(StandardCharsets.UTF_8));
+        stdin.write(withScreenContext(request).getBytes(StandardCharsets.UTF_8));
       }
       forward(provider, process, request.sessionId(), emitter);
       if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
@@ -86,6 +86,21 @@ public class CliAgentService {
       }
       emitter.complete();
     }
+  }
+
+  /**
+   * The screen rides ahead of every message: what the user is LOOKING AT (route, app/component
+   * state) so the assistant acts in place instead of navigating blindly. Truncated — state objects
+   * can be arbitrarily big.
+   */
+  private static String withScreenContext(CliAgentController.ChatRequest request) {
+    if (request.context() == null) return request.message();
+    var json = toJson(request.context());
+    if (json.length() > 6000) json = json.substring(0, 6000) + "…";
+    return "### Contexto de pantalla (automático)\n"
+        + json
+        + "\n\n### Mensaje del usuario\n"
+        + request.message();
   }
 
   private static String toJson(Object value) {
@@ -151,7 +166,8 @@ public class CliAgentService {
       args.add("gemini");
       args.add("-p");
       // gemini has no system-prompt flag: the preamble rides ahead of the message
-      args.add(CliAgentBridge.systemPreamble(menuContext) + "\n\n---\n\n" + request.message());
+      args.add(
+          CliAgentBridge.systemPreamble(menuContext) + "\n\n---\n\n" + withScreenContext(request));
     }
     var builder =
         new ProcessBuilder(args)

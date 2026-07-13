@@ -80,6 +80,14 @@ CLI on behalf of whoever calls the endpoint — an exposed server should run a r
   (`CliAgentBridgeTest`).
 
 
+## Screen context
+
+Every chat message may carry a `context` object (the shell sends url, screen title,
+appState/appData and the component's state). The service prefixes the user message with an
+automatic `### Contexto de pantalla` header (truncated at 6000 chars) and the system prompt
+teaches the model to ground its actions on it — no blind navigation when the user is
+already on the relevant screen.
+
 ## Giving the agent tools (MCP)
 
 Two more properties turn the chat's assistant into an actor:

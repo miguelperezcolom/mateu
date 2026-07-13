@@ -21,7 +21,7 @@ public class CliAgentController {
    * menuContext stays an Object on purpose: the host may run Jackson 2 or Jackson 3 (Spring 7), and
    * either one binds plain maps/lists happily.
    */
-  public record ChatRequest(String message, String sessionId, Object menuContext) {}
+  public record ChatRequest(String message, String sessionId, Object menuContext, Object context) {}
 
   private final CliAgentService service;
 
