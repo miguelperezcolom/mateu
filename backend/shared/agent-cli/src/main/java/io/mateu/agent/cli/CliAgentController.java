@@ -22,7 +22,17 @@ public class CliAgentController {
    * either one binds plain maps/lists happily.
    */
   public record ChatRequest(
-      String message, String sessionId, Object menuContext, Object context, String mcpUrl) {}
+      String message,
+      String sessionId,
+      Object menuContext,
+      Object context,
+      String mcpUrl,
+      java.util.List<Attachment> attachments) {
+    /**
+     * A file the chat attached (saved by AgentUploadStore); read by the model via the files MCP.
+     */
+    public record Attachment(String name, String path) {}
+  }
 
   private final CliAgentService service;
 

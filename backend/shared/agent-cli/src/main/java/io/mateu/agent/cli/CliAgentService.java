@@ -57,6 +57,15 @@ public class CliAgentService {
   /** chat session id → CLI session id (claude --resume). */
   private final Map<String, String> cliSessions = new ConcurrentHashMap<>();
 
+  /**
+   * Where the chat's attached files landed; exposed to the CLI via a per-session filesystem MCP.
+   */
+  private final AgentUploadStore uploads;
+
+  public CliAgentService(AgentUploadStore uploads) {
+    this.uploads = uploads;
+  }
+
   public void run(
       CliAgentController.ChatRequest request, String authorization, SseEmitter emitter) {
     Process process = null;
@@ -103,13 +112,33 @@ public class CliAgentService {
    * can be arbitrarily big.
    */
   private static String withScreenContext(CliAgentController.ChatRequest request) {
-    if (request.context() == null) return request.message();
+    var attachmentsHeader = attachmentsHeader(request);
+    if (request.context() == null) return attachmentsHeader + request.message();
     var json = toJson(request.context());
     if (json.length() > 6000) json = json.substring(0, 6000) + "…";
     return "### Contexto de pantalla (automático)\n"
         + json
-        + "\n\n### Mensaje del usuario\n"
+        + "\n\n"
+        + attachmentsHeader
+        + "### Mensaje del usuario\n"
         + request.message();
+  }
+
+  /** Tells the model which files the user attached and that they're readable via the files MCP. */
+  private static String attachmentsHeader(CliAgentController.ChatRequest request) {
+    var attachments = request.attachments();
+    if (attachments == null || attachments.isEmpty()) return "";
+    var names =
+        attachments.stream()
+            .map(CliAgentController.ChatRequest.Attachment::name)
+            .filter(n -> n != null && !n.isBlank())
+            .toList();
+    if (names.isEmpty()) return "";
+    return "### Ficheros adjuntos\n"
+        + "El usuario ha adjuntado: "
+        + String.join(", ", names)
+        + ". Están disponibles a través del servidor MCP \"files\" (léelos con sus herramientas"
+        + " mcp__files por su nombre) antes de responder.\n\n";
   }
 
   private static String toJson(Object value) {
@@ -181,6 +210,28 @@ public class CliAgentService {
     return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
   }
 
+  /**
+   * A stdio filesystem MCP server rooted at the session's upload dir, or "" when it has no files.
+   */
+  private String filesMcpConfig(String sessionId) {
+    if (sessionId == null || !uploads.hasFiles(sessionId)) return "";
+    var root = uploads.sessionDir(sessionId).toAbsolutePath().toString();
+    return "{\"mcpServers\":{\"files\":{\"command\":\"npx\",\"args\":[\"-y\","
+        + "\"@modelcontextprotocol/server-filesystem\","
+        + quote(root)
+        + "]}}}";
+  }
+
+  /**
+   * claude --allowedTools list: the app server's tools (if any) plus the files server's (if any).
+   */
+  private String computeAllowedTools(boolean appMcp, boolean filesMcp) {
+    var tools = new ArrayList<String>();
+    if (appMcp) tools.add(allowedTools.isBlank() ? "mcp__app" : allowedTools);
+    if (filesMcp) tools.add("mcp__files");
+    return String.join(",", tools);
+  }
+
   private Process start(
       Provider provider,
       CliAgentController.ChatRequest request,
@@ -200,12 +251,22 @@ public class CliAgentService {
               "--append-system-prompt",
               CliAgentBridge.systemPreamble(menuContext)));
       var effectiveMcp = resolveMcpConfig(request, authorization);
-      if (!effectiveMcp.isBlank()) {
-        args.add("--mcp-config");
-        args.add(effectiveMcp);
+      // Attached files ride in through a per-session filesystem MCP so the model can read them (the
+      // CLI runs in a throwaway dir, so this is its only window onto the uploads). claude accepts
+      // several --mcp-config flags and merges them, so we don't have to splice JSON.
+      var filesMcp = filesMcpConfig(request.sessionId());
+      if (!effectiveMcp.isBlank() || !filesMcp.isBlank()) {
+        if (!effectiveMcp.isBlank()) {
+          args.add("--mcp-config");
+          args.add(effectiveMcp);
+        }
+        if (!filesMcp.isBlank()) {
+          args.add("--mcp-config");
+          args.add(filesMcp);
+        }
         args.add("--strict-mcp-config");
         args.add("--allowedTools");
-        args.add(allowedTools.isBlank() ? "mcp__app" : allowedTools);
+        args.add(computeAllowedTools(!effectiveMcp.isBlank(), !filesMcp.isBlank()));
       }
       var resumed = request.sessionId() == null ? null : cliSessions.get(request.sessionId());
       if (resumed != null) {

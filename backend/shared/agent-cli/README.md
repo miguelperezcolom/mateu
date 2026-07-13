@@ -63,12 +63,17 @@ That's it — the chat panel now talks to whatever LLM CLI is installed locally.
 | `mateu.agent.cli.command` | `auto` | Which CLI to use: `auto` (first found on the `PATH`, `claude` preferred), `claude`, or `gemini`. |
 | `mateu.agent.cli.path` | `/mateu/agent/stream` | The endpoint path the controller listens on (what `@AI(sse = …)` should point to). |
 | `mateu.agent.cli.timeout-seconds` | `180` | Maximum time a CLI run may take before it is killed and an `agent-error` is emitted. |
+| `mateu.agent.cli.upload-path` | `/mateu/agent/upload` | The endpoint path the file-upload controller listens on (what `@AI(upload = …)` should point to). |
+| `mateu.agent.cli.upload-dir` | `$TMPDIR/mateu-agent-uploads` | Base directory where attached files are stored, one subdirectory per chat session. |
+| `mateu.agent.cli.max-upload-mb` | `25` | Maximum size per attached file; larger files are rejected with a `400`. |
 
 ## Security note
 
 This module is meant for **localhost development**. It spawns a locally authenticated
 CLI on behalf of whoever calls the endpoint — an exposed server should run a real agent
-(an API-backed SSE endpoint with its own authentication and quota) instead.
+(an API-backed SSE endpoint with its own authentication and quota) instead. The same goes
+for file uploads: they land on the server's local disk with only size/name sanitization —
+an exposed server should store uploads behind real auth and quota.
 
 ## Code map
 
@@ -78,6 +83,9 @@ CLI on behalf of whoever calls the endpoint — an exposed server should run a r
 - `CliAgentBridge` — pure translation between `claude`'s `stream-json` output and the
   chat's SSE contract, plus the system preamble; process-free and unit-tested
   (`CliAgentBridgeTest`).
+- `AgentUploadController` / `AgentUploadStore` — the multipart file-upload endpoint and the
+  per-session on-disk store the filesystem MCP is rooted at; store logic unit-tested
+  (`AgentUploadStoreTest`).
 
 
 ## Screen context
@@ -110,6 +118,31 @@ The host app can also point `mcp-config` at its own MCP endpoint statically — 
 `{"mcpServers":{"app":{"type":"http","url":"http://localhost:${server.port}/mcp"}}}` —
 so the assistant operates the very instance the user is looking at.
 
+
+## Attaching files (the agent reads them)
+
+Annotate the shell with a third `@AI` attribute so the chat shows an **attach** button:
+
+```java
+@UI("")
+@AI(sse = "/mateu/agent/stream", upload = "/mateu/agent/upload")
+public class MyApp { ... }
+```
+
+The chat POSTs each picked file (multipart `files`, plus the chat's `sessionId`) to that URL.
+`AgentUploadController` saves them via `AgentUploadStore` into a **per-session directory** under
+`mateu.agent.cli.upload-dir` (default `$TMPDIR/mateu-agent-uploads/<sessionId>`) and echoes back
+`{"files":[{"name","path"}]}`, which the chat shows as removable chips and sends as `attachments`
+on the next message.
+
+How the model reads them: because the CLI runs in a throwaway temp dir (see **Isolation**), the
+uploads are otherwise invisible to it. When the session has files, the service starts a **per-session
+filesystem MCP** rooted at that directory —
+`npx -y @modelcontextprotocol/server-filesystem <sessionDir>` — as a **second** `--mcp-config`
+(claude merges several) and adds `mcp__files` to `--allowedTools`; the message is prefixed with a
+`### Ficheros adjuntos` header naming the files and telling the model to read them via that server.
+So it stacks with the app MCP above rather than replacing it. Filenames are sanitized and confined to
+the session directory (path-traversal defence); oversized files are rejected.
 
 ## Remote server? The local companion
 
