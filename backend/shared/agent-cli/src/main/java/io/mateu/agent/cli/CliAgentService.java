@@ -34,6 +34,18 @@ public class CliAgentService {
   @Value("${mateu.agent.cli.timeout-seconds:180}")
   long timeoutSeconds;
 
+  /**
+   * MCP servers for the CLI (claude only): inline JSON or a file path, passed as --mcp-config with
+   * --strict-mcp-config so ONLY these servers load. The host app points this at its own MCP
+   * endpoint and the chat's agent can act.
+   */
+  @Value("${mateu.agent.cli.mcp-config:}")
+  String mcpConfig;
+
+  /** Tools the CLI may use without prompting (claude --allowedTools), e.g. mcp__modux. */
+  @Value("${mateu.agent.cli.allowed-tools:}")
+  String allowedTools;
+
   /** chat session id → CLI session id (claude --resume). */
   private final Map<String, String> cliSessions = new ConcurrentHashMap<>();
 
@@ -121,6 +133,15 @@ public class CliAgentService {
               "--verbose",
               "--append-system-prompt",
               CliAgentBridge.systemPreamble(menuContext)));
+      if (!mcpConfig.isBlank()) {
+        args.add("--mcp-config");
+        args.add(mcpConfig);
+        args.add("--strict-mcp-config");
+      }
+      if (!allowedTools.isBlank()) {
+        args.add("--allowedTools");
+        args.add(allowedTools);
+      }
       var resumed = request.sessionId() == null ? null : cliSessions.get(request.sessionId());
       if (resumed != null) {
         args.add("--resume");

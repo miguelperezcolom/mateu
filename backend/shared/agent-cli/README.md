@@ -78,3 +78,17 @@ CLI on behalf of whoever calls the endpoint — an exposed server should run a r
 - `CliAgentBridge` — pure translation between `claude`'s `stream-json` output and the
   chat's SSE contract, plus the system preamble; process-free and unit-tested
   (`CliAgentBridgeTest`).
+
+
+## Giving the agent tools (MCP)
+
+Two more properties turn the chat's assistant into an actor:
+
+| Property | Meaning |
+|---|---|
+| `mateu.agent.cli.mcp-config` | MCP servers for the CLI (claude only): inline JSON or a file path, passed as `--mcp-config` with `--strict-mcp-config` so only these servers load. |
+| `mateu.agent.cli.allowed-tools` | Tools the CLI may use without prompting (`--allowedTools`), e.g. `mcp__modux`. |
+
+The host app typically points `mcp-config` at its own MCP endpoint — e.g.
+`{"mcpServers":{"app":{"type":"http","url":"http://localhost:${server.port}/mcp"}}}` —
+so the assistant operates the very instance the user is looking at.
