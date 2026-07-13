@@ -49,10 +49,7 @@ public class CliAgentService {
         emitter.complete();
         return;
       }
-      var menuContext =
-          Optional.ofNullable(request.menuContext())
-              .filter(m -> !m.isNull() && !m.isEmpty())
-              .map(Object::toString);
+      var menuContext = Optional.ofNullable(request.menuContext()).map(CliAgentService::toJson);
       process = start(provider, request, menuContext);
       try (var stdin = process.getOutputStream()) {
         stdin.write(request.message().getBytes(StandardCharsets.UTF_8));
@@ -76,6 +73,14 @@ public class CliAgentService {
         // the client is gone
       }
       emitter.complete();
+    }
+  }
+
+  private static String toJson(Object value) {
+    try {
+      return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(value);
+    } catch (Exception e) {
+      return String.valueOf(value);
     }
   }
 

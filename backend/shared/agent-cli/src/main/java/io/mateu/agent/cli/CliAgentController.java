@@ -1,6 +1,5 @@
 package io.mateu.agent.cli;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.springframework.http.MediaType;
@@ -18,7 +17,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RestController
 public class CliAgentController {
 
-  public record ChatRequest(String message, String sessionId, JsonNode menuContext) {}
+  /**
+   * menuContext stays an Object on purpose: the host may run Jackson 2 or Jackson 3 (Spring 7), and
+   * either one binds plain maps/lists happily.
+   */
+  public record ChatRequest(String message, String sessionId, Object menuContext) {}
 
   private final CliAgentService service;
 
