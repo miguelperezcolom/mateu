@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>shared</artifactId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+  <artifactId>agent-cli</artifactId>
+  <packaging>jar</packaging>
+
+  <name>Agent CLI</name>
+  <description>Pseudo-agent for local development: serves the chat's SSE contract by bridging to an
+    LLM CLI already authenticated on the developer's machine (claude, gemini), so no API key is
+    needed. Add this module to your project and point the app's @AI(sse=...) at /mateu/agent/stream.</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+</project>

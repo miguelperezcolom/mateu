@@ -23,6 +23,7 @@
     <module>export-pdf</module>
     <module>frontend</module>
     <module>integration-tests</module>
+    <module>agent-cli</module>
   </modules>
 
 </project>
