@@ -23,10 +23,16 @@ final class WizardButtonBuilder {
     List<Component> buttons = new ArrayList<>();
     boolean isLastStep = wizard.position == wizard.numberOfSteps() - 1;
     if (!isLastStep) {
-      buttons.add(Button.builder().id("back").label("Back").disabled(wizard.position == 0).build());
+      buttons.add(
+          Button.builder()
+              .id("back")
+              .label("Back")
+              .disabled(wizard.position == 0)
+              .size(ButtonSize.small)
+              .build());
     }
     if (wizard.nextApplicable(wizard.position) >= 0) {
-      buttons.add(Button.builder().id("next").label("Next").build());
+      buttons.add(Button.builder().id("next").label("Next").size(ButtonSize.small).build());
     } else if (!isLastStep) {
       getAllMethods(wizard.getClass()).stream()
           .filter(method -> MetaAnnotations.isPresent(method, WizardCompletionAction.class))
@@ -37,6 +43,7 @@ final class WizardButtonBuilder {
                           .actionId(method.getName())
                           .label(getLabel(method))
                           .buttonStyle(ButtonStyle.primary)
+                          .size(ButtonSize.small)
                           .build()));
     }
     var step = wizard.getStep();
@@ -55,7 +62,8 @@ final class WizardButtonBuilder {
               var ann = MetaAnnotations.find(method, Toolbar.class);
               var buttonStyle = ann.buttonStyle() != ButtonStyle.none ? ann.buttonStyle() : null;
               var buttonColor = ann.buttonColor() != ButtonColor.none ? ann.buttonColor() : null;
-              var buttonSize = ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : null;
+              var buttonSize =
+                  ann.buttonSize() != ButtonSize.none ? ann.buttonSize() : ButtonSize.small;
               buttons.add(
                   Button.builder()
                       .actionId(method.getName())

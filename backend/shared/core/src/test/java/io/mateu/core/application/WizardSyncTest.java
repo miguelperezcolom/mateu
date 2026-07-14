@@ -7,6 +7,7 @@ import io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.AccordionLayoutDto;
 import io.mateu.dtos.ButtonDto;
+import io.mateu.dtos.ButtonSizeDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ComponentMetadataDto;
@@ -242,6 +243,13 @@ class WizardSyncTest {
     var back = buttonByActionId(buttons, "back");
     assertThat(next.disabled()).isFalse();
     assertThat(back.disabled()).isTrue();
+  }
+
+  @Test
+  void wizardNavigationButtonsUseTheSmallSizeVariant() {
+    var buttons = findAllMetadata(component(mateu.sync("/simple-wizard")), ButtonDto.class);
+    assertThat(buttonByActionId(buttons, "next").size()).isEqualTo(ButtonSizeDto.small);
+    assertThat(buttonByActionId(buttons, "back").size()).isEqualTo(ButtonSizeDto.small);
   }
 
   @Test
