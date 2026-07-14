@@ -27,6 +27,7 @@ import io.mateu.dtos.DetailsDto;
 import io.mateu.dtos.DivDto;
 import io.mateu.dtos.EmptyStateDto;
 import io.mateu.dtos.FoldoutLayoutDto;
+import io.mateu.dtos.FunnelDto;
 import io.mateu.dtos.GanttDto;
 import io.mateu.dtos.HeatmapDto;
 import io.mateu.dtos.HeroSectionDto;
@@ -76,6 +77,8 @@ import io.mateu.uidl.data.DashboardPanel;
 import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.EmptyState;
+import io.mateu.uidl.data.Funnel;
+import io.mateu.uidl.data.FunnelStage;
 import io.mateu.uidl.data.Gantt;
 import io.mateu.uidl.data.GanttTask;
 import io.mateu.uidl.data.HeatCell;
@@ -439,6 +442,15 @@ class ArchetypesSyncTest {
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
                           .build()))
+              .build());
+      content.add(
+          Funnel.builder()
+              .id("funnel")
+              .stages(
+                  List.of(
+                      FunnelStage.builder().label("Visits").value(1000).build(),
+                      FunnelStage.builder().label("Signups").value(400).color("#8b5cf6").build(),
+                      FunnelStage.builder().label("Paid").value(120).build()))
               .build());
       content.add(
           Heatmap.builder()
@@ -915,6 +927,18 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void funnelStagesSerialize() {
+    var funnel = findFirst(sync("/component-showcase"), FunnelDto.class);
+    assertThat(funnel).isNotNull();
+    var stages = ((FunnelDto) funnel.metadata()).stages();
+    assertThat(stages).hasSize(3);
+    assertThat(stages.get(0).label()).isEqualTo("Visits");
+    assertThat(stages.get(0).value()).isEqualTo(1000d);
+    assertThat(stages.get(1).color()).isEqualTo("#8b5cf6");
+    assertThat(stages.get(2).value()).isEqualTo(120d);
   }
 
   @Test

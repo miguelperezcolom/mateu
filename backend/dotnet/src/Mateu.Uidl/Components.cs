@@ -290,6 +290,20 @@ public sealed record Heatmap : ComponentBase
     public IReadOnlyList<HeatCell> Cells { get; init; } = [];
 }
 
+/// <summary>One stage of a <see cref="Funnel"/>: a label, value and optional bar color.</summary>
+public sealed record FunnelStage
+{
+    public string? Label { get; init; }
+    public double Value { get; init; }
+    public string? Color { get; init; }
+}
+
+/// <summary>A read-only conversion funnel: stacked bars, each narrower than the last.</summary>
+public sealed record Funnel : ComponentBase
+{
+    public IReadOnlyList<FunnelStage> Stages { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

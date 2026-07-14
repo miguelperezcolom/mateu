@@ -186,6 +186,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.PricingTable,
     ComponentMetadataType.OrgChart,
     ComponentMetadataType.Heatmap,
+    ComponentMetadataType.Funnel,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

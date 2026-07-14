@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, EmptyState, FoldoutPanelInfo, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
+import { CalendarEvent, EmptyState, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -477,6 +477,32 @@ export function HeatmapRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Funnel (centered bars, each proportional to its value) ────────────────────
+export function FunnelRenderer({ component }: { component: unknown }) {
+  const stages = (meta(component)['stages'] as FunnelStage[]) ?? [];
+  const maxVal = Math.max(1, ...stages.map((s) => s.value ?? 0));
+  return (
+    <View style={styles.funnel}>
+      {stages.map((s, i) => {
+        const value = s.value ?? 0;
+        const prev = i > 0 ? stages[i - 1].value ?? 0 : value;
+        const conv = i === 0 ? '' : prev > 0 ? `${Math.round((value / prev) * 100)}% of previous` : '';
+        return (
+          <View key={i} style={styles.funnelStage}>
+            <View style={styles.funnelMeta}>
+              <Text style={styles.funnelLabel}>{s.label ?? ''}</Text>
+              {!!conv && <Text style={styles.funnelConv}>{conv}</Text>}
+            </View>
+            <View style={[styles.funnelBar, { width: `${Math.max(8, (value / maxVal) * 100)}%`, backgroundColor: s.color ?? '#1a73e8' }]}>
+              <Text style={styles.funnelValue}>{value.toLocaleString()}</Text>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -600,4 +626,12 @@ const styles = StyleSheet.create({
   // Heatmap
   heatWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 3 },
   heatCell: { width: 12, height: 12, borderRadius: 2 },
+  // Funnel
+  funnel: { gap: 6, alignItems: 'center' },
+  funnelStage: { alignItems: 'center', width: '100%' },
+  funnelMeta: { flexDirection: 'row', gap: 8, alignItems: 'baseline' },
+  funnelLabel: { fontWeight: '600', color: '#222' },
+  funnelConv: { fontSize: 11, color: '#888' },
+  funnelBar: { height: 34, borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  funnelValue: { color: '#fff', fontWeight: '700' },
 });

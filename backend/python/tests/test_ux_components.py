@@ -27,6 +27,8 @@ from mateu_uidl.components import (  # noqa: E402
     Calendar,
     CalendarEvent,
     EmptyState,
+    Funnel,
+    FunnelStage,
     HeatCell,
     Heatmap,
     Gantt,
@@ -214,6 +216,20 @@ class PricingPlans(ComponentTreeSupplier):
         )
 
 
+@ui("conversion")
+@title("Conversion")
+class ConversionFunnel(ComponentTreeSupplier):
+    def component(self):
+        return Funnel(
+            id="funnel",
+            stages=(
+                FunnelStage(label="Visits", value=1000),
+                FunnelStage(label="Signups", value=400, color="#8b5cf6"),
+                FunnelStage(label="Paid", value=120),
+            ),
+        )
+
+
 @ui("activity")
 @title("Activity")
 class ActivityHeatmap(ComponentTreeSupplier):
@@ -389,6 +405,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_funnel():
+    doc = render(ConversionFunnel)
+    (funnel,) = page_children(doc)
+    assert funnel["id"] == "funnel"
+    assert funnel["metadata"]["type"] == "Funnel"
+    stages = funnel["metadata"]["stages"]
+    assert len(stages) == 3
+    assert stages[0]["label"] == "Visits"
+    assert stages[0]["value"] == 1000.0
+    assert stages[1]["color"] == "#8b5cf6"
 
 
 def test_component_tree_supplier_emits_heatmap():

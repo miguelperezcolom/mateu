@@ -380,6 +380,38 @@ fun renderHeatmap(metadata: JsonNode): JComponent {
     return panel
 }
 
+/** Funnel: centered bars, each proportional to its value, with the conversion vs the previous. */
+fun renderFunnel(metadata: JsonNode): JComponent {
+    val stages = metadata.arr("stages").toList()
+    if (stages.isEmpty()) return JPanel().apply { isOpaque = false }
+    val maxVal = stages.maxOf { it.path("value").asDouble(0.0) }.coerceAtLeast(1.0)
+    val panel = verticalPanel(4)
+    for ((i, stage) in stages.withIndex()) {
+        val value = stage.path("value").asDouble(0.0)
+        val prev = if (i > 0) stages[i - 1].path("value").asDouble(0.0) else value
+        val conv = if (i == 0) "" else if (prev > 0) "  (${Math.round(value / prev * 100)}% of previous)" else ""
+        panel.addStacked(JBLabel(stage.text("label") + conv).apply { font = font.deriveFont(Font.BOLD) }, 2)
+        val color = runCatching { Color.decode(stage.text("color")) }.getOrElse { Color(0x1A, 0x73, 0xE8) }
+        val bar = object : JPanel() {
+            override fun paintComponent(g: Graphics) {
+                super.paintComponent(g)
+                val g2 = g as Graphics2D
+                val w = ((value / maxVal) * width).toInt().coerceAtLeast(40)
+                val x = (width - w) / 2
+                g2.color = color
+                g2.fillRoundRect(x, 0, w, height, 6, 6)
+                g2.color = Color.WHITE
+                g2.drawString(value.toLong().toString(), x + w / 2 - 12, height / 2 + 5)
+            }
+        }
+        bar.isOpaque = false
+        bar.preferredSize = Dimension(360, 30)
+        bar.maximumSize = Dimension(Int.MAX_VALUE, 30)
+        panel.addStacked(bar, 4)
+    }
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

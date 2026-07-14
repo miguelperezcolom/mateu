@@ -201,3 +201,14 @@ export interface Heatmap {
   type?: 'Heatmap';
   cells?: HeatCell[];
 }
+
+export interface FunnelStage {
+  label?: string;
+  value?: number;
+  color?: string;
+}
+
+export interface Funnel {
+  type?: 'Funnel';
+  stages?: FunnelStage[];
+}

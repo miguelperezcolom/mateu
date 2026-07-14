@@ -81,6 +81,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.PricingTable,
     ComponentMetadataType.OrgChart,
     ComponentMetadataType.Heatmap,
+    ComponentMetadataType.Funnel,
 ])
 
 export class RedhatComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

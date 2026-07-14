@@ -127,6 +127,17 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Funnel")]
+    public Funnel Funnel { get; } = new()
+    {
+        Stages =
+        [
+            new FunnelStage { Label = "Visits", Value = 1000 },
+            new FunnelStage { Label = "Signups", Value = 400, Color = "#8b5cf6" },
+            new FunnelStage { Label = "Paid", Value = 120 },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -342,6 +353,17 @@ public class ComponentTests
         Assert.Contains("\"date\":\"2026-03-01\"", json);
         Assert.Contains("\"value\":5", json);
         Assert.Contains("\"label\":\"5 commits\"", json);
+    }
+
+    [Fact]
+    public void Funnel_emits_stages()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Funnel\"", json);
+        Assert.Contains("\"label\":\"Visits\"", json);
+        Assert.Contains("\"value\":1000", json);
+        Assert.Contains("\"color\":\"#8b5cf6\"", json);
     }
 
     [Fact]

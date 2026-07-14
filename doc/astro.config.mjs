@@ -88,6 +88,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/pricing-table' },
 						{ slug: 'ux-patterns/org-chart' },
 						{ slug: 'ux-patterns/heatmap' },
+						{ slug: 'ux-patterns/funnel' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

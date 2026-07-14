@@ -58,6 +58,9 @@ public static class ComponentMapper
         Heatmap hm => Dto(hm, new HeatmapMetadataDto(hm.Cells.Select(cl =>
             new HeatCellDto(Iso(cl.Date), cl.Value, cl.Label)).ToList())),
 
+        Funnel fn => Dto(fn, new FunnelMetadataDto(fn.Stages.Select(s =>
+            new FunnelStageDto(s.Label, s.Value, s.Color)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

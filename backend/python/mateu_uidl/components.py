@@ -423,6 +423,28 @@ class Heatmap(Component):
 
 
 @dataclass(frozen=True)
+class FunnelStage:
+    """One stage of a :class:`Funnel`: a label, value and optional bar color."""
+
+    label: str | None = None
+    value: float = 0
+    color: str | None = None
+
+
+@dataclass(frozen=True)
+class Funnel(Component):
+    """A read-only conversion funnel: stacked bars, each narrower than the last."""
+
+    stages: tuple[FunnelStage, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "stages", tuple(self.stages))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -520,4 +542,6 @@ __all__ = [
     "OrgChart",
     "HeatCell",
     "Heatmap",
+    "FunnelStage",
+    "Funnel",
 ]

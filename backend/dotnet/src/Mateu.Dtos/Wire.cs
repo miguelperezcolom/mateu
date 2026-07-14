@@ -145,6 +145,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(PricingTableMetadataDto), "PricingTable")]
 [JsonDerivedType(typeof(OrgChartMetadataDto), "OrgChart")]
 [JsonDerivedType(typeof(HeatmapMetadataDto), "Heatmap")]
+[JsonDerivedType(typeof(FunnelMetadataDto), "Funnel")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -242,6 +243,12 @@ public record HeatmapMetadataDto(IReadOnlyList<HeatCellDto> Cells) : ComponentMe
 
 /// <summary>One heatmap cell; Date is ISO-8601; Value drives color intensity.</summary>
 public record HeatCellDto(string? Date, double Value, string? Label);
+
+/// <summary>Conversion-funnel metadata: ordered stages.</summary>
+public record FunnelMetadataDto(IReadOnlyList<FunnelStageDto> Stages) : ComponentMetadataDto;
+
+/// <summary>One funnel stage.</summary>
+public record FunnelStageDto(string? Label, double Value, string? Color);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

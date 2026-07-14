@@ -480,6 +480,21 @@ class HeatmapMetadata(Wire):
     cells: list[HeatCellRecord] = Field(default_factory=list)
 
 
+class FunnelStageRecord(Wire):
+    """One funnel stage (mirrors ``FunnelStageDto``)."""
+
+    label: str | None = None
+    value: float = 0
+    color: str | None = None
+
+
+class FunnelMetadata(Wire):
+    """Conversion-funnel metadata: ordered stages (mirrors ``FunnelDto``)."""
+
+    type: Literal["Funnel"] = "Funnel"
+    stages: list[FunnelStageRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -569,6 +584,7 @@ ComponentMetadata = Annotated[
         PricingTableMetadata,
         OrgChartMetadata,
         HeatmapMetadata,
+        FunnelMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

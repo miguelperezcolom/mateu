@@ -54,6 +54,8 @@ from mateu_dtos import (
     OrgNodeRecord,
     HeatmapMetadata,
     HeatCellRecord,
+    FunnelMetadata,
+    FunnelStageRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -730,6 +732,11 @@ class ReflectionMapper:
                 for cl in c.cells
             ]
             return self._fluent_client(HeatmapMetadata(cells=cells), c)
+        if isinstance(c, fluent.Funnel):
+            stages = [
+                FunnelStageRecord(label=s.label, value=s.value, color=s.color) for s in c.stages
+            ]
+            return self._fluent_client(FunnelMetadata(stages=stages), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
