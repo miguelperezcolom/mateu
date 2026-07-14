@@ -1,6 +1,8 @@
 package io.mateu.core.infra.reflection.write;
 
 import static io.mateu.core.infra.reflection.read.ActualValueExtractor.getActualValue;
+import static io.mateu.core.infra.reflection.read.FieldByNameProvider.getFieldByName;
+import static io.mateu.core.infra.reflection.read.HolderFieldChecker.isNonDataHolder;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.domain.ports.InstanceFactory;
@@ -23,6 +25,12 @@ public class Hydrater {
             .forEach(
                 entry -> {
                   try {
+                    // Callable/Supplier/Component holder fields never round-trip as data —
+                    // writing their state entry back (always null) would destroy the initializer.
+                    var field = getFieldByName(object.getClass(), entry.getKey());
+                    if (field != null && isNonDataHolder(field)) {
+                      return;
+                    }
                     Object actualValue =
                         getActualValue(entry, object, instanceFactory, httpRequest);
                     setValue(entry.getKey(), object, actualValue);

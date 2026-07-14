@@ -14,8 +14,14 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public final class AllEditableFieldsProvider {
+
+  private static final Set<String> warnedDroppedFinalFields = ConcurrentHashMap.newKeySet();
 
   public static List<Field> getAllEditableFields(Class modelType) {
     if (Class.class.equals(modelType)
@@ -55,8 +61,35 @@ public final class AllEditableFieldsProvider {
   }
 
   private static boolean isNotInjected(Field field) {
-    return !(MetaAnnotations.isPresent(field, Inject.class)
-        || (!field.getDeclaringClass().isRecord() && Modifier.isFinal(field.getModifiers())));
+    if (MetaAnnotations.isPresent(field, Inject.class)) {
+      return false;
+    }
+    if (!field.getDeclaringClass().isRecord() && Modifier.isFinal(field.getModifiers())) {
+      warnFinalFieldDropped(field);
+      return false;
+    }
+    return true;
+  }
+
+  // Final fields are treated as injected and silently excluded from forms — surprising when a
+  // developer just marks a form field final. Warn once per field so the rule is discoverable;
+  // holder fields (Callable/Supplier/Component) and framework internals are intentional, not
+  // warned about.
+  private static void warnFinalFieldDropped(Field field) {
+    var declaringClass = field.getDeclaringClass().getName();
+    if (HolderFieldChecker.isNonDataHolder(field)
+        || declaringClass.startsWith("io.mateu.core.")
+        || declaringClass.startsWith("io.mateu.uidl.")
+        || declaringClass.startsWith("io.mateu.dtos.")) {
+      return;
+    }
+    if (warnedDroppedFinalFields.add(field.getDeclaringClass().getName() + "#" + field.getName())) {
+      log.warn(
+          "Field {}.{} is final, so Mateu treats it as injected and drops it from the form."
+              + " Make it non-final if it should be an editable field.",
+          field.getDeclaringClass().getSimpleName(),
+          field.getName());
+    }
   }
 
   public static boolean hasGetter(Field f) {

@@ -3,6 +3,7 @@
 import json
 import sys
 from datetime import date
+from decimal import Decimal
 from enum import Enum
 from pathlib import Path
 from typing import Annotated
@@ -105,6 +106,17 @@ class SimpleForm:
     @button()
     def go_home(self):
         return "/things"
+
+
+@ui("amounts")
+@title("Amounts")
+class AmountsForm:
+    total: float = 0.0
+    price: Decimal = Decimal("0")
+
+    @button()
+    def echo(self) -> Message:
+        return Message(f"{self.total}|{self.price}")
 
 
 _LAST_PAGEABLE: list = []
@@ -583,6 +595,22 @@ def test_greet_action_returns_hello_from_state():
     assert inc.messages[0].text == "Hello Mateu!"
     assert inc.messages[0].variant == "success"
     assert inc.fragments == []
+
+
+def test_integer_state_values_pour_into_float_and_decimal_fields():
+    # The JS client integerizes whole doubles (343.0 travels as 343): numeric widening must
+    # rebuild the typed fields. Pins the behavior the Java core guarantees after the
+    # FieldValueConverter/TypeCoercionHelper widening fix.
+    inc = handler().handle(
+        RunActionRq(
+            route="/amounts",
+            action_id="echo",
+            server_side_type=_name(AmountsForm),
+            component_state={"total": 343, "price": 99},
+        )
+    )
+    assert len(inc.messages) == 1
+    assert inc.messages[0].text == "343.0|99"
 
 
 def test_app_shell_menu():

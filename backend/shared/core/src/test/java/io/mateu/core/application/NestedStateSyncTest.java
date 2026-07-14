@@ -11,6 +11,7 @@ import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -78,6 +79,12 @@ class NestedStateSyncTest {
     Priority priority = Priority.LOW;
     LocalDateTime when;
     LocalTime at;
+
+    Double amount;
+    double total;
+    float rate;
+    BigDecimal price;
+    Long count;
 
     static NestedForm seen;
 
@@ -167,6 +174,24 @@ class NestedStateSyncTest {
     assertThat(NestedForm.seen.priority).isEqualTo(Priority.HIGH);
     assertThat(NestedForm.seen.when).isEqualTo(LocalDateTime.of(2026, 7, 5, 10, 30));
     assertThat(NestedForm.seen.at).isEqualTo(LocalTime.of(10, 30));
+  }
+
+  @Test
+  void wholeNumbersFromTheJsClientWidenIntoDecimalFields() {
+    NestedForm.seen = null;
+    var state = new HashMap<String, Object>();
+    // the JS client integerizes whole doubles: 343.0 travels as the Integer 343
+    state.put("amount", 343);
+    state.put("total", 408);
+    state.put("rate", 2);
+    state.put("price", 99);
+    state.put("count", 7);
+    run("snapshot", state, null);
+    assertThat(NestedForm.seen.amount).isEqualTo(343.0);
+    assertThat(NestedForm.seen.total).isEqualTo(408.0);
+    assertThat(NestedForm.seen.rate).isEqualTo(2.0f);
+    assertThat(NestedForm.seen.price).isEqualByComparingTo(new BigDecimal("99"));
+    assertThat(NestedForm.seen.count).isEqualTo(7L);
   }
 
   // ── nested-form actions ─────────────────────────────────────────────────────

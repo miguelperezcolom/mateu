@@ -24,6 +24,18 @@ public class TypeCoercionHelper {
     if (targetType.equals(value.getClass())) {
       return value;
     }
+    // numeric coercion without string round-trip — the JS client integerizes whole doubles
+    // (343.0 travels as 343), and parseInt/parseLong choke on decimal renderings like "343.0"
+    if (value instanceof Number number) {
+      if (int.class.equals(targetType) || Integer.class.equals(targetType))
+        return number.intValue();
+      if (long.class.equals(targetType) || Long.class.equals(targetType)) return number.longValue();
+      if (double.class.equals(targetType) || Double.class.equals(targetType))
+        return number.doubleValue();
+      if (float.class.equals(targetType) || Float.class.equals(targetType))
+        return number.floatValue();
+      if (BigDecimal.class.equals(targetType)) return new BigDecimal(number.toString());
+    }
     if (int.class.equals(targetType)) return Integer.parseInt("" + value);
     if (long.class.equals(targetType)) return Long.parseLong("" + value);
     if (double.class.equals(targetType)) return Double.parseDouble("" + value);

@@ -1,5 +1,6 @@
 package io.mateu.core.infra.reflection.write;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -50,6 +51,22 @@ final class FieldValueConverter {
     }
     if (Boolean.class.equals(targetType) && boolean.class.equals(value.getClass())) {
       return value;
+    }
+    // numeric widening — the JS client integerizes whole doubles (343.0 travels as 343), so an
+    // Integer/Long arriving in the state must pour into Double/Float/BigDecimal/long fields
+    if (value instanceof Number number) {
+      if (double.class.equals(targetType) || Double.class.equals(targetType)) {
+        return number.doubleValue();
+      }
+      if (float.class.equals(targetType) || Float.class.equals(targetType)) {
+        return number.floatValue();
+      }
+      if (long.class.equals(targetType) || Long.class.equals(targetType)) {
+        return number.longValue();
+      }
+      if (BigDecimal.class.equals(targetType)) {
+        return new BigDecimal(number.toString());
+      }
     }
     if (String.class.equals(targetType)) {
       return value.toString();

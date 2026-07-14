@@ -20,7 +20,6 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public class ActualValueExtractor {
 
@@ -57,8 +56,7 @@ public class ActualValueExtractor {
     }
     if (entry.getValue() != null) {
       if (entry.getValue() instanceof Component) return null;
-      if (Component.class.isAssignableFrom(f.getType())) return null;
-      if (Callable.class.isAssignableFrom(f.getType())) return null;
+      if (HolderFieldChecker.isNonDataHolder(f)) return null;
       if (List.class.isAssignableFrom(f.getType())) {
         return convertListValue(f, entry.getValue(), instanceFactory, httpRequest);
       }

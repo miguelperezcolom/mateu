@@ -18,6 +18,16 @@ public class SimpleForm
     [Button] public string GoHome() => "/things";
 }
 
+[UI("amounts"), Title("Amounts")]
+public class AmountsForm
+{
+    public double Total { get; set; }
+    public float Rate { get; set; }
+    public decimal Price { get; set; }
+
+    [Button] public Message Echo() => new($"{Total}|{Rate}|{Price}");
+}
+
 [UI("orders-db"), Title("Orders (DB)")]
 public class DbOrders : Crud<Thing>
 {
@@ -503,6 +513,31 @@ public class SyncHandlerTests
         Assert.Equal("Hello Mateu!", msg.Text);
         Assert.Equal("success", msg.Variant);
         Assert.Empty(inc.Fragments);
+    }
+
+    [Fact]
+    public void Integer_state_values_pour_into_double_float_and_decimal_properties()
+    {
+        // The JS client integerizes whole doubles (343.0 travels as 343): numeric widening must
+        // rebuild the typed properties. Pins the behavior the Java core guarantees after the
+        // FieldValueConverter/TypeCoercionHelper widening fix.
+        var rq = new RunActionRqDto
+        {
+            Route = "/amounts",
+            ActionId = "echo",
+            ServerSideType = typeof(AmountsForm).FullName,
+            ComponentState = new()
+            {
+                ["total"] = JsonSerializer.SerializeToElement(343),
+                ["rate"] = JsonSerializer.SerializeToElement(2),
+                ["price"] = JsonSerializer.SerializeToElement(99),
+            },
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var msg = Assert.Single(inc.Messages);
+        Assert.Equal("343|2|99", msg.Text);
     }
 
     [Fact]
