@@ -15,6 +15,7 @@ import io.mateu.dtos.AvatarDto;
 import io.mateu.dtos.BadgeDto;
 import io.mateu.dtos.BreadcrumbsDto;
 import io.mateu.dtos.ButtonDto;
+import io.mateu.dtos.CalendarDto;
 import io.mateu.dtos.CardDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
@@ -63,6 +64,8 @@ import io.mateu.uidl.data.Breadcrumb;
 import io.mateu.uidl.data.Breadcrumbs;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonStyle;
+import io.mateu.uidl.data.Calendar;
+import io.mateu.uidl.data.CalendarEvent;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.DashboardLayout;
@@ -408,6 +411,25 @@ class ArchetypesSyncTest {
               .trend("up")
               .spark(List.of(30.0, 32.0, 31.0, 35.0, 40.0, 42.0, 48.0))
               .actionId("openMrr")
+              .build());
+      content.add(
+          Calendar.builder()
+              .id("cal")
+              .month(LocalDate.of(2026, 3, 1))
+              .events(
+                  List.of(
+                      CalendarEvent.builder()
+                          .id("ev1")
+                          .title("Kickoff")
+                          .date(LocalDate.of(2026, 3, 4))
+                          .color("#3b82f6")
+                          .build(),
+                      CalendarEvent.builder()
+                          .id("ev2")
+                          .title("Launch")
+                          .date(LocalDate.of(2026, 3, 20))
+                          .actionId("openEvent")
+                          .build()))
               .build());
       content.add(
           HeroSection.builder()
@@ -832,6 +854,19 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void calendarSerializesMonthAndEventsWithIsoDates() {
+    var cal = findFirst(sync("/component-showcase"), CalendarDto.class);
+    assertThat(cal).isNotNull();
+    var m = (CalendarDto) cal.metadata();
+    assertThat(m.month()).isEqualTo("2026-03-01");
+    assertThat(m.events()).hasSize(2);
+    assertThat(m.events().get(0).title()).isEqualTo("Kickoff");
+    assertThat(m.events().get(0).date()).isEqualTo("2026-03-04");
+    assertThat(m.events().get(0).color()).isEqualTo("#3b82f6");
+    assertThat(m.events().get(1).actionId()).isEqualTo("openEvent");
   }
 
   @Test

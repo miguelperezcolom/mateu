@@ -141,6 +141,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(TimelineMetadataDto), "Timeline")]
 [JsonDerivedType(typeof(ProgressStepsMetadataDto), "ProgressSteps")]
 [JsonDerivedType(typeof(StatMetadataDto), "Stat")]
+[JsonDerivedType(typeof(CalendarMetadataDto), "Calendar")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -214,6 +215,12 @@ public record StepDto(string? Id, string? Title, string? Description, string? St
 
 /// <summary>KPI stat metadata: value/unit, delta, trend (up|down|flat) and a sparkline.</summary>
 public record StatMetadataDto(string? Label, string? Value, string? Unit, string? Delta, string? Trend, IReadOnlyList<double> Spark, string? ActionId) : ComponentMetadataDto;
+
+/// <summary>Month-grid calendar metadata; Month/Event dates are ISO-8601 (yyyy-MM-dd).</summary>
+public record CalendarMetadataDto(string? Month, IReadOnlyList<CalendarEventDto> Events) : ComponentMetadataDto;
+
+/// <summary>One calendar event; Date is ISO-8601; ActionId makes the chip clickable.</summary>
+public record CalendarEventDto(string? Id, string? Title, string? Date, string? Color, string? ActionId);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

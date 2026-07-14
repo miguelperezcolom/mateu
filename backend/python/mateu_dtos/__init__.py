@@ -408,6 +408,24 @@ class StatMetadata(Wire):
     action_id: str | None = None
 
 
+class CalendarEventRecord(Wire):
+    """One calendar event; ``date`` is ISO-8601; ``action_id`` makes the chip clickable."""
+
+    id: str | None = None
+    title: str | None = None
+    date: str | None = None
+    color: str | None = None
+    action_id: str | None = None
+
+
+class CalendarMetadata(Wire):
+    """Month-grid calendar metadata (mirrors ``CalendarDto``); dates are ISO-8601."""
+
+    type: Literal["Calendar"] = "Calendar"
+    month: str | None = None
+    events: list[CalendarEventRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -493,6 +511,7 @@ ComponentMetadata = Annotated[
         TimelineMetadata,
         ProgressStepsMetadata,
         StatMetadata,
+        CalendarMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

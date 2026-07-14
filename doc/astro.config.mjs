@@ -84,6 +84,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/timeline' },
 						{ slug: 'ux-patterns/progress-steps' },
 						{ slug: 'ux-patterns/stat' },
+						{ slug: 'ux-patterns/calendar' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

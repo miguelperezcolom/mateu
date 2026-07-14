@@ -80,6 +80,7 @@ import { renderKanban } from "@infra/ui/renderers/kanbanRenderer.ts";
 import { renderTimeline } from "@infra/ui/renderers/timelineRenderer.ts";
 import { renderProgressSteps } from "@infra/ui/renderers/progressStepsRenderer.ts";
 import { renderStat } from "@infra/ui/renderers/statRenderer.ts";
+import { renderCalendar } from "@infra/ui/renderers/calendarRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -281,6 +282,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.Timeline]: ({ component }) => renderTimeline(component),
     [ComponentMetadataType.ProgressSteps]: ({ component }) => renderProgressSteps(component),
     [ComponentMetadataType.Stat]: ({ component }) => renderStat(component),
+    [ComponentMetadataType.Calendar]: ({ component }) => renderCalendar(component),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

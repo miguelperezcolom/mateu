@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
+import { CalendarEvent, EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -354,6 +354,44 @@ export function StatRenderer({ component }: { component: unknown }) {
   ) : tile;
 }
 
+// ── Calendar (mobile: an agenda list of events grouped by day) ────────────────
+export function CalendarRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component);
+  const month = m['month'] as string | undefined;
+  const events = ((m['events'] as CalendarEvent[]) ?? [])
+    .filter((e) => !!e.date)
+    .slice()
+    .sort((a, b) => (a.date! < b.date! ? -1 : 1));
+  const monthLabel = month
+    ? new Date(month + 'T00:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+    : '';
+  return (
+    <View style={styles.agenda}>
+      {!!monthLabel && <Text style={styles.agendaMonth}>{monthLabel}</Text>}
+      {events.map((e, i) => {
+        const day = e.date ? new Date(e.date + 'T00:00:00') : null;
+        const row = (
+          <View style={styles.agendaRow}>
+            <View style={styles.agendaDate}>
+              <Text style={styles.agendaDay}>{day ? day.getDate() : ''}</Text>
+              <Text style={styles.agendaDow}>{day ? day.toLocaleDateString(undefined, { weekday: 'short' }) : ''}</Text>
+            </View>
+            <View style={[styles.agendaChip, { borderLeftColor: e.color ?? '#1a73e8' }]}>
+              <Text style={styles.agendaTitle}>{e.title ?? ''}</Text>
+            </View>
+          </View>
+        );
+        return e.actionId ? (
+          <TouchableOpacity key={e.id ?? i} onPress={() => void controller.runAction(e.actionId!)}>{row}</TouchableOpacity>
+        ) : (
+          <View key={e.id ?? i}>{row}</View>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -446,4 +484,13 @@ const styles = StyleSheet.create({
   statDelta: { fontSize: 12, fontWeight: '600' },
   statSpark: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, height: 26 },
   statBar: { width: 4, borderRadius: 1 },
+  // Calendar (agenda)
+  agenda: { gap: 8 },
+  agendaMonth: { fontWeight: '700', fontSize: 16, color: '#222', marginBottom: 4 },
+  agendaRow: { flexDirection: 'row', gap: 10, alignItems: 'stretch' },
+  agendaDate: { width: 44, alignItems: 'center' },
+  agendaDay: { fontWeight: '700', fontSize: 18, color: '#222' },
+  agendaDow: { fontSize: 11, color: '#888', textTransform: 'uppercase' },
+  agendaChip: { flex: 1, borderLeftWidth: 3, backgroundColor: '#f4f4f5', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 8, justifyContent: 'center' },
+  agendaTitle: { fontWeight: '600', color: '#222' },
 });

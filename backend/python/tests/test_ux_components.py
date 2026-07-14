@@ -24,6 +24,8 @@ from mateu_uidl import (  # noqa: E402
 )
 from mateu_uidl.components import (  # noqa: E402
     Button,
+    Calendar,
+    CalendarEvent,
     EmptyState,
     Gantt,
     GanttTask,
@@ -169,6 +171,20 @@ class KpiStat(ComponentTreeSupplier):
             trend="up",
             spark=(30.0, 32.0, 31.0, 35.0, 40.0, 42.0, 48.0),
             action_id="openMrr",
+        )
+
+
+@ui("team-calendar")
+@title("Team calendar")
+class TeamCalendar(ComponentTreeSupplier):
+    def component(self):
+        return Calendar(
+            id="cal",
+            month=date(2026, 3, 1),
+            events=(
+                CalendarEvent(id="ev1", title="Kickoff", date=date(2026, 3, 4), color="#3b82f6"),
+                CalendarEvent(id="ev2", title="Launch", date=date(2026, 3, 20), action_id="openEvent"),
+            ),
         )
 
 
@@ -318,6 +334,19 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_calendar():
+    doc = render(TeamCalendar)
+    (cal,) = page_children(doc)
+    assert cal["id"] == "cal"
+    assert cal["metadata"]["type"] == "Calendar"
+    m = cal["metadata"]
+    assert m["month"] == "2026-03-01"
+    assert len(m["events"]) == 2
+    assert m["events"][0]["title"] == "Kickoff"
+    assert m["events"][0]["date"] == "2026-03-04"
+    assert m["events"][1]["actionId"] == "openEvent"
 
 
 def test_component_tree_supplier_emits_stat():

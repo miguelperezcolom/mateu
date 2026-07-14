@@ -47,6 +47,9 @@ public static class ComponentMapper
         Stat st => Dto(st, new StatMetadataDto(
             st.Label, st.Value, st.Unit, st.Delta, st.Trend, st.Spark, st.ActionId)),
 
+        Calendar cal => Dto(cal, new CalendarMetadataDto(Iso(cal.Month), cal.Events.Select(e =>
+            new CalendarEventDto(e.Id, e.Title, Iso(e.Date), e.Color, e.ActionId)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

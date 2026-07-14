@@ -319,6 +319,31 @@ class Stat(Component):
 
 
 @dataclass(frozen=True)
+class CalendarEvent:
+    """One event on a :class:`Calendar`: a title on a ``date``, optional color and ``action_id``."""
+
+    id: str | None = None
+    title: str | None = None
+    date: date | None = None
+    color: str | None = None
+    action_id: str | None = None
+
+
+@dataclass(frozen=True)
+class Calendar(Component):
+    """A read-only month-grid calendar with events. ``month`` is any day in the month to show."""
+
+    month: date | None = None
+    events: tuple[CalendarEvent, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "events", tuple(self.events))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -408,4 +433,6 @@ __all__ = [
     "Step",
     "ProgressSteps",
     "Stat",
+    "CalendarEvent",
+    "Calendar",
 ]

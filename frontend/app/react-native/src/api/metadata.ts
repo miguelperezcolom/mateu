@@ -145,3 +145,17 @@ export interface Stat {
   spark?: number[];
   actionId?: string;
 }
+
+export interface CalendarEvent {
+  id?: string;
+  title?: string;
+  date?: string; // ISO date, YYYY-MM-DD
+  color?: string;
+  actionId?: string;
+}
+
+export interface Calendar {
+  type?: 'Calendar';
+  month?: string; // any day in the month, ISO date
+  events?: CalendarEvent[];
+}

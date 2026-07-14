@@ -82,6 +82,17 @@ public class Dash : Dashboard
         Spark = [30, 32, 31, 35, 40, 42, 48], ActionId = "openMrr",
     };
 
+    [Panel(Title = "Calendar")]
+    public Calendar Cal { get; } = new()
+    {
+        Month = new DateOnly(2026, 3, 1),
+        Events =
+        [
+            new CalendarEvent { Id = "ev1", Title = "Kickoff", Date = new DateOnly(2026, 3, 4), Color = "#3b82f6" },
+            new CalendarEvent { Id = "ev2", Title = "Launch", Date = new DateOnly(2026, 3, 20), ActionId = "openEvent" },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -250,6 +261,18 @@ public class ComponentTests
         Assert.Contains("\"delta\":\"+7.4%\"", json);
         Assert.Contains("\"trend\":\"up\"", json);
         Assert.Contains("\"spark\":[30", json);
+    }
+
+    [Fact]
+    public void Calendar_emits_month_and_events_with_iso_dates()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Calendar\"", json);
+        Assert.Contains("\"month\":\"2026-03-01\"", json);
+        Assert.Contains("\"title\":\"Kickoff\"", json);
+        Assert.Contains("\"date\":\"2026-03-04\"", json);
+        Assert.Contains("\"actionId\":\"openEvent\"", json);
     }
 
     [Fact]

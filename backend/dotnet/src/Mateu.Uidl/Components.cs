@@ -220,6 +220,24 @@ public sealed record Stat : ComponentBase
     public string? ActionId { get; init; }
 }
 
+/// <summary>One event on a <see cref="Calendar"/>: a title on a Date, with an optional color and
+/// an ActionId that makes the chip clickable.</summary>
+public sealed record CalendarEvent
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public DateOnly? Date { get; init; }
+    public string? Color { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>A read-only month-grid calendar with events. Month is any day in the month to show.</summary>
+public sealed record Calendar : ComponentBase
+{
+    public DateOnly? Month { get; init; }
+    public IReadOnlyList<CalendarEvent> Events { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

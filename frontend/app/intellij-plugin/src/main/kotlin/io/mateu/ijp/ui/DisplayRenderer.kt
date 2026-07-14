@@ -238,6 +238,42 @@ fun renderStat(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return tile
 }
 
+/** Calendar (agenda view on Swing): the month header + a list of events sorted by date. */
+fun renderCalendar(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val panel = verticalPanel(4)
+    val month = metadata.text("month")
+    if (month.isNotBlank()) {
+        val m = runCatching { LocalDate.parse(month) }.getOrNull()
+        val label = m?.let { "${it.month.name.lowercase().replaceFirstChar { c -> c.uppercase() }} ${it.year}" } ?: month
+        panel.addStacked(JBLabel(label).apply { font = font.deriveFont(Font.BOLD, 15f) }, 6)
+    }
+    val events =
+        metadata.arr("events")
+            .filter { it.text("date").isNotBlank() }
+            .sortedBy { it.text("date") }
+    for (event in events) {
+        val row = JPanel(BorderLayout(8, 0))
+        row.isOpaque = false
+        val d = runCatching { LocalDate.parse(event.text("date")) }.getOrNull()
+        val dateLabel = d?.let { "${it.dayOfMonth} ${it.dayOfWeek.name.take(3)}" } ?: event.text("date")
+        row.add(JBLabel(dateLabel).apply {
+            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        }, BorderLayout.WEST)
+        val chip = JBLabel(event.text("title"))
+        runCatching { Color.decode(event.text("color")) }.getOrNull()?.let { chip.foreground = it }
+        row.add(chip, BorderLayout.CENTER)
+        val actionId = event.text("actionId")
+        if (actionId.isNotBlank()) {
+            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+            row.addMouseListener(object : java.awt.event.MouseAdapter() {
+                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
+            })
+        }
+        panel.addStacked(row, 6)
+    }
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

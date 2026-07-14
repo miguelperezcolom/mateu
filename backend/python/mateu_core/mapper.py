@@ -46,6 +46,8 @@ from mateu_dtos import (
     ProgressStepsMetadata,
     StepRecord,
     StatMetadata,
+    CalendarMetadata,
+    CalendarEventRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -673,6 +675,23 @@ class ReflectionMapper:
                     trend=c.trend,
                     spark=list(c.spark),
                     action_id=c.action_id,
+                ),
+                c,
+            )
+        if isinstance(c, fluent.Calendar):
+            events = [
+                CalendarEventRecord(
+                    id=e.id,
+                    title=e.title,
+                    date=e.date.isoformat() if e.date is not None else None,
+                    color=e.color,
+                    action_id=e.action_id,
+                )
+                for e in c.events
+            ]
+            return self._fluent_client(
+                CalendarMetadata(
+                    month=c.month.isoformat() if c.month is not None else None, events=events
                 ),
                 c,
             )

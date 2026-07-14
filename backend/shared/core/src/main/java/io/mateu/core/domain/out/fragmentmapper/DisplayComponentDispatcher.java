@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.AvatarMapper.mapAv
 import static io.mateu.core.domain.out.fragmentmapper.mappers.BadgeMapper.mapBadgeToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.BreadcrumbsMapper.mapBreadcrumbsToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ButtonMapper.mapButtonToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.CalendarMapper.mapCalendarToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CardMapper.mapCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ChatMapper.mapChatToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapElementToDto;
@@ -83,6 +84,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Stat stat) {
       return mapStatToDto(stat);
+    }
+    if (component instanceof Calendar calendar) {
+      return mapCalendarToDto(calendar);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);
