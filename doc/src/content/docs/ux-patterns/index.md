@@ -39,6 +39,18 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Push Notifications](./notifications) | ✅ Implemented | `@Trigger(OnLoad + OnSuccess)`, `Hydratable`, `MicroFrontend` |
 | [Partial Forms](./partial-forms) | ✅ Implemented | `@FoldedLayout`, `@Section`, nested subform records |
 | [High-density screens](./high-density) | ✅ Implemented | `@Compact`, `StyleConstants.COMPACT` |
+| [Front-office screens](./front-office) | Composition | `TaskQueue` + `EntityHeader` + `Wizard` + `Ledger` + … |
+| [Entity header](./entity-header) | ✅ Implemented | `EntityHeader` (title, badges, facts, metric) |
+| [Meter](./meter) | ✅ Implemented | `Meter` (value/max, warn/danger thresholds) |
+| [Task progress](./task-progress) | ✅ Implemented | `TaskProgress` (done/total pills + CTA) |
+| [Status list](./status-list) | ✅ Implemented | `StatusList` + `StatusItem` (status chip or action) |
+| [Task queue](./task-queue) | ✅ Implemented | `TaskQueue` + `QueueGroup`/`QueueItem` |
+| [Resource grid](./resource-grid) | ✅ Implemented | `ResourceGrid` + `ResourceItem` (availability picker) |
+| [Offer card](./offer-card) | ✅ Implemented | `OfferCard` (features, price delta, CTA) |
+| [Add-on picker](./addon-picker) | ✅ Implemented | `AddOnPicker` + `AddOn` (running total) |
+| [Ledger](./ledger) | ✅ Implemented | `Ledger` + `LedgerLine` (folio breakdown) |
+| [Payment picker](./payment-picker) | ✅ Implemented | `PaymentPicker` + `PaymentMethod` |
+| [Process monitor](./process-monitor) | ✅ Implemented | `ProcessMonitor` + `ProcessItem` (health + fix) |
 
 ## Anti-patterns
 

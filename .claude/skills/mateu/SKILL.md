@@ -39,6 +39,16 @@ Mateu generates all of that from the model. Validate with Bean Validation
 | render a domain object you can't annotate | `ComponentAdapter<T>` (`@Service`) | [extension.md](reference/extension.md) |
 | a dense screen composing many sub-forms | `@Inline` + `@Compact` + `@Zones` | [inline-dense-screens.md](reference/inline-dense-screens.md) |
 | panels that react to each other | `@Emits` / `@SubscribeTo` / `@OnRowSelected` | [component-communication.md](reference/component-communication.md) |
+| a work queue rail (arrivals / departures) | `TaskQueue.builder().actionId(…).groups(…)` — click sends `_item` | [fluent.md](reference/fluent.md) |
+| a persistent context banner for a flow | `EntityHeader.builder().title(…).badges(…).facts(…)` (display-only) | [fluent.md](reference/fluent.md) |
+| a folio breakdown + charge | `Ledger.builder().lines(…)` + `PaymentPicker.builder().methods(…)` — confirm sends `_method` | [fluent.md](reference/fluent.md) |
+| pick a room/table/slot from availability | `ResourceGrid.builder().actionId(…).items(…)` — click sends `_item` | [fluent.md](reference/fluent.md) |
+| a current-vs-upgrade offer with CTA | `OfferCard.builder().features(…).priceLabel(…).actionId(…)` | [fluent.md](reference/fluent.md) |
+| priced extras with a running total | `AddOnPicker.builder().items(…)` — toggle sends `_item`/`_added`/`_total` | [fluent.md](reference/fluent.md) |
+| a checklist of incidents / side-effects | `StatusList.builder().items(…)` — item buttons send `_item` | [fluent.md](reference/fluent.md) |
+| consumption vs a limit (balance vs preauth) | `Meter.builder().value(…).max(…).warnAt(…).dangerAt(…)` (display-only) | [fluent.md](reference/fluent.md) |
+| an N-of-M subtask banner with next-step CTA | `TaskProgress.builder().total(…).done(…).actionId(…)` | [fluent.md](reference/fluent.md) |
+| automation/process health with fix actions | `ProcessMonitor.builder().items(…)` — item `actionId`, no params | [fluent.md](reference/fluent.md) |
 
 Full annotation catalog: [annotations.md](reference/annotations.md) ·
 Common mistakes: [gotchas.md](reference/gotchas.md) ·
