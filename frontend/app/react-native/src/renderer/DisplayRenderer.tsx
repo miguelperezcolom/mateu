@@ -503,6 +503,34 @@ export function FunnelRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── TrendChart (mobile: a compact bar chart of the series) ────────────────────
+export function TrendChartRenderer({ component }: { component: unknown }) {
+  const m = meta(component);
+  const values = (m['values'] as number[]) ?? [];
+  const labels = (m['labels'] as string[]) ?? [];
+  const color = (m['color'] as string) ?? '#1a73e8';
+  const title = m['title'] as string | undefined;
+  const max = Math.max(1, ...values);
+  const min = Math.min(0, ...values);
+  const span = max - min || 1;
+  return (
+    <View style={styles.trend}>
+      {!!title && <Text style={styles.trendTitle}>{title}</Text>}
+      <View style={styles.trendBars}>
+        {values.map((v, i) => (
+          <View key={i} style={[styles.trendBar, { height: 8 + 90 * ((v - min) / span), backgroundColor: color }]} />
+        ))}
+      </View>
+      {labels.length > 0 && (
+        <View style={styles.trendLabels}>
+          <Text style={styles.trendLabel}>{labels[0]}</Text>
+          <Text style={styles.trendLabel}>{labels[labels.length - 1]}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -634,4 +662,11 @@ const styles = StyleSheet.create({
   funnelConv: { fontSize: 11, color: '#888' },
   funnelBar: { height: 34, borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   funnelValue: { color: '#fff', fontWeight: '700' },
+  // TrendChart
+  trend: { gap: 4 },
+  trendTitle: { fontWeight: '600', color: '#222' },
+  trendBars: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 100 },
+  trendBar: { flex: 1, borderRadius: 2, minWidth: 4 },
+  trendLabels: { flexDirection: 'row', justifyContent: 'space-between' },
+  trendLabel: { fontSize: 11, color: '#888' },
 });

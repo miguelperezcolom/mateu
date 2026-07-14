@@ -412,6 +412,50 @@ fun renderFunnel(metadata: JsonNode): JComponent {
     return panel
 }
 
+/** TrendChart: a single series drawn as a line (optionally area-filled) on a canvas. */
+fun renderTrendChart(metadata: JsonNode): JComponent {
+    val values = metadata.arr("values").map { it.asDouble(0.0) }
+    val panel = verticalPanel(4)
+    val title = metadata.text("title")
+    if (title.isNotBlank()) panel.addStacked(JBLabel(title).apply { font = font.deriveFont(Font.BOLD) }, 4)
+    if (values.size < 2) return panel
+    val min = values.min()
+    val max = values.max()
+    val span = (max - min).takeIf { it != 0.0 } ?: 1.0
+    val color = runCatching { Color.decode(metadata.text("color")) }.getOrElse { Color(0x1A, 0x73, 0xE8) }
+    val area = metadata.path("area").asBoolean(false)
+    val chart = object : JPanel() {
+        override fun paintComponent(g: Graphics) {
+            super.paintComponent(g)
+            val g2 = g as Graphics2D
+            g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+            val pad = 6
+            val stepX = (width - pad * 2).toDouble() / (values.size - 1)
+            val xs = IntArray(values.size)
+            val ys = IntArray(values.size)
+            for (i in values.indices) {
+                xs[i] = pad + (i * stepX).toInt()
+                ys[i] = pad + ((height - pad * 2) * (1 - (values[i] - min) / span)).toInt()
+            }
+            if (area) {
+                val poly = java.awt.Polygon()
+                for (i in values.indices) poly.addPoint(xs[i], ys[i])
+                poly.addPoint(xs.last(), height - pad)
+                poly.addPoint(xs.first(), height - pad)
+                g2.color = Color(color.red, color.green, color.blue, 30)
+                g2.fillPolygon(poly)
+            }
+            g2.color = color
+            g2.stroke = java.awt.BasicStroke(2f)
+            for (i in 1 until values.size) g2.drawLine(xs[i - 1], ys[i - 1], xs[i], ys[i])
+        }
+    }
+    chart.isOpaque = false
+    chart.preferredSize = Dimension(420, 140)
+    panel.addStacked(chart, 0)
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

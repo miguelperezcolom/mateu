@@ -47,6 +47,7 @@ from mateu_uidl.components import (  # noqa: E402
     Step,
     Timeline,
     TimelineItem,
+    TrendChart,
     MetricTrend,
     Skeleton,
     SkeletonVariant,
@@ -213,6 +214,20 @@ class PricingPlans(ComponentTreeSupplier):
                     cta_label="Go Pro", action_id="choosePlan",
                 ),
             ),
+        )
+
+
+@ui("revenue-trend")
+@title("Revenue trend")
+class RevenueTrend(ComponentTreeSupplier):
+    def component(self):
+        return TrendChart(
+            id="trend",
+            title="Revenue",
+            values=(10.0, 14.0, 12.0, 18.0, 22.0),
+            labels=("Jan", "Feb", "Mar", "Apr", "May"),
+            color="#10b981",
+            area=True,
         )
 
 
@@ -405,6 +420,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_trend_chart():
+    doc = render(RevenueTrend)
+    (trend,) = page_children(doc)
+    assert trend["id"] == "trend"
+    assert trend["metadata"]["type"] == "TrendChart"
+    m = trend["metadata"]
+    assert m["title"] == "Revenue"
+    assert m["values"] == [10.0, 14.0, 12.0, 18.0, 22.0]
+    assert m["labels"] == ["Jan", "Feb", "Mar", "Apr", "May"]
+    assert m["area"] is True
 
 
 def test_component_tree_supplier_emits_funnel():

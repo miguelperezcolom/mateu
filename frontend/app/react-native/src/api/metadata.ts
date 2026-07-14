@@ -212,3 +212,12 @@ export interface Funnel {
   type?: 'Funnel';
   stages?: FunnelStage[];
 }
+
+export interface TrendChart {
+  type?: 'TrendChart';
+  title?: string;
+  values?: number[];
+  labels?: string[];
+  color?: string;
+  area?: boolean;
+}

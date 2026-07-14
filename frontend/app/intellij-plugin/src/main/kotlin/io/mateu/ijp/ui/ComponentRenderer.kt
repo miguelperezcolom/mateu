@@ -69,6 +69,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "OrgChart" -> renderOrgChart(this, metadata)
             "Heatmap" -> renderHeatmap(metadata)
             "Funnel" -> renderFunnel(metadata)
+            "TrendChart" -> renderTrendChart(metadata)
             "Image" -> renderStandaloneImage(metadata)
             else -> {
                 val t = metadata.text("type")

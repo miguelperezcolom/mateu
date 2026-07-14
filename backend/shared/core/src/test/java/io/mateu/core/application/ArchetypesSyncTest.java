@@ -53,6 +53,7 @@ import io.mateu.dtos.TabLayoutDto;
 import io.mateu.dtos.TextDto;
 import io.mateu.dtos.TimelineDto;
 import io.mateu.dtos.TooltipDto;
+import io.mateu.dtos.TrendChartDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.dtos.VerticalLayoutDto;
 import io.mateu.uidl.annotations.Action;
@@ -115,6 +116,7 @@ import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.Timeline;
 import io.mateu.uidl.data.TimelineItem;
 import io.mateu.uidl.data.Tooltip;
+import io.mateu.uidl.data.TrendChart;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -442,6 +444,15 @@ class ArchetypesSyncTest {
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
                           .build()))
+              .build());
+      content.add(
+          TrendChart.builder()
+              .id("trend")
+              .title("Revenue")
+              .values(List.of(10.0, 14.0, 12.0, 18.0, 22.0))
+              .labels(List.of("Jan", "Feb", "Mar", "Apr", "May"))
+              .color("#10b981")
+              .area(true)
               .build());
       content.add(
           Funnel.builder()
@@ -927,6 +938,18 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void trendChartSerializesValuesAndLabels() {
+    var trend = findFirst(sync("/component-showcase"), TrendChartDto.class);
+    assertThat(trend).isNotNull();
+    var m = (TrendChartDto) trend.metadata();
+    assertThat(m.title()).isEqualTo("Revenue");
+    assertThat(m.values()).containsExactly(10.0, 14.0, 12.0, 18.0, 22.0);
+    assertThat(m.labels()).containsExactly("Jan", "Feb", "Mar", "Apr", "May");
+    assertThat(m.color()).isEqualTo("#10b981");
+    assertThat(m.area()).isTrue();
   }
 
   @Test

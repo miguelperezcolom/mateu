@@ -29,6 +29,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.SkeletonMapper.map
 import static io.mateu.core.domain.out.fragmentmapper.mappers.StatMapper.mapStatToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TextMapper.mapTextToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TimelineMapper.mapTimelineToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.TrendChartMapper.mapTrendChartToDto;
 
 import io.mateu.dtos.ComponentDto;
 import io.mateu.uidl.data.*;
@@ -103,6 +104,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Funnel funnel) {
       return mapFunnelToDto(funnel);
+    }
+    if (component instanceof TrendChart trendChart) {
+      return mapTrendChartToDto(trendChart);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

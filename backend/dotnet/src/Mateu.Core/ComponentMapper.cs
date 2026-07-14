@@ -61,6 +61,8 @@ public static class ComponentMapper
         Funnel fn => Dto(fn, new FunnelMetadataDto(fn.Stages.Select(s =>
             new FunnelStageDto(s.Label, s.Value, s.Color)).ToList())),
 
+        TrendChart tc => Dto(tc, new TrendChartMetadataDto(tc.Title, tc.Values, tc.Labels, tc.Color, tc.Area)),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

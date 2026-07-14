@@ -138,6 +138,13 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Trend")]
+    public TrendChart Trend { get; } = new()
+    {
+        Title = "Revenue", Values = [10, 14, 12, 18, 22], Labels = ["Jan", "Feb", "Mar", "Apr", "May"],
+        Color = "#10b981", Area = true,
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -364,6 +371,17 @@ public class ComponentTests
         Assert.Contains("\"label\":\"Visits\"", json);
         Assert.Contains("\"value\":1000", json);
         Assert.Contains("\"color\":\"#8b5cf6\"", json);
+    }
+
+    [Fact]
+    public void Trend_chart_emits_values_and_labels()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"TrendChart\"", json);
+        Assert.Contains("\"title\":\"Revenue\"", json);
+        Assert.Contains("\"values\":[10", json);
+        Assert.Contains("\"area\":true", json);
     }
 
     [Fact]

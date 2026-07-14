@@ -445,6 +445,24 @@ class Funnel(Component):
 
 
 @dataclass(frozen=True)
+class TrendChart(Component):
+    """A read-only lightweight line/area chart: a single series drawn as an SVG line."""
+
+    title: str | None = None
+    values: tuple[float, ...] = ()
+    labels: tuple[str, ...] = ()
+    color: str | None = None
+    area: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "values", tuple(self.values))
+        object.__setattr__(self, "labels", tuple(self.labels))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -544,4 +562,5 @@ __all__ = [
     "Heatmap",
     "FunnelStage",
     "Funnel",
+    "TrendChart",
 ]

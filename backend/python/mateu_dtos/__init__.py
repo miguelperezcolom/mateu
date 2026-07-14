@@ -495,6 +495,17 @@ class FunnelMetadata(Wire):
     stages: list[FunnelStageRecord] = Field(default_factory=list)
 
 
+class TrendChartMetadata(Wire):
+    """Lightweight line/area-chart metadata: a single series (mirrors ``TrendChartDto``)."""
+
+    type: Literal["TrendChart"] = "TrendChart"
+    title: str | None = None
+    values: list[float] = Field(default_factory=list)
+    labels: list[str] = Field(default_factory=list)
+    color: str | None = None
+    area: bool = False
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -585,6 +596,7 @@ ComponentMetadata = Annotated[
         OrgChartMetadata,
         HeatmapMetadata,
         FunnelMetadata,
+        TrendChartMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

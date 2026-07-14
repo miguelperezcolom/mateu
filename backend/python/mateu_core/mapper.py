@@ -56,6 +56,7 @@ from mateu_dtos import (
     HeatCellRecord,
     FunnelMetadata,
     FunnelStageRecord,
+    TrendChartMetadata,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -737,6 +738,17 @@ class ReflectionMapper:
                 FunnelStageRecord(label=s.label, value=s.value, color=s.color) for s in c.stages
             ]
             return self._fluent_client(FunnelMetadata(stages=stages), c)
+        if isinstance(c, fluent.TrendChart):
+            return self._fluent_client(
+                TrendChartMetadata(
+                    title=c.title,
+                    values=list(c.values),
+                    labels=list(c.labels),
+                    color=c.color,
+                    area=c.area,
+                ),
+                c,
+            )
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

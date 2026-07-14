@@ -91,7 +91,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = PricingTableDto.class, name = "PricingTable"),
   @JsonSubTypes.Type(value = OrgChartDto.class, name = "OrgChart"),
   @JsonSubTypes.Type(value = HeatmapDto.class, name = "Heatmap"),
-  @JsonSubTypes.Type(value = FunnelDto.class, name = "Funnel")
+  @JsonSubTypes.Type(value = FunnelDto.class, name = "Funnel"),
+  @JsonSubTypes.Type(value = TrendChartDto.class, name = "TrendChart")
 })
 @Schema(
     oneOf = {
@@ -176,6 +177,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
       PricingTableDto.class,
       OrgChartDto.class,
       HeatmapDto.class,
-      FunnelDto.class
+      FunnelDto.class,
+      TrendChartDto.class
     })
 public interface ComponentMetadataDto {}

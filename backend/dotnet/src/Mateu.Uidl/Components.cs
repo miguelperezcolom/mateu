@@ -304,6 +304,16 @@ public sealed record Funnel : ComponentBase
     public IReadOnlyList<FunnelStage> Stages { get; init; } = [];
 }
 
+/// <summary>A read-only lightweight line/area chart: a single series drawn as an SVG line.</summary>
+public sealed record TrendChart : ComponentBase
+{
+    public string? Title { get; init; }
+    public IReadOnlyList<double> Values { get; init; } = [];
+    public IReadOnlyList<string> Labels { get; init; } = [];
+    public string? Color { get; init; }
+    public bool Area { get; init; }
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>
