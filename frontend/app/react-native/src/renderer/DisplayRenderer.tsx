@@ -717,6 +717,38 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── ComparisonCard (two values + delta chip) ──────────────────────────────────
+export function ComparisonCardRenderer({ component }: { component: unknown }) {
+  const m = meta(component);
+  const title = m['title'] as string | undefined;
+  const trend = (m['trend'] as string | undefined) ?? 'flat';
+  const delta = m['delta'] as string | undefined;
+  const deltaColor = trend === 'up' ? '#12b76a' : trend === 'down' ? '#e11d48' : '#888';
+  const deltaBg = trend === 'up' ? 'rgba(18,183,106,.12)' : trend === 'down' ? 'rgba(225,29,72,.12)' : 'rgba(0,0,0,.06)';
+  const mark = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '';
+  return (
+    <View style={styles.cmpCard}>
+      {!!title && <Text style={styles.cmpTitle}>{title}</Text>}
+      <View style={styles.cmpRow}>
+        <View style={styles.cmpSide}>
+          {!!m['leftLabel'] && <Text style={styles.cmpLabel}>{m['leftLabel'] as string}</Text>}
+          <Text style={styles.cmpValue}>{(m['leftValue'] as string) ?? ''}</Text>
+        </View>
+        <View style={styles.cmpMid}>
+          <Text style={styles.cmpArrow}>→</Text>
+          {!!delta && (
+            <Text style={[styles.cmpDelta, { color: deltaColor, backgroundColor: deltaBg }]}>{mark} {delta}</Text>
+          )}
+        </View>
+        <View style={styles.cmpSide}>
+          {!!m['rightLabel'] && <Text style={styles.cmpLabel}>{m['rightLabel'] as string}</Text>}
+          <Text style={styles.cmpValue}>{(m['rightValue'] as string) ?? ''}</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -908,4 +940,14 @@ const styles = StyleSheet.create({
   checkMark: { color: '#fff', fontSize: 13, fontWeight: '700' },
   checkLabel: { color: '#333', flex: 1 },
   checkLabelDone: { color: '#999', textDecorationLine: 'line-through' },
+  // ComparisonCard
+  cmpCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 14, padding: 16, backgroundColor: '#fff' },
+  cmpTitle: { fontWeight: '700', color: '#222', marginBottom: 12 },
+  cmpRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  cmpSide: { flex: 1, alignItems: 'center' },
+  cmpLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: '#888' },
+  cmpValue: { fontSize: 26, fontWeight: '800', color: '#111', marginTop: 2 },
+  cmpMid: { alignItems: 'center', gap: 4 },
+  cmpArrow: { fontSize: 18, color: '#888' },
+  cmpDelta: { fontWeight: '700', fontSize: 12, borderRadius: 999, paddingVertical: 2, paddingHorizontal: 8, overflow: 'hidden' },
 });

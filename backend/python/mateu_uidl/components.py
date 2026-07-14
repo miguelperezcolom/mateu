@@ -624,6 +624,23 @@ class Checklist(Component):
 
 
 @dataclass(frozen=True)
+class ComparisonCard(Component):
+    """A two-value comparison: a left and right label+value with a delta chip between them,
+    colored by ``trend`` (up|down|flat)."""
+
+    title: str | None = None
+    left_label: str | None = None
+    left_value: str | None = None
+    right_label: str | None = None
+    right_value: str | None = None
+    delta: str | None = None
+    trend: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -737,4 +754,5 @@ __all__ = [
     "FileList",
     "ChecklistItem",
     "Checklist",
+    "ComparisonCard",
 ]

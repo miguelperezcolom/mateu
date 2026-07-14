@@ -154,6 +154,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(CommentThreadMetadataDto), "CommentThread")]
 [JsonDerivedType(typeof(FileListMetadataDto), "FileList")]
 [JsonDerivedType(typeof(ChecklistMetadataDto), "Checklist")]
+[JsonDerivedType(typeof(ComparisonCardMetadataDto), "ComparisonCard")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -299,6 +300,10 @@ public record ChecklistMetadataDto(string? Title, IReadOnlyList<ChecklistItemDto
 
 /// <summary>One checklist item.</summary>
 public record ChecklistItemDto(string? Id, string? Label, bool Done, string? ActionId);
+
+/// <summary>Two-value comparison metadata (mirrors io.mateu.dtos.ComparisonCardDto).</summary>
+public record ComparisonCardMetadataDto(string? Title, string? LeftLabel, string? LeftValue,
+    string? RightLabel, string? RightValue, string? Delta, string? Trend) : ComponentMetadataDto;
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

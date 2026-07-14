@@ -31,6 +31,7 @@ from mateu_uidl.components import (  # noqa: E402
     CommentThread,
     Checklist,
     ChecklistItem,
+    ComparisonCard,
     EmptyState,
     Feature,
     FeatureGrid,
@@ -241,6 +242,22 @@ class OnboardingChecklist(ComponentTreeSupplier):
                 ChecklistItem(id="a", label="Create account", done=True),
                 ChecklistItem(id="b", label="Invite team", action_id="toggleStep"),
             ),
+        )
+
+
+@ui("month-comparison")
+@title("Comparison")
+class MonthComparison(ComponentTreeSupplier):
+    def component(self):
+        return ComparisonCard(
+            id="compare",
+            title="This month vs last",
+            left_label="Last month",
+            left_value="€38k",
+            right_label="This month",
+            right_value="€48k",
+            delta="+26%",
+            trend="up",
         )
 
 
@@ -542,6 +559,19 @@ def test_component_tree_supplier_emits_checklist():
     assert len(m["items"]) == 2
     assert m["items"][0]["done"] is True
     assert m["items"][1]["actionId"] == "toggleStep"
+
+
+def test_component_tree_supplier_emits_comparison_card():
+    doc = render(MonthComparison)
+    (cc,) = page_children(doc)
+    assert cc["id"] == "compare"
+    assert cc["metadata"]["type"] == "ComparisonCard"
+    m = cc["metadata"]
+    assert m["title"] == "This month vs last"
+    assert m["leftValue"] == "€38k"
+    assert m["rightValue"] == "€48k"
+    assert m["delta"] == "+26%"
+    assert m["trend"] == "up"
 
 
 def test_component_tree_supplier_emits_file_list():

@@ -420,6 +420,19 @@ public sealed record Checklist : ComponentBase
     public IReadOnlyList<ChecklistItem> Items { get; init; } = [];
 }
 
+/// <summary>A two-value comparison: a left and right label+value with a delta chip between them,
+/// colored by Trend (up|down|flat).</summary>
+public sealed record ComparisonCard : ComponentBase
+{
+    public string? Title { get; init; }
+    public string? LeftLabel { get; init; }
+    public string? LeftValue { get; init; }
+    public string? RightLabel { get; init; }
+    public string? RightValue { get; init; }
+    public string? Delta { get; init; }
+    public string? Trend { get; init; }
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

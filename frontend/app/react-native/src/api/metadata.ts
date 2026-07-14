@@ -308,3 +308,14 @@ export interface Checklist {
   title?: string;
   items?: ChecklistItem[];
 }
+
+export interface ComparisonCard {
+  type?: 'ComparisonCard';
+  title?: string;
+  leftLabel?: string;
+  leftValue?: string;
+  rightLabel?: string;
+  rightValue?: string;
+  delta?: string;
+  trend?: string;
+}

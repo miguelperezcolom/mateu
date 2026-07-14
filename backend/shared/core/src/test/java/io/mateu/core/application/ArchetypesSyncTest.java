@@ -21,6 +21,7 @@ import io.mateu.dtos.CardDto;
 import io.mateu.dtos.ChecklistDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.CommentThreadDto;
+import io.mateu.dtos.ComparisonCardDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ComponentMetadataDto;
 import io.mateu.dtos.ContainerDto;
@@ -84,6 +85,7 @@ import io.mateu.uidl.data.Checklist;
 import io.mateu.uidl.data.ChecklistItem;
 import io.mateu.uidl.data.Comment;
 import io.mateu.uidl.data.CommentThread;
+import io.mateu.uidl.data.ComparisonCard;
 import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.DashboardLayout;
 import io.mateu.uidl.data.DashboardPanel;
@@ -464,6 +466,17 @@ class ArchetypesSyncTest {
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
                           .build()))
+              .build());
+      content.add(
+          ComparisonCard.builder()
+              .id("compare")
+              .title("This month vs last")
+              .leftLabel("Last month")
+              .leftValue("€38k")
+              .rightLabel("This month")
+              .rightValue("€48k")
+              .delta("+26%")
+              .trend("up")
               .build());
       content.add(
           Checklist.builder()
@@ -1062,6 +1075,18 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void comparisonCardSerializes() {
+    var cmp = findFirst(sync("/component-showcase"), ComparisonCardDto.class);
+    assertThat(cmp).isNotNull();
+    var m = (ComparisonCardDto) cmp.metadata();
+    assertThat(m.title()).isEqualTo("This month vs last");
+    assertThat(m.leftValue()).isEqualTo("€38k");
+    assertThat(m.rightValue()).isEqualTo("€48k");
+    assertThat(m.delta()).isEqualTo("+26%");
+    assertThat(m.trend()).isEqualTo("up");
   }
 
   @Test

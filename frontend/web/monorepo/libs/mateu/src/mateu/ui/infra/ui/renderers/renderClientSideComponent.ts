@@ -93,6 +93,7 @@ import { renderCalloutCard } from "@infra/ui/renderers/calloutCardRenderer.ts";
 import { renderCommentThread } from "@infra/ui/renderers/commentThreadRenderer.ts";
 import { renderFileList } from "@infra/ui/renderers/fileListRenderer.ts";
 import { renderChecklist } from "@infra/ui/renderers/checklistRenderer.ts";
+import { renderComparisonCard } from "@infra/ui/renderers/comparisonCardRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -307,6 +308,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.CommentThread]: ({ component }) => renderCommentThread(component),
     [ComponentMetadataType.FileList]: ({ component }) => renderFileList(component),
     [ComponentMetadataType.Checklist]: ({ component }) => renderChecklist(component),
+    [ComponentMetadataType.ComparisonCard]: ({ component }) => renderComparisonCard(component),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

@@ -12,6 +12,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.CardMapper.mapCard
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ChatMapper.mapChatToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ChecklistMapper.mapChecklistToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CommentThreadMapper.mapCommentThreadToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ComparisonCardMapper.mapComparisonCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapElementToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.EmptyStateMapper.mapEmptyStateToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FaqMapper.mapFaqToDto;
@@ -135,6 +136,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Checklist checklist) {
       return mapChecklistToDto(checklist);
+    }
+    if (component instanceof ComparisonCard comparisonCard) {
+      return mapComparisonCardToDto(comparisonCard);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

@@ -619,6 +619,19 @@ class ChecklistMetadata(Wire):
     items: list[ChecklistItemRecord] = Field(default_factory=list)
 
 
+class ComparisonCardMetadata(Wire):
+    """Two-value comparison metadata (mirrors ``ComparisonCardDto``)."""
+
+    type: Literal["ComparisonCard"] = "ComparisonCard"
+    title: str | None = None
+    left_label: str | None = None
+    left_value: str | None = None
+    right_label: str | None = None
+    right_value: str | None = None
+    delta: str | None = None
+    trend: str | None = None
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -717,6 +730,7 @@ ComponentMetadata = Annotated[
         CommentThreadMetadata,
         FileListMetadata,
         ChecklistMetadata,
+        ComparisonCardMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

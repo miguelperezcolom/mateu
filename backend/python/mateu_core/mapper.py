@@ -70,6 +70,7 @@ from mateu_dtos import (
     FileItemRecord,
     ChecklistMetadata,
     ChecklistItemRecord,
+    ComparisonCardMetadata,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -816,6 +817,19 @@ class ReflectionMapper:
                 for i in c.items
             ]
             return self._fluent_client(ChecklistMetadata(title=c.title, items=items), c)
+        if isinstance(c, fluent.ComparisonCard):
+            return self._fluent_client(
+                ComparisonCardMetadata(
+                    title=c.title,
+                    left_label=c.left_label,
+                    left_value=c.left_value,
+                    right_label=c.right_label,
+                    right_value=c.right_value,
+                    delta=c.delta,
+                    trend=c.trend,
+                ),
+                c,
+            )
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

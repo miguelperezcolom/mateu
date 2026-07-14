@@ -217,6 +217,15 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Comparison")]
+    public ComparisonCard Compare { get; } = new()
+    {
+        Title = "This month vs last",
+        LeftLabel = "Last month", LeftValue = "€38k",
+        RightLabel = "This month", RightValue = "€48k",
+        Delta = "+26%", Trend = "up",
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -533,6 +542,19 @@ public class ComponentTests
         Assert.Contains("\"label\":\"Create account\"", json);
         Assert.Contains("\"done\":true", json);
         Assert.Contains("\"actionId\":\"toggleStep\"", json);
+    }
+
+    [Fact]
+    public void Comparison_card_emits_both_sides_and_delta()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"ComparisonCard\"", json);
+        Assert.Contains("\"title\":\"This month vs last\"", json);
+        Assert.Contains("\"leftValue\":\"€38k\"", json);
+        Assert.Contains("\"rightValue\":\"€48k\"", json);
+        Assert.Contains("\"delta\":\"+26%\"", json);
+        Assert.Contains("\"trend\":\"up\"", json);
     }
 
     [Fact]

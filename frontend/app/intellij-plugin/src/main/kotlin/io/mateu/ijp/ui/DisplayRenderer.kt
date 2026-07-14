@@ -634,6 +634,44 @@ fun renderChecklist(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
+/** ComparisonCard: two labelled values side by side with a delta chip between them. */
+fun renderComparisonCard(metadata: JsonNode): JComponent {
+    val title = metadata.text("title")
+    val trend = metadata.text("trend", "flat")
+    val delta = metadata.text("delta")
+    val panel = verticalPanel(6)
+    if (title.isNotBlank()) {
+        panel.addStacked(JBLabel(title).apply { font = font.deriveFont(Font.BOLD) }, 6)
+    }
+    val row = JPanel(BorderLayout(JBUI.scale(12), 0)).apply { isOpaque = false }
+
+    fun side(label: String, value: String): JComponent {
+        val p = verticalPanel(1)
+        if (label.isNotBlank()) {
+            p.addStacked(JBLabel(label.uppercase()).apply {
+                foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                font = font.deriveFont(font.size2D - 2f)
+            }, 1)
+        }
+        p.addStacked(JBLabel(value).apply { font = font.deriveFont(Font.BOLD, font.size2D + 8f) }, 1)
+        return p
+    }
+
+    row.add(side(metadata.text("leftLabel"), metadata.text("leftValue")), BorderLayout.WEST)
+    row.add(side(metadata.text("rightLabel"), metadata.text("rightValue")), BorderLayout.EAST)
+    if (delta.isNotBlank()) {
+        val mark = when (trend) { "up" -> "▲"; "down" -> "▼"; else -> "" }
+        val color = when (trend) {
+            "up" -> Color(0x12, 0xB7, 0x6A)
+            "down" -> Color(0xE1, 0x1D, 0x48)
+            else -> JBUI.CurrentTheme.Label.disabledForeground()
+        }
+        row.add(JBLabel("$mark $delta").apply { foreground = color; horizontalAlignment = javax.swing.SwingConstants.CENTER }, BorderLayout.CENTER)
+    }
+    panel.addStacked(row, 3)
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

@@ -81,6 +81,8 @@ public static class ComponentMapper
 
         Checklist ch => Dto(ch, new ChecklistMetadataDto(ch.Title, ch.Items.Select(i =>
             new ChecklistItemDto(i.Id, i.Label, i.Done, i.ActionId)).ToList())),
+        ComparisonCard cc => Dto(cc, new ComparisonCardMetadataDto(cc.Title, cc.LeftLabel,
+            cc.LeftValue, cc.RightLabel, cc.RightValue, cc.Delta, cc.Trend)),
 
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
