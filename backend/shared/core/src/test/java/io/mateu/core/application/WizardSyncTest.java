@@ -19,6 +19,7 @@ import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.annotations.WizardLayout;
@@ -50,6 +51,10 @@ class WizardSyncTest {
   public static class NameStep implements WizardStep {
     public String name = "Ada";
     public Flavor flavor = Flavor.VANILLA;
+
+    @Toolbar
+    @Label("Help")
+    public void help() {}
   }
 
   public static class AgeStep implements WizardStep {
@@ -246,10 +251,13 @@ class WizardSyncTest {
   }
 
   @Test
-  void wizardNavigationButtonsUseTheSmallSizeVariant() {
+  void onlyTheStepToolbarButtonsUseTheSmallSizeVariant() {
     var buttons = findAllMetadata(component(mateu.sync("/simple-wizard")), ButtonDto.class);
-    assertThat(buttonByActionId(buttons, "next").size()).isEqualTo(ButtonSizeDto.small);
-    assertThat(buttonByActionId(buttons, "back").size()).isEqualTo(ButtonSizeDto.small);
+    // the step's @Toolbar button is small
+    assertThat(buttonByActionId(buttons, "help").size()).isEqualTo(ButtonSizeDto.small);
+    // the navigation buttons keep the default size
+    assertThat(buttonByActionId(buttons, "next").size()).isNotEqualTo(ButtonSizeDto.small);
+    assertThat(buttonByActionId(buttons, "back").size()).isNotEqualTo(ButtonSizeDto.small);
   }
 
   @Test

@@ -23,16 +23,10 @@ final class WizardButtonBuilder {
     List<Component> buttons = new ArrayList<>();
     boolean isLastStep = wizard.position == wizard.numberOfSteps() - 1;
     if (!isLastStep) {
-      buttons.add(
-          Button.builder()
-              .id("back")
-              .label("Back")
-              .disabled(wizard.position == 0)
-              .size(ButtonSize.small)
-              .build());
+      buttons.add(Button.builder().id("back").label("Back").disabled(wizard.position == 0).build());
     }
     if (wizard.nextApplicable(wizard.position) >= 0) {
-      buttons.add(Button.builder().id("next").label("Next").size(ButtonSize.small).build());
+      buttons.add(Button.builder().id("next").label("Next").build());
     } else if (!isLastStep) {
       getAllMethods(wizard.getClass()).stream()
           .filter(method -> MetaAnnotations.isPresent(method, WizardCompletionAction.class))
@@ -43,7 +37,6 @@ final class WizardButtonBuilder {
                           .actionId(method.getName())
                           .label(getLabel(method))
                           .buttonStyle(ButtonStyle.primary)
-                          .size(ButtonSize.small)
                           .build()));
     }
     var step = wizard.getStep();
