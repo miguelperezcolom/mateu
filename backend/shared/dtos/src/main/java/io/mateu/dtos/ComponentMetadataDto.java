@@ -89,7 +89,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = StatDto.class, name = "Stat"),
   @JsonSubTypes.Type(value = CalendarDto.class, name = "Calendar"),
   @JsonSubTypes.Type(value = PricingTableDto.class, name = "PricingTable"),
-  @JsonSubTypes.Type(value = OrgChartDto.class, name = "OrgChart")
+  @JsonSubTypes.Type(value = OrgChartDto.class, name = "OrgChart"),
+  @JsonSubTypes.Type(value = HeatmapDto.class, name = "Heatmap")
 })
 @Schema(
     oneOf = {
@@ -172,6 +173,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
       StatDto.class,
       CalendarDto.class,
       PricingTableDto.class,
-      OrgChartDto.class
+      OrgChartDto.class,
+      HeatmapDto.class
     })
 public interface ComponentMetadataDto {}

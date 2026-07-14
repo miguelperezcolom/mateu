@@ -81,6 +81,7 @@ export enum ComponentMetadataType {
     Stat = "Stat",
     Calendar = "Calendar",
     PricingTable = "PricingTable",
-    OrgChart = "OrgChart"
+    OrgChart = "OrgChart",
+    Heatmap = "Heatmap"
 
 }

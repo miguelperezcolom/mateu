@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
+import { CalendarEvent, EmptyState, FoldoutPanelInfo, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -458,6 +458,25 @@ export function OrgChartRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Heatmap (mobile: a wrapped grid of intensity squares) ─────────────────────
+export function HeatmapRenderer({ component }: { component: unknown }) {
+  const cells = ((meta(component)['cells'] as HeatCell[]) ?? []).filter((c) => !!c.date);
+  const maxVal = Math.max(1, ...cells.map((c) => c.value ?? 0));
+  const intensity = (v: number) => {
+    if (v <= 0) return 'rgba(26,115,232,0.08)';
+    const t = v / maxVal;
+    const a = t > 0.75 ? 1 : t > 0.5 ? 0.75 : t > 0.25 ? 0.5 : 0.3;
+    return `rgba(26,115,232,${a})`;
+  };
+  return (
+    <View style={styles.heatWrap}>
+      {cells.map((c, i) => (
+        <View key={c.date ?? i} style={[styles.heatCell, { backgroundColor: intensity(c.value ?? 0) }]} />
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -578,4 +597,7 @@ const styles = StyleSheet.create({
   orgAvatar: { fontSize: 18 },
   orgTitle: { fontWeight: '600', color: '#222' },
   orgSubtitle: { fontSize: 12, color: '#888' },
+  // Heatmap
+  heatWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 3 },
+  heatCell: { width: 12, height: 12, borderRadius: 2 },
 });

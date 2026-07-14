@@ -166,6 +166,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Calendar,
     ComponentMetadataType.PricingTable,
     ComponentMetadataType.OrgChart,
+    ComponentMetadataType.Heatmap,
 ])
 
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

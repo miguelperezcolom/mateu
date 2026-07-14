@@ -144,6 +144,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(CalendarMetadataDto), "Calendar")]
 [JsonDerivedType(typeof(PricingTableMetadataDto), "PricingTable")]
 [JsonDerivedType(typeof(OrgChartMetadataDto), "OrgChart")]
+[JsonDerivedType(typeof(HeatmapMetadataDto), "Heatmap")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -235,6 +236,12 @@ public record OrgChartMetadataDto(OrgNodeDto? Root) : ComponentMetadataDto;
 
 /// <summary>One org-chart node; Children nest recursively.</summary>
 public record OrgNodeDto(string? Id, string? Title, string? Subtitle, string? Avatar, string? Color, string? ActionId, IReadOnlyList<OrgNodeDto> Children);
+
+/// <summary>Calendar-heatmap metadata: one cell per day.</summary>
+public record HeatmapMetadataDto(IReadOnlyList<HeatCellDto> Cells) : ComponentMetadataDto;
+
+/// <summary>One heatmap cell; Date is ISO-8601; Value drives color intensity.</summary>
+public record HeatCellDto(string? Date, double Value, string? Label);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

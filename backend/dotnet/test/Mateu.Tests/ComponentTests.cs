@@ -117,6 +117,16 @@ public class Dash : Dashboard
         },
     };
 
+    [Panel(Title = "Heat")]
+    public Heatmap Heat { get; } = new()
+    {
+        Cells =
+        [
+            new HeatCell { Date = new DateOnly(2026, 3, 1), Value = 2 },
+            new HeatCell { Date = new DateOnly(2026, 3, 2), Value = 5, Label = "5 commits" },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -321,6 +331,17 @@ public class ComponentTests
         Assert.Contains("\"subtitle\":\"CEO\"", json);
         Assert.Contains("\"title\":\"Alan\"", json);
         Assert.Contains("\"children\":[", json);
+    }
+
+    [Fact]
+    public void Heatmap_emits_cells_with_iso_dates()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Heatmap\"", json);
+        Assert.Contains("\"date\":\"2026-03-01\"", json);
+        Assert.Contains("\"value\":5", json);
+        Assert.Contains("\"label\":\"5 commits\"", json);
     }
 
     [Fact]

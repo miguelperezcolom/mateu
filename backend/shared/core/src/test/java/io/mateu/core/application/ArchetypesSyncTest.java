@@ -28,6 +28,7 @@ import io.mateu.dtos.DivDto;
 import io.mateu.dtos.EmptyStateDto;
 import io.mateu.dtos.FoldoutLayoutDto;
 import io.mateu.dtos.GanttDto;
+import io.mateu.dtos.HeatmapDto;
 import io.mateu.dtos.HeroSectionDto;
 import io.mateu.dtos.HorizontalLayoutDto;
 import io.mateu.dtos.KPIDto;
@@ -77,6 +78,8 @@ import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.EmptyState;
 import io.mateu.uidl.data.Gantt;
 import io.mateu.uidl.data.GanttTask;
+import io.mateu.uidl.data.HeatCell;
+import io.mateu.uidl.data.Heatmap;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.KPI;
@@ -435,6 +438,18 @@ class ArchetypesSyncTest {
                           .title("Launch")
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
+                          .build()))
+              .build());
+      content.add(
+          Heatmap.builder()
+              .id("heat")
+              .cells(
+                  List.of(
+                      HeatCell.builder().date(LocalDate.of(2026, 3, 1)).value(2).build(),
+                      HeatCell.builder()
+                          .date(LocalDate.of(2026, 3, 2))
+                          .value(5)
+                          .label("5 commits")
                           .build()))
               .build());
       content.add(
@@ -900,6 +915,18 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void heatmapCellsSerializeWithIsoDates() {
+    var heat = findFirst(sync("/component-showcase"), HeatmapDto.class);
+    assertThat(heat).isNotNull();
+    var cells = ((HeatmapDto) heat.metadata()).cells();
+    assertThat(cells).hasSize(2);
+    assertThat(cells.get(0).date()).isEqualTo("2026-03-01");
+    assertThat(cells.get(0).value()).isEqualTo(2d);
+    assertThat(cells.get(1).value()).isEqualTo(5d);
+    assertThat(cells.get(1).label()).isEqualTo("5 commits");
   }
 
   @Test

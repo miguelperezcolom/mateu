@@ -52,6 +52,8 @@ from mateu_dtos import (
     PricingPlanRecord,
     OrgChartMetadata,
     OrgNodeRecord,
+    HeatmapMetadata,
+    HeatCellRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -718,6 +720,16 @@ class ReflectionMapper:
             return self._fluent_client(
                 OrgChartMetadata(root=self._org_node(c.root) if c.root is not None else None), c
             )
+        if isinstance(c, fluent.Heatmap):
+            cells = [
+                HeatCellRecord(
+                    date=cl.date.isoformat() if cl.date is not None else None,
+                    value=cl.value,
+                    label=cl.label,
+                )
+                for cl in c.cells
+            ]
+            return self._fluent_client(HeatmapMetadata(cells=cells), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

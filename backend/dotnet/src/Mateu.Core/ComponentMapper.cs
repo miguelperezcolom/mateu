@@ -55,6 +55,9 @@ public static class ComponentMapper
 
         OrgChart oc => Dto(oc, new OrgChartMetadataDto(MapOrgNode(oc.Root))),
 
+        Heatmap hm => Dto(hm, new HeatmapMetadataDto(hm.Cells.Select(cl =>
+            new HeatCellDto(Iso(cl.Date), cl.Value, cl.Label)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

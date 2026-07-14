@@ -27,6 +27,8 @@ from mateu_uidl.components import (  # noqa: E402
     Calendar,
     CalendarEvent,
     EmptyState,
+    HeatCell,
+    Heatmap,
     Gantt,
     GanttTask,
     HeroSection,
@@ -212,6 +214,19 @@ class PricingPlans(ComponentTreeSupplier):
         )
 
 
+@ui("activity")
+@title("Activity")
+class ActivityHeatmap(ComponentTreeSupplier):
+    def component(self):
+        return Heatmap(
+            id="heat",
+            cells=(
+                HeatCell(date=date(2026, 3, 1), value=2),
+                HeatCell(date=date(2026, 3, 2), value=5, label="5 commits"),
+            ),
+        )
+
+
 @ui("org")
 @title("Org")
 class CompanyOrg(ComponentTreeSupplier):
@@ -374,6 +389,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_heatmap():
+    doc = render(ActivityHeatmap)
+    (heat,) = page_children(doc)
+    assert heat["id"] == "heat"
+    assert heat["metadata"]["type"] == "Heatmap"
+    cells = heat["metadata"]["cells"]
+    assert len(cells) == 2
+    assert cells[0]["date"] == "2026-03-01"
+    assert cells[1]["value"] == 5.0
+    assert cells[1]["label"] == "5 commits"
 
 
 def test_component_tree_supplier_emits_org_chart():

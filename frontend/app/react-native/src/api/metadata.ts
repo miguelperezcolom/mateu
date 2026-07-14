@@ -190,3 +190,14 @@ export interface OrgChart {
   type?: 'OrgChart';
   root?: OrgNode;
 }
+
+export interface HeatCell {
+  date?: string;
+  value?: number;
+  label?: string;
+}
+
+export interface Heatmap {
+  type?: 'Heatmap';
+  cells?: HeatCell[];
+}

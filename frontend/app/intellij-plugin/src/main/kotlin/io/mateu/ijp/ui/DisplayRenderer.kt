@@ -339,6 +339,47 @@ private fun orgNodeRow(r: ComponentRenderer, panel: JPanel, node: JsonNode, dept
     for (child in node.arr("children")) orgNodeRow(r, panel, child, depth + 1)
 }
 
+/** Heatmap: a GitHub-style grid of day squares colored by intensity, painted on a canvas. */
+fun renderHeatmap(metadata: JsonNode): JComponent {
+    val cells =
+        metadata.arr("cells")
+            .filter { it.text("date").isNotBlank() }
+            .mapNotNull { c ->
+                runCatching { LocalDate.parse(c.text("date")) }.getOrNull()?.let { it to c.path("value").asDouble(0.0) }
+            }
+    if (cells.isEmpty()) return JPanel().apply { isOpaque = false }
+    val min = cells.minOf { it.first }
+    val start = min.minusDays(((min.dayOfWeek.value + 6) % 7).toLong())
+    val max = cells.maxOf { it.first }
+    val maxVal = cells.maxOf { it.second }.coerceAtLeast(1.0)
+    val byDate = cells.associate { it.first to it.second }
+    val base = Color(0x1A, 0x73, 0xE8)
+    val panel = object : JPanel() {
+        override fun paintComponent(g: Graphics) {
+            super.paintComponent(g)
+            val g2 = g as Graphics2D
+            val size = 12
+            val gap = 3
+            var d = start
+            var col = 0
+            while (!d.isAfter(max)) {
+                val row = (d.dayOfWeek.value + 6) % 7
+                val v = byDate[d] ?: 0.0
+                val t = v / maxVal
+                val alpha = if (v <= 0) 20 else if (t > 0.75) 255 else if (t > 0.5) 190 else if (t > 0.25) 130 else 80
+                g2.color = Color(base.red, base.green, base.blue, alpha)
+                g2.fillRoundRect(col * (size + gap), row * (size + gap), size, size, 2, 2)
+                if (row == 6) col++
+                d = d.plusDays(1)
+            }
+        }
+    }
+    val weeks = ChronoUnit.DAYS.between(start, max).toInt() / 7 + 2
+    panel.isOpaque = false
+    panel.preferredSize = Dimension(weeks * 15, 7 * 15)
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

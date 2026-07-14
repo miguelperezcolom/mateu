@@ -401,6 +401,28 @@ class OrgChart(Component):
 
 
 @dataclass(frozen=True)
+class HeatCell:
+    """One cell of a :class:`Heatmap`: a ``date`` and its ``value`` (drives color intensity)."""
+
+    date: date | None = None
+    value: float = 0
+    label: str | None = None
+
+
+@dataclass(frozen=True)
+class Heatmap(Component):
+    """A read-only calendar heatmap (GitHub-contributions style): one square per day."""
+
+    cells: tuple[HeatCell, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "cells", tuple(self.cells))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -496,4 +518,6 @@ __all__ = [
     "PricingTable",
     "OrgNode",
     "OrgChart",
+    "HeatCell",
+    "Heatmap",
 ]

@@ -276,6 +276,20 @@ public sealed record OrgChart : ComponentBase
     public OrgNode? Root { get; init; }
 }
 
+/// <summary>One cell of a <see cref="Heatmap"/>: a Date and its Value (drives color intensity).</summary>
+public sealed record HeatCell
+{
+    public DateOnly? Date { get; init; }
+    public double Value { get; init; }
+    public string? Label { get; init; }
+}
+
+/// <summary>A read-only calendar heatmap (GitHub-contributions style): one square per day.</summary>
+public sealed record Heatmap : ComponentBase
+{
+    public IReadOnlyList<HeatCell> Cells { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

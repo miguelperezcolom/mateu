@@ -465,6 +465,21 @@ class OrgChartMetadata(Wire):
     root: OrgNodeRecord | None = None
 
 
+class HeatCellRecord(Wire):
+    """One heatmap cell; ``date`` is ISO-8601; ``value`` drives color intensity."""
+
+    date: str | None = None
+    value: float = 0
+    label: str | None = None
+
+
+class HeatmapMetadata(Wire):
+    """Calendar-heatmap metadata: one cell per day (mirrors ``HeatmapDto``)."""
+
+    type: Literal["Heatmap"] = "Heatmap"
+    cells: list[HeatCellRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -553,6 +568,7 @@ ComponentMetadata = Annotated[
         CalendarMetadata,
         PricingTableMetadata,
         OrgChartMetadata,
+        HeatmapMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,
