@@ -92,6 +92,17 @@ export enum ComponentMetadataType {
     CommentThread = "CommentThread",
     FileList = "FileList",
     Checklist = "Checklist",
-    ComparisonCard = "ComparisonCard"
+    ComparisonCard = "ComparisonCard",
+    EntityHeader = "EntityHeader",
+    Meter = "Meter",
+    TaskProgress = "TaskProgress",
+    StatusList = "StatusList",
+    TaskQueue = "TaskQueue",
+    ResourceGrid = "ResourceGrid",
+    OfferCard = "OfferCard",
+    AddOnPicker = "AddOnPicker",
+    Ledger = "Ledger",
+    PaymentPicker = "PaymentPicker",
+    ProcessMonitor = "ProcessMonitor"
 
 }

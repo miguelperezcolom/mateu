@@ -94,6 +94,17 @@ import { renderCommentThread } from "@infra/ui/renderers/commentThreadRenderer.t
 import { renderFileList } from "@infra/ui/renderers/fileListRenderer.ts";
 import { renderChecklist } from "@infra/ui/renderers/checklistRenderer.ts";
 import { renderComparisonCard } from "@infra/ui/renderers/comparisonCardRenderer.ts";
+import { renderEntityHeader } from "@infra/ui/renderers/entityHeaderRenderer.ts";
+import { renderMeter } from "@infra/ui/renderers/meterRenderer.ts";
+import { renderTaskProgress } from "@infra/ui/renderers/taskProgressRenderer.ts";
+import { renderStatusList } from "@infra/ui/renderers/statusListRenderer.ts";
+import { renderTaskQueue } from "@infra/ui/renderers/taskQueueRenderer.ts";
+import { renderResourceGrid } from "@infra/ui/renderers/resourceGridRenderer.ts";
+import { renderOfferCard } from "@infra/ui/renderers/offerCardRenderer.ts";
+import { renderAddOnPicker } from "@infra/ui/renderers/addOnPickerRenderer.ts";
+import { renderLedger } from "@infra/ui/renderers/ledgerRenderer.ts";
+import { renderPaymentPicker } from "@infra/ui/renderers/paymentPickerRenderer.ts";
+import { renderProcessMonitor } from "@infra/ui/renderers/processMonitorRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -309,6 +320,17 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.FileList]: ({ component }) => renderFileList(component),
     [ComponentMetadataType.Checklist]: ({ component }) => renderChecklist(component),
     [ComponentMetadataType.ComparisonCard]: ({ component }) => renderComparisonCard(component),
+    [ComponentMetadataType.EntityHeader]: ({ component }) => renderEntityHeader(component),
+    [ComponentMetadataType.Meter]: ({ component }) => renderMeter(component),
+    [ComponentMetadataType.TaskProgress]: ({ component }) => renderTaskProgress(component),
+    [ComponentMetadataType.StatusList]: ({ component }) => renderStatusList(component),
+    [ComponentMetadataType.TaskQueue]: ({ component }) => renderTaskQueue(component),
+    [ComponentMetadataType.ResourceGrid]: ({ component }) => renderResourceGrid(component),
+    [ComponentMetadataType.OfferCard]: ({ component }) => renderOfferCard(component),
+    [ComponentMetadataType.AddOnPicker]: ({ component }) => renderAddOnPicker(component),
+    [ComponentMetadataType.Ledger]: ({ component }) => renderLedger(component),
+    [ComponentMetadataType.PaymentPicker]: ({ component }) => renderPaymentPicker(component),
+    [ComponentMetadataType.ProcessMonitor]: ({ component }) => renderProcessMonitor(component),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

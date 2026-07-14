@@ -196,6 +196,17 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.FileList,
     ComponentMetadataType.Checklist,
     ComponentMetadataType.ComparisonCard,
+    ComponentMetadataType.EntityHeader,
+    ComponentMetadataType.Meter,
+    ComponentMetadataType.TaskProgress,
+    ComponentMetadataType.StatusList,
+    ComponentMetadataType.TaskQueue,
+    ComponentMetadataType.ResourceGrid,
+    ComponentMetadataType.OfferCard,
+    ComponentMetadataType.AddOnPicker,
+    ComponentMetadataType.Ledger,
+    ComponentMetadataType.PaymentPicker,
+    ComponentMetadataType.ProcessMonitor,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
