@@ -433,6 +433,241 @@ public sealed record ComparisonCard : ComponentBase
     public string? Trend { get; init; }
 }
 
+// ── Front-office UX components ─────────────────────────────────────────────────
+
+/// <summary>A small status chip: a label on a badge-palette color
+/// (normal|success|warning|error|contrast).</summary>
+public sealed record Chip
+{
+    public string? Label { get; init; }
+    public string? Color { get; init; }
+}
+
+/// <summary>One label-over-value pair of an <see cref="EntityHeader"/>.</summary>
+public sealed record Fact
+{
+    public string? Label { get; init; }
+    public string? Value { get; init; }
+}
+
+/// <summary>Persistent context banner: identity + key facts + one highlighted metric of the
+/// entity a flow operates on (e.g. the guest card of a check-in wizard). No actions.</summary>
+public sealed record EntityHeader : ComponentBase
+{
+    public string? Title { get; init; }
+    public IReadOnlyList<Chip> Badges { get; init; } = [];
+    public string? Subtitle { get; init; }
+    public IReadOnlyList<Fact> Facts { get; init; } = [];
+    public string? MetricLabel { get; init; }
+    public string? MetricValue { get; init; }
+    public string? MetricCaption { get; init; }
+}
+
+/// <summary>Consumption vs limit (e.g. balance vs preauthorization): a formatted value over a
+/// progress track. Fill color: success below WarnAt, warning ≥ WarnAt, error ≥ DangerAt
+/// (thresholds optional; absent → primary color). No actions.</summary>
+public sealed record Meter : ComponentBase
+{
+    public string? Label { get; init; }
+    public double Value { get; init; }
+    public double Max { get; init; }
+    /// <summary>Currency-like symbol appended after the formatted value with a space.</summary>
+    public string? Unit { get; init; }
+    /// <summary>Muted caption below; empty → the client shows the computed fill percent.</summary>
+    public string? Caption { get; init; }
+    public double? WarnAt { get; init; }
+    public double? DangerAt { get; init; }
+}
+
+/// <summary>Subtask completion banner: label + Done/Total pills + an optional CTA dispatching
+/// ActionId. When Done == Total the banner tints success and hides the button.</summary>
+public sealed record TaskProgress : ComponentBase
+{
+    public string? Label { get; init; }
+    public int Total { get; init; }
+    public int Done { get; init; }
+    public string? ActionLabel { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>One row of a <see cref="StatusList"/>: icon + title/description, a status chip and/or
+/// a small action button (dispatches ActionId with parameters { _item: Id }).</summary>
+public sealed record StatusItem
+{
+    public string? Id { get; init; }
+    public string? Icon { get; init; }
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public string? Status { get; init; }
+    public string? StatusColor { get; init; }
+    public string? ActionLabel { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>Rows with an icon, text, status chip and/or action — incidents, side-effects
+/// checklists.</summary>
+public sealed record StatusList : ComponentBase
+{
+    public IReadOnlyList<StatusItem> Items { get; init; } = [];
+}
+
+/// <summary>One card of a <see cref="TaskQueue"/> group. Selected renders with an accent
+/// border + tinted background.</summary>
+public sealed record QueueItem
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public string? Caption { get; init; }
+    public IReadOnlyList<Chip> Badges { get; init; } = [];
+    public bool Selected { get; init; }
+}
+
+/// <summary>One labeled group of a <see cref="TaskQueue"/>.</summary>
+public sealed record QueueGroup
+{
+    public string? Label { get; init; }
+    public IReadOnlyList<QueueItem> Items { get; init; } = [];
+}
+
+/// <summary>Grouped work queue (e.g. arrivals/departures rail). Clicking a card dispatches the
+/// component-level ActionId with parameters { _item: id }.</summary>
+public sealed record TaskQueue : ComponentBase
+{
+    public string? ActionId { get; init; }
+    public IReadOnlyList<QueueGroup> Groups { get; init; } = [];
+}
+
+/// <summary>One cell of a <see cref="ResourceGrid"/>: title + subtitle + status chip, optional
+/// colored note. Disabled → no pointer; Recommended → accent border + floating tag;
+/// Selected → accent border + tint.</summary>
+public sealed record ResourceItem
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public string? StatusLabel { get; init; }
+    public string? StatusColor { get; init; }
+    public string? Note { get; init; }
+    public string? NoteColor { get; init; }
+    public bool Disabled { get; init; }
+    public bool Recommended { get; init; }
+    public bool Selected { get; init; }
+}
+
+/// <summary>Availability/selection grid (e.g. a room picker). Columns fixes the count
+/// (0 = auto-fill). Clicking an enabled item dispatches ActionId with { _item: id }.</summary>
+public sealed record ResourceGrid : ComponentBase
+{
+    public string? ActionId { get; init; }
+    public int Columns { get; init; }
+    /// <summary>Text of the floating mini-tag on recommended items (default "Recommended").</summary>
+    public string? RecommendedLabel { get; init; }
+    public IReadOnlyList<ResourceItem> Items { get; init; } = [];
+}
+
+/// <summary>Current vs upgrade offer card: optional image header, floating Tag chip, feature
+/// chips and a footer — Current shows the muted CurrentLabel (no CTA); otherwise a primary
+/// button ActionLabel with PriceLabel dispatching ActionId.</summary>
+public sealed record OfferCard : ComponentBase
+{
+    public string? Tag { get; init; }
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public string? Image { get; init; }
+    public IReadOnlyList<string> Features { get; init; } = [];
+    public string? PriceLabel { get; init; }
+    public string? ActionLabel { get; init; }
+    public string? ActionId { get; init; }
+    public bool Current { get; init; }
+    public string? CurrentLabel { get; init; }
+}
+
+/// <summary>One priced extra of an <see cref="AddOnPicker"/>. When IncludedLabel is present it is
+/// shown instead of the price and the toggle is hidden. Added seeds the toggle state.</summary>
+public sealed record AddOn
+{
+    public string? Id { get; init; }
+    public string? Icon { get; init; }
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public double? Price { get; init; }
+    /// <summary>Price period/unit shown after the amount (e.g. "estancia" → "€ 343,00 / estancia").</summary>
+    public string? Unit { get; init; }
+    public string? IncludedLabel { get; init; }
+    public bool Added { get; init; }
+}
+
+/// <summary>Priced extras with a live running total. Each toggle dispatches ActionId with
+/// { _item: id, _added: bool, _total: number } when present.</summary>
+public sealed record AddOnPicker : ComponentBase
+{
+    public string? TotalLabel { get; init; }
+    public string? Currency { get; init; }
+    public string? ActionId { get; init; }
+    public IReadOnlyList<AddOn> Items { get; init; } = [];
+}
+
+/// <summary>One row of a <see cref="Ledger"/>. Included lines show IncludedLabel (default
+/// "Included") instead of an amount; negative amounts render error-red.</summary>
+public sealed record LedgerLine
+{
+    public string? Concept { get; init; }
+    public double? Amount { get; init; }
+    public bool Included { get; init; }
+    public string? IncludedLabel { get; init; }
+}
+
+/// <summary>Folio breakdown with a total. Total null → the client computes the sum of the
+/// non-included amounts. No actions.</summary>
+public sealed record Ledger : ComponentBase
+{
+    public string? Currency { get; init; }
+    public string? TotalLabel { get; init; }
+    public IReadOnlyList<LedgerLine> Lines { get; init; } = [];
+    public double? Total { get; init; }
+}
+
+/// <summary>One selectable method of a <see cref="PaymentPicker"/>.</summary>
+public sealed record PaymentMethod
+{
+    public string? Id { get; init; }
+    public string? Label { get; init; }
+}
+
+/// <summary>Payment method + context + confirm CTA: segmented method buttons (client-side state
+/// seeded from Selected), an optional context chip, and a primary ConfirmLabel button
+/// dispatching ActionId with { _method: selectedId }.</summary>
+public sealed record PaymentPicker : ComponentBase
+{
+    public string? ActionId { get; init; }
+    public IReadOnlyList<PaymentMethod> Methods { get; init; } = [];
+    public string? Selected { get; init; }
+    public string? ContextLabel { get; init; }
+    public string? ContextValue { get; init; }
+    public string? ConfirmLabel { get; init; }
+}
+
+/// <summary>One monitored process of a <see cref="ProcessMonitor"/>. Status (ok|warning|error)
+/// drives the colored dot; ActionLabel/ActionId show a small fix button (no parameters).</summary>
+public sealed record ProcessItem
+{
+    public string? Id { get; init; }
+    public string? Name { get; init; }
+    public IReadOnlyList<string> Systems { get; init; } = [];
+    public int Ok { get; init; }
+    public int Warnings { get; init; }
+    public int Errors { get; init; }
+    public string? Status { get; init; }
+    public string? ActionLabel { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>Monitored automation processes with health counters and an optional fix action.</summary>
+public sealed record ProcessMonitor : ComponentBase
+{
+    public IReadOnlyList<ProcessItem> Items { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

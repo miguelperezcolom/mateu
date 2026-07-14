@@ -155,6 +155,17 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(FileListMetadataDto), "FileList")]
 [JsonDerivedType(typeof(ChecklistMetadataDto), "Checklist")]
 [JsonDerivedType(typeof(ComparisonCardMetadataDto), "ComparisonCard")]
+[JsonDerivedType(typeof(EntityHeaderMetadataDto), "EntityHeader")]
+[JsonDerivedType(typeof(MeterMetadataDto), "Meter")]
+[JsonDerivedType(typeof(TaskProgressMetadataDto), "TaskProgress")]
+[JsonDerivedType(typeof(StatusListMetadataDto), "StatusList")]
+[JsonDerivedType(typeof(TaskQueueMetadataDto), "TaskQueue")]
+[JsonDerivedType(typeof(ResourceGridMetadataDto), "ResourceGrid")]
+[JsonDerivedType(typeof(OfferCardMetadataDto), "OfferCard")]
+[JsonDerivedType(typeof(AddOnPickerMetadataDto), "AddOnPicker")]
+[JsonDerivedType(typeof(LedgerMetadataDto), "Ledger")]
+[JsonDerivedType(typeof(PaymentPickerMetadataDto), "PaymentPicker")]
+[JsonDerivedType(typeof(ProcessMonitorMetadataDto), "ProcessMonitor")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -304,6 +315,156 @@ public record ChecklistItemDto(string? Id, string? Label, bool Done, string? Act
 /// <summary>Two-value comparison metadata (mirrors io.mateu.dtos.ComparisonCardDto).</summary>
 public record ComparisonCardMetadataDto(string? Title, string? LeftLabel, string? LeftValue,
     string? RightLabel, string? RightValue, string? Delta, string? Trend) : ComponentMetadataDto;
+
+// ── Front-office UX components (mirror io.mateu.dtos.EntityHeaderDto & friends) ─
+
+/// <summary>A small status chip: label on a badge-palette color (normal|success|warning|error|contrast).</summary>
+public record ChipDto(string? Label, string? Color);
+
+/// <summary>One label-over-value pair of an entity header.</summary>
+public record FactDto(string? Label, string? Value);
+
+/// <summary>Entity-header metadata: identity + key facts + one highlighted metric.</summary>
+public record EntityHeaderMetadataDto(
+    string? Title,
+    IReadOnlyList<ChipDto> Badges,
+    string? Subtitle,
+    IReadOnlyList<FactDto> Facts,
+    string? MetricLabel,
+    string? MetricValue,
+    string? MetricCaption) : ComponentMetadataDto;
+
+/// <summary>Meter metadata: consumption vs limit; WarnAt/DangerAt are optional fill-color
+/// thresholds.</summary>
+public record MeterMetadataDto(
+    string? Label,
+    double Value,
+    double Max,
+    string? Unit,
+    string? Caption,
+    double? WarnAt,
+    double? DangerAt) : ComponentMetadataDto;
+
+/// <summary>Task-progress metadata: Done/Total pills + an optional CTA.</summary>
+public record TaskProgressMetadataDto(
+    string? Label,
+    int Total,
+    int Done,
+    string? ActionLabel,
+    string? ActionId) : ComponentMetadataDto;
+
+/// <summary>Status-list metadata: rows with status chip and/or action.</summary>
+public record StatusListMetadataDto(IReadOnlyList<StatusItemDto> Items) : ComponentMetadataDto;
+
+/// <summary>One status-list row; the action dispatches ActionId with { _item: Id }.</summary>
+public record StatusItemDto(
+    string? Id,
+    string? Icon,
+    string? Title,
+    string? Description,
+    string? Status,
+    string? StatusColor,
+    string? ActionLabel,
+    string? ActionId);
+
+/// <summary>Task-queue metadata: grouped work-queue cards; a card click dispatches the
+/// component-level ActionId with { _item: id }.</summary>
+public record TaskQueueMetadataDto(string? ActionId, IReadOnlyList<QueueGroupDto> Groups) : ComponentMetadataDto;
+
+/// <summary>One labeled task-queue group.</summary>
+public record QueueGroupDto(string? Label, IReadOnlyList<QueueItemDto> Items);
+
+/// <summary>One task-queue card.</summary>
+public record QueueItemDto(string? Id, string? Title, string? Caption, IReadOnlyList<ChipDto> Badges, bool Selected);
+
+/// <summary>Resource-grid metadata: availability/selection grid (Columns 0 = auto-fill).</summary>
+public record ResourceGridMetadataDto(
+    string? ActionId,
+    int Columns,
+    string? RecommendedLabel,
+    IReadOnlyList<ResourceItemDto> Items) : ComponentMetadataDto;
+
+/// <summary>One resource-grid cell.</summary>
+public record ResourceItemDto(
+    string? Id,
+    string? Title,
+    string? Subtitle,
+    string? StatusLabel,
+    string? StatusColor,
+    string? Note,
+    string? NoteColor,
+    bool Disabled,
+    bool Recommended,
+    bool Selected);
+
+/// <summary>Offer-card metadata: current vs upgrade offer; Current shows CurrentLabel and no CTA.</summary>
+public record OfferCardMetadataDto(
+    string? Tag,
+    string? Title,
+    string? Subtitle,
+    string? Image,
+    IReadOnlyList<string> Features,
+    string? PriceLabel,
+    string? ActionLabel,
+    string? ActionId,
+    bool Current,
+    string? CurrentLabel) : ComponentMetadataDto;
+
+/// <summary>Add-on picker metadata: priced extras with a live running total.</summary>
+public record AddOnPickerMetadataDto(
+    string? TotalLabel,
+    string? Currency,
+    string? ActionId,
+    IReadOnlyList<AddOnDto> Items) : ComponentMetadataDto;
+
+/// <summary>One priced extra; IncludedLabel replaces the price and hides the toggle.</summary>
+public record AddOnDto(
+    string? Id,
+    string? Icon,
+    string? Title,
+    string? Description,
+    double? Price,
+    string? Unit,
+    string? IncludedLabel,
+    bool Added);
+
+/// <summary>Ledger metadata: folio breakdown; Total null → client computes the sum.</summary>
+public record LedgerMetadataDto(
+    string? Currency,
+    string? TotalLabel,
+    IReadOnlyList<LedgerLineDto> Lines,
+    double? Total) : ComponentMetadataDto;
+
+/// <summary>One ledger row; Included lines show IncludedLabel instead of an amount.</summary>
+public record LedgerLineDto(string? Concept, double? Amount, bool Included, string? IncludedLabel);
+
+/// <summary>Payment-picker metadata: segmented methods + context chip + confirm CTA dispatching
+/// ActionId with { _method: selectedId }.</summary>
+public record PaymentPickerMetadataDto(
+    string? ActionId,
+    IReadOnlyList<PaymentMethodDto> Methods,
+    string? Selected,
+    string? ContextLabel,
+    string? ContextValue,
+    string? ConfirmLabel) : ComponentMetadataDto;
+
+/// <summary>One selectable payment method.</summary>
+public record PaymentMethodDto(string? Id, string? Label);
+
+/// <summary>Process-monitor metadata: monitored automation processes with health counters.</summary>
+public record ProcessMonitorMetadataDto(IReadOnlyList<ProcessItemDto> Items) : ComponentMetadataDto;
+
+/// <summary>One monitored process; Status is ok|warning|error.</summary>
+public record ProcessItemDto(
+    string? Id,
+    string? Name,
+    IReadOnlyList<string> Systems,
+    int Ok,
+    int Warnings,
+    int Errors,
+    string? Status,
+    string? ActionLabel,
+    string? ActionId);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

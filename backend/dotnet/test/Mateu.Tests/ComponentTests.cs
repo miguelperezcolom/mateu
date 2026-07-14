@@ -226,6 +226,198 @@ public class Dash : Dashboard
         Delta = "+26%", Trend = "up",
     };
 
+    [Panel(Title = "Guest")]
+    public EntityHeader Guest { get; } = new()
+    {
+        Title = "María Fernández",
+        Badges = [new Chip { Label = "PLATINUM", Color = "contrast" }],
+        Subtitle = "Ocean Suite · 30 Apr → 07 May · 7N · 2pax · All Inclusive",
+        Facts =
+        [
+            new Fact { Label = "TOTAL RESERVA", Value = "€ 4.890,00" },
+            new Fact { Label = "AGENCIA", Value = "TUI Group · TUI Magic Life" },
+        ],
+        MetricLabel = "FIDELIDAD", MetricValue = "48.500", MetricCaption = "23 estancias",
+    };
+
+    [Panel(Title = "Balance")]
+    public Meter Balance { get; } = new()
+    {
+        Label = "BALANCE ACTUAL", Value = 1240.0, Max = 1800.0, Unit = "€",
+        Caption = "69% de la preautorización consumido", WarnAt = 1440.0, DangerAt = 1710.0,
+    };
+
+    [Panel(Title = "Pax")]
+    public TaskProgress Pax { get; } = new()
+    {
+        Label = "Reserva con 4 pax. Registrar huéspedes adicionales.",
+        Total = 4, Done = 1, ActionLabel = "Añadir siguiente pax", ActionId = "addPax",
+    };
+
+    [Panel(Title = "Incidents")]
+    public StatusList Incidents { get; } = new()
+    {
+        Items =
+        [
+            new StatusItem
+            {
+                Id = "ac", Icon = "🌡", Title = "Aire acondicionado con ruido",
+                Description = "Habitación 901 · Reportado 28 Apr · Mantenimiento avisado",
+                Status = "En curso", StatusColor = "normal",
+            },
+            new StatusItem
+            {
+                Id = "key", Icon = "🔑", Title = "Grabar llave / pulsera",
+                Description = "Complemento de llave digital",
+                ActionLabel = "Grabar", ActionId = "encodeKey",
+            },
+            new StatusItem
+            {
+                Id = "ses", Icon = "✓", Title = "Parte viajeros (SES)",
+                Description = "Se enviará automáticamente al confirmar el check-in",
+                Status = "Automático", StatusColor = "success",
+            },
+        ],
+    };
+
+    [Panel(Title = "Queue")]
+    public TaskQueue Queue { get; } = new()
+    {
+        ActionId = "openGuest",
+        Groups =
+        [
+            new QueueGroup
+            {
+                Label = "En hotel · late check-out primero",
+                Items =
+                [
+                    new QueueItem
+                    {
+                        Id = "1108", Title = "Carlos Mendoza", Caption = "Hab 1108 · 7N",
+                        Badges = [new Chip { Label = "LATE · 18:00", Color = "warning" }], Selected = true,
+                    },
+                ],
+            },
+            new QueueGroup
+            {
+                Label = "Salida pendiente",
+                Items =
+                [
+                    new QueueItem
+                    {
+                        Id = "901", Title = "Sophie Laurent", Caption = "Hab 901",
+                        Badges = [new Chip { Label = "GOLD", Color = "contrast" }],
+                    },
+                ],
+            },
+        ],
+    };
+
+    [Panel(Title = "Rooms")]
+    public ResourceGrid Rooms { get; } = new()
+    {
+        ActionId = "pickRoom", Columns = 4, RecommendedLabel = "RECOMENDADA",
+        Items =
+        [
+            new ResourceItem
+            {
+                Id = "1201", Title = "1201", Subtitle = "Ocupada", StatusLabel = "Sucia",
+                StatusColor = "contrast", Disabled = true,
+            },
+            new ResourceItem
+            {
+                Id = "1204", Title = "1204", Subtitle = "Ocean Suite", StatusLabel = "Inspeccionada",
+                StatusColor = "success", Recommended = true, Selected = true,
+            },
+            new ResourceItem
+            {
+                Id = "1206", Title = "1206", Subtitle = "Libre", StatusLabel = "Limpia",
+                StatusColor = "success", Note = "Ducha averiada", NoteColor = "error",
+            },
+        ],
+    };
+
+    [Panel(Title = "Offer")]
+    public OfferCard Offer { get; } = new()
+    {
+        Tag = "UPGRADE DISPONIBLE", Title = "Master Oceanfront Suite",
+        Subtitle = "Planta 14 · Primera línea", Image = "https://img/suite.jpg",
+        Features = ["68 m²", "Vista mar frontal", "Terraza + jacuzzi", "Sofá lounge"],
+        PriceLabel = "+ € 65 / noche", ActionLabel = "Mejorar a esta habitación",
+        ActionId = "upgrade",
+    };
+
+    [Panel(Title = "Extras")]
+    public AddOnPicker Extras { get; } = new()
+    {
+        TotalLabel = "Añadidos", Currency = "€", ActionId = "extrasChanged",
+        Items =
+        [
+            new AddOn
+            {
+                Id = "allinc", Icon = "🍹", Title = "Paquete All Inclusive",
+                Description = "Todo incluido · 7 noches · 2 pax", Price = 343.0, Unit = "estancia",
+            },
+            new AddOn
+            {
+                Id = "parking", Icon = "🅿", Title = "Parking",
+                Description = "Cubierto · Vigilancia 24h", IncludedLabel = "Incluido Platinum",
+            },
+            new AddOn
+            {
+                Id = "late", Icon = "🕕", Title = "Late check-out",
+                Description = "Hasta las 18:00h", Price = 40.0, Added = true,
+            },
+        ],
+    };
+
+    [Panel(Title = "Folio")]
+    public Ledger Folio { get; } = new()
+    {
+        Currency = "€", TotalLabel = "Total",
+        Lines =
+        [
+            new LedgerLine { Concept = "Alojamiento x7 noches", Amount = 1540.0 },
+            new LedgerLine { Concept = "All Inclusive Package", Included = true, IncludedLabel = "Incluido" },
+            new LedgerLine { Concept = "Descuento Platinum -10%", Amount = -154.0 },
+        ],
+        Total = 1710.5,
+    };
+
+    [Panel(Title = "Payment")]
+    public PaymentPicker Payment { get; } = new()
+    {
+        ActionId = "confirmPayment",
+        Methods =
+        [
+            new PaymentMethod { Id = "card", Label = "Tarjeta" },
+            new PaymentMethod { Id = "cash", Label = "Efectivo" },
+            new PaymentMethod { Id = "points", Label = "Puntos" },
+        ],
+        Selected = "card",
+        ContextLabel = "PREAUTORIZADO", ContextValue = "€ 1.800,00",
+        ConfirmLabel = "Confirmar — € 1.710,50",
+    };
+
+    [Panel(Title = "Automations")]
+    public ProcessMonitor Automations { get; } = new()
+    {
+        Items =
+        [
+            new ProcessItem
+            {
+                Id = "credit", Name = "Facturación a Crédito", Systems = ["OHIP", "OIC", "Voxel"],
+                Ok = 847, Warnings = 6, Errors = 0, Status = "warning",
+                ActionLabel = "Solucionar", ActionId = "fixCredit",
+            },
+            new ProcessItem
+            {
+                Id = "sales", Name = "Comercializadora", Systems = ["OHIP", "ERP Fusion A/R"],
+                Ok = 418, Warnings = 0, Errors = 0, Status = "ok",
+            },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -282,9 +474,12 @@ public class Item : ItemOverview
 
 public class ComponentTests
 {
+    // Same options as the sync endpoint (MateuExtensions.Json): camelCase, keep nulls, raw UTF-8
+    // (no \uXXXX escaping) — the Java (Jackson) wire representation.
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
     private static SyncHandler Handler() => new(new MateuRegistry(typeof(Dash).Assembly));
@@ -555,6 +750,132 @@ public class ComponentTests
         Assert.Contains("\"rightValue\":\"€48k\"", json);
         Assert.Contains("\"delta\":\"+26%\"", json);
         Assert.Contains("\"trend\":\"up\"", json);
+    }
+
+    [Fact]
+    public void Entity_header_emits_badges_facts_and_metric()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"EntityHeader\"", json);
+        Assert.Contains("\"title\":\"María Fernández\"", json);
+        Assert.Contains("\"label\":\"PLATINUM\"", json);
+        Assert.Contains("\"label\":\"TOTAL RESERVA\"", json);
+        Assert.Contains("\"metricValue\":\"48.500\"", json);
+    }
+
+    [Fact]
+    public void Meter_emits_value_max_and_thresholds_as_numbers()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Meter\"", json);
+        Assert.Contains("\"label\":\"BALANCE ACTUAL\"", json);
+        Assert.Contains("\"value\":1240", json);
+        Assert.Contains("\"max\":1800", json);
+        Assert.Contains("\"warnAt\":1440", json);
+    }
+
+    [Fact]
+    public void Task_progress_emits_counts_and_cta()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"TaskProgress\"", json);
+        Assert.Contains("\"total\":4", json);
+        Assert.Contains("\"done\":1", json);
+        Assert.Contains("\"actionId\":\"addPax\"", json);
+    }
+
+    [Fact]
+    public void Status_list_emits_items_with_chips_and_actions()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"StatusList\"", json);
+        Assert.Contains("\"title\":\"Aire acondicionado con ruido\"", json);
+        Assert.Contains("\"status\":\"Automático\"", json);
+        Assert.Contains("\"actionId\":\"encodeKey\"", json);
+    }
+
+    [Fact]
+    public void Task_queue_emits_groups_with_badged_cards()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"TaskQueue\"", json);
+        Assert.Contains("\"actionId\":\"openGuest\"", json);
+        Assert.Contains("\"title\":\"Carlos Mendoza\"", json);
+        Assert.Contains("\"label\":\"LATE · 18:00\"", json);
+        Assert.Contains("\"selected\":true", json);
+    }
+
+    [Fact]
+    public void Resource_grid_emits_items_with_status_and_flags()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"ResourceGrid\"", json);
+        Assert.Contains("\"recommendedLabel\":\"RECOMENDADA\"", json);
+        Assert.Contains("\"recommended\":true", json);
+        Assert.Contains("\"note\":\"Ducha averiada\"", json);
+        Assert.Contains("\"disabled\":true", json);
+    }
+
+    [Fact]
+    public void Offer_card_emits_tag_features_and_price()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"OfferCard\"", json);
+        Assert.Contains("\"tag\":\"UPGRADE DISPONIBLE\"", json);
+        Assert.Contains("\"priceLabel\":\"+ € 65 / noche\"", json);
+        Assert.Contains("\"current\":false", json);
+    }
+
+    [Fact]
+    public void Add_on_picker_emits_prices_as_numbers_and_included_labels()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"AddOnPicker\"", json);
+        Assert.Contains("\"price\":343", json);
+        Assert.Contains("\"includedLabel\":\"Incluido Platinum\"", json);
+        Assert.Contains("\"added\":true", json);
+    }
+
+    [Fact]
+    public void Ledger_emits_lines_with_amounts_and_total()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Ledger\"", json);
+        Assert.Contains("\"concept\":\"Alojamiento x7 noches\"", json);
+        Assert.Contains("\"amount\":-154", json);
+        Assert.Contains("\"total\":1710.5", json);
+    }
+
+    [Fact]
+    public void Payment_picker_emits_methods_context_and_confirm()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"PaymentPicker\"", json);
+        Assert.Contains("\"selected\":\"card\"", json);
+        Assert.Contains("\"contextLabel\":\"PREAUTORIZADO\"", json);
+        Assert.Contains("\"confirmLabel\":\"Confirmar — € 1.710,50\"", json);
+    }
+
+    [Fact]
+    public void Process_monitor_emits_items_with_counters()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"ProcessMonitor\"", json);
+        Assert.Contains("\"name\":\"Facturación a Crédito\"", json);
+        Assert.Contains("\"ok\":847", json);
+        Assert.Contains("\"warnings\":6", json);
+        Assert.Contains("\"actionId\":\"fixCredit\"", json);
     }
 
     [Fact]

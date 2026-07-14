@@ -84,6 +84,49 @@ public static class ComponentMapper
         ComparisonCard cc => Dto(cc, new ComparisonCardMetadataDto(cc.Title, cc.LeftLabel,
             cc.LeftValue, cc.RightLabel, cc.RightValue, cc.Delta, cc.Trend)),
 
+        // Front-office UX components.
+        EntityHeader eh => Dto(eh, new EntityHeaderMetadataDto(
+            eh.Title, eh.Badges.Select(MapChip).ToList(), eh.Subtitle,
+            eh.Facts.Select(f => new FactDto(f.Label, f.Value)).ToList(),
+            eh.MetricLabel, eh.MetricValue, eh.MetricCaption)),
+
+        Meter mt => Dto(mt, new MeterMetadataDto(
+            mt.Label, mt.Value, mt.Max, mt.Unit, mt.Caption, mt.WarnAt, mt.DangerAt)),
+
+        TaskProgress tp => Dto(tp, new TaskProgressMetadataDto(
+            tp.Label, tp.Total, tp.Done, tp.ActionLabel, tp.ActionId)),
+
+        StatusList sl => Dto(sl, new StatusListMetadataDto(sl.Items.Select(i => new StatusItemDto(
+            i.Id, i.Icon, i.Title, i.Description, i.Status, i.StatusColor, i.ActionLabel, i.ActionId)).ToList())),
+
+        TaskQueue tq => Dto(tq, new TaskQueueMetadataDto(tq.ActionId, tq.Groups.Select(g =>
+            new QueueGroupDto(g.Label, g.Items.Select(i => new QueueItemDto(
+                i.Id, i.Title, i.Caption, i.Badges.Select(MapChip).ToList(), i.Selected)).ToList())).ToList())),
+
+        ResourceGrid rg => Dto(rg, new ResourceGridMetadataDto(
+            rg.ActionId, rg.Columns, rg.RecommendedLabel, rg.Items.Select(i => new ResourceItemDto(
+                i.Id, i.Title, i.Subtitle, i.StatusLabel, i.StatusColor, i.Note, i.NoteColor,
+                i.Disabled, i.Recommended, i.Selected)).ToList())),
+
+        OfferCard ofc => Dto(ofc, new OfferCardMetadataDto(
+            ofc.Tag, ofc.Title, ofc.Subtitle, ofc.Image, ofc.Features, ofc.PriceLabel,
+            ofc.ActionLabel, ofc.ActionId, ofc.Current, ofc.CurrentLabel)),
+
+        AddOnPicker aop => Dto(aop, new AddOnPickerMetadataDto(
+            aop.TotalLabel, aop.Currency, aop.ActionId, aop.Items.Select(a => new AddOnDto(
+                a.Id, a.Icon, a.Title, a.Description, a.Price, a.Unit, a.IncludedLabel, a.Added)).ToList())),
+
+        Ledger ld => Dto(ld, new LedgerMetadataDto(ld.Currency, ld.TotalLabel, ld.Lines.Select(l =>
+            new LedgerLineDto(l.Concept, l.Amount, l.Included, l.IncludedLabel)).ToList(), ld.Total)),
+
+        PaymentPicker pay => Dto(pay, new PaymentPickerMetadataDto(
+            pay.ActionId, pay.Methods.Select(m2 => new PaymentMethodDto(m2.Id, m2.Label)).ToList(),
+            pay.Selected, pay.ContextLabel, pay.ContextValue, pay.ConfirmLabel)),
+
+        ProcessMonitor pmn => Dto(pmn, new ProcessMonitorMetadataDto(pmn.Items.Select(p =>
+            new ProcessItemDto(p.Id, p.Name, p.Systems, p.Ok, p.Warnings, p.Errors,
+                p.Status, p.ActionLabel, p.ActionId)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),
@@ -192,6 +235,8 @@ public static class ComponentMapper
     private static OrgNodeDto? MapOrgNode(OrgNode? n) =>
         n is null ? null : new OrgNodeDto(n.Id, n.Title, n.Subtitle, n.Avatar, n.Color, n.ActionId,
             n.Children.Select(c => MapOrgNode(c)!).ToList());
+
+    private static ChipDto MapChip(Chip c) => new(c.Label, c.Color);
 
     private static CommentDto MapComment(Comment c) =>
         new(c.Id, c.Author, c.Avatar, c.Text, c.Timestamp, c.Replies.Select(MapComment).ToList());

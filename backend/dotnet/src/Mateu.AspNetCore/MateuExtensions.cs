@@ -11,10 +11,13 @@ namespace Mateu.AspNetCore;
 
 public static class MateuExtensions
 {
-    /// <summary>Mateu's JSON contract: camelCase, case-insensitive, keep nulls (match the Java output).</summary>
+    /// <summary>Mateu's JSON contract: camelCase, case-insensitive, keep nulls, and raw UTF-8 —
+    /// no \uXXXX escaping of non-ASCII/HTML characters — to match the Java (Jackson) output
+    /// byte for byte.</summary>
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
     public static IServiceCollection AddMateu(this IServiceCollection services, params Assembly[] assemblies)
