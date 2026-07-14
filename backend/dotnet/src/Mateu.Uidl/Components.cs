@@ -330,6 +330,22 @@ public sealed record FeatureGrid : ComponentBase
     public int Columns { get; init; }
 }
 
+/// <summary>One card of a <see cref="Testimonials"/> block: a quote, an author and a rating.</summary>
+public sealed record Testimonial
+{
+    public string? Quote { get; init; }
+    public string? Author { get; init; }
+    public string? Role { get; init; }
+    public string? Avatar { get; init; }
+    public int Rating { get; init; }
+}
+
+/// <summary>A responsive grid of testimonial / quote cards.</summary>
+public sealed record Testimonials : ComponentBase
+{
+    public IReadOnlyList<Testimonial> Items { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

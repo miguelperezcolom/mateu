@@ -156,6 +156,16 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Voices")]
+    public Testimonials Voices { get; } = new()
+    {
+        Items =
+        [
+            new Testimonial { Quote = "Shipped in a day.", Author = "Ada", Role = "CTO", Rating = 5 },
+            new Testimonial { Quote = "Solid.", Author = "Alan", Rating = 4 },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -404,6 +414,17 @@ public class ComponentTests
         Assert.Contains("\"columns\":3", json);
         Assert.Contains("\"title\":\"Fast\"", json);
         Assert.Contains("\"actionId\":\"openFeature\"", json);
+    }
+
+    [Fact]
+    public void Testimonials_emit_quotes_and_ratings()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Testimonials\"", json);
+        Assert.Contains("\"quote\":\"Shipped in a day.\"", json);
+        Assert.Contains("\"author\":\"Ada\"", json);
+        Assert.Contains("\"rating\":5", json);
     }
 
     [Fact]

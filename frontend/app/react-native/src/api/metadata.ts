@@ -234,3 +234,16 @@ export interface FeatureGrid {
   features?: Feature[];
   columns?: number;
 }
+
+export interface Testimonial {
+  quote?: string;
+  author?: string;
+  role?: string;
+  avatar?: string;
+  rating?: number;
+}
+
+export interface Testimonials {
+  type?: 'Testimonials';
+  items?: Testimonial[];
+}

@@ -28,6 +28,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressStepsMappe
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ScoreboardMapper.mapScoreboardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.SkeletonMapper.mapSkeletonToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.StatMapper.mapStatToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.TestimonialsMapper.mapTestimonialsToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TextMapper.mapTextToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TimelineMapper.mapTimelineToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TrendChartMapper.mapTrendChartToDto;
@@ -111,6 +112,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof FeatureGrid featureGrid) {
       return mapFeatureGridToDto(featureGrid);
+    }
+    if (component instanceof Testimonials testimonials) {
+      return mapTestimonialsToDto(testimonials);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

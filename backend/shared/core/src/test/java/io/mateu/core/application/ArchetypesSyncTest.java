@@ -51,6 +51,7 @@ import io.mateu.dtos.SplitLayoutDto;
 import io.mateu.dtos.StatDto;
 import io.mateu.dtos.TabDto;
 import io.mateu.dtos.TabLayoutDto;
+import io.mateu.dtos.TestimonialsDto;
 import io.mateu.dtos.TextDto;
 import io.mateu.dtos.TimelineDto;
 import io.mateu.dtos.TooltipDto;
@@ -115,6 +116,8 @@ import io.mateu.uidl.data.Stat;
 import io.mateu.uidl.data.Step;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
+import io.mateu.uidl.data.Testimonial;
+import io.mateu.uidl.data.Testimonials;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.Timeline;
 import io.mateu.uidl.data.TimelineItem;
@@ -447,6 +450,20 @@ class ArchetypesSyncTest {
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
                           .build()))
+              .build());
+      content.add(
+          Testimonials.builder()
+              .id("testimonials")
+              .items(
+                  List.of(
+                      Testimonial.builder()
+                          .quote("Shipped in a day.")
+                          .author("Ada")
+                          .role("CTO")
+                          .avatar("👩")
+                          .rating(5)
+                          .build(),
+                      Testimonial.builder().quote("Solid.").author("Alan").rating(4).build()))
               .build());
       content.add(
           FeatureGrid.builder()
@@ -959,6 +976,18 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void testimonialsSerialize() {
+    var t = findFirst(sync("/component-showcase"), TestimonialsDto.class);
+    assertThat(t).isNotNull();
+    var items = ((TestimonialsDto) t.metadata()).items();
+    assertThat(items).hasSize(2);
+    assertThat(items.get(0).quote()).isEqualTo("Shipped in a day.");
+    assertThat(items.get(0).author()).isEqualTo("Ada");
+    assertThat(items.get(0).rating()).isEqualTo(5);
+    assertThat(items.get(1).rating()).isEqualTo(4);
   }
 
   @Test

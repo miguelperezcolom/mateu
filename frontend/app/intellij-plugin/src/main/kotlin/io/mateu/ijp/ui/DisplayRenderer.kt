@@ -485,6 +485,31 @@ fun renderFeatureGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
+/** Testimonials: a vertical list of quote cards (stars + quote + author) on Swing. */
+fun renderTestimonials(metadata: JsonNode): JComponent {
+    val panel = verticalPanel(8)
+    for (item in metadata.arr("items")) {
+        val card = verticalPanel(3)
+        card.border = JBUI.Borders.compound(
+            JBUI.Borders.customLine(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground(), 1),
+            JBUI.Borders.empty(12))
+        val rating = item.path("rating").asInt(0).coerceIn(0, 5)
+        if (rating > 0) {
+            card.addStacked(JBLabel("★".repeat(rating) + "☆".repeat(5 - rating)).apply {
+                foreground = Color(0xF5, 0xA6, 0x23)
+            }, 2)
+        }
+        card.addStacked(JBLabel("<html><i>“${item.text("quote")}”</i></html>"), 4)
+        val avatar = item.text("avatar")
+        val author = item.text("author") + item.text("role").let { if (it.isNotBlank()) " · $it" else "" }
+        card.addStacked(JBLabel((if (avatar.isNotBlank() && !avatar.contains(":")) "$avatar " else "") + author).apply {
+            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        }, 0)
+        panel.addStacked(card, 8)
+    }
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, EmptyState, Feature, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
+import { CalendarEvent, EmptyState, Feature, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -553,6 +553,27 @@ export function FeatureGridRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Testimonials (mobile: stacked quote cards) ────────────────────────────────
+export function TestimonialsRenderer({ component }: { component: unknown }) {
+  const items = (meta(component)['items'] as Testimonial[]) ?? [];
+  const stars = (r: number) => '★'.repeat(Math.max(0, Math.min(5, r))) + '☆'.repeat(5 - Math.max(0, Math.min(5, r)));
+  return (
+    <View style={styles.testimonials}>
+      {items.map((t, i) => (
+        <View key={i} style={styles.testimonialCard}>
+          {!!t.rating && <Text style={styles.testimonialStars}>{stars(t.rating)}</Text>}
+          <Text style={styles.testimonialQuote}>“{t.quote}”</Text>
+          <Text style={styles.testimonialAuthor}>
+            {t.avatar && !t.avatar.includes(':') ? `${t.avatar} ` : ''}
+            <Text style={{ fontWeight: '600' }}>{t.author}</Text>
+            {t.role ? ` · ${t.role}` : ''}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -697,4 +718,10 @@ const styles = StyleSheet.create({
   featureIcon: { fontSize: 24 },
   featureTitle: { fontWeight: '700', color: '#111' },
   featureDesc: { color: '#666', fontSize: 13 },
+  // Testimonials
+  testimonials: { gap: 10 },
+  testimonialCard: { padding: 14, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, backgroundColor: '#fff', gap: 6 },
+  testimonialStars: { color: '#f5a623', letterSpacing: 1 },
+  testimonialQuote: { fontStyle: 'italic', color: '#333', lineHeight: 20 },
+  testimonialAuthor: { color: '#666', fontSize: 13 },
 });

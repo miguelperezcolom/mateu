@@ -49,6 +49,8 @@ from mateu_uidl.components import (  # noqa: E402
     Step,
     Timeline,
     TimelineItem,
+    Testimonial,
+    Testimonials,
     TrendChart,
     MetricTrend,
     Skeleton,
@@ -215,6 +217,19 @@ class PricingPlans(ComponentTreeSupplier):
                     features=("Unlimited projects", "Priority support"),
                     cta_label="Go Pro", action_id="choosePlan",
                 ),
+            ),
+        )
+
+
+@ui("voices")
+@title("Voices")
+class CustomerVoices(ComponentTreeSupplier):
+    def component(self):
+        return Testimonials(
+            id="testimonials",
+            items=(
+                Testimonial(quote="Shipped in a day.", author="Ada", role="CTO", avatar="👩", rating=5),
+                Testimonial(quote="Solid.", author="Alan", rating=4),
             ),
         )
 
@@ -436,6 +451,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_testimonials():
+    doc = render(CustomerVoices)
+    (t,) = page_children(doc)
+    assert t["id"] == "testimonials"
+    assert t["metadata"]["type"] == "Testimonials"
+    items = t["metadata"]["items"]
+    assert len(items) == 2
+    assert items[0]["quote"] == "Shipped in a day."
+    assert items[0]["author"] == "Ada"
+    assert items[0]["rating"] == 5
 
 
 def test_component_tree_supplier_emits_feature_grid():

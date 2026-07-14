@@ -487,6 +487,30 @@ class FeatureGrid(Component):
 
 
 @dataclass(frozen=True)
+class Testimonial:
+    """One card of a :class:`Testimonials` block: a quote, an author and a 0–5 rating."""
+
+    quote: str | None = None
+    author: str | None = None
+    role: str | None = None
+    avatar: str | None = None
+    rating: int = 0
+
+
+@dataclass(frozen=True)
+class Testimonials(Component):
+    """A responsive grid of testimonial / quote cards."""
+
+    items: tuple[Testimonial, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -589,4 +613,6 @@ __all__ = [
     "TrendChart",
     "Feature",
     "FeatureGrid",
+    "Testimonial",
+    "Testimonials",
 ]

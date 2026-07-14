@@ -20,6 +20,7 @@ import {
   FoldoutRenderer, HeroSectionRenderer, EmptyStateRenderer, SkeletonRenderer, GanttRenderer, KanbanRenderer,
   TimelineRenderer, ProgressStepsRenderer, StatRenderer, CalendarRenderer, PricingTableRenderer,
   OrgChartRenderer, HeatmapRenderer, FunnelRenderer, TrendChartRenderer, FeatureGridRenderer,
+  TestimonialsRenderer,
 } from './DisplayRenderer';
 import { EmptyState, MetricCard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
@@ -219,6 +220,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <TrendChartRenderer component={component} />;
     case 'FeatureGrid':
       return <FeatureGridRenderer component={component} />;
+    case 'Testimonials':
+      return <TestimonialsRenderer component={component} />;
 
     case 'Markdown':
       return <RichText value={(metadata['markdown'] as string) ?? ''} kind="markdown" />;

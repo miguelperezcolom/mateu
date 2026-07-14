@@ -59,6 +59,8 @@ from mateu_dtos import (
     TrendChartMetadata,
     FeatureGridMetadata,
     FeatureRecord,
+    TestimonialsMetadata,
+    TestimonialRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -761,6 +763,14 @@ class ReflectionMapper:
             return self._fluent_client(
                 FeatureGridMetadata(features=features, columns=c.columns), c
             )
+        if isinstance(c, fluent.Testimonials):
+            items = [
+                TestimonialRecord(
+                    quote=t.quote, author=t.author, role=t.role, avatar=t.avatar, rating=t.rating
+                )
+                for t in c.items
+            ]
+            return self._fluent_client(TestimonialsMetadata(items=items), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

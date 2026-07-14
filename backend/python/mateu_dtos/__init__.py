@@ -523,6 +523,23 @@ class FeatureGridMetadata(Wire):
     columns: int = 0
 
 
+class TestimonialRecord(Wire):
+    """One testimonial card; ``rating`` is 0–5 stars (mirrors ``TestimonialDto``)."""
+
+    quote: str | None = None
+    author: str | None = None
+    role: str | None = None
+    avatar: str | None = None
+    rating: int = 0
+
+
+class TestimonialsMetadata(Wire):
+    """Testimonials metadata: quote cards (mirrors ``TestimonialsDto``)."""
+
+    type: Literal["Testimonials"] = "Testimonials"
+    items: list[TestimonialRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -615,6 +632,7 @@ ComponentMetadata = Annotated[
         FunnelMetadata,
         TrendChartMetadata,
         FeatureGridMetadata,
+        TestimonialsMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

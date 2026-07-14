@@ -189,6 +189,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Funnel,
     ComponentMetadataType.TrendChart,
     ComponentMetadataType.FeatureGrid,
+    ComponentMetadataType.Testimonials,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

@@ -148,6 +148,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(FunnelMetadataDto), "Funnel")]
 [JsonDerivedType(typeof(TrendChartMetadataDto), "TrendChart")]
 [JsonDerivedType(typeof(FeatureGridMetadataDto), "FeatureGrid")]
+[JsonDerivedType(typeof(TestimonialsMetadataDto), "Testimonials")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -260,6 +261,12 @@ public record FeatureGridMetadataDto(IReadOnlyList<FeatureDto> Features, int Col
 
 /// <summary>One feature card.</summary>
 public record FeatureDto(string? Icon, string? Title, string? Description, string? ActionId);
+
+/// <summary>Testimonials metadata: quote cards.</summary>
+public record TestimonialsMetadataDto(IReadOnlyList<TestimonialDto> Items) : ComponentMetadataDto;
+
+/// <summary>One testimonial card; Rating is 0–5 stars.</summary>
+public record TestimonialDto(string? Quote, string? Author, string? Role, string? Avatar, int Rating);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

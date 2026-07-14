@@ -66,6 +66,9 @@ public static class ComponentMapper
         FeatureGrid fg => Dto(fg, new FeatureGridMetadataDto(fg.Features.Select(f =>
             new FeatureDto(f.Icon, f.Title, f.Description, f.ActionId)).ToList(), fg.Columns)),
 
+        Testimonials ts => Dto(ts, new TestimonialsMetadataDto(ts.Items.Select(t =>
+            new TestimonialDto(t.Quote, t.Author, t.Role, t.Avatar, t.Rating)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),
