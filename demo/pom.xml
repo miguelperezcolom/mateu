@@ -26,6 +26,7 @@
     <module>demo-vaadin-helidon-mp</module>
     <module>demo-vaadin-kotlin-mvc</module>
     <module>demo-admin-panel</module>
+    <module>demo-front-office</module>
   </modules>
 
 </project>
