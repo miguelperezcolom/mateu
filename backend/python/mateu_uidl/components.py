@@ -533,6 +533,21 @@ class Faq(Component):
 
 
 @dataclass(frozen=True)
+class CalloutCard(Component):
+    """A highlighted call-to-action block. ``theme`` is info|success|warning|danger."""
+
+    title: str | None = None
+    description: str | None = None
+    icon: str | None = None
+    cta_label: str | None = None
+    action_id: str | None = None
+    theme: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -639,4 +654,5 @@ __all__ = [
     "Testimonials",
     "FaqItem",
     "Faq",
+    "CalloutCard",
 ]

@@ -176,6 +176,13 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Callout")]
+    public CalloutCard Callout { get; } = new()
+    {
+        Theme = "success", Icon = "party", Title = "You're all set",
+        Description = "Your workspace is ready.", CtaLabel = "Open it", ActionId = "openWorkspace",
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -446,6 +453,17 @@ public class ComponentTests
         Assert.Contains("\"question\":\"Is it free?\"", json);
         Assert.Contains("\"answer\":\"There is a free tier.\"", json);
         Assert.Contains("\"open\":true", json);
+    }
+
+    [Fact]
+    public void Callout_card_emits_theme_and_cta()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"CalloutCard\"", json);
+        Assert.Contains("\"theme\":\"success\"", json);
+        Assert.Contains("\"title\":\"You're all set\"", json);
+        Assert.Contains("\"actionId\":\"openWorkspace\"", json);
     }
 
     [Fact]

@@ -360,6 +360,17 @@ public sealed record Faq : ComponentBase
     public IReadOnlyList<FaqItem> Items { get; init; } = [];
 }
 
+/// <summary>A highlighted call-to-action block. Theme: info|success|warning|danger.</summary>
+public sealed record CalloutCard : ComponentBase
+{
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public string? Icon { get; init; }
+    public string? CtaLabel { get; init; }
+    public string? ActionId { get; init; }
+    public string? Theme { get; init; }
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

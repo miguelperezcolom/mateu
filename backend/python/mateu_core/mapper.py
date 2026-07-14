@@ -63,6 +63,7 @@ from mateu_dtos import (
     TestimonialRecord,
     FaqMetadata,
     FaqItemRecord,
+    CalloutCardMetadata,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -778,6 +779,18 @@ class ReflectionMapper:
                 FaqItemRecord(question=i.question, answer=i.answer, open=i.open) for i in c.items
             ]
             return self._fluent_client(FaqMetadata(items=items), c)
+        if isinstance(c, fluent.CalloutCard):
+            return self._fluent_client(
+                CalloutCardMetadata(
+                    title=c.title,
+                    description=c.description,
+                    icon=c.icon,
+                    cta_label=c.cta_label,
+                    action_id=c.action_id,
+                    theme=c.theme,
+                ),
+                c,
+            )
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

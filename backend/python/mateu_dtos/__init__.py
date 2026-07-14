@@ -555,6 +555,18 @@ class FaqMetadata(Wire):
     items: list[FaqItemRecord] = Field(default_factory=list)
 
 
+class CalloutCardMetadata(Wire):
+    """Callout-card metadata: a themed call-to-action block (mirrors ``CalloutCardDto``)."""
+
+    type: Literal["CalloutCard"] = "CalloutCard"
+    title: str | None = None
+    description: str | None = None
+    icon: str | None = None
+    cta_label: str | None = None
+    action_id: str | None = None
+    theme: str | None = None
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -649,6 +661,7 @@ ComponentMetadata = Annotated[
         FeatureGridMetadata,
         TestimonialsMetadata,
         FaqMetadata,
+        CalloutCardMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

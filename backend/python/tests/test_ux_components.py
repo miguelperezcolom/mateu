@@ -26,6 +26,7 @@ from mateu_uidl.components import (  # noqa: E402
     Button,
     Calendar,
     CalendarEvent,
+    CalloutCard,
     EmptyState,
     Feature,
     FeatureGrid,
@@ -220,6 +221,21 @@ class PricingPlans(ComponentTreeSupplier):
                     cta_label="Go Pro", action_id="choosePlan",
                 ),
             ),
+        )
+
+
+@ui("upgrade")
+@title("Upgrade")
+class UpgradeCallout(ComponentTreeSupplier):
+    def component(self):
+        return CalloutCard(
+            id="callout",
+            theme="success",
+            icon="🎉",
+            title="You're all set",
+            description="Your workspace is ready.",
+            cta_label="Open it",
+            action_id="openWorkspace",
         )
 
 
@@ -466,6 +482,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_callout_card():
+    doc = render(UpgradeCallout)
+    (callout,) = page_children(doc)
+    assert callout["id"] == "callout"
+    assert callout["metadata"]["type"] == "CalloutCard"
+    m = callout["metadata"]
+    assert m["theme"] == "success"
+    assert m["title"] == "You're all set"
+    assert m["ctaLabel"] == "Open it"
+    assert m["actionId"] == "openWorkspace"
 
 
 def test_component_tree_supplier_emits_faq():

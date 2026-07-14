@@ -597,6 +597,31 @@ export function FaqRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── CalloutCard (themed call-to-action block) ─────────────────────────────────
+export function CalloutCardRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component);
+  const theme = (m['theme'] as string) ?? 'info';
+  const accent = theme === 'success' ? '#12b76a' : theme === 'warning' ? '#f59e0b' : theme === 'danger' ? '#e11d48' : '#1a73e8';
+  const bg = theme === 'success' ? 'rgba(18,183,106,0.1)' : theme === 'warning' ? 'rgba(245,158,11,0.12)' : theme === 'danger' ? 'rgba(225,29,72,0.1)' : 'rgba(26,115,232,0.1)';
+  const icon = m['icon'] as string | undefined;
+  const actionId = m['actionId'] as string | undefined;
+  return (
+    <View style={[styles.callout, { backgroundColor: bg, borderLeftColor: accent }]}>
+      {!!icon && !icon.includes(':') && <Text style={styles.calloutIcon}>{icon}</Text>}
+      <View style={styles.calloutBody}>
+        {!!m['title'] && <Text style={styles.calloutTitle}>{m['title'] as string}</Text>}
+        {!!m['description'] && <Text style={styles.calloutDesc}>{m['description'] as string}</Text>}
+        {!!m['ctaLabel'] && (
+          <TouchableOpacity style={[styles.calloutCta, { backgroundColor: accent }]} onPress={() => actionId && void controller.runAction(actionId)}>
+            <Text style={styles.calloutCtaText}>{m['ctaLabel'] as string}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -754,4 +779,12 @@ const styles = StyleSheet.create({
   faqQText: { fontWeight: '600', color: '#222', flex: 1 },
   faqChevron: { color: '#888', fontSize: 16 },
   faqA: { paddingHorizontal: 14, paddingBottom: 14, color: '#555', lineHeight: 20 },
+  // CalloutCard
+  callout: { flexDirection: 'row', gap: 12, padding: 16, borderRadius: 14, borderLeftWidth: 4 },
+  calloutIcon: { fontSize: 24 },
+  calloutBody: { flex: 1, gap: 4 },
+  calloutTitle: { fontWeight: '700', fontSize: 16, color: '#111' },
+  calloutDesc: { color: '#555', lineHeight: 20 },
+  calloutCta: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 16 },
+  calloutCtaText: { color: '#fff', fontWeight: '600' },
 });

@@ -7,6 +7,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.BadgeMapper.mapBad
 import static io.mateu.core.domain.out.fragmentmapper.mappers.BreadcrumbsMapper.mapBreadcrumbsToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ButtonMapper.mapButtonToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CalendarMapper.mapCalendarToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.CalloutCardMapper.mapCalloutCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CardMapper.mapCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ChatMapper.mapChatToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapElementToDto;
@@ -119,6 +120,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Faq faq) {
       return mapFaqToDto(faq);
+    }
+    if (component instanceof CalloutCard calloutCard) {
+      return mapCalloutCardToDto(calloutCard);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

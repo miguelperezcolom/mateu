@@ -191,6 +191,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.FeatureGrid,
     ComponentMetadataType.Testimonials,
     ComponentMetadataType.Faq,
+    ComponentMetadataType.CalloutCard,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

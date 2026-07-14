@@ -73,6 +73,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "FeatureGrid" -> renderFeatureGrid(this, metadata)
             "Testimonials" -> renderTestimonials(metadata)
             "Faq" -> renderFaq(metadata)
+            "CalloutCard" -> renderCalloutCard(this, metadata)
             "Image" -> renderStandaloneImage(metadata)
             else -> {
                 val t = metadata.text("type")

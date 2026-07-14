@@ -72,6 +72,8 @@ public static class ComponentMapper
         Faq fq => Dto(fq, new FaqMetadataDto(fq.Items.Select(i =>
             new FaqItemDto(i.Question, i.Answer, i.Open)).ToList())),
 
+        CalloutCard cc => Dto(cc, new CalloutCardMetadataDto(cc.Title, cc.Description, cc.Icon, cc.CtaLabel, cc.ActionId, cc.Theme)),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

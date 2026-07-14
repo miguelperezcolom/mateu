@@ -16,6 +16,7 @@ import io.mateu.dtos.BadgeDto;
 import io.mateu.dtos.BreadcrumbsDto;
 import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.CalendarDto;
+import io.mateu.dtos.CalloutCardDto;
 import io.mateu.dtos.CardDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
@@ -74,6 +75,7 @@ import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.data.Calendar;
 import io.mateu.uidl.data.CalendarEvent;
+import io.mateu.uidl.data.CalloutCard;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.DashboardLayout;
@@ -453,6 +455,16 @@ class ArchetypesSyncTest {
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
                           .build()))
+              .build());
+      content.add(
+          CalloutCard.builder()
+              .id("callout")
+              .theme("success")
+              .icon("🎉")
+              .title("You're all set")
+              .description("Your workspace is ready.")
+              .ctaLabel("Open it")
+              .actionId("openWorkspace")
               .build());
       content.add(
           Faq.builder()
@@ -991,6 +1003,17 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void calloutCardSerializes() {
+    var callout = findFirst(sync("/component-showcase"), CalloutCardDto.class);
+    assertThat(callout).isNotNull();
+    var m = (CalloutCardDto) callout.metadata();
+    assertThat(m.theme()).isEqualTo("success");
+    assertThat(m.title()).isEqualTo("You're all set");
+    assertThat(m.ctaLabel()).isEqualTo("Open it");
+    assertThat(m.actionId()).isEqualTo("openWorkspace");
   }
 
   @Test

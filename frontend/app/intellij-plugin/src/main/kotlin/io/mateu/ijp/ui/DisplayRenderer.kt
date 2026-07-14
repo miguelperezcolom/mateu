@@ -525,6 +525,41 @@ fun renderFaq(metadata: JsonNode): JComponent {
     return panel
 }
 
+/** CalloutCard: a themed call-to-action block (icon + title + description + CTA button) on Swing. */
+fun renderCalloutCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val accent = when (metadata.text("theme")) {
+        "success" -> Color(0x12, 0xB7, 0x6A)
+        "warning" -> Color(0xF5, 0x9E, 0x0B)
+        "danger" -> Color(0xE1, 0x1D, 0x48)
+        else -> Color(0x1A, 0x73, 0xE8)
+    }
+    val body = verticalPanel(3)
+    val icon = metadata.text("icon")
+    val title = metadata.text("title")
+    body.addStacked(JBLabel((if (icon.isNotBlank() && !icon.contains(":")) "$icon " else "") + title).apply {
+        font = font.deriveFont(Font.BOLD, 15f)
+    }, 2)
+    val desc = metadata.text("description")
+    if (desc.isNotBlank()) {
+        body.addStacked(JBLabel("<html>$desc</html>").apply {
+            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        }, 4)
+    }
+    val ctaLabel = metadata.text("ctaLabel")
+    val actionId = metadata.text("actionId")
+    if (ctaLabel.isNotBlank()) {
+        body.addStacked(JButton(ctaLabel).apply {
+            if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, null) }
+        }, 0)
+    }
+    val panel = JPanel(BorderLayout())
+    panel.border = JBUI.Borders.compound(JBUI.Borders.customLine(accent, 0, 4, 0, 0), JBUI.Borders.empty(14))
+    panel.background = Color(accent.red, accent.green, accent.blue, 24)
+    panel.isOpaque = true
+    panel.add(body, BorderLayout.CENTER)
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

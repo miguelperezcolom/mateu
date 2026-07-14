@@ -258,3 +258,13 @@ export interface Faq {
   type?: 'Faq';
   items?: FaqItem[];
 }
+
+export interface CalloutCard {
+  type?: 'CalloutCard';
+  title?: string;
+  description?: string;
+  icon?: string;
+  ctaLabel?: string;
+  actionId?: string;
+  theme?: string;
+}
