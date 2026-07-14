@@ -71,6 +71,27 @@ from mateu_dtos import (
     ChecklistMetadata,
     ChecklistItemRecord,
     ComparisonCardMetadata,
+    ChipRecord,
+    FactRecord,
+    EntityHeaderMetadata,
+    MeterMetadata,
+    TaskProgressMetadata,
+    StatusItemRecord,
+    StatusListMetadata,
+    QueueItemRecord,
+    QueueGroupRecord,
+    TaskQueueMetadata,
+    ResourceItemRecord,
+    ResourceGridMetadata,
+    OfferCardMetadata,
+    AddOnRecord,
+    AddOnPickerMetadata,
+    LedgerLineRecord,
+    LedgerMetadata,
+    PaymentMethodRecord,
+    PaymentPickerMetadata,
+    ProcessItemRecord,
+    ProcessMonitorMetadata,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -830,6 +851,173 @@ class ReflectionMapper:
                 ),
                 c,
             )
+        if isinstance(c, fluent.EntityHeader):
+            meta = EntityHeaderMetadata(
+                title=c.title,
+                badges=[ChipRecord(label=b.label, color=b.color) for b in c.badges],
+                subtitle=c.subtitle,
+                facts=[FactRecord(label=f.label, value=f.value) for f in c.facts],
+                metric_label=c.metric_label,
+                metric_value=c.metric_value,
+                metric_caption=c.metric_caption,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.Meter):
+            meta = MeterMetadata(
+                label=c.label,
+                value=c.value,
+                max=c.max,
+                unit=c.unit,
+                caption=c.caption,
+                warn_at=c.warn_at,
+                danger_at=c.danger_at,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.TaskProgress):
+            meta = TaskProgressMetadata(
+                label=c.label,
+                total=c.total,
+                done=c.done,
+                action_label=c.action_label,
+                action_id=c.action_id,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.StatusList):
+            items = [
+                StatusItemRecord(
+                    id=it.id,
+                    icon=it.icon,
+                    title=it.title,
+                    description=it.description,
+                    status=it.status,
+                    status_color=it.status_color,
+                    action_label=it.action_label,
+                    action_id=it.action_id,
+                )
+                for it in c.items
+            ]
+            return self._fluent_client(StatusListMetadata(items=items), c)
+        if isinstance(c, fluent.TaskQueue):
+            groups = [
+                QueueGroupRecord(
+                    label=g.label,
+                    items=[
+                        QueueItemRecord(
+                            id=it.id,
+                            title=it.title,
+                            caption=it.caption,
+                            badges=[
+                                ChipRecord(label=b.label, color=b.color) for b in it.badges
+                            ],
+                            selected=it.selected,
+                        )
+                        for it in g.items
+                    ],
+                )
+                for g in c.groups
+            ]
+            return self._fluent_client(
+                TaskQueueMetadata(action_id=c.action_id, groups=groups), c
+            )
+        if isinstance(c, fluent.ResourceGrid):
+            items = [
+                ResourceItemRecord(
+                    id=it.id,
+                    title=it.title,
+                    subtitle=it.subtitle,
+                    status_label=it.status_label,
+                    status_color=it.status_color,
+                    note=it.note,
+                    note_color=it.note_color,
+                    disabled=it.disabled,
+                    recommended=it.recommended,
+                    selected=it.selected,
+                )
+                for it in c.items
+            ]
+            meta = ResourceGridMetadata(
+                action_id=c.action_id,
+                columns=c.columns,
+                recommended_label=c.recommended_label,
+                items=items,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.OfferCard):
+            meta = OfferCardMetadata(
+                tag=c.tag,
+                title=c.title,
+                subtitle=c.subtitle,
+                image=c.image,
+                features=list(c.features),
+                price_label=c.price_label,
+                action_label=c.action_label,
+                action_id=c.action_id,
+                current=c.current,
+                current_label=c.current_label,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.AddOnPicker):
+            items = [
+                AddOnRecord(
+                    id=it.id,
+                    icon=it.icon,
+                    title=it.title,
+                    description=it.description,
+                    price=it.price,
+                    unit=it.unit,
+                    included_label=it.included_label,
+                    added=it.added,
+                )
+                for it in c.items
+            ]
+            meta = AddOnPickerMetadata(
+                total_label=c.total_label,
+                currency=c.currency,
+                action_id=c.action_id,
+                items=items,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.Ledger):
+            lines = [
+                LedgerLineRecord(
+                    concept=ln.concept,
+                    amount=ln.amount,
+                    included=ln.included,
+                    included_label=ln.included_label,
+                )
+                for ln in c.lines
+            ]
+            meta = LedgerMetadata(
+                currency=c.currency, total_label=c.total_label, lines=lines, total=c.total
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.PaymentPicker):
+            methods = [PaymentMethodRecord(id=m.id, label=m.label) for m in c.methods]
+            meta = PaymentPickerMetadata(
+                action_id=c.action_id,
+                methods=methods,
+                selected=c.selected,
+                context_label=c.context_label,
+                context_value=c.context_value,
+                confirm_label=c.confirm_label,
+            )
+            return self._fluent_client(meta, c)
+        if isinstance(c, fluent.ProcessMonitor):
+            items = [
+                ProcessItemRecord(
+                    id=it.id,
+                    name=it.name,
+                    systems=list(it.systems),
+                    ok=it.ok,
+                    warnings=it.warnings,
+                    errors=it.errors,
+                    status=it.status,
+                    action_label=it.action_label,
+                    action_id=it.action_id,
+                )
+                for it in c.items
+            ]
+            return self._fluent_client(ProcessMonitorMetadata(items=items), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

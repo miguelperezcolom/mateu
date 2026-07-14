@@ -641,6 +641,314 @@ class ComparisonCard(Component):
 
 
 @dataclass(frozen=True)
+class ChipItem:
+    """A small colored chip (badge palette: normal|success|warning|error|contrast)."""
+
+    label: str | None = None
+    color: str | None = None
+
+
+@dataclass(frozen=True)
+class Fact:
+    """A label-over-value pair of an :class:`EntityHeader`."""
+
+    label: str | None = None
+    value: str | None = None
+
+
+@dataclass(frozen=True)
+class EntityHeader(Component):
+    """Persistent context banner: identity + key facts + one highlighted metric of the entity
+    a flow operates on (the guest card of a check-in wizard)."""
+
+    title: str | None = None
+    badges: tuple[ChipItem, ...] = ()
+    subtitle: str | None = None
+    facts: tuple[Fact, ...] = ()
+    metric_label: str | None = None
+    metric_value: str | None = None
+    metric_caption: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "badges", tuple(self.badges))
+        object.__setattr__(self, "facts", tuple(self.facts))
+
+
+@dataclass(frozen=True)
+class Meter(Component):
+    """Consumption vs limit (balance vs preauthorization): a labeled value with a progress
+    track colored by the optional warn/danger thresholds."""
+
+    label: str | None = None
+    value: float | None = None
+    max: float | None = None
+    unit: str | None = None
+    caption: str | None = None
+    warn_at: float | None = None
+    danger_at: float | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class TaskProgress(Component):
+    """Subtask completion banner: ``done``/``total`` pills plus an optional CTA dispatching
+    ``action_id``."""
+
+    label: str | None = None
+    total: int = 0
+    done: int = 0
+    action_label: str | None = None
+    action_id: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class StatusItem:
+    """One row of a :class:`StatusList`: icon, text, status chip and/or action."""
+
+    id: str | None = None
+    icon: str | None = None
+    title: str | None = None
+    description: str | None = None
+    status: str | None = None
+    status_color: str | None = None
+    action_label: str | None = None
+    action_id: str | None = None
+
+
+@dataclass(frozen=True)
+class StatusList(Component):
+    """Rows with an icon, text, status chip and/or action (incidents, side-effects checklist)."""
+
+    items: tuple[StatusItem, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
+class QueueItem:
+    """One card of a :class:`TaskQueue` group."""
+
+    id: str | None = None
+    title: str | None = None
+    caption: str | None = None
+    badges: tuple[ChipItem, ...] = ()
+    selected: bool = False
+
+    def __post_init__(self):
+        object.__setattr__(self, "badges", tuple(self.badges))
+
+
+@dataclass(frozen=True)
+class QueueGroup:
+    """A labeled group of :class:`QueueItem` cards."""
+
+    label: str | None = None
+    items: tuple[QueueItem, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
+class TaskQueue(Component):
+    """Grouped work queue rail (arrivals/departures): clicking a card dispatches the
+    component-level ``action_id`` with the item id."""
+
+    action_id: str | None = None
+    groups: tuple[QueueGroup, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "groups", tuple(self.groups))
+
+
+@dataclass(frozen=True)
+class ResourceItem:
+    """One cell of a :class:`ResourceGrid` (a room, a table, a slot…)."""
+
+    id: str | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    status_label: str | None = None
+    status_color: str | None = None
+    note: str | None = None
+    note_color: str | None = None
+    disabled: bool = False
+    recommended: bool = False
+    selected: bool = False
+
+
+@dataclass(frozen=True)
+class ResourceGrid(Component):
+    """Availability/selection grid (room picker): clicking an enabled item dispatches
+    ``action_id`` with the item id."""
+
+    action_id: str | None = None
+    columns: int = 0
+    recommended_label: str | None = None
+    items: tuple[ResourceItem, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
+class OfferCard(Component):
+    """Current vs upgrade offer card: optional image, feature chips and a priced CTA
+    (hidden when ``current``)."""
+
+    tag: str | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    image: str | None = None
+    features: tuple[str, ...] = ()
+    price_label: str | None = None
+    action_label: str | None = None
+    action_id: str | None = None
+    current: bool = False
+    current_label: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "features", tuple(self.features))
+
+
+@dataclass(frozen=True)
+class AddOn:
+    """One priced extra of an :class:`AddOnPicker`."""
+
+    id: str | None = None
+    icon: str | None = None
+    title: str | None = None
+    description: str | None = None
+    price: float | None = None
+    unit: str | None = None
+    included_label: str | None = None
+    added: bool = False
+
+
+@dataclass(frozen=True)
+class AddOnPicker(Component):
+    """Priced extras with a running total; toggling an item dispatches ``action_id``."""
+
+    total_label: str | None = None
+    currency: str | None = None
+    action_id: str | None = None
+    items: tuple[AddOn, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
+class LedgerLine:
+    """One line of a :class:`Ledger`; ``included`` lines show ``included_label`` instead of
+    an amount."""
+
+    concept: str | None = None
+    amount: float | None = None
+    included: bool = False
+    included_label: str | None = None
+
+
+@dataclass(frozen=True)
+class Ledger(Component):
+    """Folio breakdown with total. ``total`` absent → the client computes the sum of the
+    non-included amounts. No actions."""
+
+    currency: str | None = None
+    total_label: str | None = None
+    lines: tuple[LedgerLine, ...] = ()
+    total: float | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "lines", tuple(self.lines))
+
+
+@dataclass(frozen=True)
+class PaymentMethod:
+    """One selectable method of a :class:`PaymentPicker`."""
+
+    id: str | None = None
+    label: str | None = None
+
+
+@dataclass(frozen=True)
+class PaymentPicker(Component):
+    """Payment method segmented buttons + optional context chip + confirm CTA dispatching
+    ``action_id`` with the selected method."""
+
+    action_id: str | None = None
+    methods: tuple[PaymentMethod, ...] = ()
+    selected: str | None = None
+    context_label: str | None = None
+    context_value: str | None = None
+    confirm_label: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "methods", tuple(self.methods))
+
+
+@dataclass(frozen=True)
+class ProcessItem:
+    """One monitored process of a :class:`ProcessMonitor`; ``status``: ok|warning|error."""
+
+    id: str | None = None
+    name: str | None = None
+    systems: tuple[str, ...] = ()
+    ok: int = 0
+    warnings: int = 0
+    errors: int = 0
+    status: str | None = None
+    action_label: str | None = None
+    action_id: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "systems", tuple(self.systems))
+
+
+@dataclass(frozen=True)
+class ProcessMonitor(Component):
+    """Monitored automation processes with health counters and an optional fix action."""
+
+    items: tuple[ProcessItem, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -755,4 +1063,25 @@ __all__ = [
     "ChecklistItem",
     "Checklist",
     "ComparisonCard",
+    "ChipItem",
+    "Fact",
+    "EntityHeader",
+    "Meter",
+    "TaskProgress",
+    "StatusItem",
+    "StatusList",
+    "QueueItem",
+    "QueueGroup",
+    "TaskQueue",
+    "ResourceItem",
+    "ResourceGrid",
+    "OfferCard",
+    "AddOn",
+    "AddOnPicker",
+    "LedgerLine",
+    "Ledger",
+    "PaymentMethod",
+    "PaymentPicker",
+    "ProcessItem",
+    "ProcessMonitor",
 ]

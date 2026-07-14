@@ -23,8 +23,29 @@ from mateu_uidl import (  # noqa: E402
     ui,
 )
 from mateu_uidl.components import (  # noqa: E402
+    AddOn,
+    AddOnPicker,
     Button,
     Calendar,
+    ChipItem,
+    EntityHeader,
+    Fact,
+    Ledger,
+    LedgerLine,
+    Meter,
+    OfferCard,
+    PaymentMethod,
+    PaymentPicker,
+    ProcessItem,
+    ProcessMonitor,
+    QueueGroup,
+    QueueItem,
+    ResourceGrid,
+    ResourceItem,
+    StatusItem,
+    StatusList,
+    TaskProgress,
+    TaskQueue,
     CalendarEvent,
     CalloutCard,
     Comment,
@@ -441,6 +462,288 @@ class WelcomeDemo(Welcome):
 
     def get_started(self) -> Message:
         return Message("Off we go")
+
+
+@ui("entity-header")
+@title("Entity header")
+class GuestHeader(ComponentTreeSupplier):
+    def component(self):
+        return EntityHeader(
+            id="entityHeader",
+            title="María Fernández",
+            badges=(ChipItem(label="PLATINUM", color="contrast"),),
+            subtitle="Ocean Suite · 30 Apr → 07 May · 7N · 2pax · All Inclusive",
+            facts=(
+                Fact(label="TOTAL RESERVA", value="€ 4.890,00"),
+                Fact(label="AGENCIA", value="TUI Group · TUI Magic Life"),
+            ),
+            metric_label="FIDELIDAD",
+            metric_value="48.500",
+            metric_caption="23 estancias",
+        )
+
+
+@ui("balance-meter")
+@title("Balance meter")
+class BalanceMeter(ComponentTreeSupplier):
+    def component(self):
+        return Meter(
+            id="meter",
+            label="BALANCE ACTUAL",
+            value=1240.0,
+            max=1800.0,
+            unit="€",
+            caption="69% de la preautorización consumido",
+            warn_at=1440.0,
+            danger_at=1710.0,
+        )
+
+
+@ui("pax-progress")
+@title("Pax progress")
+class PaxProgress(ComponentTreeSupplier):
+    def component(self):
+        return TaskProgress(
+            id="taskProgress",
+            label="Reserva con 4 pax. Registrar huéspedes adicionales.",
+            total=4,
+            done=1,
+            action_label="Añadir siguiente pax",
+            action_id="addPax",
+        )
+
+
+@ui("incidents")
+@title("Incidents")
+class Incidents(ComponentTreeSupplier):
+    def component(self):
+        return StatusList(
+            id="statusList",
+            items=(
+                StatusItem(
+                    id="ac",
+                    icon="🌡",
+                    title="Aire acondicionado con ruido",
+                    description="Habitación 901 · Reportado 28 Apr · Mantenimiento avisado",
+                    status="En curso",
+                    status_color="normal",
+                ),
+                StatusItem(
+                    id="key",
+                    icon="🔑",
+                    title="Grabar llave / pulsera",
+                    description="Complemento de llave digital",
+                    action_label="Grabar",
+                    action_id="encodeKey",
+                ),
+                StatusItem(
+                    id="ses",
+                    icon="✓",
+                    title="Parte viajeros (SES)",
+                    description="Se enviará automáticamente al confirmar el check-in",
+                    status="Automático",
+                    status_color="success",
+                ),
+            ),
+        )
+
+
+@ui("departures")
+@title("Departures")
+class Departures(ComponentTreeSupplier):
+    def component(self):
+        return TaskQueue(
+            id="taskQueue",
+            action_id="openGuest",
+            groups=(
+                QueueGroup(
+                    label="En hotel · late check-out primero",
+                    items=(
+                        QueueItem(
+                            id="1108",
+                            title="Carlos Mendoza",
+                            caption="Hab 1108 · 7N",
+                            badges=(ChipItem(label="LATE · 18:00", color="warning"),),
+                            selected=True,
+                        ),
+                    ),
+                ),
+                QueueGroup(
+                    label="Salida pendiente",
+                    items=(
+                        QueueItem(
+                            id="901",
+                            title="Sophie Laurent",
+                            caption="Hab 901",
+                            badges=(ChipItem(label="GOLD", color="contrast"),),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+
+@ui("room-picker")
+@title("Room picker")
+class RoomPicker(ComponentTreeSupplier):
+    def component(self):
+        return ResourceGrid(
+            id="resourceGrid",
+            action_id="pickRoom",
+            columns=4,
+            recommended_label="RECOMENDADA",
+            items=(
+                ResourceItem(
+                    id="1201",
+                    title="1201",
+                    subtitle="Ocupada",
+                    status_label="Sucia",
+                    status_color="contrast",
+                    disabled=True,
+                ),
+                ResourceItem(
+                    id="1204",
+                    title="1204",
+                    subtitle="Ocean Suite",
+                    status_label="Inspeccionada",
+                    status_color="success",
+                    recommended=True,
+                    selected=True,
+                ),
+                ResourceItem(
+                    id="1206",
+                    title="1206",
+                    subtitle="Libre",
+                    status_label="Limpia",
+                    status_color="success",
+                    note="Ducha averiada",
+                    note_color="error",
+                ),
+            ),
+        )
+
+
+@ui("upgrade-offer")
+@title("Upgrade offer")
+class UpgradeOffer(ComponentTreeSupplier):
+    def component(self):
+        return OfferCard(
+            id="offerCard",
+            tag="UPGRADE DISPONIBLE",
+            title="Master Oceanfront Suite",
+            subtitle="Planta 14 · Primera línea",
+            image="https://example.com/suite.jpg",
+            features=("68 m²", "Vista mar frontal", "Terraza + jacuzzi", "Sofá lounge"),
+            price_label="+ € 65 / noche",
+            action_label="Mejorar a esta habitación",
+            action_id="upgrade",
+        )
+
+
+@ui("extras")
+@title("Extras")
+class Extras(ComponentTreeSupplier):
+    def component(self):
+        return AddOnPicker(
+            id="addOnPicker",
+            total_label="Añadidos",
+            currency="€",
+            action_id="extrasChanged",
+            items=(
+                AddOn(
+                    id="allinc",
+                    icon="🍹",
+                    title="Paquete All Inclusive",
+                    description="Todo incluido · 7 noches · 2 pax",
+                    price=343.0,
+                    unit="estancia",
+                ),
+                AddOn(
+                    id="parking",
+                    icon="🅿",
+                    title="Parking",
+                    description="Cubierto · Vigilancia 24h",
+                    included_label="Incluido Platinum",
+                ),
+                AddOn(
+                    id="late",
+                    icon="🕕",
+                    title="Late check-out",
+                    description="Hasta las 18:00h",
+                    price=40.0,
+                    added=True,
+                ),
+            ),
+        )
+
+
+@ui("folio")
+@title("Folio")
+class Folio(ComponentTreeSupplier):
+    def component(self):
+        return Ledger(
+            id="ledger",
+            currency="€",
+            total_label="Total",
+            lines=(
+                LedgerLine(concept="Alojamiento x7 noches", amount=1540.0),
+                LedgerLine(
+                    concept="All Inclusive Package", included=True, included_label="Incluido"
+                ),
+                LedgerLine(concept="Descuento Platinum -10%", amount=-154.0),
+            ),
+            total=1710.5,
+        )
+
+
+@ui("payment")
+@title("Payment")
+class Payment(ComponentTreeSupplier):
+    def component(self):
+        return PaymentPicker(
+            id="paymentPicker",
+            action_id="confirmPayment",
+            methods=(
+                PaymentMethod(id="card", label="Tarjeta"),
+                PaymentMethod(id="cash", label="Efectivo"),
+                PaymentMethod(id="points", label="Puntos"),
+            ),
+            selected="card",
+            context_label="PREAUTORIZADO",
+            context_value="€ 1.800,00",
+            confirm_label="Confirmar — € 1.710,50",
+        )
+
+
+@ui("automations")
+@title("Automations")
+class Automations(ComponentTreeSupplier):
+    def component(self):
+        return ProcessMonitor(
+            id="processMonitor",
+            items=(
+                ProcessItem(
+                    id="credit",
+                    name="Facturación a Crédito",
+                    systems=("OHIP", "OIC", "Voxel"),
+                    ok=847,
+                    warnings=6,
+                    errors=0,
+                    status="warning",
+                    action_label="Solucionar",
+                    action_id="fixCredit",
+                ),
+                ProcessItem(
+                    id="sales",
+                    name="Comercializadora",
+                    systems=("OHIP", "ERP Fusion A/R"),
+                    ok=418,
+                    warnings=0,
+                    errors=0,
+                    status="ok",
+                ),
+            ),
+        )
 
 
 MODULE = sys.modules[__name__]
@@ -863,3 +1166,174 @@ def test_welcome_archetype_hero_ctas_and_highlight_tiles():
         RunActionRq(action_id="getStarted", server_side_type=type_name(WelcomeDemo))
     )
     assert inc.messages[0].text == "Off we go"
+
+
+def test_component_tree_supplier_emits_entity_header():
+    doc = render(GuestHeader)
+    (header,) = page_children(doc)
+    assert header["id"] == "entityHeader"
+    assert header["metadata"]["type"] == "EntityHeader"
+    assert header["metadata"]["title"] == "María Fernández"
+    assert header["metadata"]["badges"] == [{"label": "PLATINUM", "color": "contrast"}]
+    assert header["metadata"]["facts"][0] == {"label": "TOTAL RESERVA", "value": "€ 4.890,00"}
+    assert header["metadata"]["metricLabel"] == "FIDELIDAD"
+    assert header["metadata"]["metricValue"] == "48.500"
+    assert header["metadata"]["metricCaption"] == "23 estancias"
+
+
+def test_component_tree_supplier_emits_meter():
+    doc = render(BalanceMeter)
+    (meter,) = page_children(doc)
+    assert meter["id"] == "meter"
+    assert meter["metadata"]["type"] == "Meter"
+    assert meter["metadata"]["label"] == "BALANCE ACTUAL"
+    assert meter["metadata"]["value"] == 1240.0
+    assert meter["metadata"]["max"] == 1800.0
+    assert meter["metadata"]["unit"] == "€"
+    assert meter["metadata"]["warnAt"] == 1440.0
+    assert meter["metadata"]["dangerAt"] == 1710.0
+
+
+def test_component_tree_supplier_emits_task_progress():
+    doc = render(PaxProgress)
+    (progress,) = page_children(doc)
+    assert progress["id"] == "taskProgress"
+    assert progress["metadata"]["type"] == "TaskProgress"
+    assert progress["metadata"]["total"] == 4
+    assert progress["metadata"]["done"] == 1
+    assert progress["metadata"]["actionLabel"] == "Añadir siguiente pax"
+    assert progress["metadata"]["actionId"] == "addPax"
+
+
+def test_component_tree_supplier_emits_status_list():
+    doc = render(Incidents)
+    (status_list,) = page_children(doc)
+    assert status_list["id"] == "statusList"
+    assert status_list["metadata"]["type"] == "StatusList"
+    items = status_list["metadata"]["items"]
+    assert len(items) == 3
+    assert items[0]["title"] == "Aire acondicionado con ruido"
+    assert items[0]["status"] == "En curso"
+    assert items[0]["statusColor"] == "normal"
+    assert items[1]["actionLabel"] == "Grabar"
+    assert items[1]["actionId"] == "encodeKey"
+    assert items[2]["statusColor"] == "success"
+
+
+def test_component_tree_supplier_emits_task_queue():
+    doc = render(Departures)
+    (queue,) = page_children(doc)
+    assert queue["id"] == "taskQueue"
+    assert queue["metadata"]["type"] == "TaskQueue"
+    assert queue["metadata"]["actionId"] == "openGuest"
+    groups = queue["metadata"]["groups"]
+    assert len(groups) == 2
+    assert groups[0]["label"] == "En hotel · late check-out primero"
+    assert groups[0]["items"][0]["id"] == "1108"
+    assert groups[0]["items"][0]["badges"] == [{"label": "LATE · 18:00", "color": "warning"}]
+    assert groups[0]["items"][0]["selected"] is True
+    assert groups[1]["items"][0]["selected"] is False
+
+
+def test_component_tree_supplier_emits_resource_grid():
+    doc = render(RoomPicker)
+    (grid,) = page_children(doc)
+    assert grid["id"] == "resourceGrid"
+    assert grid["metadata"]["type"] == "ResourceGrid"
+    assert grid["metadata"]["actionId"] == "pickRoom"
+    assert grid["metadata"]["columns"] == 4
+    assert grid["metadata"]["recommendedLabel"] == "RECOMENDADA"
+    items = grid["metadata"]["items"]
+    assert len(items) == 3
+    assert items[0]["disabled"] is True
+    assert items[0]["statusLabel"] == "Sucia"
+    assert items[1]["recommended"] is True
+    assert items[1]["selected"] is True
+    assert items[2]["note"] == "Ducha averiada"
+    assert items[2]["noteColor"] == "error"
+
+
+def test_component_tree_supplier_emits_offer_card():
+    doc = render(UpgradeOffer)
+    (offer,) = page_children(doc)
+    assert offer["id"] == "offerCard"
+    assert offer["metadata"]["type"] == "OfferCard"
+    assert offer["metadata"]["tag"] == "UPGRADE DISPONIBLE"
+    assert offer["metadata"]["title"] == "Master Oceanfront Suite"
+    assert offer["metadata"]["features"] == [
+        "68 m²",
+        "Vista mar frontal",
+        "Terraza + jacuzzi",
+        "Sofá lounge",
+    ]
+    assert offer["metadata"]["priceLabel"] == "+ € 65 / noche"
+    assert offer["metadata"]["actionId"] == "upgrade"
+    assert offer["metadata"]["current"] is False
+    assert offer["metadata"]["currentLabel"] is None
+
+
+def test_component_tree_supplier_emits_add_on_picker():
+    doc = render(Extras)
+    (picker,) = page_children(doc)
+    assert picker["id"] == "addOnPicker"
+    assert picker["metadata"]["type"] == "AddOnPicker"
+    assert picker["metadata"]["totalLabel"] == "Añadidos"
+    assert picker["metadata"]["currency"] == "€"
+    assert picker["metadata"]["actionId"] == "extrasChanged"
+    items = picker["metadata"]["items"]
+    assert len(items) == 3
+    assert items[0]["price"] == 343.0
+    assert items[0]["unit"] == "estancia"
+    assert items[1]["includedLabel"] == "Incluido Platinum"
+    assert items[1]["price"] is None
+    assert items[2]["added"] is True
+
+
+def test_component_tree_supplier_emits_ledger():
+    doc = render(Folio)
+    (ledger,) = page_children(doc)
+    assert ledger["id"] == "ledger"
+    assert ledger["metadata"]["type"] == "Ledger"
+    assert ledger["metadata"]["currency"] == "€"
+    assert ledger["metadata"]["totalLabel"] == "Total"
+    lines = ledger["metadata"]["lines"]
+    assert len(lines) == 3
+    assert lines[0]["concept"] == "Alojamiento x7 noches"
+    assert lines[0]["amount"] == 1540.0
+    assert lines[1]["included"] is True
+    assert lines[1]["includedLabel"] == "Incluido"
+    assert lines[2]["amount"] == -154.0
+    assert ledger["metadata"]["total"] == 1710.5
+
+
+def test_component_tree_supplier_emits_payment_picker():
+    doc = render(Payment)
+    (picker,) = page_children(doc)
+    assert picker["id"] == "paymentPicker"
+    assert picker["metadata"]["type"] == "PaymentPicker"
+    assert picker["metadata"]["actionId"] == "confirmPayment"
+    methods = picker["metadata"]["methods"]
+    assert [m["id"] for m in methods] == ["card", "cash", "points"]
+    assert methods[0]["label"] == "Tarjeta"
+    assert picker["metadata"]["selected"] == "card"
+    assert picker["metadata"]["contextLabel"] == "PREAUTORIZADO"
+    assert picker["metadata"]["contextValue"] == "€ 1.800,00"
+    assert picker["metadata"]["confirmLabel"] == "Confirmar — € 1.710,50"
+
+
+def test_component_tree_supplier_emits_process_monitor():
+    doc = render(Automations)
+    (monitor,) = page_children(doc)
+    assert monitor["id"] == "processMonitor"
+    assert monitor["metadata"]["type"] == "ProcessMonitor"
+    items = monitor["metadata"]["items"]
+    assert len(items) == 2
+    assert items[0]["name"] == "Facturación a Crédito"
+    assert items[0]["systems"] == ["OHIP", "OIC", "Voxel"]
+    assert items[0]["ok"] == 847
+    assert items[0]["warnings"] == 6
+    assert items[0]["errors"] == 0
+    assert items[0]["status"] == "warning"
+    assert items[0]["actionLabel"] == "Solucionar"
+    assert items[0]["actionId"] == "fixCredit"
+    assert items[1]["status"] == "ok"
