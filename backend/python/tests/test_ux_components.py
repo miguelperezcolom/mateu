@@ -27,6 +27,8 @@ from mateu_uidl.components import (  # noqa: E402
     Calendar,
     CalendarEvent,
     EmptyState,
+    Feature,
+    FeatureGrid,
     Funnel,
     FunnelStage,
     HeatCell,
@@ -213,6 +215,20 @@ class PricingPlans(ComponentTreeSupplier):
                     features=("Unlimited projects", "Priority support"),
                     cta_label="Go Pro", action_id="choosePlan",
                 ),
+            ),
+        )
+
+
+@ui("features")
+@title("Features")
+class ProductFeatures(ComponentTreeSupplier):
+    def component(self):
+        return FeatureGrid(
+            id="features",
+            columns=3,
+            features=(
+                Feature(icon="⚡", title="Fast", description="Blazing quick", action_id="openFeature"),
+                Feature(icon="🔒", title="Secure", description="Locked down"),
             ),
         )
 
@@ -420,6 +436,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_feature_grid():
+    doc = render(ProductFeatures)
+    (grid,) = page_children(doc)
+    assert grid["id"] == "features"
+    assert grid["metadata"]["type"] == "FeatureGrid"
+    m = grid["metadata"]
+    assert m["columns"] == 3
+    assert len(m["features"]) == 2
+    assert m["features"][0]["title"] == "Fast"
+    assert m["features"][0]["actionId"] == "openFeature"
 
 
 def test_component_tree_supplier_emits_trend_chart():

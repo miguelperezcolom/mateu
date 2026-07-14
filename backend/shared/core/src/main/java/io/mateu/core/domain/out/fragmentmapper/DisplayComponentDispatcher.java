@@ -11,6 +11,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.CardMapper.mapCard
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ChatMapper.mapChatToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapElementToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.EmptyStateMapper.mapEmptyStateToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.FeatureGridMapper.mapFeatureGridToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FunnelMapper.mapFunnelToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.GanttMapper.mapGanttToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.HeatmapMapper.mapHeatmapToDto;
@@ -107,6 +108,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof TrendChart trendChart) {
       return mapTrendChartToDto(trendChart);
+    }
+    if (component instanceof FeatureGrid featureGrid) {
+      return mapFeatureGridToDto(featureGrid);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

@@ -63,6 +63,9 @@ public static class ComponentMapper
 
         TrendChart tc => Dto(tc, new TrendChartMetadataDto(tc.Title, tc.Values, tc.Labels, tc.Color, tc.Area)),
 
+        FeatureGrid fg => Dto(fg, new FeatureGridMetadataDto(fg.Features.Select(f =>
+            new FeatureDto(f.Icon, f.Title, f.Description, f.ActionId)).ToList(), fg.Columns)),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

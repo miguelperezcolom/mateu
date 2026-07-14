@@ -145,6 +145,17 @@ public class Dash : Dashboard
         Color = "#10b981", Area = true,
     };
 
+    [Panel(Title = "Features")]
+    public FeatureGrid Features { get; } = new()
+    {
+        Columns = 3,
+        Features =
+        [
+            new Feature { Icon = "fast", Title = "Fast", Description = "Blazing quick", ActionId = "openFeature" },
+            new Feature { Icon = "lock", Title = "Secure", Description = "Locked down" },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -382,6 +393,17 @@ public class ComponentTests
         Assert.Contains("\"title\":\"Revenue\"", json);
         Assert.Contains("\"values\":[10", json);
         Assert.Contains("\"area\":true", json);
+    }
+
+    [Fact]
+    public void Feature_grid_emits_features()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"FeatureGrid\"", json);
+        Assert.Contains("\"columns\":3", json);
+        Assert.Contains("\"title\":\"Fast\"", json);
+        Assert.Contains("\"actionId\":\"openFeature\"", json);
     }
 
     [Fact]

@@ -463,6 +463,30 @@ class TrendChart(Component):
 
 
 @dataclass(frozen=True)
+class Feature:
+    """One cell of a :class:`FeatureGrid`: an icon, title, description and optional action."""
+
+    icon: str | None = None
+    title: str | None = None
+    description: str | None = None
+    action_id: str | None = None
+
+
+@dataclass(frozen=True)
+class FeatureGrid(Component):
+    """A responsive grid of feature cards. ``columns`` fixes the count (0 = auto-fit)."""
+
+    features: tuple[Feature, ...] = ()
+    columns: int = 0
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "features", tuple(self.features))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -563,4 +587,6 @@ __all__ = [
     "FunnelStage",
     "Funnel",
     "TrendChart",
+    "Feature",
+    "FeatureGrid",
 ]

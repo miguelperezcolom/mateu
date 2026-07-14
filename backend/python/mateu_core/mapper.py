@@ -57,6 +57,8 @@ from mateu_dtos import (
     FunnelMetadata,
     FunnelStageRecord,
     TrendChartMetadata,
+    FeatureGridMetadata,
+    FeatureRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -748,6 +750,16 @@ class ReflectionMapper:
                     area=c.area,
                 ),
                 c,
+            )
+        if isinstance(c, fluent.FeatureGrid):
+            features = [
+                FeatureRecord(
+                    icon=f.icon, title=f.title, description=f.description, action_id=f.action_id
+                )
+                for f in c.features
+            ]
+            return self._fluent_client(
+                FeatureGridMetadata(features=features, columns=c.columns), c
             )
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(

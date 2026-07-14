@@ -456,6 +456,35 @@ fun renderTrendChart(metadata: JsonNode): JComponent {
     return panel
 }
 
+/** FeatureGrid: a vertical list of feature cards (icon + title + description) on Swing. */
+fun renderFeatureGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val panel = verticalPanel(8)
+    for (feature in metadata.arr("features")) {
+        val card = verticalPanel(3)
+        card.border = JBUI.Borders.compound(
+            JBUI.Borders.customLine(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground(), 1),
+            JBUI.Borders.empty(10))
+        val icon = feature.text("icon")
+        val title = feature.text("title")
+        card.addStacked(JBLabel((if (icon.isNotBlank() && !icon.contains(":")) "$icon " else "") + title).apply {
+            font = font.deriveFont(Font.BOLD, 14f)
+        }, 2)
+        val desc = feature.text("description")
+        if (desc.isNotBlank()) {
+            card.addStacked(JBLabel(desc).apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() }, 0)
+        }
+        val actionId = feature.text("actionId")
+        if (actionId.isNotBlank()) {
+            card.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+            card.addMouseListener(object : java.awt.event.MouseAdapter() {
+                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
+            })
+        }
+        panel.addStacked(card, 8)
+    }
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

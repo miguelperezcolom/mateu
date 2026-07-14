@@ -26,6 +26,7 @@ import io.mateu.dtos.DashboardPanelDto;
 import io.mateu.dtos.DetailsDto;
 import io.mateu.dtos.DivDto;
 import io.mateu.dtos.EmptyStateDto;
+import io.mateu.dtos.FeatureGridDto;
 import io.mateu.dtos.FoldoutLayoutDto;
 import io.mateu.dtos.FunnelDto;
 import io.mateu.dtos.GanttDto;
@@ -78,6 +79,8 @@ import io.mateu.uidl.data.DashboardPanel;
 import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.EmptyState;
+import io.mateu.uidl.data.Feature;
+import io.mateu.uidl.data.FeatureGrid;
 import io.mateu.uidl.data.Funnel;
 import io.mateu.uidl.data.FunnelStage;
 import io.mateu.uidl.data.Gantt;
@@ -443,6 +446,24 @@ class ArchetypesSyncTest {
                           .title("Launch")
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
+                          .build()))
+              .build());
+      content.add(
+          FeatureGrid.builder()
+              .id("features")
+              .columns(3)
+              .features(
+                  List.of(
+                      Feature.builder()
+                          .icon("⚡")
+                          .title("Fast")
+                          .description("Blazing quick")
+                          .actionId("openFeature")
+                          .build(),
+                      Feature.builder()
+                          .icon("🔒")
+                          .title("Secure")
+                          .description("Locked down")
                           .build()))
               .build());
       content.add(
@@ -938,6 +959,19 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void featureGridSerializes() {
+    var grid = findFirst(sync("/component-showcase"), FeatureGridDto.class);
+    assertThat(grid).isNotNull();
+    var m = (FeatureGridDto) grid.metadata();
+    assertThat(m.columns()).isEqualTo(3);
+    assertThat(m.features()).hasSize(2);
+    assertThat(m.features().get(0).title()).isEqualTo("Fast");
+    assertThat(m.features().get(0).icon()).isEqualTo("⚡");
+    assertThat(m.features().get(0).actionId()).isEqualTo("openFeature");
+    assertThat(m.features().get(1).description()).isEqualTo("Locked down");
   }
 
   @Test

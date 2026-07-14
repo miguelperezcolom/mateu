@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, EmptyState, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
+import { CalendarEvent, EmptyState, Feature, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -531,6 +531,28 @@ export function TrendChartRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── FeatureGrid (mobile: stacked feature cards) ───────────────────────────────
+export function FeatureGridRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const features = (meta(component)['features'] as Feature[]) ?? [];
+  return (
+    <View style={styles.features}>
+      {features.map((f, i) => {
+        const card = (
+          <View style={styles.featureCard}>
+            {!!f.icon && <Text style={styles.featureIcon}>{f.icon.includes(':') ? '' : f.icon}</Text>}
+            <Text style={styles.featureTitle}>{f.title ?? ''}</Text>
+            {!!f.description && <Text style={styles.featureDesc}>{f.description}</Text>}
+          </View>
+        );
+        return f.actionId ? (
+          <TouchableOpacity key={i} onPress={() => void controller.runAction(f.actionId!)}>{card}</TouchableOpacity>
+        ) : <View key={i}>{card}</View>;
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -669,4 +691,10 @@ const styles = StyleSheet.create({
   trendBar: { flex: 1, borderRadius: 2, minWidth: 4 },
   trendLabels: { flexDirection: 'row', justifyContent: 'space-between' },
   trendLabel: { fontSize: 11, color: '#888' },
+  // FeatureGrid
+  features: { gap: 10 },
+  featureCard: { padding: 14, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, backgroundColor: '#fff', gap: 4 },
+  featureIcon: { fontSize: 24 },
+  featureTitle: { fontWeight: '700', color: '#111' },
+  featureDesc: { color: '#666', fontSize: 13 },
 });

@@ -506,6 +506,23 @@ class TrendChartMetadata(Wire):
     area: bool = False
 
 
+class FeatureRecord(Wire):
+    """One feature card (mirrors ``FeatureDto``)."""
+
+    icon: str | None = None
+    title: str | None = None
+    description: str | None = None
+    action_id: str | None = None
+
+
+class FeatureGridMetadata(Wire):
+    """Feature-grid metadata: cards of icon + title + description (mirrors ``FeatureGridDto``)."""
+
+    type: Literal["FeatureGrid"] = "FeatureGrid"
+    features: list[FeatureRecord] = Field(default_factory=list)
+    columns: int = 0
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -597,6 +614,7 @@ ComponentMetadata = Annotated[
         HeatmapMetadata,
         FunnelMetadata,
         TrendChartMetadata,
+        FeatureGridMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

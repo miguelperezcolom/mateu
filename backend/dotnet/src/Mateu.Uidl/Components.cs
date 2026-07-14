@@ -314,6 +314,22 @@ public sealed record TrendChart : ComponentBase
     public bool Area { get; init; }
 }
 
+/// <summary>One cell of a <see cref="FeatureGrid"/>: an icon, title, description and optional action.</summary>
+public sealed record Feature
+{
+    public string? Icon { get; init; }
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>A responsive grid of feature cards. Columns fixes the count (0 = auto-fit).</summary>
+public sealed record FeatureGrid : ComponentBase
+{
+    public IReadOnlyList<Feature> Features { get; init; } = [];
+    public int Columns { get; init; }
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

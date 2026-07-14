@@ -221,3 +221,16 @@ export interface TrendChart {
   color?: string;
   area?: boolean;
 }
+
+export interface Feature {
+  icon?: string;
+  title?: string;
+  description?: string;
+  actionId?: string;
+}
+
+export interface FeatureGrid {
+  type?: 'FeatureGrid';
+  features?: Feature[];
+  columns?: number;
+}
