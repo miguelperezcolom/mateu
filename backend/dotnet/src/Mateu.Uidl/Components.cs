@@ -346,6 +346,20 @@ public sealed record Testimonials : ComponentBase
     public IReadOnlyList<Testimonial> Items { get; init; } = [];
 }
 
+/// <summary>One question/answer of a <see cref="Faq"/>; Open makes it start expanded.</summary>
+public sealed record FaqItem
+{
+    public string? Question { get; init; }
+    public string? Answer { get; init; }
+    public bool Open { get; init; }
+}
+
+/// <summary>A read-only FAQ list: collapsible question/answer rows.</summary>
+public sealed record Faq : ComponentBase
+{
+    public IReadOnlyList<FaqItem> Items { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

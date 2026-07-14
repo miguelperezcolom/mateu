@@ -247,3 +247,14 @@ export interface Testimonials {
   type?: 'Testimonials';
   items?: Testimonial[];
 }
+
+export interface FaqItem {
+  question?: string;
+  answer?: string;
+  open?: boolean;
+}
+
+export interface Faq {
+  type?: 'Faq';
+  items?: FaqItem[];
+}

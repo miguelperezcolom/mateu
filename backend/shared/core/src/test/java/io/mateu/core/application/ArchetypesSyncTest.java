@@ -26,6 +26,7 @@ import io.mateu.dtos.DashboardPanelDto;
 import io.mateu.dtos.DetailsDto;
 import io.mateu.dtos.DivDto;
 import io.mateu.dtos.EmptyStateDto;
+import io.mateu.dtos.FaqDto;
 import io.mateu.dtos.FeatureGridDto;
 import io.mateu.dtos.FoldoutLayoutDto;
 import io.mateu.dtos.FunnelDto;
@@ -80,6 +81,8 @@ import io.mateu.uidl.data.DashboardPanel;
 import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.EmptyState;
+import io.mateu.uidl.data.Faq;
+import io.mateu.uidl.data.FaqItem;
 import io.mateu.uidl.data.Feature;
 import io.mateu.uidl.data.FeatureGrid;
 import io.mateu.uidl.data.Funnel;
@@ -450,6 +453,18 @@ class ArchetypesSyncTest {
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
                           .build()))
+              .build());
+      content.add(
+          Faq.builder()
+              .id("faq")
+              .items(
+                  List.of(
+                      FaqItem.builder()
+                          .question("Is it free?")
+                          .answer("There is a free tier.")
+                          .open(true)
+                          .build(),
+                      FaqItem.builder().question("Can I self-host?").answer("Yes.").build()))
               .build());
       content.add(
           Testimonials.builder()
@@ -976,6 +991,18 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void faqItemsSerialize() {
+    var faq = findFirst(sync("/component-showcase"), FaqDto.class);
+    assertThat(faq).isNotNull();
+    var items = ((FaqDto) faq.metadata()).items();
+    assertThat(items).hasSize(2);
+    assertThat(items.get(0).question()).isEqualTo("Is it free?");
+    assertThat(items.get(0).answer()).isEqualTo("There is a free tier.");
+    assertThat(items.get(0).open()).isTrue();
+    assertThat(items.get(1).open()).isFalse();
   }
 
   @Test

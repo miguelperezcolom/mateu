@@ -69,6 +69,9 @@ public static class ComponentMapper
         Testimonials ts => Dto(ts, new TestimonialsMetadataDto(ts.Items.Select(t =>
             new TestimonialDto(t.Quote, t.Author, t.Role, t.Avatar, t.Rating)).ToList())),
 
+        Faq fq => Dto(fq, new FaqMetadataDto(fq.Items.Select(i =>
+            new FaqItemDto(i.Question, i.Answer, i.Open)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

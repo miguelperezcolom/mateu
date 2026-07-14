@@ -86,6 +86,7 @@ export enum ComponentMetadataType {
     Funnel = "Funnel",
     TrendChart = "TrendChart",
     FeatureGrid = "FeatureGrid",
-    Testimonials = "Testimonials"
+    Testimonials = "Testimonials",
+    Faq = "Faq"
 
 }

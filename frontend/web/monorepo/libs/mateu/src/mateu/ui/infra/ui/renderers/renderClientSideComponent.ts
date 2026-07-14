@@ -88,6 +88,7 @@ import { renderFunnel } from "@infra/ui/renderers/funnelRenderer.ts";
 import { renderTrendChart } from "@infra/ui/renderers/trendChartRenderer.ts";
 import { renderFeatureGrid } from "@infra/ui/renderers/featureGridRenderer.ts";
 import { renderTestimonials } from "@infra/ui/renderers/testimonialsRenderer.ts";
+import { renderFaq } from "@infra/ui/renderers/faqRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -297,6 +298,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.TrendChart]: ({ component }) => renderTrendChart(component),
     [ComponentMetadataType.FeatureGrid]: ({ component }) => renderFeatureGrid(component),
     [ComponentMetadataType.Testimonials]: ({ component }) => renderTestimonials(component),
+    [ComponentMetadataType.Faq]: ({ component }) => renderFaq(component),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

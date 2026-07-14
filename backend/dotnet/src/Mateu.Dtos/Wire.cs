@@ -149,6 +149,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(TrendChartMetadataDto), "TrendChart")]
 [JsonDerivedType(typeof(FeatureGridMetadataDto), "FeatureGrid")]
 [JsonDerivedType(typeof(TestimonialsMetadataDto), "Testimonials")]
+[JsonDerivedType(typeof(FaqMetadataDto), "Faq")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -267,6 +268,12 @@ public record TestimonialsMetadataDto(IReadOnlyList<TestimonialDto> Items) : Com
 
 /// <summary>One testimonial card; Rating is 0–5 stars.</summary>
 public record TestimonialDto(string? Quote, string? Author, string? Role, string? Avatar, int Rating);
+
+/// <summary>FAQ metadata: collapsible question/answer rows.</summary>
+public record FaqMetadataDto(IReadOnlyList<FaqItemDto> Items) : ComponentMetadataDto;
+
+/// <summary>One FAQ row; Open makes it start expanded.</summary>
+public record FaqItemDto(string? Question, string? Answer, bool Open);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

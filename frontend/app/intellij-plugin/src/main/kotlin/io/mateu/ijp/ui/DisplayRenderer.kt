@@ -510,6 +510,21 @@ fun renderTestimonials(metadata: JsonNode): JComponent {
     return panel
 }
 
+/** Faq: a list of question (bold) + answer rows on Swing. */
+fun renderFaq(metadata: JsonNode): JComponent {
+    val panel = verticalPanel(6)
+    for (item in metadata.arr("items")) {
+        val row = verticalPanel(2)
+        row.border = JBUI.Borders.emptyBottom(6)
+        row.addStacked(JBLabel(item.text("question")).apply { font = font.deriveFont(Font.BOLD) }, 2)
+        row.addStacked(JBLabel("<html>${item.text("answer")}</html>").apply {
+            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        }, 0)
+        panel.addStacked(row, 6)
+    }
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

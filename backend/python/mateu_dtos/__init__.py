@@ -540,6 +540,21 @@ class TestimonialsMetadata(Wire):
     items: list[TestimonialRecord] = Field(default_factory=list)
 
 
+class FaqItemRecord(Wire):
+    """One FAQ row; ``open`` makes it start expanded (mirrors ``FaqItemDto``)."""
+
+    question: str | None = None
+    answer: str | None = None
+    open: bool = False
+
+
+class FaqMetadata(Wire):
+    """FAQ metadata: collapsible question/answer rows (mirrors ``FaqDto``)."""
+
+    type: Literal["Faq"] = "Faq"
+    items: list[FaqItemRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -633,6 +648,7 @@ ComponentMetadata = Annotated[
         TrendChartMetadata,
         FeatureGridMetadata,
         TestimonialsMetadata,
+        FaqMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

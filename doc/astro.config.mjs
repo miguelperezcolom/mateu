@@ -92,6 +92,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/trend-chart' },
 						{ slug: 'ux-patterns/feature-grid' },
 						{ slug: 'ux-patterns/testimonials' },
+						{ slug: 'ux-patterns/faq' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

@@ -85,6 +85,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.TrendChart,
     ComponentMetadataType.FeatureGrid,
     ComponentMetadataType.Testimonials,
+    ComponentMetadataType.Faq,
 ])
 
 export class RedhatComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

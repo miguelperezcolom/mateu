@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, EmptyState, Feature, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
+import { CalendarEvent, EmptyState, FaqItem, Feature, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -574,6 +574,29 @@ export function TestimonialsRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Faq (collapsible question/answer rows) ────────────────────────────────────
+export function FaqRenderer({ component }: { component: unknown }) {
+  const items = (meta(component)['items'] as FaqItem[]) ?? [];
+  const [open, setOpen] = useState<Record<number, boolean>>(() => {
+    const o: Record<number, boolean> = {};
+    items.forEach((it, i) => { if (it.open) o[i] = true; });
+    return o;
+  });
+  return (
+    <View style={styles.faq}>
+      {items.map((it, i) => (
+        <View key={i} style={styles.faqItem}>
+          <TouchableOpacity style={styles.faqQ} onPress={() => setOpen({ ...open, [i]: !open[i] })}>
+            <Text style={styles.faqQText}>{it.question ?? ''}</Text>
+            <Text style={styles.faqChevron}>{open[i] ? '⌄' : '›'}</Text>
+          </TouchableOpacity>
+          {open[i] && <Text style={styles.faqA}>{it.answer ?? ''}</Text>}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -724,4 +747,11 @@ const styles = StyleSheet.create({
   testimonialStars: { color: '#f5a623', letterSpacing: 1 },
   testimonialQuote: { fontStyle: 'italic', color: '#333', lineHeight: 20 },
   testimonialAuthor: { color: '#666', fontSize: 13 },
+  // Faq
+  faq: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
+  faqItem: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  faqQ: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
+  faqQText: { fontWeight: '600', color: '#222', flex: 1 },
+  faqChevron: { color: '#888', fontSize: 16 },
+  faqA: { paddingHorizontal: 14, paddingBottom: 14, color: '#555', lineHeight: 20 },
 });

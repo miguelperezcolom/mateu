@@ -511,6 +511,28 @@ class Testimonials(Component):
 
 
 @dataclass(frozen=True)
+class FaqItem:
+    """One question/answer of a :class:`Faq`; ``open`` makes it start expanded."""
+
+    question: str | None = None
+    answer: str | None = None
+    open: bool = False
+
+
+@dataclass(frozen=True)
+class Faq(Component):
+    """A read-only FAQ list: collapsible question/answer rows."""
+
+    items: tuple[FaqItem, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -615,4 +637,6 @@ __all__ = [
     "FeatureGrid",
     "Testimonial",
     "Testimonials",
+    "FaqItem",
+    "Faq",
 ]

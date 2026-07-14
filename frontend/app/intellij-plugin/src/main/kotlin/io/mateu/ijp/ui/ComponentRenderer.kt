@@ -72,6 +72,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "TrendChart" -> renderTrendChart(metadata)
             "FeatureGrid" -> renderFeatureGrid(this, metadata)
             "Testimonials" -> renderTestimonials(metadata)
+            "Faq" -> renderFaq(metadata)
             "Image" -> renderStandaloneImage(metadata)
             else -> {
                 val t = metadata.text("type")

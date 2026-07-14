@@ -166,6 +166,16 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "FAQ")]
+    public Faq Faq { get; } = new()
+    {
+        Items =
+        [
+            new FaqItem { Question = "Is it free?", Answer = "There is a free tier.", Open = true },
+            new FaqItem { Question = "Self-host?", Answer = "Yes." },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -425,6 +435,17 @@ public class ComponentTests
         Assert.Contains("\"quote\":\"Shipped in a day.\"", json);
         Assert.Contains("\"author\":\"Ada\"", json);
         Assert.Contains("\"rating\":5", json);
+    }
+
+    [Fact]
+    public void Faq_emits_items()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Faq\"", json);
+        Assert.Contains("\"question\":\"Is it free?\"", json);
+        Assert.Contains("\"answer\":\"There is a free tier.\"", json);
+        Assert.Contains("\"open\":true", json);
     }
 
     [Fact]

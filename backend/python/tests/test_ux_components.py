@@ -29,6 +29,8 @@ from mateu_uidl.components import (  # noqa: E402
     EmptyState,
     Feature,
     FeatureGrid,
+    Faq,
+    FaqItem,
     Funnel,
     FunnelStage,
     HeatCell,
@@ -217,6 +219,19 @@ class PricingPlans(ComponentTreeSupplier):
                     features=("Unlimited projects", "Priority support"),
                     cta_label="Go Pro", action_id="choosePlan",
                 ),
+            ),
+        )
+
+
+@ui("help")
+@title("Help")
+class HelpFaq(ComponentTreeSupplier):
+    def component(self):
+        return Faq(
+            id="faq",
+            items=(
+                FaqItem(question="Is it free?", answer="There is a free tier.", open=True),
+                FaqItem(question="Can I self-host?", answer="Yes."),
             ),
         )
 
@@ -451,6 +466,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_faq():
+    doc = render(HelpFaq)
+    (faq,) = page_children(doc)
+    assert faq["id"] == "faq"
+    assert faq["metadata"]["type"] == "Faq"
+    items = faq["metadata"]["items"]
+    assert len(items) == 2
+    assert items[0]["question"] == "Is it free?"
+    assert items[0]["open"] is True
+    assert items[1]["open"] is False
 
 
 def test_component_tree_supplier_emits_testimonials():
