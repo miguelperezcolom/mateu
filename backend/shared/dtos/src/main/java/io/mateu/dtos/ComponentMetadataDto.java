@@ -100,7 +100,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = CommentThreadDto.class, name = "CommentThread"),
   @JsonSubTypes.Type(value = FileListDto.class, name = "FileList"),
   @JsonSubTypes.Type(value = ChecklistDto.class, name = "Checklist"),
-  @JsonSubTypes.Type(value = ComparisonCardDto.class, name = "ComparisonCard")
+  @JsonSubTypes.Type(value = ComparisonCardDto.class, name = "ComparisonCard"),
+  @JsonSubTypes.Type(value = EntityHeaderDto.class, name = "EntityHeader"),
+  @JsonSubTypes.Type(value = MeterDto.class, name = "Meter"),
+  @JsonSubTypes.Type(value = TaskProgressDto.class, name = "TaskProgress"),
+  @JsonSubTypes.Type(value = StatusListDto.class, name = "StatusList"),
+  @JsonSubTypes.Type(value = TaskQueueDto.class, name = "TaskQueue"),
+  @JsonSubTypes.Type(value = ResourceGridDto.class, name = "ResourceGrid"),
+  @JsonSubTypes.Type(value = OfferCardDto.class, name = "OfferCard"),
+  @JsonSubTypes.Type(value = AddOnPickerDto.class, name = "AddOnPicker"),
+  @JsonSubTypes.Type(value = LedgerDto.class, name = "Ledger"),
+  @JsonSubTypes.Type(value = PaymentPickerDto.class, name = "PaymentPicker"),
+  @JsonSubTypes.Type(value = ProcessMonitorDto.class, name = "ProcessMonitor")
 })
 @Schema(
     oneOf = {
@@ -194,6 +205,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
       CommentThreadDto.class,
       FileListDto.class,
       ChecklistDto.class,
-      ComparisonCardDto.class
+      ComparisonCardDto.class,
+      EntityHeaderDto.class,
+      MeterDto.class,
+      TaskProgressDto.class,
+      StatusListDto.class,
+      TaskQueueDto.class,
+      ResourceGridDto.class,
+      OfferCardDto.class,
+      AddOnPickerDto.class,
+      LedgerDto.class,
+      PaymentPickerDto.class,
+      ProcessMonitorDto.class
     })
 public interface ComponentMetadataDto {}

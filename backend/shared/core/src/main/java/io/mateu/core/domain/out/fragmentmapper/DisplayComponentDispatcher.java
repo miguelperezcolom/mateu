@@ -1,5 +1,6 @@
 package io.mateu.core.domain.out.fragmentmapper;
 
+import static io.mateu.core.domain.out.fragmentmapper.mappers.AddOnPickerMapper.mapAddOnPickerToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AnchorMapper.mapAnchorToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AvatarGroupMapper.mapAvatarGroupToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AvatarMapper.mapAvatarToDto;
@@ -15,6 +16,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.CommentThreadMappe
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ComparisonCardMapper.mapComparisonCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapElementToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.EmptyStateMapper.mapEmptyStateToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.EntityHeaderMapper.mapEntityHeaderToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FaqMapper.mapFaqToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FeatureGridMapper.mapFeatureGridToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FileListMapper.mapFileListToDto;
@@ -25,15 +27,24 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.IconMapper.mapIcon
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ImageMapper.mapImageToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.KPIMapper.mapKPIToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.KanbanMapper.mapKanbanToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.LedgerMapper.mapLedgerToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.mapMarkdownToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.MeterMapper.mapMeterToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MetricCardMapper.mapMetricCardToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.OfferCardMapper.mapOfferCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.OrgChartMapper.mapOrgChartToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.PaymentPickerMapper.mapPaymentPickerToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PricingTableMapper.mapPricingTableToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ProcessMonitorMapper.mapProcessMonitorToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressStepsMapper.mapProgressStepsToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ResourceGridMapper.mapResourceGridToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ScoreboardMapper.mapScoreboardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.SkeletonMapper.mapSkeletonToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.StatMapper.mapStatToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.StatusListMapper.mapStatusListToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.TaskProgressMapper.mapTaskProgressToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.TaskQueueMapper.mapTaskQueueToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TestimonialsMapper.mapTestimonialsToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TextMapper.mapTextToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TimelineMapper.mapTimelineToDto;
@@ -139,6 +150,39 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof ComparisonCard comparisonCard) {
       return mapComparisonCardToDto(comparisonCard);
+    }
+    if (component instanceof EntityHeader entityHeader) {
+      return mapEntityHeaderToDto(entityHeader);
+    }
+    if (component instanceof Meter meter) {
+      return mapMeterToDto(meter);
+    }
+    if (component instanceof TaskProgress taskProgress) {
+      return mapTaskProgressToDto(taskProgress);
+    }
+    if (component instanceof StatusList statusList) {
+      return mapStatusListToDto(statusList);
+    }
+    if (component instanceof TaskQueue taskQueue) {
+      return mapTaskQueueToDto(taskQueue);
+    }
+    if (component instanceof ResourceGrid resourceGrid) {
+      return mapResourceGridToDto(resourceGrid);
+    }
+    if (component instanceof OfferCard offerCard) {
+      return mapOfferCardToDto(offerCard);
+    }
+    if (component instanceof AddOnPicker addOnPicker) {
+      return mapAddOnPickerToDto(addOnPicker);
+    }
+    if (component instanceof Ledger ledger) {
+      return mapLedgerToDto(ledger);
+    }
+    if (component instanceof PaymentPicker paymentPicker) {
+      return mapPaymentPickerToDto(paymentPicker);
+    }
+    if (component instanceof ProcessMonitor processMonitor) {
+      return mapProcessMonitorToDto(processMonitor);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

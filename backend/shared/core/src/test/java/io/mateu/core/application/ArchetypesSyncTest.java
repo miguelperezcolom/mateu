@@ -10,6 +10,7 @@ import io.mateu.core.infra.declarative.orchestrators.itemoverview.ItemOverview;
 import io.mateu.core.infra.declarative.orchestrators.welcome.Welcome;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.AccordionLayoutDto;
+import io.mateu.dtos.AddOnPickerDto;
 import io.mateu.dtos.AnchorDto;
 import io.mateu.dtos.AvatarDto;
 import io.mateu.dtos.BadgeDto;
@@ -30,6 +31,7 @@ import io.mateu.dtos.DashboardPanelDto;
 import io.mateu.dtos.DetailsDto;
 import io.mateu.dtos.DivDto;
 import io.mateu.dtos.EmptyStateDto;
+import io.mateu.dtos.EntityHeaderDto;
 import io.mateu.dtos.FaqDto;
 import io.mateu.dtos.FeatureGridDto;
 import io.mateu.dtos.FileListDto;
@@ -41,22 +43,31 @@ import io.mateu.dtos.HeroSectionDto;
 import io.mateu.dtos.HorizontalLayoutDto;
 import io.mateu.dtos.KPIDto;
 import io.mateu.dtos.KanbanDto;
+import io.mateu.dtos.LedgerDto;
 import io.mateu.dtos.MarkdownDto;
+import io.mateu.dtos.MeterDto;
 import io.mateu.dtos.MetricCardDto;
 import io.mateu.dtos.MetricTrendDto;
 import io.mateu.dtos.NotificationDto;
+import io.mateu.dtos.OfferCardDto;
 import io.mateu.dtos.OrgChartDto;
+import io.mateu.dtos.PaymentPickerDto;
 import io.mateu.dtos.PricingTableDto;
+import io.mateu.dtos.ProcessMonitorDto;
 import io.mateu.dtos.ProgressBarDto;
 import io.mateu.dtos.ProgressStepsDto;
+import io.mateu.dtos.ResourceGridDto;
 import io.mateu.dtos.ScoreboardDto;
 import io.mateu.dtos.ScrollerDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.SkeletonDto;
 import io.mateu.dtos.SplitLayoutDto;
 import io.mateu.dtos.StatDto;
+import io.mateu.dtos.StatusListDto;
 import io.mateu.dtos.TabDto;
 import io.mateu.dtos.TabLayoutDto;
+import io.mateu.dtos.TaskProgressDto;
+import io.mateu.dtos.TaskQueueDto;
 import io.mateu.dtos.TestimonialsDto;
 import io.mateu.dtos.TextDto;
 import io.mateu.dtos.TimelineDto;
@@ -70,6 +81,8 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.AccordionLayout;
 import io.mateu.uidl.data.AccordionPanel;
+import io.mateu.uidl.data.AddOn;
+import io.mateu.uidl.data.AddOnPicker;
 import io.mateu.uidl.data.Anchor;
 import io.mateu.uidl.data.Avatar;
 import io.mateu.uidl.data.Badge;
@@ -83,6 +96,7 @@ import io.mateu.uidl.data.CalloutCard;
 import io.mateu.uidl.data.Card;
 import io.mateu.uidl.data.Checklist;
 import io.mateu.uidl.data.ChecklistItem;
+import io.mateu.uidl.data.Chip;
 import io.mateu.uidl.data.Comment;
 import io.mateu.uidl.data.CommentThread;
 import io.mateu.uidl.data.ComparisonCard;
@@ -92,6 +106,8 @@ import io.mateu.uidl.data.DashboardPanel;
 import io.mateu.uidl.data.Details;
 import io.mateu.uidl.data.Div;
 import io.mateu.uidl.data.EmptyState;
+import io.mateu.uidl.data.EntityHeader;
+import io.mateu.uidl.data.Fact;
 import io.mateu.uidl.data.Faq;
 import io.mateu.uidl.data.FaqItem;
 import io.mateu.uidl.data.Feature;
@@ -110,28 +126,44 @@ import io.mateu.uidl.data.KPI;
 import io.mateu.uidl.data.Kanban;
 import io.mateu.uidl.data.KanbanCard;
 import io.mateu.uidl.data.KanbanColumn;
+import io.mateu.uidl.data.Ledger;
+import io.mateu.uidl.data.LedgerLine;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Markdown;
+import io.mateu.uidl.data.Meter;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.data.MetricTrend;
 import io.mateu.uidl.data.Notification;
+import io.mateu.uidl.data.OfferCard;
 import io.mateu.uidl.data.OrgChart;
 import io.mateu.uidl.data.OrgNode;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.PaymentMethod;
+import io.mateu.uidl.data.PaymentPicker;
 import io.mateu.uidl.data.PricingPlan;
 import io.mateu.uidl.data.PricingTable;
+import io.mateu.uidl.data.ProcessItem;
+import io.mateu.uidl.data.ProcessMonitor;
 import io.mateu.uidl.data.ProgressBar;
 import io.mateu.uidl.data.ProgressSteps;
+import io.mateu.uidl.data.QueueGroup;
+import io.mateu.uidl.data.QueueItem;
+import io.mateu.uidl.data.ResourceGrid;
+import io.mateu.uidl.data.ResourceItem;
 import io.mateu.uidl.data.Scoreboard;
 import io.mateu.uidl.data.Scroller;
 import io.mateu.uidl.data.Skeleton;
 import io.mateu.uidl.data.SkeletonVariant;
 import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.data.Stat;
+import io.mateu.uidl.data.StatusItem;
+import io.mateu.uidl.data.StatusList;
 import io.mateu.uidl.data.Step;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
+import io.mateu.uidl.data.TaskProgress;
+import io.mateu.uidl.data.TaskQueue;
 import io.mateu.uidl.data.Testimonial;
 import io.mateu.uidl.data.Testimonials;
 import io.mateu.uidl.data.Text;
@@ -507,6 +539,248 @@ class ArchetypesSyncTest {
                           .size("120 KB")
                           .type("image")
                           .actionId("openFile")
+                          .build()))
+              .build());
+      content.add(
+          EntityHeader.builder()
+              .id("entityHeader")
+              .title("María Fernández")
+              .badges(List.of(Chip.builder().label("PLATINUM").color("contrast").build()))
+              .subtitle("Ocean Suite · 30 Apr → 07 May · 7N · 2pax · All Inclusive")
+              .facts(
+                  List.of(
+                      Fact.builder().label("TOTAL RESERVA").value("€ 4.890,00").build(),
+                      Fact.builder().label("AGENCIA").value("TUI Group · TUI Magic Life").build()))
+              .metricLabel("FIDELIDAD")
+              .metricValue("48.500")
+              .metricCaption("23 estancias")
+              .build());
+      content.add(
+          Meter.builder()
+              .id("meter")
+              .label("BALANCE ACTUAL")
+              .value(1240.0)
+              .max(1800.0)
+              .unit("€")
+              .caption("69% de la preautorización consumido")
+              .warnAt(1440.0)
+              .dangerAt(1710.0)
+              .build());
+      content.add(
+          TaskProgress.builder()
+              .id("taskProgress")
+              .label("Reserva con 4 pax. Registrar huéspedes adicionales.")
+              .total(4)
+              .done(1)
+              .actionLabel("Añadir siguiente pax")
+              .actionId("addPax")
+              .build());
+      content.add(
+          StatusList.builder()
+              .id("statusList")
+              .items(
+                  List.of(
+                      StatusItem.builder()
+                          .id("ac")
+                          .icon("🌡")
+                          .title("Aire acondicionado con ruido")
+                          .description("Habitación 901 · Reportado 28 Apr · Mantenimiento avisado")
+                          .status("En curso")
+                          .statusColor("normal")
+                          .build(),
+                      StatusItem.builder()
+                          .id("key")
+                          .icon("🔑")
+                          .title("Grabar llave / pulsera")
+                          .description("Complemento de llave digital")
+                          .actionLabel("Grabar")
+                          .actionId("encodeKey")
+                          .build(),
+                      StatusItem.builder()
+                          .id("ses")
+                          .icon("✓")
+                          .title("Parte viajeros (SES)")
+                          .description("Se enviará automáticamente al confirmar el check-in")
+                          .status("Automático")
+                          .statusColor("success")
+                          .build()))
+              .build());
+      content.add(
+          TaskQueue.builder()
+              .id("taskQueue")
+              .actionId("openGuest")
+              .groups(
+                  List.of(
+                      QueueGroup.builder()
+                          .label("En hotel · late check-out primero")
+                          .items(
+                              List.of(
+                                  QueueItem.builder()
+                                      .id("1108")
+                                      .title("Carlos Mendoza")
+                                      .caption("Hab 1108 · 7N")
+                                      .badges(
+                                          List.of(
+                                              Chip.builder()
+                                                  .label("LATE · 18:00")
+                                                  .color("warning")
+                                                  .build()))
+                                      .selected(true)
+                                      .build()))
+                          .build(),
+                      QueueGroup.builder()
+                          .label("Salida pendiente")
+                          .items(
+                              List.of(
+                                  QueueItem.builder()
+                                      .id("901")
+                                      .title("Sophie Laurent")
+                                      .caption("Hab 901")
+                                      .badges(
+                                          List.of(
+                                              Chip.builder()
+                                                  .label("GOLD")
+                                                  .color("contrast")
+                                                  .build()))
+                                      .build()))
+                          .build()))
+              .build());
+      content.add(
+          ResourceGrid.builder()
+              .id("resourceGrid")
+              .actionId("pickRoom")
+              .columns(4)
+              .recommendedLabel("RECOMENDADA")
+              .items(
+                  List.of(
+                      ResourceItem.builder()
+                          .id("1201")
+                          .title("1201")
+                          .subtitle("Ocupada")
+                          .statusLabel("Sucia")
+                          .statusColor("contrast")
+                          .disabled(true)
+                          .build(),
+                      ResourceItem.builder()
+                          .id("1204")
+                          .title("1204")
+                          .subtitle("Ocean Suite")
+                          .statusLabel("Inspeccionada")
+                          .statusColor("success")
+                          .recommended(true)
+                          .selected(true)
+                          .build(),
+                      ResourceItem.builder()
+                          .id("1206")
+                          .title("1206")
+                          .subtitle("Libre")
+                          .statusLabel("Limpia")
+                          .statusColor("success")
+                          .note("Ducha averiada")
+                          .noteColor("error")
+                          .build()))
+              .build());
+      content.add(
+          OfferCard.builder()
+              .id("offerCard")
+              .tag("UPGRADE DISPONIBLE")
+              .title("Master Oceanfront Suite")
+              .subtitle("Planta 14 · Primera línea")
+              .image("https://img.example/suite.jpg")
+              .features(List.of("68 m²", "Vista mar frontal", "Terraza + jacuzzi", "Sofá lounge"))
+              .priceLabel("+ € 65 / noche")
+              .actionLabel("Mejorar a esta habitación")
+              .actionId("upgrade")
+              .build());
+      content.add(
+          AddOnPicker.builder()
+              .id("addOnPicker")
+              .totalLabel("Añadidos")
+              .currency("€")
+              .actionId("extrasChanged")
+              .items(
+                  List.of(
+                      AddOn.builder()
+                          .id("allinc")
+                          .icon("🍹")
+                          .title("Paquete All Inclusive")
+                          .description("Todo incluido · 7 noches · 2 pax")
+                          .price(343.0)
+                          .unit("estancia")
+                          .build(),
+                      AddOn.builder()
+                          .id("parking")
+                          .icon("🅿")
+                          .title("Parking")
+                          .description("Cubierto · Vigilancia 24h")
+                          .includedLabel("Incluido Platinum")
+                          .build(),
+                      AddOn.builder()
+                          .id("late")
+                          .icon("🕕")
+                          .title("Late check-out")
+                          .description("Hasta las 18:00h")
+                          .price(40.0)
+                          .added(true)
+                          .build()))
+              .build());
+      content.add(
+          Ledger.builder()
+              .id("ledger")
+              .currency("€")
+              .totalLabel("Total")
+              .lines(
+                  List.of(
+                      LedgerLine.builder().concept("Alojamiento x7 noches").amount(1540.0).build(),
+                      LedgerLine.builder()
+                          .concept("All Inclusive Package")
+                          .included(true)
+                          .includedLabel("Incluido")
+                          .build(),
+                      LedgerLine.builder()
+                          .concept("Descuento Platinum -10%")
+                          .amount(-154.0)
+                          .build()))
+              .total(1710.5)
+              .build());
+      content.add(
+          PaymentPicker.builder()
+              .id("paymentPicker")
+              .actionId("confirmPayment")
+              .methods(
+                  List.of(
+                      PaymentMethod.builder().id("card").label("Tarjeta").build(),
+                      PaymentMethod.builder().id("cash").label("Efectivo").build(),
+                      PaymentMethod.builder().id("points").label("Puntos").build()))
+              .selected("card")
+              .contextLabel("PREAUTORIZADO")
+              .contextValue("€ 1.800,00")
+              .confirmLabel("Confirmar — € 1.710,50")
+              .build());
+      content.add(
+          ProcessMonitor.builder()
+              .id("processMonitor")
+              .items(
+                  List.of(
+                      ProcessItem.builder()
+                          .id("credit")
+                          .name("Facturación a Crédito")
+                          .systems(List.of("OHIP", "OIC", "Voxel"))
+                          .ok(847)
+                          .warnings(6)
+                          .errors(0)
+                          .status("warning")
+                          .actionLabel("Solucionar")
+                          .actionId("fixCredit")
+                          .build(),
+                      ProcessItem.builder()
+                          .id("sales")
+                          .name("Comercializadora")
+                          .systems(List.of("OHIP", "ERP Fusion A/R"))
+                          .ok(418)
+                          .warnings(0)
+                          .errors(0)
+                          .status("ok")
                           .build()))
               .build());
       content.add(
@@ -1112,6 +1386,189 @@ class ArchetypesSyncTest {
     assertThat(files.get(0).type()).isEqualTo("pdf");
     assertThat(files.get(0).url()).isEqualTo("/dl/report.pdf");
     assertThat(files.get(1).actionId()).isEqualTo("openFile");
+  }
+
+  @Test
+  void entityHeaderSerializes() {
+    var header = findFirst(sync("/component-showcase"), EntityHeaderDto.class);
+    assertThat(header).isNotNull();
+    var metadata = (EntityHeaderDto) header.metadata();
+    assertThat(metadata.title()).isEqualTo("María Fernández");
+    assertThat(metadata.badges()).hasSize(1);
+    assertThat(metadata.badges().get(0).label()).isEqualTo("PLATINUM");
+    assertThat(metadata.badges().get(0).color()).isEqualTo("contrast");
+    assertThat(metadata.subtitle())
+        .isEqualTo("Ocean Suite · 30 Apr → 07 May · 7N · 2pax · All Inclusive");
+    assertThat(metadata.facts()).hasSize(2);
+    assertThat(metadata.facts().get(0).label()).isEqualTo("TOTAL RESERVA");
+    assertThat(metadata.facts().get(0).value()).isEqualTo("€ 4.890,00");
+    assertThat(metadata.metricLabel()).isEqualTo("FIDELIDAD");
+    assertThat(metadata.metricValue()).isEqualTo("48.500");
+    assertThat(metadata.metricCaption()).isEqualTo("23 estancias");
+  }
+
+  @Test
+  void meterSerializes() {
+    var meter = findFirst(sync("/component-showcase"), MeterDto.class);
+    assertThat(meter).isNotNull();
+    var metadata = (MeterDto) meter.metadata();
+    assertThat(metadata.label()).isEqualTo("BALANCE ACTUAL");
+    assertThat(metadata.value()).isEqualTo(1240.0);
+    assertThat(metadata.max()).isEqualTo(1800.0);
+    assertThat(metadata.unit()).isEqualTo("€");
+    assertThat(metadata.caption()).isEqualTo("69% de la preautorización consumido");
+    assertThat(metadata.warnAt()).isEqualTo(1440.0);
+    assertThat(metadata.dangerAt()).isEqualTo(1710.0);
+  }
+
+  @Test
+  void taskProgressSerializes() {
+    var progress = findFirst(sync("/component-showcase"), TaskProgressDto.class);
+    assertThat(progress).isNotNull();
+    var metadata = (TaskProgressDto) progress.metadata();
+    assertThat(metadata.label()).isEqualTo("Reserva con 4 pax. Registrar huéspedes adicionales.");
+    assertThat(metadata.total()).isEqualTo(4);
+    assertThat(metadata.done()).isEqualTo(1);
+    assertThat(metadata.actionLabel()).isEqualTo("Añadir siguiente pax");
+    assertThat(metadata.actionId()).isEqualTo("addPax");
+  }
+
+  @Test
+  void statusListSerializes() {
+    var list = findFirst(sync("/component-showcase"), StatusListDto.class);
+    assertThat(list).isNotNull();
+    var items = ((StatusListDto) list.metadata()).items();
+    assertThat(items).hasSize(3);
+    assertThat(items.get(0).id()).isEqualTo("ac");
+    assertThat(items.get(0).icon()).isEqualTo("🌡");
+    assertThat(items.get(0).title()).isEqualTo("Aire acondicionado con ruido");
+    assertThat(items.get(0).status()).isEqualTo("En curso");
+    assertThat(items.get(0).statusColor()).isEqualTo("normal");
+    assertThat(items.get(1).actionLabel()).isEqualTo("Grabar");
+    assertThat(items.get(1).actionId()).isEqualTo("encodeKey");
+    assertThat(items.get(2).statusColor()).isEqualTo("success");
+  }
+
+  @Test
+  void taskQueueSerializes() {
+    var queue = findFirst(sync("/component-showcase"), TaskQueueDto.class);
+    assertThat(queue).isNotNull();
+    var metadata = (TaskQueueDto) queue.metadata();
+    assertThat(metadata.actionId()).isEqualTo("openGuest");
+    assertThat(metadata.groups()).hasSize(2);
+    assertThat(metadata.groups().get(0).label()).isEqualTo("En hotel · late check-out primero");
+    var first = metadata.groups().get(0).items().get(0);
+    assertThat(first.id()).isEqualTo("1108");
+    assertThat(first.title()).isEqualTo("Carlos Mendoza");
+    assertThat(first.caption()).isEqualTo("Hab 1108 · 7N");
+    assertThat(first.badges().get(0).label()).isEqualTo("LATE · 18:00");
+    assertThat(first.badges().get(0).color()).isEqualTo("warning");
+    assertThat(first.selected()).isTrue();
+    assertThat(metadata.groups().get(1).items().get(0).selected()).isFalse();
+  }
+
+  @Test
+  void resourceGridSerializes() {
+    var grid = findFirst(sync("/component-showcase"), ResourceGridDto.class);
+    assertThat(grid).isNotNull();
+    var metadata = (ResourceGridDto) grid.metadata();
+    assertThat(metadata.actionId()).isEqualTo("pickRoom");
+    assertThat(metadata.columns()).isEqualTo(4);
+    assertThat(metadata.recommendedLabel()).isEqualTo("RECOMENDADA");
+    assertThat(metadata.items()).hasSize(3);
+    assertThat(metadata.items().get(0).disabled()).isTrue();
+    assertThat(metadata.items().get(0).statusLabel()).isEqualTo("Sucia");
+    assertThat(metadata.items().get(1).recommended()).isTrue();
+    assertThat(metadata.items().get(1).selected()).isTrue();
+    assertThat(metadata.items().get(1).subtitle()).isEqualTo("Ocean Suite");
+    assertThat(metadata.items().get(2).note()).isEqualTo("Ducha averiada");
+    assertThat(metadata.items().get(2).noteColor()).isEqualTo("error");
+  }
+
+  @Test
+  void offerCardSerializes() {
+    var offer = findFirst(sync("/component-showcase"), OfferCardDto.class);
+    assertThat(offer).isNotNull();
+    var metadata = (OfferCardDto) offer.metadata();
+    assertThat(metadata.tag()).isEqualTo("UPGRADE DISPONIBLE");
+    assertThat(metadata.title()).isEqualTo("Master Oceanfront Suite");
+    assertThat(metadata.subtitle()).isEqualTo("Planta 14 · Primera línea");
+    assertThat(metadata.image()).isEqualTo("https://img.example/suite.jpg");
+    assertThat(metadata.features())
+        .containsExactly("68 m²", "Vista mar frontal", "Terraza + jacuzzi", "Sofá lounge");
+    assertThat(metadata.priceLabel()).isEqualTo("+ € 65 / noche");
+    assertThat(metadata.actionLabel()).isEqualTo("Mejorar a esta habitación");
+    assertThat(metadata.actionId()).isEqualTo("upgrade");
+    assertThat(metadata.current()).isFalse();
+    assertThat(metadata.currentLabel()).isNull();
+  }
+
+  @Test
+  void addOnPickerSerializes() {
+    var picker = findFirst(sync("/component-showcase"), AddOnPickerDto.class);
+    assertThat(picker).isNotNull();
+    var metadata = (AddOnPickerDto) picker.metadata();
+    assertThat(metadata.totalLabel()).isEqualTo("Añadidos");
+    assertThat(metadata.currency()).isEqualTo("€");
+    assertThat(metadata.actionId()).isEqualTo("extrasChanged");
+    assertThat(metadata.items()).hasSize(3);
+    assertThat(metadata.items().get(0).price()).isEqualTo(343.0);
+    assertThat(metadata.items().get(0).unit()).isEqualTo("estancia");
+    assertThat(metadata.items().get(1).includedLabel()).isEqualTo("Incluido Platinum");
+    assertThat(metadata.items().get(1).price()).isNull();
+    assertThat(metadata.items().get(2).added()).isTrue();
+    assertThat(metadata.items().get(2).price()).isEqualTo(40.0);
+  }
+
+  @Test
+  void ledgerSerializes() {
+    var ledger = findFirst(sync("/component-showcase"), LedgerDto.class);
+    assertThat(ledger).isNotNull();
+    var metadata = (LedgerDto) ledger.metadata();
+    assertThat(metadata.currency()).isEqualTo("€");
+    assertThat(metadata.totalLabel()).isEqualTo("Total");
+    assertThat(metadata.lines()).hasSize(3);
+    assertThat(metadata.lines().get(0).concept()).isEqualTo("Alojamiento x7 noches");
+    assertThat(metadata.lines().get(0).amount()).isEqualTo(1540.0);
+    assertThat(metadata.lines().get(1).included()).isTrue();
+    assertThat(metadata.lines().get(1).includedLabel()).isEqualTo("Incluido");
+    assertThat(metadata.lines().get(1).amount()).isNull();
+    assertThat(metadata.lines().get(2).amount()).isEqualTo(-154.0);
+    assertThat(metadata.total()).isEqualTo(1710.5);
+  }
+
+  @Test
+  void paymentPickerSerializes() {
+    var picker = findFirst(sync("/component-showcase"), PaymentPickerDto.class);
+    assertThat(picker).isNotNull();
+    var metadata = (PaymentPickerDto) picker.metadata();
+    assertThat(metadata.actionId()).isEqualTo("confirmPayment");
+    assertThat(metadata.methods()).hasSize(3);
+    assertThat(metadata.methods().get(0).id()).isEqualTo("card");
+    assertThat(metadata.methods().get(0).label()).isEqualTo("Tarjeta");
+    assertThat(metadata.selected()).isEqualTo("card");
+    assertThat(metadata.contextLabel()).isEqualTo("PREAUTORIZADO");
+    assertThat(metadata.contextValue()).isEqualTo("€ 1.800,00");
+    assertThat(metadata.confirmLabel()).isEqualTo("Confirmar — € 1.710,50");
+  }
+
+  @Test
+  void processMonitorSerializes() {
+    var monitor = findFirst(sync("/component-showcase"), ProcessMonitorDto.class);
+    assertThat(monitor).isNotNull();
+    var items = ((ProcessMonitorDto) monitor.metadata()).items();
+    assertThat(items).hasSize(2);
+    assertThat(items.get(0).id()).isEqualTo("credit");
+    assertThat(items.get(0).name()).isEqualTo("Facturación a Crédito");
+    assertThat(items.get(0).systems()).containsExactly("OHIP", "OIC", "Voxel");
+    assertThat(items.get(0).ok()).isEqualTo(847);
+    assertThat(items.get(0).warnings()).isEqualTo(6);
+    assertThat(items.get(0).errors()).isEqualTo(0);
+    assertThat(items.get(0).status()).isEqualTo("warning");
+    assertThat(items.get(0).actionLabel()).isEqualTo("Solucionar");
+    assertThat(items.get(0).actionId()).isEqualTo("fixCredit");
+    assertThat(items.get(1).status()).isEqualTo("ok");
+    assertThat(items.get(1).actionId()).isNull();
   }
 
   @Test
