@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton, TimelineItem } from '../api/metadata';
+import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton, Step, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -289,6 +289,35 @@ export function TimelineRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── ProgressSteps (mobile: a compact vertical stepper) ────────────────────────
+export function ProgressStepsRenderer({ component }: { component: unknown }) {
+  const steps = (meta(component)['steps'] as Step[]) ?? [];
+  return (
+    <View style={styles.steps}>
+      {steps.map((s, i) => {
+        const status = s.status ?? 'upcoming';
+        const done = status === 'done';
+        const current = status === 'current';
+        const dotColor = done ? '#1a73e8' : current ? '#fff' : '#e5e7eb';
+        return (
+          <View key={s.id ?? i} style={styles.stepRow}>
+            <View style={styles.stepRail}>
+              <View style={[styles.stepDot, { backgroundColor: dotColor, borderColor: current ? '#1a73e8' : 'transparent' }]}>
+                <Text style={[styles.stepDotText, { color: done ? '#fff' : current ? '#1a73e8' : '#666' }]}>{done ? '✓' : String(i + 1)}</Text>
+              </View>
+              {i < steps.length - 1 && <View style={[styles.stepLine, { backgroundColor: done ? '#1a73e8' : '#cbd5e1' }]} />}
+            </View>
+            <View style={styles.stepBody}>
+              <Text style={[styles.stepTitle, status === 'upcoming' && styles.stepTitleMuted]}>{s.title ?? ''}</Text>
+              {!!s.description && <Text style={styles.stepDesc}>{s.description}</Text>}
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -361,4 +390,15 @@ const styles = StyleSheet.create({
   timelineTitle: { fontWeight: '600', color: '#222' },
   timelineTime: { fontSize: 11, color: '#888' },
   timelineDesc: { color: '#666', marginTop: 2 },
+  // ProgressSteps (vertical on mobile)
+  steps: {},
+  stepRow: { flexDirection: 'row', gap: 10 },
+  stepRail: { alignItems: 'center', width: 32 },
+  stepDot: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  stepDotText: { fontWeight: '700', fontSize: 13 },
+  stepLine: { flex: 1, width: 2, marginVertical: 2, minHeight: 10 },
+  stepBody: { flex: 1, paddingBottom: 18, paddingTop: 4 },
+  stepTitle: { fontWeight: '600', color: '#222' },
+  stepTitleMuted: { color: '#888', fontWeight: '500' },
+  stepDesc: { color: '#888', fontSize: 12, marginTop: 2 },
 });

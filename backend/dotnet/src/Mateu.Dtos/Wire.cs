@@ -139,6 +139,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(GanttMetadataDto), "Gantt")]
 [JsonDerivedType(typeof(KanbanMetadataDto), "Kanban")]
 [JsonDerivedType(typeof(TimelineMetadataDto), "Timeline")]
+[JsonDerivedType(typeof(ProgressStepsMetadataDto), "ProgressSteps")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -203,6 +204,12 @@ public record TimelineMetadataDto(IReadOnlyList<TimelineItemDto> Items) : Compon
 
 /// <summary>One timeline entry; ActionId — when set — makes it clickable.</summary>
 public record TimelineItemDto(string? Id, string? Title, string? Description, string? Timestamp, string? Icon, string? Color, string? ActionId);
+
+/// <summary>Horizontal progress-indicator metadata: numbered steps.</summary>
+public record ProgressStepsMetadataDto(IReadOnlyList<StepDto> Steps) : ComponentMetadataDto;
+
+/// <summary>One progress step; Status is done|current|upcoming.</summary>
+public record StepDto(string? Id, string? Title, string? Description, string? Status);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

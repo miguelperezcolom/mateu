@@ -43,6 +43,8 @@ from mateu_dtos import (
     KanbanCardRecord,
     TimelineMetadata,
     TimelineItemRecord,
+    ProgressStepsMetadata,
+    StepRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -654,6 +656,12 @@ class ReflectionMapper:
                 for it in c.items
             ]
             return self._fluent_client(TimelineMetadata(items=items), c)
+        if isinstance(c, fluent.ProgressSteps):
+            steps = [
+                StepRecord(id=s.id, title=s.title, description=s.description, status=s.status)
+                for s in c.steps
+            ]
+            return self._fluent_client(ProgressStepsMetadata(steps=steps), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

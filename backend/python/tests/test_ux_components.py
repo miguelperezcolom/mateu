@@ -32,6 +32,8 @@ from mateu_uidl.components import (  # noqa: E402
     KanbanCard,
     KanbanColumn,
     MetricCard,
+    ProgressSteps,
+    Step,
     Timeline,
     TimelineItem,
     MetricTrend,
@@ -135,6 +137,20 @@ class ActivityFeed(ComponentTreeSupplier):
                     color="#10b981",
                     action_id="openShipment",
                 ),
+            ),
+        )
+
+
+@ui("checkout")
+@title("Checkout")
+class CheckoutProgress(ComponentTreeSupplier):
+    def component(self):
+        return ProgressSteps(
+            id="progress",
+            steps=(
+                Step(id="s1", title="Cart", status="done"),
+                Step(id="s2", title="Payment", description="in progress", status="current"),
+                Step(id="s3", title="Done", status="upcoming"),
             ),
         )
 
@@ -285,6 +301,19 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_progress_steps():
+    doc = render(CheckoutProgress)
+    (steps,) = page_children(doc)
+    assert steps["id"] == "progress"
+    assert steps["metadata"]["type"] == "ProgressSteps"
+    items = steps["metadata"]["steps"]
+    assert len(items) == 3
+    assert items[0]["title"] == "Cart"
+    assert items[0]["status"] == "done"
+    assert items[1]["status"] == "current"
+    assert items[2]["status"] == "upcoming"
 
 
 def test_component_tree_supplier_emits_timeline():

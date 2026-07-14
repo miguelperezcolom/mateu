@@ -82,6 +82,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/gantt' },
 						{ slug: 'ux-patterns/kanban' },
 						{ slug: 'ux-patterns/timeline' },
+						{ slug: 'ux-patterns/progress-steps' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

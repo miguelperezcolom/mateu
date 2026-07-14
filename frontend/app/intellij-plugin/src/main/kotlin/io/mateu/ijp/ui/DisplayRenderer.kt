@@ -141,6 +141,40 @@ fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
+/** ProgressSteps: a horizontal row of numbered dots + labels, colored by status. */
+fun renderProgressSteps(metadata: JsonNode): JComponent {
+    val row = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+    row.isOpaque = false
+    val steps = metadata.arr("steps")
+    for ((i, step) in steps.withIndex()) {
+        val status = step.text("status", "upcoming")
+        val cell = verticalPanel(2)
+        cell.border = JBUI.Borders.empty(0, 8)
+        val label = if (status == "done") "✓" else (i + 1).toString()
+        val dot = JBLabel(label, SwingConstants.CENTER)
+        dot.foreground =
+            when (status) {
+                "done" -> Color(0x1A, 0x73, 0xE8)
+                "current" -> Color(0x1A, 0x73, 0xE8)
+                else -> JBUI.CurrentTheme.Label.disabledForeground()
+            }
+        dot.font = dot.font.deriveFont(Font.BOLD, 15f)
+        cell.addStacked(dot, 2)
+        cell.addStacked(JBLabel(step.text("title"), SwingConstants.CENTER).apply {
+            if (status == "upcoming") foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            else font = font.deriveFont(Font.BOLD)
+        }, 0)
+        val desc = step.text("description")
+        if (desc.isNotBlank()) {
+            cell.addStacked(JBLabel(desc, SwingConstants.CENTER).apply {
+                foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            }, 0)
+        }
+        row.add(cell)
+    }
+    return row
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

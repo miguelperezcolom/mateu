@@ -122,3 +122,15 @@ export interface Timeline {
   type?: 'Timeline';
   items?: TimelineItem[];
 }
+
+export interface Step {
+  id?: string;
+  title?: string;
+  description?: string;
+  status?: string; // done | current | upcoming
+}
+
+export interface ProgressSteps {
+  type?: 'ProgressSteps';
+  steps?: Step[];
+}

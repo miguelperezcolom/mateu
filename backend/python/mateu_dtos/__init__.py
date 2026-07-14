@@ -379,6 +379,22 @@ class TimelineMetadata(Wire):
     items: list[TimelineItemRecord] = Field(default_factory=list)
 
 
+class StepRecord(Wire):
+    """One progress step; ``status`` is done|current|upcoming (mirrors ``StepDto``)."""
+
+    id: str | None = None
+    title: str | None = None
+    description: str | None = None
+    status: str | None = None
+
+
+class ProgressStepsMetadata(Wire):
+    """Horizontal progress-indicator metadata (mirrors ``ProgressStepsDto``)."""
+
+    type: Literal["ProgressSteps"] = "ProgressSteps"
+    steps: list[StepRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -462,6 +478,7 @@ ComponentMetadata = Annotated[
         GanttMetadata,
         KanbanMetadata,
         TimelineMetadata,
+        ProgressStepsMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

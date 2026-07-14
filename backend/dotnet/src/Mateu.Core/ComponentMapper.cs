@@ -41,6 +41,9 @@ public static class ComponentMapper
         Timeline tl => Dto(tl, new TimelineMetadataDto(tl.Items.Select(it => new TimelineItemDto(
             it.Id, it.Title, it.Description, it.Timestamp, it.Icon, it.Color, it.ActionId)).ToList())),
 
+        ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(
+            st.Id, st.Title, st.Description, st.Status)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

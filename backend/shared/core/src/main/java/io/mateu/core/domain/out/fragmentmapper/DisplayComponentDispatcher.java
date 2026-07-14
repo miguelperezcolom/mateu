@@ -18,6 +18,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.KanbanMapper.mapKa
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MetricCardMapper.mapMetricCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressStepsMapper.mapProgressStepsToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ScoreboardMapper.mapScoreboardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.SkeletonMapper.mapSkeletonToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TextMapper.mapTextToDto;
@@ -75,6 +76,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Timeline timeline) {
       return mapTimelineToDto(timeline);
+    }
+    if (component instanceof ProgressSteps progressSteps) {
+      return mapProgressStepsToDto(progressSteps);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

@@ -161,6 +161,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Gantt,
     ComponentMetadataType.Kanban,
     ComponentMetadataType.Timeline,
+    ComponentMetadataType.ProgressSteps,
 ])
 
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

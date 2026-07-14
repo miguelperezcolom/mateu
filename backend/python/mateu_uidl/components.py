@@ -276,6 +276,29 @@ class Timeline(Component):
 
 
 @dataclass(frozen=True)
+class Step:
+    """One step of a :class:`ProgressSteps`. ``status`` is done|current|upcoming."""
+
+    id: str | None = None
+    title: str | None = None
+    description: str | None = None
+    status: str | None = None
+
+
+@dataclass(frozen=True)
+class ProgressSteps(Component):
+    """A read-only horizontal progress indicator: numbered steps joined by a connector."""
+
+    steps: tuple[Step, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "steps", tuple(self.steps))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -362,4 +385,6 @@ __all__ = [
     "Kanban",
     "TimelineItem",
     "Timeline",
+    "Step",
+    "ProgressSteps",
 ]

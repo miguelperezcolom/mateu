@@ -62,6 +62,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Gantt" -> renderGantt(metadata)
             "Kanban" -> renderKanban(this, metadata)
             "Timeline" -> renderTimeline(this, metadata)
+            "ProgressSteps" -> renderProgressSteps(metadata)
             "Image" -> renderStandaloneImage(metadata)
             else -> {
                 val t = metadata.text("type")

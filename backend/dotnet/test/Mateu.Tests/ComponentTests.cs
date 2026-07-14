@@ -64,6 +64,17 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Progress")]
+    public ProgressSteps Progress { get; } = new()
+    {
+        Steps =
+        [
+            new Step { Id = "s1", Title = "Cart", Status = "done" },
+            new Step { Id = "s2", Title = "Payment", Description = "in progress", Status = "current" },
+            new Step { Id = "s3", Title = "Done", Status = "upcoming" },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -208,6 +219,18 @@ public class ComponentTests
         Assert.Contains("\"title\":\"Order placed\"", json);
         Assert.Contains("\"timestamp\":\"14:20\"", json);
         Assert.Contains("\"actionId\":\"openShipment\"", json);
+    }
+
+    [Fact]
+    public void Progress_steps_emit_statuses()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"ProgressSteps\"", json);
+        Assert.Contains("\"steps\":[{", json);
+        Assert.Contains("\"title\":\"Cart\"", json);
+        Assert.Contains("\"status\":\"done\"", json);
+        Assert.Contains("\"status\":\"current\"", json);
     }
 
     [Fact]

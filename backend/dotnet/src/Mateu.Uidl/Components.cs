@@ -192,6 +192,21 @@ public sealed record Timeline : ComponentBase
     public IReadOnlyList<TimelineItem> Items { get; init; } = [];
 }
 
+/// <summary>One step of a <see cref="ProgressSteps"/>. Status: done|current|upcoming.</summary>
+public sealed record Step
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public string? Status { get; init; }
+}
+
+/// <summary>A read-only horizontal progress indicator: numbered steps joined by a connector.</summary>
+public sealed record ProgressSteps : ComponentBase
+{
+    public IReadOnlyList<Step> Steps { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

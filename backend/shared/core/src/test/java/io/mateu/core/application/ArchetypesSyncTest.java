@@ -36,6 +36,7 @@ import io.mateu.dtos.MetricCardDto;
 import io.mateu.dtos.MetricTrendDto;
 import io.mateu.dtos.NotificationDto;
 import io.mateu.dtos.ProgressBarDto;
+import io.mateu.dtos.ProgressStepsDto;
 import io.mateu.dtos.ScoreboardDto;
 import io.mateu.dtos.ScrollerDto;
 import io.mateu.dtos.ServerSideComponentDto;
@@ -84,11 +85,13 @@ import io.mateu.uidl.data.Notification;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.ProgressBar;
+import io.mateu.uidl.data.ProgressSteps;
 import io.mateu.uidl.data.Scoreboard;
 import io.mateu.uidl.data.Scroller;
 import io.mateu.uidl.data.Skeleton;
 import io.mateu.uidl.data.SkeletonVariant;
 import io.mateu.uidl.data.SplitLayout;
+import io.mateu.uidl.data.Step;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.Text;
@@ -378,6 +381,20 @@ class ArchetypesSyncTest {
                           .color("#10b981")
                           .actionId("openShipment")
                           .build()))
+              .build());
+      content.add(
+          ProgressSteps.builder()
+              .id("progress")
+              .steps(
+                  List.of(
+                      Step.builder().id("s1").title("Cart").status("done").build(),
+                      Step.builder()
+                          .id("s2")
+                          .title("Payment")
+                          .description("in progress")
+                          .status("current")
+                          .build(),
+                      Step.builder().id("s3").title("Done").status("upcoming").build()))
               .build());
       content.add(
           HeroSection.builder()
@@ -802,6 +819,19 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void progressStepsSerialize() {
+    var steps = findFirst(sync("/component-showcase"), ProgressStepsDto.class);
+    assertThat(steps).isNotNull();
+    var items = ((ProgressStepsDto) steps.metadata()).steps();
+    assertThat(items).hasSize(3);
+    assertThat(items.get(0).title()).isEqualTo("Cart");
+    assertThat(items.get(0).status()).isEqualTo("done");
+    assertThat(items.get(1).status()).isEqualTo("current");
+    assertThat(items.get(1).description()).isEqualTo("in progress");
+    assertThat(items.get(2).status()).isEqualTo("upcoming");
   }
 
   @Test
