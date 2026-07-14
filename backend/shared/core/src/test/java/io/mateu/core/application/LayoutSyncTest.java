@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.BannerThemeDto;
 import io.mateu.dtos.ButtonDto;
+import io.mateu.dtos.ButtonSizeDto;
 import io.mateu.dtos.CardDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
@@ -495,6 +496,16 @@ class LayoutSyncTest {
     var titleRow = rowContaining(increment, "Anidada");
     assertThat(collectMetadata(titleRow, ButtonDto.class))
         .noneSatisfy(b -> assertThat(b.actionId()).isEqualTo("nested-form-action-nested-validate"));
+  }
+
+  @Test
+  void sectionButtonsDefaultToTheSmallSizeVariant() {
+    var increment = mateu.sync("/layout/inline");
+    // both the title-row toolbar button and the bottom @Button default to size=small
+    assertThat(findButton(increment, "nested-form-action-nested-refresh").size())
+        .isEqualTo(ButtonSizeDto.small);
+    assertThat(findButton(increment, "nested-form-action-nested-validate").size())
+        .isEqualTo(ButtonSizeDto.small);
   }
 
   @Test

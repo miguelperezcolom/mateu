@@ -6,7 +6,7 @@ import io.mateu.uidl.interfaces.Actionable;
 import java.util.concurrent.Callable;
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record Button(
     String id,
     String label,

@@ -400,7 +400,16 @@ final class SectionFormRenderer {
         triggers.addAll(createButtons(actionPrefix, value, ctx.httpRequest()));
       }
     }
-    return triggers;
+    // Section buttons are secondary chrome next to the section title, so render them small by
+    // default (Vaadin's `small` theme variant). An explicit @Toolbar/@Button buttonSize wins.
+    return triggers.stream().map(SectionFormRenderer::shrinkToSmallByDefault).toList();
+  }
+
+  private static UserTrigger shrinkToSmallByDefault(UserTrigger trigger) {
+    if (trigger instanceof Button button && button.size() == null) {
+      return button.toBuilder().size(ButtonSize.small).build();
+    }
+    return trigger;
   }
 
   private SectionFormRenderer() {}
