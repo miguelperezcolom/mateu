@@ -39,12 +39,10 @@ public class EnCasaDetail implements PostHydrationHandler {
   @Hidden String guestId;
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> header = () -> GuestHeaders.inHouseHeader(guestId);
 
   @Section("Cuenta de la estancia")
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> cuenta =
       () -> {
         var g = HotelData.inHouse(guestId);
@@ -81,7 +79,6 @@ public class EnCasaDetail implements PostHydrationHandler {
   @Section("Incidencias y quejas en estancia")
   @Audience("Staff")
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> incidencias =
       () -> {
         var g = HotelData.inHouse(guestId);
@@ -118,7 +115,6 @@ public class EnCasaDetail implements PostHydrationHandler {
 
   @Section("Acompañantes")
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> acompanantes =
       () -> {
         var g = HotelData.inHouse(guestId);
@@ -152,7 +148,6 @@ public class EnCasaDetail implements PostHydrationHandler {
   @Section("Histórico en la compañía")
   @Audience("Staff")
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> historico =
       () -> {
         var g = HotelData.inHouse(guestId);

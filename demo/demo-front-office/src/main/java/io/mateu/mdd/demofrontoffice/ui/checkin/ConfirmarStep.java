@@ -26,7 +26,6 @@ public class ConfirmarStep implements WizardStep {
   @Hidden String guestId;
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(guestId);
 
   @PlainText
@@ -46,7 +45,6 @@ public class ConfirmarStep implements WizardStep {
   String regimen;
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> huespedesEnHabitacion =
       () -> {
         var g = HotelData.arrival(guestId);
@@ -94,7 +92,6 @@ public class ConfirmarStep implements WizardStep {
   Double totalEstancia;
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> efectosCheckIn =
       () ->
           StatusList.builder()

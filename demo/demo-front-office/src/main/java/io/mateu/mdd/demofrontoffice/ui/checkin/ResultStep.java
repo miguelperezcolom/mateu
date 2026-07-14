@@ -30,7 +30,6 @@ public class ResultStep implements WizardStep {
   String mensaje;
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> resultado =
       () ->
           StatusList.builder().style("width: 100%;")

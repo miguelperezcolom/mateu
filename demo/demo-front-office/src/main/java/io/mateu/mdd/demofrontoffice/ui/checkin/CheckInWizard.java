@@ -20,25 +20,18 @@ import java.util.List;
  * {@code EntityHeader} so the context never leaves the screen; the room grid, the upgrade offer and
  * the add-on picker dispatch their actions back into this wizard.
  *
- * <p>NOTE on state: only the CURRENT step is rehydrated from the component state on each request —
- * the other step objects reset to their field initializers. All cross-step data therefore lives in
- * wizard-level fields (whose names match the step field names, so the shared flat state keys feed
- * both) and is pushed back into every step before rendering ({@link #push()}).
+ * <p>State is handled by the framework: every step's fields are serialized into the component
+ * state and rehydrated on each request, so values entered or set in ANY step survive navigation
+ * and actions for the wizard's lifetime. The wizard itself only seeds the steps once per guest
+ * ({@link #populate()}), keeps the Confirmar summary derived from the other steps
+ * ({@link #syncConfirmar()}), and reacts to the actions its step components dispatch.
  */
 @Route(value = "/checkin/:id", parentRoute = "")
 @Title("Check-In")
 public class CheckInWizard extends Wizard {
 
-  // ── Cross-step state (mirrors of the step fields, same names → same flat state keys) ──
   String guestId;
   boolean populated;
-  String documento;
-  String nombre;
-  String email;
-  String telefono;
-  String habitacionSeleccionada;
-  String extrasSeleccionados;
-  String extrasTotal;
 
   @Label("Identidad")
   IdentidadStep identidad = new IdentidadStep();
@@ -69,72 +62,42 @@ public class CheckInWizard extends Wizard {
       populated = true;
       populate();
     }
-    push();
     syncConfirmar();
   }
 
+  /** Seeds the steps from the guest's reservation data — once per guest. */
   void populate() {
     var g = HotelData.arrival(guestId);
-    documento = g.verified() ? "✓ Verificado — " + g.doc() : "Pendiente de escaneo de documento";
-    nombre = g.name();
-    email = g.email();
-    telefono = g.phone();
-    habitacionSeleccionada = g.room();
-    extrasSeleccionados = "";
-    extrasTotal = "0";
-  }
-
-  /** Pushes the wizard-level state into every step (steps reset to initializers on rebuild). */
-  void push() {
     identidad.setGuestId(guestId);
+    identidad.setDocumento(
+        g.verified() ? "✓ Verificado — " + g.doc() : "Pendiente de escaneo de documento");
+    identidad.setNombre(g.name());
+    identidad.setEmail(g.email());
+    identidad.setTelefono(g.phone());
     habitacion.setGuestId(guestId);
+    habitacion.setHabitacionSeleccionada(g.room());
     extras.setGuestId(guestId);
+    extras.setExtrasSeleccionados("");
+    extras.setExtrasTotal(0);
     confirmar.setGuestId(guestId);
-    if (documento != null) {
-      identidad.setDocumento(documento);
-    }
-    if (nombre != null) {
-      identidad.setNombre(nombre);
-    }
-    if (email != null) {
-      identidad.setEmail(email);
-    }
-    if (telefono != null) {
-      identidad.setTelefono(telefono);
-    }
-    if (habitacionSeleccionada != null) {
-      habitacion.setHabitacionSeleccionada(habitacionSeleccionada);
-    }
-    if (extrasSeleccionados != null) {
-      extras.setExtrasSeleccionados(extrasSeleccionados);
-    }
-    if (extrasTotal != null) {
-      extras.setExtrasTotal(extrasTotal);
-    }
-    if (result != null) {
-      result.setGuestId(guestId);
-    }
   }
 
+  /** The Confirmar step shows data derived from the other steps — recompute it on each request. */
   void syncConfirmar() {
     var g = HotelData.arrival(guestId);
+    var nombre = identidad.getNombre();
     confirmar.setHuespedPrincipal(nombre == null || nombre.isBlank() ? g.name() : nombre);
-    var room = habitacionSeleccionada != null ? habitacionSeleccionada : g.room();
+    var room =
+        habitacion.getHabitacionSeleccionada() != null
+            ? habitacion.getHabitacionSeleccionada()
+            : g.room();
     confirmar.setHabitacionAsignada(
         g.room().equals(room)
             ? room + " — " + g.roomType()
             : room + " — Planta " + (room.length() >= 2 ? room.substring(0, 2) : room));
     confirmar.setEstancia(g.stay());
     confirmar.setRegimen(g.board());
-    confirmar.setTotalEstancia(g.total() + extrasImporte());
-  }
-
-  double extrasImporte() {
-    try {
-      return extrasTotal == null || extrasTotal.isBlank() ? 0.0 : Double.parseDouble(extrasTotal);
-    } catch (NumberFormatException e) {
-      return 0.0;
-    }
+    confirmar.setTotalEstancia(g.total() + extras.getExtrasTotal());
   }
 
   // ── Actions dispatched by the step components ──────────────────────────────
@@ -145,8 +108,7 @@ public class CheckInWizard extends Wizard {
       case "pickRoom" -> {
         var item = param(httpRequest, "_item");
         if (item != null) {
-          habitacionSeleccionada = item;
-          push();
+          habitacion.setHabitacionSeleccionada(item);
           syncConfirmar();
         }
         return this;
@@ -164,11 +126,10 @@ public class CheckInWizard extends Wizard {
         } else {
           ids.remove(item);
         }
-        extrasSeleccionados = String.join(",", ids);
+        extras.setExtrasSeleccionados(String.join(",", ids));
         if (params.get("_total") instanceof Number total) {
-          extrasTotal = String.valueOf(total.doubleValue());
+          extras.setExtrasTotal(total.doubleValue());
         }
-        push();
         syncConfirmar();
         return this;
       }
@@ -177,15 +138,15 @@ public class CheckInWizard extends Wizard {
       }
       case "simularEscaneo" -> {
         var g = HotelData.arrival(guestId);
-        documento = "✓ Verificado — escaneo correcto";
-        nombre = g.name();
-        email =
+        identidad.setDocumento("✓ Verificado — escaneo correcto");
+        identidad.setNombre(g.name());
+        identidad.setEmail(
             g.email() == null || g.email().isBlank()
                 ? g.name().toLowerCase().replace(' ', '.').replace("í", "i").replace("é", "e")
                     + "@email.com"
-                : g.email();
-        telefono = g.phone() == null || g.phone().isBlank() ? "+00 000 000 000" : g.phone();
-        push();
+                : g.email());
+        identidad.setTelefono(
+            g.phone() == null || g.phone().isBlank() ? "+00 000 000 000" : g.phone());
         return this;
       }
       case "encodeKey" -> {
@@ -196,7 +157,6 @@ public class CheckInWizard extends Wizard {
       }
       default -> {
         var result = super.handleAction(actionId, httpRequest);
-        push();
         syncConfirmar();
         return result;
       }
@@ -243,6 +203,5 @@ public class CheckInWizard extends Wizard {
             + confirmar.getHuespedPrincipal()
             + " · Habitación "
             + confirmar.getHabitacionAsignada());
-    push();
   }
 }

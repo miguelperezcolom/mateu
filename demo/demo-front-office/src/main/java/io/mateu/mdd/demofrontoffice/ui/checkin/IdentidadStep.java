@@ -28,7 +28,6 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
 
   @Colspan(2)
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(guestId);
 
   @PlainText
@@ -46,7 +45,6 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
 
   @Colspan(2)
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> preferencias =
       () -> {
         var g = HotelData.arrival(guestId);
@@ -84,7 +82,6 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
 
   @Colspan(2)
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> registroPax =
       () -> {
         var g = HotelData.arrival(guestId);

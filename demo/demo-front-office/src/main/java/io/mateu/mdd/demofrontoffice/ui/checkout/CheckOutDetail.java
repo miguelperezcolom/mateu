@@ -42,12 +42,10 @@ public class CheckOutDetail implements PostHydrationHandler {
   @Hidden String guestId;
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> header = () -> GuestHeaders.departureHeader(guestId);
 
   @Section("Desglose folio")
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> folio =
       () -> {
         var g = HotelData.departure(guestId);
@@ -62,7 +60,6 @@ public class CheckOutDetail implements PostHydrationHandler {
 
   @Section("Cobro")
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> cobro =
       () -> {
         var g = HotelData.departure(guestId);

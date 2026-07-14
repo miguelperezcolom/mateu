@@ -24,14 +24,12 @@ public class ExtrasStep implements WizardStep {
 
   @Hidden String extrasSeleccionados = "";
 
-  @Hidden String extrasTotal = "0";
+  @Hidden double extrasTotal;
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(guestId);
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> extrasEstancia =
       () ->
           AddOnPicker.builder()

@@ -27,11 +27,9 @@ public class HabitacionStep implements WizardStep {
   @Hidden String habitacionSeleccionada = "1204";
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(guestId);
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> preferenciasCliente =
       () ->
           HorizontalLayout.builder()
@@ -45,7 +43,6 @@ public class HabitacionStep implements WizardStep {
               .build();
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> habitaciones =
       () ->
           ResourceGrid.builder()
@@ -57,7 +54,6 @@ public class HabitacionStep implements WizardStep {
               .build();
 
   @Label("")
-  @com.fasterxml.jackson.annotation.JsonIgnore
   Callable<Component> ofertaUpgrade =
       () ->
           HorizontalLayout.builder()
