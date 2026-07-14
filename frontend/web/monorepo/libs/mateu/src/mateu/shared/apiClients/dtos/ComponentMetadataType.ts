@@ -77,6 +77,7 @@ export enum ComponentMetadataType {
     Gantt = "Gantt",
     Kanban = "Kanban",
     Timeline = "Timeline",
-    ProgressSteps = "ProgressSteps"
+    ProgressSteps = "ProgressSteps",
+    Stat = "Stat"
 
 }

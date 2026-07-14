@@ -134,3 +134,14 @@ export interface ProgressSteps {
   type?: 'ProgressSteps';
   steps?: Step[];
 }
+
+export interface Stat {
+  type?: 'Stat';
+  label?: string;
+  value?: string;
+  unit?: string;
+  delta?: string;
+  trend?: string; // up | down | flat
+  spark?: number[];
+  actionId?: string;
+}

@@ -181,6 +181,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Kanban,
     ComponentMetadataType.Timeline,
     ComponentMetadataType.ProgressSteps,
+    ComponentMetadataType.Stat,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

@@ -140,6 +140,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(KanbanMetadataDto), "Kanban")]
 [JsonDerivedType(typeof(TimelineMetadataDto), "Timeline")]
 [JsonDerivedType(typeof(ProgressStepsMetadataDto), "ProgressSteps")]
+[JsonDerivedType(typeof(StatMetadataDto), "Stat")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -210,6 +211,9 @@ public record ProgressStepsMetadataDto(IReadOnlyList<StepDto> Steps) : Component
 
 /// <summary>One progress step; Status is done|current|upcoming.</summary>
 public record StepDto(string? Id, string? Title, string? Description, string? Status);
+
+/// <summary>KPI stat metadata: value/unit, delta, trend (up|down|flat) and a sparkline.</summary>
+public record StatMetadataDto(string? Label, string? Value, string? Unit, string? Delta, string? Trend, IReadOnlyList<double> Spark, string? ActionId) : ComponentMetadataDto;
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

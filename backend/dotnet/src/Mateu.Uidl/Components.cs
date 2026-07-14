@@ -207,6 +207,19 @@ public sealed record ProgressSteps : ComponentBase
     public IReadOnlyList<Step> Steps { get; init; } = [];
 }
 
+/// <summary>A compact KPI stat: value + unit, a delta with a trend (up|down|flat) and an inline
+/// sparkline drawn from Spark. An ActionId makes the tile clickable.</summary>
+public sealed record Stat : ComponentBase
+{
+    public string? Label { get; init; }
+    public string? Value { get; init; }
+    public string? Unit { get; init; }
+    public string? Delta { get; init; }
+    public string? Trend { get; init; }
+    public IReadOnlyList<double> Spark { get; init; } = [];
+    public string? ActionId { get; init; }
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

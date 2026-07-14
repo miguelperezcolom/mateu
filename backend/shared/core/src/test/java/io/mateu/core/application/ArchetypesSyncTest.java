@@ -42,6 +42,7 @@ import io.mateu.dtos.ScrollerDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.SkeletonDto;
 import io.mateu.dtos.SplitLayoutDto;
+import io.mateu.dtos.StatDto;
 import io.mateu.dtos.TabDto;
 import io.mateu.dtos.TabLayoutDto;
 import io.mateu.dtos.TextDto;
@@ -91,6 +92,7 @@ import io.mateu.uidl.data.Scroller;
 import io.mateu.uidl.data.Skeleton;
 import io.mateu.uidl.data.SkeletonVariant;
 import io.mateu.uidl.data.SplitLayout;
+import io.mateu.uidl.data.Stat;
 import io.mateu.uidl.data.Step;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
@@ -395,6 +397,17 @@ class ArchetypesSyncTest {
                           .status("current")
                           .build(),
                       Step.builder().id("s3").title("Done").status("upcoming").build()))
+              .build());
+      content.add(
+          Stat.builder()
+              .id("mrr")
+              .label("MRR")
+              .value("48.2")
+              .unit("k€")
+              .delta("+7.4%")
+              .trend("up")
+              .spark(List.of(30.0, 32.0, 31.0, 35.0, 40.0, 42.0, 48.0))
+              .actionId("openMrr")
               .build());
       content.add(
           HeroSection.builder()
@@ -819,6 +832,21 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void statSerializesValueDeltaAndSparkline() {
+    var stat = findFirst(sync("/component-showcase"), StatDto.class);
+    assertThat(stat).isNotNull();
+    var m = (StatDto) stat.metadata();
+    assertThat(m.label()).isEqualTo("MRR");
+    assertThat(m.value()).isEqualTo("48.2");
+    assertThat(m.unit()).isEqualTo("k€");
+    assertThat(m.delta()).isEqualTo("+7.4%");
+    assertThat(m.trend()).isEqualTo("up");
+    assertThat(m.spark()).hasSize(7);
+    assertThat(m.spark().get(0)).isEqualTo(30.0);
+    assertThat(m.actionId()).isEqualTo("openMrr");
   }
 
   @Test

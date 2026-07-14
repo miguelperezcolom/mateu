@@ -175,6 +175,69 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
     return row
 }
 
+/** Stat: a KPI tile — label, big value + unit, delta colored by trend, and a sparkline. */
+fun renderStat(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val trend = metadata.text("trend", "up")
+    val trendColor =
+        when (trend) {
+            "down" -> Color(0xE1, 0x1D, 0x48)
+            "flat" -> JBUI.CurrentTheme.Label.disabledForeground()
+            else -> Color(0x12, 0xB7, 0x6A)
+        }
+    val tile = verticalPanel(2)
+    tile.border = JBUI.Borders.empty(12)
+    val label = metadata.text("label")
+    if (label.isNotBlank()) {
+        tile.addStacked(JBLabel(label).apply {
+            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        }, 2)
+    }
+    val value = metadata.text("value") + metadata.text("unit").let { if (it.isNotBlank()) " $it" else "" }
+    tile.addStacked(JBLabel(value).apply { font = font.deriveFont(Font.BOLD, 24f) }, 4)
+    val delta = metadata.text("delta")
+    val spark = metadata.arr("spark").mapNotNull { it.asDouble() }
+    val foot = JPanel(BorderLayout(8, 0))
+    foot.isOpaque = false
+    if (delta.isNotBlank()) {
+        val arrow = if (trend == "up") "▲" else if (trend == "down") "▼" else "→"
+        foot.add(JBLabel("$arrow $delta").apply { foreground = trendColor }, BorderLayout.WEST)
+    }
+    if (spark.size >= 2) {
+        val min = spark.min()
+        val max = spark.max()
+        val span = (max - min).takeIf { it != 0.0 } ?: 1.0
+        val sparkPanel = object : JPanel() {
+            override fun paintComponent(g: Graphics) {
+                super.paintComponent(g)
+                val g2 = g as Graphics2D
+                g2.color = trendColor
+                val stepX = width.toDouble() / (spark.size - 1)
+                var prevX = 0
+                var prevY = height - ((spark[0] - min) / span * (height - 4) + 2).toInt()
+                for (i in 1 until spark.size) {
+                    val x = (i * stepX).toInt()
+                    val y = height - ((spark[i] - min) / span * (height - 4) + 2).toInt()
+                    g2.drawLine(prevX, prevY, x, y)
+                    prevX = x
+                    prevY = y
+                }
+            }
+        }
+        sparkPanel.isOpaque = false
+        sparkPanel.preferredSize = Dimension(84, 28)
+        foot.add(sparkPanel, BorderLayout.EAST)
+    }
+    tile.addStacked(foot, 0)
+    val actionId = metadata.text("actionId")
+    if (actionId.isNotBlank()) {
+        tile.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+        tile.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
+        })
+    }
+    return tile
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

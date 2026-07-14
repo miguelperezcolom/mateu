@@ -44,6 +44,9 @@ public static class ComponentMapper
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(
             st.Id, st.Title, st.Description, st.Status)).ToList())),
 
+        Stat st => Dto(st, new StatMetadataDto(
+            st.Label, st.Value, st.Unit, st.Delta, st.Trend, st.Spark, st.ActionId)),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

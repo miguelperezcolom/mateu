@@ -395,6 +395,19 @@ class ProgressStepsMetadata(Wire):
     steps: list[StepRecord] = Field(default_factory=list)
 
 
+class StatMetadata(Wire):
+    """KPI stat metadata: value/unit, delta, trend and a sparkline (mirrors ``StatDto``)."""
+
+    type: Literal["Stat"] = "Stat"
+    label: str | None = None
+    value: str | None = None
+    unit: str | None = None
+    delta: str | None = None
+    trend: str | None = None
+    spark: list[float] = Field(default_factory=list)
+    action_id: str | None = None
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -479,6 +492,7 @@ ComponentMetadata = Annotated[
         KanbanMetadata,
         TimelineMetadata,
         ProgressStepsMetadata,
+        StatMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

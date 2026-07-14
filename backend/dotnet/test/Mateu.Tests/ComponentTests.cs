@@ -75,6 +75,13 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "MRR")]
+    public Stat Mrr { get; } = new()
+    {
+        Label = "MRR", Value = "48.2", Unit = "k", Delta = "+7.4%", Trend = "up",
+        Spark = [30, 32, 31, 35, 40, 42, 48], ActionId = "openMrr",
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -231,6 +238,18 @@ public class ComponentTests
         Assert.Contains("\"title\":\"Cart\"", json);
         Assert.Contains("\"status\":\"done\"", json);
         Assert.Contains("\"status\":\"current\"", json);
+    }
+
+    [Fact]
+    public void Stat_emits_value_delta_and_sparkline()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Stat\"", json);
+        Assert.Contains("\"value\":\"48.2\"", json);
+        Assert.Contains("\"delta\":\"+7.4%\"", json);
+        Assert.Contains("\"trend\":\"up\"", json);
+        Assert.Contains("\"spark\":[30", json);
     }
 
     [Fact]

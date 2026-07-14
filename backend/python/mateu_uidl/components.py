@@ -299,6 +299,26 @@ class ProgressSteps(Component):
 
 
 @dataclass(frozen=True)
+class Stat(Component):
+    """A compact KPI stat: value + unit, a delta with a trend (up|down|flat) and an inline
+    sparkline drawn from ``spark``. An ``action_id`` makes the tile clickable."""
+
+    label: str | None = None
+    value: str | None = None
+    unit: str | None = None
+    delta: str | None = None
+    trend: str | None = None
+    spark: tuple[float, ...] = ()
+    action_id: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "spark", tuple(self.spark))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -387,4 +407,5 @@ __all__ = [
     "Timeline",
     "Step",
     "ProgressSteps",
+    "Stat",
 ]

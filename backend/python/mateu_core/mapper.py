@@ -45,6 +45,7 @@ from mateu_dtos import (
     TimelineItemRecord,
     ProgressStepsMetadata,
     StepRecord,
+    StatMetadata,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -662,6 +663,19 @@ class ReflectionMapper:
                 for s in c.steps
             ]
             return self._fluent_client(ProgressStepsMetadata(steps=steps), c)
+        if isinstance(c, fluent.Stat):
+            return self._fluent_client(
+                StatMetadata(
+                    label=c.label,
+                    value=c.value,
+                    unit=c.unit,
+                    delta=c.delta,
+                    trend=c.trend,
+                    spark=list(c.spark),
+                    action_id=c.action_id,
+                ),
+                c,
+            )
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

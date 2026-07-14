@@ -33,6 +33,7 @@ from mateu_uidl.components import (  # noqa: E402
     KanbanColumn,
     MetricCard,
     ProgressSteps,
+    Stat,
     Step,
     Timeline,
     TimelineItem,
@@ -152,6 +153,22 @@ class CheckoutProgress(ComponentTreeSupplier):
                 Step(id="s2", title="Payment", description="in progress", status="current"),
                 Step(id="s3", title="Done", status="upcoming"),
             ),
+        )
+
+
+@ui("kpi")
+@title("KPI")
+class KpiStat(ComponentTreeSupplier):
+    def component(self):
+        return Stat(
+            id="mrr",
+            label="MRR",
+            value="48.2",
+            unit="k",
+            delta="+7.4%",
+            trend="up",
+            spark=(30.0, 32.0, 31.0, 35.0, 40.0, 42.0, 48.0),
+            action_id="openMrr",
         )
 
 
@@ -301,6 +318,19 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_stat():
+    doc = render(KpiStat)
+    (stat,) = page_children(doc)
+    assert stat["id"] == "mrr"
+    assert stat["metadata"]["type"] == "Stat"
+    m = stat["metadata"]
+    assert m["value"] == "48.2"
+    assert m["delta"] == "+7.4%"
+    assert m["trend"] == "up"
+    assert m["spark"] == [30.0, 32.0, 31.0, 35.0, 40.0, 42.0, 48.0]
+    assert m["actionId"] == "openMrr"
 
 
 def test_component_tree_supplier_emits_progress_steps():

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton, Step, TimelineItem } from '../api/metadata';
+import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -318,6 +318,42 @@ export function ProgressStepsRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Stat (KPI tile with a bar-sparkline) ──────────────────────────────────────
+export function StatRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component) as unknown as Stat;
+  const trend = m.trend ?? 'up';
+  const trendColor = trend === 'down' ? '#e11d48' : trend === 'flat' ? '#888' : '#12b76a';
+  const spark = m.spark ?? [];
+  const min = spark.length ? Math.min(...spark) : 0;
+  const max = spark.length ? Math.max(...spark) : 1;
+  const span = max - min || 1;
+  const tile = (
+    <View style={styles.statTile}>
+      {!!m.label && <Text style={styles.statLabel}>{m.label}</Text>}
+      <Text style={styles.statValue}>
+        {m.value}
+        {!!m.unit && <Text style={styles.statUnit}> {m.unit}</Text>}
+      </Text>
+      <View style={styles.statFoot}>
+        {!!m.delta && (
+          <Text style={[styles.statDelta, { color: trendColor }]}>
+            {trend === 'up' ? '▲' : trend === 'down' ? '▼' : '→'} {m.delta}
+          </Text>
+        )}
+        <View style={styles.statSpark}>
+          {spark.map((v, i) => (
+            <View key={i} style={[styles.statBar, { height: 4 + 22 * ((v - min) / span), backgroundColor: trendColor }]} />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+  return m.actionId ? (
+    <TouchableOpacity onPress={() => void controller.runAction(m.actionId!)}>{tile}</TouchableOpacity>
+  ) : tile;
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -401,4 +437,13 @@ const styles = StyleSheet.create({
   stepTitle: { fontWeight: '600', color: '#222' },
   stepTitleMuted: { color: '#888', fontWeight: '500' },
   stepDesc: { color: '#888', fontSize: 12, marginTop: 2 },
+  // Stat
+  statTile: { padding: 14, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, backgroundColor: '#fff', gap: 2, minWidth: 150 },
+  statLabel: { fontSize: 12, color: '#666' },
+  statValue: { fontSize: 28, fontWeight: '700', color: '#111' },
+  statUnit: { fontSize: 15, fontWeight: '500', color: '#888' },
+  statFoot: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4, gap: 8 },
+  statDelta: { fontSize: 12, fontWeight: '600' },
+  statSpark: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, height: 26 },
+  statBar: { width: 4, borderRadius: 1 },
 });
