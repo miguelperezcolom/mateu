@@ -193,6 +193,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Faq,
     ComponentMetadataType.CalloutCard,
     ComponentMetadataType.CommentThread,
+    ComponentMetadataType.FileList,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

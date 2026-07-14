@@ -388,6 +388,22 @@ public sealed record CommentThread : ComponentBase
     public IReadOnlyList<Comment> Comments { get; init; } = [];
 }
 
+/// <summary>One entry of a <see cref="FileList"/>: name, size, type (icon), url and/or action.</summary>
+public sealed record FileItem
+{
+    public string? Name { get; init; }
+    public string? Size { get; init; }
+    public string? Type { get; init; }
+    public string? Url { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>A read-only list of attached files with type icons.</summary>
+public sealed record FileList : ComponentBase
+{
+    public IReadOnlyList<FileItem> Files { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

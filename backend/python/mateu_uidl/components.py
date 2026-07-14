@@ -576,6 +576,30 @@ class CommentThread(Component):
 
 
 @dataclass(frozen=True)
+class FileItem:
+    """One entry of a :class:`FileList`: name, size, type (icon), url and/or action."""
+
+    name: str | None = None
+    size: str | None = None
+    type: str | None = None
+    url: str | None = None
+    action_id: str | None = None
+
+
+@dataclass(frozen=True)
+class FileList(Component):
+    """A read-only list of attached files with type icons."""
+
+    files: tuple[FileItem, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "files", tuple(self.files))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -685,4 +709,6 @@ __all__ = [
     "CalloutCard",
     "Comment",
     "CommentThread",
+    "FileItem",
+    "FileList",
 ]

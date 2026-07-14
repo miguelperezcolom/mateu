@@ -282,3 +282,16 @@ export interface CommentThread {
   type?: 'CommentThread';
   comments?: Comment[];
 }
+
+export interface FileItem {
+  name?: string;
+  size?: string;
+  type?: string;
+  url?: string;
+  actionId?: string;
+}
+
+export interface FileList {
+  type?: 'FileList';
+  files?: FileItem[];
+}

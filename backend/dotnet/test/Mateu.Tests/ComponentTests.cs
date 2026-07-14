@@ -196,6 +196,16 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Files")]
+    public FileList Files { get; } = new()
+    {
+        Files =
+        [
+            new FileItem { Name = "report.pdf", Size = "2.4 MB", Type = "pdf", Url = "/dl/report.pdf" },
+            new FileItem { Name = "logo.png", Size = "120 KB", Type = "image", ActionId = "openFile" },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -489,6 +499,17 @@ public class ComponentTests
         Assert.Contains("\"text\":\"Looks good.\"", json);
         Assert.Contains("\"replies\":[", json);
         Assert.Contains("\"author\":\"Alan\"", json);
+    }
+
+    [Fact]
+    public void File_list_emits_files()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"FileList\"", json);
+        Assert.Contains("\"name\":\"report.pdf\"", json);
+        Assert.Contains("\"type\":\"pdf\"", json);
+        Assert.Contains("\"actionId\":\"openFile\"", json);
     }
 
     [Fact]

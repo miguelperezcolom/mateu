@@ -95,6 +95,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/faq' },
 						{ slug: 'ux-patterns/callout-card' },
 						{ slug: 'ux-patterns/comment-thread' },
+						{ slug: 'ux-patterns/file-list' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

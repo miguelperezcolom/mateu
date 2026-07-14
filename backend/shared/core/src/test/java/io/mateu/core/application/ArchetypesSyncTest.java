@@ -30,6 +30,7 @@ import io.mateu.dtos.DivDto;
 import io.mateu.dtos.EmptyStateDto;
 import io.mateu.dtos.FaqDto;
 import io.mateu.dtos.FeatureGridDto;
+import io.mateu.dtos.FileListDto;
 import io.mateu.dtos.FoldoutLayoutDto;
 import io.mateu.dtos.FunnelDto;
 import io.mateu.dtos.GanttDto;
@@ -90,6 +91,8 @@ import io.mateu.uidl.data.Faq;
 import io.mateu.uidl.data.FaqItem;
 import io.mateu.uidl.data.Feature;
 import io.mateu.uidl.data.FeatureGrid;
+import io.mateu.uidl.data.FileItem;
+import io.mateu.uidl.data.FileList;
 import io.mateu.uidl.data.Funnel;
 import io.mateu.uidl.data.FunnelStage;
 import io.mateu.uidl.data.Gantt;
@@ -457,6 +460,24 @@ class ArchetypesSyncTest {
                           .title("Launch")
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
+                          .build()))
+              .build());
+      content.add(
+          FileList.builder()
+              .id("files")
+              .files(
+                  List.of(
+                      FileItem.builder()
+                          .name("report.pdf")
+                          .size("2.4 MB")
+                          .type("pdf")
+                          .url("/dl/report.pdf")
+                          .build(),
+                      FileItem.builder()
+                          .name("logo.png")
+                          .size("120 KB")
+                          .type("image")
+                          .actionId("openFile")
                           .build()))
               .build());
       content.add(
@@ -1025,6 +1046,18 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void fileListSerializes() {
+    var list = findFirst(sync("/component-showcase"), FileListDto.class);
+    assertThat(list).isNotNull();
+    var files = ((FileListDto) list.metadata()).files();
+    assertThat(files).hasSize(2);
+    assertThat(files.get(0).name()).isEqualTo("report.pdf");
+    assertThat(files.get(0).type()).isEqualTo("pdf");
+    assertThat(files.get(0).url()).isEqualTo("/dl/report.pdf");
+    assertThat(files.get(1).actionId()).isEqualTo("openFile");
   }
 
   @Test

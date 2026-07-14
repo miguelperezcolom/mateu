@@ -15,6 +15,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ElementMapper.mapE
 import static io.mateu.core.domain.out.fragmentmapper.mappers.EmptyStateMapper.mapEmptyStateToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FaqMapper.mapFaqToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FeatureGridMapper.mapFeatureGridToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.FileListMapper.mapFileListToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FunnelMapper.mapFunnelToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.GanttMapper.mapGanttToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.HeatmapMapper.mapHeatmapToDto;
@@ -127,6 +128,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof CommentThread commentThread) {
       return mapCommentThreadToDto(commentThread);
+    }
+    if (component instanceof FileList fileList) {
+      return mapFileListToDto(fileList);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

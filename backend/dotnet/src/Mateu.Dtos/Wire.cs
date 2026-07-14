@@ -152,6 +152,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(FaqMetadataDto), "Faq")]
 [JsonDerivedType(typeof(CalloutCardMetadataDto), "CalloutCard")]
 [JsonDerivedType(typeof(CommentThreadMetadataDto), "CommentThread")]
+[JsonDerivedType(typeof(FileListMetadataDto), "FileList")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -285,6 +286,12 @@ public record CommentThreadMetadataDto(IReadOnlyList<CommentDto> Comments) : Com
 
 /// <summary>One comment; Replies nest recursively.</summary>
 public record CommentDto(string? Id, string? Author, string? Avatar, string? Text, string? Timestamp, IReadOnlyList<CommentDto> Replies);
+
+/// <summary>File-list metadata: attached files.</summary>
+public record FileListMetadataDto(IReadOnlyList<FileItemDto> Files) : ComponentMetadataDto;
+
+/// <summary>One file entry.</summary>
+public record FileItemDto(string? Name, string? Size, string? Type, string? Url, string? ActionId);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

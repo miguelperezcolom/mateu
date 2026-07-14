@@ -66,6 +66,8 @@ from mateu_dtos import (
     CalloutCardMetadata,
     CommentThreadMetadata,
     CommentRecord,
+    FileListMetadata,
+    FileItemRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -796,6 +798,14 @@ class ReflectionMapper:
         if isinstance(c, fluent.CommentThread):
             comments = [self._comment(cm) for cm in c.comments]
             return self._fluent_client(CommentThreadMetadata(comments=comments), c)
+        if isinstance(c, fluent.FileList):
+            files = [
+                FileItemRecord(
+                    name=f.name, size=f.size, type=f.type, url=f.url, action_id=f.action_id
+                )
+                for f in c.files
+            ]
+            return self._fluent_client(FileListMetadata(files=files), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

@@ -34,6 +34,8 @@ from mateu_uidl.components import (  # noqa: E402
     FeatureGrid,
     Faq,
     FaqItem,
+    FileItem,
+    FileList,
     Funnel,
     FunnelStage,
     HeatCell,
@@ -222,6 +224,19 @@ class PricingPlans(ComponentTreeSupplier):
                     features=("Unlimited projects", "Priority support"),
                     cta_label="Go Pro", action_id="choosePlan",
                 ),
+            ),
+        )
+
+
+@ui("attachments")
+@title("Attachments")
+class Attachments(ComponentTreeSupplier):
+    def component(self):
+        return FileList(
+            id="files",
+            files=(
+                FileItem(name="report.pdf", size="2.4 MB", type="pdf", url="/dl/report.pdf"),
+                FileItem(name="logo.png", size="120 KB", type="image", action_id="openFile"),
             ),
         )
 
@@ -499,6 +514,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_file_list():
+    doc = render(Attachments)
+    (fl,) = page_children(doc)
+    assert fl["id"] == "files"
+    assert fl["metadata"]["type"] == "FileList"
+    files = fl["metadata"]["files"]
+    assert len(files) == 2
+    assert files[0]["name"] == "report.pdf"
+    assert files[0]["type"] == "pdf"
+    assert files[1]["actionId"] == "openFile"
 
 
 def test_component_tree_supplier_emits_comment_thread():

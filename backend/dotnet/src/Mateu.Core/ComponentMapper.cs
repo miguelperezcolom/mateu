@@ -76,6 +76,9 @@ public static class ComponentMapper
 
         CommentThread ct => Dto(ct, new CommentThreadMetadataDto(ct.Comments.Select(MapComment).ToList())),
 
+        FileList fl => Dto(fl, new FileListMetadataDto(fl.Files.Select(f =>
+            new FileItemDto(f.Name, f.Size, f.Type, f.Url, f.ActionId)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

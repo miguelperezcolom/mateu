@@ -88,6 +88,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Faq,
     ComponentMetadataType.CalloutCard,
     ComponentMetadataType.CommentThread,
+    ComponentMetadataType.FileList,
 ])
 
 export class RedhatComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

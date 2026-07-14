@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, Comment, EmptyState, FaqItem, Feature, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
+import { CalendarEvent, Comment, EmptyState, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -652,6 +652,33 @@ export function CommentThreadRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── FileList (attachment rows with a type icon) ───────────────────────────────
+const FILE_ICONS: Record<string, string> = {
+  pdf: '📕', image: '🖼️', img: '🖼️', doc: '📘', docx: '📘', word: '📘',
+  xls: '📗', xlsx: '📗', excel: '📗', zip: '🗜️', archive: '🗜️', video: '🎬', audio: '🎵', csv: '📄', txt: '📄',
+};
+export function FileListRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const files = (meta(component)['files'] as FileItem[]) ?? [];
+  return (
+    <View style={styles.fileList}>
+      {files.map((f, i) => {
+        const icon = (f.type && FILE_ICONS[f.type.toLowerCase()]) || '📄';
+        const row = (
+          <View style={styles.fileRow}>
+            <Text style={styles.fileIcon}>{icon}</Text>
+            <Text style={styles.fileName} numberOfLines={1}>{f.name ?? ''}</Text>
+            {!!f.size && <Text style={styles.fileSize}>{f.size}</Text>}
+          </View>
+        );
+        return f.actionId ? (
+          <TouchableOpacity key={i} onPress={() => void controller.runAction(f.actionId!)}>{row}</TouchableOpacity>
+        ) : <View key={i}>{row}</View>;
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -824,4 +851,10 @@ const styles = StyleSheet.create({
   commentAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#eee', textAlign: 'center', lineHeight: 28, overflow: 'hidden' },
   commentHead: { fontSize: 12, color: '#888' },
   commentText: { color: '#333', marginTop: 2, lineHeight: 20 },
+  // FileList
+  fileList: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
+  fileRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  fileIcon: { fontSize: 20 },
+  fileName: { flex: 1, fontWeight: '500', color: '#222' },
+  fileSize: { color: '#888', fontSize: 12 },
 });

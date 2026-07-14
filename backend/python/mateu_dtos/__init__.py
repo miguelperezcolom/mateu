@@ -585,6 +585,23 @@ class CommentThreadMetadata(Wire):
     comments: list[CommentRecord] = Field(default_factory=list)
 
 
+class FileItemRecord(Wire):
+    """One file entry (mirrors ``FileItemDto``)."""
+
+    name: str | None = None
+    size: str | None = None
+    type: str | None = None
+    url: str | None = None
+    action_id: str | None = None
+
+
+class FileListMetadata(Wire):
+    """File-list metadata: attached files (mirrors ``FileListDto``)."""
+
+    type: Literal["FileList"] = "FileList"
+    files: list[FileItemRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -681,6 +698,7 @@ ComponentMetadata = Annotated[
         FaqMetadata,
         CalloutCardMetadata,
         CommentThreadMetadata,
+        FileListMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

@@ -580,6 +580,34 @@ private fun commentNode(panel: JPanel, comment: JsonNode, depth: Int) {
     for (reply in comment.arr("replies")) commentNode(panel, reply, depth + 1)
 }
 
+/** FileList: rows of type-icon + name + size on Swing. */
+fun renderFileList(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val icons = mapOf(
+        "pdf" to "📕", "image" to "🖼", "doc" to "📘", "docx" to "📘", "word" to "📘",
+        "xls" to "📗", "xlsx" to "📗", "excel" to "📗", "zip" to "🗜", "video" to "🎬", "audio" to "🎵")
+    val panel = verticalPanel(0)
+    for (file in metadata.arr("files")) {
+        val row = JPanel(BorderLayout(8, 0))
+        row.border = JBUI.Borders.empty(6, 8)
+        row.isOpaque = false
+        val icon = icons[file.text("type").lowercase()] ?: "📄"
+        row.add(JBLabel("$icon  ${file.text("name")}"), BorderLayout.WEST)
+        val size = file.text("size")
+        if (size.isNotBlank()) row.add(JBLabel(size).apply {
+            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        }, BorderLayout.EAST)
+        val actionId = file.text("actionId")
+        if (actionId.isNotBlank()) {
+            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+            row.addMouseListener(object : java.awt.event.MouseAdapter() {
+                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
+            })
+        }
+        panel.addStacked(row, 0)
+    }
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")
