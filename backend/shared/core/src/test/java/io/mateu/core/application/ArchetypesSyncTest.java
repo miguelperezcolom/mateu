@@ -36,6 +36,7 @@ import io.mateu.dtos.MarkdownDto;
 import io.mateu.dtos.MetricCardDto;
 import io.mateu.dtos.MetricTrendDto;
 import io.mateu.dtos.NotificationDto;
+import io.mateu.dtos.OrgChartDto;
 import io.mateu.dtos.PricingTableDto;
 import io.mateu.dtos.ProgressBarDto;
 import io.mateu.dtos.ProgressStepsDto;
@@ -87,6 +88,8 @@ import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.data.MetricTrend;
 import io.mateu.uidl.data.Notification;
+import io.mateu.uidl.data.OrgChart;
+import io.mateu.uidl.data.OrgNode;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.data.PricingPlan;
@@ -433,6 +436,21 @@ class ArchetypesSyncTest {
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
                           .build()))
+              .build());
+      content.add(
+          OrgChart.builder()
+              .id("org")
+              .root(
+                  OrgNode.builder()
+                      .id("ceo")
+                      .title("Ada")
+                      .subtitle("CEO")
+                      .actionId("openPerson")
+                      .children(
+                          List.of(
+                              OrgNode.builder().id("cto").title("Alan").subtitle("CTO").build(),
+                              OrgNode.builder().id("cfo").title("Grace").subtitle("CFO").build()))
+                      .build())
               .build());
       content.add(
           PricingTable.builder()
@@ -882,6 +900,19 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void orgChartSerializesNestedNodes() {
+    var org = findFirst(sync("/component-showcase"), OrgChartDto.class);
+    assertThat(org).isNotNull();
+    var root = ((OrgChartDto) org.metadata()).root();
+    assertThat(root.title()).isEqualTo("Ada");
+    assertThat(root.subtitle()).isEqualTo("CEO");
+    assertThat(root.actionId()).isEqualTo("openPerson");
+    assertThat(root.children()).hasSize(2);
+    assertThat(root.children().get(0).title()).isEqualTo("Alan");
+    assertThat(root.children().get(1).title()).isEqualTo("Grace");
   }
 
   @Test

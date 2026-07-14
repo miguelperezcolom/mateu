@@ -143,6 +143,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(StatMetadataDto), "Stat")]
 [JsonDerivedType(typeof(CalendarMetadataDto), "Calendar")]
 [JsonDerivedType(typeof(PricingTableMetadataDto), "PricingTable")]
+[JsonDerivedType(typeof(OrgChartMetadataDto), "OrgChart")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -228,6 +229,12 @@ public record PricingTableMetadataDto(IReadOnlyList<PricingPlanDto> Plans) : Com
 
 /// <summary>One pricing plan; Featured marks the recommended one.</summary>
 public record PricingPlanDto(string? Id, string? Name, string? Price, string? Period, bool Featured, IReadOnlyList<string> Features, string? CtaLabel, string? ActionId);
+
+/// <summary>Org-chart metadata: a root node with recursive children.</summary>
+public record OrgChartMetadataDto(OrgNodeDto? Root) : ComponentMetadataDto;
+
+/// <summary>One org-chart node; Children nest recursively.</summary>
+public record OrgNodeDto(string? Id, string? Title, string? Subtitle, string? Avatar, string? Color, string? ActionId, IReadOnlyList<OrgNodeDto> Children);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

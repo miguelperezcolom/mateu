@@ -175,3 +175,18 @@ export interface PricingTable {
   type?: 'PricingTable';
   plans?: PricingPlan[];
 }
+
+export interface OrgNode {
+  id?: string;
+  title?: string;
+  subtitle?: string;
+  avatar?: string;
+  color?: string;
+  actionId?: string;
+  children?: OrgNode[];
+}
+
+export interface OrgChart {
+  type?: 'OrgChart';
+  root?: OrgNode;
+}

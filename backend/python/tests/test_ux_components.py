@@ -34,6 +34,8 @@ from mateu_uidl.components import (  # noqa: E402
     KanbanCard,
     KanbanColumn,
     MetricCard,
+    OrgChart,
+    OrgNode,
     PricingPlan,
     PricingTable,
     ProgressSteps,
@@ -210,6 +212,22 @@ class PricingPlans(ComponentTreeSupplier):
         )
 
 
+@ui("org")
+@title("Org")
+class CompanyOrg(ComponentTreeSupplier):
+    def component(self):
+        return OrgChart(
+            id="org",
+            root=OrgNode(
+                id="ceo", title="Ada", subtitle="CEO", action_id="openPerson",
+                children=(
+                    OrgNode(id="cto", title="Alan", subtitle="CTO"),
+                    OrgNode(id="cfo", title="Grace", subtitle="CFO"),
+                ),
+            ),
+        )
+
+
 @ui("booking")
 @title("Booking")
 class BookingFoldout(Foldout):
@@ -356,6 +374,19 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_org_chart():
+    doc = render(CompanyOrg)
+    (org,) = page_children(doc)
+    assert org["id"] == "org"
+    assert org["metadata"]["type"] == "OrgChart"
+    root = org["metadata"]["root"]
+    assert root["title"] == "Ada"
+    assert root["subtitle"] == "CEO"
+    assert root["actionId"] == "openPerson"
+    assert len(root["children"]) == 2
+    assert root["children"][0]["title"] == "Alan"
 
 
 def test_component_tree_supplier_emits_pricing_table():

@@ -50,6 +50,8 @@ from mateu_dtos import (
     CalendarEventRecord,
     PricingTableMetadata,
     PricingPlanRecord,
+    OrgChartMetadata,
+    OrgNodeRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -712,6 +714,10 @@ class ReflectionMapper:
                 for p in c.plans
             ]
             return self._fluent_client(PricingTableMetadata(plans=plans), c)
+        if isinstance(c, fluent.OrgChart):
+            return self._fluent_client(
+                OrgChartMetadata(root=self._org_node(c.root) if c.root is not None else None), c
+            )
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
@@ -756,6 +762,17 @@ class ReflectionMapper:
             )
             return self._fluent_client(meta, c)
         raise TypeError(f"Unsupported fluent component: {type(c).__name__}")
+
+    def _org_node(self, n) -> OrgNodeRecord:
+        return OrgNodeRecord(
+            id=n.id,
+            title=n.title,
+            subtitle=n.subtitle,
+            avatar=n.avatar,
+            color=n.color,
+            action_id=n.action_id,
+            children=[self._org_node(child) for child in n.children],
+        )
 
     def _fluent_client(self, meta, c, children=None) -> ClientSideComponent:
         return ClientSideComponent(

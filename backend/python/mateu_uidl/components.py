@@ -375,6 +375,32 @@ class PricingTable(Component):
 
 
 @dataclass(frozen=True)
+class OrgNode:
+    """One node of an :class:`OrgChart`: a title, subtitle, avatar and its children."""
+
+    id: str | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    avatar: str | None = None
+    color: str | None = None
+    action_id: str | None = None
+    children: tuple["OrgNode", ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "children", tuple(self.children))
+
+
+@dataclass(frozen=True)
+class OrgChart(Component):
+    """A read-only top-down hierarchy chart: a root node whose children fan out below it."""
+
+    root: OrgNode | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -468,4 +494,6 @@ __all__ = [
     "Calendar",
     "PricingPlan",
     "PricingTable",
+    "OrgNode",
+    "OrgChart",
 ]

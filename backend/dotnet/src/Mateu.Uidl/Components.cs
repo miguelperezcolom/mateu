@@ -258,6 +258,24 @@ public sealed record PricingTable : ComponentBase
     public IReadOnlyList<PricingPlan> Plans { get; init; } = [];
 }
 
+/// <summary>One node of an <see cref="OrgChart"/>: a title, subtitle, avatar and its children.</summary>
+public sealed record OrgNode
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public string? Avatar { get; init; }
+    public string? Color { get; init; }
+    public string? ActionId { get; init; }
+    public IReadOnlyList<OrgNode> Children { get; init; } = [];
+}
+
+/// <summary>A read-only top-down hierarchy chart: a root node whose children fan out below it.</summary>
+public sealed record OrgChart : ComponentBase
+{
+    public OrgNode? Root { get; init; }
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

@@ -103,6 +103,20 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Org")]
+    public OrgChart Org { get; } = new()
+    {
+        Root = new OrgNode
+        {
+            Id = "ceo", Title = "Ada", Subtitle = "CEO", ActionId = "openPerson",
+            Children =
+            [
+                new OrgNode { Id = "cto", Title = "Alan", Subtitle = "CTO" },
+                new OrgNode { Id = "cfo", Title = "Grace", Subtitle = "CFO" },
+            ],
+        },
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -295,6 +309,18 @@ public class ComponentTests
         Assert.Contains("\"featured\":true", json);
         Assert.Contains("\"price\":\"29\"", json);
         Assert.Contains("\"ctaLabel\":\"Go Pro\"", json);
+    }
+
+    [Fact]
+    public void Org_chart_emits_nested_nodes()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"OrgChart\"", json);
+        Assert.Contains("\"title\":\"Ada\"", json);
+        Assert.Contains("\"subtitle\":\"CEO\"", json);
+        Assert.Contains("\"title\":\"Alan\"", json);
+        Assert.Contains("\"children\":[", json);
     }
 
     [Fact]

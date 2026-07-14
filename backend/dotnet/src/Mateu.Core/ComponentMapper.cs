@@ -53,6 +53,8 @@ public static class ComponentMapper
         PricingTable pt => Dto(pt, new PricingTableMetadataDto(pt.Plans.Select(p => new PricingPlanDto(
             p.Id, p.Name, p.Price, p.Period, p.Featured, p.Features, p.CtaLabel, p.ActionId)).ToList())),
 
+        OrgChart oc => Dto(oc, new OrgChartMetadataDto(MapOrgNode(oc.Root))),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),
@@ -157,6 +159,10 @@ public static class ComponentMapper
         value.ToString().ToLowerInvariant();
 
     private static string? Iso(DateOnly? d) => d?.ToString("yyyy-MM-dd");
+
+    private static OrgNodeDto? MapOrgNode(OrgNode? n) =>
+        n is null ? null : new OrgNodeDto(n.Id, n.Title, n.Subtitle, n.Avatar, n.Color, n.ActionId,
+            n.Children.Select(c => MapOrgNode(c)!).ToList());
 
     // Index of the tab selected on first render: the first one flagged Active, else the first tab.
     private static int TabActiveIndex(IReadOnlyList<TabPanel> tabs)

@@ -82,6 +82,7 @@ import { renderProgressSteps } from "@infra/ui/renderers/progressStepsRenderer.t
 import { renderStat } from "@infra/ui/renderers/statRenderer.ts";
 import { renderCalendar } from "@infra/ui/renderers/calendarRenderer.ts";
 import { renderPricingTable } from "@infra/ui/renderers/pricingTableRenderer.ts";
+import { renderOrgChart } from "@infra/ui/renderers/orgChartRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -285,6 +286,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.Stat]: ({ component }) => renderStat(component),
     [ComponentMetadataType.Calendar]: ({ component }) => renderCalendar(component),
     [ComponentMetadataType.PricingTable]: ({ component }) => renderPricingTable(component),
+    [ComponentMetadataType.OrgChart]: ({ component }) => renderOrgChart(component),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

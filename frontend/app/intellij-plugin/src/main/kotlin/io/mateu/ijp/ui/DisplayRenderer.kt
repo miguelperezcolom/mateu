@@ -309,6 +309,36 @@ fun renderPricingTable(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return row
 }
 
+/** OrgChart (indented tree on Swing): each node a row, children indented under it. */
+fun renderOrgChart(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val panel = verticalPanel(2)
+    val root = metadata.get("root")
+    if (root != null && !root.isNull) orgNodeRow(r, panel, root, 0)
+    return panel
+}
+
+private fun orgNodeRow(r: ComponentRenderer, panel: JPanel, node: JsonNode, depth: Int) {
+    val row = JPanel(FlowLayout(FlowLayout.LEFT, 6, 2))
+    row.isOpaque = false
+    row.border = JBUI.Borders.emptyLeft(depth * 18)
+    val avatar = node.text("avatar")
+    val title = node.text("title")
+    val subtitle = node.text("subtitle")
+    val text = if (subtitle.isNotBlank()) "$title — $subtitle" else title
+    val label = JBLabel((if (avatar.isNotBlank()) "$avatar " else "") + text)
+    runCatching { Color.decode(node.text("color")) }.getOrNull()?.let { label.foreground = it }
+    row.add(label)
+    val actionId = node.text("actionId")
+    if (actionId.isNotBlank()) {
+        row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+        row.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
+        })
+    }
+    panel.addStacked(row, 2)
+    for (child in node.arr("children")) orgNodeRow(r, panel, child, depth + 1)
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

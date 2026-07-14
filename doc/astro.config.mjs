@@ -86,6 +86,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/stat' },
 						{ slug: 'ux-patterns/calendar' },
 						{ slug: 'ux-patterns/pricing-table' },
+						{ slug: 'ux-patterns/org-chart' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

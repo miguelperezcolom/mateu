@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
+import { CalendarEvent, EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -423,6 +423,41 @@ export function PricingTableRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── OrgChart (mobile: an indented tree) ───────────────────────────────────────
+function OrgNodeRow({ node, depth }: { node: OrgNode; depth: number }) {
+  const controller = useViewController();
+  const isImg = node.avatar && (node.avatar.startsWith('http') || node.avatar.startsWith('data:'));
+  const row = (
+    <View style={[styles.orgRow, { marginLeft: depth * 18, borderLeftColor: node.color ?? '#1a73e8' }]}>
+      {!!node.avatar && !isImg && <Text style={styles.orgAvatar}>{node.avatar}</Text>}
+      <View>
+        <Text style={styles.orgTitle}>{node.title ?? ''}</Text>
+        {!!node.subtitle && <Text style={styles.orgSubtitle}>{node.subtitle}</Text>}
+      </View>
+    </View>
+  );
+  return (
+    <>
+      {node.actionId ? (
+        <TouchableOpacity onPress={() => void controller.runAction(node.actionId!)}>{row}</TouchableOpacity>
+      ) : row}
+      {(node.children ?? []).map((c, i) => (
+        <OrgNodeRow key={c.id ?? i} node={c} depth={depth + 1} />
+      ))}
+    </>
+  );
+}
+
+export function OrgChartRenderer({ component }: { component: unknown }) {
+  const root = meta(component)['root'] as OrgNode | undefined;
+  if (!root) return null;
+  return (
+    <View style={styles.org}>
+      <OrgNodeRow node={root} depth={0} />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -537,4 +572,10 @@ const styles = StyleSheet.create({
   planCtaFeatured: { backgroundColor: '#1a73e8' },
   planCtaText: { fontWeight: '600', color: '#222' },
   planCtaTextFeatured: { color: '#fff' },
+  // OrgChart (indented tree)
+  org: { gap: 6 },
+  orgRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderLeftWidth: 3, paddingLeft: 8, paddingVertical: 6, backgroundColor: '#f4f4f5', borderRadius: 6 },
+  orgAvatar: { fontSize: 18 },
+  orgTitle: { fontWeight: '600', color: '#222' },
+  orgSubtitle: { fontSize: 12, color: '#888' },
 });

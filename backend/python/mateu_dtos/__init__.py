@@ -446,6 +446,25 @@ class PricingTableMetadata(Wire):
     plans: list[PricingPlanRecord] = Field(default_factory=list)
 
 
+class OrgNodeRecord(Wire):
+    """One org-chart node; ``children`` nest recursively (mirrors ``OrgNodeDto``)."""
+
+    id: str | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    avatar: str | None = None
+    color: str | None = None
+    action_id: str | None = None
+    children: list["OrgNodeRecord"] = Field(default_factory=list)
+
+
+class OrgChartMetadata(Wire):
+    """Org-chart metadata: a root node with recursive children (mirrors ``OrgChartDto``)."""
+
+    type: Literal["OrgChart"] = "OrgChart"
+    root: OrgNodeRecord | None = None
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -533,6 +552,7 @@ ComponentMetadata = Annotated[
         StatMetadata,
         CalendarMetadata,
         PricingTableMetadata,
+        OrgChartMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

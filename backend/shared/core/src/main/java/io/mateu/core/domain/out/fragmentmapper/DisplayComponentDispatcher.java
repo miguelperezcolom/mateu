@@ -18,6 +18,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.KPIMapper.mapKPITo
 import static io.mateu.core.domain.out.fragmentmapper.mappers.KanbanMapper.mapKanbanToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MetricCardMapper.mapMetricCardToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.OrgChartMapper.mapOrgChartToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PricingTableMapper.mapPricingTableToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressStepsMapper.mapProgressStepsToDto;
@@ -91,6 +92,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof PricingTable pricingTable) {
       return mapPricingTableToDto(pricingTable);
+    }
+    if (component instanceof OrgChart orgChart) {
+      return mapOrgChartToDto(orgChart);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);
