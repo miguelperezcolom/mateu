@@ -173,6 +173,25 @@ public sealed record Kanban : ComponentBase
     public IReadOnlyList<KanbanColumn> Columns { get; init; } = [];
 }
 
+/// <summary>One entry on a <see cref="Timeline"/>. Timestamp is a free-form label; an ActionId
+/// makes the entry clickable.</summary>
+public sealed record TimelineItem
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public string? Timestamp { get; init; }
+    public string? Icon { get; init; }
+    public string? Color { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>A read-only vertical timeline / activity feed: a chronological list of entries.</summary>
+public sealed record Timeline : ComponentBase
+{
+    public IReadOnlyList<TimelineItem> Items { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

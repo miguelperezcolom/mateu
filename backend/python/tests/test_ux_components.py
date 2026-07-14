@@ -32,6 +32,8 @@ from mateu_uidl.components import (  # noqa: E402
     KanbanCard,
     KanbanColumn,
     MetricCard,
+    Timeline,
+    TimelineItem,
     MetricTrend,
     Skeleton,
     SkeletonVariant,
@@ -112,6 +114,26 @@ class SprintBoard(ComponentTreeSupplier):
                             id="c2", title="Task B", description="in flight", action_id="openCard"
                         ),
                     ),
+                ),
+            ),
+        )
+
+
+@ui("activity")
+@title("Activity")
+class ActivityFeed(ComponentTreeSupplier):
+    def component(self):
+        return Timeline(
+            id="feed",
+            items=(
+                TimelineItem(id="e1", title="Order placed", timestamp="09:00", icon="cart"),
+                TimelineItem(
+                    id="e2",
+                    title="Shipped",
+                    description="Tracking #ABC",
+                    timestamp="14:20",
+                    color="#10b981",
+                    action_id="openShipment",
                 ),
             ),
         )
@@ -263,6 +285,19 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_timeline():
+    doc = render(ActivityFeed)
+    (timeline,) = page_children(doc)
+    assert timeline["id"] == "feed"
+    assert timeline["metadata"]["type"] == "Timeline"
+    items = timeline["metadata"]["items"]
+    assert len(items) == 2
+    assert items[0]["title"] == "Order placed"
+    assert items[0]["timestamp"] == "09:00"
+    assert items[1]["actionId"] == "openShipment"
+    assert items[1]["color"] == "#10b981"
 
 
 def test_component_tree_supplier_emits_gantt():

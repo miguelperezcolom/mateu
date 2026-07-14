@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton } from '../api/metadata';
+import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -253,6 +253,42 @@ export function KanbanRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Timeline (vertical rail of dots with title / timestamp / description) ─────
+export function TimelineRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const items = (meta(component)['items'] as TimelineItem[]) ?? [];
+  return (
+    <View style={styles.timeline}>
+      {items.map((it, i) => {
+        const body = (
+          <View style={styles.timelineRow}>
+            <View style={styles.timelineRail}>
+              <View style={[styles.timelineDot, { backgroundColor: it.color ?? '#1a73e8' }]}>
+                <Text style={styles.timelineDotIcon}>{displayIcon(it.icon)}</Text>
+              </View>
+              {i < items.length - 1 && <View style={styles.timelineLine} />}
+            </View>
+            <View style={styles.timelineBody}>
+              <View style={styles.timelineHead}>
+                <Text style={styles.timelineTitle}>{it.title ?? ''}</Text>
+                {!!it.timestamp && <Text style={styles.timelineTime}>{it.timestamp}</Text>}
+              </View>
+              {!!it.description && <Text style={styles.timelineDesc}>{it.description}</Text>}
+            </View>
+          </View>
+        );
+        return it.actionId ? (
+          <TouchableOpacity key={it.id ?? i} onPress={() => void controller.runAction(it.actionId!)}>
+            {body}
+          </TouchableOpacity>
+        ) : (
+          <View key={it.id ?? i}>{body}</View>
+        );
+      })}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -313,4 +349,16 @@ const styles = StyleSheet.create({
   kanbanCardTitle: { fontWeight: '600', color: '#222' },
   kanbanCardDesc: { fontSize: 12, color: '#666' },
   kanbanBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '600', color: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.1)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 1, overflow: 'hidden' },
+  // Timeline
+  timeline: {},
+  timelineRow: { flexDirection: 'row', gap: 10 },
+  timelineRail: { alignItems: 'center', width: 26 },
+  timelineDot: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  timelineDotIcon: { fontSize: 12, color: '#fff' },
+  timelineLine: { flex: 1, width: 2, backgroundColor: '#e4e4e7', marginVertical: 2, minHeight: 8 },
+  timelineBody: { flex: 1, paddingBottom: 16 },
+  timelineHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
+  timelineTitle: { fontWeight: '600', color: '#222' },
+  timelineTime: { fontSize: 11, color: '#888' },
+  timelineDesc: { color: '#666', marginTop: 2 },
 });

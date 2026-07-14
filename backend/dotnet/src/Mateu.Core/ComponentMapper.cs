@@ -38,6 +38,9 @@ public static class ComponentMapper
             col.Id, col.Title, col.Color, col.Cards.Select(c => new KanbanCardDto(
                 c.Id, c.Title, c.Description, c.Badge, c.Color, c.ActionId)).ToList())).ToList())),
 
+        Timeline tl => Dto(tl, new TimelineMetadataDto(tl.Items.Select(it => new TimelineItemDto(
+            it.Id, it.Title, it.Description, it.Timestamp, it.Icon, it.Color, it.ActionId)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

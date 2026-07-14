@@ -41,6 +41,8 @@ from mateu_dtos import (
     KanbanMetadata,
     KanbanColumnRecord,
     KanbanCardRecord,
+    TimelineMetadata,
+    TimelineItemRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -638,6 +640,20 @@ class ReflectionMapper:
                 for col in c.columns
             ]
             return self._fluent_client(KanbanMetadata(columns=columns), c)
+        if isinstance(c, fluent.Timeline):
+            items = [
+                TimelineItemRecord(
+                    id=it.id,
+                    title=it.title,
+                    description=it.description,
+                    timestamp=it.timestamp,
+                    icon=it.icon,
+                    color=it.color,
+                    action_id=it.action_id,
+                )
+                for it in c.items
+            ]
+            return self._fluent_client(TimelineMetadata(items=items), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

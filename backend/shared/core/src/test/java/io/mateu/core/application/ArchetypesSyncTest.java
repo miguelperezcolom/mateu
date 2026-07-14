@@ -44,6 +44,7 @@ import io.mateu.dtos.SplitLayoutDto;
 import io.mateu.dtos.TabDto;
 import io.mateu.dtos.TabLayoutDto;
 import io.mateu.dtos.TextDto;
+import io.mateu.dtos.TimelineDto;
 import io.mateu.dtos.TooltipDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.dtos.VerticalLayoutDto;
@@ -91,6 +92,8 @@ import io.mateu.uidl.data.SplitLayout;
 import io.mateu.uidl.data.Tab;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.Timeline;
+import io.mateu.uidl.data.TimelineItem;
 import io.mateu.uidl.data.Tooltip;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
@@ -354,6 +357,26 @@ class ArchetypesSyncTest {
                                       .description("in flight")
                                       .actionId("openCard")
                                       .build()))
+                          .build()))
+              .build());
+      content.add(
+          Timeline.builder()
+              .id("feed")
+              .items(
+                  List.of(
+                      TimelineItem.builder()
+                          .id("e1")
+                          .title("Order placed")
+                          .timestamp("09:00")
+                          .icon("🛒")
+                          .build(),
+                      TimelineItem.builder()
+                          .id("e2")
+                          .title("Shipped")
+                          .description("Tracking #ABC")
+                          .timestamp("14:20")
+                          .color("#10b981")
+                          .actionId("openShipment")
                           .build()))
               .build());
       content.add(
@@ -779,6 +802,20 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void timelineItemsSerialize() {
+    var timeline = findFirst(sync("/component-showcase"), TimelineDto.class);
+    assertThat(timeline).isNotNull();
+    var items = ((TimelineDto) timeline.metadata()).items();
+    assertThat(items).hasSize(2);
+    assertThat(items.get(0).title()).isEqualTo("Order placed");
+    assertThat(items.get(0).timestamp()).isEqualTo("09:00");
+    assertThat(items.get(0).icon()).isEqualTo("🛒");
+    assertThat(items.get(1).description()).isEqualTo("Tracking #ABC");
+    assertThat(items.get(1).color()).isEqualTo("#10b981");
+    assertThat(items.get(1).actionId()).isEqualTo("openShipment");
   }
 
   @Test

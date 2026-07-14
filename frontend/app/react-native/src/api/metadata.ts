@@ -107,3 +107,18 @@ export interface Kanban {
   type?: 'Kanban';
   columns?: KanbanColumn[];
 }
+
+export interface TimelineItem {
+  id?: string;
+  title?: string;
+  description?: string;
+  timestamp?: string;
+  icon?: string;
+  color?: string;
+  actionId?: string;
+}
+
+export interface Timeline {
+  type?: 'Timeline';
+  items?: TimelineItem[];
+}

@@ -249,6 +249,33 @@ class Kanban(Component):
 
 
 @dataclass(frozen=True)
+class TimelineItem:
+    """One entry on a :class:`Timeline`. ``timestamp`` is a free-form label; ``action_id`` makes
+    the entry clickable."""
+
+    id: str | None = None
+    title: str | None = None
+    description: str | None = None
+    timestamp: str | None = None
+    icon: str | None = None
+    color: str | None = None
+    action_id: str | None = None
+
+
+@dataclass(frozen=True)
+class Timeline(Component):
+    """A read-only vertical timeline / activity feed: a chronological list of entries."""
+
+    items: tuple[TimelineItem, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -333,4 +360,6 @@ __all__ = [
     "KanbanCard",
     "KanbanColumn",
     "Kanban",
+    "TimelineItem",
+    "Timeline",
 ]

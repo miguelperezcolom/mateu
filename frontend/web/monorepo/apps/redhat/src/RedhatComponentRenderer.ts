@@ -74,6 +74,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Skeleton,
     ComponentMetadataType.Gantt,
     ComponentMetadataType.Kanban,
+    ComponentMetadataType.Timeline,
 ])
 
 export class RedhatComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

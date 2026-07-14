@@ -138,6 +138,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(SkeletonMetadataDto), "Skeleton")]
 [JsonDerivedType(typeof(GanttMetadataDto), "Gantt")]
 [JsonDerivedType(typeof(KanbanMetadataDto), "Kanban")]
+[JsonDerivedType(typeof(TimelineMetadataDto), "Timeline")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -196,6 +197,12 @@ public record KanbanColumnDto(string? Id, string? Title, string? Color, IReadOnl
 
 /// <summary>One kanban card; ActionId — when set — makes the card clickable.</summary>
 public record KanbanCardDto(string? Id, string? Title, string? Description, string? Badge, string? Color, string? ActionId);
+
+/// <summary>Timeline / activity-feed metadata: a list of entries.</summary>
+public record TimelineMetadataDto(IReadOnlyList<TimelineItemDto> Items) : ComponentMetadataDto;
+
+/// <summary>One timeline entry; ActionId — when set — makes it clickable.</summary>
+public record TimelineItemDto(string? Id, string? Title, string? Description, string? Timestamp, string? Icon, string? Color, string? ActionId);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

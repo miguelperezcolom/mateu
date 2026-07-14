@@ -54,6 +54,16 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Board")]
+    public Timeline Feed { get; } = new()
+    {
+        Items =
+        [
+            new TimelineItem { Id = "e1", Title = "Order placed", Timestamp = "09:00", Icon = "cart" },
+            new TimelineItem { Id = "e2", Title = "Shipped", Description = "Tracking #ABC", Timestamp = "14:20", Color = "#10b981", ActionId = "openShipment" },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -186,6 +196,18 @@ public class ComponentTests
         Assert.Contains("\"color\":\"#94a3b8\"", json);
         Assert.Contains("\"badge\":\"3\"", json);
         Assert.Contains("\"actionId\":\"openCard\"", json);
+    }
+
+    [Fact]
+    public void Timeline_emits_items()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Timeline\"", json);
+        Assert.Contains("\"items\":[{", json);
+        Assert.Contains("\"title\":\"Order placed\"", json);
+        Assert.Contains("\"timestamp\":\"14:20\"", json);
+        Assert.Contains("\"actionId\":\"openShipment\"", json);
     }
 
     [Fact]

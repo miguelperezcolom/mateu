@@ -107,6 +107,40 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return board
 }
 
+/** Timeline: a vertical list of entries, each a colored dot + title/timestamp/description. */
+fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val panel = verticalPanel(0)
+    for (item in metadata.arr("items")) {
+        val row = JPanel(BorderLayout(8, 0))
+        row.isOpaque = false
+        val icon = item.text("icon")
+        val dot = JBLabel(if (icon.isNotBlank()) icon else "●", SwingConstants.CENTER)
+        runCatching { Color.decode(item.text("color")) }.getOrNull()?.let { dot.foreground = it }
+        row.add(dot, BorderLayout.WEST)
+        val body = verticalPanel(2)
+        val title = item.text("title")
+        val timestamp = item.text("timestamp")
+        val head = if (timestamp.isNotBlank()) "$title  ($timestamp)" else title
+        body.addStacked(JBLabel(head).apply { font = font.deriveFont(Font.BOLD) }, 2)
+        val desc = item.text("description")
+        if (desc.isNotBlank()) {
+            body.addStacked(JBLabel(desc).apply {
+                foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            }, 0)
+        }
+        row.add(body, BorderLayout.CENTER)
+        val actionId = item.text("actionId")
+        if (actionId.isNotBlank()) {
+            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+            row.addMouseListener(object : java.awt.event.MouseAdapter() {
+                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
+            })
+        }
+        panel.addStacked(row, 10)
+    }
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

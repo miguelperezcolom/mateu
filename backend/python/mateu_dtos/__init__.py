@@ -360,6 +360,25 @@ class KanbanMetadata(Wire):
     columns: list[KanbanColumnRecord] = Field(default_factory=list)
 
 
+class TimelineItemRecord(Wire):
+    """One timeline entry; ``action_id`` — when set — makes it clickable."""
+
+    id: str | None = None
+    title: str | None = None
+    description: str | None = None
+    timestamp: str | None = None
+    icon: str | None = None
+    color: str | None = None
+    action_id: str | None = None
+
+
+class TimelineMetadata(Wire):
+    """Timeline / activity-feed metadata (mirrors ``TimelineDto``)."""
+
+    type: Literal["Timeline"] = "Timeline"
+    items: list[TimelineItemRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -442,6 +461,7 @@ ComponentMetadata = Annotated[
         SkeletonMetadata,
         GanttMetadata,
         KanbanMetadata,
+        TimelineMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

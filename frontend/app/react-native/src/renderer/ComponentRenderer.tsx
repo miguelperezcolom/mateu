@@ -18,6 +18,7 @@ import {
 } from './DashboardRenderer';
 import {
   FoldoutRenderer, HeroSectionRenderer, EmptyStateRenderer, SkeletonRenderer, GanttRenderer, KanbanRenderer,
+  TimelineRenderer,
 } from './DisplayRenderer';
 import { EmptyState, MetricCard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
@@ -197,6 +198,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <GanttRenderer component={component} />;
     case 'Kanban':
       return <KanbanRenderer component={component} />;
+    case 'Timeline':
+      return <TimelineRenderer component={component} />;
 
     case 'Markdown':
       return <RichText value={(metadata['markdown'] as string) ?? ''} kind="markdown" />;
