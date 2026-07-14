@@ -295,3 +295,16 @@ export interface FileList {
   type?: 'FileList';
   files?: FileItem[];
 }
+
+export interface ChecklistItem {
+  id?: string;
+  label?: string;
+  done?: boolean;
+  actionId?: string;
+}
+
+export interface Checklist {
+  type?: 'Checklist';
+  title?: string;
+  items?: ChecklistItem[];
+}

@@ -79,6 +79,9 @@ public static class ComponentMapper
         FileList fl => Dto(fl, new FileListMetadataDto(fl.Files.Select(f =>
             new FileItemDto(f.Name, f.Size, f.Type, f.Url, f.ActionId)).ToList())),
 
+        Checklist ch => Dto(ch, new ChecklistMetadataDto(ch.Title, ch.Items.Select(i =>
+            new ChecklistItemDto(i.Id, i.Label, i.Done, i.ActionId)).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

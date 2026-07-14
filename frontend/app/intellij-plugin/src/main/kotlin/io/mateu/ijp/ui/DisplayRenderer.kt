@@ -608,6 +608,32 @@ fun renderFileList(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
+/** Checklist: a title + N/total count and a list of checkbox rows on Swing. */
+fun renderChecklist(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val panel = verticalPanel(3)
+    val items = metadata.arr("items").toList()
+    val done = items.count { it.path("done").asBoolean(false) }
+    val title = metadata.text("title")
+    panel.addStacked(JBLabel((if (title.isNotBlank()) "$title  " else "") + "($done / ${items.size})").apply {
+        font = font.deriveFont(Font.BOLD)
+    }, 6)
+    for (item in items) {
+        val isDone = item.path("done").asBoolean(false)
+        val box = if (isDone) "☑" else "☐"
+        val row = JBLabel("$box  ${item.text("label")}")
+        if (isDone) row.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        val actionId = item.text("actionId")
+        if (actionId.isNotBlank()) {
+            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+            row.addMouseListener(object : java.awt.event.MouseAdapter() {
+                override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
+            })
+        }
+        panel.addStacked(row, 3)
+    }
+    return panel
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

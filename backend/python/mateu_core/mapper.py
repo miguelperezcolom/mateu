@@ -68,6 +68,8 @@ from mateu_dtos import (
     CommentRecord,
     FileListMetadata,
     FileItemRecord,
+    ChecklistMetadata,
+    ChecklistItemRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -806,6 +808,14 @@ class ReflectionMapper:
                 for f in c.files
             ]
             return self._fluent_client(FileListMetadata(files=files), c)
+        if isinstance(c, fluent.Checklist):
+            items = [
+                ChecklistItemRecord(
+                    id=i.id, label=i.label, done=i.done, action_id=i.action_id
+                )
+                for i in c.items
+            ]
+            return self._fluent_client(ChecklistMetadata(title=c.title, items=items), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

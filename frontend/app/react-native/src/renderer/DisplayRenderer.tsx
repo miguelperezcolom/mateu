@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, Comment, EmptyState, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
+import { CalendarEvent, ChecklistItem, Comment, EmptyState, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -679,6 +679,44 @@ export function FileListRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Checklist (progress bar + toggleable items) ───────────────────────────────
+export function ChecklistRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component);
+  const title = m['title'] as string | undefined;
+  const items = (m['items'] as ChecklistItem[]) ?? [];
+  const [done, setDone] = useState<Record<number, boolean>>(() => {
+    const o: Record<number, boolean> = {};
+    items.forEach((it, i) => { if (it.done) o[i] = true; });
+    return o;
+  });
+  const total = items.length;
+  const doneCount = Object.values(done).filter(Boolean).length;
+  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+  const toggle = (it: ChecklistItem, i: number) => {
+    const next = !done[i];
+    setDone({ ...done, [i]: next });
+    if (it.actionId) void controller.runAction(it.actionId);
+  };
+  return (
+    <View style={styles.checklist}>
+      <View style={styles.checkHead}>
+        {!!title && <Text style={styles.checkTitle}>{title}</Text>}
+        <Text style={styles.checkCount}>{doneCount} / {total}</Text>
+      </View>
+      <View style={styles.checkBar}><View style={[styles.checkFill, { width: `${pct}%` }]} /></View>
+      {items.map((it, i) => (
+        <TouchableOpacity key={it.id ?? i} style={styles.checkItem} onPress={() => toggle(it, i)}>
+          <View style={[styles.checkBox, done[i] && styles.checkBoxDone]}>
+            {done[i] && <Text style={styles.checkMark}>✓</Text>}
+          </View>
+          <Text style={[styles.checkLabel, done[i] && styles.checkLabelDone]}>{it.label ?? ''}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -857,4 +895,17 @@ const styles = StyleSheet.create({
   fileIcon: { fontSize: 20 },
   fileName: { flex: 1, fontWeight: '500', color: '#222' },
   fileSize: { color: '#888', fontSize: 12 },
+  // Checklist
+  checklist: {},
+  checkHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 },
+  checkTitle: { fontWeight: '700', color: '#222' },
+  checkCount: { color: '#888', fontSize: 12 },
+  checkBar: { height: 6, borderRadius: 999, backgroundColor: '#e5e7eb', overflow: 'hidden', marginBottom: 10 },
+  checkFill: { height: '100%', backgroundColor: '#12b76a', borderRadius: 999 },
+  checkItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
+  checkBox: { width: 20, height: 20, borderRadius: 5, borderWidth: 2, borderColor: '#cbd5e1', alignItems: 'center', justifyContent: 'center' },
+  checkBoxDone: { backgroundColor: '#12b76a', borderColor: '#12b76a' },
+  checkMark: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  checkLabel: { color: '#333', flex: 1 },
+  checkLabelDone: { color: '#999', textDecorationLine: 'line-through' },
 });

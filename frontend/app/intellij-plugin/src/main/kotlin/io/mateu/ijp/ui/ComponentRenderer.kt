@@ -76,6 +76,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "CalloutCard" -> renderCalloutCard(this, metadata)
             "CommentThread" -> renderCommentThread(metadata)
             "FileList" -> renderFileList(this, metadata)
+            "Checklist" -> renderChecklist(this, metadata)
             "Image" -> renderStandaloneImage(metadata)
             else -> {
                 val t = metadata.text("type")

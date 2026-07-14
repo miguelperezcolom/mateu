@@ -90,6 +90,7 @@ export enum ComponentMetadataType {
     Faq = "Faq",
     CalloutCard = "CalloutCard",
     CommentThread = "CommentThread",
-    FileList = "FileList"
+    FileList = "FileList",
+    Checklist = "Checklist"
 
 }

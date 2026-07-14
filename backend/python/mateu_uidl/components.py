@@ -600,6 +600,30 @@ class FileList(Component):
 
 
 @dataclass(frozen=True)
+class ChecklistItem:
+    """One item of a :class:`Checklist`; ``done``, plus an optional toggle action."""
+
+    id: str | None = None
+    label: str | None = None
+    done: bool = False
+    action_id: str | None = None
+
+
+@dataclass(frozen=True)
+class Checklist(Component):
+    """A checklist with a progress bar."""
+
+    title: str | None = None
+    items: tuple[ChecklistItem, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -711,4 +735,6 @@ __all__ = [
     "CommentThread",
     "FileItem",
     "FileList",
+    "ChecklistItem",
+    "Checklist",
 ]

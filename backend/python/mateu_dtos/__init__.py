@@ -602,6 +602,23 @@ class FileListMetadata(Wire):
     files: list[FileItemRecord] = Field(default_factory=list)
 
 
+class ChecklistItemRecord(Wire):
+    """One checklist item (mirrors ``ChecklistItemDto``)."""
+
+    id: str | None = None
+    label: str | None = None
+    done: bool = False
+    action_id: str | None = None
+
+
+class ChecklistMetadata(Wire):
+    """Checklist metadata with a progress bar (mirrors ``ChecklistDto``)."""
+
+    type: Literal["Checklist"] = "Checklist"
+    title: str | None = None
+    items: list[ChecklistItemRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -699,6 +716,7 @@ ComponentMetadata = Annotated[
         CalloutCardMetadata,
         CommentThreadMetadata,
         FileListMetadata,
+        ChecklistMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

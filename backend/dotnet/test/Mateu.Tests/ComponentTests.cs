@@ -206,6 +206,17 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Checklist")]
+    public Checklist Check { get; } = new()
+    {
+        Title = "Onboarding",
+        Items =
+        [
+            new ChecklistItem { Id = "a", Label = "Create account", Done = true },
+            new ChecklistItem { Id = "b", Label = "Invite team", ActionId = "toggleStep" },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -510,6 +521,18 @@ public class ComponentTests
         Assert.Contains("\"name\":\"report.pdf\"", json);
         Assert.Contains("\"type\":\"pdf\"", json);
         Assert.Contains("\"actionId\":\"openFile\"", json);
+    }
+
+    [Fact]
+    public void Checklist_emits_items_and_done()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Checklist\"", json);
+        Assert.Contains("\"title\":\"Onboarding\"", json);
+        Assert.Contains("\"label\":\"Create account\"", json);
+        Assert.Contains("\"done\":true", json);
+        Assert.Contains("\"actionId\":\"toggleStep\"", json);
     }
 
     [Fact]

@@ -404,6 +404,22 @@ public sealed record FileList : ComponentBase
     public IReadOnlyList<FileItem> Files { get; init; } = [];
 }
 
+/// <summary>One item of a <see cref="Checklist"/>; Done, plus an optional toggle action.</summary>
+public sealed record ChecklistItem
+{
+    public string? Id { get; init; }
+    public string? Label { get; init; }
+    public bool Done { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>A checklist with a progress bar.</summary>
+public sealed record Checklist : ComponentBase
+{
+    public string? Title { get; init; }
+    public IReadOnlyList<ChecklistItem> Items { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

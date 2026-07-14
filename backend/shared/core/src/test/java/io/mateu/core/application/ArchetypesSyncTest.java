@@ -18,6 +18,7 @@ import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.CalendarDto;
 import io.mateu.dtos.CalloutCardDto;
 import io.mateu.dtos.CardDto;
+import io.mateu.dtos.ChecklistDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.CommentThreadDto;
 import io.mateu.dtos.ComponentDto;
@@ -79,6 +80,8 @@ import io.mateu.uidl.data.Calendar;
 import io.mateu.uidl.data.CalendarEvent;
 import io.mateu.uidl.data.CalloutCard;
 import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.Checklist;
+import io.mateu.uidl.data.ChecklistItem;
 import io.mateu.uidl.data.Comment;
 import io.mateu.uidl.data.CommentThread;
 import io.mateu.uidl.data.Container;
@@ -460,6 +463,19 @@ class ArchetypesSyncTest {
                           .title("Launch")
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
+                          .build()))
+              .build());
+      content.add(
+          Checklist.builder()
+              .id("check")
+              .title("Onboarding")
+              .items(
+                  List.of(
+                      ChecklistItem.builder().id("a").label("Create account").done(true).build(),
+                      ChecklistItem.builder()
+                          .id("b")
+                          .label("Invite team")
+                          .actionId("toggleStep")
                           .build()))
               .build());
       content.add(
@@ -1046,6 +1062,19 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void checklistSerializes() {
+    var check = findFirst(sync("/component-showcase"), ChecklistDto.class);
+    assertThat(check).isNotNull();
+    var m = (ChecklistDto) check.metadata();
+    assertThat(m.title()).isEqualTo("Onboarding");
+    assertThat(m.items()).hasSize(2);
+    assertThat(m.items().get(0).label()).isEqualTo("Create account");
+    assertThat(m.items().get(0).done()).isTrue();
+    assertThat(m.items().get(1).done()).isFalse();
+    assertThat(m.items().get(1).actionId()).isEqualTo("toggleStep");
   }
 
   @Test

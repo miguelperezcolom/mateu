@@ -29,6 +29,8 @@ from mateu_uidl.components import (  # noqa: E402
     CalloutCard,
     Comment,
     CommentThread,
+    Checklist,
+    ChecklistItem,
     EmptyState,
     Feature,
     FeatureGrid,
@@ -224,6 +226,20 @@ class PricingPlans(ComponentTreeSupplier):
                     features=("Unlimited projects", "Priority support"),
                     cta_label="Go Pro", action_id="choosePlan",
                 ),
+            ),
+        )
+
+
+@ui("onboarding")
+@title("Onboarding")
+class OnboardingChecklist(ComponentTreeSupplier):
+    def component(self):
+        return Checklist(
+            id="check",
+            title="Onboarding",
+            items=(
+                ChecklistItem(id="a", label="Create account", done=True),
+                ChecklistItem(id="b", label="Invite team", action_id="toggleStep"),
             ),
         )
 
@@ -514,6 +530,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_checklist():
+    doc = render(OnboardingChecklist)
+    (check,) = page_children(doc)
+    assert check["id"] == "check"
+    assert check["metadata"]["type"] == "Checklist"
+    m = check["metadata"]
+    assert m["title"] == "Onboarding"
+    assert len(m["items"]) == 2
+    assert m["items"][0]["done"] is True
+    assert m["items"][1]["actionId"] == "toggleStep"
 
 
 def test_component_tree_supplier_emits_file_list():
