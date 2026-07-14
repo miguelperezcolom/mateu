@@ -5,8 +5,10 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
+import io.mateu.core.domain.AudienceGate;
 import io.mateu.core.domain.Authorizer;
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.Audience;
 import io.mateu.uidl.annotations.DisabledUnless;
 import io.mateu.uidl.annotations.Fab;
 import io.mateu.uidl.annotations.Hidden;
@@ -96,7 +98,10 @@ final class PageButtonsBuilder {
                 getRawButtonFromMethod(method, marker, isDisabled(instance, method, httpRequest)));
   }
 
-  /** A field/method contributes a button unless it is {@code @Hidden} or hidden by a supplier. */
+  /**
+   * A field/method contributes a button unless it is {@code @Hidden}, hidden by a supplier, or
+   * projected out by an unmatched {@code @Audience}.
+   */
   private static boolean isVisible(Object instance, Member member, HttpRequest httpRequest) {
     var element = (AnnotatedElement) member;
     boolean notHidden =
@@ -104,7 +109,9 @@ final class PageButtonsBuilder {
             || !MetaAnnotations.find(element, Hidden.class).value().isEmpty();
     boolean notHiddenBySupplier =
         !(instance instanceof VisibilitySupplier vs) || !vs.isHidden(member.getName(), httpRequest);
-    return notHidden && notHiddenBySupplier;
+    boolean forCurrentAudience =
+        AudienceGate.visible(MetaAnnotations.find(element, Audience.class), httpRequest);
+    return notHidden && notHiddenBySupplier && forCurrentAudience;
   }
 
   /**

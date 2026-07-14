@@ -84,6 +84,16 @@ public class Home2 implements WidgetSupplier {
     @io.mateu.uidl.annotations.AppContext(label = "Env")
     Environment environment;
 
+    enum Modo { Staff, Cliente }
+
+    // persona projection: naming this @AppContext field "audience" makes its value drive the
+    // @Audience marks — unset → full view; Staff/Cliente → that audience's projection (/audience-demo)
+    @io.mateu.uidl.annotations.AppContext(label = "Modo")
+    Modo audience;
+
+    @Menu
+    io.mateu.mdd.demoadminpanel.infra.in.ui.frontoffice.AudienceDemo audienceDemo;
+
     @Menu
     BannerDemoPage bannerDemo;
 

@@ -125,3 +125,9 @@ the loaded options and (debounced) asks the server for matches beyond the loaded
 - **Workflow over screens** — set once, applies everywhere
 - **Recoverability** — the context survives reloads; no re-selection tax
 - **Single source of truth** — screens can't disagree on the active context
+
+## See also
+
+- [Audience projection](./audience-projection) — an `@AppContext` field named `audience` becomes a
+  persona switch: `@Audience`-marked fields, buttons and menu entries filter to the selected
+  audience (unset → everything visible).

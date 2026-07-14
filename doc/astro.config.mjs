@@ -120,6 +120,8 @@ export default defineConfig({
 						{ slug: 'ux-patterns/partial-forms' },
 						{ slug: 'ux-patterns/component-communication', label: 'Component Communication' },
 						{ slug: 'ux-patterns/high-density', label: 'High-Density Screens' },
+						{ slug: 'ux-patterns/audience-projection', label: 'Audience Projection' },
+						{ slug: 'ux-patterns/app-context', label: 'App Context Selector' },
 						{ slug: 'ux-patterns/sections-index', label: 'Sticky Sections Index' },
 						{ slug: 'ux-patterns/editable-table', label: 'Editable Table' },
 						{ slug: 'ux-patterns/inline-crud-editing', label: 'Inline Editing in Listings' },

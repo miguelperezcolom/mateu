@@ -260,6 +260,30 @@ def disabled_unless(roles=(), groups=(), scopes=(), permissions=()):
     return deco
 
 
+class Audience:
+    """PERSONA PROJECTION: the field is shown only when the CURRENT AUDIENCE — the app-state
+    value under the ``"audience"`` key, i.e. the ``@app_context`` selector named audience — is
+    unset (no projection active → everything visible) or is one of the declared values
+    (case-sensitive). NOT a security boundary (the data still travels to any client that clears
+    the selector) — a UX projection aid; combine with ``EyesOnly()`` for real access control.
+    The Python analogue of Java's ``@Audience``. On ``@button``/``@menu_item`` methods use the
+    ``audience(...)`` decorator instead."""
+
+    def __init__(self, *audiences: str):
+        self.audiences = tuple(audiences)
+
+
+def audience(*audiences: str):
+    """Method decorator: the ``@button``/``@menu_item`` entry is shown only when the current
+    audience is unset or one of ``audiences`` (the method-level form of ``Audience(...)``)."""
+
+    def deco(fn):
+        fn.__mateu_audience__ = Audience(*audiences)
+        return fn
+
+    return deco
+
+
 class LookupLabelSupplier:
     """Resolves the display label of a reference field's PRE-EXISTING value: when a form loads
     with a ``Lookup()``/``Searchable()`` field already set, the framework asks the view (or the
@@ -883,7 +907,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "LookupLabelSupplier", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout",
     "plain_text", "emits", "subscribe_to", "secured",

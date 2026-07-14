@@ -37,7 +37,14 @@ from mateu_uidl import components as fluent
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from .mapper import ReflectionMapper, crud_element_type, enum_set_element_type, is_enum, listing_types
+from .mapper import (
+    ReflectionMapper,
+    crud_element_type,
+    enum_set_element_type,
+    is_enum,
+    listing_types,
+    set_current_audience,
+)
 from .naming import camel_case, humanize
 from .reflection import view_fields
 from .registry import MateuRegistry, normalize
@@ -77,6 +84,10 @@ class SyncHandler:
         self.mapper = ReflectionMapper(translator, identity_provider)
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
+        # 0. Audience projection: the appState value under "audience" (the @app_context selector
+        # named audience) filters Audience()-marked members for the whole request.
+        set_current_audience(rq.app_state.get("audience"))
+
         # 1. App shell at the root route.
         if not rq.action_id:
             t0 = self.registry.resolve(rq.server_side_type, rq.route)

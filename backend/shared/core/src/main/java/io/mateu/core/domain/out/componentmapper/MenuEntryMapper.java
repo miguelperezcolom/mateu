@@ -8,7 +8,9 @@ import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValueOrNewInstance;
 import static io.mateu.uidl.Humanizer.toKebabCase;
 
+import io.mateu.core.domain.AudienceGate;
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.Audience;
 import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.Menu;
@@ -97,8 +99,9 @@ final class MenuEntryMapper {
           .anyMatch(
               childField ->
                   MetaAnnotations.isPresent(childField, io.mateu.uidl.annotations.Menu.class)
-                      && isAuthorized(
-                          MetaAnnotations.find(childField, EyesOnly.class), httpRequest))) {
+                      && isAuthorized(MetaAnnotations.find(childField, EyesOnly.class), httpRequest)
+                      && AudienceGate.visible(
+                          MetaAnnotations.find(childField, Audience.class), httpRequest))) {
         return new Menu(
                 "/" + field.getName(),
                 getLabel(field),

@@ -13,6 +13,11 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
+        // 0. Audience projection: the appState value under "audience" (the [AppContext] selector
+        // named audience) filters [Audience]-marked members for the whole request.
+        ReflectionMapper.SetCurrentAudience(
+            rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
+
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0

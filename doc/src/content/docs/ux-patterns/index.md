@@ -39,6 +39,7 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Push Notifications](./notifications) | ✅ Implemented | `@Trigger(OnLoad + OnSuccess)`, `Hydratable`, `MicroFrontend` |
 | [Partial Forms](./partial-forms) | ✅ Implemented | `@FoldedLayout`, `@Section`, nested subform records |
 | [High-density screens](./high-density) | ✅ Implemented | `@Compact`, `StyleConstants.COMPACT` |
+| [Audience projection](./audience-projection) | ✅ Implemented | `@Audience` + `@AppContext` field named `audience` |
 | [Front-office screens](./front-office) | Composition | `TaskQueue` + `EntityHeader` + `Wizard` + `Ledger` + … |
 | [Entity header](./entity-header) | ✅ Implemented | `EntityHeader` (title, badges, facts, metric) |
 | [Meter](./meter) | ✅ Implemented | `Meter` (value/max, warn/danger thresholds) |

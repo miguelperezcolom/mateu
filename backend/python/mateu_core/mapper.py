@@ -4,6 +4,7 @@ The Python port of C#'s ReflectionMapper."""
 from __future__ import annotations
 
 import uuid
+from contextvars import ContextVar
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
@@ -116,6 +117,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    Audience,
     ComponentTreeSupplier,
     Crud,
     Dashboard,
@@ -165,6 +167,26 @@ from . import layout_inference
 from .naming import camel_case, humanize
 from .reflection import class_flag, methods_with, view_fields
 from .registry import normalize, type_name
+
+# The audience projection active for the request being handled (the appState value under
+# "audience", i.e. the @app_context selector named audience); None → no projection. A ContextVar
+# because the mapper instance is shared by the SyncHandler across (possibly concurrent) requests.
+_current_audience: ContextVar[str | None] = ContextVar("mateu_current_audience", default=None)
+
+
+def set_current_audience(value) -> None:
+    """Activates (or clears) the audience projection for the current request flow."""
+    text = "" if value is None else str(value)
+    _current_audience.set(text if text.strip() else None)
+
+
+def for_current_audience(gate: Audience | None) -> bool:
+    """``Audience(...)``: shown when no audience is set (full view) or when the declared values
+    contain the current one. A UX projection, NOT security (that's ``EyesOnly()``)."""
+    if gate is None:
+        return True
+    current = _current_audience.get()
+    return current is None or current in gate.audiences
 
 
 def _id() -> str:
@@ -264,8 +286,9 @@ class ReflectionMapper:
         )
 
     def visible(self, f) -> bool:
-        """``EyesOnly()``: the field is visible only to authorized callers."""
-        return self.authorized(f.marker(EyesOnly))
+        """``EyesOnly()``: the field is visible only to authorized callers; an unmatched
+        ``Audience()`` projects it out as well."""
+        return self.authorized(f.marker(EyesOnly)) and for_current_audience(f.marker(Audience))
 
     def T(self, s: str) -> str:
         return self.translator.translate(s) if self.translator else s
@@ -281,6 +304,8 @@ class ReflectionMapper:
         items = []
         folders: dict[str, MenuItem] = {}
         for n, f in methods_with(cls, "__mateu_menu_item__"):
+            if not for_current_audience(getattr(f, "__mateu_audience__", None)):
+                continue
             entry = self.map_menu_item(n, f)
             group = getattr(f, "__mateu_menu_group__", "")
             if not group:
@@ -388,7 +413,11 @@ class ReflectionMapper:
             return self.map_listing(cls, listing[0], listing[1], route)
 
         title = self.T(getattr(cls, "__mateu_title__", humanize(cls.__name__)))
-        buttons = [self.map_button(n, f) for n, f in methods_with(cls, "__mateu_button__")]
+        buttons = [
+            self.map_button(n, f)
+            for n, f in methods_with(cls, "__mateu_button__")
+            if for_current_audience(getattr(f, "__mateu_audience__", None))
+        ]
         fabs = self.fabs(cls)
         actions = [Action(id=b.action_id) for b in buttons] + [Action(id=f.action_id) for f in fabs]
         # OnRowSelected() grid actions must be advertised or the renderer drops the row click.

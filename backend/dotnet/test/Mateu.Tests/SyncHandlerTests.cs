@@ -141,6 +141,19 @@ public class SecuredForm
     [Button, DisabledUnless(Roles = ["manager"])] public Message Close() => new("Closed");
 }
 
+// One declared model, projected per audience: [Audience] hides the member when an audience IS
+// selected (appState["audience"], the [AppContext] selector named audience) and doesn't match.
+// A UX projection, NOT security — combine with [EyesOnly] for real access control.
+[UI("audience-form"), Title("Check-in")]
+public class AudienceProjectedForm
+{
+    public string BookingCode { get; set; } = "B-42";
+    [Audience("staff")] public string? InternalNotes { get; set; } = "VIP, late arrival";
+    [Audience("cliente")] public string? WelcomeMessage { get; set; } = "Bienvenido";
+
+    [Button, Audience("staff")] public Message Audit() => new("audited");
+}
+
 public class EditableGuest
 {
     [ReadOnly] public string Id { get; set; } = "";
@@ -622,6 +635,57 @@ public class SyncHandlerTests
         Assert.Contains("internalNotes", json);
         Assert.DoesNotContain("\"fieldName\":\"approved\",\"fieldAttribute\":\"disabled\"", json);
         Assert.Contains("\"actionId\":\"close\",\"type\":\"Button\",\"disabled\":false", json);
+    }
+
+    [Fact]
+    public void Audience_unset_shows_every_projection()
+    {
+        // No audience selected → no projection active → the full model renders.
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "audience-form", ConsumedRoute = "audience-form" }));
+
+        Assert.Contains("bookingCode", json);
+        Assert.Contains("internalNotes", json);
+        Assert.Contains("welcomeMessage", json);
+        Assert.Contains("\"actionId\":\"audit\"", json);
+    }
+
+    [Fact]
+    public void Audience_projection_hides_unmatched_fields_and_buttons()
+    {
+        var cliente = Render(Handler().Handle(new RunActionRqDto
+        {
+            Route = "audience-form",
+            ConsumedRoute = "audience-form",
+            AppState = new() { ["audience"] = JsonSerializer.SerializeToElement("cliente") },
+        }));
+        Assert.Contains("bookingCode", cliente);
+        Assert.DoesNotContain("internalNotes", cliente);
+        Assert.Contains("welcomeMessage", cliente);
+        Assert.DoesNotContain("\"actionId\":\"audit\"", cliente);
+
+        var staff = Render(Handler().Handle(new RunActionRqDto
+        {
+            Route = "audience-form",
+            ConsumedRoute = "audience-form",
+            AppState = new() { ["audience"] = JsonSerializer.SerializeToElement("staff") },
+        }));
+        Assert.Contains("bookingCode", staff);
+        Assert.Contains("internalNotes", staff);
+        Assert.DoesNotContain("welcomeMessage", staff);
+        Assert.Contains("\"actionId\":\"audit\"", staff);
+    }
+
+    [Fact]
+    public void Blank_audience_counts_as_unset()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto
+        {
+            Route = "audience-form",
+            ConsumedRoute = "audience-form",
+            AppState = new() { ["audience"] = JsonSerializer.SerializeToElement("") },
+        }));
+        Assert.Contains("internalNotes", json);
+        Assert.Contains("welcomeMessage", json);
     }
 
     [Fact]

@@ -27,8 +27,26 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             declared.Length == 0 || (held is not null && declared.Any(held.Contains));
     }
 
-    /// <summary>[EyesOnly]: the member is visible only to authorized callers.</summary>
-    private bool Visible(MemberInfo member) => Authorized(member.Find<EyesOnlyAttribute>());
+    /// <summary>The audience projection active for the request being handled (the appState value
+    /// under "audience", i.e. the [AppContext] selector named audience); null → no projection.
+    /// AsyncLocal because the mapper is shared by the singleton SyncHandler across requests.</summary>
+    private static readonly AsyncLocal<string?> Audience = new();
+
+    /// <summary>Activates (or clears) the audience projection for the current request flow.</summary>
+    internal static void SetCurrentAudience(string? audience) =>
+        Audience.Value = string.IsNullOrWhiteSpace(audience) ? null : audience;
+
+    /// <summary>[Audience(...)]: shown when no audience is set (full view) or when the declared
+    /// values contain the current one. A UX projection, NOT security (that's [EyesOnly]).</summary>
+    internal static bool ForCurrentAudience(MemberInfo member) =>
+        member.Find<AudienceAttribute>() is not { } gate
+        || Audience.Value is not { } current
+        || gate.Audiences.Contains(current);
+
+    /// <summary>[EyesOnly]: the member is visible only to authorized callers; an unmatched
+    /// [Audience] projects it out as well.</summary>
+    private bool Visible(MemberInfo member) =>
+        Authorized(member.Find<EyesOnlyAttribute>()) && ForCurrentAudience(member);
 
     /// <summary>OnCustomEvent triggers (from [SubscribeTo]) and the [Emits] name for a view type.</summary>
     private static (List<object> Triggers, string? EmitsName) EventsOf(Type type)
@@ -62,7 +80,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         var items = new List<MenuItemDto>();
         var folders = new Dictionary<string, List<MenuItemDto>>();
         foreach (var m in appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                     .Where(m => m.Find<MenuItemAttribute>() != null))
+                     .Where(m => m.Find<MenuItemAttribute>() != null && ForCurrentAudience(m)))
         {
             var entry = MapMenuItem(m);
             var group = m.Find<MenuItemAttribute>()!.Group;
@@ -164,7 +182,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         var title = T(type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name));
 
         var buttons = type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(m => m.Find<ButtonAttribute>() != null)
+            .Where(m => m.Find<ButtonAttribute>() != null && ForCurrentAudience(m))
             .Select(MapButton).ToList();
         var fabs = Fabs(type);
         // Both [Button] and [Fab] methods are server-side actions the renderer can invoke.

@@ -4,7 +4,9 @@ import static io.mateu.core.domain.Authorizer.isAuthorized;
 import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields;
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.domain.AudienceGate;
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.Audience;
 import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.fluent.AppSupplier;
 import io.mateu.uidl.interfaces.Actionable;
@@ -38,7 +40,9 @@ class AppMenuBuilder {
                     field ->
                         MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Menu.class)
                             && isAuthorized(
-                                MetaAnnotations.find(field, EyesOnly.class), httpRequest))
+                                MetaAnnotations.find(field, EyesOnly.class), httpRequest)
+                            && AudienceGate.visible(
+                                MetaAnnotations.find(field, Audience.class), httpRequest))
                 .map(field -> mapToMenu(appRoute, field, instance, route, httpRequest))
                 .filter(Objects::nonNull),
             getAllMethods(instance.getClass()).stream()
@@ -46,7 +50,9 @@ class AppMenuBuilder {
                     method ->
                         MetaAnnotations.isPresent(method, io.mateu.uidl.annotations.Menu.class)
                             && isAuthorized(
-                                MetaAnnotations.find(method, EyesOnly.class), httpRequest))
+                                MetaAnnotations.find(method, EyesOnly.class), httpRequest)
+                            && AudienceGate.visible(
+                                MetaAnnotations.find(method, Audience.class), httpRequest))
                 .map(method -> mapToMenu(appRoute, method, instance, route, httpRequest))
                 .filter(Objects::nonNull))
         .toList();

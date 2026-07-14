@@ -70,6 +70,7 @@ from mateu_uidl import (  # noqa: E402
     zones,
 )
 from mateu_uidl import (  # noqa: E402
+    Audience,
     DisabledUnless,
     EyesOnly,
     Identity,
@@ -81,6 +82,7 @@ from mateu_uidl import (  # noqa: E402
     ReadOnlyUnless,
     SortSpec,
     ai,
+    audience,
     disabled_unless,
     remote_menu,
 )
@@ -654,6 +656,22 @@ class SecuredForm:
         return Message("Closed")
 
 
+# One declared model, projected per audience: Audience() hides the member when an audience IS
+# selected (appState["audience"], the @app_context selector named audience) and doesn't match.
+# A UX projection, NOT security — combine with EyesOnly() for real access control.
+@ui("audience-form")
+@title("Check-in")
+class AudienceProjectedForm:
+    booking_code: str = "B-42"
+    internal_notes: Annotated[str | None, Audience("staff")] = "VIP, late arrival"
+    welcome_message: Annotated[str | None, Audience("cliente")] = "Bienvenido"
+
+    @button()
+    @audience("staff")
+    def audit(self):
+        return Message("audited")
+
+
 class EditableGuest:
     id: Annotated[str, ReadOnly()] = ""
     name: str = ""
@@ -791,6 +809,42 @@ def test_permission_gates_open_up_for_an_authorized_identity():
     assert "internalNotes" in j
     assert '"fieldName": "approved", "fieldAttribute": "disabled"' not in j
     assert '"disabled": true' not in j
+
+
+def test_audience_unset_shows_every_projection():
+    # No audience selected → no projection active → the full model renders.
+    j = render(handler().handle(RunActionRq(route="audience-form", consumed_route="audience-form")))
+
+    assert "bookingCode" in j
+    assert "internalNotes" in j
+    assert "welcomeMessage" in j
+    assert '"actionId": "audit"' in j
+
+
+def test_audience_projection_hides_unmatched_fields_and_buttons():
+    cliente = render(handler().handle(RunActionRq(
+        route="audience-form", consumed_route="audience-form", app_state={"audience": "cliente"},
+    )))
+    assert "bookingCode" in cliente
+    assert "internalNotes" not in cliente
+    assert "welcomeMessage" in cliente
+    assert '"actionId": "audit"' not in cliente
+
+    staff = render(handler().handle(RunActionRq(
+        route="audience-form", consumed_route="audience-form", app_state={"audience": "staff"},
+    )))
+    assert "bookingCode" in staff
+    assert "internalNotes" in staff
+    assert "welcomeMessage" not in staff
+    assert '"actionId": "audit"' in staff
+
+
+def test_blank_audience_counts_as_unset():
+    j = render(handler().handle(RunActionRq(
+        route="audience-form", consumed_route="audience-form", app_state={"audience": ""},
+    )))
+    assert "internalNotes" in j
+    assert "welcomeMessage" in j
 
 
 def test_inline_editing_grid_field_emits_editable_cells_and_rows_bind_back():

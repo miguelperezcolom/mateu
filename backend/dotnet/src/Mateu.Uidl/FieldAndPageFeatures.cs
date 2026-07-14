@@ -243,3 +243,16 @@ public sealed class ReadOnlyUnlessAttribute : IdentityGatedAttribute;
 /// (C# analogue of Java's @DisabledUnless.)</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class DisabledUnlessAttribute : IdentityGatedAttribute;
+
+/// <summary>PERSONA PROJECTION: the field, [Button]/[Toolbar] method or [MenuItem] entry is shown
+/// only when the CURRENT AUDIENCE — the app-state value under the "audience" key, i.e. the
+/// [AppContext] selector named audience — is unset (no projection active → everything visible) or
+/// is one of the declared values. NOT a security boundary (the data still travels to any client
+/// that clears the selector) — a UX projection aid; combine with [EyesOnly] for real access
+/// control. (C# analogue of Java's @Audience.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method)]
+public sealed class AudienceAttribute(params string[] audiences) : Attribute
+{
+    /// <summary>The audiences the element is meant for (case-sensitive, OR within the list).</summary>
+    public string[] Audiences { get; } = audiences;
+}

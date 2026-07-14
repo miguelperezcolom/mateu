@@ -39,6 +39,7 @@ Mateu generates all of that from the model. Validate with Bean Validation
 | render a domain object you can't annotate | `ComponentAdapter<T>` (`@Service`) | [extension.md](reference/extension.md) |
 | a dense screen composing many sub-forms | `@Inline` + `@Compact` + `@Zones` | [inline-dense-screens.md](reference/inline-dense-screens.md) |
 | panels that react to each other | `@Emits` / `@SubscribeTo` / `@OnRowSelected` | [component-communication.md](reference/component-communication.md) |
+| one screen projected per persona (staff vs client) | `@Audience({"Staff"})` on fields/buttons/menus + `@AppContext` enum field named `audience` (unset → all visible; UX aid, not security — combine with `@EyesOnly`) | ux-patterns/audience-projection docs |
 | a work queue rail (arrivals / departures) | `TaskQueue.builder().actionId(…).groups(…)` — click sends `_item` | [fluent.md](reference/fluent.md) |
 | a persistent context banner for a flow | `EntityHeader.builder().title(…).badges(…).facts(…)` (display-only) | [fluent.md](reference/fluent.md) |
 | a folio breakdown + charge | `Ledger.builder().lines(…)` + `PaymentPicker.builder().methods(…)` — confirm sends `_method` | [fluent.md](reference/fluent.md) |
