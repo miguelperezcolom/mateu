@@ -15,7 +15,7 @@ public class RoomInfoSection {
     @Label("Dobles / Individuales")     String beds;
     @Label("Estado")                    RoomState roomState;
     @Label("Checkout")                  boolean checkout;
-    @Colspan(2) @Label("Observaciones") String roomObservations;
+    @Colspan(2) @Multiline @Label("Observaciones") String roomObservations;
     @Colspan(2) @Multiline @Label("Averías") String averias;
 
     void populate(ReservationLine line) {

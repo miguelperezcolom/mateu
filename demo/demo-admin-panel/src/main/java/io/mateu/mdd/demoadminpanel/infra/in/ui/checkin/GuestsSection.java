@@ -137,11 +137,5 @@ public class GuestsSection {
                 "Check-in deshecho para los huéspedes seleccionados");
     }
 
-    @Toolbar
-    @Action(shortcut = "ctrl+alt+f")
-    @Label("Código WiFi")
-    Object codigoWifi(HttpRequest httpRequest) {
-        return Message.success("Código WiFi: RIU-GUEST");
-    }
 
 }

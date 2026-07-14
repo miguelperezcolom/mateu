@@ -75,6 +75,13 @@ public class CheckInSection {
     }
 
 
+    @Toolbar
+    @Action(shortcut = "ctrl+alt+f")
+    @Label("Código WiFi")
+    Object codigoWifi(HttpRequest httpRequest) {
+        return Message.success("Código WiFi: RIU-GUEST");
+    }
+
 
     void populate(ReservationLine line) {
         id                   = line.getId();
