@@ -34,6 +34,8 @@ from mateu_uidl.components import (  # noqa: E402
     KanbanCard,
     KanbanColumn,
     MetricCard,
+    PricingPlan,
+    PricingTable,
     ProgressSteps,
     Stat,
     Step,
@@ -188,6 +190,26 @@ class TeamCalendar(ComponentTreeSupplier):
         )
 
 
+@ui("pricing")
+@title("Pricing")
+class PricingPlans(ComponentTreeSupplier):
+    def component(self):
+        return PricingTable(
+            id="pricing",
+            plans=(
+                PricingPlan(
+                    id="free", name="Free", price="0", period="/mo",
+                    features=("1 project",), cta_label="Start", action_id="choosePlan",
+                ),
+                PricingPlan(
+                    id="pro", name="Pro", price="29", period="/mo", featured=True,
+                    features=("Unlimited projects", "Priority support"),
+                    cta_label="Go Pro", action_id="choosePlan",
+                ),
+            ),
+        )
+
+
 @ui("booking")
 @title("Booking")
 class BookingFoldout(Foldout):
@@ -334,6 +356,21 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_pricing_table():
+    doc = render(PricingPlans)
+    (pricing,) = page_children(doc)
+    assert pricing["id"] == "pricing"
+    assert pricing["metadata"]["type"] == "PricingTable"
+    plans = pricing["metadata"]["plans"]
+    assert len(plans) == 2
+    assert plans[0]["name"] == "Free"
+    assert plans[0]["featured"] is False
+    assert plans[1]["name"] == "Pro"
+    assert plans[1]["featured"] is True
+    assert plans[1]["features"] == ["Unlimited projects", "Priority support"]
+    assert plans[1]["ctaLabel"] == "Go Pro"
 
 
 def test_component_tree_supplier_emits_calendar():

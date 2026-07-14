@@ -183,6 +183,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.ProgressSteps,
     ComponentMetadataType.Stat,
     ComponentMetadataType.Calendar,
+    ComponentMetadataType.PricingTable,
 ])
 
 export class SapUi5ComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

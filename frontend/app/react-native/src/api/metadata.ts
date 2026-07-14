@@ -159,3 +159,19 @@ export interface Calendar {
   month?: string; // any day in the month, ISO date
   events?: CalendarEvent[];
 }
+
+export interface PricingPlan {
+  id?: string;
+  name?: string;
+  price?: string;
+  period?: string;
+  featured?: boolean;
+  features?: string[];
+  ctaLabel?: string;
+  actionId?: string;
+}
+
+export interface PricingTable {
+  type?: 'PricingTable';
+  plans?: PricingPlan[];
+}

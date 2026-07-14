@@ -238,6 +238,26 @@ public sealed record Calendar : ComponentBase
     public IReadOnlyList<CalendarEvent> Events { get; init; } = [];
 }
 
+/// <summary>One plan of a <see cref="PricingTable"/>: name, price + period, features and a CTA.
+/// Featured marks the recommended plan.</summary>
+public sealed record PricingPlan
+{
+    public string? Id { get; init; }
+    public string? Name { get; init; }
+    public string? Price { get; init; }
+    public string? Period { get; init; }
+    public bool Featured { get; init; }
+    public IReadOnlyList<string> Features { get; init; } = [];
+    public string? CtaLabel { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>A pricing / plan-comparison table: plan cards side by side, one optionally featured.</summary>
+public sealed record PricingTable : ComponentBase
+{
+    public IReadOnlyList<PricingPlan> Plans { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

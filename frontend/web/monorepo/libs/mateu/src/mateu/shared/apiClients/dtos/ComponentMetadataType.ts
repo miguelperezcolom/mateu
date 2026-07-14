@@ -79,6 +79,7 @@ export enum ComponentMetadataType {
     Timeline = "Timeline",
     ProgressSteps = "ProgressSteps",
     Stat = "Stat",
-    Calendar = "Calendar"
+    Calendar = "Calendar",
+    PricingTable = "PricingTable"
 
 }

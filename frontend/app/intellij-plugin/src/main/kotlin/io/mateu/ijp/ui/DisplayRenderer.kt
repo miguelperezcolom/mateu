@@ -274,6 +274,41 @@ fun renderCalendar(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
+/** PricingTable: a horizontal row of plan cards, the featured one ringed, with a CTA button. */
+fun renderPricingTable(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val row = JPanel(FlowLayout(FlowLayout.LEFT, 12, 0))
+    row.isOpaque = false
+    for (plan in metadata.arr("plans")) {
+        val featured = plan.path("featured").asBoolean(false)
+        val card = verticalPanel(4)
+        card.border =
+            if (featured) JBUI.Borders.customLine(Color(0x1A, 0x73, 0xE8), 2)
+            else JBUI.Borders.customLine(JBUI.CurrentTheme.CustomFrameDecorations.separatorForeground(), 1)
+        card.preferredSize = Dimension(190, card.preferredSize.height)
+        if (featured) card.addStacked(JBLabel("RECOMMENDED").apply {
+            foreground = Color(0x1A, 0x73, 0xE8)
+            font = font.deriveFont(Font.BOLD, 10f)
+        }, 2)
+        card.addStacked(JBLabel(plan.text("name")).apply {
+            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        }, 2)
+        val price = plan.text("price") + plan.text("period").let { if (it.isNotBlank()) " $it" else "" }
+        card.addStacked(JBLabel(price).apply { font = font.deriveFont(Font.BOLD, 22f) }, 4)
+        for (feature in plan.arr("features")) {
+            card.addStacked(JBLabel("✓ ${feature.asText()}"), 2)
+        }
+        val ctaLabel = plan.text("ctaLabel")
+        val actionId = plan.text("actionId")
+        if (ctaLabel.isNotBlank()) {
+            card.addStacked(JButton(ctaLabel).apply {
+                if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, null) }
+            }, 0)
+        }
+        row.add(card)
+    }
+    return row
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

@@ -48,6 +48,8 @@ from mateu_dtos import (
     StatMetadata,
     CalendarMetadata,
     CalendarEventRecord,
+    PricingTableMetadata,
+    PricingPlanRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -695,6 +697,21 @@ class ReflectionMapper:
                 ),
                 c,
             )
+        if isinstance(c, fluent.PricingTable):
+            plans = [
+                PricingPlanRecord(
+                    id=p.id,
+                    name=p.name,
+                    price=p.price,
+                    period=p.period,
+                    featured=p.featured,
+                    features=list(p.features),
+                    cta_label=p.cta_label,
+                    action_id=p.action_id,
+                )
+                for p in c.plans
+            ]
+            return self._fluent_client(PricingTableMetadata(plans=plans), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

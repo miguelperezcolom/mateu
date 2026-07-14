@@ -36,6 +36,7 @@ import io.mateu.dtos.MarkdownDto;
 import io.mateu.dtos.MetricCardDto;
 import io.mateu.dtos.MetricTrendDto;
 import io.mateu.dtos.NotificationDto;
+import io.mateu.dtos.PricingTableDto;
 import io.mateu.dtos.ProgressBarDto;
 import io.mateu.dtos.ProgressStepsDto;
 import io.mateu.dtos.ScoreboardDto;
@@ -88,6 +89,8 @@ import io.mateu.uidl.data.MetricTrend;
 import io.mateu.uidl.data.Notification;
 import io.mateu.uidl.data.Page;
 import io.mateu.uidl.data.Pageable;
+import io.mateu.uidl.data.PricingPlan;
+import io.mateu.uidl.data.PricingTable;
 import io.mateu.uidl.data.ProgressBar;
 import io.mateu.uidl.data.ProgressSteps;
 import io.mateu.uidl.data.Scoreboard;
@@ -429,6 +432,31 @@ class ArchetypesSyncTest {
                           .title("Launch")
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
+                          .build()))
+              .build());
+      content.add(
+          PricingTable.builder()
+              .id("pricing")
+              .plans(
+                  List.of(
+                      PricingPlan.builder()
+                          .id("free")
+                          .name("Free")
+                          .price("0€")
+                          .period("/mo")
+                          .features(List.of("1 project", "Community support"))
+                          .ctaLabel("Start")
+                          .actionId("choosePlan")
+                          .build(),
+                      PricingPlan.builder()
+                          .id("pro")
+                          .name("Pro")
+                          .price("29€")
+                          .period("/mo")
+                          .featured(true)
+                          .features(List.of("Unlimited projects", "Priority support"))
+                          .ctaLabel("Go Pro")
+                          .actionId("choosePlan")
                           .build()))
               .build());
       content.add(
@@ -854,6 +882,22 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void pricingTablePlansSerialize() {
+    var pricing = findFirst(sync("/component-showcase"), PricingTableDto.class);
+    assertThat(pricing).isNotNull();
+    var plans = ((PricingTableDto) pricing.metadata()).plans();
+    assertThat(plans).hasSize(2);
+    assertThat(plans.get(0).name()).isEqualTo("Free");
+    assertThat(plans.get(0).featured()).isFalse();
+    assertThat(plans.get(1).name()).isEqualTo("Pro");
+    assertThat(plans.get(1).featured()).isTrue();
+    assertThat(plans.get(1).price()).isEqualTo("29€");
+    assertThat(plans.get(1).features()).containsExactly("Unlimited projects", "Priority support");
+    assertThat(plans.get(1).ctaLabel()).isEqualTo("Go Pro");
+    assertThat(plans.get(1).actionId()).isEqualTo("choosePlan");
   }
 
   @Test

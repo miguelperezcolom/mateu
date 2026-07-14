@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
+import { CalendarEvent, EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, PricingPlan, Skeleton, Stat, Step, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -392,6 +392,37 @@ export function CalendarRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── PricingTable (mobile: stacked plan cards) ─────────────────────────────────
+export function PricingTableRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const plans = (meta(component)['plans'] as PricingPlan[]) ?? [];
+  return (
+    <View style={styles.pricing}>
+      {plans.map((p, i) => (
+        <View key={p.id ?? i} style={[styles.planCard, p.featured && styles.planCardFeatured]}>
+          {p.featured && <Text style={styles.planBadge}>RECOMMENDED</Text>}
+          <Text style={styles.planName}>{p.name ?? ''}</Text>
+          <Text style={styles.planPrice}>
+            {p.price}
+            {!!p.period && <Text style={styles.planPeriod}> {p.period}</Text>}
+          </Text>
+          {(p.features ?? []).map((f, j) => (
+            <Text key={j} style={styles.planFeature}>✓ {f}</Text>
+          ))}
+          {!!p.ctaLabel && (
+            <TouchableOpacity
+              style={[styles.planCta, p.featured && styles.planCtaFeatured]}
+              onPress={() => p.actionId && void controller.runAction(p.actionId)}
+            >
+              <Text style={[styles.planCtaText, p.featured && styles.planCtaTextFeatured]}>{p.ctaLabel}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -493,4 +524,17 @@ const styles = StyleSheet.create({
   agendaDow: { fontSize: 11, color: '#888', textTransform: 'uppercase' },
   agendaChip: { flex: 1, borderLeftWidth: 3, backgroundColor: '#f4f4f5', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 8, justifyContent: 'center' },
   agendaTitle: { fontWeight: '600', color: '#222' },
+  // PricingTable
+  pricing: { gap: 12 },
+  planCard: { padding: 18, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 14, backgroundColor: '#fff', gap: 6 },
+  planCardFeatured: { borderColor: '#1a73e8', borderWidth: 2 },
+  planBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '700', color: '#fff', backgroundColor: '#1a73e8', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  planName: { fontWeight: '600', color: '#666' },
+  planPrice: { fontSize: 30, fontWeight: '800', color: '#111' },
+  planPeriod: { fontSize: 14, fontWeight: '500', color: '#888' },
+  planFeature: { color: '#333', fontSize: 14 },
+  planCta: { marginTop: 6, borderRadius: 8, paddingVertical: 12, alignItems: 'center', backgroundColor: '#eef0f2' },
+  planCtaFeatured: { backgroundColor: '#1a73e8' },
+  planCtaText: { fontWeight: '600', color: '#222' },
+  planCtaTextFeatured: { color: '#fff' },
 });

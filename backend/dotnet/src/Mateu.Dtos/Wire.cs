@@ -142,6 +142,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(ProgressStepsMetadataDto), "ProgressSteps")]
 [JsonDerivedType(typeof(StatMetadataDto), "Stat")]
 [JsonDerivedType(typeof(CalendarMetadataDto), "Calendar")]
+[JsonDerivedType(typeof(PricingTableMetadataDto), "PricingTable")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -221,6 +222,12 @@ public record CalendarMetadataDto(string? Month, IReadOnlyList<CalendarEventDto>
 
 /// <summary>One calendar event; Date is ISO-8601; ActionId makes the chip clickable.</summary>
 public record CalendarEventDto(string? Id, string? Title, string? Date, string? Color, string? ActionId);
+
+/// <summary>Pricing-table metadata: plan cards.</summary>
+public record PricingTableMetadataDto(IReadOnlyList<PricingPlanDto> Plans) : ComponentMetadataDto;
+
+/// <summary>One pricing plan; Featured marks the recommended one.</summary>
+public record PricingPlanDto(string? Id, string? Name, string? Price, string? Period, bool Featured, IReadOnlyList<string> Features, string? CtaLabel, string? ActionId);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

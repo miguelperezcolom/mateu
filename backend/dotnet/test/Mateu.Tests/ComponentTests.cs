@@ -93,6 +93,16 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Pricing")]
+    public PricingTable Pricing { get; } = new()
+    {
+        Plans =
+        [
+            new PricingPlan { Id = "free", Name = "Free", Price = "0", Period = "/mo", Features = ["1 project"], CtaLabel = "Start", ActionId = "choosePlan" },
+            new PricingPlan { Id = "pro", Name = "Pro", Price = "29", Period = "/mo", Featured = true, Features = ["Unlimited projects", "Priority support"], CtaLabel = "Go Pro", ActionId = "choosePlan" },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -273,6 +283,18 @@ public class ComponentTests
         Assert.Contains("\"title\":\"Kickoff\"", json);
         Assert.Contains("\"date\":\"2026-03-04\"", json);
         Assert.Contains("\"actionId\":\"openEvent\"", json);
+    }
+
+    [Fact]
+    public void Pricing_table_emits_plans_with_featured_flag()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"PricingTable\"", json);
+        Assert.Contains("\"name\":\"Pro\"", json);
+        Assert.Contains("\"featured\":true", json);
+        Assert.Contains("\"price\":\"29\"", json);
+        Assert.Contains("\"ctaLabel\":\"Go Pro\"", json);
     }
 
     [Fact]

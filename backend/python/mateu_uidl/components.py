@@ -344,6 +344,37 @@ class Calendar(Component):
 
 
 @dataclass(frozen=True)
+class PricingPlan:
+    """One plan of a :class:`PricingTable`: name, price + period, features and a CTA. ``featured``
+    marks the recommended plan."""
+
+    id: str | None = None
+    name: str | None = None
+    price: str | None = None
+    period: str | None = None
+    featured: bool = False
+    features: tuple[str, ...] = ()
+    cta_label: str | None = None
+    action_id: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "features", tuple(self.features))
+
+
+@dataclass(frozen=True)
+class PricingTable(Component):
+    """A pricing / plan-comparison table: plan cards side by side, one optionally featured."""
+
+    plans: tuple[PricingPlan, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "plans", tuple(self.plans))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -435,4 +466,6 @@ __all__ = [
     "Stat",
     "CalendarEvent",
     "Calendar",
+    "PricingPlan",
+    "PricingTable",
 ]

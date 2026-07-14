@@ -426,6 +426,26 @@ class CalendarMetadata(Wire):
     events: list[CalendarEventRecord] = Field(default_factory=list)
 
 
+class PricingPlanRecord(Wire):
+    """One pricing plan; ``featured`` marks the recommended one (mirrors ``PricingPlanDto``)."""
+
+    id: str | None = None
+    name: str | None = None
+    price: str | None = None
+    period: str | None = None
+    featured: bool = False
+    features: list[str] = Field(default_factory=list)
+    cta_label: str | None = None
+    action_id: str | None = None
+
+
+class PricingTableMetadata(Wire):
+    """Pricing-table metadata: plan cards (mirrors ``PricingTableDto``)."""
+
+    type: Literal["PricingTable"] = "PricingTable"
+    plans: list[PricingPlanRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -512,6 +532,7 @@ ComponentMetadata = Annotated[
         ProgressStepsMetadata,
         StatMetadata,
         CalendarMetadata,
+        PricingTableMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

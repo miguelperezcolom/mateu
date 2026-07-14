@@ -65,6 +65,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "ProgressSteps" -> renderProgressSteps(metadata)
             "Stat" -> renderStat(this, metadata)
             "Calendar" -> renderCalendar(this, metadata)
+            "PricingTable" -> renderPricingTable(this, metadata)
             "Image" -> renderStandaloneImage(metadata)
             else -> {
                 val t = metadata.text("type")
