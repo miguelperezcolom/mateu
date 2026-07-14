@@ -319,3 +319,183 @@ export interface ComparisonCard {
   delta?: string;
   trend?: string;
 }
+
+// ── Front-office UX components (EntityHeader, Meter, …) ──────────────────────
+
+// Shared chip shape: label + badge-palette color (normal|success|warning|error|contrast).
+export interface Chip {
+  label?: string;
+  color?: string;
+}
+
+export interface Fact {
+  label?: string;
+  value?: string;
+}
+
+export interface EntityHeader {
+  type?: 'EntityHeader';
+  title?: string;
+  badges?: Chip[];
+  subtitle?: string;
+  facts?: Fact[];
+  metricLabel?: string;
+  metricValue?: string;
+  metricCaption?: string;
+}
+
+export interface Meter {
+  type?: 'Meter';
+  label?: string;
+  value?: number;
+  max?: number;
+  unit?: string;
+  caption?: string;
+  warnAt?: number;
+  dangerAt?: number;
+}
+
+export interface TaskProgress {
+  type?: 'TaskProgress';
+  label?: string;
+  total?: number;
+  done?: number;
+  actionLabel?: string;
+  actionId?: string;
+}
+
+export interface StatusItem {
+  id?: string;
+  icon?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  statusColor?: string;
+  actionLabel?: string;
+  actionId?: string;
+}
+
+export interface StatusList {
+  type?: 'StatusList';
+  items?: StatusItem[];
+}
+
+export interface QueueItem {
+  id?: string;
+  title?: string;
+  caption?: string;
+  badges?: Chip[];
+  selected?: boolean;
+}
+
+export interface QueueGroup {
+  label?: string;
+  items?: QueueItem[];
+}
+
+export interface TaskQueue {
+  type?: 'TaskQueue';
+  actionId?: string;
+  groups?: QueueGroup[];
+}
+
+export interface ResourceItem {
+  id?: string;
+  title?: string;
+  subtitle?: string;
+  statusLabel?: string;
+  statusColor?: string;
+  note?: string;
+  noteColor?: string;
+  disabled?: boolean;
+  recommended?: boolean;
+  selected?: boolean;
+}
+
+export interface ResourceGrid {
+  type?: 'ResourceGrid';
+  actionId?: string;
+  columns?: number;
+  recommendedLabel?: string;
+  items?: ResourceItem[];
+}
+
+export interface OfferCard {
+  type?: 'OfferCard';
+  tag?: string;
+  title?: string;
+  subtitle?: string;
+  image?: string;
+  features?: string[];
+  priceLabel?: string;
+  actionLabel?: string;
+  actionId?: string;
+  current?: boolean;
+  currentLabel?: string;
+}
+
+export interface AddOn {
+  id?: string;
+  icon?: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  unit?: string;
+  includedLabel?: string;
+  added?: boolean;
+}
+
+export interface AddOnPicker {
+  type?: 'AddOnPicker';
+  totalLabel?: string;
+  currency?: string;
+  actionId?: string;
+  items?: AddOn[];
+}
+
+export interface LedgerLine {
+  concept?: string;
+  amount?: number;
+  included?: boolean;
+  includedLabel?: string;
+}
+
+export interface Ledger {
+  type?: 'Ledger';
+  currency?: string;
+  totalLabel?: string;
+  lines?: LedgerLine[];
+  total?: number;
+}
+
+export interface PaymentMethod {
+  id?: string;
+  label?: string;
+}
+
+export interface PaymentPicker {
+  type?: 'PaymentPicker';
+  actionId?: string;
+  methods?: PaymentMethod[];
+  selected?: string;
+  contextLabel?: string;
+  contextValue?: string;
+  confirmLabel?: string;
+}
+
+export interface ProcessItem {
+  id?: string;
+  name?: string;
+  systems?: string[];
+  ok?: number;
+  warnings?: number;
+  errors?: number;
+  status?: string; // ok | warning | error
+  actionLabel?: string;
+  actionId?: string;
+}
+
+export interface ProcessMonitor {
+  type?: 'ProcessMonitor';
+  items?: ProcessItem[];
+}

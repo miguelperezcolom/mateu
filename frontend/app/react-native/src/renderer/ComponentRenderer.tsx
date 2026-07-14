@@ -23,6 +23,9 @@ import {
   TestimonialsRenderer, FaqRenderer, CalloutCardRenderer, CommentThreadRenderer, FileListRenderer,
   ChecklistRenderer,
   ComparisonCardRenderer,
+  EntityHeaderRenderer, MeterRenderer, TaskProgressRenderer, StatusListRenderer, TaskQueueRenderer,
+  ResourceGridRenderer, OfferCardRenderer, AddOnPickerRenderer, LedgerRenderer, PaymentPickerRenderer,
+  ProcessMonitorRenderer,
 } from './DisplayRenderer';
 import { EmptyState, MetricCard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
@@ -236,6 +239,28 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <ChecklistRenderer component={component} />;
     case 'ComparisonCard':
       return <ComparisonCardRenderer component={component} />;
+    case 'EntityHeader':
+      return <EntityHeaderRenderer component={component} />;
+    case 'Meter':
+      return <MeterRenderer component={component} />;
+    case 'TaskProgress':
+      return <TaskProgressRenderer component={component} />;
+    case 'StatusList':
+      return <StatusListRenderer component={component} />;
+    case 'TaskQueue':
+      return <TaskQueueRenderer component={component} />;
+    case 'ResourceGrid':
+      return <ResourceGridRenderer component={component} />;
+    case 'OfferCard':
+      return <OfferCardRenderer component={component} />;
+    case 'AddOnPicker':
+      return <AddOnPickerRenderer component={component} />;
+    case 'Ledger':
+      return <LedgerRenderer component={component} />;
+    case 'PaymentPicker':
+      return <PaymentPickerRenderer component={component} />;
+    case 'ProcessMonitor':
+      return <ProcessMonitorRenderer component={component} />;
 
     case 'Markdown':
       return <RichText value={(metadata['markdown'] as string) ?? ''} kind="markdown" />;

@@ -1,9 +1,13 @@
 package io.mateu.ijp.ui
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import io.mateu.ijp.api.arr
+import io.mateu.ijp.api.bool
+import io.mateu.ijp.api.dbl
+import io.mateu.ijp.api.int
 import io.mateu.ijp.api.text
 import java.awt.BorderLayout
 import java.awt.Color
@@ -76,13 +80,13 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
         col.background = Color(0xF4, 0xF4, 0xF5)
         col.isOpaque = true
         col.preferredSize = Dimension(220, col.preferredSize.height)
-        val head = JBLabel("${column.text("title")}  (${column.arr("cards").size()})")
+        val head = JBLabel("${column.text("title")}  (${column.arr("cards").size})")
         head.font = head.font.deriveFont(Font.BOLD)
         col.addStacked(head, 6)
         for (card in column.arr("cards")) {
             val cardPanel = verticalPanel(3)
             cardPanel.border = JBUI.Borders.empty(8)
-            cardPanel.background = JBUI.CurrentTheme.Label.background()
+            cardPanel.background = JBColor.background()
             cardPanel.isOpaque = true
             cardPanel.addStacked(JBLabel(card.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 2)
             val desc = card.text("description")
@@ -634,6 +638,196 @@ fun renderChecklist(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
+// ── Front-office UX components (EntityHeader, Meter, …) ───────────────────────
+
+/** de-DE style money formatting: 1234.5 → "1.234,50" (fixed 2 decimals, thousands dots). */
+internal fun uxFormatAmount(value: Double): String =
+    java.text.DecimalFormat("#,##0.00", java.text.DecimalFormatSymbols(java.util.Locale.GERMANY)).format(value)
+
+/** Badge palette (normal | success | warning | error | contrast) as theme-aware foregrounds. */
+internal fun uxPaletteColor(color: String): Color = when (color.lowercase()) {
+    "success", "ok" -> JBColor(0x3E8635, 0x4CAF50)
+    "error", "danger" -> JBColor(0xC9190B, 0xE57373)
+    "warning" -> JBColor(0xF0AB00, 0xFFB74D)
+    "contrast" -> JBColor(0x1F2937, 0xCBD5E1)
+    else -> JBColor(0x6A6E73, 0x9AA0A6)
+}
+
+/** Badge palette as solid chip backgrounds (white text stays readable in both themes). */
+private fun uxChipBg(color: String): Color = when (color.lowercase()) {
+    "success", "ok" -> Color(0x3E, 0x86, 0x35)
+    "error", "danger" -> Color(0xC9, 0x19, 0x0B)
+    "warning" -> Color(0xF0, 0xAB, 0x00)
+    "contrast" -> Color(0x1F, 0x29, 0x37)
+    else -> Color(0x6A, 0x6E, 0x73)
+}
+
+private fun uxChip(text: String, color: String): JBLabel = JBLabel(text).apply {
+    foreground = Color.WHITE
+    isOpaque = true
+    background = uxChipBg(color)
+    border = JBUI.Borders.empty(1, 6)
+    font = font.deriveFont(Font.BOLD, 10f)
+}
+
+private fun uxMuted(): Color = JBUI.CurrentTheme.Label.disabledForeground()
+
+private fun uxAccent(): Color = JBColor(0x1A73E8, 0x548AF7)
+
+private fun uxTint(base: Color): Color = Color(base.red, base.green, base.blue, 24)
+
+private fun uxMono(base: Font, style: Int = Font.BOLD, size: Int = 0): Font =
+    Font(Font.MONOSPACED, style, if (size > 0) size else base.size)
+
+/** EntityHeader: title + badges + subtitle + facts on the left, highlighted metric on the right. */
+fun renderEntityHeader(metadata: JsonNode): JComponent {
+    val panel = JPanel(BorderLayout(16, 0))
+    panel.isOpaque = false
+    panel.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(12))
+    val left = verticalPanel(2)
+    val titleRow = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0)).apply { isOpaque = false }
+    titleRow.add(JBLabel(metadata.text("title")).apply { font = font.deriveFont(Font.BOLD, 16f) })
+    for (badge in metadata.arr("badges")) titleRow.add(uxChip(badge.text("label"), badge.text("color")))
+    left.addStacked(titleRow, 2)
+    val subtitle = metadata.text("subtitle")
+    if (subtitle.isNotBlank()) left.addStacked(JBLabel(subtitle).apply { foreground = uxMuted() }, 6)
+    val facts = metadata.arr("facts")
+    if (facts.isNotEmpty()) {
+        val factsRow = JPanel(FlowLayout(FlowLayout.LEFT, 18, 0)).apply { isOpaque = false }
+        for (fact in facts) {
+            val cell = verticalPanel(1)
+            cell.addStacked(JBLabel(fact.text("label")).apply {
+                font = font.deriveFont(Font.BOLD, 9f)
+                foreground = uxMuted()
+            }, 1)
+            cell.addStacked(JBLabel(fact.text("value")), 0)
+            factsRow.add(cell)
+        }
+        left.addStacked(factsRow, 0)
+    }
+    panel.add(left, BorderLayout.CENTER)
+    val metricValue = metadata.text("metricValue")
+    if (metricValue.isNotBlank()) {
+        val metric = verticalPanel(1)
+        val metricLabel = metadata.text("metricLabel")
+        if (metricLabel.isNotBlank()) metric.addStacked(JBLabel(metricLabel).apply {
+            font = font.deriveFont(Font.BOLD, 9f)
+            foreground = uxMuted()
+        }, 1)
+        metric.addStacked(JBLabel(metricValue).apply {
+            font = font.deriveFont(Font.BOLD, 22f)
+            foreground = uxAccent()
+        }, 1)
+        val caption = metadata.text("metricCaption")
+        if (caption.isNotBlank()) metric.addStacked(JBLabel(caption).apply { foreground = uxMuted() }, 0)
+        panel.add(metric, BorderLayout.EAST)
+    }
+    return panel
+}
+
+/** Meter: label + big formatted value + painted progress track colored by thresholds + caption. */
+fun renderMeter(metadata: JsonNode): JComponent {
+    val value = metadata.dbl("value")
+    val max = metadata.dbl("max")
+    val ratio = if (max > 0) (value / max).coerceIn(0.0, 1.0) else 0.0
+    val warnAt = metadata.path("warnAt")
+    val dangerAt = metadata.path("dangerAt")
+    val fill = when {
+        dangerAt.isNumber && value >= dangerAt.asDouble() -> uxPaletteColor("error")
+        warnAt.isNumber && value >= warnAt.asDouble() -> uxPaletteColor("warning")
+        warnAt.isNumber || dangerAt.isNumber -> uxPaletteColor("success")
+        else -> uxAccent()
+    }
+    val panel = verticalPanel(3)
+    val label = metadata.text("label")
+    if (label.isNotBlank()) panel.addStacked(JBLabel(label).apply {
+        font = font.deriveFont(Font.BOLD, 10f)
+        foreground = uxMuted()
+    }, 2)
+    val unit = metadata.text("unit")
+    panel.addStacked(JBLabel(uxFormatAmount(value) + (if (unit.isNotBlank()) " $unit" else "")).apply {
+        font = font.deriveFont(Font.BOLD, 22f)
+    }, 4)
+    val track = object : JPanel() {
+        override fun paintComponent(g: Graphics) {
+            super.paintComponent(g)
+            val g2 = g as Graphics2D
+            g2.color = JBColor.border()
+            g2.fillRoundRect(0, 0, width, height, height, height)
+            g2.color = fill
+            g2.fillRoundRect(0, 0, (width * ratio).toInt(), height, height, height)
+        }
+    }
+    track.isOpaque = false
+    track.preferredSize = Dimension(280, 8)
+    panel.addStacked(track, 4)
+    val caption = metadata.text("caption").ifBlank { "${Math.round(ratio * 100)}%" }
+    panel.addStacked(JBLabel(caption).apply { foreground = uxMuted() }, 0)
+    return panel
+}
+
+/** TaskProgress: tinted banner with icon + label + i/total pills + CTA (hidden when complete). */
+fun renderTaskProgress(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val total = metadata.int("total")
+    val done = metadata.int("done")
+    val complete = total > 0 && done >= total
+    val panel = JPanel(BorderLayout(10, 0))
+    panel.isOpaque = true
+    panel.background = uxTint(uxChipBg(if (complete) "success" else "warning"))
+    panel.border = JBUI.Borders.empty(10, 12)
+    panel.add(JBLabel("👥  " + metadata.text("label")), BorderLayout.WEST)
+    val pills = JPanel(FlowLayout(FlowLayout.LEFT, 4, 0)).apply { isOpaque = false }
+    for (i in 1..total) {
+        if (i <= done) pills.add(uxChip("$i/$total", "success"))
+        else pills.add(JBLabel("$i/$total").apply {
+            foreground = uxMuted()
+            font = font.deriveFont(Font.BOLD, 10f)
+            border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(0, 5))
+        })
+    }
+    panel.add(pills, BorderLayout.CENTER)
+    val actionId = metadata.text("actionId")
+    val actionLabel = metadata.text("actionLabel")
+    if (!complete && actionId.isNotBlank() && actionLabel.isNotBlank()) {
+        panel.add(JButton("$actionLabel →").apply {
+            addActionListener { r.ctx.runAction(actionId, null) }
+        }, BorderLayout.EAST)
+    }
+    return panel
+}
+
+/** StatusList: bordered rows of icon + title/description with a status chip and/or action button. */
+fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val panel = verticalPanel(0)
+    panel.border = JBUI.Borders.customLine(JBColor.border(), 1)
+    for (item in metadata.arr("items")) {
+        val row = JPanel(BorderLayout(8, 0))
+        row.isOpaque = false
+        row.border = JBUI.Borders.empty(8, 10)
+        val icon = item.text("icon")
+        if (icon.isNotBlank()) row.add(JBLabel(icon).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+        val body = verticalPanel(1)
+        body.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 1)
+        val desc = item.text("description")
+        if (desc.isNotBlank()) body.addStacked(JBLabel(desc).apply { foreground = uxMuted() }, 0)
+        row.add(body, BorderLayout.CENTER)
+        val right = JPanel(FlowLayout(FlowLayout.RIGHT, 6, 0)).apply { isOpaque = false }
+        val status = item.text("status")
+        if (status.isNotBlank()) right.add(uxChip(status, item.text("statusColor")))
+        val actionId = item.text("actionId")
+        val actionLabel = item.text("actionLabel")
+        if (actionId.isNotBlank() && actionLabel.isNotBlank()) {
+            val id = item.text("id")
+            right.add(JButton(actionLabel).apply {
+                addActionListener { r.ctx.runAction(actionId, mapOf("_item" to id)) }
+            })
+        }
+        if (right.componentCount > 0) row.add(right, BorderLayout.EAST)
+        panel.addStacked(row, 0)
+    }
+    return panel
+}
+
 /** ComparisonCard: two labelled values side by side with a delta chip between them. */
 fun renderComparisonCard(metadata: JsonNode): JComponent {
     val title = metadata.text("title")
@@ -669,6 +863,349 @@ fun renderComparisonCard(metadata: JsonNode): JComponent {
         row.add(JBLabel("$mark $delta").apply { foreground = color; horizontalAlignment = javax.swing.SwingConstants.CENTER }, BorderLayout.CENTER)
     }
     panel.addStacked(row, 3)
+    return panel
+}
+
+/** TaskQueue: grouped rail of clickable cards; clicking selects locally + fires the actionId. */
+fun renderTaskQueue(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val actionId = metadata.text("actionId")
+    val panel = verticalPanel(4)
+    val cards = mutableListOf<Pair<String, JPanel>>()
+    var selectedId = metadata.arr("groups").flatMap { it.arr("items") }
+        .firstOrNull { it.bool("selected") }?.text("id") ?: ""
+    fun restyle() {
+        for ((id, card) in cards) {
+            val sel = id.isNotBlank() && id == selectedId
+            card.border =
+                if (sel) JBUI.Borders.compound(JBUI.Borders.customLine(uxAccent(), 2), JBUI.Borders.empty(7))
+                else JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(8))
+            card.isOpaque = sel
+            card.background = uxTint(uxAccent())
+            card.repaint()
+        }
+    }
+    for (group in metadata.arr("groups")) {
+        val label = group.text("label")
+        if (label.isNotBlank()) panel.addStacked(JBLabel(label.uppercase()).apply {
+            font = font.deriveFont(Font.BOLD, 10f)
+            foreground = uxMuted()
+        }, 4)
+        for (item in group.arr("items")) {
+            val id = item.text("id")
+            val card = verticalPanel(2)
+            card.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 2)
+            val foot = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0)).apply { isOpaque = false }
+            val caption = item.text("caption")
+            if (caption.isNotBlank()) foot.add(JBLabel(caption).apply { foreground = uxMuted() })
+            for (badge in item.arr("badges")) foot.add(uxChip(badge.text("label"), badge.text("color")))
+            if (foot.componentCount > 0) card.addStacked(foot, 0)
+            card.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+            card.addMouseListener(object : java.awt.event.MouseAdapter() {
+                override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                    selectedId = id
+                    restyle()
+                    if (actionId.isNotBlank()) r.ctx.runAction(actionId, mapOf("_item" to id))
+                }
+            })
+            cards += id to card
+            panel.addStacked(card, 6)
+        }
+    }
+    restyle()
+    return panel
+}
+
+/** ResourceGrid: a fixed-column grid of selectable resource cards (room picker). */
+fun renderResourceGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val actionId = metadata.text("actionId")
+    val columns = metadata.int("columns").let { if (it > 0) it else 3 }
+    val recommendedLabel = metadata.text("recommendedLabel", "Recommended")
+    val grid = JPanel(java.awt.GridLayout(0, columns, 8, 8)).apply { isOpaque = false }
+    val items = metadata.arr("items")
+    val cards = mutableListOf<Triple<String, JPanel, Boolean>>() // id, card, recommended
+    var selectedId = items.firstOrNull { it.bool("selected") }?.text("id") ?: ""
+    fun restyle() {
+        for ((id, card, recommended) in cards) {
+            val sel = id.isNotBlank() && id == selectedId
+            card.border =
+                if (sel || recommended) JBUI.Borders.compound(JBUI.Borders.customLine(uxAccent(), 2), JBUI.Borders.empty(7))
+                else JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(8))
+            card.isOpaque = sel
+            card.background = uxTint(uxAccent())
+            card.repaint()
+        }
+    }
+    for (item in items) {
+        val id = item.text("id")
+        val disabled = item.bool("disabled")
+        val recommended = item.bool("recommended")
+        val card = verticalPanel(2)
+        if (recommended) card.addStacked(JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
+            isOpaque = false
+            add(JBLabel(recommendedLabel).apply {
+                foreground = Color.WHITE
+                isOpaque = true
+                background = uxAccent()
+                border = JBUI.Borders.empty(0, 4)
+                font = font.deriveFont(Font.BOLD, 8f)
+            })
+        }, 2)
+        card.addStacked(JBLabel(item.text("title")).apply {
+            font = font.deriveFont(Font.BOLD, 16f)
+            if (disabled) foreground = uxMuted()
+        }, 1)
+        val subtitle = item.text("subtitle")
+        if (subtitle.isNotBlank()) card.addStacked(JBLabel(subtitle).apply { foreground = uxMuted() }, 2)
+        val statusLabel = item.text("statusLabel")
+        if (statusLabel.isNotBlank()) card.addStacked(JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
+            isOpaque = false
+            add(uxChip(statusLabel, item.text("statusColor")))
+        }, 2)
+        val note = item.text("note")
+        if (note.isNotBlank()) card.addStacked(JBLabel("● $note").apply {
+            foreground = uxPaletteColor(item.text("noteColor"))
+            font = font.deriveFont(10f)
+        }, 0)
+        if (!disabled) {
+            card.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+            card.addMouseListener(object : java.awt.event.MouseAdapter() {
+                override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                    selectedId = id
+                    restyle()
+                    if (actionId.isNotBlank()) r.ctx.runAction(actionId, mapOf("_item" to id))
+                }
+            })
+        }
+        cards += Triple(id, card, recommended)
+        grid.add(card)
+    }
+    restyle()
+    return grid
+}
+
+/** OfferCard: optional image + tag chip + title/subtitle + feature chips + footer CTA/current label. */
+fun renderOfferCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val current = metadata.bool("current")
+    val panel = verticalPanel(4)
+    panel.border =
+        if (current) JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(12))
+        else JBUI.Borders.compound(JBUI.Borders.customLine(uxAccent(), 2), JBUI.Borders.empty(11))
+    val image = metadata.text("image")
+    if (image.isNotBlank()) {
+        val img = runCatching { javax.imageio.ImageIO.read(java.net.URI.create(image).toURL()) }.getOrNull()
+        if (img != null) {
+            val scale = minOf(1.0, 320.0 / img.width)
+            panel.addStacked(JBLabel(javax.swing.ImageIcon(
+                img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH))), 6)
+        }
+    }
+    val tag = metadata.text("tag")
+    if (tag.isNotBlank()) panel.addStacked(JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
+        isOpaque = false
+        add(uxChip(tag, "contrast"))
+    }, 4)
+    panel.addStacked(JBLabel(metadata.text("title")).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)
+    val subtitle = metadata.text("subtitle")
+    if (subtitle.isNotBlank()) panel.addStacked(JBLabel(subtitle).apply { foreground = uxMuted() }, 4)
+    val features = metadata.arr("features")
+    if (features.isNotEmpty()) {
+        val row = JPanel(FlowLayout(FlowLayout.LEFT, 6, 2)).apply { isOpaque = false }
+        for (feature in features) row.add(JBLabel(feature.asText()).apply {
+            border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(1, 6))
+        })
+        panel.addStacked(row, 6)
+    }
+    if (current) {
+        val currentLabel = metadata.text("currentLabel")
+        if (currentLabel.isNotBlank()) panel.addStacked(JBLabel(currentLabel).apply { foreground = uxMuted() }, 0)
+    } else {
+        val actionLabel = metadata.text("actionLabel")
+        val actionId = metadata.text("actionId")
+        if (actionLabel.isNotBlank()) {
+            val priceLabel = metadata.text("priceLabel")
+            val text = actionLabel + (if (priceLabel.isNotBlank()) "   $priceLabel" else "")
+            panel.addStacked(JButton(text).apply {
+                if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, null) }
+            }, 0)
+        }
+    }
+    return panel
+}
+
+/** AddOnPicker: priced extras cards with a +/✓ toggle and a live running total. */
+fun renderAddOnPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val actionId = metadata.text("actionId")
+    val currency = metadata.text("currency")
+    val totalLabelText = metadata.text("totalLabel")
+    val items = metadata.arr("items")
+    val added = items.filter { it.bool("added") }.map { it.text("id") }.toMutableSet()
+    fun total() = items.filter { added.contains(it.text("id")) }.sumOf { it.dbl("price") }
+    val totalLabel = JBLabel().apply {
+        font = font.deriveFont(Font.BOLD)
+        foreground = uxAccent()
+    }
+    fun updateTotal() {
+        totalLabel.text = (if (totalLabelText.isNotBlank()) "$totalLabelText: " else "") +
+            (if (currency.isNotBlank()) "$currency " else "") + uxFormatAmount(total())
+    }
+    updateTotal()
+    val panel = verticalPanel(6)
+    panel.addStacked(JPanel(BorderLayout()).apply {
+        isOpaque = false
+        add(totalLabel, BorderLayout.EAST)
+    }, 6)
+    for (item in items) {
+        val id = item.text("id")
+        val includedLabel = item.text("includedLabel")
+        val card = JPanel(BorderLayout(10, 0))
+        card.isOpaque = false
+        card.border = JBUI.Borders.compound(JBUI.Borders.customLine(JBColor.border(), 1), JBUI.Borders.empty(10))
+        val icon = item.text("icon")
+        if (icon.isNotBlank()) card.add(JBLabel(icon).apply { font = font.deriveFont(16f) }, BorderLayout.WEST)
+        val body = verticalPanel(1)
+        body.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 1)
+        val desc = item.text("description")
+        if (desc.isNotBlank()) body.addStacked(JBLabel(desc).apply { foreground = uxMuted() }, 1)
+        if (includedLabel.isNotBlank()) {
+            body.addStacked(JBLabel(includedLabel).apply { foreground = uxMuted() }, 0)
+        } else {
+            val unit = item.text("unit")
+            body.addStacked(JBLabel((if (currency.isNotBlank()) "$currency " else "") +
+                uxFormatAmount(item.dbl("price")) + (if (unit.isNotBlank()) " / $unit" else "")).apply {
+                font = uxMono(font)
+                foreground = uxAccent()
+            }, 0)
+        }
+        card.add(body, BorderLayout.CENTER)
+        if (includedLabel.isBlank()) {
+            val toggle = JButton(if (added.contains(id)) "✓" else "+")
+            toggle.addActionListener {
+                val nowAdded = !added.contains(id)
+                if (nowAdded) added.add(id) else added.remove(id)
+                toggle.text = if (nowAdded) "✓" else "+"
+                updateTotal()
+                if (actionId.isNotBlank()) {
+                    r.ctx.runAction(actionId, mapOf("_item" to id, "_added" to nowAdded, "_total" to total()))
+                }
+            }
+            card.add(toggle, BorderLayout.EAST)
+        }
+        panel.addStacked(card, 6)
+    }
+    return panel
+}
+
+private fun uxLedgerAmount(amount: Double, currency: String): String =
+    (if (amount < 0) "-" else "") + (if (currency.isNotBlank()) "$currency " else "") +
+        uxFormatAmount(kotlin.math.abs(amount))
+
+/** Ledger: concept/amount rows (included lines show a label), a divider and the big total. */
+fun renderLedger(metadata: JsonNode): JComponent {
+    val currency = metadata.text("currency")
+    val lines = metadata.arr("lines")
+    val panel = verticalPanel(4)
+    for (line in lines) {
+        val row = JPanel(BorderLayout(12, 0)).apply { isOpaque = false }
+        row.add(JBLabel("● " + line.text("concept")), BorderLayout.CENTER)
+        if (line.bool("included")) {
+            row.add(JBLabel(line.text("includedLabel", "Included")).apply { foreground = uxMuted() }, BorderLayout.EAST)
+        } else {
+            val amount = line.dbl("amount")
+            row.add(JBLabel(uxLedgerAmount(amount, currency)).apply {
+                font = uxMono(font)
+                if (amount < 0) foreground = uxPaletteColor("error")
+            }, BorderLayout.EAST)
+        }
+        panel.addStacked(row, 4)
+    }
+    panel.addStacked(javax.swing.JSeparator(), 4)
+    val totalNode = metadata.path("total")
+    val total =
+        if (totalNode.isNumber) totalNode.asDouble()
+        else lines.filter { !it.bool("included") }.sumOf { it.dbl("amount") }
+    val totalRow = JPanel(BorderLayout(12, 0)).apply { isOpaque = false }
+    totalRow.add(JBLabel(metadata.text("totalLabel", "Total")).apply { font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
+    totalRow.add(JBLabel(uxLedgerAmount(total, currency)).apply { font = uxMono(font, Font.BOLD, font.size + 3) }, BorderLayout.EAST)
+    panel.addStacked(totalRow, 0)
+    return panel
+}
+
+/** PaymentPicker: segmented method toggles + optional context chip + confirm button. */
+fun renderPaymentPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val actionId = metadata.text("actionId")
+    var selected = metadata.text("selected")
+    val row = JPanel(FlowLayout(FlowLayout.LEFT, 8, 0)).apply { isOpaque = false }
+    val group = javax.swing.ButtonGroup()
+    for (method in metadata.arr("methods")) {
+        val id = method.text("id")
+        if (selected.isBlank()) selected = id
+        val btn = javax.swing.JToggleButton(method.text("label", id))
+        btn.isSelected = id == selected
+        btn.addActionListener { selected = id }
+        group.add(btn)
+        row.add(btn)
+    }
+    val contextValue = metadata.text("contextValue")
+    if (contextValue.isNotBlank()) {
+        val ctxBox = verticalPanel(1)
+        ctxBox.isOpaque = true
+        ctxBox.background = uxTint(uxChipBg("success"))
+        ctxBox.border = JBUI.Borders.empty(4, 8)
+        val contextLabel = metadata.text("contextLabel")
+        if (contextLabel.isNotBlank()) ctxBox.addStacked(JBLabel(contextLabel).apply {
+            font = font.deriveFont(Font.BOLD, 9f)
+            foreground = uxPaletteColor("success")
+        }, 1)
+        ctxBox.addStacked(JBLabel(contextValue).apply { font = uxMono(font) }, 0)
+        row.add(ctxBox)
+    }
+    val panel = JPanel(BorderLayout(8, 0)).apply { isOpaque = false }
+    panel.add(row, BorderLayout.WEST)
+    val confirmLabel = metadata.text("confirmLabel")
+    if (confirmLabel.isNotBlank()) {
+        panel.add(JButton(confirmLabel).apply {
+            if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, mapOf("_method" to selected)) }
+        }, BorderLayout.EAST)
+    }
+    return panel
+}
+
+/** ProcessMonitor: bordered rows of status dot + name/systems + OK/warning/error counters + fix. */
+fun renderProcessMonitor(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val panel = verticalPanel(0)
+    panel.border = JBUI.Borders.customLine(JBColor.border(), 1)
+    for (item in metadata.arr("items")) {
+        val row = JPanel(BorderLayout(10, 0))
+        row.isOpaque = false
+        row.border = JBUI.Borders.empty(8, 10)
+        row.add(JBLabel("●").apply { foreground = uxPaletteColor(item.text("status", "ok")) }, BorderLayout.WEST)
+        val body = verticalPanel(1)
+        body.addStacked(JBLabel(item.text("name")).apply { font = font.deriveFont(Font.BOLD) }, 1)
+        val systems = item.arr("systems").joinToString(" · ") { it.asText() }
+        if (systems.isNotBlank()) body.addStacked(JBLabel(systems).apply {
+            foreground = uxMuted()
+            font = font.deriveFont(11f)
+        }, 0)
+        row.add(body, BorderLayout.CENTER)
+        val right = JPanel(FlowLayout(FlowLayout.RIGHT, 8, 0)).apply { isOpaque = false }
+        right.add(JBLabel("✓ ${item.int("ok")} OK").apply { foreground = uxPaletteColor("success") })
+        if (item.int("warnings") > 0) right.add(JBLabel("⚠ ${item.int("warnings")} warnings").apply {
+            foreground = uxPaletteColor("warning")
+        })
+        if (item.int("errors") > 0) right.add(JBLabel("⛔ ${item.int("errors")} errors").apply {
+            foreground = uxPaletteColor("error")
+        })
+        val actionId = item.text("actionId")
+        val actionLabel = item.text("actionLabel")
+        if (actionId.isNotBlank() && actionLabel.isNotBlank()) {
+            right.add(JButton(actionLabel).apply {
+                foreground = uxPaletteColor("warning")
+                addActionListener { r.ctx.runAction(actionId, null) }
+            })
+        }
+        row.add(right, BorderLayout.EAST)
+        panel.addStacked(row, 0)
+    }
     return panel
 }
 

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, ChecklistItem, Comment, EmptyState, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
+import { AddOn, CalendarEvent, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -717,6 +717,135 @@ export function ChecklistRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Front-office UX components ────────────────────────────────────────────────
+
+// Fixed 2-decimals + thousands-dot (de-DE style) amount formatter: 1234.5 → "1.234,50".
+const fmtAmount = (n: number): string => {
+  const sign = n < 0 ? '-' : '';
+  const [int, dec] = Math.abs(n).toFixed(2).split('.');
+  return `${sign}${int.replace(/\B(?=(\d{3})+(?!\d))/g, '.')},${dec}`;
+};
+
+// Badge palette (normal | success | warning | error | contrast), mirroring BadgeRenderer.
+const PALETTE: Record<string, string> = {
+  success: '#3e8635', warning: '#f0ab00', error: '#c9190b', danger: '#c9190b', contrast: '#1f2937', normal: '#6a6e73',
+};
+const paletteColor = (c?: string): string => PALETTE[c ?? 'normal'] ?? '#6a6e73';
+
+function ChipView({ chip }: { chip: Chip }) {
+  return <Text style={[styles.uxChip, { backgroundColor: paletteColor(chip.color) }]}>{chip.label ?? ''}</Text>;
+}
+
+// ── EntityHeader (persistent context banner: identity + facts + metric) ───────
+export function EntityHeaderRenderer({ component }: { component: unknown }) {
+  const m = meta(component) as unknown as EntityHeader;
+  const facts = m.facts ?? [];
+  return (
+    <View style={styles.entityHeader}>
+      <View style={styles.entityLeft}>
+        <View style={styles.entityTitleRow}>
+          <Text style={styles.entityTitle}>{m.title ?? ''}</Text>
+          {(m.badges ?? []).map((b, i) => <ChipView key={i} chip={b} />)}
+        </View>
+        {!!m.subtitle && <Text style={styles.entitySubtitle}>{m.subtitle}</Text>}
+        {facts.length > 0 && (
+          <View style={styles.entityFacts}>
+            {facts.map((f: Fact, i) => (
+              <View key={i} style={styles.entityFact}>
+                <Text style={styles.entityFactLabel}>{f.label ?? ''}</Text>
+                <Text style={styles.entityFactValue}>{f.value ?? ''}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+      {!!m.metricValue && (
+        <View style={styles.entityMetric}>
+          {!!m.metricLabel && <Text style={styles.entityFactLabel}>{m.metricLabel}</Text>}
+          <Text style={styles.entityMetricValue}>{m.metricValue}</Text>
+          {!!m.metricCaption && <Text style={styles.entityMetricCaption}>{m.metricCaption}</Text>}
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ── Meter (consumption vs limit with warn/danger thresholds) ──────────────────
+export function MeterRenderer({ component }: { component: unknown }) {
+  const m = meta(component) as unknown as Meter;
+  const value = m.value ?? 0;
+  const max = m.max ?? 0;
+  const ratio = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
+  const fill = m.dangerAt != null && value >= m.dangerAt ? PALETTE.error
+    : m.warnAt != null && value >= m.warnAt ? PALETTE.warning
+    : m.warnAt != null || m.dangerAt != null ? PALETTE.success : '#1a73e8';
+  const caption = m.caption || `${Math.round(ratio * 100)}%`;
+  return (
+    <View style={styles.meter}>
+      {!!m.label && <Text style={styles.meterLabel}>{m.label}</Text>}
+      <Text style={styles.meterValue}>{fmtAmount(value)}{m.unit ? ` ${m.unit}` : ''}</Text>
+      <View style={styles.meterTrack}>
+        <View style={[styles.meterFill, { width: `${ratio * 100}%`, backgroundColor: fill }]} />
+      </View>
+      <Text style={styles.meterCaption}>{caption}</Text>
+    </View>
+  );
+}
+
+// ── TaskProgress (subtask completion banner with pills + CTA) ─────────────────
+export function TaskProgressRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component);
+  const total = (m['total'] as number) ?? 0;
+  const done = (m['done'] as number) ?? 0;
+  const complete = total > 0 && done >= total;
+  const actionId = m['actionId'] as string | undefined;
+  const actionLabel = m['actionLabel'] as string | undefined;
+  return (
+    <View style={[styles.taskProgress, { backgroundColor: complete ? 'rgba(18,183,106,0.1)' : 'rgba(245,158,11,0.12)' }]}>
+      <Text style={styles.taskProgressIcon}>👥</Text>
+      <Text style={styles.taskProgressLabel}>{(m['label'] as string) ?? ''}</Text>
+      <View style={styles.taskProgressPills}>
+        {Array.from({ length: total }, (_, i) => i + 1).map((i) => (
+          <Text key={i} style={[styles.taskProgressPill, i <= done ? styles.taskProgressPillDone : styles.taskProgressPillTodo]}>
+            {i}/{total}
+          </Text>
+        ))}
+      </View>
+      {!complete && !!actionId && !!actionLabel && (
+        <TouchableOpacity style={styles.taskProgressBtn} onPress={() => void controller.runAction(actionId)}>
+          <Text style={styles.taskProgressBtnText}>{actionLabel} →</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+// ── StatusList (icon + title/description rows with status chip and/or action) ─
+export function StatusListRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const items = (meta(component)['items'] as StatusItem[]) ?? [];
+  return (
+    <View style={styles.statusList}>
+      {items.map((it, i) => (
+        <View key={it.id ?? i} style={styles.statusRow}>
+          {!!it.icon && <Text style={styles.statusIcon}>{displayIcon(it.icon)}</Text>}
+          <View style={styles.statusBody}>
+            <Text style={styles.statusTitle}>{it.title ?? ''}</Text>
+            {!!it.description && <Text style={styles.statusDesc}>{it.description}</Text>}
+          </View>
+          {!!it.status && <ChipView chip={{ label: it.status, color: it.statusColor }} />}
+          {!!it.actionLabel && !!it.actionId && (
+            <TouchableOpacity style={styles.statusBtn} onPress={() => void controller.runAction(it.actionId!, { _item: it.id })}>
+              <Text style={styles.statusBtnText}>{it.actionLabel}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
+
 // ── ComparisonCard (two values + delta chip) ──────────────────────────────────
 export function ComparisonCardRenderer({ component }: { component: unknown }) {
   const m = meta(component);
@@ -745,6 +874,301 @@ export function ComparisonCardRenderer({ component }: { component: unknown }) {
           <Text style={styles.cmpValue}>{(m['rightValue'] as string) ?? ''}</Text>
         </View>
       </View>
+    </View>
+  );
+}
+
+// ── TaskQueue (grouped work-queue rail of selectable cards) ───────────────────
+export function TaskQueueRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component);
+  const actionId = m['actionId'] as string | undefined;
+  const groups = (m['groups'] as QueueGroup[]) ?? [];
+  const [selected, setSelected] = useState<string | undefined>(
+    () => groups.flatMap((g) => g.items ?? []).find((it) => it.selected)?.id,
+  );
+  return (
+    <View style={styles.taskQueue}>
+      {groups.map((g, gi) => (
+        <View key={gi} style={styles.taskQueueGroup}>
+          {!!g.label && <Text style={styles.taskQueueGroupLabel}>{g.label.toUpperCase()}</Text>}
+          {(g.items ?? []).map((it, i) => {
+            const sel = it.id === selected;
+            return (
+              <TouchableOpacity
+                key={it.id ?? i}
+                style={[styles.queueCard, sel && styles.queueCardSelected]}
+                onPress={() => {
+                  setSelected(it.id);
+                  if (actionId) void controller.runAction(actionId, { _item: it.id });
+                }}
+              >
+                <Text style={styles.queueCardTitle}>{it.title ?? ''}</Text>
+                <View style={styles.queueCardFoot}>
+                  {!!it.caption && <Text style={styles.queueCardCaption}>{it.caption}</Text>}
+                  {(it.badges ?? []).map((b, j) => <ChipView key={j} chip={b} />)}
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// ── ResourceGrid (availability/selection grid, e.g. room picker) ──────────────
+export function ResourceGridRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component);
+  const actionId = m['actionId'] as string | undefined;
+  const columns = (m['columns'] as number) ?? 0;
+  const recommendedLabel = (m['recommendedLabel'] as string) ?? 'Recommended';
+  const items = (m['items'] as ResourceItem[]) ?? [];
+  const [selected, setSelected] = useState<string | undefined>(() => items.find((it) => it.selected)?.id);
+  const cardWidth = columns > 0 ? `${100 / columns}%` as const : '33.333%' as const;
+  return (
+    <View style={styles.resourceGrid}>
+      {items.map((it, i) => {
+        const sel = it.id === selected;
+        const card = (
+          <View style={[styles.resourceCard, (sel || it.recommended) && styles.resourceCardAccent, sel && styles.resourceCardSelected, it.disabled && styles.resourceCardDisabled]}>
+            {it.recommended && <Text style={styles.resourceTag}>{recommendedLabel}</Text>}
+            <Text style={styles.resourceTitle}>{it.title ?? ''}</Text>
+            {!!it.subtitle && <Text style={styles.resourceSubtitle}>{it.subtitle}</Text>}
+            {!!it.statusLabel && <ChipView chip={{ label: it.statusLabel, color: it.statusColor }} />}
+            {!!it.note && (
+              <Text style={[styles.resourceNote, { color: paletteColor(it.noteColor) }]}>● {it.note}</Text>
+            )}
+          </View>
+        );
+        return (
+          <View key={it.id ?? i} style={{ width: cardWidth, padding: 4 }}>
+            {it.disabled ? card : (
+              <TouchableOpacity
+                onPress={() => {
+                  setSelected(it.id);
+                  if (actionId) void controller.runAction(actionId, { _item: it.id });
+                }}
+              >
+                {card}
+              </TouchableOpacity>
+            )}
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+// ── OfferCard (current vs upgrade offer) ──────────────────────────────────────
+export function OfferCardRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component) as unknown as OfferCard;
+  const current = m.current === true;
+  return (
+    <View style={[styles.offerCard, !current && styles.offerCardAccent]}>
+      {!!m.image && (
+        <View>
+          <Image source={{ uri: m.image }} style={styles.offerImage} resizeMode="cover" />
+          {!!m.tag && <Text style={[styles.offerTag, styles.offerTagFloating]}>{m.tag}</Text>}
+        </View>
+      )}
+      <View style={styles.offerBody}>
+        {!m.image && !!m.tag && <Text style={styles.offerTag}>{m.tag}</Text>}
+        <Text style={styles.offerTitle}>{m.title ?? ''}</Text>
+        {!!m.subtitle && <Text style={styles.offerSubtitle}>{m.subtitle}</Text>}
+        {(m.features ?? []).length > 0 && (
+          <View style={styles.offerFeatures}>
+            {(m.features ?? []).map((f, i) => <Text key={i} style={styles.offerFeature}>{f}</Text>)}
+          </View>
+        )}
+        {current ? (
+          !!m.currentLabel && <Text style={styles.offerCurrentLabel}>{m.currentLabel}</Text>
+        ) : (
+          !!m.actionLabel && (
+            <TouchableOpacity style={styles.offerCta} onPress={() => m.actionId && void controller.runAction(m.actionId)}>
+              <Text style={styles.offerCtaText}>{m.actionLabel}</Text>
+              {!!m.priceLabel && <Text style={styles.offerCtaPrice}>{m.priceLabel}</Text>}
+            </TouchableOpacity>
+          )
+        )}
+      </View>
+    </View>
+  );
+}
+
+// ── AddOnPicker (priced extras with running total) ────────────────────────────
+export function AddOnPickerRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component);
+  const items = (m['items'] as AddOn[]) ?? [];
+  const currency = (m['currency'] as string) ?? '';
+  const totalLabel = (m['totalLabel'] as string) ?? '';
+  const actionId = m['actionId'] as string | undefined;
+  const [added, setAdded] = useState<Set<string>>(
+    () => new Set(items.filter((it) => it.added).map((it) => it.id ?? '')),
+  );
+  const totalOf = (set: Set<string>) =>
+    items.filter((it) => set.has(it.id ?? '')).reduce((sum, it) => sum + (it.price ?? 0), 0);
+  const toggle = (it: AddOn) => {
+    const id = it.id ?? '';
+    const next = new Set(added);
+    const nowAdded = !next.has(id);
+    if (nowAdded) next.add(id); else next.delete(id);
+    setAdded(next);
+    if (actionId) void controller.runAction(actionId, { _item: id, _added: nowAdded, _total: totalOf(next) });
+  };
+  return (
+    <View style={styles.addOnPicker}>
+      <View style={styles.addOnHead}>
+        <Text style={styles.addOnTotal}>
+          {totalLabel ? `${totalLabel}: ` : ''}{currency ? `${currency} ` : ''}{fmtAmount(totalOf(added))}
+        </Text>
+      </View>
+      <View style={styles.addOnGrid}>
+        {items.map((it, i) => {
+          const isAdded = added.has(it.id ?? '');
+          return (
+            <View key={it.id ?? i} style={styles.addOnCard}>
+              <View style={styles.addOnCardHead}>
+                {!!it.icon && <Text style={styles.addOnIcon}>{displayIcon(it.icon)}</Text>}
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.addOnTitle}>{it.title ?? ''}</Text>
+                  {!!it.description && <Text style={styles.addOnDesc}>{it.description}</Text>}
+                </View>
+                {!it.includedLabel && (
+                  <TouchableOpacity
+                    style={[styles.addOnToggle, isAdded && styles.addOnToggleAdded]}
+                    onPress={() => toggle(it)}
+                  >
+                    <Text style={[styles.addOnToggleText, isAdded && styles.addOnToggleTextAdded]}>{isAdded ? '✓' : '+'}</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              {it.includedLabel ? (
+                <Text style={styles.addOnIncluded}>{it.includedLabel}</Text>
+              ) : (
+                <Text style={styles.addOnPrice}>
+                  {currency ? `${currency} ` : ''}{fmtAmount(it.price ?? 0)}{it.unit ? ` / ${it.unit}` : ''}
+                </Text>
+              )}
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+// ── Ledger (folio breakdown with total) ───────────────────────────────────────
+const ledgerAmount = (amount: number, currency: string): string =>
+  `${amount < 0 ? '-' : ''}${currency ? `${currency} ` : ''}${fmtAmount(Math.abs(amount))}`;
+
+export function LedgerRenderer({ component }: { component: unknown }) {
+  const m = meta(component);
+  const lines = (m['lines'] as LedgerLine[]) ?? [];
+  const currency = (m['currency'] as string) ?? '';
+  const totalLabel = (m['totalLabel'] as string) ?? 'Total';
+  const total = (m['total'] as number | undefined)
+    ?? lines.filter((l) => !l.included).reduce((sum, l) => sum + (l.amount ?? 0), 0);
+  return (
+    <View style={styles.ledger}>
+      {lines.map((l, i) => (
+        <View key={i} style={styles.ledgerRow}>
+          <Text style={styles.ledgerConcept}>● {l.concept ?? ''}</Text>
+          {l.included ? (
+            <Text style={styles.ledgerIncluded}>{l.includedLabel ?? 'Included'}</Text>
+          ) : (
+            <Text style={[styles.ledgerAmount, (l.amount ?? 0) < 0 && styles.ledgerAmountNegative]}>
+              {ledgerAmount(l.amount ?? 0, currency)}
+            </Text>
+          )}
+        </View>
+      ))}
+      <View style={styles.ledgerDivider} />
+      <View style={styles.ledgerRow}>
+        <Text style={styles.ledgerTotalLabel}>{totalLabel}</Text>
+        <Text style={styles.ledgerTotal}>{ledgerAmount(total, currency)}</Text>
+      </View>
+    </View>
+  );
+}
+
+// ── PaymentPicker (payment method + context + confirm CTA) ────────────────────
+export function PaymentPickerRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const m = meta(component);
+  const methods = (m['methods'] as PaymentMethod[]) ?? [];
+  const actionId = m['actionId'] as string | undefined;
+  const [selected, setSelected] = useState<string | undefined>(() => (m['selected'] as string) || methods[0]?.id);
+  return (
+    <View style={styles.paymentPicker}>
+      <View style={styles.paymentMethods}>
+        {methods.map((pm, i) => {
+          const sel = pm.id === selected;
+          return (
+            <TouchableOpacity
+              key={pm.id ?? i}
+              style={[styles.paymentMethod, sel && styles.paymentMethodSelected]}
+              onPress={() => setSelected(pm.id)}
+            >
+              <Text style={[styles.paymentMethodText, sel && styles.paymentMethodTextSelected]}>{pm.label ?? ''}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+      {!!m['contextValue'] && (
+        <View style={styles.paymentContext}>
+          {!!m['contextLabel'] && <Text style={styles.paymentContextLabel}>{m['contextLabel'] as string}</Text>}
+          <Text style={styles.paymentContextValue}>{m['contextValue'] as string}</Text>
+        </View>
+      )}
+      {!!m['confirmLabel'] && (
+        <TouchableOpacity
+          style={styles.paymentConfirm}
+          onPress={() => actionId && void controller.runAction(actionId, { _method: selected })}
+        >
+          <Text style={styles.paymentConfirmText}>{m['confirmLabel'] as string}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+// ── ProcessMonitor (automation processes with health counters + fix action) ───
+export function ProcessMonitorRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const items = (meta(component)['items'] as ProcessItem[]) ?? [];
+  const dotColor = (status?: string) =>
+    status === 'error' ? PALETTE.error : status === 'warning' ? PALETTE.warning : PALETTE.success;
+  return (
+    <View style={styles.processMonitor}>
+      {items.map((it, i) => (
+        <View key={it.id ?? i} style={styles.processRow}>
+          <Text style={[styles.processDot, { color: dotColor(it.status) }]}>●</Text>
+          <View style={styles.processBody}>
+            <Text style={styles.processName}>{it.name ?? ''}</Text>
+            {(it.systems ?? []).length > 0 && (
+              <Text style={styles.processSystems}>{(it.systems ?? []).join(' · ')}</Text>
+            )}
+          </View>
+          <View style={styles.processCounters}>
+            <Text style={[styles.processCounter, { color: PALETTE.success }]}>✓ {it.ok ?? 0} OK</Text>
+            {(it.warnings ?? 0) > 0 && (
+              <Text style={[styles.processCounter, { color: PALETTE.warning }]}>⚠ {it.warnings} warnings</Text>
+            )}
+            {(it.errors ?? 0) > 0 && (
+              <Text style={[styles.processCounter, { color: PALETTE.error }]}>⛔ {it.errors} errors</Text>
+            )}
+          </View>
+          {!!it.actionLabel && !!it.actionId && (
+            <TouchableOpacity style={styles.processBtn} onPress={() => void controller.runAction(it.actionId!)}>
+              <Text style={styles.processBtnText}>{it.actionLabel}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ))}
     </View>
   );
 }
@@ -950,4 +1374,128 @@ const styles = StyleSheet.create({
   cmpMid: { alignItems: 'center', gap: 4 },
   cmpArrow: { fontSize: 18, color: '#888' },
   cmpDelta: { fontWeight: '700', fontSize: 12, borderRadius: 999, paddingVertical: 2, paddingHorizontal: 8, overflow: 'hidden' },
+  // Shared chip (badge palette)
+  uxChip: { color: '#fff', fontSize: 10, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden', alignSelf: 'flex-start' },
+  // EntityHeader
+  entityHeader: { flexDirection: 'row', gap: 16, padding: 16, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 14, backgroundColor: '#fafafa' },
+  entityLeft: { flex: 1, gap: 4 },
+  entityTitleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
+  entityTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
+  entitySubtitle: { color: '#666', fontSize: 13 },
+  entityFacts: { flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  entityFact: { gap: 1 },
+  entityFactLabel: { fontSize: 10, fontWeight: '700', color: '#888', letterSpacing: 0.6 },
+  entityFactValue: { fontSize: 13, fontWeight: '500', color: '#222' },
+  entityMetric: { alignItems: 'flex-end', gap: 1, justifyContent: 'center' },
+  entityMetricValue: { fontSize: 24, fontWeight: '800', color: '#1a73e8' },
+  entityMetricCaption: { fontSize: 11, color: '#888' },
+  // Meter
+  meter: { gap: 4 },
+  meterLabel: { fontSize: 11, fontWeight: '700', color: '#888', letterSpacing: 0.6 },
+  meterValue: { fontSize: 24, fontWeight: '700', color: '#111' },
+  meterTrack: { height: 8, borderRadius: 4, backgroundColor: '#e4e4e7', overflow: 'hidden' },
+  meterFill: { height: '100%', borderRadius: 4 },
+  meterCaption: { fontSize: 12, color: '#888' },
+  // TaskProgress
+  taskProgress: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10, padding: 12, borderRadius: 12 },
+  taskProgressIcon: { fontSize: 18 },
+  taskProgressLabel: { flex: 1, color: '#333', fontWeight: '500', minWidth: 120 },
+  taskProgressPills: { flexDirection: 'row', gap: 4 },
+  taskProgressPill: { fontSize: 11, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden' },
+  taskProgressPillDone: { backgroundColor: '#3e8635', color: '#fff' },
+  taskProgressPillTodo: { borderWidth: 1, borderColor: '#bbb', color: '#666' },
+  taskProgressBtn: { backgroundColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
+  taskProgressBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  // StatusList
+  statusList: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  statusIcon: { fontSize: 18 },
+  statusBody: { flex: 1, gap: 1 },
+  statusTitle: { fontWeight: '600', color: '#222' },
+  statusDesc: { fontSize: 12, color: '#888' },
+  statusBtn: { borderWidth: 1, borderColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  statusBtnText: { color: '#1a73e8', fontWeight: '600', fontSize: 12 },
+  // TaskQueue
+  taskQueue: { gap: 14 },
+  taskQueueGroup: { gap: 8 },
+  taskQueueGroupLabel: { fontSize: 10, fontWeight: '700', color: '#888', letterSpacing: 0.8 },
+  queueCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 10, padding: 10, gap: 4, backgroundColor: '#fff' },
+  queueCardSelected: { borderColor: '#1a73e8', borderWidth: 2, backgroundColor: 'rgba(26,115,232,0.08)' },
+  queueCardTitle: { fontWeight: '600', color: '#222' },
+  queueCardFoot: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  queueCardCaption: { fontSize: 12, color: '#888', fontVariant: ['tabular-nums'] },
+  // ResourceGrid
+  resourceGrid: { flexDirection: 'row', flexWrap: 'wrap', margin: -4 },
+  resourceCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 10, padding: 10, gap: 4, backgroundColor: '#fff', minHeight: 88 },
+  resourceCardAccent: { borderColor: '#1a73e8', borderWidth: 2 },
+  resourceCardSelected: { backgroundColor: 'rgba(26,115,232,0.08)' },
+  resourceCardDisabled: { opacity: 0.45 },
+  resourceTag: { alignSelf: 'flex-start', fontSize: 8, fontWeight: '800', color: '#fff', backgroundColor: '#1a73e8', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden', letterSpacing: 0.5 },
+  resourceTitle: { fontSize: 17, fontWeight: '700', color: '#111' },
+  resourceSubtitle: { fontSize: 12, color: '#888' },
+  resourceNote: { fontSize: 11 },
+  // OfferCard
+  offerCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 14, overflow: 'hidden', backgroundColor: '#fff' },
+  offerCardAccent: { borderColor: '#1a73e8', borderWidth: 2 },
+  offerImage: { width: '100%', aspectRatio: 16 / 9 },
+  offerTag: { alignSelf: 'flex-start', fontSize: 10, fontWeight: '800', color: '#fff', backgroundColor: '#1f2937', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', letterSpacing: 0.5 },
+  offerTagFloating: { position: 'absolute', top: 10, left: 10 },
+  offerBody: { padding: 14, gap: 6 },
+  offerTitle: { fontSize: 17, fontWeight: '700', color: '#111' },
+  offerSubtitle: { fontSize: 13, color: '#666' },
+  offerFeatures: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  offerFeature: { fontSize: 12, color: '#333', borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  offerCurrentLabel: { color: '#888', fontWeight: '500', marginTop: 4 },
+  offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
+  offerCtaText: { color: '#fff', fontWeight: '600' },
+  offerCtaPrice: { color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontVariant: ['tabular-nums'] },
+  // AddOnPicker
+  addOnPicker: { gap: 8 },
+  addOnHead: { flexDirection: 'row', justifyContent: 'flex-end' },
+  addOnTotal: { fontWeight: '700', color: '#1a73e8', fontVariant: ['tabular-nums'] },
+  addOnGrid: { gap: 8 },
+  addOnCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, padding: 12, gap: 6, backgroundColor: '#fff' },
+  addOnCardHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  addOnIcon: { fontSize: 20 },
+  addOnTitle: { fontWeight: '600', color: '#222' },
+  addOnDesc: { fontSize: 12, color: '#888' },
+  addOnToggle: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: '#1a73e8', alignItems: 'center', justifyContent: 'center' },
+  addOnToggleAdded: { backgroundColor: '#1a73e8' },
+  addOnToggleText: { color: '#1a73e8', fontWeight: '700', fontSize: 16 },
+  addOnToggleTextAdded: { color: '#fff' },
+  addOnPrice: { color: '#1a73e8', fontWeight: '600', fontVariant: ['tabular-nums'] },
+  addOnIncluded: { color: '#888', fontStyle: 'italic', fontSize: 13 },
+  // Ledger
+  ledger: { gap: 6 },
+  ledgerRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
+  ledgerConcept: { flex: 1, color: '#333' },
+  ledgerAmount: { color: '#222', fontWeight: '600', fontVariant: ['tabular-nums'] },
+  ledgerAmountNegative: { color: '#c9190b' },
+  ledgerIncluded: { color: '#888', fontStyle: 'italic', fontSize: 13 },
+  ledgerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#d4d4d8', marginVertical: 4 },
+  ledgerTotalLabel: { fontWeight: '700', color: '#111' },
+  ledgerTotal: { fontSize: 18, fontWeight: '800', color: '#111', fontVariant: ['tabular-nums'] },
+  // PaymentPicker
+  paymentPicker: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
+  paymentMethods: { flexDirection: 'row', gap: 6 },
+  paymentMethod: { borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
+  paymentMethodSelected: { borderColor: '#1a73e8', borderWidth: 2, backgroundColor: 'rgba(26,115,232,0.08)' },
+  paymentMethodText: { color: '#333', fontWeight: '500' },
+  paymentMethodTextSelected: { color: '#1a73e8', fontWeight: '700' },
+  paymentContext: { backgroundColor: 'rgba(18,183,106,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, gap: 1 },
+  paymentContextLabel: { fontSize: 9, fontWeight: '700', color: '#3e8635', letterSpacing: 0.6 },
+  paymentContextValue: { fontWeight: '700', color: '#222', fontVariant: ['tabular-nums'] },
+  paymentConfirm: { marginLeft: 'auto', backgroundColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 11 },
+  paymentConfirmText: { color: '#fff', fontWeight: '700' },
+  // ProcessMonitor
+  processMonitor: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
+  processRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  processDot: { fontSize: 12 },
+  processBody: { flex: 1, gap: 1, minWidth: 120 },
+  processName: { fontWeight: '600', color: '#222' },
+  processSystems: { fontSize: 11, color: '#888' },
+  processCounters: { flexDirection: 'row', gap: 10 },
+  processCounter: { fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  processBtn: { borderWidth: 1, borderColor: '#f0ab00', backgroundColor: 'rgba(240,171,0,0.12)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  processBtnText: { color: '#8a6100', fontWeight: '600', fontSize: 12 },
 });
