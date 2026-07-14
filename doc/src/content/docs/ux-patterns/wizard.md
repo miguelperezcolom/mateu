@@ -15,7 +15,7 @@ An onboarding flow where step 3 depends on what was selected in step 1 cannot be
 
 ## Solution
 
-Extend `Wizard` and declare one field per step; each field's type must implement `WizardStep`. Mateu renders the current step's form, a progress bar, and navigation buttons automatically.
+Extend `Wizard` and declare one field per step; each field's type must implement `WizardStep`. Mateu renders the current step's form, a progress bar, and navigation buttons automatically. State set in **any** step — by the user or by an action — survives navigation in both directions and reaches the completion action, so steps can freely read what earlier (or later) steps produced.
 
 ```java
 // Each step is a plain class or record implementing WizardStep

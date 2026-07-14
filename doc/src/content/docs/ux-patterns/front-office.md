@@ -49,6 +49,10 @@ Mateu covers this with a family of high-level components that compose into one d
 
 Arrange the panels with the usual layout primitives — `@Zones` for the columns, `@Compact` for density, `@Section(sticky=true)` to pin the queue or the header — exactly like a [Workspace](./workspace). The queue's `actionId` loads the selected guest into the central panels ([component communication](./component-communication) handles the refresh); the wizard's completion action confirms the check-in.
 
+## Runnable reference app
+
+The whole pattern is implemented end to end in `demo/demo-front-office` (Spring Boot MVC, `mvn spring-boot:run`, port 8594): a Check-In work queue feeding a 4-step wizard with a persistent `EntityHeader`, Check-Out with `Ledger` + `PaymentPicker`, an En Casa guest 360 with `Meter`s and a `Stat` history row, and an Automatizaciones board with `Scoreboard` + `ProcessMonitor` — plus a **Modo Staff/Cliente** header selector ([`@AppContext`](./app-context)) that re-projects every screen via [`@Audience`](./audience-projection).
+
 ## Principles served
 
 - **Preserve context** — the guest banner and the queue never leave the screen
