@@ -147,6 +147,32 @@ public sealed record Gantt : ComponentBase
     public IReadOnlyList<GanttTask> Tasks { get; init; } = [];
 }
 
+/// <summary>One card on a <see cref="KanbanColumn"/>. A card with an ActionId is clickable.</summary>
+public sealed record KanbanCard
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public string? Description { get; init; }
+    public string? Badge { get; init; }
+    public string? Color { get; init; }
+    public string? ActionId { get; init; }
+}
+
+/// <summary>One column of a <see cref="Kanban"/> board: a title, an accent color and its cards.</summary>
+public sealed record KanbanColumn
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public string? Color { get; init; }
+    public IReadOnlyList<KanbanCard> Cards { get; init; } = [];
+}
+
+/// <summary>A read-only kanban board: columns of cards. Cards may carry an ActionId to be clickable.</summary>
+public sealed record Kanban : ComponentBase
+{
+    public IReadOnlyList<KanbanColumn> Columns { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

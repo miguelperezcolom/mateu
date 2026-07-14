@@ -66,6 +66,47 @@ fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
+/** Kanban: a horizontal row of columns, each a header (title + count) and a stack of cards. */
+fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
+    val board = JPanel(FlowLayout(FlowLayout.LEFT, 12, 0))
+    board.isOpaque = false
+    for (column in metadata.arr("columns")) {
+        val col = verticalPanel(6)
+        col.border = JBUI.Borders.empty(10)
+        col.background = Color(0xF4, 0xF4, 0xF5)
+        col.isOpaque = true
+        col.preferredSize = Dimension(220, col.preferredSize.height)
+        val head = JBLabel("${column.text("title")}  (${column.arr("cards").size()})")
+        head.font = head.font.deriveFont(Font.BOLD)
+        col.addStacked(head, 6)
+        for (card in column.arr("cards")) {
+            val cardPanel = verticalPanel(3)
+            cardPanel.border = JBUI.Borders.empty(8)
+            cardPanel.background = JBUI.CurrentTheme.Label.background()
+            cardPanel.isOpaque = true
+            cardPanel.addStacked(JBLabel(card.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 2)
+            val desc = card.text("description")
+            if (desc.isNotBlank()) {
+                cardPanel.addStacked(JBLabel(desc).apply {
+                    foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                }, 2)
+            }
+            val badge = card.text("badge")
+            if (badge.isNotBlank()) cardPanel.addStacked(JBLabel(badge), 0)
+            val actionId = card.text("actionId")
+            if (actionId.isNotBlank()) {
+                cardPanel.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+                cardPanel.addMouseListener(object : java.awt.event.MouseAdapter() {
+                    override fun mouseClicked(e: java.awt.event.MouseEvent) = r.ctx.runAction(actionId, null)
+                })
+            }
+            col.addStacked(cardPanel, 6)
+        }
+        board.add(col)
+    }
+    return board
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

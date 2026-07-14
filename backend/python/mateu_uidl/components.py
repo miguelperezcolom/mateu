@@ -211,6 +211,44 @@ class Gantt(Component):
 
 
 @dataclass(frozen=True)
+class KanbanCard:
+    """One card on a :class:`KanbanColumn`. An ``action_id`` makes the card clickable."""
+
+    id: str | None = None
+    title: str | None = None
+    description: str | None = None
+    badge: str | None = None
+    color: str | None = None
+    action_id: str | None = None
+
+
+@dataclass(frozen=True)
+class KanbanColumn:
+    """One column of a :class:`Kanban` board: a title, an accent color and its cards."""
+
+    id: str | None = None
+    title: str | None = None
+    color: str | None = None
+    cards: tuple[KanbanCard, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "cards", tuple(self.cards))
+
+
+@dataclass(frozen=True)
+class Kanban(Component):
+    """A read-only kanban board: columns of cards. Cards may carry an ``action_id``."""
+
+    columns: tuple[KanbanColumn, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "columns", tuple(self.columns))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -292,4 +330,7 @@ __all__ = [
     "Skeleton",
     "GanttTask",
     "Gantt",
+    "KanbanCard",
+    "KanbanColumn",
+    "Kanban",
 ]

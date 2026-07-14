@@ -86,3 +86,24 @@ export interface Gantt {
   type?: 'Gantt';
   tasks?: GanttTask[];
 }
+
+export interface KanbanCard {
+  id?: string;
+  title?: string;
+  description?: string;
+  badge?: string;
+  color?: string;
+  actionId?: string;
+}
+
+export interface KanbanColumn {
+  id?: string;
+  title?: string;
+  color?: string;
+  cards?: KanbanCard[];
+}
+
+export interface Kanban {
+  type?: 'Kanban';
+  columns?: KanbanColumn[];
+}

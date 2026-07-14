@@ -34,6 +34,10 @@ public static class ComponentMapper
         Gantt g => Dto(g, new GanttMetadataDto(g.Tasks.Select(t => new GanttTaskDto(
             t.Id, t.Title, Iso(t.Start), Iso(t.End), t.Progress, t.Color)).ToList())),
 
+        Kanban k => Dto(k, new KanbanMetadataDto(k.Columns.Select(col => new KanbanColumnDto(
+            col.Id, col.Title, col.Color, col.Cards.Select(c => new KanbanCardDto(
+                c.Id, c.Title, c.Description, c.Badge, c.Color, c.ActionId)).ToList())).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),

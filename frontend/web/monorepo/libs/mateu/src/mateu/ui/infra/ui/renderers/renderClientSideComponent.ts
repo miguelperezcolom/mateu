@@ -76,6 +76,7 @@ import { renderFoldoutLayout } from "@infra/ui/renderers/foldoutRenderer.ts";
 import { renderHeroSection } from "@infra/ui/renderers/heroRenderer.ts";
 import { renderEmptyState, renderSkeleton } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import { renderGantt } from "@infra/ui/renderers/ganttRenderer.ts";
+import { renderKanban } from "@infra/ui/renderers/kanbanRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -273,6 +274,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.EmptyState]: ({ component }) => renderEmptyState(component),
     [ComponentMetadataType.Skeleton]: ({ component }) => renderSkeleton(component),
     [ComponentMetadataType.Gantt]: ({ component }) => renderGantt(component),
+    [ComponentMetadataType.Kanban]: ({ component }) => renderKanban(component),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

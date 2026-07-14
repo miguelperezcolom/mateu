@@ -38,6 +38,9 @@ from mateu_dtos import (
     FormSectionMetadata,
     GanttMetadata,
     GanttTaskRecord,
+    KanbanMetadata,
+    KanbanColumnRecord,
+    KanbanCardRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -614,6 +617,27 @@ class ReflectionMapper:
                 for t in c.tasks
             ]
             return self._fluent_client(GanttMetadata(tasks=tasks), c)
+        if isinstance(c, fluent.Kanban):
+            columns = [
+                KanbanColumnRecord(
+                    id=col.id,
+                    title=col.title,
+                    color=col.color,
+                    cards=[
+                        KanbanCardRecord(
+                            id=card.id,
+                            title=card.title,
+                            description=card.description,
+                            badge=card.badge,
+                            color=card.color,
+                            action_id=card.action_id,
+                        )
+                        for card in col.cards
+                    ],
+                )
+                for col in c.columns
+            ]
+            return self._fluent_client(KanbanMetadata(columns=columns), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,

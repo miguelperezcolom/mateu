@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, Skeleton } from '../api/metadata';
+import { EmptyState, FoldoutPanelInfo, GanttTask, HeroSection, KanbanColumn, Skeleton } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -221,6 +221,38 @@ export function GanttRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Kanban (horizontal scroll of columns, each a stack of cards) ──────────────
+export function KanbanRenderer({ component }: { component: unknown }) {
+  const controller = useViewController();
+  const columns = (meta(component)['columns'] as KanbanColumn[]) ?? [];
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.kanbanBoard}>
+      {columns.map((col, i) => (
+        <View key={col.id ?? i} style={styles.kanbanColumn}>
+          <View style={[styles.kanbanHead, { borderBottomColor: col.color ?? '#cbd5e1' }]}>
+            <Text style={styles.kanbanTitle} numberOfLines={1}>{col.title ?? ''}</Text>
+            <Text style={styles.kanbanCount}>{col.cards?.length ?? 0}</Text>
+          </View>
+          {(col.cards ?? []).map((card, j) => {
+            const body = (
+              <View key={card.id ?? j} style={[styles.kanbanCard, { borderLeftColor: card.color ?? 'transparent' }]}>
+                <Text style={styles.kanbanCardTitle}>{card.title ?? ''}</Text>
+                {!!card.description && <Text style={styles.kanbanCardDesc}>{card.description}</Text>}
+                {!!card.badge && <Text style={styles.kanbanBadge}>{card.badge}</Text>}
+              </View>
+            );
+            return card.actionId ? (
+              <TouchableOpacity key={card.id ?? j} onPress={() => void controller.runAction(card.actionId!)}>
+                {body}
+              </TouchableOpacity>
+            ) : body;
+          })}
+        </View>
+      ))}
+    </ScrollView>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -271,4 +303,14 @@ const styles = StyleSheet.create({
   ganttProgress: { height: '100%', backgroundColor: 'rgba(0,0,0,0.25)' },
   ganttToday: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#c5221f' },
   ganttEmpty: { fontSize: 12, color: '#999', fontStyle: 'italic' },
+  // Kanban
+  kanbanBoard: { gap: 12, paddingBottom: 4 },
+  kanbanColumn: { width: 220, gap: 8, backgroundColor: '#f4f4f5', borderRadius: 12, padding: 10 },
+  kanbanHead: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 6, borderBottomWidth: 2 },
+  kanbanTitle: { fontWeight: '600', flex: 1, color: '#222' },
+  kanbanCount: { fontSize: 12, color: '#666', backgroundColor: '#e4e4e7', borderRadius: 999, paddingHorizontal: 8, overflow: 'hidden' },
+  kanbanCard: { backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, borderLeftWidth: 3, borderRadius: 8, padding: 10, gap: 4 },
+  kanbanCardTitle: { fontWeight: '600', color: '#222' },
+  kanbanCardDesc: { fontSize: 12, color: '#666' },
+  kanbanBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '600', color: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.1)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 1, overflow: 'hidden' },
 });

@@ -80,6 +80,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/welcome-page' },
 						{ slug: 'ux-patterns/empty-states-and-skeletons' },
 						{ slug: 'ux-patterns/gantt' },
+						{ slug: 'ux-patterns/kanban' },
 						{ slug: 'ux-patterns/entity-picker' },
 						{ slug: 'ux-patterns/workspace' },
 						{ slug: 'ux-patterns/task-centric', label: 'Task-Centric Page' },

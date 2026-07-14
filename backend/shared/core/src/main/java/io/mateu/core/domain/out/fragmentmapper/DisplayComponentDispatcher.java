@@ -14,6 +14,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.GanttMapper.mapGan
 import static io.mateu.core.domain.out.fragmentmapper.mappers.IconMapper.mapIconToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ImageMapper.mapImageToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.KPIMapper.mapKPIToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.KanbanMapper.mapKanbanToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MetricCardMapper.mapMetricCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
@@ -67,6 +68,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Gantt gantt) {
       return mapGanttToDto(gantt);
+    }
+    if (component instanceof Kanban kanban) {
+      return mapKanbanToDto(kanban);
     }
     if (component instanceof Skeleton skeleton) {
       return mapSkeletonToDto(skeleton);

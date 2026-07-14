@@ -333,6 +333,33 @@ class GanttMetadata(Wire):
     tasks: list[GanttTaskRecord] = Field(default_factory=list)
 
 
+class KanbanCardRecord(Wire):
+    """One kanban card; ``action_id`` — when set — makes the card clickable."""
+
+    id: str | None = None
+    title: str | None = None
+    description: str | None = None
+    badge: str | None = None
+    color: str | None = None
+    action_id: str | None = None
+
+
+class KanbanColumnRecord(Wire):
+    """One kanban column with its cards (mirrors ``KanbanColumnDto``)."""
+
+    id: str | None = None
+    title: str | None = None
+    color: str | None = None
+    cards: list[KanbanCardRecord] = Field(default_factory=list)
+
+
+class KanbanMetadata(Wire):
+    """Kanban board metadata: columns of cards (mirrors ``KanbanDto``)."""
+
+    type: Literal["Kanban"] = "Kanban"
+    columns: list[KanbanColumnRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -414,6 +441,7 @@ ComponentMetadata = Annotated[
         EmptyStateMetadata,
         SkeletonMetadata,
         GanttMetadata,
+        KanbanMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

@@ -36,6 +36,24 @@ public class Dash : Dashboard
         ],
     };
 
+    [Panel(Title = "Board")]
+    public Kanban Board { get; } = new()
+    {
+        Columns =
+        [
+            new KanbanColumn
+            {
+                Id = "todo", Title = "To do", Color = "#94a3b8",
+                Cards = [new KanbanCard { Id = "c1", Title = "Task A", Badge = "3" }],
+            },
+            new KanbanColumn
+            {
+                Id = "doing", Title = "Doing",
+                Cards = [new KanbanCard { Id = "c2", Title = "Task B", Description = "in flight", ActionId = "openCard" }],
+            },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -155,6 +173,19 @@ public class ComponentTests
         Assert.Contains("\"end\":\"2026-08-15\"", json);
         Assert.Contains("\"progress\":60.5", json);
         Assert.Contains("\"color\":\"#4caf50\"", json);
+    }
+
+    [Fact]
+    public void Kanban_emits_columns_and_cards()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"Kanban\"", json);
+        Assert.Contains("\"columns\":[{", json);
+        Assert.Contains("\"title\":\"To do\"", json);
+        Assert.Contains("\"color\":\"#94a3b8\"", json);
+        Assert.Contains("\"badge\":\"3\"", json);
+        Assert.Contains("\"actionId\":\"openCard\"", json);
     }
 
     [Fact]

@@ -137,6 +137,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(EmptyStateMetadataDto), "EmptyState")]
 [JsonDerivedType(typeof(SkeletonMetadataDto), "Skeleton")]
 [JsonDerivedType(typeof(GanttMetadataDto), "Gantt")]
+[JsonDerivedType(typeof(KanbanMetadataDto), "Kanban")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -186,6 +187,15 @@ public record GanttMetadataDto(IReadOnlyList<GanttTaskDto> Tasks) : ComponentMet
 
 /// <summary>One Gantt bar; start/end are ISO-8601 dates (yyyy-MM-dd).</summary>
 public record GanttTaskDto(string? Id, string? Title, string? Start, string? End, double Progress, string? Color);
+
+/// <summary>Kanban board metadata: columns of cards.</summary>
+public record KanbanMetadataDto(IReadOnlyList<KanbanColumnDto> Columns) : ComponentMetadataDto;
+
+/// <summary>One kanban column with its cards.</summary>
+public record KanbanColumnDto(string? Id, string? Title, string? Color, IReadOnlyList<KanbanCardDto> Cards);
+
+/// <summary>One kanban card; ActionId — when set — makes the card clickable.</summary>
+public record KanbanCardDto(string? Id, string? Title, string? Description, string? Badge, string? Color, string? ActionId);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

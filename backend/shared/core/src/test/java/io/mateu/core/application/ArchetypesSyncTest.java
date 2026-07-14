@@ -30,6 +30,7 @@ import io.mateu.dtos.GanttDto;
 import io.mateu.dtos.HeroSectionDto;
 import io.mateu.dtos.HorizontalLayoutDto;
 import io.mateu.dtos.KPIDto;
+import io.mateu.dtos.KanbanDto;
 import io.mateu.dtos.MarkdownDto;
 import io.mateu.dtos.MetricCardDto;
 import io.mateu.dtos.MetricTrendDto;
@@ -71,6 +72,9 @@ import io.mateu.uidl.data.GanttTask;
 import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.KPI;
+import io.mateu.uidl.data.Kanban;
+import io.mateu.uidl.data.KanbanCard;
+import io.mateu.uidl.data.KanbanColumn;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.MetricCard;
@@ -324,6 +328,32 @@ class ArchetypesSyncTest {
                           .end(LocalDate.of(2026, 4, 20))
                           .progress(35)
                           .color("#f59e0b")
+                          .build()))
+              .build());
+      content.add(
+          Kanban.builder()
+              .id("board")
+              .columns(
+                  List.of(
+                      KanbanColumn.builder()
+                          .id("todo")
+                          .title("To do")
+                          .color("#94a3b8")
+                          .cards(
+                              List.of(
+                                  KanbanCard.builder().id("c1").title("Task A").badge("3").build()))
+                          .build(),
+                      KanbanColumn.builder()
+                          .id("doing")
+                          .title("Doing")
+                          .cards(
+                              List.of(
+                                  KanbanCard.builder()
+                                      .id("c2")
+                                      .title("Task B")
+                                      .description("in flight")
+                                      .actionId("openCard")
+                                      .build()))
                           .build()))
               .build());
       content.add(
@@ -734,6 +764,21 @@ class ArchetypesSyncTest {
                 .map(s -> (SkeletonDto) s.metadata())
                 .map(s -> s.variant() + ":" + s.count()))
         .containsExactly("text:4", "card:1", "grid:5", "form:3");
+  }
+
+  @Test
+  void kanbanColumnsAndCardsSerialize() {
+    var kanban = findFirst(sync("/component-showcase"), KanbanDto.class);
+    assertThat(kanban).isNotNull();
+    var columns = ((KanbanDto) kanban.metadata()).columns();
+    assertThat(columns).hasSize(2);
+    assertThat(columns.get(0).title()).isEqualTo("To do");
+    assertThat(columns.get(0).color()).isEqualTo("#94a3b8");
+    assertThat(columns.get(0).cards()).hasSize(1);
+    assertThat(columns.get(0).cards().get(0).title()).isEqualTo("Task A");
+    assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
+    assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
+    assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
   }
 
   @Test

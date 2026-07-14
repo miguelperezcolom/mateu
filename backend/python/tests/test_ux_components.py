@@ -28,6 +28,9 @@ from mateu_uidl.components import (  # noqa: E402
     Gantt,
     GanttTask,
     HeroSection,
+    Kanban,
+    KanbanCard,
+    KanbanColumn,
     MetricCard,
     MetricTrend,
     Skeleton,
@@ -83,6 +86,32 @@ class ProjectPlan(ComponentTreeSupplier):
                     end=date(2026, 5, 1),
                     progress=25.5,
                     color="#cc0000",
+                ),
+            ),
+        )
+
+
+@ui("sprint-board")
+@title("Sprint board")
+class SprintBoard(ComponentTreeSupplier):
+    def component(self):
+        return Kanban(
+            id="board",
+            columns=(
+                KanbanColumn(
+                    id="todo",
+                    title="To do",
+                    color="#94a3b8",
+                    cards=(KanbanCard(id="c1", title="Task A", badge="3"),),
+                ),
+                KanbanColumn(
+                    id="doing",
+                    title="Doing",
+                    cards=(
+                        KanbanCard(
+                            id="c2", title="Task B", description="in flight", action_id="openCard"
+                        ),
+                    ),
                 ),
             ),
         )
@@ -212,6 +241,28 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
         RunActionRq(action_id="openRevenue", server_side_type=type_name(SalesDashboard))
     )
     assert inc.messages[0].text == "Drilling into revenue"
+
+
+def test_component_tree_supplier_emits_kanban():
+    doc = render(SprintBoard)
+    (kanban,) = page_children(doc)
+    assert kanban["id"] == "board"
+    assert kanban["metadata"]["type"] == "Kanban"
+    columns = kanban["metadata"]["columns"]
+    assert len(columns) == 2
+    assert columns[0]["title"] == "To do"
+    assert columns[0]["color"] == "#94a3b8"
+    assert columns[0]["cards"] == [
+        {
+            "id": "c1",
+            "title": "Task A",
+            "description": None,
+            "badge": "3",
+            "color": None,
+            "actionId": None,
+        }
+    ]
+    assert columns[1]["cards"][0]["actionId"] == "openCard"
 
 
 def test_component_tree_supplier_emits_gantt():
