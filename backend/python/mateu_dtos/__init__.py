@@ -567,6 +567,24 @@ class CalloutCardMetadata(Wire):
     theme: str | None = None
 
 
+class CommentRecord(Wire):
+    """One comment; ``replies`` nest recursively (mirrors ``CommentDto``)."""
+
+    id: str | None = None
+    author: str | None = None
+    avatar: str | None = None
+    text: str | None = None
+    timestamp: str | None = None
+    replies: list["CommentRecord"] = Field(default_factory=list)
+
+
+class CommentThreadMetadata(Wire):
+    """Comment-thread metadata: comments with recursive replies (mirrors ``CommentThreadDto``)."""
+
+    type: Literal["CommentThread"] = "CommentThread"
+    comments: list[CommentRecord] = Field(default_factory=list)
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -662,6 +680,7 @@ ComponentMetadata = Annotated[
         TestimonialsMetadata,
         FaqMetadata,
         CalloutCardMetadata,
+        CommentThreadMetadata,
         DrawerMetadata,
         DialogMetadata,
         MicroFrontendMetadata,

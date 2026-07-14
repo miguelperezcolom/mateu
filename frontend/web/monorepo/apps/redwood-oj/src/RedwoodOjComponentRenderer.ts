@@ -173,6 +173,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.Testimonials,
     ComponentMetadataType.Faq,
     ComponentMetadataType.CalloutCard,
+    ComponentMetadataType.CommentThread,
 ])
 
 export class RedwoodOjComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

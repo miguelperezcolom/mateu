@@ -27,6 +27,8 @@ from mateu_uidl.components import (  # noqa: E402
     Calendar,
     CalendarEvent,
     CalloutCard,
+    Comment,
+    CommentThread,
     EmptyState,
     Feature,
     FeatureGrid,
@@ -219,6 +221,21 @@ class PricingPlans(ComponentTreeSupplier):
                     id="pro", name="Pro", price="29", period="/mo", featured=True,
                     features=("Unlimited projects", "Priority support"),
                     cta_label="Go Pro", action_id="choosePlan",
+                ),
+            ),
+        )
+
+
+@ui("ticket")
+@title("Ticket")
+class TicketDiscussion(ComponentTreeSupplier):
+    def component(self):
+        return CommentThread(
+            id="thread",
+            comments=(
+                Comment(
+                    id="c1", author="Ada", text="Looks good.", timestamp="2h",
+                    replies=(Comment(id="c2", author="Alan", text="Agreed."),),
                 ),
             ),
         )
@@ -482,6 +499,18 @@ def test_component_tree_supplier_emits_kanban():
         }
     ]
     assert columns[1]["cards"][0]["actionId"] == "openCard"
+
+
+def test_component_tree_supplier_emits_comment_thread():
+    doc = render(TicketDiscussion)
+    (thread,) = page_children(doc)
+    assert thread["id"] == "thread"
+    assert thread["metadata"]["type"] == "CommentThread"
+    comments = thread["metadata"]["comments"]
+    assert len(comments) == 1
+    assert comments[0]["author"] == "Ada"
+    assert len(comments[0]["replies"]) == 1
+    assert comments[0]["replies"][0]["author"] == "Alan"
 
 
 def test_component_tree_supplier_emits_callout_card():

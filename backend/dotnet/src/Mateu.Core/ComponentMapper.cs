@@ -74,6 +74,8 @@ public static class ComponentMapper
 
         CalloutCard cc => Dto(cc, new CalloutCardMetadataDto(cc.Title, cc.Description, cc.Icon, cc.CtaLabel, cc.ActionId, cc.Theme)),
 
+        CommentThread ct => Dto(ct, new CommentThreadMetadataDto(ct.Comments.Select(MapComment).ToList())),
+
         // Generic building blocks (used by the archetypes and free composition).
         Text t => Dto(t, new TextMetadataDto(t.Content)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),
@@ -182,6 +184,9 @@ public static class ComponentMapper
     private static OrgNodeDto? MapOrgNode(OrgNode? n) =>
         n is null ? null : new OrgNodeDto(n.Id, n.Title, n.Subtitle, n.Avatar, n.Color, n.ActionId,
             n.Children.Select(c => MapOrgNode(c)!).ToList());
+
+    private static CommentDto MapComment(Comment c) =>
+        new(c.Id, c.Author, c.Avatar, c.Text, c.Timestamp, c.Replies.Select(MapComment).ToList());
 
     // Index of the tab selected on first render: the first one flagged Active, else the first tab.
     private static int TabActiveIndex(IReadOnlyList<TabPanel> tabs)

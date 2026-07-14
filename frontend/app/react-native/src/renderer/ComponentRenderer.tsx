@@ -20,7 +20,7 @@ import {
   FoldoutRenderer, HeroSectionRenderer, EmptyStateRenderer, SkeletonRenderer, GanttRenderer, KanbanRenderer,
   TimelineRenderer, ProgressStepsRenderer, StatRenderer, CalendarRenderer, PricingTableRenderer,
   OrgChartRenderer, HeatmapRenderer, FunnelRenderer, TrendChartRenderer, FeatureGridRenderer,
-  TestimonialsRenderer, FaqRenderer, CalloutCardRenderer,
+  TestimonialsRenderer, FaqRenderer, CalloutCardRenderer, CommentThreadRenderer,
 } from './DisplayRenderer';
 import { EmptyState, MetricCard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
@@ -226,6 +226,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <FaqRenderer component={component} />;
     case 'CalloutCard':
       return <CalloutCardRenderer component={component} />;
+    case 'CommentThread':
+      return <CommentThreadRenderer component={component} />;
 
     case 'Markdown':
       return <RichText value={(metadata['markdown'] as string) ?? ''} kind="markdown" />;

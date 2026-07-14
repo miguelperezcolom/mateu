@@ -96,7 +96,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = FeatureGridDto.class, name = "FeatureGrid"),
   @JsonSubTypes.Type(value = TestimonialsDto.class, name = "Testimonials"),
   @JsonSubTypes.Type(value = FaqDto.class, name = "Faq"),
-  @JsonSubTypes.Type(value = CalloutCardDto.class, name = "CalloutCard")
+  @JsonSubTypes.Type(value = CalloutCardDto.class, name = "CalloutCard"),
+  @JsonSubTypes.Type(value = CommentThreadDto.class, name = "CommentThread")
 })
 @Schema(
     oneOf = {
@@ -186,6 +187,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
       FeatureGridDto.class,
       TestimonialsDto.class,
       FaqDto.class,
-      CalloutCardDto.class
+      CalloutCardDto.class,
+      CommentThreadDto.class
     })
 public interface ComponentMetadataDto {}

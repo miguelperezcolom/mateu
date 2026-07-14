@@ -90,6 +90,7 @@ import { renderFeatureGrid } from "@infra/ui/renderers/featureGridRenderer.ts";
 import { renderTestimonials } from "@infra/ui/renderers/testimonialsRenderer.ts";
 import { renderFaq } from "@infra/ui/renderers/faqRenderer.ts";
 import { renderCalloutCard } from "@infra/ui/renderers/calloutCardRenderer.ts";
+import { renderCommentThread } from "@infra/ui/renderers/commentThreadRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -301,6 +302,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.Testimonials]: ({ component }) => renderTestimonials(component),
     [ComponentMetadataType.Faq]: ({ component }) => renderFaq(component),
     [ComponentMetadataType.CalloutCard]: ({ component }) => renderCalloutCard(component),
+    [ComponentMetadataType.CommentThread]: ({ component }) => renderCommentThread(component),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

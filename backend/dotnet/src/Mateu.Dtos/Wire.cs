@@ -151,6 +151,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(TestimonialsMetadataDto), "Testimonials")]
 [JsonDerivedType(typeof(FaqMetadataDto), "Faq")]
 [JsonDerivedType(typeof(CalloutCardMetadataDto), "CalloutCard")]
+[JsonDerivedType(typeof(CommentThreadMetadataDto), "CommentThread")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
@@ -278,6 +279,12 @@ public record FaqItemDto(string? Question, string? Answer, bool Open);
 
 /// <summary>Callout-card metadata: a themed call-to-action block.</summary>
 public record CalloutCardMetadataDto(string? Title, string? Description, string? Icon, string? CtaLabel, string? ActionId, string? Theme) : ComponentMetadataDto;
+
+/// <summary>Comment-thread metadata: comments with recursive replies.</summary>
+public record CommentThreadMetadataDto(IReadOnlyList<CommentDto> Comments) : ComponentMetadataDto;
+
+/// <summary>One comment; Replies nest recursively.</summary>
+public record CommentDto(string? Id, string? Author, string? Avatar, string? Text, string? Timestamp, IReadOnlyList<CommentDto> Replies);
 
 /// <summary>Tab strip metadata (mirrors io.mateu.dtos.TabLayoutDto). GroupRelationship —
 /// alternative|sequential|simultaneous — carries the semantic relationship between the tabbed

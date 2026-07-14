@@ -560,6 +560,26 @@ fun renderCalloutCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
+/** CommentThread: nested comments, replies indented under their parent, on Swing. */
+fun renderCommentThread(metadata: JsonNode): JComponent {
+    val panel = verticalPanel(6)
+    for (comment in metadata.arr("comments")) commentNode(panel, comment, 0)
+    return panel
+}
+
+private fun commentNode(panel: JPanel, comment: JsonNode, depth: Int) {
+    val row = verticalPanel(2)
+    row.border = JBUI.Borders.emptyLeft(depth * 16)
+    val author = comment.text("author")
+    val ts = comment.text("timestamp")
+    row.addStacked(JBLabel(author + (if (ts.isNotBlank()) "  $ts" else "")).apply {
+        font = font.deriveFont(Font.BOLD)
+    }, 2)
+    row.addStacked(JBLabel("<html>${comment.text("text")}</html>"), 0)
+    panel.addStacked(row, 6)
+    for (reply in comment.arr("replies")) commentNode(panel, reply, depth + 1)
+}
+
 fun renderSkeleton(metadata: JsonNode): JComponent {
     val count = metadata.path("count").asInt(1).coerceIn(1, 10)
     val variant = metadata.text("variant", "text")

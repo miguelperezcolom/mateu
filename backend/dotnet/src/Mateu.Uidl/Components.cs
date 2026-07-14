@@ -371,6 +371,23 @@ public sealed record CalloutCard : ComponentBase
     public string? Theme { get; init; }
 }
 
+/// <summary>One entry of a <see cref="CommentThread"/>; Replies nest recursively.</summary>
+public sealed record Comment
+{
+    public string? Id { get; init; }
+    public string? Author { get; init; }
+    public string? Avatar { get; init; }
+    public string? Text { get; init; }
+    public string? Timestamp { get; init; }
+    public IReadOnlyList<Comment> Replies { get; init; } = [];
+}
+
+/// <summary>A read-only discussion thread with nested replies.</summary>
+public sealed record CommentThread : ComponentBase
+{
+    public IReadOnlyList<Comment> Comments { get; init; } = [];
+}
+
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
 /// <summary>A plain text block.</summary>

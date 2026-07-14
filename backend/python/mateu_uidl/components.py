@@ -548,6 +548,34 @@ class CalloutCard(Component):
 
 
 @dataclass(frozen=True)
+class Comment:
+    """One entry of a :class:`CommentThread`; ``replies`` nest recursively."""
+
+    id: str | None = None
+    author: str | None = None
+    avatar: str | None = None
+    text: str | None = None
+    timestamp: str | None = None
+    replies: tuple["Comment", ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "replies", tuple(self.replies))
+
+
+@dataclass(frozen=True)
+class CommentThread(Component):
+    """A read-only discussion thread with nested replies."""
+
+    comments: tuple[Comment, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "comments", tuple(self.comments))
+
+
+@dataclass(frozen=True)
 class MicroFrontend(Component):
     """A remote Mateu UI embedded as an island inside this page: the renderer mounts the remote
     backend's view at ``base_url``/``route`` and it runs its own sync loop — compose UIs owned by
@@ -655,4 +683,6 @@ __all__ = [
     "FaqItem",
     "Faq",
     "CalloutCard",
+    "Comment",
+    "CommentThread",
 ]

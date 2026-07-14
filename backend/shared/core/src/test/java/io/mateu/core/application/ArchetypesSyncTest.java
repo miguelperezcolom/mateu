@@ -19,6 +19,7 @@ import io.mateu.dtos.CalendarDto;
 import io.mateu.dtos.CalloutCardDto;
 import io.mateu.dtos.CardDto;
 import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.CommentThreadDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ComponentMetadataDto;
 import io.mateu.dtos.ContainerDto;
@@ -77,6 +78,8 @@ import io.mateu.uidl.data.Calendar;
 import io.mateu.uidl.data.CalendarEvent;
 import io.mateu.uidl.data.CalloutCard;
 import io.mateu.uidl.data.Card;
+import io.mateu.uidl.data.Comment;
+import io.mateu.uidl.data.CommentThread;
 import io.mateu.uidl.data.Container;
 import io.mateu.uidl.data.DashboardLayout;
 import io.mateu.uidl.data.DashboardPanel;
@@ -454,6 +457,25 @@ class ArchetypesSyncTest {
                           .title("Launch")
                           .date(LocalDate.of(2026, 3, 20))
                           .actionId("openEvent")
+                          .build()))
+              .build());
+      content.add(
+          CommentThread.builder()
+              .id("thread")
+              .comments(
+                  List.of(
+                      Comment.builder()
+                          .id("c1")
+                          .author("Ada")
+                          .text("Looks good.")
+                          .timestamp("2h")
+                          .replies(
+                              List.of(
+                                  Comment.builder()
+                                      .id("c2")
+                                      .author("Alan")
+                                      .text("Agreed.")
+                                      .build()))
                           .build()))
               .build());
       content.add(
@@ -1003,6 +1025,18 @@ class ArchetypesSyncTest {
     assertThat(columns.get(0).cards().get(0).badge()).isEqualTo("3");
     assertThat(columns.get(1).cards().get(0).description()).isEqualTo("in flight");
     assertThat(columns.get(1).cards().get(0).actionId()).isEqualTo("openCard");
+  }
+
+  @Test
+  void commentThreadSerializesNestedReplies() {
+    var thread = findFirst(sync("/component-showcase"), CommentThreadDto.class);
+    assertThat(thread).isNotNull();
+    var comments = ((CommentThreadDto) thread.metadata()).comments();
+    assertThat(comments).hasSize(1);
+    assertThat(comments.get(0).author()).isEqualTo("Ada");
+    assertThat(comments.get(0).text()).isEqualTo("Looks good.");
+    assertThat(comments.get(0).replies()).hasSize(1);
+    assertThat(comments.get(0).replies().get(0).author()).isEqualTo("Alan");
   }
 
   @Test

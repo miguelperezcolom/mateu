@@ -183,6 +183,19 @@ public class Dash : Dashboard
         Description = "Your workspace is ready.", CtaLabel = "Open it", ActionId = "openWorkspace",
     };
 
+    [Panel(Title = "Thread")]
+    public CommentThread Thread { get; } = new()
+    {
+        Comments =
+        [
+            new Comment
+            {
+                Id = "c1", Author = "Ada", Text = "Looks good.", Timestamp = "2h",
+                Replies = [new Comment { Id = "c2", Author = "Alan", Text = "Agreed." }],
+            },
+        ],
+    };
+
     [Panel] // title defaults to the humanized property name
     public EmptyState Alerts { get; } = new()
     {
@@ -464,6 +477,18 @@ public class ComponentTests
         Assert.Contains("\"theme\":\"success\"", json);
         Assert.Contains("\"title\":\"You're all set\"", json);
         Assert.Contains("\"actionId\":\"openWorkspace\"", json);
+    }
+
+    [Fact]
+    public void Comment_thread_emits_nested_replies()
+    {
+        var json = RenderView(typeof(Dash));
+
+        Assert.Contains("\"type\":\"CommentThread\"", json);
+        Assert.Contains("\"author\":\"Ada\"", json);
+        Assert.Contains("\"text\":\"Looks good.\"", json);
+        Assert.Contains("\"replies\":[", json);
+        Assert.Contains("\"author\":\"Alan\"", json);
     }
 
     [Fact]

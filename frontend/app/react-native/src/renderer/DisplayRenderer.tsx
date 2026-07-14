@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { CalendarEvent, EmptyState, FaqItem, Feature, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
+import { CalendarEvent, Comment, EmptyState, FaqItem, Feature, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, OrgNode, PricingPlan, Skeleton, Stat, Step, Testimonial, TimelineItem } from '../api/metadata';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -622,6 +622,36 @@ export function CalloutCardRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── CommentThread (nested indented comments) ──────────────────────────────────
+function CommentNode({ comment, depth }: { comment: Comment; depth: number }) {
+  return (
+    <View style={[styles.commentNode, depth > 0 && { marginLeft: 14, borderLeftWidth: 2, borderLeftColor: '#e4e4e7', paddingLeft: 10 }]}>
+      <View style={styles.commentRow}>
+        <Text style={styles.commentAvatar}>{comment.avatar && !comment.avatar.includes(':') ? comment.avatar : (comment.author?.[0] ?? '?')}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.commentHead}>
+            <Text style={{ fontWeight: '600', color: '#222' }}>{comment.author}</Text>
+            {comment.timestamp ? `  ${comment.timestamp}` : ''}
+          </Text>
+          <Text style={styles.commentText}>{comment.text}</Text>
+        </View>
+      </View>
+      {(comment.replies ?? []).map((r, i) => (
+        <CommentNode key={r.id ?? i} comment={r} depth={depth + 1} />
+      ))}
+    </View>
+  );
+}
+
+export function CommentThreadRenderer({ component }: { component: unknown }) {
+  const comments = (meta(component)['comments'] as Comment[]) ?? [];
+  return (
+    <View style={styles.commentThread}>
+      {comments.map((c, i) => <CommentNode key={c.id ?? i} comment={c} depth={0} />)}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
@@ -787,4 +817,11 @@ const styles = StyleSheet.create({
   calloutDesc: { color: '#555', lineHeight: 20 },
   calloutCta: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 16 },
   calloutCtaText: { color: '#fff', fontWeight: '600' },
+  // CommentThread
+  commentThread: { gap: 14 },
+  commentNode: { gap: 10, marginTop: 10 },
+  commentRow: { flexDirection: 'row', gap: 8 },
+  commentAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#eee', textAlign: 'center', lineHeight: 28, overflow: 'hidden' },
+  commentHead: { fontSize: 12, color: '#888' },
+  commentText: { color: '#333', marginTop: 2, lineHeight: 20 },
 });

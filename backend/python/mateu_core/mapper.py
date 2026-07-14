@@ -64,6 +64,8 @@ from mateu_dtos import (
     FaqMetadata,
     FaqItemRecord,
     CalloutCardMetadata,
+    CommentThreadMetadata,
+    CommentRecord,
     GridColumn,
     GridColumnMeta,
     HeroSectionMetadata,
@@ -791,6 +793,9 @@ class ReflectionMapper:
                 ),
                 c,
             )
+        if isinstance(c, fluent.CommentThread):
+            comments = [self._comment(cm) for cm in c.comments]
+            return self._fluent_client(CommentThreadMetadata(comments=comments), c)
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
@@ -835,6 +840,16 @@ class ReflectionMapper:
             )
             return self._fluent_client(meta, c)
         raise TypeError(f"Unsupported fluent component: {type(c).__name__}")
+
+    def _comment(self, cm) -> CommentRecord:
+        return CommentRecord(
+            id=cm.id,
+            author=cm.author,
+            avatar=cm.avatar,
+            text=cm.text,
+            timestamp=cm.timestamp,
+            replies=[self._comment(r) for r in cm.replies],
+        )
 
     def _org_node(self, n) -> OrgNodeRecord:
         return OrgNodeRecord(
