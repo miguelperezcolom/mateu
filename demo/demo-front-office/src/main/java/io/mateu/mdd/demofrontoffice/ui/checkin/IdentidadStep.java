@@ -1,7 +1,7 @@
 package io.mateu.mdd.demofrontoffice.ui.checkin;
 
 import io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep;
-import io.mateu.mdd.demofrontoffice.data.HotelData;
+import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Hidden;
@@ -24,11 +24,11 @@ import lombok.Setter;
 @Setter
 public class IdentidadStep implements WizardStep, VisibilitySupplier {
 
-  @Hidden String guestId;
+  @Hidden String stayId;
 
   @Colspan(2)
   @Label("")
-  Callable<Component> header = () -> GuestHeaders.arrivalHeader(guestId);
+  Callable<Component> header = () -> GuestHeaders.arrivalHeader(stayId);
 
   @PlainText
   @Label("Documento")
@@ -47,14 +47,15 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
   @Label("")
   Callable<Component> preferencias =
       () -> {
-        var g = HotelData.arrival(guestId);
+        var view = FrontOffice.stayView(stayId);
+        var guest = view.guest();
         var items = new ArrayList<StatusItem>();
-        for (var pref : g.prefs()) {
+        for (var pref : guest.preferences()) {
           items.add(
               StatusItem.builder()
-                  .id(pref)
+                  .id(pref.text())
                   .icon("●")
-                  .title(pref)
+                  .title(pref.text())
                   .status("Preferencia")
                   .statusColor("normal")
                   .build());
@@ -64,15 +65,19 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
                 .id("ultima")
                 .icon("🏨")
                 .title("Última estancia")
-                .description(g.lastStay())
+                .description(guest.lastStaySummary())
                 .build());
-        if (g.pendingComplaints() > 0) {
+        if (guest.complaints() > 0) {
           items.add(
               StatusItem.builder()
                   .id("quejas")
                   .icon("⚠")
-                  .title(g.pendingComplaints() + " quejas pendientes")
-                  .description(g.staysCaption() + " · Cliente desde 2019")
+                  .title(guest.complaints() + " quejas pendientes")
+                  .description(
+                      guest.stays()
+                          + " estancias · Cliente desde hace "
+                          + guest.yearsAsClient()
+                          + " años")
                   .status("Revisar")
                   .statusColor("error")
                   .build());
@@ -84,15 +89,18 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
   @Label("")
   Callable<Component> registroPax =
       () -> {
-        var g = HotelData.arrival(guestId);
+        var stay = FrontOffice.stayView(stayId).stay();
+        var registered = 1 + stay.companions().size();
         return TaskProgress.builder()
             .label(
                 "Reserva con "
-                    + g.pax()
+                    + stay.pax()
                     + " pax. "
-                    + (g.pax() > 1 ? "Registrar los huéspedes adicionales." : "Huésped registrado."))
-            .total(g.pax())
-            .done(1)
+                    + (registered < stay.pax()
+                        ? "Registrar los huéspedes adicionales."
+                        : "Huéspedes registrados."))
+            .total(stay.pax())
+            .done(Math.min(registered, stay.pax()))
             .actionLabel("Añadir siguiente pax")
             .actionId("addPax")
             .build();
@@ -108,7 +116,7 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
   @Override
   public boolean isHidden(String memberName, HttpRequest httpRequest) {
     return "simularEscaneo".equals(memberName)
-        && guestId != null
-        && HotelData.arrival(guestId).verified();
+        && stayId != null
+        && FrontOffice.stayView(stayId).guest().identityComplete();
   }
 }

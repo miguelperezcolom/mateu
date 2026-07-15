@@ -1,5 +1,7 @@
 package io.mateu.mdd.demofrontoffice.ui.checkout;
 
+import io.mateu.mdd.demofrontoffice.domain.stay.Stay;
+import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
@@ -13,93 +15,73 @@ import io.mateu.uidl.data.TaskQueue;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.net.URI;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
-/** Check-Out landing: today's departures queue, grouped in-hotel first, then pending. */
+/** Check-Out landing: the in-house guests due to depart, today's departures first. */
 @Route(value = "/checkout", parentRoute = "")
 @Title("Check-Out")
 public class CheckOutQueue {
 
   // left rail: the departures work queue; right: the empty-state placeholder
   @Label("")
-  Component contenido =
-      HorizontalLayout.builder()
-          .spacing(true)
-          .fullWidth(true)
-          .style("align-items: flex-start; gap: 1.5rem; width: 100%;")
-          .content(
-              List.of(
-                  TaskQueue.builder()
-                      .actionId("openGuest")
-                      .style("flex: 0 0 26%; min-width: 300px;")
-                      .groups(
-                          List.of(
-                              QueueGroup.builder()
-                                  .label("En hotel · late check-out primero")
-                                  .items(
-                                      List.of(
-                                          QueueItem.builder()
-                                              .id("carlos")
-                                              .title("Carlos Mendoza")
-                                              .caption("Hab 1108 · 7N")
-                                              .badges(
-                                                  List.of(
-                                                      Chip.builder()
-                                                          .label("LATE · 18:00")
-                                                          .color("warning")
-                                                          .build(),
-                                                      Chip.builder()
-                                                          .label("GOLD")
-                                                          .color("contrast")
-                                                          .build()))
-                                              .build(),
-                                          QueueItem.builder()
-                                              .id("yuki")
-                                              .title("Yuki Tanaka")
-                                              .caption("Hab 703 · 4N")
-                                              .badges(
-                                                  List.of(
-                                                      Chip.builder()
-                                                          .label("EN HOTEL")
-                                                          .color("success")
-                                                          .build()))
-                                              .build()))
-                                  .build(),
-                              QueueGroup.builder()
-                                  .label("Salida pendiente")
-                                  .items(
-                                      List.of(
-                                          QueueItem.builder()
-                                              .id("sophie")
-                                              .title("Sophie Laurent")
-                                              .caption("Hab 901")
-                                              .badges(
-                                                  List.of(
-                                                      Chip.builder()
-                                                          .label("PLATINUM")
-                                                          .color("contrast")
-                                                          .build()))
-                                              .build(),
-                                          QueueItem.builder()
-                                              .id("emma")
-                                              .title("Emma Richardson")
-                                              .caption("Hab 1015")
-                                              .badges(
-                                                  List.of(
-                                                      Chip.builder()
-                                                          .label("SILVER")
-                                                          .color("contrast")
-                                                          .build()))
-                                              .build()))
-                                  .build()))
-                      .build(),
-                  EmptyState.builder()
-                      .icon("🧳")
-                      .title("Selecciona un huésped")
-                      .description("Elige una salida de la lista para revisar su folio y cobrar.")
-                      .style("flex: 1; margin-top: 3rem;")
-                      .build()))
-          .build();
+  Component contenido = build();
+
+  static Component build() {
+    var today = LocalDate.now();
+    var inHouse = FrontOffice.stays().findInHouse();
+    var hoy = inHouse.stream().filter(s -> !s.checkOut().isAfter(today)).toList();
+    var proximas = inHouse.stream().filter(s -> s.checkOut().isAfter(today)).toList();
+    var groups = new ArrayList<QueueGroup>();
+    if (!hoy.isEmpty()) {
+      groups.add(
+          QueueGroup.builder()
+              .label("Salida hoy")
+              .items(hoy.stream().map(s -> item(s, true)).toList())
+              .build());
+    }
+    if (!proximas.isEmpty()) {
+      groups.add(
+          QueueGroup.builder()
+              .label("Próximas salidas")
+              .items(proximas.stream().map(s -> item(s, false)).toList())
+              .build());
+    }
+    return HorizontalLayout.builder()
+        .spacing(true)
+        .fullWidth(true)
+        .style("align-items: flex-start; gap: 1.5rem; width: 100%;")
+        .content(
+            List.of(
+                TaskQueue.builder()
+                    .actionId("openGuest")
+                    .style("flex: 0 0 26%; min-width: 300px;")
+                    .groups(groups)
+                    .build(),
+                EmptyState.builder()
+                    .icon("🧳")
+                    .title("Selecciona un huésped")
+                    .description("Elige una salida de la lista para revisar su folio y cobrar.")
+                    .style("flex: 1; margin-top: 3rem;")
+                    .build()))
+        .build();
+  }
+
+  static QueueItem item(Stay stay, boolean departingToday) {
+    var guest = FrontOffice.guests().findById(stay.guestId()).orElseThrow();
+    var badges = new ArrayList<Chip>();
+    if (departingToday) {
+      badges.add(Chip.builder().label("SALIDA HOY").color("warning").build());
+    }
+    badges.add(Chip.builder().label(guest.tier().name()).color("contrast").build());
+    return QueueItem.builder()
+        .id(stay.id())
+        .title(guest.name())
+        .caption("Hab " + stay.roomNumber() + " · " + stay.nights() + "N")
+        .badges(badges)
+        .build();
+  }
 
   @Action
   Object openGuest(HttpRequest httpRequest) {

@@ -1,6 +1,6 @@
 package io.mateu.mdd.demofrontoffice.ui.checkout;
 
-import io.mateu.mdd.demofrontoffice.data.HotelData;
+import io.mateu.mdd.demofrontoffice.domain.catalog.ChargeCatalogRepository;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import org.springframework.stereotype.Service;
@@ -9,12 +9,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class CatalogLabelSupplier implements LookupLabelSupplier {
 
+  private final ChargeCatalogRepository chargeCatalog;
+
+  public CatalogLabelSupplier(ChargeCatalogRepository chargeCatalog) {
+    this.chargeCatalog = chargeCatalog;
+  }
+
   @Override
   public String label(String fieldName, Object id, HttpRequest httpRequest) {
-    return HotelData.CATALOG.stream()
-        .filter(item -> item.code().equals(id))
+    return chargeCatalog
+        .findByCode(String.valueOf(id))
         .map(CatalogOptionsSupplier::label)
-        .findFirst()
         .orElse(String.valueOf(id));
   }
 }

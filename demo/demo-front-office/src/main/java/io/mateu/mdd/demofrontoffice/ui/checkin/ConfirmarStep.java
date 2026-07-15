@@ -1,11 +1,11 @@
 package io.mateu.mdd.demofrontoffice.ui.checkin;
 
 import io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep;
-import io.mateu.mdd.demofrontoffice.data.HotelData;
+import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
+import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.data.FieldStereotype;
@@ -23,10 +23,10 @@ import lombok.Setter;
 @FormLayout(columns = 1)
 public class ConfirmarStep implements WizardStep {
 
-  @Hidden String guestId;
+  @Hidden String stayId;
 
   @Label("")
-  Callable<Component> header = () -> GuestHeaders.arrivalHeader(guestId);
+  Callable<Component> header = () -> GuestHeaders.arrivalHeader(stayId);
 
   @PlainText
   @Label("Huésped principal")
@@ -47,41 +47,44 @@ public class ConfirmarStep implements WizardStep {
   @Label("")
   Callable<Component> huespedesEnHabitacion =
       () -> {
-        var g = HotelData.arrival(guestId);
+        var view = FrontOffice.stayView(stayId);
+        var stay = view.stay();
+        var guest = view.guest();
         var items = new ArrayList<StatusItem>();
         items.add(
             StatusItem.builder()
                 .id("principal")
                 .icon("👤")
-                .title(g.name())
+                .title(guest.name())
                 .description(
-                    (g.doc() == null || g.doc().isBlank() ? "Documento escaneado" : "Doc " + g.doc())
+                    (guest.document() == null || guest.document().isBlank()
+                            ? "Documento escaneado"
+                            : "Doc " + guest.document())
                         + " · Adulto")
                 .status("✓ Identidad verificada")
                 .statusColor("success")
                 .build());
-        if ("maria".equals(guestId)) {
+        for (var companion : stay.companions()) {
           items.add(
               StatusItem.builder()
-                  .id("juan")
+                  .id(companion.companionId())
                   .icon("👤")
-                  .title("Juan Fernández")
-                  .description("Doc 87654321Y · Adulto")
+                  .title(companion.name())
+                  .description(companion.description())
                   .status("✓ Identidad verificada")
                   .statusColor("success")
                   .build());
-        } else {
-          for (int i = 2; i <= g.pax(); i++) {
-            items.add(
-                StatusItem.builder()
-                    .id("pax" + i)
-                    .icon("👤")
-                    .title("Acompañante " + i)
-                    .description("Pendiente de registro")
-                    .status("Pendiente")
-                    .statusColor("warning")
-                    .build());
-          }
+        }
+        for (int i = 2 + stay.companions().size(); i <= stay.pax(); i++) {
+          items.add(
+              StatusItem.builder()
+                  .id("pax" + i)
+                  .icon("👤")
+                  .title("Acompañante " + i)
+                  .description("Pendiente de registro")
+                  .status("Pendiente")
+                  .statusColor("warning")
+                  .build());
         }
         return StatusList.builder().items(items).style("width: 100%;").build();
       };

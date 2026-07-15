@@ -1,6 +1,8 @@
 package io.mateu.mdd.demofrontoffice.ui.encasa;
 
-import io.mateu.mdd.demofrontoffice.data.HotelData;
+import io.mateu.mdd.demofrontoffice.domain.stay.Stay;
+import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
+import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
@@ -24,53 +26,54 @@ public class EnCasaQueue {
 
   // left rail: the in-house guests; right: the empty-state placeholder
   @Label("")
-  Component contenido =
-      HorizontalLayout.builder()
-          .spacing(true)
-          .fullWidth(true)
-          .style("align-items: flex-start; gap: 1.5rem; width: 100%;")
-          .content(
-              List.of(
-                  TaskQueue.builder()
-                      .actionId("openGuest")
-                      .style("flex: 0 0 26%; min-width: 300px;")
-                      .groups(
-                          List.of(
-                              QueueGroup.builder()
-                                  .label(
-                                      "En casa — "
-                                          + HotelData.inHouseGuests().size()
-                                          + " huéspedes")
-                                  .items(
-                                      HotelData.inHouseGuests().stream()
-                                          .map(EnCasaQueue::item)
-                                          .toList())
-                                  .build()))
-                      .build(),
-                  EmptyState.builder()
-                      .icon("🏡")
-                      .title("Selecciona un huésped")
-                      .description(
-                          "Elige un huésped en casa para ver su 360: cuenta, incidencias e"
-                              + " histórico.")
-                      .style("flex: 1; margin-top: 3rem;")
-                      .build()))
-          .build();
+  Component contenido = build();
 
-  static QueueItem item(HotelData.InHouse g) {
+  static Component build() {
+    var inHouse = FrontOffice.stays().findInHouse();
+    return HorizontalLayout.builder()
+        .spacing(true)
+        .fullWidth(true)
+        .style("align-items: flex-start; gap: 1.5rem; width: 100%;")
+        .content(
+            List.of(
+                TaskQueue.builder()
+                    .actionId("openGuest")
+                    .style("flex: 0 0 26%; min-width: 300px;")
+                    .groups(
+                        List.of(
+                            QueueGroup.builder()
+                                .label("En casa — " + inHouse.size() + " huéspedes")
+                                .items(inHouse.stream().map(EnCasaQueue::item).toList())
+                                .build()))
+                    .build(),
+                EmptyState.builder()
+                    .icon("🏡")
+                    .title("Selecciona un huésped")
+                    .description(
+                        "Elige un huésped en casa para ver su 360: cuenta, incidencias e"
+                            + " histórico.")
+                    .style("flex: 1; margin-top: 3rem;")
+                    .build()))
+        .build();
+  }
+
+  static QueueItem item(Stay stay) {
+    var guest = FrontOffice.guests().findById(stay.guestId()).orElseThrow();
     var badges = new ArrayList<Chip>();
-    badges.add(Chip.builder().label(g.tier()).color("contrast").build());
-    badges.add(Chip.builder().label(g.deseos()).color("success").build());
-    if (g.vip() != null) {
+    badges.add(Chip.builder().label(guest.tier().name()).color("contrast").build());
+    if (stay.wishesTotal() > 0) {
+      badges.add(Chip.builder().label(GuestHeaders.wishes(stay)).color("success").build());
+    }
+    if (stay.vipNote() != null) {
       badges.add(Chip.builder().label("VIP").color("warning").build());
     }
-    if (!g.incidents().isEmpty()) {
+    if (stay.openIncidents() > 0) {
       badges.add(Chip.builder().label("Incidencia").color("error").build());
     }
     return QueueItem.builder()
-        .id(g.id())
-        .title(g.name())
-        .caption("Hab " + g.room() + " · " + g.roomType())
+        .id(stay.id())
+        .title(guest.name())
+        .caption("Hab " + stay.roomNumber() + " · " + stay.roomType())
         .badges(badges)
         .build();
   }

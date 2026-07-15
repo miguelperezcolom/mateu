@@ -1,6 +1,7 @@
 package io.mateu.mdd.demofrontoffice.ui.checkout;
 
-import io.mateu.mdd.demofrontoffice.data.HotelData;
+import io.mateu.mdd.demofrontoffice.domain.catalog.ChargeCatalogItem;
+import io.mateu.mdd.demofrontoffice.domain.catalog.ChargeCatalogRepository;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.Option;
@@ -13,12 +14,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class CatalogOptionsSupplier implements LookupOptionsSupplier {
 
+  private final ChargeCatalogRepository chargeCatalog;
+
+  public CatalogOptionsSupplier(ChargeCatalogRepository chargeCatalog) {
+    this.chargeCatalog = chargeCatalog;
+  }
+
   @Override
   public ListingData<Option> search(
       String fieldName, String searchText, Pageable pageable, HttpRequest httpRequest) {
     var s = searchText == null ? "" : searchText.toLowerCase();
     return ListingData.of(
-        HotelData.CATALOG.stream()
+        chargeCatalog.findAll().stream()
             .filter(
                 item ->
                     s.isBlank()
@@ -28,7 +35,7 @@ public class CatalogOptionsSupplier implements LookupOptionsSupplier {
             .toList());
   }
 
-  static String label(HotelData.CatalogItem item) {
+  static String label(ChargeCatalogItem item) {
     return item.code() + " · " + item.name() + " — " + GuestHeaders.euros(item.price());
   }
 }

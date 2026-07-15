@@ -1,6 +1,7 @@
 package io.mateu.mdd.demofrontoffice.ui.checkin;
 
-import io.mateu.mdd.demofrontoffice.data.HotelData;
+import io.mateu.mdd.demofrontoffice.domain.stay.Stay;
+import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
@@ -38,25 +39,8 @@ public class CheckInQueue {
                               QueueGroup.builder()
                                   .label("Llegadas hoy")
                                   .items(
-                                      HotelData.arrivals().stream()
-                                          .map(
-                                              a ->
-                                                  QueueItem.builder()
-                                                      .id(a.id())
-                                                      .title(a.name())
-                                                      .caption(
-                                                          "Hab "
-                                                              + a.room()
-                                                              + " · "
-                                                              + a.nights()
-                                                              + "N")
-                                                      .badges(
-                                                          List.of(
-                                                              Chip.builder()
-                                                                  .label(a.tier())
-                                                                  .color("contrast")
-                                                                  .build()))
-                                                      .build())
+                                      FrontOffice.stays().findArrivals().stream()
+                                          .map(CheckInQueue::item)
                                           .toList())
                                   .build()))
                       .build(),
@@ -67,6 +51,16 @@ public class CheckInQueue {
                       .style("flex: 1; margin-top: 3rem;")
                       .build()))
           .build();
+
+  static QueueItem item(Stay stay) {
+    var guest = FrontOffice.guests().findById(stay.guestId()).orElseThrow();
+    return QueueItem.builder()
+        .id(stay.id())
+        .title(guest.name())
+        .caption("Hab " + stay.roomNumber() + " · " + stay.nights() + "N")
+        .badges(List.of(Chip.builder().label(guest.tier().name()).color("contrast").build()))
+        .build();
+  }
 
   @Action
   Object openGuest(HttpRequest httpRequest) {

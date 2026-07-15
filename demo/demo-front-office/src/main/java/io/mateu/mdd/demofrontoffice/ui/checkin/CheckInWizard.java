@@ -1,7 +1,10 @@
 package io.mateu.mdd.demofrontoffice.ui.checkin;
 
 import io.mateu.core.infra.declarative.orchestrators.wizard.Wizard;
-import io.mateu.mdd.demofrontoffice.data.HotelData;
+import io.mateu.mdd.demofrontoffice.domain.folio.Folio;
+import io.mateu.mdd.demofrontoffice.domain.folio.FolioLine;
+import io.mateu.mdd.demofrontoffice.domain.stay.StayStatus;
+import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
@@ -15,22 +18,24 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
- * The check-in flow of one arriving guest (route {@code /checkin/:id}): Identidad → Habitación →
+ * The check-in flow of one arriving stay (route {@code /checkin/:id}): Identidad → Habitación →
  * Extras → Confirmar, plus the read-only result screen. Every step opens with the guest's
  * {@code EntityHeader} so the context never leaves the screen; the room grid, the upgrade offer and
  * the add-on picker dispatch their actions back into this wizard.
  *
  * <p>State is handled by the framework: every step's fields are serialized into the component
  * state and rehydrated on each request, so values entered or set in ANY step survive navigation
- * and actions for the wizard's lifetime. The wizard itself only seeds the steps once per guest
+ * and actions for the wizard's lifetime. The wizard itself only seeds the steps once per stay
  * ({@link #populate()}), keeps the Confirmar summary derived from the other steps
- * ({@link #syncConfirmar()}), and reacts to the actions its step components dispatch.
+ * ({@link #syncConfirmar()}), and reacts to the actions its step components dispatch. Confirming
+ * runs the real domain lifecycle: assign the room, check the stay in, occupy the room and open the
+ * folio with the accommodation and add-on charges.
  */
 @Route(value = "/checkin/:id", parentRoute = "")
 @Title("Check-In")
 public class CheckInWizard extends Wizard {
 
-  String guestId;
+  String stayId;
   boolean populated;
 
   @Label("Identidad")
@@ -54,8 +59,8 @@ public class CheckInWizard extends Wizard {
   public void onHydrated(HttpRequest httpRequest) {
     super.onHydrated(httpRequest);
     var id = GuestHeaders.idFromRoute(httpRequest, "checkin");
-    if (id != null && !id.equals(guestId)) {
-      guestId = id;
+    if (id != null && !id.equals(stayId)) {
+      stayId = id;
       populated = false;
     }
     if (!populated) {
@@ -65,39 +70,48 @@ public class CheckInWizard extends Wizard {
     syncConfirmar();
   }
 
-  /** Seeds the steps from the guest's reservation data — once per guest. */
+  /** Seeds the steps from the stay's reservation data — once per stay. */
   void populate() {
-    var g = HotelData.arrival(guestId);
-    identidad.setGuestId(guestId);
+    var view = FrontOffice.stayView(stayId);
+    var guest = view.guest();
+    identidad.setStayId(stayId);
     identidad.setDocumento(
-        g.verified() ? "✓ Verificado — " + g.doc() : "Pendiente de escaneo de documento");
-    identidad.setNombre(g.name());
-    identidad.setEmail(g.email());
-    identidad.setTelefono(g.phone());
-    habitacion.setGuestId(guestId);
-    habitacion.setHabitacionSeleccionada(g.room());
-    extras.setGuestId(guestId);
+        guest.identityComplete()
+            ? "✓ Verificado — " + guest.document()
+            : "Pendiente de escaneo de documento");
+    identidad.setNombre(guest.name());
+    identidad.setEmail(guest.email());
+    identidad.setTelefono(guest.phone());
+    habitacion.setStayId(stayId);
+    habitacion.setHabitacionSeleccionada(view.stay().roomNumber());
+    extras.setStayId(stayId);
     extras.setExtrasSeleccionados("");
     extras.setExtrasTotal(0);
-    confirmar.setGuestId(guestId);
+    confirmar.setStayId(stayId);
   }
 
   /** The Confirmar step shows data derived from the other steps — recompute it on each request. */
   void syncConfirmar() {
-    var g = HotelData.arrival(guestId);
+    var view = FrontOffice.stayView(stayId);
+    var stay = view.stay();
     var nombre = identidad.getNombre();
-    confirmar.setHuespedPrincipal(nombre == null || nombre.isBlank() ? g.name() : nombre);
+    confirmar.setHuespedPrincipal(nombre == null || nombre.isBlank() ? view.guest().name() : nombre);
     var room =
         habitacion.getHabitacionSeleccionada() != null
             ? habitacion.getHabitacionSeleccionada()
-            : g.room();
-    confirmar.setHabitacionAsignada(
-        g.room().equals(room)
-            ? room + " — " + g.roomType()
-            : room + " — Planta " + (room.length() >= 2 ? room.substring(0, 2) : room));
-    confirmar.setEstancia(g.stay());
-    confirmar.setRegimen(g.board());
-    confirmar.setTotalEstancia(g.total() + extras.getExtrasTotal());
+            : stay.roomNumber();
+    confirmar.setHabitacionAsignada(room + " — " + roomTypeOf(room, stay.roomType()));
+    confirmar.setEstancia(GuestHeaders.stayDates(stay));
+    confirmar.setRegimen(stay.board());
+    confirmar.setTotalEstancia(stay.total().doubleValue() + extras.getExtrasTotal());
+  }
+
+  /** The selected room's type from the room inventory, falling back to the reservation's. */
+  static String roomTypeOf(String roomNumber, String fallback) {
+    return FrontOffice.rooms()
+        .findByNumber(roomNumber)
+        .map(r -> r.type() != null ? r.type() : "Planta " + r.floor())
+        .orElse(fallback);
   }
 
   // ── Actions dispatched by the step components ──────────────────────────────
@@ -137,16 +151,29 @@ public class CheckInWizard extends Wizard {
         return new Message("Aquí se registraría el siguiente huésped de la reserva (demo)");
       }
       case "simularEscaneo" -> {
-        var g = HotelData.arrival(guestId);
-        identidad.setDocumento("✓ Verificado — escaneo correcto");
-        identidad.setNombre(g.name());
-        identidad.setEmail(
-            g.email() == null || g.email().isBlank()
-                ? g.name().toLowerCase().replace(' ', '.').replace("í", "i").replace("é", "e")
-                    + "@email.com"
-                : g.email());
-        identidad.setTelefono(
-            g.phone() == null || g.phone().isBlank() ? "+00 000 000 000" : g.phone());
+        var view = FrontOffice.stayView(stayId);
+        var guest = view.guest();
+        if (!guest.identityComplete()) {
+          var document =
+              guest.document() == null || guest.document().isBlank()
+                  ? "ESC-" + guest.id().toUpperCase()
+                  : guest.document();
+          guest = guest.verifyIdentity(document);
+        }
+        if (guest.email() == null || guest.email().isBlank()) {
+          guest =
+              guest.updateContact(
+                  guest.name().toLowerCase().replace(' ', '.').replace("í", "i").replace("é", "e")
+                      + "@email.com",
+                  guest.phone() == null || guest.phone().isBlank()
+                      ? "+00 000 000 000"
+                      : guest.phone());
+        }
+        guest = FrontOffice.guests().save(guest);
+        identidad.setDocumento("✓ Verificado — " + guest.document());
+        identidad.setNombre(guest.name());
+        identidad.setEmail(guest.email());
+        identidad.setTelefono(guest.phone());
         return this;
       }
       case "encodeKey" -> {
@@ -195,8 +222,37 @@ public class CheckInWizard extends Wizard {
   @Label("Confirmar check-in")
   void confirmarCheckin() {
     syncConfirmar();
+    var view = FrontOffice.stayView(stayId);
+    var stay = view.stay();
+    if (stay.status() == StayStatus.ARRIVING) {
+      var selected =
+          habitacion.getHabitacionSeleccionada() != null
+              ? habitacion.getHabitacionSeleccionada()
+              : stay.roomNumber();
+      stay = stay.assignRoom(selected, roomTypeOf(selected, stay.roomType()));
+      for (var addOnId : extras.addedIds()) {
+        stay = stay.addAddOn(addOnId);
+      }
+      stay = FrontOffice.stays().save(stay.completeCheckIn());
+      FrontOffice.rooms()
+          .findByNumber(selected)
+          .filter(room -> room.assignable())
+          .ifPresent(room -> FrontOffice.rooms().save(room.occupy()));
+      if (view.folio() == null) {
+        var folio =
+            Folio.openFor("f-" + stay.id(), stay.id(), stay.total())
+                .post(FolioLine.charge("Alojamiento x" + stay.nights() + " noches", stay.total()));
+        for (var addOn : stay.addOns()) {
+          var item = FrontOffice.addOnCatalog().findById(addOn.addOnId()).orElse(null);
+          if (item != null && item.price() != null) {
+            folio = folio.post(FolioLine.charge(item.title(), item.price()));
+          }
+        }
+        FrontOffice.folios().save(folio);
+      }
+    }
     result = new ResultStep();
-    result.setGuestId(guestId);
+    result.setStayId(stayId);
     result.setHabitacionFinal(confirmar.getHabitacionAsignada());
     result.setMensaje(
         "✅ Check-in completado — "

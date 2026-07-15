@@ -21,7 +21,7 @@ import lombok.Setter;
 @FormLayout(columns = 1)
 public class ResultStep implements WizardStep {
 
-  @Hidden String guestId;
+  @Hidden String stayId;
 
   @Hidden String habitacionFinal;
 
