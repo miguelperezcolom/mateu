@@ -1,0 +1,15 @@
+{
+  "name": "mateu-figma-library-generator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Figma plugin that generates the Mateu component library (vaadin/Lumo flavor) from ../contract.json — the design-to-code contract consumed by modux's Figma importer.",
+  "scripts": {
+    "build": "esbuild src/code.ts --bundle --target=es2017 --outfile=dist/code.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.100.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.5.0"
+  }
+}

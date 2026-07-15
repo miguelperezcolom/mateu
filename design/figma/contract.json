@@ -1,0 +1,1989 @@
+{
+  "$comment": "Mateu <-> Figma design contract. SINGLE SOURCE OF TRUTH for the design-to-code pipeline: the Figma plugin (design/figma/plugin) BUILDS the component library from this file, and modux's Figma importer maps instances found in a Figma file BACK through it to UiComponentNodeEntity trees (kind + params) that the generators emit as Java/C#/Python. Conventions: component names are 'Mateu/<Category>/<Name>'; 'variants' become Figma VARIANT axes (visual), 'props' become Figma component properties (TEXT/BOOLEAN, non-visual config like actionId), 'texts' name the text layers whose content is a designer override that maps to the given param. 'sketch' is the compact draw spec the plugin renders (primitives: title, label, value, text, chip, fieldbox, hr, dot, bullets, bar, stepper, row, table, imagebox, button, tile).",
+  "version": 1,
+  "namePrefix": "Mateu/",
+  "lumo": {
+    "primary": "#1a73e8",
+    "base": "#ffffff",
+    "body": "#1a1a1a",
+    "secondary": "#666666",
+    "contrast10": "#e8e8e8",
+    "contrast20": "#d0d0d0",
+    "radiusM": 8,
+    "radiusL": 12,
+    "fontFamily": "Inter",
+    "sizeXs": 11,
+    "sizeS": 13,
+    "sizeM": 15,
+    "sizeL": 17,
+    "sizeXl": 21,
+    "themes": {
+      "info": {
+        "bg": "#e3f0fb",
+        "ink": "#1a5dad",
+        "badge": "#4285d3"
+      },
+      "success": {
+        "bg": "#e2f3e6",
+        "ink": "#22703a",
+        "badge": "#3e8635"
+      },
+      "warning": {
+        "bg": "#fdf0dc",
+        "ink": "#925a13",
+        "badge": "#c98a1e"
+      },
+      "danger": {
+        "bg": "#f6e0da",
+        "ink": "#a5502e",
+        "badge": "#b25b3d"
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Mateu/Field/TextField",
+      "kind": "field",
+      "mateu": {
+        "dataType": "string"
+      },
+      "java": "String field",
+      "csharp": "string property",
+      "python": "str field",
+      "props": {
+        "fieldId": "TEXT",
+        "required": "BOOLEAN"
+      },
+      "texts": {
+        "Label": "label",
+        "Value": "placeholder"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "fieldbox",
+          "text": "Value"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/TextArea",
+      "kind": "field",
+      "mateu": {
+        "dataType": "string",
+        "stereotype": "textarea"
+      },
+      "java": "@Stereotype(textarea) String / @Multiline",
+      "csharp": "[Multiline] string",
+      "python": "Annotated[str, Multiline()]",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "fieldbox",
+          "h": 64
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Number",
+      "kind": "field",
+      "mateu": {
+        "dataType": "number"
+      },
+      "java": "double/BigDecimal field",
+      "csharp": "double/decimal property",
+      "python": "float field",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "fieldbox",
+          "text": "0,00"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Integer",
+      "kind": "field",
+      "mateu": {
+        "dataType": "integer"
+      },
+      "java": "int/long field",
+      "csharp": "int/long property",
+      "python": "int field",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "fieldbox",
+          "text": "0"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Checkbox",
+      "kind": "field",
+      "mateu": {
+        "dataType": "bool"
+      },
+      "variants": {
+        "stereotype": [
+          "checkbox",
+          "toggle"
+        ]
+      },
+      "java": "boolean field",
+      "csharp": "bool property",
+      "python": "bool field",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "dot",
+              "square": true
+            },
+            {
+              "t": "text",
+              "text": "Label"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Date",
+      "kind": "field",
+      "mateu": {
+        "dataType": "date"
+      },
+      "variants": {
+        "dataType": [
+          "date",
+          "dateTime",
+          "time"
+        ]
+      },
+      "java": "LocalDate/LocalDateTime/LocalTime field",
+      "csharp": "DateOnly/DateTime property",
+      "python": "date/datetime field",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "fieldbox",
+          "text": "15/07/2026",
+          "icon": "📅"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Select",
+      "kind": "field",
+      "mateu": {
+        "stereotype": "select"
+      },
+      "variants": {
+        "stereotype": [
+          "select",
+          "combobox",
+          "searchable",
+          "treeSelect",
+          "listBox",
+          "multiSelect"
+        ]
+      },
+      "java": "enum field / @Lookup / @TreeSelect",
+      "csharp": "enum property / [Lookup]",
+      "python": "Enum field / Lookup()",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label",
+        "Value": "placeholder"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "fieldbox",
+          "text": "Value",
+          "icon": "▾"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/RadioGroup",
+      "kind": "field",
+      "mateu": {
+        "stereotype": "radio"
+      },
+      "java": "@UseRadioButtons enum field",
+      "csharp": "[UseRadioButtons] enum",
+      "python": "Annotated[Enum, UseRadioButtons()]",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "dot"
+            },
+            {
+              "t": "text",
+              "text": "Opción A"
+            },
+            {
+              "t": "dot",
+              "hollow": true
+            },
+            {
+              "t": "text",
+              "text": "Opción B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/PlainText",
+      "kind": "field",
+      "mateu": {
+        "stereotype": "plainText"
+      },
+      "variants": {
+        "dataType": [
+          "string",
+          "money"
+        ]
+      },
+      "java": "@PlainText field (+@Stereotype(money))",
+      "csharp": "[PlainText] property",
+      "python": "Annotated[str, PlainText()]",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label",
+        "Value": "value"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "value",
+          "text": "Value"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/PropertyRow",
+      "kind": "field",
+      "mateu": {
+        "propertyRow": true
+      },
+      "java": "field inside @Section(propertyList=true)",
+      "csharp": "[Section(PropertyList=true)] fields",
+      "python": "Section(property_list=True) fields",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label",
+        "Value": "value"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "spread": true,
+          "items": [
+            {
+              "t": "label",
+              "text": "Label"
+            },
+            {
+              "t": "value",
+              "text": "Value"
+            }
+          ]
+        },
+        {
+          "t": "hr"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Slider",
+      "kind": "field",
+      "mateu": {
+        "stereotype": "slider"
+      },
+      "java": "@SliderMin/@SliderMax numeric field",
+      "csharp": "numeric + slider stereotype",
+      "python": "Stereotype('slider')",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "bar",
+          "value": 0.6,
+          "knob": true
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Stars",
+      "kind": "field",
+      "mateu": {
+        "stereotype": "stars"
+      },
+      "java": "@Stereotype(stars) int field",
+      "csharp": "Stereotype stars",
+      "python": "Stereotype('stars')",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "text",
+          "text": "★★★★☆",
+          "color": "#c98a1e"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/BadgeChip",
+      "kind": "field",
+      "mateu": {
+        "stereotype": "badge"
+      },
+      "java": "@Badge boolean field",
+      "csharp": "badge stereotype",
+      "python": "Stereotype('badge')",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "chip",
+          "text": "Label",
+          "theme": "success"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Image",
+      "kind": "field",
+      "mateu": {
+        "stereotype": "image"
+      },
+      "variants": {
+        "stereotype": [
+          "image",
+          "uploadableImage",
+          "signature",
+          "camera"
+        ]
+      },
+      "java": "@UploadableImage / @Signature / @PhotoCapture String",
+      "csharp": "[UploadableImage]…",
+      "python": "UploadableImage()…",
+      "props": {
+        "fieldId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "imagebox"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Field/Grid",
+      "kind": "field",
+      "mateu": {
+        "stereotype": "grid"
+      },
+      "java": "List<Row> field (+@OnRowSelected)",
+      "csharp": "List<Row> property",
+      "python": "list[Row] field",
+      "props": {
+        "fieldId": "TEXT",
+        "onRowSelected": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "table",
+          "cols": 3,
+          "rows": 3
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Layout/Section",
+      "kind": "section",
+      "variants": {
+        "propertyList": [
+          "false",
+          "true"
+        ],
+        "frameless": [
+          "false",
+          "true"
+        ],
+        "sticky": [
+          "false",
+          "true"
+        ]
+      },
+      "java": "@Section(value, zone, columns, propertyList, frameless, sticky)",
+      "csharp": "[Section(...)]",
+      "python": "Section(...)",
+      "props": {
+        "zone": "TEXT",
+        "columns": "TEXT"
+      },
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "slot",
+          "h": 120
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Layout/ZonesRow",
+      "kind": "zones",
+      "java": "@Zones({@Zone(name,width)...}) + @Section(zone=...)",
+      "csharp": "[Zone(name,width)] on class",
+      "python": "@zones((name,width),...)",
+      "props": {
+        "widths": "TEXT"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "w": 260,
+              "h": 140
+            },
+            {
+              "t": "slot",
+              "w": 150,
+              "h": 140
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Layout/Tabs",
+      "kind": "tabs",
+      "java": "@Tab(name, open, shortcut) on fields",
+      "csharp": "[Tab(name, Open)]",
+      "python": "Tab(name, open)",
+      "texts": {
+        "Tab1": "tab1",
+        "Tab2": "tab2"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "text",
+              "text": "Tab1",
+              "bold": true,
+              "underline": true
+            },
+            {
+              "t": "text",
+              "text": "Tab2",
+              "color": "secondary"
+            }
+          ]
+        },
+        {
+          "t": "hr"
+        },
+        {
+          "t": "slot",
+          "h": 100
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Layout/Accordion",
+      "kind": "accordion",
+      "java": "AccordionLayout / fold-optionals",
+      "csharp": "AccordionLayout",
+      "python": "AccordionLayout",
+      "texts": {
+        "Title": "label"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "spread": true,
+          "items": [
+            {
+              "t": "title",
+              "text": "Title"
+            },
+            {
+              "t": "text",
+              "text": "▾"
+            }
+          ]
+        },
+        {
+          "t": "hr"
+        },
+        {
+          "t": "slot",
+          "h": 80
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Layout/Card",
+      "kind": "card",
+      "java": "Card (fluent)",
+      "csharp": "Card",
+      "python": "Card",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "slot",
+          "h": 100
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Layout/Separator",
+      "kind": "separator",
+      "java": "Separator / @SeparatorBefore",
+      "csharp": "Separator / [SeparatorBefore]",
+      "python": "Separator() / SeparatorBefore()",
+      "sketch": [
+        {
+          "t": "hr",
+          "w": 320
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Layout/SplitView",
+      "kind": "split",
+      "java": "AppLayout.SPLIT / MasterDetailLayout",
+      "csharp": "split layout",
+      "python": "split layout",
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "w": 200,
+              "h": 160
+            },
+            {
+              "t": "slot",
+              "w": 210,
+              "h": 160
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Text",
+      "kind": "text",
+      "variants": {
+        "size": [
+          "xl",
+          "l",
+          "m",
+          "s",
+          "xs"
+        ]
+      },
+      "java": "@Text(container,size,noMargins) / Text fluent",
+      "csharp": "new Text{Size}",
+      "python": "fluent.Text(size=…)",
+      "props": {
+        "noMargins": "BOOLEAN"
+      },
+      "texts": {
+        "Text": "text"
+      },
+      "sketch": [
+        {
+          "t": "text",
+          "text": "Text",
+          "sizeFromVariant": "size"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/BulletedList",
+      "kind": "bulletedList",
+      "java": "BulletedList / @BulletedList List<String>",
+      "csharp": "BulletedList / [BulletedList]",
+      "python": "fluent.BulletedList / BulletedList()",
+      "texts": {
+        "Item1": "item",
+        "Item2": "item",
+        "Item3": "item"
+      },
+      "sketch": [
+        {
+          "t": "bullets",
+          "items": [
+            "Item1",
+            "Item2",
+            "Item3"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Notice",
+      "kind": "notice",
+      "variants": {
+        "theme": [
+          "info",
+          "success",
+          "warning",
+          "danger"
+        ],
+        "slim": [
+          "false",
+          "true"
+        ]
+      },
+      "java": "Notice / @Notice String",
+      "csharp": "new Notice(text){Theme}",
+      "python": "fluent.Notice(...)",
+      "props": {
+        "fullWidth": "BOOLEAN",
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Text": "text",
+        "Action": "actionLabel"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "tint": "theme",
+          "pad": 10,
+          "items": [
+            {
+              "t": "dot",
+              "themeBadge": true,
+              "text": "!"
+            },
+            {
+              "t": "text",
+              "text": "Text",
+              "inkFromTheme": true,
+              "bold": true
+            },
+            {
+              "t": "button",
+              "text": "Action",
+              "pill": true,
+              "themeBadge": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/StatusList",
+      "kind": "statusList",
+      "java": "StatusList(items)",
+      "csharp": "new StatusList{Items}",
+      "python": "fluent.StatusList(items=…)",
+      "texts": {
+        "Title1": "item.title",
+        "Desc1": "item.description",
+        "Status1": "item.status"
+      },
+      "sketch": [
+        {
+          "t": "listrow",
+          "icon": "🌡",
+          "title": "Title1",
+          "desc": "Desc1",
+          "chip": "Status1"
+        },
+        {
+          "t": "listrow",
+          "icon": "🔑",
+          "title": "Grabar llave",
+          "desc": "Complemento",
+          "chip": "En curso"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/EntityHeader",
+      "kind": "entityHeader",
+      "java": "EntityHeader(title,badges,facts,metric)",
+      "csharp": "new EntityHeader{...}",
+      "python": "fluent.EntityHeader(...)",
+      "texts": {
+        "Title": "title",
+        "Subtitle": "subtitle",
+        "Badge": "badges[0]",
+        "MetricLabel": "metricLabel",
+        "MetricValue": "metricValue",
+        "MetricCaption": "metricCaption"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "spread": true,
+          "items": [
+            {
+              "t": "col",
+              "items": [
+                {
+                  "t": "row",
+                  "items": [
+                    {
+                      "t": "title",
+                      "text": "Title",
+                      "size": 18
+                    },
+                    {
+                      "t": "chip",
+                      "text": "Badge"
+                    }
+                  ]
+                },
+                {
+                  "t": "label",
+                  "text": "Subtitle"
+                }
+              ]
+            },
+            {
+              "t": "col",
+              "right": true,
+              "items": [
+                {
+                  "t": "label",
+                  "text": "MetricLabel"
+                },
+                {
+                  "t": "title",
+                  "text": "MetricValue",
+                  "color": "primary",
+                  "size": 20
+                },
+                {
+                  "t": "label",
+                  "text": "MetricCaption"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/KPI",
+      "kind": "kpi",
+      "java": "@KPI numeric field / KPI fluent",
+      "csharp": "Kpi",
+      "python": "kpi()",
+      "texts": {
+        "Label": "label",
+        "Value": "value"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "title",
+          "text": "Value",
+          "size": 22,
+          "color": "primary"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/MetricCard",
+      "kind": "metricCard",
+      "java": "MetricCard(title,value,trend,actionId)",
+      "csharp": "new MetricCard{...}",
+      "python": "fluent.MetricCard(...)",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Title": "title",
+        "Value": "value",
+        "Trend": "trendLabel"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Title"
+        },
+        {
+          "t": "title",
+          "text": "Value",
+          "size": 22
+        },
+        {
+          "t": "text",
+          "text": "Trend",
+          "color": "#3e8635",
+          "size": 11
+        }
+      ],
+      "card": true
+    },
+    {
+      "name": "Mateu/Display/Scoreboard",
+      "kind": "scoreboard",
+      "java": "Scoreboard(metrics) / consecutive MetricCard fields",
+      "csharp": "new Scoreboard{Metrics}",
+      "python": "fluent.Scoreboard(...)",
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "w": 120,
+              "h": 70
+            },
+            {
+              "t": "slot",
+              "w": 120,
+              "h": 70
+            },
+            {
+              "t": "slot",
+              "w": 120,
+              "h": 70
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/TaskProgress",
+      "kind": "taskProgress",
+      "java": "TaskProgress(label,total,done,action)",
+      "csharp": "new TaskProgress{...}",
+      "python": "fluent.TaskProgress(...)",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Label": "label",
+        "Action": "actionLabel"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "tint": "success",
+          "pad": 10,
+          "items": [
+            {
+              "t": "text",
+              "text": "Label"
+            },
+            {
+              "t": "chip",
+              "text": "1/2",
+              "theme": "success"
+            },
+            {
+              "t": "button",
+              "text": "Action"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Meter",
+      "kind": "meter",
+      "java": "Meter(label,value,max,warnAt,dangerAt)",
+      "csharp": "new Meter{...}",
+      "python": "fluent.Meter(...)",
+      "texts": {
+        "Label": "label",
+        "Caption": "caption"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "bar",
+          "value": 0.69
+        },
+        {
+          "t": "label",
+          "text": "Caption"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/ProgressBar",
+      "kind": "progressBar",
+      "java": "ProgressBar(value,max,text)",
+      "csharp": "ProgressBar",
+      "python": "ProgressBar",
+      "texts": {
+        "Text": "text"
+      },
+      "sketch": [
+        {
+          "t": "bar",
+          "value": 0.5
+        },
+        {
+          "t": "label",
+          "text": "Text"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/ProgressSteps",
+      "kind": "progressSteps",
+      "java": "ProgressSteps(steps) / @WizardProgress(STEPS)",
+      "csharp": "ProgressSteps",
+      "python": "ProgressSteps",
+      "texts": {
+        "Step1": "step",
+        "Step2": "step",
+        "Step3": "step"
+      },
+      "sketch": [
+        {
+          "t": "stepper",
+          "steps": [
+            "Step1",
+            "Step2",
+            "Step3"
+          ],
+          "current": 1
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Banner",
+      "kind": "banner",
+      "variants": {
+        "theme": [
+          "info",
+          "success",
+          "warning",
+          "danger"
+        ]
+      },
+      "java": "@Banner / PageBanner",
+      "csharp": "banner",
+      "python": "banner(...)",
+      "props": {
+        "closeable": "BOOLEAN"
+      },
+      "texts": {
+        "Title": "title",
+        "Description": "description"
+      },
+      "sketch": [
+        {
+          "t": "col",
+          "tint": "theme",
+          "pad": 12,
+          "items": [
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 14
+            },
+            {
+              "t": "text",
+              "text": "Description",
+              "size": 12
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/CalloutCard",
+      "kind": "calloutCard",
+      "variants": {
+        "theme": [
+          "info",
+          "success",
+          "warning",
+          "danger"
+        ]
+      },
+      "java": "CalloutCard(title,description,cta)",
+      "csharp": "new CalloutCard{...}",
+      "python": "fluent.CalloutCard(...)",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Title": "title",
+        "Description": "description",
+        "Cta": "ctaLabel"
+      },
+      "sketch": [
+        {
+          "t": "col",
+          "tint": "theme",
+          "pad": 14,
+          "items": [
+            {
+              "t": "title",
+              "text": "Title"
+            },
+            {
+              "t": "text",
+              "text": "Description",
+              "size": 12
+            },
+            {
+              "t": "button",
+              "text": "Cta"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/EmptyState",
+      "kind": "emptyState",
+      "java": "EmptyState(icon,title,description,cta)",
+      "csharp": "new EmptyState{...}",
+      "python": "fluent.EmptyState(...)",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Icon": "icon",
+        "Title": "title",
+        "Description": "description",
+        "Action": "actionLabel"
+      },
+      "sketch": [
+        {
+          "t": "col",
+          "center": true,
+          "pad": 20,
+          "items": [
+            {
+              "t": "text",
+              "text": "Icon",
+              "size": 28
+            },
+            {
+              "t": "title",
+              "text": "Title"
+            },
+            {
+              "t": "label",
+              "text": "Description"
+            },
+            {
+              "t": "button",
+              "text": "Action"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Skeleton",
+      "kind": "skeleton",
+      "variants": {
+        "variant": [
+          "text",
+          "card",
+          "grid",
+          "form"
+        ]
+      },
+      "java": "Skeleton(variant,count)",
+      "csharp": "new Skeleton{Variant}",
+      "python": "fluent.Skeleton(...)",
+      "sketch": [
+        {
+          "t": "bar",
+          "value": 1,
+          "color": "#eeeeee"
+        },
+        {
+          "t": "bar",
+          "value": 1,
+          "color": "#f3f3f3",
+          "w": 260
+        },
+        {
+          "t": "bar",
+          "value": 1,
+          "color": "#eeeeee",
+          "w": 200
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Timeline",
+      "kind": "timeline",
+      "java": "Timeline(items)",
+      "csharp": "Timeline",
+      "python": "fluent.Timeline(...)",
+      "texts": {
+        "Title1": "item.title",
+        "Time1": "item.timestamp"
+      },
+      "sketch": [
+        {
+          "t": "listrow",
+          "icon": "●",
+          "title": "Title1",
+          "desc": "Time1"
+        },
+        {
+          "t": "listrow",
+          "icon": "●",
+          "title": "Evento anterior",
+          "desc": "ayer"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Kanban",
+      "kind": "kanban",
+      "java": "Kanban(columns)",
+      "csharp": "Kanban",
+      "python": "fluent.Kanban(...)",
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "w": 130,
+              "h": 150,
+              "label": "To do"
+            },
+            {
+              "t": "slot",
+              "w": 130,
+              "h": 150,
+              "label": "Doing"
+            },
+            {
+              "t": "slot",
+              "w": 130,
+              "h": 150,
+              "label": "Done"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Gantt",
+      "kind": "gantt",
+      "java": "Gantt(tasks)",
+      "csharp": "Gantt",
+      "python": "fluent.Gantt(...)",
+      "sketch": [
+        {
+          "t": "table",
+          "cols": 6,
+          "rows": 3,
+          "gantt": true
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Calendar",
+      "kind": "calendar",
+      "java": "Calendar(month,events)",
+      "csharp": "Calendar",
+      "python": "fluent.Calendar(...)",
+      "sketch": [
+        {
+          "t": "table",
+          "cols": 7,
+          "rows": 5
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Stat",
+      "kind": "stat",
+      "java": "Stat(label,value,delta,spark)",
+      "csharp": "Stat",
+      "python": "fluent.Stat(...)",
+      "texts": {
+        "Label": "label",
+        "Value": "value",
+        "Delta": "delta"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Label"
+        },
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "title",
+              "text": "Value",
+              "size": 20
+            },
+            {
+              "t": "chip",
+              "text": "Delta",
+              "theme": "success"
+            }
+          ]
+        }
+      ],
+      "card": true
+    },
+    {
+      "name": "Mateu/Display/TrendChart",
+      "kind": "trendChart",
+      "java": "TrendChart(title,values)",
+      "csharp": "TrendChart",
+      "python": "fluent.TrendChart(...)",
+      "texts": {
+        "Title": "title"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "Title"
+        },
+        {
+          "t": "imagebox",
+          "h": 80,
+          "label": "📈"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Heatmap",
+      "kind": "heatmap",
+      "java": "Heatmap(cells)",
+      "csharp": "Heatmap",
+      "python": "fluent.Heatmap(...)",
+      "sketch": [
+        {
+          "t": "table",
+          "cols": 8,
+          "rows": 4,
+          "heat": true
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Funnel",
+      "kind": "funnel",
+      "java": "Funnel(stages)",
+      "csharp": "Funnel",
+      "python": "fluent.Funnel(...)",
+      "sketch": [
+        {
+          "t": "bar",
+          "value": 1.0
+        },
+        {
+          "t": "bar",
+          "value": 0.7
+        },
+        {
+          "t": "bar",
+          "value": 0.4
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/OrgChart",
+      "kind": "orgChart",
+      "java": "OrgChart(root)",
+      "csharp": "OrgChart",
+      "python": "fluent.OrgChart(...)",
+      "sketch": [
+        {
+          "t": "imagebox",
+          "h": 110,
+          "label": "🌳"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/FeatureGrid",
+      "kind": "featureGrid",
+      "java": "FeatureGrid(features)",
+      "csharp": "FeatureGrid",
+      "python": "fluent.FeatureGrid(...)",
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "slot",
+              "w": 120,
+              "h": 90
+            },
+            {
+              "t": "slot",
+              "w": 120,
+              "h": 90
+            },
+            {
+              "t": "slot",
+              "w": 120,
+              "h": 90
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Testimonials",
+      "kind": "testimonials",
+      "java": "Testimonials(items)",
+      "csharp": "Testimonials",
+      "python": "fluent.Testimonials(...)",
+      "texts": {
+        "Quote": "item.quote",
+        "Author": "item.author"
+      },
+      "sketch": [
+        {
+          "t": "text",
+          "text": "Quote",
+          "italic": true
+        },
+        {
+          "t": "label",
+          "text": "Author"
+        }
+      ],
+      "card": true
+    },
+    {
+      "name": "Mateu/Display/Faq",
+      "kind": "faq",
+      "java": "Faq(items)",
+      "csharp": "Faq",
+      "python": "fluent.Faq(...)",
+      "texts": {
+        "Question": "item.question",
+        "Answer": "item.answer"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "spread": true,
+          "items": [
+            {
+              "t": "title",
+              "text": "Question",
+              "size": 14
+            },
+            {
+              "t": "text",
+              "text": "▾"
+            }
+          ]
+        },
+        {
+          "t": "label",
+          "text": "Answer"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/CommentThread",
+      "kind": "commentThread",
+      "java": "CommentThread(comments)",
+      "csharp": "CommentThread",
+      "python": "fluent.CommentThread(...)",
+      "sketch": [
+        {
+          "t": "listrow",
+          "icon": "👤",
+          "title": "Autor",
+          "desc": "El texto del comentario…"
+        },
+        {
+          "t": "listrow",
+          "icon": "👤",
+          "title": "Otra persona",
+          "desc": "Una respuesta…"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/FileList",
+      "kind": "fileList",
+      "java": "FileList(files)",
+      "csharp": "FileList",
+      "python": "fluent.FileList(...)",
+      "sketch": [
+        {
+          "t": "listrow",
+          "icon": "📄",
+          "title": "informe.pdf",
+          "desc": "1,2 MB"
+        },
+        {
+          "t": "listrow",
+          "icon": "📄",
+          "title": "foto.jpg",
+          "desc": "300 KB"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Checklist",
+      "kind": "checklist",
+      "java": "Checklist(title,items)",
+      "csharp": "Checklist",
+      "python": "fluent.Checklist(...)",
+      "texts": {
+        "Title": "title"
+      },
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 14
+        },
+        {
+          "t": "bullets",
+          "items": [
+            "✓ Hecho",
+            "○ Pendiente"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/ComparisonCard",
+      "kind": "comparisonCard",
+      "java": "ComparisonCard(left,right,delta)",
+      "csharp": "ComparisonCard",
+      "python": "fluent.ComparisonCard(...)",
+      "texts": {
+        "Left": "leftValue",
+        "Right": "rightValue",
+        "Delta": "delta"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "spread": true,
+          "items": [
+            {
+              "t": "title",
+              "text": "Left"
+            },
+            {
+              "t": "chip",
+              "text": "Delta",
+              "theme": "success"
+            },
+            {
+              "t": "title",
+              "text": "Right"
+            }
+          ]
+        }
+      ],
+      "card": true
+    },
+    {
+      "name": "Mateu/Display/HeroSection",
+      "kind": "hero",
+      "java": "HeroSection(title,subtitle,image)",
+      "csharp": "HeroSection",
+      "python": "fluent.HeroSection(...)",
+      "texts": {
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "col",
+          "center": true,
+          "pad": 24,
+          "bg": "#2b3a4a",
+          "items": [
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 22,
+              "color": "#ffffff"
+            },
+            {
+              "t": "text",
+              "text": "Subtitle",
+              "color": "#cfd8e3"
+            },
+            {
+              "t": "slot",
+              "h": 40
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Crud/Listing",
+      "kind": "crud",
+      "variants": {
+        "gridLayout": [
+          "table",
+          "cards",
+          "list",
+          "masterDetail",
+          "tree"
+        ]
+      },
+      "java": "AutoCrud<T> / Listing<F,R>",
+      "csharp": "Crud<T> / Listing<F,R>",
+      "python": "Crud / Listing",
+      "props": {
+        "aggregateId": "TEXT"
+      },
+      "texts": {
+        "Title": "title"
+      },
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title"
+        },
+        {
+          "t": "fieldbox",
+          "text": "🔍 Buscar…"
+        },
+        {
+          "t": "table",
+          "cols": 4,
+          "rows": 4
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Crud/FilterBar",
+      "kind": "filterBar",
+      "java": "smart search bar (auto en AutoCrud)",
+      "csharp": "filters metadata",
+      "python": "filters",
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "fieldbox",
+              "text": "🔍 Buscar…",
+              "w": 200
+            },
+            {
+              "t": "chip",
+              "text": "estado: activa ✕"
+            },
+            {
+              "t": "chip",
+              "text": "fecha: jul ✕"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Actions/Button",
+      "kind": "button",
+      "variants": {
+        "style": [
+          "primary",
+          "secondary",
+          "tertiary"
+        ],
+        "size": [
+          "m",
+          "small"
+        ]
+      },
+      "java": "@Button/@Toolbar method / Button fluent",
+      "csharp": "[Button] method",
+      "python": "@button method",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "button",
+          "text": "Label",
+          "styleFromVariant": "style"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Actions/Toolbar",
+      "kind": "toolbar",
+      "java": "@Toolbar methods (page/section)",
+      "csharp": "[Toolbar]",
+      "python": "@toolbar",
+      "container": true,
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "button",
+              "text": "Guardar",
+              "styleFromVariant": null
+            },
+            {
+              "t": "button",
+              "text": "Cancelar",
+              "secondary": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Actions/Fab",
+      "kind": "fab",
+      "java": "@Fab(icon,label)",
+      "csharp": "[Fab]",
+      "python": "fab()",
+      "props": {
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Icon": "icon"
+      },
+      "sketch": [
+        {
+          "t": "dot",
+          "text": "+",
+          "size": 40,
+          "color": "primary"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Page/Header",
+      "kind": "pageHeader",
+      "java": "@Title/@Subtitle + @BadgeInHeader + @KPI",
+      "csharp": "[Title]…",
+      "python": "title()…",
+      "texts": {
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 20
+        },
+        {
+          "t": "label",
+          "text": "Subtitle"
+        },
+        {
+          "t": "hr"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Page/Wizard",
+      "kind": "wizard",
+      "variants": {
+        "progress": [
+          "bar",
+          "steps"
+        ],
+        "layout": [
+          "steps",
+          "accumulative",
+          "accordion"
+        ]
+      },
+      "java": "Wizard + @WizardProgress + @WizardLayout",
+      "csharp": "Wizard + [WizardProgress]",
+      "python": "Wizard + @wizard_progress",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "title",
+          "text": "Title",
+          "size": 18
+        },
+        {
+          "t": "stepper",
+          "steps": [
+            "Paso 1",
+            "Paso 2",
+            "Paso 3"
+          ],
+          "current": 0
+        },
+        {
+          "t": "slot",
+          "h": 120
+        },
+        {
+          "t": "row",
+          "right": true,
+          "items": [
+            {
+              "t": "button",
+              "text": "Back",
+              "secondary": true
+            },
+            {
+              "t": "button",
+              "text": "Next"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Shell/App",
+      "kind": "app",
+      "variants": {
+        "variant": [
+          "MENU_ON_TOP",
+          "TABS",
+          "HAMBURGUER_MENU",
+          "TILES"
+        ]
+      },
+      "java": "@UI + @App(variant) + @Menu",
+      "csharp": "[App]",
+      "python": "@app",
+      "container": true,
+      "texts": {
+        "Title": "title",
+        "Menu1": "menu",
+        "Menu2": "menu",
+        "Menu3": "menu"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "spread": true,
+          "pad": 10,
+          "items": [
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 16
+            },
+            {
+              "t": "row",
+              "items": [
+                {
+                  "t": "text",
+                  "text": "Menu1",
+                  "color": "primary"
+                },
+                {
+                  "t": "text",
+                  "text": "Menu2",
+                  "color": "primary"
+                },
+                {
+                  "t": "text",
+                  "text": "Menu3",
+                  "color": "primary"
+                }
+              ]
+            },
+            {
+              "t": "fieldbox",
+              "text": "Contexto ▾",
+              "w": 90
+            }
+          ]
+        },
+        {
+          "t": "hr"
+        },
+        {
+          "t": "slot",
+          "h": 200
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Shell/AppContextPicker",
+      "kind": "appContext",
+      "java": "@AppContext field",
+      "csharp": "[AppContext]",
+      "python": "@app_context",
+      "texts": {
+        "Label": "label",
+        "Value": "value"
+      },
+      "sketch": [
+        {
+          "t": "row",
+          "items": [
+            {
+              "t": "label",
+              "text": "Label"
+            },
+            {
+              "t": "fieldbox",
+              "text": "Value ▾",
+              "w": 120
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
