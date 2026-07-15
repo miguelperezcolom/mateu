@@ -16,20 +16,33 @@ import { Notification } from "@vaadin/notification";
 const runHeaderAction = async (metadata: App, container: MateuApp, actionId: string) => {
     try {
         // The SSE flavor: a server action returning a Flux streams one UIIncrement per
-        // element, so long pipelines (deploy…) toast their milestones as they happen.
+        // element, so long pipelines (deploy…) update their dialog as they happen.
+        // The on-screen mateu-component is the initiator: streamed fragments (e.g. a
+        // LongTask's progress dialog) are addressed to the initiator's id, and only a
+        // REAL component adopts and renders them.
+        const findComponent = (root: Element | ShadowRoot | null): HTMLElement | null => {
+            if (!root || !('querySelectorAll' in root)) return null
+            for (const el of root.querySelectorAll('*')) {
+                if (el.tagName?.toLowerCase() === 'mateu-component') return el as HTMLElement
+                const nested = findComponent((el as HTMLElement).shadowRoot)
+                if (nested) return nested
+            }
+            return null
+        }
+        const comp = findComponent(container.renderRoot as Element | ShadowRoot)
         await sseService.runAction(
             mateuApiClient,
             container.baseUrl ?? '',
             metadata.rootRoute || '_no_route',
             '',
             actionId,
-            'app-header-action',
+            comp?.id ?? 'app-header-action',
             {},
             metadata.serverSideType ?? '',
             {},
             {},
-            container,
-            false,
+            comp ?? container,
+            true,
             undefined,
             false,
             ''

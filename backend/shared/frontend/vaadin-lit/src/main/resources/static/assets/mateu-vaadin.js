@@ -7509,7 +7509,7 @@ id="${e.id}"
         vaadin-select, vaadin-combo-box {
             width: 11rem;
         }
-    `;ii([u()],ht.prototype,"selector",2);ii([u()],ht.prototype,"app",2);ii([u()],ht.prototype,"baseUrl",2);ht=ii([x("mateu-vaadin-app-context-picker")],ht);const Kc=async(e,t,a)=>{try{await Ts.runAction(Wa,t.baseUrl??"",e.rootRoute||"_no_route","",a,"app-header-action",{},e.serverSideType??"",{},{},t,!1,void 0,!1,"")}catch(s){Gt.show("La acción falló: "+s,{position:"bottom-start",duration:6e3,theme:"error"})}},sa=(e,t)=>{const a=e.contextSelectors??[],s=e.contextActions??[];return a.length===0&&s.length===0?l:o`${a.map(i=>o`
+    `;ii([u()],ht.prototype,"selector",2);ii([u()],ht.prototype,"app",2);ii([u()],ht.prototype,"baseUrl",2);ht=ii([x("mateu-vaadin-app-context-picker")],ht);const Kc=async(e,t,a)=>{try{const s=r=>{if(!r||!("querySelectorAll"in r))return null;for(const n of r.querySelectorAll("*")){if(n.tagName?.toLowerCase()==="mateu-component")return n;const d=s(n.shadowRoot);if(d)return d}return null},i=s(t.renderRoot);await Ts.runAction(Wa,t.baseUrl??"",e.rootRoute||"_no_route","",a,i?.id??"app-header-action",{},e.serverSideType??"",{},{},i??t,!0,void 0,!1,"")}catch(s){Gt.show("La acción falló: "+s,{position:"bottom-start",duration:6e3,theme:"error"})}},sa=(e,t)=>{const a=e.contextSelectors??[],s=e.contextActions??[];return a.length===0&&s.length===0?l:o`${a.map(i=>o`
         <mateu-vaadin-app-context-picker .selector="${i}" .app="${e}" .baseUrl="${t.baseUrl??""}"></mateu-vaadin-app-context-picker>`)}${s.map(i=>o`
         <vaadin-button theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
             @click="${()=>Kc(e,t,i.actionId)}" title="${i.label}">
