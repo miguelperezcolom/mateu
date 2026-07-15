@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { MateuSession, NavTarget } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
 import { ComponentRenderer } from './ComponentRenderer';
@@ -67,6 +67,18 @@ export function MateuViewHost({ session, target, serverSideNode, onOpenDetail, s
   }
   if (!view.component) return <View style={styles.centered} />;
 
+  // Routed views whose root is a bare layout (e.g. a wizard's VerticalLayout) don't scroll by
+  // themselves — Page/Form/Crud roots bring their own ScrollView/list, everything else gets one.
+  // Embedded islands (serverSideNode) stay unwrapped: they live inside the host view's scroll.
+  const rootType =
+    ((view.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>)?.[
+      'type'
+    ] as string | undefined;
+  const selfScrolling = rootType === 'Page' || rootType === 'Form' || rootType === 'Crud';
+  const content = (
+    <ComponentRenderer component={view.component} state={view.state} data={view.data} />
+  );
+
   return (
     <ViewControllerContext.Provider value={controller}>
       <View style={styles.host} key={view.version}>
@@ -75,7 +87,13 @@ export function MateuViewHost({ session, target, serverSideNode, onOpenDetail, s
             <ActivityIndicator color="#0070f3" />
           </View>
         )}
-        <ComponentRenderer component={view.component} state={view.state} data={view.data} />
+        {serverSideNode || selfScrolling ? (
+          content
+        ) : (
+          <ScrollView style={styles.host} contentContainerStyle={styles.scrollBody}>
+            {content}
+          </ScrollView>
+        )}
       </View>
     </ViewControllerContext.Provider>
   );
@@ -83,6 +101,7 @@ export function MateuViewHost({ session, target, serverSideNode, onOpenDetail, s
 
 const styles = StyleSheet.create({
   host: { flex: 1 },
+  scrollBody: { paddingBottom: 24 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   error: { color: '#cc0000', padding: 16, fontSize: 14 },
   loadingOverlay: { position: 'absolute', top: 8, right: 8, zIndex: 10 },
