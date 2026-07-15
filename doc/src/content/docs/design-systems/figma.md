@@ -36,10 +36,46 @@ designs **back** through it.
   and turns every top-level frame into a page of the modux model, with the Mateu instances (and
   their variants, texts and config) as its content tree.
 
+## The full flow, step by step
+
+1. **Generate the library** (once, and whenever the catalog grows): open Figma, import
+   `design/figma/plugin/manifest.json` as a development plugin, run *Mateu Library Generator* on
+   an empty file and publish it as a team library.
+2. **Design**: the designer composes screens using only instances from the library — one
+   top-level frame per screen. Variants select the styled knobs (`theme`, `propertyList`,
+   `gridLayout`…), text layers carry the labels/titles, and the small `#config` line the ids
+   (`fieldId=email; actionId=save`).
+3. **Bring the design into the repo**: download the file JSON —
+   ```bash
+   curl -H "X-Figma-Token: $FIGMA_TOKEN" \
+        https://api.figma.com/v1/files/<FILE_KEY> > src/main/figma/screens.json
+   ```
+4. **Generate the code** with the Maven plugin (modux repo, `figma-maven-plugin`):
+   ```xml
+   <plugin>
+     <groupId>io.mateu.modux</groupId>
+     <artifactId>figma-maven-plugin</artifactId>
+     <version>0.1.0-SNAPSHOT</version>
+     <executions><execution><goals><goal>generate</goal></goals></execution></executions>
+     <configuration>
+       <basePackage>com.acme.frontoffice.ui</basePackage>
+       <languages><language>java</language><language>csharp</language><language>python</language></languages>
+     </configuration>
+   </plugin>
+   ```
+   Every designed frame becomes a view class under `target/generated-sources/figma` (the Java
+   ones join the compilation automatically): fields with their `@Label`s and `@Section`s
+   (propertyList/frameless/zones), notices, texts, bulleted lists, separators and buttons come
+   out ready; rich display components and wizard/crud frames come out as annotated skeletons with
+   `TODO`s for the developer to finish.
+5. **Alternatively, import into the modux model** (`importfigma` use case) when the screens
+   should live in a full modux specification (aggregates, use cases, sagas…) rather than as
+   standalone views.
+
 ## What's next
 
-The modux generation templates consuming the imported content trees to emit the Java — and then
-C# and Python — implementation of each designed screen.
+Deepening the emitters (wizard steps, crud detail wiring, dashboards) and the modux generation
+templates consuming the imported content trees for the full-model path.
 
 See `design/figma/README.md` in the repository for the designer conventions and the detailed
 pipeline documentation.
