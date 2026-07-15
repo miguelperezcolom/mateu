@@ -75,6 +75,14 @@ class Section:
     #: Assigns the section to a @zones column (zones lay sections out side by side);
     #: unrecognised zones fall into a trailing flexible column.
     zone: str = ""
+    #: When true the section renders as a property list: every data field becomes a read-only
+    #: row (plain-text value, label left / value right, divider between rows) stacked in a
+    #: single column. (Python analogue of Java's @Section(propertyList=true).)
+    property_list: bool = False
+    #: When true the section is not framed: no card wrapper and no padding — its content sits
+    #: bare on the page. For bands whose content brings its own chrome. (Python analogue of
+    #: Java's @Section(frameless=true).)
+    frameless: bool = False
 
 
 @dataclass(frozen=True)
@@ -103,6 +111,20 @@ class Password:
 @dataclass(frozen=True)
 class Money:
     """Tags a numeric field as a formatted currency amount."""
+
+
+@dataclass(frozen=True)
+class SeparatorBefore:
+    """Paints a horizontal divider line (``<hr>``) above the field, occupying the full form
+    width — for separating groups of contents inside a section or form without starting a new
+    section. The fluent counterpart is ``mateu_uidl.components.Separator``."""
+
+
+@dataclass(frozen=True)
+class BulletedList:
+    """Renders a collection field (typically ``list[str]``) as a plain read-only bulleted list
+    (``<ul>``). Shorthand for the "bulletedList" stereotype; the fluent counterpart is
+    ``mateu_uidl.components.BulletedList``."""
 
 
 @dataclass(frozen=True)
@@ -416,6 +438,17 @@ def ui(route: str = "") -> Callable[[type], type]:
 def title(value: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
         cls.__mateu_title__ = value
+        return cls
+
+    return deco
+
+
+def wizard_progress(style: str) -> Callable[[type], type]:
+    """Chooses how a Wizard visualizes its progress: "bar" (default) or "steps" — connected
+    step bullets (the ProgressSteps component). (Python analogue of Java's @WizardProgress.)"""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_wizard_progress__ = style
         return cls
 
     return deco
@@ -907,9 +940,9 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
-    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout",
+    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "wizard_progress",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut",
     "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",

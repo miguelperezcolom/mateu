@@ -35,7 +35,7 @@ export class MateuProgressSteps extends LitElement {
         }
         .connector {
             position: absolute;
-            top: 1rem;
+            top: calc(.75rem - 1px);
             left: -50%;
             width: 100%;
             height: 2px;
@@ -47,15 +47,17 @@ export class MateuProgressSteps extends LitElement {
             background: var(--lumo-primary-color, #1a73e8);
         }
         .dot {
-            width: 2rem;
-            height: 2rem;
+            width: 1.5rem;
+            height: 1.5rem;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            font-size: .85rem;
-            background: var(--lumo-contrast-10pct, #e5e7eb);
+            font-size: .7rem;
+            /* the contrast tint layered over the OPAQUE base color: lumo contrast vars are
+               translucent and would let the connector line show through the dot */
+            background: linear-gradient(var(--lumo-contrast-10pct, #e5e7eb), var(--lumo-contrast-10pct, #e5e7eb)) var(--lumo-base-color, #fff);
             color: var(--lumo-secondary-text-color, #666);
             z-index: 1;
             border: 2px solid transparent;
@@ -70,7 +72,7 @@ export class MateuProgressSteps extends LitElement {
             border-color: var(--lumo-primary-color, #1a73e8);
         }
         .label {
-            margin-top: .4rem;
+            margin-top: .35rem;
             font-weight: 600;
             color: var(--lumo-body-text-color, #222);
             padding: 0 .25rem;

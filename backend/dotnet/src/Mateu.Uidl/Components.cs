@@ -511,6 +511,30 @@ public sealed record StatusList : ComponentBase
     public IReadOnlyList<StatusItem> Items { get; init; } = [];
 }
 
+/// <summary>A plain bulleted list (&lt;ul&gt;) of text items — the lightweight counterpart of
+/// <see cref="StatusList"/> for read-only enumerations (preferences, highlights, notes).</summary>
+public sealed record BulletedList : ComponentBase
+{
+    public IReadOnlyList<string> Items { get; init; } = [];
+}
+
+/// <summary>A compact inline banner: a theme-tinted strip with a severity icon and one line of
+/// text (e.g. "2 quejas pendientes"), plus an optional right-aligned action. Theme: "info" |
+/// "success" | "warning" | "danger" (default info).</summary>
+public sealed record Notice(string Text) : ComponentBase
+{
+    public string? Theme { get; init; }
+    public string? Icon { get; init; }
+    public string? ActionLabel { get; init; }
+    public string? ActionId { get; init; }
+    /// <summary>Tight variant: no block margins and reduced padding.</summary>
+    public bool Slim { get; init; }
+    /// <summary>Spans the full form width (all columns).</summary>
+    public bool FullWidth { get; init; }
+    /// <summary>Arbitrary components rendered inside the tinted strip, below the text.</summary>
+    public IReadOnlyList<IComponent> Content { get; init; } = [];
+}
+
 /// <summary>One card of a <see cref="TaskQueue"/> group. Selected renders with an accent
 /// border + tinted background.</summary>
 public sealed record QueueItem
@@ -670,8 +694,18 @@ public sealed record ProcessMonitor : ComponentBase
 
 // ── Generic building blocks (used by archetypes and free composition) ──────────
 
-/// <summary>A plain text block.</summary>
-public sealed record Text(string Content) : ComponentBase;
+/// <summary>A plain text block. Size: "xl" | "l" | "m" | "s" | "xs" — m (or null) applies
+/// nothing, the rest enlarge/reduce the font. NoMargins drops the container's block margins,
+/// independent of Size.</summary>
+public sealed record Text(string Content) : ComponentBase
+{
+    public string? Size { get; init; }
+    public bool NoMargins { get; init; }
+}
+
+/// <summary>A horizontal divider line (&lt;hr&gt;) separating contents inside a section, form or
+/// layout. Declaratively, mark a property with [SeparatorBefore] to paint one above it.</summary>
+public sealed record Separator : ComponentBase;
 
 /// <summary>A button dispatching an action (a method name on the view).</summary>
 public sealed record Button(string Label, string ActionId) : ComponentBase

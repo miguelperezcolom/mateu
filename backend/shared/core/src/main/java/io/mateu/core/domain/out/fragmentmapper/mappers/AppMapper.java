@@ -90,6 +90,7 @@ public final class AppMapper {
             .fabs(getAppFabs(app))
             .themeToggle(getThemeToggle(app))
             .contextSelectors(getContextSelectors(app, httpRequest))
+            .contextActions(getContextActions(app, httpRequest))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -126,6 +127,37 @@ public final class AppMapper {
         .actionId(method.getName())
         .buttonStyle(ann.buttonStyle().name())
         .build();
+  }
+
+  /**
+   * Header action buttons, next to the context selectors: the app class implements {@link
+   * io.mateu.uidl.interfaces.AppActionsSupplier} and decides per request which actions exist
+   * (visibility follows server-side state). Each actionId dispatches like a {@code @Fab}: the app
+   * class method with that name runs.
+   */
+  @SneakyThrows
+  private static List<AppHeaderActionDto> getContextActions(AppShell app, HttpRequest httpRequest) {
+    if (app.serverSideType() == null) return List.of();
+    var appClass = Class.forName(app.serverSideType());
+    if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
+      return List.of();
+    }
+    var supplier =
+        (io.mateu.uidl.interfaces.AppActionsSupplier)
+            io.mateu.uidl.di.MateuBeanProvider.getBean(
+                    io.mateu.uidl.interfaces.InstanceFactory.class)
+                .newInstance(appClass, java.util.Map.of(), httpRequest);
+    var actions = supplier.appActions(httpRequest);
+    if (actions == null) return List.of();
+    return actions.stream()
+        .map(
+            action ->
+                AppHeaderActionDto.builder()
+                    .actionId(action.actionId())
+                    .label(action.label())
+                    .icon(action.icon())
+                    .build())
+        .toList();
   }
 
   /**

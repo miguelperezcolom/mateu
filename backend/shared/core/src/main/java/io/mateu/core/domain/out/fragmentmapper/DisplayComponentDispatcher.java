@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.AvatarGroupMapper.
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AvatarMapper.mapAvatarToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.BadgeMapper.mapBadgeToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.BreadcrumbsMapper.mapBreadcrumbsToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.BulletedListMapper.mapBulletedListToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ButtonMapper.mapButtonToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CalendarMapper.mapCalendarToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.CalloutCardMapper.mapCalloutCardToDto;
@@ -31,6 +32,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.LedgerMapper.mapLe
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MeterMapper.mapMeterToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MetricCardMapper.mapMetricCardToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.NoticeMapper.mapNoticeToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.OfferCardMapper.mapOfferCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.OrgChartMapper.mapOrgChartToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PaymentPickerMapper.mapPaymentPickerToDto;
@@ -40,6 +42,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressStepsMapper.mapProgressStepsToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ResourceGridMapper.mapResourceGridToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ScoreboardMapper.mapScoreboardToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.SeparatorMapper.mapSeparatorToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.SkeletonMapper.mapSkeletonToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.StatMapper.mapStatToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.StatusListMapper.mapStatusListToDto;
@@ -162,6 +165,16 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof StatusList statusList) {
       return mapStatusListToDto(statusList);
+    }
+    if (component instanceof BulletedList bulletedList) {
+      return mapBulletedListToDto(bulletedList);
+    }
+    if (component instanceof Separator separator) {
+      return mapSeparatorToDto(separator);
+    }
+    if (component instanceof Notice notice) {
+      return mapNoticeToDto(
+          notice, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof TaskQueue taskQueue) {
       return mapTaskQueueToDto(taskQueue);

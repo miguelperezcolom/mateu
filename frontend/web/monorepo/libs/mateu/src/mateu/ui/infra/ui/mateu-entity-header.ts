@@ -42,6 +42,7 @@ export class MateuEntityHeader extends LitElement {
             font-size: var(--lumo-font-size-s, .875rem);
             color: var(--lumo-secondary-text-color, #666);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            line-height: normal;
         }
         .facts {
             display: flex; gap: var(--lumo-space-l, 1.5rem); flex-wrap: wrap;
@@ -57,6 +58,7 @@ export class MateuEntityHeader extends LitElement {
             font-size: var(--lumo-font-size-s, .875rem); font-weight: 500;
             color: var(--lumo-body-text-color, #222);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            line-height: normal;
         }
         .metric {
             flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center;

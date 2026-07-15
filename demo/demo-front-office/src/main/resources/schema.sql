@@ -16,7 +16,8 @@ create table guest (
     years_as_client   int          not null,
     complaints        int          not null,
     hotels            int          not null,
-    last_stay_summary varchar(300)
+    last_stay_summary varchar(300),
+    last_stay_complementary_info varchar(300)
 );
 
 create table guest_preference (

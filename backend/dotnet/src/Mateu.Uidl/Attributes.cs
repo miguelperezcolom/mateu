@@ -34,6 +34,26 @@ public sealed class SignatureAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class PhotoCaptureAttribute : Attribute;
 
+/// <summary>Chooses how a Wizard visualizes its progress: "bar" (default) or "steps" — connected
+/// step bullets (the ProgressSteps component). (C# analogue of Java's @WizardProgress.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class WizardProgressAttribute(string style) : Attribute
+{
+    public string Style { get; } = style;
+}
+
+/// <summary>Paints a horizontal divider line (&lt;hr&gt;) above the property, occupying the full
+/// form width — for separating groups of contents inside a section or form without starting a new
+/// section. The fluent counterpart is the Separator component.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class SeparatorBeforeAttribute : Attribute;
+
+/// <summary>Renders a collection property (typically a list of strings) as a plain read-only
+/// bulleted list (&lt;ul&gt;). Shorthand for the "bulletedList" stereotype; the fluent counterpart
+/// is the BulletedList component.</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class BulletedListAttribute : Attribute;
+
 /// <summary>Renders the property's dropdown as a TREE: the options carry children (supply them by
 /// implementing IOptionsSupplier). With LeavesOnly only leaf nodes are selectable.</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
@@ -123,6 +143,16 @@ public sealed class SectionAttribute(string caption) : Attribute
     /// <summary>Assigns the section to a [Zone] column ([Zone]s on the class lay sections out
     /// side by side); unrecognised zones fall into a trailing flexible column.</summary>
     public string Zone { get; set; } = "";
+
+    /// <summary>When true the section renders as a property list: every data field becomes a
+    /// read-only row (plain-text value, label left / value right, divider between rows) stacked
+    /// in a single column. (C# analogue of Java's @Section(propertyList=true).)</summary>
+    public bool PropertyList { get; set; }
+
+    /// <summary>When true the section is not framed: no card wrapper and no padding — its content
+    /// sits bare on the page. For bands whose content brings its own chrome. (C# analogue of
+    /// Java's @Section(frameless=true).)</summary>
+    public bool Frameless { get; set; }
 }
 
 /// <summary>A named column of a multi-column form. Declare several on the class (order matters)

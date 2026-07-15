@@ -58,7 +58,9 @@ class CrudFormComponentBuilder {
       buttons.add(
           new Button(orchestrator.cancelLabel(), isCreation ? "cancel-new" : "cancel-edit"));
     }
-    buttons.add(new Button(orchestrator.saveLabel(), "create"));
+    // The edit form persists through "save" (Crud.save → the editor's state); "create" would
+    // route to saveNew with the CREATION form's (empty) state, silently discarding the edit.
+    buttons.add(new Button(orchestrator.saveLabel(), isCreation ? "create" : "save"));
     return buttons;
   }
 }

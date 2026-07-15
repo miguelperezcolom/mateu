@@ -1,19 +1,21 @@
 package io.mateu.mdd.demofrontoffice.ui.checkin;
 
 import io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep;
+import io.mateu.mdd.demofrontoffice.domain.guest.Preference;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
-import io.mateu.uidl.annotations.Colspan;
-import io.mateu.uidl.annotations.Hidden;
-import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.PlainText;
-import io.mateu.uidl.annotations.Toolbar;
-import io.mateu.uidl.data.StatusItem;
-import io.mateu.uidl.data.StatusList;
-import io.mateu.uidl.data.TaskProgress;
+import io.mateu.uidl.annotations.*;
+import io.mateu.uidl.annotations.Text;
+import io.mateu.uidl.data.*;
+import io.mateu.uidl.data.BulletedList;
+import io.mateu.uidl.data.Notice;
+import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.Hydratable;
 import io.mateu.uidl.interfaces.VisibilitySupplier;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.concurrent.Callable;
 import lombok.Getter;
@@ -22,15 +24,20 @@ import lombok.Setter;
 /** Step 1 — Identidad: document verification, contact data, preferences and pax registration. */
 @Getter
 @Setter
+@Zones({@Zone(name = "main", width = "62%"), @Zone(name = "side", width = "38%")})
 public class IdentidadStep implements WizardStep, VisibilitySupplier {
 
   @Hidden String stayId;
 
+  // No zone → full-width band across the top. Frameless: the header card brings its own chrome.
+  @Section(value = "", columns = 2, frameless = true)
   @Colspan(2)
   @Label("")
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(stayId);
 
-  @PlainText
+  // Left column: contact data + pax registration. Untitled (blank value, distinct from the header
+  // band's empty value so it starts its own section).
+  @Section(value = "Documento", zone = "main", propertyList = true, frameless = true)
   @Label("Documento")
   String documento;
 
@@ -44,48 +51,7 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
   String telefono;
 
   @Colspan(2)
-  @Label("")
-  Callable<Component> preferencias =
-      () -> {
-        var view = FrontOffice.stayView(stayId);
-        var guest = view.guest();
-        var items = new ArrayList<StatusItem>();
-        for (var pref : guest.preferences()) {
-          items.add(
-              StatusItem.builder()
-                  .id(pref.text())
-                  .icon("●")
-                  .title(pref.text())
-                  .status("Preferencia")
-                  .statusColor("normal")
-                  .build());
-        }
-        items.add(
-            StatusItem.builder()
-                .id("ultima")
-                .icon("🏨")
-                .title("Última estancia")
-                .description(guest.lastStaySummary())
-                .build());
-        if (guest.complaints() > 0) {
-          items.add(
-              StatusItem.builder()
-                  .id("quejas")
-                  .icon("⚠")
-                  .title(guest.complaints() + " quejas pendientes")
-                  .description(
-                      guest.stays()
-                          + " estancias · Cliente desde hace "
-                          + guest.yearsAsClient()
-                          + " años")
-                  .status("Revisar")
-                  .statusColor("error")
-                  .build());
-        }
-        return StatusList.builder().items(items).style("width: 100%;").build();
-      };
-
-  @Colspan(2)
+  @Section(value = "", zone = "main", frameless = true)
   @Label("")
   Callable<Component> registroPax =
       () -> {
@@ -103,8 +69,53 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
             .done(Math.min(registered, stay.pax()))
             .actionLabel("Añadir siguiente pax")
             .actionId("addPax")
+                .style("width: 100%;")
             .build();
       };
+
+  @Section(value = "", zone = "side")
+          @Text(container = TextContainer.h4)
+  String prefHeader = "Preferencias";
+
+    @Label("")
+    Callable<Component> prefs = () -> {
+        var view = FrontOffice.stayView(stayId);
+        var guest = view.guest();
+
+        return BulletedList.builder()
+                .items(guest.preferences().stream().map(Preference::text).toList())
+                .build();
+    };
+
+  @SeparatorBefore
+  @Text(container = TextContainer.h4)
+  String lastStayHeader = "ÚLTIMA ESTANCIA";
+
+  @Text(noMargins = true)
+  String lastStayMainInfo = "xxx";
+
+  @Text(size = TextSize.xs, noMargins = true)
+  String lastStaySecondaryInfo = "yyy";
+
+
+    @Label("")
+  Callable<Component> quejas =
+      () -> {
+        var view = FrontOffice.stayView(stayId);
+        var guest = view.guest();
+        if (guest.complaints() > 0) {
+          return Notice.builder()
+              .text(guest.complaints() + " quejas pendientes")
+              .theme("danger")
+                  .slim(true)
+                  .fullWidth(true)
+              .build();
+        }
+        return new VerticalLayout();
+      };
+
+    @Text(size = TextSize.xs, noMargins = true)
+    String historyInfo = "yyy";
 
   /** Fills the identity fields for guests whose document is not verified yet (demo). */
   @Toolbar
@@ -119,4 +130,13 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
         && stayId != null
         && FrontOffice.stayView(stayId).guest().identityComplete();
   }
+
+    public IdentidadStep load(HttpRequest httpRequest) {
+        var view = FrontOffice.stayView(stayId);
+        var guest = view.guest();
+        lastStayMainInfo = guest.lastStaySummary();
+        lastStaySecondaryInfo = guest.lastStayComplementaryInfo();
+        historyInfo = guest.stays() + " estancias · Cliente desde " + (LocalDate.now().getYear() - guest.yearsAsClient() - 1);
+        return this;
+    }
 }

@@ -113,6 +113,9 @@ public class FieldTypeMapper {
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Badge.class)) {
       return FieldStereotype.badge;
     }
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.BulletedList.class)) {
+      return FieldStereotype.bulletedList;
+    }
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.UploadableImage.class)) {
       return FieldStereotype.uploadableImage;
     }

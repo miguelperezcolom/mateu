@@ -39,7 +39,17 @@ class ComponentRenderer(val ctx: AppContext) {
             "FormRow" -> renderFormRow(this, component, metadata, state, data)
             "HorizontalLayout" -> renderHBox(this, component, metadata, state, data)
             "Button" -> renderButton(ctx, metadata)
-            "Text" -> JBLabel(metadata.text("text"))
+            "Text" -> JBLabel(metadata.text("text")).also { label ->
+                // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
+                when (metadata.text("size")) {
+                    "xl" -> label.font = label.font.deriveFont(label.font.size2D * 1.5f)
+                    "l" -> label.font = label.font.deriveFont(label.font.size2D * 1.25f)
+                    "s" -> label.font = label.font.deriveFont(label.font.size2D * 0.875f)
+                    "xs" -> label.font = label.font.deriveFont(label.font.size2D * 0.78f)
+                }
+            }
+            // A horizontal divider line (<hr>) separating contents inside a section or form.
+            "Separator" -> javax.swing.JSeparator()
             "FormSection" -> renderSection(this, component, metadata, state, data)
             "FormSubSection" -> renderSubSection(this, component, metadata, state, data)
             "Card" -> renderCard(this, component, metadata, state, data)
@@ -82,6 +92,8 @@ class ComponentRenderer(val ctx: AppContext) {
             "Meter" -> renderMeter(metadata)
             "TaskProgress" -> renderTaskProgress(this, metadata)
             "StatusList" -> renderStatusList(this, metadata)
+            "BulletedList" -> renderBulletedList(metadata)
+            "Notice" -> renderNotice(this, component, metadata, state, data)
             "TaskQueue" -> renderTaskQueue(this, metadata)
             "ResourceGrid" -> renderResourceGrid(this, metadata)
             "OfferCard" -> renderOfferCard(this, metadata)

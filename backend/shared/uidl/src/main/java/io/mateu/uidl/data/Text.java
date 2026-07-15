@@ -11,33 +11,35 @@ public record Text(
     String text,
     TextContainer container,
     List<TextVariant> variants,
+    TextSize size,
+    boolean noMargins,
     String style,
     String cssClasses,
     Map<String, String> attributes)
     implements Component {
 
   public Text(String id, String text) {
-    this(id, text, TextContainer.div, List.of(), "", "", Map.of());
+    this(id, text, TextContainer.div, List.of(), null, false, "", "", Map.of());
   }
 
   public Text(String id, String text, List<TextVariant> variants) {
-    this(id, text, TextContainer.div, variants, "", "", Map.of());
+    this(id, text, TextContainer.div, variants, null, false, "", "", Map.of());
   }
 
   public Text(String id, String text, TextContainer container) {
-    this(id, text, container, List.of(), "", "", Map.of());
+    this(id, text, container, List.of(), null, false, "", "", Map.of());
   }
 
   public Text(String text) {
-    this(null, text, TextContainer.div, List.of(), "", "", Map.of());
+    this(null, text, TextContainer.div, List.of(), null, false, "", "", Map.of());
   }
 
   public Text(String text, List<TextVariant> variants) {
-    this(null, text, TextContainer.div, variants, "", "", Map.of());
+    this(null, text, TextContainer.div, variants, null, false, "", "", Map.of());
   }
 
   public Text(String text, TextContainer container) {
-    this(null, text, container, List.of(), "", "", Map.of());
+    this(null, text, container, List.of(), null, false, "", "", Map.of());
   }
 
   @Override

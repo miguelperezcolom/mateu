@@ -39,6 +39,11 @@ public enum FieldStereotype {
    */
   plainText,
   /**
+   * Renders a collection field as a plain read-only bulleted list ({@code <ul>}). See
+   * {@code @BulletedList}.
+   */
+  bulletedList,
+  /**
    * Listing filter over a temporal field as a from/to pair. The values travel in the component
    * state under {@code <fieldId>_from} / {@code <fieldId>_to} and reach the repository as a {@link
    * FilterCriterion} (between/gte/lte), never inside the entity-shaped filters object.

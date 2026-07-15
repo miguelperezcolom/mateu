@@ -99,6 +99,10 @@ public static class ComponentMapper
         StatusList sl => Dto(sl, new StatusListMetadataDto(sl.Items.Select(i => new StatusItemDto(
             i.Id, i.Icon, i.Title, i.Description, i.Status, i.StatusColor, i.ActionLabel, i.ActionId)).ToList())),
 
+        BulletedList bl => Dto(bl, new BulletedListMetadataDto(bl.Items.ToList())),
+
+        Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth), n.Content.Select(Map)),
+
         TaskQueue tq => Dto(tq, new TaskQueueMetadataDto(tq.ActionId, tq.Groups.Select(g =>
             new QueueGroupDto(g.Label, g.Items.Select(i => new QueueItemDto(
                 i.Id, i.Title, i.Caption, i.Badges.Select(MapChip).ToList(), i.Selected)).ToList())).ToList())),
@@ -128,7 +132,9 @@ public static class ComponentMapper
                 p.Status, p.ActionLabel, p.ActionId)).ToList())),
 
         // Generic building blocks (used by the archetypes and free composition).
-        Text t => Dto(t, new TextMetadataDto(t.Content)),
+        Text t => Dto(t, new TextMetadataDto(t.Content) { Size = t.Size, NoMargins = t.NoMargins }),
+
+        Separator sep => Dto(sep, new SeparatorMetadataDto()),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),

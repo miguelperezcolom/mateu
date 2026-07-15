@@ -291,7 +291,13 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
         var title = type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
         var titleText = Client(new TextMetadataDto(title), null, []);
-        var progress = Client(new ProgressBarMetadataDto((double)current / total), "fieldId", []);
+        // [WizardProgress("steps")]: connected step bullets instead of the progress bar
+        // (mirrors Java's @WizardProgress(WizardProgressStyle.STEPS)).
+        var progress = type.Find<WizardProgressAttribute>()?.Style == "steps"
+            ? Client(new ProgressStepsMetadataDto(Enumerable.Range(1, total)
+                .Select(i => new StepDto($"step-{i}", $"Step {i}", null,
+                    i < current ? "done" : i == current ? "current" : "upcoming")).ToList()), "fieldId", [])
+            : Client(new ProgressBarMetadataDto((double)current / total), "fieldId", []);
         var card = Client(new CardMetadataDto(Client(new FormLayoutMetadataDto(), null, FormRows(fields))), "fieldId", []);
         var back = Client(new ButtonMetadataDto("Back", "back") { Disabled = current == 1 }, null, []);
         var next = Client(new ButtonMetadataDto(current == total ? "Finish" : "Next", "next") { ButtonStyle = "Primary" }, null, []);
@@ -339,19 +345,29 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
         var sections = new List<(string? Title, List<PropertyInfo> Props)>();
         var sectionZones = new List<string>();
+        var sectionAttrs = new List<SectionAttribute?>();
         string? current = null;
         var currentZone = "";
+        SectionAttribute? currentAttr = null;
         foreach (var p in props)
         {
-            if (p.Find<SectionAttribute>() is { } sec)
+            // A new section starts when the [Section] declaration actually changes — comparing
+            // EVERY attribute, not just the caption: two consecutive untitled sections pointing
+            // at different zones (or with different PropertyList/Frameless flags) are distinct.
+            var sec = p.Find<SectionAttribute>();
+            var startsNew = sections.Count == 0
+                || (sec != null && (currentAttr == null || !SameSection(sec, currentAttr)));
+            if (sec != null)
             {
                 current = sec.Caption;
                 currentZone = sec.Zone;
+                currentAttr = sec;
             }
-            if (sections.Count == 0 || sections[^1].Title != current)
+            if (startsNew)
             {
                 sections.Add((current, new List<PropertyInfo>()));
                 sectionZones.Add(currentZone);
+                sectionAttrs.Add(currentAttr);
             }
             sections[^1].Props.Add(p);
         }
@@ -359,14 +375,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         // [Zone] columns on the class: sections lay out side by side (zones win over inference).
         var zones = type.GetCustomAttributes<ZoneAttribute>().ToList();
         if (zones.Count > 0 && sections.Count > 1)
-            return [BuildZones(zones, sections, sectionZones, instance, readOnly)];
+            return [BuildZones(zones, sections, sectionZones, sectionAttrs, instance, readOnly)];
 
         // [FoldedLayout]: the section cards side by side in one horizontal row (zones win).
         if (type.Find<FoldedLayoutAttribute>() != null && sections.Count > 1)
             return [new ClientSideComponentDto(
                 new HorizontalLayoutMetadataDto { Spacing = true }, null,
                 sections.Select(s => (ComponentDto)SectionCard(
-                    s.Title, s.Props.Select(p => MapField(p, instance, readOnly)).ToList())).ToList(),
+                    s.Title, MapFields(s.Props, instance, readOnly))).ToList(),
                 null, null, null)];
 
         // Read-only view with many substantial sections: present the sections as adaptable tabs.
@@ -378,8 +394,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             && LayoutInference.BuildFoldPlan(type, sections[0].Title, sections[0].Props, readOnly) is { } plan)
             return [FoldedCard(plan, instance)];
 
-        return sections.Select(s => (ComponentDto)SectionCard(
-            s.Title, s.Props.Select(p => MapField(p, instance, readOnly)).ToList())).ToList();
+        return sections.Select((s, i) => (ComponentDto)SectionCard(
+            s.Title, MapFields(s.Props, instance, readOnly),
+            sectionAttrs[i])).ToList();
     }
 
     /// <summary>Distributes sections into the [Zone] columns and lays them out side by side —
@@ -390,16 +407,24 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         List<ZoneAttribute> zones,
         List<(string? Title, List<PropertyInfo> Props)> sections,
         List<string> sectionZones,
+        List<SectionAttribute?> sectionAttrs,
         object instance,
         bool readOnly)
     {
-        ComponentDto CardOf((string? Title, List<PropertyInfo> Props) s) =>
-            SectionCard(s.Title, s.Props.Select(p => MapField(p, instance, readOnly)).ToList());
+        ComponentDto CardOf(int i) =>
+            SectionCard(sections[i].Title,
+                MapFields(sections[i].Props, instance, readOnly),
+                sectionAttrs[i]);
 
+        // Grow AND shrink around the declared basis minus the spacing gap (with flex-wrap the
+        // line breaks are computed from the basis, so 62% + 38% + gap would wrap or overflow);
+        // min-width sets the responsive wrap point (mirrors Java's widthStyle).
         ComponentDto Column(IEnumerable<ComponentDto> cards, string width) =>
             new ClientSideComponentDto(
                 new VerticalLayoutMetadataDto { Spacing = true }, null, cards.ToList(),
-                width.Length > 0 ? $"flex: 0 0 {width}; min-width: 0;" : "flex: 1; min-width: 0;",
+                width.Length > 0
+                    ? $"flex: 1 1 calc({width} - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);"
+                    : "flex: 1 1 12rem; min-width: min(20rem, 100%);",
                 null, null);
 
         var columns = new List<ComponentDto>();
@@ -409,13 +434,13 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             var mine = remaining.Where(i => sectionZones[i] == zone.Name).ToList();
             if (mine.Count == 0) continue;
             remaining.RemoveAll(mine.Contains);
-            columns.Add(Column(mine.Select(i => CardOf(sections[i])), zone.Width));
+            columns.Add(Column(mine.Select(CardOf), zone.Width));
         }
         if (remaining.Count > 0)
-            columns.Add(Column(remaining.Select(i => CardOf(sections[i])), ""));
+            columns.Add(Column(remaining.Select(CardOf), ""));
 
         return new ClientSideComponentDto(
-            new HorizontalLayoutMetadataDto { Spacing = true }, null, columns,
+            new HorizontalLayoutMetadataDto { Spacing = true, Wrap = true }, null, columns,
             "width: 100%; align-items: flex-start;", null, null);
     }
 
@@ -458,7 +483,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         var tabs = sections.Select((s, i) => (ComponentDto)Client(
             new TabMetadataDto(T(s.Title ?? "")) { Active = i == 0 }, null,
             [Client(new FormLayoutMetadataDto(), null,
-                FormRows(s.Props.Select(p => MapField(p, instance, readOnly)).ToList()))])).ToList();
+                FormRows(MapFields(s.Props, instance, readOnly)))])).ToList();
         var meta = new TabLayoutMetadataDto { GroupRelationship = "alternative", Adaptable = true };
         return Client(meta, "_tabs", tabs);
     }
@@ -469,9 +494,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     private ClientSideComponentDto FoldedCard(LayoutInference.FoldPlan plan, object instance)
     {
         var main = Client(new FormLayoutMetadataDto(), null,
-            FormRows(plan.Main.Select(p => MapField(p, instance)).ToList()));
+            FormRows(MapFields(plan.Main, instance)));
         var folded = Client(new FormLayoutMetadataDto(), null,
-            FormRows(plan.Folded.Select(p => MapField(p, instance)).ToList()));
+            FormRows(MapFields(plan.Folded, instance)));
         var panel = Client(new AccordionPanelMetadataDto(LayoutInference.MoreOptionsLabel), null, [folded]);
         var accordion = Client(new AccordionLayoutMetadataDto(), null, [panel]);
         var vlayout = Client(new VerticalLayoutMetadataDto(), null, [main, accordion]);
@@ -498,12 +523,29 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             .OrderBy(f => f.Order)
             .ToList();
 
-    private ClientSideComponentDto SectionCard(string? title, List<ClientSideComponentDto> fields)
+    private ClientSideComponentDto SectionCard(
+        string? title, List<ClientSideComponentDto> fields, SectionAttribute? section = null)
     {
-        var formLayout = Client(new FormLayoutMetadataDto(), null, FormRows(fields));
+        // [Section(PropertyList = true)]: every data field becomes a read-only property row
+        // (label left / value right, divider between rows), stacked full-width — so the body is a
+        // plain vertical layout instead of the responsive form layout (mirrors Java's
+        // SectionFormRenderer.asPropertyList).
+        var body = section?.PropertyList == true
+            ? Client(new VerticalLayoutMetadataDto(), null,
+                fields.Select(f => f.Metadata is FormFieldMetadataDto ff && ff.Stereotype != "grid"
+                    ? f with { Metadata = ff with { PropertyRow = true, ReadOnly = true, Colspan = 1 } }
+                    : (ComponentDto)f).ToList()) with { Style = "width: 100%; align-items: stretch;" }
+            : Client(new FormLayoutMetadataDto(), null, FormRows(fields));
+        // [Section(Frameless = true)]: no card wrapper, no padding — the content sits bare
+        // (mirrors Java's @Section(frameless=true)).
+        if (section?.Frameless == true)
+            return Client(new DivMetadataDto(), null, [body]) with
+            {
+                Style = "flex: 1; min-width: 0; width:100%;",
+            };
         if (title is not null)
-            return Client(new FormSectionMetadataDto(title), null, [formLayout]);
-        var vlayout = Client(new VerticalLayoutMetadataDto(), null, [formLayout]);
+            return Client(new FormSectionMetadataDto(title), null, [body]);
+        var vlayout = Client(new VerticalLayoutMetadataDto(), null, [body]);
         var div = Client(new DivMetadataDto(), "fieldId", [vlayout]);
         return Client(new CardMetadataDto(div), "fieldId", []);
     }
@@ -861,6 +903,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     private static string StereotypeOf(PropertyInfo p, bool plainText, bool multiline)
     {
         if (p.Find<StereotypeAttribute>()?.Value is { } s) return s;
+        if (p.Find<BulletedListAttribute>() != null) return "bulletedList";
         if (p.Find<SignatureAttribute>() != null) return "signature";
         if (p.Find<PhotoCaptureAttribute>() != null) return "camera";
         if (p.Find<TreeSelectAttribute>() != null) return "treeSelect";
@@ -907,11 +950,53 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     }
 
     // Group fields into FormRow components of at most `maxColumns` (here 2).
+    /// <summary>Whether two [Section] declarations describe the same section (every attribute equal).</summary>
+    private static bool SameSection(SectionAttribute a, SectionAttribute b) =>
+        a.Caption == b.Caption && a.Zone == b.Zone
+        && a.PropertyList == b.PropertyList && a.Frameless == b.Frameless;
+
+    /// <summary>Maps the section's properties to field DTOs, inserting a full-width separator
+    /// above any [SeparatorBefore] property (mirrors Java's FormLayoutBuilder).</summary>
+    private List<ClientSideComponentDto> MapFields(
+        IEnumerable<PropertyInfo> props, object instance, bool readOnly = false)
+    {
+        var fields = new List<ClientSideComponentDto>();
+        foreach (var p in props)
+        {
+            if (p.Find<SeparatorBeforeAttribute>() != null)
+                fields.Add(Client(new SeparatorMetadataDto(
+                    new Dictionary<string, string> { ["data-colspan"] = "2" }), null, []));
+            fields.Add(MapField(p, instance, readOnly));
+        }
+        return fields;
+    }
+
     private static List<ComponentDto> FormRows(List<ClientSideComponentDto> fields, int maxColumns = 2)
     {
         var rows = new List<ComponentDto>();
-        for (var i = 0; i < fields.Count; i += maxColumns)
-            rows.Add(Client(new FormRowMetadataDto(), null, fields.Skip(i).Take(maxColumns).Cast<ComponentDto>().ToList()));
+        var pending = new List<ComponentDto>();
+        foreach (var field in fields)
+        {
+            // A separator always takes a full row of its own (its data-colspan spans the columns).
+            if (field.Metadata is SeparatorMetadataDto)
+            {
+                if (pending.Count > 0)
+                {
+                    rows.Add(Client(new FormRowMetadataDto(), null, pending));
+                    pending = new List<ComponentDto>();
+                }
+                rows.Add(Client(new FormRowMetadataDto(), null, [field]));
+                continue;
+            }
+            pending.Add(field);
+            if (pending.Count == maxColumns)
+            {
+                rows.Add(Client(new FormRowMetadataDto(), null, pending));
+                pending = new List<ComponentDto>();
+            }
+        }
+        if (pending.Count > 0)
+            rows.Add(Client(new FormRowMetadataDto(), null, pending));
         return rows;
     }
 

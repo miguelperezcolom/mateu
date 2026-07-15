@@ -1054,10 +1054,13 @@ def test_zones_lay_sections_out_as_side_by_side_columns():
     # A horizontal row of vertical columns…
     assert '"type": "HorizontalLayout"' in j
     assert "width: 100%; align-items: flex-start;" in j
-    # …declared zones size by their width, the unzoned section falls into a flexible column…
-    assert "flex: 0 0 64%; min-width: 0;" in j
-    assert "flex: 0 0 36%; min-width: 0;" in j
-    assert "flex: 1; min-width: 0;" in j
+    # …declared zones grow/shrink around their width minus the spacing gap (with flex-wrap the
+    # line breaks come from the basis) and carry the responsive wrap point; the unzoned section
+    # falls into a flexible column…
+    assert "flex: 1 1 calc(64% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);" in j
+    assert "flex: 1 1 calc(36% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);" in j
+    assert "flex: 1 1 12rem; min-width: min(20rem, 100%);" in j
+    assert '"wrap": true' in j
     # …and every section card survives.
     assert "Main" in j and "Side" in j and "Loose" in j
 

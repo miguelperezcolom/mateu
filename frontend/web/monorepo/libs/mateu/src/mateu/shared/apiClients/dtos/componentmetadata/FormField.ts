@@ -54,6 +54,7 @@ export default interface FormField extends ComponentMetadata {
     mainFilter?: boolean
     treeLeavesOnly?: boolean
     multiline?: boolean
+    propertyRow?: boolean
     link?: NavLink | undefined
 
 }

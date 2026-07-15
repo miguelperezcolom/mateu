@@ -106,9 +106,10 @@ final class SectionFormRenderer {
         .map(
             section -> {
               var formLayout = buildSectionBody(section, ctx);
-              if (inline) {
-                // Inline embedded mediator: render the section content bare, without the outlined
-                // Card wrapper, so it blends into the host section/tab without duplicate framing.
+              if (inline || section.frameless()) {
+                // Inline embedded mediator or @Section(frameless=true): render the section content
+                // bare, without the outlined Card wrapper (nor its padding), so it blends into the
+                // host page without duplicate framing.
                 return (Component)
                     Div.builder()
                         .style("flex: 1; min-width: 0; width:100%;")
@@ -158,8 +159,12 @@ final class SectionFormRenderer {
               var buttonTriggers = collectInlineTriggers(section, ctx, false);
               // When the section's only field is an @Inline embedded MultiView, the embedded view
               // brings its own (demoted) title + toolbar; suppress the parent section title so the
-              // two don't visually compete.
-              var hideTitle = hostsInlineEmbeddedMediator(section, ctx.fieldsPerSection());
+              // two don't visually compete. A blank/whitespace section title emits no heading at
+              // all (so an untitled zoned band or column doesn't leave an empty header line).
+              var hideTitle =
+                  hostsInlineEmbeddedMediator(section, ctx.fieldsPerSection())
+                      || section.value() == null
+                      || section.value().isBlank();
 
               var titleComponent =
                   hideTitle
@@ -176,6 +181,16 @@ final class SectionFormRenderer {
                         .style("justify-content: flex-end; width: 100%;")
                         .content(buttonTriggers.stream().map(t -> (Component) t).toList())
                         .build());
+              }
+
+              if (section.frameless()) {
+                // @Section(frameless=true): no outlined card, no padding — the content (which
+                // usually brings its own chrome) sits bare at the section's position.
+                return (Component)
+                    VerticalLayout.builder()
+                        .style("width: 100%;" + section.style())
+                        .content(contentItems)
+                        .build();
               }
 
               return (Component)
@@ -218,6 +233,9 @@ final class SectionFormRenderer {
    * options" accordion panel underneath.
    */
   private static Component buildSectionBody(Section section, Ctx ctx) {
+    if (section.propertyList()) {
+      return buildFormLayout(section, ctx);
+    }
     var sectionFields = ctx.fieldsPerSection().get(section);
     var plan =
         LayoutInference.foldPlan(
@@ -309,18 +327,95 @@ final class SectionFormRenderer {
   }
 
   private static Component buildFormLayout(Section section, Ctx ctx) {
+    if (section.propertyList()) {
+      return asPropertyList(toFormLayout(ctx.fieldsPerSection().get(section), 1, ctx));
+    }
     return toFormLayout(ctx.fieldsPerSection().get(section), sectionColumns(section, ctx), ctx);
   }
 
   /**
-   * Distributes sections into the zones declared by {@link Zones} and lays the zones out side by
-   * side. Each zone is a vertical column (a {@link VerticalLayout}) stacking its sections; the
-   * column width comes from {@link Zone#width()}. Sections whose zone is not declared fall back
-   * into a trailing flexible column so nothing is ever dropped.
+   * {@code @Section(propertyList=true)}: the section body is a single-column list where every data
+   * field is a read-only property row (plain-text value, label left / value right, divider line
+   * between rows — see {@code FormField.propertyRow}). The transform recurses through the layout
+   * containers {@code FormLayoutBuilder} emits (VerticalLayout → FormLayout → FormRow) and marks
+   * the FormField leaves; component-holding fields are left untouched so a property-list section
+   * can still end with e.g. an action or a nested component.
+   */
+  private static Component asPropertyList(Component component) {
+    if (component instanceof FormField field) {
+      if (field.dataType() != FieldDataType.component
+          && field.stereotype() != FieldStereotype.grid) {
+        return field.toBuilder().propertyRow(true).readOnly(true).colspan(1).build();
+      }
+      return field;
+    }
+    if (component instanceof VerticalLayout layout && layout.content() != null) {
+      return layout.toBuilder().content(asPropertyList(layout.content())).build();
+    }
+    if (component instanceof FormLayout layout && layout.content() != null) {
+      // A property list is a plain vertical stack of full-width rows: the responsive form layout
+      // would size each row to its column width, leaving the dividers short of the card edge.
+      return VerticalLayout.builder()
+          .style("width: 100%;" + (layout.style() != null ? layout.style() : ""))
+          .horizontalAlignment(HorizontalAlignment.STRETCH)
+          .content(
+              asPropertyList(
+                  layout.content().stream()
+                      .flatMap(
+                          c ->
+                              c instanceof FormRow row && row.content() != null
+                                  ? row.content().stream()
+                                  : java.util.stream.Stream.of(c))
+                      .toList()))
+          .build();
+    }
+    return component;
+  }
+
+  private static List<Component> asPropertyList(List<Component> content) {
+    return content.stream().map(SectionFormRenderer::asPropertyList).toList();
+  }
+
+  /**
+   * Lays out the sections of a {@link Zones} form. A section with <b>no zone</b> (blank {@link
+   * Section#zone()}) is a full-width band, stacked in declaration order; a maximal run of
+   * <b>zoned</b> sections collapses into one side-by-side row of columns at its position. So a
+   * declaration like {@code [header(no zone), left, right]} renders the header full-width on top
+   * and the left/right zones as two columns below it. Within a zoned row each zone is a vertical
+   * column (a {@link VerticalLayout}) whose width comes from {@link Zone#width()}; a section
+   * pointing at a zone name that is not declared falls into a trailing flexible column so nothing
+   * is ever dropped.
    */
   private static Component renderZones(Zones zones, List<Section> sections, Ctx ctx) {
-    Map<String, List<Section>> sectionsByZone = new LinkedHashMap<>();
+    List<Component> blocks = new ArrayList<>();
+    List<Section> pendingZoned = new ArrayList<>();
     for (Section section : sections) {
+      if (section.zone() == null || section.zone().isBlank()) {
+        flushZonedRow(pendingZoned, zones, blocks, ctx);
+        blocks.addAll(renderSections(List.of(section), ctx));
+      } else {
+        pendingZoned.add(section);
+      }
+    }
+    flushZonedRow(pendingZoned, zones, blocks, ctx);
+
+    // All sections zoned (no full-width band): keep the row as the single top-level component so
+    // the
+    // wire shape is unchanged for existing zoned forms.
+    if (blocks.size() == 1) {
+      return blocks.get(0);
+    }
+    return VerticalLayout.builder().spacing(true).style("width: 100%;").content(blocks).build();
+  }
+
+  /** Turns a run of zoned sections into one side-by-side {@link HorizontalLayout} of columns. */
+  private static void flushZonedRow(
+      List<Section> pendingZoned, Zones zones, List<Component> blocks, Ctx ctx) {
+    if (pendingZoned.isEmpty()) {
+      return;
+    }
+    Map<String, List<Section>> sectionsByZone = new LinkedHashMap<>();
+    for (Section section : pendingZoned) {
       sectionsByZone.computeIfAbsent(section.zone(), k -> new ArrayList<>()).add(section);
     }
 
@@ -339,11 +434,16 @@ final class SectionFormRenderer {
       columns.add(zoneColumn(leftover, widthStyle(""), ctx));
     }
 
-    return HorizontalLayout.builder()
-        .spacing(true)
-        .style("width: 100%; align-items: flex-start;")
-        .content(columns)
-        .build();
+    blocks.add(
+        HorizontalLayout.builder()
+            .spacing(true)
+            // Responsive: when a column can't keep a usable width (see widthStyle's min-width),
+            // it wraps below the previous one and, thanks to flex-grow, fills the full row.
+            .wrap(true)
+            .style("width: 100%; align-items: flex-start;")
+            .content(columns)
+            .build());
+    pendingZoned.clear();
   }
 
   private static Component zoneColumn(List<Section> zoneSections, String widthStyle, Ctx ctx) {
@@ -354,10 +454,18 @@ final class SectionFormRenderer {
         .build();
   }
 
+  /**
+   * Zone columns are growable AND shrinkable around a flex-basis of the declared width MINUS the
+   * row's spacing gap: with {@code flex-wrap} the line breaks are computed from the hypothetical
+   * (basis) sizes, so a plain {@code 62% + 38% + gap > 100%} would wrap immediately (or, without
+   * wrap, overflow past the full-width bands' right edge — the old {@code flex: 0 0 62%} bug). The
+   * min-width sets the responsive wrap point: a column squeezed under it drops below the previous
+   * one and, thanks to flex-grow, fills the full row.
+   */
   private static String widthStyle(String width) {
     return width == null || width.isBlank()
-        ? "flex: 1; min-width: 0;"
-        : "flex: 0 0 " + width + "; min-width: 0;";
+        ? "flex: 1 1 12rem; min-width: min(20rem, 100%);"
+        : "flex: 1 1 calc(" + width + " - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);";
   }
 
   private static Component buildTitleRow(

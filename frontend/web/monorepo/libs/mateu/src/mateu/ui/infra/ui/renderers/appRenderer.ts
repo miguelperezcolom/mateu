@@ -3,15 +3,52 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
-import "@infra/ui/mateu-app-context-picker.ts";
+import "@infra/ui/mateu-vaadin-app-context-picker.ts";
+import { mateuApiClient } from "@infra/http/AxiosMateuApiClient.ts";
+import { sseService } from "@application/SSEService.ts";
+import { Notification } from "@vaadin/notification";
 // Application-level context selectors (@AppContext fields on the app class): compact pickers on
-// the header that fix a value for every screen (searchable panel for large option sets). See
-// mateu-app-context-picker.
+// the header that fix a value for every screen. This shared appRenderer is the VAADIN shell, so
+// they render with Vaadin's own widgets (vaadin-select / searchable vaadin-combo-box) — the other
+// design systems' shells keep the DS-neutral mateu-app-context-picker.
+// A header action always dispatches against the APP class (same rail as the
+// @AppContext pickers' remote search) — never against the on-screen component.
+const runHeaderAction = async (metadata: App, container: MateuApp, actionId: string) => {
+    try {
+        // The SSE flavor: a server action returning a Flux streams one UIIncrement per
+        // element, so long pipelines (deploy…) toast their milestones as they happen.
+        await sseService.runAction(
+            mateuApiClient,
+            container.baseUrl ?? '',
+            metadata.rootRoute || '_no_route',
+            '',
+            actionId,
+            'app-header-action',
+            {},
+            metadata.serverSideType ?? '',
+            {},
+            {},
+            container,
+            false,
+            undefined,
+            false,
+            ''
+        )
+    } catch (e) {
+        Notification.show('La acción falló: ' + e, { position: 'bottom-start', duration: 6000, theme: 'error' })
+    }
+}
+
 const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const selectors = metadata.contextSelectors ?? []
-    if (selectors.length === 0) return nothing
+    const actions = metadata.contextActions ?? []
+    if (selectors.length === 0 && actions.length === 0) return nothing
     return html`${selectors.map(selector => html`
-        <mateu-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-app-context-picker>`)}`
+        <mateu-vaadin-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-vaadin-app-context-picker>`)}${actions.map(action => html`
+        <vaadin-button theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
+            @click="${() => runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">
+            ${action.icon ? html`<vaadin-icon icon="${action.icon}" slot="prefix"></vaadin-icon>` : nothing}${action.label}
+        </vaadin-button>`)}`
 }
 
 const renderThemeToggle = (metadata: App, container: MateuApp) =>

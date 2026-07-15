@@ -81,7 +81,7 @@ export default defineConfig({
             '/users/mateu',
             '/chat/mateu',
             '/ai',
-        ].map(path => [path, { target: 'http://localhost:8592', bypass: bypassHtml }])),
+        ].map(path => [path, { target: 'http://localhost:8594', bypass: bypassHtml }])),
     },
     optimizeDeps: {
         // Excluimos el componente problemático para evitar que analice sus propios node_modules internos

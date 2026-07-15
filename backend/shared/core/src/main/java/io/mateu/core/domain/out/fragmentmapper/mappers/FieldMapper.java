@@ -70,6 +70,7 @@ public class FieldMapper {
             .minHeightWhenDetailVisible(formField.minHeightWhenDetailVisible())
             .optionsColumns(formField.optionsColumns())
             .multiline(formField.multiline())
+            .propertyRow(formField.propertyRow())
             .link(mapLink(formField.link()))
             .build(),
         formField.id(),

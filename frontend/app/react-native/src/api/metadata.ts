@@ -380,6 +380,28 @@ export interface StatusList {
   items?: StatusItem[];
 }
 
+/** A plain bulleted list (<ul>) of text items — the lightweight counterpart of StatusList. */
+export interface BulletedList {
+  type?: 'BulletedList';
+  items?: string[];
+}
+
+/** A horizontal divider line (<hr>) separating contents inside a section, form or layout. */
+export interface Separator {
+  type?: 'Separator';
+  attributes?: Record<string, string>;
+}
+
+/** A compact inline banner: theme-tinted strip with a severity icon and one line of text. */
+export interface Notice {
+  type?: 'Notice';
+  text?: string;
+  theme?: string;
+  icon?: string;
+  actionLabel?: string;
+  actionId?: string;
+}
+
 export interface QueueItem {
   id?: string;
   title?: string;

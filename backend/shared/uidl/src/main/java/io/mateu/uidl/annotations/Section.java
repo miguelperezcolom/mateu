@@ -30,4 +30,22 @@ public @interface Section {
    * the viewport (e.g. a guests list on a long check-in screen).
    */
   boolean sticky() default false;
+
+  /**
+   * When {@code true} the section renders as a <b>property list</b>: every data field becomes a
+   * read-only row (plain-text value, like {@code @PlainText}) with the label aligned left and the
+   * value aligned right, rows separated by a divider line and stacked in a single column —
+   * regardless of {@code columns}. Component-holding fields in the section are left untouched. Use
+   * it for key-info panels (document data, booking summary) without annotating every field.
+   */
+  boolean propertyList() default false;
+
+  /**
+   * When {@code true} the section is not framed: no outlined card wrapper (border/background) and
+   * no card padding — the section content sits bare on the page. Use it for bands whose content
+   * already brings its own chrome (a header card, a progress banner) so it doesn't get
+   * double-framed. Note frameless sections are not enumerated by the {@code @Toc} sections index
+   * (the index anchors on section cards).
+   */
+  boolean frameless() default false;
 }

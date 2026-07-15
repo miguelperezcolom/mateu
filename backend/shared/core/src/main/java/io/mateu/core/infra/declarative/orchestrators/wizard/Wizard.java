@@ -77,13 +77,7 @@ public abstract class Wizard
             .container(TextContainer.h2)
             .style("margin: 0;")
             .build());
-    content.add(
-        ProgressBar.builder()
-            .value(position == numberOfSteps() - 1 ? applicableSteps() : applicablePosition())
-            .max(applicableSteps())
-            .text(getLabel(currentStepField()))
-            .style("width: 100%;")
-            .build());
+    content.add(progressIndicator());
 
     var mode = layoutMode();
     if (mode == WizardLayoutMode.ACCORDION || mode == WizardLayoutMode.ACCUMULATIVE) {
@@ -122,6 +116,46 @@ public abstract class Wizard
         io.mateu.core.infra.reflection.MetaAnnotations.find(
             getClass(), io.mateu.uidl.annotations.WizardLayout.class);
     return ann != null ? ann.value() : WizardLayoutMode.STEPS;
+  }
+
+  private io.mateu.uidl.annotations.WizardProgressStyle progressStyle() {
+    var ann =
+        io.mateu.core.infra.reflection.MetaAnnotations.find(
+            getClass(), io.mateu.uidl.annotations.WizardProgress.class);
+    return ann != null ? ann.value() : io.mateu.uidl.annotations.WizardProgressStyle.BAR;
+  }
+
+  /**
+   * The wizard's progress visualization: the classic progress bar (default), or —
+   * {@code @WizardProgress(WizardProgressStyle.STEPS)} — connected step bullets (the {@code
+   * ProgressSteps} component): one dot per applicable non-result step with done/current/upcoming
+   * states, all done while the result step shows.
+   */
+  private Component progressIndicator() {
+    if (progressStyle() == io.mateu.uidl.annotations.WizardProgressStyle.STEPS) {
+      var stepFields = WizardStepInspector.getStepFields(this);
+      var finished = position == numberOfSteps() - 1;
+      var items = new ArrayList<Step>();
+      for (int i = 0; i < numberOfSteps() - 1; i++) {
+        if (!applies(i)) {
+          continue;
+        }
+        var status = finished || i < position ? "done" : i == position ? "current" : "upcoming";
+        items.add(
+            Step.builder()
+                .id(stepFields.get(i).getName())
+                .title(getLabel(stepFields.get(i)))
+                .status(status)
+                .build());
+      }
+      return ProgressSteps.builder().steps(items).style("width: 100%;").build();
+    }
+    return ProgressBar.builder()
+        .value(position == numberOfSteps() - 1 ? applicableSteps() : applicablePosition())
+        .max(applicableSteps())
+        .text(getLabel(currentStepField()))
+        .style("width: 100%;")
+        .build();
   }
 
   /**

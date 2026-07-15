@@ -89,6 +89,8 @@ class VerticalLayoutMetadata(Wire):
 class HorizontalLayoutMetadata(Wire):
     type: Literal["HorizontalLayout"] = "HorizontalLayout"
     spacing: bool = True
+    #: Lets the row's items wrap to the next line (responsive zone stacking).
+    wrap: bool = False
 
 
 class FormLayoutMetadata(Wire):
@@ -119,6 +121,9 @@ class FormFieldMetadata(Wire):
     initial_value: Any | None = None
     options: list["Option"] = Field(default_factory=list)
     multiline: bool = False
+    #: Property-list sections (Section(property_list=True)): render as a read-only row with the
+    #: label aligned left and the plain-text value aligned right, divider between rows.
+    property_row: bool = False
     #: Navigation link rendered as an icon at the right side of this field; None = no link.
     link: "NavLinkRecord | None" = None
     #: Where a lookup (remote combo) field searches its options: the renderer fires ``action``
@@ -184,6 +189,32 @@ class ProgressBarMetadata(Wire):
 class TextMetadata(Wire):
     type: Literal["Text"] = "Text"
     text: str
+    #: Font size: xl | l | m | s | xs. m (or None) applies nothing.
+    size: str | None = None
+    #: Drops the container's block margins (margin-block-start/end: 0).
+    no_margins: bool = False
+
+
+class NoticeMetadata(Wire):
+    """A compact inline banner: theme-tinted strip with a severity icon, one line of text and an
+    optional right-aligned action (mirrors ``NoticeDto``)."""
+
+    type: Literal["Notice"] = "Notice"
+    text: str | None = None
+    theme: str | None = None
+    icon: str | None = None
+    action_label: str | None = None
+    action_id: str | None = None
+    slim: bool = False
+    full_width: bool = False
+
+
+class SeparatorMetadata(Wire):
+    """A horizontal divider line (``<hr>``); ``data-colspan`` in attributes makes it span the
+    full form row (mirrors ``SeparatorDto``)."""
+
+    type: Literal["Separator"] = "Separator"
+    attributes: dict[str, str] = Field(default_factory=dict)
 
 
 class ButtonMetadata(Wire):
@@ -703,6 +734,13 @@ class StatusListMetadata(Wire):
     items: list[StatusItemRecord] = Field(default_factory=list)
 
 
+class BulletedListMetadata(Wire):
+    """Plain bulleted list (``<ul>``) of text items (mirrors ``BulletedListDto``)."""
+
+    type: Literal["BulletedList"] = "BulletedList"
+    items: list[str] = Field(default_factory=list)
+
+
 class QueueItemRecord(Wire):
     """One task-queue card (mirrors ``QueueItemDto``)."""
 
@@ -955,6 +993,9 @@ ComponentMetadata = Annotated[
         MeterMetadata,
         TaskProgressMetadata,
         StatusListMetadata,
+        BulletedListMetadata,
+        SeparatorMetadata,
+        NoticeMetadata,
         TaskQueueMetadata,
         ResourceGridMetadata,
         OfferCardMetadata,

@@ -2,6 +2,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import './mateu-signature-pad.ts';
 import './mateu-tree-select.ts';
 import './mateu-camera-capture.ts';
+import './mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from './interpolation'
 import '@vaadin/horizontal-layout'
@@ -616,8 +617,10 @@ export class MateuField extends LitElement {
         const labelText = interpolate(rawLabelText, this.state, this.data)
         const label = (this.labelAlreadyRendered || !labelText || labelText == 'null')?nothing:labelText
 
+        if (this.field?.propertyRow) return this.renderPropertyRowField(fieldId, value, label, labelText)
         if (this.field?.stereotype == 'badge') return this.renderBadgeField(fieldId, value, label, labelText)
         if (this.field?.stereotype == 'plainText') return this.renderPlainTextField(fieldId, value, label, labelText)
+        if (this.field?.stereotype == 'bulletedList') return this.renderBulletedListField(fieldId, value, label, labelText)
         if (this.field?.readOnly && !('grid' == this.field.stereotype) && !('status' == this.field.dataType) && !(this.field?.dataType == 'money')) return this.renderReadOnlyField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'file') return this.renderFileField(fieldId, value, label, labelText)
         if (this.field?.dataType == 'string') return this.renderStringField(fieldId, value, label, labelText)
@@ -644,6 +647,50 @@ export class MateuField extends LitElement {
                     data-colspan="${this.field?.colspan}"
                     style="${this.field?.style}"
             ><span theme="badge ${on ? 'success' : ''} pill" style="${on ? '' : 'opacity: 0.4;'}">${labelText}</span>
+            </vaadin-custom-field>`
+    }
+
+    // Property-list row (@Section(propertyList=true)): plain-text value with the label aligned
+    // left and the value aligned right, rows separated by a divider line.
+    private renderPropertyRowField(_fieldId: string, value: any, _label: any, labelText: string): TemplateResult {
+        if (!this.field) return html``
+            let v = evalIfNecessary(value, this.state, this.data)
+            const amountObj = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any) : null
+            if (v && (v as any).value) v = (v as any).value
+            const isBool = this.field?.dataType == 'bool' || v === true || v === false
+            const isMoney = this.field?.dataType == 'money'
+            const hasValue = v !== null && v !== undefined && v !== ''
+            let display = hasValue ? String(v) : '—'
+            if (isMoney && hasValue) {
+                const num = typeof v === 'number' ? v : parseFloat(String(v))
+                if (!isNaN(num)) {
+                    display = (amountObj && amountObj.locale && amountObj.currency)
+                        ? new Intl.NumberFormat(amountObj.locale, { style: 'currency', currency: amountObj.currency }).format(num)
+                        : new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num)
+                }
+            }
+            const valueBody = isBool
+                ? html`<vaadin-icon icon="${(v === true || v === 'true') ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
+                : html`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
+            const showLabel = labelText && labelText != 'null'
+            return html`<div
+                    id="${this.field.fieldId}"
+                    data-colspan="${this.field?.colspan}"
+                    style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; width: 100%; padding: 0.4rem 0; border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)); font-size: var(--lumo-font-size-s, .875rem); ${this.field?.style}"
+            >${showLabel ? html`<span style="color: var(--lumo-secondary-text-color, #888); white-space: nowrap;">${labelText}</span>` : nothing}${valueBody}</div>`
+    }
+
+    private renderBulletedListField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
+        if (!this.field) return html``
+            const v = evalIfNecessary(value, this.state, this.data)
+            const items = Array.isArray(v) ? v.map(item => String(item)) : (v != null && v !== '' ? [String(v)] : [])
+            return html`<vaadin-custom-field
+                    id="${this.field.fieldId}"
+                    label="${label}"
+                    .helperText="${this.helperText()}"
+                    data-colspan="${this.field?.colspan}"
+                    style="${this.field?.style}"
+            ><mateu-bulleted-list .items="${items}"></mateu-bulleted-list>
             </vaadin-custom-field>`
     }
 

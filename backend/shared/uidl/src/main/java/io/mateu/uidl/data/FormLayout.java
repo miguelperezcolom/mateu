@@ -4,7 +4,7 @@ import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
 
-@Builder
+@Builder(toBuilder = true)
 public record FormLayout(
     String id,
     List<Component> content,

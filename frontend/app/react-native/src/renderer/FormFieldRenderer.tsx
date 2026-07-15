@@ -62,6 +62,9 @@ interface FieldMeta {
   step?: number;
   stepButtonsVisible?: boolean;
   multiline?: boolean;
+  /** Property-list sections (@Section(propertyList=true)): read-only row, label left / value
+   *  right, divider between rows. */
+  propertyRow?: boolean;
   /** @OnRowSelected on grid fields: routed action id run with parameters._clickedRow. */
   onItemSelectionActionId?: string | null;
 }
@@ -97,6 +100,23 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
   const editable = !readOnly && !disabled && !ruleAttrs['disabled'];
 
+  // Property-list row (@Section(propertyList=true)): read-only, label left / plain-text value
+  // right, divider under the row — same contract as the web renderers' FormField.propertyRow.
+  if (metadata.propertyRow) {
+    const isBool = dataType === 'bool' || dataType === 'boolean' || rawValue === true || rawValue === false;
+    const text = isBool
+      ? (rawValue === true || rawValue === 'true' ? '✓' : '—')
+      : dataType === 'money'
+        ? formatMoney(rawValue)
+        : stringValue !== '' ? stringValue : '—';
+    return (
+      <View style={styles.propertyRow}>
+        {!!label && label !== 'null' && <Text style={styles.propertyRowLabel}>{label}</Text>}
+        <Text style={styles.propertyRowValue}>{text}</Text>
+      </View>
+    );
+  }
+
   const renderInput = () => {
     // Grid: an array-of-rows field (nested collection). Read-only shows the table; editable
     // opens a row form on tap (mobile-friendly counterpart of the web's inline editors).
@@ -129,6 +149,21 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           onValueChange={(v) => commit(fieldId, v)}
           disabled={!editable}
         />
+      );
+    }
+
+    // Plain bulleted list (@BulletedList on a collection field): read-only <ul>
+    if (stereotype === 'bulletedList') {
+      const items = Array.isArray(rawValue) ? rawValue.map(String) : stringValue ? [stringValue] : [];
+      return (
+        <View style={styles.bulletedField}>
+          {items.map((item, i) => (
+            <View key={i} style={styles.bulletedFieldRow}>
+              <Text style={styles.bulletedFieldDot}>•</Text>
+              <Text style={styles.bulletedFieldText}>{item}</Text>
+            </View>
+          ))}
+        </View>
       );
     }
 
@@ -634,6 +669,15 @@ function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
 const styles = StyleSheet.create({
   fieldError: { color: '#cc0000', fontSize: 12, marginTop: 4 },
   plainText: { fontSize: 14, color: '#1a1a1a', paddingVertical: 6 },
+  // Property-list rows (@Section(propertyList=true))
+  propertyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, paddingVertical: 7, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#e4e4e7' },
+  propertyRowLabel: { fontSize: 13, color: '#888' },
+  propertyRowValue: { flex: 1, fontSize: 14, color: '#1a1a1a', fontWeight: '500', textAlign: 'right' },
+  // Bulleted list field (@BulletedList)
+  bulletedField: { gap: 2, paddingVertical: 2 },
+  bulletedFieldRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 2 },
+  bulletedFieldDot: { color: '#888', lineHeight: 20 },
+  bulletedFieldText: { flex: 1, color: '#222', fontSize: 14, lineHeight: 20 },
   container: { marginBottom: 12 },
   label: { fontSize: 12, color: '#555', marginBottom: 4, fontWeight: '500' },
   input: {

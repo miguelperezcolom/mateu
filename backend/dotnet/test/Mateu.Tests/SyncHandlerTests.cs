@@ -951,9 +951,10 @@ public class SyncHandlerTests
         Assert.Contains("\"type\":\"HorizontalLayout\"", json);
         Assert.Contains("width: 100%; align-items: flex-start;", json);
         // …declared zones size by their width, the unzoned section falls into a flexible column…
-        Assert.Contains("flex: 0 0 64%; min-width: 0;", json);
-        Assert.Contains("flex: 0 0 36%; min-width: 0;", json);
-        Assert.Contains("flex: 1; min-width: 0;", json);
+        Assert.Contains("flex: 1 1 calc(64% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);", json);
+        Assert.Contains("flex: 1 1 calc(36% - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);", json);
+        Assert.Contains("flex: 1 1 12rem; min-width: min(20rem, 100%);", json);
+        Assert.Contains("\"wrap\":true", json);
         // …and every section card survives.
         Assert.Contains("Main", json);
         Assert.Contains("Side", json);

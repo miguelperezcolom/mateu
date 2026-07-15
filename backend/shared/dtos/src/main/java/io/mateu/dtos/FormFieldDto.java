@@ -63,6 +63,7 @@ public record FormFieldDto(
     boolean mainFilter,
     boolean treeLeavesOnly,
     boolean multiline,
+    boolean propertyRow,
     NavLinkDto link)
     implements ComponentMetadataDto {
 

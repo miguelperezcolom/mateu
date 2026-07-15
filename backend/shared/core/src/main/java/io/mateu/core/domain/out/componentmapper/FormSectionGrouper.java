@@ -24,15 +24,16 @@ final class FormSectionGrouper {
     SectionFields sectionFields = null;
 
     for (Field field : fields) {
-      // Only start a new section when the section name actually changes.
-      // Consecutive fields sharing the same @Section value belong to the same group.
+      // Only start a new section when the @Section declaration actually changes — comparing EVERY
+      // attribute, not just the name: two consecutive untitled sections (value "") pointing at
+      // different zones (or with different propertyList/frameless/… flags) are distinct sections,
+      // while consecutive fields repeating the exact same @Section still share one group.
       // Meta-aware read so composed (semantic) annotations carrying @Section also work here.
       Section fieldSection = MetaAnnotations.find(field, Section.class);
       boolean startsNewSection =
           sectionFields == null
               || (fieldSection != null
-                  && (sectionAnnotation == null
-                      || !fieldSection.value().equals(sectionAnnotation.value())));
+                  && (sectionAnnotation == null || !sameSection(fieldSection, sectionAnnotation)));
       if (startsNewSection) {
         if (sectionFields != null) {
           fieldsPerSection.put(sectionAnnotation, sectionFields);
@@ -73,6 +74,16 @@ final class FormSectionGrouper {
                 public boolean sticky() {
                   return false;
                 }
+
+                @Override
+                public boolean propertyList() {
+                  return false;
+                }
+
+                @Override
+                public boolean frameless() {
+                  return false;
+                }
               };
         }
         sectionFields =
@@ -85,5 +96,16 @@ final class FormSectionGrouper {
       fieldsPerSection.put(sectionAnnotation, sectionFields);
     }
     return new SectionGrouping(sections, fieldsPerSection);
+  }
+
+  /** Whether two @Section declarations describe the same section (every attribute equal). */
+  private static boolean sameSection(Section a, Section b) {
+    return a.value().equals(b.value())
+        && a.zone().equals(b.zone())
+        && a.columns() == b.columns()
+        && a.style().equals(b.style())
+        && a.sticky() == b.sticky()
+        && a.propertyList() == b.propertyList()
+        && a.frameless() == b.frameless();
   }
 }

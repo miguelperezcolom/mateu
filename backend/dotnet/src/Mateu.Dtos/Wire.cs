@@ -159,6 +159,9 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(MeterMetadataDto), "Meter")]
 [JsonDerivedType(typeof(TaskProgressMetadataDto), "TaskProgress")]
 [JsonDerivedType(typeof(StatusListMetadataDto), "StatusList")]
+[JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
+[JsonDerivedType(typeof(SeparatorMetadataDto), "Separator")]
+[JsonDerivedType(typeof(NoticeMetadataDto), "Notice")]
 [JsonDerivedType(typeof(TaskQueueMetadataDto), "TaskQueue")]
 [JsonDerivedType(typeof(ResourceGridMetadataDto), "ResourceGrid")]
 [JsonDerivedType(typeof(OfferCardMetadataDto), "OfferCard")]
@@ -356,6 +359,8 @@ public record TaskProgressMetadataDto(
 /// <summary>Status-list metadata: rows with status chip and/or action.</summary>
 public record StatusListMetadataDto(IReadOnlyList<StatusItemDto> Items) : ComponentMetadataDto;
 
+public record BulletedListMetadataDto(IReadOnlyList<string> Items) : ComponentMetadataDto;
+
 /// <summary>One status-list row; the action dispatches ActionId with { _item: Id }.</summary>
 public record StatusItemDto(
     string? Id,
@@ -514,6 +519,9 @@ public record FabDto(string Icon, string ActionId)
 public record HorizontalLayoutMetadataDto : ComponentMetadataDto
 {
     public bool Spacing { get; init; } = true;
+
+    /// <summary>Lets the row's items wrap to the next line (responsive zone stacking).</summary>
+    public bool Wrap { get; init; }
 }
 
 public record ProgressBarMetadataDto(double Value) : ComponentMetadataDto
@@ -522,7 +530,22 @@ public record ProgressBarMetadataDto(double Value) : ComponentMetadataDto
     public double Max { get; init; } = 1;
 }
 
-public record TextMetadataDto(string Text) : ComponentMetadataDto;
+public record TextMetadataDto(string Text) : ComponentMetadataDto
+{
+    /// <summary>Font size: xl | l | m | s | xs. m (or null) applies nothing.</summary>
+    public string? Size { get; init; }
+
+    /// <summary>Drops the container's block margins (margin-block-start/end: 0).</summary>
+    public bool NoMargins { get; init; }
+}
+
+/// <summary>A horizontal divider line (&lt;hr&gt;); data-colspan in Attributes makes it span the
+/// full form row.</summary>
+public record SeparatorMetadataDto(IReadOnlyDictionary<string, string>? Attributes = null) : ComponentMetadataDto;
+
+/// <summary>A compact inline banner: theme-tinted strip with a severity icon, one line of text
+/// and an optional right-aligned action.</summary>
+public record NoticeMetadataDto(string? Text, string? Theme, string? Icon, string? ActionLabel, string? ActionId, bool Slim = false, bool FullWidth = false) : ComponentMetadataDto;
 
 public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetadataDto
 {
@@ -695,6 +718,9 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     public object? InitialValue { get; init; }
     public IReadOnlyList<OptionDto> Options { get; init; } = [];
     public bool Multiline { get; init; }
+    /// <summary>Property-list sections ([Section(PropertyList = true)]): render as a read-only row
+    /// with the label aligned left and the plain-text value aligned right, divider between rows.</summary>
+    public bool PropertyRow { get; init; }
     /// <summary>Navigation link rendered as an icon at the right side of this field; null = no link.</summary>
     public NavLinkDto? Link { get; init; }
 

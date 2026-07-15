@@ -38,7 +38,8 @@ public record AppDto(
     String uploadUrl,
     List<FabDto> fabs,
     boolean themeToggle,
-    List<AppContextSelectorDto> contextSelectors)
+    List<AppContextSelectorDto> contextSelectors,
+    List<AppHeaderActionDto> contextActions)
     implements ComponentMetadataDto {
 
   public AppDto {
@@ -48,6 +49,8 @@ public record AppDto(
     apps = Collections.unmodifiableList(apps != null ? apps : List.of());
     contextSelectors =
         Collections.unmodifiableList(contextSelectors != null ? contextSelectors : List.of());
+    contextActions =
+        Collections.unmodifiableList(contextActions != null ? contextActions : List.of());
   }
 
   @Override

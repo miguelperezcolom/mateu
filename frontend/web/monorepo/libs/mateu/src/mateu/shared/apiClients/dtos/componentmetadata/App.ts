@@ -2,7 +2,8 @@ import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant";
 import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab";
-import AppContextSelector from "./AppContextSelector.ts";
+import AppContextSelector from "./AppContextSelector.ts"
+import AppHeaderAction from "@mateu/shared/apiClients/dtos/componentmetadata/AppHeaderAction.ts";
 
 export default interface App extends ComponentMetadata {
 
@@ -33,6 +34,7 @@ export default interface App extends ComponentMetadata {
     fabs: Fab[] | undefined
     themeToggle: boolean
     contextSelectors: AppContextSelector[] | undefined
+    contextActions: AppHeaderAction[] | undefined
     rootRoute: string | undefined
 
 }

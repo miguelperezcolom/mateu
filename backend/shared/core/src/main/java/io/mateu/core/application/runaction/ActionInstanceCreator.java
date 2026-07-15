@@ -76,7 +76,7 @@ public class ActionInstanceCreator {
     var mono =
         createInstanceAndPostHydrate(command.serverSideType(), command)
             .doOnNext(app -> command.httpRequest().setAttribute("resolvedApp", app));
-    if (isTerminalRoute(command.route()) || isAppLevelAction(command.actionId())) {
+    if (isTerminalRoute(command.route()) || isAppLevelAction(command)) {
       return mono;
     }
     RunActionCommand finalCommand = command;
@@ -97,9 +97,34 @@ public class ActionInstanceCreator {
    * no menu actionable for the empty route, so resolving would come back empty and the action would
    * answer "Not found." instead of dispatching to its runner.
    */
-  private boolean isAppLevelAction(String actionId) {
-    return actionId != null
-        && actionId.startsWith(io.mateu.core.domain.act.AppContextSearchActionRunner.ACTION_PREFIX);
+  private boolean isAppLevelAction(RunActionCommand command) {
+    var actionId = command.actionId();
+    if (actionId == null) {
+      return false;
+    }
+    if (actionId.startsWith(io.mateu.core.domain.act.AppContextSearchActionRunner.ACTION_PREFIX)) {
+      return true;
+    }
+    // Header actions declared by the app's AppActionsSupplier dispatch to the app
+    // instance too — same reasoning as the context selectors' remote search.
+    if (command.serverSideType() == null) {
+      return false;
+    }
+    try {
+      var appClass = Class.forName(command.serverSideType());
+      if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
+        return false;
+      }
+      var supplier =
+          (io.mateu.uidl.interfaces.AppActionsSupplier)
+              io.mateu.uidl.di.MateuBeanProvider.getBean(
+                      io.mateu.uidl.interfaces.InstanceFactory.class)
+                  .newInstance(appClass, java.util.Map.of(), command.httpRequest());
+      var actions = supplier.appActions(command.httpRequest());
+      return actions != null && actions.stream().anyMatch(a -> actionId.equals(a.actionId()));
+    } catch (ReflectiveOperationException | RuntimeException e) {
+      return false;
+    }
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {

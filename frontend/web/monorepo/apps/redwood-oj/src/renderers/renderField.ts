@@ -2,6 +2,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import '@infra/ui/mateu-signature-pad.ts';
 import '@infra/ui/mateu-tree-select.ts';
 import '@infra/ui/mateu-camera-capture.ts';
+import '@infra/ui/mateu-bulleted-list.ts';
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
@@ -302,6 +303,34 @@ const renderPlainTextField = (metadata: FormField, value: any, label: unknown, s
     return labeled(label, body, isMoney ? 'text-align: right; ' : '')
 }
 
+// Property-list row (@Section(propertyList=true)): plain-text value, label left / value right,
+// rows separated by a divider line.
+const renderPropertyRowField = (metadata: FormField, value: any, label: unknown, state: any, data: any): TemplateResult => {
+    let v: any = evalIfNecessary(value, state, data)
+    const amountObj = (v && typeof v === 'object' && 'value' in v) ? v : null
+    if (v && v.value) v = v.value
+    const isBool = metadata.dataType == 'bool' || v === true || v === false
+    const isMoney = metadata.dataType == 'money'
+    const hasValue = v !== null && v !== undefined && v !== ''
+    let display = hasValue ? '' + v : '—'
+    if (isMoney && hasValue) {
+        display = formatMoney(v, amountObj)
+    }
+    const valueBody = isBool
+        ? html`<span style="margin-left: auto;">${(v === true || v === 'true') ? '✓' : '—'}</span>`
+        : html`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
+    const labelText = label != null && label !== '' && label !== 'null' ? '' + label : ''
+    return html`<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; width: 100%; padding: 0.4rem 0; border-bottom: 1px solid rgba(0,0,0,.08); ${metadata.style ?? ''}"
+    >${labelText ? html`<span style="color: ${SECONDARY}; white-space: nowrap;">${labelText}</span>` : nothing}${valueBody}</div>`
+}
+
+// Plain bulleted list (stereotype `bulletedList`): the shared mateu-bulleted-list <ul>.
+const renderBulletedListField = (metadata: FormField, value: any, label: unknown, state: any, data: any): TemplateResult => {
+    const v = evalIfNecessary(value, state, data)
+    const items = Array.isArray(v) ? v.map(item => '' + item) : (v != null && v !== '' ? ['' + v] : [])
+    return labeled(label, html`<mateu-bulleted-list .items="${items}" style="${metadata.style ?? nothing}"></mateu-bulleted-list>`)
+}
+
 const renderReadOnlyField = (metadata: FormField, value: any, label: unknown, state: any, data: any): TemplateResult => {
     let valueToDisplay: any = evalIfNecessary(value, state, data) || data?.[metadata.fieldId]
     if (valueToDisplay && valueToDisplay.value) {
@@ -417,11 +446,17 @@ const renderFieldControl = (container: LitElement, component: ClientSideComponen
     const id = component.id ?? fieldId
     const stereotype = metadata.stereotype
 
+    if (metadata.propertyRow) {
+        return renderPropertyRowField(metadata, value, label, state, data)
+    }
     if (stereotype === 'badge') {
         return renderBadgeField(component, value, label || fieldId)
     }
     if (stereotype === 'plainText') {
         return renderPlainTextField(metadata, value, label, state, data)
+    }
+    if (stereotype === 'bulletedList') {
+        return renderBulletedListField(metadata, value, label, state, data)
     }
     if (metadata.readOnly && stereotype != 'grid' && metadata.dataType != 'status' && metadata.dataType != 'money') {
         return renderReadOnlyField(metadata, value, label, state, data)

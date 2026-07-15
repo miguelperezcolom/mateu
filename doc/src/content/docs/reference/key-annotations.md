@@ -611,6 +611,10 @@ These are also part of the public DSL and are worth knowing:
 - `@LinkTo` — navigation icon at the right of a field pointing to a URL or route; the href supports `${state.…}` templates interpolated live in the browser, so `@LinkTo("/customers/${state.customerId}")` follows the value as the user types (optional `icon`, `title`, `target`; for runtime decisions implement `LinkSupplier`)
 - `@Validation` — declarative cross-field validation (`condition`, `fieldId`, `message`; repeatable)
 - `@Multiline` — let a `@PlainText` value wrap across multiple lines
+- `@Text` — render a String field as a text block (`container` picks the HTML element; `size` = `xl`/`l`/`m`/`s`/`xs` scales the font; `noMargins = true` drops the block margins)
+- `@BulletedList` — render a `List<String>` field as a plain bulleted list (`<ul>`); fluent counterpart `BulletedList`
+- `@SeparatorBefore` — paint a full-width divider line (`<hr>`) above the field; fluent counterpart `Separator`
+- `@Notice` — render a String field as a compact inline banner (see [Notice](/ux-patterns/notice/)); a blank value hides it
 - `@UploadableImage` — image field with upload/replace/delete, stored as data URI or URL
 - `@Signature` — signature capture on a String field (drawing canvas → PNG data URI in the value)
 - `@PhotoCapture` — photo capture on a String field (device camera → JPEG data URI; file-input fallback opens the native camera on phones)
@@ -623,6 +627,7 @@ These are also part of the public DSL and are worth knowing:
 - `@AppContext` — application-level context selector on the app header (active hotel, company…); options from an enum or a `LookupOptionsSupplier`, value readable everywhere via `httpRequest.appContext(fieldName)`
 - `@KPI` — render a numeric field as a dashboard KPI card
 - `@WizardCompletionAction` — the method that completes a `Wizard` (shown on the penultimate step)
+- `@WizardProgress` — the wizard's progress style: `BAR` (default) or `STEPS` (connected step bullets)
 - `@AutoSave`
 - `@Icon`
 - `@PageTitle`
@@ -633,8 +638,8 @@ These are also part of the public DSL and are worth knowing:
 - `@Widget`
 - `@Footer`
 - `@Header`
-- `@Section` (incl. `zone` for use with `@Zones`, and `sticky = true` to pin the section card)
-- `@Zones` / `@Zone` — side-by-side layout zones (columns of sections)
+- `@Section` (incl. `zone` for use with `@Zones`, `sticky = true` to pin the section card, `propertyList = true` to render every field as a read-only label-left/value-right row with dividers, and `frameless = true` to drop the section card and its padding)
+- `@Zones` / `@Zone` — side-by-side layout zones (columns of sections); columns stack vertically when they don't fit (responsive)
 - `@Toc` — sticky sections index (table of contents) on a long page; see [Sticky sections index](/ux-patterns/sections-index/)
 - `@Compact` — high-density page preset (`StyleConstants.COMPACT`)
 - `@PlainText` — render a value as read-only text instead of an input

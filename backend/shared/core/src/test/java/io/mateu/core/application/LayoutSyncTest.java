@@ -97,6 +97,33 @@ class LayoutSyncTest {
   }
 
   @SuppressWarnings("unused")
+  @UI("/layout/zones-untitled")
+  @Zones({@Zone(name = "left", width = "60%"), @Zone(name = "right", width = "40%")})
+  public static class ZonesUntitledPage {
+    // Two consecutive UNTITLED sections (same value "") pointing at different zones: they must
+    // stay separate sections — the grouper compares every @Section attribute, not just the name.
+    @Section(value = "", zone = "left")
+    String izquierda = "I";
+
+    @Section(value = "", zone = "right")
+    String derecha = "D";
+  }
+
+  @UI("/layout/zones-banded")
+  @Zones({@Zone(name = "left", width = "60%"), @Zone(name = "right", width = "40%")})
+  public static class ZonesBandedPage {
+    // No zone → full-width band across the top, above the zoned row.
+    @Section(value = "Cabecera")
+    String head = "h";
+
+    @Section(value = "Izquierda", zone = "left")
+    String a = "a";
+
+    @Section(value = "Derecha", zone = "right")
+    String b = "b";
+  }
+
+  @SuppressWarnings("unused")
   @UI("/layout/tabs")
   public static class TabsPage {
     @Tab(value = "Uno", shortcut = "alt+1")
@@ -248,6 +275,8 @@ class LayoutSyncTest {
         TestMateu.withUis(
             SectionsPage.class,
             ZonesPage.class,
+            ZonesUntitledPage.class,
+            ZonesBandedPage.class,
             TabsPage.class,
             FoldedPage.class,
             TocOnPage.class,
@@ -334,9 +363,15 @@ class LayoutSyncTest {
   @Test
   void zoneWidthsBecomeFlexBasisStyles() {
     var page = page(mateu.sync("/layout/zones"));
-    var columns = ((ClientSideComponentDto) page.children().get(0)).children();
-    assertThat(columns.get(0).style()).contains("flex: 0 0 60%");
-    assertThat(columns.get(1).style()).contains("flex: 0 0 40%");
+    var row = (ClientSideComponentDto) page.children().get(0);
+    // The row wraps: a column squeezed under its min-width drops below the previous one.
+    assertThat(((io.mateu.dtos.HorizontalLayoutDto) row.metadata()).wrap()).isTrue();
+    var columns = row.children();
+    // Grow AND shrink around the declared basis minus the spacing gap (with flex-wrap the line
+    // breaks are computed from the basis, so 60% + 40% + gap would wrap or overflow);
+    // min-width sets the responsive wrap point.
+    assertThat(columns.get(0).style()).contains("flex: 1 1 calc(60%").contains("min-width: min(");
+    assertThat(columns.get(1).style()).contains("flex: 1 1 calc(40%");
     // the leftover column has no fixed width — it grows
     assertThat(columns.get(2).style()).contains("flex: 1");
   }
@@ -357,6 +392,42 @@ class LayoutSyncTest {
     var trailingTexts = new ArrayList<String>();
     collectMetadata(columns.get(2), TextDto.class).forEach(text -> trailingTexts.add(text.text()));
     assertThat(trailingTexts).contains("Perdida");
+  }
+
+  @Test
+  void consecutiveUntitledSectionsInDifferentZonesStaySeparate() {
+    var page = page(mateu.sync("/layout/zones-untitled"));
+    var row = (ClientSideComponentDto) page.children().get(0);
+    assertThat(row.metadata()).isInstanceOf(HorizontalLayoutDto.class);
+    // left column + right column — the two untitled sections did NOT merge into one
+    assertThat(row.children()).hasSize(2);
+    assertThat(
+            collectMetadata(row.children().get(0), io.mateu.dtos.FormFieldDto.class).stream()
+                .map(io.mateu.dtos.FormFieldDto::fieldId))
+        .contains("izquierda")
+        .doesNotContain("derecha");
+    assertThat(
+            collectMetadata(row.children().get(1), io.mateu.dtos.FormFieldDto.class).stream()
+                .map(io.mateu.dtos.FormFieldDto::fieldId))
+        .contains("derecha");
+  }
+
+  @Test
+  void sectionWithoutZoneRendersAsFullWidthBandAboveTheZonedRow() {
+    var page = page(mateu.sync("/layout/zones-banded"));
+    // A vertical stack: the full-width band first, then the side-by-side zoned row.
+    var stack = (ClientSideComponentDto) page.children().get(0);
+    assertThat(stack.metadata()).isInstanceOf(VerticalLayoutDto.class);
+    assertThat(stack.children()).hasSize(2);
+
+    var band = stack.children().get(0);
+    assertThat(collectMetadata(band, TextDto.class).stream().map(TextDto::text))
+        .contains("Cabecera");
+    assertThat(collectMetadata(band, HorizontalLayoutDto.class)).isEmpty();
+
+    var row = (ClientSideComponentDto) stack.children().get(1);
+    assertThat(row.metadata()).isInstanceOf(HorizontalLayoutDto.class);
+    assertThat(row.children()).hasSize(2);
   }
 
   // ------------------------------------------------------------------ @Tab

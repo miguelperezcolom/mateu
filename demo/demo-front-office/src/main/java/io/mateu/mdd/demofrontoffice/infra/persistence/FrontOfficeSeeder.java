@@ -99,37 +99,37 @@ public class FrontOfficeSeeder implements ApplicationRunner {
         new Guest(
             "maria", "María Fernández", "12345678X", true, "m.fernandez@email.com",
             "+34 612 345 678", GuestTier.PLATINUM, 48500, 23, 96, 6, 2, 5,
-            "Hab 1408 · Hotel Aruba · Feb 2026 · 5N",
+            "Hab 1408 · Hotel Aruba", "Feb 2026 · 5N",
             preferences("High floor", "Extra pillows", "Late checkout", "Quiet room", "Sea view")));
     guests.save(
         new Guest(
             "james", "James Whitfield", null, false, null, null, GuestTier.GOLD, 12300, 8, 27, 3,
-            0, 2, "Hab 512 · Hotel Bávaro · Nov 2025 · 4N",
+            0, 2, "Hab 512 · Hotel Bávaro", "Nov 2025 · 4N",
             preferences("King bed", "Quiet room")));
     guests.save(
         new Guest(
             "klaus", "Klaus Hoffmann", null, false, null, null, GuestTier.SILVER, 6850, 4, 19, 2,
-            0, 2, "Hab 610 · Hotel Punta Cana · Jul 2025 · 7N",
+            0, 2, "Hab 610 · Hotel Punta Cana", "Jul 2025 · 7N",
             preferences("Connecting rooms", "Baby cot")));
     guests.save(
         new Guest(
             "carlos", "Carlos Mendoza", "55112233K", true, "c.mendoza@email.com", null,
-            GuestTier.GOLD, 22400, 14, 61, 4, 1, 3, "Hab 902 · Hotel Cancún · Dic 2025 · 6N",
+            GuestTier.GOLD, 22400, 14, 61, 4, 1, 3, "Hab 902 · Hotel Cancún", "Dic 2025 · 6N",
             preferences("Late checkout")));
     guests.save(
         new Guest(
             "yuki", "Yuki Tanaka", "JP8877441", true, "y.tanaka@email.com", null, GuestTier.SILVER,
-            4100, 3, 9, 2, 0, 1, "Hab 421 · Hotel Bávaro · Ago 2025 · 3N",
+            4100, 3, 9, 2, 0, 1, "Hab 421 · Hotel Bávaro", "Ago 2025 · 3N",
             preferences("Quiet room")));
     guests.save(
         new Guest(
             "sophie", "Sophie Laurent", "FR-2231907", true, "s.laurent@email.com", null,
-            GuestTier.PLATINUM, 61200, 31, 178, 7, 2, 9, "Hab 1204 · Hotel Aruba · Ene 2026 · 6N",
+            GuestTier.PLATINUM, 61200, 31, 178, 7, 2, 9, "Hab 1204 · Hotel Aruba", "Ene 2026 · 6N",
             preferences("Sea view", "High floor", "Champagne on arrival")));
     guests.save(
         new Guest(
             "emma", "Emma Richardson", "GB4455123", true, "e.richardson@email.com", null,
-            GuestTier.SILVER, 7900, 6, 22, 3, 1, 2, "Hab 1015 · Hotel Punta Cana · Oct 2025 · 4N",
+            GuestTier.SILVER, 7900, 6, 22, 3, 1, 2, "Hab 1015 · Hotel Punta Cana", "Oct 2025 · 4N",
             preferences("Extra pillows")));
   }
 

@@ -23,7 +23,7 @@ import {
   TestimonialsRenderer, FaqRenderer, CalloutCardRenderer, CommentThreadRenderer, FileListRenderer,
   ChecklistRenderer,
   ComparisonCardRenderer,
-  EntityHeaderRenderer, MeterRenderer, TaskProgressRenderer, StatusListRenderer, TaskQueueRenderer,
+  EntityHeaderRenderer, MeterRenderer, TaskProgressRenderer, StatusListRenderer, BulletedListRenderer, NoticeRenderer, TaskQueueRenderer,
   ResourceGridRenderer, OfferCardRenderer, AddOnPickerRenderer, LedgerRenderer, PaymentPickerRenderer,
   ProcessMonitorRenderer,
 } from './DisplayRenderer';
@@ -150,8 +150,15 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
 
     case 'Text': {
       const text = interpolate((metadata['text'] as string) ?? '', { state });
-      return <Text style={styles.text}>{text}</Text>;
+      // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
+      const TEXT_SIZES: Record<string, number> = { xl: 22, l: 18, s: 12.5, xs: 11 };
+      const size = TEXT_SIZES[(metadata['size'] as string) ?? ''];
+      return <Text style={[styles.text, size ? { fontSize: size } : null]}>{text}</Text>;
     }
+
+    // A horizontal divider line (<hr>) separating contents inside a section or form.
+    case 'Separator':
+      return <View style={styles.separator} />;
 
     case 'FormSection':
       return <SectionRenderer component={component} state={state} />;
@@ -247,6 +254,10 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <TaskProgressRenderer component={component} />;
     case 'StatusList':
       return <StatusListRenderer component={component} />;
+    case 'BulletedList':
+      return <BulletedListRenderer component={component} />;
+    case 'Notice':
+      return <NoticeRenderer component={component} state={state} renderComponent={renderComponent} />;
     case 'TaskQueue':
       return <TaskQueueRenderer component={component} />;
     case 'ResourceGrid':
@@ -296,6 +307,7 @@ const styles = StyleSheet.create({
   centered: { alignSelf: 'center', margin: 20 },
   error: { color: '#cc0000', padding: 8, fontSize: 13 },
   text: { fontSize: 14, color: '#333', flexShrink: 1 },
+  separator: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#e4e4e7', width: '100%', marginVertical: 8 },
   unknown: { fontSize: 12, color: '#999', fontStyle: 'italic' },
   image: { width: '100%', height: 200, borderRadius: 6, backgroundColor: '#f5f5f5' },
   btnDefault: { backgroundColor: '#f5f5f5', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: '#ccc', alignSelf: 'flex-start' },

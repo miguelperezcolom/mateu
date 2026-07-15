@@ -2,6 +2,7 @@ package io.mateu.ijp.ui
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPasswordField
@@ -18,6 +19,7 @@ import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Font
 import javax.swing.DefaultComboBoxModel
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -67,11 +69,44 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
 
     val container = verticalPanel(2)
 
+    // Property-list row (@Section(propertyList=true)): read-only, label left / plain-text value
+    // right, divider under the row — same contract as the web renderers' FormField.propertyRow.
+    if (metadata.bool("propertyRow")) {
+        val row = JPanel(BorderLayout(12, 0))
+        row.isOpaque = false
+        row.border = javax.swing.BorderFactory.createCompoundBorder(
+            JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.empty(6, 0))
+        if (label.isNotBlank()) row.add(
+            JBLabel(label).apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() },
+            BorderLayout.WEST)
+        val display = when {
+            dataType in BOOL_TYPES -> if (rawValue.asBoolean(false)) "✓" else "—"
+            dataType == "money" -> formatMoney(value)
+            value.isNotBlank() -> value
+            else -> "—"
+        }
+        row.add(JBLabel(display).apply {
+            font = font.deriveFont(Font.BOLD)
+            horizontalAlignment = javax.swing.SwingConstants.RIGHT
+        }, BorderLayout.CENTER)
+        return row
+    }
+
+    // Plain bulleted list (@BulletedList on a collection field): read-only <ul>.
+    if (stereotype == "bulletedList") {
+        if (label.isNotBlank()) container.add(JBLabel(label).apply { alignmentX = Component.LEFT_ALIGNMENT })
+        val items = if (rawValue.isArray) rawValue.map { it.asText("") } else if (value.isNotBlank()) listOf(value) else emptyList()
+        for (item in items) {
+            container.add(JBLabel("• $item").apply { alignmentX = Component.LEFT_ALIGNMENT })
+        }
+        return container
+    }
+
     // Grid field (e.g. a List<T> of nested records): a table built from `metadata.columns`, rows
     // from the field's state value. Read-only view → plain table; editable form → editable cells
     // plus the IDE's ToolbarDecorator (add/remove/reorder rows), all mutating the live state array
     // that the form's save round-trips.
-    if (stereotype == "grid" || (dataType == "array" && stereotype != "multiSelect")) {
+    if (stereotype == "grid" || (dataType == "array" && stereotype != "multiSelect" && stereotype != "bulletedList")) {
         if (label.isNotBlank()) {
             val caption = JBLabel(label)
             caption.alignmentX = Component.LEFT_ALIGNMENT

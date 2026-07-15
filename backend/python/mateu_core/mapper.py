@@ -79,6 +79,9 @@ from mateu_dtos import (
     TaskProgressMetadata,
     StatusItemRecord,
     StatusListMetadata,
+    BulletedListMetadata,
+    SeparatorMetadata,
+    NoticeMetadata,
     QueueItemRecord,
     QueueGroupRecord,
     TaskQueueMetadata,
@@ -105,6 +108,8 @@ from mateu_dtos import (
     Option,
     PageMetadata,
     ProgressBarMetadata,
+    ProgressStepsMetadata,
+    StepRecord,
     RemoteCoordinates,
     RuleRecord,
     ScoreboardMetadata,
@@ -118,6 +123,7 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     Audience,
+    BulletedList,
     ComponentTreeSupplier,
     Crud,
     Dashboard,
@@ -149,6 +155,7 @@ from mateu_uidl import (
     ReadOnlyUnless,
     RuleSupplier,
     Searchable,
+    SeparatorBefore,
     Selector,
     Signature,
     TreeSelect,
@@ -926,6 +933,15 @@ class ReflectionMapper:
                 for it in c.items
             ]
             return self._fluent_client(StatusListMetadata(items=items), c)
+        if isinstance(c, fluent.BulletedList):
+            return self._fluent_client(BulletedListMetadata(items=list(c.items)), c)
+        if isinstance(c, fluent.Notice):
+            return self._fluent_client(
+                NoticeMetadata(
+                    text=self.T(c.text), theme=c.theme, icon=c.icon,
+                    action_label=c.action_label, action_id=c.action_id,
+                    slim=c.slim, full_width=c.full_width,
+                ), c, [self.map_component(child) for child in c.content])
         if isinstance(c, fluent.TaskQueue):
             groups = [
                 QueueGroupRecord(
@@ -1054,7 +1070,10 @@ class ReflectionMapper:
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Text):
-            return self._fluent_client(TextMetadata(text=self.T(c.text)), c)
+            return self._fluent_client(
+                TextMetadata(text=self.T(c.text), size=c.size, no_margins=c.no_margins), c)
+        if isinstance(c, fluent.Separator):
+            return self._fluent_client(SeparatorMetadata(), c)
         # Federation — a remote Mateu UI mounted as an island inside this page.
         if isinstance(c, fluent.MicroFrontend):
             meta = MicroFrontendMetadata(
@@ -1209,7 +1228,25 @@ class ReflectionMapper:
 
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
         title_text = self.client(TextMetadata(text=title), None, [])
-        progress = self.client(ProgressBarMetadata(value=current / total), "fieldId", [])
+        # wizard_progress("steps"): connected step bullets instead of the progress bar
+        # (mirrors Java's @WizardProgress(WizardProgressStyle.STEPS)).
+        if getattr(cls, "__mateu_wizard_progress__", "bar") == "steps":
+            progress = self.client(
+                ProgressStepsMetadata(
+                    steps=[
+                        StepRecord(
+                            id=f"step-{i}",
+                            title=f"Step {i}",
+                            status="done" if i < current else "current" if i == current else "upcoming",
+                        )
+                        for i in range(1, total + 1)
+                    ]
+                ),
+                "fieldId",
+                [],
+            )
+        else:
+            progress = self.client(ProgressBarMetadata(value=current / total), "fieldId", [])
         card = self.client(
             CardMetadata(content=self.client(FormLayoutMetadata(), None, self.form_rows(fields))),
             "fieldId",
@@ -1481,29 +1518,41 @@ class ReflectionMapper:
         # Group the declared fields into sections (title None = synthetic/unnamed section).
         sections: list[tuple[str | None, list]] = []
         section_zones: list[str] = []
+        section_markers: list[Section | None] = []
         current: str | None = None
         current_zone = ""
+        current_marker: Section | None = None
         for f in fields:
+            # A new section starts when the Section declaration actually changes — comparing
+            # EVERY attribute (frozen dataclass equality), not just the caption: two consecutive
+            # untitled sections pointing at different zones (or with different property_list/
+            # frameless flags) are distinct sections.
             sec = f.marker(Section)
+            starts_new = not sections or (
+                sec is not None and (current_marker is None or sec != current_marker)
+            )
             if sec is not None:
                 current = sec.caption
                 current_zone = sec.zone
-            if not sections or sections[-1][0] != current:
+                current_marker = sec
+            if starts_new:
                 sections.append((current, []))
                 section_zones.append(current_zone)
+                section_markers.append(current_marker)
             sections[-1][1].append(f)
 
         # @zones columns on the class: sections lay out side by side (zones win over inference).
         declared_zones = getattr(cls, "__mateu_zones__", None)
         if declared_zones and len(sections) > 1:
-            return [self.build_zones(declared_zones, sections, section_zones, instance, read_only)]
+            return [self.build_zones(
+                declared_zones, sections, section_zones, section_markers, instance, read_only)]
 
         # @folded_layout: the section cards side by side in one horizontal row (zones win).
         if class_flag(cls, "__mateu_folded_layout__", False) and len(sections) > 1:
             return [ClientSideComponent(
                 metadata=HorizontalLayoutMetadata(spacing=True),
                 children=[
-                    self.section_card(t, [self.map_field(f, instance, read_only) for f in fs])
+                    self.section_card(t, self.map_fields(fs, instance, read_only))
                     for t, fs in sections
                 ],
             )]
@@ -1516,8 +1565,8 @@ class ReflectionMapper:
             return [self.folded_card(plan[0], plan[1], instance, read_only)]
 
         return [
-            self.section_card(t, [self.map_field(f, instance, read_only) for f in fs])
-            for t, fs in sections
+            self.section_card(t, self.map_fields(fs, instance, read_only), section_markers[i])
+            for i, (t, fs) in enumerate(sections)
         ]
 
     def tab_layout(self, cls, fields, instance, read_only: bool) -> ClientSideComponent:
@@ -1603,12 +1652,12 @@ class ReflectionMapper:
         main_layout = self.client(
             FormLayoutMetadata(),
             None,
-            self.form_rows([self.map_field(f, instance, read_only) for f in main]),
+            self.form_rows(self.map_fields(main, instance, read_only)),
         )
         folded_layout = self.client(
             FormLayoutMetadata(),
             None,
-            self.form_rows([self.map_field(f, instance, read_only) for f in folded]),
+            self.form_rows(self.map_fields(folded, instance, read_only)),
         )
         panel = self.client(
             AccordionPanelMetadata(label=layout_inference.MORE_OPTIONS_LABEL),
@@ -1629,7 +1678,7 @@ class ReflectionMapper:
             form_layout = self.client(
                 FormLayoutMetadata(),
                 None,
-                self.form_rows([self.map_field(f, instance, read_only) for f in fs]),
+                self.form_rows(self.map_fields(fs, instance, read_only)),
             )
             comps.append(
                 self.client(
@@ -1642,18 +1691,31 @@ class ReflectionMapper:
             TabLayoutMetadata(group_relationship="alternative", adaptable=True), "_tabs", comps
         )
 
-    def build_zones(self, declared_zones, sections, section_zones, instance, read_only) -> ClientSideComponent:
+    def build_zones(
+        self, declared_zones, sections, section_zones, section_markers, instance, read_only
+    ) -> ClientSideComponent:
         """Distributes sections into the @zones columns and lays them out side by side — each
         zone a VerticalLayout stacking its section cards, its width from the zone declaration;
         sections with an unrecognised zone fall into a trailing flexible column (mirrors Java's
         SectionFormRenderer.renderZones)."""
 
-        def card_of(section):
-            title, fields = section
-            return self.section_card(title, [self.map_field(f, instance, read_only) for f in fields])
+        def card_of(i):
+            title, fields = sections[i]
+            return self.section_card(
+                title,
+                self.map_fields(fields, instance, read_only),
+                section_markers[i],
+            )
 
         def column(cards, width: str) -> ClientSideComponent:
-            style = f"flex: 0 0 {width}; min-width: 0;" if width else "flex: 1; min-width: 0;"
+            # Grow AND shrink around the declared basis minus the spacing gap (with flex-wrap the
+            # line breaks are computed from the basis, so 62% + 38% + gap would wrap or overflow);
+            # min-width sets the responsive wrap point (mirrors Java's widthStyle).
+            style = (
+                f"flex: 1 1 calc({width} - var(--lumo-space-m, 1rem)); min-width: min(20rem, 100%);"
+                if width
+                else "flex: 1 1 12rem; min-width: min(20rem, 100%);"
+            )
             return ClientSideComponent(
                 metadata=VerticalLayoutMetadata(spacing=True), children=list(cards), style=style,
             )
@@ -1665,28 +1727,86 @@ class ReflectionMapper:
             if not mine:
                 continue
             remaining = [i for i in remaining if i not in mine]
-            columns.append(column((card_of(sections[i]) for i in mine), width))
+            columns.append(column((card_of(i) for i in mine), width))
         if remaining:
-            columns.append(column((card_of(sections[i]) for i in remaining), ""))
+            columns.append(column((card_of(i) for i in remaining), ""))
 
         return ClientSideComponent(
-            metadata=HorizontalLayoutMetadata(spacing=True),
+            metadata=HorizontalLayoutMetadata(spacing=True, wrap=True),
             children=columns,
             style="width: 100%; align-items: flex-start;",
         )
 
-    def section_card(self, title: str | None, fields) -> ClientSideComponent:
-        form_layout = self.client(FormLayoutMetadata(), None, self.form_rows(fields))
+    def section_card(
+        self, title: str | None, fields, section: Section | None = None
+    ) -> ClientSideComponent:
+        # Section(property_list=True): every data field becomes a read-only property row (label
+        # left / value right, divider between rows), stacked full-width — so the body is a plain
+        # vertical layout instead of the responsive form layout (mirrors Java's
+        # SectionFormRenderer.asPropertyList).
+        if section is not None and section.property_list:
+            body = ClientSideComponent(
+                metadata=VerticalLayoutMetadata(),
+                children=[self._as_property_row(f) for f in fields],
+                style="width: 100%; align-items: stretch;",
+            )
+        else:
+            body = self.client(FormLayoutMetadata(), None, self.form_rows(fields))
+        # Section(frameless=True): no card wrapper, no padding — the content sits bare (mirrors
+        # Java's @Section(frameless=true)).
+        if section is not None and section.frameless:
+            return ClientSideComponent(
+                metadata=DivMetadata(),
+                children=[body],
+                style="flex: 1; min-width: 0; width:100%;",
+            )
         if title is not None:
-            return self.client(FormSectionMetadata(title=title), None, [form_layout])
-        vlayout = self.client(VerticalLayoutMetadata(), None, [form_layout])
+            return self.client(FormSectionMetadata(title=title), None, [body])
+        vlayout = self.client(VerticalLayoutMetadata(), None, [body])
         div = self.client(DivMetadata(), "fieldId", [vlayout])
         return self.client(CardMetadata(content=div), "fieldId", [])
 
+    @staticmethod
+    def _as_property_row(field: ClientSideComponent) -> ClientSideComponent:
+        meta = field.metadata
+        if not isinstance(meta, FormFieldMetadata) or meta.stereotype == "grid":
+            return field
+        return field.model_copy(
+            update={
+                "metadata": meta.model_copy(
+                    update={"property_row": True, "read_only": True, "colspan": 1}
+                )
+            }
+        )
+
+    def map_fields(self, fields, instance, read_only: bool) -> list:
+        """Maps declared fields to DTOs, inserting a full-width separator above any
+        ``SeparatorBefore()`` field (mirrors Java's FormLayoutBuilder)."""
+        out = []
+        for f in fields:
+            if f.has(SeparatorBefore):
+                out.append(ClientSideComponent(
+                    metadata=SeparatorMetadata(attributes={"data-colspan": "2"})))
+            out.append(self.map_field(f, instance, read_only))
+        return out
+
     def form_rows(self, fields, max_columns: int = 2) -> list:
         rows = []
-        for i in range(0, len(fields), max_columns):
-            rows.append(self.client(FormRowMetadata(), None, fields[i : i + max_columns]))
+        pending = []
+        for field in fields:
+            # A separator always takes a full row of its own (data-colspan spans the columns).
+            if isinstance(field.metadata, SeparatorMetadata):
+                if pending:
+                    rows.append(self.client(FormRowMetadata(), None, pending))
+                    pending = []
+                rows.append(self.client(FormRowMetadata(), None, [field]))
+                continue
+            pending.append(field)
+            if len(pending) == max_columns:
+                rows.append(self.client(FormRowMetadata(), None, pending))
+                pending = []
+        if pending:
+            rows.append(self.client(FormRowMetadata(), None, pending))
         return rows
 
     @staticmethod
@@ -1832,6 +1952,8 @@ class ReflectionMapper:
         s = f.marker(Stereotype)
         if s is not None:
             return s.value
+        if f.has(BulletedList):
+            return "bulletedList"
         if f.has(Signature):
             return "signature"
         if f.has(PhotoCapture):

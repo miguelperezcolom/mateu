@@ -6,10 +6,8 @@ import io.mateu.mdd.demofrontoffice.domain.folio.FolioLine;
 import io.mateu.mdd.demofrontoffice.domain.stay.StayStatus;
 import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
-import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.Route;
-import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.annotations.WizardCompletionAction;
+import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -33,13 +31,15 @@ import java.util.List;
  */
 @Route(value = "/checkin/:id", parentRoute = "")
 @Title("Check-In")
+@Style(StyleConstants.CONTAINER)
+@WizardProgress(WizardProgressStyle.STEPS)
 public class CheckInWizard extends Wizard {
 
   String stayId;
   boolean populated;
 
   @Label("Identidad")
-  IdentidadStep identidad = new IdentidadStep();
+  IdentidadStep identidad;
 
   @Label("Habitación")
   HabitacionStep habitacion = new HabitacionStep();
@@ -67,6 +67,7 @@ public class CheckInWizard extends Wizard {
       populated = true;
       populate();
     }
+    identidad = new IdentidadStep().load(httpRequest);
     syncConfirmar();
   }
 

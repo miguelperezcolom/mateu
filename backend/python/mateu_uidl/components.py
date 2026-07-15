@@ -32,9 +32,23 @@ class SkeletonVariant(Enum):
 
 @dataclass(frozen=True)
 class Text(Component):
-    """A simple text block."""
+    """A simple text block. ``size``: "xl" | "l" | "m" | "s" | "xs" — m (or None) applies
+    nothing, the rest enlarge/reduce the font. ``no_margins`` drops the container's block
+    margins, independent of ``size``."""
 
     text: str = ""
+    size: str | None = None
+    no_margins: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class Separator(Component):
+    """A horizontal divider line (``<hr>``) separating contents inside a section, form or
+    layout. Declaratively, mark a field with ``SeparatorBefore()`` to paint one above it."""
+
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
@@ -728,6 +742,45 @@ class StatusList(Component):
     """Rows with an icon, text, status chip and/or action (incidents, side-effects checklist)."""
 
     items: tuple[StatusItem, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
+class Notice(Component):
+    """A compact inline banner: a theme-tinted strip with a severity icon and one line of text
+    (e.g. "2 quejas pendientes"), plus an optional right-aligned action. ``theme``: "info" |
+    "success" | "warning" | "danger" (default info)."""
+
+    text: str = ""
+    theme: str | None = None
+    icon: str | None = None
+    action_label: str | None = None
+    action_id: str | None = None
+    #: Tight variant: no block margins and reduced padding.
+    slim: bool = False
+    #: Spans the full form width (all columns).
+    full_width: bool = False
+    #: Arbitrary components rendered inside the tinted strip, below the text (slotted children).
+    content: tuple[Component, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "content", tuple(self.content))
+
+
+@dataclass(frozen=True)
+class BulletedList(Component):
+    """A plain bulleted list (``<ul>``) of text items — the lightweight counterpart of
+    :class:`StatusList` for read-only enumerations (preferences, highlights, notes)."""
+
+    items: tuple[str, ...] = ()
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

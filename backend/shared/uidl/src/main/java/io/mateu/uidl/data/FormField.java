@@ -46,6 +46,9 @@ public record FormField(
     // tree selects (stereotype treeSelect): restrict selection to leaf nodes
     boolean treeLeavesOnly,
     boolean multiline,
+    // property-list sections (@Section(propertyList=true)): render as a read-only row with the
+    // label aligned left and the plain-text value aligned right, separated by a divider line
+    boolean propertyRow,
     NavLink link)
     implements Component {
 

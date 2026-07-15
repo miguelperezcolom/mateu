@@ -98,6 +98,9 @@ import { renderEntityHeader } from "@infra/ui/renderers/entityHeaderRenderer.ts"
 import { renderMeter } from "@infra/ui/renderers/meterRenderer.ts";
 import { renderTaskProgress } from "@infra/ui/renderers/taskProgressRenderer.ts";
 import { renderStatusList } from "@infra/ui/renderers/statusListRenderer.ts";
+import { renderBulletedList } from "@infra/ui/renderers/bulletedListRenderer.ts";
+import { renderSeparator } from "@infra/ui/renderers/separatorRenderer.ts";
+import { renderNotice } from "@infra/ui/renderers/noticeRenderer.ts";
 import { renderTaskQueue } from "@infra/ui/renderers/taskQueueRenderer.ts";
 import { renderResourceGrid } from "@infra/ui/renderers/resourceGridRenderer.ts";
 import { renderOfferCard } from "@infra/ui/renderers/offerCardRenderer.ts";
@@ -324,6 +327,9 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.Meter]: ({ component }) => renderMeter(component),
     [ComponentMetadataType.TaskProgress]: ({ component }) => renderTaskProgress(component),
     [ComponentMetadataType.StatusList]: ({ component }) => renderStatusList(component),
+    [ComponentMetadataType.BulletedList]: ({ component }) => renderBulletedList(component),
+    [ComponentMetadataType.Separator]: ({ component }) => renderSeparator(component),
+    [ComponentMetadataType.Notice]: full(renderNotice),
     [ComponentMetadataType.TaskQueue]: ({ component }) => renderTaskQueue(component),
     [ComponentMetadataType.ResourceGrid]: ({ component }) => renderResourceGrid(component),
     [ComponentMetadataType.OfferCard]: ({ component }) => renderOfferCard(component),

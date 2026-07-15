@@ -797,6 +797,60 @@ fun renderTaskProgress(r: ComponentRenderer, metadata: JsonNode): JComponent {
 }
 
 /** StatusList: bordered rows of icon + title/description with a status chip and/or action button. */
+/** A compact inline banner: theme-tinted strip with a severity icon, one line of text (plus any
+ * slotted child components below it) and an optional right-aligned action. */
+fun renderNotice(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
+    val theme = metadata.text("theme").ifBlank { "info" }
+    val bg = when (theme) {
+        "success" -> Color(0xE2, 0xF3, 0xE6)
+        "warning" -> Color(0xFD, 0xF0, 0xDC)
+        "danger" -> Color(0xF6, 0xE0, 0xDA)
+        else -> Color(0xE3, 0xF0, 0xFB)
+    }
+    val ink = when (theme) {
+        "success" -> Color(0x22, 0x70, 0x3A)
+        "warning" -> Color(0x92, 0x5A, 0x13)
+        "danger" -> Color(0xA5, 0x50, 0x2E)
+        else -> Color(0x1A, 0x5D, 0xAD)
+    }
+    val glyph = metadata.text("icon").ifBlank { if (theme == "success") "✓" else if (theme == "info") "ℹ" else "!" }
+    val row = JPanel(BorderLayout(8, 0))
+    row.background = bg
+    row.isOpaque = true
+    row.border = if (metadata.bool("slim")) JBUI.Borders.empty(3, 6) else JBUI.Borders.empty(8, 10)
+    row.add(JBLabel(glyph).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
+    val body = verticalPanel(4)
+    body.isOpaque = false
+    if (metadata.text("text").isNotBlank()) {
+        body.addStacked(JBLabel(metadata.text("text")).apply {
+            foreground = ink
+            font = font.deriveFont(Font.BOLD)
+        }, 0)
+    }
+    val children = component.path("children")
+    if (children.isArray) {
+        children.forEach { child -> body.addStacked(r.render(child, state, data), 2) }
+    }
+    row.add(body, BorderLayout.CENTER)
+    val actionId = metadata.text("actionId")
+    val actionLabel = metadata.text("actionLabel")
+    if (actionId.isNotBlank() && actionLabel.isNotBlank()) {
+        row.add(JButton(actionLabel).apply {
+            addActionListener { r.ctx.runAction(actionId, emptyMap()) }
+        }, BorderLayout.EAST)
+    }
+    return row
+}
+
+/** A plain bulleted list of text items — StatusList's lightweight sibling. */
+fun renderBulletedList(metadata: JsonNode): JComponent {
+    val panel = verticalPanel(2)
+    for (item in metadata.arr("items")) {
+        panel.addStacked(JBLabel("• ${item.asText("")}"), 0)
+    }
+    return panel
+}
+
 fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val panel = verticalPanel(0)
     panel.border = JBUI.Borders.customLine(JBColor.border(), 1)

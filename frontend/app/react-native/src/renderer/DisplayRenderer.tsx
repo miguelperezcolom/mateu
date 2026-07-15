@@ -846,6 +846,68 @@ export function StatusListRenderer({ component }: { component: unknown }) {
   );
 }
 
+// ── Notice (compact inline banner: tinted strip + severity icon + one line) ───
+const NOTICE_COLORS: Record<string, { bg: string; ink: string; badge: string }> = {
+  info: { bg: '#e3f0fb', ink: '#1a5dad', badge: '#4285d3' },
+  success: { bg: '#e2f3e6', ink: '#22703a', badge: '#3e8635' },
+  warning: { bg: '#fdf0dc', ink: '#925a13', badge: '#c98a1e' },
+  danger: { bg: '#f6e0da', ink: '#a5502e', badge: '#b25b3d' },
+};
+const NOTICE_ICONS: Record<string, string> = { info: 'ℹ', success: '✓', warning: '!', danger: '!' };
+
+export function NoticeRenderer({ component, state, renderComponent }: {
+  component: unknown;
+  state?: Record<string, unknown>;
+  renderComponent?: (child: unknown, state: Record<string, unknown>, onStateChange: () => void) => unknown;
+}) {
+  const controller = useViewController();
+  const m = meta(component);
+  const theme = (['info', 'success', 'warning', 'danger'].includes(m['theme'] as string)
+    ? m['theme'] : 'info') as string;
+  const colors = NOTICE_COLORS[theme];
+  const actionLabel = m['actionLabel'] as string | undefined;
+  const actionId = m['actionId'] as string | undefined;
+  const slim = m['slim'] === true;
+  const children = ((component as Record<string, unknown>)['children'] as unknown[]) ?? [];
+  const hasText = !!((m['text'] as string) ?? '').trim();
+  if (!hasText && children.length === 0) return null;
+  return (
+    <View style={[styles.notice, slim && styles.noticeSlim, { backgroundColor: colors.bg }]}>
+      <View style={[styles.noticeIcon, { backgroundColor: colors.badge }]}>
+        <Text style={styles.noticeIconText}>{(m['icon'] as string) || NOTICE_ICONS[theme]}</Text>
+      </View>
+      <View style={styles.noticeBody}>
+        {hasText && <Text style={[styles.noticeText, { color: colors.ink }]}>{(m['text'] as string) ?? ''}</Text>}
+        {children.map((child, i) => (
+          <View key={i}>{renderComponent?.(child, state ?? {}, () => {}) as React.ReactNode}</View>
+        ))}
+      </View>
+      {!!actionLabel && !!actionId && (
+        <TouchableOpacity
+          style={[styles.noticeBtn, { backgroundColor: colors.badge }]}
+          onPress={() => void controller.runAction(actionId)}>
+          <Text style={styles.noticeBtnText}>{actionLabel}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
+// ── BulletedList (plain <ul> of text items — StatusList's lightweight sibling) ─
+export function BulletedListRenderer({ component }: { component: unknown }) {
+  const items = (meta(component)['items'] as string[]) ?? [];
+  return (
+    <View style={styles.bulletedList}>
+      {items.map((item, i) => (
+        <View key={i} style={styles.bulletedRow}>
+          <Text style={styles.bulletedDot}>•</Text>
+          <Text style={styles.bulletedText}>{item}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 // ── ComparisonCard (two values + delta chip) ──────────────────────────────────
 export function ComparisonCardRenderer({ component }: { component: unknown }) {
   const m = meta(component);
@@ -1406,6 +1468,20 @@ const styles = StyleSheet.create({
   taskProgressPillTodo: { borderWidth: 1, borderColor: '#bbb', color: '#666' },
   taskProgressBtn: { backgroundColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
   taskProgressBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  // Notice
+  notice: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
+  noticeSlim: { paddingVertical: 3, paddingHorizontal: 8, gap: 6 },
+  noticeIcon: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  noticeIconText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  noticeText: { fontWeight: '600', fontSize: 13 },
+  noticeBody: { flex: 1, gap: 4 },
+  noticeBtn: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  noticeBtnText: { color: '#fff', fontWeight: '600', fontSize: 11 },
+  // BulletedList
+  bulletedList: { gap: 2, paddingVertical: 2 },
+  bulletedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 2 },
+  bulletedDot: { color: '#888', lineHeight: 20 },
+  bulletedText: { flex: 1, color: '#222', fontSize: 14, lineHeight: 20 },
   // StatusList
   statusList: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },

@@ -4,8 +4,17 @@ import java.util.Collections;
 import java.util.Map;
 
 /** Metadata for a html element */
-public record TextDto(TextContainerDto container, Map<String, String> attributes, String text)
+public record TextDto(
+    TextContainerDto container,
+    Map<String, String> attributes,
+    String text,
+    String size,
+    boolean noMargins)
     implements ComponentMetadataDto {
+
+  public TextDto(TextContainerDto container, Map<String, String> attributes, String text) {
+    this(container, attributes, text, null, false);
+  }
 
   public TextDto {
     attributes = attributes != null ? Collections.unmodifiableMap(attributes) : Map.of();

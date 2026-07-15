@@ -39,3 +39,8 @@ An item's button dispatches the standard `action-requested` event with the **ite
 ## When to use it
 
 Use a `StatusList` for **stateful checklists and incident lists** — things that are *about* the current entity but not a collection to browse. To narrate events in chronological order use a [Timeline](./timeline); for N-of-M identical subtasks use [Task progress](./task-progress). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/status-list-demo`.
+
+## Related
+
+- `BulletedList` — the lightweight sibling: a plain `<ul>` of text items, for read-only enumerations (preferences, highlights) without the row chrome. Also available declaratively: `@BulletedList` on a `List<String>` field.
+- [Notice](/ux-patterns/notice/) — a compact inline banner for a single highlighted line.

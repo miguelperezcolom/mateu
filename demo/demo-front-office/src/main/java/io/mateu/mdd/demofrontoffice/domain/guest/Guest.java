@@ -24,6 +24,7 @@ public record Guest(
     int complaints,
     int hotels,
     String lastStaySummary,
+    String lastStayComplementaryInfo,
     @MappedCollection(idColumn = "guest_id", keyColumn = "idx") List<Preference> preferences) {
 
   public Guest {
@@ -43,14 +44,14 @@ public record Guest(
       throw new IllegalArgumentException("A document is required to verify identity");
     return new Guest(
         id, name, document, true, email, phone, tier, loyaltyPoints, stays, nights, yearsAsClient,
-        complaints, hotels, lastStaySummary, preferences);
+        complaints, hotels, lastStaySummary, lastStayComplementaryInfo, preferences);
   }
 
   /** Updates the contact data captured at the desk. */
   public Guest updateContact(String email, String phone) {
     return new Guest(
         id, name, document, documentVerified, email, phone, tier, loyaltyPoints, stays, nights,
-        yearsAsClient, complaints, hotels, lastStaySummary, preferences);
+        yearsAsClient, complaints, hotels, lastStaySummary, lastStayComplementaryInfo, preferences);
   }
 
   /** Adds a preference to the cardex if not already present. */
@@ -60,6 +61,6 @@ public record Guest(
     updated.add(new Preference(text));
     return new Guest(
         id, name, document, documentVerified, email, phone, tier, loyaltyPoints, stays, nights,
-        yearsAsClient, complaints, hotels, lastStaySummary, updated);
+        yearsAsClient, complaints, hotels, lastStaySummary, lastStayComplementaryInfo, updated);
   }
 }

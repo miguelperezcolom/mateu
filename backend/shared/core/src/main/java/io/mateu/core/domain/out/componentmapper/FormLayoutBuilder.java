@@ -11,6 +11,7 @@ import io.mateu.uidl.annotations.Tab;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
+import io.mateu.uidl.data.Separator;
 import io.mateu.uidl.data.TabLayout;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
@@ -27,6 +28,17 @@ class FormLayoutBuilder {
     int col = 0;
     var pendingRow = new ArrayList<Component>();
     for (Component field : fields) {
+      // A separator always takes a full row of its own: flush whatever is pending and emit it
+      // alone (its data-colspan attribute makes the <hr> span every column).
+      if (field instanceof Separator) {
+        if (!pendingRow.isEmpty()) {
+          rows.add(FormRow.builder().content(pendingRow).build());
+          pendingRow = new ArrayList<>();
+        }
+        rows.add(FormRow.builder().content(List.of(field)).build());
+        col = 0;
+        continue;
+      }
       pendingRow.add(field);
       col += (field instanceof FormField formField) ? formField.colspan() : 1;
       if (col == columns) {
@@ -140,22 +152,35 @@ class FormLayoutBuilder {
               .content(
                   buildRows(
                       noTabFields.stream()
-                          .map(
-                              field ->
-                                  (Component)
-                                      getFormField(
-                                          prefix,
-                                          field,
-                                          instance,
-                                          baseUrl,
-                                          route,
-                                          consumedRoute,
-                                          initiatorComponentId,
-                                          httpRequest,
-                                          readOnly,
-                                          forCreationForm,
-                                          maxColumns,
-                                          level))
+                          .flatMap(
+                              field -> {
+                                var formField =
+                                    (Component)
+                                        getFormField(
+                                            prefix,
+                                            field,
+                                            instance,
+                                            baseUrl,
+                                            route,
+                                            consumedRoute,
+                                            initiatorComponentId,
+                                            httpRequest,
+                                            readOnly,
+                                            forCreationForm,
+                                            maxColumns,
+                                            level);
+                                // @SeparatorBefore: paint a full-width divider above the field.
+                                if (MetaAnnotations.isPresent(
+                                    field, io.mateu.uidl.annotations.SeparatorBefore.class)) {
+                                  return java.util.stream.Stream.of(
+                                      Separator.builder()
+                                          .attributes(
+                                              java.util.Map.of("data-colspan", "" + maxColumns))
+                                          .build(),
+                                      formField);
+                                }
+                                return java.util.stream.Stream.of(formField);
+                              })
                           .toList(),
                       maxColumns))
               .style(style)

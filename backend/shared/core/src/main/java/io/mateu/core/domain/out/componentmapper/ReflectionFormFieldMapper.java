@@ -172,6 +172,21 @@ public class ReflectionFormFieldMapper {
           maxColumns,
           level + 1);
     }
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Notice.class)) {
+      // @Notice on a String field: the field's value is the notice text (interpolated from the
+      // state, like @Text) — the renderer hides the notice while the value is blank.
+      var annotation = MetaAnnotations.find(field, io.mateu.uidl.annotations.Notice.class);
+      return io.mateu.uidl.data.Notice.builder()
+          .id(getFieldId(field, prefix, readOnly))
+          .text("${state." + prefix + field.getName() + "}")
+          .theme(annotation.theme())
+          .icon(annotation.icon().isBlank() ? null : annotation.icon())
+          .actionLabel(annotation.actionLabel().isBlank() ? null : annotation.actionLabel())
+          .actionId(annotation.actionId().isBlank() ? null : annotation.actionId())
+          .slim(annotation.slim())
+          .fullWidth(annotation.fullWidth())
+          .build();
+    }
     if (MetaAnnotations.isPresent(field, Text.class)) {
       var colspan = getColspan(field, instance, httpRequest);
       var attributes = new HashMap<String, String>();
@@ -181,6 +196,8 @@ public class ReflectionFormFieldMapper {
       return io.mateu.uidl.data.Text.builder()
           .id(getFieldId(field, prefix, readOnly))
           .container(MetaAnnotations.find(field, Text.class).container())
+          .size(MetaAnnotations.find(field, Text.class).size())
+          .noMargins(MetaAnnotations.find(field, Text.class).noMargins())
           .text("${state." + prefix + field.getName() + "}")
           .attributes(attributes)
           .build();
