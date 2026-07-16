@@ -446,3 +446,8 @@ public class CheckInForm {
 - **`@Section` zone** only works when the class has `@Zones(...)`. Without it the zone attribute is ignored.
 - **Badges**: use `@Badge` for in-form chips, `@BadgeInHeader` for header-strip status chips.
 - **`@Inline` + `@Toolbar`/`@Button`** on the nested type: `@Toolbar` appears on the section title row, `@Button` below the section content.
+- **Don't degrade structured data to a `String`**: search results and tables go in a `List<Pojo>` with `@Stereotype(FieldStereotype.grid)` (add `@OnRowSelected` if the user picks a row), never concatenated into a `@ReadOnly String`.
+- **Don't model editable collections as delimited text**: use `@InlineEditing` on a `List<MutablePojo>` grid, never `"a; b"` strings.
+- **Data-driven selects** use `@Lookup(search=…, label=…)` with supplier beans, never a free-text field.
+- **Actions that mutate fields must return `new State(this)`** (typically `List.of(new Message("…"), new State(this))`) — returning only a `Message` does not refresh the client.
+- **Form ViewModels with mutable fields need `@Scope("prototype")`** — a singleton shares form state across users.

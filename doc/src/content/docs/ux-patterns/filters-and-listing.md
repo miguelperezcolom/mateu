@@ -234,6 +234,17 @@ This gives three capabilities for free:
 
 No server-side persistence of views is needed. The browser's native bookmark manager is the saved-views feature.
 
+## Known gaps
+
+- **Segmented filter tabs with counts** ("All / Waiting queue (3)"): there is no declarative
+  annotation for preset filter tabs over a listing. `@MainFilter` only highlights one search
+  field. Emulate with a filter field (enum or boolean), or with `TaskQueue`/`QueueGroup` when the
+  grouped-queue shape fits.
+- **Declarative row grouping by parent** (rows grouped under a parent header, e.g. reservations
+  per file): `Listing` has no `@GroupBy`. Use the fluent `GridGroupColumn`, a
+  `TaskQueue`/`QueueGroup`, or the `MasterDetailView` orchestrator; or denormalise the parent's
+  columns into each row.
+
 ## Principles served
 
 - **Workflow over screens** — act on data without leaving the list

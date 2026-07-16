@@ -127,6 +127,13 @@ Order form
 | UI | Inline dropdown | "Search" button → modal |
 | Selector | `LookupOptionsSupplier` | `Listing` + `Selector` |
 
+## Known gaps
+
+- **Individually disabled options**: `Option` has no `disabled` flag, so a lookup cannot show a
+  choice as visible-but-unselectable (e.g. an inactive agency). Workarounds: filter it out of the
+  supplier, or mark it in the label (`"ACME (inactive)"`) and enforce the rule server-side in the
+  use case.
+
 ## Tree selectors
 
 A selector can present its rows as a **tree**: override `gridLayout()` to return

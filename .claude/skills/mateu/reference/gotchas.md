@@ -46,3 +46,28 @@ Read this before generating; each line is a trap and its fix.
 
 - **Labels accept `${state.field}` / `${data.field}`** in titles, sections, tabs, columns,
   buttons, banners, KPIs — use it instead of concatenating strings in code where possible.
+
+- **Never degrade structured data to a `String`.** Search results, listings and any tabular
+  data go in a `List<Pojo>` field with `@Stereotype(FieldStereotype.grid)` — not concatenated
+  into a `@ReadOnly String`. If the user must pick a row, add `@OnRowSelected("method")`.
+
+- **Never model an editable collection as delimited text.** "One name per line" / `"a; b"`
+  string fields are a smell: use `@InlineEditing` + `@Stereotype(FieldStereotype.grid)` on a
+  `List<MutablePojo>` (no-args constructor + accessors) so the user adds/removes rows.
+
+- **Selects whose options come from data use `@Lookup`, not free text.** Declare
+  `@Lookup(search = MyOptionsSupplier.class, label = MyLabelSupplier.class)`; suppliers are
+  beans implementing `LookupOptionsSupplier` / `LookupLabelSupplier`. Enums alone may use
+  `@Stereotype(FieldStereotype.combobox)`.
+
+- **Actions that mutate fields must return `new State(this)`.** Mutating a ViewModel field
+  and returning only a `Message` does **not** refresh the client — return
+  `List.of(new Message("…"), new State(this))`. Same applies to `@OnRowSelected` handlers.
+
+- **Form ViewModels with mutable fields need `@Scope("prototype")`.** A singleton bean
+  would share the form state across users/requests.
+
+- **When porting an existing UI, keep functional parity.** Before simplifying a feature away
+  ("iteration 1 without X"), check the pattern catalog (`ux-patterns/`) — grids in forms,
+  row selection, inline editing, lookups, conditional fields (`@Hidden("!state.flag")`) and
+  partial forms cover almost every case the source UI had.
