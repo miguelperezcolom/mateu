@@ -203,8 +203,10 @@ class NoticeMetadata(Wire):
     text: str | None = None
     theme: str | None = None
     icon: str | None = None
+    no_icon: bool = False
     action_label: str | None = None
     action_id: str | None = None
+    status: str | None = None
     slim: bool = False
     full_width: bool = False
 

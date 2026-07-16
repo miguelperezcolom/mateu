@@ -531,8 +531,12 @@ public sealed record Notice(string Text) : ComponentBase
 {
     public string? Theme { get; init; }
     public string? Icon { get; init; }
+    /// <summary>Suppresses the severity icon entirely.</summary>
+    public bool NoIcon { get; init; }
     public string? ActionLabel { get; init; }
     public string? ActionId { get; init; }
+    /// <summary>Right-aligned state text rendered where the action button goes.</summary>
+    public string? Status { get; init; }
     /// <summary>Tight variant: no block margins and reduced padding.</summary>
     public bool Slim { get; init; }
     /// <summary>Spans the full form width (all columns).</summary>

@@ -843,7 +843,9 @@ fun renderNotice(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, 
     row.background = bg
     row.isOpaque = true
     row.border = if (metadata.bool("slim")) JBUI.Borders.empty(3, 6) else JBUI.Borders.empty(8, 10)
-    row.add(JBLabel(glyph).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
+    if (!metadata.bool("noIcon")) {
+        row.add(JBLabel(glyph).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
+    }
     val body = verticalPanel(4)
     body.isOpaque = false
     if (metadata.text("text").isNotBlank()) {
@@ -859,6 +861,10 @@ fun renderNotice(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, 
     row.add(body, BorderLayout.CENTER)
     val actionId = metadata.text("actionId")
     val actionLabel = metadata.text("actionLabel")
+    val status = metadata.text("status")
+    if ((actionId.isBlank() || actionLabel.isBlank()) && status.isNotBlank()) {
+        row.add(JBLabel(status).apply { foreground = ink; font = font.deriveFont(Font.BOLD, 11f) }, BorderLayout.EAST)
+    }
     if (actionId.isNotBlank() && actionLabel.isNotBlank()) {
         row.add(JButton(actionLabel).apply {
             addActionListener { r.ctx.runAction(actionId, emptyMap()) }

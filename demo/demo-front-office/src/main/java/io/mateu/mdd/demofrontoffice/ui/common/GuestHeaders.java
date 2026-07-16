@@ -143,7 +143,13 @@ public final class GuestHeaders {
     if (rq == null || rq.route() == null) {
       return null;
     }
-    var segs = rq.route().replaceFirst("^/", "").split("/");
+    // embedded islands carry markers as a query string (e.g. ?_embeddedMediator=1) — strip it
+    var route = rq.route();
+    var q = route.indexOf('?');
+    if (q >= 0) {
+      route = route.substring(0, q);
+    }
+    var segs = route.replaceFirst("^/", "").split("/");
     for (int i = 0; i < segs.length; i++) {
       if (mount.equals(segs[i])) {
         return i + 1 < segs.length && !segs[i + 1].isBlank() ? segs[i + 1] : null;

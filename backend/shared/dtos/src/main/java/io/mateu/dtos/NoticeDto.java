@@ -8,8 +8,10 @@ public record NoticeDto(
     String text,
     String theme,
     String icon,
+    boolean noIcon,
     String actionLabel,
     String actionId,
+    String status,
     boolean slim,
     boolean fullWidth)
     implements ComponentMetadataDto {}

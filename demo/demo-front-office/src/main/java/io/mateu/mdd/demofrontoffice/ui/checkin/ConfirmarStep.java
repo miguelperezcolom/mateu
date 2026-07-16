@@ -34,6 +34,9 @@ public class ConfirmarStep implements WizardStep {
   /** Pre-authorization lifecycle: pendiente → solicitando (TPV) → preautorizado. */
   @Hidden String preauthEstado = "pendiente";
 
+  /** Key/wristband lifecycle: pendiente → grabando (encoder) → grabada. */
+  @Hidden String llaveEstado = "pendiente";
+
   // No section → full-width band across the top. Frameless: the header card brings its own chrome.
   @Section(value = "", frameless = true)
   @Label("")
@@ -117,38 +120,26 @@ public class ConfirmarStep implements WizardStep {
         var ok = "preautorizado".equals(preauthEstado);
         // slotted content doesn't take the notice's themed ink — color it explicitly
         var ink = ok ? "#22703a" : "#925a13";
-        var content = new ArrayList<Component>();
-        content.add(
-            Text.builder()
-                .text(GuestHeaders.euros(totalEstancia))
-                .noMargins(true)
-                .style("font-size: 1.8rem; font-weight: 700; line-height: 1.1; color: " + ink + ";")
-                .build());
-        if ("solicitando".equals(preauthEstado)) {
-          content.add(
-              Text.builder()
-                  .text("Solicitando preautorización…")
-                  .noMargins(true)
-                  .style("font-size: .8rem; color: " + ink + ";")
-                  .build());
-        }
-        if (ok) {
-          content.add(
-              Text.builder()
-                  .text("✓ Preautorizado")
-                  .noMargins(true)
-                  .style("font-size: .8rem; font-weight: 600; color: " + ink + ";")
-                  .build());
-        }
         var notice =
             Notice.builder()
                 .theme(ok ? "success" : "warning")
-                .icon("💶")
+                .noIcon(true)
                 .text("TOTAL ESTANCIA")
                 .fullWidth(true)
-                .content(content);
-        if ("pendiente".equals(preauthEstado)) {
-          notice.actionLabel("Solicitar Preautorización").actionId("requestPreauth");
+                .content(
+                    List.of(
+                        Text.builder()
+                            .text(GuestHeaders.euros(totalEstancia))
+                            .noMargins(true)
+                            .style(
+                                "font-size: 1.8rem; font-weight: 700; line-height: 1.1; color: "
+                                    + ink
+                                    + ";")
+                            .build()));
+        switch (preauthEstado) {
+          case "solicitando" -> notice.status("Solicitando preautorización…");
+          case "preautorizado" -> notice.status("✓ Preautorizado");
+          default -> notice.actionLabel("Solicitar Preautorización").actionId("requestPreauth");
         }
         return notice.build();
       };
@@ -163,19 +154,17 @@ public class ConfirmarStep implements WizardStep {
           HorizontalLayout.builder()
               .content(
                   List.of(
-                      StatusList.builder()
-                          .style("flex: 1 1 16rem; width: auto;")
-                          .items(
-                              List.of(
-                                  StatusItem.builder()
-                                      .id("llave")
-                                      .icon("🔑")
-                                      .title("Grabar llave / pulsera")
-                                      .description("Complemento de llave digital")
-                                      .actionLabel("Grabar")
-                                      .actionId("encodeKey")
-                                      .build()))
-                          .build(),
+                      // once encoded the whole card goes green (like the signature/preauth ones)
+                      "grabada".equals(llaveEstado)
+                          ? Notice.builder()
+                              .theme("success")
+                              .text("Llave / pulsera grabada — complemento de llave digital")
+                              .style("flex: 1 1 16rem; width: auto;")
+                              .build()
+                          : StatusList.builder()
+                              .style("flex: 1 1 16rem; width: auto;")
+                              .items(List.of(llaveItem()))
+                              .build(),
                       StatusList.builder()
                           .style("flex: 1 1 16rem; width: auto;")
                           .items(
@@ -234,6 +223,22 @@ public class ConfirmarStep implements WizardStep {
                         .build()))
             .build();
       };
+
+  /** The key/wristband row per llaveEstado: encode button → "Grabando…" chip → green "Grabada". */
+  private StatusItem llaveItem() {
+    var item =
+        StatusItem.builder()
+            .id("llave")
+            .icon("🔑")
+            .title("Grabar llave / pulsera")
+            .description("Complemento de llave digital");
+    switch (llaveEstado) {
+      case "grabando" -> item.status("Grabando llave…").statusColor("warning");
+      case "grabada" -> item.status("✓ Llave grabada").statusColor("success");
+      default -> item.actionLabel("Grabar").actionId("encodeKey");
+    }
+    return item.build();
+  }
 
   /** Initials for the guest avatar: first letter of the first two words of the name. */
   static String initials(String name) {

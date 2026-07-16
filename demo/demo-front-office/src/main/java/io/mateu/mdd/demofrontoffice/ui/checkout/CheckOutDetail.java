@@ -7,7 +7,6 @@ import io.mateu.mdd.demofrontoffice.ui.common.FrontOffice;
 import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Audience;
-import io.mateu.uidl.annotations.Button;
 import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
@@ -16,6 +15,7 @@ import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.BannerTheme;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.Ledger;
 import io.mateu.uidl.data.LedgerLine;
 import io.mateu.uidl.data.Message;
@@ -72,6 +72,18 @@ public class CheckOutDetail implements PostHydrationHandler {
         .build();
   }
 
+  // Posting charges lives right below the folio breakdown it feeds; the button is a fluent
+  // Button INSIDE the section (a page-level @Button would render at the very bottom of the page).
+  @Section("Postear cargo")
+  @Audience("Staff")
+  @Lookup(search = CatalogOptionsSupplier.class, label = CatalogLabelSupplier.class)
+  @Label("Buscar por nombre, código o descripción")
+  String cargo;
+
+  @Audience("Staff")
+  @Label("")
+  Button postear = new Button("Postear al folio", "postearCargo");
+
   @Section("Cobro")
   @Label("")
   Callable<Component> cobro =
@@ -91,27 +103,25 @@ public class CheckOutDetail implements PostHydrationHandler {
             .build();
       };
 
-  @Section("Postear cargo")
+  // Emailing the invoice stays at the bottom, as its own section.
+  @Section("Enviar factura por email")
   @Audience("Staff")
-  @Lookup(search = CatalogOptionsSupplier.class, label = CatalogLabelSupplier.class)
-  @Label("Buscar por nombre, código o descripción")
-  String cargo;
-
-  @Audience("Staff")
-  @Label("Enviar factura por email")
+  @Label("Email")
   String emailFactura;
 
   @Audience("Staff")
-  @Button
-  @Label("Enviar factura")
+  @Label("")
+  Button enviar = new Button("Enviar factura", "enviarFactura");
+
+  @Audience("Staff")
+  @Action
   Object enviarFactura() {
     return new Message("Factura enviada a " + emailFactura);
   }
 
   /** Posts the picked catalog charge to the folio and re-renders the ledger. */
   @Audience("Staff")
-  @Button
-  @Label("Postear al folio")
+  @Action
   Object postearCargo() {
     if (cargo == null || cargo.isBlank()) {
       return new Message("Selecciona un cargo del catálogo");

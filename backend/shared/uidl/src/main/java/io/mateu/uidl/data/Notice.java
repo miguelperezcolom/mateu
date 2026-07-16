@@ -8,9 +8,11 @@ import lombok.Builder;
  * text — for notices like "2 quejas pendientes" embedded anywhere in the UI (inside cards, columns,
  * forms). Smaller than a {@link CalloutCard} (no title/CTA block) and independent of the page-level
  * banners. {@code theme} is one of {@code "info"}, {@code "success"}, {@code "warning"} or {@code
- * "danger"} (default info); {@code icon} overrides the theme's default glyph; an optional {@code
- * actionLabel} + {@code actionId} renders a small action on the right (dispatched through the
- * standard action mechanism). Design-system neutral, dark-mode aware.
+ * "danger"} (default info); {@code icon} overrides the theme's default glyph and {@code noIcon}
+ * suppresses it entirely; an optional {@code actionLabel} + {@code actionId} renders a small action
+ * on the right (dispatched through the standard action mechanism), and {@code status} renders a
+ * right-aligned state text in that same spot — for the in-flight/done states of the notice's
+ * action. Design-system neutral, dark-mode aware.
  */
 @Builder
 public record Notice(
@@ -18,8 +20,10 @@ public record Notice(
     String text,
     String theme,
     String icon,
+    boolean noIcon,
     String actionLabel,
     String actionId,
+    String status,
     boolean slim,
     boolean fullWidth,
     java.util.List<Component> content,
@@ -28,6 +32,19 @@ public record Notice(
     implements Component {
 
   public Notice(String text, String theme) {
-    this(null, text, theme, null, null, null, false, false, java.util.List.of(), "", "");
+    this(
+        null,
+        text,
+        theme,
+        null,
+        false,
+        null,
+        null,
+        null,
+        false,
+        false,
+        java.util.List.of(),
+        "",
+        "");
   }
 }

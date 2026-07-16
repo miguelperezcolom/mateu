@@ -551,7 +551,7 @@ public record SeparatorMetadataDto(IReadOnlyDictionary<string, string>? Attribut
 
 /// <summary>A compact inline banner: theme-tinted strip with a severity icon, one line of text
 /// and an optional right-aligned action.</summary>
-public record NoticeMetadataDto(string? Text, string? Theme, string? Icon, string? ActionLabel, string? ActionId, bool Slim = false, bool FullWidth = false) : ComponentMetadataDto;
+public record NoticeMetadataDto(string? Text, string? Theme, string? Icon, string? ActionLabel, string? ActionId, bool Slim = false, bool FullWidth = false, bool NoIcon = false, string? Status = null) : ComponentMetadataDto;
 
 public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetadataDto
 {

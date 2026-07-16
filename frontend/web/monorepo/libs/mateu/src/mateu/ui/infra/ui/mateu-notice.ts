@@ -16,8 +16,12 @@ export class MateuNotice extends LitElement {
     @property() text = ''
     @property() theme = 'info'
     @property() icon: string | undefined
+    /** suppresses the severity icon entirely */
+    @property({ type: Boolean }) noIcon = false
     @property() actionLabel: string | undefined
     @property() actionId: string | undefined
+    /** right-aligned state text rendered where the action button goes */
+    @property() status: string | undefined
     /** tight variant: no block margins and reduced padding (like @Text(noMargins=true)) */
     @property({ type: Boolean }) slim = false
     /** spans the full form width (all columns) */
@@ -63,14 +67,15 @@ export class MateuNotice extends LitElement {
         .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .25rem; }
         .content { min-width: 0; }
         vaadin-button { flex: 0 0 auto; }
+        .status { flex: 0 0 auto; font-weight: 600; font-size: var(--lumo-font-size-xs, .75rem); }
         /* pastel background + dark ink per theme (always-light pastels, like the page banners) */
-        .info    { background: #e3f0fb; } .info .text    { color: #1a5dad; }
+        .info    { background: #e3f0fb; } .info .text, .info .status       { color: #1a5dad; }
         .info    .icon    { background: #4285d3; }
-        .success { background: #e2f3e6; } .success .text { color: #22703a; }
+        .success { background: #e2f3e6; } .success .text, .success .status { color: #22703a; }
         .success .icon { background: #3e8635; }
-        .warning { background: #fdf0dc; } .warning .text { color: #925a13; }
+        .warning { background: #fdf0dc; } .warning .text, .warning .status { color: #925a13; }
         .warning .icon { background: #c98a1e; }
-        .danger  { background: #f6e0da; } .danger .text  { color: #a5502e; }
+        .danger  { background: #f6e0da; } .danger .text, .danger .status   { color: #a5502e; }
         .danger  .icon  { background: #b25b3d; }
     `
 
@@ -91,14 +96,18 @@ export class MateuNotice extends LitElement {
         const theme = ['info', 'success', 'warning', 'danger'].includes(this.theme) ? this.theme : 'info'
         return html`
             <div class="notice ${theme} ${this.slim ? 'slim' : ''}">
-                <span class="icon ${this.icon ? 'custom' : ''}">${this.icon || THEME_ICONS[theme]}</span>
+                ${this.noIcon
+                    ? nothing
+                    : html`<span class="icon ${this.icon ? 'custom' : ''}">${this.icon || THEME_ICONS[theme]}</span>`}
                 <div class="body">
                     ${hasText ? html`<span class="text">${this.text}</span>` : nothing}
                     ${this.hasContent ? html`<div class="content"><slot></slot></div>` : nothing}
                 </div>
                 ${this.actionLabel && this.actionId
                     ? html`<vaadin-button theme="small" @click="${() => this.runAction()}">${this.actionLabel}</vaadin-button>`
-                    : nothing}
+                    : this.status
+                        ? html`<span class="status">${this.status}</span>`
+                        : nothing}
             </div>
         `
     }

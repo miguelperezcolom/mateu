@@ -45,6 +45,7 @@ import reactor.core.publisher.Mono;
 // component's callbackToken), so the green state arrives via a FRESH action instead
 @SubscribeTo(event = "firma-capturada", action = "firmaCapturada")
 @SubscribeTo(event = "preautorizacion-completada", action = "preautorizado")
+@SubscribeTo(event = "llave-grabada", action = "llaveGrabada")
 public class CheckInWizard extends Wizard {
 
   String stayId;
@@ -178,7 +179,17 @@ public class CheckInWizard extends Wizard {
         return this;
       }
       case "encodeKey" -> {
-        return new Message("Llave / pulsera grabada");
+        // SSE: re-render immediately as "Grabando llave…"; 5 s later (the encoder finishes)
+        // dispatch llave-grabada — the @SubscribeTo above reloads.
+        confirmar.setLlaveEstado("grabando");
+        return Flux.concat(
+            Flux.<Object>just(List.of(this, new Message("Grabando llave / pulsera…"))),
+            Mono.delay(Duration.ofSeconds(5))
+                .map(tick -> (Object) UICommand.dispatchEvent("llave-grabada")));
+      }
+      case "llaveGrabada" -> {
+        confirmar.setLlaveEstado("grabada");
+        return List.of(this, new Message("Llave / pulsera grabada"));
       }
       case "requestPreauth" -> {
         // SSE: re-render immediately as "Solicitando preautorización…"; 5 s later (the TPV
@@ -243,14 +254,15 @@ public class CheckInWizard extends Wizard {
             "extrasChanged",
             "selectPax",
             "refrescarIdentidad",
-            "encodeKey",
             "firmaCapturada",
-            "preautorizado")) {
+            "preautorizado",
+            "llaveGrabada")) {
       actions.add(Action.builder().id(id).build());
     }
     // stream two increments each: the in-flight state now, the confirmation 5 s later
     actions.add(Action.builder().id("sendToTablet").sse(true).build());
     actions.add(Action.builder().id("requestPreauth").sse(true).build());
+    actions.add(Action.builder().id("encodeKey").sse(true).build());
     return actions;
   }
 

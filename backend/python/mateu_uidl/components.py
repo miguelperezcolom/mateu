@@ -766,8 +766,12 @@ class Notice(Component):
     text: str = ""
     theme: str | None = None
     icon: str | None = None
+    #: Suppresses the severity icon entirely.
+    no_icon: bool = False
     action_label: str | None = None
     action_id: str | None = None
+    #: Right-aligned state text rendered where the action button goes.
+    status: str | None = None
     #: Tight variant: no block margins and reduced padding.
     slim: bool = False
     #: Spans the full form width (all columns).

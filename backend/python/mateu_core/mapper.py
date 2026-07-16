@@ -941,8 +941,8 @@ class ReflectionMapper:
         if isinstance(c, fluent.Notice):
             return self._fluent_client(
                 NoticeMetadata(
-                    text=self.T(c.text), theme=c.theme, icon=c.icon,
-                    action_label=c.action_label, action_id=c.action_id,
+                    text=self.T(c.text), theme=c.theme, icon=c.icon, no_icon=c.no_icon,
+                    action_label=c.action_label, action_id=c.action_id, status=c.status,
                     slim=c.slim, full_width=c.full_width,
                 ), c, [self.map_component(child) for child in c.content])
         if isinstance(c, fluent.TaskQueue):

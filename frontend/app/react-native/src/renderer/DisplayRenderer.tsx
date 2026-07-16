@@ -871,28 +871,34 @@ export function NoticeRenderer({ component, state, renderComponent }: {
   const colors = NOTICE_COLORS[theme];
   const actionLabel = m['actionLabel'] as string | undefined;
   const actionId = m['actionId'] as string | undefined;
+  const status = m['status'] as string | undefined;
+  const noIcon = m['noIcon'] === true;
   const slim = m['slim'] === true;
   const children = ((component as Record<string, unknown>)['children'] as unknown[]) ?? [];
   const hasText = !!((m['text'] as string) ?? '').trim();
   if (!hasText && children.length === 0) return null;
   return (
     <View style={[styles.notice, slim && styles.noticeSlim, { backgroundColor: colors.bg }]}>
-      <View style={[styles.noticeIcon, { backgroundColor: colors.badge }]}>
-        <Text style={styles.noticeIconText}>{(m['icon'] as string) || NOTICE_ICONS[theme]}</Text>
-      </View>
+      {!noIcon && (
+        <View style={[styles.noticeIcon, { backgroundColor: colors.badge }]}>
+          <Text style={styles.noticeIconText}>{(m['icon'] as string) || NOTICE_ICONS[theme]}</Text>
+        </View>
+      )}
       <View style={styles.noticeBody}>
         {hasText && <Text style={[styles.noticeText, { color: colors.ink }]}>{(m['text'] as string) ?? ''}</Text>}
         {children.map((child, i) => (
           <View key={i}>{renderComponent?.(child, state ?? {}, () => {}) as React.ReactNode}</View>
         ))}
       </View>
-      {!!actionLabel && !!actionId && (
+      {!!actionLabel && !!actionId ? (
         <TouchableOpacity
           style={[styles.noticeBtn, { backgroundColor: colors.badge }]}
           onPress={() => void controller.runAction(actionId)}>
           <Text style={styles.noticeBtnText}>{actionLabel}</Text>
         </TouchableOpacity>
-      )}
+      ) : status ? (
+        <Text style={{ color: colors.ink, fontWeight: '600', fontSize: 12 }}>{status}</Text>
+      ) : null}
     </View>
   );
 }
