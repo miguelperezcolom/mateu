@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.fragmentmapper.ReflectionObjectMapper.map
 import static io.mateu.core.domain.out.fragmentmapper.UIFragmentAssembler.mapComponentToFragment;
 
 import io.mateu.core.domain.out.FragmentMapper;
+import io.mateu.core.domain.out.componentmapper.ViewTypeClassifier;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -35,7 +36,12 @@ public class ComponentFragmentMapper implements FragmentMapper {
       initiatorComponentId = httpRequest.getAttribute("targetComponentId").toString();
     }
 
-    if (instance instanceof ComponentTreeSupplier componentTreeSupplier) {
+    // An app class may INHERIT ComponentTreeSupplier from its home page (the "App extends
+    // Home" convention): on the app route it must still render as an app — shell, menus and
+    // a home route the frontend fetches separately with the "_page" suffix, which is what
+    // makes isApp false and lets that second request land on the supplier branch below.
+    if (instance instanceof ComponentTreeSupplier componentTreeSupplier
+        && !(route != null && ViewTypeClassifier.isApp(instance.getClass(), route))) {
       return mapComponentToFragment(
           componentTreeSupplier,
           null,

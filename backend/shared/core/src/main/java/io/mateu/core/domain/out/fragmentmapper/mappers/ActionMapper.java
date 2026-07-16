@@ -112,8 +112,22 @@ public class ActionMapper {
             field -> {
               List<Action> nestedFormActions = new ArrayList<>();
 
-              var nestedForm = getValueOrNewInstance(field, serverSideObject, httpRequest);
               var nestedFormType = field.getType();
+              // An interface/abstract field (an injected collaborator like ObjectProvider,
+              // a repository…) cannot be instantiated as a nested form: only walk it when
+              // it already holds a value.
+              Object nestedForm;
+              if (nestedFormType.isInterface()
+                  || java.lang.reflect.Modifier.isAbstract(nestedFormType.getModifiers())) {
+                nestedForm =
+                    io.mateu.core.infra.reflection.read.ValueProvider.getValue(
+                        field, serverSideObject);
+                if (nestedForm == null) {
+                  return;
+                }
+              } else {
+                nestedForm = getValueOrNewInstance(field, serverSideObject, httpRequest);
+              }
 
               if (nestedForm instanceof ActionSupplier hasActions) {
                 nestedFormActions.addAll(hasActions.actions(httpRequest));

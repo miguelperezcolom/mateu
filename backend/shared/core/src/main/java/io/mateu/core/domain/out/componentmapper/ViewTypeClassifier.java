@@ -55,13 +55,17 @@ public final class ViewTypeClassifier {
     if (instance instanceof PageBanners) return false;
     if (instance instanceof URI) return false;
     if (instance instanceof URL) return false;
-    if (route != null && (route.endsWith("_page") || route.endsWith("_no_home_route"))) {
-      return true;
-    }
+    // A component tree (or an already-mapped component) is never reflected as a page —
+    // EVEN on a home-fragment route (_page/_no_home_route): an app whose home page
+    // implements ComponentTreeSupplier (e.g. `class Home extends ComposedPage`) must
+    // render that tree, not a blank reflection of its (absent) declarative fields.
     if (instance instanceof ComponentTreeSupplier
         || instance instanceof Component
         || instance instanceof ComponentDto) {
       return false;
+    }
+    if (route != null && (route.endsWith("_page") || route.endsWith("_no_home_route"))) {
+      return true;
     }
     return instance instanceof Page
         || instance instanceof ListingBackend<?, ?>
