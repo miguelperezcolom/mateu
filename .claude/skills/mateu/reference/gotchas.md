@@ -71,3 +71,33 @@ Read this before generating; each line is a trap and its fix.
   ("iteration 1 without X"), check the pattern catalog (`ux-patterns/`) — grids in forms,
   row selection, inline editing, lookups, conditional fields (`@Hidden("!state.flag")`) and
   partial forms cover almost every case the source UI had.
+
+- **Display-only grids need `@ReadOnly` on the `List` field.** A `@Stereotype(grid)` list is
+  **editable and reorderable by default** (add/edit/reorder affordances). Search results and
+  any read-only table must carry `@ReadOnly`; `@OnRowSelected` still works on read-only grids.
+
+- **Full-page form views need `@Style(StyleConstants.CONTAINER)`.** Without it the form spans
+  100% of the viewport and wide screens become unusable. Add `@Section(columns = n)` to pack
+  short fields (dates, numbers) instead of the default sparse two-column layout.
+
+- **In multi-column sections, mind `@Colspan`.** Intrinsically wide fields (grid, textarea,
+  richText, html, markdown) auto-span the full row — no annotation needed; an explicit
+  `@Colspan(n)` overrides that. Everything else defaults to ONE cell: long text inputs
+  (descriptions, special requests…) squeezed into one column of four need `@Colspan` to
+  breathe. Plan each section as rows of n cells. For free-form text, prefer
+  `@Stereotype(FieldStereotype.textarea)` over a colspan'd single-line input — it says what
+  the field is AND gets the full row for free.
+
+- **Mark THE primary action.** `@Button(buttonStyle = ButtonStyle.primary)` renders the
+  screen's main action (Sell, Save, Confirm) as a filled primary button; leaving every button
+  tertiary buries the action hierarchy. One primary per screen.
+
+- **Action results and standing warnings are `@Notice`, not `@ReadOnly String`.** `@Notice`
+  renders an inline banner, auto-hides while the value is blank, and takes a theme
+  (info/success/warning/danger). A read-only text field for "resultado" looks like a broken
+  input.
+
+- **Button placement:** `@Button` methods land at the **form footer**, `@Toolbar` methods in
+  the **page toolbar** (top). A button next to / inside a specific section requires the
+  partial-forms pattern: the section content is a nested type and the action lives on it
+  (`@Toolbar` → section title row, `@Button` → below the section fields).

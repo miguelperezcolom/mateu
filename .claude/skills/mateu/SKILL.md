@@ -53,6 +53,7 @@ Mateu generates all of that from the model. Validate with Bean Validation
 
 Full annotation catalog: [annotations.md](reference/annotations.md) ·
 Common mistakes: [gotchas.md](reference/gotchas.md) ·
+**Pre-flight checklist (run before calling a view done): [view-checklist.md](reference/view-checklist.md)** ·
 Testing & local iteration: [testing.md](reference/testing.md) ·
 Deployment (all-in-one / CDN / standalone desktop): [standalone-desktop.md](reference/standalone-desktop.md)
 
@@ -92,6 +93,9 @@ is no `Navigation` type — navigate with a `URI` or by returning the object.
 ## Conventions for generated code
 
 - **One screen = one class.** Put the row/entity as an inner `record` or `static class`.
+- **Mutable fields ⇒ `@Scope("prototype")`** (one instance per request) and **full-page
+  views ⇒ `@Style(StyleConstants.CONTAINER)`**; actions that mutate fields return
+  `new State(this)`.
 - CRUD entities **implement `Identifiable`** (`String id()`); `save` returns the id
   (generate a UUID when null).
 - Override the inferred control with `@Stereotype(FieldStereotype.textarea|email|password|…)`.

@@ -41,6 +41,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
 | Grid form fields + `@OnRowSelected` row-click actions | ✅ | ✅ | ✅ |
+| Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | — | — |
+| Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | — | — |
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
 | AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |

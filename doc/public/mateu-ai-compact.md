@@ -447,6 +447,12 @@ public class CheckInForm {
 - **Badges**: use `@Badge` for in-form chips, `@BadgeInHeader` for header-strip status chips.
 - **`@Inline` + `@Toolbar`/`@Button`** on the nested type: `@Toolbar` appears on the section title row, `@Button` below the section content.
 - **Don't degrade structured data to a `String`**: search results and tables go in a `List<Pojo>` with `@Stereotype(FieldStereotype.grid)` (add `@OnRowSelected` if the user picks a row), never concatenated into a `@ReadOnly String`.
+- **Display-only grids need `@ReadOnly` on the list field** — grid fields are editable and reorderable by default; `@OnRowSelected` still works when read-only.
+- **Full-page form views need `@Style(StyleConstants.CONTAINER)`** (else 100% viewport width) and `@Section(columns=n)` to pack short fields.
+- **Mind `@Colspan` in multi-column sections**: wide fields (grid/textarea/richText/html/markdown) auto-span the full row (explicit `@Colspan` overrides); other fields default to one cell — long text inputs need `@Colspan(n)`, or better `@Stereotype(textarea)` for free-form text.
+- **Mark THE primary action** with `@Button(buttonStyle = ButtonStyle.primary)` — one per screen; all-tertiary buttons bury the action hierarchy.
+- **Action results / standing warnings are `@Notice` fields** (auto-hide when blank, themed), not `@ReadOnly String`.
+- **Button placement**: `@Button` → form footer; `@Toolbar` → page toolbar; section-scoped buttons → partial-forms (nested type owns the action).
 - **Don't model editable collections as delimited text**: use `@InlineEditing` on a `List<MutablePojo>` grid, never `"a; b"` strings.
 - **Data-driven selects** use `@Lookup(search=…, label=…)` with supplier beans, never a free-text field.
 - **Actions that mutate fields must return `new State(this)`** (typically `List.of(new Message("…"), new State(this))`) — returning only a `Message` does not refresh the client.
