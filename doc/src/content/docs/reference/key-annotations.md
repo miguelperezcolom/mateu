@@ -645,7 +645,7 @@ These are also part of the public DSL and are worth knowing:
 - `@PlainText` — render a value as read-only text instead of an input
 - `@ColumnWidth` — grid column width; a fixed value (`"9rem"`) or `"auto"` (size to content)
 - `@InlineEditing` — edit a list/grid field's rows in place (editable cells) instead of a detail form
-- `@Colspan`
+- `@Colspan` — how many form columns the field spans. Intrinsically wide fields (grids, textareas, rich text, html, markdown) auto-span the full row in a multi-column section, on a row of their own; an explicit `@Colspan` greater than 1 wins over the automatic rule
 - `@HiddenInList`
 - `@HiddenInView`
 - `@HiddenInEditor`

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
 import { useViewController } from './MateuViewHost';
@@ -123,8 +123,10 @@ export function AnchorRenderer({ metadata }: { metadata: Dict }) {
   const navigate = (url: string) => controller.session.openView({ label: url, route: url, consumedRoute: '', serverSideType: '' });
   const url = (metadata['url'] as string) ?? '';
   const text = (metadata['text'] as string) ?? url;
+  // Internal routes open in-app; external URLs (or target="_blank") hand off to the OS browser.
+  const external = !url.startsWith('/') || (metadata['target'] as string) === '_blank';
   return (
-    <TouchableOpacity onPress={() => { if (url.startsWith('/')) navigate(url); }}>
+    <TouchableOpacity onPress={() => { if (!url) return; if (external) { void Linking.openURL(url); } else { navigate(url); } }}>
       <Text style={styles.link}>{text}</Text>
     </TouchableOpacity>
   );

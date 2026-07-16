@@ -52,6 +52,25 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Ledger](./ledger) | ✅ Implemented | `Ledger` + `LedgerLine` (folio breakdown) |
 | [Payment picker](./payment-picker) | ✅ Implemented | `PaymentPicker` + `PaymentMethod` |
 | [Process monitor](./process-monitor) | ✅ Implemented | `ProcessMonitor` + `ProcessItem` (health + fix) |
+| [Notice](./notice) | ✅ Implemented | `Notice` / `@Notice` (inline banner, status, action) |
+| [Kanban](./kanban) | ✅ Implemented | `Kanban` + `KanbanColumn`/`KanbanCard` |
+| [Timeline](./timeline) | ✅ Implemented | `Timeline` + `TimelineItem` (activity feed) |
+| [Progress steps](./progress-steps) | ✅ Implemented | `ProgressSteps` (also `@WizardProgress(STEPS)`) |
+| [Stat / KPI tile](./stat) | ✅ Implemented | `Stat` (value, trend, sparkline) |
+| [Calendar](./calendar) | ✅ Implemented | `Calendar` month view + `CalendarEvent` |
+| [Pricing table](./pricing-table) | ✅ Implemented | `PricingTable` + `PricingPlan` |
+| [Org chart](./org-chart) | ✅ Implemented | `OrgChart` + `OrgNode` |
+| [Heatmap](./heatmap) | ✅ Implemented | `Heatmap` (calendar heatmap) |
+| [Funnel](./funnel) | ✅ Implemented | `Funnel` + `FunnelStage` |
+| [Trend chart](./trend-chart) | ✅ Implemented | `TrendChart` (line/area, dependency-free) |
+| [Feature grid](./feature-grid) | ✅ Implemented | `FeatureGrid` + `Feature` tiles |
+| [Testimonials](./testimonials) | ✅ Implemented | `Testimonials` + `Testimonial` |
+| [FAQ](./faq) | ✅ Implemented | `Faq` + `FaqItem` (collapsible) |
+| [Callout card](./callout-card) | ✅ Implemented | `CalloutCard` (title, body, CTA) |
+| [Comment thread](./comment-thread) | ✅ Implemented | `CommentThread` + `Comment` |
+| [File list](./file-list) | ✅ Implemented | `FileList` + `FileItem` (attachments) |
+| [Comparison card](./comparison-card) | ✅ Implemented | `ComparisonCard` (side-by-side options) |
+| [Checklist](./checklist) | ✅ Implemented | `Checklist` + `ChecklistItem` (progress) |
 
 ## Anti-patterns
 

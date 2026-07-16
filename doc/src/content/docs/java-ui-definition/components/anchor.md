@@ -16,6 +16,7 @@ new Anchor("Mateu documentation", "https://mateu.io")
 |---|---|---|---|
 | `text` | String | — | Link text |
 | `url` | String | — | Target URL (absolute or relative) |
+| `target` | String | `null` | Browser target, e.g. `_blank` to open the link in a new tab. `_blank` links are emitted with `rel="noopener"` automatically. |
 | `style` | String | `""` | Inline CSS |
 | `cssClasses` | String | `""` | CSS class names |
 
@@ -27,6 +28,13 @@ new Anchor("Visit our website", "https://example.com")
 
 // Internal navigation
 new Anchor("View all orders", "/orders")
+
+// Open in a new tab (rendered with rel="noopener")
+Anchor.builder()
+    .text("Visit our website")
+    .url("https://example.com")
+    .target("_blank")
+    .build()
 
 // Builder form
 Anchor.builder()

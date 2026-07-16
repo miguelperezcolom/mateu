@@ -35,10 +35,12 @@ String quejas;   // set it when there is something to say; leave blank to show n
 | Parameter | Effect |
 |---|---|
 | `theme` | `info` (default), `success`, `warning`, `danger` |
-| `icon` | overrides the theme's glyph (ℹ ✓ !) |
+| `icon` | overrides the theme's glyph (ℹ ✓ !) — an emoji renders at natural size, without the severity circle |
+| `noIcon` | suppresses the severity icon entirely |
 | `slim` | tight variant: no block margins, reduced padding, `line-height: normal` |
 | `fullWidth` | spans every form column (also stretches the wrapping field) |
 | `actionLabel` + `actionId` | small right-aligned action, dispatched through the standard mechanism |
+| `status` | right-aligned state text in the action's spot — for the in-flight/done states of the notice's action (e.g. "Enviando…", "Firmado ✓") |
 
 ### Arbitrary content
 
