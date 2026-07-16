@@ -9,10 +9,7 @@
 /doc/
 /e2e/
 /frontend/web/
-/frontend/app/compose/
-/frontend/app/intellij-platform/
 /frontend/app/intellij-plugin/
-/frontend/app/javafx/
 
 # never ship dependency trees or local envs (EAS installs from package-lock.json)
 node_modules/
