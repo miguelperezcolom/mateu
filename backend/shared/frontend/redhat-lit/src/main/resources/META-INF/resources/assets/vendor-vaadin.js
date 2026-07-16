@@ -4313,7 +4313,963 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
         position-target="[[_positionTarget]]"
         no-vertical-overlap
       ></vaadin-combo-box-overlay>
-    `}static get properties(){return{_positionTarget:{type:Object}}}get clearElement(){return this.$.clearButton}ready(){super.ready(),this.addController(new _r(this,i=>{this._setInputElement(i),this._setFocusElement(i),this.stateTarget=i,this.ariaTarget=i})),this.addController(new tr(this.inputElement,this._labelController)),this._tooltipController=new le(this),this.addController(this._tooltipController),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.inputElement),this._tooltipController.setShouldShow(i=>!i.opened),this._positionTarget=this.shadowRoot.querySelector('[part="input-field"]'),this._toggleElement=this.$.toggleButton}_onClearButtonClick(i){i.stopPropagation(),super._onClearButtonClick(i)}_onHostClick(i){const t=i.composedPath();(t.includes(this._labelNode)||t.includes(this._positionTarget))&&super._onHostClick(i)}}R(z2);const C2="modulepreload",A2=function(a){return"/"+a},ih={},M2=function(i,t,e){let r=Promise.resolve();if(t&&t.length>0){let l=function(h){return Promise.all(h.map(u=>Promise.resolve(u).then(p=>({status:"fulfilled",value:p}),p=>({status:"rejected",reason:p}))))};document.getElementsByTagName("link");const o=document.querySelector("meta[property=csp-nonce]"),n=o?.nonce||o?.getAttribute("nonce");r=l(t.map(h=>{if(h=A2(h),h in ih)return;ih[h]=!0;const u=h.endsWith(".css"),p=u?'[rel="stylesheet"]':"";if(document.querySelector(`link[href="${h}"]${p}`))return;const m=document.createElement("link");if(m.rel=u?"stylesheet":C2,u||(m.as="script"),m.crossOrigin="",m.href=h,n&&m.setAttribute("nonce",n),document.head.appendChild(m),u)return new Promise((z,C)=>{m.addEventListener("load",z),m.addEventListener("error",()=>C(new Error(`Unable to preload CSS for ${h}`)))})}))}function s(o){const n=new Event("vite:preloadError",{cancelable:!0});if(n.payload=o,window.dispatchEvent(n),!n.defaultPrevented)throw o}return r.then(o=>{for(const n of o||[])n.status==="rejected"&&s(n.reason);return i().catch(s)})};class E2 extends Nr{addRenderer(){this.element.renderer=(i,t)=>{this.renderRenderer(i,t)}}runRenderer(){this.element.requestContentUpdate()}removeRenderer(){this.element.renderer=null}}const $b=Mi(E2);class k2 extends Nr{addRenderer(){this.element.renderer=(i,t)=>{this.renderRenderer(i,t)}}runRenderer(){this.element.requestContentUpdate()}removeRenderer(){this.element.renderer=null}}const qb=Mi(k2),S2=S`
+    `}static get properties(){return{_positionTarget:{type:Object}}}get clearElement(){return this.$.clearButton}ready(){super.ready(),this.addController(new _r(this,i=>{this._setInputElement(i),this._setFocusElement(i),this.stateTarget=i,this.ariaTarget=i})),this.addController(new tr(this.inputElement,this._labelController)),this._tooltipController=new le(this),this.addController(this._tooltipController),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.inputElement),this._tooltipController.setShouldShow(i=>!i.opened),this._positionTarget=this.shadowRoot.querySelector('[part="input-field"]'),this._toggleElement=this.$.toggleButton}_onClearButtonClick(i){i.stopPropagation(),super._onClearButtonClick(i)}_onHostClick(i){const t=i.composedPath();(t.includes(this._labelNode)||t.includes(this._positionTarget))&&super._onHostClick(i)}}R(z2);const C2="modulepreload",A2=function(a){return"/"+a},ih={},M2=function(i,t,e){let r=Promise.resolve();if(t&&t.length>0){let l=function(h){return Promise.all(h.map(u=>Promise.resolve(u).then(p=>({status:"fulfilled",value:p}),p=>({status:"rejected",reason:p}))))};document.getElementsByTagName("link");const o=document.querySelector("meta[property=csp-nonce]"),n=o?.nonce||o?.getAttribute("nonce");r=l(t.map(h=>{if(h=A2(h),h in ih)return;ih[h]=!0;const u=h.endsWith(".css"),p=u?'[rel="stylesheet"]':"";if(document.querySelector(`link[href="${h}"]${p}`))return;const m=document.createElement("link");if(m.rel=u?"stylesheet":C2,u||(m.as="script"),m.crossOrigin="",m.href=h,n&&m.setAttribute("nonce",n),document.head.appendChild(m),u)return new Promise((z,C)=>{m.addEventListener("load",z),m.addEventListener("error",()=>C(new Error(`Unable to preload CSS for ${h}`)))})}))}function s(o){const n=new Event("vite:preloadError",{cancelable:!0});if(n.payload=o,window.dispatchEvent(n),!n.defaultPrevented)throw o}return r.then(o=>{for(const n of o||[])n.status==="rejected"&&s(n.reason);return i().catch(s)})};class E2 extends Nr{addRenderer(){this.element.renderer=(i,t)=>{this.renderRenderer(i,t)}}runRenderer(){this.element.requestContentUpdate()}removeRenderer(){this.element.renderer=null}}const $b=Mi(E2);class k2 extends Nr{addRenderer(){this.element.renderer=(i,t)=>{this.renderRenderer(i,t)}}runRenderer(){this.element.requestContentUpdate()}removeRenderer(){this.element.renderer=null}}const qb=Mi(k2),ns=S`
+  :host {
+    -webkit-tap-highlight-color: transparent;
+    --_lumo-item-selected-icon-display: var(--_lumo-list-box-item-selected-icon-display, block);
+  }
+
+  /* Dividers */
+  [part='items'] ::slotted(hr) {
+    height: 1px;
+    border: 0;
+    padding: 0;
+    margin: var(--lumo-space-s) var(--lumo-border-radius-m);
+    background-color: var(--lumo-contrast-10pct);
+  }
+`;L("vaadin-list-box",ns,{moduleId:"lumo-list-box"});L("vaadin-select-item",xr,{moduleId:"lumo-select-item"});L("vaadin-select-list-box",ns,{moduleId:"lumo-select-list-box"});const S2=S`
+  :host {
+    /* Disable pointer focus-ring for select, not supported yet */
+    --lumo-input-field-pointer-focus-visible: 0;
+  }
+
+  :host(:not([theme*='align'])) ::slotted([slot='value']) {
+    text-align: start;
+  }
+
+  [part='input-field'] {
+    cursor: var(--lumo-clickable-cursor);
+  }
+
+  [part='input-field'] ::slotted([slot='value']) {
+    font-weight: var(--vaadin-input-field-value-font-weight, 500);
+  }
+
+  [part='input-field'] ::slotted([slot='value']:not([placeholder])) {
+    color: var(--vaadin-input-field-value-color, var(--lumo-body-text-color));
+  }
+
+  :host([readonly]) [part='input-field'] ::slotted([slot='value']:not([placeholder])) {
+    color: var(--lumo-secondary-text-color);
+  }
+
+  /* placeholder styles */
+  [part='input-field'] ::slotted([slot='value'][placeholder]) {
+    color: var(--vaadin-input-field-placeholder-color, var(--lumo-secondary-text-color));
+  }
+
+  :host(:is([readonly], [disabled])) ::slotted([slot='value'][placeholder]) {
+    opacity: 0;
+  }
+
+  [part='toggle-button']::before {
+    content: var(--lumo-icons-dropdown);
+  }
+
+  /* Highlight the toggle button when hovering over the entire component */
+  :host(:hover:not([readonly]):not([disabled])) [part='toggle-button'] {
+    color: var(--lumo-contrast-80pct);
+  }
+
+  :host([theme~='small']) [part='input-field'] ::slotted([slot='value']) {
+    --_lumo-selected-item-height: var(--lumo-size-s);
+    --_lumo-selected-item-padding: 0;
+  }
+`;L("vaadin-select",[Ei,S2],{moduleId:"lumo-select"});L("vaadin-select-value-button",S`
+    :host {
+      font-family: var(--lumo-font-family);
+      font-size: var(--vaadin-input-field-value-font-size, var(--lumo-font-size-m));
+      padding: 0 0.25em;
+      --_lumo-selected-item-height: var(--lumo-size-m);
+      --_lumo-selected-item-padding: 0.5em;
+    }
+
+    ::slotted(*) {
+      min-height: var(--_lumo-selected-item-height);
+      padding-top: var(--_lumo-selected-item-padding);
+      padding-bottom: var(--_lumo-selected-item-padding);
+      font-size: inherit;
+    }
+
+    ::slotted(*:hover) {
+      background-color: transparent;
+    }
+  `,{moduleId:"lumo-select-value-button"});const T2=S`
+  :host {
+    --_lumo-item-selected-icon-display: block;
+  }
+
+  /* Small viewport adjustment */
+  :host([phone]) {
+    /* stylelint-disable declaration-block-no-redundant-longhand-properties */
+    top: 0 !important;
+    right: 0 !important;
+    bottom: var(--vaadin-overlay-viewport-bottom, 0) !important;
+    left: 0 !important;
+    /* stylelint-enable declaration-block-no-redundant-longhand-properties */
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+
+  :host([no-vertical-overlap][top-aligned]) [part='overlay'] {
+    margin-block-start: var(--lumo-space-xs);
+  }
+
+  :host([no-vertical-overlap][bottom-aligned]) [part='overlay'] {
+    margin-block-end: var(--lumo-space-xs);
+  }
+
+  :host([theme~='align-left']) {
+    text-align: left;
+  }
+
+  :host([theme~='align-right']) {
+    text-align: right;
+  }
+
+  :host([theme~='align-center']) {
+    text-align: center;
+  }
+`;L("vaadin-select-overlay",[as,T2],{moduleId:"lumo-select-overlay"});const yc=S`
+  :host {
+    display: inline-block;
+  }
+
+  :host([hidden]) {
+    display: none !important;
+  }
+`;const fa=a=>class extends rs(He(a)){static get properties(){return{_hasVaadinItemMixin:{value:!0},selected:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_selectedChanged",sync:!0},_value:String}}get _activeKeys(){return["Enter"," "]}get value(){return this._value!==void 0?this._value:this.textContent.trim()}set value(t){this._value=t}ready(){super.ready();const t=this.getAttribute("value");t!==null&&(this.value=t)}focus(t){this.disabled||super.focus(t)}_shouldSetActive(t){return!this.disabled&&!(t.type==="keydown"&&t.defaultPrevented)}_selectedChanged(t){this.setAttribute("aria-selected",t)}_disabledChanged(t){super._disabledChanged(t),t&&(this.selected=!1,this.blur())}_onKeyDown(t){super._onKeyDown(t),this._activeKeys.includes(t.key)&&!t.defaultPrevented&&(t.preventDefault(),this.click())}};L("vaadin-select-item",yc,{moduleId:"vaadin-select-item-styles"});class I2 extends fa(Y(xt($))){static get is(){return"vaadin-select-item"}static get template(){return V`
+      <span part="checkmark" aria-hidden="true"></span>
+      <div part="content">
+        <slot></slot>
+      </div>
+    `}ready(){super.ready(),this.setAttribute("role","option")}}R(I2);function Fs(a,i){const{scrollLeft:t}=a;return i!=="rtl"?t:a.scrollWidth-a.clientWidth+t}function D2(a,i,t){i!=="rtl"?a.scrollLeft=t:a.scrollLeft=a.clientWidth-a.scrollWidth+t}const eo=a=>class extends Fi(a){get focused(){return(this._getItems()||[]).find(Xe)}get _vertical(){return!0}get _tabNavigation(){return!1}focus(t){const e=this._getFocusableIndex();e>=0&&this._focus(e,t)}_getFocusableIndex(){const t=this._getItems();return Array.isArray(t)?this._getAvailableIndex(t,0,null,e=>!oi(e)):-1}_getItems(){return Array.from(this.children)}_onKeyDown(t){if(super._onKeyDown(t),t.metaKey||t.ctrlKey)return;const{key:e,shiftKey:r}=t,s=this._getItems()||[],o=s.indexOf(this.focused);let n,l;const u=!this._vertical&&this.getAttribute("dir")==="rtl"?-1:1;this.__isPrevKeyPressed(e,r)?(l=-u,n=o-u):this.__isNextKeyPressed(e,r)?(l=u,n=o+u):e==="Home"?(l=1,n=0):e==="End"&&(l=-1,n=s.length-1),n=this._getAvailableIndex(s,n,l,p=>!oi(p)),!(this._tabNavigation&&e==="Tab"&&(n>o&&t.shiftKey||n<o&&!t.shiftKey||n===o))&&n>=0&&(t.preventDefault(),this._focus(n,{focusVisible:!0},!0))}__isPrevKeyPressed(t,e){return this._vertical?t==="ArrowUp":t==="ArrowLeft"||this._tabNavigation&&t==="Tab"&&e}__isNextKeyPressed(t,e){return this._vertical?t==="ArrowDown":t==="ArrowRight"||this._tabNavigation&&t==="Tab"&&!e}_focus(t,e,r=!1){const s=this._getItems();this._focusItem(s[t],e,r)}_focusItem(t,e){t&&t.focus(e)}_getAvailableIndex(t,e,r,s){const o=t.length;let n=e;for(let l=0;typeof n=="number"&&l<o;l+=1,n+=r||1){n<0?n=o-1:n>=o&&(n=0);const h=t[n];if(this._isItemFocusable(h)&&this.__isMatchingItem(h,s))return n}return-1}__isMatchingItem(t,e){return typeof e=="function"?e(t):!0}_isItemFocusable(t){return!t.hasAttribute("disabled")}};const _a=a=>class extends eo(a){static get properties(){return{disabled:{type:Boolean,value:!1,reflectToAttribute:!0},selected:{type:Number,reflectToAttribute:!0,notify:!0,sync:!0},orientation:{type:String,reflectToAttribute:!0,value:""},items:{type:Array,readOnly:!0,notify:!0},_searchBuf:{type:String,value:""}}}static get observers(){return["_enhanceItems(items, orientation, selected, disabled)"]}get _isRTL(){return!this._vertical&&this.getAttribute("dir")==="rtl"}get _scrollerElement(){return console.warn(`Please implement the '_scrollerElement' property in <${this.localName}>`),this}get _vertical(){return this.orientation!=="horizontal"}focus(t){this._observer&&this._observer.flush();const e=Array.isArray(this.items)?this.items:[],r=this._getAvailableIndex(e,0,null,s=>s.tabIndex===0&&!oi(s));r>=0?this._focus(r,t):super.focus(t)}ready(){super.ready(),this.addEventListener("click",e=>this._onClick(e));const t=this.shadowRoot.querySelector("slot:not([name])");this._observer=new Li(t,()=>{this._setItems(this._filterItems([...this.children]))})}_getItems(){return this.items}_enhanceItems(t,e,r,s){if(!s&&t){this.setAttribute("aria-orientation",e||"vertical"),t.forEach(n=>{e?n.setAttribute("orientation",e):n.removeAttribute("orientation")}),this._setFocusable(r<0||!r?0:r);const o=t[r];t.forEach(n=>{n.selected=n===o}),o&&!o.disabled&&this._scrollToItem(r)}}_filterItems(t){return t.filter(e=>e._hasVaadinItemMixin)}_onClick(t){if(t.metaKey||t.shiftKey||t.ctrlKey||t.defaultPrevented)return;const e=this._filterItems(t.composedPath())[0];let r;e&&!e.disabled&&(r=this.items.indexOf(e))>=0&&(this.selected=r)}_searchKey(t,e){this._searchReset=bt.debounce(this._searchReset,Ve.after(500),()=>{this._searchBuf=""}),this._searchBuf+=e.toLowerCase(),this.items.some(s=>this.__isMatchingKey(s))||(this._searchBuf=e.toLowerCase());const r=this._searchBuf.length===1?t+1:t;return this._getAvailableIndex(this.items,r,1,s=>this.__isMatchingKey(s)&&getComputedStyle(s).display!=="none")}__isMatchingKey(t){return t.textContent.replace(/[^\p{L}\p{Nd}]/gu,"").toLowerCase().startsWith(this._searchBuf)}_onKeyDown(t){if(t.metaKey||t.ctrlKey)return;const e=t.key,r=this.items.indexOf(this.focused);if(/[\p{L}\p{Nd}]/u.test(e)&&e.length===1){const s=this._searchKey(r,e);s>=0&&this._focus(s);return}super._onKeyDown(t)}_setFocusable(t){t=this._getAvailableIndex(this.items,t,1);const e=this.items[t];this.items.forEach(r=>{r.tabIndex=r===e?0:-1})}_focus(t,e){this.items.forEach((r,s)=>{r.focused=s===t}),this._setFocusable(t),this._scrollToItem(t),super._focus(t,e)}_scrollToItem(t){const e=this.items[t];if(!e)return;const r=this._vertical?["top","bottom"]:this._isRTL?["right","left"]:["left","right"],s=this._scrollerElement.getBoundingClientRect(),o=(this.items[t+1]||e).getBoundingClientRect(),n=(this.items[t-1]||e).getBoundingClientRect();let l=0;!this._isRTL&&o[r[1]]>=s[r[1]]||this._isRTL&&o[r[1]]<=s[r[1]]?l=o[r[1]]-s[r[1]]:(!this._isRTL&&n[r[0]]<=s[r[0]]||this._isRTL&&n[r[0]]>=s[r[0]])&&(l=n[r[0]]-s[r[0]]),this._scroll(l)}_scroll(t){if(this._vertical)this._scrollerElement.scrollTop+=t;else{const e=this.getAttribute("dir")||"ltr",r=Fs(this._scrollerElement,e)+t;D2(this._scrollerElement,e,r)}}};const xc=S`
+  :host {
+    display: flex;
+  }
+
+  :host([hidden]) {
+    display: none !important;
+  }
+
+  [part='items'] {
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+`;L("vaadin-select-list-box",xc,{moduleId:"vaadin-select-list-box-styles"});class O2 extends _a(Y(xt(Mt($)))){static get is(){return"vaadin-select-list-box"}static get template(){return V`
+      <div part="items">
+        <slot></slot>
+      </div>
+    `}static get properties(){return{orientation:{readOnly:!0}}}get _scrollerElement(){return this.shadowRoot.querySelector('[part="items"]')}ready(){super.ready(),this.setAttribute("role","listbox")}}R(O2);const L2=S`
+  :host {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  :host(:not([phone])) [part='overlay'] {
+    min-width: var(--vaadin-select-overlay-width, var(--vaadin-select-text-field-width));
+  }
+
+  @media (forced-colors: active) {
+    [part='overlay'] {
+      outline: 3px solid;
+    }
+  }
+`;const P2=a=>class extends br(li(xt(a))){static get observers(){return["_updateOverlayWidth(opened, owner)"]}ready(){super.ready(),this.restoreFocusOnClose=!0}_shouldCloseOnOutsideClick(t){return!0}_getMenuElement(){return Array.from(this.children).find(t=>t.localName!=="style")}_updateOverlayWidth(t,e){if(t&&e){const r="--vaadin-select-overlay-width",s=getComputedStyle(e).getPropertyValue(r);s===""?this.style.removeProperty(r):this.style.setProperty(r,s)}}requestContentUpdate(){if(super.requestContentUpdate(),this.owner){const t=this._getMenuElement();this.owner._assignMenuElement(t)}}};L("vaadin-select-overlay",[ti,L2],{moduleId:"vaadin-select-overlay-styles"});class N2 extends P2(Y($)){static get is(){return"vaadin-select-overlay"}static get template(){return V`
+      <div id="backdrop" part="backdrop" hidden$="[[!withBackdrop]]"></div>
+      <div part="overlay" id="overlay" tabindex="0">
+        <div part="content" id="content">
+          <slot></slot>
+        </div>
+      </div>
+    `}}R(N2);const B2=S`
+  :host {
+    display: inline-block;
+    position: relative;
+    outline: none;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    user-select: none;
+    min-width: 0;
+    width: 0;
+  }
+
+  ::slotted(*) {
+    padding-left: 0;
+    padding-right: 0;
+    flex: auto;
+  }
+
+  /* placeholder styles */
+  ::slotted(*:not([selected])) {
+    line-height: 1;
+  }
+
+  .vaadin-button-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: inherit;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    text-shadow: inherit;
+  }
+
+  [part='label'] {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    line-height: inherit;
+  }
+`;L("vaadin-select-value-button",B2,{moduleId:"vaadin-select-value-button-styles"});class F2 extends ss(Y($)){static get is(){return"vaadin-select-value-button"}static get template(){return V`
+      <div class="vaadin-button-container">
+        <span part="label">
+          <slot></slot>
+        </span>
+      </div>
+    `}}R(F2);const wc=S`
+  .sr-only {
+    border: 0 !important;
+    clip: rect(1px, 1px, 1px, 1px) !important;
+    -webkit-clip-path: inset(50%) !important;
+    clip-path: inset(50%) !important;
+    height: 1px !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    position: absolute !important;
+    width: 1px !important;
+    white-space: nowrap !important;
+  }
+`;class R2 extends Ft{constructor(i){super(i,"value","vaadin-select-value-button",{initializer:(t,e)=>{e._setFocusElement(t),e.ariaTarget=t,e.stateTarget=t,t.setAttribute("aria-haspopup","listbox")}})}}const V2=a=>class extends fi(gr(va(Fi(Fr(a))))){static get properties(){return{items:{type:Array,observer:"__itemsChanged"},opened:{type:Boolean,value:!1,notify:!0,reflectToAttribute:!0,sync:!0},renderer:{type:Object},value:{type:String,value:"",notify:!0,observer:"_valueChanged",sync:!0},name:{type:String},placeholder:{type:String},readonly:{type:Boolean,value:!1,reflectToAttribute:!0},noVerticalOverlap:{type:Boolean,value:!1},_phone:Boolean,_phoneMediaQuery:{value:"(max-width: 450px), (max-height: 450px)"},_inputContainer:Object,_items:Object}}static get delegateAttrs(){return[...super.delegateAttrs,"invalid"]}static get observers(){return["_updateAriaExpanded(opened, focusElement)","_updateSelectedItem(value, _items, placeholder, focusElement)","_openedChanged(opened, _overlayElement)"]}constructor(){super(),this._itemId=`value-${this.localName}-${mi()}`,this._srLabelController=new Bd(this),this._srLabelController.slotName="sr-label"}disconnectedCallback(){super.disconnectedCallback(),this.opened=!1}ready(){super.ready(),this._inputContainer=this.shadowRoot.querySelector('[part~="input-field"]'),this._overlayElement=this.$.overlay,this._valueButtonController=new R2(this),this.addController(this._valueButtonController),this.addController(this._srLabelController),this.addController(new os(this._phoneMediaQuery,t=>{this._phone=t})),this._tooltipController=new le(this),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.focusElement),this.addController(this._tooltipController)}requestContentUpdate(){this._overlayElement&&(this._overlayElement.requestContentUpdate(),this._menuElement&&this._menuElement.items&&this._updateSelectedItem(this.value,this._menuElement.items))}_requiredChanged(t){super._requiredChanged(t),t===!1&&this._requestValidation()}__itemsChanged(t,e){(t||e)&&this.requestContentUpdate()}_assignMenuElement(t){t&&t!==this.__lastMenuElement&&(this._menuElement=t,this.__initMenuItems(t),t.addEventListener("items-changed",()=>{this.__initMenuItems(t)}),t.addEventListener("selected-changed",()=>this.__updateValueButton()),t.addEventListener("keydown",e=>this._onKeyDownInside(e),!0),t.addEventListener("click",e=>{const r=e.composedPath().find(s=>s._hasVaadinItemMixin);this.__dispatchChangePending=!!(r&&r.value!==void 0&&r.value!==this.value),this.opened=!1},!0),this.__lastMenuElement=t)}__initMenuItems(t){t.items&&(this._items=t.items)}_valueChanged(t,e){this.toggleAttribute("has-value",!!t),e!==void 0&&!this.__dispatchChangePending&&this._requestValidation()}_onClick(t){this.disabled||(t.preventDefault(),this.opened=!this.readonly)}_onToggleMouseDown(t){t.preventDefault(),this.opened||this.focusElement.focus()}_onKeyDown(t){if(!(t.altKey||t.shiftKey||t.ctrlKey||t.metaKey)&&t.target===this.focusElement&&!this.readonly&&!this.disabled&&!this.opened){if(/^(Enter|SpaceBar|\s|ArrowDown|Down|ArrowUp|Up)$/u.test(t.key))t.preventDefault(),this.opened=!0;else if(/[\p{L}\p{Nd}]/u.test(t.key)&&t.key.length===1){const e=this._menuElement.selected,r=e!==void 0?e:-1,s=this._menuElement._searchKey(r,t.key);s>=0&&(this.__dispatchChangePending=!0,this._updateAriaLive(!0),this._menuElement.selected=s)}}}_onKeyDownInside(t){/^(Tab)$/u.test(t.key)&&(this.opened=!1)}_openedChanged(t,e){if(e){if(t){if(this.disabled||this.readonly){this.opened=!1;return}this._updateAriaLive(!1),e.style.setProperty("--vaadin-select-text-field-width",`${this._inputContainer.offsetWidth}px`);const r=this.hasAttribute("focus-ring");this._openedWithFocusRing=r,r&&this.removeAttribute("focus-ring")}else this.__oldOpened&&(this._openedWithFocusRing&&this.setAttribute("focus-ring",""),!this.__dispatchChangePending&&!this._keyboardActive&&this._requestValidation());this.__oldOpened=t}}_updateAriaExpanded(t,e){e&&e.setAttribute("aria-expanded",t?"true":"false")}_updateAriaLive(t){this.focusElement&&(t?this.focusElement.setAttribute("aria-live","polite"):this.focusElement.removeAttribute("aria-live"))}__attachSelectedItem(t){let e;const r=t.getAttribute("label");r?e=this.__createItemElement({label:r}):e=t.cloneNode(!0),e._sourceItem=t,this.__appendValueItemElement(e,this.focusElement),e.selected=!0}__createItemElement(t){const e=document.createElement(t.component||"vaadin-select-item");return t.label&&(e.textContent=t.label),t.value&&(e.value=t.value),t.disabled&&(e.disabled=t.disabled),t.className&&(e.className=t.className),e}__appendValueItemElement(t,e){e.appendChild(t),t.removeAttribute("tabindex"),t.removeAttribute("aria-selected"),t.removeAttribute("role"),t.removeAttribute("focused"),t.removeAttribute("focus-ring"),t.removeAttribute("active"),t.setAttribute("id",this._itemId)}_accessibleNameChanged(t){this._srLabelController.setLabel(t),this._setCustomAriaLabelledBy(t?this._srLabelController.defaultId:null)}_accessibleNameRefChanged(t){this._setCustomAriaLabelledBy(t)}_setCustomAriaLabelledBy(t){const e=this._getLabelIdWithItemId(t);this._fieldAriaController.setLabelId(e,!0)}_getLabelIdWithItemId(t){const r=(this._items?this._items[this._menuElement.selected]:!1)||this.placeholder?this._itemId:"";return t?`${t} ${r}`.trim():null}__updateValueButton(){const t=this.focusElement;if(!t)return;t.innerHTML="";const e=this._items?this._items[this._menuElement.selected]:void 0;if(t.removeAttribute("placeholder"),this._hasContent(e))this.__attachSelectedItem(e);else if(this.placeholder){const s=this.__createItemElement({label:this.placeholder});this.__appendValueItemElement(s,t),t.setAttribute("placeholder","")}!this._valueChanging&&e&&(this._selectedChanging=!0,this.value=e.value||"",this.__dispatchChangePending&&this.__dispatchChange(),delete this._selectedChanging);const r=e||this.placeholder?{newId:this._itemId}:{oldId:this._itemId};ea(t,"aria-labelledby",r),(this.accessibleName||this.accessibleNameRef)&&this._setCustomAriaLabelledBy(this.accessibleNameRef||this._srLabelController.defaultId)}_hasContent(t){if(!t)return!1;const e=!!(t.hasAttribute("label")?t.getAttribute("label"):t.textContent.trim()),r=t.childElementCount>0;return e||r}_updateSelectedItem(t,e,r){if(e){const s=t==null?t:t.toString();this._menuElement.selected=e.reduce((o,n,l)=>o===void 0&&n.value===s?l:o,void 0),this._selectedChanging||(this._valueChanging=!0,this.__updateValueButton(),delete this._valueChanging)}else r&&this.__updateValueButton()}_shouldRemoveFocus(){return!this.opened}_setFocused(t){super._setFocused(t),!t&&document.hasFocus()&&this._requestValidation()}checkValidity(){return!this.required||this.readonly||!!this.value}__defaultRenderer(t,e){if(!this.items||this.items.length===0){t.textContent="";return}let r=t.firstElementChild;r||(r=document.createElement("vaadin-select-list-box"),t.appendChild(r)),r.textContent="",this.items.forEach(s=>{r.appendChild(this.__createItemElement(s))})}async __dispatchChange(){this.updateComplete&&await this.updateComplete,this._requestValidation(),this.dispatchEvent(new CustomEvent("change",{bubbles:!0})),this.__dispatchChangePending=!1}};const H2=S`
+  :host {
+    position: relative;
+  }
+
+  ::slotted([slot='value']) {
+    flex-grow: 1;
+  }
+`;L("vaadin-select",[Zi,wc,H2],{moduleId:"vaadin-select-styles"});class $2 extends V2(ot(Y($))){static get is(){return"vaadin-select"}static get template(){return V`
+      <div class="vaadin-select-container">
+        <div part="label" on-click="_onClick">
+          <slot name="label"></slot>
+          <span part="required-indicator" aria-hidden="true" on-click="focus"></span>
+        </div>
+
+        <vaadin-input-container
+          part="input-field"
+          readonly="[[readonly]]"
+          disabled="[[disabled]]"
+          invalid="[[invalid]]"
+          theme$="[[_theme]]"
+          on-click="_onClick"
+        >
+          <slot name="prefix" slot="prefix"></slot>
+          <slot name="value"></slot>
+          <div part="toggle-button" slot="suffix" aria-hidden="true" on-mousedown="_onToggleMouseDown"></div>
+        </vaadin-input-container>
+
+        <div part="helper-text">
+          <slot name="helper"></slot>
+        </div>
+
+        <div part="error-message">
+          <slot name="error-message"></slot>
+        </div>
+      </div>
+
+      <vaadin-select-overlay
+        id="overlay"
+        owner="[[__overlayOwner]]"
+        position-target="[[_inputContainer]]"
+        opened="{{opened}}"
+        with-backdrop="[[_phone]]"
+        phone$="[[_phone]]"
+        theme$="[[_theme]]"
+        no-vertical-overlap$="[[noVerticalOverlap]]"
+        on-vaadin-overlay-open="_onOverlayOpen"
+      ></vaadin-select-overlay>
+
+      <slot name="tooltip"></slot>
+      <div class="sr-only">
+        <slot name="sr-label"></slot>
+      </div>
+    `}static get properties(){return{__overlayOwner:{value(){return this}}}}static get observers(){return["_rendererChanged(renderer, _overlayElement)"]}ready(){super.ready(),Ri(this)}_rendererChanged(i,t){t&&(t.renderer=i||this.__defaultRenderer,this.requestContentUpdate())}_onOverlayOpen(){this._menuElement&&this._menuElement.focus({focusVisible:Ie()})}}R($2);L("vaadin-notification-card",S`
+    :host {
+      position: relative;
+      margin: var(--lumo-space-s);
+    }
+
+    [part='overlay'] {
+      background: var(--lumo-base-color) linear-gradient(var(--lumo-contrast-5pct), var(--lumo-contrast-5pct));
+      border-radius: var(--lumo-border-radius-l);
+      box-shadow:
+        0 0 0 1px var(--lumo-contrast-10pct),
+        var(--lumo-box-shadow-l);
+      font-family: var(--lumo-font-family);
+      font-size: var(--lumo-font-size-m);
+      font-weight: 400;
+      line-height: var(--lumo-line-height-s);
+      letter-spacing: 0;
+      text-transform: none;
+      -webkit-text-size-adjust: 100%;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    [part='content'] {
+      padding: var(--lumo-space-wide-l);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    [part='content'] ::slotted(vaadin-button) {
+      flex: none;
+      margin: 0 calc(var(--lumo-space-s) * -1) 0 var(--lumo-space-m);
+    }
+
+    :host([slot^='middle']) {
+      max-width: 80vw;
+      margin: var(--lumo-space-s) auto;
+    }
+
+    :host([slot$='stretch']) {
+      margin: 0;
+    }
+
+    :host([slot$='stretch']) [part='overlay'] {
+      border-radius: 0;
+    }
+
+    @media (min-width: 421px) {
+      :host(:not([slot$='stretch'])) {
+        display: flex;
+      }
+
+      :host([slot$='end']) {
+        justify-content: flex-end;
+      }
+
+      :host([slot^='middle']),
+      :host([slot$='center']) {
+        display: flex;
+        justify-content: center;
+      }
+    }
+
+    @keyframes lumo-notification-exit-fade-out {
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes lumo-notification-enter-fade-in {
+      0% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes lumo-notification-enter-slide-down {
+      0% {
+        transform: translateY(-200%);
+        opacity: 0;
+      }
+    }
+
+    @keyframes lumo-notification-exit-slide-up {
+      100% {
+        transform: translateY(-200%);
+        opacity: 0;
+      }
+    }
+
+    @keyframes lumo-notification-enter-slide-up {
+      0% {
+        transform: translateY(200%);
+        opacity: 0;
+      }
+    }
+
+    @keyframes lumo-notification-exit-slide-down {
+      100% {
+        transform: translateY(200%);
+        opacity: 0;
+      }
+    }
+
+    :host([slot='middle'][opening]) {
+      animation: lumo-notification-enter-fade-in 300ms;
+    }
+
+    :host([slot='middle'][closing]) {
+      animation: lumo-notification-exit-fade-out 300ms;
+    }
+
+    :host([slot^='top'][opening]) {
+      animation: lumo-notification-enter-slide-down 300ms;
+    }
+
+    :host([slot^='top'][closing]) {
+      animation: lumo-notification-exit-slide-up 300ms;
+    }
+
+    :host([slot^='bottom'][opening]) {
+      animation: lumo-notification-enter-slide-up 300ms;
+    }
+
+    :host([slot^='bottom'][closing]) {
+      animation: lumo-notification-exit-slide-down 300ms;
+    }
+
+    :host([theme='success']) {
+      --_focus-ring-gap-color: var(--lumo-success-color);
+      --vaadin-focus-ring-color: var(--lumo-success-contrast-color);
+    }
+
+    :host([theme='warning']) {
+      --_focus-ring-gap-color: var(--lumo-warning-color);
+      --vaadin-focus-ring-color: var(--lumo-warning-contrast-color);
+    }
+
+    :host([theme='error']) {
+      --_focus-ring-gap-color: var(--lumo-error-color);
+      --vaadin-focus-ring-color: var(--lumo-error-contrast-color);
+    }
+
+    :host([theme='primary']) {
+      --_focus-ring-gap-color: var(--lumo-primary-color);
+      --vaadin-focus-ring-color: var(--lumo-primary-contrast-color);
+    }
+
+    :host([theme~='primary']) [part='overlay'] {
+      background: var(--lumo-primary-color);
+      color: var(--lumo-primary-contrast-color);
+      box-shadow: var(--lumo-box-shadow-l);
+    }
+
+    :host([theme~='primary']) {
+      --vaadin-button-background: var(--lumo-shade-20pct);
+      --vaadin-button-text-color: var(--lumo-primary-contrast-color);
+      --vaadin-button-primary-background: var(--lumo-primary-contrast-color);
+      --vaadin-button-primary-text-color: var(--lumo-primary-text-color);
+    }
+
+    :host([theme~='contrast']) [part='overlay'] {
+      background: var(--lumo-contrast);
+      color: var(--lumo-base-color);
+      box-shadow: var(--lumo-box-shadow-l);
+    }
+
+    :host([theme~='contrast']) {
+      --vaadin-button-background: var(--lumo-contrast-20pct);
+      --vaadin-button-text-color: var(--lumo-base-color);
+      --vaadin-button-primary-background: var(--lumo-base-color);
+      --vaadin-button-primary-text-color: var(--lumo-contrast);
+    }
+
+    :host([theme~='success']) [part='overlay'] {
+      background: var(--lumo-success-color);
+      color: var(--lumo-success-contrast-color);
+      box-shadow: var(--lumo-box-shadow-l);
+    }
+
+    :host([theme~='success']) {
+      --vaadin-button-background: var(--lumo-shade-20pct);
+      --vaadin-button-text-color: var(--lumo-success-contrast-color);
+      --vaadin-button-primary-background: var(--lumo-success-contrast-color);
+      --vaadin-button-primary-text-color: var(--lumo-success-text-color);
+    }
+
+    :host([theme~='error']) [part='overlay'] {
+      background: var(--lumo-error-color);
+      color: var(--lumo-error-contrast-color);
+      box-shadow: var(--lumo-box-shadow-l);
+    }
+
+    :host([theme~='error']) {
+      --vaadin-button-background: var(--lumo-shade-20pct);
+      --vaadin-button-text-color: var(--lumo-error-contrast-color);
+      --vaadin-button-primary-background: var(--lumo-error-contrast-color);
+      --vaadin-button-primary-text-color: var(--lumo-error-text-color);
+    }
+
+    :host([theme~='warning']) [part='overlay'] {
+      background: var(--lumo-warning-color);
+      color: var(--lumo-warning-contrast-color);
+      box-shadow:
+        inset 0 0 0 1px var(--lumo-contrast-20pct),
+        var(--lumo-box-shadow-l);
+    }
+
+    :host([theme~='warning']) {
+      --vaadin-button-background: var(--lumo-shade-20pct);
+      --vaadin-button-text-color: var(--lumo-warning-contrast-color);
+      --vaadin-button-primary-background: var(--lumo-shade-50pct);
+      --vaadin-button-primary-text-color: var(--lumo-primary-contrast-color);
+    }
+  `,{moduleId:"lumo-notification-card"});const q2=a=>class extends Jd(a){static get properties(){return{opened:{type:Boolean,value:!1,sync:!0,observer:"_openedChanged"}}}constructor(){super(),this._boundVaadinOverlayClose=this._onVaadinOverlayClose.bind(this),ur&&(this._boundIosResizeListener=()=>this._detectIosNavbar())}_openedChanged(i){i?(document.body.appendChild(this),document.addEventListener("vaadin-overlay-close",this._boundVaadinOverlayClose),this._boundIosResizeListener&&(this._detectIosNavbar(),window.addEventListener("resize",this._boundIosResizeListener))):(document.body.removeChild(this),document.removeEventListener("vaadin-overlay-close",this._boundVaadinOverlayClose),this._boundIosResizeListener&&window.removeEventListener("resize",this._boundIosResizeListener))}_detectIosNavbar(){const i=window.innerHeight,e=window.innerWidth>i,r=document.documentElement.clientHeight;e&&r>i?this.style.bottom=`${r-i}px`:this.style.bottom="0"}_onVaadinOverlayClose(i){const t=i.detail.sourceEvent;t&&t.composedPath().indexOf(this)>=0&&i.preventDefault()}},j2=a=>class extends Xi(fi(a)){static get properties(){return{assertive:{type:Boolean,value:!1,sync:!0},duration:{type:Number,value:5e3,sync:!0},opened:{type:Boolean,value:!1,notify:!0,sync:!0,observer:"_openedChanged"},position:{type:String,value:"bottom-start",observer:"_positionChanged",sync:!0},renderer:{type:Function,sync:!0}}}static get observers(){return["_durationChanged(duration, opened)","_rendererChanged(renderer, opened, _overlayElement)"]}static show(i,t){const e=customElements.get("vaadin-notification");return Wh(i)?e._createAndShowNotification(r=>{Pr(i,r)},t):e._createAndShowNotification(r=>{r.innerText=i},t)}static _createAndShowNotification(i,t){const e=document.createElement("vaadin-notification");return t&&Number.isFinite(t.duration)&&(e.duration=t.duration),t&&t.position&&(e.position=t.position),t&&t.assertive&&(e.assertive=t.assertive),t&&t.theme&&e.setAttribute("theme",t.theme),e.renderer=i,document.body.appendChild(e),e.opened=!0,e.addEventListener("opened-changed",r=>{r.detail.value||e.remove()}),e}get _container(){const i=customElements.get("vaadin-notification");return i._container||(i._container=document.createElement("vaadin-notification-container"),document.body.appendChild(i._container)),i._container}get _card(){return this._overlayElement}ready(){super.ready(),this._overlayElement=this.shadowRoot.querySelector("vaadin-notification-card"),Ri(this)}disconnectedCallback(){super.disconnectedCallback(),queueMicrotask(()=>{this.isConnected||(this.opened=!1)})}requestContentUpdate(){!this.renderer||!this._card||this.renderer(this._card,this)}__computeAriaLive(i){return i?"assertive":"polite"}_rendererChanged(i,t,e){if(!e)return;const r=this._oldRenderer!==i;this._oldRenderer=i,r&&(e.innerHTML="",delete e._$litPart$),t&&(this._didAnimateNotificationAppend||this._animatedAppendNotificationCard(),this.requestContentUpdate())}open(){this.opened=!0}close(){this.opened=!1}_openedChanged(i){i?(this._container.opened=!0,this._animatedAppendNotificationCard()):this._card&&this._closeNotificationCard()}__cleanUpOpeningClosingState(){this._card.removeAttribute("opening"),this._card.removeAttribute("closing"),this._card.removeEventListener("animationend",this.__animationEndListener)}_animatedAppendNotificationCard(){this._card?(this.__cleanUpOpeningClosingState(),this._card.setAttribute("opening",""),this._appendNotificationCard(),this.__animationEndListener=()=>this.__cleanUpOpeningClosingState(),this._card.addEventListener("animationend",this.__animationEndListener),this._didAnimateNotificationAppend=!0):this._didAnimateNotificationAppend=!1}_appendNotificationCard(){if(this._card){if(!this._container.shadowRoot.querySelector(`slot[name="${this.position}"]`)){console.warn(`Invalid alignment parameter provided: position=${this.position}`);return}this._container.bringToFront(),this._card.slot=this.position,this._container.firstElementChild&&/top/u.test(this.position)?this._container.insertBefore(this._card,this._container.firstElementChild):this._container.appendChild(this._card)}}_removeNotificationCard(){this._card&&(this._card.parentNode&&this._card.parentNode.removeChild(this._card),this._card.removeAttribute("closing"),this._container.opened=!!this._container.firstElementChild,this.dispatchEvent(new CustomEvent("closed")))}_closeNotificationCard(){this._durationTimeoutId&&clearTimeout(this._durationTimeoutId),this._animatedRemoveNotificationCard()}_animatedRemoveNotificationCard(){this.__cleanUpOpeningClosingState(),this._card.setAttribute("closing","");const i=getComputedStyle(this._card).getPropertyValue("animation-name");i&&i!=="none"?(this.__animationEndListener=()=>{this._removeNotificationCard(),this.__cleanUpOpeningClosingState()},this._card.addEventListener("animationend",this.__animationEndListener)):this._removeNotificationCard()}_positionChanged(){this.opened&&this._animatedAppendNotificationCard()}_durationChanged(i,t){t&&(clearTimeout(this._durationTimeoutId),i>0&&(this._durationTimeoutId=setTimeout(()=>this.close(),i)))}};const U2=S`
+  :host {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    pointer-events: none;
+  }
+
+  [region-group] {
+    flex: 1 1 0%;
+    display: flex;
+  }
+
+  [region-group='top'] {
+    align-items: flex-start;
+  }
+
+  [region-group='bottom'] {
+    align-items: flex-end;
+  }
+
+  [region-group] > [region] {
+    flex: 1 1 0%;
+  }
+
+  @media (max-width: 420px) {
+    [region-group] {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    [region-group='top'] {
+      justify-content: flex-start;
+    }
+
+    [region-group='bottom'] {
+      justify-content: flex-end;
+    }
+
+    [region-group] > [region] {
+      flex: initial;
+    }
+  }
+`,W2=S`
+  :host {
+    display: block;
+  }
+
+  [part='overlay'] {
+    pointer-events: auto;
+  }
+
+  @media (forced-colors: active) {
+    [part='overlay'] {
+      outline: 3px solid;
+    }
+  }
+`;L("vaadin-notification-container",U2,{moduleId:"vaadin-notification-container-styles"});L("vaadin-notification-card",W2,{moduleId:"vaadin-notification-card-styles"});class Y2 extends q2(Y(ot($))){static get template(){return V`
+      <div region="top-stretch"><slot name="top-stretch"></slot></div>
+      <div region-group="top">
+        <div region="top-start"><slot name="top-start"></slot></div>
+        <div region="top-center"><slot name="top-center"></slot></div>
+        <div region="top-end"><slot name="top-end"></slot></div>
+      </div>
+      <div region="middle"><slot name="middle"></slot></div>
+      <div region-group="bottom">
+        <div region="bottom-start"><slot name="bottom-start"></slot></div>
+        <div region="bottom-center"><slot name="bottom-center"></slot></div>
+        <div region="bottom-end"><slot name="bottom-end"></slot></div>
+      </div>
+      <div region="bottom-stretch"><slot name="bottom-stretch"></slot></div>
+    `}static get is(){return"vaadin-notification-container"}}class G2 extends Y($){static get template(){return V`
+      <div part="overlay">
+        <div part="content">
+          <slot></slot>
+        </div>
+      </div>
+    `}static get is(){return"vaadin-notification-card"}ready(){super.ready(),this.setAttribute("role","alert")}}class K2 extends j2(ot($)){static get template(){return V`
+      <style>
+        :host {
+          display: none !important;
+        }
+      </style>
+      <vaadin-notification-card
+        theme$="[[_theme]]"
+        aria-live$="[[__computeAriaLive(assertive)]]"
+      ></vaadin-notification-card>
+    `}static get is(){return"vaadin-notification"}}R(Y2);R(G2);R(K2);const X2=S`
+  :host {
+    margin: calc(var(--lumo-space-xs) / 2);
+    margin-left: 0;
+    border-radius: 0;
+  }
+
+  [part='label'] {
+    width: 100%;
+  }
+
+  /* NOTE(web-padawan): avoid using shorthand padding property for IE11 */
+  [part='label'] ::slotted(vaadin-menu-bar-item) {
+    justify-content: center;
+    background-color: transparent;
+    height: var(--lumo-button-size);
+    margin: 0 calc((var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2) * -1);
+    padding-left: calc(var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2);
+    padding-right: calc(var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2);
+  }
+
+  :host([theme~='small']) [part='label'] ::slotted(vaadin-menu-bar-item) {
+    min-height: var(--lumo-size-s);
+    margin: 0 calc((var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2) * -1);
+    padding-left: calc(var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2);
+    padding-right: calc(var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2);
+  }
+
+  :host([theme~='tertiary']) [part='label'] ::slotted(vaadin-menu-bar-item) {
+    margin: 0 calc((var(--lumo-button-size) / 6) * -1);
+    padding-left: calc(var(--lumo-button-size) / 6);
+    padding-right: calc(var(--lumo-button-size) / 6);
+  }
+
+  :host([theme~='tertiary-inline']) {
+    margin-top: calc(var(--lumo-space-xs) / 2);
+    margin-bottom: calc(var(--lumo-space-xs) / 2);
+    margin-right: calc(var(--lumo-space-xs) / 2);
+  }
+
+  :host([theme~='tertiary-inline']) [part='label'] ::slotted(vaadin-menu-bar-item) {
+    margin: 0;
+    padding: 0;
+  }
+
+  :host([first-visible]) {
+    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
+
+    /* Needed to retain the focus-ring with border-radius */
+    margin-left: calc(var(--lumo-space-xs) / 2);
+  }
+
+  :host([last-visible]),
+  :host([slot='overflow']) {
+    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
+  }
+
+  :host([theme~='tertiary']),
+  :host([theme~='tertiary-inline']) {
+    border-radius: var(--lumo-border-radius-m);
+  }
+
+  :host([slot='overflow']) {
+    min-width: var(--lumo-button-size);
+    padding-left: calc(var(--lumo-button-size) / 4);
+    padding-right: calc(var(--lumo-button-size) / 4);
+  }
+
+  :host([slot='overflow']) ::slotted(*) {
+    font-size: var(--lumo-font-size-xl);
+  }
+
+  :host([slot='overflow']) [part='prefix'],
+  :host([slot='overflow']) [part='suffix'] {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  :host([theme~='dropdown-indicators']:not([slot='overflow']):not([theme~='icon'])[aria-haspopup]) [part='suffix'] {
+    margin-inline-start: 0;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    font-size: var(--lumo-icon-size-s);
+    position: relative;
+    inset-inline-start: 0.15em;
+  }
+
+  /* prettier-ignore */
+  :host([theme~='dropdown-indicators']:not([slot='overflow']):not([theme~='icon'])[aria-haspopup]) [part='suffix']::after {
+    font-family: lumo-icons;
+    content: var(--lumo-icons-dropdown);
+  }
+
+  /* prettier-ignore */
+  :host([theme~='dropdown-indicators']:not([slot='overflow']):not([theme~='icon'])[theme~='tertiary'][aria-haspopup]) [part='suffix'] {
+    inset-inline-start: 0.05em;
+  }
+
+  /* prettier-ignore */
+  :host([theme~='dropdown-indicators']:not([slot='overflow']):not([theme~='icon'])[theme~='tertiary-inline'][aria-haspopup]) [part='suffix'] {
+    inset-inline-start: 0;
+  }
+
+  /* RTL styles */
+  :host([dir='rtl']) {
+    margin-left: calc(var(--lumo-space-xs) / 2);
+    margin-right: 0;
+    border-radius: 0;
+  }
+
+  :host([dir='rtl'][first-visible]) {
+    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
+    margin-right: calc(var(--lumo-space-xs) / 2);
+  }
+
+  :host([dir='rtl'][last-visible]),
+  :host([dir='rtl'][slot='overflow']) {
+    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
+  }
+`;L("vaadin-menu-bar-button",[Zs,X2],{moduleId:"lumo-menu-bar-button"});L("vaadin-menu-bar-button",S`
+    :host {
+      flex-shrink: 0;
+    }
+
+    :host([slot='overflow']) {
+      margin-inline-end: 0;
+    }
+  `,{moduleId:"vaadin-menu-bar-button-styles"});class Q2 extends Zd{static get is(){return"vaadin-menu-bar-button"}_onKeyDown(i){this.__triggeredWithActiveKeys=this._activeKeys.includes(i.key),super._onKeyDown(i),this.__triggeredWithActiveKeys=null}__shouldSuppressInteractionEvent(i){return i.type==="keydown"&&["ArrowLeft","ArrowRight"].includes(i.key)?!1:super.__shouldSuppressInteractionEvent(i)}}R(Q2);const zc=S`
+  /* :hover needed to workaround https://github.com/vaadin/web-components/issues/3133 */
+  :host(:hover) {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  :host([role='menuitem'][menu-item-checked]) [part='checkmark']::before {
+    opacity: 1;
+  }
+
+  :host([aria-haspopup='true'])::after {
+    font-family: lumo-icons;
+    font-size: var(--lumo-icon-size-xs);
+    content: var(--lumo-icons-angle-right);
+    color: var(--lumo-tertiary-text-color);
+  }
+
+  :host(:not([dir='rtl'])[aria-haspopup='true'])::after {
+    margin-right: calc(var(--lumo-space-m) * -1);
+    padding-left: var(--lumo-space-m);
+  }
+
+  :host([expanded]) {
+    background-color: var(--lumo-primary-color-10pct);
+  }
+
+  /* RTL styles */
+  :host([dir='rtl'][aria-haspopup='true'])::after {
+    content: var(--lumo-icons-angle-left);
+    margin-left: calc(var(--lumo-space-m) * -1);
+    padding-right: var(--lumo-space-m);
+  }
+`;L("vaadin-context-menu-item",[xr,zc],{moduleId:"lumo-context-menu-item"});const J2=S`
+  [part='content'] {
+    display: flex;
+    /* tweak to inherit centering from menu bar button */
+    align-items: inherit;
+    justify-content: inherit;
+  }
+
+  [part='content'] ::slotted(vaadin-icon) {
+    display: inline-block;
+    width: var(--lumo-icon-size-m);
+    height: var(--lumo-icon-size-m);
+  }
+
+  [part='content'] ::slotted(vaadin-icon[icon^='vaadin:']) {
+    padding: var(--lumo-space-xs);
+    box-sizing: border-box !important;
+  }
+`;L("vaadin-menu-bar-item",[xr,zc,J2],{moduleId:"lumo-menu-bar-item"});const Cc=S`
+  :host {
+    --_lumo-list-box-item-selected-icon-display: block;
+  }
+
+  /* Normal item */
+  [part='items'] ::slotted([role='menuitem']) {
+    -webkit-tap-highlight-color: var(--lumo-primary-color-10pct);
+    cursor: default;
+    outline: none;
+    border-radius: var(--lumo-border-radius-m);
+    padding-left: calc(var(--lumo-border-radius-m) / 4);
+    padding-right: calc(var(--lumo-space-l) + var(--lumo-border-radius-m) / 4);
+  }
+
+  /* Hovered item */
+  /* TODO a workaround until we have "focus-follows-mouse". After that, use the hover style for focus-ring as well */
+  [part='items'] ::slotted([role='menuitem']:hover:not([disabled])),
+  [part='items'] ::slotted([role='menuitem'][expanded]:not([disabled])) {
+    background-color: var(--lumo-primary-color-10pct);
+  }
+
+  /* RTL styles */
+  :host([dir='rtl']) [part='items'] ::slotted([role='menuitem']) {
+    padding-left: calc(var(--lumo-space-l) + var(--lumo-border-radius-m) / 4);
+    padding-right: calc(var(--lumo-border-radius-m) / 4);
+  }
+
+  /* Focused item */
+  @media (pointer: coarse) {
+    [part='items'] ::slotted([role='menuitem']:hover:not([expanded]):not([disabled])) {
+      background-color: transparent;
+    }
+  }
+`;L("vaadin-context-menu-list-box",[ns,Cc],{moduleId:"lumo-context-menu-list-box"});L("vaadin-menu-bar-list-box",[ns,Cc],{moduleId:"lumo-menu-bar-list-box"});const Ac=S`
+  :host([phone]) {
+    /* stylelint-disable declaration-block-no-redundant-longhand-properties */
+    top: 0 !important;
+    right: 0 !important;
+    bottom: var(--vaadin-overlay-viewport-bottom) !important;
+    left: 0 !important;
+    /* stylelint-enable declaration-block-no-redundant-longhand-properties */
+    align-items: stretch;
+    justify-content: flex-end;
+  }
+
+  /* TODO These style overrides should not be needed.
+   We should instead offer a way to have non-selectable items inside the context menu. */
+
+  :host {
+    --_lumo-list-box-item-selected-icon-display: none;
+    --_lumo-list-box-item-padding-left: calc(var(--lumo-space-m) + var(--lumo-border-radius-m) / 4);
+  }
+
+  [part='overlay'] {
+    outline: none;
+  }
+`;L("vaadin-context-menu-overlay",[as,Ac],{moduleId:"lumo-context-menu-overlay"});const Z2=S`
+  :host(:first-of-type) {
+    padding-top: var(--lumo-space-xs);
+  }
+`;L("vaadin-menu-bar-overlay",[as,Ac,Z2],{moduleId:"lumo-menu-bar-overlay"});L("vaadin-menu-bar",S`
+    :host([has-single-button]) ::slotted(vaadin-menu-bar-button) {
+      border-radius: var(--lumo-border-radius-m);
+    }
+
+    :host([theme~='end-aligned']) ::slotted(vaadin-menu-bar-button[first-visible]),
+    :host([theme~='end-aligned'][has-single-button]) ::slotted(vaadin-menu-bar-button) {
+      margin-inline-start: auto;
+    }
+  `,{moduleId:"lumo-menu-bar"});class tm extends fa(Y(xt($))){static get is(){return"vaadin-menu-bar-item"}static get template(){return V`
+      <style>
+        :host {
+          display: inline-block;
+        }
+
+        :host([hidden]) {
+          display: none !important;
+        }
+      </style>
+      <span part="checkmark" aria-hidden="true"></span>
+      <div part="content">
+        <slot></slot>
+      </div>
+    `}connectedCallback(){super.connectedCallback(),this.setAttribute("role","menuitem")}}R(tm);class em extends _a(Y(xt(Mt($)))){static get is(){return"vaadin-menu-bar-list-box"}static get template(){return V`
+      <style>
+        :host {
+          display: flex;
+        }
+
+        :host([hidden]) {
+          display: none !important;
+        }
+
+        [part='items'] {
+          height: 100%;
+          width: 100%;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+      </style>
+      <div part="items">
+        <slot></slot>
+      </div>
+    `}static get properties(){return{orientation:{readOnly:!0}}}get _scrollerElement(){return this.shadowRoot.querySelector('[part="items"]')}ready(){super.ready(),this.setAttribute("role","menu")}}R(em);const Mc=a=>class extends Xd(br(a)){static get properties(){return{parentOverlay:{type:Object,readOnly:!0},_theme:{type:String,readOnly:!0,sync:!0}}}static get observers(){return["_themeChanged(_theme)"]}ready(){super.ready(),this.restoreFocusOnClose=!0,this.addEventListener("keydown",t=>{if(!t.defaultPrevented&&t.composedPath()[0]===this.$.overlay&&[38,40].indexOf(t.keyCode)>-1){const e=this.getFirstChild();e&&Array.isArray(e.items)&&e.items.length&&(t.preventDefault(),t.keyCode===38?e.items[e.items.length-1].focus():e.focus())}})}getFirstChild(){return this.querySelector(":not(style):not(slot)")}_themeChanged(){this.close()}getBoundaries(){const t=this.getBoundingClientRect(),e=this.$.overlay.getBoundingClientRect();let r=t.bottom-e.height;const s=this.parentOverlay;if(s&&s.hasAttribute("bottom-aligned")){const o=getComputedStyle(s);r=r-parseFloat(o.bottom)-parseFloat(o.height)}return{xMax:t.right-e.width,xMin:t.left+e.width,yMax:r}}_updatePosition(){if(super._updatePosition(),this.positionTarget&&this.parentOverlay){const t=this.$.content,e=getComputedStyle(t);!!this.style.left?this.style.left=`${parseFloat(this.style.left)+parseFloat(e.paddingLeft)}px`:this.style.right=`${parseFloat(this.style.right)+parseFloat(e.paddingRight)}px`,!!this.style.bottom?this.style.bottom=`${parseFloat(this.style.bottom)-parseFloat(e.paddingBottom)}px`:this.style.top=`${parseFloat(this.style.top)-parseFloat(e.paddingTop)}px`}}_shouldRestoreFocus(){return this.parentOverlay?!1:super._shouldRestoreFocus()}_deepContains(t){let e=wn(this.localName,t);for(;e;){if(e===this)return!0;e=e.parentOverlay}return!1}};const Ec=S`
+  :host {
+    align-items: flex-start;
+    justify-content: flex-start;
+  }
+
+  :host([right-aligned]),
+  :host([end-aligned]) {
+    align-items: flex-end;
+  }
+
+  :host([bottom-aligned]) {
+    justify-content: flex-end;
+  }
+
+  [part='overlay'] {
+    background-color: #fff;
+  }
+
+  @media (forced-colors: active) {
+    [part='overlay'] {
+      outline: 3px solid !important;
+    }
+  }
+`;L("vaadin-menu-bar-overlay",[ti,Ec],{moduleId:"vaadin-menu-bar-overlay-styles"});class im extends Mc(li(xt(Y($)))){static get is(){return"vaadin-menu-bar-overlay"}static get template(){return V`
+      <div id="backdrop" part="backdrop" hidden$="[[!withBackdrop]]"></div>
+      <div part="overlay" id="overlay" tabindex="0">
+        <div part="content" id="content">
+          <slot></slot>
+        </div>
+      </div>
+    `}}R(im);const rm=a=>class extends a{static get properties(){return{items:{type:Array,sync:!0}}}constructor(){super(),this.__itemsOutsideClickListener=t=>{this._shouldCloseOnOutsideClick(t)&&this.dispatchEvent(new CustomEvent("items-outside-click"))},this.addEventListener("items-outside-click",()=>{this.items&&this.close()})}get _tagNamePrefix(){return"vaadin-context-menu"}connectedCallback(){super.connectedCallback(),document.documentElement.addEventListener("click",this.__itemsOutsideClickListener)}disconnectedCallback(){super.disconnectedCallback(),document.documentElement.removeEventListener("click",this.__itemsOutsideClickListener)}_shouldCloseOnOutsideClick(t){return!t.composedPath().some(e=>e.localName===`${this._tagNamePrefix}-overlay`)}__forwardFocus(){const t=this._overlayElement,e=t.getFirstChild();if(t.parentOverlay){const r=t.parentOverlay.querySelector("[expanded]");r&&r.hasAttribute("focused")&&e?e.focus():t.$.overlay.focus()}else e&&e.focus()}__openSubMenu(t,e,r){this.__updateSubMenuForItem(t,e),t.overlayClass=r;const s=this._overlayElement,o=t._overlayElement;o.noHorizontalOverlap=!0,o._setParentOverlay(s),s.hasAttribute("theme")?t.setAttribute("theme",s.getAttribute("theme")):t.removeAttribute("theme");const n=o.$.content;n.style.minWidth="",e.dispatchEvent(new CustomEvent("opensubmenu",{detail:{children:e._item.children}}))}__updateSubMenuForItem(t,e){t.items=e._item.children,t.listenOn=e,t._overlayElement.positionTarget=e}__createComponent(t){let e;return t.component instanceof HTMLElement?e=t.component:e=document.createElement(t.component||`${this._tagNamePrefix}-item`),e._hasVaadinItemMixin&&(e.setAttribute("role","menuitem"),e.tabIndex=-1),e.localName==="hr"?e.setAttribute("role","separator"):e.setAttribute("aria-haspopup","false"),this._setMenuItemTheme(e,t,this._theme),e._item=t,t.text&&(e.textContent=t.text),t.className&&e.setAttribute("class",t.className),this.__toggleMenuComponentAttribute(e,"menu-item-checked",t.checked),this.__toggleMenuComponentAttribute(e,"disabled",t.disabled),t.children&&t.children.length&&(this.__updateExpanded(e,!1),e.setAttribute("aria-haspopup","true")),e}__initListBox(){const t=document.createElement(`${this._tagNamePrefix}-list-box`);return this._theme&&t.setAttribute("theme",this._theme),t.addEventListener("selected-changed",e=>{const{value:r}=e.detail;if(typeof r=="number"){const s=t.items[r]._item;t.selected=null,s.children||this.dispatchEvent(new CustomEvent("item-selected",{detail:{value:s}}))}}),t}__initOverlay(){const t=this._overlayElement;t.$.backdrop.addEventListener("click",()=>{this.close()}),t.addEventListener(pr?"click":"mouseover",e=>{this.__showSubMenu(e)}),t.addEventListener("keydown",e=>{const{key:r}=e,s=this.__isRTL,o=r==="ArrowRight",n=r==="ArrowLeft";!s&&o||s&&n||r==="Enter"||r===" "?this.__showSubMenu(e):!s&&n||s&&o||r==="Escape"?(r==="Escape"&&e.stopPropagation(),this.close(),this.listenOn.focus()):r==="Tab"&&!e.defaultPrevented&&this.dispatchEvent(new CustomEvent("close-all-menus"))})}__initSubMenu(){const t=document.createElement(this.constructor.is);return t._modeless=!0,t.openOn="opensubmenu",t.setAttribute("hidden",""),this.addEventListener("opened-changed",e=>{e.detail.value||this._subMenu.close()}),t.addEventListener("close-all-menus",()=>{this.dispatchEvent(new CustomEvent("close-all-menus"))}),t.addEventListener("item-selected",e=>{const{detail:r}=e;this.dispatchEvent(new CustomEvent("item-selected",{detail:r}))}),this.addEventListener("close-all-menus",()=>{this._overlayElement.close()}),this.addEventListener("item-selected",e=>{const r=e.target,s=e.detail.value,o=r.items.indexOf(s);s.keepOpen&&o>-1&&r.opened?(r.__selectedIndex=o,r.requestContentUpdate()):s.keepOpen||this.close()}),t.addEventListener("opened-changed",e=>{if(!e.detail.value){const r=this._listBox.querySelector("[expanded]");r&&this.__updateExpanded(r,!1)}}),t}__showSubMenu(t,e=t.composedPath().find(r=>r.localName===`${this._tagNamePrefix}-item`)){if(!this.__openListenerActive)return;if(this._overlayElement.hasAttribute("opening")){requestAnimationFrame(()=>{this.__showSubMenu(t,e)});return}const r=this._subMenu;if(e){const{children:s}=e._item,o=r._overlayElement.getFirstChild(),n=o&&o.focused;if(r.items!==s&&r.close(),!this.opened)return;if(s&&s.length){this.__updateExpanded(e,!0);const{overlayClass:l}=this;this.__openSubMenu(r,e,l)}else n?r.listenOn.focus():this._listBox.focused||this._overlayElement.$.overlay.focus()}}__getListBox(){return this._overlayElement.querySelector(`${this._tagNamePrefix}-list-box`)}__itemsRenderer(t,e){this.__initMenu(t,e);const r=t.querySelector(this.constructor.is);r.closeOn=e.closeOn;const s=this.__getListBox();s.innerHTML="",e.items.forEach(o=>{const n=this.__createComponent(o);s.appendChild(n)})}_setMenuItemTheme(t,e,r){let s=t.getAttribute("theme")||r;e.theme!=null&&(s=Array.isArray(e.theme)?e.theme.join(" "):e.theme),this.__updateTheme(t,s)}__toggleMenuComponentAttribute(t,e,r){r?(t.setAttribute(e,""),t[`__has-${e}`]=!0):t[`__has-${e}`]&&(t.removeAttribute(e),t[`__has-${e}`]=!1)}__initMenu(t,e){if(t.firstElementChild)this.__updateTheme(this._listBox,this._theme);else{this.__initOverlay();const r=this.__initListBox();this._listBox=r,t.appendChild(r);const s=this.__initSubMenu();this._subMenu=s,t.appendChild(s),requestAnimationFrame(()=>{this.__openListenerActive=!0})}}__updateExpanded(t,e){t.setAttribute("aria-expanded",e.toString()),t.toggleAttribute("expanded",e)}__updateTheme(t,e){e?t.setAttribute("theme",e):t.removeAttribute("theme")}};const kc=a=>class extends rm(a){static get properties(){return{selector:{type:String},opened:{type:Boolean,value:!1,notify:!0,readOnly:!0},openOn:{type:String,value:"vaadin-contextmenu",sync:!0},listenOn:{type:Object,sync:!0,value(){return this}},closeOn:{type:String,value:"click",observer:"_closeOnChanged",sync:!0},renderer:{type:Function,sync:!0},_modeless:{type:Boolean,sync:!0},_context:{type:Object,sync:!0},_phone:{type:Boolean},_fullscreen:{type:Boolean},_fullscreenMediaQuery:{type:String,value:"(max-width: 450px), (max-height: 450px)"}}}static get observers(){return["_openedChanged(opened)","_targetOrOpenOnChanged(listenOn, openOn)","_rendererChanged(renderer, items)","_fullscreenChanged(_fullscreen)","_overlayContextChanged(_overlayElement, _context)","_overlayModelessChanged(_overlayElement, _modeless)","_overlayPhoneChanged(_overlayElement, _phone)","_overlayThemeChanged(_overlayElement, _theme)"]}constructor(){super(),this._createOverlay(),this._boundOpen=this.open.bind(this),this._boundClose=this.close.bind(this),this._boundPreventDefault=this._preventDefault.bind(this),this._boundOnGlobalContextMenu=this._onGlobalContextMenu.bind(this)}connectedCallback(){super.connectedCallback(),this.__boundOnScroll=this.__onScroll.bind(this),window.addEventListener("scroll",this.__boundOnScroll,!0),this.__restoreOpened&&this._setOpened(!0)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("scroll",this.__boundOnScroll,!0),this.__restoreOpened=this.opened,this.close()}ready(){super.ready(),this.addController(new os(this._fullscreenMediaQuery,t=>{this._fullscreen=t}))}_createOverlay(){const t=document.createElement(`${this._tagNamePrefix}-overlay`);t.owner=this,t.addEventListener("opened-changed",e=>{this._onOverlayOpened(e)}),t.addEventListener("vaadin-overlay-open",e=>{this._onVaadinOverlayOpen(e)}),this._overlayElement=t}_onOverlayOpened(t){const e=t.detail.value;this._setOpened(e),e&&this.__alignOverlayPosition()}_onVaadinOverlayOpen(){this.__alignOverlayPosition(),this._overlayElement.style.visibility="",this.__forwardFocus()}_overlayContextChanged(t,e){t&&(t.model=e)}_overlayModelessChanged(t,e){t&&(t.modeless=e)}_overlayPhoneChanged(t,e){t&&(t.toggleAttribute("phone",e),t.withBackdrop=e)}_overlayThemeChanged(t,e){t&&(e?t.setAttribute("theme",e):t.removeAttribute("theme"))}_targetOrOpenOnChanged(t,e){this._oldListenOn&&this._oldOpenOn&&(this._unlisten(this._oldListenOn,this._oldOpenOn,this._boundOpen),this._oldListenOn.style.webkitTouchCallout="",this._oldListenOn.style.webkitUserSelect="",this._oldListenOn.style.userSelect="",this._oldListenOn=null,this._oldOpenOn=null),t&&e&&(this._listen(t,e,this._boundOpen),this._oldListenOn=t,this._oldOpenOn=e)}_fullscreenChanged(t){this._phone=t}__setListenOnUserSelect(t){const e=t?"none":"";this.listenOn.style.webkitTouchCallout=e,this.listenOn.style.webkitUserSelect=e,this.listenOn.style.userSelect=e,t&&document.getSelection().removeAllRanges()}_closeOnChanged(t,e){const r="vaadin-overlay-outside-click",s=this._overlayElement;e&&this._unlisten(s,e,this._boundClose),t?(this._listen(s,t,this._boundClose),s.removeEventListener(r,this._boundPreventDefault)):s.addEventListener(r,this._boundPreventDefault)}_preventDefault(t){t.preventDefault()}_openedChanged(t){t?document.documentElement.addEventListener("contextmenu",this._boundOnGlobalContextMenu,!0):document.documentElement.removeEventListener("contextmenu",this._boundOnGlobalContextMenu,!0),this.__setListenOnUserSelect(t),this._overlayElement.opened=t}requestContentUpdate(){this._overlayElement&&(this.__preserveMenuState(),this._overlayElement.requestContentUpdate(),this.__restoreMenuState())}_rendererChanged(t,e){if(e){if(t)throw new Error("The items API cannot be used together with a renderer");this.closeOn==="click"&&(this.closeOn=""),t=this.__itemsRenderer}this._overlayElement.renderer=t}close(){this._setOpened(!1)}_contextTarget(t){if(this.selector){const e=this.listenOn.querySelectorAll(this.selector);return Array.prototype.filter.call(e,r=>t.composedPath().indexOf(r)>-1)[0]}return t.target}open(t){t&&!this.opened&&(this._context={detail:t.detail,target:this._contextTarget(t)},this._context.target&&(t.preventDefault(),t.stopPropagation(),this.__x=this._getEventCoordinate(t,"x"),this.__pageXOffset=window.pageXOffset,this.__y=this._getEventCoordinate(t,"y"),this.__pageYOffset=window.pageYOffset,this._overlayElement.style.visibility="hidden",this._setOpened(!0)))}__preserveMenuState(){const t=this.__getListBox();t&&(this.__focusedIndex=t.items.indexOf(t.focused),this._subMenu&&this._subMenu.opened&&(this.__subMenuIndex=t.items.indexOf(this._subMenu.listenOn)))}__restoreMenuState(){const t=this.__focusedIndex,e=this.__subMenuIndex,r=this.__selectedIndex,s=this.__getListBox();if(s){if(s._observer.flush(),e>-1){const o=s.items[e];o?Array.isArray(o._item.children)&&o._item.children.length?(this.__updateSubMenuForItem(this._subMenu,o),this._subMenu.requestContentUpdate()):(this._subMenu.close(),this.__focusItem(o)):s.focus()}this.__focusItem(r>-1?s.children[r]:s.items[t])}this.__focusedIndex=void 0,this.__subMenuIndex=void 0,this.__selectedIndex=void 0}__focusItem(t){t&&t.focus({focusVisible:Ie()})}__onScroll(){if(!this.opened)return;const t=window.pageYOffset-this.__pageYOffset,e=window.pageXOffset-this.__pageXOffset;this.__adjustPosition("left",-e),this.__adjustPosition("right",e),this.__adjustPosition("top",-t),this.__adjustPosition("bottom",t),this.__pageYOffset+=t,this.__pageXOffset+=e}__adjustPosition(t,e){const s=this._overlayElement.style;s[t]=`${(parseInt(s[t])||0)+e}px`}__alignOverlayPosition(){const t=this._overlayElement;if(t.positionTarget)return;const e=t.style;["top","right","bottom","left"].forEach(p=>e.removeProperty(p)),["right-aligned","end-aligned","bottom-aligned"].forEach(p=>t.removeAttribute(p));const{xMax:r,xMin:s,yMax:o}=t.getBoundaries(),n=this.__x,l=this.__y,h=document.documentElement.clientWidth,u=document.documentElement.clientHeight;this.__isRTL?n>h/2||n>s?e.right=`${Math.max(0,h-n)}px`:(e.left=`${n}px`,this._setEndAligned(t)):n<h/2||n<r?e.left=`${n}px`:(e.right=`${Math.max(0,h-n)}px`,this._setEndAligned(t)),l<u/2||l<o?e.top=`${l}px`:(e.bottom=`${Math.max(0,u-l)}px`,t.setAttribute("bottom-aligned",""))}_setEndAligned(t){t.setAttribute("end-aligned",""),this.__isRTL||t.setAttribute("right-aligned","")}_getEventCoordinate(t,e){if(t.detail instanceof Object){if(t.detail[e])return t.detail[e];if(t.detail.sourceEvent)return this._getEventCoordinate(t.detail.sourceEvent,e)}else{const r=`client${e.toUpperCase()}`,s=t.changedTouches?t.changedTouches[0][r]:t[r];if(s===0){const o=t.target.getBoundingClientRect();return e==="x"?o.left:o.top+o.height}return s}}_listen(t,e,r){Or[e]?Be(t,e,r):t.addEventListener(e,r)}_unlisten(t,e,r){Or[e]?ev(t,e,r):t.removeEventListener(e,r)}__createMouseEvent(t,e,r){return new MouseEvent(t,{bubbles:!0,composed:!0,cancelable:!0,clientX:e,clientY:r})}__focusClosestFocusable(t){let e=t;for(;e;){if(e instanceof HTMLElement&&Za(e)){e.focus();return}e=e.parentNode||e.host}}__contextMenuAt(t,e){const r=jd(t,e);r&&queueMicrotask(()=>{r.dispatchEvent(this.__createMouseEvent("mousedown",t,e)),r.dispatchEvent(this.__createMouseEvent("mouseup",t,e)),this.__focusClosestFocusable(r),r.dispatchEvent(this.__createMouseEvent("contextmenu",t,e))})}_onGlobalContextMenu(t){t.shiftKey||(Ko||ur||(t.stopPropagation(),this._overlayElement.__focusRestorationController.focusNode=null,this._overlayElement.addEventListener("vaadin-overlay-closed",()=>this.__contextMenuAt(t.clientX,t.clientY),{once:!0})),t.preventDefault(),this.close())}};const am=a=>class extends kc(fi(a)){constructor(){super(),this.openOn="opensubmenu"}get _tagNamePrefix(){return"vaadin-menu-bar"}_openedChanged(t){this._overlayElement.opened=t}close(){super.close(),this.hasAttribute("is-root")&&this.getRootNode().host._close()}_shouldCloseOnOutsideClick(t){return this.hasAttribute("is-root")&&t.composedPath().includes(this.listenOn)?!1:super._shouldCloseOnOutsideClick(t)}};class sm extends am(Mt(Xi($))){static get is(){return"vaadin-menu-bar-submenu"}static get template(){return V`
+      <style>
+        :host {
+          display: block;
+        }
+
+        :host([hidden]) {
+          display: none !important;
+        }
+      </style>
+
+      <slot id="slot"></slot>
+    `}_attachDom(i){const t=this.attachShadow({mode:"open"});return t.appendChild(i),t.appendChild(this._overlayElement),t}}R(sm);class om extends J0{update(i,[{component:t,text:e}]){const{parentNode:r,startNode:s}=i,o=t||(e?document.createTextNode(e):null),n=this.getOldNode(i);return n===o?cl:(n&&o?r.replaceChild(o,n):n?r.removeChild(n):o&&s.after(o),cl)}getOldNode(i){const{startNode:t,endNode:e}=i;return t.nextSibling===e?null:t.nextSibling}}const nm=Mi(om),lm={moreOptions:"More options"},hm=a=>class extends er(lm,eo(Ji(He(Bi(Mt(a)))))){static get properties(){return{items:{type:Array,sync:!0,value:()=>[]},overlayClass:{type:String},openOnHover:{type:Boolean},reverseCollapse:{type:Boolean,sync:!0},tabNavigation:{type:Boolean,sync:!0},_hasOverflow:{type:Boolean,value:!1,sync:!0},_overflow:{type:Object},_container:{type:Object,sync:!0}}}static get observers(){return["_themeChanged(_theme, _overflow, _container)","__hasOverflowChanged(_hasOverflow, _overflow)","__i18nChanged(__effectiveI18n, _overflow)","__updateButtons(items, disabled, _overflow, _container)","_reverseCollapseChanged(reverseCollapse, _overflow, _container)","_tabNavigationChanged(tabNavigation, _overflow, _container)"]}get i18n(){return super.i18n}set i18n(t){super.i18n=t}constructor(){super(),this.__boundOnContextMenuKeydown=this.__onContextMenuKeydown.bind(this),this.__boundOnTooltipMouseLeave=this.__onTooltipOverlayMouseLeave.bind(this)}get focused(){return(this._getItems()||[]).find(Xe)||this._expandedButton}get _vertical(){return!1}get _tabNavigation(){return this.tabNavigation}get _observeParent(){return!0}get _buttons(){return Array.from(this.querySelectorAll("vaadin-menu-bar-button"))}get _subMenu(){return this.shadowRoot.querySelector("vaadin-menu-bar-submenu")}ready(){super.ready(),this.setAttribute("role","menubar"),this._overflowController=new Ft(this,"overflow","vaadin-menu-bar-button",{initializer:r=>{r.setAttribute("hidden","");const s=document.createElement("div");s.setAttribute("aria-hidden","true"),s.innerHTML="&centerdot;".repeat(3),r.appendChild(s),r.setAttribute("aria-haspopup","true"),r.setAttribute("aria-expanded","false"),r.setAttribute("role",this.tabNavigation?"button":"menuitem"),this._overflow=r}}),this.addController(this._overflowController),this.addEventListener("mousedown",()=>this._hideTooltip(!0)),this.addEventListener("mouseleave",()=>this._hideTooltip()),this._subMenu.addEventListener("item-selected",this.__onItemSelected.bind(this)),this._subMenu.addEventListener("close-all-menus",this.__onEscapeClose.bind(this)),this._subMenu._overlayElement.addEventListener("keydown",this.__boundOnContextMenuKeydown);const e=this.shadowRoot.querySelector('[part="container"]');e.addEventListener("click",this.__onButtonClick.bind(this)),e.addEventListener("mouseover",r=>this._onMouseOver(r)),this._container=e}_getItems(){return this._buttons}disconnectedCallback(){super.disconnectedCallback(),this._hideTooltip(!0)}_onResize(){this.__scheduleOverflow()}_themeChanged(t,e,r){e&&r&&(this.__renderButtons(this.items),this.__scheduleOverflow(),t?(e.setAttribute("theme",t),this._subMenu.setAttribute("theme",t)):(e.removeAttribute("theme"),this._subMenu.removeAttribute("theme")))}_reverseCollapseChanged(t,e,r){e&&r&&this.__scheduleOverflow()}_tabNavigationChanged(t,e,r){if(e&&r){const s=this.querySelector('[tabindex="0"]');this._buttons.forEach(o=>{s?this._setTabindex(o,o===s):this._setTabindex(o,!1),o.setAttribute("role",t?"button":"menuitem")})}this.setAttribute("role",t?"group":"menubar")}__hasOverflowChanged(t,e){e&&e.toggleAttribute("hidden",!t)}__updateButtons(t,e,r,s){if(!r||!s)return;t!==this._oldItems&&(this._oldItems=t,this.__renderButtons(t),this.__scheduleOverflow()),e!==this._oldDisabled&&(this._oldDisabled=e,this.__renderButtons(t),r.toggleAttribute("disabled",e));const o=this._subMenu;if(o&&o.opened){const n=o._overlayElement.positionTarget;(!n.isConnected||!Array.isArray(n.item.children)||n.item.children.length===0)&&o.close()}}__i18nChanged(t,e){e&&t&&t.moreOptions!==void 0&&(t.moreOptions?e.setAttribute("aria-label",t.moreOptions):e.removeAttribute("aria-label"))}__getOverflowCount(t){return t.item&&t.item.children&&t.item.children.length||0}__restoreButtons(t){t.forEach(e=>{e.style.visibility="",e.style.position="",e.style.width="";const r=e.item&&e.item.component;r instanceof HTMLElement&&r.getAttribute("role")==="menuitem"&&this.__restoreItem(e,r)}),this.__updateOverflow([])}__restoreItem(t,e){t.appendChild(e),e.removeAttribute("role"),e.removeAttribute("aria-expanded"),e.removeAttribute("aria-haspopup"),e.removeAttribute("tabindex")}__updateOverflow(t){this._overflow.item={children:t},this._hasOverflow=t.length>0}__setOverflowItems(t,e){const r=this._container;if(r.offsetWidth<r.scrollWidth){this._hasOverflow=!0;const s=this.__isRTL,o=r.offsetLeft,n=[...t];for(;n.length;){const h=n[n.length-1],u=h.offsetLeft-o;if(!s&&u+h.offsetWidth<r.offsetWidth-e.offsetWidth||s&&u>=e.offsetWidth)break;const p=this.reverseCollapse?n.shift():n.pop();p.style.width=getComputedStyle(p).width,p.style.visibility="hidden",p.style.position="absolute"}const l=t.filter(h=>!n.includes(h)).map(h=>h.item);this.__updateOverflow(l)}}__scheduleOverflow(){this._overflowDebouncer=bt.debounce(this._overflowDebouncer,We,()=>{this.__detectOverflow()})}__detectOverflow(){const t=this._overflow,e=this._buttons.filter(l=>l!==t),r=this.__getOverflowCount(t);this.__restoreButtons(e),this.__setOverflowItems(e,t);const s=this.__getOverflowCount(t);r!==s&&this._subMenu.opened&&this._subMenu.close();const o=s===e.length||s===0&&e.length===1;this.toggleAttribute("has-single-button",o);const n=e.filter(l=>l.style.visibility!=="hidden");n.length?n.some(l=>l.getAttribute("tabindex")==="0")||this._setTabindex(n[n.length-1],!0):this._overflow.setAttribute("tabindex","0"),n.forEach((l,h,u)=>{l.toggleAttribute("first-visible",h===0),l.toggleAttribute("last-visible",!this._hasOverflow&&h===u.length-1)})}__getButtonTheme(t,e){let r=e;const s=t&&t.theme;return s!=null&&(r=Array.isArray(s)?s.join(" "):s),r}__getComponent(t){const e=t.component;let r;const s=e instanceof HTMLElement;if(s&&e.localName==="vaadin-menu-bar-item"?r=e:(r=document.createElement("vaadin-menu-bar-item"),r.appendChild(s?e:document.createElement(e))),t.text){const o=r.firstChild||r;o.textContent=t.text}return r}__renderButtons(t=[]){Pr(Te`
+          ${t.map(e=>{const r={...e},s=!!(e&&e.children);if(r.component){const o=this.__getComponent(r);r.component=o,o.item=r}return Te`
+              <vaadin-menu-bar-button
+                .item="${r}"
+                .disabled="${this.disabled||e.disabled}"
+                role="${this.tabNavigation?"button":"menuitem"}"
+                aria-haspopup="${si(s?"true":ai)}"
+                aria-expanded="${si(s?"false":ai)}"
+                class="${si(e.className||ai)}"
+                theme="${si(this.__getButtonTheme(e,this._theme)||ai)}"
+                @click="${this.__onRootButtonClick}"
+                >${nm(r)}</vaadin-menu-bar-button
+              >
+            `})}
+        `,this,{renderBefore:this._overflow})}__onRootButtonClick(t){const e=t.target;e.item&&e.item.component&&!t.composedPath().includes(e.item.component)&&(t.stopPropagation(),e.item.component.click())}_showTooltip(t,e){const r=this._tooltipController.node;r&&r.isConnected&&(r.generator===void 0&&(r.generator=({item:s})=>s&&s.tooltip),r._mouseLeaveListenerAdded||(r._overlayElement.addEventListener("mouseleave",this.__boundOnTooltipMouseLeave),r._mouseLeaveListenerAdded=!0),this._subMenu.opened||(this._tooltipController.setTarget(t),this._tooltipController.setContext({item:t.item}),r._stateController.open({hover:e,focus:!e})))}_hideTooltip(t){const e=this._tooltipController&&this._tooltipController.node;e&&e._stateController.close(t)}__onTooltipOverlayMouseLeave(t){t.relatedTarget!==this._tooltipController.target&&this._hideTooltip()}_setExpanded(t,e){t.toggleAttribute("expanded",e),t.toggleAttribute("active",e),t.setAttribute("aria-expanded",e?"true":"false")}_setTabindex(t,e){this.tabNavigation&&this._isItemFocusable(t)?t.setAttribute("tabindex","0"):t.setAttribute("tabindex",e?"0":"-1")}_focusItem(t,e,r){const s=r&&this.focused===this._expandedButton;s&&this._close(),super._focusItem(t,e,r),this._buttons.forEach(o=>{this._setTabindex(o,o===t)}),s&&t.item&&t.item.children?this.__openSubMenu(t,!0,{keepFocus:!0}):t===this._overflow?this._hideTooltip():this._showTooltip(t)}_getButtonFromEvent(t){return Array.from(t.composedPath()).find(e=>e.localName==="vaadin-menu-bar-button")}_setFocused(t){if(t){const e=this.__getFocusTarget();e&&this._buttons.forEach(r=>{this._setTabindex(r,r===e),r===e&&r!==this._overflow&&Ie()&&this._showTooltip(r)})}else this._hideTooltip()}__getFocusTarget(){let t=this._buttons.find(e=>Xe(e));if(!t){const e=this.tabNavigation?"[focused]":'[tabindex="0"]';t=this.querySelector(`vaadin-menu-bar-button${e}`),oi(t)&&(t=this._buttons[this._getFocusableIndex()])}return t}_onArrowDown(t){t.preventDefault();const e=this._getButtonFromEvent(t);e===this._expandedButton?this._focusFirstItem():this.__openSubMenu(e,!0)}_onArrowUp(t){t.preventDefault();const e=this._getButtonFromEvent(t);e===this._expandedButton?this._focusLastItem():this.__openSubMenu(e,!0,{focusLast:!0})}_onEscape(t){t.composedPath().includes(this._expandedButton)&&this._close(!0),this._hideTooltip(!0)}_onKeyDown(t){switch(t.key){case"ArrowDown":this._onArrowDown(t);break;case"ArrowUp":this._onArrowUp(t);break;default:super._onKeyDown(t);break}}_onMouseOver(t){const e=this._getButtonFromEvent(t);e?e!==this._expandedButton&&(e.item.children&&(this.openOnHover||this._subMenu.opened)&&this.__openSubMenu(e,!1),e===this._overflow||this.openOnHover&&e.item.children?this._hideTooltip():this._showTooltip(e,!0)):this._hideTooltip()}__onContextMenuKeydown(t){const e=Array.from(t.composedPath()).find(r=>r._item);if(e){const r=e.parentNode;t.keyCode===38&&e===r.items[0]&&this._close(!0),(t.keyCode===37||t.keyCode===39&&!e._item.children)&&(t.stopImmediatePropagation(),this._onKeyDown(t)),t.key==="Tab"&&this.tabNavigation&&this._onKeyDown(t)}}__fireItemSelected(t){this.dispatchEvent(new CustomEvent("item-selected",{detail:{value:t}}))}__onButtonClick(t){const e=this._getButtonFromEvent(t);e&&this.__openSubMenu(e,e.__triggeredWithActiveKeys)}__openSubMenu(t,e,r={}){if(t.disabled)return;const s=this._subMenu,o=t.item;if(s.opened&&(this._close(),s.listenOn===t))return;const n=o&&o.children;if(!n||n.length===0){this.__fireItemSelected(o);return}s.items=n,s.listenOn=t;const l=s._overlayElement;l.noVerticalOverlap=!0,this._hideTooltip(!0),this._expandedButton=t,this._setExpanded(t,!0),this.style.pointerEvents="auto",l.positionTarget=t,t.dispatchEvent(new CustomEvent("opensubmenu",{detail:{children:n}})),l.addEventListener("vaadin-overlay-open",()=>{if(r.focusLast&&this._focusLastItem(),r.keepFocus){const h={focusVisible:Ie()};this._focusItem(this._expandedButton,h,!1)}e||l.$.overlay.focus()},{once:!0})}_focusFirstItem(){this._subMenu._overlayElement.firstElementChild.focus()}_focusLastItem(){const t=this._subMenu._overlayElement.firstElementChild,e=t.items[t.items.length-1];e&&e.focus()}__onItemSelected(t){t.stopPropagation(),this.__fireItemSelected(t.detail.value)}__onEscapeClose(){this.__deactivateButton(!0)}__deactivateButton(t){const e=this._expandedButton;if(e&&e.hasAttribute("expanded")){if(this._setExpanded(e,!1),t){const r={focusVisible:Ie()};this._focusItem(e,r,!1)}this._expandedButton=null}}_close(t=!1){this.style.pointerEvents="",this.__deactivateButton(t),this._subMenu.opened&&this._subMenu.close()}close(){this._close()}_isItemFocusable(t){return t.disabled&&t.__shouldAllowFocusWhenDisabled?t.__shouldAllowFocusWhenDisabled():super._isItemFocusable(t)}};class dm extends hm(ot(Y($))){static get template(){return V`
+      <style>
+        :host {
+          display: block;
+        }
+
+        :host([hidden]) {
+          display: none !important;
+        }
+
+        [part='container'] {
+          position: relative;
+          display: flex;
+          width: 100%;
+          flex-wrap: nowrap;
+          overflow: hidden;
+        }
+      </style>
+
+      <div part="container">
+        <slot></slot>
+        <slot name="overflow"></slot>
+      </div>
+      <vaadin-menu-bar-submenu is-root overlay-class="[[overlayClass]]"></vaadin-menu-bar-submenu>
+
+      <slot name="tooltip"></slot>
+    `}static get is(){return"vaadin-menu-bar"}ready(){super.ready(),this._tooltipController=new le(this),this._tooltipController.setManual(!0),this.addController(this._tooltipController)}}R(dm);const cm=S`
   :host([theme~='margin']) {
     margin: var(--lumo-space-m);
   }
@@ -4345,7 +5301,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   :host([theme~='wrap']) {
     flex-wrap: wrap;
   }
-`;L("vaadin-horizontal-layout",S2,{moduleId:"lumo-horizontal-layout"});const T2=a=>class extends a{ready(){super.ready();const i=this.shadowRoot.querySelector("slot:not([name])");this.__startSlotObserver=new Li(i,({currentNodes:r,removedNodes:s})=>{s.length&&this.__clearAttribute(s,"last-start-child");const o=r.filter(l=>l.nodeType===Node.ELEMENT_NODE);this.__updateAttributes(o,"start",!1,!0);const n=r.filter(l=>!Cn(l));this.toggleAttribute("has-start",n.length>0)});const t=this.shadowRoot.querySelector('[name="end"]');this.__endSlotObserver=new Li(t,({currentNodes:r,removedNodes:s})=>{s.length&&this.__clearAttribute(s,"first-end-child"),this.__updateAttributes(r,"end",!0,!1),this.toggleAttribute("has-end",r.length>0)});const e=this.shadowRoot.querySelector('[name="middle"]');this.__middleSlotObserver=new Li(e,({currentNodes:r,removedNodes:s})=>{s.length&&(this.__clearAttribute(s,"first-middle-child"),this.__clearAttribute(s,"last-middle-child")),this.__updateAttributes(r,"middle",!0,!0),this.toggleAttribute("has-middle",r.length>0)})}__clearAttribute(i,t){const e=i.find(r=>r.nodeType===Node.ELEMENT_NODE&&r.hasAttribute(t));e&&e.removeAttribute(t)}__updateAttributes(i,t,e,r){i.forEach((s,o)=>{if(e){const n=`first-${t}-child`;o===0?s.setAttribute(n,""):s.hasAttribute(n)&&s.removeAttribute(n)}if(r){const n=`last-${t}-child`;o===i.length-1?s.setAttribute(n,""):s.hasAttribute(n)&&s.removeAttribute(n)}})}};const rh=S`
+`;L("vaadin-horizontal-layout",cm,{moduleId:"lumo-horizontal-layout"});const um=a=>class extends a{ready(){super.ready();const i=this.shadowRoot.querySelector("slot:not([name])");this.__startSlotObserver=new Li(i,({currentNodes:r,removedNodes:s})=>{s.length&&this.__clearAttribute(s,"last-start-child");const o=r.filter(l=>l.nodeType===Node.ELEMENT_NODE);this.__updateAttributes(o,"start",!1,!0);const n=r.filter(l=>!Cn(l));this.toggleAttribute("has-start",n.length>0)});const t=this.shadowRoot.querySelector('[name="end"]');this.__endSlotObserver=new Li(t,({currentNodes:r,removedNodes:s})=>{s.length&&this.__clearAttribute(s,"first-end-child"),this.__updateAttributes(r,"end",!0,!1),this.toggleAttribute("has-end",r.length>0)});const e=this.shadowRoot.querySelector('[name="middle"]');this.__middleSlotObserver=new Li(e,({currentNodes:r,removedNodes:s})=>{s.length&&(this.__clearAttribute(s,"first-middle-child"),this.__clearAttribute(s,"last-middle-child")),this.__updateAttributes(r,"middle",!0,!0),this.toggleAttribute("has-middle",r.length>0)})}__clearAttribute(i,t){const e=i.find(r=>r.nodeType===Node.ELEMENT_NODE&&r.hasAttribute(t));e&&e.removeAttribute(t)}__updateAttributes(i,t,e,r){i.forEach((s,o)=>{if(e){const n=`first-${t}-child`;o===0?s.setAttribute(n,""):s.hasAttribute(n)&&s.removeAttribute(n)}if(r){const n=`last-${t}-child`;o===i.length-1?s.setAttribute(n,""):s.hasAttribute(n)&&s.removeAttribute(n)}})}};const rh=S`
   :host {
     display: flex;
     box-sizing: border-box;
@@ -4383,7 +5339,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   :host(:not([has-middle])) ::slotted([first-end-child]) {
     margin-inline-start: auto;
   }
-`,I2=window.Vaadin.featureFlags.layoutComponentImprovements,D2=S`
+`,pm=window.Vaadin.featureFlags.layoutComponentImprovements,vm=S`
   ::slotted([data-width-full]) {
     flex: 1;
   }
@@ -4392,11 +5348,11 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   ::slotted(vaadin-vertical-layout[data-width-full]) {
     min-width: 0;
   }
-`,O2=I2?[rh,D2]:[rh];L("vaadin-horizontal-layout",O2,{moduleId:"vaadin-horizontal-layout-styles"});class L2 extends T2(ot(Y($))){static get template(){return V`
+`,mm=pm?[rh,vm]:[rh];L("vaadin-horizontal-layout",mm,{moduleId:"vaadin-horizontal-layout-styles"});class fm extends um(ot(Y($))){static get template(){return V`
       <slot></slot>
       <slot name="middle"></slot>
       <slot name="end"></slot>
-    `}static get is(){return"vaadin-horizontal-layout"}}R(L2);const P2=S`
+    `}static get is(){return"vaadin-horizontal-layout"}}R(fm);const _m=S`
   :host([theme~='margin']) {
     margin: var(--lumo-space-m);
   }
@@ -4428,7 +5384,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   :host([theme~='wrap']) {
     flex-wrap: wrap;
   }
-`;L("vaadin-vertical-layout",P2,{moduleId:"lumo-vertical-layout"});const ah=S`
+`;L("vaadin-vertical-layout",_m,{moduleId:"lumo-vertical-layout"});const ah=S`
   :host {
     display: flex;
     flex-direction: column;
@@ -4452,7 +5408,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   :host([theme~='spacing']) {
     gap: 1em;
   }
-`,N2=window.Vaadin.featureFlags.layoutComponentImprovements,B2=S`
+`,gm=window.Vaadin.featureFlags.layoutComponentImprovements,bm=S`
   ::slotted([data-height-full]) {
     flex: 1;
   }
@@ -4461,12 +5417,12 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   ::slotted(vaadin-vertical-layout[data-height-full]) {
     min-height: 0;
   }
-`,F2=N2?[ah,B2]:[ah];L("vaadin-vertical-layout",F2,{moduleId:"vaadin-vertical-layout-styles"});class R2 extends ot(Y($)){static get template(){return V`<slot></slot>`}static get is(){return"vaadin-vertical-layout"}}R(R2);L("vaadin-form-layout",S`
+`,ym=gm?[ah,bm]:[ah];L("vaadin-vertical-layout",ym,{moduleId:"vaadin-vertical-layout-styles"});class xm extends ot(Y($)){static get template(){return V`<slot></slot>`}static get is(){return"vaadin-vertical-layout"}}R(xm);L("vaadin-form-layout",S`
     :host {
       --vaadin-form-layout-column-spacing: var(--lumo-space-l);
       --vaadin-form-layout-row-spacing: 0;
     }
-  `,{moduleId:"lumo-form-layout"});class yc{constructor(i,t){this.host=i,this.props={},this.config=t,this.isConnected=!1,this.__resizeObserver=new ResizeObserver(e=>setTimeout(()=>this._onResize(e))),this.__mutationObserver=new MutationObserver(e=>this._onMutation(e))}connect(){this.isConnected||(this.isConnected=!0,this.__resizeObserver.observe(this.host),this.__mutationObserver.observe(this.host,this.config.mutationObserverOptions))}disconnect(){this.isConnected&&(this.isConnected=!1,this.__resizeObserver.disconnect(),this.__mutationObserver.disconnect())}setProps(i){this.props=i}updateLayout(){}_onResize(i){}_onMutation(i){}}function sh(a){return a.localName==="br"}class V2 extends yc{constructor(i){super(i,{mutationObserverOptions:{subtree:!0,childList:!0,attributes:!0,attributeFilter:["colspan","data-colspan","hidden"]}})}connect(){this.isConnected||(super.connect(),this.updateLayout())}disconnect(){if(!this.isConnected)return;super.disconnect();const{host:i}=this;i.style.removeProperty("--_column-width"),i.style.removeProperty("--_max-columns"),i.$.layout.removeAttribute("fits-labels-aside"),i.$.layout.style.removeProperty("--_grid-rendered-column-count"),this.__children.forEach(t=>{t.style.removeProperty("--_grid-colstart"),t.style.removeProperty("--_grid-colspan")})}setProps(i){super.setProps(i),this.isConnected&&this.updateLayout()}updateLayout(){const{host:i,props:t}=this;if(!this.isConnected||oi(i))return;let e=0,r=0;const s=this.__children;s.filter(o=>sh(o)||!oi(o)).forEach((o,n,l)=>{const h=l[n-1];if(sh(o)){e=0;return}(h&&h.parentElement!==o.parentElement||!t.autoRows&&o.parentElement===i)&&(e=0),t.autoRows&&e===0?o.style.setProperty("--_grid-colstart",1):o.style.removeProperty("--_grid-colstart");const u=o.getAttribute("colspan")||o.getAttribute("data-colspan");u?(e+=parseInt(u),o.style.setProperty("--_grid-colspan",u)):(e+=1,o.style.removeProperty("--_grid-colspan")),r=Math.max(r,e)}),s.filter(oi).forEach(o=>{o.style.removeProperty("--_grid-colstart")}),t.columnWidth?i.style.setProperty("--_column-width",t.columnWidth):i.style.removeProperty("--_column-width"),i.style.setProperty("--_min-columns",t.minColumns),i.style.setProperty("--_max-columns",Math.min(Math.max(t.minColumns,t.maxColumns),r)),i.$.layout.toggleAttribute("fits-labels-aside",this.props.labelsAside&&this.__fitsLabelsAside),i.$.layout.style.setProperty("--_grid-rendered-column-count",this.__renderedColumnCount)}_onResize(){this.updateLayout()}_onMutation(i){i.some(({target:e})=>e===this.host||e.parentElement===this.host||e.parentElement.localName==="vaadin-form-row")&&this.updateLayout()}get __children(){return[...this.host.children].flatMap(i=>i.localName==="vaadin-form-row"?[...i.children]:i)}get __renderedColumnCount(){const{gridTemplateColumns:i}=getComputedStyle(this.host.$.layout);return i.split(" ").filter(t=>t!=="0px").length}get __minWidthLabelsAside(){const{backgroundPositionY:i}=getComputedStyle(this.host.$.layout,"::before");return parseFloat(i)}get __fitsLabelsAside(){return this.host.offsetWidth>=this.__minWidthLabelsAside}}function H2(a){return CSS.supports("word-spacing",a)&&!["inherit","normal"].includes(a)}function oh(a){return typeof a=="number"&&a>=1&&a<1/0?Math.floor(a):1}class $2 extends yc{constructor(i){super(i,{mutationObserverOptions:{subtree:!0,childList:!0,attributes:!0,attributeFilter:["colspan","data-colspan","hidden"]}})}connect(){this.isConnected||(super.connect(),this.__selectResponsiveStep(),this.updateLayout(),requestAnimationFrame(()=>this.__selectResponsiveStep()),requestAnimationFrame(()=>this.updateLayout()))}disconnect(){if(!this.isConnected)return;super.disconnect();const{host:i}=this;i.$.layout.style.removeProperty("opacity"),[...i.children].forEach(t=>{t.style.removeProperty("width"),t.style.removeProperty("margin-left"),t.style.removeProperty("margin-right"),t.removeAttribute("label-position")})}setProps(i){const{responsiveSteps:t}=i;if(!Array.isArray(t))throw new Error('Invalid "responsiveSteps" type, an Array is required.');if(t.length<1)throw new Error('Invalid empty "responsiveSteps" array, at least one item is required.');t.forEach(e=>{if(oh(e.columns)!==e.columns)throw new Error(`Invalid 'columns' value of ${e.columns}, a natural number is required.`);if(e.minWidth!==void 0&&!H2(e.minWidth))throw new Error(`Invalid 'minWidth' value of ${e.minWidth}, a valid CSS length required.`);if(e.labelsPosition!==void 0&&["aside","top"].indexOf(e.labelsPosition)===-1)throw new Error(`Invalid 'labelsPosition' value of ${e.labelsPosition}, 'aside' or 'top' string is required.`)}),super.setProps(i),this.isConnected&&(this.__selectResponsiveStep(),this.updateLayout())}updateLayout(){const{host:i}=this;if(!this.isConnected||oi(i))return;const t=getComputedStyle(i),e=t.getPropertyValue("--vaadin-form-layout-column-spacing"),r=t.direction,s=`margin-${r==="ltr"?"left":"right"}`,o=`margin-${r==="ltr"?"right":"left"}`,n=i.offsetWidth;let l=0;Array.from(i.children).filter(h=>h.localName==="br"||getComputedStyle(h).display!=="none").forEach((h,u,p)=>{if(h.localName==="br"){l=0;return}const m=h.getAttribute("colspan")||h.getAttribute("data-colspan");let z;z=oh(parseFloat(m)),z=Math.min(z,this.__columnCount);const C=z/this.__columnCount;h.style.width=`calc(${C*100}% - ${1-C} * ${e})`,l+z>this.__columnCount&&(l=0),l===0?h.style.setProperty(s,"0px"):h.style.removeProperty(s);const b=u+1,_=b<p.length&&p[b].localName==="br";if(l+z===this.__columnCount)h.style.setProperty(o,"0px");else if(_){const w=(this.__columnCount-l-z)/this.__columnCount;h.style.setProperty(o,`calc(${w*n}px + ${w} * ${e})`)}else h.style.removeProperty(o);l=(l+z)%this.__columnCount,h.localName==="vaadin-form-item"&&(this.__labelsOnTop?h.getAttribute("label-position")!=="top"&&(h.__useLayoutLabelPosition=!0,h.setAttribute("label-position","top")):h.__useLayoutLabelPosition&&(delete h.__useLayoutLabelPosition,h.removeAttribute("label-position")))})}_onResize(){const{host:i}=this;if(oi(i)){i.$.layout.style.opacity="0";return}this.__selectResponsiveStep(),this.updateLayout(),i.$.layout.style.opacity=""}_onMutation(i){i.some(({target:e})=>e===this.host||e.parentElement===this.host)&&this.updateLayout()}__selectResponsiveStep(){if(!this.isConnected)return;const{host:i,props:t}=this;let e;const r="background-position";t.responsiveSteps.forEach(s=>{i.$.layout.style.setProperty(r,s.minWidth),parseFloat(getComputedStyle(i.$.layout).getPropertyValue(r))<=i.offsetWidth&&(e=s)}),i.$.layout.style.removeProperty(r),e&&(this.__columnCount=e.columns,this.__labelsOnTop=e.labelsPosition==="top")}}const q2=S`
+  `,{moduleId:"lumo-form-layout"});class Sc{constructor(i,t){this.host=i,this.props={},this.config=t,this.isConnected=!1,this.__resizeObserver=new ResizeObserver(e=>setTimeout(()=>this._onResize(e))),this.__mutationObserver=new MutationObserver(e=>this._onMutation(e))}connect(){this.isConnected||(this.isConnected=!0,this.__resizeObserver.observe(this.host),this.__mutationObserver.observe(this.host,this.config.mutationObserverOptions))}disconnect(){this.isConnected&&(this.isConnected=!1,this.__resizeObserver.disconnect(),this.__mutationObserver.disconnect())}setProps(i){this.props=i}updateLayout(){}_onResize(i){}_onMutation(i){}}function sh(a){return a.localName==="br"}class wm extends Sc{constructor(i){super(i,{mutationObserverOptions:{subtree:!0,childList:!0,attributes:!0,attributeFilter:["colspan","data-colspan","hidden"]}})}connect(){this.isConnected||(super.connect(),this.updateLayout())}disconnect(){if(!this.isConnected)return;super.disconnect();const{host:i}=this;i.style.removeProperty("--_column-width"),i.style.removeProperty("--_max-columns"),i.$.layout.removeAttribute("fits-labels-aside"),i.$.layout.style.removeProperty("--_grid-rendered-column-count"),this.__children.forEach(t=>{t.style.removeProperty("--_grid-colstart"),t.style.removeProperty("--_grid-colspan")})}setProps(i){super.setProps(i),this.isConnected&&this.updateLayout()}updateLayout(){const{host:i,props:t}=this;if(!this.isConnected||oi(i))return;let e=0,r=0;const s=this.__children;s.filter(o=>sh(o)||!oi(o)).forEach((o,n,l)=>{const h=l[n-1];if(sh(o)){e=0;return}(h&&h.parentElement!==o.parentElement||!t.autoRows&&o.parentElement===i)&&(e=0),t.autoRows&&e===0?o.style.setProperty("--_grid-colstart",1):o.style.removeProperty("--_grid-colstart");const u=o.getAttribute("colspan")||o.getAttribute("data-colspan");u?(e+=parseInt(u),o.style.setProperty("--_grid-colspan",u)):(e+=1,o.style.removeProperty("--_grid-colspan")),r=Math.max(r,e)}),s.filter(oi).forEach(o=>{o.style.removeProperty("--_grid-colstart")}),t.columnWidth?i.style.setProperty("--_column-width",t.columnWidth):i.style.removeProperty("--_column-width"),i.style.setProperty("--_min-columns",t.minColumns),i.style.setProperty("--_max-columns",Math.min(Math.max(t.minColumns,t.maxColumns),r)),i.$.layout.toggleAttribute("fits-labels-aside",this.props.labelsAside&&this.__fitsLabelsAside),i.$.layout.style.setProperty("--_grid-rendered-column-count",this.__renderedColumnCount)}_onResize(){this.updateLayout()}_onMutation(i){i.some(({target:e})=>e===this.host||e.parentElement===this.host||e.parentElement.localName==="vaadin-form-row")&&this.updateLayout()}get __children(){return[...this.host.children].flatMap(i=>i.localName==="vaadin-form-row"?[...i.children]:i)}get __renderedColumnCount(){const{gridTemplateColumns:i}=getComputedStyle(this.host.$.layout);return i.split(" ").filter(t=>t!=="0px").length}get __minWidthLabelsAside(){const{backgroundPositionY:i}=getComputedStyle(this.host.$.layout,"::before");return parseFloat(i)}get __fitsLabelsAside(){return this.host.offsetWidth>=this.__minWidthLabelsAside}}function zm(a){return CSS.supports("word-spacing",a)&&!["inherit","normal"].includes(a)}function oh(a){return typeof a=="number"&&a>=1&&a<1/0?Math.floor(a):1}class Cm extends Sc{constructor(i){super(i,{mutationObserverOptions:{subtree:!0,childList:!0,attributes:!0,attributeFilter:["colspan","data-colspan","hidden"]}})}connect(){this.isConnected||(super.connect(),this.__selectResponsiveStep(),this.updateLayout(),requestAnimationFrame(()=>this.__selectResponsiveStep()),requestAnimationFrame(()=>this.updateLayout()))}disconnect(){if(!this.isConnected)return;super.disconnect();const{host:i}=this;i.$.layout.style.removeProperty("opacity"),[...i.children].forEach(t=>{t.style.removeProperty("width"),t.style.removeProperty("margin-left"),t.style.removeProperty("margin-right"),t.removeAttribute("label-position")})}setProps(i){const{responsiveSteps:t}=i;if(!Array.isArray(t))throw new Error('Invalid "responsiveSteps" type, an Array is required.');if(t.length<1)throw new Error('Invalid empty "responsiveSteps" array, at least one item is required.');t.forEach(e=>{if(oh(e.columns)!==e.columns)throw new Error(`Invalid 'columns' value of ${e.columns}, a natural number is required.`);if(e.minWidth!==void 0&&!zm(e.minWidth))throw new Error(`Invalid 'minWidth' value of ${e.minWidth}, a valid CSS length required.`);if(e.labelsPosition!==void 0&&["aside","top"].indexOf(e.labelsPosition)===-1)throw new Error(`Invalid 'labelsPosition' value of ${e.labelsPosition}, 'aside' or 'top' string is required.`)}),super.setProps(i),this.isConnected&&(this.__selectResponsiveStep(),this.updateLayout())}updateLayout(){const{host:i}=this;if(!this.isConnected||oi(i))return;const t=getComputedStyle(i),e=t.getPropertyValue("--vaadin-form-layout-column-spacing"),r=t.direction,s=`margin-${r==="ltr"?"left":"right"}`,o=`margin-${r==="ltr"?"right":"left"}`,n=i.offsetWidth;let l=0;Array.from(i.children).filter(h=>h.localName==="br"||getComputedStyle(h).display!=="none").forEach((h,u,p)=>{if(h.localName==="br"){l=0;return}const m=h.getAttribute("colspan")||h.getAttribute("data-colspan");let z;z=oh(parseFloat(m)),z=Math.min(z,this.__columnCount);const C=z/this.__columnCount;h.style.width=`calc(${C*100}% - ${1-C} * ${e})`,l+z>this.__columnCount&&(l=0),l===0?h.style.setProperty(s,"0px"):h.style.removeProperty(s);const b=u+1,_=b<p.length&&p[b].localName==="br";if(l+z===this.__columnCount)h.style.setProperty(o,"0px");else if(_){const w=(this.__columnCount-l-z)/this.__columnCount;h.style.setProperty(o,`calc(${w*n}px + ${w} * ${e})`)}else h.style.removeProperty(o);l=(l+z)%this.__columnCount,h.localName==="vaadin-form-item"&&(this.__labelsOnTop?h.getAttribute("label-position")!=="top"&&(h.__useLayoutLabelPosition=!0,h.setAttribute("label-position","top")):h.__useLayoutLabelPosition&&(delete h.__useLayoutLabelPosition,h.removeAttribute("label-position")))})}_onResize(){const{host:i}=this;if(oi(i)){i.$.layout.style.opacity="0";return}this.__selectResponsiveStep(),this.updateLayout(),i.$.layout.style.opacity=""}_onMutation(i){i.some(({target:e})=>e===this.host||e.parentElement===this.host)&&this.updateLayout()}__selectResponsiveStep(){if(!this.isConnected)return;const{host:i,props:t}=this;let e;const r="background-position";t.responsiveSteps.forEach(s=>{i.$.layout.style.setProperty(r,s.minWidth),parseFloat(getComputedStyle(i.$.layout).getPropertyValue(r))<=i.offsetWidth&&(e=s)}),i.$.layout.style.removeProperty(r),e&&(this.__columnCount=e.columns,this.__labelsOnTop=e.labelsPosition==="top")}}const Am=S`
   :host {
     /* Default values */
     --vaadin-form-layout-row-spacing: 1em;
@@ -4618,7 +5574,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
     /* Allow the layout to take up full available width of the parent element. */
     flex-grow: 1;
   }
-`,j2=S`
+`,Mm=S`
   /* Using :where to ensure user styles always take precedence */
   :where(
       vaadin-form-layout[auto-responsive] > *,
@@ -4636,7 +5592,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
     ) {
     min-width: 100%;
   }
-`,U2=S`
+`,Em=S`
   :host {
     display: contents;
   }
@@ -4656,7 +5612,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   ::slotted(:first-child) {
     grid-column-start: 1;
   }
-`,W2=S`
+`,km=S`
   :host {
     /* By default, when auto-responsive mode is disabled, labels should be displayed beside the fields. */
     --_form-item-labels-above: ' '; /* false */
@@ -4701,11 +5657,11 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
     width: 100%;
     min-width: 0;
   }
-`;const Y2=a=>class extends fr(a){static get properties(){return{responsiveSteps:{type:Array,value(){return[{minWidth:0,columns:1,labelsPosition:"top"},{minWidth:"20em",columns:1},{minWidth:"40em",columns:2}]},observer:"__responsiveStepsChanged",sync:!0},autoResponsive:{type:Boolean,sync:!0,value:()=>!!(window.Vaadin&&window.Vaadin.featureFlags&&window.Vaadin.featureFlags.defaultAutoResponsiveFormLayout),reflectToAttribute:!0},columnWidth:{type:String,sync:!0},maxColumns:{type:Number,sync:!0,value:10},minColumns:{type:Number,sync:!0,value:1},autoRows:{type:Boolean,sync:!0,value:!1,reflectToAttribute:!0},labelsAside:{type:Boolean,sync:!0,value:!1,reflectToAttribute:!0},expandColumns:{type:Boolean,sync:!0,value:!1,reflectToAttribute:!0},expandFields:{type:Boolean,sync:!0,value:!1,reflectToAttribute:!0}}}static get observers(){return["__autoResponsiveLayoutPropsChanged(columnWidth, maxColumns, minColumns, autoRows, labelsAside, expandColumns, expandFields)","__autoResponsiveChanged(autoResponsive)"]}constructor(){super(),this.__currentLayout,this.__autoResponsiveLayout=new V2(this),this.__responsiveStepsLayout=new $2(this)}connectedCallback(){super.connectedCallback(),this.__currentLayout.connect()}disconnectedCallback(){super.disconnectedCallback(),this.__currentLayout.disconnect()}get slotStyles(){return[`${j2}`.replace("vaadin-form-layout",this.localName)]}_updateLayout(){this.__currentLayout.updateLayout()}__responsiveStepsChanged(i,t){try{this.__responsiveStepsLayout.setProps({responsiveSteps:i})}catch(e){t&&t!==i?(console.warn(`${e.message} Using previously set 'responsiveSteps' instead.`),this.responsiveSteps=t):(console.warn(`${e.message} Using default 'responsiveSteps' instead.`),this.responsiveSteps=[{minWidth:0,columns:1,labelsPosition:"top"},{minWidth:"20em",columns:1},{minWidth:"40em",columns:2}])}}__autoResponsiveLayoutPropsChanged(i,t,e,r,s,o,n){this.__autoResponsiveLayout.setProps({columnWidth:i,maxColumns:t,minColumns:e,autoRows:r,labelsAside:s,expandColumns:o,expandFields:n})}__autoResponsiveChanged(i){this.__currentLayout&&this.__currentLayout.disconnect(),i?this.__currentLayout=this.__autoResponsiveLayout:this.__currentLayout=this.__responsiveStepsLayout,this.__currentLayout.connect()}};L("vaadin-form-layout",q2,{moduleId:"vaadin-form-layout-styles"});class G2 extends Y2(Y(ot($))){static get is(){return"vaadin-form-layout"}static get template(){return V`
+`;const Sm=a=>class extends fr(a){static get properties(){return{responsiveSteps:{type:Array,value(){return[{minWidth:0,columns:1,labelsPosition:"top"},{minWidth:"20em",columns:1},{minWidth:"40em",columns:2}]},observer:"__responsiveStepsChanged",sync:!0},autoResponsive:{type:Boolean,sync:!0,value:()=>!!(window.Vaadin&&window.Vaadin.featureFlags&&window.Vaadin.featureFlags.defaultAutoResponsiveFormLayout),reflectToAttribute:!0},columnWidth:{type:String,sync:!0},maxColumns:{type:Number,sync:!0,value:10},minColumns:{type:Number,sync:!0,value:1},autoRows:{type:Boolean,sync:!0,value:!1,reflectToAttribute:!0},labelsAside:{type:Boolean,sync:!0,value:!1,reflectToAttribute:!0},expandColumns:{type:Boolean,sync:!0,value:!1,reflectToAttribute:!0},expandFields:{type:Boolean,sync:!0,value:!1,reflectToAttribute:!0}}}static get observers(){return["__autoResponsiveLayoutPropsChanged(columnWidth, maxColumns, minColumns, autoRows, labelsAside, expandColumns, expandFields)","__autoResponsiveChanged(autoResponsive)"]}constructor(){super(),this.__currentLayout,this.__autoResponsiveLayout=new wm(this),this.__responsiveStepsLayout=new Cm(this)}connectedCallback(){super.connectedCallback(),this.__currentLayout.connect()}disconnectedCallback(){super.disconnectedCallback(),this.__currentLayout.disconnect()}get slotStyles(){return[`${Mm}`.replace("vaadin-form-layout",this.localName)]}_updateLayout(){this.__currentLayout.updateLayout()}__responsiveStepsChanged(i,t){try{this.__responsiveStepsLayout.setProps({responsiveSteps:i})}catch(e){t&&t!==i?(console.warn(`${e.message} Using previously set 'responsiveSteps' instead.`),this.responsiveSteps=t):(console.warn(`${e.message} Using default 'responsiveSteps' instead.`),this.responsiveSteps=[{minWidth:0,columns:1,labelsPosition:"top"},{minWidth:"20em",columns:1},{minWidth:"40em",columns:2}])}}__autoResponsiveLayoutPropsChanged(i,t,e,r,s,o,n){this.__autoResponsiveLayout.setProps({columnWidth:i,maxColumns:t,minColumns:e,autoRows:r,labelsAside:s,expandColumns:o,expandFields:n})}__autoResponsiveChanged(i){this.__currentLayout&&this.__currentLayout.disconnect(),i?this.__currentLayout=this.__autoResponsiveLayout:this.__currentLayout=this.__responsiveStepsLayout,this.__currentLayout.connect()}};L("vaadin-form-layout",Am,{moduleId:"vaadin-form-layout-styles"});class Tm extends Sm(Y(ot($))){static get is(){return"vaadin-form-layout"}static get template(){return V`
       <div id="layout">
         <slot id="slot"></slot>
       </div>
-    `}}R(G2);L("vaadin-app-layout",S`
+    `}}R(Tm);L("vaadin-app-layout",S`
     [part='navbar'],
     [part='drawer'] {
       background-color: var(--lumo-base-color);
@@ -4751,7 +5707,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
       margin-top: var(--lumo-space-xs) !important;
       margin-bottom: var(--lumo-space-xs) !important;
     }
-  `,{moduleId:"lumo-app-layout"});function xc(){if(ur){const a=window.innerHeight,t=window.innerWidth>a,e=document.documentElement.clientHeight;t&&e>a?document.documentElement.style.setProperty("--vaadin-viewport-offset-bottom",`${e-a}px`):document.documentElement.style.setProperty("--vaadin-viewport-offset-bottom","")}}xc();window.addEventListener("resize",xc);const wc=document.createElement("template");wc.innerHTML=`
+  `,{moduleId:"lumo-app-layout"});function Tc(){if(ur){const a=window.innerHeight,t=window.innerWidth>a,e=document.documentElement.clientHeight;t&&e>a?document.documentElement.style.setProperty("--vaadin-viewport-offset-bottom",`${e-a}px`):document.documentElement.style.setProperty("--vaadin-viewport-offset-bottom","")}}Tc();window.addEventListener("resize",Tc);const Ic=document.createElement("template");Ic.innerHTML=`
   <style>
     /* Use units so that the values can be used in calc() */
     html {
@@ -4761,7 +5717,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
       --safe-area-inset-left: env(safe-area-inset-left, 0px);
     }
   </style>
-`;document.head.appendChild(wc.content);const K2={drawer:"Drawer"},X2=a=>class extends er(K2,a){static get properties(){return{primarySection:{type:String,value:"navbar",notify:!0,reflectToAttribute:!0,observer:"__primarySectionChanged",sync:!0},drawerOpened:{type:Boolean,notify:!0,value:!0,reflectToAttribute:!0,observer:"__drawerOpenedChanged",sync:!0},overlay:{type:Boolean,notify:!0,readOnly:!0,value:!1,reflectToAttribute:!0,observer:"__overlayChanged",sync:!0},closeDrawerOn:{type:String,value:"vaadin-router-location-changed",observer:"_closeDrawerOnChanged"}}}static get observers(){return["__i18nChanged(__effectiveI18n)"]}static dispatchCloseOverlayDrawerEvent(){window.dispatchEvent(new CustomEvent("close-overlay-drawer"))}get i18n(){return super.i18n}set i18n(t){super.i18n=t}constructor(){super(),this.__boundResizeListener=this._resize.bind(this),this.__drawerToggleClickListener=this._drawerToggleClick.bind(this),this.__onDrawerKeyDown=this.__onDrawerKeyDown.bind(this),this.__closeOverlayDrawerListener=this.__closeOverlayDrawer.bind(this),this.__trapFocusInDrawer=this.__trapFocusInDrawer.bind(this),this.__releaseFocusFromDrawer=this.__releaseFocusFromDrawer.bind(this),this.__ariaModalController=new Gd(this,()=>[...this.querySelectorAll('vaadin-drawer-toggle, [slot="drawer"]')]),this.__focusTrapController=new Kd(this)}connectedCallback(){super.connectedCallback(),this._blockAnimationUntilAfterNextRender(),window.addEventListener("resize",this.__boundResizeListener),this.addEventListener("drawer-toggle-click",this.__drawerToggleClickListener),requestAnimationFrame(()=>{this._updateOffsetSize()}),this._updateTouchOptimizedMode(),this._updateDrawerSize(),this._updateOverlayMode(),this._navbarSizeObserver=new ResizeObserver(()=>{requestAnimationFrame(()=>{this.__isDrawerAnimating?this.__updateOffsetSizePending=!0:this._updateOffsetSize()})}),this._navbarSizeObserver.observe(this.$.navbarTop),this._navbarSizeObserver.observe(this.$.navbarBottom),this._navbarSizeObserver.observe(this.$.drawer),window.addEventListener("close-overlay-drawer",this.__closeOverlayDrawerListener),window.addEventListener("keydown",this.__onDrawerKeyDown)}ready(){super.ready(),this.addController(this.__focusTrapController),this.__setAriaExpanded(),this.$.drawer.addEventListener("transitionstart",()=>{this.__isDrawerAnimating=!0}),this.$.drawer.addEventListener("transitionend",()=>{this.__updateOffsetSizePending&&(this.__updateOffsetSizePending=!1,this._updateOffsetSize()),requestAnimationFrame(()=>{this.__isDrawerAnimating=!1})})}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("resize",this.__boundResizeListener),this.removeEventListener("drawer-toggle-click",this.__drawerToggleClickListener),window.removeEventListener("close-overlay-drawer",this.__drawerToggleClickListener),window.removeEventListener("keydown",this.__onDrawerKeyDown)}__primarySectionChanged(t){["navbar","drawer"].includes(t)||(this.primarySection="navbar")}__drawerOpenedChanged(t,e){this.overlay&&(t?this.__trapFocusInDrawer():e&&this.__releaseFocusFromDrawer()),this.__setAriaExpanded()}__overlayChanged(t,e){e&&this.__restoreFocus()}__i18nChanged(){this.__updateDrawerAriaAttributes()}_drawerToggleClick(t){t.stopPropagation(),this.drawerOpened=!this.drawerOpened}__closeOverlayDrawer(){this.overlay&&(this.drawerOpened=!1)}__setAriaExpanded(){const t=this.querySelector("vaadin-drawer-toggle");t&&t.setAttribute("aria-expanded",this.drawerOpened)}_updateDrawerSize(){const t=this.querySelectorAll("[slot=drawer]").length,e=this.$.drawer;t===0?(e.setAttribute("hidden",""),this.style.setProperty("--_vaadin-app-layout-drawer-width",0)):(e.removeAttribute("hidden"),this.style.removeProperty("--_vaadin-app-layout-drawer-width")),this._updateOffsetSize()}_resize(){this._blockAnimationUntilAfterNextRender(),this._updateTouchOptimizedMode(),this._updateOverlayMode()}_updateOffsetSize(){const e=this.$.navbarTop.getBoundingClientRect(),s=this.$.navbarBottom.getBoundingClientRect(),n=this.$.drawer.getBoundingClientRect();this.style.setProperty("--_vaadin-app-layout-navbar-offset-size",`${e.height}px`),this.style.setProperty("--_vaadin-app-layout-navbar-offset-size-bottom",`${s.height}px`),this.style.setProperty("--_vaadin-app-layout-drawer-offset-size",`${n.width}px`)}_updateOverlayMode(){const t=this._getCustomPropertyValue("--vaadin-app-layout-drawer-overlay")==="true";!this.overlay&&t&&(this._drawerStateSaved=this.drawerOpened,this.drawerOpened=!1),this._setOverlay(t),!this.overlay&&this._drawerStateSaved&&(this.drawerOpened=this._drawerStateSaved,this._drawerStateSaved=null),this.__updateDrawerAriaAttributes()}__updateDrawerAriaAttributes(){const t=this.$.drawer;this.overlay?(t.setAttribute("role","dialog"),t.setAttribute("aria-modal","true"),t.setAttribute("aria-label",this.__effectiveI18n.drawer)):(t.removeAttribute("role"),t.removeAttribute("aria-modal"),t.removeAttribute("aria-label"))}__drawerTransitionComplete(){return new Promise(t=>{if(this._getCustomPropertyValue("--vaadin-app-layout-transition")==="none"){t();return}this.$.drawer.addEventListener("transitionend",t,{once:!0})})}async __trapFocusInDrawer(){await this.__drawerTransitionComplete(),this.drawerOpened&&(this.$.drawer.setAttribute("tabindex","0"),this.__ariaModalController.showModal(),this.__focusTrapController.trapFocus(this.$.drawer))}async __releaseFocusFromDrawer(){if(await this.__drawerTransitionComplete(),this.drawerOpened)return;this.__restoreFocus();const t=this.querySelector("vaadin-drawer-toggle");t&&t.focus()}__restoreFocus(){this.__ariaModalController.close(),this.__focusTrapController.releaseFocus(),this.$.drawer.removeAttribute("tabindex")}__onDrawerKeyDown(t){t.key==="Escape"&&this.overlay&&(this.drawerOpened=!1)}_closeDrawerOnChanged(t,e){e&&window.removeEventListener(e,this.__closeOverlayDrawerListener),t&&window.addEventListener(t,this.__closeOverlayDrawerListener)}_onBackdropClick(){this._close()}_onBackdropTouchend(t){t.preventDefault(),this._close()}_close(){this.drawerOpened=!1}_getCustomPropertyValue(t){return(getComputedStyle(this).getPropertyValue(t)||"").trim().toLowerCase()}_updateTouchOptimizedMode(){const t=this._getCustomPropertyValue("--vaadin-app-layout-touch-optimized")==="true",e=this.querySelectorAll('[slot*="navbar"]');e.length>0&&Array.from(e).forEach(r=>{r.getAttribute("slot").indexOf("touch-optimized")>-1&&(r.__touchOptimized=!0),t&&r.__touchOptimized?r.setAttribute("slot","navbar-bottom"):r.setAttribute("slot","navbar")}),this.$.navbarTop.querySelector("[name=navbar]").assignedNodes().length===0?this.$.navbarTop.setAttribute("hidden",""):this.$.navbarTop.removeAttribute("hidden"),this.$.navbarBottom.querySelector("[name=navbar-bottom]").assignedNodes().length===0?this.$.navbarBottom.setAttribute("hidden",""):this.$.navbarBottom.removeAttribute("hidden"),this._updateOffsetSize()}_blockAnimationUntilAfterNextRender(){this.setAttribute("no-anim",""),this.__debounceAnimation=bt.debounce(this.__debounceAnimation,Ai,()=>{setTimeout(()=>{this.removeAttribute("no-anim")})})}};const Q2=S`
+`;document.head.appendChild(Ic.content);const Im={drawer:"Drawer"},Dm=a=>class extends er(Im,a){static get properties(){return{primarySection:{type:String,value:"navbar",notify:!0,reflectToAttribute:!0,observer:"__primarySectionChanged",sync:!0},drawerOpened:{type:Boolean,notify:!0,value:!0,reflectToAttribute:!0,observer:"__drawerOpenedChanged",sync:!0},overlay:{type:Boolean,notify:!0,readOnly:!0,value:!1,reflectToAttribute:!0,observer:"__overlayChanged",sync:!0},closeDrawerOn:{type:String,value:"vaadin-router-location-changed",observer:"_closeDrawerOnChanged"}}}static get observers(){return["__i18nChanged(__effectiveI18n)"]}static dispatchCloseOverlayDrawerEvent(){window.dispatchEvent(new CustomEvent("close-overlay-drawer"))}get i18n(){return super.i18n}set i18n(t){super.i18n=t}constructor(){super(),this.__boundResizeListener=this._resize.bind(this),this.__drawerToggleClickListener=this._drawerToggleClick.bind(this),this.__onDrawerKeyDown=this.__onDrawerKeyDown.bind(this),this.__closeOverlayDrawerListener=this.__closeOverlayDrawer.bind(this),this.__trapFocusInDrawer=this.__trapFocusInDrawer.bind(this),this.__releaseFocusFromDrawer=this.__releaseFocusFromDrawer.bind(this),this.__ariaModalController=new Gd(this,()=>[...this.querySelectorAll('vaadin-drawer-toggle, [slot="drawer"]')]),this.__focusTrapController=new Kd(this)}connectedCallback(){super.connectedCallback(),this._blockAnimationUntilAfterNextRender(),window.addEventListener("resize",this.__boundResizeListener),this.addEventListener("drawer-toggle-click",this.__drawerToggleClickListener),requestAnimationFrame(()=>{this._updateOffsetSize()}),this._updateTouchOptimizedMode(),this._updateDrawerSize(),this._updateOverlayMode(),this._navbarSizeObserver=new ResizeObserver(()=>{requestAnimationFrame(()=>{this.__isDrawerAnimating?this.__updateOffsetSizePending=!0:this._updateOffsetSize()})}),this._navbarSizeObserver.observe(this.$.navbarTop),this._navbarSizeObserver.observe(this.$.navbarBottom),this._navbarSizeObserver.observe(this.$.drawer),window.addEventListener("close-overlay-drawer",this.__closeOverlayDrawerListener),window.addEventListener("keydown",this.__onDrawerKeyDown)}ready(){super.ready(),this.addController(this.__focusTrapController),this.__setAriaExpanded(),this.$.drawer.addEventListener("transitionstart",()=>{this.__isDrawerAnimating=!0}),this.$.drawer.addEventListener("transitionend",()=>{this.__updateOffsetSizePending&&(this.__updateOffsetSizePending=!1,this._updateOffsetSize()),requestAnimationFrame(()=>{this.__isDrawerAnimating=!1})})}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("resize",this.__boundResizeListener),this.removeEventListener("drawer-toggle-click",this.__drawerToggleClickListener),window.removeEventListener("close-overlay-drawer",this.__drawerToggleClickListener),window.removeEventListener("keydown",this.__onDrawerKeyDown)}__primarySectionChanged(t){["navbar","drawer"].includes(t)||(this.primarySection="navbar")}__drawerOpenedChanged(t,e){this.overlay&&(t?this.__trapFocusInDrawer():e&&this.__releaseFocusFromDrawer()),this.__setAriaExpanded()}__overlayChanged(t,e){e&&this.__restoreFocus()}__i18nChanged(){this.__updateDrawerAriaAttributes()}_drawerToggleClick(t){t.stopPropagation(),this.drawerOpened=!this.drawerOpened}__closeOverlayDrawer(){this.overlay&&(this.drawerOpened=!1)}__setAriaExpanded(){const t=this.querySelector("vaadin-drawer-toggle");t&&t.setAttribute("aria-expanded",this.drawerOpened)}_updateDrawerSize(){const t=this.querySelectorAll("[slot=drawer]").length,e=this.$.drawer;t===0?(e.setAttribute("hidden",""),this.style.setProperty("--_vaadin-app-layout-drawer-width",0)):(e.removeAttribute("hidden"),this.style.removeProperty("--_vaadin-app-layout-drawer-width")),this._updateOffsetSize()}_resize(){this._blockAnimationUntilAfterNextRender(),this._updateTouchOptimizedMode(),this._updateOverlayMode()}_updateOffsetSize(){const e=this.$.navbarTop.getBoundingClientRect(),s=this.$.navbarBottom.getBoundingClientRect(),n=this.$.drawer.getBoundingClientRect();this.style.setProperty("--_vaadin-app-layout-navbar-offset-size",`${e.height}px`),this.style.setProperty("--_vaadin-app-layout-navbar-offset-size-bottom",`${s.height}px`),this.style.setProperty("--_vaadin-app-layout-drawer-offset-size",`${n.width}px`)}_updateOverlayMode(){const t=this._getCustomPropertyValue("--vaadin-app-layout-drawer-overlay")==="true";!this.overlay&&t&&(this._drawerStateSaved=this.drawerOpened,this.drawerOpened=!1),this._setOverlay(t),!this.overlay&&this._drawerStateSaved&&(this.drawerOpened=this._drawerStateSaved,this._drawerStateSaved=null),this.__updateDrawerAriaAttributes()}__updateDrawerAriaAttributes(){const t=this.$.drawer;this.overlay?(t.setAttribute("role","dialog"),t.setAttribute("aria-modal","true"),t.setAttribute("aria-label",this.__effectiveI18n.drawer)):(t.removeAttribute("role"),t.removeAttribute("aria-modal"),t.removeAttribute("aria-label"))}__drawerTransitionComplete(){return new Promise(t=>{if(this._getCustomPropertyValue("--vaadin-app-layout-transition")==="none"){t();return}this.$.drawer.addEventListener("transitionend",t,{once:!0})})}async __trapFocusInDrawer(){await this.__drawerTransitionComplete(),this.drawerOpened&&(this.$.drawer.setAttribute("tabindex","0"),this.__ariaModalController.showModal(),this.__focusTrapController.trapFocus(this.$.drawer))}async __releaseFocusFromDrawer(){if(await this.__drawerTransitionComplete(),this.drawerOpened)return;this.__restoreFocus();const t=this.querySelector("vaadin-drawer-toggle");t&&t.focus()}__restoreFocus(){this.__ariaModalController.close(),this.__focusTrapController.releaseFocus(),this.$.drawer.removeAttribute("tabindex")}__onDrawerKeyDown(t){t.key==="Escape"&&this.overlay&&(this.drawerOpened=!1)}_closeDrawerOnChanged(t,e){e&&window.removeEventListener(e,this.__closeOverlayDrawerListener),t&&window.addEventListener(t,this.__closeOverlayDrawerListener)}_onBackdropClick(){this._close()}_onBackdropTouchend(t){t.preventDefault(),this._close()}_close(){this.drawerOpened=!1}_getCustomPropertyValue(t){return(getComputedStyle(this).getPropertyValue(t)||"").trim().toLowerCase()}_updateTouchOptimizedMode(){const t=this._getCustomPropertyValue("--vaadin-app-layout-touch-optimized")==="true",e=this.querySelectorAll('[slot*="navbar"]');e.length>0&&Array.from(e).forEach(r=>{r.getAttribute("slot").indexOf("touch-optimized")>-1&&(r.__touchOptimized=!0),t&&r.__touchOptimized?r.setAttribute("slot","navbar-bottom"):r.setAttribute("slot","navbar")}),this.$.navbarTop.querySelector("[name=navbar]").assignedNodes().length===0?this.$.navbarTop.setAttribute("hidden",""):this.$.navbarTop.removeAttribute("hidden"),this.$.navbarBottom.querySelector("[name=navbar-bottom]").assignedNodes().length===0?this.$.navbarBottom.setAttribute("hidden",""):this.$.navbarBottom.removeAttribute("hidden"),this._updateOffsetSize()}_blockAnimationUntilAfterNextRender(){this.setAttribute("no-anim",""),this.__debounceAnimation=bt.debounce(this.__debounceAnimation,Ai,()=>{setTimeout(()=>{this.removeAttribute("no-anim")})})}};const Om=S`
   :host {
     display: block;
     box-sizing: border-box;
@@ -4919,7 +5875,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
     flex: 1;
     overscroll-behavior: contain;
   }
-`;L("vaadin-app-layout",Q2,{moduleId:"vaadin-app-layout-styles"});class J2 extends X2(ot(Y(Mt($)))){static get template(){return V`
+`;L("vaadin-app-layout",Om,{moduleId:"vaadin-app-layout-styles"});class Lm extends Dm(ot(Y(Mt($)))){static get template(){return V`
       <div part="navbar" id="navbarTop">
         <slot name="navbar" on-slotchange="_updateTouchOptimizedMode"></slot>
       </div>
@@ -4936,7 +5892,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
       <div hidden>
         <slot id="touchSlot" name="navbar touch-optimized" on-slotchange="_updateTouchOptimizedMode"></slot>
       </div>
-    `}static get is(){return"vaadin-app-layout"}}R(J2);const Z2=S`
+    `}static get is(){return"vaadin-app-layout"}}R(Lm);const Pm=S`
   :host {
     width: var(--lumo-size-l);
     height: var(--lumo-size-l);
@@ -4965,7 +5921,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   :host([slot~='navbar']) {
     color: var(--lumo-secondary-text-color);
   }
-`;L("vaadin-drawer-toggle",[Zs,Z2],{moduleId:"lumo-drawer-toggle"});const tm=S`
+`;L("vaadin-drawer-toggle",[Zs,Pm],{moduleId:"lumo-drawer-toggle"});const Nm=S`
   :host {
     display: inline-flex;
     align-items: center;
@@ -5000,12 +5956,12 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   [part='icon']::before {
     top: 12px;
   }
-`;L("vaadin-drawer-toggle",[Pn,tm],{moduleId:"vaadin-drawer-toggle-styles"});class em extends ss(xt(Y($))){static get template(){return V`
+`;L("vaadin-drawer-toggle",[Pn,Nm],{moduleId:"vaadin-drawer-toggle-styles"});class Bm extends ss(xt(Y($))){static get template(){return V`
       <slot id="slot">
         <div part="icon"></div>
       </slot>
       <div part="icon" hidden$="[[!_showFallbackIcon]]"></div>
-    `}static get is(){return"vaadin-drawer-toggle"}static get properties(){return{ariaLabel:{type:String,value:"Toggle navigation panel",reflectToAttribute:!0},_showFallbackIcon:{type:Boolean,value:!1}}}constructor(){super(),this.addEventListener("click",()=>{this.dispatchEvent(new CustomEvent("drawer-toggle-click",{bubbles:!0,composed:!0}))})}ready(){super.ready(),this._toggleFallbackIcon(),this.$.slot.addEventListener("slotchange",()=>{this._toggleFallbackIcon()})}_toggleFallbackIcon(){const i=this.$.slot.assignedNodes();this._showFallbackIcon=i.length>0&&i.every(t=>Cn(t))}}R(em);L("vaadin-tab",S`
+    `}static get is(){return"vaadin-drawer-toggle"}static get properties(){return{ariaLabel:{type:String,value:"Toggle navigation panel",reflectToAttribute:!0},_showFallbackIcon:{type:Boolean,value:!1}}}constructor(){super(),this.addEventListener("click",()=>{this.dispatchEvent(new CustomEvent("drawer-toggle-click",{bubbles:!0,composed:!0}))})}ready(){super.ready(),this._toggleFallbackIcon(),this.$.slot.addEventListener("slotchange",()=>{this._toggleFallbackIcon()})}_toggleFallbackIcon(){const i=this.$.slot.assignedNodes();this._showFallbackIcon=i.length>0&&i.every(t=>Cn(t))}}R(Bm);L("vaadin-tab",S`
     :host {
       box-sizing: border-box;
       padding: 0.5rem 0.75rem;
@@ -5237,7 +6193,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
       border-radius: var(--lumo-border-radius-s) 0 0 var(--lumo-border-radius-s);
       transform-origin: 0% 50%;
     }
-  `,{moduleId:"lumo-tab"});const fa=a=>class extends rs(He(a)){static get properties(){return{_hasVaadinItemMixin:{value:!0},selected:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_selectedChanged",sync:!0},_value:String}}get _activeKeys(){return["Enter"," "]}get value(){return this._value!==void 0?this._value:this.textContent.trim()}set value(t){this._value=t}ready(){super.ready();const t=this.getAttribute("value");t!==null&&(this.value=t)}focus(t){this.disabled||super.focus(t)}_shouldSetActive(t){return!this.disabled&&!(t.type==="keydown"&&t.defaultPrevented)}_selectedChanged(t){this.setAttribute("aria-selected",t)}_disabledChanged(t){super._disabledChanged(t),t&&(this.selected=!1,this.blur())}_onKeyDown(t){super._onKeyDown(t),this._activeKeys.includes(t.key)&&!t.defaultPrevented&&(t.preventDefault(),this.click())}};const im=a=>class extends fa(a){ready(){super.ready(),this.setAttribute("role","tab")}_onKeyUp(t){const e=this.hasAttribute("active");if(super._onKeyUp(t),e){const r=this.querySelector("a");r&&r.click()}}};const rm=S`
+  `,{moduleId:"lumo-tab"});const Fm=a=>class extends fa(a){ready(){super.ready(),this.setAttribute("role","tab")}_onKeyUp(t){const e=this.hasAttribute("active");if(super._onKeyUp(t),e){const r=this.querySelector("a");r&&r.click()}}};const Rm=S`
   :host {
     display: block;
   }
@@ -5256,10 +6212,10 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
       border-bottom: 2px solid;
     }
   }
-`;L("vaadin-tab",rm,{moduleId:"vaadin-tab-styles"});class am extends ot(Y(im(Mt($)))){static get template(){return V`
+`;L("vaadin-tab",Rm,{moduleId:"vaadin-tab-styles"});class Vm extends ot(Y(Fm(Mt($)))){static get template(){return V`
       <slot></slot>
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-tab"}ready(){super.ready(),this._tooltipController=new le(this),this.addController(this._tooltipController)}}R(am);L("vaadin-tabs",S`
+    `}static get is(){return"vaadin-tab"}ready(){super.ready(),this._tooltipController=new le(this),this.addController(this._tooltipController)}}R(Vm);L("vaadin-tabs",S`
     :host {
       -webkit-tap-highlight-color: transparent;
     }
@@ -5497,7 +6453,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
     :host([dir='rtl'][theme~='hide-scroll-buttons'][overflow~='start']:not([orientation='vertical'])) [part='tabs'] {
       --_lumo-tabs-overflow-mask-image: linear-gradient(-90deg, transparent, #000 2em);
     }
-  `,{moduleId:"lumo-tabs"});function Fs(a,i){const{scrollLeft:t}=a;return i!=="rtl"?t:a.scrollWidth-a.clientWidth+t}function sm(a,i,t){i!=="rtl"?a.scrollLeft=t:a.scrollLeft=a.clientWidth-a.scrollWidth+t}const eo=a=>class extends Fi(a){get focused(){return(this._getItems()||[]).find(Xe)}get _vertical(){return!0}get _tabNavigation(){return!1}focus(t){const e=this._getFocusableIndex();e>=0&&this._focus(e,t)}_getFocusableIndex(){const t=this._getItems();return Array.isArray(t)?this._getAvailableIndex(t,0,null,e=>!oi(e)):-1}_getItems(){return Array.from(this.children)}_onKeyDown(t){if(super._onKeyDown(t),t.metaKey||t.ctrlKey)return;const{key:e,shiftKey:r}=t,s=this._getItems()||[],o=s.indexOf(this.focused);let n,l;const u=!this._vertical&&this.getAttribute("dir")==="rtl"?-1:1;this.__isPrevKeyPressed(e,r)?(l=-u,n=o-u):this.__isNextKeyPressed(e,r)?(l=u,n=o+u):e==="Home"?(l=1,n=0):e==="End"&&(l=-1,n=s.length-1),n=this._getAvailableIndex(s,n,l,p=>!oi(p)),!(this._tabNavigation&&e==="Tab"&&(n>o&&t.shiftKey||n<o&&!t.shiftKey||n===o))&&n>=0&&(t.preventDefault(),this._focus(n,{focusVisible:!0},!0))}__isPrevKeyPressed(t,e){return this._vertical?t==="ArrowUp":t==="ArrowLeft"||this._tabNavigation&&t==="Tab"&&e}__isNextKeyPressed(t,e){return this._vertical?t==="ArrowDown":t==="ArrowRight"||this._tabNavigation&&t==="Tab"&&!e}_focus(t,e,r=!1){const s=this._getItems();this._focusItem(s[t],e,r)}_focusItem(t,e){t&&t.focus(e)}_getAvailableIndex(t,e,r,s){const o=t.length;let n=e;for(let l=0;typeof n=="number"&&l<o;l+=1,n+=r||1){n<0?n=o-1:n>=o&&(n=0);const h=t[n];if(this._isItemFocusable(h)&&this.__isMatchingItem(h,s))return n}return-1}__isMatchingItem(t,e){return typeof e=="function"?e(t):!0}_isItemFocusable(t){return!t.hasAttribute("disabled")}};const _a=a=>class extends eo(a){static get properties(){return{disabled:{type:Boolean,value:!1,reflectToAttribute:!0},selected:{type:Number,reflectToAttribute:!0,notify:!0,sync:!0},orientation:{type:String,reflectToAttribute:!0,value:""},items:{type:Array,readOnly:!0,notify:!0},_searchBuf:{type:String,value:""}}}static get observers(){return["_enhanceItems(items, orientation, selected, disabled)"]}get _isRTL(){return!this._vertical&&this.getAttribute("dir")==="rtl"}get _scrollerElement(){return console.warn(`Please implement the '_scrollerElement' property in <${this.localName}>`),this}get _vertical(){return this.orientation!=="horizontal"}focus(t){this._observer&&this._observer.flush();const e=Array.isArray(this.items)?this.items:[],r=this._getAvailableIndex(e,0,null,s=>s.tabIndex===0&&!oi(s));r>=0?this._focus(r,t):super.focus(t)}ready(){super.ready(),this.addEventListener("click",e=>this._onClick(e));const t=this.shadowRoot.querySelector("slot:not([name])");this._observer=new Li(t,()=>{this._setItems(this._filterItems([...this.children]))})}_getItems(){return this.items}_enhanceItems(t,e,r,s){if(!s&&t){this.setAttribute("aria-orientation",e||"vertical"),t.forEach(n=>{e?n.setAttribute("orientation",e):n.removeAttribute("orientation")}),this._setFocusable(r<0||!r?0:r);const o=t[r];t.forEach(n=>{n.selected=n===o}),o&&!o.disabled&&this._scrollToItem(r)}}_filterItems(t){return t.filter(e=>e._hasVaadinItemMixin)}_onClick(t){if(t.metaKey||t.shiftKey||t.ctrlKey||t.defaultPrevented)return;const e=this._filterItems(t.composedPath())[0];let r;e&&!e.disabled&&(r=this.items.indexOf(e))>=0&&(this.selected=r)}_searchKey(t,e){this._searchReset=bt.debounce(this._searchReset,Ve.after(500),()=>{this._searchBuf=""}),this._searchBuf+=e.toLowerCase(),this.items.some(s=>this.__isMatchingKey(s))||(this._searchBuf=e.toLowerCase());const r=this._searchBuf.length===1?t+1:t;return this._getAvailableIndex(this.items,r,1,s=>this.__isMatchingKey(s)&&getComputedStyle(s).display!=="none")}__isMatchingKey(t){return t.textContent.replace(/[^\p{L}\p{Nd}]/gu,"").toLowerCase().startsWith(this._searchBuf)}_onKeyDown(t){if(t.metaKey||t.ctrlKey)return;const e=t.key,r=this.items.indexOf(this.focused);if(/[\p{L}\p{Nd}]/u.test(e)&&e.length===1){const s=this._searchKey(r,e);s>=0&&this._focus(s);return}super._onKeyDown(t)}_setFocusable(t){t=this._getAvailableIndex(this.items,t,1);const e=this.items[t];this.items.forEach(r=>{r.tabIndex=r===e?0:-1})}_focus(t,e){this.items.forEach((r,s)=>{r.focused=s===t}),this._setFocusable(t),this._scrollToItem(t),super._focus(t,e)}_scrollToItem(t){const e=this.items[t];if(!e)return;const r=this._vertical?["top","bottom"]:this._isRTL?["right","left"]:["left","right"],s=this._scrollerElement.getBoundingClientRect(),o=(this.items[t+1]||e).getBoundingClientRect(),n=(this.items[t-1]||e).getBoundingClientRect();let l=0;!this._isRTL&&o[r[1]]>=s[r[1]]||this._isRTL&&o[r[1]]<=s[r[1]]?l=o[r[1]]-s[r[1]]:(!this._isRTL&&n[r[0]]<=s[r[0]]||this._isRTL&&n[r[0]]>=s[r[0]])&&(l=n[r[0]]-s[r[0]]),this._scroll(l)}_scroll(t){if(this._vertical)this._scrollerElement.scrollTop+=t;else{const e=this.getAttribute("dir")||"ltr",r=Fs(this._scrollerElement,e)+t;sm(this._scrollerElement,e,r)}}};const om=a=>class extends Ji(_a(a)){static get properties(){return{orientation:{value:"horizontal",type:String,reflectToAttribute:!0,sync:!0},selected:{value:0,type:Number}}}static get observers(){return["__tabsItemsChanged(items)"]}constructor(){super(),this.__itemsResizeObserver=new ResizeObserver(()=>{setTimeout(()=>this._updateOverflow())})}get _scrollOffset(){return this._vertical?this._scrollerElement.offsetHeight:this._scrollerElement.offsetWidth}get _scrollerElement(){return this.$.scroll}get __direction(){return!this._vertical&&this.__isRTL?1:-1}ready(){super.ready(),this._scrollerElement.addEventListener("scroll",()=>this._updateOverflow()),this.setAttribute("role","tablist")}_onResize(){this._updateOverflow()}__tabsItemsChanged(t){this.__itemsResizeObserver.disconnect(),(t||[]).forEach(e=>{this.__itemsResizeObserver.observe(e)}),this._updateOverflow()}_scrollForward(){const t=this._getNavigationButtonVisibleWidth("forward-button"),e=this._getNavigationButtonVisibleWidth("back-button"),r=this._scrollerElement.getBoundingClientRect(),o=[...this.items].reverse().find(u=>this._isItemVisible(u,t,e,r)).getBoundingClientRect(),l=20+this.shadowRoot.querySelector('[part="back-button"]').clientWidth;let h;if(this.__isRTL){const u=r.right-l;h=o.right-u}else{const u=r.left+l;h=o.left-u}-this.__direction*h<1&&(h=-this.__direction*(this._scrollOffset-l)),this._scroll(h)}_scrollBack(){const t=this._getNavigationButtonVisibleWidth("forward-button"),e=this._getNavigationButtonVisibleWidth("back-button"),r=this._scrollerElement.getBoundingClientRect(),o=this.items.find(u=>this._isItemVisible(u,t,e,r)).getBoundingClientRect(),l=20+this.shadowRoot.querySelector('[part="forward-button"]').clientWidth;let h;if(this.__isRTL){const u=r.left+l;h=o.left-u}else{const u=r.right-l;h=o.right-u}this.__direction*h<1&&(h=this.__direction*(this._scrollOffset-l)),this._scroll(h)}_isItemVisible(t,e,r,s){if(this._vertical)throw new Error("Visibility check is only supported for horizontal tabs.");const o=this.__isRTL?r:e,n=this.__isRTL?e:r,l=s.right-o,h=s.left+n,u=t.getBoundingClientRect();return l>Math.floor(u.left)&&h<Math.ceil(u.right)}_getNavigationButtonVisibleWidth(t){const e=this.shadowRoot.querySelector(`[part="${t}"]`);return window.getComputedStyle(e).opacity==="0"?0:e.clientWidth}_updateOverflow(){const t=this._vertical?this._scrollerElement.scrollTop:Fs(this._scrollerElement,this.getAttribute("dir")),e=this._vertical?this._scrollerElement.scrollHeight:this._scrollerElement.scrollWidth;let r=Math.floor(t)>1?"start":"";Math.ceil(t)<Math.ceil(e-this._scrollOffset)&&(r+=" end"),this.__direction===1&&(r=r.replace(/start|end/giu,s=>s==="start"?"end":"start")),r?this.setAttribute("overflow",r.trim()):this.removeAttribute("overflow")}};const nm=S`
+  `,{moduleId:"lumo-tabs"});const Hm=a=>class extends Ji(_a(a)){static get properties(){return{orientation:{value:"horizontal",type:String,reflectToAttribute:!0,sync:!0},selected:{value:0,type:Number}}}static get observers(){return["__tabsItemsChanged(items)"]}constructor(){super(),this.__itemsResizeObserver=new ResizeObserver(()=>{setTimeout(()=>this._updateOverflow())})}get _scrollOffset(){return this._vertical?this._scrollerElement.offsetHeight:this._scrollerElement.offsetWidth}get _scrollerElement(){return this.$.scroll}get __direction(){return!this._vertical&&this.__isRTL?1:-1}ready(){super.ready(),this._scrollerElement.addEventListener("scroll",()=>this._updateOverflow()),this.setAttribute("role","tablist")}_onResize(){this._updateOverflow()}__tabsItemsChanged(t){this.__itemsResizeObserver.disconnect(),(t||[]).forEach(e=>{this.__itemsResizeObserver.observe(e)}),this._updateOverflow()}_scrollForward(){const t=this._getNavigationButtonVisibleWidth("forward-button"),e=this._getNavigationButtonVisibleWidth("back-button"),r=this._scrollerElement.getBoundingClientRect(),o=[...this.items].reverse().find(u=>this._isItemVisible(u,t,e,r)).getBoundingClientRect(),l=20+this.shadowRoot.querySelector('[part="back-button"]').clientWidth;let h;if(this.__isRTL){const u=r.right-l;h=o.right-u}else{const u=r.left+l;h=o.left-u}-this.__direction*h<1&&(h=-this.__direction*(this._scrollOffset-l)),this._scroll(h)}_scrollBack(){const t=this._getNavigationButtonVisibleWidth("forward-button"),e=this._getNavigationButtonVisibleWidth("back-button"),r=this._scrollerElement.getBoundingClientRect(),o=this.items.find(u=>this._isItemVisible(u,t,e,r)).getBoundingClientRect(),l=20+this.shadowRoot.querySelector('[part="forward-button"]').clientWidth;let h;if(this.__isRTL){const u=r.left+l;h=o.left-u}else{const u=r.right-l;h=o.right-u}this.__direction*h<1&&(h=this.__direction*(this._scrollOffset-l)),this._scroll(h)}_isItemVisible(t,e,r,s){if(this._vertical)throw new Error("Visibility check is only supported for horizontal tabs.");const o=this.__isRTL?r:e,n=this.__isRTL?e:r,l=s.right-o,h=s.left+n,u=t.getBoundingClientRect();return l>Math.floor(u.left)&&h<Math.ceil(u.right)}_getNavigationButtonVisibleWidth(t){const e=this.shadowRoot.querySelector(`[part="${t}"]`);return window.getComputedStyle(e).opacity==="0"?0:e.clientWidth}_updateOverflow(){const t=this._vertical?this._scrollerElement.scrollTop:Fs(this._scrollerElement,this.getAttribute("dir")),e=this._vertical?this._scrollerElement.scrollHeight:this._scrollerElement.scrollWidth;let r=Math.floor(t)>1?"start":"";Math.ceil(t)<Math.ceil(e-this._scrollOffset)&&(r+=" end"),this.__direction===1&&(r=r.replace(/start|end/giu,s=>s==="start"?"end":"start")),r?this.setAttribute("overflow",r.trim()):this.removeAttribute("overflow")}};const $m=S`
   :host {
     display: flex;
     align-items: center;
@@ -5573,7 +6529,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
   :host([dir='rtl']) [part='forward-button']::after {
     content: '\\25C0';
   }
-`;L("vaadin-tabs",nm,{moduleId:"vaadin-tabs-styles"});class lm extends om(ot(Y($))){static get template(){return V`
+`;L("vaadin-tabs",$m,{moduleId:"vaadin-tabs-styles"});class qm extends Hm(ot(Y($))){static get template(){return V`
       <div on-click="_scrollBack" part="back-button" aria-hidden="true"></div>
 
       <div id="scroll" part="tabs">
@@ -5581,387 +6537,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
       </div>
 
       <div on-click="_scrollForward" part="forward-button" aria-hidden="true"></div>
-    `}static get is(){return"vaadin-tabs"}}R(lm);const hm=S`
-  :host {
-    margin: calc(var(--lumo-space-xs) / 2);
-    margin-left: 0;
-    border-radius: 0;
-  }
-
-  [part='label'] {
-    width: 100%;
-  }
-
-  /* NOTE(web-padawan): avoid using shorthand padding property for IE11 */
-  [part='label'] ::slotted(vaadin-menu-bar-item) {
-    justify-content: center;
-    background-color: transparent;
-    height: var(--lumo-button-size);
-    margin: 0 calc((var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2) * -1);
-    padding-left: calc(var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2);
-    padding-right: calc(var(--lumo-size-m) / 3 + var(--lumo-border-radius-m) / 2);
-  }
-
-  :host([theme~='small']) [part='label'] ::slotted(vaadin-menu-bar-item) {
-    min-height: var(--lumo-size-s);
-    margin: 0 calc((var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2) * -1);
-    padding-left: calc(var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2);
-    padding-right: calc(var(--lumo-size-s) / 3 + var(--lumo-border-radius-m) / 2);
-  }
-
-  :host([theme~='tertiary']) [part='label'] ::slotted(vaadin-menu-bar-item) {
-    margin: 0 calc((var(--lumo-button-size) / 6) * -1);
-    padding-left: calc(var(--lumo-button-size) / 6);
-    padding-right: calc(var(--lumo-button-size) / 6);
-  }
-
-  :host([theme~='tertiary-inline']) {
-    margin-top: calc(var(--lumo-space-xs) / 2);
-    margin-bottom: calc(var(--lumo-space-xs) / 2);
-    margin-right: calc(var(--lumo-space-xs) / 2);
-  }
-
-  :host([theme~='tertiary-inline']) [part='label'] ::slotted(vaadin-menu-bar-item) {
-    margin: 0;
-    padding: 0;
-  }
-
-  :host([first-visible]) {
-    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
-
-    /* Needed to retain the focus-ring with border-radius */
-    margin-left: calc(var(--lumo-space-xs) / 2);
-  }
-
-  :host([last-visible]),
-  :host([slot='overflow']) {
-    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
-  }
-
-  :host([theme~='tertiary']),
-  :host([theme~='tertiary-inline']) {
-    border-radius: var(--lumo-border-radius-m);
-  }
-
-  :host([slot='overflow']) {
-    min-width: var(--lumo-button-size);
-    padding-left: calc(var(--lumo-button-size) / 4);
-    padding-right: calc(var(--lumo-button-size) / 4);
-  }
-
-  :host([slot='overflow']) ::slotted(*) {
-    font-size: var(--lumo-font-size-xl);
-  }
-
-  :host([slot='overflow']) [part='prefix'],
-  :host([slot='overflow']) [part='suffix'] {
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  :host([theme~='dropdown-indicators']:not([slot='overflow']):not([theme~='icon'])[aria-haspopup]) [part='suffix'] {
-    margin-inline-start: 0;
-    width: 1em;
-    height: 1em;
-    line-height: 1;
-    font-size: var(--lumo-icon-size-s);
-    position: relative;
-    inset-inline-start: 0.15em;
-  }
-
-  /* prettier-ignore */
-  :host([theme~='dropdown-indicators']:not([slot='overflow']):not([theme~='icon'])[aria-haspopup]) [part='suffix']::after {
-    font-family: lumo-icons;
-    content: var(--lumo-icons-dropdown);
-  }
-
-  /* prettier-ignore */
-  :host([theme~='dropdown-indicators']:not([slot='overflow']):not([theme~='icon'])[theme~='tertiary'][aria-haspopup]) [part='suffix'] {
-    inset-inline-start: 0.05em;
-  }
-
-  /* prettier-ignore */
-  :host([theme~='dropdown-indicators']:not([slot='overflow']):not([theme~='icon'])[theme~='tertiary-inline'][aria-haspopup]) [part='suffix'] {
-    inset-inline-start: 0;
-  }
-
-  /* RTL styles */
-  :host([dir='rtl']) {
-    margin-left: calc(var(--lumo-space-xs) / 2);
-    margin-right: 0;
-    border-radius: 0;
-  }
-
-  :host([dir='rtl'][first-visible]) {
-    border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
-    margin-right: calc(var(--lumo-space-xs) / 2);
-  }
-
-  :host([dir='rtl'][last-visible]),
-  :host([dir='rtl'][slot='overflow']) {
-    border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
-  }
-`;L("vaadin-menu-bar-button",[Zs,hm],{moduleId:"lumo-menu-bar-button"});L("vaadin-menu-bar-button",S`
-    :host {
-      flex-shrink: 0;
-    }
-
-    :host([slot='overflow']) {
-      margin-inline-end: 0;
-    }
-  `,{moduleId:"vaadin-menu-bar-button-styles"});class dm extends Zd{static get is(){return"vaadin-menu-bar-button"}_onKeyDown(i){this.__triggeredWithActiveKeys=this._activeKeys.includes(i.key),super._onKeyDown(i),this.__triggeredWithActiveKeys=null}__shouldSuppressInteractionEvent(i){return i.type==="keydown"&&["ArrowLeft","ArrowRight"].includes(i.key)?!1:super.__shouldSuppressInteractionEvent(i)}}R(dm);const zc=S`
-  /* :hover needed to workaround https://github.com/vaadin/web-components/issues/3133 */
-  :host(:hover) {
-    user-select: none;
-    -webkit-user-select: none;
-  }
-
-  :host([role='menuitem'][menu-item-checked]) [part='checkmark']::before {
-    opacity: 1;
-  }
-
-  :host([aria-haspopup='true'])::after {
-    font-family: lumo-icons;
-    font-size: var(--lumo-icon-size-xs);
-    content: var(--lumo-icons-angle-right);
-    color: var(--lumo-tertiary-text-color);
-  }
-
-  :host(:not([dir='rtl'])[aria-haspopup='true'])::after {
-    margin-right: calc(var(--lumo-space-m) * -1);
-    padding-left: var(--lumo-space-m);
-  }
-
-  :host([expanded]) {
-    background-color: var(--lumo-primary-color-10pct);
-  }
-
-  /* RTL styles */
-  :host([dir='rtl'][aria-haspopup='true'])::after {
-    content: var(--lumo-icons-angle-left);
-    margin-left: calc(var(--lumo-space-m) * -1);
-    padding-right: var(--lumo-space-m);
-  }
-`;L("vaadin-context-menu-item",[xr,zc],{moduleId:"lumo-context-menu-item"});const cm=S`
-  [part='content'] {
-    display: flex;
-    /* tweak to inherit centering from menu bar button */
-    align-items: inherit;
-    justify-content: inherit;
-  }
-
-  [part='content'] ::slotted(vaadin-icon) {
-    display: inline-block;
-    width: var(--lumo-icon-size-m);
-    height: var(--lumo-icon-size-m);
-  }
-
-  [part='content'] ::slotted(vaadin-icon[icon^='vaadin:']) {
-    padding: var(--lumo-space-xs);
-    box-sizing: border-box !important;
-  }
-`;L("vaadin-menu-bar-item",[xr,zc,cm],{moduleId:"lumo-menu-bar-item"});const ns=S`
-  :host {
-    -webkit-tap-highlight-color: transparent;
-    --_lumo-item-selected-icon-display: var(--_lumo-list-box-item-selected-icon-display, block);
-  }
-
-  /* Dividers */
-  [part='items'] ::slotted(hr) {
-    height: 1px;
-    border: 0;
-    padding: 0;
-    margin: var(--lumo-space-s) var(--lumo-border-radius-m);
-    background-color: var(--lumo-contrast-10pct);
-  }
-`;L("vaadin-list-box",ns,{moduleId:"lumo-list-box"});const Cc=S`
-  :host {
-    --_lumo-list-box-item-selected-icon-display: block;
-  }
-
-  /* Normal item */
-  [part='items'] ::slotted([role='menuitem']) {
-    -webkit-tap-highlight-color: var(--lumo-primary-color-10pct);
-    cursor: default;
-    outline: none;
-    border-radius: var(--lumo-border-radius-m);
-    padding-left: calc(var(--lumo-border-radius-m) / 4);
-    padding-right: calc(var(--lumo-space-l) + var(--lumo-border-radius-m) / 4);
-  }
-
-  /* Hovered item */
-  /* TODO a workaround until we have "focus-follows-mouse". After that, use the hover style for focus-ring as well */
-  [part='items'] ::slotted([role='menuitem']:hover:not([disabled])),
-  [part='items'] ::slotted([role='menuitem'][expanded]:not([disabled])) {
-    background-color: var(--lumo-primary-color-10pct);
-  }
-
-  /* RTL styles */
-  :host([dir='rtl']) [part='items'] ::slotted([role='menuitem']) {
-    padding-left: calc(var(--lumo-space-l) + var(--lumo-border-radius-m) / 4);
-    padding-right: calc(var(--lumo-border-radius-m) / 4);
-  }
-
-  /* Focused item */
-  @media (pointer: coarse) {
-    [part='items'] ::slotted([role='menuitem']:hover:not([expanded]):not([disabled])) {
-      background-color: transparent;
-    }
-  }
-`;L("vaadin-context-menu-list-box",[ns,Cc],{moduleId:"lumo-context-menu-list-box"});L("vaadin-menu-bar-list-box",[ns,Cc],{moduleId:"lumo-menu-bar-list-box"});const Ac=S`
-  :host([phone]) {
-    /* stylelint-disable declaration-block-no-redundant-longhand-properties */
-    top: 0 !important;
-    right: 0 !important;
-    bottom: var(--vaadin-overlay-viewport-bottom) !important;
-    left: 0 !important;
-    /* stylelint-enable declaration-block-no-redundant-longhand-properties */
-    align-items: stretch;
-    justify-content: flex-end;
-  }
-
-  /* TODO These style overrides should not be needed.
-   We should instead offer a way to have non-selectable items inside the context menu. */
-
-  :host {
-    --_lumo-list-box-item-selected-icon-display: none;
-    --_lumo-list-box-item-padding-left: calc(var(--lumo-space-m) + var(--lumo-border-radius-m) / 4);
-  }
-
-  [part='overlay'] {
-    outline: none;
-  }
-`;L("vaadin-context-menu-overlay",[as,Ac],{moduleId:"lumo-context-menu-overlay"});const um=S`
-  :host(:first-of-type) {
-    padding-top: var(--lumo-space-xs);
-  }
-`;L("vaadin-menu-bar-overlay",[as,Ac,um],{moduleId:"lumo-menu-bar-overlay"});L("vaadin-menu-bar",S`
-    :host([has-single-button]) ::slotted(vaadin-menu-bar-button) {
-      border-radius: var(--lumo-border-radius-m);
-    }
-
-    :host([theme~='end-aligned']) ::slotted(vaadin-menu-bar-button[first-visible]),
-    :host([theme~='end-aligned'][has-single-button]) ::slotted(vaadin-menu-bar-button) {
-      margin-inline-start: auto;
-    }
-  `,{moduleId:"lumo-menu-bar"});class pm extends fa(Y(xt($))){static get is(){return"vaadin-menu-bar-item"}static get template(){return V`
-      <style>
-        :host {
-          display: inline-block;
-        }
-
-        :host([hidden]) {
-          display: none !important;
-        }
-      </style>
-      <span part="checkmark" aria-hidden="true"></span>
-      <div part="content">
-        <slot></slot>
-      </div>
-    `}connectedCallback(){super.connectedCallback(),this.setAttribute("role","menuitem")}}R(pm);class vm extends _a(Y(xt(Mt($)))){static get is(){return"vaadin-menu-bar-list-box"}static get template(){return V`
-      <style>
-        :host {
-          display: flex;
-        }
-
-        :host([hidden]) {
-          display: none !important;
-        }
-
-        [part='items'] {
-          height: 100%;
-          width: 100%;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-        }
-      </style>
-      <div part="items">
-        <slot></slot>
-      </div>
-    `}static get properties(){return{orientation:{readOnly:!0}}}get _scrollerElement(){return this.shadowRoot.querySelector('[part="items"]')}ready(){super.ready(),this.setAttribute("role","menu")}}R(vm);const Mc=a=>class extends Xd(br(a)){static get properties(){return{parentOverlay:{type:Object,readOnly:!0},_theme:{type:String,readOnly:!0,sync:!0}}}static get observers(){return["_themeChanged(_theme)"]}ready(){super.ready(),this.restoreFocusOnClose=!0,this.addEventListener("keydown",t=>{if(!t.defaultPrevented&&t.composedPath()[0]===this.$.overlay&&[38,40].indexOf(t.keyCode)>-1){const e=this.getFirstChild();e&&Array.isArray(e.items)&&e.items.length&&(t.preventDefault(),t.keyCode===38?e.items[e.items.length-1].focus():e.focus())}})}getFirstChild(){return this.querySelector(":not(style):not(slot)")}_themeChanged(){this.close()}getBoundaries(){const t=this.getBoundingClientRect(),e=this.$.overlay.getBoundingClientRect();let r=t.bottom-e.height;const s=this.parentOverlay;if(s&&s.hasAttribute("bottom-aligned")){const o=getComputedStyle(s);r=r-parseFloat(o.bottom)-parseFloat(o.height)}return{xMax:t.right-e.width,xMin:t.left+e.width,yMax:r}}_updatePosition(){if(super._updatePosition(),this.positionTarget&&this.parentOverlay){const t=this.$.content,e=getComputedStyle(t);!!this.style.left?this.style.left=`${parseFloat(this.style.left)+parseFloat(e.paddingLeft)}px`:this.style.right=`${parseFloat(this.style.right)+parseFloat(e.paddingRight)}px`,!!this.style.bottom?this.style.bottom=`${parseFloat(this.style.bottom)-parseFloat(e.paddingBottom)}px`:this.style.top=`${parseFloat(this.style.top)-parseFloat(e.paddingTop)}px`}}_shouldRestoreFocus(){return this.parentOverlay?!1:super._shouldRestoreFocus()}_deepContains(t){let e=wn(this.localName,t);for(;e;){if(e===this)return!0;e=e.parentOverlay}return!1}};const Ec=S`
-  :host {
-    align-items: flex-start;
-    justify-content: flex-start;
-  }
-
-  :host([right-aligned]),
-  :host([end-aligned]) {
-    align-items: flex-end;
-  }
-
-  :host([bottom-aligned]) {
-    justify-content: flex-end;
-  }
-
-  [part='overlay'] {
-    background-color: #fff;
-  }
-
-  @media (forced-colors: active) {
-    [part='overlay'] {
-      outline: 3px solid !important;
-    }
-  }
-`;L("vaadin-menu-bar-overlay",[ti,Ec],{moduleId:"vaadin-menu-bar-overlay-styles"});class mm extends Mc(li(xt(Y($)))){static get is(){return"vaadin-menu-bar-overlay"}static get template(){return V`
-      <div id="backdrop" part="backdrop" hidden$="[[!withBackdrop]]"></div>
-      <div part="overlay" id="overlay" tabindex="0">
-        <div part="content" id="content">
-          <slot></slot>
-        </div>
-      </div>
-    `}}R(mm);const fm=a=>class extends a{static get properties(){return{items:{type:Array,sync:!0}}}constructor(){super(),this.__itemsOutsideClickListener=t=>{this._shouldCloseOnOutsideClick(t)&&this.dispatchEvent(new CustomEvent("items-outside-click"))},this.addEventListener("items-outside-click",()=>{this.items&&this.close()})}get _tagNamePrefix(){return"vaadin-context-menu"}connectedCallback(){super.connectedCallback(),document.documentElement.addEventListener("click",this.__itemsOutsideClickListener)}disconnectedCallback(){super.disconnectedCallback(),document.documentElement.removeEventListener("click",this.__itemsOutsideClickListener)}_shouldCloseOnOutsideClick(t){return!t.composedPath().some(e=>e.localName===`${this._tagNamePrefix}-overlay`)}__forwardFocus(){const t=this._overlayElement,e=t.getFirstChild();if(t.parentOverlay){const r=t.parentOverlay.querySelector("[expanded]");r&&r.hasAttribute("focused")&&e?e.focus():t.$.overlay.focus()}else e&&e.focus()}__openSubMenu(t,e,r){this.__updateSubMenuForItem(t,e),t.overlayClass=r;const s=this._overlayElement,o=t._overlayElement;o.noHorizontalOverlap=!0,o._setParentOverlay(s),s.hasAttribute("theme")?t.setAttribute("theme",s.getAttribute("theme")):t.removeAttribute("theme");const n=o.$.content;n.style.minWidth="",e.dispatchEvent(new CustomEvent("opensubmenu",{detail:{children:e._item.children}}))}__updateSubMenuForItem(t,e){t.items=e._item.children,t.listenOn=e,t._overlayElement.positionTarget=e}__createComponent(t){let e;return t.component instanceof HTMLElement?e=t.component:e=document.createElement(t.component||`${this._tagNamePrefix}-item`),e._hasVaadinItemMixin&&(e.setAttribute("role","menuitem"),e.tabIndex=-1),e.localName==="hr"?e.setAttribute("role","separator"):e.setAttribute("aria-haspopup","false"),this._setMenuItemTheme(e,t,this._theme),e._item=t,t.text&&(e.textContent=t.text),t.className&&e.setAttribute("class",t.className),this.__toggleMenuComponentAttribute(e,"menu-item-checked",t.checked),this.__toggleMenuComponentAttribute(e,"disabled",t.disabled),t.children&&t.children.length&&(this.__updateExpanded(e,!1),e.setAttribute("aria-haspopup","true")),e}__initListBox(){const t=document.createElement(`${this._tagNamePrefix}-list-box`);return this._theme&&t.setAttribute("theme",this._theme),t.addEventListener("selected-changed",e=>{const{value:r}=e.detail;if(typeof r=="number"){const s=t.items[r]._item;t.selected=null,s.children||this.dispatchEvent(new CustomEvent("item-selected",{detail:{value:s}}))}}),t}__initOverlay(){const t=this._overlayElement;t.$.backdrop.addEventListener("click",()=>{this.close()}),t.addEventListener(pr?"click":"mouseover",e=>{this.__showSubMenu(e)}),t.addEventListener("keydown",e=>{const{key:r}=e,s=this.__isRTL,o=r==="ArrowRight",n=r==="ArrowLeft";!s&&o||s&&n||r==="Enter"||r===" "?this.__showSubMenu(e):!s&&n||s&&o||r==="Escape"?(r==="Escape"&&e.stopPropagation(),this.close(),this.listenOn.focus()):r==="Tab"&&!e.defaultPrevented&&this.dispatchEvent(new CustomEvent("close-all-menus"))})}__initSubMenu(){const t=document.createElement(this.constructor.is);return t._modeless=!0,t.openOn="opensubmenu",t.setAttribute("hidden",""),this.addEventListener("opened-changed",e=>{e.detail.value||this._subMenu.close()}),t.addEventListener("close-all-menus",()=>{this.dispatchEvent(new CustomEvent("close-all-menus"))}),t.addEventListener("item-selected",e=>{const{detail:r}=e;this.dispatchEvent(new CustomEvent("item-selected",{detail:r}))}),this.addEventListener("close-all-menus",()=>{this._overlayElement.close()}),this.addEventListener("item-selected",e=>{const r=e.target,s=e.detail.value,o=r.items.indexOf(s);s.keepOpen&&o>-1&&r.opened?(r.__selectedIndex=o,r.requestContentUpdate()):s.keepOpen||this.close()}),t.addEventListener("opened-changed",e=>{if(!e.detail.value){const r=this._listBox.querySelector("[expanded]");r&&this.__updateExpanded(r,!1)}}),t}__showSubMenu(t,e=t.composedPath().find(r=>r.localName===`${this._tagNamePrefix}-item`)){if(!this.__openListenerActive)return;if(this._overlayElement.hasAttribute("opening")){requestAnimationFrame(()=>{this.__showSubMenu(t,e)});return}const r=this._subMenu;if(e){const{children:s}=e._item,o=r._overlayElement.getFirstChild(),n=o&&o.focused;if(r.items!==s&&r.close(),!this.opened)return;if(s&&s.length){this.__updateExpanded(e,!0);const{overlayClass:l}=this;this.__openSubMenu(r,e,l)}else n?r.listenOn.focus():this._listBox.focused||this._overlayElement.$.overlay.focus()}}__getListBox(){return this._overlayElement.querySelector(`${this._tagNamePrefix}-list-box`)}__itemsRenderer(t,e){this.__initMenu(t,e);const r=t.querySelector(this.constructor.is);r.closeOn=e.closeOn;const s=this.__getListBox();s.innerHTML="",e.items.forEach(o=>{const n=this.__createComponent(o);s.appendChild(n)})}_setMenuItemTheme(t,e,r){let s=t.getAttribute("theme")||r;e.theme!=null&&(s=Array.isArray(e.theme)?e.theme.join(" "):e.theme),this.__updateTheme(t,s)}__toggleMenuComponentAttribute(t,e,r){r?(t.setAttribute(e,""),t[`__has-${e}`]=!0):t[`__has-${e}`]&&(t.removeAttribute(e),t[`__has-${e}`]=!1)}__initMenu(t,e){if(t.firstElementChild)this.__updateTheme(this._listBox,this._theme);else{this.__initOverlay();const r=this.__initListBox();this._listBox=r,t.appendChild(r);const s=this.__initSubMenu();this._subMenu=s,t.appendChild(s),requestAnimationFrame(()=>{this.__openListenerActive=!0})}}__updateExpanded(t,e){t.setAttribute("aria-expanded",e.toString()),t.toggleAttribute("expanded",e)}__updateTheme(t,e){e?t.setAttribute("theme",e):t.removeAttribute("theme")}};const kc=a=>class extends fm(a){static get properties(){return{selector:{type:String},opened:{type:Boolean,value:!1,notify:!0,readOnly:!0},openOn:{type:String,value:"vaadin-contextmenu",sync:!0},listenOn:{type:Object,sync:!0,value(){return this}},closeOn:{type:String,value:"click",observer:"_closeOnChanged",sync:!0},renderer:{type:Function,sync:!0},_modeless:{type:Boolean,sync:!0},_context:{type:Object,sync:!0},_phone:{type:Boolean},_fullscreen:{type:Boolean},_fullscreenMediaQuery:{type:String,value:"(max-width: 450px), (max-height: 450px)"}}}static get observers(){return["_openedChanged(opened)","_targetOrOpenOnChanged(listenOn, openOn)","_rendererChanged(renderer, items)","_fullscreenChanged(_fullscreen)","_overlayContextChanged(_overlayElement, _context)","_overlayModelessChanged(_overlayElement, _modeless)","_overlayPhoneChanged(_overlayElement, _phone)","_overlayThemeChanged(_overlayElement, _theme)"]}constructor(){super(),this._createOverlay(),this._boundOpen=this.open.bind(this),this._boundClose=this.close.bind(this),this._boundPreventDefault=this._preventDefault.bind(this),this._boundOnGlobalContextMenu=this._onGlobalContextMenu.bind(this)}connectedCallback(){super.connectedCallback(),this.__boundOnScroll=this.__onScroll.bind(this),window.addEventListener("scroll",this.__boundOnScroll,!0),this.__restoreOpened&&this._setOpened(!0)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("scroll",this.__boundOnScroll,!0),this.__restoreOpened=this.opened,this.close()}ready(){super.ready(),this.addController(new os(this._fullscreenMediaQuery,t=>{this._fullscreen=t}))}_createOverlay(){const t=document.createElement(`${this._tagNamePrefix}-overlay`);t.owner=this,t.addEventListener("opened-changed",e=>{this._onOverlayOpened(e)}),t.addEventListener("vaadin-overlay-open",e=>{this._onVaadinOverlayOpen(e)}),this._overlayElement=t}_onOverlayOpened(t){const e=t.detail.value;this._setOpened(e),e&&this.__alignOverlayPosition()}_onVaadinOverlayOpen(){this.__alignOverlayPosition(),this._overlayElement.style.visibility="",this.__forwardFocus()}_overlayContextChanged(t,e){t&&(t.model=e)}_overlayModelessChanged(t,e){t&&(t.modeless=e)}_overlayPhoneChanged(t,e){t&&(t.toggleAttribute("phone",e),t.withBackdrop=e)}_overlayThemeChanged(t,e){t&&(e?t.setAttribute("theme",e):t.removeAttribute("theme"))}_targetOrOpenOnChanged(t,e){this._oldListenOn&&this._oldOpenOn&&(this._unlisten(this._oldListenOn,this._oldOpenOn,this._boundOpen),this._oldListenOn.style.webkitTouchCallout="",this._oldListenOn.style.webkitUserSelect="",this._oldListenOn.style.userSelect="",this._oldListenOn=null,this._oldOpenOn=null),t&&e&&(this._listen(t,e,this._boundOpen),this._oldListenOn=t,this._oldOpenOn=e)}_fullscreenChanged(t){this._phone=t}__setListenOnUserSelect(t){const e=t?"none":"";this.listenOn.style.webkitTouchCallout=e,this.listenOn.style.webkitUserSelect=e,this.listenOn.style.userSelect=e,t&&document.getSelection().removeAllRanges()}_closeOnChanged(t,e){const r="vaadin-overlay-outside-click",s=this._overlayElement;e&&this._unlisten(s,e,this._boundClose),t?(this._listen(s,t,this._boundClose),s.removeEventListener(r,this._boundPreventDefault)):s.addEventListener(r,this._boundPreventDefault)}_preventDefault(t){t.preventDefault()}_openedChanged(t){t?document.documentElement.addEventListener("contextmenu",this._boundOnGlobalContextMenu,!0):document.documentElement.removeEventListener("contextmenu",this._boundOnGlobalContextMenu,!0),this.__setListenOnUserSelect(t),this._overlayElement.opened=t}requestContentUpdate(){this._overlayElement&&(this.__preserveMenuState(),this._overlayElement.requestContentUpdate(),this.__restoreMenuState())}_rendererChanged(t,e){if(e){if(t)throw new Error("The items API cannot be used together with a renderer");this.closeOn==="click"&&(this.closeOn=""),t=this.__itemsRenderer}this._overlayElement.renderer=t}close(){this._setOpened(!1)}_contextTarget(t){if(this.selector){const e=this.listenOn.querySelectorAll(this.selector);return Array.prototype.filter.call(e,r=>t.composedPath().indexOf(r)>-1)[0]}return t.target}open(t){t&&!this.opened&&(this._context={detail:t.detail,target:this._contextTarget(t)},this._context.target&&(t.preventDefault(),t.stopPropagation(),this.__x=this._getEventCoordinate(t,"x"),this.__pageXOffset=window.pageXOffset,this.__y=this._getEventCoordinate(t,"y"),this.__pageYOffset=window.pageYOffset,this._overlayElement.style.visibility="hidden",this._setOpened(!0)))}__preserveMenuState(){const t=this.__getListBox();t&&(this.__focusedIndex=t.items.indexOf(t.focused),this._subMenu&&this._subMenu.opened&&(this.__subMenuIndex=t.items.indexOf(this._subMenu.listenOn)))}__restoreMenuState(){const t=this.__focusedIndex,e=this.__subMenuIndex,r=this.__selectedIndex,s=this.__getListBox();if(s){if(s._observer.flush(),e>-1){const o=s.items[e];o?Array.isArray(o._item.children)&&o._item.children.length?(this.__updateSubMenuForItem(this._subMenu,o),this._subMenu.requestContentUpdate()):(this._subMenu.close(),this.__focusItem(o)):s.focus()}this.__focusItem(r>-1?s.children[r]:s.items[t])}this.__focusedIndex=void 0,this.__subMenuIndex=void 0,this.__selectedIndex=void 0}__focusItem(t){t&&t.focus({focusVisible:Ie()})}__onScroll(){if(!this.opened)return;const t=window.pageYOffset-this.__pageYOffset,e=window.pageXOffset-this.__pageXOffset;this.__adjustPosition("left",-e),this.__adjustPosition("right",e),this.__adjustPosition("top",-t),this.__adjustPosition("bottom",t),this.__pageYOffset+=t,this.__pageXOffset+=e}__adjustPosition(t,e){const s=this._overlayElement.style;s[t]=`${(parseInt(s[t])||0)+e}px`}__alignOverlayPosition(){const t=this._overlayElement;if(t.positionTarget)return;const e=t.style;["top","right","bottom","left"].forEach(p=>e.removeProperty(p)),["right-aligned","end-aligned","bottom-aligned"].forEach(p=>t.removeAttribute(p));const{xMax:r,xMin:s,yMax:o}=t.getBoundaries(),n=this.__x,l=this.__y,h=document.documentElement.clientWidth,u=document.documentElement.clientHeight;this.__isRTL?n>h/2||n>s?e.right=`${Math.max(0,h-n)}px`:(e.left=`${n}px`,this._setEndAligned(t)):n<h/2||n<r?e.left=`${n}px`:(e.right=`${Math.max(0,h-n)}px`,this._setEndAligned(t)),l<u/2||l<o?e.top=`${l}px`:(e.bottom=`${Math.max(0,u-l)}px`,t.setAttribute("bottom-aligned",""))}_setEndAligned(t){t.setAttribute("end-aligned",""),this.__isRTL||t.setAttribute("right-aligned","")}_getEventCoordinate(t,e){if(t.detail instanceof Object){if(t.detail[e])return t.detail[e];if(t.detail.sourceEvent)return this._getEventCoordinate(t.detail.sourceEvent,e)}else{const r=`client${e.toUpperCase()}`,s=t.changedTouches?t.changedTouches[0][r]:t[r];if(s===0){const o=t.target.getBoundingClientRect();return e==="x"?o.left:o.top+o.height}return s}}_listen(t,e,r){Or[e]?Be(t,e,r):t.addEventListener(e,r)}_unlisten(t,e,r){Or[e]?ev(t,e,r):t.removeEventListener(e,r)}__createMouseEvent(t,e,r){return new MouseEvent(t,{bubbles:!0,composed:!0,cancelable:!0,clientX:e,clientY:r})}__focusClosestFocusable(t){let e=t;for(;e;){if(e instanceof HTMLElement&&Za(e)){e.focus();return}e=e.parentNode||e.host}}__contextMenuAt(t,e){const r=jd(t,e);r&&queueMicrotask(()=>{r.dispatchEvent(this.__createMouseEvent("mousedown",t,e)),r.dispatchEvent(this.__createMouseEvent("mouseup",t,e)),this.__focusClosestFocusable(r),r.dispatchEvent(this.__createMouseEvent("contextmenu",t,e))})}_onGlobalContextMenu(t){t.shiftKey||(Ko||ur||(t.stopPropagation(),this._overlayElement.__focusRestorationController.focusNode=null,this._overlayElement.addEventListener("vaadin-overlay-closed",()=>this.__contextMenuAt(t.clientX,t.clientY),{once:!0})),t.preventDefault(),this.close())}};const _m=a=>class extends kc(fi(a)){constructor(){super(),this.openOn="opensubmenu"}get _tagNamePrefix(){return"vaadin-menu-bar"}_openedChanged(t){this._overlayElement.opened=t}close(){super.close(),this.hasAttribute("is-root")&&this.getRootNode().host._close()}_shouldCloseOnOutsideClick(t){return this.hasAttribute("is-root")&&t.composedPath().includes(this.listenOn)?!1:super._shouldCloseOnOutsideClick(t)}};class gm extends _m(Mt(Xi($))){static get is(){return"vaadin-menu-bar-submenu"}static get template(){return V`
-      <style>
-        :host {
-          display: block;
-        }
-
-        :host([hidden]) {
-          display: none !important;
-        }
-      </style>
-
-      <slot id="slot"></slot>
-    `}_attachDom(i){const t=this.attachShadow({mode:"open"});return t.appendChild(i),t.appendChild(this._overlayElement),t}}R(gm);class bm extends J0{update(i,[{component:t,text:e}]){const{parentNode:r,startNode:s}=i,o=t||(e?document.createTextNode(e):null),n=this.getOldNode(i);return n===o?cl:(n&&o?r.replaceChild(o,n):n?r.removeChild(n):o&&s.after(o),cl)}getOldNode(i){const{startNode:t,endNode:e}=i;return t.nextSibling===e?null:t.nextSibling}}const ym=Mi(bm),xm={moreOptions:"More options"},wm=a=>class extends er(xm,eo(Ji(He(Bi(Mt(a)))))){static get properties(){return{items:{type:Array,sync:!0,value:()=>[]},overlayClass:{type:String},openOnHover:{type:Boolean},reverseCollapse:{type:Boolean,sync:!0},tabNavigation:{type:Boolean,sync:!0},_hasOverflow:{type:Boolean,value:!1,sync:!0},_overflow:{type:Object},_container:{type:Object,sync:!0}}}static get observers(){return["_themeChanged(_theme, _overflow, _container)","__hasOverflowChanged(_hasOverflow, _overflow)","__i18nChanged(__effectiveI18n, _overflow)","__updateButtons(items, disabled, _overflow, _container)","_reverseCollapseChanged(reverseCollapse, _overflow, _container)","_tabNavigationChanged(tabNavigation, _overflow, _container)"]}get i18n(){return super.i18n}set i18n(t){super.i18n=t}constructor(){super(),this.__boundOnContextMenuKeydown=this.__onContextMenuKeydown.bind(this),this.__boundOnTooltipMouseLeave=this.__onTooltipOverlayMouseLeave.bind(this)}get focused(){return(this._getItems()||[]).find(Xe)||this._expandedButton}get _vertical(){return!1}get _tabNavigation(){return this.tabNavigation}get _observeParent(){return!0}get _buttons(){return Array.from(this.querySelectorAll("vaadin-menu-bar-button"))}get _subMenu(){return this.shadowRoot.querySelector("vaadin-menu-bar-submenu")}ready(){super.ready(),this.setAttribute("role","menubar"),this._overflowController=new Ft(this,"overflow","vaadin-menu-bar-button",{initializer:r=>{r.setAttribute("hidden","");const s=document.createElement("div");s.setAttribute("aria-hidden","true"),s.innerHTML="&centerdot;".repeat(3),r.appendChild(s),r.setAttribute("aria-haspopup","true"),r.setAttribute("aria-expanded","false"),r.setAttribute("role",this.tabNavigation?"button":"menuitem"),this._overflow=r}}),this.addController(this._overflowController),this.addEventListener("mousedown",()=>this._hideTooltip(!0)),this.addEventListener("mouseleave",()=>this._hideTooltip()),this._subMenu.addEventListener("item-selected",this.__onItemSelected.bind(this)),this._subMenu.addEventListener("close-all-menus",this.__onEscapeClose.bind(this)),this._subMenu._overlayElement.addEventListener("keydown",this.__boundOnContextMenuKeydown);const e=this.shadowRoot.querySelector('[part="container"]');e.addEventListener("click",this.__onButtonClick.bind(this)),e.addEventListener("mouseover",r=>this._onMouseOver(r)),this._container=e}_getItems(){return this._buttons}disconnectedCallback(){super.disconnectedCallback(),this._hideTooltip(!0)}_onResize(){this.__scheduleOverflow()}_themeChanged(t,e,r){e&&r&&(this.__renderButtons(this.items),this.__scheduleOverflow(),t?(e.setAttribute("theme",t),this._subMenu.setAttribute("theme",t)):(e.removeAttribute("theme"),this._subMenu.removeAttribute("theme")))}_reverseCollapseChanged(t,e,r){e&&r&&this.__scheduleOverflow()}_tabNavigationChanged(t,e,r){if(e&&r){const s=this.querySelector('[tabindex="0"]');this._buttons.forEach(o=>{s?this._setTabindex(o,o===s):this._setTabindex(o,!1),o.setAttribute("role",t?"button":"menuitem")})}this.setAttribute("role",t?"group":"menubar")}__hasOverflowChanged(t,e){e&&e.toggleAttribute("hidden",!t)}__updateButtons(t,e,r,s){if(!r||!s)return;t!==this._oldItems&&(this._oldItems=t,this.__renderButtons(t),this.__scheduleOverflow()),e!==this._oldDisabled&&(this._oldDisabled=e,this.__renderButtons(t),r.toggleAttribute("disabled",e));const o=this._subMenu;if(o&&o.opened){const n=o._overlayElement.positionTarget;(!n.isConnected||!Array.isArray(n.item.children)||n.item.children.length===0)&&o.close()}}__i18nChanged(t,e){e&&t&&t.moreOptions!==void 0&&(t.moreOptions?e.setAttribute("aria-label",t.moreOptions):e.removeAttribute("aria-label"))}__getOverflowCount(t){return t.item&&t.item.children&&t.item.children.length||0}__restoreButtons(t){t.forEach(e=>{e.style.visibility="",e.style.position="",e.style.width="";const r=e.item&&e.item.component;r instanceof HTMLElement&&r.getAttribute("role")==="menuitem"&&this.__restoreItem(e,r)}),this.__updateOverflow([])}__restoreItem(t,e){t.appendChild(e),e.removeAttribute("role"),e.removeAttribute("aria-expanded"),e.removeAttribute("aria-haspopup"),e.removeAttribute("tabindex")}__updateOverflow(t){this._overflow.item={children:t},this._hasOverflow=t.length>0}__setOverflowItems(t,e){const r=this._container;if(r.offsetWidth<r.scrollWidth){this._hasOverflow=!0;const s=this.__isRTL,o=r.offsetLeft,n=[...t];for(;n.length;){const h=n[n.length-1],u=h.offsetLeft-o;if(!s&&u+h.offsetWidth<r.offsetWidth-e.offsetWidth||s&&u>=e.offsetWidth)break;const p=this.reverseCollapse?n.shift():n.pop();p.style.width=getComputedStyle(p).width,p.style.visibility="hidden",p.style.position="absolute"}const l=t.filter(h=>!n.includes(h)).map(h=>h.item);this.__updateOverflow(l)}}__scheduleOverflow(){this._overflowDebouncer=bt.debounce(this._overflowDebouncer,We,()=>{this.__detectOverflow()})}__detectOverflow(){const t=this._overflow,e=this._buttons.filter(l=>l!==t),r=this.__getOverflowCount(t);this.__restoreButtons(e),this.__setOverflowItems(e,t);const s=this.__getOverflowCount(t);r!==s&&this._subMenu.opened&&this._subMenu.close();const o=s===e.length||s===0&&e.length===1;this.toggleAttribute("has-single-button",o);const n=e.filter(l=>l.style.visibility!=="hidden");n.length?n.some(l=>l.getAttribute("tabindex")==="0")||this._setTabindex(n[n.length-1],!0):this._overflow.setAttribute("tabindex","0"),n.forEach((l,h,u)=>{l.toggleAttribute("first-visible",h===0),l.toggleAttribute("last-visible",!this._hasOverflow&&h===u.length-1)})}__getButtonTheme(t,e){let r=e;const s=t&&t.theme;return s!=null&&(r=Array.isArray(s)?s.join(" "):s),r}__getComponent(t){const e=t.component;let r;const s=e instanceof HTMLElement;if(s&&e.localName==="vaadin-menu-bar-item"?r=e:(r=document.createElement("vaadin-menu-bar-item"),r.appendChild(s?e:document.createElement(e))),t.text){const o=r.firstChild||r;o.textContent=t.text}return r}__renderButtons(t=[]){Pr(Te`
-          ${t.map(e=>{const r={...e},s=!!(e&&e.children);if(r.component){const o=this.__getComponent(r);r.component=o,o.item=r}return Te`
-              <vaadin-menu-bar-button
-                .item="${r}"
-                .disabled="${this.disabled||e.disabled}"
-                role="${this.tabNavigation?"button":"menuitem"}"
-                aria-haspopup="${si(s?"true":ai)}"
-                aria-expanded="${si(s?"false":ai)}"
-                class="${si(e.className||ai)}"
-                theme="${si(this.__getButtonTheme(e,this._theme)||ai)}"
-                @click="${this.__onRootButtonClick}"
-                >${ym(r)}</vaadin-menu-bar-button
-              >
-            `})}
-        `,this,{renderBefore:this._overflow})}__onRootButtonClick(t){const e=t.target;e.item&&e.item.component&&!t.composedPath().includes(e.item.component)&&(t.stopPropagation(),e.item.component.click())}_showTooltip(t,e){const r=this._tooltipController.node;r&&r.isConnected&&(r.generator===void 0&&(r.generator=({item:s})=>s&&s.tooltip),r._mouseLeaveListenerAdded||(r._overlayElement.addEventListener("mouseleave",this.__boundOnTooltipMouseLeave),r._mouseLeaveListenerAdded=!0),this._subMenu.opened||(this._tooltipController.setTarget(t),this._tooltipController.setContext({item:t.item}),r._stateController.open({hover:e,focus:!e})))}_hideTooltip(t){const e=this._tooltipController&&this._tooltipController.node;e&&e._stateController.close(t)}__onTooltipOverlayMouseLeave(t){t.relatedTarget!==this._tooltipController.target&&this._hideTooltip()}_setExpanded(t,e){t.toggleAttribute("expanded",e),t.toggleAttribute("active",e),t.setAttribute("aria-expanded",e?"true":"false")}_setTabindex(t,e){this.tabNavigation&&this._isItemFocusable(t)?t.setAttribute("tabindex","0"):t.setAttribute("tabindex",e?"0":"-1")}_focusItem(t,e,r){const s=r&&this.focused===this._expandedButton;s&&this._close(),super._focusItem(t,e,r),this._buttons.forEach(o=>{this._setTabindex(o,o===t)}),s&&t.item&&t.item.children?this.__openSubMenu(t,!0,{keepFocus:!0}):t===this._overflow?this._hideTooltip():this._showTooltip(t)}_getButtonFromEvent(t){return Array.from(t.composedPath()).find(e=>e.localName==="vaadin-menu-bar-button")}_setFocused(t){if(t){const e=this.__getFocusTarget();e&&this._buttons.forEach(r=>{this._setTabindex(r,r===e),r===e&&r!==this._overflow&&Ie()&&this._showTooltip(r)})}else this._hideTooltip()}__getFocusTarget(){let t=this._buttons.find(e=>Xe(e));if(!t){const e=this.tabNavigation?"[focused]":'[tabindex="0"]';t=this.querySelector(`vaadin-menu-bar-button${e}`),oi(t)&&(t=this._buttons[this._getFocusableIndex()])}return t}_onArrowDown(t){t.preventDefault();const e=this._getButtonFromEvent(t);e===this._expandedButton?this._focusFirstItem():this.__openSubMenu(e,!0)}_onArrowUp(t){t.preventDefault();const e=this._getButtonFromEvent(t);e===this._expandedButton?this._focusLastItem():this.__openSubMenu(e,!0,{focusLast:!0})}_onEscape(t){t.composedPath().includes(this._expandedButton)&&this._close(!0),this._hideTooltip(!0)}_onKeyDown(t){switch(t.key){case"ArrowDown":this._onArrowDown(t);break;case"ArrowUp":this._onArrowUp(t);break;default:super._onKeyDown(t);break}}_onMouseOver(t){const e=this._getButtonFromEvent(t);e?e!==this._expandedButton&&(e.item.children&&(this.openOnHover||this._subMenu.opened)&&this.__openSubMenu(e,!1),e===this._overflow||this.openOnHover&&e.item.children?this._hideTooltip():this._showTooltip(e,!0)):this._hideTooltip()}__onContextMenuKeydown(t){const e=Array.from(t.composedPath()).find(r=>r._item);if(e){const r=e.parentNode;t.keyCode===38&&e===r.items[0]&&this._close(!0),(t.keyCode===37||t.keyCode===39&&!e._item.children)&&(t.stopImmediatePropagation(),this._onKeyDown(t)),t.key==="Tab"&&this.tabNavigation&&this._onKeyDown(t)}}__fireItemSelected(t){this.dispatchEvent(new CustomEvent("item-selected",{detail:{value:t}}))}__onButtonClick(t){const e=this._getButtonFromEvent(t);e&&this.__openSubMenu(e,e.__triggeredWithActiveKeys)}__openSubMenu(t,e,r={}){if(t.disabled)return;const s=this._subMenu,o=t.item;if(s.opened&&(this._close(),s.listenOn===t))return;const n=o&&o.children;if(!n||n.length===0){this.__fireItemSelected(o);return}s.items=n,s.listenOn=t;const l=s._overlayElement;l.noVerticalOverlap=!0,this._hideTooltip(!0),this._expandedButton=t,this._setExpanded(t,!0),this.style.pointerEvents="auto",l.positionTarget=t,t.dispatchEvent(new CustomEvent("opensubmenu",{detail:{children:n}})),l.addEventListener("vaadin-overlay-open",()=>{if(r.focusLast&&this._focusLastItem(),r.keepFocus){const h={focusVisible:Ie()};this._focusItem(this._expandedButton,h,!1)}e||l.$.overlay.focus()},{once:!0})}_focusFirstItem(){this._subMenu._overlayElement.firstElementChild.focus()}_focusLastItem(){const t=this._subMenu._overlayElement.firstElementChild,e=t.items[t.items.length-1];e&&e.focus()}__onItemSelected(t){t.stopPropagation(),this.__fireItemSelected(t.detail.value)}__onEscapeClose(){this.__deactivateButton(!0)}__deactivateButton(t){const e=this._expandedButton;if(e&&e.hasAttribute("expanded")){if(this._setExpanded(e,!1),t){const r={focusVisible:Ie()};this._focusItem(e,r,!1)}this._expandedButton=null}}_close(t=!1){this.style.pointerEvents="",this.__deactivateButton(t),this._subMenu.opened&&this._subMenu.close()}close(){this._close()}_isItemFocusable(t){return t.disabled&&t.__shouldAllowFocusWhenDisabled?t.__shouldAllowFocusWhenDisabled():super._isItemFocusable(t)}};class zm extends wm(ot(Y($))){static get template(){return V`
-      <style>
-        :host {
-          display: block;
-        }
-
-        :host([hidden]) {
-          display: none !important;
-        }
-
-        [part='container'] {
-          position: relative;
-          display: flex;
-          width: 100%;
-          flex-wrap: nowrap;
-          overflow: hidden;
-        }
-      </style>
-
-      <div part="container">
-        <slot></slot>
-        <slot name="overflow"></slot>
-      </div>
-      <vaadin-menu-bar-submenu is-root overlay-class="[[overlayClass]]"></vaadin-menu-bar-submenu>
-
-      <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-menu-bar"}ready(){super.ready(),this._tooltipController=new le(this),this._tooltipController.setManual(!0),this.addController(this._tooltipController)}}R(zm);const Cm=S`
+    `}static get is(){return"vaadin-tabs"}}R(qm);const jm=S`
   [theme~='badge'] {
     display: inline-flex;
     align-items: center;
@@ -6124,7 +6700,7 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
     margin-left: -0.375em;
     margin-right: 0;
   }
-`;L("",Cm,{moduleId:"lumo-badge"});L("vaadin-form-row",U2,{moduleId:"vaadin-form-row-styles"});class Am extends Y($){static get is(){return"vaadin-form-row"}static get template(){return V`<slot></slot>`}}R(Am);L("vaadin-form-item",S`
+`;L("",jm,{moduleId:"lumo-badge"});L("vaadin-form-row",Em,{moduleId:"vaadin-form-row-styles"});class Um extends Y($){static get is(){return"vaadin-form-row"}static get template(){return V`<slot></slot>`}}R(Um);L("vaadin-form-item",S`
     /* font-weight, margin-bottom, transition and line-height same as for part label in text-field */
     [part='label'] {
       color: var(--lumo-secondary-text-color);
@@ -6155,8 +6731,8 @@ import{f as Y0,t as G0,A as ai,D as Pr,e as Mi,S as K0,n as X0,i as Pi,a as S,o 
     :host([invalid]) [part='required-indicator']::after {
       color: var(--lumo-required-field-indicator-color, var(--lumo-error-text-color));
     }
-  `,{moduleId:"lumo-form-item"});const nh=new Set;function bs(a){nh.has(a)||(nh.add(a),console.warn(a))}const Mm=a=>class extends a{constructor(){super(),this.__onFieldInteraction=this.__onFieldInteraction.bind(this),this.__fieldNodeObserver=new MutationObserver(()=>this.__synchronizeAttributes()),this.__labelNode=null,this.__fieldNode=null,this.__isFieldDirty=!1}ready(){super.ready();const i=getComputedStyle(this),t=i.getPropertyValue("--vaadin-form-item-row-spacing"),e=i.getPropertyValue("--vaadin-form-item-label-width"),r=i.getPropertyValue("--vaadin-form-item-label-spacing");t!==""&&parseInt(t)!==0&&bs("`--vaadin-form-item-row-spacing` is deprecated since 24.7. Use `--vaadin-form-layout-row-spacing` on <vaadin-form-layout> instead."),e!==""&&parseInt(e)!==0&&bs("`--vaadin-form-item-label-width` is deprecated since 24.7. Use `--vaadin-form-layout-label-width` on <vaadin-form-layout> instead."),r!==""&&parseInt(r)!==0&&bs("`--vaadin-form-item-label-spacing` is deprecated since 24.7. Use `--vaadin-form-layout-label-spacing` on <vaadin-form-layout> instead.")}_getFieldAriaTarget(i){return i.ariaTarget||i}__linkLabelToField(i){ua(this._getFieldAriaTarget(i),"aria-labelledby",this.__labelId)}__unlinkLabelFromField(i){Ka(this._getFieldAriaTarget(i),"aria-labelledby",this.__labelId)}__onLabelClick(){const i=this.__fieldNode;i&&(i.focus({focusVisible:!1}),i.click())}__onLabelSlotChange(){this.__labelNode&&(this.__labelNode=null,this.__fieldNode&&this.__unlinkLabelFromField(this.__fieldNode));const i=this.$.labelSlot.assignedElements()[0];i&&(this.__labelNode=i,this.__labelNode.id?this.__labelId=this.__labelNode.id:(this.__labelId=`label-${this.localName}-${mi()}`,this.__labelNode.id=this.__labelId),this.__fieldNode&&this.__linkLabelToField(this.__fieldNode))}__onContentSlotChange(){this.__fieldNode&&(this.__unlinkLabelFromField(this.__fieldNode),this.__fieldNodeObserver.disconnect(),this.__fieldNode.removeEventListener("blur",this.__onFieldInteraction),this.__fieldNode.removeEventListener("change",this.__onFieldInteraction),this.__fieldNode=null,this.__isFieldDirty=!1);const i=this.$.contentSlot.assignedElements();i.length>1&&bs(`WARNING: Since Vaadin 23, placing multiple fields directly to a <vaadin-form-item> is deprecated.
-Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.validate||e.checkValidity);t&&(this.__fieldNode=t,this.__fieldNode.addEventListener("blur",this.__onFieldInteraction),this.__fieldNode.addEventListener("change",this.__onFieldInteraction),this.__fieldNodeObserver.observe(this.__fieldNode,{attributes:!0,attributeFilter:["required","invalid"]}),this.__labelNode&&this.__linkLabelToField(this.__fieldNode)),this.__synchronizeAttributes()}__onFieldInteraction(){this.__isFieldDirty=!0,this.__synchronizeAttributes()}__synchronizeAttributes(){const i=this.__fieldNode;if(!i){this.removeAttribute("required"),this.removeAttribute("invalid");return}this.toggleAttribute("required",i.hasAttribute("required")),this.toggleAttribute("invalid",i.hasAttribute("invalid")||i.matches(":invalid")&&this.__isFieldDirty)}};L("vaadin-form-item",W2,{moduleId:"vaadin-form-item-styles"});class Em extends Mm(Y($)){static get is(){return"vaadin-form-item"}static get template(){return V`
+  `,{moduleId:"lumo-form-item"});const nh=new Set;function bs(a){nh.has(a)||(nh.add(a),console.warn(a))}const Wm=a=>class extends a{constructor(){super(),this.__onFieldInteraction=this.__onFieldInteraction.bind(this),this.__fieldNodeObserver=new MutationObserver(()=>this.__synchronizeAttributes()),this.__labelNode=null,this.__fieldNode=null,this.__isFieldDirty=!1}ready(){super.ready();const i=getComputedStyle(this),t=i.getPropertyValue("--vaadin-form-item-row-spacing"),e=i.getPropertyValue("--vaadin-form-item-label-width"),r=i.getPropertyValue("--vaadin-form-item-label-spacing");t!==""&&parseInt(t)!==0&&bs("`--vaadin-form-item-row-spacing` is deprecated since 24.7. Use `--vaadin-form-layout-row-spacing` on <vaadin-form-layout> instead."),e!==""&&parseInt(e)!==0&&bs("`--vaadin-form-item-label-width` is deprecated since 24.7. Use `--vaadin-form-layout-label-width` on <vaadin-form-layout> instead."),r!==""&&parseInt(r)!==0&&bs("`--vaadin-form-item-label-spacing` is deprecated since 24.7. Use `--vaadin-form-layout-label-spacing` on <vaadin-form-layout> instead.")}_getFieldAriaTarget(i){return i.ariaTarget||i}__linkLabelToField(i){ua(this._getFieldAriaTarget(i),"aria-labelledby",this.__labelId)}__unlinkLabelFromField(i){Ka(this._getFieldAriaTarget(i),"aria-labelledby",this.__labelId)}__onLabelClick(){const i=this.__fieldNode;i&&(i.focus({focusVisible:!1}),i.click())}__onLabelSlotChange(){this.__labelNode&&(this.__labelNode=null,this.__fieldNode&&this.__unlinkLabelFromField(this.__fieldNode));const i=this.$.labelSlot.assignedElements()[0];i&&(this.__labelNode=i,this.__labelNode.id?this.__labelId=this.__labelNode.id:(this.__labelId=`label-${this.localName}-${mi()}`,this.__labelNode.id=this.__labelId),this.__fieldNode&&this.__linkLabelToField(this.__fieldNode))}__onContentSlotChange(){this.__fieldNode&&(this.__unlinkLabelFromField(this.__fieldNode),this.__fieldNodeObserver.disconnect(),this.__fieldNode.removeEventListener("blur",this.__onFieldInteraction),this.__fieldNode.removeEventListener("change",this.__onFieldInteraction),this.__fieldNode=null,this.__isFieldDirty=!1);const i=this.$.contentSlot.assignedElements();i.length>1&&bs(`WARNING: Since Vaadin 23, placing multiple fields directly to a <vaadin-form-item> is deprecated.
+Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.validate||e.checkValidity);t&&(this.__fieldNode=t,this.__fieldNode.addEventListener("blur",this.__onFieldInteraction),this.__fieldNode.addEventListener("change",this.__onFieldInteraction),this.__fieldNodeObserver.observe(this.__fieldNode,{attributes:!0,attributeFilter:["required","invalid"]}),this.__labelNode&&this.__linkLabelToField(this.__fieldNode)),this.__synchronizeAttributes()}__onFieldInteraction(){this.__isFieldDirty=!0,this.__synchronizeAttributes()}__synchronizeAttributes(){const i=this.__fieldNode;if(!i){this.removeAttribute("required"),this.removeAttribute("invalid");return}this.toggleAttribute("required",i.hasAttribute("required")),this.toggleAttribute("invalid",i.hasAttribute("invalid")||i.matches(":invalid")&&this.__isFieldDirty)}};L("vaadin-form-item",km,{moduleId:"vaadin-form-item-styles"});class Ym extends Wm(Y($)){static get is(){return"vaadin-form-item"}static get template(){return V`
       <div id="label" part="label" on-click="__onLabelClick">
         <slot name="label" id="labelSlot" on-slotchange="__onLabelSlotChange"></slot>
         <span part="required-indicator" aria-hidden="true"></span>
@@ -6165,7 +6741,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       <div id="content">
         <slot id="contentSlot" on-slotchange="__onContentSlotChange"></slot>
       </div>
-    `}}R(Em);L("vaadin-split-layout",S`
+    `}}R(Ym);L("vaadin-split-layout",S`
     [part='splitter'] {
       min-width: var(--lumo-space-s);
       min-height: var(--lumo-space-s);
@@ -6245,7 +6821,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     :host(:is([theme~='small'], [theme~='minimal'])) > [part='splitter']:active > [part='handle']::after {
       opacity: 1;
     }
-  `,{moduleId:"lumo-split-layout"});const km=a=>class extends a{static get properties(){return{orientation:{type:String,reflectToAttribute:!0,value:"horizontal"},_previousPrimaryPointerEvents:String,_previousSecondaryPointerEvents:String}}ready(){super.ready(),this._processChildren(),this.__observer=new MutationObserver(e=>{e.forEach(r=>{this._cleanupNodes(r.removedNodes)}),this._processChildren()}),this.__observer.observe(this,{childList:!0});const t=this.$.splitter;Be(t,"track",this._onHandleTrack.bind(this)),Be(t,"down",this._setPointerEventsNone.bind(this)),Be(t,"up",this._restorePointerEvents.bind(this))}_cleanupNodes(t){t.forEach(e=>{if(e.nodeType===Node.ELEMENT_NODE&&!(e.parentElement instanceof this.constructor)){const r=e.getAttribute("slot");r&&(this[`_${r}Child`]=null,e.removeAttribute("slot"))}})}_processChildren(){const t=[...this.children];t.filter(e=>e.hasAttribute("slot")).forEach(e=>this._processChildWithSlot(e)),t.filter(e=>!e.hasAttribute("slot")).forEach((e,r)=>this._processChildWithoutSlot(e,r))}_processChildWithSlot(t){const e=t.getAttribute("slot");t.__autoSlotted?(this[`_${e}Child`]=null,t.removeAttribute("slot")):this[`_${e}Child`]=t}_processChildWithoutSlot(t,e){let r;this._primaryChild||this._secondaryChild?r=this._primaryChild?"secondary":"primary":r=e===0?"primary":"secondary",this[`_${r}Child`]=t,t.setAttribute("slot",r),t.__autoSlotted=!0}_setFlexBasis(t,e,r){e=Math.max(0,Math.min(e,r)),e===0&&(e=1e-6),t.style.flex=`1 1 ${e}px`}_setPointerEventsNone(t){!this._primaryChild||!this._secondaryChild||(this._previousPrimaryPointerEvents=this._primaryChild.style.pointerEvents,this._previousSecondaryPointerEvents=this._secondaryChild.style.pointerEvents,this._primaryChild.style.pointerEvents="none",this._secondaryChild.style.pointerEvents="none",t.preventDefault())}_restorePointerEvents(){!this._primaryChild||!this._secondaryChild||(this._primaryChild.style.pointerEvents=this._previousPrimaryPointerEvents,this._secondaryChild.style.pointerEvents=this._previousSecondaryPointerEvents)}_onHandleTrack(t){if(!this._primaryChild||!this._secondaryChild)return;const e=this.orientation==="vertical"?"height":"width";if(t.detail.state==="start"){this._startSize={container:this.getBoundingClientRect()[e]-this.$.splitter.getBoundingClientRect()[e],primary:this._primaryChild.getBoundingClientRect()[e],secondary:this._secondaryChild.getBoundingClientRect()[e]};return}const r=this.orientation==="vertical"?t.detail.dy:t.detail.dx,o=this.orientation!=="vertical"&&this.__isRTL?-r:r;this._setFlexBasis(this._primaryChild,this._startSize.primary+o,this._startSize.container),this._setFlexBasis(this._secondaryChild,this._startSize.secondary-o,this._startSize.container),t.detail.state==="end"&&(this.dispatchEvent(new CustomEvent("splitter-dragend")),delete this._startSize)}};const Sm=S`
+  `,{moduleId:"lumo-split-layout"});const Gm=a=>class extends a{static get properties(){return{orientation:{type:String,reflectToAttribute:!0,value:"horizontal"},_previousPrimaryPointerEvents:String,_previousSecondaryPointerEvents:String}}ready(){super.ready(),this._processChildren(),this.__observer=new MutationObserver(e=>{e.forEach(r=>{this._cleanupNodes(r.removedNodes)}),this._processChildren()}),this.__observer.observe(this,{childList:!0});const t=this.$.splitter;Be(t,"track",this._onHandleTrack.bind(this)),Be(t,"down",this._setPointerEventsNone.bind(this)),Be(t,"up",this._restorePointerEvents.bind(this))}_cleanupNodes(t){t.forEach(e=>{if(e.nodeType===Node.ELEMENT_NODE&&!(e.parentElement instanceof this.constructor)){const r=e.getAttribute("slot");r&&(this[`_${r}Child`]=null,e.removeAttribute("slot"))}})}_processChildren(){const t=[...this.children];t.filter(e=>e.hasAttribute("slot")).forEach(e=>this._processChildWithSlot(e)),t.filter(e=>!e.hasAttribute("slot")).forEach((e,r)=>this._processChildWithoutSlot(e,r))}_processChildWithSlot(t){const e=t.getAttribute("slot");t.__autoSlotted?(this[`_${e}Child`]=null,t.removeAttribute("slot")):this[`_${e}Child`]=t}_processChildWithoutSlot(t,e){let r;this._primaryChild||this._secondaryChild?r=this._primaryChild?"secondary":"primary":r=e===0?"primary":"secondary",this[`_${r}Child`]=t,t.setAttribute("slot",r),t.__autoSlotted=!0}_setFlexBasis(t,e,r){e=Math.max(0,Math.min(e,r)),e===0&&(e=1e-6),t.style.flex=`1 1 ${e}px`}_setPointerEventsNone(t){!this._primaryChild||!this._secondaryChild||(this._previousPrimaryPointerEvents=this._primaryChild.style.pointerEvents,this._previousSecondaryPointerEvents=this._secondaryChild.style.pointerEvents,this._primaryChild.style.pointerEvents="none",this._secondaryChild.style.pointerEvents="none",t.preventDefault())}_restorePointerEvents(){!this._primaryChild||!this._secondaryChild||(this._primaryChild.style.pointerEvents=this._previousPrimaryPointerEvents,this._secondaryChild.style.pointerEvents=this._previousSecondaryPointerEvents)}_onHandleTrack(t){if(!this._primaryChild||!this._secondaryChild)return;const e=this.orientation==="vertical"?"height":"width";if(t.detail.state==="start"){this._startSize={container:this.getBoundingClientRect()[e]-this.$.splitter.getBoundingClientRect()[e],primary:this._primaryChild.getBoundingClientRect()[e],secondary:this._secondaryChild.getBoundingClientRect()[e]};return}const r=this.orientation==="vertical"?t.detail.dy:t.detail.dx,o=this.orientation!=="vertical"&&this.__isRTL?-r:r;this._setFlexBasis(this._primaryChild,this._startSize.primary+o,this._startSize.container),this._setFlexBasis(this._secondaryChild,this._startSize.secondary-o,this._startSize.container),t.detail.state==="end"&&(this.dispatchEvent(new CustomEvent("splitter-dragend")),delete this._startSize)}};const Km=S`
   :host {
     display: flex;
     overflow: hidden !important;
@@ -6302,13 +6878,13 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       forced-color-adjust: none;
     }
   }
-`;L("vaadin-split-layout",Sm,{moduleId:"vaadin-split-layout-styles"});class Tm extends km(ot(Y($))){static get template(){return V`
+`;L("vaadin-split-layout",Km,{moduleId:"vaadin-split-layout-styles"});class Xm extends Gm(ot(Y($))){static get template(){return V`
       <slot id="primary" name="primary"></slot>
       <div part="splitter" id="splitter">
         <div part="handle"></div>
       </div>
       <slot id="secondary" name="secondary"></slot>
-    `}static get is(){return"vaadin-split-layout"}}R(Tm);L("vaadin-master-detail-layout",S`
+    `}static get is(){return"vaadin-split-layout"}}R(Xm);L("vaadin-master-detail-layout",S`
     :host(:is([drawer], [stack])) [part='detail'] {
       background-color: var(--lumo-base-color);
       box-shadow:
@@ -6323,7 +6899,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     [part='backdrop'] {
       background-color: var(--lumo-shade-20pct);
     }
-  `,{moduleId:"lumo-master-detail-layout"});const Ao={},Im=/([A-Z])/gu;function lh(a){return Ao[a]||(Ao[a]=a.replace(Im,"-$1").toLowerCase()),Ao[a]}function hh(a){return a[0].toUpperCase()+a.substring(1)}function Mo(a){const[i,t]=a.split("("),e=t.replace(")","").split(",").map(r=>r.trim());return{method:i,observerProps:e}}function Eo(a,i){return Object.prototype.hasOwnProperty.call(a,i)||(a[i]=new Map(a[i])),a[i]}const Dm=a=>{class i extends a{static enabledWarnings=[];static createProperty(e,r){[String,Boolean,Number,Array].includes(r)&&(r={type:r}),r&&r.reflectToAttribute&&(r.reflect=!0),super.createProperty(e,r)}static getOrCreateMap(e){return Eo(this,e)}static finalize(){if(window.litIssuedWarnings&&(window.litIssuedWarnings.add("no-override-create-property"),window.litIssuedWarnings.add("no-override-get-property-descriptor")),super.finalize(),Array.isArray(this.observers)){const e=this.getOrCreateMap("__complexObservers");this.observers.forEach(r=>{const{method:s,observerProps:o}=Mo(r);e.set(s,o)})}}static addCheckedInitializer(e){super.addInitializer(r=>{r instanceof this&&e(r)})}static getPropertyDescriptor(e,r,s){const o=super.getPropertyDescriptor(e,r,s);let n=o;if(this.getOrCreateMap("__propKeys").set(e,r),s.sync&&(n={get:o.get,set(l){const h=this[e];Z0(l,h)&&(this[r]=l,this.requestUpdate(e,h,s),this.hasUpdated&&this.performUpdate())},configurable:!0,enumerable:!0}),s.readOnly){const l=n.set;this.addCheckedInitializer(h=>{h[`_set${hh(e)}`]=function(u){l.call(h,u)}}),n={get:n.get,set(){},configurable:!0,enumerable:!0}}if("value"in s&&this.addCheckedInitializer(l=>{const h=typeof s.value=="function"?s.value.call(l):s.value;s.readOnly?l[`_set${hh(e)}`](h):l[e]=h}),s.observer){const l=s.observer;this.getOrCreateMap("__observers").set(e,l),this.addCheckedInitializer(h=>{h[l]||console.warn(`observer method ${l} not defined`)})}if(s.notify){if(!this.__notifyProps)this.__notifyProps=new Set;else if(!this.hasOwnProperty("__notifyProps")){const l=this.__notifyProps;this.__notifyProps=new Set(l)}this.__notifyProps.add(e)}if(s.computed){const l=`__assignComputed${e}`,h=Mo(s.computed);this.prototype[l]=function(...u){this[e]=this[h.method](...u)},this.getOrCreateMap("__computedObservers").set(l,h.observerProps)}return s.attribute||(s.attribute=lh(e)),n}static get polylitConfig(){return{asyncFirstRender:!1}}constructor(){super(),this.__hasPolylitMixin=!0}connectedCallback(){super.connectedCallback();const e=this.getRootNode().host;e&&e.__hasPolylitMixin&&this.id&&(e.$||={},e.$[this.id]=this);const{polylitConfig:r}=this.constructor;!this.hasUpdated&&!r.asyncFirstRender&&this.performUpdate()}firstUpdated(){super.firstUpdated(),this.$||(this.$={}),[...Object.values(this.$),this.renderRoot].forEach(e=>{e.querySelectorAll("[id]").forEach(r=>{this.$[r.id]=r})})}ready(){}willUpdate(e){this.constructor.__computedObservers&&this.__runComplexObservers(e,this.constructor.__computedObservers)}updated(e){const r=this.__isReadyInvoked;this.__isReadyInvoked=!0,this.constructor.__observers&&this.__runObservers(e,this.constructor.__observers),this.constructor.__complexObservers&&this.__runComplexObservers(e,this.constructor.__complexObservers),this.__dynamicPropertyObservers&&this.__runDynamicObservers(e,this.__dynamicPropertyObservers),this.__dynamicMethodObservers&&this.__runComplexObservers(e,this.__dynamicMethodObservers),this.constructor.__notifyProps&&this.__runNotifyProps(e,this.constructor.__notifyProps),r||this.ready()}setProperties(e){Object.entries(e).forEach(([r,s])=>{const o=this.constructor.__propKeys.get(r),n=this[o];this[o]=s,this.requestUpdate(r,n)}),this.hasUpdated&&this.performUpdate()}_createMethodObserver(e){const r=Eo(this,"__dynamicMethodObservers"),{method:s,observerProps:o}=Mo(e);r.set(s,o)}_createPropertyObserver(e,r){Eo(this,"__dynamicPropertyObservers").set(r,e)}__runComplexObservers(e,r){r.forEach((s,o)=>{s.some(n=>e.has(n))&&(this[o]?this[o](...s.map(n=>this[n])):console.warn(`observer method ${o} not defined`))})}__runDynamicObservers(e,r){r.forEach((s,o)=>{e.has(s)&&this[o]&&this[o](this[s],e.get(s))})}__runObservers(e,r){e.forEach((s,o)=>{const n=r.get(o);n!==void 0&&this[n]&&this[n](this[o],s)})}__runNotifyProps(e,r){e.forEach((s,o)=>{r.has(o)&&this.dispatchEvent(new CustomEvent(`${lh(o)}-changed`,{detail:{value:this[o]}}))})}_get(e,r){return Ki(e,r)}_set(e,r,s){i2(e,r,s)}}return i},Rr=Ze(Dm);const Om=S`
+  `,{moduleId:"lumo-master-detail-layout"});const Ao={},Qm=/([A-Z])/gu;function lh(a){return Ao[a]||(Ao[a]=a.replace(Qm,"-$1").toLowerCase()),Ao[a]}function hh(a){return a[0].toUpperCase()+a.substring(1)}function Mo(a){const[i,t]=a.split("("),e=t.replace(")","").split(",").map(r=>r.trim());return{method:i,observerProps:e}}function Eo(a,i){return Object.prototype.hasOwnProperty.call(a,i)||(a[i]=new Map(a[i])),a[i]}const Jm=a=>{class i extends a{static enabledWarnings=[];static createProperty(e,r){[String,Boolean,Number,Array].includes(r)&&(r={type:r}),r&&r.reflectToAttribute&&(r.reflect=!0),super.createProperty(e,r)}static getOrCreateMap(e){return Eo(this,e)}static finalize(){if(window.litIssuedWarnings&&(window.litIssuedWarnings.add("no-override-create-property"),window.litIssuedWarnings.add("no-override-get-property-descriptor")),super.finalize(),Array.isArray(this.observers)){const e=this.getOrCreateMap("__complexObservers");this.observers.forEach(r=>{const{method:s,observerProps:o}=Mo(r);e.set(s,o)})}}static addCheckedInitializer(e){super.addInitializer(r=>{r instanceof this&&e(r)})}static getPropertyDescriptor(e,r,s){const o=super.getPropertyDescriptor(e,r,s);let n=o;if(this.getOrCreateMap("__propKeys").set(e,r),s.sync&&(n={get:o.get,set(l){const h=this[e];Z0(l,h)&&(this[r]=l,this.requestUpdate(e,h,s),this.hasUpdated&&this.performUpdate())},configurable:!0,enumerable:!0}),s.readOnly){const l=n.set;this.addCheckedInitializer(h=>{h[`_set${hh(e)}`]=function(u){l.call(h,u)}}),n={get:n.get,set(){},configurable:!0,enumerable:!0}}if("value"in s&&this.addCheckedInitializer(l=>{const h=typeof s.value=="function"?s.value.call(l):s.value;s.readOnly?l[`_set${hh(e)}`](h):l[e]=h}),s.observer){const l=s.observer;this.getOrCreateMap("__observers").set(e,l),this.addCheckedInitializer(h=>{h[l]||console.warn(`observer method ${l} not defined`)})}if(s.notify){if(!this.__notifyProps)this.__notifyProps=new Set;else if(!this.hasOwnProperty("__notifyProps")){const l=this.__notifyProps;this.__notifyProps=new Set(l)}this.__notifyProps.add(e)}if(s.computed){const l=`__assignComputed${e}`,h=Mo(s.computed);this.prototype[l]=function(...u){this[e]=this[h.method](...u)},this.getOrCreateMap("__computedObservers").set(l,h.observerProps)}return s.attribute||(s.attribute=lh(e)),n}static get polylitConfig(){return{asyncFirstRender:!1}}constructor(){super(),this.__hasPolylitMixin=!0}connectedCallback(){super.connectedCallback();const e=this.getRootNode().host;e&&e.__hasPolylitMixin&&this.id&&(e.$||={},e.$[this.id]=this);const{polylitConfig:r}=this.constructor;!this.hasUpdated&&!r.asyncFirstRender&&this.performUpdate()}firstUpdated(){super.firstUpdated(),this.$||(this.$={}),[...Object.values(this.$),this.renderRoot].forEach(e=>{e.querySelectorAll("[id]").forEach(r=>{this.$[r.id]=r})})}ready(){}willUpdate(e){this.constructor.__computedObservers&&this.__runComplexObservers(e,this.constructor.__computedObservers)}updated(e){const r=this.__isReadyInvoked;this.__isReadyInvoked=!0,this.constructor.__observers&&this.__runObservers(e,this.constructor.__observers),this.constructor.__complexObservers&&this.__runComplexObservers(e,this.constructor.__complexObservers),this.__dynamicPropertyObservers&&this.__runDynamicObservers(e,this.__dynamicPropertyObservers),this.__dynamicMethodObservers&&this.__runComplexObservers(e,this.__dynamicMethodObservers),this.constructor.__notifyProps&&this.__runNotifyProps(e,this.constructor.__notifyProps),r||this.ready()}setProperties(e){Object.entries(e).forEach(([r,s])=>{const o=this.constructor.__propKeys.get(r),n=this[o];this[o]=s,this.requestUpdate(r,n)}),this.hasUpdated&&this.performUpdate()}_createMethodObserver(e){const r=Eo(this,"__dynamicMethodObservers"),{method:s,observerProps:o}=Mo(e);r.set(s,o)}_createPropertyObserver(e,r){Eo(this,"__dynamicPropertyObservers").set(r,e)}__runComplexObservers(e,r){r.forEach((s,o)=>{s.some(n=>e.has(n))&&(this[o]?this[o](...s.map(n=>this[n])):console.warn(`observer method ${o} not defined`))})}__runDynamicObservers(e,r){r.forEach((s,o)=>{e.has(s)&&this[o]&&this[o](this[s],e.get(s))})}__runObservers(e,r){e.forEach((s,o)=>{const n=r.get(o);n!==void 0&&this[n]&&this[n](this[o],s)})}__runNotifyProps(e,r){e.forEach((s,o)=>{r.has(o)&&this.dispatchEvent(new CustomEvent(`${lh(o)}-changed`,{detail:{value:this[o]}}))})}_get(e,r){return Ki(e,r)}_set(e,r,s){i2(e,r,s)}}return i},Rr=Ze(Jm);const Zm=S`
   @media (prefers-reduced-motion: no-preference) {
     html {
       --_vaadin-mdl-dir-multiplier: 1;
@@ -6462,7 +7038,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       }
     }
   }
-`;class Lm extends fr(Ji(ot(Y(Rr(Pi))))){static get is(){return"vaadin-master-detail-layout"}static get styles(){return S`
+`;class tf extends fr(Ji(ot(Y(Rr(Pi))))){static get is(){return"vaadin-master-detail-layout"}static get styles(){return S`
       /* Layout and positioning styles */
 
       :host {
@@ -6617,7 +7193,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       :host([orientation='vertical']:not([drawer], [stack])) [part='detail'] {
         border-top: 1px solid rgba(0, 0, 0, 0.1);
       }
-    `}static get properties(){return{detailSize:{type:String,sync:!0,observer:"__detailSizeChanged"},detailMinSize:{type:String,sync:!0,observer:"__detailMinSizeChanged"},masterSize:{type:String,sync:!0,observer:"__masterSizeChanged"},masterMinSize:{type:String,sync:!0,observer:"__masterMinSizeChanged"},orientation:{type:String,value:"horizontal",reflectToAttribute:!0,observer:"__orientationChanged",sync:!0},forceOverlay:{type:Boolean,value:!1,observer:"__forceOverlayChanged",sync:!0},containment:{type:String,value:"layout",reflectToAttribute:!0,sync:!0},stackOverlay:{type:Boolean,value:!1,observer:"__stackOverlayChanged",sync:!0},noAnimation:{type:Boolean,value:!1},_drawer:{type:Boolean,attribute:"drawer",reflectToAttribute:!0,sync:!0},_stack:{type:Boolean,attribute:"stack",reflectToAttribute:!0,sync:!0},_hasDetail:{type:Boolean,attribute:"has-detail",reflectToAttribute:!0,sync:!0}}}static get experimental(){return!0}get slotStyles(){return[Om]}render(){return Te`
+    `}static get properties(){return{detailSize:{type:String,sync:!0,observer:"__detailSizeChanged"},detailMinSize:{type:String,sync:!0,observer:"__detailMinSizeChanged"},masterSize:{type:String,sync:!0,observer:"__masterSizeChanged"},masterMinSize:{type:String,sync:!0,observer:"__masterMinSizeChanged"},orientation:{type:String,value:"horizontal",reflectToAttribute:!0,observer:"__orientationChanged",sync:!0},forceOverlay:{type:Boolean,value:!1,observer:"__forceOverlayChanged",sync:!0},containment:{type:String,value:"layout",reflectToAttribute:!0,sync:!0},stackOverlay:{type:Boolean,value:!1,observer:"__stackOverlayChanged",sync:!0},noAnimation:{type:Boolean,value:!1},_drawer:{type:Boolean,attribute:"drawer",reflectToAttribute:!0,sync:!0},_stack:{type:Boolean,attribute:"stack",reflectToAttribute:!0,sync:!0},_hasDetail:{type:Boolean,attribute:"has-detail",reflectToAttribute:!0,sync:!0}}}static get experimental(){return!0}get slotStyles(){return[Zm]}render(){return Te`
       <div part="backdrop" @click="${this.__onBackdropClick}"></div>
       <div
         id="master"
@@ -6637,7 +7213,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
           <slot name="detail" @slotchange="${this.__onDetailSlotChange}"></slot>
         </div>
       </div>
-    `}__onDetailSlotChange(i){const t=i.target.assignedNodes();if(this._hasDetail=t.length>0,this.__detectLayoutMode(),(this._drawer||this._stack)&&t.length>0){const e=Ar(t[0]);e.length&&e[0].focus()}}__onBackdropClick(){this.dispatchEvent(new CustomEvent("backdrop-click"))}__onDetailKeydown(i){i.key==="Escape"&&!i.defaultPrevented&&(i.preventDefault(),this.dispatchEvent(new CustomEvent("detail-escape-press")))}_onResize(){this.__detectLayoutMode()}__detailSizeChanged(i,t){this.__updateStyleProperty("detail-size",i,t),this.__detectLayoutMode()}__detailMinSizeChanged(i,t){this.__updateStyleProperty("detail-min-size",i,t),this.__detectLayoutMode()}__masterSizeChanged(i,t){this.__updateStyleProperty("master-size",i,t),this.__detectLayoutMode()}__masterMinSizeChanged(i,t){this.__updateStyleProperty("master-min-size",i,t),this.__detectLayoutMode()}__orientationChanged(i,t){(i||t)&&this.__detectLayoutMode()}__forceOverlayChanged(i,t){(i||t)&&this.__detectLayoutMode()}__stackOverlayChanged(i,t){(i||t)&&this.__detectLayoutMode()}__updateStyleProperty(i,t,e){t?this.style.setProperty(`--_${i}`,t):e&&this.style.removeProperty(`--_${i}`),this.toggleAttribute(`has-${i}`,!!t)}__setOverlayMode(i){this.stackOverlay?this._stack=i:this._drawer=i}__detectLayoutMode(){if(this._drawer=!1,this._stack=!1,this.forceOverlay){this.__setOverlayMode(!0);return}this._hasDetail&&(this.orientation==="vertical"?this.__detectVerticalMode():this.__detectHorizontalMode())}__detectHorizontalMode(){const i=this.$.detail.offsetWidth;this.$.master.style.maxWidth=this.masterSize||this.masterMinSize||"min-content";const t=this.$.master.offsetWidth;this.$.master.style.maxWidth="",this.__setOverlayMode(this.offsetWidth<t+i),this.offsetWidth<this.scrollWidth&&this.__setOverlayMode(!0)}__detectVerticalMode(){const i=this.$.master.clientHeight;this.offsetHeight<i+this.$.detail.clientHeight&&this.__setOverlayMode(!0)}_setDetail(i,t){const e=this.querySelector('[slot="detail"]');if((i||null)===e)return Promise.resolve();const r=()=>{this.querySelectorAll('[slot="detail"]').forEach(n=>n.remove()),i&&(i.setAttribute("slot","detail"),this.appendChild(i))};if(t)return r(),Promise.resolve();const s=!!e,o=s&&i?"replace":s?"remove":"add";return this._startTransition(o,()=>{r(),this._finishTransition()})}_startTransition(i,t){return typeof document.startViewTransition=="function"&&!this.noAnimation?(this.setAttribute("transition",i),this.__transition=document.startViewTransition(()=>new Promise(r=>{this.__resolveUpdateCallback=r,t()})),this.__transition.finished):(t(),Promise.resolve())}async _finishTransition(){if(queueMicrotask(()=>this.__detectLayoutMode()),!this.__transition)return Promise.resolve();this.__resolveUpdateCallback(),await this.__transition.finished,this.removeAttribute("transition"),this.__transition=null,this.__resolveUpdateCallback=null}}R(Lm);const Pm=S`
+    `}__onDetailSlotChange(i){const t=i.target.assignedNodes();if(this._hasDetail=t.length>0,this.__detectLayoutMode(),(this._drawer||this._stack)&&t.length>0){const e=Ar(t[0]);e.length&&e[0].focus()}}__onBackdropClick(){this.dispatchEvent(new CustomEvent("backdrop-click"))}__onDetailKeydown(i){i.key==="Escape"&&!i.defaultPrevented&&(i.preventDefault(),this.dispatchEvent(new CustomEvent("detail-escape-press")))}_onResize(){this.__detectLayoutMode()}__detailSizeChanged(i,t){this.__updateStyleProperty("detail-size",i,t),this.__detectLayoutMode()}__detailMinSizeChanged(i,t){this.__updateStyleProperty("detail-min-size",i,t),this.__detectLayoutMode()}__masterSizeChanged(i,t){this.__updateStyleProperty("master-size",i,t),this.__detectLayoutMode()}__masterMinSizeChanged(i,t){this.__updateStyleProperty("master-min-size",i,t),this.__detectLayoutMode()}__orientationChanged(i,t){(i||t)&&this.__detectLayoutMode()}__forceOverlayChanged(i,t){(i||t)&&this.__detectLayoutMode()}__stackOverlayChanged(i,t){(i||t)&&this.__detectLayoutMode()}__updateStyleProperty(i,t,e){t?this.style.setProperty(`--_${i}`,t):e&&this.style.removeProperty(`--_${i}`),this.toggleAttribute(`has-${i}`,!!t)}__setOverlayMode(i){this.stackOverlay?this._stack=i:this._drawer=i}__detectLayoutMode(){if(this._drawer=!1,this._stack=!1,this.forceOverlay){this.__setOverlayMode(!0);return}this._hasDetail&&(this.orientation==="vertical"?this.__detectVerticalMode():this.__detectHorizontalMode())}__detectHorizontalMode(){const i=this.$.detail.offsetWidth;this.$.master.style.maxWidth=this.masterSize||this.masterMinSize||"min-content";const t=this.$.master.offsetWidth;this.$.master.style.maxWidth="",this.__setOverlayMode(this.offsetWidth<t+i),this.offsetWidth<this.scrollWidth&&this.__setOverlayMode(!0)}__detectVerticalMode(){const i=this.$.master.clientHeight;this.offsetHeight<i+this.$.detail.clientHeight&&this.__setOverlayMode(!0)}_setDetail(i,t){const e=this.querySelector('[slot="detail"]');if((i||null)===e)return Promise.resolve();const r=()=>{this.querySelectorAll('[slot="detail"]').forEach(n=>n.remove()),i&&(i.setAttribute("slot","detail"),this.appendChild(i))};if(t)return r(),Promise.resolve();const s=!!e,o=s&&i?"replace":s?"remove":"add";return this._startTransition(o,()=>{r(),this._finishTransition()})}_startTransition(i,t){return typeof document.startViewTransition=="function"&&!this.noAnimation?(this.setAttribute("transition",i),this.__transition=document.startViewTransition(()=>new Promise(r=>{this.__resolveUpdateCallback=r,t()})),this.__transition.finished):(t(),Promise.resolve())}async _finishTransition(){if(queueMicrotask(()=>this.__detectLayoutMode()),!this.__transition)return Promise.resolve();this.__resolveUpdateCallback(),await this.__transition.finished,this.removeAttribute("transition"),this.__transition=null,this.__resolveUpdateCallback=null}}R(tf);const ef=S`
   :host {
     outline: none;
     --_focus-ring-color: var(--vaadin-focus-ring-color, var(--lumo-primary-color-50pct));
@@ -6671,7 +7247,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host([theme~='overflow-indicators'][overflow~='bottom'])::after {
     display: block;
   }
-`;L("vaadin-scroller",Pm,{moduleId:"lumo-scroller"});class Jn{constructor(i,t){this.host=i,this.scrollTarget=t||i,this.__boundOnScroll=this.__onScroll.bind(this)}hostConnected(){this.initialized||(this.initialized=!0,this.observe())}observe(){const{host:i}=this;this.__resizeObserver=new ResizeObserver(()=>{this.__debounceOverflow=bt.debounce(this.__debounceOverflow,Ai,()=>{this.__updateOverflow()})}),this.__resizeObserver.observe(i),[...i.children].forEach(t=>{this.__resizeObserver.observe(t)}),this.__childObserver=new MutationObserver(t=>{t.forEach(({addedNodes:e,removedNodes:r})=>{e.forEach(s=>{s.nodeType===Node.ELEMENT_NODE&&this.__resizeObserver.observe(s)}),r.forEach(s=>{s.nodeType===Node.ELEMENT_NODE&&this.__resizeObserver.unobserve(s)})}),this.__updateOverflow()}),this.__childObserver.observe(i,{childList:!0}),this.scrollTarget.addEventListener("scroll",this.__boundOnScroll),this.__updateOverflow()}__onScroll(){this.__updateOverflow()}__updateOverflow(){const i=this.scrollTarget;let t="";i.scrollTop>0&&(t+=" top"),Math.ceil(i.scrollTop)<Math.ceil(i.scrollHeight-i.clientHeight)&&(t+=" bottom");const e=Math.abs(i.scrollLeft);e>0&&(t+=" start"),Math.ceil(e)<Math.ceil(i.scrollWidth-i.clientWidth)&&(t+=" end"),t=t.trim(),t.length>0&&this.host.getAttribute("overflow")!==t?this.host.setAttribute("overflow",t):t.length===0&&this.host.hasAttribute("overflow")&&this.host.removeAttribute("overflow")}}const Nm=a=>class extends He(a){static get properties(){return{scrollDirection:{type:String,reflectToAttribute:!0},tabindex:{type:Number,value:0,reflectToAttribute:!0}}}_shouldSetFocus(t){return t.target===this}};class Sc extends Nm(ot(Mt(Y($)))){static get template(){return V`
+`;L("vaadin-scroller",ef,{moduleId:"lumo-scroller"});class Jn{constructor(i,t){this.host=i,this.scrollTarget=t||i,this.__boundOnScroll=this.__onScroll.bind(this)}hostConnected(){this.initialized||(this.initialized=!0,this.observe())}observe(){const{host:i}=this;this.__resizeObserver=new ResizeObserver(()=>{this.__debounceOverflow=bt.debounce(this.__debounceOverflow,Ai,()=>{this.__updateOverflow()})}),this.__resizeObserver.observe(i),[...i.children].forEach(t=>{this.__resizeObserver.observe(t)}),this.__childObserver=new MutationObserver(t=>{t.forEach(({addedNodes:e,removedNodes:r})=>{e.forEach(s=>{s.nodeType===Node.ELEMENT_NODE&&this.__resizeObserver.observe(s)}),r.forEach(s=>{s.nodeType===Node.ELEMENT_NODE&&this.__resizeObserver.unobserve(s)})}),this.__updateOverflow()}),this.__childObserver.observe(i,{childList:!0}),this.scrollTarget.addEventListener("scroll",this.__boundOnScroll),this.__updateOverflow()}__onScroll(){this.__updateOverflow()}__updateOverflow(){const i=this.scrollTarget;let t="";i.scrollTop>0&&(t+=" top"),Math.ceil(i.scrollTop)<Math.ceil(i.scrollHeight-i.clientHeight)&&(t+=" bottom");const e=Math.abs(i.scrollLeft);e>0&&(t+=" start"),Math.ceil(e)<Math.ceil(i.scrollWidth-i.clientWidth)&&(t+=" end"),t=t.trim(),t.length>0&&this.host.getAttribute("overflow")!==t?this.host.setAttribute("overflow",t):t.length===0&&this.host.hasAttribute("overflow")&&this.host.removeAttribute("overflow")}}const rf=a=>class extends He(a){static get properties(){return{scrollDirection:{type:String,reflectToAttribute:!0},tabindex:{type:Number,value:0,reflectToAttribute:!0}}}_shouldSetFocus(t){return t.target===this}};class Dc extends rf(ot(Mt(Y($)))){static get template(){return V`
       <style>
         :host([hidden]) {
           display: none !important;
@@ -6696,7 +7272,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       </style>
 
       <slot></slot>
-    `}static get is(){return"vaadin-scroller"}ready(){super.ready(),this.__overflowController=new Jn(this),this.addController(this.__overflowController)}}R(Sc);const Bm=S`
+    `}static get is(){return"vaadin-scroller"}ready(){super.ready(),this.__overflowController=new Jn(this),this.addController(this.__overflowController)}}R(Dc);const af=S`
   :host {
     font-size: var(--lumo-font-size-m);
     line-height: var(--lumo-line-height-m);
@@ -6734,7 +7310,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host([theme~='no-padding']) [part='content'] {
     padding: 0;
   }
-`;L("vaadin-tabsheet",[Bm,qn],{moduleId:"lumo-tabsheet"});class Fm extends Sc{static get is(){return"vaadin-tabsheet-scroller"}}R(Fm);class Rm extends Ft{constructor(i){super(i,"tabs"),this.__tabsItemsChangedListener=this.__tabsItemsChangedListener.bind(this),this.__tabsSelectedChangedListener=this.__tabsSelectedChangedListener.bind(this),this.__tabIdObserver=new MutationObserver(t=>{t.forEach(e=>{const r=e.target;i.__linkTabAndPanel(r),r.selected&&i.__togglePanels(r)})})}__tabsItemsChangedListener(){this.__tabIdObserver.disconnect();const i=this.tabs.items||[];i.forEach(t=>{this.__tabIdObserver.observe(t,{attributeFilter:["id"]})}),this.host._setItems(i)}__tabsSelectedChangedListener(){this.host.selected=this.tabs.selected}initCustomNode(i){if(!(i instanceof customElements.get("vaadin-tabs")))throw Error('The "tabs" slot of a <vaadin-tabsheet> must only contain a <vaadin-tabs> element!');this.tabs=i,i.addEventListener("items-changed",this.__tabsItemsChangedListener),i.addEventListener("selected-changed",this.__tabsSelectedChangedListener),this.host.__tabs=i,this.host.stateTarget=i,this.__tabsItemsChangedListener()}teardownNode(i){this.tabs=null,i.removeEventListener("items-changed",this.__tabsItemsChangedListener),i.removeEventListener("selected-changed",this.__tabsSelectedChangedListener),this.host.__tabs=null,this.host._setItems([]),this.host.stateTarget=void 0}}const Vm=a=>class extends va(a){static get properties(){return{items:{type:Array,readOnly:!0,notify:!0},selected:{value:0,type:Number,notify:!0},__tabs:{type:Object,value:()=>[]},__panels:{type:Array,value:()=>[]}}}static get observers(){return["__itemsOrPanelsChanged(items, __panels)","__selectedTabItemChanged(selected, items, __panels)"]}static get delegateProps(){return["selected","_theme"]}ready(){super.ready(),this.__overflowController=new Jn(this,this.shadowRoot.querySelector('[part="content"]')),this.addController(this.__overflowController),this._tabsSlotController=new Rm(this),this.addController(this._tabsSlotController);const i=this.shadowRoot.querySelector("#panel-slot");this.__panelsObserver=new Li(i,({addedNodes:t,removedNodes:e})=>{t.length&&t.forEach(r=>{r.nodeType===Node.ELEMENT_NODE&&r.hidden&&(r.__customHidden=!0)}),e.length&&e.forEach(r=>{r.nodeType===Node.ELEMENT_NODE&&r.hidden&&(r.__customHidden?delete r.__customHidden:r.hidden=!1)}),this.__panels=Array.from(i.assignedNodes({flatten:!0})).filter(r=>r.nodeType===Node.ELEMENT_NODE)})}_delegateProperty(i,t){if(this.stateTarget){if(i==="_theme"){this._delegateAttribute("theme",t);return}super._delegateProperty(i,t)}}__itemsOrPanelsChanged(i,t){i&&i.forEach(e=>{this.__linkTabAndPanel(e,t)})}__selectedTabItemChanged(i,t,e){!t||i===void 0||this.__togglePanels(t[i],e)}__togglePanels(i,t=this.__panels){const e=i?i.id:"",r=t.find(n=>n.getAttribute("tab")===e),s=this.shadowRoot.querySelector('[part="content"]');this.toggleAttribute("loading",!r);const o=t.filter(n=>!n.hidden).length===1;r?s.style.minHeight="":o&&(s.style.minHeight=`${s.offsetHeight}px`),t.forEach(n=>{n.hidden=n!==r})}__linkTabAndPanel(i,t=this.__panels){const e=t.find(r=>r.getAttribute("tab")===i.id);e&&(e.role="tabpanel",e.id||(e.id=`tabsheet-panel-${mi()}`),e.setAttribute("aria-labelledby",i.id),i.setAttribute("aria-controls",e.id))}};class Hm extends Vm(Y(ot(Mt($)))){static get template(){return V`
+`;L("vaadin-tabsheet",[af,qn],{moduleId:"lumo-tabsheet"});class sf extends Dc{static get is(){return"vaadin-tabsheet-scroller"}}R(sf);class of extends Ft{constructor(i){super(i,"tabs"),this.__tabsItemsChangedListener=this.__tabsItemsChangedListener.bind(this),this.__tabsSelectedChangedListener=this.__tabsSelectedChangedListener.bind(this),this.__tabIdObserver=new MutationObserver(t=>{t.forEach(e=>{const r=e.target;i.__linkTabAndPanel(r),r.selected&&i.__togglePanels(r)})})}__tabsItemsChangedListener(){this.__tabIdObserver.disconnect();const i=this.tabs.items||[];i.forEach(t=>{this.__tabIdObserver.observe(t,{attributeFilter:["id"]})}),this.host._setItems(i)}__tabsSelectedChangedListener(){this.host.selected=this.tabs.selected}initCustomNode(i){if(!(i instanceof customElements.get("vaadin-tabs")))throw Error('The "tabs" slot of a <vaadin-tabsheet> must only contain a <vaadin-tabs> element!');this.tabs=i,i.addEventListener("items-changed",this.__tabsItemsChangedListener),i.addEventListener("selected-changed",this.__tabsSelectedChangedListener),this.host.__tabs=i,this.host.stateTarget=i,this.__tabsItemsChangedListener()}teardownNode(i){this.tabs=null,i.removeEventListener("items-changed",this.__tabsItemsChangedListener),i.removeEventListener("selected-changed",this.__tabsSelectedChangedListener),this.host.__tabs=null,this.host._setItems([]),this.host.stateTarget=void 0}}const nf=a=>class extends va(a){static get properties(){return{items:{type:Array,readOnly:!0,notify:!0},selected:{value:0,type:Number,notify:!0},__tabs:{type:Object,value:()=>[]},__panels:{type:Array,value:()=>[]}}}static get observers(){return["__itemsOrPanelsChanged(items, __panels)","__selectedTabItemChanged(selected, items, __panels)"]}static get delegateProps(){return["selected","_theme"]}ready(){super.ready(),this.__overflowController=new Jn(this,this.shadowRoot.querySelector('[part="content"]')),this.addController(this.__overflowController),this._tabsSlotController=new of(this),this.addController(this._tabsSlotController);const i=this.shadowRoot.querySelector("#panel-slot");this.__panelsObserver=new Li(i,({addedNodes:t,removedNodes:e})=>{t.length&&t.forEach(r=>{r.nodeType===Node.ELEMENT_NODE&&r.hidden&&(r.__customHidden=!0)}),e.length&&e.forEach(r=>{r.nodeType===Node.ELEMENT_NODE&&r.hidden&&(r.__customHidden?delete r.__customHidden:r.hidden=!1)}),this.__panels=Array.from(i.assignedNodes({flatten:!0})).filter(r=>r.nodeType===Node.ELEMENT_NODE)})}_delegateProperty(i,t){if(this.stateTarget){if(i==="_theme"){this._delegateAttribute("theme",t);return}super._delegateProperty(i,t)}}__itemsOrPanelsChanged(i,t){i&&i.forEach(e=>{this.__linkTabAndPanel(e,t)})}__selectedTabItemChanged(i,t,e){!t||i===void 0||this.__togglePanels(t[i],e)}__togglePanels(i,t=this.__panels){const e=i?i.id:"",r=t.find(n=>n.getAttribute("tab")===e),s=this.shadowRoot.querySelector('[part="content"]');this.toggleAttribute("loading",!r);const o=t.filter(n=>!n.hidden).length===1;r?s.style.minHeight="":o&&(s.style.minHeight=`${s.offsetHeight}px`),t.forEach(n=>{n.hidden=n!==r})}__linkTabAndPanel(i,t=this.__panels){const e=t.find(r=>r.getAttribute("tab")===i.id);e&&(e.role="tabpanel",e.id||(e.id=`tabsheet-panel-${mi()}`),e.setAttribute("aria-labelledby",i.id),i.setAttribute("aria-controls",e.id))}};class lf extends nf(Y(ot(Mt($)))){static get template(){return V`
       <style>
         :host([hidden]) {
           display: none !important;
@@ -6778,7 +7354,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         <div part="loader"></div>
         <slot id="panel-slot"></slot>
       </vaadin-tabsheet-scroller>
-    `}static get is(){return"vaadin-tabsheet"}}R(Hm);const $m=S`
+    `}static get is(){return"vaadin-tabsheet"}}R(lf);const hf=S`
   html {
     --vaadin-card-background: var(--lumo-contrast-5pct);
     --vaadin-card-border-radius: var(--lumo-border-radius-l);
@@ -6788,7 +7364,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     --vaadin-card-gap: var(--lumo-space-m);
     --vaadin-card-shadow: none;
   }
-`;rd("card-props",$m);const qm=S`
+`;rd("card-props",hf);const df=S`
   :host {
     background: var(--vaadin-card-background);
     border-radius: var(--vaadin-card-border-radius);
@@ -6839,7 +7415,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     line-height: var(--lumo-line-height-xs);
     color: var(--lumo-secondary-text-color);
   }
-`;L("vaadin-card",qm,{moduleId:"lumo-card"});class jm extends ot(Y(Rr(Pi))){static get is(){return"vaadin-card"}static get styles(){return S`
+`;L("vaadin-card",df,{moduleId:"lumo-card"});class cf extends ot(Y(Rr(Pi))){static get is(){return"vaadin-card"}static get styles(){return S`
       :host {
         display: flex;
         flex-direction: column;
@@ -7080,7 +7656,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       <div part="footer">
         <slot name="footer"></slot>
       </div>
-    `}firstUpdated(){super.firstUpdated(),this._onSlotChange()}_onSlotChange(){this.toggleAttribute("_m",this.querySelector(':scope > [slot="media"]')),this.toggleAttribute("_h",this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_t",this.querySelector(':scope > [slot="title"]')&&!this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_st",this.querySelector(':scope > [slot="subtitle"]')&&!this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_hp",this.querySelector(':scope > [slot="header-prefix"]')),this.toggleAttribute("_hs",this.querySelector(':scope > [slot="header-suffix"]')),this.toggleAttribute("_c",this.querySelector(":scope > :not([slot])")),this.toggleAttribute("_f",this.querySelector(':scope > [slot="footer"]')),this.__getCustomTitleElement()&&this.__clearStringTitle()}__clearStringTitle(){const i=this.__getStringTitleElement();i&&this.removeChild(i);const t=this.getAttribute("aria-labelledby");t&&t.startsWith("card-title-")&&this.removeAttribute("aria-labelledby"),this.cardTitle&&(this.cardTitle="")}__getCustomTitleElement(){return Array.from(this.querySelectorAll('[slot="title"]')).find(i=>!i.hasAttribute("card-string-title"))}__cardTitleChanged(i){if(!i){this.__clearStringTitle();return}const t=this.__getCustomTitleElement();t&&this.removeChild(t);let e=this.__getStringTitleElement();e||(e=this.__createStringTitleElement(),this.appendChild(e),this.setAttribute("aria-labelledby",e.id)),e.textContent=i}__createStringTitleElement(){const i=document.createElement("div");return i.setAttribute("slot","title"),i.setAttribute("role","heading"),this.__setTitleHeadingLevel(i,this.titleHeadingLevel),i.setAttribute("card-string-title",""),i.id=`card-title-${mi()}`,i}__titleHeadingLevelChanged(i){const t=this.__getStringTitleElement();t&&this.__setTitleHeadingLevel(t,i)}__setTitleHeadingLevel(i,t){i.setAttribute("aria-level",t||2)}__getStringTitleElement(){return this.querySelector('[slot="title"][card-string-title]')}createRenderRoot(){const i=super.createRenderRoot();return i.addEventListener("slotchange",()=>this._onSlotChange()),i}}R(jm);L("vaadin-progress-bar",S`
+    `}firstUpdated(){super.firstUpdated(),this._onSlotChange()}_onSlotChange(){this.toggleAttribute("_m",this.querySelector(':scope > [slot="media"]')),this.toggleAttribute("_h",this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_t",this.querySelector(':scope > [slot="title"]')&&!this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_st",this.querySelector(':scope > [slot="subtitle"]')&&!this.querySelector(':scope > [slot="header"]')),this.toggleAttribute("_hp",this.querySelector(':scope > [slot="header-prefix"]')),this.toggleAttribute("_hs",this.querySelector(':scope > [slot="header-suffix"]')),this.toggleAttribute("_c",this.querySelector(":scope > :not([slot])")),this.toggleAttribute("_f",this.querySelector(':scope > [slot="footer"]')),this.__getCustomTitleElement()&&this.__clearStringTitle()}__clearStringTitle(){const i=this.__getStringTitleElement();i&&this.removeChild(i);const t=this.getAttribute("aria-labelledby");t&&t.startsWith("card-title-")&&this.removeAttribute("aria-labelledby"),this.cardTitle&&(this.cardTitle="")}__getCustomTitleElement(){return Array.from(this.querySelectorAll('[slot="title"]')).find(i=>!i.hasAttribute("card-string-title"))}__cardTitleChanged(i){if(!i){this.__clearStringTitle();return}const t=this.__getCustomTitleElement();t&&this.removeChild(t);let e=this.__getStringTitleElement();e||(e=this.__createStringTitleElement(),this.appendChild(e),this.setAttribute("aria-labelledby",e.id)),e.textContent=i}__createStringTitleElement(){const i=document.createElement("div");return i.setAttribute("slot","title"),i.setAttribute("role","heading"),this.__setTitleHeadingLevel(i,this.titleHeadingLevel),i.setAttribute("card-string-title",""),i.id=`card-title-${mi()}`,i}__titleHeadingLevelChanged(i){const t=this.__getStringTitleElement();t&&this.__setTitleHeadingLevel(t,i)}__setTitleHeadingLevel(i,t){i.setAttribute("aria-level",t||2)}__getStringTitleElement(){return this.querySelector('[slot="title"][card-string-title]')}createRenderRoot(){const i=super.createRenderRoot();return i.addEventListener("slotchange",()=>this._onSlotChange()),i}}R(cf);L("vaadin-progress-bar",S`
     :host {
       height: calc(var(--lumo-size-l) / 10);
       margin: var(--lumo-space-s) 0;
@@ -7345,7 +7921,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         var(--lumo-success-color)
       );
     }
-  `,{moduleId:"lumo-progress-bar"});const Um=S`
+  `,{moduleId:"lumo-progress-bar"});const uf=S`
   :host {
     display: block;
     width: 100%; /* prevent collapsing inside non-stretching column flex */
@@ -7380,11 +7956,11 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       forced-color-adjust: none;
     }
   }
-`;const Wm=a=>class extends a{static get properties(){return{value:{type:Number,observer:"_valueChanged"},min:{type:Number,value:0,observer:"_minChanged"},max:{type:Number,value:1,observer:"_maxChanged"},indeterminate:{type:Boolean,value:!1,reflectToAttribute:!0}}}static get observers(){return["_normalizedValueChanged(value, min, max)"]}ready(){super.ready(),this.setAttribute("role","progressbar")}_normalizedValueChanged(t,e,r){const s=this._normalizeValue(t,e,r);this.style.setProperty("--vaadin-progress-value",s)}_valueChanged(t){this.setAttribute("aria-valuenow",t)}_minChanged(t){this.setAttribute("aria-valuemin",t)}_maxChanged(t){this.setAttribute("aria-valuemax",t)}_normalizeValue(t,e,r){let s;return!t&&t!==0?s=0:e>=r?s=1:(s=(t-e)/(r-e),s=Math.min(Math.max(s,0),1)),s}};L("vaadin-progress-bar",Um,{moduleId:"vaadin-progress-bar-styles"});class Ym extends ot(Y(Wm($))){static get is(){return"vaadin-progress-bar"}static get template(){return V`
+`;const pf=a=>class extends a{static get properties(){return{value:{type:Number,observer:"_valueChanged"},min:{type:Number,value:0,observer:"_minChanged"},max:{type:Number,value:1,observer:"_maxChanged"},indeterminate:{type:Boolean,value:!1,reflectToAttribute:!0}}}static get observers(){return["_normalizedValueChanged(value, min, max)"]}ready(){super.ready(),this.setAttribute("role","progressbar")}_normalizedValueChanged(t,e,r){const s=this._normalizeValue(t,e,r);this.style.setProperty("--vaadin-progress-value",s)}_valueChanged(t){this.setAttribute("aria-valuenow",t)}_minChanged(t){this.setAttribute("aria-valuemin",t)}_maxChanged(t){this.setAttribute("aria-valuemax",t)}_normalizeValue(t,e,r){let s;return!t&&t!==0?s=0:e>=r?s=1:(s=(t-e)/(r-e),s=Math.min(Math.max(s,0),1)),s}};L("vaadin-progress-bar",uf,{moduleId:"vaadin-progress-bar-styles"});class vf extends ot(Y(pf($))){static get is(){return"vaadin-progress-bar"}static get template(){return V`
       <div part="bar">
         <div part="value"></div>
       </div>
-    `}}R(Ym);const Tc=S`
+    `}}R(vf);const Oc=S`
   :host {
     display: flex;
     align-items: center;
@@ -7498,7 +8074,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host([theme~='reverse'][theme~='filled'][dir='rtl']) {
     padding-right: var(--lumo-space-m);
   }
-`;L("vaadin-details-summary",Tc,{moduleId:"lumo-details-summary"});const Gm=S`
+`;L("vaadin-details-summary",Oc,{moduleId:"lumo-details-summary"});const mf=S`
   :host {
     padding: 0;
   }
@@ -7511,7 +8087,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     padding-top: 0;
     padding-bottom: 0;
   }
-`;L("vaadin-accordion-heading",[Tc,Gm],{moduleId:"lumo-accordion-heading"});const Km=S`
+`;L("vaadin-accordion-heading",[Oc,mf],{moduleId:"lumo-accordion-heading"});const ff=S`
   :host {
     display: block;
     outline: none;
@@ -7537,12 +8113,12 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     font: inherit;
     text-align: inherit;
   }
-`;L("vaadin-accordion-heading",Km,{moduleId:"vaadin-accordion-heading-styles"});class Xm extends rs(xt(Y($))){static get is(){return"vaadin-accordion-heading"}static get template(){return V`
+`;L("vaadin-accordion-heading",ff,{moduleId:"vaadin-accordion-heading-styles"});class _f extends rs(xt(Y($))){static get is(){return"vaadin-accordion-heading"}static get template(){return V`
       <button id="button" part="content" disabled$="[[disabled]]" aria-expanded$="[[__updateAriaExpanded(opened)]]">
         <span part="toggle" aria-hidden="true"></span>
         <slot></slot>
       </button>
-    `}static get properties(){return{opened:{type:Boolean,reflectToAttribute:!0,value:!1}}}_attachDom(i){const t=this.attachShadow({mode:"open",delegatesFocus:!0});return t.appendChild(i),t}ready(){super.ready(),this.hasAttribute("role")||this.setAttribute("role","heading")}__updateAriaExpanded(i){return i?"true":"false"}}R(Xm);const Ic=S`
+    `}static get properties(){return{opened:{type:Boolean,reflectToAttribute:!0,value:!1}}}_attachDom(i){const t=this.attachShadow({mode:"open",delegatesFocus:!0});return t.appendChild(i),t}ready(){super.ready(),this.hasAttribute("role")||this.setAttribute("role","heading")}__updateAriaExpanded(i){return i?"true":"false"}}R(_f);const Lc=S`
   :host {
     margin: var(--lumo-space-xs) 0;
     outline: none;
@@ -7573,7 +8149,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host([theme~='small']) [part$='content'] {
     font-size: var(--lumo-font-size-s);
   }
-`;L("vaadin-details",Ic,{moduleId:"lumo-details"});const Qm=S`
+`;L("vaadin-details",Lc,{moduleId:"lumo-details"});const gf=S`
   :host {
     margin: 0;
     border-bottom: solid 1px var(--lumo-contrast-10pct);
@@ -7590,7 +8166,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host([theme~='filled']:not(:last-child)) {
     margin-bottom: 2px;
   }
-`;L("vaadin-accordion-panel",[Ic,Qm],{moduleId:"lumo-accordion-panel"});const Jm=S`
+`;L("vaadin-accordion-panel",[Lc,gf],{moduleId:"lumo-accordion-panel"});const bf=S`
   :host {
     display: block;
   }
@@ -7608,7 +8184,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     display: block;
     overflow: visible;
   }
-`;class Zm extends es{static generateId(i){return super.generateId(i,"content")}constructor(i){super(i,"",null,{multiple:!0})}}const Dc=a=>class extends a{static get properties(){return{opened:{type:Boolean,value:!1,reflectToAttribute:!0,notify:!0},_contentElements:{type:Array}}}static get observers(){return["_openedOrContentChanged(opened, _contentElements)"]}constructor(){super(),this._contentController=new Zm(this),this._contentController.addEventListener("slot-content-changed",t=>{const e=t.target.nodes||[];this._contentElements=e.filter(r=>r.parentNode===this)})}ready(){super.ready(),this.addController(this._contentController),this.addEventListener("click",({target:t})=>{if(this.disabled||t.localName==="a")return;const e=this.focusElement;e&&(t===e||e.contains(t))&&(this.opened=!this.opened)})}_openedOrContentChanged(t,e){e&&e.forEach(r=>{r.setAttribute("aria-hidden",t?"false":"true")})}};class Oc extends es{constructor(i,t){super(i,"summary",t)}setSummary(i){this.summary=i,this.getSlotChild()||this.restoreDefaultNode(),this.node===this.defaultNode&&this.updateDefaultNode(this.node)}restoreDefaultNode(){const{summary:i}=this;i&&i.trim()!==""&&this.attachDefaultNode()}updateDefaultNode(i){i&&(i.textContent=this.summary),super.updateDefaultNode(i)}}const tf=a=>class extends Dc(gr(va(a))){static get properties(){return{summary:{type:String,observer:"_summaryChanged"}}}static get observers(){return["__updateAriaAttributes(focusElement, _contentElements)"]}static get delegateProps(){return["disabled","opened","_theme"]}constructor(){super(),this._summaryController=new Oc(this,"vaadin-accordion-heading"),this._summaryController.addEventListener("slot-content-changed",t=>{const{node:e}=t.target;this._setFocusElement(e),this.stateTarget=e,this._tooltipController.setTarget(e)}),this._tooltipController=new le(this),this._tooltipController.setPosition("bottom-start")}__forwardTabIndex(t){super.__forwardTabIndex(t),t!==void 0&&this.focusElement&&(this.focusElement.$.button.tabIndex=t,this.focusElement.tabIndex=-1)}ready(){super.ready(),this.addController(this._summaryController),this.addController(this._tooltipController)}_delegateProperty(t,e){if(this.stateTarget){if(t==="_theme"){this._delegateAttribute("theme",e);return}super._delegateProperty(t,e)}}_setAriaDisabled(){}_summaryChanged(t){this._summaryController.setSummary(t)}__updateAriaAttributes(t,e){if(t&&e){const r=e[0];r&&(r.setAttribute("role","region"),r.setAttribute("aria-labelledby",t.id)),r&&r.id?t.setAttribute("aria-controls",r.id):t.removeAttribute("aria-controls")}}};L("vaadin-accordion-panel",Jm,{moduleId:"vaadin-accordion-panel-styles"});class ef extends tf(Y(Mt($))){static get is(){return"vaadin-accordion-panel"}static get template(){return V`
+`;class yf extends es{static generateId(i){return super.generateId(i,"content")}constructor(i){super(i,"",null,{multiple:!0})}}const Pc=a=>class extends a{static get properties(){return{opened:{type:Boolean,value:!1,reflectToAttribute:!0,notify:!0},_contentElements:{type:Array}}}static get observers(){return["_openedOrContentChanged(opened, _contentElements)"]}constructor(){super(),this._contentController=new yf(this),this._contentController.addEventListener("slot-content-changed",t=>{const e=t.target.nodes||[];this._contentElements=e.filter(r=>r.parentNode===this)})}ready(){super.ready(),this.addController(this._contentController),this.addEventListener("click",({target:t})=>{if(this.disabled||t.localName==="a")return;const e=this.focusElement;e&&(t===e||e.contains(t))&&(this.opened=!this.opened)})}_openedOrContentChanged(t,e){e&&e.forEach(r=>{r.setAttribute("aria-hidden",t?"false":"true")})}};class Nc extends es{constructor(i,t){super(i,"summary",t)}setSummary(i){this.summary=i,this.getSlotChild()||this.restoreDefaultNode(),this.node===this.defaultNode&&this.updateDefaultNode(this.node)}restoreDefaultNode(){const{summary:i}=this;i&&i.trim()!==""&&this.attachDefaultNode()}updateDefaultNode(i){i&&(i.textContent=this.summary),super.updateDefaultNode(i)}}const xf=a=>class extends Pc(gr(va(a))){static get properties(){return{summary:{type:String,observer:"_summaryChanged"}}}static get observers(){return["__updateAriaAttributes(focusElement, _contentElements)"]}static get delegateProps(){return["disabled","opened","_theme"]}constructor(){super(),this._summaryController=new Nc(this,"vaadin-accordion-heading"),this._summaryController.addEventListener("slot-content-changed",t=>{const{node:e}=t.target;this._setFocusElement(e),this.stateTarget=e,this._tooltipController.setTarget(e)}),this._tooltipController=new le(this),this._tooltipController.setPosition("bottom-start")}__forwardTabIndex(t){super.__forwardTabIndex(t),t!==void 0&&this.focusElement&&(this.focusElement.$.button.tabIndex=t,this.focusElement.tabIndex=-1)}ready(){super.ready(),this.addController(this._summaryController),this.addController(this._tooltipController)}_delegateProperty(t,e){if(this.stateTarget){if(t==="_theme"){this._delegateAttribute("theme",e);return}super._delegateProperty(t,e)}}_setAriaDisabled(){}_summaryChanged(t){this._summaryController.setSummary(t)}__updateAriaAttributes(t,e){if(t&&e){const r=e[0];r&&(r.setAttribute("role","region"),r.setAttribute("aria-labelledby",t.id)),r&&r.id?t.setAttribute("aria-controls",r.id):t.removeAttribute("aria-controls")}}};L("vaadin-accordion-panel",bf,{moduleId:"vaadin-accordion-panel-styles"});class wf extends xf(Y(Mt($))){static get is(){return"vaadin-accordion-panel"}static get template(){return V`
       <slot name="summary"></slot>
 
       <div part="content">
@@ -7616,7 +8192,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       </div>
 
       <slot name="tooltip"></slot>
-    `}}R(ef);const rf=a=>class extends eo(a){static get properties(){return{opened:{type:Number,value:0,notify:!0,reflectToAttribute:!0},items:{type:Array,readOnly:!0,notify:!0}}}static get observers(){return["_updateItems(items, opened)"]}constructor(){super(),this._boundUpdateOpened=this._updateOpened.bind(this)}get focused(){return(this._getItems()||[]).find(t=>Xe(t.focusElement))}focus(t){this._observer&&this._observer.flush(),super.focus(t)}ready(){super.ready();const t=this.shadowRoot.querySelector("slot");this._observer=new Li(t,e=>{this._setItems(this._filterItems(Array.from(this.children))),this._filterItems(e.addedNodes).forEach(r=>{r.addEventListener("opened-changed",this._boundUpdateOpened)})})}_getItems(){return this.items}_filterItems(t){return t.filter(e=>e instanceof customElements.get("vaadin-accordion-panel"))}_updateItems(t,e){if(t){this.__itemsSync=!0;const r=t[e];t.forEach(s=>{s.opened=s===r}),this.__itemsSync=!1}}_onKeyDown(t){this.items.some(e=>e.focusElement===t.target)&&super._onKeyDown(t)}_updateOpened(t){if(this.__itemsSync)return;const e=this._filterItems(t.composedPath())[0],r=this.items.indexOf(e);if(t.detail.value){if(e.disabled||r===-1)return;this.opened=r}else this.items.some(s=>s.opened)||(this.opened=null)}};class af extends rf(Y(ot($))){static get template(){return V`
+    `}}R(wf);const zf=a=>class extends eo(a){static get properties(){return{opened:{type:Number,value:0,notify:!0,reflectToAttribute:!0},items:{type:Array,readOnly:!0,notify:!0}}}static get observers(){return["_updateItems(items, opened)"]}constructor(){super(),this._boundUpdateOpened=this._updateOpened.bind(this)}get focused(){return(this._getItems()||[]).find(t=>Xe(t.focusElement))}focus(t){this._observer&&this._observer.flush(),super.focus(t)}ready(){super.ready();const t=this.shadowRoot.querySelector("slot");this._observer=new Li(t,e=>{this._setItems(this._filterItems(Array.from(this.children))),this._filterItems(e.addedNodes).forEach(r=>{r.addEventListener("opened-changed",this._boundUpdateOpened)})})}_getItems(){return this.items}_filterItems(t){return t.filter(e=>e instanceof customElements.get("vaadin-accordion-panel"))}_updateItems(t,e){if(t){this.__itemsSync=!0;const r=t[e];t.forEach(s=>{s.opened=s===r}),this.__itemsSync=!1}}_onKeyDown(t){this.items.some(e=>e.focusElement===t.target)&&super._onKeyDown(t)}_updateOpened(t){if(this.__itemsSync)return;const e=this._filterItems(t.composedPath())[0],r=this.items.indexOf(e);if(t.detail.value){if(e.disabled||r===-1)return;this.opened=r}else this.items.some(s=>s.opened)||(this.opened=null)}};class Cf extends zf(Y(ot($))){static get template(){return V`
       <style>
         :host {
           display: block;
@@ -7627,7 +8203,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         }
       </style>
       <slot></slot>
-    `}static get is(){return"vaadin-accordion"}}R(af);const sf=S`
+    `}static get is(){return"vaadin-accordion"}}R(Cf);const Af=S`
   :host {
     --vaadin-tooltip-offset-top: var(--lumo-space-xs);
     --vaadin-tooltip-offset-bottom: var(--lumo-space-xs);
@@ -7645,7 +8221,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   [part='content'] {
     padding: var(--lumo-space-xs) var(--lumo-space-s);
   }
-`;L("vaadin-tooltip-overlay",[ki,sf],{moduleId:"lumo-tooltip-overlay"});const of=a=>{let i=a;for(;i&&i!==a.ownerDocument;)if(i=i.parentNode||i.host,i&&i._hasOverlayStackMixin)return i;return null},Lc=a=>class extends br(li(a)){static get properties(){return{position:{type:String,reflectToAttribute:!0}}}static get observers(){return["__openedOrTargetChanged(opened, positionTarget)"]}get _tagNamePrefix(){return"vaadin-popover"}_updatePosition(){if(super._updatePosition(),!this.positionTarget||!this.opened)return;if(this.owner){const o=getComputedStyle(this.owner);["top","bottom","start","end"].forEach(n=>{const l=`--${this._tagNamePrefix}-offset-${n}`;this.style.setProperty(l,o.getPropertyValue(l))})}this.removeAttribute("arrow-centered");const t=this.positionTarget.getBoundingClientRect(),e=this.$.overlay.getBoundingClientRect(),r=Math.min(window.innerWidth,document.documentElement.clientWidth);let s=!1;if(e.left<0?(this.style.left="0px",this.style.right="",s=!0):e.right>r&&(this.style.right="0px",this.style.left="",s=!0),!s&&(this.position==="bottom"||this.position==="top")){const o=t.width/2-e.width/2;if(this.style.left){const n=e.left+o;n>0&&(this.style.left=`${n}px`,this.setAttribute("arrow-centered",""))}if(this.style.right){const n=parseFloat(this.style.right)+o;n>0&&(this.style.right=`${n}px`,this.setAttribute("arrow-centered",""))}}if(this.position==="start"||this.position==="end"){const o=t.height/2-e.height/2;this.style.top=`${e.top+o}px`}}__openedOrTargetChanged(t,e){if(e){const r=of(e);r&&vv(r,t?this:null)}}};const nf=S`
+`;L("vaadin-tooltip-overlay",[ki,Af],{moduleId:"lumo-tooltip-overlay"});const Mf=a=>{let i=a;for(;i&&i!==a.ownerDocument;)if(i=i.parentNode||i.host,i&&i._hasOverlayStackMixin)return i;return null},Bc=a=>class extends br(li(a)){static get properties(){return{position:{type:String,reflectToAttribute:!0}}}static get observers(){return["__openedOrTargetChanged(opened, positionTarget)"]}get _tagNamePrefix(){return"vaadin-popover"}_updatePosition(){if(super._updatePosition(),!this.positionTarget||!this.opened)return;if(this.owner){const o=getComputedStyle(this.owner);["top","bottom","start","end"].forEach(n=>{const l=`--${this._tagNamePrefix}-offset-${n}`;this.style.setProperty(l,o.getPropertyValue(l))})}this.removeAttribute("arrow-centered");const t=this.positionTarget.getBoundingClientRect(),e=this.$.overlay.getBoundingClientRect(),r=Math.min(window.innerWidth,document.documentElement.clientWidth);let s=!1;if(e.left<0?(this.style.left="0px",this.style.right="",s=!0):e.right>r&&(this.style.right="0px",this.style.left="",s=!0),!s&&(this.position==="bottom"||this.position==="top")){const o=t.width/2-e.width/2;if(this.style.left){const n=e.left+o;n>0&&(this.style.left=`${n}px`,this.setAttribute("arrow-centered",""))}if(this.style.right){const n=parseFloat(this.style.right)+o;n>0&&(this.style.right=`${n}px`,this.setAttribute("arrow-centered",""))}}if(this.position==="start"||this.position==="end"){const o=t.height/2-e.height/2;this.style.top=`${e.top+o}px`}}__openedOrTargetChanged(t,e){if(e){const r=Mf(e);r&&vv(r,t?this:null)}}};const Ef=S`
   [part='overlay'] {
     max-width: 40ch;
   }
@@ -7679,12 +8255,12 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       outline: 1px dashed;
     }
   }
-`;L("vaadin-tooltip-overlay",[ti,nf],{moduleId:"vaadin-tooltip-overlay-styles"});class lf extends Lc(xt(Y($))){static get is(){return"vaadin-tooltip-overlay"}static get template(){return V`
+`;L("vaadin-tooltip-overlay",[ti,Ef],{moduleId:"vaadin-tooltip-overlay-styles"});class kf extends Bc(xt(Y($))){static get is(){return"vaadin-tooltip-overlay"}static get template(){return V`
       <div id="backdrop" part="backdrop" hidden></div>
       <div part="overlay" id="overlay">
         <div part="content" id="content"><slot></slot></div>
       </div>
-    `}get _tagNamePrefix(){return"vaadin-tooltip"}requestContentUpdate(){super.requestContentUpdate(),this.toggleAttribute("hidden",this.textContent.trim()==="")}}R(lf);const Pc=a=>class extends a{static get properties(){return{position:{type:String},_position:{type:String,value:"bottom"},__effectivePosition:{type:String,computed:"__computePosition(position, _position)"}}}__computeHorizontalAlign(t){return["top-end","bottom-end","start-top","start","start-bottom"].includes(t)?"end":"start"}__computeNoHorizontalOverlap(t){return["start-top","start","start-bottom","end-top","end","end-bottom"].includes(t)}__computeNoVerticalOverlap(t){return["top-start","top-end","top","bottom-start","bottom","bottom-end"].includes(t)}__computeVerticalAlign(t){return["top-start","top-end","top","start-bottom","end-bottom"].includes(t)?"bottom":"top"}__computePosition(t,e){return t||e}};const Nc=a=>class extends a{static get properties(){return{for:{type:String,observer:"__forChanged"},target:{type:Object},__isConnected:{type:Boolean,sync:!0}}}static get observers(){return["__targetOrConnectedChanged(target, __isConnected)"]}connectedCallback(){super.connectedCallback(),this.__isConnected=!0}disconnectedCallback(){super.disconnectedCallback(),this.__isConnected=!1}__forChanged(t){t&&(this.__setTargetByIdDebouncer=bt.debounce(this.__setTargetByIdDebouncer,We,()=>this.__setTargetById(t)))}__setTargetById(t){if(!this.isConnected)return;const e=this.getRootNode().getElementById(t);e?this.target=e:console.warn(`No element with id="${t}" set via "for" property found on the page.`)}__targetOrConnectedChanged(t,e){this.__previousTarget&&(this.__previousTarget!==t||!e)&&this._removeTargetListeners(this.__previousTarget),t&&e&&this._addTargetListeners(t),this.__previousTarget=t}_addTargetListeners(t){}_removeTargetListeners(t){}};const sa=500;let Bc=sa,Fc=sa,Rc=sa;const Ur=new Set;let Aa=!1,Wr=null,Ma=null;class hf{constructor(i){this.host=i}get openedProp(){return this.host.manual?"opened":"_autoOpened"}get focusDelay(){const i=this.host;return i.focusDelay!=null&&i.focusDelay>=0?i.focusDelay:Bc}get hoverDelay(){const i=this.host;return i.hoverDelay!=null&&i.hoverDelay>=0?i.hoverDelay:Fc}get hideDelay(){const i=this.host;return i.hideDelay!=null&&i.hideDelay>=0?i.hideDelay:Rc}get isClosing(){return Ur.has(this.host)}open(i={immediate:!1}){const{immediate:t,hover:e,focus:r}=i,s=e&&this.hoverDelay>0,o=r&&this.focusDelay>0;!t&&(s||o)&&!this.__closeTimeout?this.__warmupTooltip(o):this.__showTooltip()}close(i){!i&&this.hideDelay>0?this.__scheduleClose():(this.__abortClose(),this._setOpened(!1)),this.__abortWarmUp(),Aa&&(this.__abortCooldown(),this.__scheduleCooldown())}_isOpened(){return this.host[this.openedProp]}_setOpened(i){this.host[this.openedProp]=i}__flushClosingTooltips(){Ur.forEach(i=>{i._stateController.close(!0),Ur.delete(i)})}__showTooltip(){this.__abortClose(),this.__flushClosingTooltips(),this._setOpened(!0),Aa=!0,this.__abortWarmUp(),this.__abortCooldown()}__warmupTooltip(i){this._isOpened()||(Aa?this.__showTooltip():Wr==null&&this.__scheduleWarmUp(i))}__abortClose(){this.__closeTimeout&&(clearTimeout(this.__closeTimeout),this.__closeTimeout=null),this.isClosing&&Ur.delete(this.host)}__abortCooldown(){Ma&&(clearTimeout(Ma),Ma=null)}__abortWarmUp(){Wr&&(clearTimeout(Wr),Wr=null)}__scheduleClose(){this._isOpened()&&!this.isClosing&&(Ur.add(this.host),this.__closeTimeout=setTimeout(()=>{Ur.delete(this.host),this.__closeTimeout=null,this._setOpened(!1)},this.hideDelay))}__scheduleCooldown(){Ma=setTimeout(()=>{Ma=null,Aa=!1},this.hideDelay)}__scheduleWarmUp(i){const t=i?this.focusDelay:this.hoverDelay;Wr=setTimeout(()=>{Wr=null,Aa=!0,this.__showTooltip()},t)}}const df=a=>class extends Pc(Nc(fi(a))){static get properties(){return{ariaTarget:{type:Object},context:{type:Object,value:()=>({})},focusDelay:{type:Number},generator:{type:Object},hideDelay:{type:Number},hoverDelay:{type:Number},manual:{type:Boolean,value:!1,sync:!0},opened:{type:Boolean,value:!1,sync:!0},shouldShow:{type:Object,value:()=>(t,e)=>!0},text:{type:String,observer:"__textChanged"},_autoOpened:{type:Boolean,observer:"__autoOpenedChanged",sync:!0},_effectiveAriaTarget:{type:Object,computed:"__computeAriaTarget(ariaTarget, target)",observer:"__effectiveAriaTargetChanged"},__isTargetHidden:{type:Boolean,value:!1},_isConnected:{type:Boolean,sync:!0},_srLabel:{type:Object},_overlayContent:{type:String}}}static get observers(){return["__generatorChanged(_overlayElement, generator, context)","__updateSrLabelText(_srLabel, _overlayContent)"]}static setDefaultFocusDelay(t){Bc=t!=null&&t>=0?t:sa}static setDefaultHideDelay(t){Rc=t!=null&&t>=0?t:sa}static setDefaultHoverDelay(t){Fc=t!=null&&t>=0?t:sa}constructor(){super(),this._uniqueId=`vaadin-tooltip-${mi()}`,this._renderer=this.__tooltipRenderer.bind(this),this.__onFocusin=this.__onFocusin.bind(this),this.__onFocusout=this.__onFocusout.bind(this),this.__onMouseDown=this.__onMouseDown.bind(this),this.__onMouseEnter=this.__onMouseEnter.bind(this),this.__onMouseLeave=this.__onMouseLeave.bind(this),this.__onKeyDown=this.__onKeyDown.bind(this),this.__onOverlayOpen=this.__onOverlayOpen.bind(this),this.__targetVisibilityObserver=new IntersectionObserver(t=>{t.forEach(e=>this.__onTargetVisibilityChange(e.isIntersecting))},{threshold:0}),this._stateController=new hf(this)}connectedCallback(){super.connectedCallback(),this._isConnected=!0,document.body.addEventListener("vaadin-overlay-open",this.__onOverlayOpen)}disconnectedCallback(){super.disconnectedCallback(),this._autoOpened&&this._stateController.close(!0),this._isConnected=!1,document.body.removeEventListener("vaadin-overlay-open",this.__onOverlayOpen)}ready(){super.ready(),this._overlayElement=this.$.overlay,this._srLabelController=new Ft(this,"sr-label","div",{initializer:t=>{t.id=this._uniqueId,t.setAttribute("role","tooltip"),this._srLabel=t}}),this.addController(this._srLabelController)}__computeOpened(t,e,r,s){return s&&(t?e:r)}__autoOpenedChanged(t,e){t?document.addEventListener("keydown",this.__onKeyDown,!0):e&&document.removeEventListener("keydown",this.__onKeyDown,!0)}_addTargetListeners(t){t.addEventListener("mouseenter",this.__onMouseEnter),t.addEventListener("mouseleave",this.__onMouseLeave),t.addEventListener("focusin",this.__onFocusin),t.addEventListener("focusout",this.__onFocusout),t.addEventListener("mousedown",this.__onMouseDown),requestAnimationFrame(()=>{this.__targetVisibilityObserver.observe(t)})}_removeTargetListeners(t){t.removeEventListener("mouseenter",this.__onMouseEnter),t.removeEventListener("mouseleave",this.__onMouseLeave),t.removeEventListener("focusin",this.__onFocusin),t.removeEventListener("focusout",this.__onFocusout),t.removeEventListener("mousedown",this.__onMouseDown),this.__targetVisibilityObserver.unobserve(t)}__onFocusin(t){this.manual||Ie()&&(this.target.contains(t.relatedTarget)||this.__isShouldShow()&&(this._overlayElement.hasAttribute("hidden")||(this.__focusInside=!0,!this.__isTargetHidden&&(!this.__hoverInside||!this._autoOpened)&&this._stateController.open({focus:!0}))))}__onFocusout(t){this.manual||this.target.contains(t.relatedTarget)||(this.__focusInside=!1,this.__hoverInside||this._stateController.close(!0))}__onKeyDown(t){t.key==="Escape"&&(t.stopPropagation(),this._stateController.close(!0))}__onMouseDown(){this.manual||this._stateController.close(!0)}__onMouseEnter(){this.manual||this.__isShouldShow()&&(this._overlayElement.hasAttribute("hidden")||this.__hoverInside||(this.__hoverInside=!0,!this.__isTargetHidden&&(!this.__focusInside||!this._autoOpened)&&this._stateController.open({hover:!0})))}__onMouseLeave(t){t.relatedTarget!==this._overlayElement&&this.__handleMouseLeave()}__onOverlayMouseEnter(){this.manual||this._stateController.isClosing&&this._stateController.open({immediate:!0})}__onOverlayMouseLeave(t){t.relatedTarget!==this.target&&this.__handleMouseLeave()}__handleMouseLeave(){this.manual||(this.__hoverInside=!1,this.__focusInside||this._stateController.close())}__onOverlayOpen(){this.manual||this._overlayElement.opened&&!this._overlayElement._last&&this._stateController.close(!0)}__onTargetVisibilityChange(t){const e=this.__isTargetHidden;if(this.__isTargetHidden=!t,e&&t&&(this.__focusInside||this.__hoverInside)){this._stateController.open({immediate:!0});return}!t&&this._autoOpened&&this._stateController.close(!0)}__isShouldShow(){return!(typeof this.shouldShow=="function"&&this.shouldShow(this.target,this.context)!==!0)}__textChanged(t,e){this._overlayElement&&(t||e)&&this._overlayElement.requestContentUpdate()}__tooltipRenderer(t){t.textContent=typeof this.generator=="function"?this.generator(this.context):this.text,this._overlayContent=t.textContent,this.dispatchEvent(new CustomEvent("content-changed",{detail:{content:t.textContent}}))}__computeAriaTarget(t,e){const r=o=>o&&o.nodeType===Node.ELEMENT_NODE;return(Array.isArray(t)?t.some(r):t)?t:e}__effectiveAriaTargetChanged(t,e){e&&[e].flat().forEach(r=>{Ka(r,"aria-describedby",this._uniqueId)}),t&&[t].flat().forEach(r=>{ua(r,"aria-describedby",this._uniqueId)})}__generatorChanged(t,e,r){t&&((e!==this.__oldTextGenerator||r!==this.__oldContext)&&t.requestContentUpdate(),this.__oldTextGenerator=e,this.__oldContext=r)}__updateSrLabelText(t,e){t&&(t.textContent=e)}};class cf extends df(Xi(ot(Mt($)))){static get is(){return"vaadin-tooltip"}static get template(){return V`
+    `}get _tagNamePrefix(){return"vaadin-tooltip"}requestContentUpdate(){super.requestContentUpdate(),this.toggleAttribute("hidden",this.textContent.trim()==="")}}R(kf);const Fc=a=>class extends a{static get properties(){return{position:{type:String},_position:{type:String,value:"bottom"},__effectivePosition:{type:String,computed:"__computePosition(position, _position)"}}}__computeHorizontalAlign(t){return["top-end","bottom-end","start-top","start","start-bottom"].includes(t)?"end":"start"}__computeNoHorizontalOverlap(t){return["start-top","start","start-bottom","end-top","end","end-bottom"].includes(t)}__computeNoVerticalOverlap(t){return["top-start","top-end","top","bottom-start","bottom","bottom-end"].includes(t)}__computeVerticalAlign(t){return["top-start","top-end","top","start-bottom","end-bottom"].includes(t)?"bottom":"top"}__computePosition(t,e){return t||e}};const Rc=a=>class extends a{static get properties(){return{for:{type:String,observer:"__forChanged"},target:{type:Object},__isConnected:{type:Boolean,sync:!0}}}static get observers(){return["__targetOrConnectedChanged(target, __isConnected)"]}connectedCallback(){super.connectedCallback(),this.__isConnected=!0}disconnectedCallback(){super.disconnectedCallback(),this.__isConnected=!1}__forChanged(t){t&&(this.__setTargetByIdDebouncer=bt.debounce(this.__setTargetByIdDebouncer,We,()=>this.__setTargetById(t)))}__setTargetById(t){if(!this.isConnected)return;const e=this.getRootNode().getElementById(t);e?this.target=e:console.warn(`No element with id="${t}" set via "for" property found on the page.`)}__targetOrConnectedChanged(t,e){this.__previousTarget&&(this.__previousTarget!==t||!e)&&this._removeTargetListeners(this.__previousTarget),t&&e&&this._addTargetListeners(t),this.__previousTarget=t}_addTargetListeners(t){}_removeTargetListeners(t){}};const sa=500;let Vc=sa,Hc=sa,$c=sa;const Ur=new Set;let Aa=!1,Wr=null,Ma=null;class Sf{constructor(i){this.host=i}get openedProp(){return this.host.manual?"opened":"_autoOpened"}get focusDelay(){const i=this.host;return i.focusDelay!=null&&i.focusDelay>=0?i.focusDelay:Vc}get hoverDelay(){const i=this.host;return i.hoverDelay!=null&&i.hoverDelay>=0?i.hoverDelay:Hc}get hideDelay(){const i=this.host;return i.hideDelay!=null&&i.hideDelay>=0?i.hideDelay:$c}get isClosing(){return Ur.has(this.host)}open(i={immediate:!1}){const{immediate:t,hover:e,focus:r}=i,s=e&&this.hoverDelay>0,o=r&&this.focusDelay>0;!t&&(s||o)&&!this.__closeTimeout?this.__warmupTooltip(o):this.__showTooltip()}close(i){!i&&this.hideDelay>0?this.__scheduleClose():(this.__abortClose(),this._setOpened(!1)),this.__abortWarmUp(),Aa&&(this.__abortCooldown(),this.__scheduleCooldown())}_isOpened(){return this.host[this.openedProp]}_setOpened(i){this.host[this.openedProp]=i}__flushClosingTooltips(){Ur.forEach(i=>{i._stateController.close(!0),Ur.delete(i)})}__showTooltip(){this.__abortClose(),this.__flushClosingTooltips(),this._setOpened(!0),Aa=!0,this.__abortWarmUp(),this.__abortCooldown()}__warmupTooltip(i){this._isOpened()||(Aa?this.__showTooltip():Wr==null&&this.__scheduleWarmUp(i))}__abortClose(){this.__closeTimeout&&(clearTimeout(this.__closeTimeout),this.__closeTimeout=null),this.isClosing&&Ur.delete(this.host)}__abortCooldown(){Ma&&(clearTimeout(Ma),Ma=null)}__abortWarmUp(){Wr&&(clearTimeout(Wr),Wr=null)}__scheduleClose(){this._isOpened()&&!this.isClosing&&(Ur.add(this.host),this.__closeTimeout=setTimeout(()=>{Ur.delete(this.host),this.__closeTimeout=null,this._setOpened(!1)},this.hideDelay))}__scheduleCooldown(){Ma=setTimeout(()=>{Ma=null,Aa=!1},this.hideDelay)}__scheduleWarmUp(i){const t=i?this.focusDelay:this.hoverDelay;Wr=setTimeout(()=>{Wr=null,Aa=!0,this.__showTooltip()},t)}}const Tf=a=>class extends Fc(Rc(fi(a))){static get properties(){return{ariaTarget:{type:Object},context:{type:Object,value:()=>({})},focusDelay:{type:Number},generator:{type:Object},hideDelay:{type:Number},hoverDelay:{type:Number},manual:{type:Boolean,value:!1,sync:!0},opened:{type:Boolean,value:!1,sync:!0},shouldShow:{type:Object,value:()=>(t,e)=>!0},text:{type:String,observer:"__textChanged"},_autoOpened:{type:Boolean,observer:"__autoOpenedChanged",sync:!0},_effectiveAriaTarget:{type:Object,computed:"__computeAriaTarget(ariaTarget, target)",observer:"__effectiveAriaTargetChanged"},__isTargetHidden:{type:Boolean,value:!1},_isConnected:{type:Boolean,sync:!0},_srLabel:{type:Object},_overlayContent:{type:String}}}static get observers(){return["__generatorChanged(_overlayElement, generator, context)","__updateSrLabelText(_srLabel, _overlayContent)"]}static setDefaultFocusDelay(t){Vc=t!=null&&t>=0?t:sa}static setDefaultHideDelay(t){$c=t!=null&&t>=0?t:sa}static setDefaultHoverDelay(t){Hc=t!=null&&t>=0?t:sa}constructor(){super(),this._uniqueId=`vaadin-tooltip-${mi()}`,this._renderer=this.__tooltipRenderer.bind(this),this.__onFocusin=this.__onFocusin.bind(this),this.__onFocusout=this.__onFocusout.bind(this),this.__onMouseDown=this.__onMouseDown.bind(this),this.__onMouseEnter=this.__onMouseEnter.bind(this),this.__onMouseLeave=this.__onMouseLeave.bind(this),this.__onKeyDown=this.__onKeyDown.bind(this),this.__onOverlayOpen=this.__onOverlayOpen.bind(this),this.__targetVisibilityObserver=new IntersectionObserver(t=>{t.forEach(e=>this.__onTargetVisibilityChange(e.isIntersecting))},{threshold:0}),this._stateController=new Sf(this)}connectedCallback(){super.connectedCallback(),this._isConnected=!0,document.body.addEventListener("vaadin-overlay-open",this.__onOverlayOpen)}disconnectedCallback(){super.disconnectedCallback(),this._autoOpened&&this._stateController.close(!0),this._isConnected=!1,document.body.removeEventListener("vaadin-overlay-open",this.__onOverlayOpen)}ready(){super.ready(),this._overlayElement=this.$.overlay,this._srLabelController=new Ft(this,"sr-label","div",{initializer:t=>{t.id=this._uniqueId,t.setAttribute("role","tooltip"),this._srLabel=t}}),this.addController(this._srLabelController)}__computeOpened(t,e,r,s){return s&&(t?e:r)}__autoOpenedChanged(t,e){t?document.addEventListener("keydown",this.__onKeyDown,!0):e&&document.removeEventListener("keydown",this.__onKeyDown,!0)}_addTargetListeners(t){t.addEventListener("mouseenter",this.__onMouseEnter),t.addEventListener("mouseleave",this.__onMouseLeave),t.addEventListener("focusin",this.__onFocusin),t.addEventListener("focusout",this.__onFocusout),t.addEventListener("mousedown",this.__onMouseDown),requestAnimationFrame(()=>{this.__targetVisibilityObserver.observe(t)})}_removeTargetListeners(t){t.removeEventListener("mouseenter",this.__onMouseEnter),t.removeEventListener("mouseleave",this.__onMouseLeave),t.removeEventListener("focusin",this.__onFocusin),t.removeEventListener("focusout",this.__onFocusout),t.removeEventListener("mousedown",this.__onMouseDown),this.__targetVisibilityObserver.unobserve(t)}__onFocusin(t){this.manual||Ie()&&(this.target.contains(t.relatedTarget)||this.__isShouldShow()&&(this._overlayElement.hasAttribute("hidden")||(this.__focusInside=!0,!this.__isTargetHidden&&(!this.__hoverInside||!this._autoOpened)&&this._stateController.open({focus:!0}))))}__onFocusout(t){this.manual||this.target.contains(t.relatedTarget)||(this.__focusInside=!1,this.__hoverInside||this._stateController.close(!0))}__onKeyDown(t){t.key==="Escape"&&(t.stopPropagation(),this._stateController.close(!0))}__onMouseDown(){this.manual||this._stateController.close(!0)}__onMouseEnter(){this.manual||this.__isShouldShow()&&(this._overlayElement.hasAttribute("hidden")||this.__hoverInside||(this.__hoverInside=!0,!this.__isTargetHidden&&(!this.__focusInside||!this._autoOpened)&&this._stateController.open({hover:!0})))}__onMouseLeave(t){t.relatedTarget!==this._overlayElement&&this.__handleMouseLeave()}__onOverlayMouseEnter(){this.manual||this._stateController.isClosing&&this._stateController.open({immediate:!0})}__onOverlayMouseLeave(t){t.relatedTarget!==this.target&&this.__handleMouseLeave()}__handleMouseLeave(){this.manual||(this.__hoverInside=!1,this.__focusInside||this._stateController.close())}__onOverlayOpen(){this.manual||this._overlayElement.opened&&!this._overlayElement._last&&this._stateController.close(!0)}__onTargetVisibilityChange(t){const e=this.__isTargetHidden;if(this.__isTargetHidden=!t,e&&t&&(this.__focusInside||this.__hoverInside)){this._stateController.open({immediate:!0});return}!t&&this._autoOpened&&this._stateController.close(!0)}__isShouldShow(){return!(typeof this.shouldShow=="function"&&this.shouldShow(this.target,this.context)!==!0)}__textChanged(t,e){this._overlayElement&&(t||e)&&this._overlayElement.requestContentUpdate()}__tooltipRenderer(t){t.textContent=typeof this.generator=="function"?this.generator(this.context):this.text,this._overlayContent=t.textContent,this.dispatchEvent(new CustomEvent("content-changed",{detail:{content:t.textContent}}))}__computeAriaTarget(t,e){const r=o=>o&&o.nodeType===Node.ELEMENT_NODE;return(Array.isArray(t)?t.some(r):t)?t:e}__effectiveAriaTargetChanged(t,e){e&&[e].flat().forEach(r=>{Ka(r,"aria-describedby",this._uniqueId)}),t&&[t].flat().forEach(r=>{ua(r,"aria-describedby",this._uniqueId)})}__generatorChanged(t,e,r){t&&((e!==this.__oldTextGenerator||r!==this.__oldContext)&&t.requestContentUpdate(),this.__oldTextGenerator=e,this.__oldContext=r)}__updateSrLabelText(t,e){t&&(t.textContent=e)}};class If extends Tf(Xi(ot(Mt($)))){static get is(){return"vaadin-tooltip"}static get template(){return V`
       <style>
         :host {
           display: none;
@@ -7708,7 +8284,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       ></vaadin-tooltip-overlay>
 
       <slot name="sr-label"></slot>
-    `}static get properties(){return{__overlayOwner:{value(){return this}}}}}R(cf);const uf=S`
+    `}static get properties(){return{__overlayOwner:{value(){return this}}}}}R(If);const Df=S`
   :host {
     --vaadin-user-color-0: #df0b92;
     --vaadin-user-color-1: #650acc;
@@ -7728,7 +8304,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     --vaadin-user-color-5: #66fffa;
     --vaadin-user-color-6: #e6ff66;
   }
-`;Br("user-color-props",uf);const Vc=document.createElement("style");Vc.textContent="html { --vaadin-avatar-size: var(--lumo-size-m); }";document.head.appendChild(Vc);L("vaadin-avatar",S`
+`;Br("user-color-props",Df);const qc=document.createElement("style");qc.textContent="html { --vaadin-avatar-size: var(--lumo-size-m); }";document.head.appendChild(qc);L("vaadin-avatar",S`
     :host {
       color: var(--lumo-secondary-text-color);
       background-color: var(--lumo-contrast-10pct);
@@ -7791,7 +8367,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     :host([theme~='xsmall']) {
       --vaadin-avatar-size: var(--lumo-size-xs);
     }
-  `,{moduleId:"lumo-avatar"});const Hc=document.createElement("template");Hc.innerHTML=`
+  `,{moduleId:"lumo-avatar"});const jc=document.createElement("template");jc.innerHTML=`
   <style>
     @font-face {
       font-family: 'vaadin-avatar-icons';
@@ -7800,7 +8376,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       font-style: normal;
     }
   </style>
-`;document.head.appendChild(Hc.content);const pf={anonymous:"anonymous"},vf=a=>class extends er(pf,He(a)){static get properties(){return{img:{type:String,reflectToAttribute:!0,observer:"__imgChanged"},abbr:{type:String,reflectToAttribute:!0},name:{type:String,reflectToAttribute:!0},colorIndex:{type:Number,observer:"__colorIndexChanged"},withTooltip:{type:Boolean,value:!1,observer:"__withTooltipChanged"},__imgVisible:Boolean,__iconVisible:Boolean,__abbrVisible:Boolean,__tooltipNode:Object}}static get observers(){return["__imgOrAbbrOrNameChanged(img, abbr, name)","__i18nChanged(__effectiveI18n)","__tooltipChanged(__tooltipNode, name, abbr)"]}get i18n(){return super.i18n}set i18n(t){super.i18n=t}ready(){super.ready(),this.__updateVisibility(),this.hasAttribute("role")||this.setAttribute("role","img"),this.hasAttribute("tabindex")||this.setAttribute("tabindex","0"),!this.name&&!this.abbr&&this.__setTooltip()}__colorIndexChanged(t){if(t!=null){const e=`--vaadin-user-color-${t}`;!!getComputedStyle(document.documentElement).getPropertyValue(e)?(this.setAttribute("has-color-index",""),this.style.setProperty("--vaadin-avatar-user-color",`var(${e})`)):(this.removeAttribute("has-color-index"),console.warn(`The CSS property --vaadin-user-color-${t} is not defined`))}else this.removeAttribute("has-color-index")}__imgChanged(){this.__imgFailedToLoad=!1}__imgOrAbbrOrNameChanged(t,e,r){this.__updateVisibility(),!(e&&e!==this.__generatedAbbr)&&(r?this.abbr=this.__generatedAbbr=r.split(" ").map(s=>s.charAt(0)).join(""):this.abbr=void 0)}__tooltipChanged(t,e,r){t&&(r&&r!==this.__generatedAbbr?this.__setTooltip(e?`${e} (${r})`:r):this.__setTooltip(e)),r?this.setAttribute("aria-label",!t&&e?`${e} (${r})`:r):this.removeAttribute("aria-label")}__withTooltipChanged(t,e){if(this.toggleAttribute("has-tooltip",t),t){const r=document.createElement("vaadin-tooltip");r.setAttribute("slot","tooltip"),this.appendChild(r),this.__tooltipNode=r}else e&&(this.__tooltipNode.target=null,this.__tooltipNode.remove(),this.__tooltipNode=null)}__i18nChanged(t){t&&t.anonymous&&(this.__oldAnonymous&&this.__tooltipNode&&this.__tooltipNode.text===this.__oldAnonymous&&this.__setTooltip(),this.__oldAnonymous=t.anonymous)}__updateVisibility(){this.__imgVisible=!!this.img&&!this.__imgFailedToLoad,this.__abbrVisible=!this.__imgVisible&&!!this.abbr,this.__iconVisible=!this.__imgVisible&&!this.abbr}__setTooltip(t){const e=this.__tooltipNode;e&&(e.text=t||this.__effectiveI18n.anonymous)}__onImageLoadError(){this.img&&(console.warn(`<vaadin-avatar> The specified image could not be loaded: ${this.img}`),this.__imgFailedToLoad=!0,this.__updateVisibility())}};const mf=S`
+`;document.head.appendChild(jc.content);const Of={anonymous:"anonymous"},Lf=a=>class extends er(Of,He(a)){static get properties(){return{img:{type:String,reflectToAttribute:!0,observer:"__imgChanged"},abbr:{type:String,reflectToAttribute:!0},name:{type:String,reflectToAttribute:!0},colorIndex:{type:Number,observer:"__colorIndexChanged"},withTooltip:{type:Boolean,value:!1,observer:"__withTooltipChanged"},__imgVisible:Boolean,__iconVisible:Boolean,__abbrVisible:Boolean,__tooltipNode:Object}}static get observers(){return["__imgOrAbbrOrNameChanged(img, abbr, name)","__i18nChanged(__effectiveI18n)","__tooltipChanged(__tooltipNode, name, abbr)"]}get i18n(){return super.i18n}set i18n(t){super.i18n=t}ready(){super.ready(),this.__updateVisibility(),this.hasAttribute("role")||this.setAttribute("role","img"),this.hasAttribute("tabindex")||this.setAttribute("tabindex","0"),!this.name&&!this.abbr&&this.__setTooltip()}__colorIndexChanged(t){if(t!=null){const e=`--vaadin-user-color-${t}`;!!getComputedStyle(document.documentElement).getPropertyValue(e)?(this.setAttribute("has-color-index",""),this.style.setProperty("--vaadin-avatar-user-color",`var(${e})`)):(this.removeAttribute("has-color-index"),console.warn(`The CSS property --vaadin-user-color-${t} is not defined`))}else this.removeAttribute("has-color-index")}__imgChanged(){this.__imgFailedToLoad=!1}__imgOrAbbrOrNameChanged(t,e,r){this.__updateVisibility(),!(e&&e!==this.__generatedAbbr)&&(r?this.abbr=this.__generatedAbbr=r.split(" ").map(s=>s.charAt(0)).join(""):this.abbr=void 0)}__tooltipChanged(t,e,r){t&&(r&&r!==this.__generatedAbbr?this.__setTooltip(e?`${e} (${r})`:r):this.__setTooltip(e)),r?this.setAttribute("aria-label",!t&&e?`${e} (${r})`:r):this.removeAttribute("aria-label")}__withTooltipChanged(t,e){if(this.toggleAttribute("has-tooltip",t),t){const r=document.createElement("vaadin-tooltip");r.setAttribute("slot","tooltip"),this.appendChild(r),this.__tooltipNode=r}else e&&(this.__tooltipNode.target=null,this.__tooltipNode.remove(),this.__tooltipNode=null)}__i18nChanged(t){t&&t.anonymous&&(this.__oldAnonymous&&this.__tooltipNode&&this.__tooltipNode.text===this.__oldAnonymous&&this.__setTooltip(),this.__oldAnonymous=t.anonymous)}__updateVisibility(){this.__imgVisible=!!this.img&&!this.__imgFailedToLoad,this.__abbrVisible=!this.__imgVisible&&!!this.abbr,this.__iconVisible=!this.__imgVisible&&!this.abbr}__setTooltip(t){const e=this.__tooltipNode;e&&(e.text=t||this.__effectiveI18n.anonymous)}__onImageLoadError(){this.img&&(console.warn(`<vaadin-avatar> The specified image could not be loaded: ${this.img}`),this.__imgFailedToLoad=!0,this.__updateVisibility())}};const Pf=S`
   :host {
     display: inline-block;
     flex: none;
@@ -7852,7 +8428,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     border-radius: inherit;
     box-shadow: inset 0 0 0 2px var(--vaadin-avatar-user-color);
   }
-`;L("vaadin-avatar",mf,{moduleId:"vaadin-avatar-styles"});class ff extends vf(ot(Y(Mt($)))){static get template(){return V`
+`;L("vaadin-avatar",Pf,{moduleId:"vaadin-avatar-styles"});class Nf extends Lf(ot(Y(Mt($)))){static get template(){return V`
       <img
         hidden$="[[!__imgVisible]]"
         src$="[[img]]"
@@ -7882,7 +8458,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       </svg>
 
       <slot name="tooltip"></slot>
-    `}static get is(){return"vaadin-avatar"}ready(){super.ready(),this._tooltipController=new le(this),this.addController(this._tooltipController)}}R(ff);L("vaadin-avatar-group",S`
+    `}static get is(){return"vaadin-avatar"}ready(){super.ready(),this._tooltipController=new le(this),this.addController(this._tooltipController)}}R(Nf);L("vaadin-avatar-group",S`
     :host {
       --vaadin-avatar-size: var(--lumo-size-m);
     }
@@ -7910,7 +8486,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       --vaadin-avatar-group-overlap-border: 2px;
       --vaadin-avatar-size: var(--lumo-size-xs);
     }
-  `,{moduleId:"lumo-avatar-group"});const _f=S`
+  `,{moduleId:"lumo-avatar-group"});const Bf=S`
   :host {
     --_lumo-list-box-item-selected-icon-display: none;
     --_lumo-list-box-item-padding-left: calc(var(--lumo-space-m) + var(--lumo-border-radius-m) / 4);
@@ -7919,7 +8495,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   [part='overlay'] {
     outline: none;
   }
-`;L("vaadin-avatar-group-overlay",[ki,ma,_f],{moduleId:"lumo-avatar-group-overlay"});L("vaadin-avatar-group-menu",ns,{moduleId:"lumo-avatar-group-menu"});L("vaadin-avatar-group-menu-item",[xr,S`
+`;L("vaadin-avatar-group-overlay",[ki,ma,Bf],{moduleId:"lumo-avatar-group-overlay"});L("vaadin-avatar-group-menu",ns,{moduleId:"lumo-avatar-group-menu"});L("vaadin-avatar-group-menu-item",[xr,S`
       :host {
         padding: var(--lumo-space-xs);
         padding-inline-end: var(--lumo-space-m);
@@ -7935,7 +8511,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         height: var(--lumo-size-xs);
         margin-inline-end: var(--lumo-space-s);
       }
-    `],{moduleId:"lumo-avatar-group-menu-item"});class gf extends _a(Y(xt(Mt($)))){static get is(){return"vaadin-avatar-group-menu"}static get template(){return V`
+    `],{moduleId:"lumo-avatar-group-menu-item"});class Ff extends _a(Y(xt(Mt($)))){static get is(){return"vaadin-avatar-group-menu"}static get template(){return V`
       <style>
         :host {
           display: flex;
@@ -7955,7 +8531,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       <div part="items">
         <slot></slot>
       </div>
-    `}static get properties(){return{orientation:{readOnly:!0}}}get _scrollerElement(){return this.shadowRoot.querySelector('[part="items"]')}ready(){super.ready(),this.setAttribute("role","menu")}}R(gf);class bf extends fa(Y(xt($))){static get is(){return"vaadin-avatar-group-menu-item"}static get template(){return V`
+    `}static get properties(){return{orientation:{readOnly:!0}}}get _scrollerElement(){return this.shadowRoot.querySelector('[part="items"]')}ready(){super.ready(),this.setAttribute("role","menu")}}R(Ff);class Rf extends fa(Y(xt($))){static get is(){return"vaadin-avatar-group-menu-item"}static get template(){return V`
       <style>
         :host {
           display: inline-block;
@@ -7969,14 +8545,14 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       <div part="content">
         <slot></slot>
       </div>
-    `}ready(){super.ready(),this.setAttribute("role","menuitem")}}R(bf);L("vaadin-avatar-group-overlay",[ti],{moduleId:"vaadin-avatar-group-overlay-styles"});class yf extends br(li(xt(Y($)))){static get is(){return"vaadin-avatar-group-overlay"}static get template(){return V`
+    `}ready(){super.ready(),this.setAttribute("role","menuitem")}}R(Rf);L("vaadin-avatar-group-overlay",[ti],{moduleId:"vaadin-avatar-group-overlay-styles"});class Vf extends br(li(xt(Y($)))){static get is(){return"vaadin-avatar-group-overlay"}static get template(){return V`
       <div id="backdrop" part="backdrop" hidden$="[[!withBackdrop]]"></div>
       <div part="overlay" id="overlay" tabindex="0">
         <div part="content" id="content">
           <slot></slot>
         </div>
       </div>
-    `}}R(yf);const ko=2,xf={anonymous:"anonymous",activeUsers:{one:"Currently one active user",many:"Currently {count} active users"},joined:"{user} joined",left:"{user} left"},wf=a=>class extends er(xf,Ji(fi(a))){static get properties(){return{items:{type:Array,observer:"__itemsChanged",sync:!0},maxItemsVisible:{type:Number,sync:!0},_avatars:{type:Array,value:()=>[],sync:!0},__itemsInView:{type:Number,value:null,sync:!0},_overflow:{type:Object,sync:!0},_overflowItems:{type:Array,observer:"__overflowItemsChanged",computed:"__computeOverflowItems(items, __itemsInView, maxItemsVisible)"},_overflowTooltip:{type:Object,sync:!0},_opened:{type:Boolean,sync:!0}}}static get observers(){return["__i18nItemsChanged(__effectiveI18n, items)","__openedChanged(_opened, _overflow)","__updateAvatarsTheme(_overflow, _avatars, _theme)","__updateAvatars(items, __itemsInView, maxItemsVisible, _overflow, __effectiveI18n)","__updateOverflowAvatar(_overflow, items, __itemsInView, maxItemsVisible)","__updateOverflowTooltip(_overflowTooltip, items, __itemsInView, maxItemsVisible)"]}get i18n(){return super.i18n}set i18n(t){super.i18n=t}ready(){super.ready(),this._overflowController=new Ft(this,"overflow","vaadin-avatar",{initializer:e=>{e.setAttribute("role","button"),e.setAttribute("aria-haspopup","menu"),e.setAttribute("aria-expanded","false"),e.addEventListener("click",s=>this._onOverflowClick(s)),e.addEventListener("keydown",s=>this._onOverflowKeyDown(s));const r=document.createElement("vaadin-tooltip");r.setAttribute("slot","tooltip"),e.appendChild(r),this._overflow=e,this._overflowTooltip=r}}),this.addController(this._overflowController);const t=this.$.overlay;t.renderer=this.__overlayRenderer.bind(this),this._overlayElement=t}disconnectedCallback(){super.disconnectedCallback(),this._opened=!1}__getMessage(t,e){return e.replace("{user}",t.name||t.abbr||this.__effectiveI18n.anonymous)}__overlayRenderer(t){let e=t.firstElementChild;e||(e=document.createElement("vaadin-avatar-group-menu"),e.addEventListener("keydown",r=>this._onListKeyDown(r)),t.appendChild(e)),e.textContent="",this._overflowItems&&this._overflowItems.forEach(r=>{e.appendChild(this.__createItemElement(r))})}__createItemElement(t){const e=document.createElement("vaadin-avatar-group-menu-item"),r=document.createElement("vaadin-avatar");if(e.appendChild(r),r.setAttribute("aria-hidden","true"),r.setAttribute("tabindex","-1"),r.i18n=this.__effectiveI18n,this._theme&&r.setAttribute("theme",this._theme),r.name=t.name,r.abbr=t.abbr,r.img=t.img,r.colorIndex=t.colorIndex,t.className&&(r.className=t.className),t.name){const s=document.createTextNode(t.name);e.appendChild(s)}return e}_onOverflowClick(t){t.stopPropagation(),this._opened?this.$.overlay.close():t.defaultPrevented||(this._opened=!0)}_onOverflowKeyDown(t){this._opened||/^(Enter|SpaceBar|\s)$/u.test(t.key)&&(t.preventDefault(),this._opened=!0)}_onListKeyDown(t){(t.key==="Escape"||t.key==="Tab")&&(this._opened=!1)}_onResize(){this.__setItemsInView()}_onVaadinOverlayClose(t){t.detail.sourceEvent&&t.detail.sourceEvent.composedPath().includes(this)&&t.preventDefault()}_onVaadinOverlayOpen(){this._menuElement&&this._menuElement.focus()}__renderAvatars(t){Pr(Te`
+    `}}R(Vf);const ko=2,Hf={anonymous:"anonymous",activeUsers:{one:"Currently one active user",many:"Currently {count} active users"},joined:"{user} joined",left:"{user} left"},$f=a=>class extends er(Hf,Ji(fi(a))){static get properties(){return{items:{type:Array,observer:"__itemsChanged",sync:!0},maxItemsVisible:{type:Number,sync:!0},_avatars:{type:Array,value:()=>[],sync:!0},__itemsInView:{type:Number,value:null,sync:!0},_overflow:{type:Object,sync:!0},_overflowItems:{type:Array,observer:"__overflowItemsChanged",computed:"__computeOverflowItems(items, __itemsInView, maxItemsVisible)"},_overflowTooltip:{type:Object,sync:!0},_opened:{type:Boolean,sync:!0}}}static get observers(){return["__i18nItemsChanged(__effectiveI18n, items)","__openedChanged(_opened, _overflow)","__updateAvatarsTheme(_overflow, _avatars, _theme)","__updateAvatars(items, __itemsInView, maxItemsVisible, _overflow, __effectiveI18n)","__updateOverflowAvatar(_overflow, items, __itemsInView, maxItemsVisible)","__updateOverflowTooltip(_overflowTooltip, items, __itemsInView, maxItemsVisible)"]}get i18n(){return super.i18n}set i18n(t){super.i18n=t}ready(){super.ready(),this._overflowController=new Ft(this,"overflow","vaadin-avatar",{initializer:e=>{e.setAttribute("role","button"),e.setAttribute("aria-haspopup","menu"),e.setAttribute("aria-expanded","false"),e.addEventListener("click",s=>this._onOverflowClick(s)),e.addEventListener("keydown",s=>this._onOverflowKeyDown(s));const r=document.createElement("vaadin-tooltip");r.setAttribute("slot","tooltip"),e.appendChild(r),this._overflow=e,this._overflowTooltip=r}}),this.addController(this._overflowController);const t=this.$.overlay;t.renderer=this.__overlayRenderer.bind(this),this._overlayElement=t}disconnectedCallback(){super.disconnectedCallback(),this._opened=!1}__getMessage(t,e){return e.replace("{user}",t.name||t.abbr||this.__effectiveI18n.anonymous)}__overlayRenderer(t){let e=t.firstElementChild;e||(e=document.createElement("vaadin-avatar-group-menu"),e.addEventListener("keydown",r=>this._onListKeyDown(r)),t.appendChild(e)),e.textContent="",this._overflowItems&&this._overflowItems.forEach(r=>{e.appendChild(this.__createItemElement(r))})}__createItemElement(t){const e=document.createElement("vaadin-avatar-group-menu-item"),r=document.createElement("vaadin-avatar");if(e.appendChild(r),r.setAttribute("aria-hidden","true"),r.setAttribute("tabindex","-1"),r.i18n=this.__effectiveI18n,this._theme&&r.setAttribute("theme",this._theme),r.name=t.name,r.abbr=t.abbr,r.img=t.img,r.colorIndex=t.colorIndex,t.className&&(r.className=t.className),t.name){const s=document.createTextNode(t.name);e.appendChild(s)}return e}_onOverflowClick(t){t.stopPropagation(),this._opened?this.$.overlay.close():t.defaultPrevented||(this._opened=!0)}_onOverflowKeyDown(t){this._opened||/^(Enter|SpaceBar|\s)$/u.test(t.key)&&(t.preventDefault(),this._opened=!0)}_onListKeyDown(t){(t.key==="Escape"||t.key==="Tab")&&(this._opened=!1)}_onResize(){this.__setItemsInView()}_onVaadinOverlayClose(t){t.detail.sourceEvent&&t.detail.sourceEvent.composedPath().includes(this)&&t.preventDefault()}_onVaadinOverlayOpen(){this._menuElement&&this._menuElement.focus()}__renderAvatars(t){Pr(Te`
           ${t.map(e=>Te`
               <vaadin-avatar
                 .name="${e.name}"
@@ -7989,7 +8565,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
               ></vaadin-avatar>
             `)}
         `,this,{renderBefore:this._overflow})}__updateAvatars(t,e,r,s){if(!s||!Array.isArray(t))return;const o=this.__getLimit(t.length,e,r);this.__renderAvatars(o?t.slice(0,o):t),this._avatars=[...this.querySelectorAll("vaadin-avatar")]}__computeOverflowItems(t,e,r){const s=Array.isArray(t)?t.length:0,o=this.__getLimit(s,e,r);return o?t.slice(o):[]}__updateOverflowAvatar(t,e,r,s){if(t){const o=Array.isArray(e)?e.length:0,n=s!=null&&o>this.__getMax(s);t.abbr=`+${o-this.__getLimit(o,r,s)}`,t.toggleAttribute("hidden",!n&&!(r&&r<o))}}__updateAvatarsTheme(t,e,r){t&&[t,...e].forEach(s=>{r?s.setAttribute("theme",r):s.removeAttribute("theme")})}__updateOverflowTooltip(t,e,r,s){if(!t||!Array.isArray(e))return;const o=this.__getLimit(e.length,r,s);if(o==null)return;const n=[];for(let l=o;l<e.length;l++){const h=e[l];h&&n.push(h.name||h.abbr||"anonymous")}t.text=n.join(`
-`)}__getLimit(t,e,r){let s=null;const o=this.__getMax(r);return r!=null&&o<t?s=o-1:e&&e<t&&(s=e),Math.min(s,this.__calculateAvatarsFitWidth())}__getMax(t){return Math.max(t,ko)}__itemsChanged(t,e){this.__setItemsInView();let r=[],s=[];const o=Array.isArray(t),n=Array.isArray(e);n&&(s=e.filter(l=>o&&!t.includes(l))),o&&(r=t.filter(l=>n&&!e.includes(l))),this.__announceItemsChange(r,s)}__announceItemsChange(t,e){let r=[],s=[];t&&(r=t.map(n=>this.__getMessage(n,this.__effectiveI18n.joined||"{user} joined"))),e&&(s=e.map(n=>this.__getMessage(n,this.__effectiveI18n.left||"{user} left")));const o=s.concat(r);o.length>0&&Gi(o.join(", "))}__i18nItemsChanged(t,e){if(t&&t.activeUsers){const r=Array.isArray(e)?e.length:0,s=r===1?"one":"many";t.activeUsers[s]&&this.setAttribute("aria-label",t.activeUsers[s].replace("{count}",r||0)),this._avatars.forEach(o=>{o.i18n=t})}}__openedChanged(t,e){e&&(t?(this._menuElement||(this._menuElement=this.$.overlay.querySelector("vaadin-avatar-group-menu")),this._openedWithFocusRing=e.hasAttribute("focus-ring")):this.__oldOpened&&e.focus({focusVisible:this._openedWithFocusRing}),e.setAttribute("aria-expanded",t===!0),this.__oldOpened=t)}__overflowItemsChanged(t,e){(t||e)&&this.$.overlay.requestContentUpdate()}__setItemsInView(){const t=this._avatars,e=this.items;if(!e||!t||t.length<3)return;let r=this.__calculateAvatarsFitWidth();r===e.length-1&&(r=e.length),r>=e.length&&this._opened&&(this.$.overlay.close(),this.$.overlay._flushAnimation("closing")),this.__itemsInView=r}__calculateAvatarsFitWidth(){if(!this.shadowRoot||this._avatars.length<ko)return ko;const t=this._avatars,e=t[0].clientWidth,{marginLeft:r,marginRight:s}=getComputedStyle(t[1]),o=this.__isRTL?parseInt(s,0)-parseInt(r,0):parseInt(r,0)-parseInt(s,0);return Math.floor((this.$.container.offsetWidth-e)/(e+o))}};const zf=S`
+`)}__getLimit(t,e,r){let s=null;const o=this.__getMax(r);return r!=null&&o<t?s=o-1:e&&e<t&&(s=e),Math.min(s,this.__calculateAvatarsFitWidth())}__getMax(t){return Math.max(t,ko)}__itemsChanged(t,e){this.__setItemsInView();let r=[],s=[];const o=Array.isArray(t),n=Array.isArray(e);n&&(s=e.filter(l=>o&&!t.includes(l))),o&&(r=t.filter(l=>n&&!e.includes(l))),this.__announceItemsChange(r,s)}__announceItemsChange(t,e){let r=[],s=[];t&&(r=t.map(n=>this.__getMessage(n,this.__effectiveI18n.joined||"{user} joined"))),e&&(s=e.map(n=>this.__getMessage(n,this.__effectiveI18n.left||"{user} left")));const o=s.concat(r);o.length>0&&Gi(o.join(", "))}__i18nItemsChanged(t,e){if(t&&t.activeUsers){const r=Array.isArray(e)?e.length:0,s=r===1?"one":"many";t.activeUsers[s]&&this.setAttribute("aria-label",t.activeUsers[s].replace("{count}",r||0)),this._avatars.forEach(o=>{o.i18n=t})}}__openedChanged(t,e){e&&(t?(this._menuElement||(this._menuElement=this.$.overlay.querySelector("vaadin-avatar-group-menu")),this._openedWithFocusRing=e.hasAttribute("focus-ring")):this.__oldOpened&&e.focus({focusVisible:this._openedWithFocusRing}),e.setAttribute("aria-expanded",t===!0),this.__oldOpened=t)}__overflowItemsChanged(t,e){(t||e)&&this.$.overlay.requestContentUpdate()}__setItemsInView(){const t=this._avatars,e=this.items;if(!e||!t||t.length<3)return;let r=this.__calculateAvatarsFitWidth();r===e.length-1&&(r=e.length),r>=e.length&&this._opened&&(this.$.overlay.close(),this.$.overlay._flushAnimation("closing")),this.__itemsInView=r}__calculateAvatarsFitWidth(){if(!this.shadowRoot||this._avatars.length<ko)return ko;const t=this._avatars,e=t[0].clientWidth,{marginLeft:r,marginRight:s}=getComputedStyle(t[1]),o=this.__isRTL?parseInt(s,0)-parseInt(r,0):parseInt(r,0)-parseInt(s,0);return Math.floor((this.$.container.offsetWidth-e)/(e+o))}};const qf=S`
   :host {
     display: block;
     width: 100%; /* prevent collapsing inside non-stretching column flex */
@@ -8032,7 +8608,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       50% + var(--vaadin-avatar-size) - var(--vaadin-avatar-group-overlap) + var(--vaadin-avatar-outline-width)
     );
   }
-`;L("vaadin-avatar-group",zf,{moduleId:"vaadin-avatar-group-styles"});class Cf extends wf(ot(Y(Mt($)))){static get template(){return V`
+`;L("vaadin-avatar-group",qf,{moduleId:"vaadin-avatar-group-styles"});class jf extends $f(ot(Y(Mt($)))){static get template(){return V`
       <div id="container" part="container">
         <slot></slot>
         <slot name="overflow"></slot>
@@ -8045,7 +8621,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         on-vaadin-overlay-close="_onVaadinOverlayClose"
         on-vaadin-overlay-open="_onVaadinOverlayOpen"
       ></vaadin-avatar-group-overlay>
-    `}static get is(){return"vaadin-avatar-group"}}R(Cf);L("vaadin-radio-button",S`
+    `}static get is(){return"vaadin-avatar-group"}}R(jf);L("vaadin-radio-button",S`
     :host {
       color: var(--vaadin-radio-button-label-color, var(--lumo-body-text-color));
       font-size: var(--vaadin-radio-button-label-font-size, var(--lumo-font-size-m));
@@ -8182,11 +8758,11 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     :host([dir='rtl'][has-label]) ::slotted(label) {
       padding: var(--lumo-space-xs) var(--lumo-space-xs) var(--lumo-space-xs) var(--lumo-space-s);
     }
-  `,{moduleId:"lumo-radio-button"});const Af=a=>class extends fr(Fd(Wd(gr(rs(a))))){static get properties(){return{name:{type:String,value:""}}}static get delegateAttrs(){return[...super.delegateAttrs,"name"]}constructor(){super(),this._setType("radio"),this.value="on",this.tabindex=0}get slotStyles(){return[`
+  `,{moduleId:"lumo-radio-button"});const Uf=a=>class extends fr(Fd(Wd(gr(rs(a))))){static get properties(){return{name:{type:String,value:""}}}static get delegateAttrs(){return[...super.delegateAttrs,"name"]}constructor(){super(),this._setType("radio"),this.value="on",this.tabindex=0}get slotStyles(){return[`
           ${this.localName} > input[slot='input'] {
             opacity: 0;
           }
-        `]}ready(){super.ready(),this.addController(new _r(this,t=>{this._setInputElement(t),this._setFocusElement(t),this.stateTarget=t,this.ariaTarget=t})),this.addController(new tr(this.inputElement,this._labelController))}};const Mf=S`
+        `]}ready(){super.ready(),this.addController(new _r(this,t=>{this._setInputElement(t),this._setFocusElement(t),this.stateTarget=t,this.ariaTarget=t})),this.addController(new tr(this.inputElement,this._labelController))}};const Wf=S`
   :host {
     display: inline-block;
   }
@@ -8255,13 +8831,13 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       outline-color: GrayText;
     }
   }
-`;L("vaadin-radio-button",Mf,{moduleId:"vaadin-radio-button-styles"});class Ef extends Af(ot(Y(Mt($)))){static get is(){return"vaadin-radio-button"}static get template(){return V`
+`;L("vaadin-radio-button",Wf,{moduleId:"vaadin-radio-button-styles"});class Yf extends Uf(ot(Y(Mt($)))){static get is(){return"vaadin-radio-button"}static get template(){return V`
       <div class="vaadin-radio-button-container">
         <div part="radio" aria-hidden="true"></div>
         <slot name="input"></slot>
         <slot name="label"></slot>
       </div>
-    `}}R(Ef);const kf=S`
+    `}}R(Yf);const Gf=S`
   :host {
     color: var(--lumo-body-text-color);
     font-size: var(--lumo-font-size-m);
@@ -8304,7 +8880,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       color: var(--lumo-secondary-text-color);
     }
   }
-`;L("vaadin-radio-group",[pa,Ja,kf],{moduleId:"lumo-radio-group"});const Sf=a=>class extends Fr(He(Bi(Fi(a)))){static get properties(){return{name:{type:String,observer:"__nameChanged",sync:!0},value:{type:String,notify:!0,value:"",sync:!0,observer:"__valueChanged"},readonly:{type:Boolean,value:!1,reflectToAttribute:!0,sync:!0,observer:"__readonlyChanged"},_fieldName:{type:String}}}constructor(){super(),this.__registerRadioButton=this.__registerRadioButton.bind(this),this.__unregisterRadioButton=this.__unregisterRadioButton.bind(this),this.__onRadioButtonCheckedChange=this.__onRadioButtonCheckedChange.bind(this),this._tooltipController=new le(this),this._tooltipController.addEventListener("tooltip-changed",t=>{const e=t.detail.node;if(e&&e.isConnected){const r=this.__radioButtons.map(s=>s.inputElement);this._tooltipController.setAriaTarget(r)}else this._tooltipController.setAriaTarget([])})}get __radioButtons(){return this.__filterRadioButtons([...this.children])}get __selectedRadioButton(){return this.__radioButtons.find(t=>t.checked)}get isHorizontalRTL(){return this.__isRTL&&this._theme!=="vertical"}ready(){super.ready(),this.ariaTarget=this,this.setAttribute("role","radiogroup"),this._fieldName=`${this.localName}-${mi()}`;const t=this.shadowRoot.querySelector("slot:not([name])");this._observer=new Li(t,({addedNodes:e,removedNodes:r})=>{this.__filterRadioButtons(e).reverse().forEach(this.__registerRadioButton),this.__filterRadioButtons(r).forEach(this.__unregisterRadioButton);const s=this.__radioButtons.map(o=>o.inputElement);this._tooltipController.setAriaTarget(s)}),this.addController(this._tooltipController)}__filterRadioButtons(t){return t.filter(e=>e.nodeType===Node.ELEMENT_NODE&&e.localName==="vaadin-radio-button")}_onKeyDown(t){super._onKeyDown(t);const e=t.composedPath().find(r=>r.nodeType===Node.ELEMENT_NODE&&r.localName==="vaadin-radio-button");["ArrowLeft","ArrowUp"].includes(t.key)&&(t.preventDefault(),this.__selectNextRadioButton(e)),["ArrowRight","ArrowDown"].includes(t.key)&&(t.preventDefault(),this.__selectPrevRadioButton(e))}_invalidChanged(t){super._invalidChanged(t),t?this.setAttribute("aria-invalid","true"):this.removeAttribute("aria-invalid")}__nameChanged(t){this.__radioButtons.forEach(e=>{e.name=t||this._fieldName})}__selectNextRadioButton(t){const e=this.__radioButtons.indexOf(t);this.__selectIncRadioButton(e,this.isHorizontalRTL?1:-1)}__selectPrevRadioButton(t){const e=this.__radioButtons.indexOf(t);this.__selectIncRadioButton(e,this.isHorizontalRTL?-1:1)}__selectIncRadioButton(t,e){const r=(this.__radioButtons.length+t+e)%this.__radioButtons.length,s=this.__radioButtons[r];s.disabled?this.__selectIncRadioButton(r,e):(s.focusElement.focus(),s.focusElement.click())}__registerRadioButton(t){t.name=this.name||this._fieldName,t.addEventListener("checked-changed",this.__onRadioButtonCheckedChange),(this.disabled||this.readonly)&&(t.disabled=!0),t.checked&&this.__selectRadioButton(t)}__unregisterRadioButton(t){t.removeEventListener("checked-changed",this.__onRadioButtonCheckedChange),t.value===this.value&&this.__selectRadioButton(null)}__onRadioButtonCheckedChange(t){t.target.checked&&this.__selectRadioButton(t.target)}__valueChanged(t,e){if(!(e===void 0&&t==="")){if(t){const r=this.__radioButtons.find(s=>s.value===t);r?(this.__selectRadioButton(r),this.toggleAttribute("has-value",!0)):console.warn(`The radio button with the value "${t}" was not found.`)}else this.__selectRadioButton(null),this.removeAttribute("has-value");e!==void 0&&this._requestValidation()}}__readonlyChanged(t,e){!t&&e===void 0||e!==t&&this.__updateRadioButtonsDisabledProperty()}_disabledChanged(t,e){super._disabledChanged(t,e),!(!t&&e===void 0)&&e!==t&&this.__updateRadioButtonsDisabledProperty()}_shouldRemoveFocus(t){return!this.contains(t.relatedTarget)}_setFocused(t){super._setFocused(t),!t&&document.hasFocus()&&this._requestValidation()}__selectRadioButton(t){t?this.value=t.value:this.value="",this.__radioButtons.forEach(e=>{e.checked=e===t}),this.readonly&&this.__updateRadioButtonsDisabledProperty()}__updateRadioButtonsDisabledProperty(){this.__radioButtons.forEach(t=>{this.readonly?t.disabled=t!==this.__selectedRadioButton:t.disabled=this.disabled})}};const Tf=S`
+`;L("vaadin-radio-group",[pa,Ja,Gf],{moduleId:"lumo-radio-group"});const Kf=a=>class extends Fr(He(Bi(Fi(a)))){static get properties(){return{name:{type:String,observer:"__nameChanged",sync:!0},value:{type:String,notify:!0,value:"",sync:!0,observer:"__valueChanged"},readonly:{type:Boolean,value:!1,reflectToAttribute:!0,sync:!0,observer:"__readonlyChanged"},_fieldName:{type:String}}}constructor(){super(),this.__registerRadioButton=this.__registerRadioButton.bind(this),this.__unregisterRadioButton=this.__unregisterRadioButton.bind(this),this.__onRadioButtonCheckedChange=this.__onRadioButtonCheckedChange.bind(this),this._tooltipController=new le(this),this._tooltipController.addEventListener("tooltip-changed",t=>{const e=t.detail.node;if(e&&e.isConnected){const r=this.__radioButtons.map(s=>s.inputElement);this._tooltipController.setAriaTarget(r)}else this._tooltipController.setAriaTarget([])})}get __radioButtons(){return this.__filterRadioButtons([...this.children])}get __selectedRadioButton(){return this.__radioButtons.find(t=>t.checked)}get isHorizontalRTL(){return this.__isRTL&&this._theme!=="vertical"}ready(){super.ready(),this.ariaTarget=this,this.setAttribute("role","radiogroup"),this._fieldName=`${this.localName}-${mi()}`;const t=this.shadowRoot.querySelector("slot:not([name])");this._observer=new Li(t,({addedNodes:e,removedNodes:r})=>{this.__filterRadioButtons(e).reverse().forEach(this.__registerRadioButton),this.__filterRadioButtons(r).forEach(this.__unregisterRadioButton);const s=this.__radioButtons.map(o=>o.inputElement);this._tooltipController.setAriaTarget(s)}),this.addController(this._tooltipController)}__filterRadioButtons(t){return t.filter(e=>e.nodeType===Node.ELEMENT_NODE&&e.localName==="vaadin-radio-button")}_onKeyDown(t){super._onKeyDown(t);const e=t.composedPath().find(r=>r.nodeType===Node.ELEMENT_NODE&&r.localName==="vaadin-radio-button");["ArrowLeft","ArrowUp"].includes(t.key)&&(t.preventDefault(),this.__selectNextRadioButton(e)),["ArrowRight","ArrowDown"].includes(t.key)&&(t.preventDefault(),this.__selectPrevRadioButton(e))}_invalidChanged(t){super._invalidChanged(t),t?this.setAttribute("aria-invalid","true"):this.removeAttribute("aria-invalid")}__nameChanged(t){this.__radioButtons.forEach(e=>{e.name=t||this._fieldName})}__selectNextRadioButton(t){const e=this.__radioButtons.indexOf(t);this.__selectIncRadioButton(e,this.isHorizontalRTL?1:-1)}__selectPrevRadioButton(t){const e=this.__radioButtons.indexOf(t);this.__selectIncRadioButton(e,this.isHorizontalRTL?-1:1)}__selectIncRadioButton(t,e){const r=(this.__radioButtons.length+t+e)%this.__radioButtons.length,s=this.__radioButtons[r];s.disabled?this.__selectIncRadioButton(r,e):(s.focusElement.focus(),s.focusElement.click())}__registerRadioButton(t){t.name=this.name||this._fieldName,t.addEventListener("checked-changed",this.__onRadioButtonCheckedChange),(this.disabled||this.readonly)&&(t.disabled=!0),t.checked&&this.__selectRadioButton(t)}__unregisterRadioButton(t){t.removeEventListener("checked-changed",this.__onRadioButtonCheckedChange),t.value===this.value&&this.__selectRadioButton(null)}__onRadioButtonCheckedChange(t){t.target.checked&&this.__selectRadioButton(t.target)}__valueChanged(t,e){if(!(e===void 0&&t==="")){if(t){const r=this.__radioButtons.find(s=>s.value===t);r?(this.__selectRadioButton(r),this.toggleAttribute("has-value",!0)):console.warn(`The radio button with the value "${t}" was not found.`)}else this.__selectRadioButton(null),this.removeAttribute("has-value");e!==void 0&&this._requestValidation()}}__readonlyChanged(t,e){!t&&e===void 0||e!==t&&this.__updateRadioButtonsDisabledProperty()}_disabledChanged(t,e){super._disabledChanged(t,e),!(!t&&e===void 0)&&e!==t&&this.__updateRadioButtonsDisabledProperty()}_shouldRemoveFocus(t){return!this.contains(t.relatedTarget)}_setFocused(t){super._setFocused(t),!t&&document.hasFocus()&&this._requestValidation()}__selectRadioButton(t){t?this.value=t.value:this.value="",this.__radioButtons.forEach(e=>{e.checked=e===t}),this.readonly&&this.__updateRadioButtonsDisabledProperty()}__updateRadioButtonsDisabledProperty(){this.__radioButtons.forEach(t=>{this.readonly?t.disabled=t!==this.__selectedRadioButton:t.disabled=this.disabled})}};const Xf=S`
   :host {
     display: inline-flex;
   }
@@ -8333,7 +8909,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host(:not([has-label])) [part='label'] {
     display: none;
   }
-`;L("vaadin-radio-group",Tf,{moduleId:"vaadin-radio-group-styles"});class If extends Sf(ot(Y($))){static get is(){return"vaadin-radio-group"}static get template(){return V`
+`;L("vaadin-radio-group",Xf,{moduleId:"vaadin-radio-group-styles"});class Qf extends Kf(ot(Y($))){static get is(){return"vaadin-radio-group"}static get template(){return V`
       <div class="vaadin-group-field-container">
         <div part="label">
           <slot name="label"></slot>
@@ -8354,7 +8930,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       </div>
 
       <slot name="tooltip"></slot>
-    `}}R(If);const Df=S`
+    `}}R(Qf);const Jf=S`
   :host {
     color: var(--lumo-body-text-color);
     font-size: var(--lumo-font-size-m);
@@ -8397,7 +8973,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       color: var(--lumo-secondary-text-color);
     }
   }
-`;L("vaadin-checkbox-group",[pa,Ja,Df],{moduleId:"lumo-checkbox-group"});const Of=a=>class extends Fr(He(Bi(a))){static get properties(){return{value:{type:Array,value:()=>[],notify:!0,sync:!0,observer:"__valueChanged"},readonly:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"__readonlyChanged"}}}constructor(){super(),this.__registerCheckbox=this.__registerCheckbox.bind(this),this.__unregisterCheckbox=this.__unregisterCheckbox.bind(this),this.__onCheckboxCheckedChanged=this.__onCheckboxCheckedChanged.bind(this),this._tooltipController=new le(this),this._tooltipController.addEventListener("tooltip-changed",t=>{const e=t.detail.node;if(e&&e.isConnected){const r=this.__checkboxes.map(s=>s.inputElement);this._tooltipController.setAriaTarget(r)}else this._tooltipController.setAriaTarget([])})}get __checkboxes(){return this.__filterCheckboxes([...this.children])}ready(){super.ready(),this.ariaTarget=this,this.setAttribute("role","group");const t=this.shadowRoot.querySelector("slot:not([name])");this._observer=new Li(t,({addedNodes:e,removedNodes:r})=>{const s=this.__filterCheckboxes(e),o=this.__filterCheckboxes(r);s.forEach(this.__registerCheckbox),o.forEach(this.__unregisterCheckbox);const n=this.__checkboxes.map(l=>l.inputElement);this._tooltipController.setAriaTarget(n),this.__warnOfCheckboxesWithoutValue(s)}),this.addController(this._tooltipController)}checkValidity(){return!this.required||!!(this.value&&this.value.length>0)}__filterCheckboxes(t){return t.filter(e=>e.nodeType===Node.ELEMENT_NODE&&e.localName==="vaadin-checkbox")}__warnOfCheckboxesWithoutValue(t){t.some(r=>{const{value:s}=r;return!r.hasAttribute("value")&&(!s||s==="on")})&&console.warn("Please provide the value attribute to all the checkboxes inside the checkbox group.")}__registerCheckbox(t){t.addEventListener("checked-changed",this.__onCheckboxCheckedChanged),this.disabled&&(t.disabled=!0),this.readonly&&(t.readonly=!0),t.checked?this.__addCheckboxToValue(t.value):this.value&&this.value.includes(t.value)&&(t.checked=!0)}__unregisterCheckbox(t){t.removeEventListener("checked-changed",this.__onCheckboxCheckedChanged),t.checked&&this.__removeCheckboxFromValue(t.value)}_disabledChanged(t,e){super._disabledChanged(t,e),!(!t&&e===void 0)&&e!==t&&this.__checkboxes.forEach(r=>{r.disabled=t})}__addCheckboxToValue(t){this.value?this.value.includes(t)||(this.value=[...this.value,t]):this.value=[t]}__removeCheckboxFromValue(t){this.value&&this.value.includes(t)&&(this.value=this.value.filter(e=>e!==t))}__onCheckboxCheckedChanged(t){const e=t.target;e.checked?this.__addCheckboxToValue(e.value):this.__removeCheckboxFromValue(e.value)}__valueChanged(t,e){t&&t.length===0&&e===void 0||(this.toggleAttribute("has-value",t&&t.length>0),this.__checkboxes.forEach(r=>{r.checked=t&&t.includes(r.value)}),e!==void 0&&this._requestValidation())}__readonlyChanged(t,e){(t||e)&&this.__checkboxes.forEach(r=>{r.readonly=t})}_shouldRemoveFocus(t){return!this.contains(t.relatedTarget)}_setFocused(t){super._setFocused(t),!t&&document.hasFocus()&&this._requestValidation()}};const Lf=S`
+`;L("vaadin-checkbox-group",[pa,Ja,Jf],{moduleId:"lumo-checkbox-group"});const Zf=a=>class extends Fr(He(Bi(a))){static get properties(){return{value:{type:Array,value:()=>[],notify:!0,sync:!0,observer:"__valueChanged"},readonly:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"__readonlyChanged"}}}constructor(){super(),this.__registerCheckbox=this.__registerCheckbox.bind(this),this.__unregisterCheckbox=this.__unregisterCheckbox.bind(this),this.__onCheckboxCheckedChanged=this.__onCheckboxCheckedChanged.bind(this),this._tooltipController=new le(this),this._tooltipController.addEventListener("tooltip-changed",t=>{const e=t.detail.node;if(e&&e.isConnected){const r=this.__checkboxes.map(s=>s.inputElement);this._tooltipController.setAriaTarget(r)}else this._tooltipController.setAriaTarget([])})}get __checkboxes(){return this.__filterCheckboxes([...this.children])}ready(){super.ready(),this.ariaTarget=this,this.setAttribute("role","group");const t=this.shadowRoot.querySelector("slot:not([name])");this._observer=new Li(t,({addedNodes:e,removedNodes:r})=>{const s=this.__filterCheckboxes(e),o=this.__filterCheckboxes(r);s.forEach(this.__registerCheckbox),o.forEach(this.__unregisterCheckbox);const n=this.__checkboxes.map(l=>l.inputElement);this._tooltipController.setAriaTarget(n),this.__warnOfCheckboxesWithoutValue(s)}),this.addController(this._tooltipController)}checkValidity(){return!this.required||!!(this.value&&this.value.length>0)}__filterCheckboxes(t){return t.filter(e=>e.nodeType===Node.ELEMENT_NODE&&e.localName==="vaadin-checkbox")}__warnOfCheckboxesWithoutValue(t){t.some(r=>{const{value:s}=r;return!r.hasAttribute("value")&&(!s||s==="on")})&&console.warn("Please provide the value attribute to all the checkboxes inside the checkbox group.")}__registerCheckbox(t){t.addEventListener("checked-changed",this.__onCheckboxCheckedChanged),this.disabled&&(t.disabled=!0),this.readonly&&(t.readonly=!0),t.checked?this.__addCheckboxToValue(t.value):this.value&&this.value.includes(t.value)&&(t.checked=!0)}__unregisterCheckbox(t){t.removeEventListener("checked-changed",this.__onCheckboxCheckedChanged),t.checked&&this.__removeCheckboxFromValue(t.value)}_disabledChanged(t,e){super._disabledChanged(t,e),!(!t&&e===void 0)&&e!==t&&this.__checkboxes.forEach(r=>{r.disabled=t})}__addCheckboxToValue(t){this.value?this.value.includes(t)||(this.value=[...this.value,t]):this.value=[t]}__removeCheckboxFromValue(t){this.value&&this.value.includes(t)&&(this.value=this.value.filter(e=>e!==t))}__onCheckboxCheckedChanged(t){const e=t.target;e.checked?this.__addCheckboxToValue(e.value):this.__removeCheckboxFromValue(e.value)}__valueChanged(t,e){t&&t.length===0&&e===void 0||(this.toggleAttribute("has-value",t&&t.length>0),this.__checkboxes.forEach(r=>{r.checked=t&&t.includes(r.value)}),e!==void 0&&this._requestValidation())}__readonlyChanged(t,e){(t||e)&&this.__checkboxes.forEach(r=>{r.readonly=t})}_shouldRemoveFocus(t){return!this.contains(t.relatedTarget)}_setFocused(t){super._setFocused(t),!t&&document.hasFocus()&&this._requestValidation()}};const t_=S`
   :host {
     display: inline-flex;
   }
@@ -8426,7 +9002,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host(:not([has-label])) [part='label'] {
     display: none;
   }
-`;L("vaadin-checkbox-group",Lf,{moduleId:"vaadin-checkbox-group-styles"});class Pf extends Of(ot(Y($))){static get is(){return"vaadin-checkbox-group"}static get template(){return V`
+`;L("vaadin-checkbox-group",t_,{moduleId:"vaadin-checkbox-group-styles"});class e_ extends Zf(ot(Y($))){static get is(){return"vaadin-checkbox-group"}static get template(){return V`
       <div class="vaadin-group-field-container">
         <div part="label">
           <slot name="label"></slot>
@@ -8447,278 +9023,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       </div>
 
       <slot name="tooltip"></slot>
-    `}}R(Pf);L("vaadin-select-item",xr,{moduleId:"lumo-select-item"});L("vaadin-select-list-box",ns,{moduleId:"lumo-select-list-box"});const Nf=S`
-  :host {
-    /* Disable pointer focus-ring for select, not supported yet */
-    --lumo-input-field-pointer-focus-visible: 0;
-  }
-
-  :host(:not([theme*='align'])) ::slotted([slot='value']) {
-    text-align: start;
-  }
-
-  [part='input-field'] {
-    cursor: var(--lumo-clickable-cursor);
-  }
-
-  [part='input-field'] ::slotted([slot='value']) {
-    font-weight: var(--vaadin-input-field-value-font-weight, 500);
-  }
-
-  [part='input-field'] ::slotted([slot='value']:not([placeholder])) {
-    color: var(--vaadin-input-field-value-color, var(--lumo-body-text-color));
-  }
-
-  :host([readonly]) [part='input-field'] ::slotted([slot='value']:not([placeholder])) {
-    color: var(--lumo-secondary-text-color);
-  }
-
-  /* placeholder styles */
-  [part='input-field'] ::slotted([slot='value'][placeholder]) {
-    color: var(--vaadin-input-field-placeholder-color, var(--lumo-secondary-text-color));
-  }
-
-  :host(:is([readonly], [disabled])) ::slotted([slot='value'][placeholder]) {
-    opacity: 0;
-  }
-
-  [part='toggle-button']::before {
-    content: var(--lumo-icons-dropdown);
-  }
-
-  /* Highlight the toggle button when hovering over the entire component */
-  :host(:hover:not([readonly]):not([disabled])) [part='toggle-button'] {
-    color: var(--lumo-contrast-80pct);
-  }
-
-  :host([theme~='small']) [part='input-field'] ::slotted([slot='value']) {
-    --_lumo-selected-item-height: var(--lumo-size-s);
-    --_lumo-selected-item-padding: 0;
-  }
-`;L("vaadin-select",[Ei,Nf],{moduleId:"lumo-select"});L("vaadin-select-value-button",S`
-    :host {
-      font-family: var(--lumo-font-family);
-      font-size: var(--vaadin-input-field-value-font-size, var(--lumo-font-size-m));
-      padding: 0 0.25em;
-      --_lumo-selected-item-height: var(--lumo-size-m);
-      --_lumo-selected-item-padding: 0.5em;
-    }
-
-    ::slotted(*) {
-      min-height: var(--_lumo-selected-item-height);
-      padding-top: var(--_lumo-selected-item-padding);
-      padding-bottom: var(--_lumo-selected-item-padding);
-      font-size: inherit;
-    }
-
-    ::slotted(*:hover) {
-      background-color: transparent;
-    }
-  `,{moduleId:"lumo-select-value-button"});const Bf=S`
-  :host {
-    --_lumo-item-selected-icon-display: block;
-  }
-
-  /* Small viewport adjustment */
-  :host([phone]) {
-    /* stylelint-disable declaration-block-no-redundant-longhand-properties */
-    top: 0 !important;
-    right: 0 !important;
-    bottom: var(--vaadin-overlay-viewport-bottom, 0) !important;
-    left: 0 !important;
-    /* stylelint-enable declaration-block-no-redundant-longhand-properties */
-    align-items: stretch;
-    justify-content: flex-end;
-  }
-
-  :host([no-vertical-overlap][top-aligned]) [part='overlay'] {
-    margin-block-start: var(--lumo-space-xs);
-  }
-
-  :host([no-vertical-overlap][bottom-aligned]) [part='overlay'] {
-    margin-block-end: var(--lumo-space-xs);
-  }
-
-  :host([theme~='align-left']) {
-    text-align: left;
-  }
-
-  :host([theme~='align-right']) {
-    text-align: right;
-  }
-
-  :host([theme~='align-center']) {
-    text-align: center;
-  }
-`;L("vaadin-select-overlay",[as,Bf],{moduleId:"lumo-select-overlay"});const $c=S`
-  :host {
-    display: inline-block;
-  }
-
-  :host([hidden]) {
-    display: none !important;
-  }
-`;L("vaadin-select-item",$c,{moduleId:"vaadin-select-item-styles"});class Ff extends fa(Y(xt($))){static get is(){return"vaadin-select-item"}static get template(){return V`
-      <span part="checkmark" aria-hidden="true"></span>
-      <div part="content">
-        <slot></slot>
-      </div>
-    `}ready(){super.ready(),this.setAttribute("role","option")}}R(Ff);const qc=S`
-  :host {
-    display: flex;
-  }
-
-  :host([hidden]) {
-    display: none !important;
-  }
-
-  [part='items'] {
-    height: 100%;
-    width: 100%;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-`;L("vaadin-select-list-box",qc,{moduleId:"vaadin-select-list-box-styles"});class Rf extends _a(Y(xt(Mt($)))){static get is(){return"vaadin-select-list-box"}static get template(){return V`
-      <div part="items">
-        <slot></slot>
-      </div>
-    `}static get properties(){return{orientation:{readOnly:!0}}}get _scrollerElement(){return this.shadowRoot.querySelector('[part="items"]')}ready(){super.ready(),this.setAttribute("role","listbox")}}R(Rf);const Vf=S`
-  :host {
-    align-items: flex-start;
-    justify-content: flex-start;
-  }
-
-  :host(:not([phone])) [part='overlay'] {
-    min-width: var(--vaadin-select-overlay-width, var(--vaadin-select-text-field-width));
-  }
-
-  @media (forced-colors: active) {
-    [part='overlay'] {
-      outline: 3px solid;
-    }
-  }
-`;const Hf=a=>class extends br(li(xt(a))){static get observers(){return["_updateOverlayWidth(opened, owner)"]}ready(){super.ready(),this.restoreFocusOnClose=!0}_shouldCloseOnOutsideClick(t){return!0}_getMenuElement(){return Array.from(this.children).find(t=>t.localName!=="style")}_updateOverlayWidth(t,e){if(t&&e){const r="--vaadin-select-overlay-width",s=getComputedStyle(e).getPropertyValue(r);s===""?this.style.removeProperty(r):this.style.setProperty(r,s)}}requestContentUpdate(){if(super.requestContentUpdate(),this.owner){const t=this._getMenuElement();this.owner._assignMenuElement(t)}}};L("vaadin-select-overlay",[ti,Vf],{moduleId:"vaadin-select-overlay-styles"});class $f extends Hf(Y($)){static get is(){return"vaadin-select-overlay"}static get template(){return V`
-      <div id="backdrop" part="backdrop" hidden$="[[!withBackdrop]]"></div>
-      <div part="overlay" id="overlay" tabindex="0">
-        <div part="content" id="content">
-          <slot></slot>
-        </div>
-      </div>
-    `}}R($f);const qf=S`
-  :host {
-    display: inline-block;
-    position: relative;
-    outline: none;
-    white-space: nowrap;
-    -webkit-user-select: none;
-    user-select: none;
-    min-width: 0;
-    width: 0;
-  }
-
-  ::slotted(*) {
-    padding-left: 0;
-    padding-right: 0;
-    flex: auto;
-  }
-
-  /* placeholder styles */
-  ::slotted(*:not([selected])) {
-    line-height: 1;
-  }
-
-  .vaadin-button-container {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-align: inherit;
-    width: 100%;
-    height: 100%;
-    min-height: inherit;
-    text-shadow: inherit;
-  }
-
-  [part='label'] {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    line-height: inherit;
-  }
-`;L("vaadin-select-value-button",qf,{moduleId:"vaadin-select-value-button-styles"});class jf extends ss(Y($)){static get is(){return"vaadin-select-value-button"}static get template(){return V`
-      <div class="vaadin-button-container">
-        <span part="label">
-          <slot></slot>
-        </span>
-      </div>
-    `}}R(jf);const jc=S`
-  .sr-only {
-    border: 0 !important;
-    clip: rect(1px, 1px, 1px, 1px) !important;
-    -webkit-clip-path: inset(50%) !important;
-    clip-path: inset(50%) !important;
-    height: 1px !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-    position: absolute !important;
-    width: 1px !important;
-    white-space: nowrap !important;
-  }
-`;class Uf extends Ft{constructor(i){super(i,"value","vaadin-select-value-button",{initializer:(t,e)=>{e._setFocusElement(t),e.ariaTarget=t,e.stateTarget=t,t.setAttribute("aria-haspopup","listbox")}})}}const Wf=a=>class extends fi(gr(va(Fi(Fr(a))))){static get properties(){return{items:{type:Array,observer:"__itemsChanged"},opened:{type:Boolean,value:!1,notify:!0,reflectToAttribute:!0,sync:!0},renderer:{type:Object},value:{type:String,value:"",notify:!0,observer:"_valueChanged",sync:!0},name:{type:String},placeholder:{type:String},readonly:{type:Boolean,value:!1,reflectToAttribute:!0},noVerticalOverlap:{type:Boolean,value:!1},_phone:Boolean,_phoneMediaQuery:{value:"(max-width: 450px), (max-height: 450px)"},_inputContainer:Object,_items:Object}}static get delegateAttrs(){return[...super.delegateAttrs,"invalid"]}static get observers(){return["_updateAriaExpanded(opened, focusElement)","_updateSelectedItem(value, _items, placeholder, focusElement)","_openedChanged(opened, _overlayElement)"]}constructor(){super(),this._itemId=`value-${this.localName}-${mi()}`,this._srLabelController=new Bd(this),this._srLabelController.slotName="sr-label"}disconnectedCallback(){super.disconnectedCallback(),this.opened=!1}ready(){super.ready(),this._inputContainer=this.shadowRoot.querySelector('[part~="input-field"]'),this._overlayElement=this.$.overlay,this._valueButtonController=new Uf(this),this.addController(this._valueButtonController),this.addController(this._srLabelController),this.addController(new os(this._phoneMediaQuery,t=>{this._phone=t})),this._tooltipController=new le(this),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.focusElement),this.addController(this._tooltipController)}requestContentUpdate(){this._overlayElement&&(this._overlayElement.requestContentUpdate(),this._menuElement&&this._menuElement.items&&this._updateSelectedItem(this.value,this._menuElement.items))}_requiredChanged(t){super._requiredChanged(t),t===!1&&this._requestValidation()}__itemsChanged(t,e){(t||e)&&this.requestContentUpdate()}_assignMenuElement(t){t&&t!==this.__lastMenuElement&&(this._menuElement=t,this.__initMenuItems(t),t.addEventListener("items-changed",()=>{this.__initMenuItems(t)}),t.addEventListener("selected-changed",()=>this.__updateValueButton()),t.addEventListener("keydown",e=>this._onKeyDownInside(e),!0),t.addEventListener("click",e=>{const r=e.composedPath().find(s=>s._hasVaadinItemMixin);this.__dispatchChangePending=!!(r&&r.value!==void 0&&r.value!==this.value),this.opened=!1},!0),this.__lastMenuElement=t)}__initMenuItems(t){t.items&&(this._items=t.items)}_valueChanged(t,e){this.toggleAttribute("has-value",!!t),e!==void 0&&!this.__dispatchChangePending&&this._requestValidation()}_onClick(t){this.disabled||(t.preventDefault(),this.opened=!this.readonly)}_onToggleMouseDown(t){t.preventDefault(),this.opened||this.focusElement.focus()}_onKeyDown(t){if(!(t.altKey||t.shiftKey||t.ctrlKey||t.metaKey)&&t.target===this.focusElement&&!this.readonly&&!this.disabled&&!this.opened){if(/^(Enter|SpaceBar|\s|ArrowDown|Down|ArrowUp|Up)$/u.test(t.key))t.preventDefault(),this.opened=!0;else if(/[\p{L}\p{Nd}]/u.test(t.key)&&t.key.length===1){const e=this._menuElement.selected,r=e!==void 0?e:-1,s=this._menuElement._searchKey(r,t.key);s>=0&&(this.__dispatchChangePending=!0,this._updateAriaLive(!0),this._menuElement.selected=s)}}}_onKeyDownInside(t){/^(Tab)$/u.test(t.key)&&(this.opened=!1)}_openedChanged(t,e){if(e){if(t){if(this.disabled||this.readonly){this.opened=!1;return}this._updateAriaLive(!1),e.style.setProperty("--vaadin-select-text-field-width",`${this._inputContainer.offsetWidth}px`);const r=this.hasAttribute("focus-ring");this._openedWithFocusRing=r,r&&this.removeAttribute("focus-ring")}else this.__oldOpened&&(this._openedWithFocusRing&&this.setAttribute("focus-ring",""),!this.__dispatchChangePending&&!this._keyboardActive&&this._requestValidation());this.__oldOpened=t}}_updateAriaExpanded(t,e){e&&e.setAttribute("aria-expanded",t?"true":"false")}_updateAriaLive(t){this.focusElement&&(t?this.focusElement.setAttribute("aria-live","polite"):this.focusElement.removeAttribute("aria-live"))}__attachSelectedItem(t){let e;const r=t.getAttribute("label");r?e=this.__createItemElement({label:r}):e=t.cloneNode(!0),e._sourceItem=t,this.__appendValueItemElement(e,this.focusElement),e.selected=!0}__createItemElement(t){const e=document.createElement(t.component||"vaadin-select-item");return t.label&&(e.textContent=t.label),t.value&&(e.value=t.value),t.disabled&&(e.disabled=t.disabled),t.className&&(e.className=t.className),e}__appendValueItemElement(t,e){e.appendChild(t),t.removeAttribute("tabindex"),t.removeAttribute("aria-selected"),t.removeAttribute("role"),t.removeAttribute("focused"),t.removeAttribute("focus-ring"),t.removeAttribute("active"),t.setAttribute("id",this._itemId)}_accessibleNameChanged(t){this._srLabelController.setLabel(t),this._setCustomAriaLabelledBy(t?this._srLabelController.defaultId:null)}_accessibleNameRefChanged(t){this._setCustomAriaLabelledBy(t)}_setCustomAriaLabelledBy(t){const e=this._getLabelIdWithItemId(t);this._fieldAriaController.setLabelId(e,!0)}_getLabelIdWithItemId(t){const r=(this._items?this._items[this._menuElement.selected]:!1)||this.placeholder?this._itemId:"";return t?`${t} ${r}`.trim():null}__updateValueButton(){const t=this.focusElement;if(!t)return;t.innerHTML="";const e=this._items?this._items[this._menuElement.selected]:void 0;if(t.removeAttribute("placeholder"),this._hasContent(e))this.__attachSelectedItem(e);else if(this.placeholder){const s=this.__createItemElement({label:this.placeholder});this.__appendValueItemElement(s,t),t.setAttribute("placeholder","")}!this._valueChanging&&e&&(this._selectedChanging=!0,this.value=e.value||"",this.__dispatchChangePending&&this.__dispatchChange(),delete this._selectedChanging);const r=e||this.placeholder?{newId:this._itemId}:{oldId:this._itemId};ea(t,"aria-labelledby",r),(this.accessibleName||this.accessibleNameRef)&&this._setCustomAriaLabelledBy(this.accessibleNameRef||this._srLabelController.defaultId)}_hasContent(t){if(!t)return!1;const e=!!(t.hasAttribute("label")?t.getAttribute("label"):t.textContent.trim()),r=t.childElementCount>0;return e||r}_updateSelectedItem(t,e,r){if(e){const s=t==null?t:t.toString();this._menuElement.selected=e.reduce((o,n,l)=>o===void 0&&n.value===s?l:o,void 0),this._selectedChanging||(this._valueChanging=!0,this.__updateValueButton(),delete this._valueChanging)}else r&&this.__updateValueButton()}_shouldRemoveFocus(){return!this.opened}_setFocused(t){super._setFocused(t),!t&&document.hasFocus()&&this._requestValidation()}checkValidity(){return!this.required||this.readonly||!!this.value}__defaultRenderer(t,e){if(!this.items||this.items.length===0){t.textContent="";return}let r=t.firstElementChild;r||(r=document.createElement("vaadin-select-list-box"),t.appendChild(r)),r.textContent="",this.items.forEach(s=>{r.appendChild(this.__createItemElement(s))})}async __dispatchChange(){this.updateComplete&&await this.updateComplete,this._requestValidation(),this.dispatchEvent(new CustomEvent("change",{bubbles:!0})),this.__dispatchChangePending=!1}};const Yf=S`
-  :host {
-    position: relative;
-  }
-
-  ::slotted([slot='value']) {
-    flex-grow: 1;
-  }
-`;L("vaadin-select",[Zi,jc,Yf],{moduleId:"vaadin-select-styles"});class Gf extends Wf(ot(Y($))){static get is(){return"vaadin-select"}static get template(){return V`
-      <div class="vaadin-select-container">
-        <div part="label" on-click="_onClick">
-          <slot name="label"></slot>
-          <span part="required-indicator" aria-hidden="true" on-click="focus"></span>
-        </div>
-
-        <vaadin-input-container
-          part="input-field"
-          readonly="[[readonly]]"
-          disabled="[[disabled]]"
-          invalid="[[invalid]]"
-          theme$="[[_theme]]"
-          on-click="_onClick"
-        >
-          <slot name="prefix" slot="prefix"></slot>
-          <slot name="value"></slot>
-          <div part="toggle-button" slot="suffix" aria-hidden="true" on-mousedown="_onToggleMouseDown"></div>
-        </vaadin-input-container>
-
-        <div part="helper-text">
-          <slot name="helper"></slot>
-        </div>
-
-        <div part="error-message">
-          <slot name="error-message"></slot>
-        </div>
-      </div>
-
-      <vaadin-select-overlay
-        id="overlay"
-        owner="[[__overlayOwner]]"
-        position-target="[[_inputContainer]]"
-        opened="{{opened}}"
-        with-backdrop="[[_phone]]"
-        phone$="[[_phone]]"
-        theme$="[[_theme]]"
-        no-vertical-overlap$="[[noVerticalOverlap]]"
-        on-vaadin-overlay-open="_onOverlayOpen"
-      ></vaadin-select-overlay>
-
-      <slot name="tooltip"></slot>
-      <div class="sr-only">
-        <slot name="sr-label"></slot>
-      </div>
-    `}static get properties(){return{__overlayOwner:{value(){return this}}}}static get observers(){return["_rendererChanged(renderer, _overlayElement)"]}ready(){super.ready(),Ri(this)}_rendererChanged(i,t){t&&(t.renderer=i||this.__defaultRenderer,this.requestContentUpdate())}_onOverlayOpen(){this._menuElement&&this._menuElement.focus({focusVisible:Ie()})}}R(Gf);const Kf=S`
+    `}}R(e_);const i_=S`
   :host {
     font-size: var(--lumo-font-size-xxs);
     line-height: 1;
@@ -8807,14 +9112,14 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     -webkit-text-fill-color: var(--lumo-disabled-text-color);
     pointer-events: none;
   }
-`;L("vaadin-multi-select-combo-box-chip",[Qa,Kf],{moduleId:"lumo-multi-select-combo-box-chip"});const Xf=S`
+`;L("vaadin-multi-select-combo-box-chip",[Qa,i_],{moduleId:"lumo-multi-select-combo-box-chip"});const r_=S`
   @media (any-hover: hover) {
     :host(:hover[readonly]) {
       background-color: transparent;
       cursor: default;
     }
   }
-`;L("vaadin-multi-select-combo-box-item",[xr,$n,Xf],{moduleId:"lumo-multi-select-combo-box-item"});L("vaadin-multi-select-combo-box-overlay",[ki,ma,jn,qn,cc,S`
+`;L("vaadin-multi-select-combo-box-item",[xr,$n,r_],{moduleId:"lumo-multi-select-combo-box-item"});L("vaadin-multi-select-combo-box-overlay",[ki,ma,jn,qn,cc,S`
       :host {
         --_vaadin-multi-select-combo-box-items-container-border-width: var(--lumo-space-xs);
         --_vaadin-multi-select-combo-box-items-container-border-style: solid;
@@ -8823,7 +9128,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     :host([auto-expand-vertically]) {
       padding-block: var(--lumo-space-xs);
     }
-  `,{moduleId:"lumo-multi-select-combo-box-container"});const Qf=S`
+  `,{moduleId:"lumo-multi-select-combo-box-container"});const a_=S`
   :host([has-value]) {
     padding-inline-start: 0;
   }
@@ -8876,7 +9181,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     color: var(--lumo-contrast-60pct);
     cursor: var(--lumo-clickable-cursor);
   }
-`;L("vaadin-multi-select-combo-box",[Ei,Qf],{moduleId:"lumo-multi-select-combo-box"});const Jf=S`
+`;L("vaadin-multi-select-combo-box",[Ei,a_],{moduleId:"lumo-multi-select-combo-box"});const s_=S`
   :host {
     max-width: 100%;
     --input-min-width: var(--vaadin-multi-select-combo-box-input-min-width, 4em);
@@ -8915,7 +9220,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host([auto-expand-horizontally]) [class$='container'] {
     width: auto;
   }
-`,Zf=S`
+`,o_=S`
   :host {
     display: inline-flex;
     align-items: center;
@@ -8940,10 +9245,10 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       outline-offset: -1px;
     }
   }
-`;L("vaadin-multi-select-combo-box-chip",Zf,{moduleId:"vaadin-multi-select-combo-box-chip"});class t_ extends Y($){static get is(){return"vaadin-multi-select-combo-box-chip"}static get properties(){return{disabled:{type:Boolean,reflectToAttribute:!0},readonly:{type:Boolean,reflectToAttribute:!0},label:{type:String},item:{type:Object}}}static get template(){return V`
+`;L("vaadin-multi-select-combo-box-chip",o_,{moduleId:"vaadin-multi-select-combo-box-chip"});class n_ extends Y($){static get is(){return"vaadin-multi-select-combo-box-chip"}static get properties(){return{disabled:{type:Boolean,reflectToAttribute:!0},readonly:{type:Boolean,reflectToAttribute:!0},label:{type:String},item:{type:Object}}}static get template(){return V`
       <div part="label">[[label]]</div>
       <div part="remove-button" on-click="_onRemoveClick"></div>
-    `}_onRemoveClick(i){i.stopPropagation(),this.dispatchEvent(new CustomEvent("item-removed",{detail:{item:this.item},bubbles:!0,composed:!0}))}}R(t_);L("vaadin-multi-select-combo-box-container",S`
+    `}_onRemoveClick(i){i.stopPropagation(),this.dispatchEvent(new CustomEvent("item-removed",{detail:{item:this.item},bubbles:!0,composed:!0}))}}R(n_);L("vaadin-multi-select-combo-box-container",S`
     #wrapper {
       display: flex;
       width: 100%;
@@ -8953,7 +9258,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     :host([auto-expand-vertically]) #wrapper {
       flex-wrap: wrap;
     }
-  `,{moduleId:"vaadin-multi-select-combo-box-container-styles"});let ys;class e_ extends Dd{static get is(){return"vaadin-multi-select-combo-box-container"}static get template(){if(!ys){ys=super.template.cloneNode(!0);const i=ys.content,t=i.querySelectorAll("slot"),e=document.createElement("div");e.setAttribute("id","wrapper"),i.insertBefore(e,t[2]),e.appendChild(t[0]),e.appendChild(t[1])}return ys}static get properties(){return{autoExpandVertically:{type:Boolean,reflectToAttribute:!0}}}}R(e_);class i_ extends Un(Y(xt($))){static get is(){return"vaadin-multi-select-combo-box-item"}static get template(){return V`
+  `,{moduleId:"vaadin-multi-select-combo-box-container-styles"});let ys;class l_ extends Dd{static get is(){return"vaadin-multi-select-combo-box-container"}static get template(){if(!ys){ys=super.template.cloneNode(!0);const i=ys.content,t=i.querySelectorAll("slot"),e=document.createElement("div");e.setAttribute("id","wrapper"),i.insertBefore(e,t[2]),e.appendChild(t[0]),e.appendChild(t[1])}return ys}static get properties(){return{autoExpandVertically:{type:Boolean,reflectToAttribute:!0}}}}R(l_);class h_ extends Un(Y(xt($))){static get is(){return"vaadin-multi-select-combo-box-item"}static get template(){return V`
       <style>
         :host {
           display: block;
@@ -8967,7 +9272,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       <div part="content">
         <slot></slot>
       </div>
-    `}}R(i_);const r_=S`
+    `}}R(h_);const d_=S`
   #overlay {
     width: var(
       --vaadin-multi-select-combo-box-overlay-width,
@@ -8980,13 +9285,13 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     flex-direction: column;
     height: 100%;
   }
-`;L("vaadin-multi-select-combo-box-overlay",[ti,r_],{moduleId:"vaadin-multi-select-combo-box-overlay-styles"});class a_ extends Wn(li(xt(Y($)))){static get is(){return"vaadin-multi-select-combo-box-overlay"}static get template(){return V`
+`;L("vaadin-multi-select-combo-box-overlay",[ti,d_],{moduleId:"vaadin-multi-select-combo-box-overlay-styles"});class c_ extends Wn(li(xt(Y($)))){static get is(){return"vaadin-multi-select-combo-box-overlay"}static get template(){return V`
       <div id="backdrop" part="backdrop" hidden></div>
       <div part="overlay" id="overlay">
         <div part="loader"></div>
         <div part="content" id="content"><slot></slot></div>
       </div>
-    `}}R(a_);class s_ extends Gn($){static get is(){return"vaadin-multi-select-combo-box-scroller"}static get template(){return V`
+    `}}R(c_);class u_ extends Gn($){static get is(){return"vaadin-multi-select-combo-box-scroller"}static get template(){return V`
       <style>
         :host {
           display: block;
@@ -9013,7 +9318,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       <div id="selector">
         <slot></slot>
       </div>
-    `}ready(){super.ready(),this.setAttribute("aria-multiselectable","true")}_isItemSelected(i,t,e){return i instanceof vr||this.owner.readonly?!1:this.owner._findIndex(i,this.owner.selectedItems,e)>-1}_updateElement(i,t){super._updateElement(i,t),i.toggleAttribute("readonly",this.owner.readonly)}}R(s_);const o_=a=>class extends bc(Kn(a)){static get properties(){return{filteredItems:{type:Array,notify:!0,sync:!0},keepFilter:{type:Boolean,value:!1},loading:{type:Boolean,notify:!0,sync:!0},size:{type:Number,notify:!0,observer:"_sizeChanged",sync:!0},selectedItems:{type:Array,value:()=>[]},selectedItemsOnTop:{type:Boolean,value:!1,sync:!0},lastFilter:{type:String,notify:!0,sync:!0},topGroup:{type:Array,observer:"_topGroupChanged",sync:!0},_target:{type:Object}}}static get observers(){return["_readonlyChanged(readonly)"]}get clearElement(){return this.querySelector('[part="clear-button"]')}get _tagNamePrefix(){return"vaadin-multi-select-combo-box"}constructor(){super(),this.addEventListener("custom-value-set",this.__onCustomValueSet.bind(this))}open(){!this.disabled&&!(this.readonly&&this.selectedItems.length===0)&&(this.opened=!0)}ready(){super.ready(),this._target=this,this._toggleElement=this.querySelector(".toggle-button")}_updateOverlayWidth(){this.$.overlay._updateOverlayWidth()}_readonlyChanged(){this._setDropdownItems(this.filteredItems)}_setDropdownItems(t){if(this.readonly){super._setDropdownItems(this.selectedItems);return}if(this.filter||!this.selectedItemsOnTop){super._setDropdownItems(t);return}if(t&&t.length&&this.topGroup&&this.topGroup.length){const e=t.filter(r=>this._comboBox._findIndex(r,this.topGroup,this.itemIdPath)===-1);super._setDropdownItems(this.topGroup.concat(e));return}super._setDropdownItems(t)}_topGroupChanged(t){t&&this._setDropdownItems(this.filteredItems)}_initScroller(){const t=this.getRootNode().host;this._comboBox=t,super._initScroller(t)}_onEnter(t){if(this.opened){if(t.preventDefault(),t.stopPropagation(),this.readonly)this.close();else if(this._hasValidInputValue()){const e=this._dropdownItems[this._focusedIndex];this._commitValue(),this._focusedIndex=this._dropdownItems.indexOf(e)}return}super._onEnter(t)}_onEscape(t){if(this.readonly){t.stopPropagation(),this.opened&&this.close();return}super._onEscape(t)}_clearFilter(){(!this.keepFilter||!this.opened)&&super._clearFilter()}_revertInputValueToValue(){super._revertInputValueToValue(),this.filter=""}_commitValue(){this.lastFilter=this.filter,super._commitValue()}_onArrowDown(){this.readonly?this.opened||this.open():super._onArrowDown()}_onArrowUp(){this.readonly?this.opened||this.open():super._onArrowUp()}_setFocused(t){t||(this._ignoreCommitValue=!0),super._setFocused(t),!t&&this.readonly&&!this._closeOnBlurIsPrevented&&this.close()}_onClosed(){this._ignoreCommitValue=!0,super._onClosed()}_detectAndDispatchChange(){if(this._ignoreCommitValue){this._ignoreCommitValue=!1,this.clear(),this._inputElementValue="";return}super._detectAndDispatchChange()}_overlaySelectedItemChanged(t){t.stopPropagation(),!this.readonly&&(t.detail.item instanceof vr||this.opened&&(this.lastFilter=this.filter,this.dispatchEvent(new CustomEvent("combo-box-item-selected",{detail:{item:t.detail.item}}))))}_shouldFetchData(){return this.readonly?!1:super._shouldFetchData()}clearCache(){this.readonly||super.clearCache()}__onCustomValueSet(t){this._ignoreCommitValue&&t.stopImmediatePropagation()}};class n_ extends o_(Y($)){static get is(){return"vaadin-multi-select-combo-box-internal"}static get template(){return V`
+    `}ready(){super.ready(),this.setAttribute("aria-multiselectable","true")}_isItemSelected(i,t,e){return i instanceof vr||this.owner.readonly?!1:this.owner._findIndex(i,this.owner.selectedItems,e)>-1}_updateElement(i,t){super._updateElement(i,t),i.toggleAttribute("readonly",this.owner.readonly)}}R(u_);const p_=a=>class extends bc(Kn(a)){static get properties(){return{filteredItems:{type:Array,notify:!0,sync:!0},keepFilter:{type:Boolean,value:!1},loading:{type:Boolean,notify:!0,sync:!0},size:{type:Number,notify:!0,observer:"_sizeChanged",sync:!0},selectedItems:{type:Array,value:()=>[]},selectedItemsOnTop:{type:Boolean,value:!1,sync:!0},lastFilter:{type:String,notify:!0,sync:!0},topGroup:{type:Array,observer:"_topGroupChanged",sync:!0},_target:{type:Object}}}static get observers(){return["_readonlyChanged(readonly)"]}get clearElement(){return this.querySelector('[part="clear-button"]')}get _tagNamePrefix(){return"vaadin-multi-select-combo-box"}constructor(){super(),this.addEventListener("custom-value-set",this.__onCustomValueSet.bind(this))}open(){!this.disabled&&!(this.readonly&&this.selectedItems.length===0)&&(this.opened=!0)}ready(){super.ready(),this._target=this,this._toggleElement=this.querySelector(".toggle-button")}_updateOverlayWidth(){this.$.overlay._updateOverlayWidth()}_readonlyChanged(){this._setDropdownItems(this.filteredItems)}_setDropdownItems(t){if(this.readonly){super._setDropdownItems(this.selectedItems);return}if(this.filter||!this.selectedItemsOnTop){super._setDropdownItems(t);return}if(t&&t.length&&this.topGroup&&this.topGroup.length){const e=t.filter(r=>this._comboBox._findIndex(r,this.topGroup,this.itemIdPath)===-1);super._setDropdownItems(this.topGroup.concat(e));return}super._setDropdownItems(t)}_topGroupChanged(t){t&&this._setDropdownItems(this.filteredItems)}_initScroller(){const t=this.getRootNode().host;this._comboBox=t,super._initScroller(t)}_onEnter(t){if(this.opened){if(t.preventDefault(),t.stopPropagation(),this.readonly)this.close();else if(this._hasValidInputValue()){const e=this._dropdownItems[this._focusedIndex];this._commitValue(),this._focusedIndex=this._dropdownItems.indexOf(e)}return}super._onEnter(t)}_onEscape(t){if(this.readonly){t.stopPropagation(),this.opened&&this.close();return}super._onEscape(t)}_clearFilter(){(!this.keepFilter||!this.opened)&&super._clearFilter()}_revertInputValueToValue(){super._revertInputValueToValue(),this.filter=""}_commitValue(){this.lastFilter=this.filter,super._commitValue()}_onArrowDown(){this.readonly?this.opened||this.open():super._onArrowDown()}_onArrowUp(){this.readonly?this.opened||this.open():super._onArrowUp()}_setFocused(t){t||(this._ignoreCommitValue=!0),super._setFocused(t),!t&&this.readonly&&!this._closeOnBlurIsPrevented&&this.close()}_onClosed(){this._ignoreCommitValue=!0,super._onClosed()}_detectAndDispatchChange(){if(this._ignoreCommitValue){this._ignoreCommitValue=!1,this.clear(),this._inputElementValue="";return}super._detectAndDispatchChange()}_overlaySelectedItemChanged(t){t.stopPropagation(),!this.readonly&&(t.detail.item instanceof vr||this.opened&&(this.lastFilter=this.filter,this.dispatchEvent(new CustomEvent("combo-box-item-selected",{detail:{item:t.detail.item}}))))}_shouldFetchData(){return this.readonly?!1:super._shouldFetchData()}clearCache(){this.readonly||super.clearCache()}__onCustomValueSet(t){this._ignoreCommitValue&&t.stopImmediatePropagation()}};class v_ extends p_(Y($)){static get is(){return"vaadin-multi-select-combo-box-internal"}static get template(){return V`
       <style>
         :host([opened]) {
           pointer-events: auto;
@@ -9031,12 +9336,12 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         no-vertical-overlap
         restore-focus-node="[[inputElement]]"
       ></vaadin-multi-select-combo-box-overlay>
-    `}}R(n_);const l_=a=>class extends is(Ji(a)){static get properties(){return{autoExpandHorizontally:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_autoExpandHorizontallyChanged",sync:!0},autoExpandVertically:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_autoExpandVerticallyChanged",sync:!0},autoOpenDisabled:{type:Boolean,sync:!0},clearButtonVisible:{type:Boolean,reflectToAttribute:!0,observer:"_clearButtonVisibleChanged",value:!1,sync:!0},items:{type:Array,sync:!0,observer:"__itemsChanged"},itemClassNameGenerator:{type:Object,observer:"__itemClassNameGeneratorChanged",sync:!0},itemLabelPath:{type:String,value:"label",sync:!0},itemValuePath:{type:String,value:"value",sync:!0},itemIdPath:{type:String,sync:!0},i18n:{type:Object,value:()=>({cleared:"Selection cleared",focused:"focused. Press Backspace to remove",selected:"added to selection",deselected:"removed from selection",total:"{count} items selected"})},keepFilter:{type:Boolean,value:!1},loading:{type:Boolean,value:!1,reflectToAttribute:!0,sync:!0},overlayClass:{type:String,sync:!0},readonly:{type:Boolean,value:!1,observer:"_readonlyChanged",reflectToAttribute:!0,sync:!0},selectedItems:{type:Array,value:()=>[],notify:!0,sync:!0},opened:{type:Boolean,notify:!0,value:!1,reflectToAttribute:!0,sync:!0},size:{type:Number,sync:!0},pageSize:{type:Number,value:50,observer:"_pageSizeChanged",sync:!0},dataProvider:{type:Object,sync:!0,observer:"__dataProviderChanged"},allowCustomValue:{type:Boolean,value:!1},placeholder:{type:String,observer:"_placeholderChanged",sync:!0},renderer:{type:Function,sync:!0},filter:{type:String,value:"",notify:!0,sync:!0},filteredItems:{type:Array,sync:!0},selectedItemsOnTop:{type:Boolean,value:!1,sync:!0},value:{type:String},_overflowItems:{type:Array,value:()=>[],sync:!0},_focusedChipIndex:{type:Number,value:-1,observer:"_focusedChipIndexChanged"},_lastFilter:{type:String,sync:!0},_topGroup:{type:Array}}}static get observers(){return["_selectedItemsChanged(selectedItems)","__updateOverflowChip(_overflow, _overflowItems, disabled, readonly)","__updateTopGroup(selectedItemsOnTop, selectedItems, opened)"]}get slotStyles(){const t=this.localName;return[...super.slotStyles,`
+    `}}R(v_);const m_=a=>class extends is(Ji(a)){static get properties(){return{autoExpandHorizontally:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_autoExpandHorizontallyChanged",sync:!0},autoExpandVertically:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_autoExpandVerticallyChanged",sync:!0},autoOpenDisabled:{type:Boolean,sync:!0},clearButtonVisible:{type:Boolean,reflectToAttribute:!0,observer:"_clearButtonVisibleChanged",value:!1,sync:!0},items:{type:Array,sync:!0,observer:"__itemsChanged"},itemClassNameGenerator:{type:Object,observer:"__itemClassNameGeneratorChanged",sync:!0},itemLabelPath:{type:String,value:"label",sync:!0},itemValuePath:{type:String,value:"value",sync:!0},itemIdPath:{type:String,sync:!0},i18n:{type:Object,value:()=>({cleared:"Selection cleared",focused:"focused. Press Backspace to remove",selected:"added to selection",deselected:"removed from selection",total:"{count} items selected"})},keepFilter:{type:Boolean,value:!1},loading:{type:Boolean,value:!1,reflectToAttribute:!0,sync:!0},overlayClass:{type:String,sync:!0},readonly:{type:Boolean,value:!1,observer:"_readonlyChanged",reflectToAttribute:!0,sync:!0},selectedItems:{type:Array,value:()=>[],notify:!0,sync:!0},opened:{type:Boolean,notify:!0,value:!1,reflectToAttribute:!0,sync:!0},size:{type:Number,sync:!0},pageSize:{type:Number,value:50,observer:"_pageSizeChanged",sync:!0},dataProvider:{type:Object,sync:!0,observer:"__dataProviderChanged"},allowCustomValue:{type:Boolean,value:!1},placeholder:{type:String,observer:"_placeholderChanged",sync:!0},renderer:{type:Function,sync:!0},filter:{type:String,value:"",notify:!0,sync:!0},filteredItems:{type:Array,sync:!0},selectedItemsOnTop:{type:Boolean,value:!1,sync:!0},value:{type:String},_overflowItems:{type:Array,value:()=>[],sync:!0},_focusedChipIndex:{type:Number,value:-1,observer:"_focusedChipIndexChanged"},_lastFilter:{type:String,sync:!0},_topGroup:{type:Array}}}static get observers(){return["_selectedItemsChanged(selectedItems)","__updateOverflowChip(_overflow, _overflowItems, disabled, readonly)","__updateTopGroup(selectedItemsOnTop, selectedItems, opened)"]}get slotStyles(){const t=this.localName;return[...super.slotStyles,`
         ${t}[has-value] input::placeholder {
           color: transparent !important;
           forced-color-adjust: none;
         }
-      `]}get clearElement(){return this.$.clearButton}get _chips(){return[...this.querySelectorAll('[slot="chip"]')]}get _hasValue(){return this.selectedItems&&this.selectedItems.length>0}ready(){super.ready(),this.addController(new _r(this,t=>{this._setInputElement(t),this._setFocusElement(t),this.stateTarget=t,this.ariaTarget=t})),this.addController(new tr(this.inputElement,this._labelController)),this._tooltipController=new le(this),this.addController(this._tooltipController),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.inputElement),this._tooltipController.setShouldShow(t=>!t.opened),this._inputField=this.shadowRoot.querySelector('[part="input-field"]'),this._overflowController=new Ft(this,"overflow","vaadin-multi-select-combo-box-chip",{initializer:t=>{t.addEventListener("mousedown",e=>this._preventBlur(e)),this._overflow=t}}),this.addController(this._overflowController),this.__updateChips(),Ri(this)}checkValidity(){return this.required&&!this.readonly?this._hasValue:!0}clear(){this.__updateSelection([]),Gi(this.i18n.cleared)}__syncTopGroup(){this._topGroup=this.selectedItemsOnTop?[...this.selectedItems]:[]}clearCache(){this.$&&this.$.comboBox&&this.$.comboBox.clearCache(),this.__syncTopGroup()}__itemsChanged(){this.__syncTopGroup()}__dataProviderChanged(){this.__syncTopGroup()}requestContentUpdate(){this.$&&this.$.comboBox&&this.$.comboBox.requestContentUpdate()}_disabledChanged(t,e){super._disabledChanged(t,e),(t||e)&&this.__updateChips()}_inputElementChanged(t){super._inputElementChanged(t),t&&this.$.comboBox._setInputElement(t)}_setFocused(t){super._setFocused(t),!t&&document.hasFocus()&&(this._focusedChipIndex=-1,this._requestValidation())}_onResize(){this.__updateChips()}_delegateAttribute(t,e){if(this.stateTarget){if(t==="required"){this._delegateAttribute("aria-required",e?"true":!1);return}super._delegateAttribute(t,e)}}_autoExpandHorizontallyChanged(t,e){(t||e)&&this.__updateChips()}_autoExpandVerticallyChanged(t,e){(t||e)&&this.__updateChips()}_clearButtonVisibleChanged(t,e){(t||e)&&this.__updateChips()}_onFilteredItemsChanged(t){const{value:e}=t.detail;(Array.isArray(e)||e==null)&&(this.filteredItems=e)}_readonlyChanged(t,e){(t||e)&&this.__updateChips(),this.dataProvider&&this.clearCache()}__itemClassNameGeneratorChanged(t,e){(t||e)&&this.__updateChips()}_pageSizeChanged(t,e){(Math.floor(t)!==t||t<=0)&&(this.pageSize=e,console.error('"pageSize" value must be an integer > 0')),this.$.comboBox.pageSize=this.pageSize}_placeholderChanged(t){const e=this.__tmpA11yPlaceholder;e!==t&&(this.__savedPlaceholder=t,e&&(this.placeholder=e))}_selectedItemsChanged(t){if(this._toggleHasValue(this._hasValue),this._hasValue){const e=this._mergeItemLabels(t);this.__tmpA11yPlaceholder===void 0&&(this.__savedPlaceholder=this.placeholder),this.__tmpA11yPlaceholder=e,this.placeholder=e}else this.__tmpA11yPlaceholder!==void 0&&(delete this.__tmpA11yPlaceholder,this.placeholder=this.__savedPlaceholder);this.__updateChips(),this.requestContentUpdate(),this.opened&&this.$.comboBox._updateOverlayWidth()}_getItemLabel(t){return this.$.comboBox._getItemLabel(t)}_mergeItemLabels(t){return t.map(e=>this._getItemLabel(e)).join(", ")}_findIndex(t,e,r){if(r&&t){for(let s=0;s<e.length;s++)if(e[s]&&e[s][r]===t[r])return s;return-1}return e.indexOf(t)}__clearInternalValue(t=!1){!this.keepFilter||t?(this.filter="",this.$.comboBox.clear()):(this.$.comboBox.clear(),this._inputElementValue=this.filter)}__announceItem(t,e,r){const s=e?"selected":"deselected",o=this.i18n.total.replace("{count}",r||0);Gi(`${t} ${this.i18n[s]} ${o}`)}__removeItem(t){const e=[...this.selectedItems];e.splice(e.indexOf(t),1),this.__updateSelection(e);const r=this._getItemLabel(t);this.__announceItem(r,!1,e.length)}__selectItem(t){const e=[...this.selectedItems],r=this._findIndex(t,e,this.itemIdPath),s=this._getItemLabel(t);let o=!1;if(r!==-1){const n=this._lastFilter;if(n&&n.toLowerCase()===s.toLowerCase()){this.__clearInternalValue();return}e.splice(r,1)}else e.push(t),o=!0;this.__updateSelection(e),this.__clearInternalValue(),this.__announceItem(s,o,e.length)}__updateSelection(t){this.selectedItems=t,this._requestValidation(),this.dispatchEvent(new CustomEvent("change",{bubbles:!0}))}__updateTopGroup(t,e,r){t?(!r||this.__needToSyncTopGroup())&&(this._topGroup=[...e]):this._topGroup=[]}__needToSyncTopGroup(){return this.itemIdPath?this._topGroup&&this._topGroup.some(t=>{const e=this.selectedItems[this._findIndex(t,this.selectedItems,this.itemIdPath)];return e&&t!==e}):!1}__createChip(t){const e=document.createElement("vaadin-multi-select-combo-box-chip");e.setAttribute("slot","chip"),e.item=t,e.disabled=this.disabled,e.readonly=this.readonly;const r=this._getItemLabel(t);return e.label=r,e.setAttribute("title",r),typeof this.itemClassNameGenerator=="function"&&(e.className=this.itemClassNameGenerator(t)),e.addEventListener("item-removed",s=>this._onItemRemoved(s)),e.addEventListener("mousedown",s=>this._preventBlur(s)),e}__getOverflowWidth(){const t=this._overflow;t.style.visibility="hidden",t.removeAttribute("hidden");const e=t.getAttribute("count");t.setAttribute("count","99");const r=getComputedStyle(t),s=t.clientWidth+parseInt(r.marginInlineStart);return t.setAttribute("count",e),t.setAttribute("hidden",""),t.style.visibility="",s}__updateChips(){if(!this._inputField||!this.inputElement)return;this._chips.forEach(n=>{n.remove()});const t=[...this.selectedItems],e=this._inputField.$.wrapper.clientWidth,r=parseInt(getComputedStyle(this.inputElement).flexBasis);let s=e-r;t.length>1&&(s-=this.__getOverflowWidth());const o=parseInt(getComputedStyle(this).getPropertyValue("--_chip-min-width"));if(this.autoExpandHorizontally){const n=[];for(let u=t.length-1,p=null;u>=0;u--){const m=this.__createChip(t[u]);this.insertBefore(m,p),p=m,n.unshift(m)}const l=[],h=this._inputField.$.wrapper.clientWidth-this.$.chips.clientWidth;if(!this.autoExpandVertically&&h<r){for(;n.length>1;){n.pop().remove(),l.unshift(t.pop());const p=l.length>0?r+this.__getOverflowWidth():r;if(this._inputField.$.wrapper.clientWidth-this.$.chips.clientWidth>=p)break}n.length===1&&(n[0].style.maxWidth=`${Math.max(o,s)}px`)}this._overflowItems=l;return}for(let n=t.length-1,l=null;n>=0;n--){const h=this.__createChip(t[n]);if(this.insertBefore(h,l),!this.autoExpandVertically){if(this.$.chips.clientWidth>s&&(s<o||l!==null)){h.remove();break}h.style.maxWidth=`${s}px`}t.pop(),l=h}this._overflowItems=t}__updateOverflowChip(t,e,r,s){if(t){const o=e.length;t.label=`${o}`,t.setAttribute("count",`${o}`),t.setAttribute("title",this._mergeItemLabels(e)),t.toggleAttribute("hidden",o===0),t.disabled=r,t.readonly=s}}_onClearButtonTouchend(t){t.preventDefault(),t.stopPropagation(),this.clear()}_onClearButtonClick(t){t.stopPropagation(),this.clear()}_onChange(t){t.stopPropagation()}_onEscape(t){this.clearButtonVisible&&this.selectedItems&&this.selectedItems.length&&(t.stopPropagation(),this.selectedItems=[])}_onKeyDown(t){super._onKeyDown(t);const e=this._chips;if(!this.readonly&&e.length>0)switch(t.key){case"Backspace":this._onBackSpace(e);break;case"ArrowLeft":this._onArrowLeft(e,t);break;case"ArrowRight":this._onArrowRight(e,t);break;default:this._focusedChipIndex=-1;break}}_onArrowLeft(t,e){if(this.inputElement.selectionStart!==0)return;const r=this._focusedChipIndex;r!==-1&&e.preventDefault();let s;this.__isRTL?r===t.length-1?s=-1:r>-1&&(s=r+1):r===-1?s=t.length-1:r>0&&(s=r-1),s!==void 0&&(this._focusedChipIndex=s)}_onArrowRight(t,e){if(this.inputElement.selectionStart!==0)return;const r=this._focusedChipIndex;r!==-1&&e.preventDefault();let s;this.__isRTL?r===-1?s=t.length-1:r>0&&(s=r-1):r===t.length-1?s=-1:r>-1&&(s=r+1),s!==void 0&&(this._focusedChipIndex=s)}_onBackSpace(t){if(this.inputElement.selectionStart!==0)return;const e=this._focusedChipIndex;e===-1?this._focusedChipIndex=t.length-1:(this.__removeItem(t[e].item),this._focusedChipIndex=-1)}_focusedChipIndexChanged(t,e){if(t>-1||e>-1){const r=this._chips;if(r.forEach((s,o)=>{s.toggleAttribute("focused",o===t)}),t>-1){const s=r[t].item,o=this._getItemLabel(s);Gi(`${o} ${this.i18n.focused}`)}}}_onComboBoxChange(){const t=this.$.comboBox.selectedItem;t&&this.__selectItem(t)}_onComboBoxItemSelected(t){this.__selectItem(t.detail.item)}_onCustomValueSet(t){t.preventDefault(),t.stopPropagation(),this.__clearInternalValue(!0),this.dispatchEvent(new CustomEvent("custom-value-set",{detail:t.detail,composed:!0,bubbles:!0}))}_onItemRemoved(t){this.__removeItem(t.detail.item)}_preventBlur(t){t.preventDefault()}};L("vaadin-multi-select-combo-box",[Zi,Jf],{moduleId:"vaadin-multi-select-combo-box-styles"});class h_ extends l_(Y(ot($))){static get is(){return"vaadin-multi-select-combo-box"}static get template(){return V`
+      `]}get clearElement(){return this.$.clearButton}get _chips(){return[...this.querySelectorAll('[slot="chip"]')]}get _hasValue(){return this.selectedItems&&this.selectedItems.length>0}ready(){super.ready(),this.addController(new _r(this,t=>{this._setInputElement(t),this._setFocusElement(t),this.stateTarget=t,this.ariaTarget=t})),this.addController(new tr(this.inputElement,this._labelController)),this._tooltipController=new le(this),this.addController(this._tooltipController),this._tooltipController.setPosition("top"),this._tooltipController.setAriaTarget(this.inputElement),this._tooltipController.setShouldShow(t=>!t.opened),this._inputField=this.shadowRoot.querySelector('[part="input-field"]'),this._overflowController=new Ft(this,"overflow","vaadin-multi-select-combo-box-chip",{initializer:t=>{t.addEventListener("mousedown",e=>this._preventBlur(e)),this._overflow=t}}),this.addController(this._overflowController),this.__updateChips(),Ri(this)}checkValidity(){return this.required&&!this.readonly?this._hasValue:!0}clear(){this.__updateSelection([]),Gi(this.i18n.cleared)}__syncTopGroup(){this._topGroup=this.selectedItemsOnTop?[...this.selectedItems]:[]}clearCache(){this.$&&this.$.comboBox&&this.$.comboBox.clearCache(),this.__syncTopGroup()}__itemsChanged(){this.__syncTopGroup()}__dataProviderChanged(){this.__syncTopGroup()}requestContentUpdate(){this.$&&this.$.comboBox&&this.$.comboBox.requestContentUpdate()}_disabledChanged(t,e){super._disabledChanged(t,e),(t||e)&&this.__updateChips()}_inputElementChanged(t){super._inputElementChanged(t),t&&this.$.comboBox._setInputElement(t)}_setFocused(t){super._setFocused(t),!t&&document.hasFocus()&&(this._focusedChipIndex=-1,this._requestValidation())}_onResize(){this.__updateChips()}_delegateAttribute(t,e){if(this.stateTarget){if(t==="required"){this._delegateAttribute("aria-required",e?"true":!1);return}super._delegateAttribute(t,e)}}_autoExpandHorizontallyChanged(t,e){(t||e)&&this.__updateChips()}_autoExpandVerticallyChanged(t,e){(t||e)&&this.__updateChips()}_clearButtonVisibleChanged(t,e){(t||e)&&this.__updateChips()}_onFilteredItemsChanged(t){const{value:e}=t.detail;(Array.isArray(e)||e==null)&&(this.filteredItems=e)}_readonlyChanged(t,e){(t||e)&&this.__updateChips(),this.dataProvider&&this.clearCache()}__itemClassNameGeneratorChanged(t,e){(t||e)&&this.__updateChips()}_pageSizeChanged(t,e){(Math.floor(t)!==t||t<=0)&&(this.pageSize=e,console.error('"pageSize" value must be an integer > 0')),this.$.comboBox.pageSize=this.pageSize}_placeholderChanged(t){const e=this.__tmpA11yPlaceholder;e!==t&&(this.__savedPlaceholder=t,e&&(this.placeholder=e))}_selectedItemsChanged(t){if(this._toggleHasValue(this._hasValue),this._hasValue){const e=this._mergeItemLabels(t);this.__tmpA11yPlaceholder===void 0&&(this.__savedPlaceholder=this.placeholder),this.__tmpA11yPlaceholder=e,this.placeholder=e}else this.__tmpA11yPlaceholder!==void 0&&(delete this.__tmpA11yPlaceholder,this.placeholder=this.__savedPlaceholder);this.__updateChips(),this.requestContentUpdate(),this.opened&&this.$.comboBox._updateOverlayWidth()}_getItemLabel(t){return this.$.comboBox._getItemLabel(t)}_mergeItemLabels(t){return t.map(e=>this._getItemLabel(e)).join(", ")}_findIndex(t,e,r){if(r&&t){for(let s=0;s<e.length;s++)if(e[s]&&e[s][r]===t[r])return s;return-1}return e.indexOf(t)}__clearInternalValue(t=!1){!this.keepFilter||t?(this.filter="",this.$.comboBox.clear()):(this.$.comboBox.clear(),this._inputElementValue=this.filter)}__announceItem(t,e,r){const s=e?"selected":"deselected",o=this.i18n.total.replace("{count}",r||0);Gi(`${t} ${this.i18n[s]} ${o}`)}__removeItem(t){const e=[...this.selectedItems];e.splice(e.indexOf(t),1),this.__updateSelection(e);const r=this._getItemLabel(t);this.__announceItem(r,!1,e.length)}__selectItem(t){const e=[...this.selectedItems],r=this._findIndex(t,e,this.itemIdPath),s=this._getItemLabel(t);let o=!1;if(r!==-1){const n=this._lastFilter;if(n&&n.toLowerCase()===s.toLowerCase()){this.__clearInternalValue();return}e.splice(r,1)}else e.push(t),o=!0;this.__updateSelection(e),this.__clearInternalValue(),this.__announceItem(s,o,e.length)}__updateSelection(t){this.selectedItems=t,this._requestValidation(),this.dispatchEvent(new CustomEvent("change",{bubbles:!0}))}__updateTopGroup(t,e,r){t?(!r||this.__needToSyncTopGroup())&&(this._topGroup=[...e]):this._topGroup=[]}__needToSyncTopGroup(){return this.itemIdPath?this._topGroup&&this._topGroup.some(t=>{const e=this.selectedItems[this._findIndex(t,this.selectedItems,this.itemIdPath)];return e&&t!==e}):!1}__createChip(t){const e=document.createElement("vaadin-multi-select-combo-box-chip");e.setAttribute("slot","chip"),e.item=t,e.disabled=this.disabled,e.readonly=this.readonly;const r=this._getItemLabel(t);return e.label=r,e.setAttribute("title",r),typeof this.itemClassNameGenerator=="function"&&(e.className=this.itemClassNameGenerator(t)),e.addEventListener("item-removed",s=>this._onItemRemoved(s)),e.addEventListener("mousedown",s=>this._preventBlur(s)),e}__getOverflowWidth(){const t=this._overflow;t.style.visibility="hidden",t.removeAttribute("hidden");const e=t.getAttribute("count");t.setAttribute("count","99");const r=getComputedStyle(t),s=t.clientWidth+parseInt(r.marginInlineStart);return t.setAttribute("count",e),t.setAttribute("hidden",""),t.style.visibility="",s}__updateChips(){if(!this._inputField||!this.inputElement)return;this._chips.forEach(n=>{n.remove()});const t=[...this.selectedItems],e=this._inputField.$.wrapper.clientWidth,r=parseInt(getComputedStyle(this.inputElement).flexBasis);let s=e-r;t.length>1&&(s-=this.__getOverflowWidth());const o=parseInt(getComputedStyle(this).getPropertyValue("--_chip-min-width"));if(this.autoExpandHorizontally){const n=[];for(let u=t.length-1,p=null;u>=0;u--){const m=this.__createChip(t[u]);this.insertBefore(m,p),p=m,n.unshift(m)}const l=[],h=this._inputField.$.wrapper.clientWidth-this.$.chips.clientWidth;if(!this.autoExpandVertically&&h<r){for(;n.length>1;){n.pop().remove(),l.unshift(t.pop());const p=l.length>0?r+this.__getOverflowWidth():r;if(this._inputField.$.wrapper.clientWidth-this.$.chips.clientWidth>=p)break}n.length===1&&(n[0].style.maxWidth=`${Math.max(o,s)}px`)}this._overflowItems=l;return}for(let n=t.length-1,l=null;n>=0;n--){const h=this.__createChip(t[n]);if(this.insertBefore(h,l),!this.autoExpandVertically){if(this.$.chips.clientWidth>s&&(s<o||l!==null)){h.remove();break}h.style.maxWidth=`${s}px`}t.pop(),l=h}this._overflowItems=t}__updateOverflowChip(t,e,r,s){if(t){const o=e.length;t.label=`${o}`,t.setAttribute("count",`${o}`),t.setAttribute("title",this._mergeItemLabels(e)),t.toggleAttribute("hidden",o===0),t.disabled=r,t.readonly=s}}_onClearButtonTouchend(t){t.preventDefault(),t.stopPropagation(),this.clear()}_onClearButtonClick(t){t.stopPropagation(),this.clear()}_onChange(t){t.stopPropagation()}_onEscape(t){this.clearButtonVisible&&this.selectedItems&&this.selectedItems.length&&(t.stopPropagation(),this.selectedItems=[])}_onKeyDown(t){super._onKeyDown(t);const e=this._chips;if(!this.readonly&&e.length>0)switch(t.key){case"Backspace":this._onBackSpace(e);break;case"ArrowLeft":this._onArrowLeft(e,t);break;case"ArrowRight":this._onArrowRight(e,t);break;default:this._focusedChipIndex=-1;break}}_onArrowLeft(t,e){if(this.inputElement.selectionStart!==0)return;const r=this._focusedChipIndex;r!==-1&&e.preventDefault();let s;this.__isRTL?r===t.length-1?s=-1:r>-1&&(s=r+1):r===-1?s=t.length-1:r>0&&(s=r-1),s!==void 0&&(this._focusedChipIndex=s)}_onArrowRight(t,e){if(this.inputElement.selectionStart!==0)return;const r=this._focusedChipIndex;r!==-1&&e.preventDefault();let s;this.__isRTL?r===-1?s=t.length-1:r>0&&(s=r-1):r===t.length-1?s=-1:r>-1&&(s=r+1),s!==void 0&&(this._focusedChipIndex=s)}_onBackSpace(t){if(this.inputElement.selectionStart!==0)return;const e=this._focusedChipIndex;e===-1?this._focusedChipIndex=t.length-1:(this.__removeItem(t[e].item),this._focusedChipIndex=-1)}_focusedChipIndexChanged(t,e){if(t>-1||e>-1){const r=this._chips;if(r.forEach((s,o)=>{s.toggleAttribute("focused",o===t)}),t>-1){const s=r[t].item,o=this._getItemLabel(s);Gi(`${o} ${this.i18n.focused}`)}}}_onComboBoxChange(){const t=this.$.comboBox.selectedItem;t&&this.__selectItem(t)}_onComboBoxItemSelected(t){this.__selectItem(t.detail.item)}_onCustomValueSet(t){t.preventDefault(),t.stopPropagation(),this.__clearInternalValue(!0),this.dispatchEvent(new CustomEvent("custom-value-set",{detail:t.detail,composed:!0,bubbles:!0}))}_onItemRemoved(t){this.__removeItem(t.detail.item)}_preventBlur(t){t.preventDefault()}};L("vaadin-multi-select-combo-box",[Zi,s_],{moduleId:"vaadin-multi-select-combo-box-styles"});class f_ extends m_(Y(ot($))){static get is(){return"vaadin-multi-select-combo-box"}static get template(){return V`
       <div class="vaadin-multi-select-combo-box-container">
         <div part="label">
           <slot name="label"></slot>
@@ -9107,7 +9412,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
 
         <slot name="tooltip"></slot>
       </div>
-    `}}R(h_);const Uc=S`
+    `}}R(f_);const Uc=S`
   /* Optical centering */
   :host::before,
   :host::after {
@@ -9320,7 +9625,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       outline: 3px solid !important;
     }
   }
-`,d_=S`
+`,__=S`
   [part='overlay'] {
     position: relative;
     overflow: visible;
@@ -9414,7 +9719,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
     left: -4px;
     cursor: nwse-resize;
   }
-`;const c_=a=>class extends a{static get properties(){return{ariaLabel:{type:String,value:""},contentHeight:{type:String},contentWidth:{type:String}}}static get observers(){return["__updateContentHeight(contentHeight, _overlayElement)","__updateContentWidth(contentWidth, _overlayElement)"]}__updateDimension(t,e,r){const s=`--_vaadin-confirm-dialog-content-${e}`;r?t.style.setProperty(s,r):t.style.removeProperty(s)}__updateContentHeight(t,e){e&&this.__updateDimension(e,"height",t)}__updateContentWidth(t,e){e&&this.__updateDimension(e,"width",t)}};const u_=S`
+`;const g_=a=>class extends a{static get properties(){return{ariaLabel:{type:String,value:""},contentHeight:{type:String},contentWidth:{type:String}}}static get observers(){return["__updateContentHeight(contentHeight, _overlayElement)","__updateContentWidth(contentWidth, _overlayElement)"]}__updateDimension(t,e,r){const s=`--_vaadin-confirm-dialog-content-${e}`;r?t.style.setProperty(s,r):t.style.removeProperty(s)}__updateContentHeight(t,e){e&&this.__updateDimension(e,"height",t)}__updateContentWidth(t,e){e&&this.__updateDimension(e,"width",t)}};const b_=S`
   :host {
     --_vaadin-confirm-dialog-content-width: auto;
     --_vaadin-confirm-dialog-content-height: auto;
@@ -9437,7 +9742,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   [part='footer'] > * {
     pointer-events: all;
   }
-`;L("vaadin-confirm-dialog-overlay",[ti,Yc,u_],{moduleId:"vaadin-confirm-dialog-overlay-styles"});class p_ extends li(xt(Y($))){static get is(){return"vaadin-confirm-dialog-overlay"}static get template(){return V`
+`;L("vaadin-confirm-dialog-overlay",[ti,Yc,b_],{moduleId:"vaadin-confirm-dialog-overlay-styles"});class y_ extends li(xt(Y($))){static get is(){return"vaadin-confirm-dialog-overlay"}static get template(){return V`
       <div part="backdrop" id="backdrop" hidden$="[[!withBackdrop]]"></div>
       <div part="overlay" id="overlay" tabindex="0">
         <section id="resizerContainer" class="resizer-container">
@@ -9458,7 +9763,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
           </footer>
         </section>
       </div>
-    `}ready(){super.ready(),this.setAttribute("has-header",""),this.setAttribute("has-footer","")}}R(p_);class v_ extends c_(Wc(fi(Xi($)))){static get is(){return"vaadin-confirm-dialog-dialog"}static get template(){return V`
+    `}ready(){super.ready(),this.setAttribute("has-header",""),this.setAttribute("has-footer","")}}R(y_);class x_ extends g_(Wc(fi(Xi($)))){static get is(){return"vaadin-confirm-dialog-dialog"}static get template(){return V`
       <style>
         :host {
           display: none;
@@ -9479,7 +9784,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         restore-focus-on-close
         focus-trap
       ></vaadin-confirm-dialog-overlay>
-    `}}R(v_);const m_=a=>class extends a{static get properties(){return{accessibleDescriptionRef:{type:String},opened:{type:Boolean,value:!1,notify:!0,sync:!0},header:{type:String,value:""},message:{type:String,value:""},confirmText:{type:String,value:"Confirm"},confirmTheme:{type:String,value:"primary"},noCloseOnEsc:{type:Boolean,value:!1},rejectButtonVisible:{type:Boolean,reflectToAttribute:!0,value:!1},rejectText:{type:String,value:"Reject"},rejectTheme:{type:String,value:"error tertiary"},cancelButtonVisible:{type:Boolean,reflectToAttribute:!0,value:!1},cancelText:{type:String,value:"Cancel"},cancelTheme:{type:String,value:"tertiary"},overlayClass:{type:String},_cancelButton:{type:Object},_confirmButton:{type:Object},_headerNode:{type:Object},_messageNodes:{type:Array,value:()=>[]},_overlayElement:{type:Object,sync:!0},_rejectButton:{type:Object},_contentHeight:{type:String},_contentWidth:{type:String}}}static get observers(){return["__updateConfirmButton(_confirmButton, confirmText, confirmTheme)","__updateCancelButton(_cancelButton, cancelText, cancelTheme, cancelButtonVisible)","__updateHeaderNode(_headerNode, header)","__updateMessageNodes(_messageNodes, message)","__updateRejectButton(_rejectButton, rejectText, rejectTheme, rejectButtonVisible)","__accessibleDescriptionRefChanged(_overlayElement, _messageNodes, accessibleDescriptionRef)"]}constructor(){super(),this.__cancel=this.__cancel.bind(this),this.__confirm=this.__confirm.bind(this),this.__reject=this.__reject.bind(this)}get __slottedNodes(){return[this._headerNode,...this._messageNodes,this._cancelButton,this._confirmButton,this._rejectButton]}ready(){super.ready(),this._headerController=new Ft(this,"header","h3",{initializer:t=>{this._headerNode=t}}),this.addController(this._headerController),this._messageController=new Ft(this,"","div",{multiple:!0,observe:!1,initializer:t=>{const e=document.createElement("div");e.style.display="contents";const r=`confirm-dialog-message-${mi()}`;e.id=r,this.appendChild(e),e.appendChild(t),this._messageNodes=[...this._messageNodes,e]}}),this.addController(this._messageController),this._cancelController=new Ft(this,"cancel-button","vaadin-button",{initializer:t=>{this.__setupSlottedButton("cancel",t)}}),this.addController(this._cancelController),this._rejectController=new Ft(this,"reject-button","vaadin-button",{initializer:t=>{this.__setupSlottedButton("reject",t)}}),this.addController(this._rejectController),this._confirmController=new Ft(this,"confirm-button","vaadin-button",{initializer:t=>{this.__setupSlottedButton("confirm",t)}}),this.addController(this._confirmController),this._overlayElement=this.$.dialog.$.overlay,this._initOverlay(this._overlayElement)}_initOverlay(t){t.addEventListener("vaadin-overlay-escape-press",this._escPressed.bind(this)),t.addEventListener("vaadin-overlay-open",()=>this.__onDialogOpened()),t.addEventListener("vaadin-overlay-closed",()=>this.__onDialogClosed()),t.setAttribute("role","alertdialog")}__onDialogOpened(){const t=this._overlayElement;this.__slottedNodes.forEach(r=>{t.appendChild(r)});const e=t.querySelector('[slot="confirm-button"]');e&&e.focus()}__onDialogClosed(){this.__slottedNodes.forEach(t=>{this.appendChild(t)}),this.dispatchEvent(new CustomEvent("closed"))}__accessibleDescriptionRefChanged(t,e,r){!t||!e||(r!==void 0?ea(t,"aria-describedby",{newId:r,oldId:this.__oldAccessibleDescriptionRef,fromUser:!0}):e.forEach(s=>{ea(t,"aria-describedby",{newId:s.id})}),this.__oldAccessibleDescriptionRef=r)}__setupSlottedButton(t,e){const r=`_${t}Button`,s=`__${t}`;this[r]&&this[r]!==e&&this[r].remove(),e.addEventListener("click",this[s]),this[r]=e}__updateCancelButton(t,e,r,s){t&&(t===this._cancelController.defaultNode&&(t.textContent=e,t.setAttribute("theme",r)),t.toggleAttribute("hidden",!s))}__updateConfirmButton(t,e,r){t&&t===this._confirmController.defaultNode&&(t.textContent=e,t.setAttribute("theme",r))}__updateHeaderNode(t,e){t&&t===this._headerController.defaultNode&&(t.textContent=e)}__updateMessageNodes(t,e){if(t&&t.length>0){const r=t.find(s=>this._messageController.defaultNode&&s===this._messageController.defaultNode.parentElement);r&&(r.firstChild.textContent=e)}}__updateRejectButton(t,e,r,s){t&&(t===this._rejectController.defaultNode&&(t.textContent=e,t.setAttribute("theme",r)),t.toggleAttribute("hidden",!s))}_escPressed(t){t.defaultPrevented||this.__cancel()}__confirm(){this.dispatchEvent(new CustomEvent("confirm")),this.opened=!1}__cancel(){this.dispatchEvent(new CustomEvent("cancel")),this.opened=!1}__reject(){this.dispatchEvent(new CustomEvent("reject")),this.opened=!1}_getAriaLabel(t){return t||"confirmation"}};class f_ extends m_(ot(Xi(Mt($)))){static get template(){return V`
+    `}}R(x_);const w_=a=>class extends a{static get properties(){return{accessibleDescriptionRef:{type:String},opened:{type:Boolean,value:!1,notify:!0,sync:!0},header:{type:String,value:""},message:{type:String,value:""},confirmText:{type:String,value:"Confirm"},confirmTheme:{type:String,value:"primary"},noCloseOnEsc:{type:Boolean,value:!1},rejectButtonVisible:{type:Boolean,reflectToAttribute:!0,value:!1},rejectText:{type:String,value:"Reject"},rejectTheme:{type:String,value:"error tertiary"},cancelButtonVisible:{type:Boolean,reflectToAttribute:!0,value:!1},cancelText:{type:String,value:"Cancel"},cancelTheme:{type:String,value:"tertiary"},overlayClass:{type:String},_cancelButton:{type:Object},_confirmButton:{type:Object},_headerNode:{type:Object},_messageNodes:{type:Array,value:()=>[]},_overlayElement:{type:Object,sync:!0},_rejectButton:{type:Object},_contentHeight:{type:String},_contentWidth:{type:String}}}static get observers(){return["__updateConfirmButton(_confirmButton, confirmText, confirmTheme)","__updateCancelButton(_cancelButton, cancelText, cancelTheme, cancelButtonVisible)","__updateHeaderNode(_headerNode, header)","__updateMessageNodes(_messageNodes, message)","__updateRejectButton(_rejectButton, rejectText, rejectTheme, rejectButtonVisible)","__accessibleDescriptionRefChanged(_overlayElement, _messageNodes, accessibleDescriptionRef)"]}constructor(){super(),this.__cancel=this.__cancel.bind(this),this.__confirm=this.__confirm.bind(this),this.__reject=this.__reject.bind(this)}get __slottedNodes(){return[this._headerNode,...this._messageNodes,this._cancelButton,this._confirmButton,this._rejectButton]}ready(){super.ready(),this._headerController=new Ft(this,"header","h3",{initializer:t=>{this._headerNode=t}}),this.addController(this._headerController),this._messageController=new Ft(this,"","div",{multiple:!0,observe:!1,initializer:t=>{const e=document.createElement("div");e.style.display="contents";const r=`confirm-dialog-message-${mi()}`;e.id=r,this.appendChild(e),e.appendChild(t),this._messageNodes=[...this._messageNodes,e]}}),this.addController(this._messageController),this._cancelController=new Ft(this,"cancel-button","vaadin-button",{initializer:t=>{this.__setupSlottedButton("cancel",t)}}),this.addController(this._cancelController),this._rejectController=new Ft(this,"reject-button","vaadin-button",{initializer:t=>{this.__setupSlottedButton("reject",t)}}),this.addController(this._rejectController),this._confirmController=new Ft(this,"confirm-button","vaadin-button",{initializer:t=>{this.__setupSlottedButton("confirm",t)}}),this.addController(this._confirmController),this._overlayElement=this.$.dialog.$.overlay,this._initOverlay(this._overlayElement)}_initOverlay(t){t.addEventListener("vaadin-overlay-escape-press",this._escPressed.bind(this)),t.addEventListener("vaadin-overlay-open",()=>this.__onDialogOpened()),t.addEventListener("vaadin-overlay-closed",()=>this.__onDialogClosed()),t.setAttribute("role","alertdialog")}__onDialogOpened(){const t=this._overlayElement;this.__slottedNodes.forEach(r=>{t.appendChild(r)});const e=t.querySelector('[slot="confirm-button"]');e&&e.focus()}__onDialogClosed(){this.__slottedNodes.forEach(t=>{this.appendChild(t)}),this.dispatchEvent(new CustomEvent("closed"))}__accessibleDescriptionRefChanged(t,e,r){!t||!e||(r!==void 0?ea(t,"aria-describedby",{newId:r,oldId:this.__oldAccessibleDescriptionRef,fromUser:!0}):e.forEach(s=>{ea(t,"aria-describedby",{newId:s.id})}),this.__oldAccessibleDescriptionRef=r)}__setupSlottedButton(t,e){const r=`_${t}Button`,s=`__${t}`;this[r]&&this[r]!==e&&this[r].remove(),e.addEventListener("click",this[s]),this[r]=e}__updateCancelButton(t,e,r,s){t&&(t===this._cancelController.defaultNode&&(t.textContent=e,t.setAttribute("theme",r)),t.toggleAttribute("hidden",!s))}__updateConfirmButton(t,e,r){t&&t===this._confirmController.defaultNode&&(t.textContent=e,t.setAttribute("theme",r))}__updateHeaderNode(t,e){t&&t===this._headerController.defaultNode&&(t.textContent=e)}__updateMessageNodes(t,e){if(t&&t.length>0){const r=t.find(s=>this._messageController.defaultNode&&s===this._messageController.defaultNode.parentElement);r&&(r.firstChild.textContent=e)}}__updateRejectButton(t,e,r,s){t&&(t===this._rejectController.defaultNode&&(t.textContent=e,t.setAttribute("theme",r)),t.toggleAttribute("hidden",!s))}_escPressed(t){t.defaultPrevented||this.__cancel()}__confirm(){this.dispatchEvent(new CustomEvent("confirm")),this.opened=!1}__cancel(){this.dispatchEvent(new CustomEvent("cancel")),this.opened=!1}__reject(){this.dispatchEvent(new CustomEvent("reject")),this.opened=!1}_getAriaLabel(t){return t||"confirmation"}};class z_ extends w_(ot(Xi(Mt($)))){static get template(){return V`
       <style>
         :host,
         [hidden] {
@@ -9506,7 +9811,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         <slot name="reject-button"></slot>
         <slot name="confirm-button"></slot>
       </div>
-    `}static get is(){return"vaadin-confirm-dialog"}}R(f_);Js({name:"vaadin-contextmenu",deps:["touchstart","touchmove","touchend","contextmenu"],flow:{start:["touchstart","contextmenu"],end:["contextmenu"]},emits:["vaadin-contextmenu"],info:{sourceEvent:null},reset(){this.info.sourceEvent=null,this._cancelTimer(),this.info.touchJob=null,this.info.touchStartCoords=null},_cancelTimer(){this._timerId&&(clearTimeout(this._timerId),delete this._fired)},_setSourceEvent(a){this.info.sourceEvent=a;const i=a.composedPath();this.info.sourceEvent.__composedPath=i},touchstart(a){this._setSourceEvent(a),this.info.touchStartCoords={x:a.changedTouches[0].clientX,y:a.changedTouches[0].clientY};const i=a.composedPath()[0]||a.target;this._timerId=setTimeout(()=>{const t=a.changedTouches[0];a.shiftKey||(ur&&(this._fired=!0,this.fire(i,t.clientX,t.clientY)),da("tap"))},500)},touchmove(a){const t=this.info.touchStartCoords;(Math.abs(t.x-a.changedTouches[0].clientX)>15||Math.abs(t.y-a.changedTouches[0].clientY)>15)&&this._cancelTimer()},touchend(a){this._fired&&a.preventDefault(),this._cancelTimer()},contextmenu(a){if(!a.shiftKey){if(this._setSourceEvent(a),Mn&&Ie()){const i=a.composedPath()[0],t=i.getBoundingClientRect();this.fire(i,t.left,t.bottom)}else this.fire(a.target,a.clientX,a.clientY);da("tap")}},fire(a,i,t){const e=this.info.sourceEvent,r=new Event("vaadin-contextmenu",{bubbles:!0,cancelable:!0,composed:!0});r.detail={x:i,y:t,sourceEvent:e},a.dispatchEvent(r),r.defaultPrevented&&e&&e.preventDefault&&e.preventDefault()}});class __ extends fa(Y(xt($))){static get is(){return"vaadin-context-menu-item"}static get template(){return V`
+    `}static get is(){return"vaadin-confirm-dialog"}}R(z_);Js({name:"vaadin-contextmenu",deps:["touchstart","touchmove","touchend","contextmenu"],flow:{start:["touchstart","contextmenu"],end:["contextmenu"]},emits:["vaadin-contextmenu"],info:{sourceEvent:null},reset(){this.info.sourceEvent=null,this._cancelTimer(),this.info.touchJob=null,this.info.touchStartCoords=null},_cancelTimer(){this._timerId&&(clearTimeout(this._timerId),delete this._fired)},_setSourceEvent(a){this.info.sourceEvent=a;const i=a.composedPath();this.info.sourceEvent.__composedPath=i},touchstart(a){this._setSourceEvent(a),this.info.touchStartCoords={x:a.changedTouches[0].clientX,y:a.changedTouches[0].clientY};const i=a.composedPath()[0]||a.target;this._timerId=setTimeout(()=>{const t=a.changedTouches[0];a.shiftKey||(ur&&(this._fired=!0,this.fire(i,t.clientX,t.clientY)),da("tap"))},500)},touchmove(a){const t=this.info.touchStartCoords;(Math.abs(t.x-a.changedTouches[0].clientX)>15||Math.abs(t.y-a.changedTouches[0].clientY)>15)&&this._cancelTimer()},touchend(a){this._fired&&a.preventDefault(),this._cancelTimer()},contextmenu(a){if(!a.shiftKey){if(this._setSourceEvent(a),Mn&&Ie()){const i=a.composedPath()[0],t=i.getBoundingClientRect();this.fire(i,t.left,t.bottom)}else this.fire(a.target,a.clientX,a.clientY);da("tap")}},fire(a,i,t){const e=this.info.sourceEvent,r=new Event("vaadin-contextmenu",{bubbles:!0,cancelable:!0,composed:!0});r.detail={x:i,y:t,sourceEvent:e},a.dispatchEvent(r),r.defaultPrevented&&e&&e.preventDefault&&e.preventDefault()}});class C_ extends fa(Y(xt($))){static get is(){return"vaadin-context-menu-item"}static get template(){return V`
       <style>
         :host {
           display: inline-block;
@@ -9520,7 +9825,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       <div part="content">
         <slot></slot>
       </div>
-    `}ready(){super.ready(),this.setAttribute("role","menuitem")}}R(__);class g_ extends _a(Y(xt(Mt($)))){static get is(){return"vaadin-context-menu-list-box"}static get template(){return V`
+    `}ready(){super.ready(),this.setAttribute("role","menuitem")}}R(C_);class A_ extends _a(Y(xt(Mt($)))){static get is(){return"vaadin-context-menu-list-box"}static get template(){return V`
       <style>
         :host {
           display: flex;
@@ -9540,14 +9845,14 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       <div part="items">
         <slot></slot>
       </div>
-    `}static get properties(){return{orientation:{readOnly:!0}}}get _scrollerElement(){return this.shadowRoot.querySelector('[part="items"]')}ready(){super.ready(),this.setAttribute("role","menu")}}R(g_);L("vaadin-context-menu-overlay",[ti,Ec],{moduleId:"vaadin-context-menu-overlay-styles"});class b_ extends Mc(li(xt(Y($)))){static get is(){return"vaadin-context-menu-overlay"}static get template(){return V`
+    `}static get properties(){return{orientation:{readOnly:!0}}}get _scrollerElement(){return this.shadowRoot.querySelector('[part="items"]')}ready(){super.ready(),this.setAttribute("role","menu")}}R(A_);L("vaadin-context-menu-overlay",[ti,Ec],{moduleId:"vaadin-context-menu-overlay-styles"});class M_ extends Mc(li(xt(Y($)))){static get is(){return"vaadin-context-menu-overlay"}static get template(){return V`
       <div id="backdrop" part="backdrop" hidden$="[[!withBackdrop]]"></div>
       <div part="overlay" id="overlay" tabindex="0">
         <div part="content" id="content">
           <slot></slot>
         </div>
       </div>
-    `}}R(b_);class y_ extends kc(fi(Mt(ot(Xi($))))){static get template(){return V`
+    `}}R(M_);class E_ extends kc(fi(Mt(ot(Xi($))))){static get template(){return V`
       <style>
         :host {
           display: block;
@@ -9559,7 +9864,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
       </style>
 
       <slot id="slot"></slot>
-    `}static get is(){return"vaadin-context-menu"}ready(){super.ready(),Ri(this)}_attachDom(i){const t=this.attachShadow({mode:"open"});return t.appendChild(i),t.appendChild(this._overlayElement),t}}R(y_);const x_=a=>class extends li(a){static get properties(){return{headerTitle:{type:String},headerRenderer:{type:Object},footerRenderer:{type:Object},keepInViewport:{type:Boolean,reflectToAttribute:!0}}}static get observers(){return["_headerFooterRendererChange(headerRenderer, footerRenderer, opened)","_headerTitleChanged(headerTitle, opened)","__keepInViewportChanged(keepInViewport, opened)"]}ready(){super.ready(),this.__resizeObserver=new ResizeObserver(()=>{this.__updateOverflow(),this.__adjustPosition()}),this.__resizeObserver.observe(this.$.resizerContainer),this.$.content.addEventListener("scroll",()=>{this.__updateOverflow()}),this.__handleWindowResize=this.__handleWindowResize.bind(this)}__createContainer(t){const e=document.createElement("div");return e.setAttribute("slot",t),e}__clearContainer(t){t.innerHTML="",delete t._$litPart$}__initContainer(t,e){return t?this.__clearContainer(t):t=this.__createContainer(e),t}_headerFooterRendererChange(t,e,r){const s=this.__oldHeaderRenderer!==t;this.__oldHeaderRenderer=t;const o=this.__oldFooterRenderer!==e;this.__oldFooterRenderer=e;const n=this._oldOpenedFooterHeader!==r;this._oldOpenedFooterHeader=r,this.toggleAttribute("has-header",!!t),this.toggleAttribute("has-footer",!!e),s&&(t?this.headerContainer=this.__initContainer(this.headerContainer,"header-content"):this.headerContainer&&(this.headerContainer.remove(),this.headerContainer=null,this.__updateOverflow())),o&&(e?this.footerContainer=this.__initContainer(this.footerContainer,"footer"):this.footerContainer&&(this.footerContainer.remove(),this.footerContainer=null,this.__updateOverflow())),(t&&(s||n)||e&&(o||n))&&r&&this.requestContentUpdate()}_headerTitleChanged(t,e){this.toggleAttribute("has-title",!!t),e&&(t||this._oldHeaderTitle)&&this.requestContentUpdate(),this._oldHeaderTitle=t}_headerTitleRenderer(){this.headerTitle?(this.headerTitleElement||(this.headerTitleElement=document.createElement("h2"),this.headerTitleElement.setAttribute("slot","title"),this.headerTitleElement.classList.add("draggable")),this.appendChild(this.headerTitleElement),this.headerTitleElement.textContent=this.headerTitle):this.headerTitleElement&&(this.headerTitleElement.remove(),this.headerTitleElement=null)}requestContentUpdate(){super.requestContentUpdate(),this.headerContainer&&(this.headerContainer.parentElement||this.appendChild(this.headerContainer),this.headerRenderer&&this.headerRenderer.call(this.owner,this.headerContainer,this.owner)),this.footerContainer&&(this.footerContainer.parentElement||this.appendChild(this.footerContainer),this.footerRenderer&&this.footerRenderer.call(this.owner,this.footerContainer,this.owner)),this._headerTitleRenderer(),this.__updateOverflow()}setBounds(t,e=!0){const r=this.$.overlay,s={...t};e&&r.style.position!=="absolute"&&(r.style.position="absolute"),Object.keys(s).forEach(o=>{s[o]!==null&&!isNaN(s[o])&&(s[o]=`${s[o]}px`)}),Object.assign(r.style,s),this.__adjustPosition()}getBounds(){const t=this.$.overlay.getBoundingClientRect(),e=this.getBoundingClientRect(),r=t.top-e.top,s=t.left-e.left,o=t.width,n=t.height;return{top:r,left:s,width:o,height:n}}__updateOverflow(){let t="";if(this.hasAttribute("has-header")||this.hasAttribute("has-footer")||this.headerTitle){const r=this.$.content;r.scrollTop>0&&(t+=" top"),r.scrollTop<r.scrollHeight-r.clientHeight&&(t+=" bottom")}const e=t.trim();e.length>0&&this.getAttribute("overflow")!==e?this.setAttribute("overflow",e):e.length===0&&this.hasAttribute("overflow")&&this.removeAttribute("overflow")}__keepInViewportChanged(t,e){e&&t?window.addEventListener("resize",this.__handleWindowResize):window.removeEventListener("resize",this.__handleWindowResize)}__handleWindowResize(){this.__adjustPosition()}__adjustPosition(){if(!this.opened||!this.keepInViewport)return;const t=getComputedStyle(this.$.overlay);if(t.position!=="absolute")return;const e=this.getBoundingClientRect(),r=this.getBounds(),s=parseFloat(t.width)||r.width,o=parseFloat(t.height)||r.height,n=e.right-e.left-s,l=e.bottom-e.top-o;if(r.left>n||r.top>l){const h=Math.max(0,Math.min(r.left,n)),u=Math.max(0,Math.min(r.top,l));Object.assign(this.$.overlay.style,{left:`${h}px`,top:`${u}px`})}}};L("vaadin-dialog-overlay",[ti,Yc,d_],{moduleId:"vaadin-dialog-overlay-styles"});class w_ extends x_(xt(Y($))){static get is(){return"vaadin-dialog-overlay"}static get template(){return V`
+    `}static get is(){return"vaadin-context-menu"}ready(){super.ready(),Ri(this)}_attachDom(i){const t=this.attachShadow({mode:"open"});return t.appendChild(i),t.appendChild(this._overlayElement),t}}R(E_);const k_=a=>class extends li(a){static get properties(){return{headerTitle:{type:String},headerRenderer:{type:Object},footerRenderer:{type:Object},keepInViewport:{type:Boolean,reflectToAttribute:!0}}}static get observers(){return["_headerFooterRendererChange(headerRenderer, footerRenderer, opened)","_headerTitleChanged(headerTitle, opened)","__keepInViewportChanged(keepInViewport, opened)"]}ready(){super.ready(),this.__resizeObserver=new ResizeObserver(()=>{this.__updateOverflow(),this.__adjustPosition()}),this.__resizeObserver.observe(this.$.resizerContainer),this.$.content.addEventListener("scroll",()=>{this.__updateOverflow()}),this.__handleWindowResize=this.__handleWindowResize.bind(this)}__createContainer(t){const e=document.createElement("div");return e.setAttribute("slot",t),e}__clearContainer(t){t.innerHTML="",delete t._$litPart$}__initContainer(t,e){return t?this.__clearContainer(t):t=this.__createContainer(e),t}_headerFooterRendererChange(t,e,r){const s=this.__oldHeaderRenderer!==t;this.__oldHeaderRenderer=t;const o=this.__oldFooterRenderer!==e;this.__oldFooterRenderer=e;const n=this._oldOpenedFooterHeader!==r;this._oldOpenedFooterHeader=r,this.toggleAttribute("has-header",!!t),this.toggleAttribute("has-footer",!!e),s&&(t?this.headerContainer=this.__initContainer(this.headerContainer,"header-content"):this.headerContainer&&(this.headerContainer.remove(),this.headerContainer=null,this.__updateOverflow())),o&&(e?this.footerContainer=this.__initContainer(this.footerContainer,"footer"):this.footerContainer&&(this.footerContainer.remove(),this.footerContainer=null,this.__updateOverflow())),(t&&(s||n)||e&&(o||n))&&r&&this.requestContentUpdate()}_headerTitleChanged(t,e){this.toggleAttribute("has-title",!!t),e&&(t||this._oldHeaderTitle)&&this.requestContentUpdate(),this._oldHeaderTitle=t}_headerTitleRenderer(){this.headerTitle?(this.headerTitleElement||(this.headerTitleElement=document.createElement("h2"),this.headerTitleElement.setAttribute("slot","title"),this.headerTitleElement.classList.add("draggable")),this.appendChild(this.headerTitleElement),this.headerTitleElement.textContent=this.headerTitle):this.headerTitleElement&&(this.headerTitleElement.remove(),this.headerTitleElement=null)}requestContentUpdate(){super.requestContentUpdate(),this.headerContainer&&(this.headerContainer.parentElement||this.appendChild(this.headerContainer),this.headerRenderer&&this.headerRenderer.call(this.owner,this.headerContainer,this.owner)),this.footerContainer&&(this.footerContainer.parentElement||this.appendChild(this.footerContainer),this.footerRenderer&&this.footerRenderer.call(this.owner,this.footerContainer,this.owner)),this._headerTitleRenderer(),this.__updateOverflow()}setBounds(t,e=!0){const r=this.$.overlay,s={...t};e&&r.style.position!=="absolute"&&(r.style.position="absolute"),Object.keys(s).forEach(o=>{s[o]!==null&&!isNaN(s[o])&&(s[o]=`${s[o]}px`)}),Object.assign(r.style,s),this.__adjustPosition()}getBounds(){const t=this.$.overlay.getBoundingClientRect(),e=this.getBoundingClientRect(),r=t.top-e.top,s=t.left-e.left,o=t.width,n=t.height;return{top:r,left:s,width:o,height:n}}__updateOverflow(){let t="";if(this.hasAttribute("has-header")||this.hasAttribute("has-footer")||this.headerTitle){const r=this.$.content;r.scrollTop>0&&(t+=" top"),r.scrollTop<r.scrollHeight-r.clientHeight&&(t+=" bottom")}const e=t.trim();e.length>0&&this.getAttribute("overflow")!==e?this.setAttribute("overflow",e):e.length===0&&this.hasAttribute("overflow")&&this.removeAttribute("overflow")}__keepInViewportChanged(t,e){e&&t?window.addEventListener("resize",this.__handleWindowResize):window.removeEventListener("resize",this.__handleWindowResize)}__handleWindowResize(){this.__adjustPosition()}__adjustPosition(){if(!this.opened||!this.keepInViewport)return;const t=getComputedStyle(this.$.overlay);if(t.position!=="absolute")return;const e=this.getBoundingClientRect(),r=this.getBounds(),s=parseFloat(t.width)||r.width,o=parseFloat(t.height)||r.height,n=e.right-e.left-s,l=e.bottom-e.top-o;if(r.left>n||r.top>l){const h=Math.max(0,Math.min(r.left,n)),u=Math.max(0,Math.min(r.top,l));Object.assign(this.$.overlay.style,{left:`${h}px`,top:`${u}px`})}}};L("vaadin-dialog-overlay",[ti,Yc,__],{moduleId:"vaadin-dialog-overlay-styles"});class S_ extends k_(xt(Y($))){static get is(){return"vaadin-dialog-overlay"}static get template(){return V`
       <div id="backdrop" part="backdrop" hidden$="[[!withBackdrop]]"></div>
       <div part="overlay" id="overlay" tabindex="0">
         <section id="resizerContainer" class="resizer-container">
@@ -9571,7 +9876,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
           <footer part="footer"><slot name="footer"></slot></footer>
         </section>
       </div>
-    `}}R(w_);function Rs(a){return a.touches?a.touches[0]:a}function Gc(a){return a.clientX>=0&&a.clientX<=window.innerWidth&&a.clientY>=0&&a.clientY<=window.innerHeight}const z_=a=>class extends a{static get properties(){return{draggable:{type:Boolean,value:!1,reflectToAttribute:!0},_touchDevice:{type:Boolean,value:pr},__dragHandleClassName:{type:String}}}ready(){super.ready(),this._originalBounds={},this._originalMouseCoords={},this._startDrag=this._startDrag.bind(this),this._drag=this._drag.bind(this),this._stopDrag=this._stopDrag.bind(this),this.$.overlay.$.overlay.addEventListener("mousedown",this._startDrag),this.$.overlay.$.overlay.addEventListener("touchstart",this._startDrag)}_startDrag(t){if(!(t.type==="touchstart"&&t.touches.length>1)&&this.draggable&&(t.button===0||t.touches)){const e=this.$.overlay.$.resizerContainer,r=t.target===e,s=t.offsetX>e.clientWidth||t.offsetY>e.clientHeight,o=t.target===this.$.overlay.$.content,n=t.composedPath().some((l,h)=>{if(!l.classList)return!1;const u=l.classList.contains(this.__dragHandleClassName||"draggable"),p=l.classList.contains("draggable-leaf-only"),m=h===0;return p&&m||u&&(!p||m)});if(r&&!s||o||n){n||t.preventDefault(),this._originalBounds=this.$.overlay.getBounds();const l=Rs(t);if(this._originalMouseCoords={top:l.pageY,left:l.pageX},window.addEventListener("mouseup",this._stopDrag),window.addEventListener("touchend",this._stopDrag),window.addEventListener("mousemove",this._drag),window.addEventListener("touchmove",this._drag),this.$.overlay.$.overlay.style.position!=="absolute"){const{top:h,left:u}=this._originalBounds;this.top=h,this.left=u}}}}_drag(t){const e=Rs(t);if(Gc(e)){let r=this._originalBounds.top+(e.pageY-this._originalMouseCoords.top),s=this._originalBounds.left+(e.pageX-this._originalMouseCoords.left);if(this.keepInViewport){const{width:o,height:n}=this._originalBounds,l=this.$.overlay.getBoundingClientRect(),h=l.right-l.left-o,u=l.bottom-l.top-n;s=Math.max(0,Math.min(s,h)),r=Math.max(0,Math.min(r,u))}this.top=r,this.left=s}}_stopDrag(){this.dispatchEvent(new CustomEvent("dragged",{bubbles:!0,composed:!0,detail:{top:this.top,left:this.left}})),window.removeEventListener("mouseup",this._stopDrag),window.removeEventListener("touchend",this._stopDrag),window.removeEventListener("mousemove",this._drag),window.removeEventListener("touchmove",this._drag)}};const C_=a=>class extends a{static get properties(){return{renderer:{type:Object},headerTitle:String,headerRenderer:{type:Object},footerRenderer:{type:Object}}}requestContentUpdate(){this._overlayElement&&this._overlayElement.requestContentUpdate()}};const A_=a=>class extends a{static get properties(){return{resizable:{type:Boolean,value:!1,reflectToAttribute:!0}}}ready(){super.ready(),this._originalBounds={},this._originalMouseCoords={},this._resizeListeners={start:{},resize:{},stop:{}},this._addResizeListeners()}_addResizeListeners(){["n","e","s","w","nw","ne","se","sw"].forEach(t=>{const e=document.createElement("div");this._resizeListeners.start[t]=r=>this._startResize(r,t),this._resizeListeners.resize[t]=r=>this._resize(r,t),this._resizeListeners.stop[t]=()=>this._stopResize(t),t.length===1&&e.classList.add("edge"),e.classList.add("resizer"),e.classList.add(t),e.addEventListener("mousedown",this._resizeListeners.start[t]),e.addEventListener("touchstart",this._resizeListeners.start[t]),this.$.overlay.$.resizerContainer.appendChild(e)})}_startResize(t,e){if(!(t.type==="touchstart"&&t.touches.length>1)&&(t.button===0||t.touches)){t.preventDefault(),this._originalBounds=this.$.overlay.getBounds();const r=Rs(t);this._originalMouseCoords={top:r.pageY,left:r.pageX},window.addEventListener("mousemove",this._resizeListeners.resize[e]),window.addEventListener("touchmove",this._resizeListeners.resize[e]),window.addEventListener("mouseup",this._resizeListeners.stop[e]),window.addEventListener("touchend",this._resizeListeners.stop[e]),this.$.overlay.setBounds(this._originalBounds),this.$.overlay.setAttribute("has-bounds-set","")}}_resize(t,e){const r=Rs(t);Gc(r)&&e.split("").forEach(o=>{switch(o){case"n":{const n=this._originalBounds.height-(r.pageY-this._originalMouseCoords.top),l=this._originalBounds.top+(r.pageY-this._originalMouseCoords.top);n>40&&(this.top=l,this.height=n);break}case"e":{const n=this._originalBounds.width+(r.pageX-this._originalMouseCoords.left);n>40&&(this.width=n);break}case"s":{const n=this._originalBounds.height+(r.pageY-this._originalMouseCoords.top);n>40&&(this.height=n);break}case"w":{const n=this._originalBounds.width-(r.pageX-this._originalMouseCoords.left),l=this._originalBounds.left+(r.pageX-this._originalMouseCoords.left);n>40&&(this.left=l,this.width=n);break}}})}_stopResize(t){window.removeEventListener("mousemove",this._resizeListeners.resize[t]),window.removeEventListener("touchmove",this._resizeListeners.resize[t]),window.removeEventListener("mouseup",this._resizeListeners.stop[t]),window.removeEventListener("touchend",this._resizeListeners.stop[t]),this.dispatchEvent(new CustomEvent("resize",{detail:this._getResizeDimensions()}))}_getResizeDimensions(){const t=this.$.overlay.$.resizerContainer.scrollTop,{width:e,height:r,top:s,left:o}=getComputedStyle(this.$.overlay.$.overlay),n=this.$.overlay.$.content;n.setAttribute("style","position: absolute; top: 0; right: 0; bottom: 0; left: 0; box-sizing: content-box; height: auto;");const{width:l,height:h}=getComputedStyle(n);return n.removeAttribute("style"),this.$.overlay.$.resizerContainer.scrollTop=t,{width:e,height:r,contentWidth:l,contentHeight:h,top:s,left:o}}};class M_ extends z_(A_(C_(Wc(fi(Xi(ot($))))))){static get template(){return V`
+    `}}R(S_);function Rs(a){return a.touches?a.touches[0]:a}function Gc(a){return a.clientX>=0&&a.clientX<=window.innerWidth&&a.clientY>=0&&a.clientY<=window.innerHeight}const T_=a=>class extends a{static get properties(){return{draggable:{type:Boolean,value:!1,reflectToAttribute:!0},_touchDevice:{type:Boolean,value:pr},__dragHandleClassName:{type:String}}}ready(){super.ready(),this._originalBounds={},this._originalMouseCoords={},this._startDrag=this._startDrag.bind(this),this._drag=this._drag.bind(this),this._stopDrag=this._stopDrag.bind(this),this.$.overlay.$.overlay.addEventListener("mousedown",this._startDrag),this.$.overlay.$.overlay.addEventListener("touchstart",this._startDrag)}_startDrag(t){if(!(t.type==="touchstart"&&t.touches.length>1)&&this.draggable&&(t.button===0||t.touches)){const e=this.$.overlay.$.resizerContainer,r=t.target===e,s=t.offsetX>e.clientWidth||t.offsetY>e.clientHeight,o=t.target===this.$.overlay.$.content,n=t.composedPath().some((l,h)=>{if(!l.classList)return!1;const u=l.classList.contains(this.__dragHandleClassName||"draggable"),p=l.classList.contains("draggable-leaf-only"),m=h===0;return p&&m||u&&(!p||m)});if(r&&!s||o||n){n||t.preventDefault(),this._originalBounds=this.$.overlay.getBounds();const l=Rs(t);if(this._originalMouseCoords={top:l.pageY,left:l.pageX},window.addEventListener("mouseup",this._stopDrag),window.addEventListener("touchend",this._stopDrag),window.addEventListener("mousemove",this._drag),window.addEventListener("touchmove",this._drag),this.$.overlay.$.overlay.style.position!=="absolute"){const{top:h,left:u}=this._originalBounds;this.top=h,this.left=u}}}}_drag(t){const e=Rs(t);if(Gc(e)){let r=this._originalBounds.top+(e.pageY-this._originalMouseCoords.top),s=this._originalBounds.left+(e.pageX-this._originalMouseCoords.left);if(this.keepInViewport){const{width:o,height:n}=this._originalBounds,l=this.$.overlay.getBoundingClientRect(),h=l.right-l.left-o,u=l.bottom-l.top-n;s=Math.max(0,Math.min(s,h)),r=Math.max(0,Math.min(r,u))}this.top=r,this.left=s}}_stopDrag(){this.dispatchEvent(new CustomEvent("dragged",{bubbles:!0,composed:!0,detail:{top:this.top,left:this.left}})),window.removeEventListener("mouseup",this._stopDrag),window.removeEventListener("touchend",this._stopDrag),window.removeEventListener("mousemove",this._drag),window.removeEventListener("touchmove",this._drag)}};const I_=a=>class extends a{static get properties(){return{renderer:{type:Object},headerTitle:String,headerRenderer:{type:Object},footerRenderer:{type:Object}}}requestContentUpdate(){this._overlayElement&&this._overlayElement.requestContentUpdate()}};const D_=a=>class extends a{static get properties(){return{resizable:{type:Boolean,value:!1,reflectToAttribute:!0}}}ready(){super.ready(),this._originalBounds={},this._originalMouseCoords={},this._resizeListeners={start:{},resize:{},stop:{}},this._addResizeListeners()}_addResizeListeners(){["n","e","s","w","nw","ne","se","sw"].forEach(t=>{const e=document.createElement("div");this._resizeListeners.start[t]=r=>this._startResize(r,t),this._resizeListeners.resize[t]=r=>this._resize(r,t),this._resizeListeners.stop[t]=()=>this._stopResize(t),t.length===1&&e.classList.add("edge"),e.classList.add("resizer"),e.classList.add(t),e.addEventListener("mousedown",this._resizeListeners.start[t]),e.addEventListener("touchstart",this._resizeListeners.start[t]),this.$.overlay.$.resizerContainer.appendChild(e)})}_startResize(t,e){if(!(t.type==="touchstart"&&t.touches.length>1)&&(t.button===0||t.touches)){t.preventDefault(),this._originalBounds=this.$.overlay.getBounds();const r=Rs(t);this._originalMouseCoords={top:r.pageY,left:r.pageX},window.addEventListener("mousemove",this._resizeListeners.resize[e]),window.addEventListener("touchmove",this._resizeListeners.resize[e]),window.addEventListener("mouseup",this._resizeListeners.stop[e]),window.addEventListener("touchend",this._resizeListeners.stop[e]),this.$.overlay.setBounds(this._originalBounds),this.$.overlay.setAttribute("has-bounds-set","")}}_resize(t,e){const r=Rs(t);Gc(r)&&e.split("").forEach(o=>{switch(o){case"n":{const n=this._originalBounds.height-(r.pageY-this._originalMouseCoords.top),l=this._originalBounds.top+(r.pageY-this._originalMouseCoords.top);n>40&&(this.top=l,this.height=n);break}case"e":{const n=this._originalBounds.width+(r.pageX-this._originalMouseCoords.left);n>40&&(this.width=n);break}case"s":{const n=this._originalBounds.height+(r.pageY-this._originalMouseCoords.top);n>40&&(this.height=n);break}case"w":{const n=this._originalBounds.width-(r.pageX-this._originalMouseCoords.left),l=this._originalBounds.left+(r.pageX-this._originalMouseCoords.left);n>40&&(this.left=l,this.width=n);break}}})}_stopResize(t){window.removeEventListener("mousemove",this._resizeListeners.resize[t]),window.removeEventListener("touchmove",this._resizeListeners.resize[t]),window.removeEventListener("mouseup",this._resizeListeners.stop[t]),window.removeEventListener("touchend",this._resizeListeners.stop[t]),this.dispatchEvent(new CustomEvent("resize",{detail:this._getResizeDimensions()}))}_getResizeDimensions(){const t=this.$.overlay.$.resizerContainer.scrollTop,{width:e,height:r,top:s,left:o}=getComputedStyle(this.$.overlay.$.overlay),n=this.$.overlay.$.content;n.setAttribute("style","position: absolute; top: 0; right: 0; bottom: 0; left: 0; box-sizing: content-box; height: auto;");const{width:l,height:h}=getComputedStyle(n);return n.removeAttribute("style"),this.$.overlay.$.resizerContainer.scrollTop=t,{width:e,height:r,contentWidth:l,contentHeight:h,top:s,left:o}}};class O_ extends T_(D_(I_(Wc(fi(Xi(ot($))))))){static get template(){return V`
       <style>
         :host {
           display: none !important;
@@ -9594,312 +9899,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         restore-focus-on-close
         focus-trap
       ></vaadin-dialog-overlay>
-    `}static get is(){return"vaadin-dialog"}static get properties(){return{ariaLabel:{type:String,value:""}}}static get observers(){return["_openedChanged(opened)","_ariaLabelChanged(ariaLabel, headerTitle)","_rendererChanged(renderer, headerRenderer, footerRenderer)"]}ready(){super.ready(),Ri(this)}_rendererChanged(i,t,e){this.$.overlay.setProperties({owner:this,renderer:i,headerRenderer:t,footerRenderer:e})}_openedChanged(i){this.$.overlay.opened=i}_ariaLabelChanged(i,t){i||t?this.$.overlay.setAttribute("aria-label",i||t):this.$.overlay.removeAttribute("aria-label")}}R(M_);L("vaadin-notification-card",S`
-    :host {
-      position: relative;
-      margin: var(--lumo-space-s);
-    }
-
-    [part='overlay'] {
-      background: var(--lumo-base-color) linear-gradient(var(--lumo-contrast-5pct), var(--lumo-contrast-5pct));
-      border-radius: var(--lumo-border-radius-l);
-      box-shadow:
-        0 0 0 1px var(--lumo-contrast-10pct),
-        var(--lumo-box-shadow-l);
-      font-family: var(--lumo-font-family);
-      font-size: var(--lumo-font-size-m);
-      font-weight: 400;
-      line-height: var(--lumo-line-height-s);
-      letter-spacing: 0;
-      text-transform: none;
-      -webkit-text-size-adjust: 100%;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    [part='content'] {
-      padding: var(--lumo-space-wide-l);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    [part='content'] ::slotted(vaadin-button) {
-      flex: none;
-      margin: 0 calc(var(--lumo-space-s) * -1) 0 var(--lumo-space-m);
-    }
-
-    :host([slot^='middle']) {
-      max-width: 80vw;
-      margin: var(--lumo-space-s) auto;
-    }
-
-    :host([slot$='stretch']) {
-      margin: 0;
-    }
-
-    :host([slot$='stretch']) [part='overlay'] {
-      border-radius: 0;
-    }
-
-    @media (min-width: 421px) {
-      :host(:not([slot$='stretch'])) {
-        display: flex;
-      }
-
-      :host([slot$='end']) {
-        justify-content: flex-end;
-      }
-
-      :host([slot^='middle']),
-      :host([slot$='center']) {
-        display: flex;
-        justify-content: center;
-      }
-    }
-
-    @keyframes lumo-notification-exit-fade-out {
-      100% {
-        opacity: 0;
-      }
-    }
-
-    @keyframes lumo-notification-enter-fade-in {
-      0% {
-        opacity: 0;
-      }
-    }
-
-    @keyframes lumo-notification-enter-slide-down {
-      0% {
-        transform: translateY(-200%);
-        opacity: 0;
-      }
-    }
-
-    @keyframes lumo-notification-exit-slide-up {
-      100% {
-        transform: translateY(-200%);
-        opacity: 0;
-      }
-    }
-
-    @keyframes lumo-notification-enter-slide-up {
-      0% {
-        transform: translateY(200%);
-        opacity: 0;
-      }
-    }
-
-    @keyframes lumo-notification-exit-slide-down {
-      100% {
-        transform: translateY(200%);
-        opacity: 0;
-      }
-    }
-
-    :host([slot='middle'][opening]) {
-      animation: lumo-notification-enter-fade-in 300ms;
-    }
-
-    :host([slot='middle'][closing]) {
-      animation: lumo-notification-exit-fade-out 300ms;
-    }
-
-    :host([slot^='top'][opening]) {
-      animation: lumo-notification-enter-slide-down 300ms;
-    }
-
-    :host([slot^='top'][closing]) {
-      animation: lumo-notification-exit-slide-up 300ms;
-    }
-
-    :host([slot^='bottom'][opening]) {
-      animation: lumo-notification-enter-slide-up 300ms;
-    }
-
-    :host([slot^='bottom'][closing]) {
-      animation: lumo-notification-exit-slide-down 300ms;
-    }
-
-    :host([theme='success']) {
-      --_focus-ring-gap-color: var(--lumo-success-color);
-      --vaadin-focus-ring-color: var(--lumo-success-contrast-color);
-    }
-
-    :host([theme='warning']) {
-      --_focus-ring-gap-color: var(--lumo-warning-color);
-      --vaadin-focus-ring-color: var(--lumo-warning-contrast-color);
-    }
-
-    :host([theme='error']) {
-      --_focus-ring-gap-color: var(--lumo-error-color);
-      --vaadin-focus-ring-color: var(--lumo-error-contrast-color);
-    }
-
-    :host([theme='primary']) {
-      --_focus-ring-gap-color: var(--lumo-primary-color);
-      --vaadin-focus-ring-color: var(--lumo-primary-contrast-color);
-    }
-
-    :host([theme~='primary']) [part='overlay'] {
-      background: var(--lumo-primary-color);
-      color: var(--lumo-primary-contrast-color);
-      box-shadow: var(--lumo-box-shadow-l);
-    }
-
-    :host([theme~='primary']) {
-      --vaadin-button-background: var(--lumo-shade-20pct);
-      --vaadin-button-text-color: var(--lumo-primary-contrast-color);
-      --vaadin-button-primary-background: var(--lumo-primary-contrast-color);
-      --vaadin-button-primary-text-color: var(--lumo-primary-text-color);
-    }
-
-    :host([theme~='contrast']) [part='overlay'] {
-      background: var(--lumo-contrast);
-      color: var(--lumo-base-color);
-      box-shadow: var(--lumo-box-shadow-l);
-    }
-
-    :host([theme~='contrast']) {
-      --vaadin-button-background: var(--lumo-contrast-20pct);
-      --vaadin-button-text-color: var(--lumo-base-color);
-      --vaadin-button-primary-background: var(--lumo-base-color);
-      --vaadin-button-primary-text-color: var(--lumo-contrast);
-    }
-
-    :host([theme~='success']) [part='overlay'] {
-      background: var(--lumo-success-color);
-      color: var(--lumo-success-contrast-color);
-      box-shadow: var(--lumo-box-shadow-l);
-    }
-
-    :host([theme~='success']) {
-      --vaadin-button-background: var(--lumo-shade-20pct);
-      --vaadin-button-text-color: var(--lumo-success-contrast-color);
-      --vaadin-button-primary-background: var(--lumo-success-contrast-color);
-      --vaadin-button-primary-text-color: var(--lumo-success-text-color);
-    }
-
-    :host([theme~='error']) [part='overlay'] {
-      background: var(--lumo-error-color);
-      color: var(--lumo-error-contrast-color);
-      box-shadow: var(--lumo-box-shadow-l);
-    }
-
-    :host([theme~='error']) {
-      --vaadin-button-background: var(--lumo-shade-20pct);
-      --vaadin-button-text-color: var(--lumo-error-contrast-color);
-      --vaadin-button-primary-background: var(--lumo-error-contrast-color);
-      --vaadin-button-primary-text-color: var(--lumo-error-text-color);
-    }
-
-    :host([theme~='warning']) [part='overlay'] {
-      background: var(--lumo-warning-color);
-      color: var(--lumo-warning-contrast-color);
-      box-shadow:
-        inset 0 0 0 1px var(--lumo-contrast-20pct),
-        var(--lumo-box-shadow-l);
-    }
-
-    :host([theme~='warning']) {
-      --vaadin-button-background: var(--lumo-shade-20pct);
-      --vaadin-button-text-color: var(--lumo-warning-contrast-color);
-      --vaadin-button-primary-background: var(--lumo-shade-50pct);
-      --vaadin-button-primary-text-color: var(--lumo-primary-contrast-color);
-    }
-  `,{moduleId:"lumo-notification-card"});const E_=a=>class extends Jd(a){static get properties(){return{opened:{type:Boolean,value:!1,sync:!0,observer:"_openedChanged"}}}constructor(){super(),this._boundVaadinOverlayClose=this._onVaadinOverlayClose.bind(this),ur&&(this._boundIosResizeListener=()=>this._detectIosNavbar())}_openedChanged(i){i?(document.body.appendChild(this),document.addEventListener("vaadin-overlay-close",this._boundVaadinOverlayClose),this._boundIosResizeListener&&(this._detectIosNavbar(),window.addEventListener("resize",this._boundIosResizeListener))):(document.body.removeChild(this),document.removeEventListener("vaadin-overlay-close",this._boundVaadinOverlayClose),this._boundIosResizeListener&&window.removeEventListener("resize",this._boundIosResizeListener))}_detectIosNavbar(){const i=window.innerHeight,e=window.innerWidth>i,r=document.documentElement.clientHeight;e&&r>i?this.style.bottom=`${r-i}px`:this.style.bottom="0"}_onVaadinOverlayClose(i){const t=i.detail.sourceEvent;t&&t.composedPath().indexOf(this)>=0&&i.preventDefault()}},k_=a=>class extends Xi(fi(a)){static get properties(){return{assertive:{type:Boolean,value:!1,sync:!0},duration:{type:Number,value:5e3,sync:!0},opened:{type:Boolean,value:!1,notify:!0,sync:!0,observer:"_openedChanged"},position:{type:String,value:"bottom-start",observer:"_positionChanged",sync:!0},renderer:{type:Function,sync:!0}}}static get observers(){return["_durationChanged(duration, opened)","_rendererChanged(renderer, opened, _overlayElement)"]}static show(i,t){const e=customElements.get("vaadin-notification");return Wh(i)?e._createAndShowNotification(r=>{Pr(i,r)},t):e._createAndShowNotification(r=>{r.innerText=i},t)}static _createAndShowNotification(i,t){const e=document.createElement("vaadin-notification");return t&&Number.isFinite(t.duration)&&(e.duration=t.duration),t&&t.position&&(e.position=t.position),t&&t.assertive&&(e.assertive=t.assertive),t&&t.theme&&e.setAttribute("theme",t.theme),e.renderer=i,document.body.appendChild(e),e.opened=!0,e.addEventListener("opened-changed",r=>{r.detail.value||e.remove()}),e}get _container(){const i=customElements.get("vaadin-notification");return i._container||(i._container=document.createElement("vaadin-notification-container"),document.body.appendChild(i._container)),i._container}get _card(){return this._overlayElement}ready(){super.ready(),this._overlayElement=this.shadowRoot.querySelector("vaadin-notification-card"),Ri(this)}disconnectedCallback(){super.disconnectedCallback(),queueMicrotask(()=>{this.isConnected||(this.opened=!1)})}requestContentUpdate(){!this.renderer||!this._card||this.renderer(this._card,this)}__computeAriaLive(i){return i?"assertive":"polite"}_rendererChanged(i,t,e){if(!e)return;const r=this._oldRenderer!==i;this._oldRenderer=i,r&&(e.innerHTML="",delete e._$litPart$),t&&(this._didAnimateNotificationAppend||this._animatedAppendNotificationCard(),this.requestContentUpdate())}open(){this.opened=!0}close(){this.opened=!1}_openedChanged(i){i?(this._container.opened=!0,this._animatedAppendNotificationCard()):this._card&&this._closeNotificationCard()}__cleanUpOpeningClosingState(){this._card.removeAttribute("opening"),this._card.removeAttribute("closing"),this._card.removeEventListener("animationend",this.__animationEndListener)}_animatedAppendNotificationCard(){this._card?(this.__cleanUpOpeningClosingState(),this._card.setAttribute("opening",""),this._appendNotificationCard(),this.__animationEndListener=()=>this.__cleanUpOpeningClosingState(),this._card.addEventListener("animationend",this.__animationEndListener),this._didAnimateNotificationAppend=!0):this._didAnimateNotificationAppend=!1}_appendNotificationCard(){if(this._card){if(!this._container.shadowRoot.querySelector(`slot[name="${this.position}"]`)){console.warn(`Invalid alignment parameter provided: position=${this.position}`);return}this._container.bringToFront(),this._card.slot=this.position,this._container.firstElementChild&&/top/u.test(this.position)?this._container.insertBefore(this._card,this._container.firstElementChild):this._container.appendChild(this._card)}}_removeNotificationCard(){this._card&&(this._card.parentNode&&this._card.parentNode.removeChild(this._card),this._card.removeAttribute("closing"),this._container.opened=!!this._container.firstElementChild,this.dispatchEvent(new CustomEvent("closed")))}_closeNotificationCard(){this._durationTimeoutId&&clearTimeout(this._durationTimeoutId),this._animatedRemoveNotificationCard()}_animatedRemoveNotificationCard(){this.__cleanUpOpeningClosingState(),this._card.setAttribute("closing","");const i=getComputedStyle(this._card).getPropertyValue("animation-name");i&&i!=="none"?(this.__animationEndListener=()=>{this._removeNotificationCard(),this.__cleanUpOpeningClosingState()},this._card.addEventListener("animationend",this.__animationEndListener)):this._removeNotificationCard()}_positionChanged(){this.opened&&this._animatedAppendNotificationCard()}_durationChanged(i,t){t&&(clearTimeout(this._durationTimeoutId),i>0&&(this._durationTimeoutId=setTimeout(()=>this.close(),i)))}};const S_=S`
-  :host {
-    position: fixed;
-    z-index: 1000;
-    inset: 0;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    pointer-events: none;
-  }
-
-  [region-group] {
-    flex: 1 1 0%;
-    display: flex;
-  }
-
-  [region-group='top'] {
-    align-items: flex-start;
-  }
-
-  [region-group='bottom'] {
-    align-items: flex-end;
-  }
-
-  [region-group] > [region] {
-    flex: 1 1 0%;
-  }
-
-  @media (max-width: 420px) {
-    [region-group] {
-      flex-direction: column;
-      align-items: stretch;
-    }
-
-    [region-group='top'] {
-      justify-content: flex-start;
-    }
-
-    [region-group='bottom'] {
-      justify-content: flex-end;
-    }
-
-    [region-group] > [region] {
-      flex: initial;
-    }
-  }
-`,T_=S`
-  :host {
-    display: block;
-  }
-
-  [part='overlay'] {
-    pointer-events: auto;
-  }
-
-  @media (forced-colors: active) {
-    [part='overlay'] {
-      outline: 3px solid;
-    }
-  }
-`;L("vaadin-notification-container",S_,{moduleId:"vaadin-notification-container-styles"});L("vaadin-notification-card",T_,{moduleId:"vaadin-notification-card-styles"});class I_ extends E_(Y(ot($))){static get template(){return V`
-      <div region="top-stretch"><slot name="top-stretch"></slot></div>
-      <div region-group="top">
-        <div region="top-start"><slot name="top-start"></slot></div>
-        <div region="top-center"><slot name="top-center"></slot></div>
-        <div region="top-end"><slot name="top-end"></slot></div>
-      </div>
-      <div region="middle"><slot name="middle"></slot></div>
-      <div region-group="bottom">
-        <div region="bottom-start"><slot name="bottom-start"></slot></div>
-        <div region="bottom-center"><slot name="bottom-center"></slot></div>
-        <div region="bottom-end"><slot name="bottom-end"></slot></div>
-      </div>
-      <div region="bottom-stretch"><slot name="bottom-stretch"></slot></div>
-    `}static get is(){return"vaadin-notification-container"}}class D_ extends Y($){static get template(){return V`
-      <div part="overlay">
-        <div part="content">
-          <slot></slot>
-        </div>
-      </div>
-    `}static get is(){return"vaadin-notification-card"}ready(){super.ready(),this.setAttribute("role","alert")}}class O_ extends k_(ot($)){static get template(){return V`
-      <style>
-        :host {
-          display: none !important;
-        }
-      </style>
-      <vaadin-notification-card
-        theme$="[[_theme]]"
-        aria-live$="[[__computeAriaLive(assertive)]]"
-      ></vaadin-notification-card>
-    `}static get is(){return"vaadin-notification"}}R(I_);R(D_);R(O_);const L_=S`
+    `}static get is(){return"vaadin-dialog"}static get properties(){return{ariaLabel:{type:String,value:""}}}static get observers(){return["_openedChanged(opened)","_ariaLabelChanged(ariaLabel, headerTitle)","_rendererChanged(renderer, headerRenderer, footerRenderer)"]}ready(){super.ready(),Ri(this)}_rendererChanged(i,t,e){this.$.overlay.setProperties({owner:this,renderer:i,headerRenderer:t,footerRenderer:e})}_openedChanged(i){this.$.overlay.opened=i}_ariaLabelChanged(i,t){i||t?this.$.overlay.setAttribute("aria-label",i||t):this.$.overlay.removeAttribute("aria-label")}}R(O_);const L_=S`
   :host {
     --vaadin-popover-offset-top: var(--_vaadin-popover-default-offset);
     --vaadin-popover-offset-bottom: var(--_vaadin-popover-default-offset);
@@ -10000,7 +10000,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
   :host([theme~='arrow'][position^='end'][bottom-aligned]) [part='arrow'] {
     bottom: 0.5rem;
   }
-`;L("vaadin-popover-overlay",[ki,L_],{moduleId:"lumo-popover-overlay"});class P_ extends Lc(xt(Y(Rr(Pi)))){static get is(){return"vaadin-popover-overlay"}static get styles(){return[ti,S`
+`;L("vaadin-popover-overlay",[ki,L_],{moduleId:"lumo-popover-overlay"});class P_ extends Bc(xt(Y(Rr(Pi)))){static get is(){return"vaadin-popover-overlay"}static get styles(){return[ti,S`
         :host {
           --_vaadin-popover-content-width: auto;
           --_vaadin-popover-content-height: auto;
@@ -10070,7 +10070,7 @@ Please wrap fields with a <vaadin-custom-field> instead.`);const t=i.find(e=>e.v
         <div part="arrow"></div>
         <div part="content" id="content"><slot></slot></div>
       </div>
-    `}updated(i){super.updated(i),i.has("restoreFocusNode")&&this.opened&&(this.restoreFocusNode&&Xe(this.restoreFocusNode.focusElement||this.restoreFocusNode)?this.__focusRestorationController.saveFocus():this.restoreFocusNode||(this.__focusRestorationController.focusNode=null))}_shouldAddGlobalListeners(){return!0}_shouldCloseOnOutsideClick(i){return i.composedPath().includes(this.positionTarget)?!1:super._shouldCloseOnOutsideClick(i)}}R(P_);const oa=500;let Kc=oa,Xc=oa,Qc=oa;class N_{constructor(i){this.host=i}get isClosing(){return this.__closeTimeout!=null}get __focusDelay(){const i=this.host;return i.focusDelay!=null&&i.focusDelay>=0?i.focusDelay:Kc}get __hoverDelay(){const i=this.host;return i.hoverDelay!=null&&i.hoverDelay>=0?i.hoverDelay:Xc}get __hideDelay(){const i=this.host;return i.hideDelay!=null&&i.hideDelay>=0?i.hideDelay:Qc}open(i={immediate:!1}){if(this.isClosing){this.__abortClose();return}const{immediate:t,trigger:e}=i,r=e==="hover"&&this.__hoverDelay>0,s=e==="focus"&&this.__focusDelay>0;!t&&(r||s)?this.__scheduleOpen(e):this.__showPopover()}close(i){this.__openTimeout!=null?this.__abortOpen():i||this.__hideDelay===0?(this.__abortClose(),this.__setOpened(!1)):this.__scheduleClose()}__setOpened(i){this.host.opened=i}__showPopover(){this.__abortClose(),this.__setOpened(!0)}__abortClose(){this.__closeTimeout&&(clearTimeout(this.__closeTimeout),this.__closeTimeout=null)}__abortOpen(){this.__openTimeout&&(clearTimeout(this.__openTimeout),this.__openTimeout=null)}__scheduleClose(){this.__closeTimeout=setTimeout(()=>{this.__closeTimeout=null,this.__setOpened(!1)},this.__hideDelay)}__scheduleOpen(i){this.__abortOpen();const t=i==="focus"?this.__focusDelay:this.__hoverDelay;this.__openTimeout=setTimeout(()=>{this.__openTimeout=null,this.__showPopover()},t)}}const xs=a=>Qd(a,t=>t.localName!=="vaadin-tooltip-overlay");class B_ extends Pc(Nc(fi(Xi(ot(Rr(Pi)))))){static get is(){return"vaadin-popover"}static get styles(){return S`
+    `}updated(i){super.updated(i),i.has("restoreFocusNode")&&this.opened&&(this.restoreFocusNode&&Xe(this.restoreFocusNode.focusElement||this.restoreFocusNode)?this.__focusRestorationController.saveFocus():this.restoreFocusNode||(this.__focusRestorationController.focusNode=null))}_shouldAddGlobalListeners(){return!0}_shouldCloseOnOutsideClick(i){return i.composedPath().includes(this.positionTarget)?!1:super._shouldCloseOnOutsideClick(i)}}R(P_);const oa=500;let Kc=oa,Xc=oa,Qc=oa;class N_{constructor(i){this.host=i}get isClosing(){return this.__closeTimeout!=null}get __focusDelay(){const i=this.host;return i.focusDelay!=null&&i.focusDelay>=0?i.focusDelay:Kc}get __hoverDelay(){const i=this.host;return i.hoverDelay!=null&&i.hoverDelay>=0?i.hoverDelay:Xc}get __hideDelay(){const i=this.host;return i.hideDelay!=null&&i.hideDelay>=0?i.hideDelay:Qc}open(i={immediate:!1}){if(this.isClosing){this.__abortClose();return}const{immediate:t,trigger:e}=i,r=e==="hover"&&this.__hoverDelay>0,s=e==="focus"&&this.__focusDelay>0;!t&&(r||s)?this.__scheduleOpen(e):this.__showPopover()}close(i){this.__openTimeout!=null?this.__abortOpen():i||this.__hideDelay===0?(this.__abortClose(),this.__setOpened(!1)):this.__scheduleClose()}__setOpened(i){this.host.opened=i}__showPopover(){this.__abortClose(),this.__setOpened(!0)}__abortClose(){this.__closeTimeout&&(clearTimeout(this.__closeTimeout),this.__closeTimeout=null)}__abortOpen(){this.__openTimeout&&(clearTimeout(this.__openTimeout),this.__openTimeout=null)}__scheduleClose(){this.__closeTimeout=setTimeout(()=>{this.__closeTimeout=null,this.__setOpened(!1)},this.__hideDelay)}__scheduleOpen(i){this.__abortOpen();const t=i==="focus"?this.__focusDelay:this.__hoverDelay;this.__openTimeout=setTimeout(()=>{this.__openTimeout=null,this.__showPopover()},t)}}const xs=a=>Qd(a,t=>t.localName!=="vaadin-tooltip-overlay");class B_ extends Fc(Rc(fi(Xi(ot(Rr(Pi)))))){static get is(){return"vaadin-popover"}static get styles(){return S`
       :host {
         display: none !important;
       }
@@ -14224,7 +14224,7 @@ ${this.outerHTML}`)}_parseBoardCols(t){const e=t.map(o=>o.getAttribute("board-co
         multiple$="[[_isMultiple(maxFiles)]]"
         capture$="[[capture]]"
       />
-    `}static get is(){return"vaadin-upload"}}R(R3);const V3=a=>class extends _a(a){static get properties(){return{multiple:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_multipleChanged"},selectedValues:{type:Array,notify:!0,value:()=>[]}}}static get observers(){return["_enhanceMultipleItems(items, multiple, selected, disabled, selectedValues)"]}ready(){this.addEventListener("click",t=>this._onMultipleClick(t)),super.ready()}_enhanceMultipleItems(t,e,r,s,o){if(!(!t||!e)){if(o){const n=o.map(l=>t[l]);t.forEach(l=>{l.selected=n.includes(l)})}this._scrollToLastSelectedItem()}}_scrollToLastSelectedItem(){const t=this.selectedValues.slice(-1)[0];t&&!t.disabled&&this._scrollToItem(t)}_onMultipleClick(t){const e=this._filterItems(t.composedPath())[0],r=e&&!e.disabled?this.items.indexOf(e):-1;r<0||!this.multiple||(t.preventDefault(),this.selectedValues.includes(r)?this.selectedValues=this.selectedValues.filter(s=>s!==r):this.selectedValues=this.selectedValues.concat(r))}_multipleChanged(t,e){!t&&e&&(this.selectedValues=[],this.items.forEach(r=>{r.selected=!1}),this.removeAttribute("aria-multiselectable")),t&&!e&&(this.setAttribute("aria-multiselectable","true"),this.selected!==void 0&&(this.selectedValues=[...this.selectedValues,this.selected],this.selected=void 0))}};L("vaadin-list-box",qc,{moduleId:"vaadin-list-box-styles"});class H3 extends ot(V3(Y(Mt($)))){static get template(){return V`
+    `}static get is(){return"vaadin-upload"}}R(R3);const V3=a=>class extends _a(a){static get properties(){return{multiple:{type:Boolean,value:!1,reflectToAttribute:!0,observer:"_multipleChanged"},selectedValues:{type:Array,notify:!0,value:()=>[]}}}static get observers(){return["_enhanceMultipleItems(items, multiple, selected, disabled, selectedValues)"]}ready(){this.addEventListener("click",t=>this._onMultipleClick(t)),super.ready()}_enhanceMultipleItems(t,e,r,s,o){if(!(!t||!e)){if(o){const n=o.map(l=>t[l]);t.forEach(l=>{l.selected=n.includes(l)})}this._scrollToLastSelectedItem()}}_scrollToLastSelectedItem(){const t=this.selectedValues.slice(-1)[0];t&&!t.disabled&&this._scrollToItem(t)}_onMultipleClick(t){const e=this._filterItems(t.composedPath())[0],r=e&&!e.disabled?this.items.indexOf(e):-1;r<0||!this.multiple||(t.preventDefault(),this.selectedValues.includes(r)?this.selectedValues=this.selectedValues.filter(s=>s!==r):this.selectedValues=this.selectedValues.concat(r))}_multipleChanged(t,e){!t&&e&&(this.selectedValues=[],this.items.forEach(r=>{r.selected=!1}),this.removeAttribute("aria-multiselectable")),t&&!e&&(this.setAttribute("aria-multiselectable","true"),this.selected!==void 0&&(this.selectedValues=[...this.selectedValues,this.selected],this.selected=void 0))}};L("vaadin-list-box",xc,{moduleId:"vaadin-list-box-styles"});class H3 extends ot(V3(Y(Mt($)))){static get template(){return V`
       <div part="items">
         <slot></slot>
       </div>
@@ -14238,7 +14238,7 @@ ${this.outerHTML}`)}_parseBoardCols(t){const e=t.map(o=>o.getAttribute("board-co
       :host([hidden]) {
         display: none !important;
       }
-    `}static get properties(){return{content:{type:String,sync:!0}}}render(){return Te`<slot></slot>`}updated(i){super.updated(i),i.has("content")&&q3(this,this.content)}}R(N0);const j3=Object.freeze(Object.defineProperty({__proto__:null,Markdown:N0},Symbol.toStringTag,{value:"Module"}));L("vaadin-item",$c,{moduleId:"vaadin-item-styles"});class U3 extends fa(Y(xt($))){static get template(){return V`
+    `}static get properties(){return{content:{type:String,sync:!0}}}render(){return Te`<slot></slot>`}updated(i){super.updated(i),i.has("content")&&q3(this,this.content)}}R(N0);const j3=Object.freeze(Object.defineProperty({__proto__:null,Markdown:N0},Symbol.toStringTag,{value:"Module"}));L("vaadin-item",yc,{moduleId:"vaadin-item-styles"});class U3 extends fa(Y(xt($))){static get template(){return V`
       <span part="checkmark" aria-hidden="true"></span>
       <div part="content">
         <slot></slot>
@@ -18094,7 +18094,7 @@ ${c4}
 `;L("vaadin-details-summary",k4(),{moduleId:"vaadin-details-summary-styles"});class S4 extends ss(xt(Y($))){static get is(){return"vaadin-details-summary"}static get template(){return V`
       <span part="toggle" aria-hidden="true"></span>
       <div part="content"><slot></slot></div>
-    `}static get properties(){return{opened:{type:Boolean,reflectToAttribute:!0}}}}R(S4);const T4=a=>class extends Dc(gr(va(a))){static get properties(){return{summary:{type:String,observer:"_summaryChanged"}}}static get observers(){return["__updateAriaControls(focusElement, _contentElements)","__updateAriaExpanded(focusElement, opened)"]}static get delegateProps(){return["disabled","opened","_theme"]}constructor(){super(),this._summaryController=new Oc(this,"vaadin-details-summary"),this._summaryController.addEventListener("slot-content-changed",t=>{const{node:e}=t.target;this._setFocusElement(e),this.stateTarget=e,this._tooltipController.setTarget(e)}),this._tooltipController=new le(this),this._tooltipController.setPosition("bottom-start")}ready(){super.ready(),this.addController(this._summaryController),this.addController(this._tooltipController)}_delegateProperty(t,e){if(this.stateTarget){if(t==="_theme"){this._delegateAttribute("theme",e);return}super._delegateProperty(t,e)}}_setAriaDisabled(){}_summaryChanged(t){this._summaryController.setSummary(t)}__updateAriaControls(t,e){if(t&&e){const r=e[0];r&&r.id?t.setAttribute("aria-controls",r.id):t.removeAttribute("aria-controls")}}__updateAriaExpanded(t,e){t&&t.setAttribute("aria-expanded",e?"true":"false")}};class I4 extends T4(ot(Y(Mt($)))){static get template(){return V`
+    `}static get properties(){return{opened:{type:Boolean,reflectToAttribute:!0}}}}R(S4);const T4=a=>class extends Pc(gr(va(a))){static get properties(){return{summary:{type:String,observer:"_summaryChanged"}}}static get observers(){return["__updateAriaControls(focusElement, _contentElements)","__updateAriaExpanded(focusElement, opened)"]}static get delegateProps(){return["disabled","opened","_theme"]}constructor(){super(),this._summaryController=new Nc(this,"vaadin-details-summary"),this._summaryController.addEventListener("slot-content-changed",t=>{const{node:e}=t.target;this._setFocusElement(e),this.stateTarget=e,this._tooltipController.setTarget(e)}),this._tooltipController=new le(this),this._tooltipController.setPosition("bottom-start")}ready(){super.ready(),this.addController(this._summaryController),this.addController(this._tooltipController)}_delegateProperty(t,e){if(this.stateTarget){if(t==="_theme"){this._delegateAttribute("theme",e);return}super._delegateProperty(t,e)}}_setAriaDisabled(){}_summaryChanged(t){this._summaryController.setSummary(t)}__updateAriaControls(t,e){if(t&&e){const r=e[0];r&&r.id?t.setAttribute("aria-controls",r.id):t.removeAttribute("aria-controls")}}__updateAriaExpanded(t,e){t&&t.setAttribute("aria-expanded",e?"true":"false")}};class I4 extends T4(ot(Y(Mt($)))){static get template(){return V`
       <style>
         :host {
           display: block;
@@ -18325,7 +18325,7 @@ ${c4}
     margin: 0;
     list-style-type: none;
   }
-`;const N4={toggle:"Toggle child items"};class B4 extends Ft{constructor(i,t){super(i,t,null,{observe:!0,multiple:!0})}initAddedNode(){this.host.requestUpdate()}teardownNode(){this.host.requestUpdate()}}const W0=a=>class extends er(N4,a){static get properties(){return{_itemsCount:{type:Number,value:0}}}constructor(){super(),this._childrenController=new B4(this,this._itemsSlotName)}get i18n(){return super.i18n}set i18n(t){super.i18n=t}get _items(){return this._childrenController.nodes}get _itemsSlotName(){return"children"}firstUpdated(){super.firstUpdated(),this.addController(this._childrenController)}willUpdate(t){super.willUpdate(t),this._itemsCount=this._items.length}updated(t){super.updated(t),t.has("_itemsCount")&&this.toggleAttribute("has-children",this._itemsCount>0),(t.has("_itemsCount")||t.has("__effectiveI18n"))&&this._items.forEach(e=>{e.i18n=this.__effectiveI18n})}};class dl extends W0(Bi(ot(Y(Rr(Pi))))){static get is(){return"vaadin-side-nav-item"}static get properties(){return{path:String,pathAliases:{type:Array,value:()=>[]},expanded:{type:Boolean,value:!1,notify:!0,reflectToAttribute:!0},matchNested:{type:Boolean,value:!1},current:{type:Boolean,value:!1,readOnly:!0,reflectToAttribute:!0},target:String,routerIgnore:{type:Boolean,value:!1},__tooltipText:{type:String}}}static get styles(){return[L4,jc]}constructor(){super(),this.__boundUpdateCurrent=this.__updateCurrent.bind(this)}get _button(){return this.shadowRoot.querySelector("button")}firstUpdated(){super.firstUpdated(),this.hasAttribute("role")||this.setAttribute("role","listitem")}updated(i){super.updated(i),(i.has("path")||i.has("pathAliases")||i.has("matchNested"))&&this.__updateCurrent(),(i.has("disabled")||i.has("_itemsCount"))&&this._items.forEach(t=>{t.disabled=this.disabled})}connectedCallback(){super.connectedCallback(),this.__updateCurrent(),window.addEventListener("popstate",this.__boundUpdateCurrent),window.addEventListener("vaadin-navigated",this.__boundUpdateCurrent),window.addEventListener("side-nav-location-changed",this.__boundUpdateCurrent)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("popstate",this.__boundUpdateCurrent),window.removeEventListener("vaadin-navigated",this.__boundUpdateCurrent),window.removeEventListener("side-nav-location-changed",this.__boundUpdateCurrent)}render(){return Te`
+`;const N4={toggle:"Toggle child items"};class B4 extends Ft{constructor(i,t){super(i,t,null,{observe:!0,multiple:!0})}initAddedNode(){this.host.requestUpdate()}teardownNode(){this.host.requestUpdate()}}const W0=a=>class extends er(N4,a){static get properties(){return{_itemsCount:{type:Number,value:0}}}constructor(){super(),this._childrenController=new B4(this,this._itemsSlotName)}get i18n(){return super.i18n}set i18n(t){super.i18n=t}get _items(){return this._childrenController.nodes}get _itemsSlotName(){return"children"}firstUpdated(){super.firstUpdated(),this.addController(this._childrenController)}willUpdate(t){super.willUpdate(t),this._itemsCount=this._items.length}updated(t){super.updated(t),t.has("_itemsCount")&&this.toggleAttribute("has-children",this._itemsCount>0),(t.has("_itemsCount")||t.has("__effectiveI18n"))&&this._items.forEach(e=>{e.i18n=this.__effectiveI18n})}};class dl extends W0(Bi(ot(Y(Rr(Pi))))){static get is(){return"vaadin-side-nav-item"}static get properties(){return{path:String,pathAliases:{type:Array,value:()=>[]},expanded:{type:Boolean,value:!1,notify:!0,reflectToAttribute:!0},matchNested:{type:Boolean,value:!1},current:{type:Boolean,value:!1,readOnly:!0,reflectToAttribute:!0},target:String,routerIgnore:{type:Boolean,value:!1},__tooltipText:{type:String}}}static get styles(){return[L4,wc]}constructor(){super(),this.__boundUpdateCurrent=this.__updateCurrent.bind(this)}get _button(){return this.shadowRoot.querySelector("button")}firstUpdated(){super.firstUpdated(),this.hasAttribute("role")||this.setAttribute("role","listitem")}updated(i){super.updated(i),(i.has("path")||i.has("pathAliases")||i.has("matchNested"))&&this.__updateCurrent(),(i.has("disabled")||i.has("_itemsCount"))&&this._items.forEach(t=>{t.disabled=this.disabled})}connectedCallback(){super.connectedCallback(),this.__updateCurrent(),window.addEventListener("popstate",this.__boundUpdateCurrent),window.addEventListener("vaadin-navigated",this.__boundUpdateCurrent),window.addEventListener("side-nav-location-changed",this.__boundUpdateCurrent)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("popstate",this.__boundUpdateCurrent),window.removeEventListener("vaadin-navigated",this.__boundUpdateCurrent),window.removeEventListener("side-nav-location-changed",this.__boundUpdateCurrent)}render(){return Te`
       <div id="content" part="content" @click="${this._onContentClick}">
         <a
           id="link"
@@ -18451,4 +18451,4 @@ ${c4}
       >
         <slot></slot>
       </ul>
-    `}_shouldSetFocus(i){return i.composedPath()[0]===this.focusElement}_onLabelClick(){this.collapsible&&this.__toggleCollapsed()}_onLabelSlotChange(){const i=this.querySelector('[slot="label"]');i?(i.id||(i.id=this._labelId),this.setAttribute("aria-labelledby",i.id)):this.removeAttribute("aria-labelledby")}__locationChanged(){window.dispatchEvent(new CustomEvent("side-nav-location-changed"))}__toggleCollapsed(){this.collapsed=!this.collapsed}__onClick(i){if(!this.onNavigate||i.metaKey||i.shiftKey)return;const e=i.composedPath(),r=e.find(l=>l.localName&&l.localName.includes("side-nav-item")),s=e.find(l=>l instanceof HTMLAnchorElement);if(!r||!r.shadowRoot.contains(s)||!(s.href&&s.href.startsWith(location.origin))||r.target==="_blank"||r.routerIgnore)return;this.onNavigate({path:r.path,target:r.target,current:r.current,expanded:r.expanded,pathAliases:r.pathAliases,originalEvent:i})!==!1&&i.preventDefault()}}R(R4);export{ot as E,O_ as N,$ as P,Ji as R,Li as S,Y as T,M2 as _,t6 as a,j4 as b,Zy as c,R as d,U4 as e,Cm as f,Ki as g,V as h,h6 as i,q4 as j,u6 as k,c6 as l,d6 as m,$b as n,qb as p,L as r,$4 as v};
+    `}_shouldSetFocus(i){return i.composedPath()[0]===this.focusElement}_onLabelClick(){this.collapsible&&this.__toggleCollapsed()}_onLabelSlotChange(){const i=this.querySelector('[slot="label"]');i?(i.id||(i.id=this._labelId),this.setAttribute("aria-labelledby",i.id)):this.removeAttribute("aria-labelledby")}__locationChanged(){window.dispatchEvent(new CustomEvent("side-nav-location-changed"))}__toggleCollapsed(){this.collapsed=!this.collapsed}__onClick(i){if(!this.onNavigate||i.metaKey||i.shiftKey)return;const e=i.composedPath(),r=e.find(l=>l.localName&&l.localName.includes("side-nav-item")),s=e.find(l=>l instanceof HTMLAnchorElement);if(!r||!r.shadowRoot.contains(s)||!(s.href&&s.href.startsWith(location.origin))||r.target==="_blank"||r.routerIgnore)return;this.onNavigate({path:r.path,target:r.target,current:r.current,expanded:r.expanded,pathAliases:r.pathAliases,originalEvent:i})!==!1&&i.preventDefault()}}R(R4);export{ot as E,K2 as N,$ as P,Ji as R,Li as S,Y as T,M2 as _,t6 as a,j4 as b,Zy as c,R as d,U4 as e,jm as f,Ki as g,V as h,h6 as i,q4 as j,u6 as k,c6 as l,d6 as m,$b as n,qb as p,L as r,$4 as v};
