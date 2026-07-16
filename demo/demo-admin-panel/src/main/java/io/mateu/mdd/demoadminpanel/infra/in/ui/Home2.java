@@ -22,7 +22,7 @@ import java.util.List;
 @Title("My first Mateu app")
 @AI(sse = "http://localhost:8095/ai/api/agent/stream")
 @App(themeToggle = true)
-public class Home2 implements WidgetSupplier {
+public class Home2 implements WidgetSupplier, io.mateu.uidl.interfaces.AppActionsSupplier {
 
     @Menu
     RouteLink checkin = new RouteLink("/checkin", "Check-in");
@@ -106,6 +106,28 @@ public class Home2 implements WidgetSupplier {
     @Menu
     io.mateu.mdd.demoadminpanel.infra.in.ui.partialforms.PartialFormDemo partialForms;
 
+
+    // app header actions: buttons next to the @AppContext pickers; the dropdown's CHILDREN dispatch
+    @Override
+    public List<AppHeaderAction> appActions(HttpRequest httpRequest) {
+        return List.of(
+                new AppHeaderAction("syncNow", "Sync", "vaadin:refresh"),
+                AppHeaderAction.menu("Export", "vaadin:download", List.of(
+                        new AppHeaderAction("exportPdf", "As PDF"),
+                        new AppHeaderAction("exportExcel", "As Excel"))));
+    }
+
+    public Message syncNow() {
+        return new Message("Synced");
+    }
+
+    public Message exportPdf() {
+        return new Message("Exported as PDF");
+    }
+
+    public Message exportExcel() {
+        return new Message("Exported as Excel");
+    }
 
     @NotEmpty
     String name;
