@@ -20,13 +20,18 @@ final class LookupFieldDataWriter {
       LookupLabelSupplier labelSupplier,
       Map<String, Object> data,
       HttpRequest httpRequest) {
+    // @Lookup without label= and the view is no LookupLabelSupplier: fall back to the raw id.
+    var labels =
+        labelSupplier != null
+            ? labelSupplier
+            : (LookupLabelSupplier) (fieldName, id, request) -> String.valueOf(id);
     if (Collection.class.isAssignableFrom(field.getType())) {
       var options = new ArrayList<Option>();
       var ids = (Collection<?>) getValue(field, item);
       if (ids != null) {
         ids.forEach(
             id -> {
-              var label = labelSupplier.label(field.getName(), id, httpRequest);
+              var label = labels.label(field.getName(), id, httpRequest);
               if (label != null) {
                 options.add(new Option(id, label));
               }
@@ -41,7 +46,7 @@ final class LookupFieldDataWriter {
     } else {
       var id = getValue(field, item);
       if (id != null) {
-        var label = labelSupplier.label(field.getName(), id, httpRequest);
+        var label = labels.label(field.getName(), id, httpRequest);
         if (label != null) {
           data.put(field.getName() + "-label", label);
           data.put(
