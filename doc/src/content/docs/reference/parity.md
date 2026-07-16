@@ -18,15 +18,21 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Forms, sections, field types, validation | ✅ | ✅ | ✅ |
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
 | App shell + menus + navigation | ✅ | ✅ | ✅ |
-| Wizards (incl. branching) | ✅ | ✅ | ✅ |
+| Wizards (incl. branching, cross-step state, `@WizardProgress` steppers) | ✅ | ✅ | ✅ |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
 | Adaptive layout inference (radios, folding, tabs) | ✅ | ✅ | ✅ |
 | Nav links (`@LinkTo` / link supplier) | ✅ | ✅ | ✅ |
 | Dashboard / Foldout / Welcome / ItemOverview archetypes | ✅ | ✅ | ✅ |
 | UX components (MetricCard, Gantt, EmptyState, Skeleton…) | ✅ | ✅ | ✅ |
+| High-level UX components (Kanban, Timeline, Stat, Calendar, PricingTable, OrgChart, Heatmap, Funnel, TrendChart, FeatureGrid, Testimonials, Faq, CalloutCard, CommentThread, FileList, ComparisonCard, Checklist, ProgressSteps) | ✅ | ✅ | ✅ |
+| Front-office components (EntityHeader, Meter, TaskProgress, StatusList, TaskQueue, ResourceGrid, OfferCard incl. toggle state, AddOnPicker, Ledger, PaymentPicker, ProcessMonitor, Notice incl. status/noIcon/content, BulletedList) | ✅ | ✅ | ✅ |
+| Section polish (`@SeparatorBefore`, text sizes, `@Section(propertyList/frameless)`, responsive zones) | ✅ | ✅ | ✅ |
+| `Anchor` (external links, `target` + rel=noopener) | ✅ | ✅ | ✅ |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
+| App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
+| `@Audience` persona projection (audience app-context + projection filter) | ✅ | ✅ | ✅ |
 | Capture fields (`@Signature`, `@PhotoCapture`) | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
 | Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | ✅ | ✅ |
@@ -40,9 +46,10 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Dialog/Drawer overlays from actions + `closeModal`/`dispatchEvent` | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
-| Grid form fields + `@OnRowSelected` row-click actions | ✅ | ✅ | ✅ |
+| Grid form fields + `@OnRowSelected` row-click actions (incl. add/create/select on plain forms outside wizards) | ✅ | ✅ | ✅ |
 | Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | — | — |
 | Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | — | — |
+| Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData) | ✅ | — | — |
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
 | AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
@@ -91,6 +98,14 @@ property, rows binding back into the typed list), permission-driven field states
 full `@App(AUTO)` variant decision table (explicit wins; menu folders via `Group`/`group` →
 TILES/HAMBURGUER_MENU/MENU_ON_TOP; flat menus → TABS). Nothing on the server surface remains
 Java-only.
+
+**2026-07-16 parity pass**: the front-office dogfooding wave (OfferCard toggle state, StatusItem
+avatar, StatusList compact/frameless, Notice status/noIcon/content, `@Audience`) landed on all
+three backends in the same commits; the two features that had slipped through Java-only — app
+header actions with dropdown grouping (`AppActionsSupplier`) and `Anchor.target` — were ported the
+same day (.NET `IAppActionsSupplier`/`Anchor { Target }`, Python `AppActionsSupplier`/`Anchor`),
+each pinned by golden-JSON tests. The remaining Java-only rows above are in-page orchestration
+behaviors (embedded islands, inline-grid "+", wide-field auto-colspan), not wire surface.
 
 ## Renderers
 

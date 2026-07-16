@@ -86,6 +86,56 @@ stays fully decoupled from the screens.
   components set programmatically.
 - Several `@AppContext` fields render several selectors (e.g. hotel + fiscal year).
 
+## Header actions
+
+Next to the context selectors, the app can contribute **action buttons to the header**: implement
+`AppActionsSupplier` on the `@UI` app class. Each `actionId` names a public method of the app class
+(same dispatch as a `@Fab`); an action **with children** renders as a dropdown menu — only the
+children dispatch. The supplier is evaluated on every shell build, so actions can appear and
+disappear with server-side state.
+
+```java
+@UI
+public class BackofficeApp implements AppActionsSupplier {
+
+  @Override
+  public List<AppHeaderAction> appActions(HttpRequest httpRequest) {
+    return List.of(
+        new AppHeaderAction("sync", "Sincronizar", "vaadin:refresh"),
+        AppHeaderAction.menu("Más", "vaadin:ellipsis-dots-v", List.of(
+            new AppHeaderAction("deploy", "Desplegar"),
+            new AppHeaderAction("purge", "Purgar caché"))));
+  }
+
+  public Message sync() { ... }   // runs when the header button is clicked
+}
+```
+
+Actions returning a `Flux` stream their increments over SSE with the on-screen component as the
+initiator, so long pipelines (a deploy, a batch job) update their progress dialog as they happen.
+
+The .NET and Python backends emit the same `contextActions` wire field:
+
+```csharp
+public class BackofficeApp : IAppActionsSupplier
+{
+    public IReadOnlyList<AppHeaderAction> AppActions() =>
+        [new AppHeaderAction("sync", "Sync now", "refresh"),
+         AppHeaderAction.Menu("Export", "download",
+             [new AppHeaderAction("exportPdf", "As PDF"),
+              new AppHeaderAction("exportExcel", "As Excel")])];
+}
+```
+
+```python
+class BackofficeApp(AppActionsSupplier):
+    def app_actions(self):
+        return [AppHeaderAction(action_id="sync", label="Sync now", icon="refresh"),
+                AppHeaderAction.menu("Export", "download", [
+                    AppHeaderAction(action_id="exportPdf", label="As PDF"),
+                    AppHeaderAction(action_id="exportExcel", label="As Excel")])]
+```
+
 ## Other servers
 
 The pattern is wire-level, so the .NET and Python backends emit the same selectors:
