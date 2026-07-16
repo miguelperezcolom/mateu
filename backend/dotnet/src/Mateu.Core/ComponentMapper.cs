@@ -136,6 +136,7 @@ public static class ComponentMapper
         Text t => Dto(t, new TextMetadataDto(t.Content) { Size = t.Size, NoMargins = t.NoMargins }),
 
         Separator sep => Dto(sep, new SeparatorMetadataDto()),
+        Anchor a => Dto(a, new AnchorMetadataDto(a.Text, a.Url, a.Target)),
         Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null }),
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),

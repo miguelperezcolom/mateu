@@ -120,9 +120,27 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             ServerSideType = appType.FullName!,
             SseUrl = appType.Find<AIAttribute>()?.Sse,
             ContextSelectors = MapContextSelectors(appType),
+            ContextActions = MapContextActions(appType),
         };
         return new ClientSideComponentDto(meta, "ux_main_app", [], null, null, null);
     }
+
+    /// <summary>Header action buttons next to the context selectors: the app class implements
+    /// IAppActionsSupplier and decides on every shell build which actions exist (visibility
+    /// follows server-side state). Each ActionId dispatches against the app class: the method
+    /// with that name runs.</summary>
+    private static IReadOnlyList<AppHeaderActionDto> MapContextActions(Type appType)
+    {
+        if (!typeof(IAppActionsSupplier).IsAssignableFrom(appType)
+            || Activator.CreateInstance(appType) is not IAppActionsSupplier supplier)
+            return [];
+        var actions = supplier.AppActions();
+        return actions is null ? [] : actions.Select(MapHeaderAction).ToList();
+    }
+
+    private static AppHeaderActionDto MapHeaderAction(AppHeaderAction action) =>
+        new(action.ActionId, action.Label, action.Icon,
+            action.Children?.Select(MapHeaderAction).ToList());
 
     /// <summary>[AppContext] members of the app class become header context selectors: an enum
     /// property contributes its constants, a method its returned (value, label) pairs.</summary>

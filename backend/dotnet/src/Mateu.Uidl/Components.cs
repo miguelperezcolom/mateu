@@ -721,6 +721,13 @@ public sealed record Text(string Content) : ComponentBase
 /// layout. Declaratively, mark a property with [SeparatorBefore] to paint one above it.</summary>
 public sealed record Separator : ComponentBase;
 
+/// <summary>A hyperlink. Target "_blank" opens in a new tab (the renderer adds rel=noopener).
+/// (C# analogue of io.mateu.uidl.data.Anchor.)</summary>
+public sealed record Anchor(string Text, string Url) : ComponentBase
+{
+    public string? Target { get; init; }
+}
+
 /// <summary>A button dispatching an action (a method name on the view).</summary>
 public sealed record Button(string Label, string ActionId) : ComponentBase
 {

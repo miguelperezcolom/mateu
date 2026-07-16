@@ -12,9 +12,11 @@ from typing import Any, get_args, get_origin, get_type_hints
 
 from mateu_dtos import (
     AccordionLayoutMetadata,
+    AnchorMetadata,
     AppContextSelector,
     AccordionPanelMetadata,
     Action,
+    AppHeaderAction,
     AppMetadata,
     Badge,
     Banner,
@@ -122,6 +124,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    AppActionsSupplier,
     Audience,
     BulletedList,
     ComponentTreeSupplier,
@@ -343,8 +346,29 @@ class ReflectionMapper:
             server_side_type=type_name(cls),
             sse_url=getattr(cls, "__mateu_ai_sse__", None),
             context_selectors=self.map_context_selectors(cls),
+            context_actions=self.map_context_actions(cls),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
+
+    def map_context_actions(self, cls) -> list[AppHeaderAction]:
+        """Header action buttons next to the context selectors: the app class implements
+        :class:`AppActionsSupplier` and decides on every shell build which actions exist
+        (visibility follows server-side state). Each action_id dispatches against the app class:
+        the method with that name runs."""
+        if not issubclass(cls, AppActionsSupplier):
+            return []
+        actions = cls().app_actions() or []
+        return [self._map_header_action(a) for a in actions]
+
+    def _map_header_action(self, action) -> AppHeaderAction:
+        return AppHeaderAction(
+            action_id=action.action_id,
+            label=action.label,
+            icon=action.icon,
+            children=[self._map_header_action(child) for child in action.children]
+            if action.children is not None
+            else None,
+        )
 
     def map_context_selectors(self, cls) -> list[AppContextSelector]:
         """@app_context methods of the app class become header context selectors: the method's
@@ -1079,6 +1103,8 @@ class ReflectionMapper:
                 TextMetadata(text=self.T(c.text), size=c.size, no_margins=c.no_margins), c)
         if isinstance(c, fluent.Separator):
             return self._fluent_client(SeparatorMetadata(), c)
+        if isinstance(c, fluent.Anchor):
+            return self._fluent_client(AnchorMetadata(text=c.text, url=c.url, target=c.target), c)
         # Federation — a remote Mateu UI mounted as an island inside this page.
         if isinstance(c, fluent.MicroFrontend):
             meta = MicroFrontendMetadata(

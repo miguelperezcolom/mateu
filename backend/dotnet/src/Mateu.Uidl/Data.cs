@@ -36,6 +36,26 @@ public interface IOptionsSupplier
     IReadOnlyList<Option> Options(string fieldName);
 }
 
+/// <summary>An action button rendered on the app header, next to the [AppContext] selectors.
+/// ActionId names the public method of the app class to invoke; Icon is an optional icon name.
+/// An action with Children renders as a dropdown menu instead of a button: only the children
+/// dispatch. (C# analogue of io.mateu.uidl.data.AppHeaderAction.)</summary>
+public sealed record AppHeaderAction(
+    string? ActionId, string Label, string? Icon = null, IReadOnlyList<AppHeaderAction>? Children = null)
+{
+    /// <summary>A dropdown of actions under one header button.</summary>
+    public static AppHeaderAction Menu(string label, string? icon, IReadOnlyList<AppHeaderAction> children) =>
+        new(null, label, icon, children);
+}
+
+/// <summary>Implemented by an app shell to contribute action buttons to the app header, next to
+/// the [AppContext] selectors. Evaluated on every shell build, so actions can appear and
+/// disappear with server-side state. (C# analogue of Java's AppActionsSupplier.)</summary>
+public interface IAppActionsSupplier
+{
+    IReadOnlyList<AppHeaderAction> AppActions();
+}
+
 /// <summary>Resolves the display label of a reference field's PRE-EXISTING value: when a form
 /// loads with a [Lookup]/[Searchable] field already set, the framework asks the view (or the
 /// [Searchable] selector) for the label so the raw id is never shown. (C# analogue of Java's

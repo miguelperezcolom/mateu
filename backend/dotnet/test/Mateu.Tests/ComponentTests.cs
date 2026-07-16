@@ -978,4 +978,16 @@ public class ComponentTests
             "\"style\":null,\"cssClasses\":null,\"slot\":null}",
             json);
     }
+
+    [Fact]
+    public void Anchor_emits_text_url_and_target()
+    {
+        var dto = ComponentMapper.Map(new Anchor("Open the docs", "https://mateu.io/docs") { Target = "_blank" });
+        var json = JsonSerializer.Serialize<ComponentDto>(dto, Json);
+
+        Assert.Contains("\"type\":\"Anchor\"", json);
+        Assert.Contains("\"text\":\"Open the docs\"", json);
+        Assert.Contains("\"url\":\"https://mateu.io/docs\"", json);
+        Assert.Contains("\"target\":\"_blank\"", json);
+    }
 }

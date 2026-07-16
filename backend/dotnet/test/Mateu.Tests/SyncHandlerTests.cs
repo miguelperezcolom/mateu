@@ -47,12 +47,21 @@ public class DbOrders : Crud<Thing>
 
 [App("Test App"), AI("/ai/chat")]
 [RemoteMenu("Payments", "https://payments.example.com", Explode = true)]
-public class TestApp
+public class TestApp : IAppActionsSupplier
 {
     [MenuItem("Things")] public Things Things() => new();
 
     [AppContext("Hotel")]
     public IReadOnlyList<OptionDto> Hotel() => [new("1", "Hotel 1"), new("2", "Hotel 2")];
+
+    public IReadOnlyList<AppHeaderAction> AppActions() =>
+    [
+        new("sync", "Sync now", "refresh"),
+        AppHeaderAction.Menu("Export", "download",
+            [new("exportPdf", "As PDF"), new("exportExcel", "As Excel")]),
+    ];
+
+    public Message Sync() => new("Synced");
 }
 
 public class Thing
@@ -574,6 +583,32 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void App_header_actions_reach_the_wire()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName });
+        var json = Render(inc);
+
+        Assert.Contains("\"contextActions\":[" +
+            "{\"actionId\":\"sync\",\"label\":\"Sync now\",\"icon\":\"refresh\",\"children\":null}," +
+            "{\"actionId\":null,\"label\":\"Export\",\"icon\":\"download\",\"children\":[" +
+            "{\"actionId\":\"exportPdf\",\"label\":\"As PDF\",\"icon\":null,\"children\":null}," +
+            "{\"actionId\":\"exportExcel\",\"label\":\"As Excel\",\"icon\":null,\"children\":null}]}]", json);
+    }
+
+    [Fact]
+    public void App_header_action_dispatches_against_the_app_class()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(TestApp).FullName,
+            ActionId = "sync",
+        });
+
+        var msg = Assert.Single(inc.Messages);
+        Assert.Equal("Synced", msg.Text);
     }
 
     [Fact]

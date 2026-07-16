@@ -39,6 +39,9 @@ class AppMetadata(Wire):
     #: SSE chat endpoint (@ai); when set the renderer shows the floating AI chat.
     sse_url: str | None = None
     context_selectors: list["AppContextSelector"] = Field(default_factory=list)
+    #: Header action buttons next to the context selectors (the app class implements
+    #: AppActionsSupplier); an entry with children renders as a dropdown.
+    context_actions: list["AppHeaderAction"] = Field(default_factory=list)
 
 
 class AppContextSelector(Wire):
@@ -49,6 +52,16 @@ class AppContextSelector(Wire):
     field_name: str
     label: str
     options: list["Option"] = Field(default_factory=list)
+
+
+class AppHeaderAction(Wire):
+    """An action button on the app header, next to the app-context selectors. An entry with
+    children renders as a dropdown menu: only the children dispatch."""
+
+    action_id: str | None = None
+    label: str = ""
+    icon: str | None = None
+    children: list["AppHeaderAction"] | None = None
 
 
 class PageMetadata(Wire):
@@ -217,6 +230,15 @@ class SeparatorMetadata(Wire):
 
     type: Literal["Separator"] = "Separator"
     attributes: dict[str, str] = Field(default_factory=dict)
+
+
+class AnchorMetadata(Wire):
+    """A hyperlink (mirrors ``AnchorDto``); target "_blank" is rendered with rel=noopener."""
+
+    type: Literal["Anchor"] = "Anchor"
+    text: str
+    url: str
+    target: str | None = None
 
 
 class ButtonMetadata(Wire):
@@ -1002,6 +1024,7 @@ ComponentMetadata = Annotated[
         StatusListMetadata,
         BulletedListMetadata,
         SeparatorMetadata,
+        AnchorMetadata,
         NoticeMetadata,
         TaskQueueMetadata,
         ResourceGridMetadata,

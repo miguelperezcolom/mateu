@@ -55,6 +55,19 @@ class Separator(Component):
 
 
 @dataclass(frozen=True)
+class Anchor(Component):
+    """A hyperlink. ``target`` "_blank" opens in a new tab (the renderer adds rel=noopener).
+    The Python analogue of Java's ``Anchor``."""
+
+    text: str = ""
+    url: str = ""
+    target: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
 class Button(Component):
     """A fluent button; ``action_id`` runs the matching action method."""
 

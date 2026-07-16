@@ -161,6 +161,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(StatusListMetadataDto), "StatusList")]
 [JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
 [JsonDerivedType(typeof(SeparatorMetadataDto), "Separator")]
+[JsonDerivedType(typeof(AnchorMetadataDto), "Anchor")]
 [JsonDerivedType(typeof(NoticeMetadataDto), "Notice")]
 [JsonDerivedType(typeof(TaskQueueMetadataDto), "TaskQueue")]
 [JsonDerivedType(typeof(ResourceGridMetadataDto), "ResourceGrid")]
@@ -549,6 +550,9 @@ public record TextMetadataDto(string Text) : ComponentMetadataDto
 /// full form row.</summary>
 public record SeparatorMetadataDto(IReadOnlyDictionary<string, string>? Attributes = null) : ComponentMetadataDto;
 
+/// <summary>A hyperlink (mirrors AnchorDto). Target "_blank" is rendered with rel=noopener.</summary>
+public record AnchorMetadataDto(string Text, string Url, string? Target = null) : ComponentMetadataDto;
+
 /// <summary>A compact inline banner: theme-tinted strip with a severity icon, one line of text
 /// and an optional right-aligned action.</summary>
 public record NoticeMetadataDto(string? Text, string? Theme, string? Icon, string? ActionLabel, string? ActionId, bool Slim = false, bool FullWidth = false, bool NoIcon = false, string? Status = null) : ComponentMetadataDto;
@@ -631,12 +635,21 @@ public record AppMetadataDto(
     public string? SseUrl { get; init; }
 
     public IReadOnlyList<AppContextSelectorDto> ContextSelectors { get; init; } = [];
+
+    /// <summary>Header action buttons next to the context selectors (the app class implements
+    /// IAppActionsSupplier); an entry with Children renders as a dropdown.</summary>
+    public IReadOnlyList<AppHeaderActionDto> ContextActions { get; init; } = [];
 }
 
 /// <summary>An application-level context selector shown on the app header: fixes a value for
 /// every screen (the active hotel, the company…). The picked value lives in the app state under
 /// FieldName and travels with every request.</summary>
 public record AppContextSelectorDto(string FieldName, string Label, IReadOnlyList<OptionDto> Options);
+
+/// <summary>An action button on the app header, next to the app-context selectors. An entry with
+/// Children renders as a dropdown menu: only the children dispatch.</summary>
+public record AppHeaderActionDto(
+    string? ActionId, string Label, string? Icon, IReadOnlyList<AppHeaderActionDto>? Children);
 
 public record MenuItemDto(string Label, string Route, string ServerSideType)
 {

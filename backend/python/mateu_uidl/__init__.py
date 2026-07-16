@@ -333,6 +333,33 @@ class RuleSupplier:
 
 
 @dataclass(frozen=True)
+class AppHeaderAction:
+    """An action button rendered on the app header, next to the ``@app_context`` selectors.
+    ``action_id`` names the method of the app class to invoke (its camelCase wire id); ``icon``
+    is an optional icon name. An action with ``children`` renders as a dropdown menu instead of a
+    button: only the children dispatch. The Python analogue of Java's ``AppHeaderAction``."""
+
+    action_id: str | None = None
+    label: str = ""
+    icon: str | None = None
+    children: list["AppHeaderAction"] | None = None
+
+    @staticmethod
+    def menu(label: str, icon: str | None, children: list["AppHeaderAction"]) -> "AppHeaderAction":
+        """A dropdown of actions under one header button."""
+        return AppHeaderAction(action_id=None, label=label, icon=icon, children=children)
+
+
+class AppActionsSupplier:
+    """Implemented by an app shell to contribute action buttons to the app header, next to the
+    ``@app_context`` selectors. Evaluated on every shell build, so actions can appear and
+    disappear with server-side state. The Python analogue of Java's ``AppActionsSupplier``."""
+
+    def app_actions(self) -> list[AppHeaderAction]:
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
 class Lookup:
     """A remote, search-as-you-type reference field: renders a combo box whose options come from
     the server page by page — the view (or crud) answers the field's ``search-<fieldId>`` action
@@ -940,7 +967,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "wizard_progress",
     "plain_text", "emits", "subscribe_to", "secured",

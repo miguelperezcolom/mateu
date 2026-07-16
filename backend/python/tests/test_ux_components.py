@@ -25,6 +25,7 @@ from mateu_uidl import (  # noqa: E402
 from mateu_uidl.components import (  # noqa: E402
     AddOn,
     AddOnPicker,
+    Anchor,
     Button,
     Calendar,
     ChipItem,
@@ -748,6 +749,13 @@ class Automations(ComponentTreeSupplier):
         )
 
 
+@ui("links")
+@title("Links")
+class LinksView(ComponentTreeSupplier):
+    def component(self):
+        return Anchor(id="docs", text="Open the docs", url="https://mateu.io/docs", target="_blank")
+
+
 MODULE = sys.modules[__name__]
 
 
@@ -1341,3 +1349,15 @@ def test_component_tree_supplier_emits_process_monitor():
     assert items[0]["actionLabel"] == "Solucionar"
     assert items[0]["actionId"] == "fixCredit"
     assert items[1]["status"] == "ok"
+
+
+def test_component_tree_supplier_emits_anchor():
+    doc = render(LinksView)
+    (anchor,) = page_children(doc)
+    assert anchor["id"] == "docs"
+    assert anchor["metadata"] == {
+        "type": "Anchor",
+        "text": "Open the docs",
+        "url": "https://mateu.io/docs",
+        "target": "_blank",
+    }

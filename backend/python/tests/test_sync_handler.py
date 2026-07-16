@@ -15,6 +15,8 @@ from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
 from mateu_dtos import Option, UICommand  # noqa: E402
 from mateu_uidl.components import Dialog, Drawer, Text  # noqa: E402
 from mateu_uidl import (  # noqa: E402
+    AppActionsSupplier,
+    AppHeaderAction,
     BannerTheme,
     Disabled,
     Hidden,
@@ -125,7 +127,7 @@ _LAST_PAGEABLE: list = []
 @app("Test App")
 @ai("/ai/chat")
 @remote_menu("Payments", "https://payments.example.com", explode=True)
-class TestApp:
+class TestApp(AppActionsSupplier):
     @menu_item("Things")
     def things(self) -> "Things":
         return Things()
@@ -133,6 +135,18 @@ class TestApp:
     @app_context("Hotel")
     def hotel(self):
         return [("1", "Hotel 1"), ("2", "Hotel 2")]
+
+    def app_actions(self) -> list[AppHeaderAction]:
+        return [
+            AppHeaderAction("sync", "Sync now", "refresh"),
+            AppHeaderAction.menu(
+                "Export", "download",
+                [AppHeaderAction("exportPdf", "As PDF"), AppHeaderAction("exportExcel", "As Excel")],
+            ),
+        ]
+
+    def sync(self) -> Message:
+        return Message("Synced")
 
 
 class Thing:
@@ -640,6 +654,29 @@ def test_app_context_selectors_on_the_wire():
     assert selectors[0]["fieldName"] == "hotel"
     assert selectors[0]["label"] == "Hotel"
     assert [o["label"] for o in selectors[0]["options"]] == ["Hotel 1", "Hotel 2"]
+
+
+def test_app_header_actions_on_the_wire():
+    inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
+    j = json.loads(render(inc))
+    app_meta = j["fragments"][0]["component"]["metadata"]
+    assert app_meta["contextActions"] == [
+        {"actionId": "sync", "label": "Sync now", "icon": "refresh", "children": None},
+        {
+            "actionId": None,
+            "label": "Export",
+            "icon": "download",
+            "children": [
+                {"actionId": "exportPdf", "label": "As PDF", "icon": None, "children": None},
+                {"actionId": "exportExcel", "label": "As Excel", "icon": None, "children": None},
+            ],
+        },
+    ]
+
+
+def test_app_header_action_dispatches_against_the_app_class():
+    inc = handler().handle(RunActionRq(server_side_type=_name(TestApp), action_id="sync"))
+    assert inc.messages[0].text == "Synced"
 
 
 def test_crud_search_returns_rows():
