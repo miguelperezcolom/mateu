@@ -7,6 +7,7 @@ import "@infra/ui/mateu-vaadin-app-context-picker.ts";
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient.ts";
 import { sseService } from "@application/SSEService.ts";
 import { Notification } from "@vaadin/notification";
+import "@vaadin/menu-bar";
 // Application-level context selectors (@AppContext fields on the app class): compact pickers on
 // the header that fix a value for every screen. This shared appRenderer is the VAADIN shell, so
 // they render with Vaadin's own widgets (vaadin-select / searchable vaadin-combo-box) — the other
@@ -57,9 +58,15 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const actions = metadata.contextActions ?? []
     if (selectors.length === 0 && actions.length === 0) return nothing
     return html`${selectors.map(selector => html`
-        <mateu-vaadin-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-vaadin-app-context-picker>`)}${actions.map(action => html`
+        <mateu-vaadin-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-vaadin-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
+        <vaadin-menu-bar theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
+            .items="${[{ text: action.label, children: action.children!.map(child => ({ text: child.label, actionId: child.actionId })) }]}"
+            @item-selected="${(e: CustomEvent) => {
+                const id = (e.detail?.value as { actionId?: string } | undefined)?.actionId
+                if (id) runHeaderAction(metadata, container, id)
+            }}"></vaadin-menu-bar>` : html`
         <vaadin-button theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
-            @click="${() => runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">
+            @click="${() => action.actionId && runHeaderAction(metadata, container, action.actionId)}" title="${action.label}">
             ${action.icon ? html`<vaadin-icon icon="${action.icon}" slot="prefix"></vaadin-icon>` : nothing}${action.label}
         </vaadin-button>`)}`
 }

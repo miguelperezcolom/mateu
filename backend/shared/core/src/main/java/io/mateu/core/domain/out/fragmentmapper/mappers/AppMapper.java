@@ -149,15 +149,19 @@ public final class AppMapper {
                 .newInstance(appClass, java.util.Map.of(), httpRequest);
     var actions = supplier.appActions(httpRequest);
     if (actions == null) return List.of();
-    return actions.stream()
-        .map(
-            action ->
-                AppHeaderActionDto.builder()
-                    .actionId(action.actionId())
-                    .label(action.label())
-                    .icon(action.icon())
-                    .build())
-        .toList();
+    return actions.stream().map(AppMapper::mapHeaderAction).toList();
+  }
+
+  private static AppHeaderActionDto mapHeaderAction(io.mateu.uidl.data.AppHeaderAction action) {
+    return AppHeaderActionDto.builder()
+        .actionId(action.actionId())
+        .label(action.label())
+        .icon(action.icon())
+        .children(
+            action.children() == null
+                ? null
+                : action.children().stream().map(AppMapper::mapHeaderAction).toList())
+        .build();
   }
 
   /**

@@ -121,7 +121,16 @@ public class ActionInstanceCreator {
                       io.mateu.uidl.interfaces.InstanceFactory.class)
                   .newInstance(appClass, java.util.Map.of(), command.httpRequest());
       var actions = supplier.appActions(command.httpRequest());
-      return actions != null && actions.stream().anyMatch(a -> actionId.equals(a.actionId()));
+      // dropdown header actions dispatch their CHILDREN's ids — flatten before matching
+      return actions != null
+          && actions.stream()
+              .flatMap(
+                  a ->
+                      a.children() == null
+                          ? java.util.stream.Stream.of(a)
+                          : java.util.stream.Stream.concat(
+                              java.util.stream.Stream.of(a), a.children().stream()))
+              .anyMatch(a -> actionId.equals(a.actionId()));
     } catch (ReflectiveOperationException | RuntimeException e) {
       return false;
     }
