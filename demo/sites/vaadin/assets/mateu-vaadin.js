@@ -4394,7 +4394,7 @@ id="${e.id}"
             slot="${e.slot??l}"/>
     `};var sd=Object.defineProperty,rd=Object.getOwnPropertyDescriptor,Qe=(e,t,a,s)=>{for(var i=s>1?void 0:s?rd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&sd(t,a,i),i};const od={info:"ℹ",success:"✓",warning:"!",danger:"!"};let xe=class extends _{constructor(){super(...arguments),this.text="",this.theme="info",this.slim=!1,this.fullWidth=!1,this.hasContent=!1}runAction(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId},bubbles:!0,composed:!0}))}render(){const e=!!this.text&&!!this.text.trim();if(!e&&!this.hasContent)return o``;const t=["info","success","warning","danger"].includes(this.theme)?this.theme:"info";return o`
             <div class="notice ${t} ${this.slim?"slim":""}">
-                <span class="icon">${this.icon||od[t]}</span>
+                <span class="icon ${this.icon?"custom":""}">${this.icon||od[t]}</span>
                 <div class="body">
                     ${e?o`<span class="text">${this.text}</span>`:l}
                     ${this.hasContent?o`<div class="content"><slot></slot></div>`:l}
@@ -4418,6 +4418,11 @@ id="${e.id}"
             line-height: normal;
         }
         .notice.slim .icon { width: .95rem; height: .95rem; font-size: .6rem; }
+        /* a custom icon (e.g. an emoji like 👥) renders at its natural size, no severity circle */
+        .icon.custom, .notice .icon.custom {
+            background: transparent; width: auto; height: auto;
+            font-size: 1rem; color: inherit;
+        }
         .icon {
             flex: 0 0 auto;
             width: 1.1rem;

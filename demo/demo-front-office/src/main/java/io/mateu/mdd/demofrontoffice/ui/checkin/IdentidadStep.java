@@ -8,6 +8,8 @@ import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.annotations.Text;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.BulletedList;
+import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Notice;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
@@ -17,6 +19,8 @@ import io.mateu.uidl.interfaces.VisibilitySupplier;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +32,7 @@ import lombok.Setter;
 public class IdentidadStep implements WizardStep {
 
   @Hidden String stayId;
+  @Hidden int selectedPax = 1;
 
   // No zone → full-width band across the top. Frameless: the header card brings its own chrome.
   @Section(value = "", columns = 2, frameless = true)
@@ -42,26 +47,57 @@ public class IdentidadStep implements WizardStep {
   @Label("")
   DocumentoView documento;
 
+  // Registro de pax: a Notice whose theme tracks the reservation's document completeness (success
+  // when every pax has data, warning otherwise) hosting one button per pax — green when that pax's
+  // documents are in, filled when it is the pax the Documento island is showing. Clicking a button
+  // dispatches selectPax on the wizard, which re-points the island via the pax-seleccionado event.
   @Colspan(2)
   @Section(value = "", zone = "main", frameless = true)
   @Label("")
   Callable<Component> registroPax =
       () -> {
-        var stay = FrontOffice.stayView(stayId).stay();
-        var registered = 1 + stay.companions().size();
-        return TaskProgress.builder()
-            .label(
+        var view = FrontOffice.stayView(stayId);
+        var stay = view.stay();
+        var guest = view.guest();
+        var buttons = new ArrayList<Component>();
+        int complete = 0;
+        for (int i = 1; i <= stay.pax(); i++) {
+          var companion = stay.companionAt(i);
+          boolean ok =
+              i == 1
+                  ? guest.identityComplete()
+                  : companion != null && companion.identityComplete();
+          if (ok) {
+            complete++;
+          }
+          buttons.add(
+              Button.builder()
+                  .id("pax-" + i)
+                  .label(i + "/" + stay.pax())
+                  .actionId("selectPax")
+                  .parameters(Map.of("paxIndex", i))
+                  .color(ok ? ButtonColor.success : ButtonColor.normal)
+                  .buttonStyle(i == selectedPax ? ButtonStyle.primary : null)
+                  .build());
+        }
+        boolean all = complete == stay.pax();
+        return Notice.builder()
+            .theme(all ? "success" : "warning")
+            .icon("👥")
+            .text(
                 "Reserva con "
                     + stay.pax()
                     + " pax. "
-                    + (registered < stay.pax()
-                        ? "Registrar los huéspedes adicionales."
-                        : "Huéspedes registrados."))
-            .total(stay.pax())
-            .done(Math.min(registered, stay.pax()))
-            .actionLabel("Añadir siguiente pax")
-            .actionId("addPax")
-                .style("width: 100%;")
+                    + (all
+                        ? "Documentación completa."
+                        : "Falta la documentación de " + (stay.pax() - complete) + " pax."))
+            .fullWidth(true)
+            .content(
+                List.of(
+                    HorizontalLayout.builder()
+                        .content(buttons)
+                        .style("gap: 0.5rem; flex-wrap: wrap;")
+                        .build()))
             .build();
       };
 
@@ -117,10 +153,12 @@ public class IdentidadStep implements WizardStep {
         lastStayMainInfo = guest.lastStaySummary();
         lastStaySecondaryInfo = guest.lastStayComplementaryInfo();
         historyInfo = guest.stays() + " estancias · Cliente desde " + (LocalDate.now().getYear() - guest.yearsAsClient() - 1);
-        // the Documento island receives its context (stayId) through the embedded field's
-        // seeded initialData — the scan/edit lifecycle is fully owned by DocumentoView
+        // the Documento island receives its context (stayId + the selected pax) through the
+        // embedded field's seeded initialData — the scan/edit lifecycle is fully owned by
+        // DocumentoView
         documento = new DocumentoView();
         documento.setStayId(stayId);
+        documento.setPaxIndex(selectedPax < 1 ? 1 : selectedPax);
         return this;
     }
 }

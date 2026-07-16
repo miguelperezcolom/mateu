@@ -9,11 +9,13 @@ import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The check-in flow of one arriving stay (route {@code /checkin/:id}): Identidad → Habitación →
@@ -33,10 +35,13 @@ import java.util.List;
 @Title("Check-In")
 @Style(StyleConstants.CONTAINER)
 @WizardProgress(WizardProgressStyle.STEPS)
+// a scan changes the registroPax colors (per-pax green + band theme) — re-render the step
+@SubscribeTo(event = "documento-escaneado", action = "refrescarIdentidad")
 public class CheckInWizard extends Wizard {
 
   String stayId;
   boolean populated;
+  int selectedPax = 1;
 
   @Label("Identidad")
   IdentidadStep identidad;
@@ -62,12 +67,15 @@ public class CheckInWizard extends Wizard {
     if (id != null && !id.equals(stayId)) {
       stayId = id;
       populated = false;
+      selectedPax = 1;
     }
     if (!populated) {
       populated = true;
       populate();
     }
-    identidad = new IdentidadStep().load(httpRequest);
+    identidad = new IdentidadStep();
+    identidad.setSelectedPax(selectedPax);
+    identidad.load(httpRequest);
     syncConfirmar();
   }
 
@@ -139,8 +147,19 @@ public class CheckInWizard extends Wizard {
         syncConfirmar();
         return this;
       }
-      case "addPax" -> {
-        return new Message("Aquí se registraría el siguiente huésped de la reserva (demo)");
+      case "selectPax" -> {
+        var raw = param(httpRequest, "paxIndex");
+        if (raw != null) {
+          selectedPax = (int) Double.parseDouble(raw);
+          identidad.setSelectedPax(selectedPax);
+          identidad.load(httpRequest);
+        }
+        // re-render the step (selected button) AND re-point the Documento island to the pax
+        return List.of(
+            this, UICommand.dispatchEvent("pax-seleccionado", Map.of("paxIndex", selectedPax)));
+      }
+      case "refrescarIdentidad" -> {
+        return this;
       }
       case "encodeKey" -> {
         return new Message("Llave / pulsera grabada");
@@ -173,8 +192,8 @@ public class CheckInWizard extends Wizard {
             "pickRoom",
             "upgrade",
             "extrasChanged",
-            "addPax",
-            "simularEscaneo",
+            "selectPax",
+            "refrescarIdentidad",
             "encodeKey",
             "sendToTablet")) {
       actions.add(Action.builder().id(id).build());

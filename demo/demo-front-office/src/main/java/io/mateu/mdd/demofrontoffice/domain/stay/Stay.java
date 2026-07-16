@@ -90,6 +90,29 @@ public record Stay(
         wishesGranted, wishesTotal, vipNote, updated, incidents, addOns);
   }
 
+  /** The companion occupying pax slot {@code paxNumber} (2-based; pax 1 is the main guest). */
+  public Companion companionAt(int paxNumber) {
+    int idx = paxNumber - 2;
+    return idx >= 0 && idx < companions.size() ? companions.get(idx) : null;
+  }
+
+  /**
+   * Registers (or updates) the companion of pax slot {@code paxNumber} (2..pax), padding any
+   * earlier empty slots with pending companions so slot order always matches pax order.
+   */
+  public Stay registerCompanion(int paxNumber, Companion companion) {
+    if (paxNumber < 2 || paxNumber > pax)
+      throw new IllegalArgumentException("Pax number out of the reservation's range");
+    List<Companion> updated = new ArrayList<>(companions);
+    while (updated.size() < paxNumber - 1) {
+      updated.add(Companion.pending(updated.size() + 2));
+    }
+    updated.set(paxNumber - 2, companion);
+    return new Stay(
+        id, guestId, roomNumber, roomType, board, checkIn, checkOut, pax, agency, total, status,
+        wishesGranted, wishesTotal, vipNote, updated, incidents, addOns);
+  }
+
   public Stay reportIncident(Incident incident) {
     List<Incident> updated = new ArrayList<>(incidents);
     updated.add(incident);

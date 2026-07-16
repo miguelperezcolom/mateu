@@ -46,11 +46,15 @@ create table stay (
 );
 
 create table stay_companion (
-    stay_id      varchar(64)  not null references stay (id),
-    idx          int          not null,
-    companion_id varchar(64)  not null,
-    name         varchar(200) not null,
-    description  varchar(300),
+    stay_id           varchar(64)  not null references stay (id),
+    idx               int          not null,
+    companion_id      varchar(64)  not null,
+    name              varchar(200) not null,
+    document          varchar(64),
+    document_verified boolean      not null default false,
+    email             varchar(200),
+    phone             varchar(50),
+    description       varchar(300),
     primary key (stay_id, idx)
 );
 

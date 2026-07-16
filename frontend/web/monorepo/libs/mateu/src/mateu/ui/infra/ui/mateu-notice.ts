@@ -41,6 +41,11 @@ export class MateuNotice extends LitElement {
             line-height: normal;
         }
         .notice.slim .icon { width: .95rem; height: .95rem; font-size: .6rem; }
+        /* a custom icon (e.g. an emoji like 👥) renders at its natural size, no severity circle */
+        .icon.custom, .notice .icon.custom {
+            background: transparent; width: auto; height: auto;
+            font-size: 1rem; color: inherit;
+        }
         .icon {
             flex: 0 0 auto;
             width: 1.1rem;
@@ -89,7 +94,7 @@ export class MateuNotice extends LitElement {
         const theme = ['info', 'success', 'warning', 'danger'].includes(this.theme) ? this.theme : 'info'
         return html`
             <div class="notice ${theme} ${this.slim ? 'slim' : ''}">
-                <span class="icon">${this.icon || THEME_ICONS[theme]}</span>
+                <span class="icon ${this.icon ? 'custom' : ''}">${this.icon || THEME_ICONS[theme]}</span>
                 <div class="body">
                     ${hasText ? html`<span class="text">${this.text}</span>` : nothing}
                     ${this.hasContent ? html`<div class="content"><slot></slot></div>` : nothing}

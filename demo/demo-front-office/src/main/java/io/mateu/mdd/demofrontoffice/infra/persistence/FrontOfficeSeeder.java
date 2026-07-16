@@ -144,7 +144,10 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             "st-maria", "maria", "1204", "Ocean Suite", "All Inclusive", today, today.plusDays(7),
             2, "TUI Group · TUI Magic Life", new BigDecimal("4890.00"), StayStatus.ARRIVING, 0, 0,
             null,
-            List.of(new Companion("juan", "Juan Fernández", "Doc 87654321Y · Adulto")),
+            List.of(
+                new Companion(
+                    "juan", "Juan Fernández", "87654321Y", true, "j.fernandez@email.com",
+                    "+34 600 111 222", "Doc 87654321Y · Adulto")),
             List.of(), Set.of()));
     stays.save(
         new Stay(
@@ -162,7 +165,10 @@ public class FrontOfficeSeeder implements ApplicationRunner {
         new Stay(
             "st-carlos", "carlos", "1108", "Suite", "All Inclusive", today.minusDays(7), today, 2,
             "Directo · Web", new BigDecimal("1710.50"), StayStatus.IN_HOUSE, 1, 3, null,
-            List.of(new Companion("ana", "Ana Mendoza", "Doc 55443322M · Adulto · Acompañante")),
+            List.of(
+                new Companion(
+                    "ana", "Ana Mendoza", "55443322M", true, "a.mendoza@email.com",
+                    "+34 600 333 444", "Doc 55443322M · Adulto · Acompañante")),
             List.of(
                 new Incident(
                     "tv", "📺", "TV sin señal en canales internacionales",
@@ -180,7 +186,8 @@ public class FrontOfficeSeeder implements ApplicationRunner {
             3, 3, "VIP — Anniversary",
             List.of(
                 new Companion(
-                    "lucas", "Lucas Laurent", "Doc FR-4471882 · Adulto · Titular secundario")),
+                    "lucas", "Lucas Laurent", "FR-4471882", true, "l.laurent@email.com",
+                    "+33 6 11 22 33 44", "Doc FR-4471882 · Adulto · Titular secundario")),
             List.of(
                 new Incident(
                     "ac", "🌡", "Aire acondicionado con ruido",
