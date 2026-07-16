@@ -30,6 +30,7 @@ public class StatusListMapper {
                         .toList()
                     : List.of())
             .compact(statusList.compact())
+            .frameless(statusList.frameless())
             .build(),
         statusList.id(),
         List.of(),

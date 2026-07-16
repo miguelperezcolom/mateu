@@ -933,7 +933,9 @@ class ReflectionMapper:
                 )
                 for it in c.items
             ]
-            return self._fluent_client(StatusListMetadata(items=items, compact=c.compact), c)
+            return self._fluent_client(
+                StatusListMetadata(items=items, compact=c.compact, frameless=c.frameless), c
+            )
         if isinstance(c, fluent.BulletedList):
             return self._fluent_client(BulletedListMetadata(items=list(c.items)), c)
         if isinstance(c, fluent.Notice):

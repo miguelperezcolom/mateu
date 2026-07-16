@@ -4,4 +4,6 @@ import StatusItem from "@mateu/shared/apiClients/dtos/componentmetadata/StatusIt
 export default interface StatusList extends ComponentMetadata {
     items?: StatusItem[]
     compact?: boolean
+    /** divider lines between rows but no outer border (the host provides the framing) */
+    frameless?: boolean
 }

@@ -8,10 +8,16 @@ import lombok.Builder;
  * A bordered list of rows with an icon, a title plus description, and a status chip and/or a small
  * action button on the right (see {@link StatusItem}) — incidents, side-effects checklists,
  * pending-tasks lists. An item's action dispatches its {@code actionId} with {@code { "_item": id
- * }}. {@code compact} tightens the row padding for dense screens. Design-system neutral, dark-mode
- * aware.
+ * }}. {@code compact} tightens the row padding for dense screens; {@code frameless} keeps the
+ * divider lines between rows but drops the outer border — for lists already framed by their host
+ * (e.g. inside a section card). Design-system neutral, dark-mode aware.
  */
 @Builder
 public record StatusList(
-    String id, List<StatusItem> items, boolean compact, String style, String cssClasses)
+    String id,
+    List<StatusItem> items,
+    boolean compact,
+    boolean frameless,
+    String style,
+    String cssClasses)
     implements Component {}

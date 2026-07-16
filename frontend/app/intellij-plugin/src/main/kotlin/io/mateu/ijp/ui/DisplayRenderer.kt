@@ -878,7 +878,7 @@ fun renderBulletedList(metadata: JsonNode): JComponent {
 
 fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val panel = verticalPanel(0)
-    panel.border = JBUI.Borders.customLine(JBColor.border(), 1)
+    if (!metadata.bool("frameless")) panel.border = JBUI.Borders.customLine(JBColor.border(), 1)
     val compact = metadata.bool("compact")
     for (item in metadata.arr("items")) {
         val row = JPanel(BorderLayout(8, 0))

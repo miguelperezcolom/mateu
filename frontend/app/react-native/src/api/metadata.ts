@@ -382,6 +382,8 @@ export interface StatusList {
   items?: StatusItem[];
   /** tighter row padding for dense screens */
   compact?: boolean;
+  /** divider lines between rows but no outer border (the host provides the framing) */
+  frameless?: boolean;
 }
 
 /** A plain bulleted list (<ul>) of text items — the lightweight counterpart of StatusList. */

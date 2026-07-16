@@ -9,6 +9,7 @@ export const renderStatusList = (component: ClientSideComponent) => {
         <mateu-status-list
                 .items="${metadata.items ?? []}"
                 ?compact="${metadata.compact ?? false}"
+                ?frameless="${metadata.frameless ?? false}"
                 style="${component.style??nothing}"
                 class="${component.cssClasses??nothing}"
                 slot="${component.slot??nothing}"

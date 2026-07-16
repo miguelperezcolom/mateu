@@ -12,10 +12,13 @@ import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * The check-in flow of one arriving stay (route {@code /checkin/:id}): Identidad → Habitación →
@@ -37,6 +40,11 @@ import java.util.Map;
 @WizardProgress(WizardProgressStyle.STEPS)
 // a scan changes the registroPax colors (per-pax green + band theme) — re-render the step
 @SubscribeTo(event = "documento-escaneado", action = "refrescarIdentidad")
+// the tablet-signature and pre-authorization SSE fluxes end by dispatching these events: a
+// fragment emitted 5 s into the stream would be dropped (the first emission rotated the
+// component's callbackToken), so the green state arrives via a FRESH action instead
+@SubscribeTo(event = "firma-capturada", action = "firmaCapturada")
+@SubscribeTo(event = "preautorizacion-completada", action = "preautorizado")
 public class CheckInWizard extends Wizard {
 
   String stayId;
@@ -173,13 +181,40 @@ public class CheckInWizard extends Wizard {
         return new Message("Llave / pulsera grabada");
       }
       case "requestPreauth" -> {
-        return new Message(
-            "Preautorización solicitada — "
-                + GuestHeaders.euros(confirmar.getTotalEstancia())
-                + " en la tarjeta del huésped");
+        // SSE: re-render immediately as "Solicitando preautorización…"; 5 s later (the TPV
+        // answers) dispatch preautorizacion-completada — the @SubscribeTo above reloads.
+        confirmar.setPreauthEstado("solicitando");
+        return Flux.concat(
+            Flux.<Object>just(
+                List.of(
+                    this,
+                    new Message(
+                        "Preautorización solicitada — "
+                            + GuestHeaders.euros(confirmar.getTotalEstancia())
+                            + " en la tarjeta del huésped"))),
+            Mono.delay(Duration.ofSeconds(5))
+                .map(tick -> (Object) UICommand.dispatchEvent("preautorizacion-completada")));
+      }
+      case "preautorizado" -> {
+        confirmar.setPreauthEstado("preautorizado");
+        return List.of(
+            this,
+            new Message(
+                "Preautorizado — " + GuestHeaders.euros(confirmar.getTotalEstancia())));
       }
       case "sendToTablet" -> {
-        return new Message("Documento de registro enviado a la tablet Civitfun");
+        // SSE: re-render immediately as "Enviado · Esperando firma"; 5 s later (the guest signs
+        // on the tablet) dispatch firma-capturada — the @SubscribeTo above reloads the wizard.
+        confirmar.setFirmaEstado("enviada");
+        return Flux.concat(
+            Flux.<Object>just(
+                List.of(this, new Message("Documento de registro enviado a la tablet Civitfun"))),
+            Mono.delay(Duration.ofSeconds(5))
+                .map(tick -> (Object) UICommand.dispatchEvent("firma-capturada")));
+      }
+      case "firmaCapturada" -> {
+        confirmar.setFirmaEstado("firmada");
+        return List.of(this, new Message("Firma capturada"));
       }
       default -> {
         var result = super.handleAction(actionId, httpRequest);
@@ -209,10 +244,13 @@ public class CheckInWizard extends Wizard {
             "selectPax",
             "refrescarIdentidad",
             "encodeKey",
-            "requestPreauth",
-            "sendToTablet")) {
+            "firmaCapturada",
+            "preautorizado")) {
       actions.add(Action.builder().id(id).build());
     }
+    // stream two increments each: the in-flight state now, the confirmation 5 s later
+    actions.add(Action.builder().id("sendToTablet").sse(true).build());
+    actions.add(Action.builder().id("requestPreauth").sse(true).build());
     return actions;
   }
 

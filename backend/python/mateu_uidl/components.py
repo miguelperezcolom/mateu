@@ -743,10 +743,12 @@ class StatusItem:
 @dataclass(frozen=True)
 class StatusList(Component):
     """Rows with an icon, text, status chip and/or action (incidents, side-effects checklist).
-    ``compact`` tightens the row padding for dense screens."""
+    ``compact`` tightens the row padding for dense screens; ``frameless`` keeps the row dividers
+    but drops the outer border (the host provides the framing)."""
 
     items: tuple[StatusItem, ...] = ()
     compact: bool = False
+    frameless: bool = False
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

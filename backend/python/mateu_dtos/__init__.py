@@ -734,6 +734,7 @@ class StatusListMetadata(Wire):
     type: Literal["StatusList"] = "StatusList"
     items: list[StatusItemRecord] = Field(default_factory=list)
     compact: bool = False
+    frameless: bool = False
 
 
 class BulletedListMetadata(Wire):

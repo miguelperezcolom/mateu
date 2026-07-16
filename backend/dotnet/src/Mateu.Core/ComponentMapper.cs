@@ -97,7 +97,7 @@ public static class ComponentMapper
             tp.Label, tp.Total, tp.Done, tp.ActionLabel, tp.ActionId)),
 
         StatusList sl => Dto(sl, new StatusListMetadataDto(sl.Items.Select(i => new StatusItemDto(
-            i.Id, i.Icon, i.Avatar, i.Title, i.Description, i.Status, i.StatusColor, i.ActionLabel, i.ActionId)).ToList(), sl.Compact)),
+            i.Id, i.Icon, i.Avatar, i.Title, i.Description, i.Status, i.StatusColor, i.ActionLabel, i.ActionId)).ToList(), sl.Compact, sl.Frameless)),
 
         BulletedList bl => Dto(bl, new BulletedListMetadataDto(bl.Items.ToList())),
 

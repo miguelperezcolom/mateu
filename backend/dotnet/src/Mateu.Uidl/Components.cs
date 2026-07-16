@@ -508,11 +508,13 @@ public sealed record StatusItem
 }
 
 /// <summary>Rows with an icon, text, status chip and/or action — incidents, side-effects
-/// checklists. Compact tightens the row padding for dense screens.</summary>
+/// checklists. Compact tightens the row padding for dense screens; Frameless keeps the row
+/// dividers but drops the outer border (the host provides the framing).</summary>
 public sealed record StatusList : ComponentBase
 {
     public IReadOnlyList<StatusItem> Items { get; init; } = [];
     public bool Compact { get; init; }
+    public bool Frameless { get; init; }
 }
 
 /// <summary>A plain bulleted list (&lt;ul&gt;) of text items — the lightweight counterpart of

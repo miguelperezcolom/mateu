@@ -826,8 +826,9 @@ export function StatusListRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const items = (meta(component)['items'] as StatusItem[]) ?? [];
   const compact = !!meta(component)['compact'];
+  const frameless = !!meta(component)['frameless'];
   return (
-    <View style={styles.statusList}>
+    <View style={[styles.statusList, frameless && styles.statusListFrameless]}>
       {items.map((it, i) => (
         <View key={it.id ?? i} style={[styles.statusRow, compact && styles.statusRowCompact]}>
           {it.avatar
@@ -1490,6 +1491,7 @@ const styles = StyleSheet.create({
   bulletedText: { flex: 1, color: '#222', fontSize: 14, lineHeight: 20 },
   // StatusList
   statusList: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
+  statusListFrameless: { borderWidth: 0, borderRadius: 0 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
   statusRowCompact: { gap: 8, paddingVertical: 5, paddingHorizontal: 10 },
   statusIcon: { fontSize: 18 },

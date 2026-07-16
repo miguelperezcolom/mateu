@@ -15,6 +15,8 @@ export class MateuStatusList extends LitElement {
 
     @property({ type: Array }) items: StatusItem[] = []
     @property({ type: Boolean }) compact = false
+    /** divider lines between rows but no outer border (the host provides the framing) */
+    @property({ type: Boolean }) frameless = false
 
     static styles = [chipStyles, css`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
@@ -26,8 +28,11 @@ export class MateuStatusList extends LitElement {
                it pierces the shadow boundary and blows the rows up */
             line-height: var(--lumo-line-height-s, 1.375);
         }
+        .list.frameless { border: none; border-radius: 0; }
         .row { display: flex; align-items: center; gap: .8rem; padding: .65rem .9rem; }
         .list.compact .row { gap: .6rem; padding: .35rem .75rem; }
+        /* no frame → align the content with the host's edges */
+        .list.frameless .row { padding-left: 0; padding-right: 0; }
         .row + .row { border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.06)); }
         .icon { font-size: 1.2rem; flex: 0 0 auto; }
         .avatar {
@@ -65,7 +70,7 @@ export class MateuStatusList extends LitElement {
 
     render() {
         return html`
-            <div class="list ${this.compact ? 'compact' : ''}">
+            <div class="list ${this.compact ? 'compact' : ''} ${this.frameless ? 'frameless' : ''}">
                 ${this.items.map(item => html`
                     <div class="row">
                         ${item.avatar

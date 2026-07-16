@@ -11,6 +11,7 @@ import io.mateu.uidl.data.HorizontalLayout;
 import io.mateu.uidl.data.Notice;
 import io.mateu.uidl.data.StatusItem;
 import io.mateu.uidl.data.StatusList;
+import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Component;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +27,12 @@ public class ConfirmarStep implements WizardStep {
 
   @Hidden String stayId;
   @Hidden Double totalEstancia;
+
+  /** Welcome-signature lifecycle: pendiente → enviada (tablet) → firmada. */
+  @Hidden String firmaEstado = "pendiente";
+
+  /** Pre-authorization lifecycle: pendiente → solicitando (TPV) → preautorizado. */
+  @Hidden String preauthEstado = "pendiente";
 
   // No section → full-width band across the top. Frameless: the header card brings its own chrome.
   @Section(value = "", frameless = true)
@@ -89,24 +96,62 @@ public class ConfirmarStep implements WizardStep {
                   .statusColor("warning")
                   .build());
         }
-        return StatusList.builder().items(items).compact(true).style("width: 100%;").build();
+        // frameless: the section card already frames the list — dividers only
+        return StatusList.builder()
+            .items(items)
+            .compact(true)
+            .frameless(true)
+            .style("width: 100%;")
+            .build();
       };
 
-  // The stay total framed in a full-width notice, with the pre-authorization CTA on the right.
+  // The stay total framed in a full-width notice: title on top, the amount BIG below. The card is
+  // warning-tinted while a pre-authorization is still needed; the CTA turns into a "solicitando…"
+  // line on click and, when the TPV answers (5 s later via SSE), the whole card goes green.
   // " " (not ""): every other @Section attribute matches the header band's, and two sections with
   // identical attributes collide.
   @Section(value = " ", frameless = true)
   @Label("")
   Callable<Component> totalBand =
-      () ->
-          Notice.builder()
-              .theme("info")
-              .icon("💶")
-              .text("TOTAL ESTANCIA — " + GuestHeaders.euros(totalEstancia))
-              .fullWidth(true)
-              .actionLabel("Solicitar Preautorización")
-              .actionId("requestPreauth")
-              .build();
+      () -> {
+        var ok = "preautorizado".equals(preauthEstado);
+        // slotted content doesn't take the notice's themed ink — color it explicitly
+        var ink = ok ? "#22703a" : "#925a13";
+        var content = new ArrayList<Component>();
+        content.add(
+            Text.builder()
+                .text(GuestHeaders.euros(totalEstancia))
+                .noMargins(true)
+                .style("font-size: 1.8rem; font-weight: 700; line-height: 1.1; color: " + ink + ";")
+                .build());
+        if ("solicitando".equals(preauthEstado)) {
+          content.add(
+              Text.builder()
+                  .text("Solicitando preautorización…")
+                  .noMargins(true)
+                  .style("font-size: .8rem; color: " + ink + ";")
+                  .build());
+        }
+        if (ok) {
+          content.add(
+              Text.builder()
+                  .text("✓ Preautorizado")
+                  .noMargins(true)
+                  .style("font-size: .8rem; font-weight: 600; color: " + ink + ";")
+                  .build());
+        }
+        var notice =
+            Notice.builder()
+                .theme(ok ? "success" : "warning")
+                .icon("💶")
+                .text("TOTAL ESTANCIA")
+                .fullWidth(true)
+                .content(content);
+        if ("pendiente".equals(preauthEstado)) {
+          notice.actionLabel("Solicitar Preautorización").actionId("requestPreauth");
+        }
+        return notice.build();
+      };
 
   // Key + welcome email side by side, each as its own single-row card. Frameless untitled band:
   // the cards/notices bring their own chrome ("  " because "" and " " are taken — sections with
@@ -158,24 +203,37 @@ public class ConfirmarStep implements WizardStep {
               .style("margin: 0.75rem 0;")
               .build();
 
+  // Renders per firmaEstado: the send button → an "Enviado · Esperando firma" chip while the
+  // tablet waits (the wizard's SSE flux flips the state 5 s later) → a green notice once signed.
   @Label("")
   Callable<Component> firma =
-      () ->
-          StatusList.builder()
-              .style("width: 100%;")
-              .items(
-                  List.of(
-                      StatusItem.builder()
-                          .id("firma")
-                          .icon("✍")
-                          .title("Firma de bienvenida — tablet Civitfun")
-                          .description(
-                              "Envía el documento de registro a la tablet del mostrador para la"
-                                  + " firma del huésped")
-                          .actionLabel("Enviar a tablet")
-                          .actionId("sendToTablet")
-                          .build()))
+      () -> {
+        if ("firmada".equals(firmaEstado)) {
+          return Notice.builder()
+              .theme("success")
+              .text("Firma capturada — documento de registro firmado en la tablet Civitfun")
+              .fullWidth(true)
               .build();
+        }
+        var enviado = "enviada".equals(firmaEstado);
+        return StatusList.builder()
+            .style("width: 100%;")
+            .items(
+                List.of(
+                    StatusItem.builder()
+                        .id("firma")
+                        .icon("✍")
+                        .title("Firma de bienvenida — tablet Civitfun")
+                        .description(
+                            "Envía el documento de registro a la tablet del mostrador para la"
+                                + " firma del huésped")
+                        .status(enviado ? "Enviado · Esperando firma" : null)
+                        .statusColor(enviado ? "warning" : null)
+                        .actionLabel(enviado ? null : "Enviar a tablet")
+                        .actionId(enviado ? null : "sendToTablet")
+                        .build()))
+            .build();
+      };
 
   /** Initials for the guest avatar: first letter of the first two words of the name. */
   static String initials(String name) {
