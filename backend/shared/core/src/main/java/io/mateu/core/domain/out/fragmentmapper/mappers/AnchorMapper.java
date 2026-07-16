@@ -9,7 +9,7 @@ public class AnchorMapper {
 
   public static ClientSideComponentDto mapAnchorToDto(Anchor anchor) {
     return new ClientSideComponentDto(
-        new AnchorDto(anchor.text(), anchor.url()),
+        new AnchorDto(anchor.text(), anchor.url(), anchor.target()),
         "fieldId",
         List.of(),
         anchor.style(),

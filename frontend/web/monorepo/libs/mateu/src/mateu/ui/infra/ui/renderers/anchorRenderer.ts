@@ -4,6 +4,8 @@ import { html, nothing } from "lit";
 
 export const renderAnchor = (component: ClientSideComponent) => {
     const metadata = component.metadata as Anchor
-    return html`<a href="${metadata.url}" style="${component.style}" class="${component.cssClasses}"
+    return html`<a href="${metadata.url}" target="${metadata.target ?? nothing}"
+                   rel="${metadata.target === '_blank' ? 'noopener' : nothing}"
+                   style="${component.style}" class="${component.cssClasses}"
                    slot="${component.slot??nothing}">${metadata.text}</a>`
 }

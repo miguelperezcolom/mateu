@@ -2377,7 +2377,9 @@ ${Vs.cssText}
                        slot="${e.slot??l}">
                    Unknown text container: ${r.container} 
                </p>
-            `},Qo=e=>{const t=e.metadata;return o`<a href="${t.url}" style="${e.style}" class="${e.cssClasses}"
+            `},Qo=e=>{const t=e.metadata;return o`<a href="${t.url}" target="${t.target??l}"
+                   rel="${t.target==="_blank"?"noopener":l}"
+                   style="${e.style}" class="${e.cssClasses}"
                    slot="${e.slot??l}">${t.text}</a>`},Xo=(e,t)=>{const a=e.target.dataset.actionId;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a,parameters:t.parameters},bubbles:!0,composed:!0}))},Zo=(e,t,a)=>{const s=e.metadata,i=ke(s.label,t,a);let r="";return s.buttonStyle&&(r+=" "+s.buttonStyle),s.color&&s.color!=="none"&&s.color!=="normal"&&(r+=" "+s.color),s.size&&s.size!=="none"&&s.size!=="normal"&&(r+=" "+s.size),o`<vaadin-button
 id="${e.id}"
             data-action-id="${s.actionId}"
