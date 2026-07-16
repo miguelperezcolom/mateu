@@ -10,16 +10,12 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_MATEU_REGISTRY_URL": "",
-        "EXPO_PUBLIC_MATEU_APP_ID": ""
+        "EXPO_PUBLIC_MATEU_REGISTRY_URL": "http://192.168.1.78:8594/registry",
+        "EXPO_PUBLIC_MATEU_APP_ID": "front-office"
       }
     },
     "production": {
-      "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_MATEU_REGISTRY_URL": "",
-        "EXPO_PUBLIC_MATEU_APP_ID": ""
-      }
+      "autoIncrement": true
     }
   },
   "submit": {

@@ -1,0 +1,20 @@
+# EAS Build packs the whole monorepo (archiving starts at the git root); only the React
+# Native renderer under frontend/app/react-native is needed for the mobile build, so keep
+# the archive small by excluding everything else. Same syntax as .gitignore.
+
+/apidocs/
+/backend/
+/demo/
+/design/
+/doc/
+/e2e/
+/frontend/web/
+/frontend/app/compose/
+/frontend/app/intellij-platform/
+/frontend/app/intellij-plugin/
+/frontend/app/javafx/
+
+# never ship dependency trees or local envs (EAS installs from package-lock.json)
+node_modules/
+.dev/
+.DS_Store

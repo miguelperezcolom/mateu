@@ -23,6 +23,7 @@
     "babel-preset-expo": "~54.0.10",
     "expo": "^54.0.0",
     "expo-asset": "~12.0.13",
+    "expo-build-properties": "~1.0.10",
     "expo-camera": "~17.0.10",
     "expo-constants": "~18.0.13",
     "expo-file-system": "~19.0.23",
@@ -47,6 +48,7 @@
     "@babel/core": "^7.25.0",
     "@types/react": "~19.1.10",
     "@types/react-native": "^0.73.0",
+    "eas-cli": "^21.0.1",
     "typescript": "^5.3.3"
   },
   "overrides": {

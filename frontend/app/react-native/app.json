@@ -20,7 +20,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "io.mateu.native"
+      "package": "io.mateu.mobile",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-asset",
@@ -30,17 +34,29 @@
         {
           "cameraPermission": "The app captures photos for @PhotoCapture fields."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
       ]
     ],
     "extra": {
       "mateuRegistryUrl": "",
-      "mateuAppId": ""
+      "mateuAppId": "",
+      "eas": {
+        "projectId": "9f9dc6c1-4b4c-4524-9188-f9ab05f0bf50"
+      }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "owner": "miguelperezcolom"
   }
 }

@@ -1,3 +1,6 @@
 node_modules/
 playwright-report/
 test-results/
+
+# scratch probe/one-shot scripts (dotfile-prefixed by convention)
+.*.mjs

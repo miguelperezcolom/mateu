@@ -10,3 +10,4 @@ mdd-vaadin/src/main/webapp/VAADIN/themes/mateu/styles.css
 mvnw
 mvnw.*
 .dev/proyecto
+.DS_Store
