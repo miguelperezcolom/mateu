@@ -18,6 +18,8 @@ import javax.tools.Diagnostic.Kind;
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class MateuUIAnnotationProcessor extends AbstractProcessor {
 
+  private boolean indexedUIsProcessed = false;
+
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     Set<String> compiledClassNames = new HashSet<>();
@@ -112,7 +114,12 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
       }
     }
 
-    processIndexedUIs(compiledClassNames);
+    // Only once per compilation: javac keeps invoking a processor on every round after its
+    // first invocation, and re-running would attempt to recreate the generated files.
+    if (!indexedUIsProcessed) {
+      indexedUIsProcessed = true;
+      processIndexedUIs(compiledClassNames);
+    }
 
     return true;
   }

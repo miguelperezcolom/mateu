@@ -25,6 +25,28 @@ import org.mockito.ArgumentCaptor;
 public class RouteAnnotationProcessorTest {
 
   // ---------------------------------------------------------------------------
+  // indexed processing — once per compilation
+  // ---------------------------------------------------------------------------
+
+  @Test
+  public void indexedRoutesAreProcessedOnlyOnceAcrossRounds() {
+    var runs = new java.util.ArrayList<Set<String>>();
+    var processor =
+        new RouteAnnotationProcessor() {
+          @Override
+          protected void processIndexedRoutes(Set<String> compiledClassNames) {
+            runs.add(compiledClassNames);
+          }
+        };
+    RoundEnvironment roundEnv = mock(RoundEnvironment.class);
+
+    processor.process(Set.of(), roundEnv);
+    processor.process(Set.of(), roundEnv);
+
+    assertThat(runs).hasSize(1);
+  }
+
+  // ---------------------------------------------------------------------------
   // toRegex — static utility
   // ---------------------------------------------------------------------------
 
