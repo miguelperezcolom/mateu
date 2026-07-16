@@ -1614,29 +1614,36 @@ export class MateuField extends LitElement {
 
     private renderBoolField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
-            return html `
-                <vaadin-custom-field
-                        label="${label}"
-                        .helperText="${this.helperText()}"
-                        ?required="${this.field.required || nothing}"
-                        data-colspan="${this.field.colspan}"
-                >
-                    ${this.field.stereotype == 'toggle'?html`
+            if (this.field.stereotype == 'toggle') {
+                return html `
+                    <vaadin-custom-field
+                            label="${label}"
+                            .helperText="${this.helperText()}"
+                            ?required="${this.field.required || nothing}"
+                            data-colspan="${this.field.colspan}"
+                    >
                         <paper-toggle-button id="${this.field.fieldId}"
                                              ?disabled=${this.field.disabled}
                                              ?checked=${value}
                                              @change=${this.checked}>
                         </paper-toggle-button>
-                    `:html`
-                        <vaadin-checkbox
-                                id="${this.field.fieldId}"
-                                @change="${this.checked}"
-                                value="${value}"
-                                ?checked=${value}
-                                ?autofocus="${this.field.wantsFocus}"
-                        ></vaadin-checkbox>
-                    `}
-                </vaadin-custom-field>
+                    </vaadin-custom-field>
+                `
+            }
+            // A plain checkbox carries its label at its side (the standard affordance), not
+            // floating above like an input label.
+            return html `
+                <vaadin-checkbox
+                        id="${this.field.fieldId}"
+                        label="${label}"
+                        .helperText="${this.helperText()}"
+                        ?required="${this.field.required || nothing}"
+                        data-colspan="${this.field.colspan}"
+                        @change="${this.checked}"
+                        value="${value}"
+                        ?checked=${value}
+                        ?autofocus="${this.field.wantsFocus}"
+                ></vaadin-checkbox>
             `
     }
 
@@ -2039,6 +2046,25 @@ export class MateuField extends LitElement {
 
     static styles = css`
         ${badge}
+
+        /* A field spanning several columns (host colspan attribute, set when colspan > 1) must
+           stretch to fill them — vaadin inputs default to a fixed width otherwise. */
+        :host([colspan]) {
+            display: block;
+            width: 100%;
+        }
+        :host([colspan]) vaadin-text-field,
+        :host([colspan]) vaadin-text-area,
+        :host([colspan]) vaadin-combo-box,
+        :host([colspan]) vaadin-date-picker,
+        :host([colspan]) vaadin-time-picker,
+        :host([colspan]) vaadin-number-field,
+        :host([colspan]) vaadin-integer-field,
+        :host([colspan]) vaadin-email-field,
+        :host([colspan]) vaadin-password-field,
+        :host([colspan]) vaadin-custom-field {
+            width: 100%;
+        }
 
         .mateu-checkbox-group-multi-column::part(group-field) {
             display: grid;

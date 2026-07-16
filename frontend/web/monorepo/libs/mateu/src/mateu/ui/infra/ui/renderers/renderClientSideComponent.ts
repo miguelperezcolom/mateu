@@ -256,6 +256,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
                    style="${component.style}" class="${component.cssClasses}"
                    slot="${component.slot??nothing}"
                    data-colspan="${field.colspan}"
+                   colspan="${(field.colspan ?? 1) > 1 ? field.colspan : nothing}"
                    .labelAlreadyRendered="${labelAlreadyRendered}"
             >
                     ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData, labelAlreadyRendered))}

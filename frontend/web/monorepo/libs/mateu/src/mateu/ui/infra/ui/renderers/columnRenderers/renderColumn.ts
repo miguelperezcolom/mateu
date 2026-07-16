@@ -82,7 +82,11 @@ const renderEditableCell = (
             }))
             return
         }
-        const arr = (state as any)[gridFieldId]
+        // The renderer closure may be cached with a stale state (e.g. from before a server-side
+        // row append replaced it): read the LIVE state from the grid element at commit time, or
+        // the dispatched array would resurrect the old rows (even wipe them all).
+        const liveState = ((container as any)?.state ?? state) as any
+        const arr = liveState[gridFieldId]
         container.dispatchEvent(new CustomEvent('value-changed', {
             detail: { fieldId: gridFieldId, value: Array.isArray(arr) ? [...arr] : arr },
             bubbles: true,
