@@ -825,11 +825,14 @@ export function TaskProgressRenderer({ component }: { component: unknown }) {
 export function StatusListRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const items = (meta(component)['items'] as StatusItem[]) ?? [];
+  const compact = !!meta(component)['compact'];
   return (
     <View style={styles.statusList}>
       {items.map((it, i) => (
-        <View key={it.id ?? i} style={styles.statusRow}>
-          {!!it.icon && <Text style={styles.statusIcon}>{displayIcon(it.icon)}</Text>}
+        <View key={it.id ?? i} style={[styles.statusRow, compact && styles.statusRowCompact]}>
+          {it.avatar
+            ? <View style={[styles.statusAvatar, compact && styles.statusAvatarCompact]}><Text style={styles.statusAvatarText}>{it.avatar}</Text></View>
+            : !!it.icon && <Text style={styles.statusIcon}>{displayIcon(it.icon)}</Text>}
           <View style={styles.statusBody}>
             <Text style={styles.statusTitle}>{it.title ?? ''}</Text>
             {!!it.description && <Text style={styles.statusDesc}>{it.description}</Text>}
@@ -1488,7 +1491,11 @@ const styles = StyleSheet.create({
   // StatusList
   statusList: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  statusRowCompact: { gap: 8, paddingVertical: 5, paddingHorizontal: 10 },
   statusIcon: { fontSize: 18 },
+  statusAvatar: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(26,115,232,.12)' },
+  statusAvatarCompact: { width: 24, height: 24, borderRadius: 12 },
+  statusAvatarText: { color: '#1a73e8', fontWeight: '600', fontSize: 10, letterSpacing: 0.3 },
   statusBody: { flex: 1, gap: 1 },
   statusTitle: { fontWeight: '600', color: '#222' },
   statusDesc: { fontSize: 12, color: '#888' },

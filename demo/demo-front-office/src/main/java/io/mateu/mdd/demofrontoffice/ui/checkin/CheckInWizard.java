@@ -172,6 +172,12 @@ public class CheckInWizard extends Wizard {
       case "encodeKey" -> {
         return new Message("Llave / pulsera grabada");
       }
+      case "requestPreauth" -> {
+        return new Message(
+            "Preautorización solicitada — "
+                + GuestHeaders.euros(confirmar.getTotalEstancia())
+                + " en la tarjeta del huésped");
+      }
       case "sendToTablet" -> {
         return new Message("Documento de registro enviado a la tablet Civitfun");
       }
@@ -203,6 +209,7 @@ public class CheckInWizard extends Wizard {
             "selectPax",
             "refrescarIdentidad",
             "encodeKey",
+            "requestPreauth",
             "sendToTablet")) {
       actions.add(Action.builder().id(id).build());
     }

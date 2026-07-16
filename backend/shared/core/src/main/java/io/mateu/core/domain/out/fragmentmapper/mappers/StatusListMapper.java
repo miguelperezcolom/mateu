@@ -19,6 +19,7 @@ public class StatusListMapper {
                                 StatusItemDto.builder()
                                     .id(item.id())
                                     .icon(item.icon())
+                                    .avatar(item.avatar())
                                     .title(item.title())
                                     .description(item.description())
                                     .status(item.status())
@@ -28,6 +29,7 @@ public class StatusListMapper {
                                     .build())
                         .toList()
                     : List.of())
+            .compact(statusList.compact())
             .build(),
         statusList.id(),
         List.of(),

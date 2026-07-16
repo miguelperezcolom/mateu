@@ -1,5 +1,6 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
+import "@vaadin/button";
 
 const THEME_ICONS: Record<string, string> = { info: 'ℹ', success: '✓', warning: '!', danger: '!' }
 
@@ -61,20 +62,16 @@ export class MateuNotice extends LitElement {
         .text { flex: 1; min-width: 0; font-weight: 600; }
         .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .25rem; }
         .content { min-width: 0; }
-        button {
-            font: inherit; font-size: var(--lumo-font-size-xs, .75rem); font-weight: 600;
-            padding: .2rem .6rem; border-radius: 999px; border: none;
-            cursor: pointer; white-space: nowrap; flex: 0 0 auto; color: #fff;
-        }
+        vaadin-button { flex: 0 0 auto; }
         /* pastel background + dark ink per theme (always-light pastels, like the page banners) */
         .info    { background: #e3f0fb; } .info .text    { color: #1a5dad; }
-        .info    .icon, .info button    { background: #4285d3; }
+        .info    .icon    { background: #4285d3; }
         .success { background: #e2f3e6; } .success .text { color: #22703a; }
-        .success .icon, .success button { background: #3e8635; }
+        .success .icon { background: #3e8635; }
         .warning { background: #fdf0dc; } .warning .text { color: #925a13; }
-        .warning .icon, .warning button { background: #c98a1e; }
+        .warning .icon { background: #c98a1e; }
         .danger  { background: #f6e0da; } .danger .text  { color: #a5502e; }
-        .danger  .icon, .danger button  { background: #b25b3d; }
+        .danger  .icon  { background: #b25b3d; }
     `
 
     private runAction() {
@@ -100,7 +97,7 @@ export class MateuNotice extends LitElement {
                     ${this.hasContent ? html`<div class="content"><slot></slot></div>` : nothing}
                 </div>
                 ${this.actionLabel && this.actionId
-                    ? html`<button @click="${() => this.runAction()}">${this.actionLabel}</button>`
+                    ? html`<vaadin-button theme="small" @click="${() => this.runAction()}">${this.actionLabel}</vaadin-button>`
                     : nothing}
             </div>
         `

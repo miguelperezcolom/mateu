@@ -725,10 +725,13 @@ class TaskProgress(Component):
 
 @dataclass(frozen=True)
 class StatusItem:
-    """One row of a :class:`StatusList`: icon, text, status chip and/or action."""
+    """One row of a :class:`StatusList`: icon (or ``avatar`` — short text like a person's
+    initials rendered in a circular avatar, taking precedence over the icon), text, status chip
+    and/or action."""
 
     id: str | None = None
     icon: str | None = None
+    avatar: str | None = None
     title: str | None = None
     description: str | None = None
     status: str | None = None
@@ -739,9 +742,11 @@ class StatusItem:
 
 @dataclass(frozen=True)
 class StatusList(Component):
-    """Rows with an icon, text, status chip and/or action (incidents, side-effects checklist)."""
+    """Rows with an icon, text, status chip and/or action (incidents, side-effects checklist).
+    ``compact`` tightens the row padding for dense screens."""
 
     items: tuple[StatusItem, ...] = ()
+    compact: bool = False
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

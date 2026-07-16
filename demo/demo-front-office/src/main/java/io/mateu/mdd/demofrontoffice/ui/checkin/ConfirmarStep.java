@@ -6,13 +6,14 @@ import io.mateu.mdd.demofrontoffice.ui.common.GuestHeaders;
 import io.mateu.uidl.annotations.FormLayout;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
-import io.mateu.uidl.annotations.PlainText;
-import io.mateu.uidl.annotations.Stereotype;
-import io.mateu.uidl.data.FieldStereotype;
+import io.mateu.uidl.annotations.Section;
+import io.mateu.uidl.data.HorizontalLayout;
+import io.mateu.uidl.data.Notice;
 import io.mateu.uidl.data.StatusItem;
 import io.mateu.uidl.data.StatusList;
 import io.mateu.uidl.fluent.Component;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Callable;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,26 +25,28 @@ import lombok.Setter;
 public class ConfirmarStep implements WizardStep {
 
   @Hidden String stayId;
+  @Hidden Double totalEstancia;
 
+  // No section → full-width band across the top. Frameless: the header card brings its own chrome.
+  @Section(value = "", frameless = true)
   @Label("")
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(stayId);
 
-  @PlainText
+  // The reservation summary as a read-only property list (label left, value right).
+  @Section(value = "Resumen", propertyList = true)
   @Label("Huésped principal")
   String huespedPrincipal;
 
-  @PlainText
   @Label("Habitación")
   String habitacionAsignada;
 
-  @PlainText
   @Label("Estancia")
   String estancia;
 
-  @PlainText
   @Label("Régimen")
   String regimen;
 
+  @Section("Huéspedes en la habitación")
   @Label("")
   Callable<Component> huespedesEnHabitacion =
       () -> {
@@ -54,7 +57,7 @@ public class ConfirmarStep implements WizardStep {
         items.add(
             StatusItem.builder()
                 .id("principal")
-                .icon("👤")
+                .avatar(initials(guest.name()))
                 .title(guest.name())
                 .description(
                     (guest.document() == null || guest.document().isBlank()
@@ -68,7 +71,7 @@ public class ConfirmarStep implements WizardStep {
           items.add(
               StatusItem.builder()
                   .id(companion.companionId())
-                  .icon("👤")
+                  .avatar(initials(companion.name()))
                   .title(companion.name())
                   .description(companion.description())
                   .status("✓ Identidad verificada")
@@ -79,52 +82,89 @@ public class ConfirmarStep implements WizardStep {
           items.add(
               StatusItem.builder()
                   .id("pax" + i)
-                  .icon("👤")
+                  .avatar("A" + i)
                   .title("Acompañante " + i)
                   .description("Pendiente de registro")
                   .status("Pendiente")
                   .statusColor("warning")
                   .build());
         }
-        return StatusList.builder().items(items).style("width: 100%;").build();
+        return StatusList.builder().items(items).compact(true).style("width: 100%;").build();
       };
 
-  @PlainText
-  @Stereotype(FieldStereotype.money)
-  @Label("TOTAL ESTANCIA")
-  Double totalEstancia;
+  // The stay total framed in a full-width notice, with the pre-authorization CTA on the right.
+  // " " (not ""): every other @Section attribute matches the header band's, and two sections with
+  // identical attributes collide.
+  @Section(value = " ", frameless = true)
+  @Label("")
+  Callable<Component> totalBand =
+      () ->
+          Notice.builder()
+              .theme("info")
+              .icon("💶")
+              .text("TOTAL ESTANCIA — " + GuestHeaders.euros(totalEstancia))
+              .fullWidth(true)
+              .actionLabel("Solicitar Preautorización")
+              .actionId("requestPreauth")
+              .build();
+
+  // Key + welcome email side by side, each as its own single-row card. Frameless untitled band:
+  // the cards/notices bring their own chrome ("  " because "" and " " are taken — sections with
+  // identical attributes collide).
+  @Section(value = "  ", frameless = true)
+  @Label("")
+  Callable<Component> llaveYEmail =
+      () ->
+          HorizontalLayout.builder()
+              .content(
+                  List.of(
+                      StatusList.builder()
+                          .style("flex: 1 1 16rem; width: auto;")
+                          .items(
+                              List.of(
+                                  StatusItem.builder()
+                                      .id("llave")
+                                      .icon("🔑")
+                                      .title("Grabar llave / pulsera")
+                                      .description("Complemento de llave digital")
+                                      .actionLabel("Grabar")
+                                      .actionId("encodeKey")
+                                      .build()))
+                          .build(),
+                      StatusList.builder()
+                          .style("flex: 1 1 16rem; width: auto;")
+                          .items(
+                              List.of(
+                                  StatusItem.builder()
+                                      .id("email")
+                                      .icon("✉")
+                                      .title("Email de bienvenida")
+                                      .description("Envío automatizado al confirmar")
+                                      .status("ACTIVADO")
+                                      .statusColor("success")
+                                      .build()))
+                          .build()))
+              .style("width: 100%; gap: 1rem; flex-wrap: wrap;")
+              .build();
 
   @Label("")
-  Callable<Component> efectosCheckIn =
+  Callable<Component> parteViajeros =
+      () ->
+          Notice.builder()
+              .theme("success")
+              .text("Parte de viajeros (SES) — se enviará automáticamente al confirmar el check-in")
+              .fullWidth(true)
+              // the band rows stack with no gap of their own — the middle row spaces all three
+              .style("margin: 0.75rem 0;")
+              .build();
+
+  @Label("")
+  Callable<Component> firma =
       () ->
           StatusList.builder()
               .style("width: 100%;")
               .items(
-                  java.util.List.of(
-                      StatusItem.builder()
-                          .id("llave")
-                          .icon("🔑")
-                          .title("Grabar llave / pulsera")
-                          .description("Complemento de llave digital")
-                          .actionLabel("Grabar")
-                          .actionId("encodeKey")
-                          .build(),
-                      StatusItem.builder()
-                          .id("email")
-                          .icon("✉")
-                          .title("Email de bienvenida")
-                          .description("Envío automatizado al confirmar")
-                          .status("ACTIVADO")
-                          .statusColor("success")
-                          .build(),
-                      StatusItem.builder()
-                          .id("ses")
-                          .icon("✓")
-                          .title("Parte viajeros (SES)")
-                          .description("Se enviará automáticamente al confirmar el check-in")
-                          .status("Automático")
-                          .statusColor("success")
-                          .build(),
+                  List.of(
                       StatusItem.builder()
                           .id("firma")
                           .icon("✍")
@@ -136,4 +176,17 @@ public class ConfirmarStep implements WizardStep {
                           .actionId("sendToTablet")
                           .build()))
               .build();
+
+  /** Initials for the guest avatar: first letter of the first two words of the name. */
+  static String initials(String name) {
+    if (name == null || name.isBlank()) {
+      return "?";
+    }
+    var words = name.trim().split("\\s+");
+    var initials = new StringBuilder();
+    for (int i = 0; i < Math.min(2, words.length); i++) {
+      initials.append(Character.toUpperCase(words[i].charAt(0)));
+    }
+    return initials.toString();
+  }
 }

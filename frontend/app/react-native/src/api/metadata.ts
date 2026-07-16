@@ -367,6 +367,8 @@ export interface TaskProgress {
 export interface StatusItem {
   id?: string;
   icon?: string;
+  /** short text (a person's initials) rendered in a circular avatar; takes precedence over icon */
+  avatar?: string;
   title?: string;
   description?: string;
   status?: string;
@@ -378,6 +380,8 @@ export interface StatusItem {
 export interface StatusList {
   type?: 'StatusList';
   items?: StatusItem[];
+  /** tighter row padding for dense screens */
+  compact?: boolean;
 }
 
 /** A plain bulleted list (<ul>) of text items — the lightweight counterpart of StatusList. */

@@ -923,6 +923,7 @@ class ReflectionMapper:
                 StatusItemRecord(
                     id=it.id,
                     icon=it.icon,
+                    avatar=it.avatar,
                     title=it.title,
                     description=it.description,
                     status=it.status,
@@ -932,7 +933,7 @@ class ReflectionMapper:
                 )
                 for it in c.items
             ]
-            return self._fluent_client(StatusListMetadata(items=items), c)
+            return self._fluent_client(StatusListMetadata(items=items, compact=c.compact), c)
         if isinstance(c, fluent.BulletedList):
             return self._fluent_client(BulletedListMetadata(items=list(c.items)), c)
         if isinstance(c, fluent.Notice):

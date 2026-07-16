@@ -11,7 +11,7 @@ Show a set of heterogeneous items that each carry a *state* or need a *one-off a
 
 ## Solution
 
-Use the `StatusList` component: one `StatusItem` per row, each with an `icon` (emoji), a `title`, a muted `description`, and on the right either a `status` chip (`statusColor` from the badge palette: `normal`, `success`, `warning`, `error`, `contrast`) and/or a small button (`actionLabel` + `actionId`).
+Use the `StatusList` component: one `StatusItem` per row, each with an `icon` (emoji) — or an `avatar` (short text like a person's initials, rendered inside a circular avatar; takes precedence over the icon) — a `title`, a muted `description`, and on the right either a `status` chip (`statusColor` from the badge palette: `normal`, `success`, `warning`, `error`, `contrast`) and/or a small button (`actionLabel` + `actionId`). Set `compact(true)` on the list to tighten the row padding for dense screens (e.g. a guests-in-the-room list on a check-in confirmation).
 
 ```java
 @Section("Estado")

@@ -490,12 +490,15 @@ public sealed record TaskProgress : ComponentBase
     public string? ActionId { get; init; }
 }
 
-/// <summary>One row of a <see cref="StatusList"/>: icon + title/description, a status chip and/or
-/// a small action button (dispatches ActionId with parameters { _item: Id }).</summary>
+/// <summary>One row of a <see cref="StatusList"/>: icon (or an Avatar — short text like a
+/// person's initials rendered in a circular avatar, taking precedence over the icon) +
+/// title/description, a status chip and/or a small action button (dispatches ActionId with
+/// parameters { _item: Id }).</summary>
 public sealed record StatusItem
 {
     public string? Id { get; init; }
     public string? Icon { get; init; }
+    public string? Avatar { get; init; }
     public string? Title { get; init; }
     public string? Description { get; init; }
     public string? Status { get; init; }
@@ -505,10 +508,11 @@ public sealed record StatusItem
 }
 
 /// <summary>Rows with an icon, text, status chip and/or action — incidents, side-effects
-/// checklists.</summary>
+/// checklists. Compact tightens the row padding for dense screens.</summary>
 public sealed record StatusList : ComponentBase
 {
     public IReadOnlyList<StatusItem> Items { get; init; } = [];
+    public bool Compact { get; init; }
 }
 
 /// <summary>A plain bulleted list (&lt;ul&gt;) of text items — the lightweight counterpart of

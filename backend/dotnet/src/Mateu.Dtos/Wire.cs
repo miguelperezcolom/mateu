@@ -357,7 +357,8 @@ public record TaskProgressMetadataDto(
     string? ActionId) : ComponentMetadataDto;
 
 /// <summary>Status-list metadata: rows with status chip and/or action.</summary>
-public record StatusListMetadataDto(IReadOnlyList<StatusItemDto> Items) : ComponentMetadataDto;
+public record StatusListMetadataDto(IReadOnlyList<StatusItemDto> Items, bool Compact = false)
+    : ComponentMetadataDto;
 
 public record BulletedListMetadataDto(IReadOnlyList<string> Items) : ComponentMetadataDto;
 
@@ -365,6 +366,7 @@ public record BulletedListMetadataDto(IReadOnlyList<string> Items) : ComponentMe
 public record StatusItemDto(
     string? Id,
     string? Icon,
+    string? Avatar,
     string? Title,
     string? Description,
     string? Status,

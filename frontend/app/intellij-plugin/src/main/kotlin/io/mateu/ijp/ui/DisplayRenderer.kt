@@ -674,6 +674,31 @@ private fun uxMuted(): Color = JBUI.CurrentTheme.Label.disabledForeground()
 
 private fun uxAccent(): Color = JBColor(0x1A73E8, 0x548AF7)
 
+/** Circular initials avatar (e.g. a guest's initials on a StatusList row). */
+private fun uxAvatar(initials: String, sizePx: Int): JComponent = object : JComponent() {
+    init {
+        val s = JBUI.scale(sizePx)
+        preferredSize = Dimension(s, s)
+        minimumSize = preferredSize
+        maximumSize = preferredSize
+    }
+    override fun paintComponent(g: Graphics) {
+        val g2 = g as Graphics2D
+        g2.setRenderingHint(
+            java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON)
+        val d = minOf(width, height)
+        g2.color = Color(0x1A, 0x73, 0xE8, 0x22)
+        g2.fillOval((width - d) / 2, (height - d) / 2, d, d)
+        g2.color = uxAccent()
+        g2.font = font.deriveFont(Font.BOLD, JBUI.scale(10).toFloat())
+        val fm = g2.fontMetrics
+        g2.drawString(
+            initials,
+            (width - fm.stringWidth(initials)) / 2,
+            (height - fm.height) / 2 + fm.ascent)
+    }
+}
+
 private fun uxTint(base: Color): Color = Color(base.red, base.green, base.blue, 24)
 
 private fun uxMono(base: Font, style: Int = Font.BOLD, size: Int = 0): Font =
@@ -854,12 +879,16 @@ fun renderBulletedList(metadata: JsonNode): JComponent {
 fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val panel = verticalPanel(0)
     panel.border = JBUI.Borders.customLine(JBColor.border(), 1)
+    val compact = metadata.bool("compact")
     for (item in metadata.arr("items")) {
         val row = JPanel(BorderLayout(8, 0))
         row.isOpaque = false
-        row.border = JBUI.Borders.empty(8, 10)
+        row.border = if (compact) JBUI.Borders.empty(4, 8) else JBUI.Borders.empty(8, 10)
+        val avatar = item.text("avatar")
         val icon = item.text("icon")
-        if (icon.isNotBlank()) row.add(JBLabel(icon).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
+        if (avatar.isNotBlank()) {
+            row.add(uxAvatar(avatar, if (compact) 22 else 28), BorderLayout.WEST)
+        } else if (icon.isNotBlank()) row.add(JBLabel(icon).apply { font = font.deriveFont(15f) }, BorderLayout.WEST)
         val body = verticalPanel(1)
         body.addStacked(JBLabel(item.text("title")).apply { font = font.deriveFont(Font.BOLD) }, 1)
         val desc = item.text("description")

@@ -719,6 +719,7 @@ class StatusItemRecord(Wire):
 
     id: str | None = None
     icon: str | None = None
+    avatar: str | None = None
     title: str | None = None
     description: str | None = None
     status: str | None = None
@@ -732,6 +733,7 @@ class StatusListMetadata(Wire):
 
     type: Literal["StatusList"] = "StatusList"
     items: list[StatusItemRecord] = Field(default_factory=list)
+    compact: bool = False
 
 
 class BulletedListMetadata(Wire):
