@@ -8,6 +8,7 @@ import io.mateu.core.domain.out.componentmapper.PageFormBuilder.SectionFields;
 import io.mateu.core.domain.out.componentmapper.PageFormBuilder.TabFields;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Tab;
+import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.FormLayout;
 import io.mateu.uidl.data.FormRow;
@@ -20,8 +21,35 @@ import io.mateu.uidl.interfaces.Pair;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 class FormLayoutBuilder {
+
+  /**
+   * Stereotypes that render an intrinsically wide component: squeezing them into one cell of a
+   * multi-column section is never what the developer meant, so they default to the full row.
+   */
+  private static final Set<FieldStereotype> WIDE_STEREOTYPES =
+      Set.of(
+          FieldStereotype.grid,
+          FieldStereotype.textarea,
+          FieldStereotype.richText,
+          FieldStereotype.html,
+          FieldStereotype.markdown);
+
+  /**
+   * Intrinsically wide fields span the full row by default; an explicit {@code @Colspan} (any value
+   * greater than 1) always wins, as everywhere else in layout inference.
+   */
+  private static Component widenIfIntrinsicallyWide(Component field, int columns) {
+    if (columns > 1
+        && field instanceof FormField formField
+        && formField.colspan() <= 1
+        && WIDE_STEREOTYPES.contains(formField.stereotype())) {
+      return formField.toBuilder().colspan(columns).build();
+    }
+    return field;
+  }
 
   static List<Component> buildRows(List<Component> fields, int columns) {
     var rows = new ArrayList<Component>();
@@ -39,9 +67,21 @@ class FormLayoutBuilder {
         col = 0;
         continue;
       }
+      field = widenIfIntrinsicallyWide(field, columns);
+      int span = (field instanceof FormField formField) ? formField.colspan() : 1;
+      // A field spanning the whole row gets a row of its own, like a separator.
+      if (columns > 1 && span >= columns) {
+        if (!pendingRow.isEmpty()) {
+          rows.add(FormRow.builder().content(pendingRow).build());
+          pendingRow = new ArrayList<>();
+        }
+        rows.add(FormRow.builder().content(List.of(field)).build());
+        col = 0;
+        continue;
+      }
       pendingRow.add(field);
-      col += (field instanceof FormField formField) ? formField.colspan() : 1;
-      if (col == columns) {
+      col += span;
+      if (col >= columns) {
         rows.add(FormRow.builder().content(pendingRow).build());
         pendingRow = new ArrayList<>();
         col = 0;
