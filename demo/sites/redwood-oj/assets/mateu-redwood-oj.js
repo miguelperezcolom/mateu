@@ -8712,7 +8712,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             <oj-c-menu-button
                     data-oj-binding-provider="preact"
                     label="${t.label}"
-                    chroming="callToAction"
+                    chroming="solid"
                     style="margin-right: 0.75rem;"
                     .items="${t.children.map(a=>({key:a.actionId,label:a.label}))}"
                     @ojMenuAction="${a=>this.runHeaderAction(e,a.detail?.key)}"

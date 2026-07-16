@@ -344,7 +344,7 @@ export class MateuRedwoodApp extends MateuApp {
             <oj-c-menu-button
                     data-oj-binding-provider="preact"
                     label="${action.label}"
-                    chroming="callToAction"
+                    chroming="solid"
                     style="margin-right: 0.75rem;"
                     .items="${action.children!.map(child => ({ key: child.actionId, label: child.label }))}"
                     @ojMenuAction="${(e: CustomEvent) => this.runHeaderAction(metadata, e.detail?.key as string | undefined)}"
