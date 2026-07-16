@@ -108,9 +108,15 @@ export const renderActionCell = (item: any,
          </vaadin-button>
     `
     }
-    const action: ActionItem = _column.path && item[_column.path].methodNameInCrud
+    // A row-level action column may carry null for rows the action does not apply to
+    // (e.g. a cancelled row without its "Cancel" action): render an empty cell, and never
+    // throw — an exception here aborts the whole row binding and leaves the row blank.
+    const action: ActionItem = _column.path && item[_column.path]?.methodNameInCrud
         ? item[_column.path]
         : (item as any).action
+    if (!action) {
+        return html``
+    }
     const iconOnly = action.icon && !action.label
     return html`
          <vaadin-button theme="tertiary${iconOnly ? ' icon' : ''}" title="${action.label || nothing}" @click="${clicked}" .row="${item}" .action="${action}">

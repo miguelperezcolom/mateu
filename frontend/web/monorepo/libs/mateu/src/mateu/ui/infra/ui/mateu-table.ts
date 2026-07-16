@@ -168,6 +168,9 @@ export class MateuTable extends LitElement {
         super.updated(_changedProperties);
         this._applyCellPartNameGenerator()
         this.grid?.clearCache()
+        // A grid re-attached during SPA navigation can keep stale physical rows (blank rows,
+        // rows from the previous visit) until something forces the virtualizer to re-render.
+        this.grid?.requestContentUpdate()
         this.grid?.recalculateColumnWidths()
         this.pagesRequested = []
     }
@@ -222,14 +225,14 @@ export class MateuTable extends LitElement {
         const selectedItems = this.state[this.id + '_selected_items'] || []
         return html`
             <vaadin-grid
-                    .items="${page?.content}"
+                    .items="${this.metadata?.infiniteScrolling ? undefined : page?.content}"
                     item-id-path="_rowNumber"
                     .selectedItems="${selectedItems}"
                     ?data-clickable-rows="${this.metadata?.detailPath && !this.metadata?.useButtonForDetail}"
                     ?all-rows-visible="${this.metadata?.allRowsVisible}"
                     column-rendering="${this.metadata?.lazyColumnRendering?'lazy':nothing}"
                     ?column-reordering-allowed="${this.metadata?.columnReorderingAllowed}"
-                    .dataProvider="${this.dataProvider}"
+                    .dataProvider="${this.metadata?.infiniteScrolling ? this.dataProvider : undefined}"
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
                     @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
