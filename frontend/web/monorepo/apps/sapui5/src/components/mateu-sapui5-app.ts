@@ -18,6 +18,8 @@ import {upstream} from "@domain/state";
 import {Subscription} from "rxjs";
 import Message from "@domain/Message";
 import "@infra/ui/mateu-app-context-picker.ts";
+import "@ui5/webcomponents/dist/Toast.js"; // ui5-toast (header-action error feedback)
+import {dispatchAppHeaderAction} from "@infra/ui/renderers/appHeaderActions.ts";
 
 @customElement('mateu-sapui5-app')
 export class MateuSapUI5App extends MateuApp {
@@ -269,6 +271,47 @@ export class MateuSapUI5App extends MateuApp {
                 `
     }
 
+    // App-header actions (App.contextActions): rendered next to the @AppContext pickers.
+    // Same dispatch contract as the Vaadin shell (appHeaderActions.ts) — DS-native widgets here.
+    private runHeaderAction = async (metadata: App, actionId: string | undefined) => {
+        if (!actionId) return
+        try {
+            await dispatchAppHeaderAction(metadata, this, actionId)
+        } catch (e) {
+            const toast = document.createElement('ui5-toast') as HTMLElement & { open: boolean, duration: number }
+            toast.duration = 6000
+            toast.textContent = 'La acción falló: ' + e
+            document.body.appendChild(toast)
+            toast.open = true
+            setTimeout(() => toast.remove(), 7000)
+        }
+    }
+
+    private openHeaderActionMenu = (e: Event, menuId: string) => {
+        // Same opener/open pattern the sapui5 context-menu renderer uses (renderAdvanced.ts).
+        const root = (e.currentTarget as HTMLElement).getRootNode() as ParentNode
+        const menu = root.querySelector(`#${CSS.escape(menuId)}`) as (HTMLElement & { opener: HTMLElement, open: boolean }) | null
+        if (menu) {
+            menu.opener = e.currentTarget as HTMLElement
+            menu.open = true
+        }
+    }
+
+    private renderContextActions = (metadata: App): TemplateResult => html`
+        ${(metadata.contextActions ?? []).map((action, index) => (action.children?.length ?? 0) > 0 ? html`
+            <span slot="content" data-hide-order="2">
+                <ui5-button design="Emphasized" title="${action.label}"
+                            @click="${(e: Event) => this.openHeaderActionMenu(e, 'header-action-menu-' + index)}">${action.label}</ui5-button>
+                <ui5-menu id="header-action-menu-${index}">
+                    ${action.children!.map(child => html`
+                        <ui5-menu-item text="${child.label}"
+                                       @click="${() => this.runHeaderAction(metadata, child.actionId)}"></ui5-menu-item>`)}
+                </ui5-menu>
+            </span>` : html`
+            <ui5-button slot="content" data-hide-order="2" design="Emphasized" title="${action.label}"
+                        @click="${() => this.runHeaderAction(metadata, action.actionId)}">${action.label}</ui5-button>`)}
+    `
+
     renderMenu = (menu: MenuOption): TemplateResult => {
         return html`
                     ${menu.submenus && menu.submenus.length > 0?html`
@@ -445,6 +488,7 @@ export class MateuSapUI5App extends MateuApp {
                 <ui5-button icon="menu" slot="startButton" id="startButton" @click="${() => this.toggle(this)}"></ui5-button>
                 ${(metadata.contextSelectors ?? []).map(selector => html`
                     <mateu-app-context-picker slot="content" data-hide-order="1" .selector="${selector}" .app="${metadata}" .baseUrl="${''}"></mateu-app-context-picker>`)}
+                ${this.renderContextActions(metadata)}
             </ui5-shellbar>
             <ui5-side-navigation id="sn1" slot="sideContent" @selection-change="${(e: any) => this.selected(e, this, this.baseUrl??'', metadata)}" collapsed>
                 <!-- Items -->

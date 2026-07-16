@@ -17,6 +17,7 @@ import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import {upstream} from "@domain/state";
 import Message from "@domain/Message";
+import {dispatchAppHeaderAction} from "@infra/ui/renderers/appHeaderActions.ts";
 import NavigationLayoutMode from "@ui5/webcomponents-fiori/types/NavigationLayoutMode.js";
 import {TabData} from "../../public/oj-c/types/tab-bar";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
@@ -318,6 +319,46 @@ export class MateuRedwoodApp extends MateuApp {
         }
     }
 
+    // App-header actions (App.contextActions): rendered on the header next to the @AppContext
+    // pickers. Same dispatch contract as the Vaadin shell (appHeaderActions.ts); Oracle JET
+    // widgets here — oj-c-button for plain actions, oj-c-menu-button for grouped ones (both AMD
+    // modules are registered in public/js/demo.js).
+    private runHeaderAction = async (metadata: App, actionId: string | undefined) => {
+        if (!actionId) return
+        try {
+            await dispatchAppHeaderAction(metadata, this, actionId)
+        } catch (e) {
+            // Hand-styled transient toast (same hand-styled-div idiom as renderFilterBar).
+            const toast = document.createElement('div')
+            toast.style.cssText = 'position: fixed; bottom: 1rem; left: 1rem; z-index: 10000;'
+                + ' background: var(--oj-core-danger-3, #b1380b); color: #fff; padding: .75rem 1rem;'
+                + ' border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.25); font-size: .875rem;'
+            toast.textContent = 'La acción falló: ' + ('' + e)
+            document.body.appendChild(toast)
+            setTimeout(() => toast.remove(), 6000)
+        }
+    }
+
+    private renderContextActions = (metadata: App) => html`
+        ${(metadata.contextActions ?? []).map(action => (action.children?.length ?? 0) > 0 ? html`
+            <oj-c-menu-button
+                    data-oj-binding-provider="preact"
+                    label="${action.label}"
+                    chroming="callToAction"
+                    style="margin-right: 0.75rem;"
+                    .items="${action.children!.map(child => ({ key: child.actionId, label: child.label }))}"
+                    @ojMenuAction="${(e: CustomEvent) => this.runHeaderAction(metadata, e.detail?.key as string | undefined)}"
+            ></oj-c-menu-button>` : html`
+            <oj-c-button
+                    data-oj-binding-provider="preact"
+                    label="${action.label}"
+                    title="${action.label}"
+                    chroming="callToAction"
+                    style="margin-right: 0.75rem;"
+                    @ojAction="${() => this.runHeaderAction(metadata, action.actionId)}"
+            ></oj-c-button>`)}
+    `
+
     render() {
         const metadata = (this.component as ClientSideComponent).metadata as App
 
@@ -547,6 +588,7 @@ export class MateuRedwoodApp extends MateuApp {
                              class="oj-flex-bar-end  oj-sm-align-items-center oj-sm-only-width-full">
                             ${(metadata.contextSelectors ?? []).map(selector => html`
                                 <mateu-app-context-picker style="margin-right: 0.75rem;" .selector="${selector}" .app="${metadata}" .baseUrl="${''}"></mateu-app-context-picker>`)}
+                            ${this.renderContextActions(metadata)}
                             <div class="oj-flex-item oj-sm-padding-2x-end">
                                 <oj-button title="JET Website Home" chroming="borderless"
                                             display="icons"

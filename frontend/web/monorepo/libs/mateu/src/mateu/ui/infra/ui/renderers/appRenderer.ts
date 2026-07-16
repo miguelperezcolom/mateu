@@ -4,8 +4,7 @@ import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppV
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-vaadin-app-context-picker.ts";
-import { mateuApiClient } from "@infra/http/AxiosMateuApiClient.ts";
-import { sseService } from "@application/SSEService.ts";
+import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import { Notification } from "@vaadin/notification";
 import "@vaadin/menu-bar";
 // Application-level context selectors (@AppContext fields on the app class): compact pickers on
@@ -14,40 +13,10 @@ import "@vaadin/menu-bar";
 // design systems' shells keep the DS-neutral mateu-app-context-picker.
 // A header action always dispatches against the APP class (same rail as the
 // @AppContext pickers' remote search) — never against the on-screen component.
+// The dispatch itself lives in appHeaderActions.ts, shared with the DS-native shells.
 const runHeaderAction = async (metadata: App, container: MateuApp, actionId: string) => {
     try {
-        // The SSE flavor: a server action returning a Flux streams one UIIncrement per
-        // element, so long pipelines (deploy…) update their dialog as they happen.
-        // The on-screen mateu-component is the initiator: streamed fragments (e.g. a
-        // LongTask's progress dialog) are addressed to the initiator's id, and only a
-        // REAL component adopts and renders them.
-        const findComponent = (root: Element | ShadowRoot | null): HTMLElement | null => {
-            if (!root || !('querySelectorAll' in root)) return null
-            for (const el of root.querySelectorAll('*')) {
-                if (el.tagName?.toLowerCase() === 'mateu-component') return el as HTMLElement
-                const nested = findComponent((el as HTMLElement).shadowRoot)
-                if (nested) return nested
-            }
-            return null
-        }
-        const comp = findComponent(container.renderRoot as Element | ShadowRoot)
-        await sseService.runAction(
-            mateuApiClient,
-            container.baseUrl ?? '',
-            metadata.rootRoute || '_no_route',
-            '',
-            actionId,
-            comp?.id ?? 'app-header-action',
-            {},
-            metadata.serverSideType ?? '',
-            {},
-            {},
-            comp ?? container,
-            true,
-            undefined,
-            false,
-            ''
-        )
+        await dispatchAppHeaderAction(metadata, container, actionId)
     } catch (e) {
         Notification.show('La acción falló: ' + e, { position: 'bottom-start', duration: 6000, theme: 'error' })
     }

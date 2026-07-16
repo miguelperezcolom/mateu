@@ -132,15 +132,21 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Tree select dropdown | ✅ | ✅ | ✅ (shared) | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (shared) | ✅ (tree layout) | ✅ (tree layout) |
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ | ✅ |
+| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| App header actions (buttons + dropdown groups) | ✅ | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
 
-🟡 PatternFly (redhat) & SLDS: as of 2026-07-10 both reuse the shared design-system-neutral
-`<mateu-filter-bar>` (full smart-search) and the shared capture/tree field widgets
-(`mateu-signature-pad`, `mateu-camera-capture`, `mateu-tree-select`) + money formatting, so those
-stereotypes work. PatternFly still renders dashboards/gantt/foldout/hero as `<mateu-unsupported>`
-placeholders (its `SUPPORTED_TYPES` is small); SLDS falls through to off-theme Vaadin components for
-types its own switch misses. Both remain lighter than Vaadin/SAP UI5.
+PatternFly (redhat) & SLDS: both reuse the shared design-system-neutral `<mateu-filter-bar>`
+(full smart-search) and the shared capture/tree field widgets (`mateu-signature-pad`,
+`mateu-camera-capture`, `mateu-tree-select`) + money formatting. As of the 2026-07-11 sweep,
+PatternFly claims the DS-neutral shared types (dashboards, gantt, foldout, hero, empty states,
+skeletons, markdown, charts…) instead of `<mateu-unsupported>`, and SLDS declares no supported
+set at all — it falls through to the full shared switch, so nothing renders as unsupported.
+Since 2026-07-12 (DS-native rule) all four non-Vaadin renderers render crud layouts
+(table/list/cards/masterDetail/tree), toolbar buttons and grid-stereotype form fields with their
+OWN design-system components, and since 2026-07-16 all four shells render the app header actions
+(plain buttons + dropdown groups) with their own widgets too.
 
 MessageList/MessageInput (Vaadin): as of 2026-07-10 these carry a real data model
 (`List<MessageListItem>` / an `actionId` that fires on submit) — they were previously stubs that

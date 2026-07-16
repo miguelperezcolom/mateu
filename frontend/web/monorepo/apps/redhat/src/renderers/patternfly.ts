@@ -67,9 +67,20 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
     // may declare e.g. 24; laying 7 fields on 24 fixed tracks gives ~25px columns and the labels
     // paint over each other. Clamp to the actual number of fields.
     const cols = Math.max(1, Math.min(md.maxColumns ?? 1, leaves.length))
+    // Fields honor their colspan (clamped to the grid width); grid-stereotype fields without a
+    // real colspan take the FULL row (a data table squeezed into one ~230px cell truncates all
+    // its columns) — same rule as the sapui5/redwood/slds form layouts.
+    const cellStyle = (c: any): string => {
+        const fieldMd = c?.metadata
+        if (fieldMd?.type !== 'FormField') return 'min-width:0;'
+        const colspan = fieldMd?.colspan ?? 1
+        if (fieldMd?.stereotype === 'grid' && colspan <= 1) return 'min-width:0; grid-column: 1 / -1;'
+        if (colspan > 1) return `min-width:0; grid-column: span ${Math.min(colspan, cols)};`
+        return 'min-width:0;'
+    }
     return html`
         <div class="pf-v6-c-form" style="display:grid; width:100%; flex:1 1 auto; grid-template-columns: repeat(${cols}, minmax(0,1fr)); gap: var(--pf-t--global--spacer--md, 1rem) var(--pf-t--global--spacer--xl, 1.5rem); align-items:start;">
-            ${leaves.map((c: any) => html`<div style="min-width:0;">${renderComponent(container, c, baseUrl, state, data, appState, appData)}</div>`)}
+            ${leaves.map((c: any) => html`<div style="${cellStyle(c)}">${renderComponent(container, c, baseUrl, state, data, appState, appData)}</div>`)}
         </div>`
 }
 
