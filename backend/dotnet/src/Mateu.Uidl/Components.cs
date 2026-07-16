@@ -591,7 +591,9 @@ public sealed record ResourceGrid : ComponentBase
 
 /// <summary>Current vs upgrade offer card: optional image header, floating Tag chip, feature
 /// chips and a footer — Current shows the muted CurrentLabel (no CTA); otherwise a primary
-/// button ActionLabel with PriceLabel dispatching ActionId.</summary>
+/// button ActionLabel with PriceLabel dispatching ActionId. For toggle offers set Added from
+/// the server state: the CTA turns success green and shows AddedLabel; clicking dispatches the
+/// same ActionId again so the action can toggle it back.</summary>
 public sealed record OfferCard : ComponentBase
 {
     public string? Tag { get; init; }
@@ -604,6 +606,8 @@ public sealed record OfferCard : ComponentBase
     public string? ActionId { get; init; }
     public bool Current { get; init; }
     public string? CurrentLabel { get; init; }
+    public bool Added { get; init; }
+    public string? AddedLabel { get; init; }
 }
 
 /// <summary>One priced extra of an <see cref="AddOnPicker"/>. When IncludedLabel is present it is

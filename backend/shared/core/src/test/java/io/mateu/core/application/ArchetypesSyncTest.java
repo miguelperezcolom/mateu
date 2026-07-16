@@ -691,6 +691,8 @@ class ArchetypesSyncTest {
               .priceLabel("+ € 65 / noche")
               .actionLabel("Mejorar a esta habitación")
               .actionId("upgrade")
+              .added(true)
+              .addedLabel("✓ Upgrade añadido")
               .build());
       content.add(
           AddOnPicker.builder()
@@ -1493,6 +1495,8 @@ class ArchetypesSyncTest {
     assertThat(metadata.tag()).isEqualTo("UPGRADE DISPONIBLE");
     assertThat(metadata.title()).isEqualTo("Master Oceanfront Suite");
     assertThat(metadata.subtitle()).isEqualTo("Planta 14 · Primera línea");
+    assertThat(metadata.added()).isTrue();
+    assertThat(metadata.addedLabel()).isEqualTo("✓ Upgrade añadido");
     assertThat(metadata.image()).isEqualTo("https://img.example/suite.jpg");
     assertThat(metadata.features())
         .containsExactly("68 m²", "Vista mar frontal", "Terraza + jacuzzi", "Sofá lounge");

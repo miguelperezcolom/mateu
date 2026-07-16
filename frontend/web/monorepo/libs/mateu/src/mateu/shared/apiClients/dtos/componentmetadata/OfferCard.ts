@@ -11,4 +11,6 @@ export default interface OfferCard extends ComponentMetadata {
     actionId?: string
     current?: boolean
     currentLabel?: string
+    added?: boolean
+    addedLabel?: string
 }

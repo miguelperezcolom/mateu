@@ -15,7 +15,9 @@ public record OfferCardDto(
     String actionLabel,
     String actionId,
     boolean current,
-    String currentLabel)
+    String currentLabel,
+    boolean added,
+    String addedLabel)
     implements ComponentMetadataDto {
 
   public OfferCardDto {

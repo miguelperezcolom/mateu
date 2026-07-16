@@ -20,6 +20,8 @@ public class OfferCardMapper {
             .actionId(offerCard.actionId())
             .current(offerCard.current())
             .currentLabel(offerCard.currentLabel())
+            .added(offerCard.added())
+            .addedLabel(offerCard.addedLabel())
             .build(),
         offerCard.id(),
         List.of(),

@@ -805,6 +805,8 @@ class OfferCardMetadata(Wire):
     action_id: str | None = None
     current: bool = False
     current_label: str | None = None
+    added: bool = False
+    added_label: str | None = None
 
 
 class AddOnRecord(Wire):

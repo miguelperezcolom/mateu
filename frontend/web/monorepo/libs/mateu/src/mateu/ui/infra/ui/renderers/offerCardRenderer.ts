@@ -17,6 +17,8 @@ export const renderOfferCard = (component: ClientSideComponent) => {
                 .actionId="${metadata.actionId}"
                 .current="${metadata.current ?? false}"
                 .currentLabel="${metadata.currentLabel}"
+                .added="${metadata.added ?? false}"
+                .addedLabel="${metadata.addedLabel}"
                 style="${component.style??nothing}"
                 class="${component.cssClasses??nothing}"
                 slot="${component.slot??nothing}"

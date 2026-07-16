@@ -865,7 +865,9 @@ class ResourceGrid(Component):
 @dataclass(frozen=True)
 class OfferCard(Component):
     """Current vs upgrade offer card: optional image, feature chips and a priced CTA
-    (hidden when ``current``)."""
+    (hidden when ``current``). For toggle offers set ``added`` from the server state:
+    the CTA turns success green and shows ``added_label``; clicking dispatches the same
+    ``action_id`` again so the action can toggle it back."""
 
     tag: str | None = None
     title: str | None = None
@@ -877,6 +879,8 @@ class OfferCard(Component):
     action_id: str | None = None
     current: bool = False
     current_label: str | None = None
+    added: bool = False
+    added_label: str | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

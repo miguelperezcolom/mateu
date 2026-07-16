@@ -344,7 +344,7 @@ public class Dash : Dashboard
         Subtitle = "Planta 14 · Primera línea", Image = "https://img/suite.jpg",
         Features = ["68 m²", "Vista mar frontal", "Terraza + jacuzzi", "Sofá lounge"],
         PriceLabel = "+ € 65 / noche", ActionLabel = "Mejorar a esta habitación",
-        ActionId = "upgrade",
+        ActionId = "upgrade", Added = true, AddedLabel = "✓ Upgrade añadido",
     };
 
     [Panel(Title = "Extras")]
@@ -831,6 +831,8 @@ public class ComponentTests
         Assert.Contains("\"tag\":\"UPGRADE DISPONIBLE\"", json);
         Assert.Contains("\"priceLabel\":\"+ € 65 / noche\"", json);
         Assert.Contains("\"current\":false", json);
+        Assert.Contains("\"added\":true", json);
+        Assert.Contains("Upgrade añadido", json);
     }
 
     [Fact]

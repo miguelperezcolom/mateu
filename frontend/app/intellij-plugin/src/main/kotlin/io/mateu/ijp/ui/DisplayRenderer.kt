@@ -1076,9 +1076,14 @@ fun renderOfferCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val actionLabel = metadata.text("actionLabel")
         val actionId = metadata.text("actionId")
         if (actionLabel.isNotBlank()) {
+            // toggle offers: while added the CTA shows addedLabel in success green
+            val added = metadata.bool("added")
+            val addedLabel = metadata.text("addedLabel")
+            val label = if (added && addedLabel.isNotBlank()) addedLabel else actionLabel
             val priceLabel = metadata.text("priceLabel")
-            val text = actionLabel + (if (priceLabel.isNotBlank()) "   $priceLabel" else "")
+            val text = label + (if (priceLabel.isNotBlank()) "   $priceLabel" else "")
             panel.addStacked(JButton(text).apply {
+                if (added) foreground = JBColor(0x3E8635, 0x4CAF50)
                 if (actionId.isNotBlank()) addActionListener { r.ctx.runAction(actionId, null) }
             }, 0)
         }

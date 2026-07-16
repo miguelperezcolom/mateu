@@ -1049,8 +1049,11 @@ export function OfferCardRenderer({ component }: { component: unknown }) {
           !!m.currentLabel && <Text style={styles.offerCurrentLabel}>{m.currentLabel}</Text>
         ) : (
           !!m.actionLabel && (
-            <TouchableOpacity style={styles.offerCta} onPress={() => m.actionId && void controller.runAction(m.actionId)}>
-              <Text style={styles.offerCtaText}>{m.actionLabel}</Text>
+            <TouchableOpacity
+              style={[styles.offerCta, m.added === true && styles.offerCtaAdded]}
+              onPress={() => m.actionId && void controller.runAction(m.actionId)}
+            >
+              <Text style={styles.offerCtaText}>{m.added === true ? (m.addedLabel ?? m.actionLabel) : m.actionLabel}</Text>
               {!!m.priceLabel && <Text style={styles.offerCtaPrice}>{m.priceLabel}</Text>}
             </TouchableOpacity>
           )
@@ -1523,6 +1526,7 @@ const styles = StyleSheet.create({
   offerFeature: { fontSize: 12, color: '#333', borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
   offerCurrentLabel: { color: '#888', fontWeight: '500', marginTop: 4 },
   offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
+  offerCtaAdded: { backgroundColor: '#2e7d32' },
   offerCtaText: { color: '#fff', fontWeight: '600' },
   offerCtaPrice: { color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontVariant: ['tabular-nums'] },
   // AddOnPicker

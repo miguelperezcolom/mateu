@@ -454,6 +454,8 @@ export interface OfferCard {
   actionId?: string;
   current?: boolean;
   currentLabel?: string;
+  added?: boolean;
+  addedLabel?: string;
 }
 
 export interface AddOn {

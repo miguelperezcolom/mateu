@@ -20,9 +20,14 @@ export class MateuOfferCard extends LitElement {
     @property() actionId: string | undefined
     @property({ type: Boolean }) current = false
     @property() currentLabel: string | undefined
+    /** toggle state (server-driven): the CTA turns success green and shows addedLabel */
+    @property({ type: Boolean }) added = false
+    @property() addedLabel: string | undefined
 
     static styles = css`
-        :host { display: block; width: 100%; }
+        /* explicit line-height: inside a form field wrapper the inherited one is the 44px
+           field height, which blows up every text row */
+        :host { display: block; width: 100%; line-height: var(--lumo-line-height-m, 1.4); }
         .card {
             position: relative; display: flex; flex-direction: column;
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -32,15 +37,22 @@ export class MateuOfferCard extends LitElement {
         }
         .card.offer { border-color: var(--lumo-primary-color, #1a73e8); }
         .image { aspect-ratio: 16 / 9; width: 100%; object-fit: cover; display: block; }
+        /* the tag is a regular small badge (tinted background + primary ink) */
         .tag {
             position: absolute; top: .7rem; left: .7rem;
-            font-size: var(--lumo-font-size-xxs, .65rem); font-weight: 700; letter-spacing: .05em;
-            padding: .15rem .55rem; border-radius: 999px;
-            background: var(--lumo-primary-color, #1a73e8);
-            color: var(--lumo-primary-contrast-color, #fff);
+            font-size: var(--lumo-font-size-xxs, .65rem); font-weight: 600; letter-spacing: .03em;
+            line-height: 1.4;
+            padding: .1rem .45rem; border-radius: var(--lumo-border-radius-s, 4px);
+            background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12));
+            color: var(--lumo-primary-text-color, #1a73e8);
             white-space: nowrap;
         }
-        .tag.static { position: static; align-self: flex-start; margin-bottom: .4rem; }
+        /* floating over an image it needs a solid background for contrast */
+        .card > .tag {
+            background: var(--lumo-primary-color, #1a73e8);
+            color: var(--lumo-primary-contrast-color, #fff);
+        }
+        .tag.static { position: static; align-self: flex-start; margin-bottom: .25rem; }
         .body { display: flex; flex-direction: column; gap: .3rem; padding: var(--lumo-space-m, 1rem); flex: 1; }
         .title {
             font-size: var(--lumo-font-size-l, 1.125rem); font-weight: 700;
@@ -75,6 +87,7 @@ export class MateuOfferCard extends LitElement {
             color: var(--lumo-primary-contrast-color, #fff);
         }
         button:hover { filter: brightness(1.08); }
+        button.added { background: var(--lumo-success-color, #2e7d32); }
         .price { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
     `
 
@@ -106,8 +119,8 @@ export class MateuOfferCard extends LitElement {
                     ${this.current
                         ? (this.currentLabel ? html`<span class="current-label">${this.currentLabel}</span>` : nothing)
                         : (this.actionLabel && this.actionId ? html`
-                            <button @click="${() => this.runAction()}">
-                                <span>${this.actionLabel}</span>
+                            <button class="${this.added ? 'added' : ''}" @click="${() => this.runAction()}">
+                                <span>${this.added ? (this.addedLabel || this.actionLabel) : this.actionLabel}</span>
                                 ${this.priceLabel ? html`<span class="price">${this.priceLabel}</span>` : nothing}
                             </button>
                         ` : nothing)}

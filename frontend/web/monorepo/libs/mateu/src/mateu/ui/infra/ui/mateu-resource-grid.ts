@@ -21,12 +21,14 @@ export class MateuResourceGrid extends LitElement {
     @state() private selectedId: string | undefined
 
     static styles = [chipStyles, css`
-        :host { display: block; width: 100%; }
+        /* explicit line-height: inside a form field wrapper the inherited one is the 44px
+           field height, which blows up every text row */
+        :host { display: block; width: 100%; line-height: var(--lumo-line-height-m, 1.4); }
         .grid { display: grid; gap: .7rem; }
         .cell {
             position: relative;
-            display: flex; flex-direction: column; align-items: flex-start; gap: .3rem;
-            padding: .75rem .85rem; cursor: pointer;
+            display: flex; flex-direction: column; align-items: flex-start; gap: .15rem;
+            padding: .55rem .7rem; cursor: pointer;
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
             border-radius: var(--lumo-border-radius-l, 12px);
             background: var(--lumo-base-color, transparent);
@@ -41,15 +43,16 @@ export class MateuResourceGrid extends LitElement {
             background: var(--lumo-primary-color-10pct, rgba(26,115,232,.08));
         }
         .tag {
-            position: absolute; top: -.6rem; left: .6rem;
-            font-size: var(--lumo-font-size-xxs, .65rem); font-weight: 700; letter-spacing: .05em;
-            padding: .05rem .45rem; border-radius: 999px;
+            position: absolute; top: -.55rem; left: .6rem;
+            font-size: .55rem; font-weight: 600; letter-spacing: .04em;
+            line-height: 1.5;
+            padding: 0 .4rem; border-radius: 999px;
             background: var(--lumo-primary-color, #1a73e8);
             color: var(--lumo-primary-contrast-color, #fff);
             white-space: nowrap;
         }
         .title {
-            font-size: var(--lumo-font-size-l, 1.125rem); font-weight: 700;
+            font-size: var(--lumo-font-size-m, 1rem); font-weight: 700;
             color: var(--lumo-body-text-color, #111);
             max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }

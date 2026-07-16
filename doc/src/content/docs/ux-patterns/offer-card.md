@@ -36,6 +36,17 @@ Component assigned = OfferCard.builder()
 
 The CTA dispatches the standard `action-requested` event with the card's `actionId` and **no parameters** — one card, one offer, one action. Current cards dispatch nothing.
 
+### Toggle offers
+
+When the offer can be added *and removed* (an optional upgrade), drive the CTA as a toggle from the server state: set `added(boolean)` and `addedLabel("✓ Upgrade añadido")` when building the card — while `added` is true the button turns success green and shows `addedLabel` (the `priceLabel` stays right-aligned); clicking dispatches the same `actionId` again, so the action just flips its flag and re-renders:
+
+```java
+case "upgrade" -> {
+    habitacion.setUpgradeAnadido(!habitacion.isUpgradeAnadido());
+    return this; // the card re-renders with the flipped added state
+}
+```
+
 ## When to use it
 
 Use an `OfferCard` for a **single, contextual offer** — typically a current-vs-upgrade pair side by side. To compare several plans/tiers in columns use a [Pricing table](./pricing-table); for many small priced extras with a running total use an [Add-on picker](./addon-picker). See it composed into a whole screen in [Front-office screens](./front-office). Demo: `/offer-card-demo`.

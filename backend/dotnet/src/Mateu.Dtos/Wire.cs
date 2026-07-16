@@ -402,7 +402,8 @@ public record ResourceItemDto(
     bool Recommended,
     bool Selected);
 
-/// <summary>Offer-card metadata: current vs upgrade offer; Current shows CurrentLabel and no CTA.</summary>
+/// <summary>Offer-card metadata: current vs upgrade offer; Current shows CurrentLabel and no CTA.
+/// Added flips the CTA to success green showing AddedLabel (toggle offers).</summary>
 public record OfferCardMetadataDto(
     string? Tag,
     string? Title,
@@ -413,7 +414,9 @@ public record OfferCardMetadataDto(
     string? ActionLabel,
     string? ActionId,
     bool Current,
-    string? CurrentLabel) : ComponentMetadataDto;
+    string? CurrentLabel,
+    bool Added = false,
+    string? AddedLabel = null) : ComponentMetadataDto;
 
 /// <summary>Add-on picker metadata: priced extras with a live running total.</summary>
 public record AddOnPickerMetadataDto(

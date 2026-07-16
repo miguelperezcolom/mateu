@@ -999,6 +999,8 @@ class ReflectionMapper:
                 action_id=c.action_id,
                 current=c.current,
                 current_label=c.current_label,
+                added=c.added,
+                added_label=c.added_label,
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.AddOnPicker):

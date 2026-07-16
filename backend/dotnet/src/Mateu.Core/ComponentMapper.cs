@@ -114,7 +114,8 @@ public static class ComponentMapper
 
         OfferCard ofc => Dto(ofc, new OfferCardMetadataDto(
             ofc.Tag, ofc.Title, ofc.Subtitle, ofc.Image, ofc.Features, ofc.PriceLabel,
-            ofc.ActionLabel, ofc.ActionId, ofc.Current, ofc.CurrentLabel)),
+            ofc.ActionLabel, ofc.ActionId, ofc.Current, ofc.CurrentLabel, ofc.Added,
+            ofc.AddedLabel)),
 
         AddOnPicker aop => Dto(aop, new AddOnPickerMetadataDto(
             aop.TotalLabel, aop.Currency, aop.ActionId, aop.Items.Select(a => new AddOnDto(

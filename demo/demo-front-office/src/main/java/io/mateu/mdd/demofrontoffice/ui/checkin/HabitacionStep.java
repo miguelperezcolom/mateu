@@ -29,6 +29,8 @@ public class HabitacionStep implements WizardStep {
 
   @Hidden String habitacionSeleccionada;
 
+  @Hidden boolean upgradeAnadido;
+
   @Label("")
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(stayId);
 
@@ -38,7 +40,7 @@ public class HabitacionStep implements WizardStep {
           HorizontalLayout.builder()
               .spacing(true)
               .wrap(true)
-              .style("margin-bottom: 0.75rem;")
+              .style("margin-top: 0.75rem; margin-bottom: 0.75rem;")
               .content(
                   FrontOffice.stayView(stayId).guest().preferences().stream()
                       .map(
@@ -99,6 +101,7 @@ public class HabitacionStep implements WizardStep {
         return HorizontalLayout.builder()
             .spacing(true)
             .wrap(true)
+            .style("margin-top: 1rem;")
             .content(
                 List.of(
                     OfferCard.builder()
@@ -123,6 +126,8 @@ public class HabitacionStep implements WizardStep {
                         .priceLabel("+ € 65 / noche")
                         .actionLabel("Mejorar a esta habitación")
                         .actionId("upgrade")
+                        .added(upgradeAnadido)
+                        .addedLabel("✓ Upgrade añadido")
                         .build()))
             .build();
       };

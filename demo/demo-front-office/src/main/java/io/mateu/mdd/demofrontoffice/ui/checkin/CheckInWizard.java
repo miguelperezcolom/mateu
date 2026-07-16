@@ -128,7 +128,15 @@ public class CheckInWizard extends Wizard {
         return this;
       }
       case "upgrade" -> {
-        return new Message("Upgrade aplicado — Master Oceanfront Suite (+ € 65 / noche)");
+        // toggle: the offer card's CTA turns green ("✓ Upgrade añadido") while active
+        habitacion.setUpgradeAnadido(!habitacion.isUpgradeAnadido());
+        syncConfirmar();
+        return List.of(
+            this,
+            new Message(
+                habitacion.isUpgradeAnadido()
+                    ? "Upgrade aplicado — Master Oceanfront Suite (+ € 65 / noche)"
+                    : "Upgrade retirado"));
       }
       case "extrasChanged" -> {
         var params = httpRequest.runActionRq().parameters();

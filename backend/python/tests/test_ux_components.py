@@ -637,6 +637,8 @@ class UpgradeOffer(ComponentTreeSupplier):
             price_label="+ € 65 / noche",
             action_label="Mejorar a esta habitación",
             action_id="upgrade",
+            added=True,
+            added_label="✓ Upgrade añadido",
         )
 
 
@@ -1268,6 +1270,8 @@ def test_component_tree_supplier_emits_offer_card():
     ]
     assert offer["metadata"]["priceLabel"] == "+ € 65 / noche"
     assert offer["metadata"]["actionId"] == "upgrade"
+    assert offer["metadata"]["added"] is True
+    assert offer["metadata"]["addedLabel"] == "✓ Upgrade añadido"
     assert offer["metadata"]["current"] is False
     assert offer["metadata"]["currentLabel"] is None
 
