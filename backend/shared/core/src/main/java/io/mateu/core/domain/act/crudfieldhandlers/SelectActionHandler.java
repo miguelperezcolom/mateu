@@ -48,10 +48,13 @@ public class SelectActionHandler {
     var newState = CrudFieldHandlerHelper.newStateMap(httpRequest, _show_detail, _editing);
     data.put("_position", "" + (position + 1) + "/" + items.size());
 
-    String rowClassName =
-        httpRequest.runActionRq().componentState().get(fieldId + "_rowClass").toString();
-    var rowClassx = getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
-    var rowClass = Class.forName(rowClassName);
+    // _rowClass only rides in the state for wizard steps; plain forms resolve the row type
+    // from the field's generic type.
+    var stateRowClass = httpRequest.runActionRq().componentState().get(fieldId + "_rowClass");
+    var rowClass =
+        stateRowClass != null
+            ? Class.forName(stateRowClass.toString())
+            : getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
 
     Map<String, Object> filteredState =
         (Map<String, Object>) httpRequest.runActionRq().parameters();

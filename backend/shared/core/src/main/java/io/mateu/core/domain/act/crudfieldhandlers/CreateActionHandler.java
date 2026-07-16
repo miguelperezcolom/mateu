@@ -33,10 +33,13 @@ public class CreateActionHandler {
     _show_detail.put(fieldId, actionId.endsWith("and-stay"));
     _editing.put(fieldId, !actionId.endsWith("and-stay"));
 
-    String rowClassName =
-        httpRequest.runActionRq().componentState().get(fieldId + "_rowClass").toString();
-    var rowClassx = getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
-    var rowClass = Class.forName(rowClassName);
+    // _rowClass only rides in the state for wizard steps; plain forms resolve the row type
+    // from the field's generic type.
+    var stateRowClass = httpRequest.runActionRq().componentState().get(fieldId + "_rowClass");
+    var rowClass =
+        stateRowClass != null
+            ? Class.forName(stateRowClass.toString())
+            : getGenericClass((ParameterizedType) field.getGenericType(), List.class, "E");
 
     Map<String, Object> filteredState =
         (Map<String, Object>) httpRequest.runActionRq().parameters().get("initiatorState");
