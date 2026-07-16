@@ -56,6 +56,12 @@ export class MateuUx extends ConnectedElement {
     top: boolean | undefined = undefined;
     @property()
     instant: string | undefined
+
+    /** Initial componentState for the route loads this ux fires — used by embedded mediator
+     * islands so the host-seeded initialData (e.g. a stayId) reaches the island's FIRST render
+     * (and its route-flip reloads) instead of loading with an empty state. */
+    @property()
+    initialState: Record<string, unknown> | undefined
     @property()
     appState: ComponentState = {}
     @property()
@@ -275,6 +281,7 @@ export class MateuUx extends ConnectedElement {
                         serverSideType: this.serverSideType,
                         initiatorComponentId: this.id,
                         initiator: this,
+                        componentState: this.initialState,
                         callbackToken: this.callbackToken
                     },
                     bubbles: true,

@@ -55,7 +55,8 @@ class EmbeddedOrchestratorFieldBuilderTest {
   void buildsServerSideComponentWrappingMediatorAppShell() throws Exception {
     var field = Host.class.getDeclaredField("editor");
 
-    var component = EmbeddedOrchestratorFieldBuilder.build("", field, "host", httpRequest(), 2);
+    var component =
+        EmbeddedOrchestratorFieldBuilder.build("", field, null, "host", httpRequest(), 2);
 
     assertThat(component).isInstanceOf(CustomField.class);
     var content = ((CustomField) component).content();
@@ -92,7 +93,8 @@ class EmbeddedOrchestratorFieldBuilderTest {
   void inlineHostPropagatesInlineMarker() throws Exception {
     var field = InlineHost.class.getDeclaredField("editor");
 
-    var component = EmbeddedOrchestratorFieldBuilder.build("", field, "host", httpRequest(), 2);
+    var component =
+        EmbeddedOrchestratorFieldBuilder.build("", field, null, "host", httpRequest(), 2);
 
     var wrapper = (ServerSideComponent) ((CustomField) component).content();
     assertThat(wrapper.route()).contains("_embeddedMediator");

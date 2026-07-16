@@ -76,6 +76,7 @@ final class EmbeddedOrchestratorFieldBuilder {
   static Component build(
       String prefix,
       Field field,
+      Object hostInstance,
       String initiatorComponentId,
       HttpRequest httpRequest,
       int maxColumns) {
@@ -112,6 +113,10 @@ final class EmbeddedOrchestratorFieldBuilder {
     if (inline) {
       initialData.put(INLINE_MARKER, true);
     }
+    // Seed the host field VALUE's simple state into the island's initialData (which becomes its
+    // componentState), so an orchestrator the host code configured (e.g. `documento.setStayId(id)`)
+    // hydrates with that context on its very first render — without events or route params.
+    seedInstanceState(field, hostInstance, initialData);
     // Wrap the mediator app in a ServerSideComponent that carries the orchestrator's own actions
     // (edit/save/cancel…). Mirrors the standalone mediator: its component claims those actions, so
     // a
@@ -133,6 +138,47 @@ final class EmbeddedOrchestratorFieldBuilder {
         .colspan(maxColumns)
         .style("width: 100%;")
         .build();
+  }
+
+  /**
+   * Copies the host field value's SIMPLE fields (String/Number/Boolean/enum, non-null) into the
+   * island's initialData. Complex members (models, holders) stay behind — the orchestrator loads
+   * them itself from the seeded context.
+   */
+  private static void seedInstanceState(
+      Field field, Object hostInstance, Map<String, Object> initialData) {
+    if (hostInstance == null || hostInstance instanceof Class) {
+      return;
+    }
+    try {
+      var value = io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, hostInstance);
+      if (value == null) {
+        return;
+      }
+      for (Field member : value.getClass().getDeclaredFields()) {
+        if (java.lang.reflect.Modifier.isStatic(member.getModifiers())) {
+          continue;
+        }
+        var memberType = member.getType();
+        var simple =
+            String.class.equals(memberType)
+                || Number.class.isAssignableFrom(memberType)
+                || memberType.isPrimitive()
+                || Boolean.class.equals(memberType)
+                || memberType.isEnum();
+        if (!simple) {
+          continue;
+        }
+        member.setAccessible(true);
+        var memberValue = member.get(value);
+        if (memberValue != null) {
+          initialData.put(
+              member.getName(), memberType.isEnum() ? memberValue.toString() : memberValue);
+        }
+      }
+    } catch (Exception ignored) {
+      // best effort — an unseedable island still works, it just starts without host context
+    }
   }
 
   /** Best-effort retrieval of the orchestrator's declared actions without rendering it. */

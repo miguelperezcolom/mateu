@@ -97,6 +97,11 @@ public final class ComponentToFragmentDtoMapper {
       if (componentSupplier instanceof DtoSupplier dtoSupplier) {
         return dtoSupplier.dto(httpRequest);
       }
+      // a component that IS a DtoSupplier (an orchestrator dropped into a component tree or a
+      // composite page) maps through its own dto — component() would throw
+      if (component instanceof DtoSupplier dtoSupplier) {
+        return dtoSupplier.dto(httpRequest);
+      }
       return mapComponentTreeSupplierToDto(
           componentTreeSupplier, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }

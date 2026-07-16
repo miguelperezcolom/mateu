@@ -264,6 +264,86 @@ public class CheckInForm {
 
 ---
 
+## Multi-state embedded islands (backend-driven state machines)
+
+The same island mechanics scale to an in-page element whose **content the backend decides**, with
+any number of states. The demo's check-in *Documento* block is an `@Inline` embedded `EditableView`
+with three states:
+
+1. **Sin datos** — a warning notice plus an *Escanear documento* button.
+2. **Hay datos** — a property list with the scanned data and the built-in *Edit* toolbar button.
+3. **Editor** — the standard editable form; *Save* persists and lands back on state 2.
+
+```java
+@UI("/checkin-documento")
+@Title("Documento")
+public class DocumentoView extends EditableView<Object, DocumentoView.DocumentoEditor> {
+
+    @Hidden String stayId;      // context, seeded by the host (see below)
+    @Hidden boolean vistaAlterna;
+
+    @Override
+    public Object view(HttpRequest rq) {
+        var guest = guest();
+        if (guest == null || !guest.identityComplete()) {
+            return new DocumentoPendiente();          // state 1 — its class carries
+        }                                             // @SubscribeTo("documento-escaneado")
+        return fill(new DocumentoDatos(), guest);     // state 2 — @Section(propertyList = true)
+    }
+
+    @Override
+    public DocumentoEditor editor(HttpRequest rq) { ... }   // state 3
+
+    @Override
+    public boolean readOnly() {                        // no Edit button while empty
+        var guest = guest();
+        return guest == null || !guest.identityComplete();
+    }
+
+    @Override
+    public Object handleAction(String actionId, HttpRequest rq) {
+        return switch (actionId) {
+            case "escanear" -> LongTask.create("Escaneando documento…")   // SSE progress dialog
+                .withProgressBar()
+                .withCommand(UICommand.dispatchEvent("documento-escaneado"))
+                .run(progress -> ...);
+            case "reloadDocumento" -> {                // fired by the subscription
+                vistaAlterna = !vistaAlterna;          // route flip → re-render
+                setRouteTo(vistaAlterna ? "/view" : "/");
+                yield new State(this);
+            }
+            default -> super.handleAction(actionId, rq);
+        };
+    }
+}
+```
+
+The host page embeds it and passes context by **just setting fields** on the instance — the
+framework seeds the island's initial state with the field value's simple properties:
+
+```java
+@Section(value = "Documento", zone = "main")
+@Inline
+@Label("")
+DocumentoView documento;
+
+public IdentidadStep load(HttpRequest rq) {
+    stayId = GuestHeaders.idFromRoute(rq, "checkin");
+    documento = new DocumentoView();
+    documento.setStayId(stayId);   // reaches the island's first render
+    return this;
+}
+```
+
+The moving parts are the same three rules as the cardex above, plus two specific to this shape:
+the async leg (the scan) is a [`LongTask`](/ux-patterns/long-tasks/) SSE action whose completion
+command dispatches the event, and the `@SubscribeTo` lives on the **empty-state model** (the class
+`view(...)` returns in state 1), because that is the loaded model while the user can trigger the
+scan. Because the host is re-created on every request, it must derive its own context (here the id
+from the route) before seeding the island.
+
+---
+
 ## When to use
 
 - **Independent components on one screen** that must stay in sync (sections, sidebars, headers).

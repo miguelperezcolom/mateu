@@ -74,15 +74,7 @@ public class CheckInWizard extends Wizard {
   /** Seeds the steps from the stay's reservation data — once per stay. */
   void populate() {
     var view = FrontOffice.stayView(stayId);
-    var guest = view.guest();
     identidad.setStayId(stayId);
-    identidad.setDocumento(
-        guest.identityComplete()
-            ? "✓ Verificado — " + guest.document()
-            : "Pendiente de escaneo de documento");
-    identidad.setNombre(guest.name());
-    identidad.setEmail(guest.email());
-    identidad.setTelefono(guest.phone());
     habitacion.setStayId(stayId);
     habitacion.setHabitacionSeleccionada(view.stay().roomNumber());
     extras.setStayId(stayId);
@@ -95,8 +87,7 @@ public class CheckInWizard extends Wizard {
   void syncConfirmar() {
     var view = FrontOffice.stayView(stayId);
     var stay = view.stay();
-    var nombre = identidad.getNombre();
-    confirmar.setHuespedPrincipal(nombre == null || nombre.isBlank() ? view.guest().name() : nombre);
+    confirmar.setHuespedPrincipal(view.guest().name());
     var room =
         habitacion.getHabitacionSeleccionada() != null
             ? habitacion.getHabitacionSeleccionada()
@@ -150,32 +141,6 @@ public class CheckInWizard extends Wizard {
       }
       case "addPax" -> {
         return new Message("Aquí se registraría el siguiente huésped de la reserva (demo)");
-      }
-      case "simularEscaneo" -> {
-        var view = FrontOffice.stayView(stayId);
-        var guest = view.guest();
-        if (!guest.identityComplete()) {
-          var document =
-              guest.document() == null || guest.document().isBlank()
-                  ? "ESC-" + guest.id().toUpperCase()
-                  : guest.document();
-          guest = guest.verifyIdentity(document);
-        }
-        if (guest.email() == null || guest.email().isBlank()) {
-          guest =
-              guest.updateContact(
-                  guest.name().toLowerCase().replace(' ', '.').replace("í", "i").replace("é", "e")
-                      + "@email.com",
-                  guest.phone() == null || guest.phone().isBlank()
-                      ? "+00 000 000 000"
-                      : guest.phone());
-        }
-        guest = FrontOffice.guests().save(guest);
-        identidad.setDocumento("✓ Verificado — " + guest.document());
-        identidad.setNombre(guest.name());
-        identidad.setEmail(guest.email());
-        identidad.setTelefono(guest.phone());
-        return this;
       }
       case "encodeKey" -> {
         return new Message("Llave / pulsera grabada");

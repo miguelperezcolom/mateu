@@ -195,6 +195,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         style="width: 100%;"
                                         .appState="${appState}"
                                         .appData="${appData}"
+                                        .initialState="${_state}"
                                         instant="${container.instant}"
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>

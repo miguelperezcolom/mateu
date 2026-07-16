@@ -103,7 +103,7 @@ public class ReflectionFormFieldMapper {
     // themselves Components (via DtoSupplier) and their field value is typically null.
     if (EmbeddedOrchestratorFieldBuilder.isOrchestrator(fieldType)) {
       return EmbeddedOrchestratorFieldBuilder.build(
-          prefix, field, initiatorComponentId, httpRequest, maxColumns);
+          prefix, field, instance, initiatorComponentId, httpRequest, maxColumns);
     }
     // A field whose type has a registered ComponentAdapter is rendered as an independent island:
     // its value is bridged into a ComponentTreeSupplier, which ComponentToFragmentDtoMapper maps to

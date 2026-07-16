@@ -25,7 +25,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Zones({@Zone(name = "main", width = "62%"), @Zone(name = "side", width = "38%")})
-public class IdentidadStep implements WizardStep, VisibilitySupplier {
+public class IdentidadStep implements WizardStep {
 
   @Hidden String stayId;
 
@@ -35,20 +35,12 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
   @Label("")
   Callable<Component> header = () -> GuestHeaders.arrivalHeader(stayId);
 
-  // Left column: contact data + pax registration. Untitled (blank value, distinct from the header
-  // band's empty value so it starts its own section).
-  @Section(value = "Documento", zone = "main", propertyList = true, frameless = true)
-  @Label("Documento")
-  String documento;
-
-  @Label("Nombre")
-  String nombre;
-
-  @Label("Email")
-  String email;
-
-  @Label("Teléfono")
-  String telefono;
+  // Left column: the Documento block is an ORCHESTRATED island (DocumentoView) whose state the
+  // backend decides — sin datos (aviso + escanear), hay datos (property list + Edit) or editor.
+  @Section(value = "Documento", zone = "main")
+  @Inline
+  @Label("")
+  DocumentoView documento;
 
   @Colspan(2)
   @Section(value = "", zone = "main", frameless = true)
@@ -117,26 +109,18 @@ public class IdentidadStep implements WizardStep, VisibilitySupplier {
     @Text(size = TextSize.xs, noMargins = true)
     String historyInfo = "yyy";
 
-  /** Fills the identity fields for guests whose document is not verified yet (demo). */
-  @Toolbar
-  @Label("Simular escaneo")
-  void simularEscaneo() {
-    // handled by the wizard (CheckInWizard.handleAction)
-  }
-
-  @Override
-  public boolean isHidden(String memberName, HttpRequest httpRequest) {
-    return "simularEscaneo".equals(memberName)
-        && stayId != null
-        && FrontOffice.stayView(stayId).guest().identityComplete();
-  }
-
     public IdentidadStep load(HttpRequest httpRequest) {
+        // this instance is created fresh on every request — derive the stay from the route
+        stayId = GuestHeaders.idFromRoute(httpRequest, "checkin");
         var view = FrontOffice.stayView(stayId);
         var guest = view.guest();
         lastStayMainInfo = guest.lastStaySummary();
         lastStaySecondaryInfo = guest.lastStayComplementaryInfo();
         historyInfo = guest.stays() + " estancias · Cliente desde " + (LocalDate.now().getYear() - guest.yearsAsClient() - 1);
+        // the Documento island receives its context (stayId) through the embedded field's
+        // seeded initialData — the scan/edit lifecycle is fully owned by DocumentoView
+        documento = new DocumentoView();
+        documento.setStayId(stayId);
         return this;
     }
 }
