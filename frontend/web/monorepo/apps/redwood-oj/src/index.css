@@ -1,7 +1,80 @@
 :root {
     --vaadin-card-background: none;
     --vaadin-card-border-color: none;
-    --lumo-base-color: unset;
+
+    /* ── Lumo → Redwood token bridge ──────────────────────────────────────────
+       The shared, DS-neutral components in libs/mateu (notices, dashboards,
+       gantt, skeletons, empty states, hero, planning board…) style themselves
+       with --lumo-* custom properties and generic fallbacks. This shell doesn't
+       load Vaadin's Lumo, so without the bridge they render the generic bluish
+       look instead of Redwood. Each Lumo token is bridged to the live OJET
+       Redwood variable, with the RDS 24C value as fallback; custom properties
+       pierce shadow DOM, so this restyles every shared component at once. */
+
+    /* color */
+    --lumo-base-color: var(--oj-core-bg-color-content, #ffffff);
+    --lumo-body-text-color: var(--oj-core-text-color-primary, #161513);
+    --lumo-header-text-color: var(--oj-heading-text-color, #161513);
+    --lumo-secondary-text-color: var(--oj-core-text-color-secondary, rgba(22, 21, 19, 0.7));
+    --lumo-tertiary-text-color: rgba(22, 21, 19, 0.55);
+    --lumo-disabled-text-color: var(--oj-core-text-color-disabled, rgba(22, 21, 19, 0.4));
+    --lumo-primary-color: var(--oj-core-brand-1, #227e9e);
+    --lumo-primary-text-color: var(--oj-core-text-color-brand, #0e7297);
+    --lumo-primary-contrast-color: var(--oj-core-brand-contrast, #ffffff);
+    --lumo-primary-color-50pct: rgba(34, 126, 158, 0.5);
+    --lumo-primary-color-10pct: rgba(34, 126, 158, 0.1);
+    --lumo-error-color: var(--oj-core-danger-1, #b3311f);
+    --lumo-error-text-color: var(--oj-core-text-color-danger, #b3311f);
+    --lumo-error-color-10pct: rgba(179, 49, 31, 0.1);
+    --lumo-success-color: var(--oj-core-success-1, #436b1d);
+    --lumo-success-text-color: var(--oj-core-text-color-success, #436b1d);
+    --lumo-success-contrast-color: #ffffff;
+    --lumo-success-color-10pct: rgba(67, 107, 29, 0.1);
+    --lumo-warning-color: var(--oj-core-warning-1, #8f520a);
+    --lumo-warning-text-color: var(--oj-core-text-color-warning, #8f520a);
+    --lumo-warning-color-10pct: rgba(143, 82, 10, 0.1);
+
+    /* contrast ramp over the warm Redwood ink */
+    --lumo-contrast-5pct: rgba(22, 21, 19, 0.05);
+    --lumo-contrast-10pct: rgba(22, 21, 19, 0.1);
+    --lumo-contrast-20pct: rgba(22, 21, 19, 0.2);
+    --lumo-contrast-30pct: rgba(22, 21, 19, 0.3);
+    --lumo-contrast-40pct: rgba(22, 21, 19, 0.4);
+    --lumo-contrast-50pct: rgba(22, 21, 19, 0.5);
+    --lumo-contrast-60pct: rgba(22, 21, 19, 0.6);
+    --lumo-contrast-80pct: rgba(22, 21, 19, 0.8);
+    --lumo-shade-20pct: rgba(22, 21, 19, 0.2);
+    --lumo-shade-30pct: rgba(22, 21, 19, 0.3);
+
+    /* typography — Oracle Sans arrives via the OracleFont stylesheet; RDS scale 10/12/14/20/24/28 */
+    --lumo-font-family: "Oracle Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --lumo-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --lumo-font-size-xxxl: 2rem;
+    --lumo-font-size-xxl: 1.75rem;
+    --lumo-font-size-xl: 1.5rem;
+    --lumo-font-size-l: 1.25rem;
+    --lumo-font-size-m: 0.875rem;
+    --lumo-font-size-s: 0.8125rem;
+    --lumo-font-size-xs: 0.75rem;
+    --lumo-font-size-xxs: 0.625rem;
+    --lumo-line-height-m: 1.5;
+    --lumo-line-height-s: 1.375;
+
+    /* shape & rhythm — RDS: 4px controls, 6px panels, 8px cards */
+    --lumo-border-radius-s: var(--oj-core-border-radius-md, 4px);
+    --lumo-border-radius-m: var(--oj-core-border-radius-lg, 6px);
+    --lumo-border-radius-l: var(--oj-core-border-radius-xl, 8px);
+    --lumo-space-xs: 0.25rem;
+    --lumo-space-s: 0.5rem;
+    --lumo-space-m: 1rem;
+    --lumo-space-l: 1.5rem;
+    --lumo-space-xl: 2rem;
+    --lumo-size-s: 1.75rem;
+    --lumo-size-m: 2.25rem;
+    --lumo-icon-size-s: 1rem;
+    --lumo-box-shadow-m: var(--oj-core-box-shadow-md, 0 2px 6px rgba(0, 0, 0, 0.12));
+    --lumo-box-shadow-l: var(--oj-core-box-shadow-lg, 0 6px 18px rgba(0, 0, 0, 0.14));
+    --lumo-clickable-cursor: var(--oj-core-cursor-clickable, pointer);
 }
 
 oj-c-input-text, oj-c-input-number {

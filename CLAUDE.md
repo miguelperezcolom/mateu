@@ -20,6 +20,7 @@ backend/          ← Maven multi-module Java backend
       vaadin-lit/ ← Bundled vaadin web-component assets served by the Spring boot app
       sapui5-lit/ ← Same for SAP UI5 renderer
       redhat-lit/ ← Same for PatternFly/RedHat renderer
+      redwood-oj-lit/ ← Same for the Oracle Redwood (OJET) renderer
   mvc/            ← Spring MVC adapter (SpaRedirectFilter, annotation-processor-mvc, …)
   webflux/        ← Spring WebFlux adapter
   micronaut/      ← Micronaut adapter
@@ -41,7 +42,14 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo
   libs/mateu/             ← Shared lib: API client, domain state, base web-components
   apps/vaadin/            ← Vaadin-themed renderer (builds → backend/shared/frontend/vaadin-lit)
   apps/sapui5/            ← SAP UI5 renderer
-  apps/redwood/           ← Redwood renderer
+  apps/redwood-oj/        ← Oracle Redwood renderer (Oracle JET oj-c-* components; builds →
+                            backend/shared/frontend/redwood-oj-lit via `yarn copy`; the old
+                            apps/redwood + redwood-lit were REMOVED 2026-07-17). Its index.html
+                            mounts mateu-ui from js/demo.js AFTER the OJET AMD modules load —
+                            the AP-generated controllers inject the routed <mateu-ui> into an
+                            inert <template id="mateu-ui-holder"> that demo.js adopts. Shared
+                            components get Redwood styling via the Lumo→Redwood token bridge
+                            in src/index.css (RDS 24C values).
   apps/redhat/            ← PatternFly renderer
 
 frontend/app/             ← Native (non-browser) renderers — all speak the same /mateu/v3/sync API
@@ -66,6 +74,10 @@ e2e/              ← Playwright end-to-end tests + SUT (subject under test) app
 2. **Framework AP** (e.g. `annotation-processor-mvc`) — compile the app module with this AP **and** with the UI module on the AP classpath; it reads the index and generates Spring MVC / WebFlux / Micronaut / Quarkus controllers.
 
 Both the UI module **and** the AP must appear in `<annotationProcessorPaths>` of the app's `pom.xml`. See `e2e/README.md` for the canonical example.
+
+### ViewModel Instantiation & DI (avoid singleton state!)
+
+A `@UI`/`@Route` ViewModel that is NOT a container-managed bean is instantiated by Mateu **fresh on every request**, and `@Autowired`/`@Inject` FIELDS are still injected — this is the default and preferred pattern (see `doc/.../java-user-manual/concepts/execution-model.md`). If you register the ViewModel as a Spring bean (e.g. to use constructor injection), it MUST be `@Scope("prototype")`: a singleton ViewModel shares its mutable form fields across all users and requests (user A sees user B's half-typed form). CRUD orchestrators (`AutoCrud` subclasses) that only hold `final` injected services are stateless and may stay singletons, but any class with mutable UI-state fields must be per-request. When generating or reviewing consumer code, flag `@Component`/`@Service` on a ViewModel with non-final fields as a bug unless it is prototype-scoped.
 
 ### Runtime Flow
 

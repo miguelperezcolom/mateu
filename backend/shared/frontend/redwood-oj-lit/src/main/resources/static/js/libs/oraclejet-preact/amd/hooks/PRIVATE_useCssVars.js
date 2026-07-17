@@ -1,0 +1,2 @@
+define(['exports', '../useCssVars-d782da3d', 'preact/jsx-runtime', 'preact/hooks', '../useUser-988f7da2', '../LayerHost-7d4aa6d3', '../index-f7ad24df', 'preact', 'preact/compat', '../UNSAFE_Layer/themes/LayerHostStyles.css', 'css!./../LayerHostStyles.styles.css', '../useTheme-af7bfac1', '../useColorScheme-f2a81610', '../useScale-5d246769'], (function(e,s,a,t,r,c,d,o,u,f,y,l,p,i){"use strict";e.useCssVars=s.useCssVars,Object.defineProperty(e,"__esModule",{value:!0})}));
+//# sourceMappingURL=PRIVATE_useCssVars.js.map

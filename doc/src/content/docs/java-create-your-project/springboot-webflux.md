@@ -26,7 +26,7 @@ In case you are using maven:
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>
   <!--
-available artifacts are: redhat-lit, sapui5-lit, redwood-lit and  vaadin-lit 
+available artifacts are: redhat-lit, sapui5-lit, redwood-oj-lit and  vaadin-lit 
 -->
     <version>MATEU_VERSION</version>
 </dependency>

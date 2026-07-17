@@ -16,7 +16,7 @@ The Oracle Redwood renderer uses Oracle JET components. Use it when your UIs nee
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>redwood-lit</artifactId>
+    <artifactId>redwood-oj-lit</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
 ```

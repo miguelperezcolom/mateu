@@ -23,7 +23,7 @@ You don't have to pick just one: the identical backend can serve a web UI, a nat
 | [Vaadin](/design-systems/vaadin/) | Vaadin Lumo | `vaadin-lit` |
 | [Red Hat](/design-systems/redhat/) | Red Hat PatternFly | `redhat-lit` |
 | [SAP Fiori](/design-systems/sapui5/) | SAP Fiori / UI5 | `sapui5-lit` |
-| [Oracle Redwood](/design-systems/oracle-redwood/) | Oracle Redwood | `redwood-lit` |
+| [Oracle Redwood](/design-systems/oracle-redwood/) | Oracle Redwood | `redwood-oj-lit` |
 | [Salesforce SLDS](/design-systems/slds2/) | Salesforce Lightning (SLDS 2) | `slds-lit` |
 
 ## How to switch renderer

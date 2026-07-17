@@ -34,7 +34,7 @@ All integrations support the same set of frontends — change renderer by swappi
 | `vaadin-lit` | Vaadin (default, recommended) |
 | `redhat-lit` | Red Hat Patternfly |
 | `sapui5-lit` | SAP Fiori / UI5 |
-| `redwood-lit` | Oracle Redwood |
+| `redwood-oj-lit` | Oracle Redwood |
 
 ## Before you start
 
