@@ -48,6 +48,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |
+| Group header actions (`@GroupAction` buttons on group rows, `_groupValue` parameter) | ✅ | — | — |
+| Group summaries synthesized for custom `Listing`s (`ListingData.withSynthesizedGroups`) | ✅ | — | — |
 | Optimistic locking (`@Version` → conflict dialog on save/update-row, `_forceOverwrite`) | ✅ | ✅ | ✅ |
 | Notification inbox (`NotificationsSupplier` → header bell + `_notifications-*` actions) | ✅ | ✅ | ✅ |
 | Undoable toasts (`Message.undoable` → undo action id + parameters on the wire) | ✅ | ✅ | ✅ |

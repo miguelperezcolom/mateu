@@ -97,6 +97,9 @@ Read this before generating; each line is a trap and its fix.
   (put the parent's context in its value — "id · agency · guests"); the grid renders bold
   subtotal header rows with the count, and `@Aggregate` adds totals. Rows must arrive
   contiguous per group. Custom `Listing`s get the group summaries synthesized automatically.
+  Actions on the whole parent (cancel the file, close the order) go on a
+  `@GroupAction("label")` listing method — it renders as a button on the group header row and
+  receives the group value in the `_groupValue` action parameter.
 
 - **Keep listings lean: the `auto` grid layout degrades by width.** Too many columns for the
   available width flips the listing to a master-detail rail. If that is not what you want,

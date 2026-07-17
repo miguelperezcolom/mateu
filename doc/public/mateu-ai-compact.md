@@ -451,7 +451,7 @@ public class CheckInForm {
 - **Full-page form views need `@Style(StyleConstants.CONTAINER)`** (else 100% viewport width) and `@Section(columns=n)` to pack short fields.
 - **Mind `@Colspan` in multi-column sections**: wide fields (grid/textarea/richText/html/markdown) auto-span the full row (explicit `@Colspan` overrides); other fields default to one cell — long text inputs need `@Colspan(n)`, or better `@Stereotype(textarea)` for free-form text.
 - **Mark THE primary action** with `@Button(buttonStyle = ButtonStyle.primary)` — one per screen; all-tertiary buttons bury the action hierarchy.
-- **Parent-child listings**: `@GroupBy` on one row field (carry the parent context in its value), `@Aggregate` for totals — never denormalise the parent into repeated columns. Keep listings lean: the auto layout flips to a master-detail rail when columns exceed the width.
+- **Parent-child listings**: `@GroupBy` on one row field (carry the parent context in its value), `@Aggregate` for totals, `@GroupAction("label")` methods for whole-parent actions on the group header — never denormalise the parent into repeated columns. Keep listings lean: the auto layout flips to a master-detail rail when columns exceed the width.
 - **Action results / standing warnings are `@Notice` fields** (auto-hide when blank, themed), not `@ReadOnly String`.
 - **Button placement**: `@Button` → form footer; `@Toolbar` → page toolbar; section-scoped buttons → partial-forms (nested type owns the action).
 - **Don't model editable collections as delimited text**: use `@InlineEditing` on a `List<MutablePojo>` grid, never `"a; b"` strings.
