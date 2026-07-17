@@ -2,8 +2,22 @@ import { MateuApiClient } from '../api/MateuApiClient';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
+/** Extra toast behaviour: an explicit display duration (ms) and/or an Undo affordance
+ *  (Message.undoLabel/undoActionId on the wire) that runs the reverse action when pressed. */
+export interface NotifyOptions {
+  duration?: number;
+  undo?: { label: string; onPress: () => void };
+}
+
 export interface NavTarget {
   label: string;
+  route: string;
+  consumedRoute: string;
+  serverSideType: string;
+}
+
+/** Navigation context of the view that opened an overlay (see MateuSession.openOverlay). */
+export interface OverlayOpenerContext {
   route: string;
   consumedRoute: string;
   serverSideType: string;
@@ -20,7 +34,7 @@ export class MateuSession {
   readonly appState: Record<string, unknown>;
 
   /** Host hook: show a non-blocking message (toast/snackbar). */
-  notify: (title: string | null, text: string, variant: MessageVariant) => void = () => {};
+  notify: (title: string | null, text: string, variant: MessageVariant, options?: NotifyOptions) => void = () => {};
 
   /** Host hook: open a route as a NEW screen (navigation push). */
   openView: (target: NavTarget) => void = () => {};
@@ -28,8 +42,11 @@ export class MateuSession {
   /** Host hook: the app-level title (navigation header). */
   setTitle: (title: string) => void = () => {};
 
-  /** Host hook: open an overlay (Drawer/Dialog fragment); returns a close function. */
-  openOverlay: (component: unknown, state: unknown, data: unknown) => void = () => {};
+  /** Host hook: open an overlay (Drawer/Dialog fragment). `opener` is the navigation context of
+   *  the view that produced the overlay, so a ClientSide overlay content (e.g. the optimistic-lock
+   *  conflict dialog) dispatches its button actions against the INITIATOR component — the same
+   *  target the web reaches by DOM bubbling. */
+  openOverlay: (component: unknown, state: unknown, data: unknown, opener?: OverlayOpenerContext) => void = () => {};
 
   /** Host hook: close the topmost overlay. */
   closeTopOverlay: () => void = () => {};

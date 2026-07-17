@@ -27,7 +27,8 @@ import {
   ResourceGridRenderer, OfferCardRenderer, AddOnPickerRenderer, LedgerRenderer, PaymentPickerRenderer,
   ProcessMonitorRenderer,
 } from './DisplayRenderer';
-import { EmptyState, MetricCard, Skeleton } from '../api/metadata';
+import { PlanningBoardRenderer } from './PlanningBoardRenderer';
+import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
 
@@ -141,8 +142,11 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
     case 'Button': {
       const id = (metadata['actionId'] as string) ?? (metadata['id'] as string) ?? '';
       const label = interpolate((metadata['label'] as string) ?? id, { state });
+      // Button.parameters travel with the dispatched action (e.g. the conflict dialog's
+      // keep-mine/take-theirs buttons) — same contract as the web's buttonRenderer.
+      const parameters = (metadata['parameters'] as Record<string, unknown> | undefined) ?? undefined;
       return (
-        <TouchableOpacity style={styles.btnDefault} onPress={() => runAction(id)}>
+        <TouchableOpacity style={styles.btnDefault} onPress={() => void controller.runAction(id, parameters)}>
           <Text style={styles.btnDefaultText}>{label}</Text>
         </TouchableOpacity>
       );
@@ -272,6 +276,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <PaymentPickerRenderer component={component} />;
     case 'ProcessMonitor':
       return <ProcessMonitorRenderer component={component} />;
+    case 'PlanningBoard':
+      return <PlanningBoardRenderer metadata={metadata as unknown as PlanningBoard} />;
 
     case 'Markdown':
       return <RichText value={(metadata['markdown'] as string) ?? ''} kind="markdown" />;

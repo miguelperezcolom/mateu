@@ -80,7 +80,10 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             actionId.isNotBlank() -> ColKind.LINK
             else -> ColKind.TEXT
         }
-        ColSpec(id, label, kind, dataType, actionId, text, cm.bool("editable"), cm.text("editorType"))
+        ColSpec(
+            id, label, kind, dataType, actionId, text, cm.bool("editable"), cm.text("editorType"),
+            cm.text("stereotype"), cm.text("aggregate"),
+        )
     }
     // The action id used to open a row's detail: the first link column (e.g. the id column's "view").
     val rowLinkActionId = allSpecs.firstOrNull { it.kind == ColKind.LINK }?.actionId ?: ""
@@ -93,7 +96,16 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val model = CrudTableModel(specs) { updatedRow ->
         ctx.runAction("update-row", mapOf("_editedRow" to updatedRow))
     }
-    val table = JBTable(model)
+    // Group headers / totals footer (synthetic, presentation-only rows) render bold on a tinted
+    // background through a dedicated renderer, bypassing the per-column renderers/editors.
+    val syntheticRenderer = SyntheticRowRenderer()
+    val table = object : JBTable(model) {
+        override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
+            val m = getModel() as? CrudTableModel
+            return if (m != null && m.isSynthetic(convertRowIndexToModel(row))) syntheticRenderer
+            else super.getCellRenderer(row, column)
+        }
+    }
     table.setShowGrid(true)
     table.rowHeight = JBUI.scale(30)
     table.putClientProperty("terminateEditOnFocusLost", true)
@@ -103,6 +115,21 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     // Empty listings show the wire's emptyStateMessage through the IDE's StatusText.
     table.emptyText.text = metadata.text("emptyStateMessage").ifBlank { "No data" }
+
+    // Bulk row selection (@RowsSelection crud): native JTable multi-selection; the selected row
+    // objects (as they came off the wire — synthetic group/totals rows excluded) travel in the
+    // component state under `crud_selected_items`, where rowsSelectedRequired actions expect them.
+    if (metadata.bool("rowsSelectionEnabled")) {
+        table.rowSelectionAllowed = true
+        table.selectionModel.selectionMode = javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION
+        table.selectionModel.addListSelectionListener { e ->
+            if (e.valueIsAdjusting) return@addListSelectionListener
+            val items = table.selectedRows.toList()
+                .mapNotNull { viewRow -> model.rowAt(table.convertRowIndexToModel(viewRow)) }
+                .map { rowAsParams(ctx, it) }
+            ctx.currentComponentState["crud_selected_items"] = items
+        }
+    }
 
     // Header click cycles the column sort (ascending → descending → none) and re-runs the search
     // with the Pageable shape [{field, direction}].
@@ -288,10 +315,16 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     panel.add(center, BorderLayout.CENTER)
 
     // ── data handler: initial data + async search results land here ──
+    val groupBy = metadata.text("groupBy")
     val applyData = { d: JsonNode ->
-        val eff = d.path("crud").path("page").let { if (!it.isMissingNode && !it.isNull) it else d }
-        model.setRows(extractRows(eff))
-        val total = eff.path("totalElements").asLong(model.rowCount.toLong())
+        // The listing envelope (the object carrying `page` — plus `aggregates`/`groups` when the
+        // crud is grouped/aggregated); `eff` is the page itself.
+        val crudNode = d.path("crud")
+        val listing = if (!crudNode.path("page").isMissingNode && !crudNode.path("page").isNull) crudNode else d
+        val eff = listing.path("page").let { if (!it.isMissingNode && !it.isNull) it else d }
+        val rows = extractRows(eff)
+        model.setEntries(buildEntries(rows, specs, groupBy, listing))
+        val total = eff.path("totalElements").asLong(rows.size.toLong())
         val pageNumber = eff.path("pageNumber").asInt(0)
         val pageSize = eff.path("pageSize").asInt(10).coerceAtLeast(1)
         val totalPages = if (total == 0L) 1 else ((total + pageSize - 1) / pageSize).toInt()
@@ -321,7 +354,120 @@ private data class ColSpec(
     val text: String,
     val editable: Boolean = false,
     val editorType: String = "",
+    val stereotype: String = "",
+    val aggregate: String = "",
 )
+
+// ── listing groups + aggregates (replicates the web's listingGroups.ts rules) ────────────
+
+/** A table row: real wire data, or a synthetic (presentation-only) group header / totals row. */
+private sealed interface RowEntry
+private class DataRow(val node: JsonNode) : RowEntry
+private class SyntheticRow(val cells: Map<String, String>) : RowEntry
+
+private fun JsonNode?.groupKeyString(): String =
+    if (this == null || isNull || isMissingNode) "" else asText("")
+
+/**
+ * Formats an aggregate value like the matching cells do: money dataType/stereotype → German
+ * locale with exactly 2 fraction digits; 'count' → integer; else default locale, max 2 decimals.
+ */
+private fun formatAggregate(value: Double, spec: ColSpec): String {
+    if (spec.dataType == "money" || spec.stereotype == "money") {
+        val nf = java.text.NumberFormat.getNumberInstance(java.util.Locale.GERMANY)
+        nf.minimumFractionDigits = 2
+        nf.maximumFractionDigits = 2
+        return nf.format(value)
+    }
+    if (spec.aggregate == "count") {
+        return java.text.NumberFormat.getIntegerInstance().format(Math.round(value))
+    }
+    val nf = java.text.NumberFormat.getNumberInstance()
+    nf.maximumFractionDigits = 2
+    return nf.format(value)
+}
+
+/**
+ * Walks the (group-sorted) page rows inserting a group header wherever the `groupBy` value
+ * changes — "value (count)" in the label column (the groupBy column when visible, else the first
+ * column), each group's formatted aggregate in aggregated columns — and appends a totals footer
+ * when any column has an aggregate AND the listing data carries `aggregates`.
+ */
+private fun buildEntries(
+    rows: List<JsonNode>,
+    specs: List<ColSpec>,
+    groupBy: String,
+    listing: JsonNode,
+): List<RowEntry> {
+    val entries = ArrayList<RowEntry>()
+    val groups = listing.arr("groups")
+    if (groupBy.isNotBlank() && groups.isNotEmpty()) {
+        val labelColId = if (specs.any { it.id == groupBy }) groupBy else specs.firstOrNull()?.id
+        var lastKey: String? = null
+        var started = false
+        for (row in rows) {
+            val key = row.path(groupBy).groupKeyString()
+            if (!started || key != lastKey) {
+                started = true
+                lastKey = key
+                val summary = groups.firstOrNull { it.path("value").groupKeyString() == key }
+                val count = summary?.path("count")?.asLong()
+                    ?: rows.count { it.path(groupBy).groupKeyString() == key }.toLong()
+                val aggregates = summary?.path("aggregates")
+                val cells = LinkedHashMap<String, String>()
+                for (spec in specs) {
+                    when {
+                        spec.id == labelColId ->
+                            cells[spec.id] = "${summary?.path("value")?.asText(key) ?: key} ($count)"
+                        spec.aggregate.isNotBlank() && aggregates != null &&
+                            aggregates.path(spec.id).isNumber ->
+                            cells[spec.id] = formatAggregate(aggregates.path(spec.id).asDouble(), spec)
+                    }
+                }
+                entries.add(SyntheticRow(cells))
+            }
+            entries.add(DataRow(row))
+        }
+    } else {
+        rows.forEach { entries.add(DataRow(it)) }
+    }
+    // Totals footer: whole-filtered-set aggregates pinned as the last row of the table.
+    val aggregates = listing.path("aggregates")
+    if (aggregates.isObject && specs.any { it.aggregate.isNotBlank() }) {
+        val cells = LinkedHashMap<String, String>()
+        for (spec in specs) {
+            if (spec.aggregate.isNotBlank() && aggregates.path(spec.id).isNumber) {
+                cells[spec.id] = formatAggregate(aggregates.path(spec.id).asDouble(), spec)
+            }
+        }
+        specs.firstOrNull()?.let { first ->
+            if (cells[first.id] == null) {
+                val totalRows = listing.path("page").path("totalElements")
+                cells[first.id] = if (groupBy.isNotBlank() && first.id == groupBy && totalRows.isNumber) {
+                    "Total (${totalRows.asLong()})"
+                } else {
+                    "Total"
+                }
+            }
+        }
+        entries.add(SyntheticRow(cells))
+    }
+    return entries
+}
+
+/** Bold text on a tinted band — group headers and the totals footer. */
+private class SyntheticRowRenderer : DefaultTableCellRenderer() {
+    override fun getTableCellRendererComponent(
+        table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
+    ): Component {
+        val c = super.getTableCellRendererComponent(table, value, false, false, row, column) as JLabel
+        c.font = c.font.deriveFont(Font.BOLD)
+        c.background = com.intellij.ui.JBColor(Color(0xED, 0xF3, 0xFC), Color(0x2D, 0x33, 0x3B))
+        c.foreground = table.foreground
+        c.isOpaque = true
+        return c
+    }
+}
 
 private fun extractRows(node: JsonNode): List<JsonNode> {
     val content = node.path("content")
@@ -402,22 +548,26 @@ private class CrudTableModel(
     private val specs: List<ColSpec>,
     private val onRowEdited: (Map<String, Any?>) -> Unit = {},
 ) : AbstractTableModel() {
-    private val rows = ArrayList<JsonNode>()
+    private val entries = ArrayList<RowEntry>()
     private val mapper = com.fasterxml.jackson.databind.ObjectMapper()
 
-    fun setRows(newRows: List<JsonNode>) {
-        rows.clear()
-        rows.addAll(newRows)
+    fun setEntries(newEntries: List<RowEntry>) {
+        entries.clear()
+        entries.addAll(newEntries)
         fireTableDataChanged()
     }
 
-    fun rowAt(index: Int): JsonNode? = rows.getOrNull(index)
+    /** The wire row node at [index] — null for synthetic (group header / totals) rows, so every
+     *  caller (row click, context menu, selection) naturally skips them. */
+    fun rowAt(index: Int): JsonNode? = (entries.getOrNull(index) as? DataRow)?.node
 
-    override fun getRowCount(): Int = rows.size
+    fun isSynthetic(index: Int): Boolean = entries.getOrNull(index) is SyntheticRow
+
+    override fun getRowCount(): Int = entries.size
     override fun getColumnCount(): Int = specs.size
     override fun getColumnName(column: Int): String = specs.getOrNull(column)?.label ?: ""
     override fun isCellEditable(rowIndex: Int, columnIndex: Int): Boolean =
-        specs.getOrNull(columnIndex)?.editable == true
+        entries.getOrNull(rowIndex) is DataRow && specs.getOrNull(columnIndex)?.editable == true
 
     override fun getColumnClass(columnIndex: Int): Class<*> {
         val spec = specs.getOrNull(columnIndex) ?: return Any::class.java
@@ -429,8 +579,10 @@ private class CrudTableModel(
     }
 
     override fun getValueAt(rowIndex: Int, columnIndex: Int): Any? {
-        val row = rows.getOrNull(rowIndex) ?: return null
         val spec = specs[columnIndex]
+        val entry = entries.getOrNull(rowIndex) ?: return null
+        if (entry is SyntheticRow) return entry.cells[spec.id] ?: ""
+        val row = (entry as DataRow).node
         val node = row.path(spec.id)
         return when {
             spec.kind == ColKind.STATUS || spec.kind == ColKind.LINK -> node
@@ -442,7 +594,7 @@ private class CrudTableModel(
     override fun setValueAt(aValue: Any?, rowIndex: Int, columnIndex: Int) {
         val spec = specs.getOrNull(columnIndex) ?: return
         if (!spec.editable) return
-        val row = rows.getOrNull(rowIndex) ?: return
+        val row = rowAt(rowIndex) ?: return
         val newValue: Any? = when (spec.editorType) {
             "boolean" -> aValue as? Boolean ?: false
             "integer" -> (aValue?.toString() ?: "").toLongOrNull() ?: return
@@ -461,7 +613,7 @@ private class CrudTableModel(
         @Suppress("UNCHECKED_CAST")
         val updated = LinkedHashMap(mapper.convertValue(row, Map::class.java) as Map<String, Any?>)
         updated[spec.id] = newValue
-        rows[rowIndex] = mapper.valueToTree(updated)
+        entries[rowIndex] = DataRow(mapper.valueToTree(updated))
         fireTableCellUpdated(rowIndex, columnIndex)
         onRowEdited(updated)
     }

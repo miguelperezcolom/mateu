@@ -11,6 +11,17 @@ import {
 import { useViewController } from './MateuViewHost';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
+import {
+  AggregatableColumn,
+  buildAggregateFooters,
+  formatAggregateValue,
+  GroupRow,
+  groupLabelColumnId,
+  groupRowCellText,
+  interleaveGroupRows,
+  isGroupRow,
+  ListingData,
+} from '../core/listingGroups';
 
 interface FilterFieldMeta {
   fieldId: string;
@@ -40,10 +51,31 @@ interface Props {
   data: unknown;
 }
 
+/** Keeps the LISTING ENVELOPE ({page, aggregates?, groups?} — the value keyed by the crud id in
+ *  the search response) so totals/groups survive; falls back to the raw fragment data. */
 function normalizeCrudData(data: unknown): unknown {
   const d = data as Record<string, unknown> | null;
-  const page = (d?.['crud'] as Record<string, unknown> | undefined)?.['page'];
-  return page ?? data;
+  if (!d || typeof d !== 'object') return data;
+  if ('page' in d) return d; // already the envelope
+  for (const value of Object.values(d)) {
+    if (value && typeof value === 'object' && 'page' in (value as Record<string, unknown>)) return value;
+  }
+  return data;
+}
+
+/** The listing envelope (aggregates/groups source) when the live data carries one. */
+function extractListing(data: unknown): ListingData {
+  const d = data as Record<string, unknown> | null;
+  if (d && typeof d === 'object' && 'page' in d) return d as ListingData;
+  return {};
+}
+
+/** The page object (rows + paging counters), whether the data is the envelope or the bare page. */
+function extractPage(data: unknown): Record<string, unknown> | undefined {
+  const d = data as Record<string, unknown> | null;
+  if (!d || typeof d !== 'object') return undefined;
+  if ('page' in d && d['page'] && typeof d['page'] === 'object') return d['page'] as Record<string, unknown>;
+  return d;
 }
 
 function extractRows(data: unknown): Record<string, unknown>[] {
@@ -79,21 +111,44 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const columns = (metadata['columns'] as ColumnMeta[]) ?? [];
   const toolbar = (metadata['toolbar'] as ButtonDto[]) ?? [];
 
+  // Bulk row selection (Crud.rowsSelectionEnabled): the selected ROW OBJECTS live in the
+  // component state under crud_selected_items so they travel with every dispatched action
+  // (the web's mateu-table-crud contract). A new result set clears the selection.
+  const rowsSelectionEnabled = metadata['rowsSelectionEnabled'] === true;
+  const [selectedRows, setSelectedRows] = useState<Record<string, unknown>[]>([]);
+  const syncSelection = (next: Record<string, unknown>[]) => {
+    setSelectedRows(next);
+    controller.currentComponentState['crud_selected_items'] = next;
+  };
+
   // Live listing data: seeded from the initial fragment, refreshed by every data-only
   // fragment (search/pagination responses) through the registered data handler.
   const [liveData, setLiveData] = useState<unknown>(data);
   useEffect(() => {
     const id = (component['id'] as string) || 'crud';
-    controller.registerDataHandler(id, (d) => setLiveData(normalizeCrudData(d)));
-    controller.registerDataHandler('crud', (d) => setLiveData(normalizeCrudData(d)));
+    const onData = (d: unknown) => {
+      setLiveData(normalizeCrudData(d));
+      // fresh rows: any previous selection points at stale row objects
+      setSelectedRows([]);
+      controller.currentComponentState['crud_selected_items'] = [];
+    };
+    controller.registerDataHandler(id, onData);
+    controller.registerDataHandler('crud', onData);
   }, [component, controller]);
 
-  const rawRows = extractRows(liveData);
-  const d = liveData as Record<string, unknown> | undefined;
+  const listing = extractListing(liveData);
+  const rawRows = extractRows(extractPage(liveData));
+  const d = extractPage(liveData);
   const totalElements = Number(d?.['totalElements'] ?? rawRows.length);
   const pageSize = Number(d?.['pageSize'] ?? rawRows.length) || rawRows.length;
   const pageNumber = Number(d?.['pageNumber'] ?? 0);
   const totalPages = pageSize > 0 ? Math.ceil(totalElements / pageSize) : 1;
+
+  const isSelected = (row: Record<string, unknown>) => selectedRows.includes(row);
+  const toggleRow = (row: Record<string, unknown>) =>
+    syncSelection(isSelected(row) ? selectedRows.filter((r) => r !== row) : [...selectedRows, row]);
+  const allSelected = rawRows.length > 0 && rawRows.every((r) => selectedRows.includes(r));
+  const toggleAll = () => syncSelection(allSelected ? [] : [...rawRows]);
 
   const [searchText, setSearchText] = useState('');
   const filters = (metadata['filters'] as FilterFieldMeta[]) ?? [];
@@ -198,11 +253,44 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         fieldId: (cm['id'] as string) ?? col.id ?? col.fieldId ?? '',
         label: (cm['label'] as string) ?? col.label ?? col.id ?? '',
         dataType: (cm['dataType'] as string) ?? '',
+        stereotype: (cm['stereotype'] as string) ?? '',
+        aggregate: (cm['aggregate'] as string) ?? '',
         sortable: cm['sortable'] === true,
         sortingProperty: (cm['sortingProperty'] as string) ?? '',
       };
     })
     .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
+
+  // Listing totals + groups (Crud.groupBy / GridColumn.aggregate): rows arrive group-sorted,
+  // a group header row is interleaved wherever the groupBy value changes, and a totals footer
+  // is pinned at the bottom when there is anything to total (see core/listingGroups.ts).
+  const groupBy = (metadata['groupBy'] as string) ?? '';
+  const asAggregatable = (c: (typeof colDefs)[number]): AggregatableColumn => ({
+    id: c.fieldId,
+    dataType: c.dataType,
+    stereotype: c.stereotype,
+    aggregate: c.aggregate || undefined,
+  });
+  const labelColumnId = groupLabelColumnId(groupBy, colDefs.map((c) => c.fieldId));
+  const displayRows = interleaveGroupRows(rawRows, groupBy, listing.groups);
+  const footers = buildAggregateFooters(colDefs.map(asAggregatable), listing, groupBy);
+  /** One-line group band for the cards/list layouts: "value (count) · Col: aggregate · …". */
+  const groupBandText = (g: GroupRow): string => {
+    const parts = [`${g.__mateuGroup.value} (${g.__mateuGroup.count})`];
+    for (const c of colDefs) {
+      if (c.aggregate && g.__mateuGroup.aggregates?.[c.fieldId] != null) {
+        parts.push(`${c.label}: ${formatAggregateValue(g.__mateuGroup.aggregates[c.fieldId], asAggregatable(c))}`);
+      }
+    }
+    return parts.join(' · ');
+  };
+  /** Totals band for the cards/list layouts, from the same footer texts as the table. */
+  const totalsBandText = footers
+    ? colDefs
+        .filter((c) => footers[c.fieldId] !== undefined)
+        .map((c, i) => (i === 0 && !c.aggregate ? footers[c.fieldId] : `${c.label}: ${footers[c.fieldId]}`))
+        .join(' · ')
+    : '';
 
   return (
     <View style={styles.root}>
@@ -266,41 +354,79 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         </View>
       ) : gridLayout === 'cards' ? (
         // Cards: one card per row — the mobile-first layout
-        <FlatList
-          data={rawRows}
-          keyExtractor={(_, i) => String(i)}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.cardRow} onPress={() => handleRowPress(item)}>
-              {editableCols.length > 0 && (
-                <TouchableOpacity style={styles.editPencilCard} onPress={() => setEditingRow(item)}>
-                  <Text style={styles.editPencilText}>✎</Text>
-                </TouchableOpacity>
-              )}
-              {colDefs.map((col, i) => (
-                <View key={col.fieldId} style={styles.cardLine}>
-                  {i > 0 && <Text style={styles.cardLabel}>{col.label}</Text>}
-                  <Text style={i === 0 ? styles.cardPrimary : styles.cardValue} numberOfLines={2}>
-                    {cellText(item[col.fieldId])}
-                  </Text>
+        <>
+          <FlatList
+            data={displayRows}
+            keyExtractor={(_, i) => String(i)}
+            renderItem={({ item }) =>
+              isGroupRow(item) ? (
+                <View style={styles.groupBand}>
+                  <Text style={styles.groupBandText}>{groupBandText(item)}</Text>
                 </View>
-              ))}
-            </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={styles.cardRow} onPress={() => handleRowPress(item)}>
+                  {rowsSelectionEnabled && (
+                    <TouchableOpacity style={styles.checkboxCard} onPress={() => toggleRow(item)}>
+                      <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
+                    </TouchableOpacity>
+                  )}
+                  {editableCols.length > 0 && (
+                    <TouchableOpacity style={styles.editPencilCard} onPress={() => setEditingRow(item)}>
+                      <Text style={styles.editPencilText}>✎</Text>
+                    </TouchableOpacity>
+                  )}
+                  {colDefs.map((col, i) => (
+                    <View key={col.fieldId} style={[styles.cardLine, rowsSelectionEnabled && i === 0 && styles.cardLineSelectable]}>
+                      {i > 0 && <Text style={styles.cardLabel}>{col.label}</Text>}
+                      <Text style={i === 0 ? styles.cardPrimary : styles.cardValue} numberOfLines={2}>
+                        {cellText(item[col.fieldId])}
+                      </Text>
+                    </View>
+                  ))}
+                </TouchableOpacity>
+              )
+            }
+          />
+          {!!footers && (
+            <View style={styles.totalsBand}>
+              <Text style={styles.totalsBandText}>{totalsBandText}</Text>
+            </View>
           )}
-        />
+        </>
       ) : gridLayout === 'list' ? (
         // List: compact single-line rows (first column primary, the rest secondary)
-        <FlatList
-          data={rawRows}
-          keyExtractor={(_, i) => String(i)}
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.listRow} onPress={() => handleRowPress(item)}>
-              <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''])}</Text>
-              <Text style={styles.listSecondary} numberOfLines={1}>
-                {colDefs.slice(1).map((c) => cellText(item[c.fieldId])).filter(Boolean).join(' · ')}
-              </Text>
-            </TouchableOpacity>
+        <>
+          <FlatList
+            data={displayRows}
+            keyExtractor={(_, i) => String(i)}
+            renderItem={({ item }) =>
+              isGroupRow(item) ? (
+                <View style={styles.groupBand}>
+                  <Text style={styles.groupBandText}>{groupBandText(item)}</Text>
+                </View>
+              ) : (
+                <View style={styles.listRowWrap}>
+                  {rowsSelectionEnabled && (
+                    <TouchableOpacity style={styles.checkboxList} onPress={() => toggleRow(item)}>
+                      <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
+                    </TouchableOpacity>
+                  )}
+                  <TouchableOpacity style={[styles.listRow, { flex: 1 }]} onPress={() => handleRowPress(item)}>
+                    <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''])}</Text>
+                    <Text style={styles.listSecondary} numberOfLines={1}>
+                      {colDefs.slice(1).map((c) => cellText(item[c.fieldId])).filter(Boolean).join(' · ')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )
+            }
+          />
+          {!!footers && (
+            <View style={styles.totalsBand}>
+              <Text style={styles.totalsBandText}>{totalsBandText}</Text>
+            </View>
           )}
-        />
+        </>
       ) : gridLayout === 'tree' ? (
         // Tree: hierarchical rows carrying a self-referential `children` list
         <ScrollView>
@@ -311,6 +437,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           <View>
             {/* Table header — tapping a sortable column cycles the sort */}
             <View style={styles.tableHeader}>
+              {rowsSelectionEnabled && (
+                <TouchableOpacity style={styles.checkboxCell} onPress={toggleAll}>
+                  <Text style={styles.checkboxText}>{allSelected ? '☑' : '☐'}</Text>
+                </TouchableOpacity>
+              )}
               {colDefs.map((col) => (
                 <TouchableOpacity
                   key={col.fieldId}
@@ -327,25 +458,58 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
               {editableCols.length > 0 && <View style={styles.editHeaderCell} />}
             </View>
 
-            {/* Rows: tapping one opens its detail (link action / primary row action). */}
+            {/* Rows: tapping one opens its detail (link action / primary row action).
+                Group header rows (groupBy) are presentation-only — no press, no selection. */}
             <FlatList
-              data={rawRows}
+              data={displayRows}
               keyExtractor={(_, i) => String(i)}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.tableRow} onPress={() => handleRowPress(item)}>
-                  {colDefs.map((col) => (
-                    <View key={col.fieldId} style={styles.cell}>
-                      <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId])}</Text>
-                    </View>
-                  ))}
-                  {editableCols.length > 0 && (
-                    <TouchableOpacity style={styles.editPencilCell} onPress={() => setEditingRow(item)}>
-                      <Text style={styles.editPencilText}>✎</Text>
-                    </TouchableOpacity>
-                  )}
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) =>
+                isGroupRow(item) ? (
+                  <View style={[styles.tableRow, styles.groupTableRow]}>
+                    {rowsSelectionEnabled && <View style={styles.checkboxCell} />}
+                    {colDefs.map((col) => (
+                      <View key={col.fieldId} style={styles.cell}>
+                        <Text style={styles.groupCellText} numberOfLines={1}>
+                          {groupRowCellText(item, asAggregatable(col), labelColumnId)}
+                        </Text>
+                      </View>
+                    ))}
+                    {editableCols.length > 0 && <View style={styles.editHeaderCell} />}
+                  </View>
+                ) : (
+                  <TouchableOpacity style={styles.tableRow} onPress={() => handleRowPress(item)}>
+                    {rowsSelectionEnabled && (
+                      <TouchableOpacity style={styles.checkboxCell} onPress={() => toggleRow(item)}>
+                        <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
+                      </TouchableOpacity>
+                    )}
+                    {colDefs.map((col) => (
+                      <View key={col.fieldId} style={styles.cell}>
+                        <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId])}</Text>
+                      </View>
+                    ))}
+                    {editableCols.length > 0 && (
+                      <TouchableOpacity style={styles.editPencilCell} onPress={() => setEditingRow(item)}>
+                        <Text style={styles.editPencilText}>✎</Text>
+                      </TouchableOpacity>
+                    )}
+                  </TouchableOpacity>
+                )
+              }
             />
+
+            {/* Totals footer: whole-filtered-set aggregates, pinned under the rows. */}
+            {!!footers && (
+              <View style={[styles.tableRow, styles.totalsTableRow]}>
+                {rowsSelectionEnabled && <View style={styles.checkboxCell} />}
+                {colDefs.map((col) => (
+                  <View key={col.fieldId} style={styles.cell}>
+                    <Text style={styles.totalsCellText} numberOfLines={1}>{footers[col.fieldId] ?? ''}</Text>
+                  </View>
+                ))}
+                {editableCols.length > 0 && <View style={styles.editHeaderCell} />}
+              </View>
+            )}
           </View>
         </ScrollView>
       )}
@@ -597,4 +761,20 @@ const styles = StyleSheet.create({
   editPencilCell: { width: 44, alignItems: 'center', justifyContent: 'center' },
   editPencilCard: { position: 'absolute', top: 8, right: 8, zIndex: 2, padding: 4 },
   editPencilText: { fontSize: 16, color: '#0070f3' },
+  // bulk row selection
+  checkboxCell: { width: 40, alignItems: 'center', justifyContent: 'center' },
+  checkboxCard: { position: 'absolute', top: 8, left: 8, zIndex: 2, padding: 4 },
+  checkboxList: { paddingLeft: 12, justifyContent: 'center' },
+  checkboxText: { fontSize: 18, color: '#0070f3' },
+  cardLineSelectable: { paddingLeft: 28 },
+  listRowWrap: { flexDirection: 'row', alignItems: 'stretch' },
+  // groups + totals
+  groupTableRow: { backgroundColor: '#eef4fb' },
+  groupCellText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
+  totalsTableRow: { backgroundColor: '#f5f5f5', borderTopWidth: 1, borderTopColor: '#ddd' },
+  totalsCellText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
+  groupBand: { backgroundColor: '#eef4fb', paddingHorizontal: 12, paddingVertical: 8, marginTop: 8 },
+  groupBandText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
+  totalsBand: { backgroundColor: '#f5f5f5', borderTopWidth: 1, borderTopColor: '#ddd', paddingHorizontal: 12, paddingVertical: 8 },
+  totalsBandText: { fontSize: 13, fontWeight: '700', color: '#1a1a1a' },
 });

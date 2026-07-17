@@ -31,6 +31,15 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         com.intellij.ide.ActivityTracker.getInstance().inc()
     }
     val sidebar = verticalPanel(4)
+    // ⌘K global search (App.globalSearchEnabled): a search field at the very top of the navigator
+    // mixing menu-entry matches with the app-level _globalsearch entity hits.
+    if (metadata.bool("globalSearchEnabled")) {
+        sidebar.addStacked(globalSearch(r.ctx, metadata), 2)
+    }
+    // Notification inbox bell (App.notificationsEnabled), with its unread-count badge.
+    if (metadata.bool("notificationsEnabled")) {
+        sidebar.addStacked(notificationBell(r.ctx, metadata), 2)
+    }
     // @AppContext selectors: one combo per selector at the top of the navigator; picking a value
     // fixes it in the appState sent with every request and reloads the app shell.
     val selectors = metadata.path("contextSelectors")

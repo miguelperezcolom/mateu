@@ -92,17 +92,23 @@ class MateuProjectService(private val project: Project) {
         // The toolbar widget and the menu-derived IDE actions find the session via the project.
         project.putUserData(MATEU_SESSION, s)
         s.onAppMenuChanged = { MateuMenuActions.sync(s) }
-        // Backend messages (toasts on the web) surface as IDE notifications.
-        s.notifier = { title, text, variant ->
+        // Backend messages (toasts on the web) surface as IDE notifications. Undoable toasts
+        // (MessageDto.undoActionId) carry an expiring action link dispatching the reverse action.
+        s.notifier = { title, text, variant, undo ->
             val type = when (variant) {
                 "error" -> NotificationType.ERROR
                 "warning" -> NotificationType.WARNING
                 else -> NotificationType.INFORMATION
             }
-            NotificationGroupManager.getInstance()
+            val notification = NotificationGroupManager.getInstance()
                 .getNotificationGroup("Mateu")
                 .createNotification(title ?: "Mateu", text, type)
-                .notify(project)
+            if (undo != null) {
+                notification.addAction(
+                    com.intellij.notification.NotificationAction.createSimpleExpiring(undo.first) { undo.second() },
+                )
+            }
+            notification.notify(project)
         }
 
         val ctx = AppContext(s)

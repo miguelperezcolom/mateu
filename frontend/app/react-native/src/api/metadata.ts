@@ -529,3 +529,32 @@ export interface ProcessMonitor {
   type?: 'ProcessMonitor';
   items?: ProcessItem[];
 }
+
+// Planning board / tape chart (PlanningBoardDto): rows = resources (optional group swimlane
+// captions), columns = days, colored blocks spanning date ranges. Dates are ISO-8601
+// (YYYY-MM-DD); block start/end are inclusive.
+export interface PlanningResource {
+  id?: string;
+  label?: string;
+  group?: string;
+}
+
+export interface PlanningBlock {
+  id?: string;
+  resourceId?: string;
+  start?: string; // ISO date, inclusive
+  end?: string; // ISO date, inclusive
+  label?: string;
+  color?: string;
+  status?: string;
+}
+
+export interface PlanningBoard {
+  type?: 'PlanningBoard';
+  resources?: PlanningResource[];
+  blocks?: PlanningBlock[];
+  from?: string;
+  to?: string;
+  moveActionId?: string; // drag-to-move — not supported on native (read-only board)
+  selectActionId?: string;
+}

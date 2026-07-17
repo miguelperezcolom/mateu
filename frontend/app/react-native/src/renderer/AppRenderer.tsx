@@ -38,9 +38,30 @@ interface AppMeta {
   homeConsumedRoute?: string;
   homeServerSideType?: string;
   serverSideType?: string;
+  rootRoute?: string;
   variant?: string;
   menu?: MenuItem[];
   contextSelectors?: AppContextSelector[];
+  notificationsEnabled?: boolean;
+  globalSearchEnabled?: boolean;
+}
+
+/** One inbox entry as served by the _notifications-list / _notifications-read actions. */
+interface AppNotification {
+  id: string;
+  title: string;
+  text?: string | null;
+  route?: string | null;
+  unread: boolean;
+  when?: string | null;
+}
+
+/** One entity hit as served by the app-level _globalsearch action. */
+interface GlobalSearchHit {
+  label: string;
+  description?: string | null;
+  route: string;
+  category?: string | null;
 }
 
 /**
@@ -222,6 +243,226 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
   );
 }
 
+/** Dispatches an APP-LEVEL action (the same rail as the @AppContext pickers' remote search:
+ *  route = the app's root/home route, serverSideType = the app class) and returns the response's
+ *  fragments. Used by the notification bell (_notifications-*) and the global search. */
+async function runAppLevelAction(
+  api: import('../api/MateuApiClient').MateuApiClient,
+  appState: Record<string, unknown>,
+  appMeta: AppMeta,
+  actionId: string,
+  parameters: Record<string, unknown>,
+  initiatorComponentId: string,
+): Promise<{ data?: Record<string, unknown> }[]> {
+  const route = appMeta.rootRoute ?? appMeta.homeRoute ?? '';
+  const increment = await api.runAction({
+    route,
+    consumedRoute: route || '_empty',
+    actionId,
+    serverSideType: appMeta.serverSideType ?? null,
+    initiatorComponentId,
+    componentState: {},
+    appState,
+    parameters,
+  });
+  return (increment as { fragments?: { data?: Record<string, unknown> }[] })?.fragments ?? [];
+}
+
+/**
+ * Notification inbox (App.notificationsEnabled — the app class implements NotificationsSupplier),
+ * rendered at the top of the drawer next to the @AppContext selectors: a bell row with an
+ * unread-count badge expanding an inbox panel (the drawer idiom the context selectors use).
+ * Data comes from the app-level _notifications-list / _notifications-read actions; entry click
+ * marks that id read and navigates to the entry's route; "Mark all read" sends {ids:"all"}.
+ */
+function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
+  const { api, appState } = useAppContext();
+  const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+
+  const refresh = React.useCallback(async () => {
+    try {
+      const fragments = await runAppLevelAction(api, appState, appMeta, '_notifications-list', {}, 'notification-bell');
+      for (const fragment of fragments) {
+        const list = fragment.data?.['_notifications'];
+        if (Array.isArray(list)) {
+          setNotifications(list as AppNotification[]);
+          return;
+        }
+      }
+    } catch {
+      // inbox unavailable: keep whatever list we had
+    }
+  }, [api, appState, appMeta]);
+
+  const markRead = async (ids: string[] | 'all') => {
+    try {
+      const fragments = await runAppLevelAction(api, appState, appMeta, '_notifications-read', { ids }, 'notification-bell');
+      for (const fragment of fragments) {
+        const list = fragment.data?.['_notifications'];
+        if (Array.isArray(list)) {
+          setNotifications(list as AppNotification[]);
+          return;
+        }
+      }
+    } catch {
+      // keep the current list
+    }
+  };
+
+  // fetch once on mount so the badge knows the unread count
+  React.useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  const entryPressed = async (notification: AppNotification) => {
+    if (notification.unread) await markRead([notification.id]);
+    if (notification.route) {
+      setOpen(false);
+      onNavigate({ label: notification.title, route: notification.route, consumedRoute: '', serverSideType: '' });
+    }
+  };
+
+  const unread = notifications.filter((n) => n.unread).length;
+
+  return (
+    <View>
+      <TouchableOpacity
+        style={styles.contextRow}
+        onPress={() => {
+          const next = !open;
+          setOpen(next);
+          // the count from the last fetch may be stale — refetch each time the panel opens
+          if (next) void refresh();
+        }}
+      >
+        <Text style={styles.contextLabel}>🔔 NOTIFICATIONS</Text>
+        <View style={styles.bellRight}>
+          {unread > 0 && (
+            <View style={styles.bellBadge}>
+              <Text style={styles.bellBadgeText}>{unread > 99 ? '99+' : unread}</Text>
+            </View>
+          )}
+          <Text style={styles.contextValue}>{open ? '▾' : '▸'}</Text>
+        </View>
+      </TouchableOpacity>
+      {open && (
+        <View>
+          {notifications.length === 0 && <Text style={styles.bellEmpty}>No notifications</Text>}
+          {notifications.map((n, i) => (
+            <TouchableOpacity key={n.id ?? i} style={styles.bellEntry} onPress={() => void entryPressed(n)}>
+              <View style={[styles.bellDot, n.unread && styles.bellDotUnread]} />
+              <View style={styles.bellEntryBody}>
+                <View style={styles.bellEntryTop}>
+                  <Text style={[styles.bellEntryTitle, n.unread && styles.bellEntryTitleUnread]} numberOfLines={1}>
+                    {n.title}
+                  </Text>
+                  {!!n.when && <Text style={styles.bellEntryWhen}>{n.when}</Text>}
+                </View>
+                {!!n.text && <Text style={styles.bellEntryText} numberOfLines={1}>{n.text}</Text>}
+              </View>
+            </TouchableOpacity>
+          ))}
+          {notifications.length > 0 && (
+            <TouchableOpacity style={styles.bellMarkAll} disabled={unread === 0} onPress={() => void markRead('all')}>
+              <Text style={[styles.bellMarkAllText, unread === 0 && styles.bellMarkAllDisabled]}>Mark all read</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+      <View style={styles.separator} />
+    </View>
+  );
+}
+
+/**
+ * Global search (App.globalSearchEnabled — the ⌘K command palette on the web): a search box atop
+ * the drawer menu mixing (a) the app's menu entries, matched client-side, and (b) entity hits
+ * from the app-level _globalsearch action (parameters {searchText}, debounced ~300ms). Tapping
+ * either navigates through the same path as a menu click.
+ */
+function GlobalSearchBox({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void }) {
+  const { api, appState } = useAppContext();
+  const [query, setQuery] = useState('');
+  const [hits, setHits] = useState<GlobalSearchHit[]>([]);
+  const searchTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const remoteSearch = (text: string) => {
+    runAppLevelAction(api, appState, appMeta, '_globalsearch', { searchText: text }, 'cmd-palette')
+      .then((fragments) => {
+        for (const fragment of fragments) {
+          const list = fragment.data?.['_globalsearch'];
+          if (Array.isArray(list)) {
+            setHits(list as GlobalSearchHit[]);
+            return;
+          }
+        }
+        setHits([]);
+      })
+      .catch(() => setHits([]));
+  };
+
+  const onInput = (text: string) => {
+    setQuery(text);
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    if (!text.trim()) {
+      setHits([]);
+      return;
+    }
+    searchTimer.current = setTimeout(() => remoteSearch(text.trim()), 300);
+  };
+
+  const text = query.trim().toLowerCase();
+  const menuMatches = text
+    ? flattenMenuItems(appMeta.menu ?? []).filter((item) => (item.label ?? '').toLowerCase().includes(text))
+    : [];
+
+  const pick = (item: MenuItem) => {
+    setQuery('');
+    setHits([]);
+    onNavigate(item);
+  };
+
+  return (
+    <View>
+      <TextInput
+        style={styles.globalSearchInput}
+        placeholder="Search…"
+        placeholderTextColor="#8a97a5"
+        value={query}
+        onChangeText={onInput}
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
+      {!!text && (menuMatches.length > 0 || hits.length > 0) && (
+        <View style={styles.globalSearchResults}>
+          {menuMatches.map((item, i) => (
+            <TouchableOpacity key={`menu-${i}`} style={styles.globalSearchHit} onPress={() => pick(item)}>
+              <Text style={styles.globalSearchHitLabel} numberOfLines={1}>{item.label}</Text>
+              <Text style={styles.globalSearchHitCategory}>Menu</Text>
+            </TouchableOpacity>
+          ))}
+          {hits.map((hit, i) => (
+            <TouchableOpacity
+              key={`hit-${i}`}
+              style={styles.globalSearchHit}
+              onPress={() => pick({ label: hit.label, route: hit.route, consumedRoute: '', serverSideType: '' })}
+            >
+              <View style={styles.globalSearchHitBody}>
+                <Text style={styles.globalSearchHitLabel} numberOfLines={1}>{hit.label}</Text>
+                {!!hit.description && (
+                  <Text style={styles.globalSearchHitDescription} numberOfLines={1}>{hit.description}</Text>
+                )}
+              </View>
+              {!!hit.category && <Text style={styles.globalSearchHitCategory}>{hit.category}</Text>}
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
 // Drawer content with sidebar menu
 function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void; onContextChanged: () => void }) {
   const renderItems = (items: MenuItem[], depth = 0): React.ReactNode[] => {
@@ -249,6 +490,8 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
   return (
     <DrawerContentScrollView style={styles.sidebar}>
       <Text style={styles.sidebarTitle}>{appMeta.title ?? 'Mateu'}</Text>
+      {appMeta.globalSearchEnabled === true && <GlobalSearchBox appMeta={appMeta} onNavigate={onNavigate} />}
+      {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
     </DrawerContentScrollView>
@@ -431,4 +674,29 @@ const styles = StyleSheet.create({
   contextSearch: { marginHorizontal: 20, marginBottom: 4, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: 6, color: '#ffffff', fontSize: 13 },
   contextOptionText: { color: '#d5e2ec', fontSize: 14 },
   contextOptionSelected: { fontWeight: '700', color: '#fff' },
+  // notification bell (drawer inbox)
+  bellRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  bellBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#d32f2f', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  bellBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  bellEmpty: { color: '#8a97a5', fontSize: 13, paddingLeft: 32, paddingVertical: 8 },
+  bellEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 8, paddingLeft: 20, paddingRight: 20 },
+  bellDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'transparent', marginTop: 5 },
+  bellDotUnread: { backgroundColor: '#4da3ff' },
+  bellEntryBody: { flex: 1, minWidth: 0 },
+  bellEntryTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  bellEntryTitle: { flex: 1, color: '#d5e2ec', fontSize: 13 },
+  bellEntryTitleUnread: { fontWeight: '700', color: '#fff' },
+  bellEntryWhen: { color: '#8a97a5', fontSize: 11 },
+  bellEntryText: { color: '#aac0d0', fontSize: 12, marginTop: 1 },
+  bellMarkAll: { paddingVertical: 8, paddingLeft: 32 },
+  bellMarkAllText: { color: '#4da3ff', fontSize: 13, fontWeight: '600' },
+  bellMarkAllDisabled: { color: '#5a6e80' },
+  // global search (drawer command palette)
+  globalSearchInput: { marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: 6, color: '#ffffff', fontSize: 13 },
+  globalSearchResults: { marginBottom: 4 },
+  globalSearchHit: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 20 },
+  globalSearchHitBody: { flex: 1, minWidth: 0 },
+  globalSearchHitLabel: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  globalSearchHitDescription: { color: '#aac0d0', fontSize: 11, marginTop: 1 },
+  globalSearchHitCategory: { color: '#8a97a5', fontSize: 10, fontWeight: '600', textTransform: 'uppercase' },
 });

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { MateuSession, NavTarget } from '../core/MateuSession';
+import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
 import { ComponentRenderer } from './ComponentRenderer';
 
@@ -20,6 +20,9 @@ interface Props {
   target?: NavTarget;
   /** An inline ServerSide node to mount (embedded islands, overlay contents). */
   serverSideNode?: unknown;
+  /** Opener navigation context for overlay contents: seeds the controller's route/serverSideType
+   *  so a ClientSide overlay (e.g. a conflict dialog) dispatches actions on the initiator. */
+  overlayOpener?: OverlayOpenerContext;
   /** Detail navigations (row → detail/new/edit) push a new screen through this. */
   onOpenDetail?: (target: NavTarget) => void;
   /** Errors shown as inline text instead of toasts (embedded islands). */
@@ -33,7 +36,7 @@ interface Props {
  * increment application. The controller is exposed through [useViewController] so every renderer
  * in the subtree shares the same live component state and action pipeline.
  */
-export function MateuViewHost({ session, target, serverSideNode, onOpenDetail, silent, onController }: Props) {
+export function MateuViewHost({ session, target, serverSideNode, overlayOpener, onOpenDetail, silent, onController }: Props) {
   const controller = useMemo(() => new MateuViewController(session), [session]);
   const [view, setView] = useState<RenderedView>(controller.rendered);
 
@@ -44,6 +47,13 @@ export function MateuViewHost({ session, target, serverSideNode, onOpenDetail, s
     controller.confirmDiscard = () => session.confirmDiscard();
     onController?.(controller);
     if (serverSideNode) {
+      if (overlayOpener) {
+        // seed the opener's navigation context: a ClientSide overlay content carries no
+        // route/serverSideType of its own, and mountServerSide keeps these as fallbacks
+        controller.currentRoute = overlayOpener.route;
+        controller.currentConsumedRoute = overlayOpener.consumedRoute;
+        controller.currentServerSideType = overlayOpener.serverSideType;
+      }
       controller.mountServerSide(serverSideNode);
     } else if (target) {
       void controller.navigate(target.route, target.consumedRoute, target.serverSideType);

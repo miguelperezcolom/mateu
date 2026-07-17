@@ -54,6 +54,7 @@ export class MateuViewController {
   // Action metadata of the currently-loaded server-side component.
   private currentComponentActions: string[] = [];
   private actionValidationRequired: Record<string, boolean> = {};
+  private actionRowsSelectedRequired: Record<string, boolean> = {};
   private actionBubble: Record<string, boolean> = {};
   private currentValidations: Json[] = [];
   /** Client-side rules of the current component (RuleMapper wire shape). */
@@ -150,6 +151,16 @@ export class MateuViewController {
       this.setDirty(false);
     }
 
+    // Bulk actions (@Action(rowsSelectedRequired)): don't dispatch on an empty selection —
+    // same client-side guard (and message) as the web's mateu-component.
+    if (this.actionRowsSelectedRequired[actionId] === true) {
+      const selection = this.currentComponentState['crud_selected_items'];
+      if (!Array.isArray(selection) || selection.length === 0) {
+        this.session.notify(null, 'You first need to select some rows', 'warning');
+        return;
+      }
+    }
+
     // Client-side validation: flagged actions and bubbled crud submits (the mediator's flags are
     // invisible to us — its validating set is stable framework knowledge).
     const requiresValidation =
@@ -221,16 +232,19 @@ export class MateuViewController {
   private captureComponentContext(sscNode: Json): void {
     const actions: string[] = [];
     const validationFlags: Record<string, boolean> = {};
+    const rowsSelectedFlags: Record<string, boolean> = {};
     const bubbleFlags: Record<string, boolean> = {};
     for (const a of asArray(sscNode['actions'])) {
       const id = str(a['id']);
       if (!id) continue;
       actions.push(id);
       validationFlags[id] = a['validationRequired'] === true;
+      rowsSelectedFlags[id] = a['rowsSelectedRequired'] === true;
       bubbleFlags[id] = a['bubble'] === true;
     }
     this.currentComponentActions = actions;
     this.actionValidationRequired = validationFlags;
+    this.actionRowsSelectedRequired = rowsSelectedFlags;
     this.actionBubble = bubbleFlags;
     this.currentValidations = asArray(sscNode['validations']);
     this.currentRules = asArray(sscNode['rules']);
@@ -413,8 +427,23 @@ export class MateuViewController {
       const text = str(msg['text']);
       if (!text) continue;
       const variant = (str(msg['variant']) || 'info') as 'info' | 'warning' | 'error';
-      if (this.silentErrors) console.log(`[Mateu] ${variant}: ${text}`);
-      else this.session.notify(str(msg['title']) || null, text, variant);
+      if (this.silentErrors) {
+        console.log(`[Mateu] ${variant}: ${text}`);
+        continue;
+      }
+      // Undoable message (Message.undoActionId): the toast's Undo button dispatches the reverse
+      // action on THIS controller — the initiator whose action produced the message.
+      const undoActionId = str(msg['undoActionId']);
+      const duration = Number(msg['duration']) || 0;
+      this.session.notify(str(msg['title']) || null, text, variant, {
+        duration: duration > 0 ? duration : undefined,
+        undo: undoActionId
+          ? {
+              label: str(msg['undoLabel']) || 'Undo',
+              onPress: () => void this.runAction(undoActionId, (msg['undoParameters'] as Json) ?? {}),
+            }
+          : undefined,
+      });
     }
 
     for (const cmd of asArray(increment['commands'])) this.handleCommand(cmd);
@@ -439,10 +468,15 @@ export class MateuViewController {
     const state = (fragment['state'] as Json) ?? null;
     const data = fragment['data'];
 
-    // Overlay fragments (action Add + Drawer/Dialog) stack over the page.
+    // Overlay fragments (action Add + Drawer/Dialog) stack over the page. The opener context
+    // lets a ClientSide overlay content dispatch its actions against THIS view's component.
     const overlayType = component ? str((component['metadata'] as Json)?.['type']) : '';
     if (action.toLowerCase() === 'add' && (overlayType === 'Drawer' || overlayType === 'Dialog')) {
-      this.session.openOverlay(component, state, data);
+      this.session.openOverlay(component, state, data, {
+        route: this.currentRoute,
+        consumedRoute: this.currentConsumedRoute,
+        serverSideType: this.currentServerSideType,
+      });
       return;
     }
 

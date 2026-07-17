@@ -9,7 +9,9 @@ import javax.swing.JComponent
 
 /**
  * A Mateu button DTO → a Swing [JButton]. `actionId` (fallback `id`), `label` (fallback actionId),
- * `buttonStyle == "Primary"` → default button, `disabled`. Click dispatches through [AppContext.runAction].
+ * `buttonStyle == "Primary"` → default button, `disabled`. Click dispatches through
+ * [AppContext.runAction], passing the button's wire `parameters` (e.g. the conflict dialog's
+ * keep-mine/keep-theirs buttons) into the action.
  */
 fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
     val id = metadata.text("id")
@@ -21,6 +23,7 @@ fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
         button.putClientProperty("gotItButton", true)
         button.putClientProperty("JButton.buttonType", "default")
     }
-    button.addActionListener { ctx.runAction(actionId, null) }
+    val parameters = ctx.jsonToParams(metadata.path("parameters"))
+    button.addActionListener { ctx.runAction(actionId, parameters.ifEmpty { null }) }
     return button
 }

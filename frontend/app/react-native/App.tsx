@@ -42,21 +42,27 @@ interface Toast {
   title: string | null;
   text: string;
   variant: 'info' | 'warning' | 'error';
+  undo?: { label: string; onPress: () => void };
 }
 
-/** Non-blocking messages from the backend (toasts on the web) as stacked banners. */
+/** Non-blocking messages from the backend (toasts on the web) as stacked banners. Undoable
+ *  messages (Message.undoActionId) show an Undo button and stay long enough to press it. */
 function ToastHost() {
   const { session } = useAppContext();
   const [toasts, setToasts] = useState<Toast[]>([]);
   const nextId = useRef(1);
 
   useEffect(() => {
-    session.notify = (title, text, variant) => {
-      const toast: Toast = { id: nextId.current++, title, text, variant };
+    session.notify = (title, text, variant, options) => {
+      const toast: Toast = { id: nextId.current++, title, text, variant, undo: options?.undo };
       setToasts((t) => [...t, toast]);
-      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== toast.id)), 4000);
+      // undoable toasts default to 10s (like the web's SSEService) so the button can be pressed
+      const duration = options?.duration && options.duration > 0 ? options.duration : options?.undo ? 10000 : 4000;
+      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== toast.id)), duration);
     };
   }, [session]);
+
+  const dismiss = (id: number) => setToasts((t) => t.filter((x) => x.id !== id));
 
   if (toasts.length === 0) return null;
   return (
@@ -64,7 +70,20 @@ function ToastHost() {
       {toasts.map((t) => (
         <View key={t.id} style={[styles.toast, styles[`toast_${t.variant}`]]}>
           {!!t.title && <Text style={styles.toastTitle}>{t.title}</Text>}
-          <Text style={styles.toastText}>{t.text}</Text>
+          <View style={styles.toastBody}>
+            <Text style={[styles.toastText, styles.toastTextGrow]}>{t.text}</Text>
+            {!!t.undo && (
+              <TouchableOpacity
+                style={styles.toastUndo}
+                onPress={() => {
+                  t.undo!.onPress();
+                  dismiss(t.id);
+                }}
+              >
+                <Text style={styles.toastUndoText}>{t.undo.label}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       ))}
     </View>
@@ -94,13 +113,15 @@ function DirtyGuardHost() {
  *  closes them with UICommand.closeModal (its named event reaches @SubscribeTo hosts). */
 function OverlayHost() {
   const { session } = useAppContext();
-  const [overlays, setOverlays] = useState<{ component: unknown; title: string }[]>([]);
+  const [overlays, setOverlays] = useState<
+    { component: unknown; title: string; opener?: import('./src/core/MateuSession').OverlayOpenerContext }[]
+  >([]);
 
   useEffect(() => {
-    session.openOverlay = (component) => {
+    session.openOverlay = (component, _state, _data, opener) => {
       const meta = ((component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
       const title = (meta['headerTitle'] as string) ?? (meta['title'] as string) ?? '';
-      setOverlays((o) => [...o, { component, title }]);
+      setOverlays((o) => [...o, { component, title, opener }]);
     };
     session.closeTopOverlay = () => setOverlays((o) => o.slice(0, -1));
   }, [session]);
@@ -120,7 +141,7 @@ function OverlayHost() {
               <Text style={styles.overlayClose}>✕</Text>
             </TouchableOpacity>
           </View>
-          {content ? <MateuViewHost session={session} serverSideNode={content} /> : null}
+          {content ? <MateuViewHost session={session} serverSideNode={content} overlayOpener={top.opener} /> : null}
         </View>
       </View>
     </Modal>
@@ -325,6 +346,10 @@ const styles = StyleSheet.create({
   toast_error: { backgroundColor: '#fbe9e7' },
   toastTitle: { fontWeight: '700', fontSize: 13, color: '#1a1a1a', marginBottom: 2 },
   toastText: { fontSize: 13, color: '#1a1a1a' },
+  toastBody: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  toastTextGrow: { flex: 1 },
+  toastUndo: { borderWidth: 1, borderColor: '#1a1a1a', borderRadius: 4, paddingHorizontal: 10, paddingVertical: 3 },
+  toastUndoText: { fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
   overlayBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   overlaySheet: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '85%', minHeight: '50%' },
   overlayHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },

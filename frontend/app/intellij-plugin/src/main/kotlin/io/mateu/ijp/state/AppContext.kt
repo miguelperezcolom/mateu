@@ -18,6 +18,7 @@ data class ToolbarSpec(
     val label: String,
     val disabled: Boolean,
     val primary: Boolean,
+    val parameters: Map<String, Any?> = emptyMap(),
 )
 
 /**
@@ -225,6 +226,7 @@ class AppContext(val session: AppSession) {
                 label = b.text("label", actionId),
                 disabled = b.bool("disabled"),
                 primary = b.text("buttonStyle").equals("Primary", ignoreCase = true),
+                parameters = jsonToParams(b.path("parameters")),
             )
         }
         // Idempotent: an in-place re-render of the same view (state-only update, validation error)
@@ -240,6 +242,13 @@ class AppContext(val session: AppSession) {
     private var currentComponentValidations: JsonNode? = null
     private var currentActionValidationRequired: MutableMap<String, Boolean> = HashMap()
     private var currentActionBubble: MutableMap<String, Boolean> = HashMap()
+    private var currentActionRowsSelectedRequired: MutableMap<String, Boolean> = HashMap()
+
+    /** A wire `parameters` object node → a plain map (empty when absent / not an object). */
+    @Suppress("UNCHECKED_CAST")
+    fun jsonToParams(node: JsonNode?): Map<String, Any?> =
+        if (node != null && node.isObject) mapper.convertValue(node, Map::class.java) as Map<String, Any?>
+        else emptyMap()
 
     /** Inline field validation errors (fieldId → message), consumed by the form field renderer. */
     val currentFieldErrors: MutableMap<String, String> = HashMap()
@@ -412,6 +421,21 @@ class AppContext(val session: AppSession) {
             setDirtyState(false)
         }
 
+        // Bulk actions (ActionDto.rowsSelectedRequired): guarded client-side — with no rows
+        // selected show a notice (balloon) instead of dispatching, exactly like the web.
+        if (currentActionRowsSelectedRequired[actionId] == true) {
+            val selected = currentComponentState["crud_selected_items"]
+            val empty = when (selected) {
+                is Collection<*> -> selected.isEmpty()
+                is JsonNode -> !selected.isArray || selected.isEmpty
+                else -> true
+            }
+            if (empty) {
+                showMessage("You first need to select some rows", "warning")
+                return
+            }
+        }
+
         // Client-side validation: actions flagged validationRequired only fire if every validation
         // condition holds; otherwise surface inline field errors and re-render in place. Unowned
         // SUBMIT actions bubble to the crud mediator, whose flags we never see (the plugin loads
@@ -454,6 +478,7 @@ class AppContext(val session: AppSession) {
         val actions = ArrayList<String>()
         val validationFlags = HashMap<String, Boolean>()
         val bubbleFlags = HashMap<String, Boolean>()
+        val rowsSelectedFlags = HashMap<String, Boolean>()
         val actionNodes = sscNode.path("actions")
         if (actionNodes.isArray) {
             for (a in actionNodes) {
@@ -462,12 +487,14 @@ class AppContext(val session: AppSession) {
                     actions.add(id)
                     validationFlags[id] = a.bool("validationRequired")
                     bubbleFlags[id] = a.bool("bubble")
+                    rowsSelectedFlags[id] = a.bool("rowsSelectedRequired")
                 }
             }
         }
         currentComponentActions = actions
         currentActionValidationRequired = validationFlags
         currentActionBubble = bubbleFlags
+        currentActionRowsSelectedRequired = rowsSelectedFlags
         currentComponentValidations = sscNode.path("validations")
         currentRules = sscNode.path("rules").takeIf { it.isArray && it.size() > 0 }
         fieldAttributes.clear()
@@ -656,7 +683,17 @@ class AppContext(val session: AppSession) {
                 val text = msg.text("text")
                 val variant = msg.text("variant", "info")
                 val title = msg.text("title")
-                if (text.isNotBlank()) SwingUtilities.invokeLater { showMessage(text, variant, title) }
+                // Undoable toast (MessageDto.undoActionId): an Undo action link on the balloon
+                // dispatching the reverse action (with undoParameters) on THIS context — the
+                // initiator component whose action produced the message.
+                val undoActionId = msg.text("undoActionId")
+                val undo: Pair<String, () -> Unit>? = if (undoActionId.isNotBlank()) {
+                    val undoParams = jsonToParams(msg.path("undoParameters"))
+                    msg.text("undoLabel").ifBlank { "Undo" } to { runAction(undoActionId, undoParams) }
+                } else {
+                    null
+                }
+                if (text.isNotBlank()) SwingUtilities.invokeLater { showMessage(text, variant, title, undo) }
             }
         }
 
@@ -1109,21 +1146,30 @@ class AppContext(val session: AppSession) {
         }
     }
 
-    private fun showMessage(text: String, variant: String, title: String = "") {
+    private fun showMessage(text: String, variant: String, title: String = "", undo: Pair<String, () -> Unit>? = null) {
         if (silentErrors) { println("[Mateu] $variant: $text"); return }
         // The IDE way: non-blocking balloons through the host's Notifications channel.
-        session.notifier?.let { it(title.ifBlank { null }, text, variant); return }
+        session.notifier?.let { it(title.ifBlank { null }, text, variant, undo); return }
         val type = when (variant) {
             "error" -> JOptionPane.ERROR_MESSAGE
             "warning" -> JOptionPane.WARNING_MESSAGE
             else -> JOptionPane.INFORMATION_MESSAGE
+        }
+        if (undo != null) {
+            // Dialog fallback (standalone probes): offer the undo as a second option.
+            val choice = JOptionPane.showOptionDialog(
+                session.frame, text, "Mateu", JOptionPane.YES_NO_OPTION, type, null,
+                arrayOf("OK", undo.first), "OK",
+            )
+            if (choice == JOptionPane.NO_OPTION) undo.second()
+            return
         }
         JOptionPane.showMessageDialog(session.frame, text, "Mateu", type)
     }
 
     private fun showError(message: String?) {
         if (silentErrors) { println("[Mateu] error: $message"); return }
-        session.notifier?.let { it(null, message ?: "Error", "error"); return }
+        session.notifier?.let { it(null, message ?: "Error", "error", null); return }
         JOptionPane.showMessageDialog(session.frame, message ?: "Error", "Error", JOptionPane.ERROR_MESSAGE)
     }
 
