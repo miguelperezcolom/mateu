@@ -110,6 +110,12 @@ final class ListingColumnBuilder {
         .editable(editable)
         .editorType(editable ? GridColumnBuilder.getEditorType(field) : null)
         .editorOptions(editable ? GridColumnBuilder.getEditorOptions(field) : null)
+        .aggregate(
+            MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Aggregate.class)
+                ? MetaAnnotations.find(field, io.mateu.uidl.annotations.Aggregate.class)
+                    .value()
+                    .name()
+                : null)
         .build();
   }
 

@@ -58,7 +58,11 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     // custom repositories can apply field-level filtering. Subclasses with their own filters type
     // must override fetchRows to apply them — forwarding an incompatible type would CCE in find().
     T rowFilters = entityClass().isInstance(filters) ? (T) filters : null;
-    return new ListingData<>(repository().find(searchText, rowFilters, pageable));
+    var spec = ListingSummarySpec.of(rowClass());
+    var data =
+        new ListingData<>(
+            repository().find(searchText, rowFilters, spec.prependGroupSort(pageable)));
+    return withSummaries(data, spec, searchText, rowFilters, List.of());
   }
 
   /**
@@ -77,7 +81,30 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
       return fetchRows(searchText, filters, pageable, httpRequest);
     }
     T rowFilters = entityClass().isInstance(filters) ? (T) filters : null;
-    return new ListingData<>(repository().find(searchText, rowFilters, criteria, pageable));
+    var spec = ListingSummarySpec.of(rowClass());
+    var data =
+        new ListingData<>(
+            repository().find(searchText, rowFilters, criteria, spec.prependGroupSort(pageable)));
+    return withSummaries(data, spec, searchText, rowFilters, criteria);
+  }
+
+  /**
+   * Attaches the {@code @Aggregate} totals and {@code @GroupBy} group subtotals to the page —
+   * computed by {@link CrudRepository#summaries} over the WHOLE filtered set (in memory by default;
+   * repositories backed by a database override it with one aggregate query).
+   */
+  private ListingData<T> withSummaries(
+      ListingData<T> data,
+      ListingSummarySpec spec,
+      String searchText,
+      T rowFilters,
+      List<io.mateu.uidl.data.FilterCriterion> criteria) {
+    if (spec.isEmpty()) {
+      return data;
+    }
+    var summaries =
+        repository().summaries(searchText, rowFilters, criteria, spec.aggregates(), spec.groupBy());
+    return data.withAggregates(summaries.totals()).withGroups(summaries.groups());
   }
 
   public AutoNamedView<T> buildNamedView(String id, HttpRequest httpRequest) {
@@ -153,6 +180,8 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @SuppressWarnings("unchecked")
   public Object updateRow(Map<String, Object> row, HttpRequest httpRequest) {
     var entity = (T) MateuInstanceFactory.newInstance(entityClass(), row, httpRequest);
+    OptimisticLock.check(entity, repository().findById(entity.id()), httpRequest);
+    OptimisticLock.bump(entity);
     repository().save(entity);
     return io.mateu.uidl.data.Message.success("Saved");
   }

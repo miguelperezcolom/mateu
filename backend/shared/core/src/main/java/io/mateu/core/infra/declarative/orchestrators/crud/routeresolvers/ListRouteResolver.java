@@ -134,6 +134,10 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                     .toolbar(toolbar)
                     .searchable(orchestrator.searchable())
                     .rowsSelectionEnabled(orchestrator.selectionEnabled())
+                    .groupBy(
+                        io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec.of(
+                                orchestrator.rowClass())
+                            .groupBy())
                     .columns(columns)
                     .filters(
                         getFilters(

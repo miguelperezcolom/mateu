@@ -29,7 +29,8 @@ public record GridColumn(
     boolean editable,
     String editorType,
     List<Option> editorOptions,
-    Double weight)
+    Double weight,
+    String aggregate)
     implements GridContent {
 
   public FieldDataType dataType() {

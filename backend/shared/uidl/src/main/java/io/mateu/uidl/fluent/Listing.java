@@ -47,7 +47,8 @@ public record Listing(
     String contentHeight,
     int initialPage,
     FiltersLayout filtersLayout,
-    GridLayout gridLayout)
+    GridLayout gridLayout,
+    String groupBy)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

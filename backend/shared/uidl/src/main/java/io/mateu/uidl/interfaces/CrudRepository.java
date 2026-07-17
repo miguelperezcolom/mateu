@@ -8,6 +8,7 @@ import io.mateu.uidl.data.Sort;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -82,6 +83,95 @@ public interface CrudRepository<T extends Identifiable> {
     int from = Math.min(pageNumber * pageSize, all.size());
     int to = Math.min(from + pageSize, all.size());
     return new Page<>("", pageSize, pageNumber, all.size(), all.subList(from, to));
+  }
+
+  /**
+   * Aggregation companion of {@link #find}: computes the {@code @Aggregate} totals over the WHOLE
+   * filtered result set (same search text, filters and criteria as the listing search — not just
+   * the visible page) plus, when {@code groupByField} is set, one {@link
+   * io.mateu.uidl.data.GroupSummary} per distinct value of that field (rows grouped after sorting
+   * by it, so the group order matches the listing's). The default runs in memory over {@link
+   * #findAll()} — same cost class as the default {@code find}; override it to run a single
+   * aggregate query in the database instead.
+   *
+   * @param aggregates the columns to aggregate: field name → function
+   * @param groupByField the {@code @GroupBy} field name, or null for totals only
+   */
+  default io.mateu.uidl.data.ListingSummaries summaries(
+      String searchText,
+      T filters,
+      List<FilterCriterion> criteria,
+      Map<String, io.mateu.uidl.data.AggregateFunction> aggregates,
+      String groupByField) {
+    var all =
+        findAll().stream()
+            .filter(item -> matchesSearchText(item, searchText))
+            .filter(matchesFilters(filters))
+            .filter(item -> matchesCriteria(item, criteria))
+            .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+    var totals = aggregateOver(all, aggregates);
+    List<io.mateu.uidl.data.GroupSummary> groups = List.of();
+    if (groupByField != null && !groupByField.isBlank()) {
+      var byGroup = new java.util.LinkedHashMap<String, List<Object>>();
+      all.stream()
+          .sorted(
+              Comparator.comparing(
+                  item -> String.valueOf(readProperty(item, groupByField)),
+                  String.CASE_INSENSITIVE_ORDER))
+          .forEach(
+              item ->
+                  byGroup
+                      .computeIfAbsent(
+                          String.valueOf(readProperty(item, groupByField)),
+                          key -> new ArrayList<>())
+                      .add(item));
+      groups =
+          byGroup.entrySet().stream()
+              .map(
+                  entry ->
+                      new io.mateu.uidl.data.GroupSummary(
+                          entry.getKey(),
+                          entry.getValue().size(),
+                          aggregateOver(entry.getValue(), aggregates)))
+              .toList();
+    }
+    return new io.mateu.uidl.data.ListingSummaries(totals, groups);
+  }
+
+  private static Map<String, Object> aggregateOver(
+      List<? extends Object> rows, Map<String, io.mateu.uidl.data.AggregateFunction> aggregates) {
+    if (aggregates == null || aggregates.isEmpty()) {
+      return Map.of();
+    }
+    var result = new java.util.LinkedHashMap<String, Object>();
+    aggregates.forEach(
+        (field, function) -> {
+          var values =
+              rows.stream()
+                  .map(row -> readProperty(row, field))
+                  .filter(value -> value != null)
+                  .toList();
+          if (function == io.mateu.uidl.data.AggregateFunction.count) {
+            result.put(field, (long) values.size());
+            return;
+          }
+          var numbers =
+              values.stream()
+                  .filter(value -> value instanceof Number)
+                  .map(value -> ((Number) value).doubleValue())
+                  .toList();
+          if (numbers.isEmpty()) {
+            return;
+          }
+          switch (function) {
+            case sum -> result.put(field, numbers.stream().mapToDouble(d -> d).sum());
+            case avg -> result.put(field, numbers.stream().mapToDouble(d -> d).average().orElse(0));
+            case min -> result.put(field, numbers.stream().mapToDouble(d -> d).min().orElse(0));
+            case max -> result.put(field, numbers.stream().mapToDouble(d -> d).max().orElse(0));
+            default -> {}
+          }
+        });
+    return result;
   }
 
   /**

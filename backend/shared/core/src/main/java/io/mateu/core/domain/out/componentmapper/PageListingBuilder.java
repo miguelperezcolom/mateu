@@ -55,6 +55,10 @@ public class PageListingBuilder {
         Listing.builder()
             .searchable(isSearchable(instance))
             .rowsSelectionEnabled(isRowSelectionEnabled(instance))
+            .groupBy(
+                io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec.of(
+                        getRowClass(instance))
+                    .groupBy())
             .filters(filters)
             .columns(
                 getColumns(

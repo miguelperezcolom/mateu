@@ -57,7 +57,8 @@ public record CrudlDto(
     String contentHeight,
     int initialPage,
     String filtersLayout,
-    String gridLayout)
+    String gridLayout,
+    String groupBy)
     implements ComponentMetadataDto {
 
   public CrudlDto {

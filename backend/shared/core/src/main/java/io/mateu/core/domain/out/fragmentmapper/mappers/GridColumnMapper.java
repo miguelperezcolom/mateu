@@ -55,6 +55,7 @@ public class GridColumnMapper {
                                     o.icon()))
                         .toList())
             .weight(gridColumn.weight())
+            .aggregate(gridColumn.aggregate())
             .build(),
         gridColumn.id(),
         List.of(),

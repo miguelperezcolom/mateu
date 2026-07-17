@@ -106,6 +106,9 @@ public class Home2 implements WidgetSupplier, io.mateu.uidl.interfaces.AppAction
     @Menu
     io.mateu.mdd.demoadminpanel.infra.in.ui.partialforms.PartialFormDemo partialForms;
 
+    @Menu
+    io.mateu.mdd.demoadminpanel.infra.in.ui.aggregates.SalesReport salesReport;
+
 
     // app header actions: buttons next to the @AppContext pickers; the dropdown's CHILDREN dispatch
     @Override

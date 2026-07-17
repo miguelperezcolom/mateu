@@ -136,6 +136,7 @@ public class CrudlMapper {
             .initialPage(crudl.initialPage())
             .filtersLayout(crudl.filtersLayout().name())
             .gridLayout(crudl.gridLayout().name())
+            .groupBy(crudl.groupBy())
             .build();
     return new ClientSideComponentDto(
         crudlDto,
