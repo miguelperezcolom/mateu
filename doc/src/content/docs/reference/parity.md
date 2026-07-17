@@ -147,13 +147,14 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ | ✅ |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
-| Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ | 🟡 | 🟡 |
+| Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
 | Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (shared bar; redwood: own bar) | — | — |
 | Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ | — | — |
-| Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | 🟡 | 🟡 |
-| Notification bell (inbox, unread count) | ✅ | ✅ | ✅ | 🟡 | 🟡 |
-| Undoable toasts (Undo button) | ✅ | ✅ | ✅ | 🟡 | 🟡 |
-| ⌘K palette entity search (GlobalSearchSupplier) | ✅ | — (own shells render no palette yet) | — | — | — |
+| Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Notification bell (inbox, unread count) | ✅ | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
+| Undoable toasts (Undo button) | ✅ | ✅ | ✅ | ✅ (balloon action) | ✅ (toast button) |
+| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | — (own shells render no palette yet) | — | ✅ sidebar search | ✅ drawer search |
+| Planning board (tape chart) | ✅ drag+select | ✅ | ✅ | 🟡 read-only (no drag) | 🟡 read-only (no drag) |
 | Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (shared api client) | — | — |
 | Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
