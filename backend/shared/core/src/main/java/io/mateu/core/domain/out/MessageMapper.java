@@ -82,6 +82,9 @@ public class MessageMapper {
         .title(message.title())
         .text(message.text())
         .duration(message.duration() > 0 ? message.duration() : 3000)
+        .undoLabel(message.undoLabel())
+        .undoActionId(message.undoActionId())
+        .undoParameters(message.undoParameters())
         .build();
   }
 }

@@ -14,4 +14,7 @@ public record MessageDto(
     NotificationPositionDto position,
     String title,
     String text,
-    int duration) {}
+    int duration,
+    String undoLabel,
+    String undoActionId,
+    java.util.Map<String, Object> undoParameters) {}

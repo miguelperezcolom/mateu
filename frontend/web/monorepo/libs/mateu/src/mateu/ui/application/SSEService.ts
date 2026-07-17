@@ -178,8 +178,52 @@ export class SSEService implements Service {
         return 'bottom-end'
     }
 
+    /**
+     * Undoable toast (Message.undoable on the server): text + an Undo button that dispatches the
+     * message's undoActionId on the INITIATOR component (which advertises the action), then closes.
+     * Built with a custom vaadin-notification renderer since Notification.show is text-only.
+     */
+    private showUndoableMessage(message: { text: string, position?: string, variant?: string, duration?: number, undoLabel?: string, undoActionId?: string, undoParameters?: Record<string, unknown> }, initiator: HTMLElement) {
+        const notification = new Notification()
+        notification.position = message.position ? this.mapPosition(message.position) : 'bottom-end'
+        notification.duration = message.duration ?? 10000
+        if (message.variant) notification.setAttribute('theme', message.variant)
+        notification.renderer = (root: HTMLElement) => {
+            if (root.firstElementChild) return
+            const text = document.createElement('span')
+            text.textContent = message.text
+            const undo = document.createElement('button')
+            undo.textContent = message.undoLabel ?? 'Undo'
+            undo.style.cssText = 'margin-left: 0.75rem; background: none; border: 1px solid currentColor;'
+                + ' border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer;'
+                + ' padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;'
+            undo.addEventListener('click', () => {
+                initiator.dispatchEvent(new CustomEvent('action-requested', {
+                    detail: {
+                        actionId: message.undoActionId,
+                        parameters: message.undoParameters ?? {}
+                    },
+                    bubbles: true,
+                    composed: true
+                }))
+                notification.opened = false
+            })
+            root.append(text, undo)
+        }
+        document.body.appendChild(notification)
+        notification.opened = true
+        notification.addEventListener('opened-changed', (e: Event) => {
+            if (!(e as CustomEvent).detail.value) notification.remove()
+        })
+    }
+
     handleUIIncrement = (uiIncrement: UIIncrement | undefined, initiator: HTMLElement, callbackToken: string) => {
         uiIncrement?.messages?.forEach(message => {
+            if (message.undoActionId) {
+                // undoable toast: an Undo button dispatching the reverse action on the initiator
+                this.showUndoableMessage(message, initiator)
+                return
+            }
             Notification.show(message.text, {
                 position: message.position?this.mapPosition(message.position):'bottom-end',
                 theme: message.variant,
