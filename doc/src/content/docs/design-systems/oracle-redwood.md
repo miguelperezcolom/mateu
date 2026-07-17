@@ -11,6 +11,10 @@ The Oracle Redwood renderer uses Oracle JET components. Use it when your UIs nee
 
 **Demo:** https://redwood.mateu.io/
 
+Redwood's RDS toolkit standardizes full-page **templates** (Collection Detail, General Overview,
+Guided Process, Create and Edit — Drawer…). Mateu builds those templates from the backend — see
+the [page templates map](/ux-patterns/page-templates/) for the template → archetype mapping.
+
 ## Add to your project
 
 ```xml

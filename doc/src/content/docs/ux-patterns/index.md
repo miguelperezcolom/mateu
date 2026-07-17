@@ -23,6 +23,9 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 
 ## Pattern catalogue
 
+Looking for **full-page templates** (record overview, collection detail, guided process, create
+and edit in a drawer…)? They have their own map: [Page templates](./page-templates).
+
 | Pattern | Status | Key primitive |
 |---------|--------|---------------|
 | [Navigation & Menus](./navigation) | ✅ Implemented | `@App(AppVariant.*)`, `⌘K` command palette |
