@@ -175,6 +175,31 @@ class RunnersAndMasterDetailSyncTest {
     assertThat(increment.fragments()).isNotEmpty();
   }
 
+  @Test
+  void theAuditListingGroupsBysaveMomentSoEachGroupReadsAsOneVersion() {
+    // AuditEntry.when carries @GroupBy: the history dialog groups the field-level changes by
+    // save moment — each group subtotal row IS one version of the record (old → new per field)
+    var increment = booking("history", Map.of());
+    var groupBy = new java.util.ArrayList<String>();
+    collectGroupBy(increment.fragments().get(0).component(), groupBy);
+    assertThat(groupBy).contains("when");
+  }
+
+  private static void collectGroupBy(Object component, java.util.List<String> found) {
+    if (component instanceof io.mateu.dtos.ClientSideComponentDto client) {
+      if (client.metadata() instanceof io.mateu.dtos.CrudlDto crudl && crudl.groupBy() != null) {
+        found.add(crudl.groupBy());
+      }
+      client.children().forEach(child -> collectGroupBy(child, found));
+      if (client.metadata() instanceof io.mateu.dtos.DialogDto dialog && dialog.content() != null) {
+        collectGroupBy(dialog.content(), found);
+      }
+    }
+    if (component instanceof io.mateu.dtos.ServerSideComponentDto server) {
+      server.children().forEach(child -> collectGroupBy(child, found));
+    }
+  }
+
   // ── uploads ─────────────────────────────────────────────────────────────────
 
   @Test
