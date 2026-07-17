@@ -73,10 +73,10 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
                                 Direction.valueOf((String) map.get("direction"))))
                     .toList()),
             httpRequest);
-    return new Data(
-        Map.of(
-            getCrudId(httpRequest),
-            found != null ? found : new ListingData(new Page("", 0, 0, 0, List.of()))));
+    var data = found != null ? found : new ListingData<Row>(new Page<>("", 0, 0, 0, List.of()));
+    // @GroupBy rows on a custom listing: synthesize the group summaries the grid needs when the
+    // implementation didn't compute them itself.
+    return new Data(Map.of(getCrudId(httpRequest), data.withSynthesizedGroups(rowClass())));
   }
 
   default Object handleActionOnRow(String methodName, HttpRequest httpRequest) {

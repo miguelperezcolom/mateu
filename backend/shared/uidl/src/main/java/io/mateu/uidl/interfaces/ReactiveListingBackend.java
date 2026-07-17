@@ -53,7 +53,9 @@ public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
                                 Direction.valueOf((String) map.get("direction"))))
                     .toList()),
             httpRequest)
-        .map(crudlData -> (Object) new Data(Map.of("crud", crudlData)))
+        .map(
+            crudlData ->
+                (Object) new Data(Map.of("crud", crudlData.withSynthesizedGroups(rowClass()))))
         .flux();
   }
 
