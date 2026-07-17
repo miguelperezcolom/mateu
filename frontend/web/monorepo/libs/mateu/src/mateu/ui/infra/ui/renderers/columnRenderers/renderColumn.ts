@@ -4,7 +4,8 @@ import { interpolate } from "@infra/ui/interpolation.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
-import { columnBodyRenderer, columnHeaderRenderer } from "@vaadin/grid/lit";
+import { columnBodyRenderer, columnFooterRenderer, columnHeaderRenderer } from "@vaadin/grid/lit";
+import { groupLabelColumnId, groupRowCellText, isGroupRow } from "@infra/ui/listingGroups.ts";
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";
 import { renderStatusCell } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
@@ -161,6 +162,14 @@ const renderEditableCell = (
 const headerRenderer = (label: string) =>
     columnHeaderRenderer(() => html`<span title="${label}" style="white-space:normal;overflow-wrap:break-word;">${label}</span>`, [label])
 
+// Totals row pinned at the bottom of the grid: the vaadin-grid-column footer shows the
+// column's formatted aggregate (or the "Total" label on the first column). No footer text →
+// no directive, so grids without aggregates keep their footer-less markup.
+const aggregateFooter = (footerText: string | undefined) =>
+    footerText !== undefined
+        ? columnFooterRenderer(() => html`<span style="font-weight: 600; white-space: nowrap;">${footerText}</span>`, [footerText])
+        : nothing
+
 const directionChanged = (event: GridSortColumnDirectionChangedEvent) => {
     event.preventDefault()
     event.stopPropagation()
@@ -180,7 +189,8 @@ export const renderGroup = (group: GridGroupColumn,
                             state: ComponentState,
                             data: ComponentData,
                             appState: ComponentState,
-                            appData: ComponentData) => {
+                            appData: ComponentData,
+                            footers?: Record<string, string>) => {
     const groupLabel = interpolate(group.label, state, data)
     return html`
 <vaadin-grid-column-group header="${groupLabel}">
@@ -190,7 +200,8 @@ export const renderGroup = (group: GridGroupColumn,
     state,
     data,
     appState,
-    appData))}
+    appData,
+    footers?.[(column.metadata as GridColumn)?.id]))}
 </vaadin-grid-column-group>
 `
 }
@@ -201,7 +212,8 @@ export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent,
                                     state: ComponentState,
                                     data: ComponentData,
                                     appState: ComponentState,
-                                    appData: ComponentData) => {
+                                    appData: ComponentData,
+                                    footers?: Record<string, string>) => {
     if (ComponentMetadataType.GridGroupColumn == columnOrGroup.metadata?.type) {
         return renderGroup(columnOrGroup.metadata as GridGroupColumn,
             container,
@@ -209,7 +221,8 @@ export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent,
             state,
             data,
         appState,
-        appData)
+        appData,
+        footers)
     } else {
         return renderColumn(columnOrGroup.metadata as GridColumn,
             container,
@@ -217,7 +230,8 @@ export const renderColumnOrGroup = (columnOrGroup: ClientSideComponent,
             state,
             data,
         appState,
-        appData)
+        appData,
+        footers?.[(columnOrGroup.metadata as GridColumn)?.id])
     }
 }
 
@@ -227,7 +241,8 @@ export const renderColumn = (mateuColumn: GridColumn,
                              state: ComponentState,
                              data: ComponentData,
                              appState: ComponentState,
-                             appData: ComponentData) => {
+                             appData: ComponentData,
+                             footerText?: string) => {
     const colLabel = interpolate(mateuColumn.label, state, data)
     if (mateuColumn.sortable) {
         return html`
@@ -244,6 +259,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
                                 ${headerRenderer(colLabel)}
+                                ${aggregateFooter(footerText)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -276,6 +292,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 data-data-type="${mateuColumn.dataType}"
                                 data-stereotype="${mateuColumn.stereotype}"
                                 ${headerRenderer(colLabel)}
+                                ${aggregateFooter(footerText)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -309,6 +326,7 @@ export const renderColumn = (mateuColumn: GridColumn,
                                 data-stereotype="${mateuColumn.stereotype}"
                                 .xcolumn="${mateuColumn}"
                                 ${headerRenderer(colLabel)}
+                                ${aggregateFooter(footerText)}
                                 ${columnBodyRenderer(
 
                                         (item: any,
@@ -342,6 +360,21 @@ export const columnRenderer = (item: any,
                                appData: ComponentData) => {
     const type = vaadinColumn.dataset.dataType??''
     const stereotype = vaadinColumn.dataset.stereotype??''
+    if (isGroupRow(item)) {
+        // Group marker row (interleaved by mateu-table when the crud metadata carries groupBy):
+        // the label column shows the group value + (count) in bold, aggregated columns show that
+        // group's formatted aggregate, everything else stays empty. Checked BEFORE the editable
+        // branch so marker rows are never editable; the row tint comes from the
+        // cellPartNameGenerator's 'mateu-group-row' part in mateu-table.
+        const meta = (container as any)?.metadata
+        const columnIds: (string | undefined)[] = ((meta?.columns ?? []) as any[]).flatMap((c: any) =>
+            c?.metadata?.type === ComponentMetadataType.GridGroupColumn
+                ? ((c.metadata.columns ?? []) as any[]).map((cc: any) => cc?.metadata?.id)
+                : [c?.metadata?.id])
+        const labelColumnId = groupLabelColumnId(item.__mateuGroupBy, columnIds)
+        const text = groupRowCellText(item, column, labelColumnId)
+        return html`<span title="${text}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${text}</span>`
+    }
     if (column.editable) {
         return renderEditableCell(item, column, container, state)
     }

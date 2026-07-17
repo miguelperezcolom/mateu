@@ -32,6 +32,7 @@ import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button";
 import {ButtonColor} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonColor.ts";
 import {ButtonStyle} from "@mateu/shared/apiClients/dtos/componentmetadata/ButtonStyle.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
+import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
 import {
     ResolvedGridLayout,
     compactColumns,
@@ -366,7 +367,10 @@ export class MateuTableCrud extends LitElement {
         const gridLayout = this.effectiveGridLayout
         const allCols = this.cols
         const compact = compactColumns(allCols)
-        const rows: any[] = this.data[this.id]?.page?.content ?? []
+        // The search result envelope: page + (optionally) whole-set aggregates and per-group
+        // summaries — the table layouts pick those up for totals/group rows.
+        const listing = this.data[this.id] as ListingData | undefined
+        const rows: any[] = (listing?.page?.content as any[]) ?? []
         const emptyMsg = this.state[this.component?.id!]?.emptyStateMessage
 
         const formatListValue = (col: GridColumn, item: any) => {

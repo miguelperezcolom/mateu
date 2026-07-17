@@ -17,5 +17,7 @@ export default interface Crud extends Table {
     initialPage: number
     filtersLayout: 'auto' | 'inline' | 'popover' | 'drawer' | 'dialog'
     gridLayout: 'auto' | 'table' | 'list' | 'cards' | 'masterDetail' | 'tree'
+    /** Row field id the listing is grouped by; rows arrive pre-sorted so groups are contiguous. */
+    groupBy?: string
 
 }

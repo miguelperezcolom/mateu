@@ -3,11 +3,19 @@ import { html, LitElement, nothing, TemplateResult } from "lit";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
+import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
 import {
     ResolvedGridLayout,
     compactColumns,
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
+import {
+    buildAggregateFooters,
+    groupLabelColumnId,
+    groupRowCellText,
+    interleaveGroupRows,
+    isGroupRow,
+} from "@infra/ui/listingGroups.ts";
 import { renderCellValue, cellText } from "@/renderers/renderCellValue.ts";
 
 @customElement('mateu-sapui5-table')
@@ -100,10 +108,48 @@ export class MateuSapUI5Table extends LitElement {
         return renderCellValue(item, col, (actionId, it) => this.dispatchAction(actionId, it))
     }
 
+    // ── Bulk row selection (rowsSelectionEnabled) ───────────────────────────────
+    // The ui5-table-selection feature renders the checkbox column + header select-all;
+    // this mirrors the shared mateu-table's selected-items-changed handler: the selected
+    // ROW OBJECTS are written into the crud state under '<id>_selected_items' by DIRECT
+    // MUTATION (the state object is shared with the enclosing mateu-component), so the
+    // rowsSelectedRequired guard and the server contract see them.
+
+    private rowKey(item: any, idx: number): string {
+        return String(item._rowNumber ?? idx)
+    }
+
+    private selectedRowKeys(): string {
+        const rows = this.getRows()
+        const selected: any[] = this.state[this.id + '_selected_items'] ?? []
+        return selected
+            .map(item => this.rowKey(item, rows.indexOf(item)))
+            .join(' ')
+    }
+
+    private handleSelectionChange(e: Event) {
+        const selectedKeys = String((e.target as any)?.selected ?? '')
+        const keys = new Set(selectedKeys.split(' ').filter(k => k !== ''))
+        const rows = this.getRows()
+        this.state[this.id + '_selected_items'] = rows.filter((item, idx) => keys.has(this.rowKey(item, idx)))
+    }
+
     // ── Layout renderers ────────────────────────────────────────────────────────
 
     private renderTable(allCols: GridColumn[]): TemplateResult {
         const rows = this.getRows()
+        // Row grouping + totals (shared walk in @infra/ui/listingGroups): group marker rows are
+        // interleaved wherever the groupBy value changes, styled with SAP's group-header tokens;
+        // aggregated columns get a bold totals row pinned at the bottom. Marker/totals row-keys
+        // never match a data row's, so ui5-table-selection can't leak them into the crud state
+        // (handleSelectionChange resolves keys against the DATA rows only).
+        const listing = this.data[this.id] as ListingData | undefined
+        const groupBy = (this.metadata as unknown as Crud | undefined)?.groupBy
+        const displayRows = interleaveGroupRows(rows, groupBy, listing?.groups)
+        const footers = buildAggregateFooters(allCols, listing, groupBy)
+        const labelColId = groupLabelColumnId(groupBy, allCols.map(c => c.id))
+        const GROUP_CELL = 'font-weight: 600; color: var(--sapList_TableGroupHeaderTextColor, #32363a); background: var(--sapList_TableGroupHeaderBackground, #efefef);'
+        const TOTAL_CELL = 'font-weight: 700; border-top: 2px solid var(--sapList_BorderColor, #e5e5e5);'
         return html`
             <ui5-table
                 no-data-text="${this.emptyStateMessage ?? this.metadata?.emptyStateMessage ?? 'No data.'}"
@@ -111,7 +157,9 @@ export class MateuSapUI5Table extends LitElement {
                 style="width: 100%;"
             >
                 ${this.metadata?.rowsSelectionEnabled ? html`
-                    <ui5-table-selection mode="Multiple" slot="features"></ui5-table-selection>
+                    <ui5-table-selection mode="Multiple" slot="features"
+                        selected="${this.selectedRowKeys()}"
+                        @change="${(e: Event) => this.handleSelectionChange(e)}"></ui5-table-selection>
                 ` : nothing}
 
                 <ui5-table-header-row slot="headerRow">
@@ -127,13 +175,27 @@ export class MateuSapUI5Table extends LitElement {
                     `)}
                 </ui5-table-header-row>
 
-                ${rows.map((item: any, idx: number) => html`
-                    <ui5-table-row row-key="${item._rowNumber ?? idx}">
+                ${displayRows.map((item: any) => isGroupRow(item) ? html`
+                    <ui5-table-row row-key="${item._rowNumber}">
+                        ${allCols.map(col => html`
+                            <ui5-table-cell style="${GROUP_CELL}">${groupRowCellText(item, col, labelColId)}</ui5-table-cell>
+                        `)}
+                    </ui5-table-row>
+                ` : html`
+                    <ui5-table-row row-key="${item._rowNumber ?? rows.indexOf(item)}">
                         ${allCols.map(col => html`
                             <ui5-table-cell>${this.renderCellValue(item, col)}</ui5-table-cell>
                         `)}
                     </ui5-table-row>
                 `)}
+
+                ${footers ? html`
+                    <ui5-table-row row-key="__mateuTotals">
+                        ${allCols.map(col => html`
+                            <ui5-table-cell style="${TOTAL_CELL}">${footers[col.id] ?? ''}</ui5-table-cell>
+                        `)}
+                    </ui5-table-row>
+                ` : nothing}
             </ui5-table>`
     }
 

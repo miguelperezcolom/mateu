@@ -25,5 +25,7 @@ export default interface GridColumn extends ComponentMetadata {
     editorType: string | undefined
     editorOptions: { value: any, label: string }[] | undefined
     weight: number | null
+    /** Aggregate function totalled over the whole filtered set (and per group when grouping). */
+    aggregate?: 'sum' | 'avg' | 'min' | 'max' | 'count'
 
 }

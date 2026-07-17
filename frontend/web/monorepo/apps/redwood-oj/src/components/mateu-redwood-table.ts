@@ -3,11 +3,19 @@ import { html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
+import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
 import {
     ResolvedGridLayout,
     compactColumns,
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
+import {
+    buildAggregateFooters,
+    groupLabelColumnId,
+    groupRowCellText,
+    interleaveGroupRows,
+    isGroupRow,
+} from "@infra/ui/listingGroups.ts";
 import './mateu-redwood-action-menu';
 
 
@@ -116,6 +124,17 @@ export class MateuRedwoodTable extends LitElement {
 
     private getRows(): any[] {
         return this.data[this.id]?.page?.content ?? []
+    }
+
+    // Aggregates/row grouping can't be injected into the imperative oj-c-table's cell templates
+    // (JET's CSP expression bindings leave no room for the marker-row branching), so a grouped
+    // or aggregated listing renders as a deterministic hand-styled table instead — the same
+    // idiom the list/cards/tree branches already use (see the note on renderPlainGrid).
+    private get groupedTableActive(): boolean {
+        const listing = this.data?.[this.id] as ListingData | undefined
+        const groupBy = (this.metadata as unknown as Crud | undefined)?.groupBy
+        if (groupBy && (listing?.groups?.length ?? 0) > 0) return true
+        return !!listing?.aggregates && this.cols.some(c => c.aggregate)
     }
 
     // A data column carrying an actionId (e.g. the first listing column, which the crud marks with
@@ -305,7 +324,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             this.lastContentRef = content
             this.lastContentLen = len
         }
-        if (this.effectiveGridLayout === 'table') {
+        if (this.effectiveGridLayout === 'table' && !this.groupedTableActive) {
             // The oj-c-table is mounted imperatively into the host div; refresh when the rows
             // changed OR when the host was just (re)rendered empty (e.g. the layout flipped back
             // to table on a resize and the imperative child is gone).
@@ -682,9 +701,93 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             </table>`
     }
 
+    // Grouped/aggregated table: hand-styled rows (same styling as renderTree's flat table) with
+    // group header rows interleaved by the shared walk wherever the groupBy value changes, and a
+    // bold tfoot totals row when any column carries an aggregate. Cell action semantics mirror
+    // the shared templates (link/actionId columns open the row, action columns dispatch
+    // 'action-on-row-<method>' with { _clickedRow }); group/totals rows are presentation-only.
+    private renderGroupedTable(allCols: GridColumn[]): TemplateResult {
+        const rows = this.getRows()
+        const listing = this.data[this.id] as ListingData | undefined
+        const groupBy = (this.metadata as unknown as Crud | undefined)?.groupBy
+        const displayRows = interleaveGroupRows(rows, groupBy, listing?.groups)
+        const footers = buildAggregateFooters(allCols, listing, groupBy)
+        const labelColId = groupLabelColumnId(groupBy, allCols.map(c => c.id))
+
+        const HEADER_CELL = `text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid ${DIVIDER}; color: ${SECONDARY}; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;`
+        const CELL = `padding: 0.4rem 0.75rem; border-bottom: 1px solid ${DIVIDER}; color: ${TEXT}; font-size: 0.875rem;`
+
+        const renderDataCell = (item: any, col: GridColumn): TemplateResult => {
+            const val = item[col.id]
+            if (col.dataType === 'action') {
+                if (col.id === 'select') {
+                    return this.linkButton('Select', (e: Event) => {
+                        e.stopPropagation()
+                        this.dispatchAction('action-on-row-select', { _clickedRow: item })
+                    })
+                }
+                const action = val?.methodNameInCrud ? val : { methodNameInCrud: col.id, label: col.label }
+                return this.linkButton(action.label ?? '', (e: Event) => {
+                    e.stopPropagation()
+                    this.dispatchAction('action-on-row-' + action.methodNameInCrud, { _clickedRow: item })
+                }, action.label)
+            }
+            if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
+                const actions: any[] = val?.actions ?? []
+                return html`${actions.map(a => this.linkButton(a.label ?? '', (e: Event) => {
+                    e.stopPropagation()
+                    this.dispatchAction('action-on-row-' + a.methodNameInCrud, { _clickedRow: item })
+                }, a.label))}`
+            }
+            if (col.stereotype === 'button') {
+                return this.linkButton(col.text ?? col.label ?? 'View', (e: Event) => {
+                    e.stopPropagation()
+                    this.dispatchAction(col.actionId ?? col.id, item)
+                }, col.label)
+            }
+            if (this.isLinkColumn(col)) {
+                return this.linkButton('' + (val ?? ''), (e: Event) => {
+                    e.stopPropagation()
+                    if (col.actionId === 'view') this.openRow(item)
+                    else this.dispatchAction(col.actionId!, item)
+                }, col.label)
+            }
+            return this.formatValue(col, item)
+        }
+
+        return html`
+            <table style="width: 100%; border-collapse: collapse; background: ${PANEL_BG};">
+                <thead>
+                    <tr>
+                        ${allCols.map(c => html`<th style="${HEADER_CELL}">${c.label ?? ''}</th>`)}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows.length === 0 ? html`<tr><td colspan="${allCols.length}">${this.renderEmpty()}</td></tr>` : nothing}
+                    ${displayRows.map(item => isGroupRow(item) ? html`
+                        <tr>
+                            ${allCols.map(c => html`<td style="${CELL} font-weight: 600; background: rgba(22, 21, 19, 0.05);">${groupRowCellText(item, c, labelColId)}</td>`)}
+                        </tr>
+                    ` : html`
+                        <tr style="${this.isSelectedRow(item) ? `background: ${SELECTED_BG};` : ''}">
+                            ${allCols.map(c => html`<td style="${CELL}">${renderDataCell(item, c)}</td>`)}
+                        </tr>
+                    `)}
+                </tbody>
+                ${footers ? html`
+                    <tfoot>
+                        <tr>
+                            ${allCols.map(c => html`<td style="${CELL} font-weight: 700; border-top: 2px solid ${DIVIDER}; border-bottom: none;">${footers[c.id] ?? ''}</td>`)}
+                        </tr>
+                    </tfoot>
+                ` : nothing}
+            </table>`
+    }
+
     render(): TemplateResult {
         if (!this._connected) return html``
         const layout = this.effectiveGridLayout
+        if (layout === 'table' && this.groupedTableActive) return this.renderGroupedTable(this.cols)
         if (layout === 'list') return this.renderTwoLineList(this.cols)
         if (layout === 'cards') return this.renderCards(this.cols)
         if (layout === 'masterDetail') return this.renderMasterDetail(this.cols)

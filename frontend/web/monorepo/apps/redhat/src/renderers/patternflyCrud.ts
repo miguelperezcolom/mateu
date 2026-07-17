@@ -2,7 +2,15 @@ import { html, nothing, type TemplateResult } from 'lit'
 import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent.ts'
 import GridColumn from '@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts'
+import { ListingData } from '@mateu/shared/apiClients/dtos/ListingData.ts'
 import { compactColumns, type ResolvedGridLayout } from '@infra/ui/layout/weightEngine.ts'
+import {
+    buildAggregateFooters,
+    groupLabelColumnId,
+    groupRowCellText,
+    interleaveGroupRows,
+    isGroupRow,
+} from '@infra/ui/listingGroups.ts'
 
 /**
  * PatternFly 6 markup for ALL the crud grid layouts (table, list, cards, masterDetail, tree).
@@ -197,19 +205,72 @@ const renderRowActionButtons = (actionCols: GridColumn[], item: any, dispatch: C
 
 // ── Layouts ────────────────────────────────────────────────────────────────────
 
-const renderTableLayout = (container: any, allCols: GridColumn[], rows: any[], emptyMsg: string | undefined): TemplateResult => {
+const renderTableLayout = (container: any, allCols: GridColumn[], rows: any[], emptyMsg: string | undefined, selectable: boolean, metadata?: any): TemplateResult => {
     const dispatch = dispatcherFor(container)
+
+    // Row grouping + totals (shared walk in @infra/ui/listingGroups): a tinted bold group
+    // header row wherever the groupBy value changes, and a bold tfoot totals row when any
+    // column carries an aggregate. Marker rows never render the selection checkbox, so they
+    // can't leak into '<id>_selected_items'.
+    const listing = container?.data?.[container.id] as ListingData | undefined
+    const groupBy = metadata?.groupBy as string | undefined
+    const displayRows = interleaveGroupRows(rows, groupBy, listing?.groups)
+    const footers = buildAggregateFooters(allCols, listing, groupBy)
+    const labelColId = groupLabelColumnId(groupBy, allCols.map(c => c.id))
+
+    // Bulk row selection (rowsSelectionEnabled): leading pf-v6-c-table__check column + header
+    // select-all. The selected ROW OBJECTS are written into the crud state under
+    // '<id>_selected_items' by DIRECT MUTATION — the state object is shared with the enclosing
+    // mateu-component (exactly the shared mateu-table's selected-items-changed mechanism) — so
+    // the rowsSelectedRequired guard and the server contract see them.
+    const selKey = container.id + '_selected_items'
+    const selectedRows: any[] = container?.state?.[selKey] ?? []
+    const writeSelection = (next: any[]) => {
+        container.state[selKey] = next
+        container.requestUpdate?.()
+    }
+    const toggleRow = (row: any, checked: boolean) => {
+        writeSelection(checked ? [...selectedRows.filter(r => r !== row), row] : selectedRows.filter(r => r !== row))
+    }
+    const allSelected = rows.length > 0 && rows.every(r => selectedRows.includes(r))
+    const checkTh = selectable ? html`
+        <th class="pf-v6-c-table__th pf-v6-c-table__check" role="columnheader" scope="col">
+            <input type="checkbox" aria-label="Select all rows"
+                   .checked="${allSelected}"
+                   @change="${(e: Event) => writeSelection((e.target as HTMLInputElement).checked ? [...rows] : [])}" />
+        </th>` : nothing
+    const checkTd = (row: any) => selectable ? html`
+        <td class="pf-v6-c-table__td pf-v6-c-table__check" role="cell">
+            <input type="checkbox" aria-label="Select row"
+                   .checked="${selectedRows.includes(row)}"
+                   @click="${(e: Event) => e.stopPropagation()}"
+                   @change="${(e: Event) => toggleRow(row, (e.target as HTMLInputElement).checked)}" />
+        </td>` : nothing
+
     return html`
         <table class="pf-v6-c-table pf-m-grid-md" role="grid">
             <thead class="pf-v6-c-table__thead"><tr class="pf-v6-c-table__tr" role="row">
+                ${checkTh}
                 ${allCols.map(c => html`<th class="pf-v6-c-table__th" role="columnheader" scope="col">${c.label ?? ''}</th>`)}
             </tr></thead>
             <tbody class="pf-v6-c-table__tbody" role="rowgroup">
-                ${rows.length === 0 ? html`<tr class="pf-v6-c-table__tr" role="row"><td class="pf-v6-c-table__td" role="cell" colspan="${allCols.length}">${emptyState(emptyMsg)}</td></tr>` : nothing}
-                ${rows.map(row => html`<tr class="pf-v6-c-table__tr" role="row">
+                ${rows.length === 0 ? html`<tr class="pf-v6-c-table__tr" role="row"><td class="pf-v6-c-table__td" role="cell" colspan="${allCols.length + (selectable ? 1 : 0)}">${emptyState(emptyMsg)}</td></tr>` : nothing}
+                ${displayRows.map(row => isGroupRow(row) ? html`<tr class="pf-v6-c-table__tr" role="row"
+                        style="background: var(--pf-t--global--background--color--secondary--default, #f5f5f5);">
+                    ${selectable ? html`<td class="pf-v6-c-table__td pf-v6-c-table__check" role="cell"></td>` : nothing}
+                    ${allCols.map(c => html`<td class="pf-v6-c-table__td" role="cell" style="font-weight: 600;">${groupRowCellText(row, c, labelColId)}</td>`)}
+                </tr>` : html`<tr class="pf-v6-c-table__tr" role="row">
+                    ${checkTd(row)}
                     ${allCols.map(c => html`<td class="pf-v6-c-table__td" role="cell" data-label="${c.label ?? ''}">${renderCellValue(row, c, dispatch)}</td>`)}
                 </tr>`)}
             </tbody>
+            ${footers ? html`
+            <tfoot class="pf-v6-c-table__tfoot" role="rowgroup">
+                <tr class="pf-v6-c-table__tr" role="row" style="border-top: 2px solid var(--pf-t--global--border--color--default, #c7c7c7);">
+                    ${selectable ? html`<td class="pf-v6-c-table__td" role="cell"></td>` : nothing}
+                    ${allCols.map(c => html`<td class="pf-v6-c-table__td" role="cell" style="font-weight: 700;">${footers[c.id] ?? ''}</td>`)}
+                </tr>
+            </tfoot>` : nothing}
         </table>`
 }
 
@@ -402,5 +463,6 @@ export const renderCrudLayout = (container: any, component: ClientSideComponent)
     if (layout === 'cards') return renderCardsLayout(container, allCols, rows, emptyMsg)
     if (layout === 'masterDetail') return renderMasterDetailLayout(container, allCols, rows, emptyMsg)
     if (layout === 'tree') return renderTreeLayout(container, allCols, rows, emptyMsg)
-    return renderTableLayout(container, allCols, rows, emptyMsg)
+    // the vaadin reference only renders the multi-select checkbox column on the TABLE layout
+    return renderTableLayout(container, allCols, rows, emptyMsg, !!(component.metadata as any)?.rowsSelectionEnabled, component.metadata as any)
 }

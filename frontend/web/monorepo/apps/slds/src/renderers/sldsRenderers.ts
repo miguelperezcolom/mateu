@@ -2,7 +2,15 @@ import { html, nothing, type TemplateResult } from 'lit'
 import { LitElement } from 'lit'
 import { unsafeHTML } from 'lit/directives/unsafe-html.js'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent.ts'
+import { ListingData } from '@mateu/shared/apiClients/dtos/ListingData.ts'
 import { compactColumns } from '@infra/ui/layout/weightEngine.ts'
+import {
+    buildAggregateFooters,
+    groupLabelColumnId,
+    groupRowCellText,
+    interleaveGroupRows,
+    isGroupRow,
+} from '@infra/ui/listingGroups.ts'
 import Button from '@mateu/shared/apiClients/dtos/componentmetadata/Button.ts'
 import Text from '@mateu/shared/apiClients/dtos/componentmetadata/Text.ts'
 import FormLayout from '@mateu/shared/apiClients/dtos/componentmetadata/FormLayout.ts'
@@ -333,10 +341,58 @@ export const renderSldsTable = (container: any, component: ClientSideComponent):
         return s.direction === 'ascending' ? ' ▲' : ' ▼'
     }
 
+    // Bulk row selection (rowsSelectionEnabled): leading slds-checkbox column + header
+    // select-all. The selected ROW OBJECTS are written into the crud state under
+    // '<id>_selected_items' by DIRECT MUTATION — the state object is shared with the enclosing
+    // mateu-component (exactly the shared mateu-table's selected-items-changed mechanism) — so
+    // the rowsSelectedRequired guard and the server contract see them.
+    const selectable = !!metadata.rowsSelectionEnabled
+    const selKey = container.id + '_selected_items'
+    const selectedRows: any[] = container?.state?.[selKey] ?? []
+    const writeSelection = (next: any[]) => {
+        container.state[selKey] = next
+        container.requestUpdate?.()
+    }
+    const toggleRow = (row: any, checked: boolean) => {
+        writeSelection(checked ? [...selectedRows.filter(r => r !== row), row] : selectedRows.filter(r => r !== row))
+    }
+    const allSelected = rows.length > 0 && rows.every(r => selectedRows.includes(r))
+    const sldsCheckbox = (id: string, checked: boolean, label: string, onChange: (checked: boolean) => void): TemplateResult => html`
+        <div class="slds-checkbox">
+            <input type="checkbox" id="${id}" .checked="${checked}"
+                   @click="${(e: Event) => e.stopPropagation()}"
+                   @change="${(e: Event) => onChange((e.target as HTMLInputElement).checked)}" />
+            <label class="slds-checkbox__label" for="${id}">
+                <span class="slds-checkbox_faux"></span>
+                <span class="slds-form-element__label slds-assistive-text">${label}</span>
+            </label>
+        </div>`
+    const checkTh = selectable ? html`
+        <th scope="col" style="width: 3.25rem;">
+            ${sldsCheckbox(`${container.id}-rowsel-all`, allSelected, 'Select all rows',
+                checked => writeSelection(checked ? [...rows] : []))}
+        </th>` : nothing
+    const checkTd = (row: any, idx: number) => selectable ? html`
+        <td role="gridcell" style="width: 3.25rem;">
+            ${sldsCheckbox(`${container.id}-rowsel-${row._rowNumber ?? idx}`, selectedRows.includes(row), 'Select row',
+                checked => toggleRow(row, checked))}
+        </td>` : nothing
+
+    // Row grouping + totals (shared walk in @infra/ui/listingGroups): a tinted bold group
+    // header row wherever the groupBy value changes, and a bold tfoot totals row when any
+    // column carries an aggregate. Marker rows render no selection checkbox, so they never
+    // reach '<id>_selected_items'.
+    const listing = container?.data?.[container.id] as ListingData | undefined
+    const groupBy = (metadata as any)?.groupBy as string | undefined
+    const displayRows = interleaveGroupRows(rows, groupBy, listing?.groups)
+    const footers = buildAggregateFooters(cols, listing, groupBy)
+    const labelColId = groupLabelColumnId(groupBy, cols.map((c: any) => c.id))
+
     return html`
         <table class="slds-table slds-table_bordered slds-table_cell-buffer slds-table_striped slds-table_fixed-layout">
             <thead>
                 <tr class="slds-line-height_reset">
+                    ${checkTh}
                     ${cols.map(col => html`
                         <th scope="col" class="${align(col.align)} ${col.sortable ? 'slds-is-sortable' : ''}"
                             style="${col.sortable ? 'cursor: pointer;' : ''}"
@@ -347,17 +403,35 @@ export const renderSldsTable = (container: any, component: ClientSideComponent):
             </thead>
             <tbody>
                 ${rows.length === 0 ? html`
-                    <tr><td colspan="${cols.length}">
+                    <tr><td colspan="${cols.length + (selectable ? 1 : 0)}">
                         ${sldsEmptyState(metadata.emptyStateMessage ?? 'No items.')}
                     </td></tr>` : nothing}
-                ${rows.map(row => html`
+                ${displayRows.map(row => isGroupRow(row) ? html`
+                    <tr style="background: rgba(1, 118, 211, .06);">
+                        ${selectable ? html`<td role="gridcell" style="width: 3.25rem;"></td>` : nothing}
+                        ${cols.map(col => html`
+                            <td class="${align(col.align)}" style="font-weight: 600;">
+                                <div class="slds-truncate" title="${groupRowCellText(row, col, labelColId)}">${groupRowCellText(row, col, labelColId)}</div>
+                            </td>`)}
+                    </tr>` : html`
                     <tr class="slds-hint-parent">
+                        ${checkTd(row, rows.indexOf(row))}
                         ${cols.map(col => html`
                             <td class="${align(col.align)}">
                                 <div class="slds-truncate" title="${fmtCell(row[col.id])}">${renderSldsCellValue(row, col, dispatch)}</div>
                             </td>`)}
                     </tr>`)}
             </tbody>
+            ${footers ? html`
+            <tfoot>
+                <tr style="border-top: 2px solid #c9c9c9;">
+                    ${selectable ? html`<td role="gridcell" style="width: 3.25rem;"></td>` : nothing}
+                    ${cols.map(col => html`
+                        <td class="${align(col.align)}" style="font-weight: 700;">
+                            <div class="slds-truncate" title="${footers[col.id] ?? ''}">${footers[col.id] ?? ''}</div>
+                        </td>`)}
+                </tr>
+            </tfoot>` : nothing}
         </table>`
 }
 

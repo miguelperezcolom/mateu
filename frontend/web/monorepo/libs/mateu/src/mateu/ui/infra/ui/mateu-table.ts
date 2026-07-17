@@ -19,7 +19,12 @@ import '@vaadin/grid/vaadin-grid-sort-column.js';
 import '@vaadin/grid/vaadin-grid-filter-column.js';
 import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
+import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
+import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
+import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
+import { buildAggregateFooters, interleaveGroupRows, isGroupRow } from "@infra/ui/listingGroups.ts";
 import {
     Grid,
     GridActiveItemChangedEvent,
@@ -135,9 +140,14 @@ export class MateuTable extends LitElement {
         if (!this.grid) return
         const idField = this.identifierFieldName
         const selectedId = this.state?._selectedId ?? this.appState?._splitDetailId
-        if (idField && selectedId !== undefined) {
-            this.grid.cellPartNameGenerator = (_col, model) =>
-                String((model.item as any)[idField]) === String(selectedId) ? 'selected-row' : ''
+        const grouped = !!(this.metadata as Crud | undefined)?.groupBy
+        if ((idField && selectedId !== undefined) || grouped) {
+            this.grid.cellPartNameGenerator = (_col, model) => {
+                const item = model.item as any
+                if (isGroupRow(item)) return 'mateu-group-row'
+                return (idField && selectedId !== undefined && String(item[idField]) === String(selectedId))
+                    ? 'selected-row' : ''
+            }
         } else {
             this.grid.cellPartNameGenerator = null
         }
@@ -198,7 +208,23 @@ export class MateuTable extends LitElement {
 
     render():TemplateResult {
 
-        const page = this.data[this.id]?.page
+        const listing = this.data[this.id] as ListingData | undefined
+        const page = listing?.page
+        // Row grouping (metadata groupBy + per-group summaries in the data): interleave a marker
+        // row wherever a new group starts. Markers are per-page, client-side only, and skipped by
+        // selection / row click / inline editing (see the guards below and in columnRenderer).
+        // The infinite-scrolling dataProvider path keeps plain rows (its page slicing is
+        // index-based, so markers would shift the windows).
+        const groupBy = (this.metadata as Crud | undefined)?.groupBy
+        const items = this.metadata?.infiniteScrolling ? undefined
+            : (page?.content ? interleaveGroupRows(page.content, groupBy, listing?.groups) : page?.content)
+        // Totals footer (columns carrying `aggregate` + whole-filtered-set totals in the data):
+        // one footer text per aggregated column, "Total" (or the row count) on the first column.
+        const flatColumnMetas: GridColumn[] = (this.metadata?.columns ?? []).flatMap(c =>
+            c.metadata?.type === ComponentMetadataType.GridGroupColumn
+                ? ((c.metadata as GridGroupColumn).columns ?? []).map(cc => cc.metadata as GridColumn)
+                : [c.metadata as GridColumn])
+        const footers = buildAggregateFooters(flatColumnMetas, listing, groupBy)
         let theme = '';
         if (this.metadata?.wrapCellContent) {
             theme += ' wrap-cell-content';
@@ -225,7 +251,7 @@ export class MateuTable extends LitElement {
         const selectedItems = this.state[this.id + '_selected_items'] || []
         return html`
             <vaadin-grid
-                    .items="${this.metadata?.infiniteScrolling ? undefined : page?.content}"
+                    .items="${items}"
                     item-id-path="_rowNumber"
                     .selectedItems="${selectedItems}"
                     ?data-clickable-rows="${this.metadata?.detailPath && !this.metadata?.useButtonForDetail}"
@@ -236,10 +262,13 @@ export class MateuTable extends LitElement {
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
                     @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
-                        if (this.emptyArray(this.state[this.id + '_selected_items']) && this.emptyArray(e.detail.value)) {
+                        // group marker rows are presentation-only — never let them into the
+                        // selection the server contract sees
+                        const selectedValue = ((e.detail.value ?? []) as any[]).filter(it => !isGroupRow(it))
+                        if (this.emptyArray(this.state[this.id + '_selected_items']) && this.emptyArray(selectedValue)) {
                             return
                         }
-                        this.state[this.id + '_selected_items'] = e.detail.value;
+                        this.state[this.id + '_selected_items'] = selectedValue;
                         if (this.metadata?.onRowSelectionChangedActionId) {
                             this.dispatchEvent(new CustomEvent('action-requested', {
                                 detail: {
@@ -253,6 +282,10 @@ export class MateuTable extends LitElement {
                     @active-item-changed="${ifDefined((this.metadata?.detailPath && !this.metadata?.useButtonForDetail)?(event: GridActiveItemChangedEvent<any>) => {
                         if (this.metadata?.detailPath) {
                             const row = event.detail.value
+                            if (row && isGroupRow(row)) {
+                                // clicks on group marker rows never open the row detail
+                                return
+                            }
                             if (row) {
                                 this.detailsOpenedItems = [row]
                             } else {
@@ -276,7 +309,7 @@ export class MateuTable extends LitElement {
                 ${this.metadata?.rowsSelectionEnabled?html`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:nothing}
-                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData, footers))}
                 ${this.metadata?.useButtonForDetail?html`
                     <vaadin-grid-column
                             width="44px"
@@ -320,6 +353,10 @@ export class MateuTable extends LitElement {
         }
         vaadin-grid::part(selected-row) {
             background-color: var(--lumo-primary-color-10pct);
+        }
+        vaadin-grid::part(mateu-group-row) {
+            background-color: var(--lumo-contrast-5pct, rgba(0, 0, 0, 0.04));
+            font-weight: 600;
         }
   `
 }
