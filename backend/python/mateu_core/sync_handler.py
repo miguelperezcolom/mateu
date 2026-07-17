@@ -6,7 +6,7 @@ import inspect
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any
+from typing import Any, get_args, get_origin
 
 from mateu_dtos import (
     Banner as BannerDto,
@@ -19,7 +19,10 @@ from mateu_dtos import (
     UIIncrement,
 )
 from mateu_uidl import (
+    Aggregate,
+    AggregateFunction,
     DateRange,
+    GroupBy,
     Label,
     LookupLabelSupplier,
     Lookup,
@@ -198,7 +201,62 @@ class SyncHandler:
                     crud_type, element, self.get_or_new(crud, element, id_), "edit", f"{base_route}/{id_}/edit"
                 )
             return self.fragment_response(self.title(crud_type), self.mapper.map_view(crud_type, crud, base_route), rq)
+        if aid.startswith("action-on-row-"):
+            return self.action_on_rows(crud, crud_type, element, rq)
         return self.error(f"Action not found: {aid}")
+
+    def action_on_rows(self, crud, crud_type, element, rq: RunActionRq) -> UIIncrement:
+        """A @list_toolbar_button bulk action: runs the named method on the crud with the grid's
+        selected rows (componentState crud_selected_items) rebuilt as typed entities — a
+        ``list[Row]``-annotated parameter receives them. A None result re-runs the search so the
+        listing reflects the changes; anything else maps as a regular action result (mirrors
+        Java's ActionOnRowActionHandler)."""
+        name = self._resolve_action(crud_type, rq.action_id[len("action-on-row-"):])
+        if name is None:
+            return self.error(f"Action not found: {rq.action_id}")
+        method = getattr(crud, name)
+        result = method(*self._build_bulk_arguments(method, element, rq))
+        if result is not None:
+            return self.map_result(result, rq)
+        return self.crud_search(crud, element, rq)
+
+    def _build_bulk_arguments(self, method, element, rq: RunActionRq) -> list:
+        """Fills a bulk method's parameters: a ``list[Row]`` (or bare ``list``) parameter
+        receives the selected rows rebuilt as typed entities (the same bind_state path
+        update-row uses); anything unfillable is None."""
+        params = [
+            p for p in inspect.signature(method).parameters.values()
+            if p.kind in (p.POSITIONAL_OR_KEYWORD, p.POSITIONAL_ONLY)
+        ]
+        if not params:
+            return []
+        raw = (rq.component_state or {}).get("crud_selected_items")
+        selection = raw if isinstance(raw, list) else []
+        args = []
+        for p in params:
+            row_type = self._selected_row_type(p.annotation, element)
+            if row_type is None:
+                args.append(None)
+                continue
+            rows = []
+            for item in selection:
+                if isinstance(item, dict):
+                    row = row_type()
+                    self.bind_state(row, item)
+                    rows.append(row)
+            args.append(rows)
+        return args
+
+    @staticmethod
+    def _selected_row_type(annotation, element):
+        """The row type of a ``list[Row]`` parameter (a bare ``list`` defaults to the crud
+        element type)."""
+        if annotation is list:
+            return element
+        if get_origin(annotation) is list:
+            args = get_args(annotation)
+            return args[0] if args and isinstance(args[0], type) else element
+        return None
 
     @staticmethod
     def parse_crud_route(base_route: str, route: str | None):
@@ -447,42 +505,46 @@ class SyncHandler:
     def crud_search(self, crud, element, rq: RunActionRq) -> UIIncrement:
         props = view_fields(element)
         state = rq.component_state or {}
+        spec = self._summary_spec(props)
+        # The GroupBy() column is the implicit primary sort, so rows of the same group stay
+        # contiguous in the listing (the user's own sort applies within groups; mirrors Java's
+        # ListingSummarySpec.prependGroupSort).
+        sort = self._prepend_group_sort(list(state.get("sort") or []), spec)
 
         # Database pushdown: an overridden find runs search+filter+sort+paginate as one query
-        # and returns the page with its real total — skip the in-memory pipeline entirely.
+        # and returns the page with its real total — skip the in-memory pipeline entirely
+        # (Aggregate()/GroupBy() summaries are still computed in memory over fetch, the analogue
+        # of Java's default CrudRepository.summaries over findAll()).
         pageable = Pageable(
             page=int(state.get("page", 0) or 0),
             size=int(state.get("size", 10) or 10),
             sort=tuple(
                 SortSpec(field=s.get("field", ""), descending=s.get("direction") == "descending")
-                for s in (state.get("sort") or [])
+                for s in sort
             ),
         )
         found = crud.find(self.search_text(rq), state, pageable)
         if found is not None:
             rows = [self._row_dict(item, props) for item in found.content]
-            data = {"crud": {"page": {
+            crud_data = {"page": {
                 "content": rows, "pageSize": pageable.size, "pageNumber": pageable.page,
                 "totalElements": found.total_elements,
-            }}}
+            }}
+            self._attach_summaries(crud_data, spec, lambda: self._filtered_rows(crud, props, rq))
             return UIIncrement.of(
-                fragments=[UIFragment(target_component_id=self.target(rq), data=data, action="Replace")]
+                fragments=[UIFragment(target_component_id=self.target(rq), data={"crud": crud_data}, action="Replace")]
             )
 
         # filter
-        items = [
-            item
-            for item in crud.fetch(self.search_text(rq))
-            if self._matches_filters(item, props, state)
-        ]
+        items = self._filtered_rows(crud, props, rq)
         # sort — Pageable.sort is a list of {field, direction:'ascending'|'descending'}; the field
         # is the camelCased column, mapped back to the item attribute.
         prop_by_camel = {camel_case(p.name): p.name for p in props}
-        for spec in reversed(state.get("sort") or []):
-            field = prop_by_camel.get(spec.get("field", ""), spec.get("field", ""))
+        for sort_spec in reversed(sort):
+            field = prop_by_camel.get(sort_spec.get("field", ""), sort_spec.get("field", ""))
             if not field:
                 continue
-            reverse = spec.get("direction", "ascending") == "descending"
+            reverse = sort_spec.get("direction", "ascending") == "descending"
             items.sort(key=lambda it, f=field: _sort_key(getattr(it, f, None)), reverse=reverse)
         total = len(items)
         # paginate in memory
@@ -495,19 +557,107 @@ class SyncHandler:
             {camel_case(p.name): self.cell_value(getattr(item, p.name, None)) for p in props}
             for item in window
         ]
-        data = {
-            "crud": {
-                "page": {
-                    "content": rows,
-                    "pageSize": size,
-                    "pageNumber": page,
-                    "totalElements": total,
-                }
+        crud_data = {
+            "page": {
+                "content": rows,
+                "pageSize": size,
+                "pageNumber": page,
+                "totalElements": total,
             }
         }
+        self._attach_summaries(crud_data, spec, lambda: items)
         return UIIncrement.of(
-            fragments=[UIFragment(target_component_id=self.target(rq), data=data, action="Replace")]
+            fragments=[UIFragment(target_component_id=self.target(rq), data={"crud": crud_data}, action="Replace")]
         )
+
+    def _filtered_rows(self, crud, props, rq: RunActionRq) -> list:
+        """fetch + the smart-search-bar filters: the WHOLE filtered result set the summaries
+        aggregate over (not just the visible page)."""
+        state = rq.component_state or {}
+        return [
+            item
+            for item in crud.fetch(self.search_text(rq))
+            if self._matches_filters(item, props, state)
+        ]
+
+    # ── Listing aggregates + row grouping (Aggregate()/GroupBy(), mirrors Java's
+    # ListingSummarySpec + CrudRepository.summaries) ─────────────────────────────
+
+    @staticmethod
+    def _summary_spec(props):
+        """What the row class asks to be summarized: the Aggregate() columns
+        ``(camel_key, field_name, function)`` and the GroupBy() field, read once per request."""
+        aggregates = [
+            (camel_case(f.name), f.name, f.marker(Aggregate).function)
+            for f in props
+            if f.has(Aggregate)
+        ]
+        group_by = next((f.name for f in props if f.has(GroupBy)), None)
+        return aggregates, group_by
+
+    @staticmethod
+    def _prepend_group_sort(sort: list, spec) -> list:
+        """Prepends the group column to the sort (unless the user already sorts by it first),
+        deduping any other occurrence of it."""
+        _, group_by = spec
+        if group_by is None:
+            return sort
+        group_key = camel_case(group_by)
+        if sort and sort[0].get("field") == group_key:
+            return sort
+        return [{"field": group_key, "direction": "ascending"}] + [
+            s for s in sort if s.get("field") != group_key
+        ]
+
+    def _attach_summaries(self, crud_data: dict, spec, filtered_rows) -> None:
+        """Attaches the aggregation companion of the search next to the page: ``aggregates``
+        carries the totals of every Aggregate() column over the WHOLE filtered result set (the
+        listing's totals footer) and ``groups`` one summary per GroupBy() group — its value (as
+        text), row count and per-group aggregates, sorted case-insensitively by value (mirrors
+        Java's ListingData.aggregates/groups filled by CrudRepository.summaries)."""
+        aggregates, group_by = spec
+        if not aggregates and group_by is None:
+            return
+        rows = filtered_rows()
+        crud_data["aggregates"] = self._aggregate_over(rows, aggregates)
+        groups = []
+        if group_by is not None:
+            by_group: dict[str, list] = {}
+            # Java keys groups by String.valueOf(value) — sorted case-insensitively.
+            for item in sorted(rows, key=lambda it: str(getattr(it, group_by, None)).casefold()):
+                by_group.setdefault(str(getattr(item, group_by, None)), []).append(item)
+            groups = [
+                {"value": value, "count": len(members), "aggregates": self._aggregate_over(members, aggregates)}
+                for value, members in by_group.items()
+            ]
+        crud_data["groups"] = groups
+
+    @staticmethod
+    def _aggregate_over(rows: list, aggregates: list) -> dict:
+        """One aggregate per Aggregate() column over ``rows``: count counts non-None values;
+        sum/avg/min/max run over the numeric values as floats (a column with no numeric values
+        is omitted) — mirrors Java's CrudRepository.aggregateOver."""
+        totals: dict[str, Any] = {}
+        for key, name, function in aggregates:
+            values = [v for v in (getattr(row, name, None) for row in rows) if v is not None]
+            if function is AggregateFunction.count:
+                totals[key] = len(values)
+                continue
+            numbers = [
+                float(v) for v in values
+                if isinstance(v, (int, float, Decimal)) and not isinstance(v, bool)
+            ]
+            if not numbers:
+                continue
+            if function is AggregateFunction.sum:
+                totals[key] = sum(numbers)
+            elif function is AggregateFunction.avg:
+                totals[key] = sum(numbers) / len(numbers)
+            elif function is AggregateFunction.min:
+                totals[key] = min(numbers)
+            elif function is AggregateFunction.max:
+                totals[key] = max(numbers)
+        return totals
 
     @staticmethod
     def _matches_filters(item, props, state: dict) -> bool:

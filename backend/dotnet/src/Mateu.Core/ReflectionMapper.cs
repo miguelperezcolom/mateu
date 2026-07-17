@@ -607,6 +607,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
             {
                 DataType = InferDataType(Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType, p),
+                Aggregate = AggregateOf(p),
             }))
             .ToList();
         var actions = new List<ActionDto> { new("search") };
@@ -628,6 +629,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             CanEdit = false,
             Filters = MapListingFilters(filters),
             GridLayout = gridLayout,
+            GroupBy = GroupByOf(row),
         }, "crud", []);
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
         return new ServerSideComponentDto(
@@ -693,14 +695,33 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     Editable = editable,
                     EditorType = editable ? EditorTypeOf(p) : null,
                     EditorOptions = editable ? EditorOptionsOf(p) : null,
+                    Aggregate = AggregateOf(p),
                 });
             })
             .ToList();
         var toolbar = new List<ButtonDto> { new("New", "new"), new("Delete", "delete") };
+        var actions = new List<ActionDto> { new("search"), new("new"), new("delete") };
+        if (inlineEditing) actions.Add(new ActionDto("update-row"));
+        // [ListToolbarButton] methods: BULK list actions — a listing toolbar button dispatching
+        // action-on-row-<method> over the grid's selected rows; the action advertises the
+        // confirmation/selection-required flags the frontend enforces (mirrors Java's
+        // Crud.addButtonsToList + CrudActionsBuilder).
+        foreach (var m in viewType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                     .Where(m => !m.IsSpecialName && m.Find<ListToolbarButtonAttribute>() != null))
+        {
+            var bulk = m.Find<ListToolbarButtonAttribute>()!;
+            var actionId = "action-on-row-" + Naming.CamelCase(m.Name);
+            toolbar.Add(new ButtonDto(m.Find<LabelAttribute>()?.Value ?? Naming.Humanize(m.Name), actionId));
+            actions.Add(new ActionDto(actionId, ValidationRequired: false,
+                ConfirmationRequired: bulk.ConfirmationRequired,
+                RowsSelectedRequired: bulk.RowsSelectedRequired,
+                Bubble: true));
+        }
         var crud = Client(new CrudMetadataDto(title, columns, toolbar)
         {
             Filters = MapCrudFilters(element),
             CrudlType = hero is not null ? "cards" : "table",
+            GroupBy = GroupByOf(element),
         }, "crud", []);
         var pageChildren = new List<ComponentDto>();
         if (hero is not null)
@@ -708,8 +729,6 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 hero.HeroTitle(), hero.HeroSubtitle(), hero.HeroImage(), null, true), null, []));
         pageChildren.Add(crud);
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren);
-        var actions = new List<ActionDto> { new("search"), new("new"), new("delete") };
-        if (inlineEditing) actions.Add(new ActionDto("update-row"));
         // A hero-search page starts EMPTY (the user searches); plain cruds preload their rows.
         var triggers = hero is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
         return new ServerSideComponentDto(
@@ -720,6 +739,18 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     internal static IEnumerable<PropertyInfo> EditableProperties(Type type) =>
         type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p is { CanRead: true, CanWrite: true });
+
+    /// <summary>The [Aggregate] function of a listing column as its wire name (the lowercase Java
+    /// enum: sum|avg|min|max|count); null on non-aggregated columns.</summary>
+    internal static string? AggregateOf(PropertyInfo p) =>
+        p.Find<AggregateAttribute>()?.Function.ToString().ToLowerInvariant();
+
+    /// <summary>The [GroupBy] column of a row class (camelCase field id); one per row class —
+    /// first declared wins. Null when the class declares none (mirrors ListingSummarySpec).</summary>
+    internal static string? GroupByOf(Type row) =>
+        EditableProperties(row).FirstOrDefault(p => p.Find<GroupByAttribute>() != null) is { } group
+            ? Naming.CamelCase(group.Name)
+            : null;
 
     /// <summary>The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud
     /// semantics): every basic property and every enum becomes a filter — enums upgrade to

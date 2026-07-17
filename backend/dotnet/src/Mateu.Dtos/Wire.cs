@@ -100,7 +100,15 @@ public record RuleDto(
     string Result,
     string? ActionId);
 
-public record ActionDto(string Id, bool ValidationRequired = true);
+// Field names mirror io.mateu.dtos.ActionDto (confirmationRequired/rowsSelectedRequired/bubble):
+// the frontend blocks a rowsSelectedRequired action while the grid selection is empty, and
+// bubble lets the event reach the enclosing crud component.
+public record ActionDto(
+    string Id,
+    bool ValidationRequired = true,
+    bool ConfirmationRequired = false,
+    bool RowsSelectedRequired = false,
+    bool Bubble = false);
 
 /// <summary>A trigger that fires <c>ActionId</c> when a named custom event is received.</summary>
 public record CustomTriggerDto(string Event, string ActionId)
@@ -584,6 +592,11 @@ public record CrudMetadataDto(
     /// <summary>The smart search bar's filters, one FormField per filterable entity property
     /// (enums as multi-selects, temporals as date ranges, [RangeFilter] numerics as min–max).</summary>
     public IReadOnlyList<FormFieldMetadataDto> Filters { get; init; } = [];
+
+    /// <summary>The [GroupBy] column of the row class (camelCase field id): the listing groups
+    /// its rows by it — implicit primary sort + a group subtotal row whenever the value changes.
+    /// Null when the row class declares no [GroupBy] column (mirrors CrudlDto.groupBy).</summary>
+    public string? GroupBy { get; init; }
 }
 
 public record GridColumnDto(GridColumnMetaDto Metadata);
@@ -607,6 +620,11 @@ public record GridColumnMetaDto(string Id, string Label)
 
     /// <summary>Options of a select editor (enum constants); null otherwise.</summary>
     public IReadOnlyList<OptionDto>? EditorOptions { get; init; }
+
+    /// <summary>The [Aggregate] function of the column — sum|avg|min|max|count — computed over
+    /// the WHOLE filtered result set and shown in the listing's totals footer (and per group).
+    /// Null on non-aggregated columns (mirrors GridColumnDto.aggregate).</summary>
+    public string? Aggregate { get; init; }
 }
 
 public record TriggerDto(string Type, string ActionId);

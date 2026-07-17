@@ -15,9 +15,12 @@ from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
 from mateu_dtos import Option, UICommand  # noqa: E402
 from mateu_uidl.components import Dialog, Drawer, Text  # noqa: E402
 from mateu_uidl import (  # noqa: E402
+    Aggregate,
+    AggregateFunction,
     AppActionsSupplier,
     AppHeaderAction,
     BannerTheme,
+    GroupBy,
     Disabled,
     Hidden,
     PageBanner,
@@ -63,6 +66,7 @@ from mateu_uidl import (  # noqa: E402
     folded_layout,
     inline_editing,
     kpi,
+    list_toolbar_button,
     menu_item,
     shortcut,
     subscribe_to,
@@ -222,6 +226,33 @@ class Bookings(Crud[Booking]):
             booking("b1", "Smith", True, BookingChannel.WEB, date(2026, 1, 10), 100.0),
             booking("b2", "Jones", False, BookingChannel.PHONE, date(2026, 2, 10), 250.0),
             booking("b3", "Brown", True, BookingChannel.AGENCY, date(2026, 3, 10), 400.0),
+        ]
+
+
+# Listing aggregates + row grouping: Aggregate() columns total over the WHOLE filtered set,
+# the GroupBy() column groups the rows (implicit primary sort + per-group subtotals).
+class Sale:
+    id: str = ""
+    region: Annotated[str, GroupBy()] = ""
+    product: str = ""
+    amount: Annotated[float, Aggregate(AggregateFunction.sum)] = 0.0
+    invoice: Annotated[str | None, Aggregate(AggregateFunction.count)] = None
+
+
+@ui("sales")
+@title("Sales")
+class Sales(Crud[Sale]):
+    def fetch(self, search):
+        def sale(id_, region, product, amount, invoice):
+            s = Sale()
+            s.id, s.region, s.product, s.amount, s.invoice = id_, region, product, amount, invoice
+            return s
+
+        return [
+            sale("1", "North", "Widget", 100.0, "F-1"),
+            sale("2", "South", "Widget", 50.0, "F-2"),
+            sale("3", "North", "Gadget", 25.0, "F-3"),
+            sale("4", "South", "Gadget", 25.0, None),
         ]
 
 
@@ -487,6 +518,17 @@ class StockCrud(Crud[StockItem]):
 
     def save(self, entity):
         _STOCK_STORE[entity.id] = entity
+
+    # A BULK list action over the grid's selected rows (list toolbar button).
+    @list_toolbar_button
+    def deactivate(self, rows: list[StockItem]):
+        for row in rows:
+            row.active = False
+            self.save(row)
+
+    @list_toolbar_button("Restock everything", confirmation_required=True, rows_selected_required=False)
+    def restock_all(self):
+        return Message("Restocked")
 
 
 class UpperTranslator(Translator):
@@ -1257,6 +1299,61 @@ def test_inline_editing_marks_data_columns_editable_and_advertises_update_row():
     assert '"update-row"' in j
 
 
+def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action():
+    inc = handler().handle(RunActionRq(route="stock", consumed_route="stock"))
+    j = render(inc)
+
+    # The bulk method rides on the listing toolbar (label from the decorator or humanized name)…
+    assert '"label": "Deactivate", "actionId": "action-on-row-deactivate"' in j
+    assert '"label": "Restock everything", "actionId": "action-on-row-restockAll"' in j
+    # …and its action advertises the confirmation/selection flags the frontend enforces
+    # (same field names as Java's ActionDto).
+    assert (
+        '{"id": "action-on-row-deactivate", "validationRequired": false, '
+        '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true}'
+    ) in j
+    assert (
+        '{"id": "action-on-row-restockAll", "validationRequired": false, '
+        '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true}'
+    ) in j
+
+
+def test_list_toolbar_button_dispatch_receives_typed_selected_rows_and_researches():
+    _STOCK_STORE.clear()
+    _STOCK_STORE["s1"] = _stock_item("s1", "Bolts", 12, True, StockStatus.OK)
+    _STOCK_STORE["s2"] = _stock_item("s2", "Nuts", 5, True, StockStatus.LOW)
+    inc = handler().handle(
+        RunActionRq(
+            action_id="action-on-row-deactivate",
+            server_side_type=_name(StockCrud),
+            component_state={
+                "crud_selected_items": [
+                    {"id": "s1", "name": "Bolts", "units": 12, "active": True, "status": "OK"},
+                ],
+            },
+        )
+    )
+
+    # The selected rows reached the method TYPED — only s1 was deactivated.
+    assert _STOCK_STORE["s1"].active is False
+    assert _STOCK_STORE["s2"].active is True
+    # A None result re-runs the search so the listing reflects the changes.
+    assert len(inc.fragments) == 1
+    assert inc.fragments[0].component is None
+    assert '"totalElements": 2' in render(inc)
+
+
+def test_list_toolbar_button_non_none_result_maps_as_usual():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="action-on-row-restockAll",
+            server_side_type=_name(StockCrud),
+        )
+    )
+    assert len(inc.messages) == 1
+    assert inc.messages[0].text == "Restocked"
+
+
 def test_update_row_rebuilds_the_entity_and_saves_it():
     _STOCK_STORE.clear()
     _STOCK_STORE["s1"] = _stock_item("s1", "Bolts", 12, True, StockStatus.OK)
@@ -1441,6 +1538,52 @@ def test_crud_search_applies_string_containment_and_bool_equality():
 def test_crud_search_ignores_blank_bounds_and_empty_selections():
     j = render(search_bookings({"created_from": "", "channel": [], "guest": ""}))
     assert '"totalElements": 3' in j
+
+
+# ── Listing aggregates + row grouping (mirrors Java's AggregatesSyncTest) ────────
+
+
+def search_sales(state: dict):
+    state.setdefault("searchText", "")
+    return handler().handle(
+        RunActionRq(action_id="search", server_side_type=_name(Sales), component_state=state)
+    )
+
+
+def test_crud_columns_carry_their_aggregate_and_the_crud_its_group_by_column():
+    j = render(handler().handle(RunActionRq(route="/sales", server_side_type=_name(Sales))))
+    assert '"groupBy": "region"' in j
+    assert '"aggregate": "sum"' in j
+    assert '"aggregate": "count"' in j
+    # non-aggregated columns stay null
+    assert '"aggregate": null' in j
+
+
+def test_crud_search_totals_cover_the_whole_filtered_set_not_just_the_page():
+    j = render(search_sales({"page": 0, "size": 2}))
+    # page size 2 but totals cover all four rows; count skips Nones (row 4 has no invoice)
+    assert '"totalElements": 4' in j
+    assert '"aggregates": {"amount": 200.0, "invoice": 3}' in j
+
+
+def test_crud_search_groups_carry_count_and_per_group_aggregates_and_rows_come_group_sorted():
+    j = render(search_sales({"size": 10}))
+    assert (
+        '"groups": [{"value": "North", "count": 2, "aggregates": {"amount": 125.0, "invoice": 2}}, '
+        '{"value": "South", "count": 2, "aggregates": {"amount": 75.0, "invoice": 1}}]'
+    ) in j
+    # the GroupBy() column is the implicit primary sort, so groups are contiguous:
+    # North (rows 1, 3) travels before South (rows 2, 4)
+    assert j.index('"id": "1"') < j.index('"id": "3"') < j.index('"id": "2"') < j.index('"id": "4"')
+
+
+def test_crud_search_filtering_recomputes_the_summaries_over_the_filtered_set_only():
+    j = render(search_sales({"product": "Widget"}))
+    assert '"aggregates": {"amount": 150.0, "invoice": 2}' in j
+    assert (
+        '"groups": [{"value": "North", "count": 1, "aggregates": {"amount": 100.0, "invoice": 1}}, '
+        '{"value": "South", "count": 1, "aggregates": {"amount": 50.0, "invoice": 1}}]'
+    ) in j
 
 
 def _name(cls) -> str:

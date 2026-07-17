@@ -190,6 +190,10 @@ class CrudMetadata(Wire):
     # the smart search bar's filters, one FormField per filterable entity field (enums as
     # multi-selects, temporals as date ranges, RangeFilter numerics as min-max)
     filters: list["FormFieldMetadata"] = Field(default_factory=list)
+    #: The GroupBy() column of the row class (camelCase field id): the listing groups its rows
+    #: by it — implicit primary sort + a group subtotal row whenever the value changes. None
+    #: when the row class declares no GroupBy() column (mirrors CrudlDto.groupBy).
+    group_by: str | None = None
 
 
 class ProgressBarMetadata(Wire):
@@ -1122,6 +1126,10 @@ class GridColumnMeta(Wire):
     editable: bool = False
     editor_type: str | None = None
     editor_options: list[Option] | None = None
+    #: The Aggregate() function of the column — sum|avg|min|max|count — computed over the WHOLE
+    #: filtered result set and shown in the listing's totals footer (and per group). None on
+    #: non-aggregated columns (mirrors GridColumnDto.aggregate).
+    aggregate: str | None = None
 
 
 class GridColumn(Wire):
@@ -1179,6 +1187,12 @@ class Badge(Wire):
 class Action(Wire):
     id: str
     validation_required: bool = True
+    # Field names mirror io.mateu.dtos.ActionDto: the frontend blocks a rows_selected_required
+    # action while the grid selection is empty, and bubble lets the event reach the enclosing
+    # crud component.
+    confirmation_required: bool = False
+    rows_selected_required: bool = False
+    bubble: bool = False
 
 
 class Trigger(Wire):

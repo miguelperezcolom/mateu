@@ -194,6 +194,20 @@ public sealed class ReadOnlyAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
 public sealed class InlineEditingAttribute : Attribute;
 
+/// <summary>Adds a toolbar button to the crud LISTING that runs the decorated method as a BULK
+/// action over the rows selected in the grid. The frontend keeps the selection in the
+/// crud_selected_items component state key and blocks the dispatch while RowsSelectedRequired
+/// and nothing is selected; on the server a List&lt;T&gt; parameter receives the selected rows
+/// rebuilt as typed entities. A null/void result re-runs the search so the listing reflects the
+/// changes. (C# analogue of Java's @ListToolbarButton.)</summary>
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public sealed class ListToolbarButtonAttribute(
+    bool confirmationRequired = false, bool rowsSelectedRequired = true) : Attribute
+{
+    public bool ConfirmationRequired { get; } = confirmationRequired;
+    public bool RowsSelectedRequired { get; } = rowsSelectedRequired;
+}
+
 /// <summary>Lets Mateu infer the UX patterns of a form from the amount and structure of the
 /// declared information, so the developer only declares the data and Mateu decides how to present
 /// it. Inference only fills the gaps the developer left open — every explicit layout attribute

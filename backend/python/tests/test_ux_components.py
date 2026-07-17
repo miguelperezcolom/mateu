@@ -833,7 +833,13 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
 
     # The MetricCard drill-in action is advertised and dispatches to the method.
     component = doc["fragments"][0]["component"]
-    assert {"id": "openRevenue", "validationRequired": True} in component["actions"]
+    assert {
+        "id": "openRevenue",
+        "validationRequired": True,
+        "confirmationRequired": False,
+        "rowsSelectedRequired": False,
+        "bubble": False,
+    } in component["actions"]
     inc = handler().handle(
         RunActionRq(action_id="openRevenue", server_side_type=type_name(SalesDashboard))
     )

@@ -114,8 +114,63 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                 "edit" => RenderEntity(crudType, element, GetOrNew(crud, crudType, element, id), "edit", $"{baseRoute}/{id}/edit", rq),
                 _ => RenderCrudList(crudType, crud, baseRoute, rq),
             },
+            { } aid when aid.StartsWith("action-on-row-") => ActionOnRows(crud, crudType, element, rq),
             _ => Error($"Action not found: {rq.ActionId}"),
         };
+    }
+
+    /// <summary>A [ListToolbarButton] bulk action: runs the named method on the crud with the
+    /// grid's selected rows (componentState crud_selected_items) rebuilt as typed entities — a
+    /// List&lt;T&gt; parameter receives them. A null/void result re-runs the search so the
+    /// listing reflects the changes; anything else maps as a regular action result (mirrors
+    /// Java's ActionOnRowActionHandler).</summary>
+    private static UIIncrementDto ActionOnRows(object crud, Type crudType, Type element, RunActionRqDto rq)
+    {
+        var name = rq.ActionId!["action-on-row-".Length..];
+        var method = crudType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(m => !m.IsSpecialName && Naming.CamelCase(m.Name) == name);
+        if (method is null) return Error($"Action not found: {rq.ActionId}");
+        var result = method.Invoke(crud, BuildBulkArguments(method, rq));
+        return result is null ? CrudSearch(crud, element, rq) : MapResult(result, rq);
+    }
+
+    /// <summary>Fills a bulk method's parameters: a List&lt;T&gt;/IReadOnlyList&lt;T&gt;
+    /// parameter receives the selected rows rebuilt as typed entities (the same New+BindState
+    /// path update-row uses); anything unfillable is null.</summary>
+    private static object?[] BuildBulkArguments(MethodInfo method, RunActionRqDto rq)
+    {
+        var parameters = method.GetParameters();
+        if (parameters.Length == 0) return [];
+        var selected = rq.ComponentState.TryGetValue("crud_selected_items", out var raw)
+                       && raw is JsonElement { ValueKind: JsonValueKind.Array } el
+            ? el
+            : (JsonElement?)null;
+        return parameters.Select(p => SelectedRowElementType(p.ParameterType) is { } rowType
+            ? SelectedRows(rowType, selected)
+            : null).ToArray();
+    }
+
+    private static Type? SelectedRowElementType(Type t) =>
+        t.IsGenericType
+        && (t.GetGenericTypeDefinition() == typeof(List<>)
+            || t.GetGenericTypeDefinition() == typeof(IList<>)
+            || t.GetGenericTypeDefinition() == typeof(IReadOnlyList<>)
+            || t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            ? t.GetGenericArguments()[0]
+            : null;
+
+    private static object SelectedRows(Type rowType, JsonElement? selected)
+    {
+        var rows = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(rowType))!;
+        if (selected is not { } array) return rows;
+        foreach (var rowEl in array.EnumerateArray())
+        {
+            if (rowEl.ValueKind != JsonValueKind.Object) continue;
+            var row = Activator.CreateInstance(rowType)!;
+            BindState(row, rowEl.EnumerateObject().ToDictionary(x => x.Name, x => (object?)x.Value));
+            rows.Add(row);
+        }
+        return rows;
     }
 
     private static (string Mode, string? Id) ParseCrudRoute(string baseRoute, string? route)
@@ -332,13 +387,20 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
     {
         var props = ReflectionMapper.EditableProperties(element).ToList();
+        var summarySpec = SummarySpecOf(props);
+        // The [GroupBy] column is the implicit primary sort, so rows of the same group stay
+        // contiguous in the listing (the user's own sort applies within groups; mirrors Java's
+        // ListingSummarySpec.prependGroupSort).
+        var sort = PrependGroupSort(EnumerateSort(rq.ComponentState).ToList(), summarySpec);
 
         // Database pushdown: an overridden Find runs search+filter+sort+paginate as one query
-        // and returns the page with its real total — skip the in-memory pipeline entirely.
+        // and returns the page with its real total — skip the in-memory pipeline entirely
+        // ([Aggregate]/[GroupBy] summaries are still computed in memory over Fetch, the analogue
+        // of Java's default CrudRepository.summaries over findAll()).
         var pageable = new Pageable(
             ToInt(GetState(rq.ComponentState, "page"), 0),
             ToInt(GetState(rq.ComponentState, "size"), 10),
-            EnumerateSort(rq.ComponentState).Select(s => new SortSpec(s.field, s.descending)).ToList());
+            sort.Select(s => new SortSpec(s.field, s.descending)).ToList());
         var found = instance.GetType().GetMethod("Find")!
             .Invoke(instance, [SearchText(rq), rq.ComponentState, pageable]);
         if (found is not null)
@@ -346,22 +408,27 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             var content = (System.Collections.IEnumerable)found.GetType().GetProperty("Content")!.GetValue(found)!;
             var totalElements = (long)found.GetType().GetProperty("TotalElements")!.GetValue(found)!;
             var pushedRows = content.Cast<object>().Select(item => RowDict(item, props)).ToList();
-            var pushedData = new { crud = new { page = new { content = pushedRows, pageSize = pageable.Size, pageNumber = pageable.Page, totalElements } } };
+            var pushedCrud = new Dictionary<string, object?>
+            {
+                ["page"] = new { content = pushedRows, pageSize = pageable.Size, pageNumber = pageable.Page, totalElements },
+            };
+            AttachSummaries(pushedCrud, summarySpec,
+                () => FilteredRows(instance, rq, props));
+            var pushedData = new Dictionary<string, object?> { ["crud"] = pushedCrud };
             return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, pushedData, "Replace", null)]);
         }
 
-        var fetched = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
         var propByCamel = props.ToDictionary(p => Naming.CamelCase(p.Name), p => p);
 
         // filter
-        var items = fetched.Cast<object>().Where(item => MatchesFilters(item, props, rq.ComponentState)).ToList();
+        var items = FilteredRows(instance, rq, props);
 
         // sort — Pageable.sort is a list of { field, direction:'ascending'|'descending' }; applied
         // last-spec-first so the first spec is the primary key.
-        foreach (var spec in EnumerateSort(rq.ComponentState).AsEnumerable().Reverse())
+        foreach (var sortSpec in sort.AsEnumerable().Reverse())
         {
-            if (!propByCamel.TryGetValue(spec.field, out var prop)) continue;
-            var ordered = spec.descending
+            if (!propByCamel.TryGetValue(sortSpec.field, out var prop)) continue;
+            var ordered = sortSpec.descending
                 ? items.OrderByDescending(it => prop.GetValue(it), SortKeyComparer.Instance)
                 : items.OrderBy(it => prop.GetValue(it), SortKeyComparer.Instance);
             items = ordered.ToList();
@@ -381,8 +448,113 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             foreach (var p in props) row[Naming.CamelCase(p.Name)] = CellValue(p.GetValue(item));
             rows.Add(row);
         }
-        var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
+        var crudData = new Dictionary<string, object?>
+        {
+            ["page"] = new { content = rows, pageSize = size, pageNumber = page, totalElements = total },
+        };
+        AttachSummaries(crudData, summarySpec, () => items);
+        var data = new Dictionary<string, object?> { ["crud"] = crudData };
         return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, data, "Replace", null)]);
+    }
+
+    /// <summary>Fetch + the smart-search-bar filters: the WHOLE filtered result set the
+    /// summaries aggregate over (not just the visible page).</summary>
+    private static List<object> FilteredRows(object instance, RunActionRqDto rq, List<PropertyInfo> props)
+    {
+        var fetched = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
+        return fetched.Cast<object>().Where(item => MatchesFilters(item, props, rq.ComponentState)).ToList();
+    }
+
+    // ── Listing aggregates + row grouping ([Aggregate]/[GroupBy], mirrors Java's
+    // ListingSummarySpec + CrudRepository.summaries) ─────────────────────────────
+
+    /// <summary>What the row class asks to be summarized: the [Aggregate] columns
+    /// (camelCase field id → function) and the [GroupBy] column, read once per request.</summary>
+    private sealed record SummarySpec(
+        List<(string Key, PropertyInfo Property, AggregateFunction Function)> Aggregates,
+        PropertyInfo? GroupBy)
+    {
+        public bool IsEmpty => Aggregates.Count == 0 && GroupBy is null;
+
+        public string? GroupKey => GroupBy is null ? null : Naming.CamelCase(GroupBy.Name);
+    }
+
+    private static SummarySpec SummarySpecOf(List<PropertyInfo> props) =>
+        new(
+            props.Select(p => (Property: p, Attribute: p.Find<AggregateAttribute>()))
+                .Where(x => x.Attribute is not null)
+                .Select(x => (Naming.CamelCase(x.Property.Name), x.Property, x.Attribute!.Function))
+                .ToList(),
+            props.FirstOrDefault(p => p.Find<GroupByAttribute>() != null));
+
+    /// <summary>Prepends the group column to the sort (unless the user already sorts by it
+    /// first), deduping any other occurrence of it.</summary>
+    private static List<(string field, bool descending)> PrependGroupSort(
+        List<(string field, bool descending)> sort, SummarySpec spec)
+    {
+        if (spec.GroupKey is not { } groupKey) return sort;
+        if (sort.Count > 0 && sort[0].field == groupKey) return sort;
+        var prepended = new List<(string field, bool descending)> { (groupKey, false) };
+        prepended.AddRange(sort.Where(s => s.field != groupKey));
+        return prepended;
+    }
+
+    /// <summary>Attaches the aggregation companion of the search next to the page: "aggregates"
+    /// carries the totals of every [Aggregate] column over the WHOLE filtered result set (the
+    /// listing's totals footer) and "groups" one summary per [GroupBy] group — its value (as
+    /// text), row count and per-group aggregates, sorted case-insensitively by value (mirrors
+    /// Java's ListingData.aggregates/groups filled by CrudRepository.summaries).</summary>
+    private static void AttachSummaries(
+        Dictionary<string, object?> crudData, SummarySpec spec, Func<List<object>> filteredRows)
+    {
+        if (spec.IsEmpty) return;
+        var rows = filteredRows();
+        crudData["aggregates"] = AggregateOver(rows, spec);
+        crudData["groups"] = spec.GroupBy is null
+            ? new List<Dictionary<string, object?>>()
+            : rows.GroupBy(row => ValueOf(spec.GroupBy.GetValue(row)))
+                .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(group => new Dictionary<string, object?>
+                {
+                    ["value"] = group.Key,
+                    ["count"] = (long)group.Count(),
+                    ["aggregates"] = AggregateOver(group.ToList(), spec),
+                })
+                .ToList();
+    }
+
+    // Java keys groups by String.valueOf(value) — a null group value becomes "null".
+    private static string ValueOf(object? value) => value?.ToString() ?? "null";
+
+    /// <summary>One aggregate per [Aggregate] column over <paramref name="rows"/>: count counts
+    /// non-null values; sum/avg/min/max run over the numeric values as doubles (a column with no
+    /// numeric values is omitted) — mirrors Java's CrudRepository.aggregateOver.</summary>
+    private static Dictionary<string, object?> AggregateOver(List<object> rows, SummarySpec spec)
+    {
+        var totals = new Dictionary<string, object?>();
+        foreach (var (key, property, function) in spec.Aggregates)
+        {
+            var values = rows.Select(property.GetValue).Where(value => value is not null).ToList();
+            if (function == AggregateFunction.Count)
+            {
+                totals[key] = (long)values.Count;
+                continue;
+            }
+            var numbers = values
+                .Where(value => value is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal)
+                .Select(value => Convert.ToDouble(value))
+                .ToList();
+            if (numbers.Count == 0) continue;
+            totals[key] = function switch
+            {
+                AggregateFunction.Sum => numbers.Sum(),
+                AggregateFunction.Avg => numbers.Average(),
+                AggregateFunction.Min => numbers.Min(),
+                AggregateFunction.Max => numbers.Max(),
+                _ => null,
+            };
+        }
+        return totals;
     }
 
     private static IEnumerable<(string field, bool descending)> EnumerateSort(Dictionary<string, object?>? state)

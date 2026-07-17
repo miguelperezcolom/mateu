@@ -145,6 +145,36 @@ class RangeFilter:
     Temporal fields are ranges by default; numerics opt in with this."""
 
 
+class AggregateFunction(Enum):
+    """Aggregate computed over a listing column (see ``Aggregate``). The member names are the
+    wire values (mirrors ``io.mateu.uidl.data.AggregateFunction``)."""
+
+    sum = "sum"
+    avg = "avg"
+    min = "min"
+    max = "max"
+    count = "count"
+
+
+class Aggregate:
+    """Aggregates a listing column over the WHOLE filtered result set (not just the visible
+    page): the listing shows a totals footer with the computed value, and when combined with
+    ``GroupBy`` each group's subtotal row shows the per-group value too. The Python analogue of
+    Java's ``@Aggregate``."""
+
+    def __init__(self, function: AggregateFunction = AggregateFunction.sum):
+        self.function = function
+
+
+@dataclass(frozen=True)
+class GroupBy:
+    """Groups the listing rows by this column: the column becomes the implicit primary sort so
+    rows of the same value are contiguous, and the grid renders a group subtotal row whenever
+    the value changes — showing the group value, its row count over the WHOLE filtered set, and
+    the per-group value of every ``Aggregate()`` column. One ``GroupBy()`` column per row class.
+    The Python analogue of Java's ``@GroupBy``."""
+
+
 class TreeSelect:
     """Renders the field's dropdown as a TREE: the options carry children (supply them from the
     view's ``options(field_name)`` method). With ``leaves_only=True`` only leaves select."""
@@ -453,6 +483,13 @@ class _Fab:
     order: int
 
 
+@dataclass(frozen=True)
+class _ListToolbarButton:
+    label: str | None
+    confirmation_required: bool
+    rows_selected_required: bool
+
+
 # ── Class-level decorators ─────────────────────────────────────────────────────
 def ui(route: str = "") -> Callable[[type], type]:
     def deco(cls: type) -> type:
@@ -725,6 +762,21 @@ def shortcut(keys: str):
     return deco
 
 
+def list_toolbar_button(arg=None, confirmation_required: bool = False, rows_selected_required: bool = True):
+    """A toolbar button on a Crud LISTING running the decorated method as a BULK action over the
+    rows selected in the grid. The frontend keeps the selection in the ``crud_selected_items``
+    component state key and blocks the dispatch while ``rows_selected_required`` and nothing is
+    selected; on the server a ``list[Row]``-annotated parameter receives the selected rows
+    rebuilt as typed entities. Returning None re-runs the search so the listing reflects the
+    changes. Supports ``@list_toolbar_button``, ``@list_toolbar_button("Label")`` and keyword
+    flags (mirrors Java's @ListToolbarButton)."""
+    return _maybe_bare(
+        arg,
+        "__mateu_list_toolbar_button__",
+        lambda label: _ListToolbarButton(label, confirmation_required, rows_selected_required),
+    )
+
+
 # ── Base classes ───────────────────────────────────────────────────────────────
 @dataclass(frozen=True)
 class SortSpec:
@@ -967,11 +1019,11 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "RangeFilter", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "wizard_progress",
     "plain_text", "emits", "subscribe_to", "secured",
-    "button", "menu_item", "kpi", "fab", "banner", "shortcut",
+    "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome",
 ]

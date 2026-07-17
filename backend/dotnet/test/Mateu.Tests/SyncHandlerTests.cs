@@ -412,6 +412,43 @@ public class StockCrud : Crud<StockItem>
     public override StockItem? Get(string id) => Store.GetValueOrDefault(id);
 
     public override void Save(StockItem entity) => Store[entity.Id] = entity;
+
+    // A BULK list action over the grid's selected rows (List toolbar button).
+    [ListToolbarButton]
+    public void Deactivate(List<StockItem> rows)
+    {
+        foreach (var row in rows)
+        {
+            row.Active = false;
+            Save(row);
+        }
+    }
+
+    [ListToolbarButton(confirmationRequired: true, rowsSelectedRequired: false), Label("Restock everything")]
+    public Message RestockAll() => new("Restocked");
+}
+
+// Listing aggregates + row grouping: [Aggregate] columns total over the WHOLE filtered set,
+// the [GroupBy] column groups the rows (implicit primary sort + per-group subtotals).
+public class Sale
+{
+    public string Id { get; set; } = "";
+    [GroupBy] public string Region { get; set; } = "";
+    public string Product { get; set; } = "";
+    [Aggregate(AggregateFunction.Sum)] public double Amount { get; set; }
+    [Aggregate(AggregateFunction.Count)] public string? Invoice { get; set; }
+}
+
+[UI("sales"), Title("Sales")]
+public class Sales : Crud<Sale>
+{
+    public override IEnumerable<Sale> Fetch(string? search) =>
+    [
+        new() { Id = "1", Region = "North", Product = "Widget", Amount = 100, Invoice = "F-1" },
+        new() { Id = "2", Region = "South", Product = "Widget", Amount = 50, Invoice = "F-2" },
+        new() { Id = "3", Region = "North", Product = "Gadget", Amount = 25, Invoice = "F-3" },
+        new() { Id = "4", Region = "South", Product = "Gadget", Amount = 25, Invoice = null },
+    ];
 }
 
 public class UpperTranslator : ITranslator
@@ -1190,6 +1227,66 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void List_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
+    {
+        var inc = Handler().Handle(new RunActionRqDto { Route = "stock", ConsumedRoute = "stock" });
+        var json = Render(inc);
+
+        // The bulk method rides on the listing toolbar (label from [Label] or humanized name)…
+        Assert.Contains("\"label\":\"Deactivate\",\"actionId\":\"action-on-row-deactivate\"", json);
+        Assert.Contains("\"label\":\"Restock everything\",\"actionId\":\"action-on-row-restockAll\"", json);
+        // …and its action advertises the confirmation/selection flags the frontend enforces
+        // (same field names as Java's ActionDto).
+        Assert.Contains(
+            "{\"id\":\"action-on-row-deactivate\",\"validationRequired\":false,"
+            + "\"confirmationRequired\":false,\"rowsSelectedRequired\":true,\"bubble\":true}", json);
+        Assert.Contains(
+            "{\"id\":\"action-on-row-restockAll\",\"validationRequired\":false,"
+            + "\"confirmationRequired\":true,\"rowsSelectedRequired\":false,\"bubble\":true}", json);
+    }
+
+    [Fact]
+    public void List_toolbar_button_dispatch_receives_typed_selected_rows_and_researches()
+    {
+        StockCrud.Store.Clear();
+        StockCrud.Store["s1"] = new StockItem { Id = "s1", Name = "Bolts", Units = 12, Active = true, Status = StockStatus.Ok };
+        StockCrud.Store["s2"] = new StockItem { Id = "s2", Name = "Nuts", Units = 5, Active = true, Status = StockStatus.Low };
+
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "action-on-row-deactivate",
+            ServerSideType = typeof(StockCrud).FullName,
+            ComponentState = new()
+            {
+                ["crud_selected_items"] = JsonSerializer.SerializeToElement(new[]
+                {
+                    new { id = "s1", name = "Bolts", units = 12, active = true, status = "Ok" },
+                }),
+            },
+        });
+
+        // The selected rows reached the method TYPED — only s1 was deactivated.
+        Assert.False(StockCrud.Store["s1"].Active);
+        Assert.True(StockCrud.Store["s2"].Active);
+        // A void method re-runs the search so the listing reflects the changes.
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Null(frag.Component);
+        Assert.Contains("\"totalElements\":2", Render(inc));
+    }
+
+    [Fact]
+    public void List_toolbar_button_non_null_result_maps_as_usual()
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "action-on-row-restockAll",
+            ServerSideType = typeof(StockCrud).FullName,
+        });
+
+        Assert.Equal("Restocked", Assert.Single(inc.Messages).Text);
+    }
+
+    [Fact]
     public void Update_row_rebuilds_the_entity_and_saves_it()
     {
         var rq = new RunActionRqDto
@@ -1531,6 +1628,83 @@ public class SyncHandlerTests
             ["guest"] = JsonSerializer.SerializeToElement(""),
         }));
         Assert.Contains("\"totalElements\":3", json);
+    }
+
+    // ── Listing aggregates + row grouping (mirrors Java's AggregatesSyncTest) ────
+
+    private static UIIncrementDto SearchSales(Dictionary<string, object?> state)
+    {
+        state.TryAdd("searchText", JsonSerializer.SerializeToElement(""));
+        return Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(Sales).FullName,
+            ComponentState = state,
+        });
+    }
+
+    [Fact]
+    public void Crud_columns_carry_their_aggregate_and_the_crud_its_group_by_column()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto
+        {
+            Route = "/sales", ServerSideType = typeof(Sales).FullName,
+        }));
+
+        Assert.Contains("\"groupBy\":\"region\"", json);
+        Assert.Contains("\"id\":\"amount\"", json);
+        Assert.Contains("\"aggregate\":\"sum\"", json);
+        Assert.Contains("\"aggregate\":\"count\"", json);
+        // non-aggregated columns stay null
+        Assert.Contains("\"aggregate\":null", json);
+    }
+
+    [Fact]
+    public void Crud_search_totals_cover_the_whole_filtered_set_not_just_the_page()
+    {
+        var json = Render(SearchSales(new()
+        {
+            ["page"] = JsonSerializer.SerializeToElement(0),
+            ["size"] = JsonSerializer.SerializeToElement(2),
+        }));
+
+        // page size 2 but totals cover all four rows; count skips nulls (row 4 has no invoice)
+        Assert.Contains("\"totalElements\":4", json);
+        Assert.Contains("\"aggregates\":{\"amount\":200,\"invoice\":3}", json);
+    }
+
+    [Fact]
+    public void Crud_search_groups_carry_count_and_per_group_aggregates_and_rows_come_group_sorted()
+    {
+        var json = Render(SearchSales(new()
+        {
+            ["size"] = JsonSerializer.SerializeToElement(10),
+        }));
+
+        Assert.Contains(
+            "\"groups\":[{\"value\":\"North\",\"count\":2,\"aggregates\":{\"amount\":125,\"invoice\":2}},"
+            + "{\"value\":\"South\",\"count\":2,\"aggregates\":{\"amount\":75,\"invoice\":1}}]",
+            json);
+        // the [GroupBy] column is the implicit primary sort, so groups are contiguous:
+        // North (rows 1, 3) travels before South (rows 2, 4)
+        Assert.True(json.IndexOf("\"id\":\"1\"") < json.IndexOf("\"id\":\"3\""));
+        Assert.True(json.IndexOf("\"id\":\"3\"") < json.IndexOf("\"id\":\"2\""));
+        Assert.True(json.IndexOf("\"id\":\"2\"") < json.IndexOf("\"id\":\"4\""));
+    }
+
+    [Fact]
+    public void Crud_search_filtering_recomputes_the_summaries_over_the_filtered_set_only()
+    {
+        var json = Render(SearchSales(new()
+        {
+            ["product"] = JsonSerializer.SerializeToElement("Widget"),
+        }));
+
+        Assert.Contains("\"aggregates\":{\"amount\":150,\"invoice\":2}", json);
+        Assert.Contains(
+            "\"groups\":[{\"value\":\"North\",\"count\":1,\"aggregates\":{\"amount\":100,\"invoice\":1}},"
+            + "{\"value\":\"South\",\"count\":1,\"aggregates\":{\"amount\":50,\"invoice\":1}}]",
+            json);
     }
 
     [Fact]

@@ -68,6 +68,28 @@ public sealed class TreeSelectAttribute(bool leavesOnly = false) : Attribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class RangeFilterAttribute : Attribute;
 
+/// <summary>Aggregate computed over a listing column (see <see cref="AggregateAttribute"/>).
+/// Emitted on the wire as the lowercase Java enum names: sum|avg|min|max|count.</summary>
+public enum AggregateFunction { Sum, Avg, Min, Max, Count }
+
+/// <summary>Aggregates a listing column over the WHOLE filtered result set (not just the visible
+/// page): the listing shows a totals footer with the computed value, and when combined with
+/// <see cref="GroupByAttribute"/> each group's subtotal row shows the per-group value too.
+/// (C# analogue of Java's @Aggregate.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class AggregateAttribute(AggregateFunction function = AggregateFunction.Sum) : Attribute
+{
+    public AggregateFunction Function { get; } = function;
+}
+
+/// <summary>Groups the listing rows by this column: the column becomes the implicit primary sort
+/// so rows of the same value are contiguous, and the grid renders a group subtotal row whenever
+/// the value changes — showing the group value, its row count over the WHOLE filtered set, and
+/// the per-group value of every [Aggregate] column. One [GroupBy] column per row class.
+/// (C# analogue of Java's @GroupBy.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class GroupByAttribute : Attribute;
+
 /// <summary>A method exposed as a button at the bottom of the page.</summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class ButtonAttribute(string? label = null) : Attribute

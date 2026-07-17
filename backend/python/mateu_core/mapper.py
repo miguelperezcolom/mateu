@@ -124,6 +124,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    Aggregate,
     AppActionsSupplier,
     Audience,
     BulletedList,
@@ -135,6 +136,7 @@ from mateu_uidl import (
     DisabledUnless,
     EyesOnly,
     Foldout,
+    GroupBy,
     HeaderBadge,
     HeroSearch,
     Hidden,
@@ -1326,8 +1328,25 @@ class ReflectionMapper:
                     [Option(value=m.name, label=str(m.name)) for m in f.type]
                     if editable and is_enum(f.type) else None
                 ),
+                aggregate=self.aggregate_of(f),
             )))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
+        # @list_toolbar_button methods: BULK list actions — a listing toolbar button dispatching
+        # action-on-row-<method> over the grid's selected rows; the action advertises the
+        # confirmation/selection-required flags the frontend enforces (mirrors Java's
+        # Crud.addButtonsToList + CrudActionsBuilder).
+        bulk_actions = []
+        for name, fn in methods_with(cls, "__mateu_list_toolbar_button__"):
+            marker = getattr(fn, "__mateu_list_toolbar_button__")
+            action_id = "action-on-row-" + camel_case(name)
+            toolbar.append(Button(label=self.T(marker.label or humanize(name)), action_id=action_id))
+            bulk_actions.append(Action(
+                id=action_id,
+                validation_required=False,
+                confirmation_required=marker.confirmation_required,
+                rows_selected_required=marker.rows_selected_required,
+                bubble=True,
+            ))
         crud = self.client(
             CrudMetadata(
                 title=title,
@@ -1335,6 +1354,7 @@ class ReflectionMapper:
                 toolbar=toolbar,
                 filters=self.crud_filters(element),
                 crudl_type="cards" if hero is not None else "table",
+                group_by=self.group_by_of(element),
             ),
             "crud",
             [],
@@ -1353,12 +1373,29 @@ class ReflectionMapper:
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
         if inline:
             actions.append(Action(id="update-row"))
+        actions.extend(bulk_actions)
         # A hero-search page starts EMPTY (the user searches); plain cruds preload their rows.
         triggers = [] if hero is not None else [Trigger(type="OnLoad", action_id="search")]
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions, triggers=triggers,
         )
+
+    @staticmethod
+    def aggregate_of(f) -> str | None:
+        """The Aggregate() function of a listing column as its wire name (sum|avg|min|max|count);
+        None on non-aggregated columns (mirrors Java's ListingColumnBuilder)."""
+        marker = f.marker(Aggregate)
+        return marker.function.name if marker is not None else None
+
+    @staticmethod
+    def group_by_of(row_type) -> str | None:
+        """The GroupBy() column of a row class (camelCase field id); one per row class — first
+        declared wins. None when the class declares none (mirrors Java's ListingSummarySpec)."""
+        for f in view_fields(row_type):
+            if f.has(GroupBy):
+                return camel_case(f.name)
+        return None
 
     @staticmethod
     def editor_type_of(f) -> str:
@@ -1397,6 +1434,7 @@ class ReflectionMapper:
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
                 data_type=self.infer_data_type(f.type, f),
+                aggregate=self.aggregate_of(f),
             ))
             for f in view_fields(row_type)
             if self.grid_row_type(f) is None and self.visible(f)
@@ -1412,7 +1450,8 @@ class ReflectionMapper:
         crud = self.client(
             CrudMetadata(title=title, columns=columns, toolbar=[],
                          can_edit=False, filters=self.listing_filters(filters_type),
-                         grid_layout=cls().grid_layout()),
+                         grid_layout=cls().grid_layout(),
+                         group_by=self.group_by_of(row_type)),
             "crud",
             [],
         )
