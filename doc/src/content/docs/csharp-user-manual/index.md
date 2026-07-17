@@ -121,6 +121,10 @@ public class Reservation
 }
 ```
 
+Override `EditInDrawer => true` and New/row clicks open the create/edit form in a **drawer
+sliding over the listing** (the listing never unmounts; saving persists, closes the drawer and
+refreshes the rows in place). `EditDrawerWidth` adjusts the panel width.
+
 ## App shell & navigation
 
 An `[App]` class is the application shell; each `[MenuItem]` method contributes a menu entry that
@@ -139,7 +143,10 @@ public class DemoApp
 ## Wizards
 
 Derive from `Wizard`, tag each field with `[Step(n)]`, and implement `Complete()`. Mateu renders a
-progress bar plus Back/Next; the step + field values round-trip through component state.
+progress bar plus Back/Next; the step + field values round-trip through component state. Annotate
+the class with `[WizardProgress("steps")]` for connected step bullets, or
+`[WizardProgress("rail")]` for the guided-process lateral rail (a sticky right band with a big
+`current | total` counter over the vertical step list).
 
 ```csharp
 [UI("signup"), Title("Sign up")]

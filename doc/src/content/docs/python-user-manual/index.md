@@ -114,6 +114,10 @@ class Reservation:
     total: Annotated[float, RangeFilter()] = 0.0         # number-range filter
 ```
 
+Decorate the crud class with `@edit_in_drawer` and New/row clicks open the create/edit form in a
+**drawer sliding over the listing** (the listing never unmounts; saving persists, closes the
+drawer and refreshes the rows in place).
+
 ## App shell & navigation
 
 An `@app` class is the application shell; each `@menu_item` method contributes a menu entry that
@@ -132,7 +136,10 @@ class DemoApp:
 ## Wizards
 
 Derive from `Wizard`, tag each field with `Step(n)`, and implement `complete()`. Mateu renders a
-progress bar plus Back/Next; the step + field values round-trip through component state.
+progress bar plus Back/Next; the step + field values round-trip through component state. Decorate
+the class with `@wizard_progress("steps")` for connected step bullets, or
+`@wizard_progress("rail")` for the guided-process lateral rail (a sticky right band with a big
+`current | total` counter over the vertical step list).
 
 ```python
 @ui("signup")

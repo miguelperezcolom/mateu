@@ -18,7 +18,9 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Forms, sections, field types, validation | ✅ | ✅ | ✅ |
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
 | App shell + menus + navigation | ✅ | ✅ | ✅ |
-| Wizards (incl. branching, cross-step state, `@WizardProgress` steppers) | ✅ | ✅ | ✅ |
+| Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
+| CRUD create/edit in a drawer (`editInDrawer` — save closes + refreshes the listing in place) | ✅ | ✅ | ✅ |
+| Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) | ✅ | ❌ | ❌ |
 | Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | 🟡 | 🟡 |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
@@ -81,6 +83,17 @@ Smart-search filters on .NET/Python: the Crud entity's fields become the same fi
 min–max), applied in-memory over `Fetch()` by default — same as Java's default repository — or
 pushed to the database by overriding `Find`/`find` (the filters arrive as the raw component state
 rather than Java's typed `FilterCriterion` objects; a contract difference, not a capability gap).
+
+**Recent .NET/Python parity gains (2026-07-17)**: CRUD create/edit in a drawer
+(`Crud<T>.EditInDrawer` virtual / `@edit_in_drawer` decorator — new and row clicks answer the
+entity form inside a `Drawer` Add fragment over the listing; cancel closes it; save persists and
+answers `CloseModal` carrying the `mateu-crud:saved-in-drawer` event plus a `RunAction search`
+command, so the listing refreshes in place with no navigation) and the wizard RAIL progress style
+(`[WizardProgress("rail")]` / `@wizard_progress("rail")` — the step form on the left, a sticky
+right band with a big `current | total` counter over the vertical step list; `ProgressSteps`
+carries `vertical` in all three backends). The `CollectionDetail`/`GeneralOverview` archetypes
+remain Java-only: the ports have no mixed reflected-fields + fluent-tree page mode (nor a fluent
+form-field primitive), which those archetypes need for their search box / context switcher.
 
 **Recent .NET/Python parity gains (2026-07-11)**: inline CRUD editing
 (`[InlineEditing]`/`@inline_editing` — editable columns with typed in-place editors +

@@ -627,7 +627,7 @@ These are also part of the public DSL and are worth knowing:
 - `@AppContext` — application-level context selector on the app header (active hotel, company…); options from an enum or a `LookupOptionsSupplier`, value readable everywhere via `httpRequest.appContext(fieldName)`
 - `@KPI` — render a numeric field as a dashboard KPI card
 - `@WizardCompletionAction` — the method that completes a `Wizard` (shown on the penultimate step)
-- `@WizardProgress` — the wizard's progress style: `BAR` (default) or `STEPS` (connected step bullets)
+- `@WizardProgress` — the wizard's progress style: `BAR` (default), `STEPS` (connected step bullets) or `RAIL` (sticky lateral band: `current | total` counter over the vertical step list)
 - `@AutoSave`
 - `@Icon`
 - `@PageTitle`

@@ -41,7 +41,10 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Audit version diff](./audit-diff) | ✅ Implemented | History grouped by save moment — old → new per field |
 | [Global entity search](./global-search) | ✅ Implemented | `GlobalSearchSupplier` — ⌘K searches data, grouped by category |
 | [Planning board](./planning-board) | ✅ Implemented | `PlanningBoard` — resources × days tape chart, drag to move |
-| [Wizard](./wizard) | ✅ Implemented | `@WizardCompletionAction` |
+| [Wizard](./wizard) | ✅ Implemented | `@WizardCompletionAction`, `@WizardProgress(BAR/STEPS/RAIL)` |
+| [CRUD editing in a drawer](./drawer#crud-editing-in-a-drawer-editindrawer) | ✅ Implemented | `editInDrawer()` — create/edit slides over the listing |
+| [Collection detail](./collection-detail) | ✅ Implemented | `CollectionDetail<Row>` — searchable list + in-place detail |
+| [General overview](./general-overview) | ✅ Implemented | `GeneralOverview<Row>` — record context switcher + overview |
 | [Entity Picker](./entity-picker) | ✅ Implemented | `@Lookup`, `@Composition` |
 | [Workspace](./workspace) | Composition | `@SplitLayout`, `@Tabs`, `@Accordion` |
 | [Task-centric page](./task-centric) | Composition | `@Action`, `@MainAction` |

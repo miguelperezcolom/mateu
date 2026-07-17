@@ -50,6 +50,21 @@ document.addEventListener('mateu-session-expired', e => {
   selection. Combine with the [dirty guard](/ux-patterns/partial-forms/) and
   [autosave](/ux-patterns/autosave/) for defense in depth.
 
+## Container-managed login (basic auth / form login): the invisible 302
+
+Behind container-managed auth there is no 401: when the server session dies (e.g. the server
+restarted), API calls answer a **302 to the login page** — and the browser follows it
+*transparently*, so the client sees a 200 whose body is the login page's HTML instead of JSON. The
+user would just see the action silently do nothing.
+
+Mateu detects this shape on every response — the request was redirected (the final URL differs
+from the requested one) **and** the payload is not JSON — and sends the **browser** to that final
+URL so the user can log in again. A redirect that still answers JSON (e.g. a trailing-slash
+rewrite) is left alone. This is built into the shared api client; nothing to configure.
+
+One limit: if the login page lives on **another origin** without CORS, the browser hides the final
+URL from the client — that case surfaces as a plain network error instead.
+
 ## Related
 
 - [Autosave](/ux-patterns/autosave/) — shrink the window of unsaved work
