@@ -238,12 +238,12 @@ No server-side persistence of views is needed. The browser's native bookmark man
 
 - **Segmented filter tabs with counts** ("All / Waiting queue (3)"): there is no declarative
   annotation for preset filter tabs over a listing. `@MainFilter` only highlights one search
-  field. Emulate with a filter field (enum or boolean), or with `TaskQueue`/`QueueGroup` when the
+  field. Saved views cover the preset part (named condition sets, no live counts); otherwise
+  emulate with a filter field (enum or boolean), or with `TaskQueue`/`QueueGroup` when the
   grouped-queue shape fits.
-- **Declarative row grouping by parent** (rows grouped under a parent header, e.g. reservations
-  per file): `Listing` has no `@GroupBy`. Use the fluent `GridGroupColumn`, a
-  `TaskQueue`/`QueueGroup`, or the `MasterDetailView` orchestrator; or denormalise the parent's
-  columns into each row.
+
+(Row grouping by parent used to be listed here — it is now first-class: `@GroupBy` on a row
+field renders group subtotal rows, and `@Aggregate` adds per-group and whole-set totals.)
 
 ## Principles served
 

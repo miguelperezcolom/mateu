@@ -92,6 +92,16 @@ Read this before generating; each line is a trap and its fix.
   screen's main action (Sell, Save, Confirm) as a filled primary button; leaving every button
   tertiary buries the action hierarchy. One primary per screen.
 
+- **Group listing rows with `@GroupBy`, don't denormalise the parent into columns.** Rows that
+  belong to a parent (reservations per file, lines per order) get `@GroupBy` on ONE row field
+  (put the parent's context in its value — "id · agency · guests"); the grid renders bold
+  subtotal header rows with the count, and `@Aggregate` adds totals. Rows must arrive
+  contiguous per group. Custom `Listing`s get the group summaries synthesized automatically.
+
+- **Keep listings lean: the `auto` grid layout degrades by width.** Too many columns for the
+  available width flips the listing to a master-detail rail. If that is not what you want,
+  consolidate redundant columns (e.g. via the `@GroupBy` label) instead of stacking ten.
+
 - **Action results and standing warnings are `@Notice`, not `@ReadOnly String`.** `@Notice`
   renders an inline banner, auto-hides while the value is blank, and takes a theme
   (info/success/warning/danger). A read-only text field for "resultado" looks like a broken
