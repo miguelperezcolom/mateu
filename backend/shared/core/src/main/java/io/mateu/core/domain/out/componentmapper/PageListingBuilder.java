@@ -72,6 +72,15 @@ public class PageListingBuilder {
             .gridLayout(getGridLayout(instance))
             .style(getStyle(instance, httpRequest));
 
+    // @GroupAction methods become buttons on the @GroupBy group header rows; the frontend
+    // dispatches them as row actions carrying the group value in _groupValue.
+    for (var method : instance.getClass().getMethods()) {
+      var groupAction = MetaAnnotations.find(method, io.mateu.uidl.annotations.GroupAction.class);
+      if (groupAction != null) {
+        builder.groupAction(new Button(groupAction.value(), method.getName()));
+      }
+    }
+
     if (instance instanceof io.mateu.uidl.interfaces.UploadEnabled) {
       builder.toolbarItem(new Button("Import", "import"));
     }

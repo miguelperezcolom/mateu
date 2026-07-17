@@ -58,7 +58,8 @@ public record CrudlDto(
     int initialPage,
     String filtersLayout,
     String gridLayout,
-    String groupBy)
+    String groupBy,
+    List<ButtonDto> groupActions)
     implements ComponentMetadataDto {
 
   public CrudlDto {

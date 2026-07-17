@@ -373,7 +373,26 @@ export const columnRenderer = (item: any,
                 : [c?.metadata?.id])
         const labelColumnId = groupLabelColumnId(item.__mateuGroupBy, columnIds)
         const text = groupRowCellText(item, column, labelColumnId)
-        return html`<span title="${text}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${text}</span>`
+        // @GroupAction buttons ride on the label cell of the group header row; the clicked
+        // group's value travels as the _groupValue action parameter.
+        const groupActions = column.id === labelColumnId ? (meta?.groupActions ?? []) : []
+        return html`<span style="display: flex; align-items: center; gap: var(--lumo-space-s); overflow: hidden;">
+            <span title="${text}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${text}</span>
+            ${groupActions.map((action: any) => html`
+                <vaadin-button theme="tertiary small" style="flex-shrink: 0;"
+                    @click="${(e: Event) => {
+                        e.stopPropagation();
+                        (e.currentTarget as Element).dispatchEvent(new CustomEvent('action-requested', {
+                            detail: {
+                                actionId: 'action-on-row-' + (action.actionId ?? action.id),
+                                parameters: { _groupValue: item.__mateuGroup.value }
+                            },
+                            bubbles: true,
+                            composed: true
+                        }))
+                    }}">${action.label ?? action.caption ?? ''}</vaadin-button>
+            `)}
+        </span>`
     }
     if (column.editable) {
         return renderEditableCell(item, column, container, state)

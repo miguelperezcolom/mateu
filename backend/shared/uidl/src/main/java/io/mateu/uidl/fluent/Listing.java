@@ -48,7 +48,8 @@ public record Listing(
     int initialPage,
     FiltersLayout filtersLayout,
     GridLayout gridLayout,
-    String groupBy)
+    String groupBy,
+    @Singular("groupAction") List<UserTrigger> groupActions)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

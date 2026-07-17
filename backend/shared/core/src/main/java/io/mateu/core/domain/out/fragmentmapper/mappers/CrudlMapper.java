@@ -137,6 +137,10 @@ public class CrudlMapper {
             .filtersLayout(crudl.filtersLayout().name())
             .gridLayout(crudl.gridLayout().name())
             .groupBy(crudl.groupBy())
+            .groupActions(
+                crudl.groupActions() != null
+                    ? crudl.groupActions().stream().map(FormMapper::mapToButtonDto).toList()
+                    : null)
             .build();
     return new ClientSideComponentDto(
         crudlDto,
