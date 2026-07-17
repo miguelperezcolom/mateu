@@ -13,5 +13,6 @@ public record NoticeDto(
     String actionId,
     String status,
     boolean slim,
-    boolean fullWidth)
+    boolean fullWidth,
+    boolean inlineContent)
     implements ComponentMetadataDto {}

@@ -103,11 +103,11 @@ public static class ComponentMapper
             tp.Label, tp.Total, tp.Done, tp.ActionLabel, tp.ActionId)),
 
         StatusList sl => Dto(sl, new StatusListMetadataDto(sl.Items.Select(i => new StatusItemDto(
-            i.Id, i.Icon, i.Avatar, i.Title, i.Description, i.Status, i.StatusColor, i.ActionLabel, i.ActionId)).ToList(), sl.Compact, sl.Frameless)),
+            i.Id, i.Icon, i.Avatar, i.Title, i.Description, i.Status, i.StatusColor, i.ActionLabel, i.ActionId)).ToList(), sl.Compact, sl.Frameless, sl.RowActionId)),
 
         BulletedList bl => Dto(bl, new BulletedListMetadataDto(bl.Items.ToList())),
 
-        Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth, n.NoIcon, n.Status), n.Content.Select(Map)),
+        Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth, n.NoIcon, n.Status, n.InlineContent), n.Content.Select(Map)),
 
         TaskQueue tq => Dto(tq, new TaskQueueMetadataDto(tq.ActionId, tq.Groups.Select(g =>
             new QueueGroupDto(g.Label, g.Items.Select(i => new QueueItemDto(
@@ -132,7 +132,7 @@ public static class ComponentMapper
 
         PaymentPicker pay => Dto(pay, new PaymentPickerMetadataDto(
             pay.ActionId, pay.Methods.Select(m2 => new PaymentMethodDto(m2.Id, m2.Label)).ToList(),
-            pay.Selected, pay.ContextLabel, pay.ContextValue, pay.ConfirmLabel)),
+            pay.Selected, pay.ContextLabel, pay.ContextValue, pay.ConfirmLabel, pay.MethodActionId)),
 
         ProcessMonitor pmn => Dto(pmn, new ProcessMonitorMetadataDto(pmn.Items.Select(p =>
             new ProcessItemDto(p.Id, p.Name, p.Systems, p.Ok, p.Warnings, p.Errors,

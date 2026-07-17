@@ -28,6 +28,8 @@ export class MateuNotice extends LitElement {
     @property({ type: Boolean }) fullWidth = false
     /** set by the renderer when the notice carries slotted content (arbitrary components) */
     @property({ type: Boolean }) hasContent = false
+    /** slotted content renders on the SAME line as the text instead of below it */
+    @property({ type: Boolean }) inlineContent = false
 
     static styles = css`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
@@ -66,6 +68,11 @@ export class MateuNotice extends LitElement {
         .text { flex: 1; min-width: 0; font-weight: 600; }
         .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .25rem; }
         .content { min-width: 0; }
+        /* inline content: text and content share the line (e.g. label + input + action);
+           wraps on narrow widths */
+        .body.inline { flex-direction: row; align-items: center; gap: .8rem; flex-wrap: wrap; }
+        .body.inline .text { flex: 0 0 auto; }
+        .body.inline .content { flex: 1 1 12rem; min-width: 0; }
         vaadin-button { flex: 0 0 auto; }
         .status { flex: 0 0 auto; font-weight: 600; font-size: var(--lumo-font-size-xs, .75rem); }
         /* pastel background + dark ink per theme (always-light pastels, like the page banners) */
@@ -99,7 +106,7 @@ export class MateuNotice extends LitElement {
                 ${this.noIcon
                     ? nothing
                     : html`<span class="icon ${this.icon ? 'custom' : ''}">${this.icon || THEME_ICONS[theme]}</span>`}
-                <div class="body">
+                <div class="body ${this.inlineContent ? 'inline' : ''}">
                     ${hasText ? html`<span class="text">${this.text}</span>` : nothing}
                     ${this.hasContent ? html`<div class="content"><slot></slot></div>` : nothing}
                 </div>

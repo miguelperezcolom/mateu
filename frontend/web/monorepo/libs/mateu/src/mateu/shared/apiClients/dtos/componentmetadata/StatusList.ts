@@ -6,4 +6,6 @@ export default interface StatusList extends ComponentMetadata {
     compact?: boolean
     /** divider lines between rows but no outer border (the host provides the framing) */
     frameless?: boolean
+    /** makes every row clickable: clicking one dispatches this action with { _item: id } */
+    rowActionId?: string
 }

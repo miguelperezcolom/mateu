@@ -71,6 +71,38 @@ public class NewProductForm {
 
 Because the ViewModel is discarded after each response, injected beans are only used within that single request.
 
+### Registering the ViewModel as a bean: use prototype scope
+
+You can also register the ViewModel itself as a container-managed bean, for example to use
+constructor injection. If you do, it **must** be prototype-scoped:
+
+```java
+@Component
+@Scope("prototype")
+@Route("/products/new")
+public class NewProductForm {
+
+    private final ProductRepository productRepository;
+
+    @NotBlank
+    String name;
+
+    public NewProductForm(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
+}
+```
+
+:::caution
+A **singleton** ViewModel breaks the stateless model: its mutable form fields are shared by
+every user and request, so one user's half-typed form leaks into another user's screen.
+Either leave the class unannotated (Mateu instantiates it per request and still injects
+`@Autowired` fields), or make the bean `@Scope("prototype")`.
+
+Stateless classes are fine as singletons — e.g. a CRUD orchestrator (`AutoCrud` subclass)
+whose only fields are `final` injected services.
+:::
+
 ## Mental model
 
 Think of Mateu as:

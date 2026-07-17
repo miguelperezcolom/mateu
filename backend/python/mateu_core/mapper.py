@@ -997,7 +997,13 @@ class ReflectionMapper:
                 for it in c.items
             ]
             return self._fluent_client(
-                StatusListMetadata(items=items, compact=c.compact, frameless=c.frameless), c
+                StatusListMetadata(
+                    items=items,
+                    compact=c.compact,
+                    frameless=c.frameless,
+                    row_action_id=c.row_action_id,
+                ),
+                c,
             )
         if isinstance(c, fluent.BulletedList):
             return self._fluent_client(BulletedListMetadata(items=list(c.items)), c)
@@ -1006,7 +1012,7 @@ class ReflectionMapper:
                 NoticeMetadata(
                     text=self.T(c.text), theme=c.theme, icon=c.icon, no_icon=c.no_icon,
                     action_label=c.action_label, action_id=c.action_id, status=c.status,
-                    slim=c.slim, full_width=c.full_width,
+                    slim=c.slim, full_width=c.full_width, inline_content=c.inline_content,
                 ), c, [self.map_component(child) for child in c.content])
         if isinstance(c, fluent.TaskQueue):
             groups = [
@@ -1108,6 +1114,7 @@ class ReflectionMapper:
             methods = [PaymentMethodRecord(id=m.id, label=m.label) for m in c.methods]
             meta = PaymentPickerMetadata(
                 action_id=c.action_id,
+                method_action_id=c.method_action_id,
                 methods=methods,
                 selected=c.selected,
                 context_label=c.context_label,

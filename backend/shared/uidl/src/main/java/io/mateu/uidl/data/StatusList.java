@@ -10,7 +10,9 @@ import lombok.Builder;
  * pending-tasks lists. An item's action dispatches its {@code actionId} with {@code { "_item": id
  * }}. {@code compact} tightens the row padding for dense screens; {@code frameless} keeps the
  * divider lines between rows but drops the outer border — for lists already framed by their host
- * (e.g. inside a section card). Design-system neutral, dark-mode aware.
+ * (e.g. inside a section card). {@code rowActionId} makes every ROW clickable (search results, pick
+ * lists): clicking one dispatches that action with {@code { "_item": id }}. Design-system neutral,
+ * dark-mode aware.
  */
 @Builder
 public record StatusList(
@@ -18,6 +20,7 @@ public record StatusList(
     List<StatusItem> items,
     boolean compact,
     boolean frameless,
+    String rowActionId,
     String style,
     String cssClasses)
     implements Component {}

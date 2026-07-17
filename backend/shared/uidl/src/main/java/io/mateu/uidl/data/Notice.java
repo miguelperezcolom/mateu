@@ -12,7 +12,9 @@ import lombok.Builder;
  * suppresses it entirely; an optional {@code actionLabel} + {@code actionId} renders a small action
  * on the right (dispatched through the standard action mechanism), and {@code status} renders a
  * right-aligned state text in that same spot — for the in-flight/done states of the notice's
- * action. Design-system neutral, dark-mode aware.
+ * action. {@code content} children render below the text; {@code inlineContent} puts them on the
+ * SAME line as the text instead (e.g. an input between the label and the action button).
+ * Design-system neutral, dark-mode aware.
  */
 @Builder
 public record Notice(
@@ -26,6 +28,7 @@ public record Notice(
     String status,
     boolean slim,
     boolean fullWidth,
+    boolean inlineContent,
     java.util.List<Component> content,
     String style,
     String cssClasses)
@@ -41,6 +44,7 @@ public record Notice(
         null,
         null,
         null,
+        false,
         false,
         false,
         java.util.List.of(),

@@ -244,6 +244,7 @@ class NoticeMetadata(Wire):
     status: str | None = None
     slim: bool = False
     full_width: bool = False
+    inline_content: bool = False
 
 
 class SeparatorMetadata(Wire):
@@ -819,6 +820,7 @@ class StatusListMetadata(Wire):
     items: list[StatusItemRecord] = Field(default_factory=list)
     compact: bool = False
     frameless: bool = False
+    row_action_id: str | None = None
 
 
 class BulletedListMetadata(Wire):
@@ -950,6 +952,7 @@ class PaymentPickerMetadata(Wire):
 
     type: Literal["PaymentPicker"] = "PaymentPicker"
     action_id: str | None = None
+    method_action_id: str | None = None
     methods: list[PaymentMethodRecord] = Field(default_factory=list)
     selected: str | None = None
     context_label: str | None = None

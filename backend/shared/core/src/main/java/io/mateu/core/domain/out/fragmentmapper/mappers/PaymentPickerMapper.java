@@ -12,6 +12,7 @@ public class PaymentPickerMapper {
     return new ClientSideComponentDto(
         PaymentPickerDto.builder()
             .actionId(paymentPicker.actionId())
+            .methodActionId(paymentPicker.methodActionId())
             .methods(
                 paymentPicker.methods() != null
                     ? paymentPicker.methods().stream()

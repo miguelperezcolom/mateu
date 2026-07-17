@@ -1,6 +1,7 @@
 import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios"
 import { readAppContext } from '@infra/appContextStore.ts';
 import { handleSessionExpired } from '@infra/http/sessionGuard.ts';
+import { loginRedirectTarget } from '@infra/http/redirectGuard.ts';
 import {nanoid} from "nanoid"
 import {MateuApiClient} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
@@ -21,7 +22,26 @@ export class AxiosMateuApiClient implements MateuApiClient {
         // Session expiry without losing work: a 401 hands control to the app's re-auth flow
         // (sessionGuard) and RETRIES the same request once after it — the original promise chain
         // resolves normally, so the in-flight action completes with the user's state intact.
-        this.axiosInstance.interceptors.response.use(undefined, (error: unknown) => {
+        // Lost container session (basic auth / form login): the server answers the API call
+        // with a 302 to the login page, which the browser follows transparently — axios sees
+        // a 200 with the login page's HTML, never the 302. When the final URL differs from the
+        // requested one and the body isn't JSON, send the BROWSER to that URL so the user can
+        // log in again instead of the action silently doing nothing.
+        this.axiosInstance.interceptors.response.use(response => {
+            const target = loginRedirectTarget({
+                requestedUrl: this.axiosInstance.getUri(response.config),
+                finalUrl: (response.request as { responseURL?: string } | undefined)?.responseURL,
+                contentType: String(response.headers?.['content-type'] ?? ''),
+                data: response.data,
+            })
+            if (target) {
+                window.location.assign(target)
+                // the page is navigating away — settle like a cancelled request so no
+                // failure toast flashes while the browser unloads
+                throw Object.assign(new Error('session lost — redirecting to ' + target), { code: 'ERR_CANCELED' })
+            }
+            return response
+        }, (error: unknown) => {
             const axiosError = error as { response?: { status?: number }, config?: InternalAxiosRequestConfig & { __mateuRetried?: boolean } }
             if (axiosError?.response?.status === 401 && axiosError.config && !axiosError.config.__mateuRetried) {
                 const config = axiosError.config

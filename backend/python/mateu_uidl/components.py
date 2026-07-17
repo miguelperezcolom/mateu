@@ -814,6 +814,8 @@ class StatusList(Component):
     items: tuple[StatusItem, ...] = ()
     compact: bool = False
     frameless: bool = False
+    #: Makes every row clickable: clicking one dispatches this action with ``{"_item": id}``.
+    row_action_id: str | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
@@ -841,6 +843,8 @@ class Notice(Component):
     slim: bool = False
     #: Spans the full form width (all columns).
     full_width: bool = False
+    #: Content renders on the SAME line as the text instead of below it.
+    inline_content: bool = False
     #: Arbitrary components rendered inside the tinted strip, below the text (slotted children).
     content: tuple[Component, ...] = ()
     id: str | None = None
@@ -1037,6 +1041,8 @@ class PaymentPicker(Component):
     ``action_id`` with the selected method."""
 
     action_id: str | None = None
+    #: Dispatched with ``{"_method": id}`` every time the user picks a method.
+    method_action_id: str | None = None
     methods: tuple[PaymentMethod, ...] = ()
     selected: str | None = None
     context_label: str | None = None

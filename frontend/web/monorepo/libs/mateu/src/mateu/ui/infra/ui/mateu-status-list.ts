@@ -17,6 +17,8 @@ export class MateuStatusList extends LitElement {
     @property({ type: Boolean }) compact = false
     /** divider lines between rows but no outer border (the host provides the framing) */
     @property({ type: Boolean }) frameless = false
+    /** makes every row clickable: clicking one dispatches this action with { _item: id } */
+    @property() rowActionId: string | undefined
 
     static styles = [chipStyles, css`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
@@ -31,6 +33,8 @@ export class MateuStatusList extends LitElement {
         .list.frameless { border: none; border-radius: 0; }
         .row { display: flex; align-items: center; gap: .8rem; padding: .65rem .9rem; }
         .list.compact .row { gap: .6rem; padding: .35rem .75rem; }
+        .row.clickable { cursor: pointer; }
+        .row.clickable:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
         /* no frame → align the content with the host's edges */
         .list.frameless .row { padding-left: 0; padding-right: 0; }
         .row + .row { border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.06)); }
@@ -68,11 +72,21 @@ export class MateuStatusList extends LitElement {
         }))
     }
 
+    private rowClicked(item: StatusItem) {
+        if (!this.rowActionId) return
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: this.rowActionId, parameters: { _item: item.id } },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
     render() {
         return html`
             <div class="list ${this.compact ? 'compact' : ''} ${this.frameless ? 'frameless' : ''}">
                 ${this.items.map(item => html`
-                    <div class="row">
+                    <div class="row ${this.rowActionId ? 'clickable' : ''}"
+                         @click="${() => this.rowClicked(item)}">
                         ${item.avatar
                             ? html`<span class="avatar">${item.avatar}</span>`
                             : item.icon ? html`<span class="icon">${item.icon}</span>` : nothing}

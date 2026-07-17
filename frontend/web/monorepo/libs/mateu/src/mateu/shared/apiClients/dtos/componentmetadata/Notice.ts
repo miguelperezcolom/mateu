@@ -16,4 +16,6 @@ export default interface Notice extends ComponentMetadata {
     slim?: boolean
     /** spans the full form width (all columns) */
     fullWidth?: boolean
+    /** slotted content renders on the SAME line as the text instead of below it */
+    inlineContent?: boolean
 }

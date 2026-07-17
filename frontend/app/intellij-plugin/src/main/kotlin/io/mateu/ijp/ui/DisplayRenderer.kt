@@ -846,19 +846,27 @@ fun renderNotice(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, 
     if (!metadata.bool("noIcon")) {
         row.add(JBLabel(glyph).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }, BorderLayout.WEST)
     }
-    val body = verticalPanel(4)
-    body.isOpaque = false
-    if (metadata.text("text").isNotBlank()) {
-        body.addStacked(JBLabel(metadata.text("text")).apply {
-            foreground = ink
-            font = font.deriveFont(Font.BOLD)
-        }, 0)
-    }
+    val label = if (metadata.text("text").isNotBlank()) {
+        JBLabel(metadata.text("text")).apply { foreground = ink; font = font.deriveFont(Font.BOLD) }
+    } else null
     val children = component.path("children")
-    if (children.isArray) {
-        children.forEach { child -> body.addStacked(r.render(child, state, data), 2) }
+    if (metadata.bool("inlineContent")) {
+        // label + content share the line (e.g. label + input + action)
+        val inline = JPanel(FlowLayout(FlowLayout.LEFT, 8, 0)).apply { isOpaque = false }
+        label?.let { inline.add(it) }
+        if (children.isArray) {
+            children.forEach { child -> inline.add(r.render(child, state, data)) }
+        }
+        row.add(inline, BorderLayout.CENTER)
+    } else {
+        val body = verticalPanel(4)
+        body.isOpaque = false
+        label?.let { body.addStacked(it, 0) }
+        if (children.isArray) {
+            children.forEach { child -> body.addStacked(r.render(child, state, data), 2) }
+        }
+        row.add(body, BorderLayout.CENTER)
     }
-    row.add(body, BorderLayout.CENTER)
     val actionId = metadata.text("actionId")
     val actionLabel = metadata.text("actionLabel")
     val status = metadata.text("status")
@@ -886,10 +894,20 @@ fun renderStatusList(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val panel = verticalPanel(0)
     if (!metadata.bool("frameless")) panel.border = JBUI.Borders.customLine(JBColor.border(), 1)
     val compact = metadata.bool("compact")
+    val rowActionId = metadata.text("rowActionId")
     for (item in metadata.arr("items")) {
         val row = JPanel(BorderLayout(8, 0))
         row.isOpaque = false
         row.border = if (compact) JBUI.Borders.empty(4, 8) else JBUI.Borders.empty(8, 10)
+        if (rowActionId.isNotBlank()) {
+            val itemId = item.text("id")
+            row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+            row.addMouseListener(object : java.awt.event.MouseAdapter() {
+                override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                    r.ctx.runAction(rowActionId, mapOf("_item" to itemId))
+                }
+            })
+        }
         val avatar = item.text("avatar")
         val icon = item.text("icon")
         if (avatar.isNotBlank()) {
@@ -1227,6 +1245,7 @@ fun renderLedger(metadata: JsonNode): JComponent {
 /** PaymentPicker: segmented method toggles + optional context chip + confirm button. */
 fun renderPaymentPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val actionId = metadata.text("actionId")
+    val methodActionId = metadata.text("methodActionId")
     var selected = metadata.text("selected")
     val row = JPanel(FlowLayout(FlowLayout.LEFT, 8, 0)).apply { isOpaque = false }
     val group = javax.swing.ButtonGroup()
@@ -1235,7 +1254,10 @@ fun renderPaymentPicker(r: ComponentRenderer, metadata: JsonNode): JComponent {
         if (selected.isBlank()) selected = id
         val btn = javax.swing.JToggleButton(method.text("label", id))
         btn.isSelected = id == selected
-        btn.addActionListener { selected = id }
+        btn.addActionListener {
+            selected = id
+            if (methodActionId.isNotBlank()) r.ctx.runAction(methodActionId, mapOf("_method" to id))
+        }
         group.add(btn)
         row.add(btn)
     }

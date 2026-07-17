@@ -12,6 +12,8 @@ import PaymentMethod from "@mateu/shared/apiClients/dtos/componentmetadata/Payme
 export class MateuPaymentPicker extends LitElement {
 
     @property() actionId: string | undefined
+    /** dispatched with { _method: id } every time the user picks a method */
+    @property() methodActionId: string | undefined
     @property({ type: Array }) methods: PaymentMethod[] = []
     @property() selected: string | undefined
     @property() contextLabel: string | undefined
@@ -82,13 +84,23 @@ export class MateuPaymentPicker extends LitElement {
         }))
     }
 
+    private pick(id: string | undefined) {
+        this.selectedId = id
+        if (!this.methodActionId) return
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: this.methodActionId, parameters: { _method: id } },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
     render() {
         return html`
             <div class="bar">
                 <div class="methods">
                     ${this.methods.map(method => html`
                         <button class="method ${method.id === this.selectedId ? 'selected' : ''}"
-                                @click="${() => { this.selectedId = method.id }}">${method.label}</button>
+                                @click="${() => this.pick(method.id)}">${method.label}</button>
                     `)}
                 </div>
                 ${this.contextLabel || this.contextValue ? html`

@@ -7,6 +7,7 @@ import lombok.Builder;
 @Builder
 public record PaymentPickerDto(
     String actionId,
+    String methodActionId,
     List<PaymentMethodDto> methods,
     String selected,
     String contextLabel,

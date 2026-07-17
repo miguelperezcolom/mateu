@@ -393,7 +393,8 @@ public record TaskProgressMetadataDto(
 
 /// <summary>Status-list metadata: rows with status chip and/or action.</summary>
 public record StatusListMetadataDto(
-    IReadOnlyList<StatusItemDto> Items, bool Compact = false, bool Frameless = false)
+    IReadOnlyList<StatusItemDto> Items, bool Compact = false, bool Frameless = false,
+    string? RowActionId = null)
     : ComponentMetadataDto;
 
 public record BulletedListMetadataDto(IReadOnlyList<string> Items) : ComponentMetadataDto;
@@ -492,7 +493,8 @@ public record PaymentPickerMetadataDto(
     string? Selected,
     string? ContextLabel,
     string? ContextValue,
-    string? ConfirmLabel) : ComponentMetadataDto;
+    string? ConfirmLabel,
+    string? MethodActionId = null) : ComponentMetadataDto;
 
 /// <summary>One selectable payment method.</summary>
 public record PaymentMethodDto(string? Id, string? Label);
@@ -589,7 +591,7 @@ public record AnchorMetadataDto(string Text, string Url, string? Target = null) 
 
 /// <summary>A compact inline banner: theme-tinted strip with a severity icon, one line of text
 /// and an optional right-aligned action.</summary>
-public record NoticeMetadataDto(string? Text, string? Theme, string? Icon, string? ActionLabel, string? ActionId, bool Slim = false, bool FullWidth = false, bool NoIcon = false, string? Status = null) : ComponentMetadataDto;
+public record NoticeMetadataDto(string? Text, string? Theme, string? Icon, string? ActionLabel, string? ActionId, bool Slim = false, bool FullWidth = false, bool NoIcon = false, string? Status = null, bool InlineContent = false) : ComponentMetadataDto;
 
 public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetadataDto
 {

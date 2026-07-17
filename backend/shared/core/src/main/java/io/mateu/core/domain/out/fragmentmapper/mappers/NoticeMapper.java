@@ -27,7 +27,8 @@ public class NoticeMapper {
             notice.actionId(),
             notice.status(),
             notice.slim(),
-            notice.fullWidth()),
+            notice.fullWidth(),
+            notice.inlineContent()),
         notice.id(),
         // arbitrary content travels as slotted children (the HeroSection/Drawer pattern)
         notice.content() != null

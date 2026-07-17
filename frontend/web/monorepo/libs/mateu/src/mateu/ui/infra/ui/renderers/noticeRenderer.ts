@@ -24,6 +24,7 @@ export const renderNotice = (container: LitElement, component: ClientSideCompone
                 status="${ifDefined(metadata.status ?? undefined)}"
                 ?slim="${metadata.slim ?? false}"
                 ?fullWidth="${metadata.fullWidth ?? false}"
+                ?inlineContent="${metadata.inlineContent ?? false}"
                 ?hasContent="${children.length > 0}"
                 data-colspan="${metadata.fullWidth ? '99' : nothing}"
                 style="${component.style??nothing}"

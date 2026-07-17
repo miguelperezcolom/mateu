@@ -18,7 +18,12 @@ export class MateuLedger extends LitElement {
     @property({ type: Number }) total: number | undefined
 
     static styles = css`
-        :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
+        :host {
+            display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem);
+            /* an ancestor (e.g. a form-layout row) may set an inherited line-height like 44px —
+               it pierces the shadow boundary and blows the rows up */
+            line-height: var(--lumo-line-height-s, 1.375);
+        }
         .row { display: flex; align-items: center; gap: .6rem; padding: .35rem 0; }
         .dot {
             width: .35rem; height: .35rem; border-radius: 50%; flex: 0 0 auto;

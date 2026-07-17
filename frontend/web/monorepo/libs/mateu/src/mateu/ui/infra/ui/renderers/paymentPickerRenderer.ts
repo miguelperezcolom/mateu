@@ -8,6 +8,7 @@ export const renderPaymentPicker = (component: ClientSideComponent) => {
     return html`
         <mateu-payment-picker
                 .actionId="${metadata.actionId}"
+                .methodActionId="${metadata.methodActionId}"
                 .methods="${metadata.methods ?? []}"
                 .selected="${metadata.selected}"
                 .contextLabel="${metadata.contextLabel}"

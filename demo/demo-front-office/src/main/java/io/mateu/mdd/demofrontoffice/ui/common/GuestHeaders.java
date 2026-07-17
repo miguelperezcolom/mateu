@@ -47,20 +47,13 @@ public final class GuestHeaders {
     var view = FrontOffice.stayView(stayId);
     var stay = view.stay();
     var guest = view.guest();
-    var folio = view.folio();
+    // no folio facts here — the check-out screen shows the breakdown and the preauth below
     return EntityHeader.builder()
         .title(guest.name())
         .badges(List.of(Chip.builder().label(guest.tier().name()).color("contrast").build()))
         .subtitle(
             "Hab " + stay.roomNumber() + " · " + stay.roomType() + " · " + stay.board() + " · "
                 + stay.nights() + "N")
-        .facts(
-            List.of(
-                Fact.builder().label("TOTAL FOLIO").value(euros(balance(folio))).build(),
-                Fact.builder()
-                    .label("PREAUTORIZADO")
-                    .value(euros(folio == null ? null : folio.preauthorized()))
-                    .build()))
         .style("width: 100%;")
         .build();
   }

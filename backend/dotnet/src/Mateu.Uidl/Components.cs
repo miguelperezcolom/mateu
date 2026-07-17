@@ -555,6 +555,8 @@ public sealed record StatusList : ComponentBase
     public IReadOnlyList<StatusItem> Items { get; init; } = [];
     public bool Compact { get; init; }
     public bool Frameless { get; init; }
+    /// <summary>Makes every row clickable: clicking one dispatches this action with { _item: id }.</summary>
+    public string? RowActionId { get; init; }
 }
 
 /// <summary>A plain bulleted list (&lt;ul&gt;) of text items — the lightweight counterpart of
@@ -581,6 +583,8 @@ public sealed record Notice(string Text) : ComponentBase
     public bool Slim { get; init; }
     /// <summary>Spans the full form width (all columns).</summary>
     public bool FullWidth { get; init; }
+    /// <summary>Content renders on the SAME line as the text instead of below it.</summary>
+    public bool InlineContent { get; init; }
     /// <summary>Arbitrary components rendered inside the tinted strip, below the text.</summary>
     public IReadOnlyList<IComponent> Content { get; init; } = [];
 }
@@ -718,6 +722,8 @@ public sealed record PaymentMethod
 public sealed record PaymentPicker : ComponentBase
 {
     public string? ActionId { get; init; }
+    /// <summary>Dispatched with { _method: id } every time the user picks a method.</summary>
+    public string? MethodActionId { get; init; }
     public IReadOnlyList<PaymentMethod> Methods { get; init; } = [];
     public string? Selected { get; init; }
     public string? ContextLabel { get; init; }
