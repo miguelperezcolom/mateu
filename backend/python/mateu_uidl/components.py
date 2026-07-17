@@ -366,9 +366,11 @@ class Step:
 
 @dataclass(frozen=True)
 class ProgressSteps(Component):
-    """A read-only horizontal progress indicator: numbered steps joined by a connector."""
+    """A read-only progress indicator: numbered steps joined by a connector — a horizontal row
+    by default, a stacked column when ``vertical`` (the wizard RAIL mode)."""
 
     steps: tuple[Step, ...] = ()
+    vertical: bool = False
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

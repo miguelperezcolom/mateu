@@ -14,6 +14,7 @@ from mateu_dtos import (
     ClientSideComponent,
     CustomEventRecord,
     DialogMetadata,
+    DrawerMetadata,
     HorizontalLayoutMetadata,
     Message as MessageDto,
     TextMetadata,
@@ -93,6 +94,11 @@ class RunActionRq(BaseModel):
     route: str | None = None
     server_side_type: str | None = None
     server_side_component_route: str | None = None
+
+
+# The event the edit_in_drawer drawer emits on save: the listing refreshes by re-running its
+# search (mirrors Java's Crud.SAVED_IN_DRAWER_EVENT).
+SAVED_IN_DRAWER_EVENT = "mateu-crud:saved-in-drawer"
 
 
 class SyncHandler:
@@ -215,6 +221,22 @@ class SyncHandler:
             return self.update_row(crud, element, rq)
         if aid == "delete":
             return self.navigate(base_route, None if id_ is None else self.delete(crud, id_), rq)
+        # edit_in_drawer (the Redwood "Create and Edit - Drawer" template): New and row clicks
+        # open the crud form in a Drawer over the listing instead of navigating; cancels just
+        # close it. Route-based /new — /{id}/edit deep links keep working unchanged.
+        if getattr(crud_type, "__mateu_edit_in_drawer__", False):
+            if aid == "new":
+                return self.crud_drawer(crud_type, element, element(), "new", f"{base_route}/new", rq)
+            if aid in ("view", "edit"):
+                row_id = self._row_id(rq)
+                if row_id is not None:
+                    return self.crud_drawer(
+                        crud_type, element, self.get_or_new(crud, element, row_id), "edit",
+                        f"{base_route}/{row_id}/edit", rq,
+                    )
+            if aid in ("cancel-new", "cancel-edit", "cancel-view"):
+                close = UICommand.close_modal()
+                return UIIncrement(commands=[close.model_copy(update={"target_component_id": self.target(rq)})])
         if aid in (None, ""):
             if mode == "new":
                 return self.render_entity(crud_type, element, element(), "new", f"{base_route}/new")
@@ -298,6 +320,36 @@ class SyncHandler:
             return "edit", parts[0]
         return "view", parts[0]
 
+    def crud_drawer(self, crud_type, element, entity, mode, route, rq: RunActionRq) -> UIIncrement:
+        """The edit_in_drawer create/edit form: the same entity form the /new — /{id}/edit routes
+        render, wrapped in a Drawer emitted as an Add fragment over the listing."""
+        form = self.mapper.map_entity_form(crud_type, element, entity, mode, route)
+        drawer = ClientSideComponent(
+            metadata=DrawerMetadata(
+                id="crud-edit-drawer",
+                header_title="New" if mode == "new" else "Edit",
+                content=form,
+                width="36rem",
+            ),
+            id="crud-edit-drawer",
+        )
+        return UIIncrement(
+            fragments=[
+                UIFragment(
+                    target_component_id=self.target(rq),
+                    component=drawer,
+                    data=self.lookup_labels(element, entity, crud_type()),
+                    action="Add",
+                )
+            ]
+        )
+
+    def _row_id(self, rq: RunActionRq) -> str | None:
+        raw = rq.parameters.get("id") if rq.parameters else None
+        if raw is None:
+            raw = rq.component_state.get("id") if rq.component_state else None
+        return None if raw is None else str(raw)
+
     def render_entity(self, crud_type, element, entity, mode, route, rq: RunActionRq | None = None) -> UIIncrement:
         return self.fragment_response(
             self.title(crud_type),
@@ -344,6 +396,21 @@ class SyncHandler:
                 setattr(entity, version.name, stored_version)
             setattr(entity, version.name, self._version_of(entity, version) + 1)
         crud.save(entity)
+        if getattr(type(crud), "__mateu_edit_in_drawer__", False):
+            # drawer mode: no navigation — close the drawer emitting the saved event and re-run
+            # the listing's search in place so the new/edited row shows up.
+            close = UICommand.close_modal(SAVED_IN_DRAWER_EVENT)
+            return UIIncrement(
+                commands=[
+                    close.model_copy(update={"target_component_id": self.target(rq)}),
+                    UICommand(
+                        target_component_id=self.target(rq),
+                        type="RunAction",
+                        data={"actionId": "search", "targetComponentId": self.target(rq)},
+                    ),
+                ],
+                messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)],
+            )
         return self.navigate(base_route, "Saved", rq)
 
     def field_search(self, instance, rq: RunActionRq) -> UIIncrement:

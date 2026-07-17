@@ -719,6 +719,15 @@ def confirm_on_navigation_if_dirty(cls: type) -> type:
     return cls
 
 
+def edit_in_drawer(cls: type) -> type:
+    """Class-level, on a Crud view: New and row clicks open the create/edit form in a Drawer
+    sliding over the listing (the Redwood "Create and Edit - Drawer" template) instead of
+    navigating to the /new — /{id}/edit routes; saving persists, closes the drawer and re-runs
+    the listing's search in place. The analogue of Java's ``Crud.editInDrawer()``."""
+    cls.__mateu_edit_in_drawer__ = True
+    return cls
+
+
 def inline_editing(cls: type) -> type:
     """Class-level, on a Crud view: every data column of the table listing becomes an in-place
     editor (``ReadOnly()`` fields stay display-only); each committed cell persists its row

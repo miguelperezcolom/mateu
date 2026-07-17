@@ -505,10 +505,12 @@ class StepRecord(Wire):
 
 
 class ProgressStepsMetadata(Wire):
-    """Horizontal progress-indicator metadata (mirrors ``ProgressStepsDto``)."""
+    """Progress-indicator metadata (mirrors ``ProgressStepsDto``): a horizontal row by default,
+    a stacked column when ``vertical`` (the wizard RAIL mode)."""
 
     type: Literal["ProgressSteps"] = "ProgressSteps"
     steps: list[StepRecord] = Field(default_factory=list)
+    vertical: bool = False
 
 
 class StatMetadata(Wire):

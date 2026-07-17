@@ -807,7 +807,7 @@ class ReflectionMapper:
                 StepRecord(id=s.id, title=s.title, description=s.description, status=s.status)
                 for s in c.steps
             ]
-            return self._fluent_client(ProgressStepsMetadata(steps=steps), c)
+            return self._fluent_client(ProgressStepsMetadata(steps=steps, vertical=c.vertical), c)
         if isinstance(c, fluent.Stat):
             return self._fluent_client(
                 StatMetadata(
@@ -1343,7 +1343,49 @@ class ReflectionMapper:
             [],
         )
         bar = self.client(HorizontalLayoutMetadata(), None, [back, nxt])
-        layout = self.client(VerticalLayoutMetadata(spacing=True), None, [title_text, progress, card, bar])
+        if getattr(cls, "__mateu_wizard_progress__", "bar") == "rail":
+            # wizard_progress("rail"): the Redwood Guided Process rail — the step form on the
+            # left, a sticky right band with a big current|total counter over the vertical step
+            # list (mirrors Java's WizardProgressStyle.RAIL).
+            counter = ClientSideComponent(
+                metadata=TextMetadata(text=f"{current} | {total}"),
+                style="font-size: 2rem; font-weight: 300; margin: 0 0 1rem; letter-spacing: .1em;",
+            )
+            rail_steps = ClientSideComponent(
+                metadata=ProgressStepsMetadata(
+                    steps=[
+                        StepRecord(
+                            id=f"step-{i}",
+                            title=f"Step {i}",
+                            status="done" if i < current else "current" if i == current else "upcoming",
+                        )
+                        for i in range(1, total + 1)
+                    ],
+                    vertical=True,
+                ),
+                id="fieldId",
+            )
+            rail = ClientSideComponent(
+                metadata=VerticalLayoutMetadata(),
+                children=[counter, rail_steps],
+                style=(
+                    "flex: 0 0 15rem; align-self: flex-start; position: sticky; top: 1rem;"
+                    " border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));"
+                    " padding-left: 1.5rem;"
+                ),
+            )
+            main = ClientSideComponent(
+                metadata=VerticalLayoutMetadata(spacing=True),
+                children=[title_text, card, bar],
+                style="flex: 1; min-width: 0;",
+            )
+            layout = ClientSideComponent(
+                metadata=HorizontalLayoutMetadata(),
+                children=[main, rail],
+                style="align-items: flex-start; gap: 2rem; width: 100%;",
+            )
+        else:
+            layout = self.client(VerticalLayoutMetadata(spacing=True), None, [title_text, progress, card, bar])
 
         initial: dict[str, Any] = {"__step": current}
         for f, _ in step_fields:
