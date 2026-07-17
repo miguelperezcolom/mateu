@@ -53,6 +53,16 @@ export function compactColumns(cols: GridColumn[]): GridColumn[] {
         .sort((a, b) => (a.priority ?? Number.MAX_SAFE_INTEGER) - (b.priority ?? Number.MAX_SAFE_INTEGER))
 }
 
+/**
+ * Columns for a compact rail (masterDetail's left list): the compact set when the model marks
+ * priorities/identifier, else the first few real columns — a listing whose columns carry no
+ * priority metadata must never render a blank rail.
+ */
+export function railColumns(cols: GridColumn[]): GridColumn[] {
+    const compact = compactColumns(cols)
+    return compact.length > 0 ? compact : cols.slice(0, 3)
+}
+
 // ── Filter layout ──────────────────────────────────────────────────────────────
 
 function filterWeight(field: FormField): number {

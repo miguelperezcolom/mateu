@@ -39,6 +39,7 @@ import { ListingData } from "@mateu/shared/apiClients/dtos/ListingData.ts";
 import {
     ResolvedGridLayout,
     compactColumns,
+    railColumns,
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
 import {Card} from "@vaadin/card";
@@ -624,8 +625,9 @@ export class MateuTableCrud extends LitElement {
         }
 
         const renderMasterDetail = () => {
-            const idCol = compact.find(c => c.identifier) ?? compact[0]
-            const secCols = compact.filter(c => c !== idCol)
+            const railCols = railColumns(allCols)
+            const idCol = railCols.find(c => c.identifier) ?? railCols[0]
+            const secCols = railCols.filter(c => c !== idCol)
             return html`
                 <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
                     <div style="width: 260px; flex-shrink: 0; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">

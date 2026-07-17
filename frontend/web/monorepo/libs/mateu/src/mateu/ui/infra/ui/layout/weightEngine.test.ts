@@ -3,6 +3,7 @@ import {
     columnWeight,
     compactColumns,
     PX_PER_UNIT,
+    railColumns,
     selectColumnLayout,
     selectFiltersLayout,
 } from './weightEngine'
@@ -118,6 +119,19 @@ describe('compactColumns', () => {
 
     it('returns an empty array when no column qualifies', () => {
         expect(compactColumns([col({ priority: 3 }), col()])).toEqual([])
+    })
+})
+
+describe('railColumns', () => {
+    it('uses the compact set when priorities are declared', () => {
+        const first = col({ priority: 1 })
+        const dropped = col({ priority: 3 })
+        expect(railColumns([dropped, first])).toEqual([first])
+    })
+
+    it('falls back to the first columns when nothing is marked — never a blank rail', () => {
+        const a = col(), b = col(), c = col(), d = col()
+        expect(railColumns([a, b, c, d])).toEqual([a, b, c])
     })
 })
 
