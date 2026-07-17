@@ -74,7 +74,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         {
             case "back": step = Math.Max(1, step - 1); break;
             case "next" when step >= total: return MapResult(((Wizard)wizard).Complete());
-            case "next": step++; break;
+            case "next": ((Wizard)wizard).OnNext(step, step + 1); step++; break;
         }
         return FragmentResponse(Title(type), _mapper.MapWizard(type, wizard, route, step), rq);
     }

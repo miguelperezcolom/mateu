@@ -13,6 +13,7 @@ from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noq
 from mateu_uidl import (  # noqa: E402
     BulletedList,
     ComponentTreeSupplier,
+    FileUpload,
     Message,
     Section,
     SeparatorBefore,
@@ -59,6 +60,15 @@ class BulletedFluentView(ComponentTreeSupplier):
 
     def component(self):
         return fluent.BulletedList(items=("Vista mar", "Cuna"))
+
+
+@ui("sections-file-upload")
+@title("File upload")
+class FileUploadForm:
+    """FileUpload(accept=".csv") on a str field (Java: @FileUpload(accept = ".csv"))."""
+
+    attachment: Annotated[str | None, FileUpload(accept=".csv")] = None
+    plain: str | None = None
 
 
 @ui("sections-separator")
@@ -164,6 +174,17 @@ def test_frameless_section_emits_no_section_card_while_the_others_keep_theirs():
 def test_bulleted_list_marker_becomes_its_stereotype():
     tree = component_tree(BulletedForm)
     assert field(tree, "preferencias")["stereotype"] == "bulletedList"
+
+
+def test_file_upload_marker_becomes_its_stereotype_and_the_accept_travels_as_an_attribute():
+    tree = component_tree(FileUploadForm)
+    f = field(tree, "attachment")
+    assert f["stereotype"] == "fileUpload"
+    # Java parity: the accept filter rides in the generic attributes list.
+    assert f["attributes"] == [{"key": "accept", "value": ".csv"}]
+    # fields without the marker keep an empty attributes list and the regular stereotype
+    assert field(tree, "plain")["stereotype"] == "regular"
+    assert field(tree, "plain")["attributes"] == []
 
 
 def test_fluent_bulleted_list_travels_as_its_dto_with_items():

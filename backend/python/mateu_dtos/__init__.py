@@ -159,6 +159,16 @@ class FormFieldMetadata(Wire):
     on_item_selection_action_id: str | None = None
     #: Grid fields: keyboard base combo for selecting a row by position.
     row_selection_shortcut: str | None = None
+    #: Generic field attributes (mirrors ``FormFieldDto.attributes``, a list of key/value
+    #: pairs) — e.g. the ``FileUpload`` accept filter travels as {"key": "accept", "value": ".csv"}.
+    attributes: list["PairRecord"] = Field(default_factory=list)
+
+
+class PairRecord(Wire):
+    """A generic key/value pair (mirrors ``io.mateu.dtos.PairDto``)."""
+
+    key: str
+    value: Any | None = None
 
 
 class RemoteCoordinates(Wire):
@@ -401,6 +411,41 @@ class GanttMetadata(Wire):
 
     type: Literal["Gantt"] = "Gantt"
     tasks: list[GanttTaskRecord] = Field(default_factory=list)
+
+
+class PlanningResourceRecord(Wire):
+    """One planning board row; ``group`` is an optional swimlane caption (mirrors
+    ``PlanningResourceDto``)."""
+
+    id: str | None = None
+    label: str | None = None
+    group: str | None = None
+
+
+class PlanningBlockRecord(Wire):
+    """One planning board block; start/end are ISO-8601 dates, inclusive (mirrors
+    ``PlanningBlockDto``)."""
+
+    id: str | None = None
+    resource_id: str | None = None
+    start: str | None = None
+    end: str | None = None
+    label: str | None = None
+    color: str | None = None
+    status: str | None = None
+
+
+class PlanningBoardMetadata(Wire):
+    """Planning board / tape chart metadata (mirrors ``PlanningBoardDto``); from/to are ISO-8601
+    dates. ``from_`` serializes as ``from`` (reserved word)."""
+
+    type: Literal["PlanningBoard"] = "PlanningBoard"
+    resources: list[PlanningResourceRecord] = Field(default_factory=list)
+    blocks: list[PlanningBlockRecord] = Field(default_factory=list)
+    from_: str | None = Field(default=None, alias="from")
+    to: str | None = None
+    move_action_id: str | None = None
+    select_action_id: str | None = None
 
 
 class KanbanCardRecord(Wire):
@@ -1015,6 +1060,7 @@ ComponentMetadata = Annotated[
         EmptyStateMetadata,
         SkeletonMetadata,
         GanttMetadata,
+        PlanningBoardMetadata,
         KanbanMetadata,
         TimelineMetadata,
         ProgressStepsMetadata,
@@ -1301,5 +1347,6 @@ for _m in (
     ClientSideComponent,
     ServerSideComponent,
     UIFragment,
+    FormFieldMetadata,
 ):
     _m.model_rebuild()

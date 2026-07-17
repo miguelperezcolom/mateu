@@ -171,6 +171,7 @@ class SyncHandler:
         elif rq.action_id == "next" and step >= total:
             return self.map_result(wizard.complete())
         elif rq.action_id == "next":
+            wizard.on_next(step, step + 1)
             step += 1
         return self.fragment_response(self.title(type_), self.mapper.map_wizard(type_, wizard, route, step), rq)
 

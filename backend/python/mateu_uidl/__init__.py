@@ -164,6 +164,18 @@ class PhotoCapture:
 
 
 @dataclass(frozen=True)
+class FileUpload:
+    """Renders a str field as a generic file upload: a pick-file action showing the chosen file's
+    name plus a remove action (the generic sibling of the uploadable image). The picked file is
+    read client-side into a data URI (base64) stored as the field value, so the file travels in
+    the string itself and no upload endpoint is required. Shorthand for the "fileUpload"
+    stereotype. ``accept`` (e.g. ".csv") travels in the field's generic attributes list.
+    (Python analogue of Java's @FileUpload.)"""
+
+    accept: str = ""
+
+
+@dataclass(frozen=True)
 class RangeFilter:
     """On a numeric field of a Crud entity: the listing filter becomes a min-max RANGE widget
     (the bounds travel as <field>_from/<field>_to state keys) instead of an equality input.
@@ -1035,6 +1047,12 @@ class Wizard:
     def complete(self) -> Message:
         raise NotImplementedError
 
+    def on_next(self, from_step: int, to_step: int) -> None:
+        """Runs when the user moves FORWARD from ``from_step`` to ``to_step`` (both 1-based),
+        after the state has been bound and before the target step renders — the hook archetypes
+        like the import wizard use to compute a step's content from the previous steps' answers.
+        Default: no-op."""
+
 
 class Translator:
     """Implement and register to translate titles, labels and menu entries."""
@@ -1109,7 +1127,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "wizard_progress",
     "plain_text", "emits", "subscribe_to", "secured",

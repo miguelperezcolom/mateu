@@ -327,7 +327,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         var layout = Client(new VerticalLayoutMetadataDto { Spacing = true }, null, [titleText, progress, card, bar]);
 
         var initial = new Dictionary<string, object?> { ["__step"] = current };
-        foreach (var (p, _) in stepProps) initial[Naming.CamelCase(p.Name)] = FormatValue(p.GetValue(instance));
+        foreach (var (p, _) in stepProps)
+            // Grid (list-of-rows) fields ride as row dicts and scalars keep their JSON type
+            // (numbers/booleans as-is, dates ISO, enums by name — the grid-cell convention), so
+            // every step field round-trips through the componentState (Java parity: the wizard
+            // state is typed, not stringified).
+            initial[Naming.CamelCase(p.Name)] = GridRowType(p) is { } rowType
+                ? GridRows(p, rowType, instance)
+                : CellValueOf(p.GetValue(instance));
 
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial, [], [], null, null, null);
@@ -841,26 +848,28 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             .Select(c =>
             {
                 var editable = inline && c.Find<ReadOnlyAttribute>() == null;
+                // The form instance's IOptionsSupplier can feed an editable cell's select options
+                // (Java parity: the grid inline-editor machinery consults the form's
+                // OptionsSupplier — e.g. the import wizard's targetField cell).
+                var supplied = editable && instance is IOptionsSupplier supplier
+                    ? supplier.Options(Naming.CamelCase(c.Name))
+                    : null;
                 return new GridColumnDto(new GridColumnMetaDto(
                     Naming.CamelCase(c.Name),
                     c.Find<LabelAttribute>()?.Value ?? Naming.Humanize(c.Name))
                 {
                     DataType = InferDataType(Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType, c),
                     Editable = editable,
-                    EditorType = editable ? EditorTypeOf(c) : null,
-                    EditorOptions = editable ? EditorOptionsOf(c) : null,
+                    EditorType = editable
+                        ? supplied is { Count: > 0 } ? "select" : EditorTypeOf(c)
+                        : null,
+                    EditorOptions = editable
+                        ? supplied is { Count: > 0 } ? supplied.Select(MapOption).ToList() : EditorOptionsOf(c)
+                        : null,
                 });
             })
             .ToList();
-        var rows = new List<Dictionary<string, object?>>();
-        if (p.GetValue(instance) is System.Collections.IEnumerable items)
-            foreach (var item in items)
-            {
-                var row = new Dictionary<string, object?>();
-                foreach (var c in EditableProperties(rowType))
-                    row[Naming.CamelCase(c.Name)] = CellValueOf(c.GetValue(item));
-                rows.Add(row);
-            }
+        var rows = GridRows(p, rowType, instance);
         var onRow = p.Find<OnRowSelectedAttribute>();
         var meta = new FormFieldMetadataDto(fieldId, "array", T(
             p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
@@ -874,6 +883,22 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             RowSelectionShortcut = onRow is { Shortcut.Length: > 0 } ? onRow.Shortcut : null,
         };
         return Client(meta, fieldId, []);
+    }
+
+    /// <summary>A grid property's rows as wire dicts (camelCase keys), also used for the wizard
+    /// state so list fields round-trip as row lists instead of ToString() husks.</summary>
+    private static List<Dictionary<string, object?>> GridRows(PropertyInfo p, Type rowType, object instance)
+    {
+        var rows = new List<Dictionary<string, object?>>();
+        if (p.GetValue(instance) is System.Collections.IEnumerable items)
+            foreach (var item in items)
+            {
+                var row = new Dictionary<string, object?>();
+                foreach (var c in EditableProperties(rowType))
+                    row[Naming.CamelCase(c.Name)] = CellValueOf(c.GetValue(item));
+                rows.Add(row);
+            }
+        return rows;
     }
 
     private static object? CellValueOf(object? value) => value switch
@@ -927,6 +952,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             RemoteCoordinates = p.Find<LookupAttribute>() != null
                 ? new RemoteCoordinatesDto("search-" + fieldId)
                 : null,
+            // [FileUpload(Accept = ".csv")]: the file input's accept filter travels in the
+            // field's generic attributes list — no dedicated wire field (Java parity).
+            Attributes = p.Find<FileUploadAttribute>() is { Accept.Length: > 0 } fileUpload
+                ? [new PairDto("accept", fileUpload.Accept)]
+                : [],
         };
         return Client(meta, fieldId, []);
     }
@@ -959,6 +989,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         if (p.Find<BulletedListAttribute>() != null) return "bulletedList";
         if (p.Find<SignatureAttribute>() != null) return "signature";
         if (p.Find<PhotoCaptureAttribute>() != null) return "camera";
+        if (p.Find<FileUploadAttribute>() != null) return "fileUpload";
         if (p.Find<TreeSelectAttribute>() != null) return "treeSelect";
         if (p.Find<PasswordAttribute>() != null) return "password";
         if (p.Find<MoneyAttribute>() != null) return plainText ? "plainText" : "money";

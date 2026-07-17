@@ -147,6 +147,46 @@ public sealed record Gantt : ComponentBase
     public IReadOnlyList<GanttTask> Tasks { get; init; } = [];
 }
 
+/// <summary>One row of a <see cref="PlanningBoard"/>: a bookable/assignable resource (room,
+/// vehicle, employee). Group is an optional swimlane caption (e.g. floor or room type) —
+/// consecutive resources sharing the same group render under one caption.</summary>
+public sealed record PlanningResource
+{
+    public string? Id { get; init; }
+    public string? Label { get; init; }
+    public string? Group { get; init; }
+}
+
+/// <summary>One block of a <see cref="PlanningBoard"/>: a booking/assignment spanning Start to End
+/// (inclusive) on the resource identified by ResourceId, with an optional color and status caption
+/// (shown in the tooltip).</summary>
+public sealed record PlanningBlock
+{
+    public string? Id { get; init; }
+    public string? ResourceId { get; init; }
+    public DateOnly? Start { get; init; }
+    public DateOnly? End { get; init; }
+    public string? Label { get; init; }
+    public string? Color { get; init; }
+    public string? Status { get; init; }
+}
+
+/// <summary>A planning board / tape chart: one row per <see cref="PlanningResource"/>, one column
+/// per day between From and To, and colored <see cref="PlanningBlock"/>s spanning their date
+/// ranges on their resource's row — the rooms × days grid every hotel/rental/staffing back-office
+/// needs. When SelectActionId is set, clicking a block runs that action with the block's id in
+/// parameters._blockId; when MoveActionId is set, blocks can be dragged to another row/day —
+/// dropping runs the action with _blockId, _resourceId, _start and _end.</summary>
+public sealed record PlanningBoard : ComponentBase
+{
+    public IReadOnlyList<PlanningResource> Resources { get; init; } = [];
+    public IReadOnlyList<PlanningBlock> Blocks { get; init; } = [];
+    public DateOnly? From { get; init; }
+    public DateOnly? To { get; init; }
+    public string? MoveActionId { get; init; }
+    public string? SelectActionId { get; init; }
+}
+
 /// <summary>One card on a <see cref="KanbanColumn"/>. A card with an ActionId is clickable.</summary>
 public sealed record KanbanCard
 {

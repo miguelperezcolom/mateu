@@ -153,6 +153,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(EmptyStateMetadataDto), "EmptyState")]
 [JsonDerivedType(typeof(SkeletonMetadataDto), "Skeleton")]
 [JsonDerivedType(typeof(GanttMetadataDto), "Gantt")]
+[JsonDerivedType(typeof(PlanningBoardMetadataDto), "PlanningBoard")]
 [JsonDerivedType(typeof(KanbanMetadataDto), "Kanban")]
 [JsonDerivedType(typeof(TimelineMetadataDto), "Timeline")]
 [JsonDerivedType(typeof(ProgressStepsMetadataDto), "ProgressSteps")]
@@ -235,6 +236,23 @@ public record GanttMetadataDto(IReadOnlyList<GanttTaskDto> Tasks) : ComponentMet
 
 /// <summary>One Gantt bar; start/end are ISO-8601 dates (yyyy-MM-dd).</summary>
 public record GanttTaskDto(string? Id, string? Title, string? Start, string? End, double Progress, string? Color);
+
+/// <summary>Planning board / tape chart metadata (mirrors PlanningBoardDto); from/to are ISO-8601
+/// dates.</summary>
+public record PlanningBoardMetadataDto(
+    IReadOnlyList<PlanningResourceDto> Resources,
+    IReadOnlyList<PlanningBlockDto> Blocks,
+    string? From,
+    string? To,
+    string? MoveActionId,
+    string? SelectActionId) : ComponentMetadataDto;
+
+/// <summary>One planning board row; group is an optional swimlane caption.</summary>
+public record PlanningResourceDto(string? Id, string? Label, string? Group);
+
+/// <summary>One planning board block; start/end are ISO-8601 dates (inclusive).</summary>
+public record PlanningBlockDto(
+    string? Id, string? ResourceId, string? Start, string? End, string? Label, string? Color, string? Status);
 
 /// <summary>Kanban board metadata: columns of cards.</summary>
 public record KanbanMetadataDto(IReadOnlyList<KanbanColumnDto> Columns) : ComponentMetadataDto;
@@ -800,7 +818,14 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
 
     /// <summary>Grid fields: keyboard base combo for selecting a row by position.</summary>
     public string? RowSelectionShortcut { get; init; }
+
+    /// <summary>Generic field attributes (mirrors FormFieldDto.attributes, a list of key/value
+    /// pairs) — e.g. the [FileUpload] accept filter travels as {"key":"accept","value":".csv"}.</summary>
+    public IReadOnlyList<PairDto> Attributes { get; init; } = [];
 }
+
+/// <summary>A generic key/value pair (mirrors io.mateu.dtos.PairDto).</summary>
+public record PairDto(string Key, object? Value);
 
 /// <summary>Coordinates of a remote data source (mirrors io.mateu.dtos.RemoteCoordinatesDto);
 /// only Action is set for same-backend lookups.</summary>

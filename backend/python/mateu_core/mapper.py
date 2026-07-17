@@ -41,6 +41,10 @@ from mateu_dtos import (
     FormSectionMetadata,
     GanttMetadata,
     GanttTaskRecord,
+    PairRecord,
+    PlanningBoardMetadata,
+    PlanningBlockRecord,
+    PlanningResourceRecord,
     KanbanMetadata,
     KanbanColumnRecord,
     KanbanCardRecord,
@@ -135,6 +139,7 @@ from mateu_uidl import (
     Disabled,
     DisabledUnless,
     EyesOnly,
+    FileUpload,
     Foldout,
     GlobalSearchSupplier,
     GroupBy,
@@ -738,6 +743,30 @@ class ReflectionMapper:
                 for t in c.tasks
             ]
             return self._fluent_client(GanttMetadata(tasks=tasks), c)
+        if isinstance(c, fluent.PlanningBoard):
+            meta = PlanningBoardMetadata(
+                resources=[
+                    PlanningResourceRecord(id=r.id, label=r.label, group=r.group)
+                    for r in c.resources
+                ],
+                blocks=[
+                    PlanningBlockRecord(
+                        id=b.id,
+                        resource_id=b.resource_id,
+                        start=b.start.isoformat() if b.start is not None else None,
+                        end=b.end.isoformat() if b.end is not None else None,
+                        label=b.label,
+                        color=b.color,
+                        status=b.status,
+                    )
+                    for b in c.blocks
+                ],
+                from_=c.from_.isoformat() if c.from_ is not None else None,
+                to=c.to.isoformat() if c.to is not None else None,
+                move_action_id=c.move_action_id,
+                select_action_id=c.select_action_id,
+            )
+            return self._fluent_client(meta, c)
         if isinstance(c, fluent.Kanban):
             columns = [
                 KanbanColumnRecord(
@@ -1202,6 +1231,11 @@ class ReflectionMapper:
             aid = getattr(node, "action_id", None)
             if aid:
                 out.append(aid)
+            # Planning boards reference their actions as move/select action ids.
+            for attr in ("move_action_id", "select_action_id"):
+                v = getattr(node, attr, None)
+                if v:
+                    out.append(v)
             for attr in ("content", "overview", "items", "metrics", "panels"):
                 v = getattr(node, attr, None)
                 if isinstance(v, (fluent.Component, ClientSideComponent)):
@@ -1306,7 +1340,19 @@ class ReflectionMapper:
 
         initial: dict[str, Any] = {"__step": current}
         for f, _ in step_fields:
-            initial[camel_case(f.name)] = format_value(getattr(instance, f.name, None))
+            # Grid (list-of-rows) fields ride as row dicts and scalars keep their JSON type
+            # (numbers/booleans as-is, dates ISO, enums by name — the grid-cell convention), so
+            # every step field round-trips through the componentState (Java parity: the wizard
+            # state is typed, not stringified).
+            row_type = self.grid_row_type(f)
+            if row_type is not None:
+                initial[camel_case(f.name)] = [
+                    {camel_case(c.name): _row_cell(getattr(item, c.name, None))
+                     for c in view_fields(row_type)}
+                    for item in (getattr(instance, f.name, None) or [])
+                ]
+            else:
+                initial[camel_case(f.name)] = _row_cell(getattr(instance, f.name, None))
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[layout],
             initial_data=initial, actions=[], triggers=[],
@@ -1910,15 +1956,23 @@ class ReflectionMapper:
             if not self.visible(c):
                 continue
             editable = inline and not c.has(ReadOnly)
+            # The form instance's options(field_name) method can feed an editable cell's select
+            # options (Java parity: the grid inline-editor machinery consults the form's
+            # OptionsSupplier — e.g. the import wizard's targetField cell).
+            supplied = self._supplied_options(instance, camel_case(c.name)) if editable else []
             columns.append(GridColumn(metadata=GridColumnMeta(
                 id=camel_case(c.name),
                 label=(c.marker(Label).value if c.has(Label) else humanize(c.name)),
                 data_type=self.infer_data_type(c.type, c),
                 editable=editable,
-                editor_type=self.editor_type_of(c) if editable else None,
+                editor_type=(
+                    ("select" if supplied and not is_enum(c.type) else self.editor_type_of(c))
+                    if editable else None
+                ),
                 editor_options=(
-                    [Option(value=m.name, label=str(m.name)) for m in c.type]
-                    if editable and is_enum(c.type) else None
+                    (supplied or ([Option(value=m.name, label=str(m.name)) for m in c.type]
+                                  if is_enum(c.type) else None))
+                    if editable else None
                 ),
             )))
         rows = []
@@ -1982,6 +2036,13 @@ class ReflectionMapper:
             remote_coordinates=(
                 RemoteCoordinates(action=f"search-{field_id}") if f.has(Lookup) else None
             ),
+            # FileUpload(accept=".csv"): the file input's accept filter travels in the field's
+            # generic attributes list — no dedicated wire field (Java parity).
+            attributes=(
+                [PairRecord(key="accept", value=f.marker(FileUpload).accept)]
+                if f.has(FileUpload) and f.marker(FileUpload).accept
+                else []
+            ),
         )
         return self.client(meta, field_id, [])
 
@@ -2036,6 +2097,8 @@ class ReflectionMapper:
             return "signature"
         if f.has(PhotoCapture):
             return "camera"
+        if f.has(FileUpload):
+            return "fileUpload"
         if f.has(TreeSelect):
             return "treeSelect"
         if f.has(Password):

@@ -76,6 +76,16 @@ public class TextSizeView : IComponentTreeSupplier
     public IComponent Component() => new Text("pequeño") { Size = "xs" };
 }
 
+/// <summary>[FileUpload(".csv")] on a string property (Java: @FileUpload(accept = ".csv")).</summary>
+[UI("sections/file-upload")]
+public class FileUploadForm
+{
+    [FileUpload(".csv"), Label("CSV file")]
+    public string? Attachment { get; set; }
+
+    public string? Plain { get; set; }
+}
+
 /// <summary>[WizardProgress("steps")]: connected bullets instead of the progress bar.</summary>
 [UI("sections/wizard-steps"), Title("Steps wizard"), WizardProgress("steps")]
 public class StepsWizard : Wizard
@@ -128,6 +138,21 @@ public class SectionFeatureTests
     {
         var root = RenderView(typeof(BulletedForm));
         Assert.Equal("bulletedList", Field(root, "preferencias").GetProperty("stereotype").GetString());
+    }
+
+    [Fact]
+    public void File_upload_marker_becomes_its_stereotype_and_the_accept_filter_travels_as_an_attribute()
+    {
+        var root = RenderView(typeof(FileUploadForm));
+        var field = Field(root, "attachment");
+        Assert.Equal("fileUpload", field.GetProperty("stereotype").GetString());
+        // Java parity: the accept filter rides in the generic attributes list.
+        var attribute = Assert.Single(field.GetProperty("attributes").EnumerateArray());
+        Assert.Equal("accept", attribute.GetProperty("key").GetString());
+        Assert.Equal(".csv", attribute.GetProperty("value").GetString());
+        // fields without the marker keep an empty attributes list and the regular stereotype
+        Assert.Equal("regular", Field(root, "plain").GetProperty("stereotype").GetString());
+        Assert.Empty(Field(root, "plain").GetProperty("attributes").EnumerateArray());
     }
 
     [Fact]

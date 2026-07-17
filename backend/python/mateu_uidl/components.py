@@ -241,6 +241,55 @@ class Gantt(Component):
 
 
 @dataclass(frozen=True)
+class PlanningResource:
+    """One row of a :class:`PlanningBoard`: a bookable/assignable resource (room, vehicle,
+    employee). ``group`` is an optional swimlane caption — consecutive resources sharing the
+    same group render under one caption."""
+
+    id: str | None = None
+    label: str | None = None
+    group: str | None = None
+
+
+@dataclass(frozen=True)
+class PlanningBlock:
+    """One block of a :class:`PlanningBoard`: a booking/assignment spanning ``start`` to ``end``
+    (inclusive) on the resource identified by ``resource_id``, with an optional color and status
+    caption (shown in the tooltip)."""
+
+    id: str | None = None
+    resource_id: str | None = None
+    start: date | None = None
+    end: date | None = None
+    label: str | None = None
+    color: str | None = None
+    status: str | None = None
+
+
+@dataclass(frozen=True)
+class PlanningBoard(Component):
+    """A planning board / tape chart: one row per :class:`PlanningResource`, one column per day
+    between ``from_`` and ``to``, and colored :class:`PlanningBlock` s spanning their date ranges
+    on their resource's row — the rooms × days grid every hotel/rental/staffing back-office
+    needs. ``select_action_id`` runs on block click (``parameters._blockId``);
+    ``move_action_id`` runs on drag-drop (``_blockId``, ``_resourceId``, ``_start``, ``_end``)."""
+
+    resources: tuple[PlanningResource, ...] = ()
+    blocks: tuple[PlanningBlock, ...] = ()
+    from_: date | None = None
+    to: date | None = None
+    move_action_id: str | None = None
+    select_action_id: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "resources", tuple(self.resources))
+        object.__setattr__(self, "blocks", tuple(self.blocks))
+
+
+@dataclass(frozen=True)
 class KanbanCard:
     """One card on a :class:`KanbanColumn`. An ``action_id`` makes the card clickable."""
 
@@ -1114,6 +1163,9 @@ __all__ = [
     "Skeleton",
     "GanttTask",
     "Gantt",
+    "PlanningResource",
+    "PlanningBlock",
+    "PlanningBoard",
     "KanbanCard",
     "KanbanColumn",
     "Kanban",

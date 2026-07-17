@@ -19,12 +19,14 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
 | App shell + menus + navigation | ✅ | ✅ | ✅ |
 | Wizards (incl. branching, cross-step state, `@WizardProgress` steppers) | ✅ | ✅ | ✅ |
+| Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | 🟡 | 🟡 |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
 | Adaptive layout inference (radios, folding, tabs) | ✅ | ✅ | ✅ |
 | Nav links (`@LinkTo` / link supplier) | ✅ | ✅ | ✅ |
 | Dashboard / Foldout / Welcome / ItemOverview archetypes | ✅ | ✅ | ✅ |
 | UX components (MetricCard, Gantt, EmptyState, Skeleton…) | ✅ | ✅ | ✅ |
+| Planning board (tape chart: resources × days, colored blocks, move/select actions) | ✅ | ✅ | ✅ |
 | High-level UX components (Kanban, Timeline, Stat, Calendar, PricingTable, OrgChart, Heatmap, Funnel, TrendChart, FeatureGrid, Testimonials, Faq, CalloutCard, CommentThread, FileList, ComparisonCard, Checklist, ProgressSteps) | ✅ | ✅ | ✅ |
 | Front-office components (EntityHeader, Meter, TaskProgress, StatusList, TaskQueue, ResourceGrid, OfferCard incl. toggle state, AddOnPicker, Ledger, PaymentPicker, ProcessMonitor, Notice incl. status/noIcon/content, BulletedList) | ✅ | ✅ | ✅ |
 | Section polish (`@SeparatorBefore`, text sizes, `@Section(propertyList/frameless)`, responsive zones) | ✅ | ✅ | ✅ |
@@ -34,6 +36,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
 | `@Audience` persona projection (audience app-context + projection filter) | ✅ | ✅ | ✅ |
 | Capture fields (`@Signature`, `@PhotoCapture`) | ✅ | ✅ | ✅ |
+| Generic file upload field (`@FileUpload`, accept filter in the field attributes) | ✅ | ✅ | ✅ |
 | Tree selects (`@TreeSelect` + hierarchical options) | ✅ | ✅ | ✅ |
 | Smart-search listing filters (enums as multi-select, date/number ranges) | ✅ | ✅ | ✅ |
 | Declarative listings (`Listing<Filters, Row>`) | ✅ | ✅ | ✅ |
@@ -62,6 +65,14 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Federation (remote menus + `MicroFrontend` islands) | ✅ | ✅ | ✅ |
 | Component adapters | ✅ | 🟡 wrapper idiom | 🟡 wrapper idiom |
 | Hero search archetype | ✅ | ✅ | ✅ |
+
+Import wizard on .NET/Python: same step flow (upload/paste → auto-mapped column grid with a
+select-editable target-field cell → per-line validation report → typed import + result counts)
+and the same CSV semantics (`,`/`;` autodetect, RFC-4180-ish quoting, data-URI uploads), but
+adapted to the ports' `[Step(n)]` wizard machinery: the import runs on the validation step's
+**Next** (the ports' wizards have no `@WizardCompletionAction` button — Finish then shows the
+summary message), and the validation surface is each port's own — DataAnnotations (`[Required]`,
+`[Range]`…) on .NET, `Required()` only on Python (it has no Min/Max markers). Hence the 🟡.
 
 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
 (enums → multi-select IN, temporals → date ranges, `[RangeFilter]`/`RangeFilter()` numerics →

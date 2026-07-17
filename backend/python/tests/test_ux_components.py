@@ -74,6 +74,9 @@ from mateu_uidl.components import (  # noqa: E402
     MetricCard,
     OrgChart,
     OrgNode,
+    PlanningBlock,
+    PlanningBoard,
+    PlanningResource,
     PricingPlan,
     PricingTable,
     ProgressSteps,
@@ -140,6 +143,44 @@ class ProjectPlan(ComponentTreeSupplier):
                     color="#cc0000",
                 ),
             ),
+        )
+
+
+@ui("planning")
+@title("Room planning")
+class PlanningPage(ComponentTreeSupplier):
+    """The planning board / tape chart (Java: PlanningBoardSyncTest's fixture)."""
+
+    def component(self):
+        return PlanningBoard(
+            id="tape",
+            from_=date(2026, 8, 1),
+            to=date(2026, 8, 21),
+            resources=(
+                PlanningResource(id="101", label="Room 101", group="Floor 1"),
+                PlanningResource(id="102", label="Room 102", group="Floor 1"),
+                PlanningResource(id="201", label="Room 201", group="Floor 2"),
+            ),
+            blocks=(
+                PlanningBlock(
+                    id="b1",
+                    resource_id="101",
+                    start=date(2026, 8, 3),
+                    end=date(2026, 8, 7),
+                    label="Ada Lovelace",
+                    color="#3b82f6",
+                    status="confirmed",
+                ),
+                PlanningBlock(
+                    id="b2",
+                    resource_id="201",
+                    start=date(2026, 8, 5),
+                    end=date(2026, 8, 12),
+                    label="Grace Hopper",
+                ),
+            ),
+            move_action_id="moveBooking",
+            select_action_id="openBooking",
         )
 
 
@@ -1104,6 +1145,49 @@ def test_component_tree_supplier_emits_gantt():
             "color": "#cc0000",
         },
     ]
+
+
+def test_component_tree_supplier_emits_planning_board():
+    doc = render(PlanningPage)
+    (board,) = page_children(doc)
+    assert board["id"] == "tape"
+    # The full golden shape (mirrors Java's PlanningBoardSyncTest fixture values).
+    assert board["metadata"] == {
+        "type": "PlanningBoard",
+        "resources": [
+            {"id": "101", "label": "Room 101", "group": "Floor 1"},
+            {"id": "102", "label": "Room 102", "group": "Floor 1"},
+            {"id": "201", "label": "Room 201", "group": "Floor 2"},
+        ],
+        "blocks": [
+            {
+                "id": "b1",
+                "resourceId": "101",
+                "start": "2026-08-03",
+                "end": "2026-08-07",
+                "label": "Ada Lovelace",
+                "color": "#3b82f6",
+                "status": "confirmed",
+            },
+            {
+                "id": "b2",
+                "resourceId": "201",
+                "start": "2026-08-05",
+                "end": "2026-08-12",
+                "label": "Grace Hopper",
+                "color": None,
+                "status": None,
+            },
+        ],
+        "from": "2026-08-01",
+        "to": "2026-08-21",
+        "moveActionId": "moveBooking",
+        "selectActionId": "openBooking",
+    }
+    # The board's action ids are advertised so the renderer routes them back.
+    action_ids = [a["id"] for a in doc["fragments"][0]["component"]["actions"]]
+    assert "moveBooking" in action_ids
+    assert "openBooking" in action_ids
 
 
 def test_foldout_archetype_slots_overview_and_panels():

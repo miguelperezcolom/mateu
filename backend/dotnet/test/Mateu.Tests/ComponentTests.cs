@@ -470,6 +470,40 @@ public class Item : ItemOverview
     public Text History { get; } = new("the history");
 }
 
+/// <summary>The planning board / tape chart (Java: PlanningBoardSyncTest's fixture).</summary>
+[UI("planning"), Title("Room planning")]
+public class PlanningPage : IComponentTreeSupplier
+{
+    public IComponent Component() => new PlanningBoard
+    {
+        Id = "tape",
+        From = new DateOnly(2026, 8, 1),
+        To = new DateOnly(2026, 8, 21),
+        Resources =
+        [
+            new PlanningResource { Id = "101", Label = "Room 101", Group = "Floor 1" },
+            new PlanningResource { Id = "102", Label = "Room 102", Group = "Floor 1" },
+            new PlanningResource { Id = "201", Label = "Room 201", Group = "Floor 2" },
+        ],
+        Blocks =
+        [
+            new PlanningBlock
+            {
+                Id = "b1", ResourceId = "101", Start = new DateOnly(2026, 8, 3),
+                End = new DateOnly(2026, 8, 7), Label = "Ada Lovelace",
+                Color = "#3b82f6", Status = "confirmed",
+            },
+            new PlanningBlock
+            {
+                Id = "b2", ResourceId = "201", Start = new DateOnly(2026, 8, 5),
+                End = new DateOnly(2026, 8, 12), Label = "Grace Hopper",
+            },
+        ],
+        MoveActionId = "moveBooking",
+        SelectActionId = "openBooking",
+    };
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 public class ComponentTests
@@ -540,6 +574,37 @@ public class ComponentTests
         Assert.Contains("\"end\":\"2026-08-15\"", json);
         Assert.Contains("\"progress\":60.5", json);
         Assert.Contains("\"color\":\"#4caf50\"", json);
+    }
+
+    [Fact]
+    public void PlanningBoard_emits_resources_groups_blocks_iso_dates_window_and_action_ids()
+    {
+        var json = RenderView(typeof(PlanningPage));
+
+        // Same wire shape the Java backend emits for PlanningBoardSyncTest's fixture.
+        Assert.Contains("\"type\":\"PlanningBoard\"", json);
+        Assert.Contains(
+            "\"resources\":[" +
+            "{\"id\":\"101\",\"label\":\"Room 101\",\"group\":\"Floor 1\"}," +
+            "{\"id\":\"102\",\"label\":\"Room 102\",\"group\":\"Floor 1\"}," +
+            "{\"id\":\"201\",\"label\":\"Room 201\",\"group\":\"Floor 2\"}]",
+            json);
+        Assert.Contains(
+            "\"blocks\":[" +
+            "{\"id\":\"b1\",\"resourceId\":\"101\",\"start\":\"2026-08-03\",\"end\":\"2026-08-07\"," +
+            "\"label\":\"Ada Lovelace\",\"color\":\"#3b82f6\",\"status\":\"confirmed\"}," +
+            "{\"id\":\"b2\",\"resourceId\":\"201\",\"start\":\"2026-08-05\",\"end\":\"2026-08-12\"," +
+            "\"label\":\"Grace Hopper\",\"color\":null,\"status\":null}]",
+            json);
+        Assert.Contains("\"from\":\"2026-08-01\"", json);
+        Assert.Contains("\"to\":\"2026-08-21\"", json);
+        Assert.Contains("\"moveActionId\":\"moveBooking\"", json);
+        Assert.Contains("\"selectActionId\":\"openBooking\"", json);
+        // The board's action ids are advertised so the renderer routes them back.
+        Assert.Contains("{\"id\":\"moveBooking\"", json);
+        Assert.Contains("{\"id\":\"openBooking\"", json);
+        // The component id travels on the wrapping ClientSide component.
+        Assert.Contains("\"id\":\"tape\"", json);
     }
 
     [Fact]

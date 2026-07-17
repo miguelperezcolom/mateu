@@ -34,6 +34,19 @@ public sealed class SignatureAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class PhotoCaptureAttribute : Attribute;
 
+/// <summary>Renders a string property as a generic file upload: a pick-file action showing the
+/// chosen file's name plus a remove action (the generic sibling of the uploadable image). The
+/// picked file is read client-side into a data URI (base64) stored as the field value, so the
+/// file travels in the string itself and no upload endpoint is required. Shorthand for the
+/// "fileUpload" stereotype. (C# analogue of Java's @FileUpload.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class FileUploadAttribute(string accept = "") : Attribute
+{
+    /// <summary>Optional accept attribute for the file input (e.g. ".csv" or "application/pdf");
+    /// travels in the field's generic attributes list under the "accept" key.</summary>
+    public string Accept { get; } = accept;
+}
+
 /// <summary>Chooses how a Wizard visualizes its progress: "bar" (default) or "steps" — connected
 /// step bullets (the ProgressSteps component). (C# analogue of Java's @WizardProgress.)</summary>
 [AttributeUsage(AttributeTargets.Class)]
