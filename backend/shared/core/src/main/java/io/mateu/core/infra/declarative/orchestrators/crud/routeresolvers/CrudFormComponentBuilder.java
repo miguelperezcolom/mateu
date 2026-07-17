@@ -17,9 +17,9 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
 import java.util.List;
 
-class CrudFormComponentBuilder {
+public class CrudFormComponentBuilder {
 
-  static Component build(
+  public static Component build(
       boolean isCreation, HttpRequest httpRequest, Object editor, Crud orchestrator) {
     Object viewModel =
         editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;

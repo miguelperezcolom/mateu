@@ -12,6 +12,11 @@ public class NewActionHandler implements CrudOrchestratorActionHandler {
 
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest, Crud orchestrator) {
+    if (orchestrator.editInDrawer()) {
+      var creationForm = orchestrator.adapter().getCreationForm(httpRequest);
+      return CrudDrawerBuilder.build(
+          true, orchestrator.newLabel(), creationForm, orchestrator, httpRequest);
+    }
     return CrudActionResult.of(actionId).withRoute("/new");
   }
 }

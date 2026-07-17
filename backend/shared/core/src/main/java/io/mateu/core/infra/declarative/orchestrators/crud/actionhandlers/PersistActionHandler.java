@@ -5,6 +5,7 @@ import io.mateu.core.infra.declarative.orchestrators.crud.CrudActionResult;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.interfaces.HttpRequest;
+import java.util.List;
 
 public class PersistActionHandler implements CrudOrchestratorActionHandler {
   @Override
@@ -32,13 +33,24 @@ public class PersistActionHandler implements CrudOrchestratorActionHandler {
           actionId,
           null);
     }
-    return CrudActionResult.of(actionId)
-        .withSavedId(savedId)
-        .withMessage(
-            Message.builder()
-                .variant(NotificationVariant.success)
-                .text("Item saved successfully")
-                .build())
-        .withRoute("/" + savedId);
+    var result =
+        CrudActionResult.of(actionId)
+            .withSavedId(savedId)
+            .withMessage(
+                Message.builder()
+                    .variant(NotificationVariant.success)
+                    .text("Item saved successfully")
+                    .build());
+    if (orchestrator.editInDrawer()) {
+      // drawer mode: persist, then close the drawer EMITTING the saved event — the listing
+      // (which subscribes to it, see CrudTriggersBuilder) re-runs its search in place. No
+      // navigation/re-render happens in this response: re-rendering the host here would kill
+      // the drawer's owner before the close command finds the overlay.
+      return List.of(
+          result.messages().get(0),
+          io.mateu.uidl.data.UICommand.markAsClean(),
+          io.mateu.uidl.data.UICommand.closeModal(Crud.SAVED_IN_DRAWER_EVENT));
+    }
+    return result.withRoute("/" + savedId);
   }
 }

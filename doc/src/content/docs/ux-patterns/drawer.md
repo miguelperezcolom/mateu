@@ -86,3 +86,22 @@ The same `closeModal(eventName, payload)` contract works for `Dialog` too — it
 - Closing via ✕, Esc or the backdrop emits **no** event — that's the "dismissed without saving" path, and the host is intentionally not disturbed.
 - Position `start`/`end` maps to the left/right edge. Width accepts any CSS length; the panel caps at 92vw.
 - Styling is design-system neutral (Lumo CSS variables with fallbacks), so it renders on every web renderer.
+
+## CRUD editing in a drawer (`editInDrawer()`)
+
+For the "Create and Edit - Drawer" pattern (Oracle Redwood's RDS template), you don't need to build the drawer yourself: override `editInDrawer()` on any `AutoCrud` subclass and the crud's **New** button and row clicks open the create/edit form in a drawer sliding over the listing instead of navigating to the `/new` — `/{id}/edit` routes:
+
+```java
+@UI("/contacts")
+public class ContactsCrud extends AutoCrud<Contact> {
+  @Override
+  public boolean editInDrawer() {
+    return true;
+  }
+  // optional: @Override public String editDrawerWidth() { return "42rem"; }
+}
+```
+
+The listing never unmounts (scroll, filters and page survive); **Save** persists, closes the drawer and re-runs the listing's search in place (the closing drawer emits a saved event the listing subscribes to); **Cancel**/✕/Esc just close it. In this mode there is no separate read-only view page — a row click goes straight to the edit drawer (on read-only cruds row clicks keep navigating to the view).
+
+Demo: `demo-admin-panel/.../drawercrud/ContactsDrawerCrud.java` (`/drawer-crud-demo`). Tests: `EditInDrawerSyncTest`.

@@ -352,11 +352,18 @@ export default abstract class ConnectedElement extends LitElement {
     }
 
     closeModal = () => {
-        // Overlays (dialogs and drawers) are appended to the initiator's shadow root in opening
-        // order, so the last one in DOM order is the top of the stack.
-        const overlays = this.shadowRoot?.querySelectorAll('mateu-dialog, mateu-drawer')
+        // Overlays (dialogs and drawers) are appended to the initiator's render root in opening
+        // order, so the last one in DOM order is the top of the stack. On shells that render to
+        // light DOM (no shadow root — e.g. redwood-oj) the overlay is a plain descendant, so
+        // fall back to querying the element itself.
+        const overlays = (this.shadowRoot ?? this).querySelectorAll('mateu-dialog, mateu-drawer')
         if (overlays && overlays.length > 0) {
             (overlays[overlays.length - 1] as unknown as { close: () => void }).close()
+            // Detaching the element is not enough: the overlay arrived as an Add fragment pushed
+            // into this component's children, so any later re-render (e.g. the listing refreshing
+            // right after an edit drawer saved) would re-create the closed overlay as an empty
+            // husk blocking the page. Remove it from the declarative children too.
+            this.removeTopOverlayChild()
             return
         }
         // No overlay lives in our own shadow root: we are a component embedded INSIDE the
@@ -364,6 +371,25 @@ export default abstract class ConnectedElement extends LitElement {
         // request up — the mateu-event-interceptor that wraps the overlay content forwards
         // it to the overlay owner, whose closeModal() does find the overlay and closes it.
         this.dispatchEvent(new CustomEvent('close-modal-requested', { bubbles: true, composed: true }))
+    }
+
+    // Overlay children arrive as Add fragments pushed into component.children (see
+    // ComponentElement.applyFragment); closing must splice the top one back out or the next
+    // Lit render resurrects it.
+    private removeTopOverlayChild() {
+        const children = (this as unknown as { component?: { children?: ClientSideComponent[] } })
+            .component?.children
+        if (!children) {
+            return
+        }
+        for (let i = children.length - 1; i >= 0; i--) {
+            const metadataType = children[i]?.metadata?.type
+            if (metadataType == ComponentMetadataType.Drawer
+                || metadataType == ComponentMetadataType.Dialog) {
+                children.splice(i, 1)
+                return
+            }
+        }
     }
 
     changeFavicon = (link: string) => {

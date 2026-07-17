@@ -102,6 +102,29 @@ public abstract class Crud<
   }
 
   /**
+   * When true, "New" and row editing open the CRUD form in a {@link io.mateu.uidl.data.Drawer}
+   * sliding over the listing (the Redwood "Create and Edit - Drawer" template) instead of
+   * navigating to the {@code /new} — {@code /{id}/edit} routes: the listing stays mounted, the
+   * listing's first column opens the edit drawer directly (no separate view page in this mode),
+   * saving persists, closes the drawer and re-renders the refreshed listing, and cancelling just
+   * closes the drawer.
+   */
+  public boolean editInDrawer() {
+    return false;
+  }
+
+  /** Width of the create/edit drawer when {@link #editInDrawer()} is on. */
+  public String editDrawerWidth() {
+    return "36rem";
+  }
+
+  /**
+   * Event emitted when the {@link #editInDrawer()} drawer saves: closing the drawer dispatches it
+   * and the listing (subscribed via {@code CrudTriggersBuilder}) re-runs its search in place.
+   */
+  public static final String SAVED_IN_DRAWER_EVENT = "mateu-crud:saved-in-drawer";
+
+  /**
    * Persists one row edited in place in the listing grid (class-level {@code @InlineEditing}).
    * {@code AutoCrud}/{@code FilteredAutoCrud} implement it through the {@code CrudRepository};
    * other cruds must override it to support inline editing.

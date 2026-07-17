@@ -40,6 +40,7 @@ final class CrudActionResultAssembler {
       // unsaved-changes navigation guard (@ConfirmOnNavigationIfDirty) on the client.
       list.add(UICommand.markAsClean());
     }
+    list.addAll(result.commands());
     var windowTitleCommand = orchestrator.setWindowTitle(httpRequest);
     if (windowTitleCommand != null) {
       list.add(windowTitleCommand);

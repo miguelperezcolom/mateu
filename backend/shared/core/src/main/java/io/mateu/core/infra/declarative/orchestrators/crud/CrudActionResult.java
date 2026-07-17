@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.crud;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.State;
+import io.mateu.uidl.data.UICommand;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,14 +18,17 @@ public record CrudActionResult(
     Data data,
     String actionToRun,
     String targetComponentId,
-    State state) {
+    State state,
+    List<UICommand> commands) {
 
   public static CrudActionResult of(String actionId) {
-    return new CrudActionResult(actionId, null, new ArrayList<>(), null, null, null, null);
+    return new CrudActionResult(
+        actionId, null, new ArrayList<>(), null, null, null, null, new ArrayList<>());
   }
 
   public static CrudActionResult of(String actionId, Object savedId) {
-    return new CrudActionResult(actionId, savedId, new ArrayList<>(), null, null, null, null);
+    return new CrudActionResult(
+        actionId, savedId, new ArrayList<>(), null, null, null, null, new ArrayList<>());
   }
 
   public CrudActionResult withRoute(String route) {
@@ -35,7 +39,8 @@ public record CrudActionResult(
         this.data,
         this.actionToRun,
         this.targetComponentId,
-        this.state);
+        this.state,
+        this.commands);
   }
 
   public CrudActionResult withSavedId(Object newSavedId) {
@@ -46,7 +51,8 @@ public record CrudActionResult(
         this.data,
         this.actionToRun,
         this.targetComponentId,
-        this.state);
+        this.state,
+        this.commands);
   }
 
   public CrudActionResult withActionToRun(String actionToRun) {
@@ -57,7 +63,8 @@ public record CrudActionResult(
         this.data,
         actionToRun,
         this.targetComponentId,
-        this.state);
+        this.state,
+        this.commands);
   }
 
   public CrudActionResult withTargetComponentId(String targetComponentId) {
@@ -68,7 +75,8 @@ public record CrudActionResult(
         this.data,
         this.actionToRun,
         targetComponentId,
-        this.state);
+        this.state,
+        this.commands);
   }
 
   public CrudActionResult withMessage(Message message) {
@@ -81,7 +89,8 @@ public record CrudActionResult(
         this.data,
         this.actionToRun,
         this.targetComponentId,
-        this.state);
+        this.state,
+        this.commands);
   }
 
   public CrudActionResult withData(Data data) {
@@ -92,7 +101,8 @@ public record CrudActionResult(
         data,
         this.actionToRun,
         this.targetComponentId,
-        this.state);
+        this.state,
+        this.commands);
   }
 
   public CrudActionResult withState(State state) {
@@ -103,6 +113,21 @@ public record CrudActionResult(
         this.data,
         this.actionToRun,
         this.targetComponentId,
-        state);
+        state,
+        this.commands);
+  }
+
+  public CrudActionResult withCommand(UICommand command) {
+    var newCommands = new ArrayList<>(this.commands);
+    newCommands.add(command);
+    return new CrudActionResult(
+        this.route,
+        this.savedId,
+        this.messages,
+        this.data,
+        this.actionToRun,
+        this.targetComponentId,
+        this.state,
+        newCommands);
   }
 }
