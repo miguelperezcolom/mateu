@@ -145,16 +145,19 @@ fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
     return panel
 }
 
-/** ProgressSteps: a horizontal row of numbered dots + labels, colored by status. */
+/**
+ * ProgressSteps: numbered dots + labels colored by status — a horizontal row by default, or a
+ * stacked column when the wire carries vertical=true (the wizard RAIL mode).
+ */
 fun renderProgressSteps(metadata: JsonNode): JComponent {
-    val row = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
-    row.isOpaque = false
+    val vertical = metadata.bool("vertical")
+    val container = if (vertical) verticalPanel(6) else JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
+    container.isOpaque = false
     val steps = metadata.arr("steps")
     for ((i, step) in steps.withIndex()) {
         val status = step.text("status", "upcoming")
-        val cell = verticalPanel(2)
-        cell.border = JBUI.Borders.empty(0, 8)
         val label = if (status == "done") "✓" else (i + 1).toString()
+        val align = if (vertical) SwingConstants.LEFT else SwingConstants.CENTER
         val dot = JBLabel(label, SwingConstants.CENTER)
         dot.foreground =
             when (status) {
@@ -163,20 +166,39 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
                 else -> JBUI.CurrentTheme.Label.disabledForeground()
             }
         dot.font = dot.font.deriveFont(Font.BOLD, 15f)
-        cell.addStacked(dot, 2)
-        cell.addStacked(JBLabel(step.text("title"), SwingConstants.CENTER).apply {
+        val title = JBLabel(step.text("title"), align).apply {
             if (status == "upcoming") foreground = JBUI.CurrentTheme.Label.disabledForeground()
             else font = font.deriveFont(Font.BOLD)
-        }, 0)
-        val desc = step.text("description")
-        if (desc.isNotBlank()) {
-            cell.addStacked(JBLabel(desc, SwingConstants.CENTER).apply {
-                foreground = JBUI.CurrentTheme.Label.disabledForeground()
-            }, 0)
         }
-        row.add(cell)
+        val desc = step.text("description")
+        if (vertical) {
+            // one row per step: dot beside the title (+ optional description below)
+            val rowPanel = JPanel(FlowLayout(FlowLayout.LEFT, 6, 0))
+            rowPanel.isOpaque = false
+            rowPanel.add(dot)
+            val textCell = verticalPanel(0)
+            textCell.addStacked(title, 0)
+            if (desc.isNotBlank()) {
+                textCell.addStacked(JBLabel(desc, align).apply {
+                    foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                }, 0)
+            }
+            rowPanel.add(textCell)
+            container.addStacked(rowPanel, if (i == 0) 0 else 6)
+        } else {
+            val cell = verticalPanel(2)
+            cell.border = JBUI.Borders.empty(0, 8)
+            cell.addStacked(dot, 2)
+            cell.addStacked(title, 0)
+            if (desc.isNotBlank()) {
+                cell.addStacked(JBLabel(desc, align).apply {
+                    foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                }, 0)
+            }
+            container.add(cell)
+        }
     }
-    return row
+    return container
 }
 
 /** Stat: a KPI tile — label, big value + unit, delta colored by trend, and a sparkline. */
