@@ -40,7 +40,8 @@ public record AppDto(
     boolean themeToggle,
     List<AppContextSelectorDto> contextSelectors,
     List<AppHeaderActionDto> contextActions,
-    boolean notificationsEnabled)
+    boolean notificationsEnabled,
+    boolean globalSearchEnabled)
     implements ComponentMetadataDto {
 
   public AppDto {

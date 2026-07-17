@@ -36,5 +36,7 @@ export default interface App extends ComponentMetadata {
     contextSelectors: AppContextSelector[] | undefined
     contextActions: AppHeaderAction[] | undefined
     rootRoute: string | undefined
+    notificationsEnabled?: boolean
+    globalSearchEnabled?: boolean
 
 }

@@ -27,6 +27,10 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppLayout } from "@vaadin/app-layout";
 import {MateuChat} from "@infra/ui/mateu-chat.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
+import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
+
+// one hit of the app's GlobalSearchSupplier, shown by the command palette under the menu results
+interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
 
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
@@ -76,6 +80,49 @@ export class MateuApp extends ComponentElement {
 
     @state()
     commandPaletteSelectedIndex = 0
+
+    // entity hits from the app's GlobalSearchSupplier (the _globalsearch app-level action):
+    // fetched debounced while the user types, shown under the menu results grouped by category
+    @state()
+    commandPaletteDataHits: GlobalSearchHit[] = []
+
+    private _globalSearchTimer: ReturnType<typeof setTimeout> | undefined
+
+    private fetchGlobalSearch(query: string) {
+        const metadata = (this.component as ClientSideComponent)?.metadata as App
+        if (!metadata?.globalSearchEnabled) return
+        clearTimeout(this._globalSearchTimer)
+        if (!query) {
+            this.commandPaletteDataHits = []
+            return
+        }
+        this._globalSearchTimer = setTimeout(async () => {
+            try {
+                const increment = await mateuApiClient.runAction(this.baseUrl ?? '',
+                    metadata.rootRoute ?? '', '', '_globalsearch', 'cmd-palette', undefined,
+                    metadata.serverSideType, {}, { searchText: query }, this, true)
+                const data = increment?.fragments?.map(f => f.data).find(d => d && (d as Record<string, unknown>)['_globalsearch'])
+                this.commandPaletteDataHits =
+                    ((data as Record<string, unknown> | undefined)?.['_globalsearch'] as GlobalSearchHit[]) ?? []
+            } catch {
+                this.commandPaletteDataHits = []
+            }
+        }, 250)
+    }
+
+    private openDataHit = (hit: { route: string }) => {
+        if (!dirtyGuard.confirmLeave()) return
+        this.commandPaletteOpen = false
+        this.commandPaletteQuery = ''
+        this.commandPaletteDataHits = []
+        // same uniform navigation pair the shells use for local menu options
+        this.dispatchEvent(new CustomEvent('route-changed', {
+            detail: { route: hit.route }, bubbles: true, composed: true
+        }))
+        this.dispatchEvent(new CustomEvent('navigate-to-requested', {
+            detail: { route: hit.route }, bubbles: true, composed: true
+        }))
+    }
 
     private _commandPaletteHandler: ((e: KeyboardEvent) => void) | null = null
 
@@ -218,13 +265,21 @@ export class MateuApp extends ComponentElement {
     }
 
     handleCommandPaletteKeydown = (e: KeyboardEvent, filtered: ReturnType<typeof this.flattenMenuForPalette>) => {
+        // the navigable list = up to 10 menu results followed by up to 8 entity hits
+        const menuCount = Math.min(filtered.length, 10)
+        const totalCount = menuCount + Math.min(this.commandPaletteDataHits.length, 8)
         if (e.key === 'ArrowDown') {
             e.preventDefault()
-            this.commandPaletteSelectedIndex = Math.min(this.commandPaletteSelectedIndex + 1, Math.min(filtered.length, 10) - 1)
+            this.commandPaletteSelectedIndex = Math.min(this.commandPaletteSelectedIndex + 1, totalCount - 1)
         } else if (e.key === 'ArrowUp') {
             e.preventDefault()
             this.commandPaletteSelectedIndex = Math.max(this.commandPaletteSelectedIndex - 1, 0)
         } else if (e.key === 'Enter') {
+            if (this.commandPaletteSelectedIndex >= menuCount) {
+                const hit = this.commandPaletteDataHits[this.commandPaletteSelectedIndex - menuCount]
+                if (hit) this.openDataHit(hit)
+                return
+            }
             const item = filtered[this.commandPaletteSelectedIndex]
             if (item) {
                 this.selectRoute(item.consumedRoute, item.route, item.actionId, item.baseUrl, item.serverSideType, item.uriPrefix)
@@ -259,6 +314,7 @@ export class MateuApp extends ComponentElement {
                             @input=${(e: InputEvent) => {
                                 this.commandPaletteQuery = (e.target as HTMLInputElement).value
                                 this.commandPaletteSelectedIndex = 0
+                                this.fetchGlobalSearch(this.commandPaletteQuery)
                             }}
                             @keydown=${(e: KeyboardEvent) => this.handleCommandPaletteKeydown(e, filtered)}
                         >
@@ -277,7 +333,22 @@ export class MateuApp extends ComponentElement {
                                 ${item.breadcrumb ? html`<span class="cmd-result-breadcrumb">${item.breadcrumb}</span>` : nothing}
                             </div>
                         `)}
-                        ${filtered.length === 0 ? html`<div class="cmd-empty">No results for "${this.commandPaletteQuery}"</div>` : nothing}
+                        ${query && this.commandPaletteDataHits.length > 0 ? html`
+                            ${this.commandPaletteDataHits.slice(0, 8).map((hit, hitIndex) => {
+                                const idx = Math.min(filtered.length, 10) + hitIndex
+                                const previous = this.commandPaletteDataHits[hitIndex - 1]
+                                return html`
+                                    ${hit.category && hit.category !== previous?.category ? html`
+                                        <div class="cmd-category">${hit.category}</div>` : nothing}
+                                    <div class="cmd-result ${idx === this.commandPaletteSelectedIndex ? 'cmd-result--selected' : ''}"
+                                         @click=${() => this.openDataHit(hit)}
+                                         @mouseenter=${() => { this.commandPaletteSelectedIndex = idx }}
+                                    >
+                                        <span class="cmd-result-label">${hit.label}</span>
+                                        ${hit.description ? html`<span class="cmd-result-breadcrumb">${hit.description}</span>` : nothing}
+                                    </div>`
+                            })}` : nothing}
+                        ${filtered.length === 0 && this.commandPaletteDataHits.length === 0 ? html`<div class="cmd-empty">No results for "${this.commandPaletteQuery}"</div>` : nothing}
                     </div>
                 </div>
             </div>
@@ -820,6 +891,13 @@ export class MateuApp extends ComponentElement {
             white-space: nowrap;
         }
 
+        .cmd-category {
+            padding: 0.35rem 1rem 0.15rem;
+            font-size: var(--lumo-font-size-xs, 0.75rem);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--lumo-secondary-text-color, #777);
+        }
         .cmd-empty {
             padding: 1.5rem;
             text-align: center;

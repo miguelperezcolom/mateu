@@ -92,6 +92,7 @@ public final class AppMapper {
             .contextSelectors(getContextSelectors(app, httpRequest))
             .contextActions(getContextActions(app, httpRequest))
             .notificationsEnabled(isNotificationsEnabled(app))
+            .globalSearchEnabled(isGlobalSearchEnabled(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -163,6 +164,16 @@ public final class AppMapper {
       return false;
     }
     return io.mateu.uidl.interfaces.NotificationsSupplier.class.isAssignableFrom(
+        Class.forName(app.serverSideType()));
+  }
+
+  /** The ⌘K palette searches data too when the app class implements GlobalSearchSupplier. */
+  @SneakyThrows
+  private static boolean isGlobalSearchEnabled(AppShell app) {
+    if (app.serverSideType() == null) {
+      return false;
+    }
+    return io.mateu.uidl.interfaces.GlobalSearchSupplier.class.isAssignableFrom(
         Class.forName(app.serverSideType()));
   }
 

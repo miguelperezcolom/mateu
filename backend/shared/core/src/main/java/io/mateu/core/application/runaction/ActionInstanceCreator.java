@@ -109,6 +109,10 @@ public class ActionInstanceCreator {
     if (actionId.startsWith(io.mateu.core.domain.act.NotificationsActionRunner.ACTION_PREFIX)) {
       return true;
     }
+    // So is the command palette's entity search.
+    if (io.mateu.core.domain.act.GlobalSearchActionRunner.ACTION_ID.equals(actionId)) {
+      return true;
+    }
     // Header actions declared by the app's AppActionsSupplier dispatch to the app
     // instance too — same reasoning as the context selectors' remote search.
     if (command.serverSideType() == null) {

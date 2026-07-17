@@ -25,7 +25,24 @@ import java.util.List;
 public class Home2
         implements WidgetSupplier,
         io.mateu.uidl.interfaces.AppActionsSupplier,
-        io.mateu.uidl.interfaces.NotificationsSupplier {
+        io.mateu.uidl.interfaces.NotificationsSupplier,
+        io.mateu.uidl.interfaces.GlobalSearchSupplier {
+
+    // ⌘K entity search demo: the palette finds demo records by name and jumps to them
+    @Override
+    public java.util.List<io.mateu.uidl.data.GlobalSearchResult> globalSearch(
+            String searchText, HttpRequest httpRequest) {
+        return java.util.List.of(
+                        new io.mateu.uidl.data.GlobalSearchResult(
+                                "Informe de ventas", "Agrupado por región", "/aggregates-demo", "Informes"),
+                        new io.mateu.uidl.data.GlobalSearchResult(
+                                "Reserva R-42", "Acme S.L.", "/reservations", "Reservas"),
+                        new io.mateu.uidl.data.GlobalSearchResult(
+                                "Check-in 3", "Habitación 204", "/checkin/3", "Estancias"))
+                .stream()
+                .filter(hit -> hit.label().toLowerCase().contains(searchText.toLowerCase()))
+                .toList();
+    }
 
     // demo inbox (the header bell): per-user in real apps — resolve the user from the request
     private static final java.util.List<io.mateu.uidl.data.AppNotification> INBOX =
