@@ -48,7 +48,7 @@ public static class ComponentMapper
             it.Id, it.Title, it.Description, it.Timestamp, it.Icon, it.Color, it.ActionId)).ToList())),
 
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(
-            st.Id, st.Title, st.Description, st.Status)).ToList())),
+            st.Id, st.Title, st.Description, st.Status)).ToList(), ps.Vertical)),
 
         Stat st => Dto(st, new StatMetadataDto(
             st.Label, st.Value, st.Unit, st.Delta, st.Trend, st.Spark, st.ActionId)),

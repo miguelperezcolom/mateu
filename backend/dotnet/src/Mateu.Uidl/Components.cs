@@ -241,10 +241,12 @@ public sealed record Step
     public string? Status { get; init; }
 }
 
-/// <summary>A read-only horizontal progress indicator: numbered steps joined by a connector.</summary>
+/// <summary>A read-only progress indicator: numbered steps joined by a connector — a horizontal
+/// row by default, a stacked column when Vertical (the wizard RAIL mode).</summary>
 public sealed record ProgressSteps : ComponentBase
 {
     public IReadOnlyList<Step> Steps { get; init; } = [];
+    public bool Vertical { get; init; }
 }
 
 /// <summary>A compact KPI stat: value + unit, a delta with a trend (up|down|flat) and an inline

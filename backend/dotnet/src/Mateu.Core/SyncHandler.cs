@@ -113,6 +113,16 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             "create" or "save" => CrudSave(crud, crudType, element, id, rq, baseRoute),
             "update-row" => UpdateRow(crud, crudType, element, rq),
             "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id), rq),
+            // EditInDrawer (the Redwood "Create and Edit - Drawer" template): New and row clicks
+            // open the crud form in a Drawer over the listing instead of navigating; cancels just
+            // close it. Route-based /new — /{id}/edit deep links keep working unchanged.
+            "new" when EditInDrawer(crud) =>
+                CrudDrawer(crudType, element, New(element), "new", $"{baseRoute}/new", rq, crud),
+            "view" or "edit" when EditInDrawer(crud) && RowId(rq, element) is { } rowId =>
+                CrudDrawer(crudType, element, GetOrNew(crud, crudType, element, rowId), "edit",
+                    $"{baseRoute}/{rowId}/edit", rq, crud),
+            "cancel-new" or "cancel-edit" or "cancel-view" when EditInDrawer(crud) =>
+                UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) }]),
             null or "" => mode switch
             {
                 "new" => RenderEntity(crudType, element, New(element), "new", $"{baseRoute}/new", rq),
@@ -197,6 +207,36 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         FragmentResponse(Title(crudType), _mapper.MapEntityForm(crudType, element, entity, mode, route), rq,
             LookupLabels(element, entity, Activator.CreateInstance(crudType)!));
 
+    /// <summary>The event the EditInDrawer drawer emits on save: the listing refreshes by
+    /// re-running its search (mirrors Java's Crud.SAVED_IN_DRAWER_EVENT).</summary>
+    public const string SavedInDrawerEvent = "mateu-crud:saved-in-drawer";
+
+    private static bool EditInDrawer(object crud) =>
+        crud.GetType().GetProperty("EditInDrawer")?.GetValue(crud) as bool? ?? false;
+
+    private static string? RowId(RunActionRqDto rq, Type element)
+    {
+        var idField = Naming.CamelCase(element.GetProperty("Id")?.Name ?? "Id");
+        return StateString(GetState(rq.Parameters, idField))
+            ?? StateString(GetState(rq.ComponentState, idField));
+    }
+
+    /// <summary>The EditInDrawer create/edit form: the same entity form the /new — /{id}/edit
+    /// routes render, wrapped in a Drawer emitted as an Add fragment over the listing.</summary>
+    private UIIncrementDto CrudDrawer(
+        Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq, object crud)
+    {
+        var form = _mapper.MapEntityForm(crudType, element, entity, mode, route);
+        var width = crudType.GetProperty("EditDrawerWidth")?.GetValue(crud) as string ?? "36rem";
+        var drawer = new ClientSideComponentDto(
+            new DrawerMetadataDto("crud-edit-drawer", mode == "new" ? "New" : "Edit", form)
+                { Width = width },
+            "crud-edit-drawer", [], null, null, null);
+        return UIIncrementDto.Of(fragments:
+            [new UIFragmentDto(Target(rq), drawer, null,
+                LookupLabels(element, entity, Activator.CreateInstance(crudType)!), "Add", null)]);
+    }
+
     private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
     {
         // Start from the stored entity (so untouched fields survive) and apply the edited fields.
@@ -228,6 +268,19 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         }
 
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
+        if (EditInDrawer(crud))
+        {
+            // drawer mode: no navigation — close the drawer emitting the saved event and re-run
+            // the listing's search in place so the new/edited row shows up.
+            return UIIncrementDto.Of(
+                commands:
+                [
+                    UICommandDto.CloseModal(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
+                    new UICommandDto(Target(rq), "RunAction",
+                        new { actionId = "search", targetComponentId = Target(rq) }),
+                ],
+                messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
+        }
         return Navigate(baseRoute, "Saved", rq);
     }
 

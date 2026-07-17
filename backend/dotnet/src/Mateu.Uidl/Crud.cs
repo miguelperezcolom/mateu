@@ -32,6 +32,15 @@ public abstract class Crud<T> where T : class, new()
     /// <summary>The value of the entity's <c>Id</c> property as a string.</summary>
     public static string? IdOf(T entity) =>
         typeof(T).GetProperty("Id", BindingFlags.Public | BindingFlags.Instance)?.GetValue(entity)?.ToString();
+
+    /// <summary>When true, New and row clicks open the create/edit form in a Drawer sliding over
+    /// the listing (the Redwood "Create and Edit - Drawer" template) instead of navigating to the
+    /// /new — /{id}/edit routes; saving persists, closes the drawer and re-runs the listing's
+    /// search in place. (C# analogue of Java's Crud.editInDrawer.)</summary>
+    public virtual bool EditInDrawer => false;
+
+    /// <summary>Width of the create/edit drawer when <see cref="EditInDrawer"/> is on.</summary>
+    public virtual string EditDrawerWidth => "36rem";
 }
 
 /// <summary>The hero header of a <see cref="HeroSearch{T}"/> page (non-generic view of it).</summary>

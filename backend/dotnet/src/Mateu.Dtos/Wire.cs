@@ -269,8 +269,10 @@ public record TimelineMetadataDto(IReadOnlyList<TimelineItemDto> Items) : Compon
 /// <summary>One timeline entry; ActionId — when set — makes it clickable.</summary>
 public record TimelineItemDto(string? Id, string? Title, string? Description, string? Timestamp, string? Icon, string? Color, string? ActionId);
 
-/// <summary>Horizontal progress-indicator metadata: numbered steps.</summary>
-public record ProgressStepsMetadataDto(IReadOnlyList<StepDto> Steps) : ComponentMetadataDto;
+/// <summary>Progress-indicator metadata: numbered steps — a horizontal row by default, a stacked
+/// column when Vertical (the wizard RAIL mode).</summary>
+public record ProgressStepsMetadataDto(IReadOnlyList<StepDto> Steps, bool Vertical = false)
+    : ComponentMetadataDto;
 
 /// <summary>One progress step; Status is done|current|upcoming.</summary>
 public record StepDto(string? Id, string? Title, string? Description, string? Status);
