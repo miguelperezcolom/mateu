@@ -75,6 +75,7 @@ export enum ComponentMetadataType {
     EmptyState = "EmptyState",
     Skeleton = "Skeleton",
     Gantt = "Gantt",
+    PlanningBoard = "PlanningBoard",
     Kanban = "Kanban",
     Timeline = "Timeline",
     ProgressSteps = "ProgressSteps",

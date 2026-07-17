@@ -2,6 +2,7 @@ import { customElement, state } from 'lit/decorators.js'
 import { html, nothing, type TemplateResult } from 'lit'
 import { MateuRendererApp } from '@infra/ui/MateuRendererApp.ts'
 import '@infra/ui/mateu-app-context-picker.ts'
+import '@infra/ui/mateu-notification-bell.ts'
 import { dispatchAppHeaderAction } from '@infra/ui/renderers/appHeaderActions.ts'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
@@ -119,6 +120,8 @@ export class MateuRedhatApp extends MateuRendererApp {
                         ${md.logo ? html`<img src="${md.logo}" alt="" style="height:1.75rem; margin-right:.75rem;" />` : nothing}
                         <span class="pf-v6-c-title pf-m-lg" style="white-space:nowrap;">${md.title ?? ''}</span>
                         <div style="margin-left:auto; display:flex; align-items:center;">
+                            ${md.notificationsEnabled ? html`
+                                <mateu-notification-bell style="margin-right:.75rem;" .app="${md}" .baseUrl="${''}"></mateu-notification-bell>` : nothing}
                             ${(md.contextSelectors ?? []).map(selector => html`
                                 <mateu-app-context-picker style="margin-right:.75rem;" .selector="${selector}" .app="${md}" .baseUrl="${''}"></mateu-app-context-picker>`)}
                             ${this.renderContextActions(md)}

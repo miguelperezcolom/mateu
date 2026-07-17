@@ -1,5 +1,6 @@
 import {customElement, state} from "lit/decorators.js";
 import '@infra/ui/mateu-app-context-picker.ts';
+import '@infra/ui/mateu-notification-bell.ts';
 import {css, html, LitElement, nothing} from "lit";
 import '@infra/ui/mateu-field'
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
@@ -586,6 +587,8 @@ export class MateuRedwoodApp extends MateuApp {
                         </div>
                         <div 
                              class="oj-flex-bar-end  oj-sm-align-items-center oj-sm-only-width-full">
+                            ${metadata.notificationsEnabled ? html`
+                                <mateu-notification-bell style="margin-right: 0.75rem;" .app="${metadata}" .baseUrl="${''}"></mateu-notification-bell>` : nothing}
                             ${(metadata.contextSelectors ?? []).map(selector => html`
                                 <mateu-app-context-picker style="margin-right: 0.75rem;" .selector="${selector}" .app="${metadata}" .baseUrl="${''}"></mateu-app-context-picker>`)}
                             ${this.renderContextActions(metadata)}

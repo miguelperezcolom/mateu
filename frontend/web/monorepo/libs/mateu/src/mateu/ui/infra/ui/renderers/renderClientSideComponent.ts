@@ -76,6 +76,7 @@ import { renderFoldoutLayout } from "@infra/ui/renderers/foldoutRenderer.ts";
 import { renderHeroSection } from "@infra/ui/renderers/heroRenderer.ts";
 import { renderEmptyState, renderSkeleton } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import { renderGantt } from "@infra/ui/renderers/ganttRenderer.ts";
+import { renderPlanningBoard } from "@infra/ui/renderers/planningBoardRenderer.ts";
 import { renderKanban } from "@infra/ui/renderers/kanbanRenderer.ts";
 import { renderTimeline } from "@infra/ui/renderers/timelineRenderer.ts";
 import { renderProgressSteps } from "@infra/ui/renderers/progressStepsRenderer.ts";
@@ -306,6 +307,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.EmptyState]: ({ component }) => renderEmptyState(component),
     [ComponentMetadataType.Skeleton]: ({ component }) => renderSkeleton(component),
     [ComponentMetadataType.Gantt]: ({ component }) => renderGantt(component),
+    [ComponentMetadataType.PlanningBoard]: ({ component }) => renderPlanningBoard(component),
     [ComponentMetadataType.Kanban]: ({ component }) => renderKanban(component),
     [ComponentMetadataType.Timeline]: ({ component }) => renderTimeline(component),
     [ComponentMetadataType.ProgressSteps]: ({ component }) => renderProgressSteps(component),

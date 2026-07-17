@@ -18,6 +18,7 @@ import {upstream} from "@domain/state";
 import {Subscription} from "rxjs";
 import Message from "@domain/Message";
 import "@infra/ui/mateu-app-context-picker.ts";
+import "@infra/ui/mateu-notification-bell.ts";
 import "@ui5/webcomponents/dist/Toast.js"; // ui5-toast (header-action error feedback)
 import {dispatchAppHeaderAction} from "@infra/ui/renderers/appHeaderActions.ts";
 
@@ -486,6 +487,8 @@ export class MateuSapUI5App extends MateuApp {
             >
                 <ui5-shellbar-branding slot="branding" @click="${() => this.goHome()}" style="cursor: pointer;">${metadata.title}</ui5-shellbar-branding>
                 <ui5-button icon="menu" slot="startButton" id="startButton" @click="${() => this.toggle(this)}"></ui5-button>
+                ${metadata.notificationsEnabled ? html`
+                    <mateu-notification-bell slot="content" data-hide-order="1" .app="${metadata}" .baseUrl="${''}"></mateu-notification-bell>` : nothing}
                 ${(metadata.contextSelectors ?? []).map(selector => html`
                     <mateu-app-context-picker slot="content" data-hide-order="1" .selector="${selector}" .app="${metadata}" .baseUrl="${''}"></mateu-app-context-picker>`)}
                 ${this.renderContextActions(metadata)}

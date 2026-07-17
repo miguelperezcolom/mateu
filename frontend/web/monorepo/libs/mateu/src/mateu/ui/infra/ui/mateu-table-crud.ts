@@ -19,7 +19,10 @@ import "@vaadin/grid"
 import { columnBodyRenderer } from "@vaadin/grid/lit"
 import "@vaadin/card"
 import './mateu-filter-bar'
+import './mateu-column-chooser'
+import type { ColumnChooserEntry } from './mateu-column-chooser'
 import './mateu-content-header'
+import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
 import { interpolate } from './interpolation'
 import './mateu-pagination'
 import './mateu-table'
@@ -84,8 +87,72 @@ export class MateuTableCrud extends LitElement {
 
     private resizeObserver?: ResizeObserver
 
-    private get cols(): GridColumn[] {
+    // ── user column personalization (client-only, columnPrefsStore) ──────────
+    // The crud is the single choke point feeding columns to EVERY renderer (the shared
+    // list/cards/masterDetail/tree templates below via `cols`, and each design system's
+    // renderTableComponent via the component passed to it), so the prefs are applied here once:
+    // render() works against `effectiveComponent`, a derived copy of the component whose
+    // metadata.columns is filtered/reordered. Memoized so consumers diffing by property identity
+    // (mateu-table & friends) don't re-render on every pass.
+
+    /** bumped by the column chooser after each store write → re-render with fresh prefs */
+    @state()
+    private _columnPrefsRevision = 0
+
+    private _prefsSource?: ClientSideComponent
+    private _prefsRevisionApplied = -1
+    private _prefsApplied?: ClientSideComponent
+
+    private get columnPrefsScope(): string {
+        return window.location.pathname
+    }
+
+    private get effectiveComponent(): ClientSideComponent | undefined {
+        const source = this.component
+        const metadata = source?.metadata as Crud | undefined
+        if (!source || !metadata?.columns) return source
+        if (this._prefsSource === source && this._prefsRevisionApplied === this._columnPrefsRevision) {
+            return this._prefsApplied
+        }
+        const prefs = readColumnPrefs(this.columnPrefsScope)
+        const columns = applyColumnPrefs(metadata.columns, prefs, c => (c.metadata ?? {}) as ColumnLike)
+        this._prefsApplied = columns === metadata.columns
+            ? source
+            : { ...source, metadata: { ...metadata, columns } as Crud }
+        this._prefsSource = source
+        this._prefsRevisionApplied = this._columnPrefsRevision
+        return this._prefsApplied
+    }
+
+    /** every top-level column (groups count as one) as the chooser needs it, in WIRE order */
+    private get columnChooserEntries(): ColumnChooserEntry[] {
         const metadata = this.component?.metadata as Crud | undefined
+        return (metadata?.columns ?? [])
+            .map(c => {
+                const col = (c.metadata ?? {}) as ColumnLike & { label?: string }
+                const id = col.id ?? c.id
+                return id ? { id, label: col.label ?? id, protected: isProtectedColumn(col) } : undefined
+            })
+            .filter((entry): entry is ColumnChooserEntry => !!entry)
+    }
+
+    private renderColumnChooser(): TemplateResult | typeof nothing {
+        const entries = this.columnChooserEntries
+        if (entries.filter(entry => !entry.protected).length === 0) return nothing
+        return html`
+            <mateu-column-chooser
+                .columns="${entries}"
+                .scope="${this.columnPrefsScope}"
+                @column-prefs-changed="${(e: Event) => {
+                    e.stopPropagation()
+                    this._columnPrefsRevision++
+                }}"
+            ></mateu-column-chooser>
+        `
+    }
+
+    private get cols(): GridColumn[] {
+        const metadata = this.effectiveComponent?.metadata as Crud | undefined
         return metadata?.columns?.map(c => c.metadata as GridColumn) ?? []
     }
 
@@ -354,7 +421,10 @@ export class MateuTableCrud extends LitElement {
         if (!this.component) {
             return html`no component`
         }
-        const metadata = (this.component as ClientSideComponent).metadata as Crud
+        // the component with the user's column prefs applied (hidden dropped, order rearranged);
+        // identical to this.component when there are no prefs for this scope
+        const component = this.effectiveComponent as ClientSideComponent
+        const metadata = component.metadata as Crud
         metadata.serverSideOrdering = true
 
         const toolbar = metadata?.toolbar ?? []
@@ -691,7 +761,7 @@ export class MateuTableCrud extends LitElement {
             ` : renderCards())
             : !rendererOwnsLayouts && gridLayout === 'masterDetail' ? renderMasterDetail()
             : !rendererOwnsLayouts && gridLayout === 'tree' ? renderTree()
-            : componentRenderer.get()?.renderTableComponent(this, this.component as ClientSideComponent, this.baseUrl, this.state, this.data, this.appState, this.appData)}
+            : componentRenderer.get()?.renderTableComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
             <slot></slot>
         `
 
@@ -728,7 +798,10 @@ export class MateuTableCrud extends LitElement {
                             .appData="${this.appData}"
                         ></mateu-content-header>
                     </div>
-                    <div style="flex-shrink: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}</div>
+                    <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
+                        <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}</div>
+                        ${this.renderColumnChooser()}
+                    </div>
                     <div style="flex: 1; overflow-y: auto; min-height: 0;">${contentHtml}</div>
                     <div style="flex-shrink: 0;">${paginationHtml}</div>
                 </div>
@@ -753,7 +826,10 @@ export class MateuTableCrud extends LitElement {
                     </div>
                 ` : nothing}
             <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--lumo-space-m); display: flex; flex-direction: column;">
-                <div style="flex-shrink: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
+                <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
+                    <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
+                    ${this.renderColumnChooser()}
+                </div>
                 <div style="flex: 1; overflow-y: auto; min-height: 0;">${contentHtml}</div>
                 <div style="flex-shrink: 0;">${paginationHtml}</div>
             </div>

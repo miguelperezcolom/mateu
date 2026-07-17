@@ -4,6 +4,7 @@ import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppV
 import { MateuApp } from "@infra/ui/mateu-app.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-vaadin-app-context-picker.ts";
+import "@infra/ui/mateu-notification-bell.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import { Notification } from "@vaadin/notification";
 import "@vaadin/menu-bar";
@@ -25,8 +26,9 @@ const runHeaderAction = async (metadata: App, container: MateuApp, actionId: str
 const renderContextSelectors = (metadata: App, container: MateuApp) => {
     const selectors = metadata.contextSelectors ?? []
     const actions = metadata.contextActions ?? []
-    if (selectors.length === 0 && actions.length === 0) return nothing
-    return html`${selectors.map(selector => html`
+    if (selectors.length === 0 && actions.length === 0 && !metadata.notificationsEnabled) return nothing
+    return html`${metadata.notificationsEnabled ? html`
+        <mateu-notification-bell .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-notification-bell>` : nothing}${selectors.map(selector => html`
         <mateu-vaadin-app-context-picker .selector="${selector}" .app="${metadata}" .baseUrl="${container.baseUrl ?? ''}"></mateu-vaadin-app-context-picker>`)}${actions.map(action => (action.children?.length ?? 0) > 0 ? html`
         <vaadin-menu-bar theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
             .items="${[{ text: action.label, children: action.children!.map(child => ({ text: child.label, actionId: child.actionId })) }]}"

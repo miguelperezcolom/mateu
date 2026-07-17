@@ -2,6 +2,7 @@ import { customElement, state } from 'lit/decorators.js'
 import { html, nothing, type TemplateResult } from 'lit'
 import { MateuRendererApp } from '@infra/ui/MateuRendererApp.ts'
 import '@infra/ui/mateu-app-context-picker.ts'
+import '@infra/ui/mateu-notification-bell.ts'
 import { dispatchAppHeaderAction } from '@infra/ui/renderers/appHeaderActions.ts'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import App from '@mateu/shared/apiClients/dtos/componentmetadata/App.ts'
@@ -110,6 +111,8 @@ export class MateuSldsApp extends MateuRendererApp {
                             ${metadata.subtitle
                                 ? html`<span class="slds-text-body_small slds-m-right_medium">${metadata.subtitle}</span>`
                                 : nothing}
+                            ${metadata.notificationsEnabled ? html`
+                                <mateu-notification-bell style="margin-right: .75rem;" .app="${metadata}" .baseUrl="${''}"></mateu-notification-bell>` : nothing}
                             ${(metadata.contextSelectors ?? []).map(selector => html`
                                 <mateu-app-context-picker style="margin-right: .75rem;" .selector="${selector}" .app="${metadata}" .baseUrl="${''}"></mateu-app-context-picker>`)}
                             ${this.renderContextActions(metadata)}
