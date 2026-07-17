@@ -75,11 +75,31 @@ class WizardProgressStyleSyncTest {
     }
   }
 
+  @SuppressWarnings("unused")
+  @UI("/wizard-rail")
+  @Title("Rail")
+  @WizardProgress(WizardProgressStyle.RAIL)
+  public static class RailWizard extends Wizard {
+    @Label("Paso uno")
+    Uno uno = new Uno();
+
+    @Label("Paso dos")
+    Dos dos = new Dos();
+
+    Resultado resultado;
+
+    @WizardCompletionAction
+    @Label("Finish")
+    Object finish() {
+      return null;
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(BarWizard.class, StepsWizard.class);
+    mateu = TestMateu.withUis(BarWizard.class, StepsWizard.class, RailWizard.class);
   }
 
   @AfterAll
@@ -108,5 +128,24 @@ class WizardProgressStyleSyncTest {
         .containsExactly(
             org.assertj.core.groups.Tuple.tuple("Paso uno", "current"),
             org.assertj.core.groups.Tuple.tuple("Paso dos", "upcoming"));
+    assertThat(steppers.get(0).vertical()).isFalse();
+  }
+
+  @Test
+  void railWizardShowsTheVerticalStepListAndTheCounter() {
+    var increment = mateu.sync("/wizard-rail");
+    var root = increment.fragments().get(0).component();
+    assertThat(FieldKindsSyncTest.collect(root, ProgressBarDto.class)).isEmpty();
+    var steppers = FieldKindsSyncTest.collect(root, ProgressStepsDto.class);
+    assertThat(steppers).hasSize(1);
+    assertThat(steppers.get(0).vertical()).isTrue();
+    assertThat(steppers.get(0).steps())
+        .extracting(s -> s.title(), s -> s.status())
+        .containsExactly(
+            org.assertj.core.groups.Tuple.tuple("Paso uno", "current"),
+            org.assertj.core.groups.Tuple.tuple("Paso dos", "upcoming"));
+    // the rail leads with the big "current | total" counter
+    var texts = FieldKindsSyncTest.collect(root, io.mateu.dtos.TextDto.class);
+    assertThat(texts).anySatisfy(text -> assertThat(text.text()).isEqualTo("1 | 2"));
   }
 }

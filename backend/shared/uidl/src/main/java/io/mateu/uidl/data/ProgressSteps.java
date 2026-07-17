@@ -10,5 +10,6 @@ import lombok.Builder;
  * — it drives no navigation. Design-system neutral, dark-mode aware.
  */
 @Builder
-public record ProgressSteps(String id, List<Step> steps, String style, String cssClasses)
+public record ProgressSteps(
+    String id, List<Step> steps, boolean vertical, String style, String cssClasses)
     implements Component {}

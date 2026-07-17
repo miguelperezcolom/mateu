@@ -8,6 +8,7 @@ export const renderProgressSteps = (component: ClientSideComponent) => {
     return html`
         <mateu-progress-steps
                 .steps="${metadata.steps ?? []}"
+                ?vertical="${metadata.vertical ?? false}"
                 style="${component.style??nothing}"
                 class="${component.cssClasses??nothing}"
                 slot="${component.slot??nothing}"

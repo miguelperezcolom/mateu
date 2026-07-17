@@ -11,5 +11,12 @@ public enum WizardProgressStyle {
    * step joined by a line, with done/current/upcoming states — the classic, more recognizable
    * stepper.
    */
-  STEPS
+  STEPS,
+
+  /**
+   * A lateral progress rail (the Oracle Redwood "Guided Process" template): the step form on the
+   * left and a sticky right-hand band showing a big {@code current | total} counter over the
+   * vertical list of steps with done-checks and the current step highlighted.
+   */
+  RAIL
 }

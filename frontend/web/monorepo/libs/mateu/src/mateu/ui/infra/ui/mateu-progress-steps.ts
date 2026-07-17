@@ -14,6 +14,9 @@ export class MateuProgressSteps extends LitElement {
     @property({ type: Array })
     steps: Step[] = []
 
+    @property({ type: Boolean, reflect: true })
+    vertical = false
+
     static styles = css`
         :host {
             display: block;
@@ -86,6 +89,36 @@ export class MateuProgressSteps extends LitElement {
             color: var(--lumo-secondary-text-color, #888);
             font-size: var(--lumo-font-size-xs, .75rem);
             padding: 0 .25rem;
+        }
+
+        /* vertical (rail) variant: dots stacked in a column, labels beside them, the connector
+           running down between consecutive dots */
+        :host([vertical]) .steps {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1.1rem;
+        }
+        :host([vertical]) .step {
+            flex: none;
+            flex-direction: row;
+            align-items: center;
+            text-align: left;
+            gap: .6rem;
+        }
+        :host([vertical]) .connector {
+            top: auto;
+            bottom: calc(100% - 2px);
+            left: calc(.75rem - 1px);
+            width: 2px;
+            height: 1.1rem;
+        }
+        :host([vertical]) .label {
+            margin-top: 0;
+            padding: 0;
+        }
+        :host([vertical]) .desc {
+            margin-top: 0;
+            padding: 0;
         }
     `
 

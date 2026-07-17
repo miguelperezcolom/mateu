@@ -5,7 +5,8 @@ import java.util.List;
 import lombok.Builder;
 
 @Builder
-public record ProgressStepsDto(List<StepDto> steps) implements ComponentMetadataDto {
+public record ProgressStepsDto(List<StepDto> steps, boolean vertical)
+    implements ComponentMetadataDto {
 
   public ProgressStepsDto {
     steps = Collections.unmodifiableList(steps != null ? steps : Collections.emptyList());

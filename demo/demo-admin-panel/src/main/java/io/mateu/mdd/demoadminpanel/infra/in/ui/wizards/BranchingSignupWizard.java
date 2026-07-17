@@ -18,6 +18,7 @@ import jakarta.validation.constraints.NotNull;
  */
 @UI("/branching-wizard")
 @Title("Signup (branching)")
+@io.mateu.uidl.annotations.WizardProgress(io.mateu.uidl.annotations.WizardProgressStyle.RAIL)
 public class BranchingSignupWizard extends Wizard {
 
   public enum AccountType {
