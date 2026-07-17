@@ -125,10 +125,19 @@ public class FieldMetadataExtractor {
   }
 
   static Map<String, String> getAttributes(Field field) {
+    var attributes = new java.util.LinkedHashMap<String, String>();
     if (MetaAnnotations.isPresent(field, DivStyle.class)) {
-      return Map.of("divStyle", MetaAnnotations.find(field, DivStyle.class).value());
+      attributes.put("divStyle", MetaAnnotations.find(field, DivStyle.class).value());
     }
-    return Map.of();
+    // @FileUpload(accept=".csv"): the file input's accept attribute travels in the field's
+    // generic attributes map — no dedicated wire field needed.
+    if (MetaAnnotations.isPresent(field, FileUpload.class)) {
+      var accept = MetaAnnotations.find(field, FileUpload.class).accept();
+      if (accept != null && !accept.isEmpty()) {
+        attributes.put("accept", accept);
+      }
+    }
+    return attributes;
   }
 
   static boolean isRequired(Field field, Object instance, HttpRequest httpRequest) {

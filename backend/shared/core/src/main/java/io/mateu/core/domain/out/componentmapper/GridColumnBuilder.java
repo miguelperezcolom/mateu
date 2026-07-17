@@ -22,7 +22,7 @@ import java.util.ArrayList;
 public class GridColumnBuilder {
 
   static Component createCrudForField(
-      Field field, String prefix, boolean readOnly, HttpRequest httpRequest) {
+      Field field, String prefix, boolean readOnly, Object instance, HttpRequest httpRequest) {
     // Inline editing: row cells become editable inputs in the grid instead of opening a detail
     // form.
     boolean inlineEditing = !readOnly && MetaAnnotations.isPresent(field, InlineEditing.class);
@@ -45,6 +45,8 @@ public class GridColumnBuilder {
               // display-only.
               boolean colEditable =
                   inlineEditing && !MetaAnnotations.isPresent(columnField, ReadOnly.class);
+              var editorOptions =
+                  colEditable ? getEditorOptions(columnField, instance, httpRequest) : null;
               columns.add(
                   GridColumn.builder()
                       .dataType(getDataTypeForColumn(columnField))
@@ -60,8 +62,8 @@ public class GridColumnBuilder {
                       .flexGrow(auto || colWidth != null ? "0" : null)
                       .filterable(getFilterable(columnField))
                       .editable(colEditable)
-                      .editorType(colEditable ? getEditorType(columnField) : null)
-                      .editorOptions(colEditable ? getEditorOptions(columnField) : null)
+                      .editorType(colEditable ? getEditorType(columnField, editorOptions) : null)
+                      .editorOptions(editorOptions)
                       .build());
             });
     // The per-row "Edit" button opens the detail form; inline editing replaces it.
@@ -186,6 +188,36 @@ public class GridColumnBuilder {
           .toList();
     }
     return null;
+  }
+
+  /**
+   * Editor options honouring the form instance: when the form hosting the grid implements {@code
+   * OptionsSupplier} and supplies options for the column's field name, those become the cell
+   * editor's choices (a dynamic select — used e.g. by the import wizard's mapping grid, whose
+   * target-field choices are computed at runtime). Falls back to the static per-column rules (enum
+   * constants).
+   */
+  static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(
+      Field columnField, Object instance, HttpRequest httpRequest) {
+    if (instance instanceof io.mateu.uidl.interfaces.OptionsSupplier optionsSupplier
+        && optionsSupplier.supports(
+            columnField.getType(), columnField.getName(), columnField.getDeclaringClass())) {
+      var supplied = optionsSupplier.options(columnField.getName(), httpRequest);
+      if (supplied != null && !supplied.isEmpty()) {
+        return supplied;
+      }
+    }
+    return getEditorOptions(columnField);
+  }
+
+  /** A text column with supplied options is edited with a select instead of a free-text input. */
+  static String getEditorType(
+      Field columnField, java.util.List<io.mateu.uidl.data.Option> options) {
+    var editorType = getEditorType(columnField);
+    if ("text".equals(editorType) && options != null && !options.isEmpty()) {
+      return "select";
+    }
+    return editorType;
   }
 
   private static String getColumnWidth(Field columnField) {

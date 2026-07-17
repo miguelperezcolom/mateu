@@ -73,6 +73,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/tree-crud', label: 'Tree CRUD' },
 						{ slug: 'ux-patterns/filters-and-listing' },
 						{ slug: 'ux-patterns/bulk-actions' },
+						{ slug: 'ux-patterns/guided-import' },
 						{ slug: 'ux-patterns/saved-views' },
 						{ slug: 'ux-patterns/aggregates', label: 'Totals & Row Grouping' },
 						{ slug: 'ux-patterns/column-chooser' },

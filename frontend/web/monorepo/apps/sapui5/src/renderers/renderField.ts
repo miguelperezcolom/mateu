@@ -6,6 +6,8 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import { interpolate } from "@infra/ui/interpolation";
 import { evalIfNecessary } from "@infra/ui/renderers/avatarRenderer.ts";
+import '@infra/ui/mateu-file-upload.ts';
+import { fieldAttribute } from '@infra/ui/mateu-file-upload.ts';
 import { changed, checkboxChanged } from "@/SapUi5ComponentRenderer.ts";
 import { renderStatusValue, renderCellValue } from "@/renderers/renderCellValue.ts";
 
@@ -419,6 +421,11 @@ const renderReadOnlyField = (component: ClientSideComponent, metadata: FormField
     if (metadata.stereotype == 'image' || metadata.stereotype == 'uploadableImage') {
         return labeled(component, metadata, id, label, html`<img src="${valueToDisplay}" id="${id}_img" style="${metadata.style ?? nothing}">`)
     }
+    if (metadata.stereotype == 'fileUpload') {
+        // read-only file: the file name (a download link when it is a data URI)
+        return labeled(component, metadata, id, label, html`
+            <mateu-file-upload .fieldId="${metadata.fieldId}" .value="${valueToDisplay}" .editable="${false}"></mateu-file-upload>`)
+    }
     if (metadata.dataType == 'bool') {
         return labeled(component, metadata, id, label, html`<ui5-icon name="${valueToDisplay ? 'accept' : 'less'}" style="height: 20px;"></ui5-icon>`)
     }
@@ -564,6 +571,13 @@ const renderStringField = (container: LitElement, component: ClientSideComponent
     }
     if (metadata.stereotype == 'uploadableImage') {
         return labeled(component, metadata, id, label, renderUploadableImage(metadata, id, value))
+    }
+    if (metadata.stereotype == 'fileUpload') {
+        // generic file upload: pick-file + name + remove, value = data URI (no preview)
+        return labeled(component, metadata, id, label, html`
+            <mateu-file-upload
+                .fieldId="${metadata.fieldId}" .value="${value}"
+                .accept="${fieldAttribute(metadata.attributes, 'accept')}"></mateu-file-upload>`)
     }
     if (metadata.stereotype == 'color') {
         return labeled(component, metadata, id, label, html`

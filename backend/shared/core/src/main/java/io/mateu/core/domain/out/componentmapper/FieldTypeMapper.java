@@ -119,6 +119,9 @@ public class FieldTypeMapper {
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.UploadableImage.class)) {
       return FieldStereotype.uploadableImage;
     }
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.FileUpload.class)) {
+      return FieldStereotype.fileUpload;
+    }
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.TreeSelect.class)) {
       return FieldStereotype.treeSelect;
     }

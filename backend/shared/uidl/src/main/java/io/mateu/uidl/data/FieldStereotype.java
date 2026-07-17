@@ -21,6 +21,12 @@ public enum FieldStereotype {
    * UploadableImage}.
    */
   uploadableImage,
+  /**
+   * Renders a String field as a generic file upload: pick-file action + chosen file name + remove
+   * action, no preview. The field value holds the file as a data URI (with the original file name
+   * embedded as a {@code name=} data-URI parameter). See {@code FileUpload}.
+   */
+  fileUpload,
   icon,
   link,
   money,

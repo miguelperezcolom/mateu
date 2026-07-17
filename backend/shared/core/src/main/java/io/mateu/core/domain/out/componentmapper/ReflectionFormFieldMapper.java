@@ -147,6 +147,7 @@ public class ReflectionFormFieldMapper {
           field,
           prefix,
           readOnly || PageFormBuilder.isReadOnly(field, instance, forCreationForm, httpRequest),
+          instance,
           httpRequest);
     }
     if (!isBasic(fieldType)

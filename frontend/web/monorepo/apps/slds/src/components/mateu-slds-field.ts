@@ -8,6 +8,8 @@ import Option from '@mateu/shared/apiClients/dtos/componentmetadata/Option.ts'
 import '@infra/ui/mateu-signature-pad.ts'
 import '@infra/ui/mateu-camera-capture.ts'
 import '@infra/ui/mateu-tree-select.ts'
+import '@infra/ui/mateu-file-upload.ts'
+import { fieldAttribute } from '@infra/ui/mateu-file-upload.ts'
 import { renderSldsCellValue } from '../renderers/sldsRenderers.ts'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
@@ -155,6 +157,11 @@ export class MateuSldsField extends LitElement {
         }
         if ((f.stereotype === 'image' || f.stereotype === 'uploadableImage') && this.value) {
             return html`<img src="${this.value}" style="max-width: 100%; max-height: 200px; border-radius: 4px;" />`
+        }
+        if (f.stereotype === 'fileUpload') {
+            // generic file upload: pick-file + name + remove, value = data URI (no preview)
+            return html`<mateu-file-upload .fieldId="${f.fieldId}" .value="${this.value ?? ''}" .editable="${editable}"
+                                           .accept="${fieldAttribute(f.attributes, 'accept')}"></mateu-file-upload>`
         }
 
         // Checkbox / toggle

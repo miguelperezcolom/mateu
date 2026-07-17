@@ -3,6 +3,8 @@ import '@infra/ui/mateu-signature-pad.ts';
 import '@infra/ui/mateu-tree-select.ts';
 import '@infra/ui/mateu-camera-capture.ts';
 import '@infra/ui/mateu-bulleted-list.ts';
+import '@infra/ui/mateu-file-upload.ts';
+import { fieldAttribute } from '@infra/ui/mateu-file-upload.ts';
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn.ts";
@@ -340,6 +342,10 @@ const renderReadOnlyField = (metadata: FormField, value: any, label: unknown, st
         || metadata.stereotype == 'signature' || metadata.stereotype == 'camera') {
         return labeled(label, html`<img src="${valueToDisplay}" style="${metadata.style ?? nothing}">`)
     }
+    if (metadata.stereotype == 'fileUpload') {
+        // read-only file: the file name (a download link when it is a data URI)
+        return labeled(label, html`<mateu-file-upload .fieldId="${metadata.fieldId}" .value="${valueToDisplay}" .editable="${false}"></mateu-file-upload>`)
+    }
     if (metadata.dataType == 'bool') {
         return labeled(label, html`<span>${valueToDisplay ? '✓' : '—'}</span>`)
     }
@@ -607,6 +613,12 @@ const renderFieldControl = (container: LitElement, component: ClientSideComponen
         }
         if (stereotype === 'camera') {
             return labeled(label, html`<mateu-camera-capture .fieldId="${id}" .value="${value}"></mateu-camera-capture>`)
+        }
+        if (stereotype === 'fileUpload') {
+            // generic file upload: pick-file + name + remove, value = data URI (no preview)
+            return labeled(label, html`<mateu-file-upload
+                .fieldId="${id}" .value="${value}"
+                .accept="${fieldAttribute(metadata.attributes, 'accept')}"></mateu-file-upload>`)
         }
         if (stereotype === 'icon') {
             // Icon ids arrive as "vaadin:name"; the preview uses the Oracle UX icon font.

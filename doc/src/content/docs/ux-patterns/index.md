@@ -33,6 +33,7 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Saved views](./saved-views) | ✅ Implemented | Smart search bar bookmark — named condition sets, default view |
 | [Totals & row grouping](./aggregates) | ✅ Implemented | `@Aggregate(sum/avg/…)` footer + `@GroupBy` subtotal rows |
 | [Column chooser](./column-chooser) | ✅ Implemented | Show/hide/reorder columns per user, per listing |
+| [Guided import](./guided-import) | ✅ Implemented | `ImportWizard<Row>` — upload → map columns → validate → import |
 | [Concurrent edit conflicts](./optimistic-locking) | ✅ Implemented | `@Version` — conflict dialog: reload / overwrite |
 | [Notification inbox](./notification-inbox) | ✅ Implemented | `NotificationsSupplier` — header bell, unread count, mark-as-read |
 | [Undo](./undo) | ✅ Implemented | `Message.undoable(...)` — toast with an Undo button |

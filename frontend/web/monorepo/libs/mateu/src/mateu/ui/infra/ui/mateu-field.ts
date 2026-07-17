@@ -2,6 +2,8 @@ import { customElement, property, state } from "lit/decorators.js";
 import './mateu-signature-pad.ts';
 import './mateu-tree-select.ts';
 import './mateu-camera-capture.ts';
+import './mateu-file-upload.ts';
+import { fieldAttribute } from './mateu-file-upload.ts';
 import './mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from './interpolation'
@@ -732,6 +734,16 @@ export class MateuField extends LitElement {
             if (valueToDisplay && (valueToDisplay as any).value) {
                 valueToDisplay = (valueToDisplay as any).value
             }
+            if ('fileUpload' == this.field.stereotype) {
+                // read-only file: the file name (a download link when it is a data URI)
+                return html`<vaadin-custom-field
+                        id="${this.field.fieldId}"
+                        label="${label}"
+                        .helperText="${this.helperText()}"
+                        data-colspan="${this.field.colspan}"
+                ><mateu-file-upload .fieldId="${this.field.fieldId}" .value="${valueToDisplay}" .editable="${false}"></mateu-file-upload>
+                </vaadin-custom-field>`
+            }
             if ('image' == this.field.stereotype || 'uploadableImage' == this.field.stereotype
                 || 'signature' == this.field.stereotype || 'camera' == this.field.stereotype) {
                 return html`<vaadin-custom-field
@@ -1428,6 +1440,21 @@ export class MateuField extends LitElement {
                             data-colspan="${this.field.colspan}"
                     >
                         <mateu-camera-capture .fieldId="${this.field.fieldId}" .value="${value}"></mateu-camera-capture>
+                    </vaadin-custom-field>
+                `
+            }
+            if (this.field?.stereotype == 'fileUpload') {
+                // generic file upload: pick-file + name + remove, value = data URI (no preview);
+                // the accept attribute travels in the field's generic attributes
+                const accept = fieldAttribute(this.field.attributes, 'accept')
+                return html`
+                    <vaadin-custom-field
+                            id="${this.field.fieldId}"
+                            label="${label}"
+                            .helperText="${this.helperText()}"
+                            data-colspan="${this.field.colspan}"
+                    >
+                        <mateu-file-upload .fieldId="${this.field.fieldId}" .value="${value}" .accept="${accept}"></mateu-file-upload>
                     </vaadin-custom-field>
                 `
             }

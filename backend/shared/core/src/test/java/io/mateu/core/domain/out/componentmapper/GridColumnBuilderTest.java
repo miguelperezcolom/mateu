@@ -55,7 +55,7 @@ class GridColumnBuilderTest {
 
   private static Map<String, GridColumn> columnsById(Object host) throws Exception {
     var field = host.getClass().getDeclaredField("lines");
-    var component = GridColumnBuilder.createCrudForField(field, "", false, httpRequest());
+    var component = GridColumnBuilder.createCrudForField(field, "", false, host, httpRequest());
     var formField = (FormField) component;
     Function<GridColumn, String> id = GridColumn::id;
     return formField.columns().stream()
@@ -102,7 +102,8 @@ class GridColumnBuilderTest {
   void inlineGridHasNoSelectEditColumnAndIsMarkedInline() throws Exception {
     var field = InlineHost.class.getDeclaredField("lines");
     var formField =
-        (FormField) GridColumnBuilder.createCrudForField(field, "", false, httpRequest());
+        (FormField)
+            GridColumnBuilder.createCrudForField(field, "", false, new InlineHost(), httpRequest());
 
     assertThat(formField.inlineEditing()).isTrue();
     assertThat(formField.columns()).noneMatch(c -> "_select".equals(((GridColumn) c).id()));
@@ -112,7 +113,8 @@ class GridColumnBuilderTest {
   void plainGridKeepsTheEditButtonAndNoInlineEditors() throws Exception {
     var field = PlainHost.class.getDeclaredField("lines");
     var formField =
-        (FormField) GridColumnBuilder.createCrudForField(field, "", false, httpRequest());
+        (FormField)
+            GridColumnBuilder.createCrudForField(field, "", false, new PlainHost(), httpRequest());
 
     assertThat(formField.inlineEditing()).isFalse();
     assertThat(formField.columns()).anyMatch(c -> "_select".equals(((GridColumn) c).id()));
