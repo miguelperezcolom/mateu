@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { MateuSession } from '../core/MateuSession';
+import { theme } from '../theme';
 
 interface Message {
   from: 'user' | 'agent';
@@ -68,7 +69,7 @@ export function ChatPanel({ session, sseUrl, onClose }: { session: MateuSession;
                 <Text style={m.from === 'user' ? styles.userText : styles.agentText}>{m.text}</Text>
               </View>
             ))}
-            {busy && <ActivityIndicator color="#0070f3" />}
+            {busy && <ActivityIndicator color={theme.primary} />}
           </ScrollView>
           <View style={styles.inputRow}>
             <TextInput
@@ -91,19 +92,19 @@ export function ChatPanel({ session, sseUrl, onClose }: { session: MateuSession;
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, height: '75%' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  title: { fontSize: 16, fontWeight: '600', color: '#1a1a1a' },
-  close: { fontSize: 18, color: '#666', paddingHorizontal: 8 },
+  sheet: { backgroundColor: theme.white, borderTopLeftRadius: 16, borderTopRightRadius: 16, height: '75%' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: theme.divider },
+  title: { fontSize: 16, fontWeight: '600', color: theme.ink },
+  close: { fontSize: 18, color: theme.muted, paddingHorizontal: 8 },
   messages: { flex: 1 },
-  hint: { color: '#999', fontStyle: 'italic', textAlign: 'center', marginTop: 24 },
+  hint: { color: theme.faint, fontStyle: 'italic', textAlign: 'center', marginTop: 24 },
   bubble: { maxWidth: '85%', borderRadius: 12, padding: 10 },
-  userBubble: { alignSelf: 'flex-end', backgroundColor: '#0070f3' },
-  agentBubble: { alignSelf: 'flex-start', backgroundColor: '#f1f3f4' },
-  userText: { color: '#fff', fontSize: 14 },
-  agentText: { color: '#1a1a1a', fontSize: 14 },
-  inputRow: { flexDirection: 'row', padding: 10, gap: 8, borderTopWidth: 1, borderTopColor: '#eee' },
-  input: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, fontSize: 14 },
-  send: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#0070f3', alignItems: 'center', justifyContent: 'center' },
-  sendText: { color: '#fff', fontSize: 16 },
+  userBubble: { alignSelf: 'flex-end', backgroundColor: theme.primary },
+  agentBubble: { alignSelf: 'flex-start', backgroundColor: theme.divider },
+  userText: { color: theme.white, fontSize: 14 },
+  agentText: { color: theme.ink, fontSize: 14 },
+  inputRow: { flexDirection: 'row', padding: 10, gap: 8, borderTopWidth: 1, borderTopColor: theme.divider },
+  input: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, fontSize: 14 },
+  send: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
+  sendText: { color: theme.white, fontSize: 16 },
 });

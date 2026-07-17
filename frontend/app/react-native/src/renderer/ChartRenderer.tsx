@@ -1,11 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Polyline, Rect } from 'react-native-svg';
+import { theme } from '../theme';
 
 /** ChartDto renderer (bar/line/pie families) on react-native-svg — same palette-by-index
  *  approach as the other native renderers; unknown chart types fall back to bars. */
 
-const PALETTE = ['#0070f3', '#34a853', '#fbbc04', '#ea4335', '#9334e6', '#12b5cb', '#f26191', '#80868b'];
+// categorical series colors drawn from the RIU design-system palette (brand red first)
+const PALETTE = [theme.primary, theme.info, theme.success, theme.warning, '#937100', theme.muted, '#CFC3A3', theme.ink];
 
 interface Dataset {
   label?: string;
@@ -61,7 +63,7 @@ function BarChart({ labels, datasets }: { labels: string[]; datasets: Dataset[] 
   const barWidth = Math.max(4, (groupWidth - 8) / datasets.length);
   return (
     <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-      <Path d={`M${PAD} 0 V${H - PAD} H${W}`} stroke="#ddd" strokeWidth={1} fill="none" />
+      <Path d={`M${PAD} 0 V${H - PAD} H${W}`} stroke={theme.border} strokeWidth={1} fill="none" />
       {datasets.map((ds, di) =>
         (ds.data ?? []).map((v, i) => {
           const h = ((H - PAD - 4) * v) / max;
@@ -88,7 +90,7 @@ function LineChart({ labels, datasets }: { labels: string[]; datasets: Dataset[]
   const stepX = (W - PAD - 8) / (n - 1);
   return (
     <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-      <Path d={`M${PAD} 0 V${H - PAD} H${W}`} stroke="#ddd" strokeWidth={1} fill="none" />
+      <Path d={`M${PAD} 0 V${H - PAD} H${W}`} stroke={theme.border} strokeWidth={1} fill="none" />
       {datasets.map((ds, di) => {
         const points = (ds.data ?? [])
           .map((v, i) => `${PAD + i * stepX},${H - PAD - ((H - PAD - 4) * v) / max}`)
@@ -118,7 +120,7 @@ function PieChart({ values, doughnut }: { values: number[]; doughnut: boolean })
   return (
     <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
       {slices}
-      {doughnut && <Circle cx={cx} cy={cy} r={r * 0.55} fill="#fff" />}
+      {doughnut && <Circle cx={cx} cy={cy} r={r * 0.55} fill={theme.white} />}
     </Svg>
   );
 }
@@ -128,7 +130,7 @@ const styles = StyleSheet.create({
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2 },
-  legendText: { fontSize: 11, color: '#555' },
+  legendText: { fontSize: 11, color: theme.muted },
   xLabels: { flexDirection: 'row', width: W, paddingLeft: PAD, marginTop: 2 },
-  xLabel: { flex: 1, fontSize: 10, color: '#888', textAlign: 'center' },
+  xLabel: { flex: 1, fontSize: 10, color: theme.faint, textAlign: 'center' },
 });

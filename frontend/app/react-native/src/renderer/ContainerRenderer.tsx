@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native'
 import { ComponentRenderer } from './ComponentRenderer';
 import { interpolate } from '../core/expressions';
 import { useViewController } from './MateuViewHost';
+import { theme } from '../theme';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -113,8 +114,8 @@ export function SplitRenderer({ component, state }: { component: unknown; state:
 // ── Badge / Anchor / ProgressBar ────────────────────────────────────────────────
 export function BadgeRenderer({ metadata }: { metadata: Dict }) {
   const color = (metadata['color'] as string) ?? '';
-  const bg = color === 'success' ? '#3e8635' : color === 'error' || color === 'danger' ? '#c9190b'
-    : color === 'warning' ? '#f0ab00' : color === 'info' ? '#2b9af3' : '#6a6e73';
+  const bg = color === 'success' ? theme.success : color === 'error' || color === 'danger' ? theme.danger
+    : color === 'warning' ? theme.warning : color === 'info' ? theme.info : theme.muted;
   return <Text style={[styles.badge, { backgroundColor: bg }]}>{(metadata['text'] as string) ?? ''}</Text>;
 }
 
@@ -186,29 +187,29 @@ export function ConfirmDialogRenderer({ metadata, state }: { metadata: Dict; sta
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#fff', borderColor: '#d2d2d2', borderWidth: 1, borderRadius: 6, padding: 16, marginBottom: 12, gap: 8 },
+  card: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: theme.radiusSm, padding: 16, marginBottom: 12, gap: 8 },
   cardTitle: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
   subsection: { gap: 6, marginVertical: 8 },
   subTitle: { fontWeight: '700' },
-  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#d2d2d2', gap: 4 },
+  tabBar: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.border, gap: 4 },
   tab: { paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 2, borderBottomColor: 'transparent' },
-  tabActive: { borderBottomColor: '#0066cc' },
-  tabText: { color: '#333' },
-  tabTextActive: { color: '#0066cc', fontWeight: '700' },
+  tabActive: { borderBottomColor: theme.primary },
+  tabText: { color: theme.ink },
+  tabTextActive: { color: theme.primary, fontWeight: '700' },
   tabContent: { paddingVertical: 12 },
-  panel: { borderWidth: 1, borderColor: '#d2d2d2', borderRadius: 6, marginBottom: 8, overflow: 'hidden' },
-  panelHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 12, backgroundColor: '#fafafa' },
+  panel: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, marginBottom: 8, overflow: 'hidden' },
+  panelHeader: { flexDirection: 'row', justifyContent: 'space-between', padding: 12, backgroundColor: theme.background },
   panelTitle: { fontWeight: '700' },
-  panelChevron: { color: '#666' },
+  panelChevron: { color: theme.muted },
   panelBody: { padding: 12 },
-  badge: { color: '#fff', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden', alignSelf: 'flex-start', fontSize: 12 },
-  link: { color: '#0066cc', textDecorationLine: 'underline' },
-  progressTrack: { height: 8, backgroundColor: '#e0e0e0', borderRadius: 4, overflow: 'hidden' },
-  progressFill: { height: 8, backgroundColor: '#0066cc' },
-  dialog: { backgroundColor: '#fff', borderColor: '#8a8d90', borderWidth: 1, borderRadius: 8, padding: 20, gap: 12, marginVertical: 12 },
+  badge: { color: theme.white, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden', alignSelf: 'flex-start', fontSize: 12 },
+  link: { color: theme.primary, textDecorationLine: 'underline' },
+  progressTrack: { height: 8, backgroundColor: theme.border, borderRadius: 4, overflow: 'hidden' },
+  progressFill: { height: 8, backgroundColor: theme.primary },
+  dialog: { backgroundColor: theme.white, borderColor: theme.faint, borderWidth: 1, borderRadius: 8, padding: 20, gap: 12, marginVertical: 12 },
   dialogTitle: { fontSize: 18, fontWeight: '700' },
   dialogFooter: { flexDirection: 'row', gap: 8 },
-  btnPrimary: { backgroundColor: '#0066cc', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6 },
-  btnPrimaryText: { color: '#fff' },
-  btnDefault: { backgroundColor: '#f5f5f5', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: '#ccc' },
+  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm },
+  btnPrimaryText: { color: theme.white },
+  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
 });

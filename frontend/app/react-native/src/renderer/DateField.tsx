@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { theme } from '../theme';
 
 /**
  * Dependency-free date / datetime picker (like the IntelliJ and Compose renderers' own
@@ -171,33 +172,33 @@ export function DateField({ value, editable, withTime = false, placeholder, onCh
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
+    borderColor: theme.border,
+    borderRadius: theme.radiusSm,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: theme.white,
     minHeight: 42,
     justifyContent: 'center',
   },
-  placeholder: { color: '#aaa' },
+  placeholder: { color: theme.faint },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 32 },
-  calendar: { backgroundColor: '#fff', borderRadius: 12, padding: 16, maxWidth: 360, alignSelf: 'center', width: '100%' },
+  calendar: { backgroundColor: theme.white, borderRadius: 12, padding: 16, maxWidth: 360, alignSelf: 'center', width: '100%' },
   monthBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   monthNav: { paddingHorizontal: 14, paddingVertical: 4 },
-  monthNavText: { fontSize: 20, color: '#0070f3' },
-  monthTitle: { fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
+  monthNavText: { fontSize: 20, color: theme.primary },
+  monthTitle: { fontSize: 15, fontWeight: '600', color: theme.ink },
   weekRow: { flexDirection: 'row' },
-  weekdayText: { fontWeight: '600', color: '#888', fontSize: 11, textAlign: 'center' },
+  weekdayText: { fontWeight: '600', color: theme.faint, fontSize: 11, textAlign: 'center' },
   dayCell: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 6 },
   dayTouch: { borderRadius: 16 },
-  dayText: { fontSize: 13, color: '#1a1a1a' },
-  todayCell: { borderWidth: 1, borderColor: '#0070f3', borderRadius: 16 },
-  selectedCell: { backgroundColor: '#0070f3', borderRadius: 16 },
-  selectedText: { color: '#fff', fontWeight: '600' },
+  dayText: { fontSize: 13, color: theme.ink },
+  todayCell: { borderWidth: 1, borderColor: theme.primary, borderRadius: 16 },
+  selectedCell: { backgroundColor: theme.primary, borderRadius: 16 },
+  selectedText: { color: theme.white, fontWeight: '600' },
   timeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 },
-  timeLabel: { fontSize: 12, color: '#555', fontWeight: '500' },
-  timeInput: { flex: 1, borderWidth: 1, borderColor: '#ccc', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 6, fontSize: 14 },
+  timeLabel: { fontSize: 12, color: theme.muted, fontWeight: '500' },
+  timeInput: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 6, fontSize: 14 },
   footer: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   footerButton: { paddingHorizontal: 12, paddingVertical: 8 },
-  footerText: { color: '#0070f3', fontWeight: '600', fontSize: 13 },
+  footerText: { color: theme.primary, fontWeight: '600', fontSize: 13 },
 });

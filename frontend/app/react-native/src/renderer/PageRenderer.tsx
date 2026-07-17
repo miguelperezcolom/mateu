@@ -4,6 +4,7 @@ import { interpolate } from '../core/expressions';
 import { PageBanner } from '../core/MateuViewController';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
+import { theme } from '../theme';
 
 interface ButtonDto {
   actionId?: string;
@@ -20,19 +21,19 @@ interface Props {
 }
 
 const BADGE_COLORS: Record<string, string> = {
-  normal: '#e8eaed',
-  success: '#e6f4ea',
-  error: '#fce8e6',
-  warning: '#fef7e0',
-  contrast: '#dadce0',
+  normal: theme.divider,
+  success: theme.successBg,
+  error: theme.dangerBg,
+  warning: theme.warningBg,
+  contrast: theme.border,
 };
 
 const BANNER_COLORS: Record<string, { bg: string; border: string }> = {
-  info: { bg: '#e8f0fe', border: '#1a73e8' },
-  success: { bg: '#e6f4ea', border: '#1e8e3e' },
-  warning: { bg: '#fef7e0', border: '#f9ab00' },
-  danger: { bg: '#fce8e6', border: '#d93025' },
-  error: { bg: '#fce8e6', border: '#d93025' },
+  info: { bg: theme.infoBg, border: theme.primary },
+  success: { bg: theme.successBg, border: theme.success },
+  warning: { bg: theme.warningBg, border: theme.warning },
+  danger: { bg: theme.dangerBg, border: theme.danger },
+  error: { bg: theme.dangerBg, border: theme.danger },
 };
 
 /** Page banners: the static @Banner list (metadata) + action-returned banners (controller),
@@ -173,37 +174,37 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
-  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  title: { fontSize: 22, fontWeight: '700', color: '#1a1a1a' },
-  subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
+  root: { flex: 1, backgroundColor: theme.white },
+  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.divider },
+  title: { fontSize: 22, fontWeight: '700', color: theme.ink },
+  subtitle: { fontSize: 14, color: theme.muted, marginTop: 4 },
   toolbar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, gap: 8 },
   body: { padding: 16, paddingBottom: 24 },
   banners: { paddingHorizontal: 16, paddingTop: 12, gap: 8 },
   banner: { flexDirection: 'row', alignItems: 'flex-start', borderRadius: 8, borderLeftWidth: 4, padding: 12, gap: 8 },
-  bannerTitle: { fontWeight: '700', fontSize: 13, color: '#1a1a1a', marginBottom: 2 },
-  bannerText: { fontSize: 13, color: '#1a1a1a' },
-  bannerClose: { fontSize: 14, color: '#666', paddingHorizontal: 4 },
+  bannerTitle: { fontWeight: '700', fontSize: 13, color: theme.ink, marginBottom: 2 },
+  bannerText: { fontSize: 13, color: theme.ink },
+  bannerClose: { fontSize: 14, color: theme.muted, paddingHorizontal: 4 },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   badge: { paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12 },
-  badgeText: { fontSize: 11, fontWeight: '600', color: '#1a1a1a' },
+  badgeText: { fontSize: 11, fontWeight: '600', color: theme.ink },
   kpis: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 10 },
   kpi: { alignItems: 'flex-start' },
-  kpiText: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
-  kpiTitle: { fontSize: 11, color: '#888' },
+  kpiText: { fontSize: 20, fontWeight: '700', color: theme.ink },
+  kpiTitle: { fontSize: 11, color: theme.faint },
   fabStack: { position: 'absolute', right: 16, bottom: 24, gap: 10, alignItems: 'flex-end' },
-  fab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: '#0070f3', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 5, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
-  fabText: { color: '#fff', fontWeight: '600', fontSize: 15 },
+  fab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 5, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
+  fabText: { color: theme.white, fontWeight: '600', fontSize: 15 },
   bottomBar: {
     flexDirection: 'row',
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: theme.divider,
     gap: 8,
     justifyContent: 'flex-end',
   },
-  btnPrimary: { backgroundColor: '#0070f3', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 6 },
-  btnPrimaryText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  btnDefault: { backgroundColor: '#f5f5f5', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 6, borderWidth: 1, borderColor: '#ccc' },
-  btnDefaultText: { color: '#333', fontSize: 14 },
+  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm },
+  btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 14 },
+  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
+  btnDefaultText: { color: theme.ink, fontSize: 14 },
 });

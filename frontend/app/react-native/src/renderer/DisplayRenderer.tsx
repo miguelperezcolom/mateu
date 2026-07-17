@@ -3,6 +3,7 @@ import { Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity,
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { AddOn, CalendarEvent, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
+import { theme } from '../theme';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -229,7 +230,7 @@ export function KanbanRenderer({ component }: { component: unknown }) {
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.kanbanBoard}>
       {columns.map((col, i) => (
         <View key={col.id ?? i} style={styles.kanbanColumn}>
-          <View style={[styles.kanbanHead, { borderBottomColor: col.color ?? '#cbd5e1' }]}>
+          <View style={[styles.kanbanHead, { borderBottomColor: col.color ?? theme.border }]}>
             <Text style={styles.kanbanTitle} numberOfLines={1}>{col.title ?? ''}</Text>
             <Text style={styles.kanbanCount}>{col.cards?.length ?? 0}</Text>
           </View>
@@ -263,7 +264,7 @@ export function TimelineRenderer({ component }: { component: unknown }) {
         const body = (
           <View style={styles.timelineRow}>
             <View style={styles.timelineRail}>
-              <View style={[styles.timelineDot, { backgroundColor: it.color ?? '#1a73e8' }]}>
+              <View style={[styles.timelineDot, { backgroundColor: it.color ?? theme.primary }]}>
                 <Text style={styles.timelineDotIcon}>{displayIcon(it.icon)}</Text>
               </View>
               {i < items.length - 1 && <View style={styles.timelineLine} />}
@@ -298,14 +299,14 @@ export function ProgressStepsRenderer({ component }: { component: unknown }) {
         const status = s.status ?? 'upcoming';
         const done = status === 'done';
         const current = status === 'current';
-        const dotColor = done ? '#1a73e8' : current ? '#fff' : '#e5e7eb';
+        const dotColor = done ? theme.primary : current ? theme.white : theme.border;
         return (
           <View key={s.id ?? i} style={styles.stepRow}>
             <View style={styles.stepRail}>
-              <View style={[styles.stepDot, { backgroundColor: dotColor, borderColor: current ? '#1a73e8' : 'transparent' }]}>
-                <Text style={[styles.stepDotText, { color: done ? '#fff' : current ? '#1a73e8' : '#666' }]}>{done ? '✓' : String(i + 1)}</Text>
+              <View style={[styles.stepDot, { backgroundColor: dotColor, borderColor: current ? theme.primary : 'transparent' }]}>
+                <Text style={[styles.stepDotText, { color: done ? theme.white : current ? theme.primary : theme.muted }]}>{done ? '✓' : String(i + 1)}</Text>
               </View>
-              {i < steps.length - 1 && <View style={[styles.stepLine, { backgroundColor: done ? '#1a73e8' : '#cbd5e1' }]} />}
+              {i < steps.length - 1 && <View style={[styles.stepLine, { backgroundColor: done ? theme.primary : theme.border }]} />}
             </View>
             <View style={styles.stepBody}>
               <Text style={[styles.stepTitle, status === 'upcoming' && styles.stepTitleMuted]}>{s.title ?? ''}</Text>
@@ -323,7 +324,7 @@ export function StatRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const m = meta(component) as unknown as Stat;
   const trend = m.trend ?? 'up';
-  const trendColor = trend === 'down' ? '#e11d48' : trend === 'flat' ? '#888' : '#12b76a';
+  const trendColor = trend === 'down' ? theme.danger : trend === 'flat' ? theme.faint : theme.success;
   const spark = m.spark ?? [];
   const min = spark.length ? Math.min(...spark) : 0;
   const max = spark.length ? Math.max(...spark) : 1;
@@ -377,7 +378,7 @@ export function CalendarRenderer({ component }: { component: unknown }) {
               <Text style={styles.agendaDay}>{day ? day.getDate() : ''}</Text>
               <Text style={styles.agendaDow}>{day ? day.toLocaleDateString(undefined, { weekday: 'short' }) : ''}</Text>
             </View>
-            <View style={[styles.agendaChip, { borderLeftColor: e.color ?? '#1a73e8' }]}>
+            <View style={[styles.agendaChip, { borderLeftColor: e.color ?? theme.primary }]}>
               <Text style={styles.agendaTitle}>{e.title ?? ''}</Text>
             </View>
           </View>
@@ -428,7 +429,7 @@ function OrgNodeRow({ node, depth }: { node: OrgNode; depth: number }) {
   const controller = useViewController();
   const isImg = node.avatar && (node.avatar.startsWith('http') || node.avatar.startsWith('data:'));
   const row = (
-    <View style={[styles.orgRow, { marginLeft: depth * 18, borderLeftColor: node.color ?? '#1a73e8' }]}>
+    <View style={[styles.orgRow, { marginLeft: depth * 18, borderLeftColor: node.color ?? theme.primary }]}>
       {!!node.avatar && !isImg && <Text style={styles.orgAvatar}>{node.avatar}</Text>}
       <View>
         <Text style={styles.orgTitle}>{node.title ?? ''}</Text>
@@ -493,7 +494,7 @@ export function FunnelRenderer({ component }: { component: unknown }) {
               <Text style={styles.funnelLabel}>{s.label ?? ''}</Text>
               {!!conv && <Text style={styles.funnelConv}>{conv}</Text>}
             </View>
-            <View style={[styles.funnelBar, { width: `${Math.max(8, (value / maxVal) * 100)}%`, backgroundColor: s.color ?? '#1a73e8' }]}>
+            <View style={[styles.funnelBar, { width: `${Math.max(8, (value / maxVal) * 100)}%`, backgroundColor: s.color ?? theme.primary }]}>
               <Text style={styles.funnelValue}>{value.toLocaleString()}</Text>
             </View>
           </View>
@@ -508,7 +509,7 @@ export function TrendChartRenderer({ component }: { component: unknown }) {
   const m = meta(component);
   const values = (m['values'] as number[]) ?? [];
   const labels = (m['labels'] as string[]) ?? [];
-  const color = (m['color'] as string) ?? '#1a73e8';
+  const color = (m['color'] as string) ?? theme.primary;
   const title = m['title'] as string | undefined;
   const max = Math.max(1, ...values);
   const min = Math.min(0, ...values);
@@ -601,9 +602,9 @@ export function FaqRenderer({ component }: { component: unknown }) {
 export function CalloutCardRenderer({ component }: { component: unknown }) {
   const controller = useViewController();
   const m = meta(component);
-  const theme = (m['theme'] as string) ?? 'info';
-  const accent = theme === 'success' ? '#12b76a' : theme === 'warning' ? '#f59e0b' : theme === 'danger' ? '#e11d48' : '#1a73e8';
-  const bg = theme === 'success' ? 'rgba(18,183,106,0.1)' : theme === 'warning' ? 'rgba(245,158,11,0.12)' : theme === 'danger' ? 'rgba(225,29,72,0.1)' : 'rgba(26,115,232,0.1)';
+  const themeName = (m['theme'] as string) ?? 'info';
+  const accent = themeName === 'success' ? theme.success : themeName === 'warning' ? theme.warning : themeName === 'danger' ? theme.danger : theme.primary;
+  const bg = themeName === 'success' ? theme.successBg : themeName === 'warning' ? theme.warningBg : themeName === 'danger' ? theme.dangerBg : theme.infoBg;
   const icon = m['icon'] as string | undefined;
   const actionId = m['actionId'] as string | undefined;
   return (
@@ -625,12 +626,12 @@ export function CalloutCardRenderer({ component }: { component: unknown }) {
 // ── CommentThread (nested indented comments) ──────────────────────────────────
 function CommentNode({ comment, depth }: { comment: Comment; depth: number }) {
   return (
-    <View style={[styles.commentNode, depth > 0 && { marginLeft: 14, borderLeftWidth: 2, borderLeftColor: '#e4e4e7', paddingLeft: 10 }]}>
+    <View style={[styles.commentNode, depth > 0 && { marginLeft: 14, borderLeftWidth: 2, borderLeftColor: theme.border, paddingLeft: 10 }]}>
       <View style={styles.commentRow}>
         <Text style={styles.commentAvatar}>{comment.avatar && !comment.avatar.includes(':') ? comment.avatar : (comment.author?.[0] ?? '?')}</Text>
         <View style={{ flex: 1 }}>
           <Text style={styles.commentHead}>
-            <Text style={{ fontWeight: '600', color: '#222' }}>{comment.author}</Text>
+            <Text style={{ fontWeight: '600', color: theme.ink }}>{comment.author}</Text>
             {comment.timestamp ? `  ${comment.timestamp}` : ''}
           </Text>
           <Text style={styles.commentText}>{comment.text}</Text>
@@ -728,9 +729,9 @@ const fmtAmount = (n: number): string => {
 
 // Badge palette (normal | success | warning | error | contrast), mirroring BadgeRenderer.
 const PALETTE: Record<string, string> = {
-  success: '#3e8635', warning: '#f0ab00', error: '#c9190b', danger: '#c9190b', contrast: '#1f2937', normal: '#6a6e73',
+  success: theme.success, warning: theme.warning, error: theme.danger, danger: theme.danger, contrast: theme.ink, normal: theme.muted,
 };
-const paletteColor = (c?: string): string => PALETTE[c ?? 'normal'] ?? '#6a6e73';
+const paletteColor = (c?: string): string => PALETTE[c ?? 'normal'] ?? theme.muted;
 
 function ChipView({ chip }: { chip: Chip }) {
   return <Text style={[styles.uxChip, { backgroundColor: paletteColor(chip.color) }]}>{chip.label ?? ''}</Text>;
@@ -778,7 +779,7 @@ export function MeterRenderer({ component }: { component: unknown }) {
   const ratio = max > 0 ? Math.max(0, Math.min(1, value / max)) : 0;
   const fill = m.dangerAt != null && value >= m.dangerAt ? PALETTE.error
     : m.warnAt != null && value >= m.warnAt ? PALETTE.warning
-    : m.warnAt != null || m.dangerAt != null ? PALETTE.success : '#1a73e8';
+    : m.warnAt != null || m.dangerAt != null ? PALETTE.success : theme.primary;
   const caption = m.caption || `${Math.round(ratio * 100)}%`;
   return (
     <View style={styles.meter}>
@@ -827,10 +828,15 @@ export function StatusListRenderer({ component }: { component: unknown }) {
   const items = (meta(component)['items'] as StatusItem[]) ?? [];
   const compact = !!meta(component)['compact'];
   const frameless = !!meta(component)['frameless'];
+  const rowActionId = meta(component)['rowActionId'] as string | undefined;
+  const Row = rowActionId ? TouchableOpacity : View;
   return (
     <View style={[styles.statusList, frameless && styles.statusListFrameless]}>
       {items.map((it, i) => (
-        <View key={it.id ?? i} style={[styles.statusRow, compact && styles.statusRowCompact]}>
+        <Row
+          key={it.id ?? i}
+          style={[styles.statusRow, compact && styles.statusRowCompact]}
+          {...(rowActionId ? { onPress: () => void controller.runAction(rowActionId, { _item: it.id }) } : {})}>
           {it.avatar
             ? <View style={[styles.statusAvatar, compact && styles.statusAvatarCompact]}><Text style={styles.statusAvatarText}>{it.avatar}</Text></View>
             : !!it.icon && <Text style={styles.statusIcon}>{displayIcon(it.icon)}</Text>}
@@ -844,7 +850,7 @@ export function StatusListRenderer({ component }: { component: unknown }) {
               <Text style={styles.statusBtnText}>{it.actionLabel}</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </Row>
       ))}
     </View>
   );
@@ -852,10 +858,10 @@ export function StatusListRenderer({ component }: { component: unknown }) {
 
 // ── Notice (compact inline banner: tinted strip + severity icon + one line) ───
 const NOTICE_COLORS: Record<string, { bg: string; ink: string; badge: string }> = {
-  info: { bg: '#e3f0fb', ink: '#1a5dad', badge: '#4285d3' },
-  success: { bg: '#e2f3e6', ink: '#22703a', badge: '#3e8635' },
-  warning: { bg: '#fdf0dc', ink: '#925a13', badge: '#c98a1e' },
-  danger: { bg: '#f6e0da', ink: '#a5502e', badge: '#b25b3d' },
+  info: { bg: theme.infoBg, ink: theme.info, badge: theme.info },
+  success: { bg: theme.successBg, ink: theme.success, badge: theme.success },
+  warning: { bg: theme.warningBg, ink: theme.warning, badge: theme.warning },
+  danger: { bg: theme.dangerBg, ink: theme.danger, badge: theme.danger },
 };
 const NOTICE_ICONS: Record<string, string> = { info: 'ℹ', success: '✓', warning: '!', danger: '!' };
 
@@ -866,9 +872,9 @@ export function NoticeRenderer({ component, state, renderComponent }: {
 }) {
   const controller = useViewController();
   const m = meta(component);
-  const theme = (['info', 'success', 'warning', 'danger'].includes(m['theme'] as string)
+  const themeName = (['info', 'success', 'warning', 'danger'].includes(m['theme'] as string)
     ? m['theme'] : 'info') as string;
-  const colors = NOTICE_COLORS[theme];
+  const colors = NOTICE_COLORS[themeName];
   const actionLabel = m['actionLabel'] as string | undefined;
   const actionId = m['actionId'] as string | undefined;
   const status = m['status'] as string | undefined;
@@ -881,10 +887,10 @@ export function NoticeRenderer({ component, state, renderComponent }: {
     <View style={[styles.notice, slim && styles.noticeSlim, { backgroundColor: colors.bg }]}>
       {!noIcon && (
         <View style={[styles.noticeIcon, { backgroundColor: colors.badge }]}>
-          <Text style={styles.noticeIconText}>{(m['icon'] as string) || NOTICE_ICONS[theme]}</Text>
+          <Text style={styles.noticeIconText}>{(m['icon'] as string) || NOTICE_ICONS[themeName]}</Text>
         </View>
       )}
-      <View style={styles.noticeBody}>
+      <View style={[styles.noticeBody, m['inlineContent'] === true && styles.noticeBodyInline]}>
         {hasText && <Text style={[styles.noticeText, { color: colors.ink }]}>{(m['text'] as string) ?? ''}</Text>}
         {children.map((child, i) => (
           <View key={i}>{renderComponent?.(child, state ?? {}, () => {}) as React.ReactNode}</View>
@@ -924,7 +930,7 @@ export function ComparisonCardRenderer({ component }: { component: unknown }) {
   const title = m['title'] as string | undefined;
   const trend = (m['trend'] as string | undefined) ?? 'flat';
   const delta = m['delta'] as string | undefined;
-  const deltaColor = trend === 'up' ? '#12b76a' : trend === 'down' ? '#e11d48' : '#888';
+  const deltaColor = trend === 'up' ? theme.success : trend === 'down' ? theme.danger : theme.faint;
   const deltaBg = trend === 'up' ? 'rgba(18,183,106,.12)' : trend === 'down' ? 'rgba(225,29,72,.12)' : 'rgba(0,0,0,.06)';
   const mark = trend === 'up' ? '▲' : trend === 'down' ? '▼' : '';
   return (
@@ -1176,6 +1182,7 @@ export function PaymentPickerRenderer({ component }: { component: unknown }) {
   const m = meta(component);
   const methods = (m['methods'] as PaymentMethod[]) ?? [];
   const actionId = m['actionId'] as string | undefined;
+  const methodActionId = m['methodActionId'] as string | undefined;
   const [selected, setSelected] = useState<string | undefined>(() => (m['selected'] as string) || methods[0]?.id);
   return (
     <View style={styles.paymentPicker}>
@@ -1186,7 +1193,10 @@ export function PaymentPickerRenderer({ component }: { component: unknown }) {
             <TouchableOpacity
               key={pm.id ?? i}
               style={[styles.paymentMethod, sel && styles.paymentMethodSelected]}
-              onPress={() => setSelected(pm.id)}
+              onPress={() => {
+                setSelected(pm.id);
+                if (methodActionId) void controller.runAction(methodActionId, { _method: pm.id });
+              }}
             >
               <Text style={[styles.paymentMethodText, sel && styles.paymentMethodTextSelected]}>{pm.label ?? ''}</Text>
             </TouchableOpacity>
@@ -1251,34 +1261,34 @@ export function ProcessMonitorRenderer({ component }: { component: unknown }) {
 const styles = StyleSheet.create({
   // Foldout
   foldout: { gap: 12 },
-  foldoutOverview: { backgroundColor: '#fff', borderColor: '#d2d2d2', borderWidth: 1, borderRadius: 8, padding: 16 },
-  foldoutPanel: { borderWidth: 1, borderColor: '#d2d2d2', borderRadius: 8, overflow: 'hidden' },
-  foldoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, backgroundColor: '#fafafa' },
+  foldoutOverview: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 16 },
+  foldoutPanel: { borderWidth: 1, borderColor: theme.border, borderRadius: 8, overflow: 'hidden' },
+  foldoutHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 12, backgroundColor: theme.background },
   foldoutHeaderText: { flex: 1, gap: 2 },
   foldoutTitle: { fontWeight: '700' },
-  foldoutSubtitle: { fontSize: 12, color: '#666' },
-  foldoutChevron: { color: '#666', marginLeft: 8 },
-  foldoutBody: { padding: 12, backgroundColor: '#fff' },
+  foldoutSubtitle: { fontSize: 12, color: theme.muted },
+  foldoutChevron: { color: theme.muted, marginLeft: 8 },
+  foldoutBody: { padding: 12, backgroundColor: theme.white },
   // Hero
   hero: { borderRadius: 12, overflow: 'hidden', justifyContent: 'center' },
-  heroPlain: { backgroundColor: '#f5f5f5' },
+  heroPlain: { backgroundColor: theme.background },
   heroImage: { borderRadius: 12 },
   heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.35)' },
   heroContent: { padding: 24, gap: 8 },
-  heroTitle: { fontSize: 28, fontWeight: '700', lineHeight: 34, color: '#1a1a1a' },
-  heroSubtitle: { fontSize: 16, color: '#666' },
-  heroTextOnImage: { color: '#fff' },
+  heroTitle: { fontSize: 28, fontWeight: '700', lineHeight: 34, color: theme.ink },
+  heroSubtitle: { fontSize: 16, color: theme.muted },
+  heroTextOnImage: { color: theme.white },
   heroCtas: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   // EmptyState
   emptyState: { alignItems: 'center', justifyContent: 'center', gap: 6, padding: 24 },
   emptyIcon: { fontSize: 30, opacity: 0.6 },
-  emptyTitle: { fontWeight: '600', color: '#333' },
-  emptyDescription: { fontSize: 13, color: '#666', textAlign: 'center' },
-  emptyBtn: { marginTop: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, backgroundColor: '#f5f5f5', borderWidth: 1, borderColor: '#ccc' },
-  emptyBtnText: { color: '#0066cc', fontSize: 14 },
+  emptyTitle: { fontWeight: '600', color: theme.ink },
+  emptyDescription: { fontSize: 13, color: theme.muted, textAlign: 'center' },
+  emptyBtn: { marginTop: 6, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, backgroundColor: theme.background, borderWidth: 1, borderColor: theme.border },
+  emptyBtnText: { color: theme.primary, fontSize: 14 },
   // Skeleton
   skeleton: { gap: 8, flex: 1 },
-  bone: { backgroundColor: '#e5e5e5', borderRadius: 6 },
+  bone: { backgroundColor: theme.divider, borderRadius: theme.radiusSm },
   boneText: { height: 12, alignSelf: 'stretch' },
   boneTextLast: { width: '60%', alignSelf: 'flex-start' },
   boneCard: { height: 90, alignSelf: 'stretch' },
@@ -1287,39 +1297,39 @@ const styles = StyleSheet.create({
   boneLabel: { height: 10, width: '35%' },
   boneField: { height: 32, alignSelf: 'stretch' },
   // Gantt
-  gantt: { flexDirection: 'row', borderWidth: 1, borderColor: '#d2d2d2', borderRadius: 8, padding: 8, backgroundColor: '#fff' },
+  gantt: { flexDirection: 'row', borderWidth: 1, borderColor: theme.border, borderRadius: 8, padding: 8, backgroundColor: theme.white },
   ganttLabels: { width: 110, marginRight: 8 },
   ganttLabelRow: { height: GANTT_ROW_H, justifyContent: 'center' },
-  ganttLabel: { fontSize: 12, color: '#333' },
+  ganttLabel: { fontSize: 12, color: theme.ink },
   ganttHeader: { height: GANTT_HEADER_H },
-  ganttMonth: { position: 'absolute', top: 2, fontSize: 10, color: '#999' },
+  ganttMonth: { position: 'absolute', top: 2, fontSize: 10, color: theme.faint },
   ganttRow: { height: GANTT_ROW_H, justifyContent: 'center' },
   ganttBar: { position: 'absolute', height: 18, borderRadius: 4, overflow: 'hidden', justifyContent: 'center' },
   ganttProgress: { height: '100%', backgroundColor: 'rgba(0,0,0,0.25)' },
-  ganttToday: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: '#c5221f' },
-  ganttEmpty: { fontSize: 12, color: '#999', fontStyle: 'italic' },
+  ganttToday: { position: 'absolute', top: 0, bottom: 0, width: 2, backgroundColor: theme.danger },
+  ganttEmpty: { fontSize: 12, color: theme.faint, fontStyle: 'italic' },
   // Kanban
   kanbanBoard: { gap: 12, paddingBottom: 4 },
-  kanbanColumn: { width: 220, gap: 8, backgroundColor: '#f4f4f5', borderRadius: 12, padding: 10 },
+  kanbanColumn: { width: 220, gap: 8, backgroundColor: theme.background, borderRadius: 12, padding: 10 },
   kanbanHead: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 6, borderBottomWidth: 2 },
-  kanbanTitle: { fontWeight: '600', flex: 1, color: '#222' },
-  kanbanCount: { fontSize: 12, color: '#666', backgroundColor: '#e4e4e7', borderRadius: 999, paddingHorizontal: 8, overflow: 'hidden' },
-  kanbanCard: { backgroundColor: '#fff', borderColor: '#e4e4e7', borderWidth: 1, borderLeftWidth: 3, borderRadius: 8, padding: 10, gap: 4 },
-  kanbanCardTitle: { fontWeight: '600', color: '#222' },
-  kanbanCardDesc: { fontSize: 12, color: '#666' },
-  kanbanBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '600', color: '#1a73e8', backgroundColor: 'rgba(26,115,232,0.1)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 1, overflow: 'hidden' },
+  kanbanTitle: { fontWeight: '600', flex: 1, color: theme.ink },
+  kanbanCount: { fontSize: 12, color: theme.muted, backgroundColor: theme.border, borderRadius: 999, paddingHorizontal: 8, overflow: 'hidden' },
+  kanbanCard: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderLeftWidth: 3, borderRadius: 8, padding: 10, gap: 4 },
+  kanbanCardTitle: { fontWeight: '600', color: theme.ink },
+  kanbanCardDesc: { fontSize: 12, color: theme.muted },
+  kanbanBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '600', color: theme.primary, backgroundColor: 'rgba(26,115,232,0.1)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 1, overflow: 'hidden' },
   // Timeline
   timeline: {},
   timelineRow: { flexDirection: 'row', gap: 10 },
   timelineRail: { alignItems: 'center', width: 26 },
   timelineDot: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  timelineDotIcon: { fontSize: 12, color: '#fff' },
-  timelineLine: { flex: 1, width: 2, backgroundColor: '#e4e4e7', marginVertical: 2, minHeight: 8 },
+  timelineDotIcon: { fontSize: 12, color: theme.white },
+  timelineLine: { flex: 1, width: 2, backgroundColor: theme.border, marginVertical: 2, minHeight: 8 },
   timelineBody: { flex: 1, paddingBottom: 16 },
   timelineHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
-  timelineTitle: { fontWeight: '600', color: '#222' },
-  timelineTime: { fontSize: 11, color: '#888' },
-  timelineDesc: { color: '#666', marginTop: 2 },
+  timelineTitle: { fontWeight: '600', color: theme.ink },
+  timelineTime: { fontSize: 11, color: theme.faint },
+  timelineDesc: { color: theme.muted, marginTop: 2 },
   // ProgressSteps (vertical on mobile)
   steps: {},
   stepRow: { flexDirection: 'row', gap: 10 },
@@ -1328,46 +1338,46 @@ const styles = StyleSheet.create({
   stepDotText: { fontWeight: '700', fontSize: 13 },
   stepLine: { flex: 1, width: 2, marginVertical: 2, minHeight: 10 },
   stepBody: { flex: 1, paddingBottom: 18, paddingTop: 4 },
-  stepTitle: { fontWeight: '600', color: '#222' },
-  stepTitleMuted: { color: '#888', fontWeight: '500' },
-  stepDesc: { color: '#888', fontSize: 12, marginTop: 2 },
+  stepTitle: { fontWeight: '600', color: theme.ink },
+  stepTitleMuted: { color: theme.faint, fontWeight: '500' },
+  stepDesc: { color: theme.faint, fontSize: 12, marginTop: 2 },
   // Stat
-  statTile: { padding: 14, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, backgroundColor: '#fff', gap: 2, minWidth: 150 },
-  statLabel: { fontSize: 12, color: '#666' },
-  statValue: { fontSize: 28, fontWeight: '700', color: '#111' },
-  statUnit: { fontSize: 15, fontWeight: '500', color: '#888' },
+  statTile: { padding: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 12, backgroundColor: theme.white, gap: 2, minWidth: 150 },
+  statLabel: { fontSize: 12, color: theme.muted },
+  statValue: { fontSize: 28, fontWeight: '700', color: theme.ink },
+  statUnit: { fontSize: 15, fontWeight: '500', color: theme.faint },
   statFoot: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4, gap: 8 },
   statDelta: { fontSize: 12, fontWeight: '600' },
   statSpark: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, height: 26 },
   statBar: { width: 4, borderRadius: 1 },
   // Calendar (agenda)
   agenda: { gap: 8 },
-  agendaMonth: { fontWeight: '700', fontSize: 16, color: '#222', marginBottom: 4 },
+  agendaMonth: { fontWeight: '700', fontSize: 16, color: theme.ink, marginBottom: 4 },
   agendaRow: { flexDirection: 'row', gap: 10, alignItems: 'stretch' },
   agendaDate: { width: 44, alignItems: 'center' },
-  agendaDay: { fontWeight: '700', fontSize: 18, color: '#222' },
-  agendaDow: { fontSize: 11, color: '#888', textTransform: 'uppercase' },
-  agendaChip: { flex: 1, borderLeftWidth: 3, backgroundColor: '#f4f4f5', borderRadius: 6, paddingHorizontal: 10, paddingVertical: 8, justifyContent: 'center' },
-  agendaTitle: { fontWeight: '600', color: '#222' },
+  agendaDay: { fontWeight: '700', fontSize: 18, color: theme.ink },
+  agendaDow: { fontSize: 11, color: theme.faint, textTransform: 'uppercase' },
+  agendaChip: { flex: 1, borderLeftWidth: 3, backgroundColor: theme.background, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 8, justifyContent: 'center' },
+  agendaTitle: { fontWeight: '600', color: theme.ink },
   // PricingTable
   pricing: { gap: 12 },
-  planCard: { padding: 18, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 14, backgroundColor: '#fff', gap: 6 },
-  planCardFeatured: { borderColor: '#1a73e8', borderWidth: 2 },
-  planBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '700', color: '#fff', backgroundColor: '#1a73e8', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
-  planName: { fontWeight: '600', color: '#666' },
-  planPrice: { fontSize: 30, fontWeight: '800', color: '#111' },
-  planPeriod: { fontSize: 14, fontWeight: '500', color: '#888' },
-  planFeature: { color: '#333', fontSize: 14 },
-  planCta: { marginTop: 6, borderRadius: 8, paddingVertical: 12, alignItems: 'center', backgroundColor: '#eef0f2' },
-  planCtaFeatured: { backgroundColor: '#1a73e8' },
-  planCtaText: { fontWeight: '600', color: '#222' },
-  planCtaTextFeatured: { color: '#fff' },
+  planCard: { padding: 18, borderWidth: 1, borderColor: theme.border, borderRadius: 14, backgroundColor: theme.white, gap: 6 },
+  planCardFeatured: { borderColor: theme.primary, borderWidth: 2 },
+  planBadge: { alignSelf: 'flex-start', fontSize: 11, fontWeight: '700', color: theme.white, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  planName: { fontWeight: '600', color: theme.muted },
+  planPrice: { fontSize: 30, fontWeight: '800', color: theme.ink },
+  planPeriod: { fontSize: 14, fontWeight: '500', color: theme.faint },
+  planFeature: { color: theme.ink, fontSize: 14 },
+  planCta: { marginTop: 6, borderRadius: 8, paddingVertical: 12, alignItems: 'center', backgroundColor: theme.divider },
+  planCtaFeatured: { backgroundColor: theme.primary },
+  planCtaText: { fontWeight: '600', color: theme.ink },
+  planCtaTextFeatured: { color: theme.white },
   // OrgChart (indented tree)
   org: { gap: 6 },
-  orgRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderLeftWidth: 3, paddingLeft: 8, paddingVertical: 6, backgroundColor: '#f4f4f5', borderRadius: 6 },
+  orgRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderLeftWidth: 3, paddingLeft: 8, paddingVertical: 6, backgroundColor: theme.background, borderRadius: theme.radiusSm },
   orgAvatar: { fontSize: 18 },
-  orgTitle: { fontWeight: '600', color: '#222' },
-  orgSubtitle: { fontSize: 12, color: '#888' },
+  orgTitle: { fontWeight: '600', color: theme.ink },
+  orgSubtitle: { fontSize: 12, color: theme.faint },
   // Heatmap
   heatWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 3 },
   heatCell: { width: 12, height: 12, borderRadius: 2 },
@@ -1375,222 +1385,223 @@ const styles = StyleSheet.create({
   funnel: { gap: 6, alignItems: 'center' },
   funnelStage: { alignItems: 'center', width: '100%' },
   funnelMeta: { flexDirection: 'row', gap: 8, alignItems: 'baseline' },
-  funnelLabel: { fontWeight: '600', color: '#222' },
-  funnelConv: { fontSize: 11, color: '#888' },
-  funnelBar: { height: 34, borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
-  funnelValue: { color: '#fff', fontWeight: '700' },
+  funnelLabel: { fontWeight: '600', color: theme.ink },
+  funnelConv: { fontSize: 11, color: theme.faint },
+  funnelBar: { height: 34, borderRadius: theme.radiusSm, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
+  funnelValue: { color: theme.white, fontWeight: '700' },
   // TrendChart
   trend: { gap: 4 },
-  trendTitle: { fontWeight: '600', color: '#222' },
+  trendTitle: { fontWeight: '600', color: theme.ink },
   trendBars: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, height: 100 },
   trendBar: { flex: 1, borderRadius: 2, minWidth: 4 },
   trendLabels: { flexDirection: 'row', justifyContent: 'space-between' },
-  trendLabel: { fontSize: 11, color: '#888' },
+  trendLabel: { fontSize: 11, color: theme.faint },
   // FeatureGrid
   features: { gap: 10 },
-  featureCard: { padding: 14, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, backgroundColor: '#fff', gap: 4 },
+  featureCard: { padding: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 12, backgroundColor: theme.white, gap: 4 },
   featureIcon: { fontSize: 24 },
-  featureTitle: { fontWeight: '700', color: '#111' },
-  featureDesc: { color: '#666', fontSize: 13 },
+  featureTitle: { fontWeight: '700', color: theme.ink },
+  featureDesc: { color: theme.muted, fontSize: 13 },
   // Testimonials
   testimonials: { gap: 10 },
-  testimonialCard: { padding: 14, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, backgroundColor: '#fff', gap: 6 },
-  testimonialStars: { color: '#f5a623', letterSpacing: 1 },
-  testimonialQuote: { fontStyle: 'italic', color: '#333', lineHeight: 20 },
-  testimonialAuthor: { color: '#666', fontSize: 13 },
+  testimonialCard: { padding: 14, borderWidth: 1, borderColor: theme.border, borderRadius: 12, backgroundColor: theme.white, gap: 6 },
+  testimonialStars: { color: theme.warning, letterSpacing: 1 },
+  testimonialQuote: { fontStyle: 'italic', color: theme.ink, lineHeight: 20 },
+  testimonialAuthor: { color: theme.muted, fontSize: 13 },
   // Faq
-  faq: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
-  faqItem: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  faq: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' },
+  faqItem: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
   faqQ: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 14 },
-  faqQText: { fontWeight: '600', color: '#222', flex: 1 },
-  faqChevron: { color: '#888', fontSize: 16 },
-  faqA: { paddingHorizontal: 14, paddingBottom: 14, color: '#555', lineHeight: 20 },
+  faqQText: { fontWeight: '600', color: theme.ink, flex: 1 },
+  faqChevron: { color: theme.faint, fontSize: 16 },
+  faqA: { paddingHorizontal: 14, paddingBottom: 14, color: theme.muted, lineHeight: 20 },
   // CalloutCard
   callout: { flexDirection: 'row', gap: 12, padding: 16, borderRadius: 14, borderLeftWidth: 4 },
   calloutIcon: { fontSize: 24 },
   calloutBody: { flex: 1, gap: 4 },
-  calloutTitle: { fontWeight: '700', fontSize: 16, color: '#111' },
-  calloutDesc: { color: '#555', lineHeight: 20 },
+  calloutTitle: { fontWeight: '700', fontSize: 16, color: theme.ink },
+  calloutDesc: { color: theme.muted, lineHeight: 20 },
   calloutCta: { alignSelf: 'flex-start', marginTop: 6, borderRadius: 8, paddingVertical: 9, paddingHorizontal: 16 },
-  calloutCtaText: { color: '#fff', fontWeight: '600' },
+  calloutCtaText: { color: theme.white, fontWeight: '600' },
   // CommentThread
   commentThread: { gap: 14 },
   commentNode: { gap: 10, marginTop: 10 },
   commentRow: { flexDirection: 'row', gap: 8 },
-  commentAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#eee', textAlign: 'center', lineHeight: 28, overflow: 'hidden' },
-  commentHead: { fontSize: 12, color: '#888' },
-  commentText: { color: '#333', marginTop: 2, lineHeight: 20 },
+  commentAvatar: { width: 28, height: 28, borderRadius: 14, backgroundColor: theme.divider, textAlign: 'center', lineHeight: 28, overflow: 'hidden' },
+  commentHead: { fontSize: 12, color: theme.faint },
+  commentText: { color: theme.ink, marginTop: 2, lineHeight: 20 },
   // FileList
-  fileList: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
-  fileRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  fileList: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' },
+  fileRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 11, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
   fileIcon: { fontSize: 20 },
-  fileName: { flex: 1, fontWeight: '500', color: '#222' },
-  fileSize: { color: '#888', fontSize: 12 },
+  fileName: { flex: 1, fontWeight: '500', color: theme.ink },
+  fileSize: { color: theme.faint, fontSize: 12 },
   // Checklist
   checklist: {},
   checkHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 },
-  checkTitle: { fontWeight: '700', color: '#222' },
-  checkCount: { color: '#888', fontSize: 12 },
-  checkBar: { height: 6, borderRadius: 999, backgroundColor: '#e5e7eb', overflow: 'hidden', marginBottom: 10 },
-  checkFill: { height: '100%', backgroundColor: '#12b76a', borderRadius: 999 },
+  checkTitle: { fontWeight: '700', color: theme.ink },
+  checkCount: { color: theme.faint, fontSize: 12 },
+  checkBar: { height: 6, borderRadius: 999, backgroundColor: theme.border, overflow: 'hidden', marginBottom: 10 },
+  checkFill: { height: '100%', backgroundColor: theme.success, borderRadius: 999 },
   checkItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 6 },
-  checkBox: { width: 20, height: 20, borderRadius: 5, borderWidth: 2, borderColor: '#cbd5e1', alignItems: 'center', justifyContent: 'center' },
-  checkBoxDone: { backgroundColor: '#12b76a', borderColor: '#12b76a' },
-  checkMark: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  checkLabel: { color: '#333', flex: 1 },
-  checkLabelDone: { color: '#999', textDecorationLine: 'line-through' },
+  checkBox: { width: 20, height: 20, borderRadius: 5, borderWidth: 2, borderColor: theme.border, alignItems: 'center', justifyContent: 'center' },
+  checkBoxDone: { backgroundColor: theme.success, borderColor: theme.success },
+  checkMark: { color: theme.white, fontSize: 13, fontWeight: '700' },
+  checkLabel: { color: theme.ink, flex: 1 },
+  checkLabelDone: { color: theme.faint, textDecorationLine: 'line-through' },
   // ComparisonCard
-  cmpCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 14, padding: 16, backgroundColor: '#fff' },
-  cmpTitle: { fontWeight: '700', color: '#222', marginBottom: 12 },
+  cmpCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 14, padding: 16, backgroundColor: theme.white },
+  cmpTitle: { fontWeight: '700', color: theme.ink, marginBottom: 12 },
   cmpRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   cmpSide: { flex: 1, alignItems: 'center' },
-  cmpLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: '#888' },
-  cmpValue: { fontSize: 26, fontWeight: '800', color: '#111', marginTop: 2 },
+  cmpLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.4, color: theme.faint },
+  cmpValue: { fontSize: 26, fontWeight: '800', color: theme.ink, marginTop: 2 },
   cmpMid: { alignItems: 'center', gap: 4 },
-  cmpArrow: { fontSize: 18, color: '#888' },
+  cmpArrow: { fontSize: 18, color: theme.faint },
   cmpDelta: { fontWeight: '700', fontSize: 12, borderRadius: 999, paddingVertical: 2, paddingHorizontal: 8, overflow: 'hidden' },
   // Shared chip (badge palette)
-  uxChip: { color: '#fff', fontSize: 10, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden', alignSelf: 'flex-start' },
+  uxChip: { color: theme.white, fontSize: 10, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden', alignSelf: 'flex-start' },
   // EntityHeader
-  entityHeader: { flexDirection: 'row', gap: 16, padding: 16, borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 14, backgroundColor: '#fafafa' },
+  entityHeader: { flexDirection: 'row', gap: 16, padding: 16, borderWidth: 1, borderColor: theme.border, borderRadius: 14, backgroundColor: theme.background },
   entityLeft: { flex: 1, gap: 4 },
   entityTitleRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 },
-  entityTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
-  entitySubtitle: { color: '#666', fontSize: 13 },
-  entityFacts: { flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  entityTitle: { fontSize: 18, fontWeight: '700', color: theme.ink },
+  entitySubtitle: { color: theme.muted, fontSize: 13 },
+  entityFacts: { flexDirection: 'row', flexWrap: 'wrap', gap: 18, marginTop: 8, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
   entityFact: { gap: 1 },
-  entityFactLabel: { fontSize: 10, fontWeight: '700', color: '#888', letterSpacing: 0.6 },
-  entityFactValue: { fontSize: 13, fontWeight: '500', color: '#222' },
+  entityFactLabel: { fontSize: 10, fontWeight: '700', color: theme.faint, letterSpacing: 0.6 },
+  entityFactValue: { fontSize: 13, fontWeight: '500', color: theme.ink },
   entityMetric: { alignItems: 'flex-end', gap: 1, justifyContent: 'center' },
-  entityMetricValue: { fontSize: 24, fontWeight: '800', color: '#1a73e8' },
-  entityMetricCaption: { fontSize: 11, color: '#888' },
+  entityMetricValue: { fontSize: 24, fontWeight: '800', color: theme.primary },
+  entityMetricCaption: { fontSize: 11, color: theme.faint },
   // Meter
   meter: { gap: 4 },
-  meterLabel: { fontSize: 11, fontWeight: '700', color: '#888', letterSpacing: 0.6 },
-  meterValue: { fontSize: 24, fontWeight: '700', color: '#111' },
-  meterTrack: { height: 8, borderRadius: 4, backgroundColor: '#e4e4e7', overflow: 'hidden' },
+  meterLabel: { fontSize: 11, fontWeight: '700', color: theme.faint, letterSpacing: 0.6 },
+  meterValue: { fontSize: 24, fontWeight: '700', color: theme.ink },
+  meterTrack: { height: 8, borderRadius: 4, backgroundColor: theme.border, overflow: 'hidden' },
   meterFill: { height: '100%', borderRadius: 4 },
-  meterCaption: { fontSize: 12, color: '#888' },
+  meterCaption: { fontSize: 12, color: theme.faint },
   // TaskProgress
   taskProgress: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10, padding: 12, borderRadius: 12 },
   taskProgressIcon: { fontSize: 18 },
-  taskProgressLabel: { flex: 1, color: '#333', fontWeight: '500', minWidth: 120 },
+  taskProgressLabel: { flex: 1, color: theme.ink, fontWeight: '500', minWidth: 120 },
   taskProgressPills: { flexDirection: 'row', gap: 4 },
   taskProgressPill: { fontSize: 11, fontWeight: '700', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, overflow: 'hidden' },
-  taskProgressPillDone: { backgroundColor: '#3e8635', color: '#fff' },
-  taskProgressPillTodo: { borderWidth: 1, borderColor: '#bbb', color: '#666' },
-  taskProgressBtn: { backgroundColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
-  taskProgressBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  taskProgressPillDone: { backgroundColor: theme.success, color: theme.white },
+  taskProgressPillTodo: { borderWidth: 1, borderColor: theme.faint, color: theme.muted },
+  taskProgressBtn: { backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7 },
+  taskProgressBtnText: { color: theme.white, fontWeight: '600', fontSize: 13 },
   // Notice
   notice: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8 },
   noticeSlim: { paddingVertical: 3, paddingHorizontal: 8, gap: 6 },
   noticeIcon: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  noticeIconText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  noticeIconText: { color: theme.white, fontSize: 11, fontWeight: '700' },
   noticeText: { fontWeight: '600', fontSize: 13 },
   noticeBody: { flex: 1, gap: 4 },
+  noticeBodyInline: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   noticeBtn: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  noticeBtnText: { color: '#fff', fontWeight: '600', fontSize: 11 },
+  noticeBtnText: { color: theme.white, fontWeight: '600', fontSize: 11 },
   // BulletedList
   bulletedList: { gap: 2, paddingVertical: 2 },
   bulletedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 2 },
-  bulletedDot: { color: '#888', lineHeight: 20 },
-  bulletedText: { flex: 1, color: '#222', fontSize: 14, lineHeight: 20 },
+  bulletedDot: { color: theme.faint, lineHeight: 20 },
+  bulletedText: { flex: 1, color: theme.ink, fontSize: 14, lineHeight: 20 },
   // StatusList
-  statusList: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
+  statusList: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' },
   statusListFrameless: { borderWidth: 0, borderRadius: 0 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
   statusRowCompact: { gap: 8, paddingVertical: 5, paddingHorizontal: 10 },
   statusIcon: { fontSize: 18 },
   statusAvatar: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(26,115,232,.12)' },
   statusAvatarCompact: { width: 24, height: 24, borderRadius: 12 },
-  statusAvatarText: { color: '#1a73e8', fontWeight: '600', fontSize: 10, letterSpacing: 0.3 },
+  statusAvatarText: { color: theme.primary, fontWeight: '600', fontSize: 10, letterSpacing: 0.3 },
   statusBody: { flex: 1, gap: 1 },
-  statusTitle: { fontWeight: '600', color: '#222' },
-  statusDesc: { fontSize: 12, color: '#888' },
-  statusBtn: { borderWidth: 1, borderColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
-  statusBtnText: { color: '#1a73e8', fontWeight: '600', fontSize: 12 },
+  statusTitle: { fontWeight: '600', color: theme.ink },
+  statusDesc: { fontSize: 12, color: theme.faint },
+  statusBtn: { borderWidth: 1, borderColor: theme.primary, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  statusBtnText: { color: theme.primary, fontWeight: '600', fontSize: 12 },
   // TaskQueue
   taskQueue: { gap: 14 },
   taskQueueGroup: { gap: 8 },
-  taskQueueGroupLabel: { fontSize: 10, fontWeight: '700', color: '#888', letterSpacing: 0.8 },
-  queueCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 10, padding: 10, gap: 4, backgroundColor: '#fff' },
-  queueCardSelected: { borderColor: '#1a73e8', borderWidth: 2, backgroundColor: 'rgba(26,115,232,0.08)' },
-  queueCardTitle: { fontWeight: '600', color: '#222' },
+  taskQueueGroupLabel: { fontSize: 10, fontWeight: '700', color: theme.faint, letterSpacing: 0.8 },
+  queueCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 10, padding: 10, gap: 4, backgroundColor: theme.white },
+  queueCardSelected: { borderColor: theme.primary, borderWidth: 2, backgroundColor: 'rgba(26,115,232,0.08)' },
+  queueCardTitle: { fontWeight: '600', color: theme.ink },
   queueCardFoot: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
-  queueCardCaption: { fontSize: 12, color: '#888', fontVariant: ['tabular-nums'] },
+  queueCardCaption: { fontSize: 12, color: theme.faint, fontVariant: ['tabular-nums'] },
   // ResourceGrid
   resourceGrid: { flexDirection: 'row', flexWrap: 'wrap', margin: -4 },
-  resourceCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 10, padding: 10, gap: 4, backgroundColor: '#fff', minHeight: 88 },
-  resourceCardAccent: { borderColor: '#1a73e8', borderWidth: 2 },
+  resourceCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 10, padding: 10, gap: 4, backgroundColor: theme.white, minHeight: 88 },
+  resourceCardAccent: { borderColor: theme.primary, borderWidth: 2 },
   resourceCardSelected: { backgroundColor: 'rgba(26,115,232,0.08)' },
   resourceCardDisabled: { opacity: 0.45 },
-  resourceTag: { alignSelf: 'flex-start', fontSize: 8, fontWeight: '800', color: '#fff', backgroundColor: '#1a73e8', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden', letterSpacing: 0.5 },
-  resourceTitle: { fontSize: 17, fontWeight: '700', color: '#111' },
-  resourceSubtitle: { fontSize: 12, color: '#888' },
+  resourceTag: { alignSelf: 'flex-start', fontSize: 8, fontWeight: '800', color: theme.white, backgroundColor: theme.primary, borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden', letterSpacing: 0.5 },
+  resourceTitle: { fontSize: 17, fontWeight: '700', color: theme.ink },
+  resourceSubtitle: { fontSize: 12, color: theme.faint },
   resourceNote: { fontSize: 11 },
   // OfferCard
-  offerCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 14, overflow: 'hidden', backgroundColor: '#fff' },
-  offerCardAccent: { borderColor: '#1a73e8', borderWidth: 2 },
+  offerCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 14, overflow: 'hidden', backgroundColor: theme.white },
+  offerCardAccent: { borderColor: theme.primary, borderWidth: 2 },
   offerImage: { width: '100%', aspectRatio: 16 / 9 },
-  offerTag: { alignSelf: 'flex-start', fontSize: 10, fontWeight: '800', color: '#fff', backgroundColor: '#1f2937', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', letterSpacing: 0.5 },
+  offerTag: { alignSelf: 'flex-start', fontSize: 10, fontWeight: '800', color: theme.white, backgroundColor: theme.ink, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden', letterSpacing: 0.5 },
   offerTagFloating: { position: 'absolute', top: 10, left: 10 },
   offerBody: { padding: 14, gap: 6 },
-  offerTitle: { fontSize: 17, fontWeight: '700', color: '#111' },
-  offerSubtitle: { fontSize: 13, color: '#666' },
+  offerTitle: { fontSize: 17, fontWeight: '700', color: theme.ink },
+  offerSubtitle: { fontSize: 13, color: theme.muted },
   offerFeatures: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  offerFeature: { fontSize: 12, color: '#333', borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
-  offerCurrentLabel: { color: '#888', fontWeight: '500', marginTop: 4 },
-  offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
-  offerCtaAdded: { backgroundColor: '#2e7d32' },
-  offerCtaText: { color: '#fff', fontWeight: '600' },
+  offerFeature: { fontSize: 12, color: theme.ink, borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, overflow: 'hidden' },
+  offerCurrentLabel: { color: theme.faint, fontWeight: '500', marginTop: 4 },
+  offerCta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 11, marginTop: 4 },
+  offerCtaAdded: { backgroundColor: theme.success },
+  offerCtaText: { color: theme.white, fontWeight: '600' },
   offerCtaPrice: { color: 'rgba(255,255,255,0.85)', fontWeight: '700', fontVariant: ['tabular-nums'] },
   // AddOnPicker
   addOnPicker: { gap: 8 },
   addOnHead: { flexDirection: 'row', justifyContent: 'flex-end' },
-  addOnTotal: { fontWeight: '700', color: '#1a73e8', fontVariant: ['tabular-nums'] },
+  addOnTotal: { fontWeight: '700', color: theme.primary, fontVariant: ['tabular-nums'] },
   addOnGrid: { gap: 8 },
-  addOnCard: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, padding: 12, gap: 6, backgroundColor: '#fff' },
+  addOnCard: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, padding: 12, gap: 6, backgroundColor: theme.white },
   addOnCardHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   addOnIcon: { fontSize: 20 },
-  addOnTitle: { fontWeight: '600', color: '#222' },
-  addOnDesc: { fontSize: 12, color: '#888' },
-  addOnToggle: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: '#1a73e8', alignItems: 'center', justifyContent: 'center' },
-  addOnToggleAdded: { backgroundColor: '#1a73e8' },
-  addOnToggleText: { color: '#1a73e8', fontWeight: '700', fontSize: 16 },
-  addOnToggleTextAdded: { color: '#fff' },
-  addOnPrice: { color: '#1a73e8', fontWeight: '600', fontVariant: ['tabular-nums'] },
-  addOnIncluded: { color: '#888', fontStyle: 'italic', fontSize: 13 },
+  addOnTitle: { fontWeight: '600', color: theme.ink },
+  addOnDesc: { fontSize: 12, color: theme.faint },
+  addOnToggle: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: theme.primary, alignItems: 'center', justifyContent: 'center' },
+  addOnToggleAdded: { backgroundColor: theme.primary },
+  addOnToggleText: { color: theme.primary, fontWeight: '700', fontSize: 16 },
+  addOnToggleTextAdded: { color: theme.white },
+  addOnPrice: { color: theme.primary, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  addOnIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 13 },
   // Ledger
   ledger: { gap: 6 },
   ledgerRow: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
-  ledgerConcept: { flex: 1, color: '#333' },
-  ledgerAmount: { color: '#222', fontWeight: '600', fontVariant: ['tabular-nums'] },
-  ledgerAmountNegative: { color: '#c9190b' },
-  ledgerIncluded: { color: '#888', fontStyle: 'italic', fontSize: 13 },
+  ledgerConcept: { flex: 1, color: theme.ink },
+  ledgerAmount: { color: theme.ink, fontWeight: '600', fontVariant: ['tabular-nums'] },
+  ledgerAmountNegative: { color: theme.danger },
+  ledgerIncluded: { color: theme.faint, fontStyle: 'italic', fontSize: 13 },
   ledgerDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#d4d4d8', marginVertical: 4 },
-  ledgerTotalLabel: { fontWeight: '700', color: '#111' },
-  ledgerTotal: { fontSize: 18, fontWeight: '800', color: '#111', fontVariant: ['tabular-nums'] },
+  ledgerTotalLabel: { fontWeight: '700', color: theme.ink },
+  ledgerTotal: { fontSize: 18, fontWeight: '800', color: theme.ink, fontVariant: ['tabular-nums'] },
   // PaymentPicker
   paymentPicker: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },
   paymentMethods: { flexDirection: 'row', gap: 6 },
   paymentMethod: { borderWidth: 1, borderColor: '#d4d4d8', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8 },
-  paymentMethodSelected: { borderColor: '#1a73e8', borderWidth: 2, backgroundColor: 'rgba(26,115,232,0.08)' },
-  paymentMethodText: { color: '#333', fontWeight: '500' },
-  paymentMethodTextSelected: { color: '#1a73e8', fontWeight: '700' },
+  paymentMethodSelected: { borderColor: theme.primary, borderWidth: 2, backgroundColor: 'rgba(26,115,232,0.08)' },
+  paymentMethodText: { color: theme.ink, fontWeight: '500' },
+  paymentMethodTextSelected: { color: theme.primary, fontWeight: '700' },
   paymentContext: { backgroundColor: 'rgba(18,183,106,0.1)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 6, gap: 1 },
-  paymentContextLabel: { fontSize: 9, fontWeight: '700', color: '#3e8635', letterSpacing: 0.6 },
-  paymentContextValue: { fontWeight: '700', color: '#222', fontVariant: ['tabular-nums'] },
-  paymentConfirm: { marginLeft: 'auto', backgroundColor: '#1a73e8', borderRadius: 8, paddingHorizontal: 16, paddingVertical: 11 },
-  paymentConfirmText: { color: '#fff', fontWeight: '700' },
+  paymentContextLabel: { fontSize: 9, fontWeight: '700', color: theme.success, letterSpacing: 0.6 },
+  paymentContextValue: { fontWeight: '700', color: theme.ink, fontVariant: ['tabular-nums'] },
+  paymentConfirm: { marginLeft: 'auto', backgroundColor: theme.primary, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 11 },
+  paymentConfirmText: { color: theme.white, fontWeight: '700' },
   // ProcessMonitor
-  processMonitor: { borderWidth: 1, borderColor: '#e4e4e7', borderRadius: 12, overflow: 'hidden' },
-  processRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#e4e4e7' },
+  processMonitor: { borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: 'hidden' },
+  processRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10, paddingVertical: 10, paddingHorizontal: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.border },
   processDot: { fontSize: 12 },
   processBody: { flex: 1, gap: 1, minWidth: 120 },
-  processName: { fontWeight: '600', color: '#222' },
-  processSystems: { fontSize: 11, color: '#888' },
+  processName: { fontWeight: '600', color: theme.ink },
+  processSystems: { fontSize: 11, color: theme.faint },
   processCounters: { flexDirection: 'row', gap: 10 },
   processCounter: { fontSize: 12, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  processBtn: { borderWidth: 1, borderColor: '#f0ab00', backgroundColor: 'rgba(240,171,0,0.12)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  processBtn: { borderWidth: 1, borderColor: theme.warning, backgroundColor: 'rgba(240,171,0,0.12)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
   processBtnText: { color: '#8a6100', fontWeight: '600', fontSize: 12 },
 });

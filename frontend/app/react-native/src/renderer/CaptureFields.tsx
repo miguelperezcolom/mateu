@@ -3,6 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Image, PanResponder, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Polyline } from 'react-native-svg';
 import { captureRef } from 'react-native-view-shot';
+import { theme } from '../theme';
 
 // Capture fields (@Signature / @PhotoCapture): both commit a data URI through onChange, the same
 // self-contained wire contract as the web renderers — the value travels in the field string, no
@@ -82,7 +83,7 @@ export function SignatureField({ value, editable, onChange }: {
       <View ref={padRef} collapsable={false} style={styles.pad} {...(editable ? panResponder.panHandlers : {})}>
         <Svg width="100%" height="100%">
           {committedStrokes.filter((s) => s.includes(' ')).map((points, i) => (
-            <Polyline key={i} points={points} fill="none" stroke="#1a1a1a" strokeWidth="2"
+            <Polyline key={i} points={points} fill="none" stroke={theme.ink} strokeWidth="2"
                       strokeLinecap="round" strokeLinejoin="round" />
           ))}
         </Svg>
@@ -175,16 +176,16 @@ export function PhotoCaptureField({ value, editable, onChange }: {
 }
 
 const styles = StyleSheet.create({
-  pad: { height: 160, backgroundColor: '#fff', borderWidth: 1, borderStyle: 'dashed', borderColor: '#b0b0b0', borderRadius: 6 },
-  viewfinder: { height: 260, borderRadius: 6, overflow: 'hidden' },
-  preview: { height: 160, borderWidth: 1, borderColor: '#d0d0d0', borderRadius: 6, backgroundColor: '#fff' },
-  placeholderBox: { height: 120, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: '#b0b0b0', borderRadius: 6 },
+  pad: { height: 160, backgroundColor: theme.white, borderWidth: 1, borderStyle: 'dashed', borderColor: theme.faint, borderRadius: theme.radiusSm },
+  viewfinder: { height: 260, borderRadius: theme.radiusSm, overflow: 'hidden' },
+  preview: { height: 160, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, backgroundColor: theme.white },
+  placeholderBox: { height: 120, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: theme.faint, borderRadius: theme.radiusSm },
   placeholderIcon: { fontSize: 28 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  button: { paddingVertical: 8, paddingHorizontal: 14, backgroundColor: '#ececec', borderRadius: 6 },
-  primary: { backgroundColor: '#0b57d0' },
-  primaryText: { color: '#fff' },
+  button: { paddingVertical: 8, paddingHorizontal: 14, backgroundColor: theme.divider, borderRadius: theme.radiusSm },
+  primary: { backgroundColor: theme.info },
+  primaryText: { color: theme.white },
   danger: { color: '#b3311f' },
   disabled: { opacity: 0.5 },
-  hint: { marginTop: 6, fontSize: 12, color: '#707070' },
+  hint: { marginTop: 6, fontSize: 12, color: theme.muted },
 });

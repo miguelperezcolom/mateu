@@ -3,6 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { DashboardPanel, MetricCard } from '../api/metadata';
+import { theme } from '../theme';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -16,7 +17,7 @@ export function MetricCardRenderer({ metadata }: { metadata: MetricCard }) {
   const controller = useViewController();
   const runAction = (actionId: string) => void controller.runAction(actionId);
   const trend = metadata.trend ?? 'neutral';
-  const trendColor = trend === 'up' ? '#1a7f37' : trend === 'down' ? '#c5221f' : '#666';
+  const trendColor = trend === 'up' ? theme.success : trend === 'down' ? theme.danger : theme.muted;
   const trendArrow = trend === 'up' ? '▲ ' : trend === 'down' ? '▼ ' : '';
   const icon = displayIcon(metadata.icon);
   const actionId = metadata.actionId;
@@ -97,20 +98,20 @@ export function DashboardLayoutRenderer({ component, state }: { component: unkno
 }
 
 const styles = StyleSheet.create({
-  metricCard: { backgroundColor: '#fff', borderColor: '#d2d2d2', borderWidth: 1, borderRadius: 8, padding: 12, gap: 4, flex: 1 },
+  metricCard: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 12, gap: 4, flex: 1 },
   metricHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  metricTitle: { fontSize: 13, color: '#666', flexShrink: 1 },
-  metricIcon: { fontSize: 14, color: '#999' },
+  metricTitle: { fontSize: 13, color: theme.muted, flexShrink: 1 },
+  metricIcon: { fontSize: 14, color: theme.faint },
   metricValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 5 },
-  metricValue: { fontSize: 28, fontWeight: '700', lineHeight: 32, color: '#1a1a1a' },
-  metricUnit: { fontSize: 15, color: '#666' },
+  metricValue: { fontSize: 28, fontWeight: '700', lineHeight: 32, color: theme.ink },
+  metricUnit: { fontSize: 15, color: theme.muted },
   metricTrend: { fontSize: 13 },
-  metricDescription: { fontSize: 12, color: '#999' },
+  metricDescription: { fontSize: 12, color: theme.faint },
   scoreboard: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   scoreboardItem: { flexGrow: 1, flexBasis: 140 },
-  panelCard: { backgroundColor: '#fff', borderColor: '#d2d2d2', borderWidth: 1, borderRadius: 8, padding: 16, gap: 8 },
+  panelCard: { backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: 8, padding: 16, gap: 8 },
   panelCardHeader: { gap: 2 },
   panelCardTitle: { fontSize: 16, fontWeight: '700' },
-  panelCardSubtitle: { fontSize: 13, color: '#666' },
+  panelCardSubtitle: { fontSize: 13, color: theme.muted },
   dashboard: { gap: 12 },
 });

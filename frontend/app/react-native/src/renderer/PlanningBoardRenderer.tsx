@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { PlanningBlock, PlanningBoard, PlanningResource } from '../api/metadata';
 import { useViewController } from './MateuViewHost';
+import { theme } from '../theme';
 
 /**
  * Planning board / tape chart (PlanningBoardDto) — READ-ONLY on native: rows = resources (with
@@ -162,23 +163,23 @@ export function PlanningBoardRenderer({ metadata }: { metadata: PlanningBoard })
 }
 
 const styles = StyleSheet.create({
-  board: { flexDirection: 'row', borderWidth: 1, borderColor: '#e0e0e0', borderRadius: 8, overflow: 'hidden', backgroundColor: '#fff', marginVertical: 8 },
-  empty: { fontSize: 13, color: '#888', padding: 12 },
-  corner: { borderBottomWidth: 1, borderBottomColor: '#eee' },
-  labelCell: { justifyContent: 'center', paddingHorizontal: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee', borderRightWidth: 1, borderRightColor: '#eee' },
-  label: { fontSize: 12, color: '#333' },
-  groupLabelCell: { justifyContent: 'center', paddingHorizontal: 10, backgroundColor: '#f5f5f5', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
-  groupLabel: { fontSize: 10, fontWeight: '600', color: '#666', letterSpacing: 0.5 },
-  headerRow: { flexDirection: 'row', backgroundColor: '#fafafa', borderBottomWidth: 1, borderBottomColor: '#eee' },
-  dayHead: { alignItems: 'center', justifyContent: 'center', borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: '#eee' },
-  weekend: { backgroundColor: '#f0f0f0' },
-  dow: { fontSize: 8, color: '#999', textTransform: 'uppercase' },
-  dayNum: { fontSize: 11, fontWeight: '600', color: '#444' },
-  todayNum: { color: '#0070f3' },
-  lane: { position: 'relative', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
-  groupLane: { backgroundColor: '#f5f5f5', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#eee' },
-  gridLine: { position: 'absolute', top: 0, bottom: 0, width: StyleSheet.hairlineWidth, backgroundColor: '#f0f0f0' },
+  board: { flexDirection: 'row', borderWidth: 1, borderColor: theme.border, borderRadius: 8, overflow: 'hidden', backgroundColor: theme.white, marginVertical: 8 },
+  empty: { fontSize: 13, color: theme.faint, padding: 12 },
+  corner: { borderBottomWidth: 1, borderBottomColor: theme.divider },
+  labelCell: { justifyContent: 'center', paddingHorizontal: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider, borderRightWidth: 1, borderRightColor: theme.divider },
+  label: { fontSize: 12, color: theme.ink },
+  groupLabelCell: { justifyContent: 'center', paddingHorizontal: 10, backgroundColor: theme.background, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  groupLabel: { fontSize: 10, fontWeight: '600', color: theme.muted, letterSpacing: 0.5 },
+  headerRow: { flexDirection: 'row', backgroundColor: theme.background, borderBottomWidth: 1, borderBottomColor: theme.divider },
+  dayHead: { alignItems: 'center', justifyContent: 'center', borderLeftWidth: StyleSheet.hairlineWidth, borderLeftColor: theme.divider },
+  weekend: { backgroundColor: theme.divider },
+  dow: { fontSize: 8, color: theme.faint, textTransform: 'uppercase' },
+  dayNum: { fontSize: 11, fontWeight: '600', color: theme.ink },
+  todayNum: { color: theme.primary },
+  lane: { position: 'relative', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  groupLane: { backgroundColor: theme.background, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.divider },
+  gridLine: { position: 'absolute', top: 0, bottom: 0, width: StyleSheet.hairlineWidth, backgroundColor: theme.divider },
   block: { position: 'absolute', top: 4, bottom: 4, borderRadius: 5, justifyContent: 'center', paddingHorizontal: 6 },
-  blockLabel: { fontSize: 11, fontWeight: '600', color: '#fff' },
-  today: { position: 'absolute', top: 0, width: 2, backgroundColor: '#e5484d', opacity: 0.6 },
+  blockLabel: { fontSize: 11, fontWeight: '600', color: theme.white },
+  today: { position: 'absolute', top: 0, width: 2, backgroundColor: theme.danger, opacity: 0.6 },
 });

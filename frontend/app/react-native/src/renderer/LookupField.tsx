@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
+import { theme } from '../theme';
 
 interface LookupOption {
   value: string;
@@ -88,7 +89,7 @@ export function LookupField({ fieldId, label, value, editable, action, onChange 
                 autoFocus
                 autoCapitalize="none"
               />
-              {loading && <ActivityIndicator color="#0070f3" style={styles.spinner} />}
+              {loading && <ActivityIndicator color={theme.primary} style={styles.spinner} />}
               <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
                 {!loading && options.length === 0 && <Text style={styles.empty}>No results</Text>}
                 {options.map((opt) => (
@@ -114,24 +115,24 @@ export function LookupField({ fieldId, label, value, editable, action, onChange 
 const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
+    borderColor: theme.border,
+    borderRadius: theme.radiusSm,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    backgroundColor: '#fff',
+    backgroundColor: theme.white,
     minHeight: 42,
     justifyContent: 'center',
   },
-  placeholder: { color: '#aaa' },
+  placeholder: { color: theme.faint },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
-  panel: { backgroundColor: '#fff', borderRadius: 12, padding: 12, maxHeight: '70%' },
-  search: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14 },
+  panel: { backgroundColor: theme.white, borderRadius: 12, padding: 12, maxHeight: '70%' },
+  search: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 8, fontSize: 14 },
   spinner: { marginTop: 8 },
   list: { marginTop: 8 },
-  empty: { padding: 12, color: '#999', fontStyle: 'italic', fontSize: 13 },
-  option: { paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  optionSelected: { fontWeight: '700', color: '#0070f3' },
-  optionDescription: { fontSize: 12, color: '#888', marginTop: 2 },
+  empty: { padding: 12, color: theme.faint, fontStyle: 'italic', fontSize: 13 },
+  option: { paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: theme.divider },
+  optionSelected: { fontWeight: '700', color: theme.primary },
+  optionDescription: { fontSize: 12, color: theme.faint, marginTop: 2 },
   clear: { padding: 10, alignItems: 'center' },
-  clearText: { color: '#cc0000', fontWeight: '600', fontSize: 13 },
+  clearText: { color: theme.danger, fontWeight: '600', fontSize: 13 },
 });

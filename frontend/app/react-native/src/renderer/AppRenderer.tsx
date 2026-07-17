@@ -8,6 +8,7 @@ import { useAppContext } from '../context/AppContext';
 import { NavTarget } from '../core/MateuSession';
 import { ChatPanel } from './ChatPanel';
 import { MateuViewHost } from './MateuViewHost';
+import { theme } from '../theme';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -210,7 +211,7 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
               <TextInput
                 style={styles.contextSearch}
                 placeholder="Search…"
-                placeholderTextColor="#8a97a5"
+                placeholderTextColor={theme.faint}
                 value={searchText}
                 onChangeText={(value) => onSearchInput(selector.fieldName, value)}
               />
@@ -428,7 +429,7 @@ function GlobalSearchBox({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate
       <TextInput
         style={styles.globalSearchInput}
         placeholder="Search…"
-        placeholderTextColor="#8a97a5"
+        placeholderTextColor={theme.faint}
         value={query}
         onChangeText={onInput}
         autoCapitalize="none"
@@ -649,54 +650,54 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  error: { color: '#cc0000', padding: 16, fontSize: 14 },
+  error: { color: theme.danger, padding: 16, fontSize: 14 },
   stackHost: { flex: 1 },
   appFabStack: { position: 'absolute', right: 16, bottom: 90, gap: 10, alignItems: 'flex-end', zIndex: 50 },
-  appFab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: '#0070f3', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
+  appFab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
   chatFab: { backgroundColor: '#1a1a2e' },
-  appFabText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  appFabText: { color: theme.white, fontWeight: '600', fontSize: 16 },
   themeToggle: { paddingHorizontal: 14 },
   themeToggleText: { fontSize: 18 },
-  backBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee', backgroundColor: '#fafafa' },
+  backBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.divider, backgroundColor: theme.background },
   backButton: { paddingVertical: 4, paddingRight: 12 },
-  backText: { color: '#0070f3', fontSize: 15, fontWeight: '600' },
-  backTitle: { fontSize: 15, fontWeight: '600', color: '#333' },
+  backText: { color: theme.primary, fontSize: 15, fontWeight: '600' },
+  backTitle: { fontSize: 15, fontWeight: '600', color: theme.ink },
   sidebar: { flex: 1, backgroundColor: '#354a5e' },
-  sidebarTitle: { color: '#fff', fontSize: 18, fontWeight: '700', padding: 20, paddingTop: 16 },
+  sidebarTitle: { color: theme.white, fontSize: 18, fontWeight: '700', padding: 20, paddingTop: 16 },
   menuGroupLabel: { color: '#aac0d0', fontSize: 11, fontWeight: '600', paddingHorizontal: 20, paddingVertical: 8, letterSpacing: 1 },
   menuItem: { paddingVertical: 12, paddingRight: 20 },
-  menuItemText: { color: '#fff', fontSize: 14 },
+  menuItemText: { color: theme.white, fontSize: 14 },
   separator: { height: 1, backgroundColor: '#4a6070', marginVertical: 4 },
   contextRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10 },
   contextLabel: { color: '#aac0d0', fontSize: 12, fontWeight: '600', letterSpacing: 1 },
-  contextValue: { color: '#fff', fontSize: 14, fontWeight: '700' },
+  contextValue: { color: theme.white, fontSize: 14, fontWeight: '700' },
   contextOption: { paddingVertical: 8, paddingLeft: 32, paddingRight: 20 },
-  contextSearch: { marginHorizontal: 20, marginBottom: 4, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: 6, color: '#ffffff', fontSize: 13 },
+  contextSearch: { marginHorizontal: 20, marginBottom: 4, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: theme.radiusSm, color: theme.white, fontSize: 13 },
   contextOptionText: { color: '#d5e2ec', fontSize: 14 },
-  contextOptionSelected: { fontWeight: '700', color: '#fff' },
+  contextOptionSelected: { fontWeight: '700', color: theme.white },
   // notification bell (drawer inbox)
   bellRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  bellBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: '#d32f2f', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  bellBadgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
-  bellEmpty: { color: '#8a97a5', fontSize: 13, paddingLeft: 32, paddingVertical: 8 },
+  bellBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: theme.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
+  bellBadgeText: { color: theme.white, fontSize: 10, fontWeight: '700' },
+  bellEmpty: { color: theme.faint, fontSize: 13, paddingLeft: 32, paddingVertical: 8 },
   bellEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 8, paddingLeft: 20, paddingRight: 20 },
   bellDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'transparent', marginTop: 5 },
   bellDotUnread: { backgroundColor: '#4da3ff' },
   bellEntryBody: { flex: 1, minWidth: 0 },
   bellEntryTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
   bellEntryTitle: { flex: 1, color: '#d5e2ec', fontSize: 13 },
-  bellEntryTitleUnread: { fontWeight: '700', color: '#fff' },
-  bellEntryWhen: { color: '#8a97a5', fontSize: 11 },
+  bellEntryTitleUnread: { fontWeight: '700', color: theme.white },
+  bellEntryWhen: { color: theme.faint, fontSize: 11 },
   bellEntryText: { color: '#aac0d0', fontSize: 12, marginTop: 1 },
   bellMarkAll: { paddingVertical: 8, paddingLeft: 32 },
   bellMarkAllText: { color: '#4da3ff', fontSize: 13, fontWeight: '600' },
   bellMarkAllDisabled: { color: '#5a6e80' },
   // global search (drawer command palette)
-  globalSearchInput: { marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: 6, color: '#ffffff', fontSize: 13 },
+  globalSearchInput: { marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: theme.radiusSm, color: theme.white, fontSize: 13 },
   globalSearchResults: { marginBottom: 4 },
   globalSearchHit: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 20 },
   globalSearchHitBody: { flex: 1, minWidth: 0 },
-  globalSearchHitLabel: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  globalSearchHitLabel: { color: theme.white, fontSize: 13, fontWeight: '600' },
   globalSearchHitDescription: { color: '#aac0d0', fontSize: 11, marginTop: 1 },
-  globalSearchHitCategory: { color: '#8a97a5', fontSize: 10, fontWeight: '600', textTransform: 'uppercase' },
+  globalSearchHitCategory: { color: theme.faint, fontSize: 10, fontWeight: '600', textTransform: 'uppercase' },
 });

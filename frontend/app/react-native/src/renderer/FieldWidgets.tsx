@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useRef, useState } from 'react';
+import { theme } from '../theme';
 import {
   Image,
   Linking,
@@ -165,7 +166,7 @@ export function StarsField({ value, editable, onChange }: {
 
 // ── color ────────────────────────────────────────────────────────────────────────────────────
 
-const PALETTE = ['#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#6d4c41', '#546e7a', '#000000', '#ffffff'];
+const PALETTE = [theme.danger, theme.warning, '#fdd835', theme.success, theme.info, '#8e24aa', '#6d4c41', '#546e7a', '#000000', theme.white];
 
 export function ColorField({ value, editable, onChange }: {
   value: string;
@@ -175,7 +176,7 @@ export function ColorField({ value, editable, onChange }: {
   return (
     <View>
       <View style={styles.colorRow}>
-        <View style={[styles.colorSwatch, { backgroundColor: value || '#ffffff' }]} />
+        <View style={[styles.colorSwatch, { backgroundColor: value || theme.white }]} />
         <TextInput
           style={[styles.textInput, { flex: 1 }]}
           value={value}
@@ -333,44 +334,44 @@ export function BadgeChip({ label, on }: { label: string; on: boolean }) {
 const styles = StyleSheet.create({
   radioGroup: { gap: 8 },
   radioRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#bbb', alignItems: 'center', justifyContent: 'center' },
-  radioOuterOn: { borderColor: '#0070f3' },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#0070f3' },
-  radioLabel: { fontSize: 14, color: '#1a1a1a' },
+  radioOuter: { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: theme.faint, alignItems: 'center', justifyContent: 'center' },
+  radioOuterOn: { borderColor: theme.primary },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: theme.primary },
+  radioLabel: { fontSize: 14, color: theme.ink },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: '#ccc', backgroundColor: '#fff' },
-  chipOn: { backgroundColor: '#0070f3', borderColor: '#0070f3' },
-  chipText: { fontSize: 13, color: '#333' },
-  chipOnText: { fontSize: 13, color: '#fff' },
+  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.white },
+  chipOn: { backgroundColor: theme.primary, borderColor: theme.primary },
+  chipText: { fontSize: 13, color: theme.ink },
+  chipOnText: { fontSize: 13, color: theme.white },
   sliderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sliderBound: { fontSize: 11, color: '#888' },
+  sliderBound: { fontSize: 11, color: theme.faint },
   sliderTrack: { flex: 1, height: 28, justifyContent: 'center' },
-  sliderFill: { position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: '#0070f3' },
-  sliderThumb: { position: 'absolute', marginLeft: -8, width: 16, height: 16, borderRadius: 8, backgroundColor: '#0070f3' },
-  sliderValue: { minWidth: 32, textAlign: 'right', fontSize: 13, fontWeight: '600', color: '#1a1a1a' },
+  sliderFill: { position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: theme.primary },
+  sliderThumb: { position: 'absolute', marginLeft: -8, width: 16, height: 16, borderRadius: 8, backgroundColor: theme.primary },
+  sliderValue: { minWidth: 32, textAlign: 'right', fontSize: 13, fontWeight: '600', color: theme.ink },
   stepperRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  stepperButton: { width: 36, height: 36, borderRadius: 6, borderWidth: 1, borderColor: '#ccc', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5' },
-  stepperButtonText: { fontSize: 18, color: '#333' },
-  stepperValue: { minWidth: 40, textAlign: 'center', fontSize: 15, fontWeight: '600', color: '#1a1a1a' },
+  stepperButton: { width: 36, height: 36, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.background },
+  stepperButtonText: { fontSize: 18, color: theme.ink },
+  stepperValue: { minWidth: 40, textAlign: 'center', fontSize: 15, fontWeight: '600', color: theme.ink },
   starsRow: { flexDirection: 'row', gap: 4 },
-  star: { fontSize: 26, color: '#ddd' },
-  starOn: { color: '#f5a623' },
+  star: { fontSize: 26, color: theme.border },
+  starOn: { color: theme.warning },
   colorRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  colorSwatch: { width: 36, height: 36, borderRadius: 6, borderWidth: 1, borderColor: '#ccc' },
-  colorOption: { width: 28, height: 28, borderRadius: 6, borderWidth: 1, borderColor: '#ccc' },
-  textInput: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, backgroundColor: '#fff', minHeight: 42 },
-  imagePreview: { width: '100%', height: 160, borderRadius: 6, backgroundColor: '#f5f5f5' },
+  colorSwatch: { width: 36, height: 36, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
+  colorOption: { width: 28, height: 28, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
+  textInput: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, backgroundColor: theme.white, minHeight: 42 },
+  imagePreview: { width: '100%', height: 160, borderRadius: theme.radiusSm, backgroundColor: theme.background },
   imageButtons: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  imageButton: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: '#ccc', backgroundColor: '#f5f5f5' },
-  imageButtonText: { fontSize: 13, color: '#333' },
-  imageDeleteText: { fontSize: 13, color: '#cc0000' },
-  emptyText: { color: '#999' },
-  link: { color: '#0070f3', textDecorationLine: 'underline', fontSize: 14 },
-  mdHeading: { fontWeight: '700', color: '#1a1a1a', marginTop: 8, marginBottom: 4 },
-  mdText: { fontSize: 14, color: '#1a1a1a', lineHeight: 21 },
+  imageButton: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border, backgroundColor: theme.background },
+  imageButtonText: { fontSize: 13, color: theme.ink },
+  imageDeleteText: { fontSize: 13, color: theme.danger },
+  emptyText: { color: theme.faint },
+  link: { color: theme.primary, textDecorationLine: 'underline', fontSize: 14 },
+  mdHeading: { fontWeight: '700', color: theme.ink, marginTop: 8, marginBottom: 4 },
+  mdText: { fontSize: 14, color: theme.ink, lineHeight: 21 },
   mdBold: { fontWeight: '700' },
-  badgeChip: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: '#eee' },
-  badgeChipOn: { backgroundColor: '#e6f2e6' },
-  badgeChipText: { fontSize: 12, color: '#888' },
-  badgeChipOnText: { fontSize: 12, color: '#1a7f37', fontWeight: '600' },
+  badgeChip: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, backgroundColor: theme.divider },
+  badgeChipOn: { backgroundColor: theme.successBg },
+  badgeChipText: { fontSize: 12, color: theme.faint },
+  badgeChipOnText: { fontSize: 12, color: theme.success, fontWeight: '600' },
 });

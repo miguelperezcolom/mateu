@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ComponentRenderer } from './ComponentRenderer';
 import { useViewController } from './MateuViewHost';
+import { theme } from '../theme';
 
 interface ButtonDto {
   actionId?: string;
@@ -77,22 +78,22 @@ export function FormRenderer({ component, metadata, state }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
-  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  title: { fontSize: 20, fontWeight: '600', color: '#1a1a1a' },
-  subtitle: { fontSize: 14, color: '#666', marginTop: 4 },
+  root: { flex: 1, backgroundColor: theme.white },
+  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: theme.divider },
+  title: { fontSize: 20, fontWeight: '600', color: theme.ink },
+  subtitle: { fontSize: 14, color: theme.muted, marginTop: 4 },
   actionBar: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12, gap: 8 },
   fields: { padding: 16, paddingBottom: 24 },
   bottomBar: {
     flexDirection: 'row',
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: theme.divider,
     gap: 8,
     justifyContent: 'flex-end',
   },
-  btnPrimary: { backgroundColor: '#0070f3', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 6 },
-  btnPrimaryText: { color: '#fff', fontWeight: '600', fontSize: 14 },
-  btnDefault: { backgroundColor: '#f5f5f5', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 6, borderWidth: 1, borderColor: '#ccc' },
-  btnDefaultText: { color: '#333', fontSize: 14 },
+  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm },
+  btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 14 },
+  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
+  btnDefaultText: { color: theme.ink, fontSize: 14 },
 });

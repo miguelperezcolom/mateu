@@ -3,6 +3,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
 import { ComponentRenderer } from './ComponentRenderer';
+import { theme } from '../theme';
 
 /** The controller of the view a component belongs to — field editors write state through it,
  *  buttons dispatch actions, cruds register data handlers. */
@@ -68,7 +69,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
   if (view.loading && !view.component) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0070f3" />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -94,7 +95,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
       <View style={styles.host} key={view.version}>
         {view.loading && (
           <View style={styles.loadingOverlay} pointerEvents="none">
-            <ActivityIndicator color="#0070f3" />
+            <ActivityIndicator color={theme.primary} />
           </View>
         )}
         {serverSideNode || selfScrolling ? (
@@ -113,6 +114,6 @@ const styles = StyleSheet.create({
   host: { flex: 1 },
   scrollBody: { paddingBottom: 24 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  error: { color: '#cc0000', padding: 16, fontSize: 14 },
+  error: { color: theme.danger, padding: 16, fontSize: 14 },
   loadingOverlay: { position: 'absolute', top: 8, right: 8, zIndex: 10 },
 });

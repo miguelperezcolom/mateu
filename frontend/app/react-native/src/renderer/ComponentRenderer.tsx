@@ -31,6 +31,7 @@ import { PlanningBoardRenderer } from './PlanningBoardRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
+import { theme } from '../theme';
 
 interface Props {
   component: unknown;
@@ -311,11 +312,11 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
 
 const styles = StyleSheet.create({
   centered: { alignSelf: 'center', margin: 20 },
-  error: { color: '#cc0000', padding: 8, fontSize: 13 },
-  text: { fontSize: 14, color: '#333', flexShrink: 1 },
-  separator: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#e4e4e7', width: '100%', marginVertical: 8 },
-  unknown: { fontSize: 12, color: '#999', fontStyle: 'italic' },
-  image: { width: '100%', height: 200, borderRadius: 6, backgroundColor: '#f5f5f5' },
-  btnDefault: { backgroundColor: '#f5f5f5', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 6, borderWidth: 1, borderColor: '#ccc', alignSelf: 'flex-start' },
-  btnDefaultText: { color: '#333', fontSize: 14 },
+  error: { color: theme.danger, padding: 8, fontSize: 13 },
+  text: { fontSize: 14, color: theme.ink, flexShrink: 1 },
+  separator: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border, width: '100%', marginVertical: 8 },
+  unknown: { fontSize: 12, color: theme.faint, fontStyle: 'italic' },
+  image: { width: '100%', height: 200, borderRadius: theme.radiusSm, backgroundColor: theme.background },
+  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border, alignSelf: 'flex-start' },
+  btnDefaultText: { color: theme.ink, fontSize: 14 },
 });
