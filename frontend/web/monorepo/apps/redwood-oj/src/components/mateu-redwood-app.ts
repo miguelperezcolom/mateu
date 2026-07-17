@@ -607,10 +607,6 @@ export class MateuRedwoodApp extends MateuApp {
                         </div>
                     </div>
                 </header>
-                <!-- Redwood chrome: the RDS color strip right under the app header (the tiled
-                     mosaic band every RDS template carries; asset exported from the RDS Toolkit
-                     Figma, tiled horizontally at half scale like the design's TILE fill). -->
-                <div class="redwood-color-strip" aria-hidden="true"></div>
                 <!--
                 <div class="demo-header demo-padding oj-bg-neutral-0 oj-divider-bottom">
                     <div>

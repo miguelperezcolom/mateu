@@ -2,6 +2,7 @@ import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "
 import { customElement, property, state } from 'lit/decorators.js';
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
+import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import './mateu-content-header'
 import { interpolate } from './interpolation'
@@ -372,6 +373,18 @@ export class MateuPage extends LitElement {
         ;(root ?? window).scrollBy({ top: delta, behavior: 'smooth' })
     }
 
+    /** Design-system hook: a decorative band under the page header, invisible by default
+     *  (height/image come from CSS custom properties, which pierce shadow DOM — e.g. the
+     *  Redwood renderer sets them to the RDS color strip). Pages whose content is a crud skip
+     *  it: their collection container carries the band (below the search bar) instead. */
+    private _showHeaderBand(): boolean {
+        const metadata = this.component?.metadata as PageComponent
+        const hasHeader = !!(metadata?.title || metadata?.subtitle || (metadata as any)?.toolbar?.length)
+        const hasCrud = !!this.component?.children?.some(child =>
+            (child as ClientSideComponent).metadata?.type === ComponentMetadataType.Crud)
+        return hasHeader && !hasCrud
+    }
+
     render(): TemplateResult {
         const metadata = this.component?.metadata as PageComponent
         const allStaticBanners: Banner[] = (metadata as any)?.banners ?? []
@@ -392,6 +405,9 @@ export class MateuPage extends LitElement {
                 .appState="${this.appState}"
                 .appData="${this.appData}"
             ></mateu-content-header>
+            ${this._showHeaderBand() ? html`
+                <div class="page-header-band" aria-hidden="true"></div>
+            ` : nothing}
             ${banners.length > 0 ? html`
                 <div class="page-banners">
                     ${banners.map(({ banner, onDismiss }) => this._renderBanner(banner, onDismiss))}
@@ -427,6 +443,14 @@ export class MateuPage extends LitElement {
     }
 
     static styles = css`
+        .page-header-band {
+            width: 100%;
+            height: var(--mateu-page-band-h, 0);
+            background-image: var(--mateu-page-band-image, none);
+            background-repeat: repeat-x;
+            background-size: auto var(--mateu-page-band-h, 0);
+        }
+
         :host {
             width: 100%;
         }

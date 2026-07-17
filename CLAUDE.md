@@ -50,12 +50,22 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo
                             inert <template id="mateu-ui-holder"> that demo.js adopts. Shared
                             components get Redwood styling via the Lumo→Redwood token bridge
                             in src/index.css (RDS 24C values). Redwood chrome (2026-07-17):
-                            the RDS color strip under the app header + the subtle bottom-left
-                            background ornament — assets exported from the RDS Toolkit Figma
-                            into public/images/ (the strip is the Figma TILE fill at half
-                            scale; the ornament is the Theme=Light variant with the baked-in
-                            Oracle copyright caption erased), styled from index.css because
-                            the shell renders to LIGHT DOM (Lit static styles are inert).
+                            the RDS color strip + background ornaments, per template anatomy —
+                            the strip marks the TOP OF THE CONTENT CARD, not the app header:
+                            on listings it renders between the smart search bar and the table
+                            (appended by renderFilterBar, inline styles — it renders inside
+                            mateu-table-crud's shadow root where global CSS can't reach), on
+                            other pages under the page header via the DS-NEUTRAL band hook in
+                            the shared mateu-page (div sized by --mateu-page-band-h/-image CSS
+                            vars, 0/none by default — custom properties pierce shadow DOM;
+                            crud pages skip it so the band isn't doubled; redwood-oj activates
+                            the vars in index.css). NOTE: mateu-component renders top-level
+                            Pages with the SHARED mateu-page directly — a DS renderer's own
+                            renderPage hook is nearly dead code for routed pages. Background:
+                            body::before (Template Header texture, top-right) + body::after
+                            (Template Bottom Texture full-width band); assets from the RDS
+                            Toolkit Figma in public/images/ (transparent PNGs; the bottom one
+                            is Theme=Light with the baked-in Oracle copyright erased).
   apps/redhat/            ← PatternFly renderer
 
 frontend/app/             ← Native (non-browser) renderers — all speak the same /mateu/v3/sync API

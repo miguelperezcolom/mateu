@@ -1,4 +1,9 @@
 :root {
+    /* RDS chrome: activate the shared mateu-page header band (invisible by default on every
+       other renderer) with the RDS color strip — the templates' tiled mosaic at half scale. */
+    --mateu-page-band-h: 8px;
+    --mateu-page-band-image: url('/images/redwood-color-strip.png');
+
     --vaadin-card-background: none;
     --vaadin-card-border-color: none;
 
@@ -2414,25 +2419,37 @@ section.mateu-section .oj-typography-heading-md {
    The color strip under the app header and the subtle bottom-left background
    ornament every RDS template carries. Global CSS on purpose: the shell renders
    to light DOM, so component-scoped Lit styles would not reach it. */
-.redwood-color-strip {
-    height: 8px;
-    background-image: url('/images/redwood-color-strip.png');
-    background-repeat: repeat-x;
-    /* the Figma fill tiles at scalingFactor 0.5: the 16px tile reads as an 8px band */
-    background-size: auto 8px;
-}
-
+/* Bottom texture: spans the full width (dotted field on the left, blob on the right),
+   anchored to the bottom like the Template Bottom Texture band of every RDS frame. */
 body::after {
     content: "";
     position: fixed;
     left: 0;
+    right: 0;
     bottom: 0;
-    width: min(52rem, 60vw);
-    aspect-ratio: 3296 / 1590;
+    height: min(22vh, 22rem);
     background-image: url('/images/redwood-bottom-texture.png');
     background-repeat: no-repeat;
-    background-size: contain;
-    background-position: left bottom;
+    background-size: 100% auto;
+    background-position: center bottom;
     pointer-events: none;
     z-index: -1;
+}
+
+/* Top-right ornament: the Template Header texture (organic shapes + orange accent) that peeks
+   from the upper-right corner around the central content, as in every RDS template frame. */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(26rem, 30vw);
+    aspect-ratio: 800 / 624;
+    background-image: url('/images/redwood-header-texture.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: right top;
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.85;
 }

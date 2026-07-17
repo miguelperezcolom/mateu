@@ -610,6 +610,10 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                 ${viewsPanel}
                 ${metadata?.header?.map(comp => renderComponent(container, comp, baseUrl, state, data, appState, appData))}
             </div>
+            <!-- RDS chrome: the color strip marks the top edge of the collection container —
+                 between the smart search bar and the toolbar+table, exactly where the Smart
+                 Filter and Search template places it. -->
+            <div class="redwood-color-strip" aria-hidden="true" style="height: 8px; background-image: url('/images/redwood-color-strip.png'); background-repeat: repeat-x; background-size: auto 8px; flex: none; width: 100%; margin-top: 0.5rem;"></div>
         `
     }
 
