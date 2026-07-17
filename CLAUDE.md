@@ -49,7 +49,13 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo
                             the AP-generated controllers inject the routed <mateu-ui> into an
                             inert <template id="mateu-ui-holder"> that demo.js adopts. Shared
                             components get Redwood styling via the Lumo→Redwood token bridge
-                            in src/index.css (RDS 24C values).
+                            in src/index.css (RDS 24C values). Redwood chrome (2026-07-17):
+                            the RDS color strip under the app header + the subtle bottom-left
+                            background ornament — assets exported from the RDS Toolkit Figma
+                            into public/images/ (the strip is the Figma TILE fill at half
+                            scale; the ornament is the Theme=Light variant with the baked-in
+                            Oracle copyright caption erased), styled from index.css because
+                            the shell renders to LIGHT DOM (Lit static styles are inert).
   apps/redhat/            ← PatternFly renderer
 
 frontend/app/             ← Native (non-browser) renderers — all speak the same /mateu/v3/sync API

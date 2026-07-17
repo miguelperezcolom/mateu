@@ -2409,3 +2409,30 @@ section.mateu-section .oj-typography-heading-md {
     border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.2));
     margin-bottom: 0.75rem;
 }
+
+/* ── Redwood chrome (assets exported from the RDS Toolkit Figma) ──────────────
+   The color strip under the app header and the subtle bottom-left background
+   ornament every RDS template carries. Global CSS on purpose: the shell renders
+   to light DOM, so component-scoped Lit styles would not reach it. */
+.redwood-color-strip {
+    height: 8px;
+    background-image: url('/images/redwood-color-strip.png');
+    background-repeat: repeat-x;
+    /* the Figma fill tiles at scalingFactor 0.5: the 16px tile reads as an 8px band */
+    background-size: auto 8px;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: min(52rem, 60vw);
+    aspect-ratio: 3296 / 1590;
+    background-image: url('/images/redwood-bottom-texture.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: left bottom;
+    pointer-events: none;
+    z-index: -1;
+}
