@@ -46,6 +46,11 @@ public class AutoNamedView<T extends Identifiable>
   @Override
   public void save(HttpRequest httpRequest) {
     T entity = (T) toEntity(httpRequest);
+    // optimistic locking (@Version field): reject the save when someone else saved in between,
+    // bump the version otherwise — both no-ops for entities without a version field
+    io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.check(
+        entity, repository.findById(entity.id()), httpRequest);
+    io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.bump(entity);
     repository.save(entity);
   }
 
