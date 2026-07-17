@@ -1,7 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.crud;
 
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
-import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import static io.mateu.uidl.reflection.GenericClassProvider.getGenericClass;
 
 import io.mateu.core.infra.declarative.orchestrators.MultiView;
@@ -90,7 +89,9 @@ public abstract class Crud<
             method -> {
               toolbar.add(
                   Button.builder()
-                      .label(toUpperCaseFirst(method.getName()))
+                      .label(
+                          io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel(
+                              method))
                       .actionId("action-on-row-" + method.getName())
                       .build());
             });
