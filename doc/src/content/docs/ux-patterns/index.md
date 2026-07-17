@@ -39,6 +39,7 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Session expiry](./session-expiry) | ✅ Implemented | `onSessionExpired` — re-auth + retry, work intact |
 | [Audit version diff](./audit-diff) | ✅ Implemented | History grouped by save moment — old → new per field |
 | [Global entity search](./global-search) | ✅ Implemented | `GlobalSearchSupplier` — ⌘K searches data, grouped by category |
+| [Planning board](./planning-board) | ✅ Implemented | `PlanningBoard` — resources × days tape chart, drag to move |
 | [Wizard](./wizard) | ✅ Implemented | `@WizardCompletionAction` |
 | [Entity Picker](./entity-picker) | ✅ Implemented | `@Lookup`, `@Composition` |
 | [Workspace](./workspace) | Composition | `@SplitLayout`, `@Tabs`, `@Accordion` |

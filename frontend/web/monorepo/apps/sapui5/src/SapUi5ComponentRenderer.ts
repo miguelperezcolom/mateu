@@ -178,6 +178,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.EmptyState,
     ComponentMetadataType.Skeleton,
     ComponentMetadataType.Gantt,
+    ComponentMetadataType.PlanningBoard,
     ComponentMetadataType.Kanban,
     ComponentMetadataType.Timeline,
     ComponentMetadataType.ProgressSteps,

@@ -36,6 +36,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.NoticeMapper.mapNo
 import static io.mateu.core.domain.out.fragmentmapper.mappers.OfferCardMapper.mapOfferCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.OrgChartMapper.mapOrgChartToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PaymentPickerMapper.mapPaymentPickerToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.PlanningBoardMapper.mapPlanningBoardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PricingTableMapper.mapPricingTableToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProcessMonitorMapper.mapProcessMonitorToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ProgressBarMapper.mapProgressBarToDto;
@@ -99,6 +100,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof Gantt gantt) {
       return mapGanttToDto(gantt);
+    }
+    if (component instanceof PlanningBoard planningBoard) {
+      return mapPlanningBoardToDto(planningBoard);
     }
     if (component instanceof Kanban kanban) {
       return mapKanbanToDto(kanban);

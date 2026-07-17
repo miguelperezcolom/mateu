@@ -89,6 +89,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/welcome-page' },
 						{ slug: 'ux-patterns/empty-states-and-skeletons' },
 						{ slug: 'ux-patterns/gantt' },
+						{ slug: 'ux-patterns/planning-board', label: 'Planning Board (Tape Chart)' },
 						{ slug: 'ux-patterns/kanban' },
 						{ slug: 'ux-patterns/timeline' },
 						{ slug: 'ux-patterns/progress-steps' },

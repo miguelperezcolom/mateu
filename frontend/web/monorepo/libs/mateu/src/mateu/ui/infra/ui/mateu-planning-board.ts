@@ -304,7 +304,7 @@ export class MateuPlanningBoard extends LitElement {
         this.drag = { ...this.drag, moved: true, targetResourceId: lane.resourceId, targetStartIdx: startIdx }
     }
 
-    private onBlockPointerUp(e: PointerEvent, block: PlanningBlock) {
+    private onBlockPointerUp(block: PlanningBlock) {
         const drag = this.drag
         this.endDrag()
         if (!drag) {
@@ -373,7 +373,9 @@ export class MateuPlanningBoard extends LitElement {
             return html``
         }
         const days = [...Array(win.days).keys()].map(i => MateuPlanningBoard.addDays(win.from, i))
-        const todayIdx = MateuPlanningBoard.daysBetween(win.from, new Date())
+        const now = new Date()
+        const todayIdx = MateuPlanningBoard.daysBetween(
+            win.from, new Date(now.getFullYear(), now.getMonth(), now.getDate()))
         const todayVisible = todayIdx >= 0 && todayIdx < win.days
         const rows: unknown[] = []
         let lastGroup: string | undefined = undefined
@@ -428,7 +430,7 @@ export class MateuPlanningBoard extends LitElement {
                              style="left: ${visibleStart * pctPerDay}%; width: ${(visibleEnd - visibleStart + 1) * pctPerDay}%; ${block.color ? `--mateu-planning-block: ${block.color};` : ''}"
                              @pointerdown="${(e: PointerEvent) => this.onBlockPointerDown(e, block, startIdx)}"
                              @pointermove="${(e: PointerEvent) => this.onBlockPointerMove(e)}"
-                             @pointerup="${(e: PointerEvent) => this.onBlockPointerUp(e, block)}"
+                             @pointerup="${() => this.onBlockPointerUp(block)}"
                              @pointercancel="${() => this.endDrag()}"
                         >${block.label}</div>
                     `

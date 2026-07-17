@@ -152,6 +152,9 @@ public class Home2
     @Menu
     io.mateu.mdd.demoadminpanel.infra.in.ui.aggregates.SalesReport salesReport;
 
+    @Menu
+    io.mateu.mdd.demoadminpanel.infra.in.ui.planning.RoomPlanning roomPlanning;
+
 
     // app header actions: buttons next to the @AppContext pickers; the dropdown's CHILDREN dispatch
     @Override
