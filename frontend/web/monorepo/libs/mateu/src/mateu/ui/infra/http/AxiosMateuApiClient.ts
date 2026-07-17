@@ -1,5 +1,6 @@
 import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios"
 import { readAppContext } from '@infra/appContextStore.ts';
+import { handleSessionExpired } from '@infra/http/sessionGuard.ts';
 import {nanoid} from "nanoid"
 import {MateuApiClient} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
@@ -16,6 +17,18 @@ export class AxiosMateuApiClient implements MateuApiClient {
             this.addAuthToken(config)
             this.addSessionId(config)
             return config;
+        })
+        // Session expiry without losing work: a 401 hands control to the app's re-auth flow
+        // (sessionGuard) and RETRIES the same request once after it — the original promise chain
+        // resolves normally, so the in-flight action completes with the user's state intact.
+        this.axiosInstance.interceptors.response.use(undefined, (error: unknown) => {
+            const axiosError = error as { response?: { status?: number }, config?: InternalAxiosRequestConfig & { __mateuRetried?: boolean } }
+            if (axiosError?.response?.status === 401 && axiosError.config && !axiosError.config.__mateuRetried) {
+                const config = axiosError.config
+                config.__mateuRetried = true
+                return handleSessionExpired(error, () => this.axiosInstance.request(config))
+            }
+            throw error
         })
     }
 
