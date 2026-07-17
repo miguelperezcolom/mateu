@@ -17,6 +17,14 @@ import '@vaadin/popover'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { badge } from "@vaadin/vaadin-lumo-styles";
+import {
+    SavedView,
+    defaultView,
+    deleteView,
+    listSavedViews,
+    saveView,
+    setDefaultView,
+} from "../savedViewsStore.ts";
 
 /**
  * Smart-search filter bar, after the Redwood Smart Search pattern: ONE search field hosting both
@@ -59,6 +67,9 @@ export class MateuFilterBar extends LitElement {
 
     @state()
     private panelOpened = false
+
+    @state()
+    private viewsOpened = false
 
     @state()
     private activeFilter: FormField | undefined
@@ -161,6 +172,80 @@ export class MateuFilterBar extends LitElement {
             composed: true
         }))
         this.requestSearch()
+    }
+
+    // ── saved views ──────────────────────────────────────────────────────────
+    // Named snapshots of the whole condition set (keyword + filters), persisted client-side per
+    // route (savedViewsStore). Applying one replaces the current conditions and re-searches; the
+    // scope's default view is applied on first load when the URL carries no explicit params.
+
+    private get viewsScope(): string {
+        return window.location.pathname
+    }
+
+    /** Every state key belonging to the bar: searchText + each filter (ranges → both bounds). */
+    private allFilterKeys(): string[] {
+        return ['searchText', ...this.filters.flatMap(filter =>
+            this.isRangeFilter(filter)
+                ? [`${filter.fieldId}_from`, `${filter.fieldId}_to`]
+                : [filter.fieldId])]
+    }
+
+    /** The current condition set, only the keys that are actually set. */
+    private snapshotValues(): Record<string, unknown> {
+        const values: Record<string, unknown> = {}
+        if (this.state.searchText) values.searchText = this.state.searchText
+        this.filters.forEach(field => {
+            if (!this.isSet(field)) return
+            if (this.isRangeFilter(field)) {
+                const from = this.rangeBound(field, 'from')
+                const to = this.rangeBound(field, 'to')
+                if (from) values[`${field.fieldId}_from`] = from
+                if (to) values[`${field.fieldId}_to`] = to
+            } else if (this.isMultiFilter(field)) {
+                values[field.fieldId] = this.multiValues(field)
+            } else {
+                values[field.fieldId] = this.state[field.fieldId]
+            }
+        })
+        return values
+    }
+
+    private applyView(view: SavedView) {
+        // clear everything first (one reset event), then set the view's values, then search
+        const fieldIds = this.allFilterKeys()
+        const cleared: Record<string, any> = {}
+        fieldIds.forEach(id => { cleared[id] = undefined })
+        this.state = { ...this.state, ...cleared }
+        this.dispatchEvent(new CustomEvent('filter-reset-requested', {
+            detail: { fieldIds },
+            bubbles: true,
+            composed: true
+        }))
+        Object.entries(view.values).forEach(([key, value]) => this.emitValueChanged(key, value))
+        this.viewsOpened = false
+        this.detachOutsideClick()
+        this.requestSearch()
+    }
+
+    private saveCurrentView(input: HTMLInputElement) {
+        const name = input.value.trim()
+        if (!name) return
+        saveView(this.viewsScope, { name, values: this.snapshotValues() })
+        input.value = ''
+        this.requestUpdate()
+    }
+
+    protected firstUpdated() {
+        // default view: only when the URL carries no explicit filter params (they win)
+        if (window.location.search) return
+        const view = defaultView(this.viewsScope)
+        if (!view) return
+        // wait a tick so the host finishes wiring its listeners
+        setTimeout(() => {
+            const anySet = !!this.state.searchText || this.filters.some(field => this.isSet(field))
+            if (!anySet) this.applyView(view)
+        }, 0)
     }
 
     // ── filter typing helpers ────────────────────────────────────────────────
@@ -344,6 +429,38 @@ export class MateuFilterBar extends LitElement {
             </div>`
     }
 
+    private renderViewsPanel(): TemplateResult | typeof nothing {
+        if (!this.viewsOpened) return nothing
+        const views = listSavedViews(this.viewsScope)
+        const anySet = !!this.state.searchText || this.filters.some(field => this.isSet(field))
+        return html`
+            <div class="panel views-panel">
+                <div class="panel-caption">Saved views</div>
+                ${views.length === 0 ? html`
+                    <div class="panel-row views-empty">No saved views yet</div>` : nothing}
+                ${views.map(view => html`
+                    <div class="panel-row view-row" @mousedown="${this.keepFocus}">
+                        <span class="view-name" @click="${() => this.applyView(view)}">${view.name}</span>
+                        <button class="view-star ${view.isDefault ? 'view-star--on' : ''}"
+                                title="${view.isDefault ? 'Unset as default' : 'Open this listing with this view'}"
+                                @click="${() => { setDefaultView(this.viewsScope, view.name); this.requestUpdate() }}">★</button>
+                        <button class="chip-remove" aria-label="Delete view ${view.name}"
+                                @click="${() => { deleteView(this.viewsScope, view.name); this.requestUpdate() }}">✕</button>
+                    </div>`)}
+                ${anySet ? html`
+                    <div class="panel-input-row" @mousedown="${(e: Event) => e.stopPropagation()}">
+                        <input class="view-name-input" type="text" placeholder="Save current view as…"
+                               @keydown="${(e: KeyboardEvent) => {
+                                   if (e.key === 'Enter') this.saveCurrentView(e.target as HTMLInputElement)
+                                   if (e.key === 'Escape') { this.viewsOpened = false }
+                               }}"/>
+                        <button class="apply-button"
+                                @click="${(e: Event) => this.saveCurrentView((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">Save</button>
+                    </div>` : html`
+                    <div class="panel-row views-empty">Apply some filters to save a view</div>`}
+            </div>`
+    }
+
     private renderPanel(): TemplateResult | typeof nothing {
         if (!this.panelOpened || this.filters.length === 0) return nothing
         if (this.activeFilter) {
@@ -420,8 +537,29 @@ export class MateuFilterBar extends LitElement {
                                    if (e.key === 'Escape') this.closePanel()
                                }}"/>
                     ` : nothing}
+                    <button class="views-button" title="Saved views" aria-label="Saved views"
+                            @mousedown="${this.keepFocus}"
+                            @click="${(e: Event) => {
+                                e.stopPropagation()
+                                this.closePanel()
+                                this.viewsOpened = !this.viewsOpened
+                                if (this.viewsOpened) {
+                                    this.outsideClick = (event: Event) => {
+                                        if (!event.composedPath().includes(this)) {
+                                            this.viewsOpened = false
+                                            this.detachOutsideClick()
+                                        }
+                                    }
+                                    document.addEventListener('mousedown', this.outsideClick)
+                                }
+                            }}">
+                        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
+                        </svg>
+                    </button>
                 </div>
                 ${this.renderPanel()}
+                ${this.renderViewsPanel()}
             </div>
             <slot></slot>
         `
@@ -500,6 +638,50 @@ export class MateuFilterBar extends LitElement {
             z-index: 200;
             overflow: hidden;
             padding: 0.25rem 0;
+        }
+        .views-panel {
+            left: auto;
+            right: 0;
+        }
+        .views-button {
+            margin-left: auto;
+            flex-shrink: 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: 0.15rem 0.3rem;
+            color: var(--lumo-secondary-text-color, #555);
+            line-height: 1;
+        }
+        .views-button:hover {
+            color: var(--lumo-primary-text-color, #1676f3);
+        }
+        .view-row {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .view-name {
+            flex: 1 1 auto;
+            cursor: pointer;
+        }
+        .view-star {
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--lumo-contrast-40pct, #999);
+            padding: 0 0.15rem;
+        }
+        .view-star--on {
+            color: var(--lumo-primary-text-color, #1676f3);
+        }
+        .views-empty {
+            color: var(--lumo-secondary-text-color, #777);
+            font-size: var(--lumo-font-size-s, 0.875rem);
+            cursor: default;
+        }
+        .view-name-input {
+            flex: 1 1 auto;
         }
         .panel-caption {
             padding: 0.35rem 0.75rem;

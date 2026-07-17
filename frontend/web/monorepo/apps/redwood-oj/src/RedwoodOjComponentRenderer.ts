@@ -35,17 +35,28 @@ import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
 import './components/mateu-redwood-table'
 import './components/mateu-redwood-pagination'
 import './components/mateu-redwood-action-menu'
+import {
+    SavedView,
+    defaultView,
+    deleteView,
+    listSavedViews,
+    saveView,
+    setDefaultView,
+} from "@infra/savedViewsStore.ts";
 
 // Local UI state of the smart-search filter bar, keyed by the crud element: the renderer hook is
-// stateless, so panel-open/active-filter/uncommitted-text live here and re-renders go through the
-// host's requestUpdate(). The document-level outside-click listener is stored so it can be
-// detached when the panel closes (closing always detaches, so a killed crud can't leak it past
-// the next click).
+// stateless, so panel-open/views-panel-open/active-filter/uncommitted-text live here and
+// re-renders go through the host's requestUpdate(). The document-level outside-click listener is
+// stored so it can be detached when the panel closes (closing always detaches, so a killed crud
+// can't leak it past the next click). defaultViewChecked marks that the bar's first render
+// already considered auto-applying the route's default saved view.
 type SmartSearchUi = {
     open: boolean
     text: string
+    viewsOpen: boolean
     activeFilter?: any
     outsideClick?: (e: Event) => void
+    defaultViewChecked?: boolean
 }
 const smartSearchUi = new WeakMap<HTMLElement, SmartSearchUi>()
 
@@ -219,7 +230,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
     renderFilterBar(container: MateuTableCrud, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult {
         const metadata = component?.metadata as Crud
         const filters = (metadata?.filters ?? []) as any[]
-        const ui = smartSearchUi.get(container) ?? { open: false, text: '' }
+        const ui = smartSearchUi.get(container) ?? { open: false, text: '', viewsOpen: false }
         smartSearchUi.set(container, ui)
         const rerender = () => container.requestUpdate()
 
@@ -232,23 +243,39 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         const closePanel = () => {
             detachOutsideClick()
             ui.open = false
+            ui.viewsOpen = false
             ui.activeFilter = undefined
             rerender()
         }
-        const openPanel = () => {
-            if (ui.open) return
-            ui.open = true
+        const attachOutsideClick = () => {
+            detachOutsideClick()
             ui.outsideClick = (e: Event) => {
                 const inside = e.composedPath().some(el =>
                     el instanceof HTMLElement && el.classList?.contains('mateu-smart-search'))
                 if (!inside) closePanel()
             }
             document.addEventListener('mousedown', ui.outsideClick)
+        }
+        const openPanel = () => {
+            if (ui.open) return
+            ui.open = true
+            ui.viewsOpen = false
+            attachOutsideClick()
+            rerender()
+        }
+        // views (bookmark) panel and filter panel are mutually exclusive, like the shared bar's
+        const toggleViewsPanel = () => {
+            const opening = !ui.viewsOpen
+            ui.open = false
+            ui.activeFilter = undefined
+            ui.viewsOpen = opening
+            if (opening) attachOutsideClick(); else detachOutsideClick()
             rerender()
         }
         const doSearch = () => {
             detachOutsideClick()
             ui.open = false
+            ui.viewsOpen = false
             ui.activeFilter = undefined
             container.search()
         }
@@ -313,6 +340,60 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
             }
             if (isMultiFilter(f)) return multiValues(f).map(v => displayValue(f, v)).join(', ')
             return displayValue(f, state[f.fieldId])
+        }
+
+        // ── saved views ──────────────────────────────────────────────────────
+        // Named snapshots of the whole condition set (keyword + filters), persisted client-side
+        // per route by the shared savedViewsStore. Applying one replaces the current conditions
+        // (clear ALL filter keys, set the saved entries, search — same order as the shared
+        // mateu-filter-bar, but through this hook's direct-state-mutation idiom); the scope's
+        // default view is applied on the bar's first render when the URL carries no params.
+        const viewsScope = window.location.pathname
+        const allFilterKeys = (): string[] => ['searchText', ...filters.flatMap(f =>
+            isRangeFilter(f)
+                ? [`${f.fieldId}_from`, `${f.fieldId}_to`]
+                : [f.fieldId])]
+        const anyConditionSet = (): boolean => !!state.searchText || filters.some(f => isSet(f))
+        /** The current condition set, only the keys that are actually set. */
+        const snapshotValues = (): Record<string, unknown> => {
+            const values: Record<string, unknown> = {}
+            if (state.searchText) values.searchText = state.searchText
+            filters.forEach(f => {
+                if (!isSet(f)) return
+                if (isRangeFilter(f)) {
+                    const from = rangeBound(f, 'from')
+                    const to = rangeBound(f, 'to')
+                    if (from) values[`${f.fieldId}_from`] = from
+                    if (to) values[`${f.fieldId}_to`] = to
+                } else if (isMultiFilter(f)) {
+                    values[f.fieldId] = multiValues(f)
+                } else {
+                    values[f.fieldId] = state[f.fieldId]
+                }
+            })
+            return values
+        }
+        const applyView = (view: SavedView) => {
+            // clear everything first, then set the view's values, then search
+            allFilterKeys().forEach(key => { state[key] = undefined })
+            Object.entries(view.values).forEach(([key, value]) => { state[key] = value })
+            doSearch()
+        }
+        const saveCurrentView = (input: HTMLInputElement) => {
+            const name = input.value.trim()
+            if (!name) return
+            saveView(viewsScope, { name, values: snapshotValues() })
+            input.value = ''
+            rerender()
+        }
+        if (!ui.defaultViewChecked) {
+            ui.defaultViewChecked = true
+            // default view: only when the URL carries no explicit filter params (they win)
+            if (!window.location.search) {
+                const view = defaultView(viewsScope)
+                // wait a tick so the crud finishes its first render before searching
+                if (view) setTimeout(() => { if (!anyConditionSet()) applyView(view) }, 0)
+            }
         }
 
         const chips: { fieldId: string, label: string, display: string }[] = []
@@ -447,6 +528,39 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                 `}
             </div>` : nothing
 
+        const MUTED_ROW = `${ROW_STYLE} cursor: default; color: rgba(22,21,19,0.6);`
+        const viewsPanel = ui.viewsOpen ? html`
+            <div style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 20rem; max-width: 100%; background: var(--mateu-redwood-panel-bg, #fff); border: 1px solid rgba(22,21,19,0.25); border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); z-index: 30; overflow: hidden; padding: 0.25rem 0;">
+                <div style="padding: 0.35rem 0.75rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(22,21,19,0.6);">Saved views</div>
+                ${listSavedViews(viewsScope).length === 0 ? html`
+                    <div style="${MUTED_ROW}">No saved views yet</div>` : nothing}
+                ${listSavedViews(viewsScope).map(view => html`
+                    <div style="${ROW_STYLE}"
+                         @mousedown="${keepFocus}"
+                         onmouseover="this.style.background='rgba(22,21,19,0.06)'"
+                         onmouseout="this.style.background='transparent'">
+                        <span style="flex: 1 1 auto; cursor: pointer;" @click="${() => applyView(view)}">${view.name}</span>
+                        <button title="${view.isDefault ? 'Unset as default' : 'Open this listing with this view'}"
+                                style="border: none; background: none; cursor: pointer; padding: 0 0.15rem; color: ${view.isDefault ? 'var(--mateu-redwood-cta-bg, rgb(49, 45, 42))' : 'rgba(22,21,19,0.4)'};"
+                                @click="${() => { setDefaultView(viewsScope, view.name); rerender() }}">★</button>
+                        <button aria-label="Delete view ${view.name}"
+                                style="border: none; background: transparent; cursor: pointer; font-size: 0.75rem; line-height: 1; padding: 0.1rem 0.3rem; opacity: 0.6;"
+                                @click="${() => { deleteView(viewsScope, view.name); rerender() }}">✕</button>
+                    </div>`)}
+                ${anyConditionSet() ? html`
+                    <div style="display: flex; gap: 0.5rem; padding: 0.5rem 0.75rem;" @mousedown="${(e: Event) => e.stopPropagation()}">
+                        <input type="text" placeholder="Save current view as…" style="${INPUT_STYLE}"
+                               @keydown="${(e: KeyboardEvent) => {
+                                   if (e.key === 'Enter') saveCurrentView(e.target as HTMLInputElement)
+                                   if (e.key === 'Escape') closePanel()
+                               }}"/>
+                        <button style="${APPLY_STYLE}"
+                                @mousedown="${keepFocus}"
+                                @click="${(e: Event) => saveCurrentView((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">Save</button>
+                    </div>` : html`
+                    <div style="${MUTED_ROW}">Apply some filters to save a view</div>`}
+            </div>` : nothing
+
         return html`
             <div class="mateu-smart-search" style="position: relative; padding: 0.25rem 0;">
                 <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; border: 1px solid rgba(22,21,19,0.5); border-radius: 8px; padding: 0.3rem 0.6rem; background: var(--mateu-redwood-panel-bg, #fff); cursor: text;"
@@ -482,8 +596,17 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                                    if (e.key === 'Escape') closePanel()
                                }}"/>
                     ` : nothing}
+                    <button title="Saved views" aria-label="Saved views"
+                            style="margin-left: auto; flex: none; border: none; background: none; cursor: pointer; padding: 0.15rem 0.3rem; color: rgba(22,21,19,0.6); line-height: 1;"
+                            @mousedown="${keepFocus}"
+                            @click="${(e: Event) => { e.stopPropagation(); toggleViewsPanel() }}">
+                        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
+                        </svg>
+                    </button>
                 </div>
                 ${panel}
+                ${viewsPanel}
                 ${metadata?.header?.map(comp => renderComponent(container, comp, baseUrl, state, data, appState, appData))}
             </div>
         `
