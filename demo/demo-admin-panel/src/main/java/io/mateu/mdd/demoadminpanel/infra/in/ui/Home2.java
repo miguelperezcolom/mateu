@@ -22,7 +22,33 @@ import java.util.List;
 @Title("My first Mateu app")
 @AI(sse = "http://localhost:8095/ai/api/agent/stream")
 @App(themeToggle = true)
-public class Home2 implements WidgetSupplier, io.mateu.uidl.interfaces.AppActionsSupplier {
+public class Home2
+        implements WidgetSupplier,
+        io.mateu.uidl.interfaces.AppActionsSupplier,
+        io.mateu.uidl.interfaces.NotificationsSupplier {
+
+    // demo inbox (the header bell): per-user in real apps — resolve the user from the request
+    private static final java.util.List<io.mateu.uidl.data.AppNotification> INBOX =
+            java.util.Collections.synchronizedList(new java.util.ArrayList<>(java.util.List.of(
+                    new io.mateu.uidl.data.AppNotification(
+                            "n1", "Ventas actualizadas", "El informe de ventas tiene 3 filas nuevas",
+                            "/aggregates-demo", true, "hace 5 min"),
+                    new io.mateu.uidl.data.AppNotification(
+                            "n2", "Reserva confirmada", null, "/reservations", true, "hace 1 h"),
+                    new io.mateu.uidl.data.AppNotification(
+                            "n3", "Backup completado", null, null, false, "ayer"))));
+
+    @Override
+    public java.util.List<io.mateu.uidl.data.AppNotification> notifications(HttpRequest httpRequest) {
+        return java.util.List.copyOf(INBOX);
+    }
+
+    @Override
+    public void markNotificationsRead(java.util.List<String> ids, HttpRequest httpRequest) {
+        INBOX.replaceAll(n -> ids.contains(n.id())
+                ? new io.mateu.uidl.data.AppNotification(n.id(), n.title(), n.text(), n.route(), false, n.when())
+                : n);
+    }
 
     @Menu
     RouteLink checkin = new RouteLink("/checkin", "Check-in");

@@ -105,6 +105,10 @@ public class ActionInstanceCreator {
     if (actionId.startsWith(io.mateu.core.domain.act.AppContextSearchActionRunner.ACTION_PREFIX)) {
       return true;
     }
+    // The notification inbox's list/read actions are app-level too (the bell lives on the shell).
+    if (actionId.startsWith(io.mateu.core.domain.act.NotificationsActionRunner.ACTION_PREFIX)) {
+      return true;
+    }
     // Header actions declared by the app's AppActionsSupplier dispatch to the app
     // instance too — same reasoning as the context selectors' remote search.
     if (command.serverSideType() == null) {

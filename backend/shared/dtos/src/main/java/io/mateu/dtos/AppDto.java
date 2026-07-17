@@ -39,7 +39,8 @@ public record AppDto(
     List<FabDto> fabs,
     boolean themeToggle,
     List<AppContextSelectorDto> contextSelectors,
-    List<AppHeaderActionDto> contextActions)
+    List<AppHeaderActionDto> contextActions,
+    boolean notificationsEnabled)
     implements ComponentMetadataDto {
 
   public AppDto {

@@ -91,6 +91,7 @@ public final class AppMapper {
             .themeToggle(getThemeToggle(app))
             .contextSelectors(getContextSelectors(app, httpRequest))
             .contextActions(getContextActions(app, httpRequest))
+            .notificationsEnabled(isNotificationsEnabled(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -150,6 +151,19 @@ public final class AppMapper {
     var actions = supplier.appActions(httpRequest);
     if (actions == null) return List.of();
     return actions.stream().map(AppMapper::mapHeaderAction).toList();
+  }
+
+  /**
+   * The bell renders when the app class implements {@link
+   * io.mateu.uidl.interfaces.NotificationsSupplier}.
+   */
+  @SneakyThrows
+  private static boolean isNotificationsEnabled(AppShell app) {
+    if (app.serverSideType() == null) {
+      return false;
+    }
+    return io.mateu.uidl.interfaces.NotificationsSupplier.class.isAssignableFrom(
+        Class.forName(app.serverSideType()));
   }
 
   private static AppHeaderActionDto mapHeaderAction(io.mateu.uidl.data.AppHeaderAction action) {
