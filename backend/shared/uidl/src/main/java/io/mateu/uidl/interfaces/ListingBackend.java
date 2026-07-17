@@ -75,8 +75,10 @@ public interface ListingBackend<Filters, Row> extends ActionHandler, ActionSuppl
             httpRequest);
     var data = found != null ? found : new ListingData<Row>(new Page<>("", 0, 0, 0, List.of()));
     // @GroupBy rows on a custom listing: synthesize the group summaries the grid needs when the
-    // implementation didn't compute them itself.
-    return new Data(Map.of(getCrudId(httpRequest), data.withSynthesizedGroups(rowClass())));
+    // implementation didn't compute them itself, then hide the @GroupAction buttons the listing
+    // declares not applicable per group.
+    data = GroupActions.applyVisibility(this, data.withSynthesizedGroups(rowClass()), httpRequest);
+    return new Data(Map.of(getCrudId(httpRequest), data));
   }
 
   default Object handleActionOnRow(String methodName, HttpRequest httpRequest) {

@@ -55,7 +55,12 @@ public interface ReactiveListingBackend<Filters, Row> extends ActionHandler {
             httpRequest)
         .map(
             crudlData ->
-                (Object) new Data(Map.of("crud", crudlData.withSynthesizedGroups(rowClass()))))
+                (Object)
+                    new Data(
+                        Map.of(
+                            "crud",
+                            GroupActions.applyVisibility(
+                                this, crudlData.withSynthesizedGroups(rowClass()), httpRequest))))
         .flux();
   }
 

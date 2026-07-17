@@ -373,26 +373,34 @@ export const columnRenderer = (item: any,
                 : [c?.metadata?.id])
         const labelColumnId = groupLabelColumnId(item.__mateuGroupBy, columnIds)
         const text = groupRowCellText(item, column, labelColumnId)
-        // @GroupAction buttons ride on the label cell of the group header row; the clicked
+        // @GroupAction buttons ride on the LAST column of the group header row, right-aligned, so
+        // they line up with the child rows' own action column. Groups may hide individual actions
+        // via GroupSummary.hiddenActions (GroupActionVisibility on the listing). The clicked
         // group's value travels as the _groupValue action parameter.
-        const groupActions = column.id === labelColumnId ? (meta?.groupActions ?? []) : []
-        return html`<span style="display: flex; align-items: center; gap: var(--lumo-space-s); overflow: hidden;">
-            <span title="${text}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${text}</span>
-            ${groupActions.map((action: any) => html`
-                <vaadin-button theme="tertiary small" style="flex-shrink: 0;"
-                    @click="${(e: Event) => {
-                        e.stopPropagation();
-                        (e.currentTarget as Element).dispatchEvent(new CustomEvent('action-requested', {
-                            detail: {
-                                actionId: 'action-on-row-' + (action.actionId ?? action.id),
-                                parameters: { _groupValue: item.__mateuGroup.value }
-                            },
-                            bubbles: true,
-                            composed: true
-                        }))
-                    }}">${action.label ?? action.caption ?? ''}</vaadin-button>
-            `)}
-        </span>`
+        const hidden: string[] = item.__mateuGroup.hiddenActions ?? []
+        const groupActions = column.id === columnIds[columnIds.length - 1]
+            ? (meta?.groupActions ?? []).filter((action: any) => !hidden.includes(action.actionId ?? action.id))
+            : []
+        if (groupActions.length) {
+            return html`<span style="display: flex; align-items: center; justify-content: flex-end; gap: var(--lumo-space-s); overflow: hidden;">
+                ${text ? html`<span style="font-weight: 600;">${text}</span>` : nothing}
+                ${groupActions.map((action: any) => html`
+                    <vaadin-button theme="tertiary small" style="flex-shrink: 0;"
+                        @click="${(e: Event) => {
+                            e.stopPropagation();
+                            (e.currentTarget as Element).dispatchEvent(new CustomEvent('action-requested', {
+                                detail: {
+                                    actionId: 'action-on-row-' + (action.actionId ?? action.id),
+                                    parameters: { _groupValue: item.__mateuGroup.value }
+                                },
+                                bubbles: true,
+                                composed: true
+                            }))
+                        }}">${action.label ?? action.caption ?? ''}</vaadin-button>
+                `)}
+            </span>`
+        }
+        return html`<span title="${text}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${text}</span>`
     }
     if (column.editable) {
         return renderEditableCell(item, column, container, state)

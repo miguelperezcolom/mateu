@@ -9,6 +9,8 @@ export interface GroupSummary {
     value: string
     count: number
     aggregates: Record<string, number>
+    /** Ids of the @GroupAction buttons this group must NOT show (absent = all visible). */
+    hiddenActions?: string[]
 }
 
 /**
