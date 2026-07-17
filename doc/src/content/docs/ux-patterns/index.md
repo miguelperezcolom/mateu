@@ -29,6 +29,16 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | [Split View](./split-view) | ✅ Implemented | `@SplitCrud` |
 | [Tree CRUD](./tree-crud) | ✅ Implemented | `gridLayout() = GridLayout.tree`, `@SplitCrud` |
 | [Filters & Listing](./filters-and-listing) | ✅ Implemented | `@List`, `@Filterable`, `@RowAction` |
+| [Bulk actions](./bulk-actions) | ✅ Implemented | `@ListToolbarButton` + typed `List<Row>` selection |
+| [Saved views](./saved-views) | ✅ Implemented | Smart search bar bookmark — named condition sets, default view |
+| [Totals & row grouping](./aggregates) | ✅ Implemented | `@Aggregate(sum/avg/…)` footer + `@GroupBy` subtotal rows |
+| [Column chooser](./column-chooser) | ✅ Implemented | Show/hide/reorder columns per user, per listing |
+| [Concurrent edit conflicts](./optimistic-locking) | ✅ Implemented | `@Version` — conflict dialog: reload / overwrite |
+| [Notification inbox](./notification-inbox) | ✅ Implemented | `NotificationsSupplier` — header bell, unread count, mark-as-read |
+| [Undo](./undo) | ✅ Implemented | `Message.undoable(...)` — toast with an Undo button |
+| [Session expiry](./session-expiry) | ✅ Implemented | `onSessionExpired` — re-auth + retry, work intact |
+| [Audit version diff](./audit-diff) | ✅ Implemented | History grouped by save moment — old → new per field |
+| [Global entity search](./global-search) | ✅ Implemented | `GlobalSearchSupplier` — ⌘K searches data, grouped by category |
 | [Wizard](./wizard) | ✅ Implemented | `@WizardCompletionAction` |
 | [Entity Picker](./entity-picker) | ✅ Implemented | `@Lookup`, `@Composition` |
 | [Workspace](./workspace) | Composition | `@SplitLayout`, `@Tabs`, `@Accordion` |

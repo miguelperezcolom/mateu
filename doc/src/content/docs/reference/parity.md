@@ -143,6 +143,14 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ | ✅ |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
+| Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ | 🟡 | 🟡 |
+| Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (shared bar; redwood: own bar) | — | — |
+| Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ | — | — |
+| Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | 🟡 | 🟡 |
+| Notification bell (inbox, unread count) | ✅ | ✅ | ✅ | 🟡 | 🟡 |
+| Undoable toasts (Undo button) | ✅ | ✅ | ✅ | 🟡 | 🟡 |
+| ⌘K palette entity search (GlobalSearchSupplier) | ✅ | — (own shells render no palette yet) | — | — | — |
+| Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (shared api client) | — | — |
 | Dockable multi-tab workspace | — | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | — | ✅ (+ min IDE build gate) | ✅ |
 
