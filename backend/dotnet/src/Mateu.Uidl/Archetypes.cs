@@ -194,3 +194,146 @@ internal static class Archetypes
         return sb.ToString();
     }
 }
+
+/// <summary>A tree-supplier view whose state changes should re-render it in place: the framework
+/// emits an AutoSave trigger firing <see cref="RefreshActionId"/> (debounced) whenever a field
+/// value changes, and seeds the view's scalar properties into the component's initialData so they
+/// round-trip through componentState.</summary>
+public interface IRefreshOnChange
+{
+    string RefreshActionId { get; }
+    int RefreshDebounceMillis { get; }
+}
+
+/// <summary>Collection-detail page (the Redwood "Collection Detail" template, the C# analogue of
+/// Java's CollectionDetail archetype): a searchable list of items on the left — clickable cards
+/// with title, caption and badges — and the selected item's detail on the right, re-rendered in
+/// place on every selection. Implement <see cref="Rows"/>, <see cref="IdOf"/>,
+/// <see cref="TitleOf"/> and <see cref="Detail"/>.</summary>
+public abstract class CollectionDetail<TRow> : IComponentTreeSupplier, IRefreshOnChange
+{
+    /// <summary>The search box value (bound from componentState).</summary>
+    public string? Search { get; set; }
+
+    /// <summary>The selected row's id (bound from componentState; set by the row click).</summary>
+    public string? SelectedId { get; set; }
+
+    public string RefreshActionId => "filterCollection";
+    public int RefreshDebounceMillis => 400;
+
+    /// <summary>The (already filtered) rows to list, in display order.</summary>
+    protected abstract IEnumerable<TRow> Rows(string? search);
+
+    /// <summary>Stable id of a row (used to track the selection).</summary>
+    protected abstract string? IdOf(TRow row);
+
+    /// <summary>Main line of the row's list card.</summary>
+    protected abstract string TitleOf(TRow row);
+
+    /// <summary>The detail pane for the selected row.</summary>
+    protected abstract IComponent Detail(TRow row);
+
+    /// <summary>Secondary line of the row's list card. Null for none.</summary>
+    protected virtual string? CaptionOf(TRow row) => null;
+
+    /// <summary>Badges of the row's list card.</summary>
+    protected virtual IReadOnlyList<Chip> BadgesOf(TRow row) => [];
+
+    /// <summary>Label over the list. Default: a results counter.</summary>
+    protected virtual string ListLabel(int count) => $"{count} items";
+
+    /// <summary>CSS flex-basis of the list column.</summary>
+    protected virtual string ListWidth => "24rem";
+
+    /// <summary>What the right pane shows before any selection.</summary>
+    protected virtual IComponent EmptyDetail() => new EmptyState
+    {
+        Icon = "👈", Title = "Select an item",
+        Description = "Pick an item from the list to see its detail.",
+        Style = "flex: 1; margin-top: 3rem;",
+    };
+
+    public IComponent Component()
+    {
+        var items = new List<QueueItem>();
+        TRow? selected = default;
+        var found = false;
+        foreach (var row in Rows(Search))
+        {
+            var id = IdOf(row);
+            var isSelected = id is not null && id == SelectedId;
+            if (isSelected) { selected = row; found = true; }
+            items.Add(new QueueItem
+            {
+                Id = id, Title = TitleOf(row), Caption = CaptionOf(row),
+                Badges = BadgesOf(row), Selected = isSelected,
+            });
+        }
+        var list = new TaskQueue
+        {
+            ActionId = "selectCollectionItem",
+            Style = $"flex: 0 0 {ListWidth}; min-width: min({ListWidth}, 100%);",
+            Groups = [new QueueGroup { Label = ListLabel(items.Count), Items = items }],
+        };
+        var detail = found ? Detail(selected!) : EmptyDetail();
+        return new VerticalLayout
+        {
+            Id = Archetypes.IdOf(this), Spacing = true,
+            Content =
+            [
+                new FormField { FieldId = "search", Label = "Search" },
+                new HorizontalLayout
+                {
+                    Style = "align-items: flex-start; gap: 1.5rem; width: 100%;",
+                    Content = [list, detail],
+                },
+            ],
+        };
+    }
+}
+
+/// <summary>Record overview page (the Redwood "General Overview" template, the C# analogue of
+/// Java's GeneralOverview archetype): a record context switcher at the top jumps between records
+/// without leaving the page; the selected record renders below — typically an EntityHeader over
+/// property cards. Implement <see cref="SwitcherOptions"/>, <see cref="Load"/> and
+/// <see cref="Overview"/>.</summary>
+public abstract class GeneralOverview<TRow> : IComponentTreeSupplier, IRefreshOnChange
+{
+    /// <summary>The switcher value (bound from componentState); empty selects the first option.</summary>
+    public string? Record { get; set; }
+
+    public string RefreshActionId => "switchRecord";
+    public int RefreshDebounceMillis => 0;
+
+    /// <summary>The context switcher's entries (value = record id, label = what the user reads).</summary>
+    protected abstract IReadOnlyList<Option> SwitcherOptions();
+
+    /// <summary>Loads the record behind a switcher value. Null hides the overview.</summary>
+    protected abstract TRow? Load(string id);
+
+    /// <summary>The record's overview — typically an EntityHeader with the title/badges/facts strip
+    /// over property cards.</summary>
+    protected abstract IComponent Overview(TRow row);
+
+    /// <summary>What to show when no record is selected/found.</summary>
+    protected virtual IComponent EmptyOverview() => new EmptyState
+    {
+        Icon = "🗂", Title = "Select a record", Description = "Pick a record in the switcher above.",
+    };
+
+    public IComponent Component()
+    {
+        var options = SwitcherOptions();
+        if (string.IsNullOrEmpty(Record) && options.Count > 0) Record = options[0].Value;
+        var row = string.IsNullOrEmpty(Record) ? default : Load(Record!);
+        return new VerticalLayout
+        {
+            Id = Archetypes.IdOf(this), Spacing = true,
+            Content =
+            [
+                new FormField { FieldId = "record", Label = "", Options = options },
+                row is null ? EmptyOverview() : Overview(row),
+            ],
+        };
+    }
+}

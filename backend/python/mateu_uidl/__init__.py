@@ -1144,3 +1144,132 @@ __all__ = [
     "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome",
 ]
+
+
+class CollectionDetail(ComponentTreeSupplier):
+    """Collection-detail page (the Redwood "Collection Detail" template, the Python analogue of
+    Java's CollectionDetail archetype): a searchable list of items on the left — clickable cards
+    with title, caption and badges — and the selected item's detail on the right, re-rendered in
+    place on every selection. Implement :meth:`rows`, :meth:`id_of`, :meth:`title_of` and
+    :meth:`detail`."""
+
+    search: str | None = None
+    selected_id: str | None = None
+
+    __mateu_refresh_action__ = "filterCollection"
+    __mateu_refresh_debounce__ = 400
+
+    def rows(self, search):
+        raise NotImplementedError
+
+    def id_of(self, row):
+        raise NotImplementedError
+
+    def title_of(self, row):
+        raise NotImplementedError
+
+    def detail(self, row):
+        raise NotImplementedError
+
+    def caption_of(self, row):
+        return None
+
+    def badges_of(self, row):
+        return ()
+
+    def list_label(self, count: int) -> str:
+        return f"{count} items"
+
+    def list_width(self) -> str:
+        return "24rem"
+
+    def empty_detail(self):
+        from mateu_uidl import components as fluent
+
+        return fluent.EmptyState(
+            icon="👈",
+            title="Select an item",
+            description="Pick an item from the list to see its detail.",
+            style="flex: 1; margin-top: 3rem;",
+        )
+
+    def component(self):
+        from mateu_uidl import components as fluent
+
+        items = []
+        selected = None
+        for row in self.rows(self.search):
+            row_id = self.id_of(row)
+            is_selected = row_id is not None and row_id == self.selected_id
+            if is_selected:
+                selected = row
+            items.append(
+                fluent.QueueItem(
+                    id=row_id,
+                    title=self.title_of(row),
+                    caption=self.caption_of(row),
+                    badges=tuple(self.badges_of(row)),
+                    selected=is_selected,
+                )
+            )
+        width = self.list_width()
+        queue = fluent.TaskQueue(
+            action_id="selectCollectionItem",
+            groups=(fluent.QueueGroup(label=self.list_label(len(items)), items=tuple(items)),),
+            style=f"flex: 0 0 {width}; min-width: min({width}, 100%);",
+        )
+        detail = self.detail(selected) if selected is not None else self.empty_detail()
+        return fluent.VerticalLayout(
+            spacing=True,
+            content=(
+                fluent.FormField(field_id="search", label="Search"),
+                fluent.HorizontalLayout(
+                    content=(queue, detail),
+                    style="align-items: flex-start; gap: 1.5rem; width: 100%;",
+                ),
+            ),
+        )
+
+
+class GeneralOverview(ComponentTreeSupplier):
+    """Record overview page (the Redwood "General Overview" template, the Python analogue of
+    Java's GeneralOverview archetype): a record context switcher at the top jumps between records
+    without leaving the page; the selected record renders below — typically an ``EntityHeader``
+    over property cards. Implement :meth:`switcher_options`, :meth:`load` and :meth:`overview`."""
+
+    record: str | None = None
+
+    __mateu_refresh_action__ = "switchRecord"
+    __mateu_refresh_debounce__ = 0
+
+    def switcher_options(self):
+        """``(value, label)`` pairs — value = record id, label = what the user reads."""
+        raise NotImplementedError
+
+    def load(self, record_id: str):
+        raise NotImplementedError
+
+    def overview(self, row):
+        raise NotImplementedError
+
+    def empty_overview(self):
+        from mateu_uidl import components as fluent
+
+        return fluent.EmptyState(
+            icon="🗂", title="Select a record", description="Pick a record in the switcher above."
+        )
+
+    def component(self):
+        from mateu_uidl import components as fluent
+
+        options = list(self.switcher_options())
+        if not self.record and options:
+            self.record = str(options[0][0])
+        row = self.load(self.record) if self.record else None
+        return fluent.VerticalLayout(
+            spacing=True,
+            content=(
+                fluent.FormField(field_id="record", label="", options=tuple(options)),
+                self.overview(row) if row is not None else self.empty_overview(),
+            ),
+        )

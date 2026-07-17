@@ -365,6 +365,48 @@ class Step:
 
 
 @dataclass(frozen=True)
+class VerticalLayout(Component):
+    """Lays its children out vertically (the analogue of .NET's fluent VerticalLayout)."""
+
+    content: tuple = ()
+    spacing: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class HorizontalLayout(Component):
+    """Lays its children out horizontally (the analogue of .NET's fluent HorizontalLayout)."""
+
+    content: tuple = ()
+    spacing: bool = True
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
+class FormField(Component):
+    """A live form field composed directly into a fluent tree (the analogue of Java's fluent
+    FormField, e.g. a search box or a select inside an archetype): the renderer binds it to
+    componentState under ``field_id``, so its value rides every action request and lands on a
+    same-named attribute of the view. With ``options`` it renders as a select."""
+
+    field_id: str = ""
+    data_type: str = "string"
+    label: str | None = None
+    stereotype: str = "regular"
+    required: bool = False
+    read_only: bool = False
+    initial_value: object | None = None
+    options: tuple = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
+@dataclass(frozen=True)
 class ProgressSteps(Component):
     """A read-only progress indicator: numbered steps joined by a connector — a horizontal row
     by default, a stacked column when ``vertical`` (the wizard RAIL mode)."""

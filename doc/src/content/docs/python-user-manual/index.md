@@ -118,6 +118,11 @@ Decorate the crud class with `@edit_in_drawer` and New/row clicks open the creat
 **drawer sliding over the listing** (the listing never unmounts; saving persists, closes the
 drawer and refreshes the rows in place).
 
+Two more archetypes mirror the Java orchestrators: subclass `CollectionDetail` (searchable card
+list on the left, the selected item's detail re-rendered in place on the right) or
+`GeneralOverview` (a record context switcher over the selected record's overview). Both are built
+on the fluent `FormField` primitive — a live field you can compose into any fluent tree.
+
 ## App shell & navigation
 
 An `@app` class is the application shell; each `@menu_item` method contributes a menu entry that

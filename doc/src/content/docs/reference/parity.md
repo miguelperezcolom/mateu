@@ -20,7 +20,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | App shell + menus + navigation | ✅ | ✅ | ✅ |
 | Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
 | CRUD create/edit in a drawer (`editInDrawer` — save closes + refreshes the listing in place) | ✅ | ✅ | ✅ |
-| Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) | ✅ | ❌ | ❌ |
+| Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) + fluent `FormField` | ✅ | ✅ | ✅ |
 | Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | 🟡 | 🟡 |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
@@ -88,12 +88,15 @@ rather than Java's typed `FilterCriterion` objects; a contract difference, not a
 (`Crud<T>.EditInDrawer` virtual / `@edit_in_drawer` decorator — new and row clicks answer the
 entity form inside a `Drawer` Add fragment over the listing; cancel closes it; save persists and
 answers `CloseModal` carrying the `mateu-crud:saved-in-drawer` event plus a `RunAction search`
-command, so the listing refreshes in place with no navigation) and the wizard RAIL progress style
+command, so the listing refreshes in place with no navigation), the wizard RAIL progress style
 (`[WizardProgress("rail")]` / `@wizard_progress("rail")` — the step form on the left, a sticky
 right band with a big `current | total` counter over the vertical step list; `ProgressSteps`
-carries `vertical` in all three backends). The `CollectionDetail`/`GeneralOverview` archetypes
-remain Java-only: the ports have no mixed reflected-fields + fluent-tree page mode (nor a fluent
-form-field primitive), which those archetypes need for their search box / context switcher.
+carries `vertical` in all three backends), and — closing the day's last gap — the **fluent
+`FormField` primitive** (a live field composed into any fluent tree, bound to componentState by
+`fieldId`; with options it renders as a select) plus the `CollectionDetail` and `GeneralOverview`
+archetypes built on it: tree-supplier views seed their scalar properties into `initialData` (so
+search/selection round-trip) and emit an `AutoSave` trigger so typing/switching re-renders the
+page in place.
 
 **Recent .NET/Python parity gains (2026-07-11)**: inline CRUD editing
 (`[InlineEditing]`/`@inline_editing` — editable columns with typed in-place editors +

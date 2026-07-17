@@ -47,6 +47,15 @@ public static class ComponentMapper
         Timeline tl => Dto(tl, new TimelineMetadataDto(tl.Items.Select(it => new TimelineItemDto(
             it.Id, it.Title, it.Description, it.Timestamp, it.Icon, it.Color, it.ActionId)).ToList())),
 
+        FormField ff => Dto(ff, new FormFieldMetadataDto(ff.FieldId, ff.DataType, ff.Label ?? "")
+        {
+            Stereotype = ff.Stereotype,
+            Required = ff.Required,
+            ReadOnly = ff.ReadOnly,
+            InitialValue = ff.InitialValue,
+            Options = ff.Options.Select(o => new OptionDto(o.Value, o.Label)).ToList(),
+        }),
+
         ProgressSteps ps => Dto(ps, new ProgressStepsMetadataDto(ps.Steps.Select(st => new StepDto(
             st.Id, st.Title, st.Description, st.Status)).ToList(), ps.Vertical)),
 

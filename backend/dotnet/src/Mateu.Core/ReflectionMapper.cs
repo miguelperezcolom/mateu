@@ -248,9 +248,33 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             pageMeta, null, content, compact ? "--mateu-compact:1" : null, null, null);
 
         var (triggers, emits) = EventsOf(type);
+        var initialData = new Dictionary<string, object?>();
+        if (instance is IComponentTreeSupplier)
+        {
+            // Tree-supplier views (archetypes): scalar properties are the view's state — seed
+            // them into initialData so they round-trip through componentState (search text,
+            // selection, switcher value…).
+            foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (!p.CanRead || !p.CanWrite) continue;
+                var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+                if (t != typeof(string) && !t.IsPrimitive && !t.IsEnum && t != typeof(decimal)) continue;
+                initialData[Naming.CamelCase(p.Name)] = p.GetValue(instance);
+            }
+            if (instance is IRefreshOnChange refresh)
+            {
+                // any field change re-renders the view in place (debounced) — the AutoSave
+                // trigger the shared frontend already honors
+                triggers = [.. triggers, new
+                {
+                    type = "AutoSave", actionId = refresh.RefreshActionId,
+                    debounceMillis = refresh.RefreshDebounceMillis,
+                }];
+            }
+        }
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), type.FullName!, route,
-            [page], new Dictionary<string, object?>(), actions, triggers, null, null, null)
+            [page], initialData, actions, triggers, null, null, null)
         {
             EmitsName = emits,
             ConfirmOnNavigationIfDirty = type.Find<ConfirmOnNavigationIfDirtyAttribute>() != null,

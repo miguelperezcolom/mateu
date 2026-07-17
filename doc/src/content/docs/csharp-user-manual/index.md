@@ -125,6 +125,11 @@ Override `EditInDrawer => true` and New/row clicks open the create/edit form in 
 sliding over the listing** (the listing never unmounts; saving persists, closes the drawer and
 refreshes the rows in place). `EditDrawerWidth` adjusts the panel width.
 
+Two more archetypes mirror the Java orchestrators: `CollectionDetail<TRow>` (searchable card
+list on the left, the selected item's detail re-rendered in place on the right) and
+`GeneralOverview<TRow>` (a record context switcher over the selected record's overview). Both are
+built on the fluent `FormField` primitive — a live field you can compose into any fluent tree.
+
 ## App shell & navigation
 
 An `[App]` class is the application shell; each `[MenuItem]` method contributes a menu entry that

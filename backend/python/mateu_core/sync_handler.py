@@ -25,6 +25,7 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     Aggregate,
+    ComponentTreeSupplier,
     AggregateFunction,
     DateRange,
     GlobalSearchSupplier,
@@ -161,6 +162,16 @@ class SyncHandler:
             return self.field_code_search(type_, rq)
         if not rq.action_id:
             return self.render(type_, instance, rq)
+        # 4b. Archetype in-place actions (CollectionDetail / GeneralOverview): selection, search
+        # filtering and record switching mutate the bound state and re-render the tree — no
+        # navigation, no method dispatch.
+        if isinstance(instance, ComponentTreeSupplier):
+            if rq.action_id == "selectCollectionItem":
+                raw = rq.parameters.get("_item") if rq.parameters else None
+                instance.selected_id = None if raw is None else str(raw)
+                return self.render(type_, instance, rq)
+            if rq.action_id in ("filterCollection", "switchRecord"):
+                return self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq)
 
     # ── Wizard ─────────────────────────────────────────────────────────────────

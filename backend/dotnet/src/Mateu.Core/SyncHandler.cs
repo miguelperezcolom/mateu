@@ -58,6 +58,20 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);
+        // 4b. Archetype in-place actions (CollectionDetail / GeneralOverview): selection, search
+        // filtering and record switching mutate the bound state and re-render the tree — no
+        // navigation, no method dispatch.
+        if (instance is IComponentTreeSupplier)
+        {
+            if (rq.ActionId == "selectCollectionItem")
+            {
+                type.GetProperty("SelectedId")?.SetValue(instance,
+                    StateString(GetState(rq.Parameters, "_item")));
+                return Render(type, instance, rq);
+            }
+            if (rq.ActionId is "filterCollection" or "switchRecord")
+                return Render(type, instance, rq);
+        }
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }
 

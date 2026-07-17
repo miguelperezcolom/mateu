@@ -27,6 +27,23 @@ public abstract record ComponentBase : IComponent
     public string? CssClasses { get; init; }
 }
 
+/// <summary>A live form field composed directly into a fluent tree (the analogue of Java's
+/// fluent FormField, e.g. a search box or a select inside an archetype): the renderer binds it
+/// to componentState under <see cref="FieldId"/>, so its value rides every action request and
+/// lands on a same-named property of the view. With <see cref="Options"/> it renders as a
+/// select.</summary>
+public sealed record FormField : ComponentBase
+{
+    public required string FieldId { get; init; }
+    public string DataType { get; init; } = "string";
+    public string? Label { get; init; }
+    public string Stereotype { get; init; } = "regular";
+    public bool Required { get; init; }
+    public bool ReadOnly { get; init; }
+    public object? InitialValue { get; init; }
+    public IReadOnlyList<Option> Options { get; init; } = [];
+}
+
 // ── Dashboards ─────────────────────────────────────────────────────────────────
 
 public enum MetricTrend { Up, Down, Neutral }

@@ -501,12 +501,38 @@ class ReflectionMapper:
             style="--mateu-compact:1" if compact else None,
         )
         triggers, emits = self.events_of(cls)
+        initial_data: dict = {}
+        if tree is not None:
+            # Tree-supplier views (archetypes): scalar attributes are the view's state — seed
+            # them into initialData so they round-trip through componentState (search text,
+            # selection, switcher value…).
+            declared = {
+                name
+                for c in type(instance).__mro__
+                for name in getattr(c, "__annotations__", {})
+                if not name.startswith("_")
+            }
+            for name in declared:
+                value = getattr(instance, name, None)
+                if value is None or isinstance(value, (str, int, float, bool)):
+                    initial_data[camel_case(name)] = value
+            refresh = getattr(cls, "__mateu_refresh_action__", None)
+            if refresh:
+                # any field change re-renders the view in place (debounced) — the AutoSave
+                # trigger the shared frontend already honors
+                triggers = list(triggers) + [
+                    {
+                        "type": "AutoSave",
+                        "actionId": refresh,
+                        "debounceMillis": getattr(cls, "__mateu_refresh_debounce__", 400),
+                    }
+                ]
         return ServerSideComponent(
             id=_id(),
             server_side_type=type_name(cls),
             route=route,
             children=[page],
-            initial_data={},
+            initial_data=initial_data,
             actions=actions,
             triggers=triggers,
             emits_name=emits,
@@ -802,6 +828,28 @@ class ReflectionMapper:
                 for it in c.items
             ]
             return self._fluent_client(TimelineMetadata(items=items), c)
+        if isinstance(c, fluent.VerticalLayout):
+            out = self._fluent_client(VerticalLayoutMetadata(spacing=c.spacing), c)
+            out.children = [self.map_component(child) for child in c.content]
+            return out
+        if isinstance(c, fluent.HorizontalLayout):
+            out = self._fluent_client(HorizontalLayoutMetadata(spacing=c.spacing), c)
+            out.children = [self.map_component(child) for child in c.content]
+            return out
+        if isinstance(c, fluent.FormField):
+            return self._fluent_client(
+                FormFieldMetadata(
+                    field_id=c.field_id,
+                    data_type=c.data_type,
+                    label=c.label or "",
+                    stereotype=c.stereotype,
+                    required=c.required,
+                    read_only=c.read_only,
+                    initial_value=c.initial_value,
+                    options=[Option(value=str(v), label=l) for v, l in c.options],
+                ),
+                c,
+            )
         if isinstance(c, fluent.ProgressSteps):
             steps = [
                 StepRecord(id=s.id, title=s.title, description=s.description, status=s.status)
