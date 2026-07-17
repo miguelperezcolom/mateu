@@ -122,6 +122,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             ContextSelectors = MapContextSelectors(appType),
             ContextActions = MapContextActions(appType),
             NotificationsEnabled = typeof(INotificationsSupplier).IsAssignableFrom(appType),
+            // ⌘K palette entity search: the app class implements IGlobalSearchSupplier → the
+            // palette also asks _globalsearch (mirrors AppMapper's globalSearchEnabled).
+            GlobalSearchEnabled = typeof(IGlobalSearchSupplier).IsAssignableFrom(appType),
         };
         return new ClientSideComponentDto(meta, "ux_main_app", [], null, null, null);
     }

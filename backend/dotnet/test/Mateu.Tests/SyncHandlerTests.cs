@@ -474,6 +474,47 @@ public class NoInboxApp
     [MenuItem("Things")] public Things Home() => new();
 }
 
+// Undoable toasts (mirrors the Java UndoableMessageSyncTest fixture): archive returns
+// Message.Undoable and the Undo button's action reverses the effect (archive → restore).
+[UI("archive-demo"), Title("Archive")]
+public class ArchivePage
+{
+    public static readonly List<string> Archived = [];
+
+    public string? Name { get; set; } = "x";
+
+    [Button]
+    public Message Archive()
+    {
+        Archived.Add("doc-7");
+        return Message.Undoable("Documento archivado", "restore",
+            new Dictionary<string, object?> { ["docId"] = "doc-7" });
+    }
+
+    public Message Restore(RunActionRqDto rq)
+    {
+        // the Undo button's undoParameters travel as ACTION PARAMETERS (not component state)
+        Archived.Remove(((JsonElement)rq.Parameters["docId"]!).GetString()!);
+        return new Message("Documento restaurado");
+    }
+}
+
+// Global entity search (mirrors the Java GlobalSearchSyncTest fixture): the app class implements
+// IGlobalSearchSupplier and answers the app-level _globalsearch action.
+[App("Searchable App")]
+public class SearchableApp : IGlobalSearchSupplier
+{
+    [MenuItem("Things")] public Things Home() => new();
+
+    public IReadOnlyList<GlobalSearchResult> GlobalSearch(string searchText) =>
+        new List<GlobalSearchResult>
+        {
+            new("Acme S.L.", "CIF B123", "/customers/1", "Clientes"),
+            new("Reserva R-42 (Acme)", null, "/reservations/42", "Reservas"),
+            new("Globex", "CIF B999", "/customers/2", "Clientes"),
+        }.Where(hit => hit.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+}
+
 // Listing aggregates + row grouping: [Aggregate] columns total over the WHOLE filtered set,
 // the [GroupBy] column groups the rows (implicit primary sort + per-group subtotals).
 public class Sale
@@ -1962,5 +2003,125 @@ public class SyncHandlerTests
         });
 
         Assert.Equal(0, NotificationsFrom(inc).Count(n => n.Unread));
+    }
+
+    // ── Undoable toasts (Message.Undoable, mirrors the Java UndoableMessageSyncTest) ──
+
+    private static UIIncrementDto RunArchive(string actionId, Dictionary<string, object?>? parameters = null) =>
+        Handler().Handle(new RunActionRqDto
+        {
+            Route = "/archive-demo",
+            ConsumedRoute = "/archive-demo",
+            ServerSideType = typeof(ArchivePage).FullName,
+            ActionId = actionId,
+            InitiatorComponentId = "c1",
+            Parameters = parameters ?? new(),
+        });
+
+    [Fact]
+    public void Undoable_toast_carries_the_undo_action_and_parameters_on_the_wire()
+    {
+        ArchivePage.Archived.Clear();
+
+        var inc = RunArchive("archive");
+
+        Assert.Equal(["doc-7"], ArchivePage.Archived);
+        var message = Assert.Single(inc.Messages);
+        Assert.Equal("Documento archivado", message.Text);
+        Assert.Equal("Deshacer", message.UndoLabel);
+        Assert.Equal("restore", message.UndoActionId);
+        Assert.Equal("doc-7", message.UndoParameters!["docId"]);
+        Assert.Equal(10000, message.Duration);
+        // the undo fields serialize camelCase on the wire
+        var json = Render(inc);
+        Assert.Contains("\"undoLabel\":\"Deshacer\"", json);
+        Assert.Contains("\"undoActionId\":\"restore\"", json);
+        Assert.Contains("\"undoParameters\":{\"docId\":\"doc-7\"}", json);
+        Assert.Contains("\"variant\":\"contrast\"", json);
+    }
+
+    [Fact]
+    public void Dispatching_the_undo_action_reverses_the_effect()
+    {
+        ArchivePage.Archived.Clear();
+        RunArchive("archive");
+
+        var inc = RunArchive("restore", new Dictionary<string, object?>
+        {
+            ["docId"] = JsonSerializer.SerializeToElement("doc-7"),
+        });
+
+        Assert.Empty(ArchivePage.Archived);
+        Assert.Contains(inc.Messages, m => m.Text == "Documento restaurado");
+    }
+
+    [Fact]
+    public void Plain_messages_carry_no_undo_fields()
+    {
+        ArchivePage.Archived.Clear();
+        RunArchive("archive");
+
+        var inc = RunArchive("restore", new Dictionary<string, object?>
+        {
+            ["docId"] = JsonSerializer.SerializeToElement("doc-7"),
+        });
+
+        var message = Assert.Single(inc.Messages);
+        Assert.Null(message.UndoActionId);
+        Assert.Null(message.UndoLabel);
+    }
+
+    // ── Global entity search (IGlobalSearchSupplier, mirrors the Java GlobalSearchSyncTest) ──
+
+    private static IReadOnlyList<GlobalSearchResult> GlobalSearch(string text)
+    {
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(SearchableApp).FullName,
+            ActionId = "_globalsearch",
+            InitiatorComponentId = "_ux",
+            Parameters = new() { ["searchText"] = JsonSerializer.SerializeToElement(text) },
+        });
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Null(frag.Component);
+        var data = Assert.IsType<Dictionary<string, object?>>(frag.Data);
+        return Assert.IsAssignableFrom<IReadOnlyList<GlobalSearchResult>>(data["_globalsearch"]);
+    }
+
+    [Fact]
+    public void App_advertises_global_search_only_when_the_supplier_is_implemented()
+    {
+        var withSearch = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(SearchableApp).FullName }));
+        Assert.Contains("\"globalSearchEnabled\":true", withSearch);
+
+        var without = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(InboxApp).FullName }));
+        Assert.Contains("\"globalSearchEnabled\":false", without);
+    }
+
+    [Fact]
+    public void Global_search_answers_matching_entities_with_route_and_category()
+    {
+        var hits = GlobalSearch("acme");
+
+        Assert.Equal(2, hits.Count);
+        Assert.Equal("Acme S.L.", hits[0].Label);
+        Assert.Equal("/customers/1", hits[0].Route);
+        Assert.Equal("Clientes", hits[0].Category);
+        // the hits serialize camelCase on the wire
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(SearchableApp).FullName,
+            ActionId = "_globalsearch",
+            Parameters = new() { ["searchText"] = JsonSerializer.SerializeToElement("acme") },
+        });
+        Assert.Contains(
+            "{\"label\":\"Acme S.L.\",\"description\":\"CIF B123\",\"route\":\"/customers/1\",\"category\":\"Clientes\"}",
+            Render(inc));
+    }
+
+    [Fact]
+    public void An_empty_search_text_is_forwarded_as_is()
+    {
+        Assert.Equal(3, GlobalSearch("").Count);
     }
 }

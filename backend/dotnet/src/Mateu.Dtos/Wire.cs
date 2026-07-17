@@ -43,7 +43,15 @@ public record UICommandDto(string TargetComponentId, string Type, object? Data)
 /// io.mateu.uidl.fluent.CustomEvent).</summary>
 public record CustomEventDto(string EventName, object? Detail);
 
-public record MessageDto(string Variant, string Position, string Title, string Text, int Duration);
+public record MessageDto(
+    string Variant,
+    string Position,
+    string Title,
+    string Text,
+    int Duration,
+    string? UndoLabel = null,
+    string? UndoActionId = null,
+    IReadOnlyDictionary<string, object?>? UndoParameters = null);
 
 public record UIFragmentDto(
     string TargetComponentId,
@@ -665,6 +673,10 @@ public record AppMetadataDto(
     /// <summary>True when the app class implements INotificationsSupplier — the shell shows the
     /// header bell, fed by the _notifications-list/_notifications-read app-level actions.</summary>
     public bool NotificationsEnabled { get; init; }
+
+    /// <summary>True when the app class implements IGlobalSearchSupplier — the command palette
+    /// also searches ENTITIES through the app-level _globalsearch action.</summary>
+    public bool GlobalSearchEnabled { get; init; }
 }
 
 /// <summary>An application-level context selector shown on the app header: fixes a value for

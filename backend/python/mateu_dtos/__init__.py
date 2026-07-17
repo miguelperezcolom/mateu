@@ -46,6 +46,10 @@ class AppMetadata(Wire):
     #: whose panel fetches through the _notifications-list / _notifications-read app-level
     #: actions (mirrors AppDto.notificationsEnabled).
     notifications_enabled: bool = False
+    #: True when the app class implements GlobalSearchSupplier: the command palette also
+    #: searches ENTITIES through the _globalsearch app-level action (mirrors
+    #: AppDto.globalSearchEnabled).
+    global_search_enabled: bool = False
 
 
 class AppContextSelector(Wire):
@@ -1252,6 +1256,12 @@ class Message(Wire):
     title: str
     text: str
     duration: int
+    #: The undoable-toast fields (mirrors MessageDto.undoLabel/undoActionId/undoParameters):
+    #: when set, the toast renders an Undo button dispatching undo_action_id with
+    #: undo_parameters as action parameters on the initiator component.
+    undo_label: str | None = None
+    undo_action_id: str | None = None
+    undo_parameters: dict[str, Any] | None = None
 
 
 class UIFragment(Wire):

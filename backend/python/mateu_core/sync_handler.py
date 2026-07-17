@@ -26,6 +26,7 @@ from mateu_uidl import (
     Aggregate,
     AggregateFunction,
     DateRange,
+    GlobalSearchSupplier,
     GroupBy,
     Label,
     LookupLabelSupplier,
@@ -124,6 +125,11 @@ class SyncHandler:
         # from regular action resolution.
         if rq.action_id in ("_notifications-list", "_notifications-read"):
             return self.notifications_action(type_, rq)
+
+        # 2c. The command palette's entity search — same app-level rail (mirrors Java's
+        # GlobalSearchActionRunner).
+        if rq.action_id == "_globalsearch":
+            return self.global_search_action(type_, rq)
 
         # 3. A wizard.
         if issubclass(type_, Wizard):
@@ -957,6 +963,32 @@ class SyncHandler:
             "route": n.route, "unread": n.unread, "when": n.when,
         }
 
+    # ── Global entity search (GlobalSearchSupplier, mirrors Java's GlobalSearchActionRunner) ──
+    def global_search_action(self, cls, rq: RunActionRq) -> UIIncrement:
+        """The command palette's entity search: ``_globalsearch`` with a ``searchText``
+        parameter answers the app class's :class:`GlobalSearchSupplier` hits as a data-only
+        fragment under ``_globalsearch``. The fragment targets the initiator, like the inbox."""
+        if not (isinstance(cls, type) and issubclass(cls, GlobalSearchSupplier)):
+            return self.error(
+                "the app class does not implement GlobalSearchSupplier — no global search to serve"
+            )
+        raw = (rq.parameters or {}).get("searchText")
+        hits = cls().global_search("" if raw is None else str(raw)) or []
+        data = {
+            "_globalsearch": [
+                {
+                    "label": h.label, "description": h.description,
+                    "route": h.route, "category": h.category,
+                }
+                for h in hits
+            ]
+        }
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
+            ]
+        )
+
     def render(self, type_, instance, rq: RunActionRq) -> UIIncrement:
         route = rq.consumed_route if rq.consumed_route else "_empty"
         return self.fragment_response(
@@ -988,7 +1020,12 @@ class SyncHandler:
         args = []
         for p in params:
             ann = p.annotation
-            if isinstance(clicked, dict) and isinstance(ann, type) and ann is not str:
+            # The action request itself can be injected (the port's analogue of Java's
+            # HttpRequest injection) — e.g. an undoable toast's undo action reads its
+            # undoParameters from request.parameters.
+            if ann is RunActionRq or (ann is inspect.Parameter.empty and p.name == "request"):
+                args.append(rq)
+            elif isinstance(clicked, dict) and isinstance(ann, type) and ann is not str:
                 row = ann()
                 self.bind_state(row, clicked)
                 args.append(row)
@@ -1028,6 +1065,9 @@ class SyncHandler:
                         title=result.title,
                         text=result.text,
                         duration=result.duration,
+                        undo_label=result.undo_label,
+                        undo_action_id=result.undo_action_id,
+                        undo_parameters=result.undo_parameters,
                     )
                 ]
             )

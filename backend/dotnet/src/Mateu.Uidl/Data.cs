@@ -1,14 +1,34 @@
 namespace Mateu.Uidl;
 
-public enum MessageVariant { Success, Info, Warning, Error }
+public enum MessageVariant { Success, Info, Warning, Error, Contrast }
 
-/// <summary>A user-facing toast/alert an action can return. (C# analogue of io.mateu.uidl.data.Message.)</summary>
+/// <summary>A user-facing toast/alert an action can return. A message can carry an UNDO action
+/// (<see cref="Undoable"/>): the toast renders an Undo button that dispatches
+/// <see cref="UndoActionId"/> (with <see cref="UndoParameters"/>) on the initiator component —
+/// the standard recoverability affordance after destructive or bulk actions. The undo method is
+/// a plain action of the same class (it must reverse the effect itself, e.g. restore a
+/// soft-deleted row). (C# analogue of io.mateu.uidl.data.Message.)</summary>
 public sealed class Message(string text, MessageVariant variant = MessageVariant.Success, string title = "")
 {
     public string Text { get; } = text;
     public MessageVariant Variant { get; } = variant;
     public string Title { get; } = title;
     public int Duration { get; init; } = 5000;
+    public string? UndoLabel { get; init; }
+    public string? UndoActionId { get; init; }
+    public IReadOnlyDictionary<string, object?>? UndoParameters { get; init; }
+
+    /// <summary>A toast with an Undo button dispatching the given action (10 s so there is time
+    /// to react).</summary>
+    public static Message Undoable(
+        string text, string undoActionId, IReadOnlyDictionary<string, object?>? undoParameters = null) =>
+        new(text, MessageVariant.Contrast)
+        {
+            Duration = 10000,
+            UndoLabel = "Deshacer",
+            UndoActionId = undoActionId,
+            UndoParameters = undoParameters,
+        };
 }
 
 /// <summary>Navigation link rendered as an icon at the right side of a form field (see [LinkTo]
@@ -74,6 +94,25 @@ public interface INotificationsSupplier
     IReadOnlyList<AppNotification> Notifications();
 
     void MarkNotificationsRead(IReadOnlyList<string> ids);
+}
+
+/// <summary>One hit of the app-wide entity search (the command palette's data results): a label,
+/// an optional secondary line, the route to navigate to, and an optional category caption used to
+/// group the palette's results ("Clientes", "Reservas"…). (C# analogue of
+/// io.mateu.uidl.data.GlobalSearchResult.)</summary>
+public sealed record GlobalSearchResult(string Label, string? Description, string Route, string? Category)
+{
+    public GlobalSearchResult(string label, string route) : this(label, null, route, null) { }
+}
+
+/// <summary>Implemented by the [App] class to make the command palette (⌘K) search DATA, not just
+/// the menu: while the user types, the palette also asks the server for matching entities through
+/// the app-level <c>_globalsearch</c> action and shows the hits (grouped by category) alongside
+/// the navigation results; picking one navigates to its route. Keep it fast — search indexes or
+/// top-N per category. (C# analogue of Java's GlobalSearchSupplier.)</summary>
+public interface IGlobalSearchSupplier
+{
+    IReadOnlyList<GlobalSearchResult> GlobalSearch(string searchText);
 }
 
 /// <summary>Resolves the display label of a reference field's PRE-EXISTING value: when a form

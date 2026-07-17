@@ -136,6 +136,7 @@ from mateu_uidl import (
     DisabledUnless,
     EyesOnly,
     Foldout,
+    GlobalSearchSupplier,
     GroupBy,
     HeaderBadge,
     HeroSearch,
@@ -353,6 +354,9 @@ class ReflectionMapper:
             # Notification inbox: the app class implements NotificationsSupplier → the shell
             # shows the header bell (mirrors AppMapper's notificationsEnabled).
             notifications_enabled=issubclass(cls, NotificationsSupplier),
+            # Command palette entity search: the app class implements GlobalSearchSupplier →
+            # the palette also asks _globalsearch (mirrors AppMapper's globalSearchEnabled).
+            global_search_enabled=issubclass(cls, GlobalSearchSupplier),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
 

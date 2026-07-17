@@ -33,10 +33,16 @@ class MessageVariant(Enum):
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
+    CONTRAST = "contrast"
 
 
 class Message:
-    """Returned from an action method to show a toast."""
+    """Returned from an action method to show a toast. A message can carry an UNDO action
+    (:meth:`undoable`): the toast renders an Undo button that dispatches ``undo_action_id``
+    (with ``undo_parameters`` as action parameters) on the initiator component — the standard
+    recoverability affordance after destructive or bulk actions. The undo method is a plain
+    action of the same class (it must reverse the effect itself, e.g. restore a soft-deleted
+    row). The Python analogue of ``io.mateu.uidl.data.Message``."""
 
     def __init__(
         self,
@@ -44,11 +50,30 @@ class Message:
         variant: MessageVariant = MessageVariant.SUCCESS,
         title: str = "",
         duration: int = 5000,
+        undo_label: str | None = None,
+        undo_action_id: str | None = None,
+        undo_parameters: dict | None = None,
     ):
         self.text = text
         self.variant = variant
         self.title = title
         self.duration = duration
+        self.undo_label = undo_label
+        self.undo_action_id = undo_action_id
+        self.undo_parameters = undo_parameters
+
+    @staticmethod
+    def undoable(text: str, undo_action_id: str, undo_parameters: dict | None = None) -> "Message":
+        """A toast with an Undo button dispatching the given action (10 s so there is time to
+        react)."""
+        return Message(
+            text,
+            variant=MessageVariant.CONTRAST,
+            duration=10000,
+            undo_label="Deshacer",
+            undo_action_id=undo_action_id,
+            undo_parameters=undo_parameters,
+        )
 
 
 class BannerTheme(Enum):
@@ -427,6 +452,30 @@ class NotificationsSupplier:
         raise NotImplementedError
 
     def mark_notifications_read(self, ids: list[str], request) -> None:
+        raise NotImplementedError
+
+
+@dataclass
+class GlobalSearchResult:
+    """One hit of the app-wide entity search (the command palette's data results): a label, an
+    optional secondary line, the route to navigate to, and an optional category caption used to
+    group the palette's results ("Clientes", "Reservas"…). The Python analogue of
+    ``io.mateu.uidl.data.GlobalSearchResult``."""
+
+    label: str
+    description: str | None = None
+    route: str | None = None
+    category: str | None = None
+
+
+class GlobalSearchSupplier:
+    """Implemented by the ``@app`` class to make the command palette (⌘K) search DATA, not just
+    the menu: while the user types, the palette also asks the server for matching entities
+    through the app-level ``_globalsearch`` action and shows the hits (grouped by category)
+    alongside the navigation results; picking one navigates to its route. Keep it fast — search
+    indexes or top-N per category. The Python analogue of Java's ``GlobalSearchSupplier``."""
+
+    def global_search(self, search_text: str) -> list[GlobalSearchResult]:
         raise NotImplementedError
 
 

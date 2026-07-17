@@ -55,6 +55,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // The notification inbox's app-level actions — dispatched with the app's serverSideType,
         // like the app header actions (mirrors Java's NotificationsActionRunner).
         if (rq.ActionId?.StartsWith("_notifications-") == true) return Notifications(instance, rq);
+        // The command palette's entity search — same app-level rail (mirrors Java's
+        // GlobalSearchActionRunner).
+        if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }
 
@@ -271,6 +274,22 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         var data = new Dictionary<string, object?>
         {
             ["_notifications"] = supplier.Notifications() ?? [],
+        };
+        return UIIncrementDto.Of(fragments:
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+    }
+
+    /// <summary>The command palette's entity search (mirrors Java's GlobalSearchActionRunner):
+    /// _globalsearch with a searchText parameter answers the app class's IGlobalSearchSupplier
+    /// hits as a data-only fragment keyed _globalsearch.</summary>
+    private static UIIncrementDto GlobalSearch(object instance, RunActionRqDto rq)
+    {
+        if (instance is not IGlobalSearchSupplier supplier)
+            return Error("the app class does not implement IGlobalSearchSupplier — no global search to serve");
+        var searchText = StateString(GetState(rq.Parameters, "searchText")) ?? "";
+        var data = new Dictionary<string, object?>
+        {
+            ["_globalsearch"] = supplier.GlobalSearch(searchText) ?? [],
         };
         return UIIncrementDto.Of(fragments:
             [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
@@ -909,6 +928,10 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             : (JsonElement?)null;
         return parameters.Select(p =>
         {
+            // The action request itself can be injected (the ports' analogue of Java's
+            // HttpRequest injection) — e.g. an undoable toast's undo action reads its
+            // undoParameters from rq.Parameters.
+            if (p.ParameterType == typeof(RunActionRqDto)) return rq;
             if (clickedRow is { } row && p.ParameterType is { IsClass: true } t && t != typeof(string))
             {
                 var entity = Activator.CreateInstance(t)!;
@@ -923,7 +946,8 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     {
         null => UIIncrementDto.Of(),
         Message msg => UIIncrementDto.Of(messages:
-            [new MessageDto(msg.Variant.ToString().ToLowerInvariant(), "middle", msg.Title, msg.Text, msg.Duration)]),
+            [new MessageDto(msg.Variant.ToString().ToLowerInvariant(), "middle", msg.Title, msg.Text, msg.Duration,
+                msg.UndoLabel, msg.UndoActionId, msg.UndoParameters)]),
         // Action-returned page banner(s) → UIIncrement.banners.
         PageBanner b => UIIncrementDto.Of(banners: [BannerOf(b)]),
         IEnumerable<PageBanner> bs => UIIncrementDto.Of(banners: bs.Select(BannerOf).Cast<object>().ToList()),
