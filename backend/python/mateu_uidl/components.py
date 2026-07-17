@@ -69,12 +69,15 @@ class Anchor(Component):
 
 @dataclass(frozen=True)
 class Button(Component):
-    """A fluent button; ``action_id`` runs the matching action method."""
+    """A fluent button; ``action_id`` runs the matching action method. ``parameters`` are extra
+    entries merged into the dispatched action request (e.g. the optimistic-lock conflict
+    dialog's ``_forceOverwrite``)."""
 
     label: str = ""
     action_id: str = ""
     disabled: bool = False
     button_style: str | None = None
+    parameters: dict | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

@@ -43,6 +43,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Lookup fields (`@Lookup` remote combobox + `search-<field>` action) | ✅ | ✅ | ✅ |
 | — `@Searchable` full selector dialogs (`Selector` + `codesearch`) | ✅ | ✅ | ✅ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
+| Optimistic locking (`@Version` → conflict dialog on save/update-row, `_forceOverwrite`) | ✅ | ✅ | ✅ |
+| Notification inbox (`NotificationsSupplier` → header bell + `_notifications-*` actions) | ✅ | ✅ | ✅ |
 | Dialog/Drawer overlays from actions + `closeModal`/`dispatchEvent` | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
@@ -106,6 +108,13 @@ header actions with dropdown grouping (`AppActionsSupplier`) and `Anchor.target`
 same day (.NET `IAppActionsSupplier`/`Anchor { Target }`, Python `AppActionsSupplier`/`Anchor`),
 each pinned by golden-JSON tests. The remaining Java-only rows above are in-page orchestration
 behaviors (embedded islands, inline-grid "+", wide-field auto-colspan), not wire surface.
+
+**2026-07-17**: optimistic locking (`[Version]`/`Version()` — stale saves and inline row updates
+answer the same reload/overwrite conflict dialog as Java, byte-identical texts; `_forceOverwrite`
+adopts the stored version then bumps) and the notification inbox
+(`INotificationsSupplier`/`NotificationsSupplier` → `AppMetadata.notificationsEnabled` +
+`_notifications-list`/`_notifications-read` with ids list or `"all"`) landed on .NET and Python,
+each pinned by golden-JSON tests mirroring the Java sync suites.
 
 ## Renderers
 

@@ -194,6 +194,16 @@ public sealed class ReadOnlyAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property)]
 public sealed class InlineEditingAttribute : Attribute;
 
+/// <summary>Optimistic-locking version property of a crud entity (an int or long). The framework
+/// bumps it on every successful save; when a save arrives carrying a version OLDER than the
+/// stored one (someone else saved in between), the save is rejected and the user gets a conflict
+/// dialog — reload to see the other user's changes, or overwrite them explicitly (the dialog's
+/// button re-sends the save with <c>_forceOverwrite</c>). Works on the crud editor save and on
+/// inline row editing; no-op for entities without a [Version] property.
+/// (C# analogue of Java's @Version.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class VersionAttribute : Attribute;
+
 /// <summary>Adds a toolbar button to the crud LISTING that runs the decorated method as a BULK
 /// action over the rows selected in the grid. The frontend keeps the selection in the
 /// crud_selected_items component state key and blocks the dispatch while RowsSelectedRequired

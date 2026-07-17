@@ -569,6 +569,10 @@ public record ButtonMetadataDto(string Label, string ActionId) : ComponentMetada
 {
     public bool Disabled { get; init; }
     public string? ButtonStyle { get; init; }
+
+    /// <summary>Extra parameters merged into the dispatched action request (e.g. the conflict
+    /// dialog's <c>_forceOverwrite</c>).</summary>
+    public IReadOnlyDictionary<string, object?>? Parameters { get; init; }
 }
 
 public record FormSectionMetadataDto(string Title) : ComponentMetadataDto;
@@ -657,6 +661,10 @@ public record AppMetadataDto(
     /// <summary>Header action buttons next to the context selectors (the app class implements
     /// IAppActionsSupplier); an entry with Children renders as a dropdown.</summary>
     public IReadOnlyList<AppHeaderActionDto> ContextActions { get; init; } = [];
+
+    /// <summary>True when the app class implements INotificationsSupplier — the shell shows the
+    /// header bell, fed by the _notifications-list/_notifications-read app-level actions.</summary>
+    public bool NotificationsEnabled { get; init; }
 }
 
 /// <summary>An application-level context selector shown on the app header: fixes a value for

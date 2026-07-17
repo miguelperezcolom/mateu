@@ -52,6 +52,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         BindState(instance, rq.ComponentState);
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(instance, rq);
         if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(type, rq);
+        // The notification inbox's app-level actions — dispatched with the app's serverSideType,
+        // like the app header actions (mirrors Java's NotificationsActionRunner).
+        if (rq.ActionId?.StartsWith("_notifications-") == true) return Notifications(instance, rq);
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }
 
@@ -194,13 +197,32 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
     {
         // Start from the stored entity (so untouched fields survive) and apply the edited fields.
-        var entity = id is not null ? GetOrNew(crud, crudType, element, id) : New(element);
+        // Versioned entities bind onto a DETACHED copy: an in-memory Get may return the live
+        // stored instance by reference, and a rejected (stale) save must persist NOTHING.
+        var stored = id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null;
+        var storedVersion = StoredVersionOf(stored);
+        var entity = stored is null ? New(element)
+            : storedVersion is null ? stored
+            : CopyOf(stored, element);
         BindState(entity, rq.ComponentState);
         if (id is not null) element.GetProperty("Id")?.SetValue(entity, id);
 
         var missing = RequiredMissing(entity, element);
         if (missing.Count > 0)
             return Error("Please fill: " + string.Join(", ", missing));
+
+        // Optimistic locking ([Version] property): reject the editor save when someone else saved
+        // in between (unless _forceOverwrite), bump the version otherwise — both no-ops without a
+        // [Version] property; creating a new entity skips both (there is no stored entity yet).
+        if (id is not null)
+        {
+            if (IsStale(entity, storedVersion, rq))
+                return ConflictDialog(
+                    "Este registro ha cambiado mientras lo editabas. Puedes recargar para ver los"
+                    + " cambios (perdiendo los tuyos) o sobrescribir con tu versión.",
+                    "cancel-edit", rq.ActionId!, null, rq);
+            BumpVersion(entity);
+        }
 
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
         return Navigate(baseRoute, "Saved", rq);
@@ -235,6 +257,37 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
     }
 
+    /// <summary>The notification inbox's app-level actions (mirrors Java's
+    /// NotificationsActionRunner): _notifications-list answers the supplier's current list as a
+    /// data-only fragment keyed _notifications; _notifications-read marks the ids parameter (an
+    /// explicit list, "all" → every currently-unread id, or one bare id) read and answers the
+    /// REFRESHED list the same way.</summary>
+    private static UIIncrementDto Notifications(object instance, RunActionRqDto rq)
+    {
+        if (instance is not INotificationsSupplier supplier)
+            return Error("the app class does not implement INotificationsSupplier — no inbox to serve");
+        if (rq.ActionId == "_notifications-read")
+            supplier.MarkNotificationsRead(ReadIds(supplier, rq));
+        var data = new Dictionary<string, object?>
+        {
+            ["_notifications"] = supplier.Notifications() ?? [],
+        };
+        return UIIncrementDto.Of(fragments:
+            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
+    }
+
+    /// <summary>The ids parameter of _notifications-read: an explicit list, "all" → every
+    /// currently-unread notification's id, or a single bare id.</summary>
+    private static List<string> ReadIds(INotificationsSupplier supplier, RunActionRqDto rq)
+    {
+        var raw = GetState(rq.Parameters, "ids");
+        if (raw is JsonElement { ValueKind: JsonValueKind.Array }) return MultiValues(raw);
+        var text = StateString(raw);
+        if (text == "all")
+            return (supplier.Notifications() ?? []).Where(n => n.Unread).Select(n => n.Id).ToList();
+        return text is null ? [] : [text];
+    }
+
     /// <summary>Persists a single row edited in place in the listing grid (inline editing). The
     /// edited row travels in the _editedRow action parameter (mirrors Java's
     /// UpdateRowActionHandler → FilteredAutoCrud.updateRow: rebuild the entity, save).</summary>
@@ -248,8 +301,118 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             .ToDictionary(prop => prop.Name, prop => (object?)prop.Value);
         var entity = New(element);
         BindState(entity, row);
+
+        // Optimistic locking ([Version] property): Sobrescribir re-sends the SAME edited row (the
+        // button's parameters merge into the action request), Recargar re-runs the search.
+        var id = element.GetProperty("Id")?.GetValue(entity)?.ToString();
+        var stored = string.IsNullOrEmpty(id) ? null : crudType.GetMethod("Get")!.Invoke(crud, [id]);
+        if (IsStale(entity, StoredVersionOf(stored), rq))
+            return ConflictDialog(
+                "Esta fila ha cambiado mientras la editabas. Recarga para ver los cambios o"
+                + " sobrescribe con tu versión.",
+                "search", "update-row",
+                new Dictionary<string, object?> { ["_editedRow"] = rowEl }, rq);
+        BumpVersion(entity);
+
         crudType.GetMethod("Save")!.Invoke(crud, [entity]);
         return UIIncrementDto.Of(messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
+    }
+
+    // ── Optimistic locking ([Version], mirrors Java's OptimisticLock) ────────────
+
+    /// <summary>The entity's [Version] property (int or long), or null — every optimistic-locking
+    /// step is a no-op without one.</summary>
+    private static PropertyInfo? VersionProperty(Type entityClass) =>
+        entityClass.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .FirstOrDefault(p => p.Find<VersionAttribute>() is not null);
+
+    /// <summary>The [Version] value of the STORED entity, or null when there is no stored entity
+    /// or no [Version] property (→ every optimistic-locking step is a no-op).</summary>
+    private static long? StoredVersionOf(object? stored) =>
+        stored is not null && VersionProperty(stored.GetType()) is { } version
+            ? Convert.ToInt64(version.GetValue(stored) ?? 0L)
+            : null;
+
+    /// <summary>True when the STORED entity is newer than the incoming one (someone else saved in
+    /// between). When the request carries _forceOverwrite (the conflict dialog's explicit
+    /// override) the stored version is ADOPTED into the incoming entity instead, so the bump
+    /// below moves it forward — stale numbers never resurrect.</summary>
+    private static bool IsStale(object incoming, long? storedVersion, RunActionRqDto rq)
+    {
+        if (storedVersion is not { } stored || VersionProperty(incoming.GetType()) is not { } version)
+            return false;
+        if (ForceOverwrite(rq))
+        {
+            SetVersion(incoming, version, stored);
+            return false;
+        }
+        return stored > Convert.ToInt64(version.GetValue(incoming) ?? 0L);
+    }
+
+    /// <summary>Increments the entity's [Version] by 1 before persisting (int stays int, long
+    /// stays long).</summary>
+    private static void BumpVersion(object entity)
+    {
+        if (VersionProperty(entity.GetType()) is not { } version) return;
+        SetVersion(entity, version, Convert.ToInt64(version.GetValue(entity) ?? 0L) + 1);
+    }
+
+    private static void SetVersion(object entity, PropertyInfo version, long value)
+    {
+        var t = Nullable.GetUnderlyingType(version.PropertyType) ?? version.PropertyType;
+        version.SetValue(entity, t == typeof(int) ? (int)value : value);
+    }
+
+    /// <summary>A detached property-by-property copy of the stored entity, so the editor's binding
+    /// never mutates the live stored instance.</summary>
+    private static object CopyOf(object source, Type element)
+    {
+        var copy = New(element);
+        foreach (var p in element.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            if (p.CanRead && p.CanWrite) p.SetValue(copy, p.GetValue(source));
+        return copy;
+    }
+
+    private static bool ForceOverwrite(RunActionRqDto rq) =>
+        string.Equals(StateString(GetState(rq.Parameters, "_forceOverwrite")), "true",
+            StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The conflict dialog (mirrors Java's OptimisticLock.conflictDialog): reload
+    /// (discard my changes and see theirs) or overwrite (my version wins, explicitly — the button
+    /// re-dispatches the save action with _forceOverwrite merged into its parameters). Emitted
+    /// like any action-returned overlay: an Add fragment on the initiator.</summary>
+    private static UIIncrementDto ConflictDialog(
+        string text, string reloadActionId, string overwriteActionId,
+        IReadOnlyDictionary<string, object?>? overwriteParameters, RunActionRqDto rq)
+    {
+        var parameters = new Dictionary<string, object?> { ["_forceOverwrite"] = true };
+        foreach (var (key, value) in overwriteParameters ?? new Dictionary<string, object?>())
+            parameters[key] = value;
+        return MapResult(new Dialog
+        {
+            HeaderTitle = "Modificado por otro usuario",
+            Width = "30rem",
+            Content = new VerticalLayout
+            {
+                Content =
+                [
+                    new Text(text),
+                    new HorizontalLayout
+                    {
+                        Style = "justify-content: flex-end; gap: 0.5rem;",
+                        Content =
+                        [
+                            new Button("Recargar", reloadActionId),
+                            new Button("Sobrescribir", overwriteActionId)
+                            {
+                                Primary = true,
+                                Parameters = parameters,
+                            },
+                        ],
+                    },
+                ],
+            },
+        }, rq);
     }
 
     /// <summary>Opens a [Searchable] field's selector dialog: the selector Listing (with its

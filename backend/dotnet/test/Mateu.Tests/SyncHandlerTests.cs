@@ -428,6 +428,52 @@ public class StockCrud : Crud<StockItem>
     public Message RestockAll() => new("Restocked");
 }
 
+// Optimistic locking: the [Version] property is bumped on every save and a save carrying an
+// OLDER version than the stored one answers the conflict dialog (mirrors OptimisticLockSyncTest).
+public class Article
+{
+    public string Id { get; set; } = "";
+    public string Name { get; set; } = "";
+    [Version] public long Version { get; set; }
+}
+
+[UI("articles"), Title("Articles"), InlineEditing]
+public class Articles : Crud<Article>
+{
+    public static readonly Dictionary<string, Article> Store = new();
+
+    public override IEnumerable<Article> Fetch(string? search) => Store.Values;
+
+    public override Article? Get(string id) => Store.GetValueOrDefault(id);
+
+    public override void Save(Article entity) => Store[entity.Id] = entity;
+}
+
+// Notification inbox (mirrors the Java NotificationsSyncTest fixtures): an app implementing
+// INotificationsSupplier over a static in-memory inbox, plus one without the interface.
+[App("Inbox App")]
+public class InboxApp : INotificationsSupplier
+{
+    public static readonly List<AppNotification> Inbox = [];
+
+    [MenuItem("Things")] public Things Home() => new();
+
+    public IReadOnlyList<AppNotification> Notifications() => [.. Inbox];
+
+    public void MarkNotificationsRead(IReadOnlyList<string> ids)
+    {
+        for (var i = 0; i < Inbox.Count; i++)
+            if (ids.Contains(Inbox[i].Id))
+                Inbox[i] = Inbox[i] with { Unread = false };
+    }
+}
+
+[App("No Inbox App")]
+public class NoInboxApp
+{
+    [MenuItem("Things")] public Things Home() => new();
+}
+
 // Listing aggregates + row grouping: [Aggregate] columns total over the WHOLE filtered set,
 // the [GroupBy] column groups the rows (implicit primary sort + per-group subtotals).
 public class Sale
@@ -1722,5 +1768,199 @@ public class SyncHandlerTests
         var rq = new RunActionRqDto { ActionId = "goHome", ServerSideType = typeof(SimpleForm).FullName };
         var inc = Handler().Handle(rq);
         Assert.Contains(inc.Commands, c => c.Type == "NavigateTo" && (string?)c.Data == "/things");
+    }
+
+    // ── Optimistic locking ([Version], mirrors the Java OptimisticLockSyncTest) ──
+
+    private static RunActionRqDto ArticleSave(long version, string name, bool forceOverwrite = false) => new()
+    {
+        ActionId = "save",
+        Route = "articles/a1/edit",
+        ServerSideType = typeof(Articles).FullName,
+        ComponentState = new()
+        {
+            ["name"] = JsonSerializer.SerializeToElement(name),
+            ["version"] = JsonSerializer.SerializeToElement(version),
+        },
+        Parameters = forceOverwrite
+            ? new() { ["_forceOverwrite"] = JsonSerializer.SerializeToElement(true) }
+            : new(),
+    };
+
+    [Fact]
+    public void Save_with_the_current_version_bumps_it_and_persists()
+    {
+        Articles.Store.Clear();
+        Articles.Store["a1"] = new Article { Id = "a1", Name = "Draft", Version = 1 };
+
+        var inc = Handler().Handle(ArticleSave(version: 1, name: "Final"));
+
+        Assert.DoesNotContain("Modificado por otro usuario", Render(inc));
+        Assert.Equal("Final", Articles.Store["a1"].Name);
+        Assert.Equal(2, Articles.Store["a1"].Version);
+    }
+
+    [Fact]
+    public void Stale_save_answers_the_conflict_dialog_and_persists_nothing()
+    {
+        Articles.Store.Clear();
+        // someone else saved in between: the stored entity moved to version 2
+        Articles.Store["a1"] = new Article { Id = "a1", Name = "Their title", Version = 2 };
+
+        var inc = Handler().Handle(ArticleSave(version: 1, name: "My title"));
+
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Equal("Add", frag.Action);
+        var json = Render(inc);
+        Assert.Contains("Modificado por otro usuario", json);
+        // Recargar discards my changes; Sobrescribir re-sends the save with _forceOverwrite.
+        Assert.Contains("\"label\":\"Recargar\",\"actionId\":\"cancel-edit\"", json);
+        Assert.Contains("\"label\":\"Sobrescribir\",\"actionId\":\"save\"", json);
+        Assert.Contains("\"parameters\":{\"_forceOverwrite\":true}", json);
+        Assert.Equal("Their title", Articles.Store["a1"].Name);
+        Assert.Equal(2, Articles.Store["a1"].Version);
+    }
+
+    [Fact]
+    public void Force_overwrite_adopts_the_stored_version_and_bumps_it_forward()
+    {
+        Articles.Store.Clear();
+        Articles.Store["a1"] = new Article { Id = "a1", Name = "Their title", Version = 2 };
+
+        var inc = Handler().Handle(ArticleSave(version: 1, name: "My title", forceOverwrite: true));
+
+        Assert.DoesNotContain("Modificado por otro usuario", Render(inc));
+        Assert.Equal("My title", Articles.Store["a1"].Name);
+        // adopted the stored 2, bumped to 3 — the stale 1 never resurrects
+        Assert.Equal(3, Articles.Store["a1"].Version);
+    }
+
+    [Fact]
+    public void Stale_update_row_answers_the_conflict_dialog_carrying_the_edited_row()
+    {
+        Articles.Store.Clear();
+        Articles.Store["a1"] = new Article { Id = "a1", Name = "Their title", Version = 2 };
+
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "update-row",
+            ServerSideType = typeof(Articles).FullName,
+            Parameters = new()
+            {
+                ["_editedRow"] = JsonSerializer.SerializeToElement(
+                    new { id = "a1", name = "My title", version = 1 }),
+            },
+        });
+
+        var json = Render(inc);
+        Assert.Contains("Modificado por otro usuario", json);
+        // Recargar re-runs the search; Sobrescribir re-sends update-row with the SAME edited row.
+        Assert.Contains("\"label\":\"Recargar\",\"actionId\":\"search\"", json);
+        Assert.Contains("\"label\":\"Sobrescribir\",\"actionId\":\"update-row\"", json);
+        Assert.Contains("\"_editedRow\":{\"id\":\"a1\",\"name\":\"My title\",\"version\":1}", json);
+        Assert.Equal("Their title", Articles.Store["a1"].Name);
+        Assert.Equal(2, Articles.Store["a1"].Version);
+    }
+
+    [Fact]
+    public void Entities_without_a_version_property_save_as_before()
+    {
+        StockCrud.Store.Clear();
+        StockCrud.Store["s1"] = new StockItem { Id = "s1", Name = "Bolts", Units = 12, Active = true, Status = StockStatus.Ok };
+
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ActionId = "save",
+            Route = "stock/s1/edit",
+            ServerSideType = typeof(StockCrud).FullName,
+            ComponentState = new() { ["name"] = JsonSerializer.SerializeToElement("Bolts XL") },
+        });
+
+        Assert.DoesNotContain("Modificado por otro usuario", Render(inc));
+        Assert.Equal("Bolts XL", StockCrud.Store["s1"].Name);
+    }
+
+    // ── Notification inbox (INotificationsSupplier, mirrors the Java NotificationsSyncTest) ──
+
+    private static void SeedInbox()
+    {
+        InboxApp.Inbox.Clear();
+        InboxApp.Inbox.Add(new AppNotification("n1", "Factura aprobada", "F-2026-001", "/invoices/1", true, "hace 2 min"));
+        InboxApp.Inbox.Add(new AppNotification("n2", "Nuevo comentario", null, "/tasks/7", true, "hace 1 h"));
+        InboxApp.Inbox.Add(new AppNotification("n3", "Backup completado", null, null, false, "ayer"));
+    }
+
+    private static IReadOnlyList<AppNotification> NotificationsFrom(UIIncrementDto inc)
+    {
+        var frag = Assert.Single(inc.Fragments);
+        Assert.Null(frag.Component);
+        var data = Assert.IsType<Dictionary<string, object?>>(frag.Data);
+        return Assert.IsAssignableFrom<IReadOnlyList<AppNotification>>(data["_notifications"]);
+    }
+
+    [Fact]
+    public void App_advertises_the_inbox_only_when_the_supplier_is_implemented()
+    {
+        var withInbox = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(InboxApp).FullName }));
+        Assert.Contains("\"notificationsEnabled\":true", withInbox);
+
+        var without = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(NoInboxApp).FullName }));
+        Assert.Contains("\"notificationsEnabled\":false", without);
+    }
+
+    [Fact]
+    public void Notifications_list_answers_the_suppliers_entries_as_a_data_only_fragment()
+    {
+        SeedInbox();
+
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(InboxApp).FullName,
+            ActionId = "_notifications-list",
+            InitiatorComponentId = "comp-1",
+        });
+
+        Assert.Equal("comp-1", Assert.Single(inc.Fragments).TargetComponentId);
+        var notifications = NotificationsFrom(inc);
+        Assert.Equal(3, notifications.Count);
+        Assert.Equal("Factura aprobada", notifications[0].Title);
+        Assert.Equal(2, notifications.Count(n => n.Unread));
+        // the entries serialize camelCase on the wire
+        Assert.Contains(
+            "{\"id\":\"n1\",\"title\":\"Factura aprobada\",\"text\":\"F-2026-001\","
+            + "\"route\":\"/invoices/1\",\"unread\":true,\"when\":\"hace 2 min\"}",
+            Render(inc));
+    }
+
+    [Fact]
+    public void Notifications_read_marks_the_given_ids_and_answers_the_refreshed_list()
+    {
+        SeedInbox();
+
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(InboxApp).FullName,
+            ActionId = "_notifications-read",
+            Parameters = new() { ["ids"] = JsonSerializer.SerializeToElement(new[] { "n1" }) },
+        });
+
+        var notifications = NotificationsFrom(inc);
+        Assert.Equal(1, notifications.Count(n => n.Unread));
+        Assert.False(notifications.First(n => n.Id == "n1").Unread);
+    }
+
+    [Fact]
+    public void Notifications_read_all_marks_every_unread_entry()
+    {
+        SeedInbox();
+
+        var inc = Handler().Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(InboxApp).FullName,
+            ActionId = "_notifications-read",
+            Parameters = new() { ["ids"] = JsonSerializer.SerializeToElement("all") },
+        });
+
+        Assert.Equal(0, NotificationsFrom(inc).Count(n => n.Unread));
     }
 }

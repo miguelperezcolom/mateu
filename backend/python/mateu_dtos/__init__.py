@@ -42,6 +42,10 @@ class AppMetadata(Wire):
     #: Header action buttons next to the context selectors (the app class implements
     #: AppActionsSupplier); an entry with children renders as a dropdown.
     context_actions: list["AppHeaderAction"] = Field(default_factory=list)
+    #: True when the app class implements NotificationsSupplier: the shell shows the inbox bell,
+    #: whose panel fetches through the _notifications-list / _notifications-read app-level
+    #: actions (mirrors AppDto.notificationsEnabled).
+    notifications_enabled: bool = False
 
 
 class AppContextSelector(Wire):
@@ -251,6 +255,9 @@ class ButtonMetadata(Wire):
     action_id: str
     disabled: bool = False
     button_style: str | None = None
+    #: Extra parameters merged into the dispatched action request (e.g. the optimistic-lock
+    #: conflict dialog's _forceOverwrite; mirrors ButtonDto.parameters).
+    parameters: Any | None = None
 
 
 class TabLayoutMetadata(Wire):

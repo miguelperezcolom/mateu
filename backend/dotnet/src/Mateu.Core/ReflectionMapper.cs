@@ -121,6 +121,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             SseUrl = appType.Find<AIAttribute>()?.Sse,
             ContextSelectors = MapContextSelectors(appType),
             ContextActions = MapContextActions(appType),
+            NotificationsEnabled = typeof(INotificationsSupplier).IsAssignableFrom(appType),
         };
         return new ClientSideComponentDto(meta, "ux_main_app", [], null, null, null);
     }

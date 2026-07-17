@@ -10,13 +10,17 @@ from typing import Any, get_args, get_origin
 
 from mateu_dtos import (
     Banner as BannerDto,
+    ButtonMetadata,
     ClientSideComponent,
     CustomEventRecord,
     DialogMetadata,
+    HorizontalLayoutMetadata,
     Message as MessageDto,
+    TextMetadata,
     UICommand,
     UIFragment,
     UIIncrement,
+    VerticalLayoutMetadata,
 )
 from mateu_uidl import (
     Aggregate,
@@ -27,6 +31,7 @@ from mateu_uidl import (
     LookupLabelSupplier,
     Lookup,
     Message,
+    NotificationsSupplier,
     NumberRange,
     PageBanner,
     Pageable,
@@ -34,6 +39,7 @@ from mateu_uidl import (
     Searchable,
     SortSpec,
     Step,
+    Version,
     Wizard,
 )
 from mateu_uidl import components as fluent
@@ -63,6 +69,13 @@ def _sort_key(value):
     if isinstance(value, (int, float)):
         return (1, float(value), "")
     return (1, 0.0, str(value).lower())
+
+
+def version_field(entity_class):
+    """The entity's ``Version()`` field (walks base classes via ``view_fields``); None when the
+    entity declares none — every optimistic-locking step is then a no-op (mirrors Java's
+    ``OptimisticLock.versionField``)."""
+    return next((f for f in view_fields(entity_class) if f.has(Version)), None)
 
 
 class RunActionRq(BaseModel):
@@ -105,6 +118,12 @@ class SyncHandler:
         type_ = self.registry.resolve(rq.server_side_type, rq.route)
         if type_ is None:
             return self.error(f"Route not found: {rq.route}")
+
+        # 2b. The notification inbox's app-level actions — dispatched with the app's
+        # serverSideType (the same rail as the @app_context pickers' remote search), exempt
+        # from regular action resolution.
+        if rq.action_id in ("_notifications-list", "_notifications-read"):
+            return self.notifications_action(type_, rq)
 
         # 3. A wizard.
         if issubclass(type_, Wizard):
@@ -282,12 +301,41 @@ class SyncHandler:
 
     def crud_save(self, crud, element, id_, rq: RunActionRq, base_route) -> UIIncrement:
         entity = self.get_or_new(crud, element, id_) if id_ is not None else element()
+        # Optimistic locking (Version()): an EDITOR save (creates don't check/bump) whose version
+        # is older than the stored one is rejected with the reload/overwrite conflict dialog —
+        # BEFORE the state binds, so the stored entity is never mutated on a conflict (mirrors
+        # Java's AutoNamedView.save → OptimisticLock.check/bump).
+        version = version_field(element) if id_ is not None else None
+        stored_version = None
+        if version is not None and crud.get(id_) is not None:
+            stored_version = self._version_of(crud.get(id_), version)
+            if not self._force_overwrite(rq):
+                raw = rq.component_state.get(camel_case(version.name))
+                incoming_version = (
+                    int(raw)
+                    if isinstance(raw, (int, float)) and not isinstance(raw, bool)
+                    else stored_version
+                )
+                if stored_version > incoming_version:
+                    return self.conflict_response(
+                        "Este registro ha cambiado mientras lo editabas. Puedes recargar para"
+                        " ver los cambios (perdiendo los tuyos) o sobrescribir con tu versión.",
+                        "cancel-edit",
+                        rq.action_id,
+                        rq,
+                    )
         self.bind_state(entity, rq.component_state)
         if id_ is not None:
             setattr(entity, "id", id_)
         missing = self.required_missing(entity, element)
         if missing:
             return self.error("Please fill: " + ", ".join(missing))
+        if version is not None:
+            if stored_version is not None and self._force_overwrite(rq):
+                # the user chose to overwrite from the conflict dialog: adopt the STORED version
+                # so the bump below moves it forward instead of resurrecting the stale one
+                setattr(entity, version.name, stored_version)
+            setattr(entity, version.name, self._version_of(entity, version) + 1)
         crud.save(entity)
         return self.navigate(base_route, "Saved", rq)
 
@@ -337,9 +385,94 @@ class SyncHandler:
             return self.error("update-row requires an _editedRow parameter")
         entity = element()
         self.bind_state(entity, row)
+        # Optimistic locking (Version()): an inline-edit over someone else's save is rejected
+        # with the same reload/overwrite dialog; Sobrescribir re-sends the SAME edited row (the
+        # button's parameters merge into the action request), Recargar re-runs the search
+        # (mirrors Java's FilteredAutoCrud.updateRow + UpdateRowActionHandler).
+        version = version_field(element)
+        if version is not None:
+            stored = crud.get(crud.id_of(entity))
+            if stored is not None:
+                stored_version = self._version_of(stored, version)
+                if self._force_overwrite(rq):
+                    # adopt the STORED version so the bump moves it forward, never backwards
+                    setattr(entity, version.name, stored_version)
+                elif stored_version > self._version_of(entity, version):
+                    return self.conflict_response(
+                        "Esta fila ha cambiado mientras la editabas. Recarga para ver los"
+                        " cambios o sobrescribe con tu versión.",
+                        "search",
+                        "update-row",
+                        rq,
+                        {"_editedRow": row},
+                    )
+            setattr(entity, version.name, self._version_of(entity, version) + 1)
         crud.save(entity)
         return UIIncrement.of(
             messages=[MessageDto(variant="success", position="middle", title="", text="Saved", duration=3000)]
+        )
+
+    # ── Optimistic locking (Version(), mirrors Java's OptimisticLock) ────────────
+    @staticmethod
+    def _version_of(entity, version) -> int:
+        v = getattr(entity, version.name, 0)
+        return int(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else 0
+
+    @staticmethod
+    def _force_overwrite(rq: RunActionRq) -> bool:
+        """The conflict dialog's explicit override: the Sobrescribir button re-dispatches the
+        save with ``_forceOverwrite`` (a bool, or "true" from a serialized round-trip)."""
+        v = (rq.parameters or {}).get("_forceOverwrite")
+        if isinstance(v, bool):
+            return v
+        return v is not None and str(v).lower() == "true"
+
+    def conflict_response(
+        self, text, reload_action_id, overwrite_action_id, rq: RunActionRq,
+        overwrite_parameters: dict | None = None,
+    ) -> UIIncrement:
+        """The optimistic-lock conflict dialog: reload (discard my changes and see theirs) or
+        overwrite (my version wins, explicitly — the Sobrescribir button re-dispatches the save
+        action with ``_forceOverwrite`` merged into its parameters). Emitted as an Add fragment
+        on the initiator like every overlay (mirrors Java's OptimisticLock.conflictDialog)."""
+        parameters: dict[str, Any] = {"_forceOverwrite": True}
+        if overwrite_parameters:
+            parameters.update(overwrite_parameters)
+        buttons = ClientSideComponent(
+            metadata=HorizontalLayoutMetadata(),
+            children=[
+                ClientSideComponent(
+                    metadata=ButtonMetadata(label="Recargar", action_id=reload_action_id),
+                    children=[],
+                ),
+                ClientSideComponent(
+                    metadata=ButtonMetadata(
+                        label="Sobrescribir", action_id=overwrite_action_id,
+                        button_style="primary", parameters=parameters,
+                    ),
+                    children=[],
+                ),
+            ],
+            style="justify-content: flex-end; gap: 0.5rem;",
+        )
+        dialog = ClientSideComponent(
+            metadata=DialogMetadata(
+                header_title="Modificado por otro usuario",
+                width="30rem",
+                content=ClientSideComponent(
+                    metadata=VerticalLayoutMetadata(),
+                    children=[
+                        ClientSideComponent(metadata=TextMetadata(text=text), children=[]),
+                        buttons,
+                    ],
+                ),
+            ),
+            children=[],
+        )
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(target_component_id=self.target(rq), component=dialog, action="Add")
+            ]
         )
 
     def field_code_search(self, host_type, rq: RunActionRq) -> UIIncrement:
@@ -782,6 +915,47 @@ class SyncHandler:
             commands=[UICommand(target_component_id=self.target(rq), type="SetWindowTitle", data=self.mapper.T(title))],
             fragments=[UIFragment(target_component_id=self.target(rq), component=self.mapper.map_app(app_type, request_base_url), action="Replace")],
         )
+
+    # ── Notification inbox (NotificationsSupplier, mirrors Java's NotificationsActionRunner) ──
+    def notifications_action(self, cls, rq: RunActionRq) -> UIIncrement:
+        """The notification inbox's app-level actions: ``_notifications-list`` answers the
+        supplier's current entries as a data-only fragment under ``_notifications`` (per request,
+        so per user); ``_notifications-read`` marks the resolved ids read and answers the
+        REFRESHED list. The fragment targets the initiator, like the lookup searches."""
+        if not (isinstance(cls, type) and issubclass(cls, NotificationsSupplier)):
+            return self.error(
+                "the app class does not implement NotificationsSupplier — no inbox to serve"
+            )
+        supplier = cls()
+        if rq.action_id == "_notifications-read":
+            supplier.mark_notifications_read(self._notification_read_ids(supplier, rq), rq)
+        notifications = supplier.notifications(rq) or []
+        data = {"_notifications": [self._notification_json(n) for n in notifications]}
+        return UIIncrement.of(
+            fragments=[
+                UIFragment(target_component_id=self.target(rq), data=data, action="Replace")
+            ]
+        )
+
+    @staticmethod
+    def _notification_read_ids(supplier, rq: RunActionRq) -> list[str]:
+        """The ``ids`` parameter: an explicit list, "all" → every currently-unread notification's
+        id, or a single bare id."""
+        ids = (rq.parameters or {}).get("ids")
+        if isinstance(ids, list):
+            return [str(v) for v in ids]
+        if ids == "all":
+            return [n.id for n in (supplier.notifications(rq) or []) if n.unread]
+        return [] if ids is None else [str(ids)]
+
+    @staticmethod
+    def _notification_json(n) -> dict[str, Any]:
+        """One inbox entry on the wire — {id, title, text, route, unread, when} (mirrors
+        AppNotification's JSON shape)."""
+        return {
+            "id": n.id, "title": n.title, "text": n.text,
+            "route": n.route, "unread": n.unread, "when": n.when,
+        }
 
     def render(self, type_, instance, rq: RunActionRq) -> UIIncrement:
         route = rq.consumed_route if rq.consumed_route else "_empty"

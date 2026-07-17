@@ -149,6 +149,7 @@ from mateu_uidl import (
     Lookup,
     Money,
     Multiline,
+    NotificationsSupplier,
     NumberRange,
     OnRowSelected,
     Panel,
@@ -349,6 +350,9 @@ class ReflectionMapper:
             sse_url=getattr(cls, "__mateu_ai_sse__", None),
             context_selectors=self.map_context_selectors(cls),
             context_actions=self.map_context_actions(cls),
+            # Notification inbox: the app class implements NotificationsSupplier → the shell
+            # shows the header bell (mirrors AppMapper's notificationsEnabled).
+            notifications_enabled=issubclass(cls, NotificationsSupplier),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
 
@@ -1097,7 +1101,7 @@ class ReflectionMapper:
         if isinstance(c, fluent.Button):
             meta = ButtonMetadata(
                 label=self.T(c.label), action_id=c.action_id, disabled=c.disabled,
-                button_style=c.button_style,
+                button_style=c.button_style, parameters=c.parameters,
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Text):

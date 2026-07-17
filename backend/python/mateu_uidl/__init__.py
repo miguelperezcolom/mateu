@@ -194,6 +194,16 @@ class ReadOnly:
 
 
 @dataclass(frozen=True)
+class Version:
+    """Optimistic locking on an int field of a Crud entity: a save whose version is older than
+    the stored one (someone else saved in between) is rejected with a reload/overwrite conflict
+    dialog instead of persisting, and every successful save bumps the version by one. The
+    dialog's overwrite button re-dispatches the save with ``_forceOverwrite``, adopting the
+    stored version before the bump so a stale number is never resurrected. No-op for entities
+    without a ``Version()`` field. The Python analogue of Java's ``@Version``."""
+
+
+@dataclass(frozen=True)
 class UseRadioButtons:
     """Renders an enum field as radio buttons instead of the default dropdown, regardless of how
     many members the enum has. The Python analogue of Java's ``@UseRadioButtons``."""
@@ -386,6 +396,37 @@ class AppActionsSupplier:
     disappear with server-side state. The Python analogue of Java's ``AppActionsSupplier``."""
 
     def app_actions(self) -> list[AppHeaderAction]:
+        raise NotImplementedError
+
+
+@dataclass
+class AppNotification:
+    """One entry of the app shell's notification inbox (the header bell): a title, an optional
+    detail text, an optional route the entry navigates to when clicked, the unread flag driving
+    the bell's counter, and a human "when" caption. Serialized to the wire as
+    ``{id, title, text, route, unread, when}``. The Python analogue of
+    ``io.mateu.uidl.data.AppNotification``."""
+
+    id: str
+    title: str
+    text: str | None = None
+    route: str | None = None
+    unread: bool = True
+    when: str | None = None
+
+
+class NotificationsSupplier:
+    """Implemented by the ``@app`` class to give the shell a NOTIFICATION INBOX: a bell on the
+    header with the unread count, opening a panel that lists :class:`AppNotification` s. The list
+    is fetched per request (the ``_notifications-list`` app-level action), so it can be per-user
+    — resolve the user from the request. Clicking an entry navigates to its route and marks it
+    read; the panel's "mark all read" calls :meth:`mark_notifications_read` with all the unread
+    ids. The Python analogue of Java's ``NotificationsSupplier``."""
+
+    def notifications(self, request) -> list[AppNotification]:
+        raise NotImplementedError
+
+    def mark_notifications_read(self, ids: list[str], request) -> None:
         raise NotImplementedError
 
 
@@ -1019,7 +1060,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "wizard_progress",
     "plain_text", "emits", "subscribe_to", "secured",

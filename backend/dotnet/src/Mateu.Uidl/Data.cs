@@ -56,6 +56,26 @@ public interface IAppActionsSupplier
     IReadOnlyList<AppHeaderAction> AppActions();
 }
 
+/// <summary>One entry of the app's notification inbox (the header bell): a short title, an
+/// optional longer text, an optional route to navigate to when clicked, whether it is still
+/// unread, and a display timestamp (already formatted — the server owns the locale/relative
+/// formatting). (C# analogue of io.mateu.uidl.data.AppNotification.)</summary>
+public sealed record AppNotification(
+    string Id, string Title, string? Text, string? Route, bool Unread = true, string? When = null);
+
+/// <summary>Implemented by the app class to give the shell a NOTIFICATION INBOX: a bell on the
+/// header with the unread count, opening a panel that lists <see cref="AppNotification"/>s. The
+/// list is fetched per request (the <c>_notifications-list</c> app-level action); clicking an
+/// entry navigates to its route and marks it read, the panel's "mark all read" calls
+/// <see cref="MarkNotificationsRead"/> with all the unread ids (the <c>_notifications-read</c>
+/// action). (C# analogue of Java's NotificationsSupplier.)</summary>
+public interface INotificationsSupplier
+{
+    IReadOnlyList<AppNotification> Notifications();
+
+    void MarkNotificationsRead(IReadOnlyList<string> ids);
+}
+
 /// <summary>Resolves the display label of a reference field's PRE-EXISTING value: when a form
 /// loads with a [Lookup]/[Searchable] field already set, the framework asks the view (or the
 /// [Searchable] selector) for the label so the raw id is never shown. (C# analogue of Java's
