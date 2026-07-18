@@ -103,8 +103,8 @@ The shell defines the entry points and composes remote modules.
 public class Users extends AutoCrud<User> {
 
   @Override
-  public CrudRepository<User> repository() {
-    return new UsersRepository();
+  public CrudStore<User> store() {
+    return new UsersStore();
   }
 
 }

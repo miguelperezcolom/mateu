@@ -50,8 +50,8 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 
 | Interface | Description |
 |---|---|
-| [`CrudRepository`](crud-repository/) | Basic CRUD operations for an entity |
-| [`CrudAdapter`](crud-repository/) | Full CRUD + listing adapter with separate view/editor forms |
+| [`CrudStore`](crud-store/) | Basic CRUD operations for an entity |
+| [`CrudAdapter`](/java-user-manual/build/crud-adapter/) | Full CRUD + listing adapter with separate view/editor forms |
 
 ## Validation
 

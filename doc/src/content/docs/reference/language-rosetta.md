@@ -14,7 +14,7 @@ patterns, execution model, wire contract) applies to all three.
 | Routed view | `@UI("/route")` | `[UI("route")]` | `@ui("route")` |
 | Title | `@Title("...")` | `[Title("...")]` | `@title("...")` |
 | App shell | `@UI` class with `@Menu` fields | `[App("...")]` class with `[MenuItem]` methods | `@app("...")` class with `@menu_item` methods |
-| CRUD | `extends AutoCrud<T>` + `repository()` | `class X : Crud<T>` + `Fetch(...)` | `class X(Crud[Thing])` + `fetch(...)` |
+| CRUD | `extends AutoCrud<T>` + `store()` | `class X : Crud<T>` + `Fetch(...)` | `class X(Crud[Thing])` + `fetch(...)` |
 | Wizard | `extends Wizard` + step fields | `Wizard` + `[Step]` | `Wizard` + `Step()` |
 
 ## Fields

@@ -27,14 +27,14 @@ This section shows how to do that **progressively**, without breaking the model-
 @UI("/products")
 public class Products extends AutoCrud<Product> {
 
-    final ProductRepository repository;
+    final ProductStore repository;
 
-    public Products(ProductRepository repository) {
+    public Products(ProductStore repository) {
         this.repository = repository;
     }
 
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudStore<Product> store() {
         return repository;
     }
 }
@@ -217,7 +217,7 @@ public class Products extends AutoCrud<Product> {
     @Override
     public String deleteLabel() { return "Remove"; }
 
-    // repository() as usual …
+    // store() as usual …
 }
 ```
 
@@ -296,16 +296,16 @@ Override `fetchRows()` directly on your `AutoCrud` subclass to control how the l
 @UI("/products")
 public class Products extends AutoCrud<Product> {
 
-    final ProductRepository repository;
+    final ProductStore repository;
     final ProductJpaRepository jpa;
 
-    public Products(ProductRepository repository, ProductJpaRepository jpa) {
+    public Products(ProductStore repository, ProductJpaRepository jpa) {
         this.repository = repository;
         this.jpa = jpa;
     }
 
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudStore<Product> store() {
         return repository;
     }
 

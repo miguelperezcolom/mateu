@@ -24,16 +24,16 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
 ### What to implement
 
-Override `filtersClass()` to tell Mateu which class to use for the filter bar, provide a `repository()` for save/delete/view operations, and override `fetchRows()` to apply the custom filters:
+Override `filtersClass()` to tell Mateu which class to use for the filter bar, provide a `store()` for save/delete/view operations, and override `fetchRows()` to apply the custom filters:
 
 ```java
 @Service
 @UI("/products")
 public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
 
-    private final ProductRepository repository;
+    private final ProductStore repository;
 
-    public ProductCrud(ProductRepository repository) {
+    public ProductCrud(ProductStore repository) {
         this.repository = repository;
     }
 
@@ -43,7 +43,7 @@ public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
     }
 
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudStore<Product> store() {
         return repository;
     }
 
@@ -93,7 +93,7 @@ public class AuditLog extends FilteredAutoCrud<AuditFilters, AuditEntry> {
     public Class filtersClass() { return AuditFilters.class; }
 
     @Override
-    public CrudRepository<AuditEntry> repository() { return repository; }
+    public CrudStore<AuditEntry> store() { return repository; }
 }
 ```
 

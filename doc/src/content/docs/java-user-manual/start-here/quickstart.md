@@ -59,8 +59,8 @@ record Product(
 @UI("/products")
 public class Products extends AutoCrud<Product> {
   @Override
-  public CrudRepository<Product> repository() {
-    return new ProductRepository();
+  public CrudStore<Product> store() {
+    return new ProductStore();
   }
 }
 ```

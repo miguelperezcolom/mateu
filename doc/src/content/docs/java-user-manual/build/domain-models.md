@@ -86,28 +86,28 @@ Because Mateu ViewModels are Spring beans (when annotated with `@Service`), you 
 @UI("/users")
 public class UsersPage extends AutoCrud<User> {
 
-    final UserRepository userRepository;
+    final UserStore userStore;
 
-    public UsersPage(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UsersPage(UserStore userStore) {
+        this.userStore = userStore;
     }
 
     @Override
-    public CrudRepository<User> repository() {
-        return userRepository;
+    public CrudStore<User> store() {
+        return userStore;
     }
 }
 ```
 
 ```java
 @Service
-public class UserRepository implements CrudRepository<User> {
+public class UserStore implements CrudStore<User> {
     // connects to your actual persistence layer
 }
 ```
 
-The UI layer only knows about `UserRepository`.  
-`UserRepository` knows about the database.
+The UI layer only knows about `UserStore`.  
+`UserStore` knows about the database.
 
 ---
 
@@ -121,10 +121,10 @@ The same pattern applies to form pages with actions:
 @FormLayout(columns = 1)
 public class UserEditorPage {
 
-    final UserRepository userRepository;
+    final UserStore userStore;
 
-    public UserEditorPage(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserEditorPage(UserStore userStore) {
+        this.userStore = userStore;
     }
 
     String id;
@@ -134,7 +134,7 @@ public class UserEditorPage {
 
     @Button
     Object save() {
-        userRepository.save(new User(id, name, email, roles));
+        userStore.save(new User(id, name, email, roles));
         return List.of(
                 new Message("User saved"),
                 new State(this)
@@ -143,7 +143,7 @@ public class UserEditorPage {
 }
 ```
 
-The `save()` method delegates to `userRepository`. The ViewModel does not contain business logic — it orchestrates the call and returns UI effects.
+The `save()` method delegates to `userStore`. The ViewModel does not contain business logic — it orchestrates the call and returns UI effects.
 
 ---
 
@@ -181,7 +181,7 @@ public record Product(
 ) implements Identifiable {}
 
 // Plain class: no injection needed
-class ProductRepository implements CrudRepository<Product> {
+class ProductStore implements CrudStore<Product> {
     private static final Map<String, Product> db = new HashMap<>();
     // ...
 }

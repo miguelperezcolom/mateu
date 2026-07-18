@@ -27,7 +27,7 @@ This case adds several real-world patterns on top of the basic CRUD:
 This case has five pieces:
 
 - `User` — the model
-- `UserRepository` — the persistence layer
+- `UserStore` — the persistence layer
 - `UsersPage` — the CRUD orchestrator
 - `UserEditorPage` — a standalone editor bound to the CRUD
 - `RoleOptionsSupplier` / `RoleLabelSupplier` — lookup support
@@ -65,7 +65,7 @@ Key points:
 
 ```java
 @Service
-public class UserRepository implements CrudRepository<User> {
+public class UserStore implements CrudStore<User> {
 
     private static final Map<String, User> db = new HashMap<>();
 
@@ -108,20 +108,20 @@ The repository is a `@Service` bean. This allows it to be injected wherever need
 @UI("/users")
 public class UsersPage extends AutoCrud<User> {
 
-    final UserRepository userRepository;
+    final UserStore userStore;
 
-    public UsersPage(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UsersPage(UserStore userStore) {
+        this.userStore = userStore;
     }
 
     @Override
-    public CrudRepository<User> repository() {
-        return userRepository;
+    public CrudStore<User> store() {
+        return userStore;
     }
 }
 ```
 
-`UsersPage` is a `@Service` bean. The repository is injected via constructor, and `repository()` is the only method that needs to be overridden.
+`UsersPage` is a `@Service` bean. The repository is injected via constructor, and `store()` is the only method that needs to be overridden.
 
 Compare this to the Products example, where the repository was a plain class with no injection. In this case, `@Service` is required because the class holds an injected dependency.
 
@@ -183,10 +183,10 @@ public class RoleLabelSupplier implements LabelSupplier {
 @FormLayout(columns = 1)
 public class UserEditorPage {
 
-    final UserRepository userRepository;
+    final UserStore userStore;
 
-    public UserEditorPage(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserEditorPage(UserStore userStore) {
+        this.userStore = userStore;
     }
 
     String id;
@@ -204,7 +204,7 @@ public class UserEditorPage {
 
     @Button
     Object save() {
-        userRepository.save(new User(id, name, email, roles));
+        userStore.save(new User(id, name, email, roles));
         return List.of(
                 new Message("User saved"),
                 new State(this)
@@ -218,7 +218,7 @@ Key points:
 - `@Route(value = "/:id/edit", uis = {"/users"})` binds this page to the edit action of the `/users` CRUD
 - The `:id` segment is populated automatically by Mateu
 - `save()` returns both a `Message` (toast notification) and a `State(this)` (refresh the form state)
-- The page is a `@Service` bean, so `UserRepository` is injected via constructor
+- The page is a `@Service` bean, so `UserStore` is injected via constructor
 
 ---
 
@@ -226,11 +226,11 @@ Key points:
 
 ```
 UsersPage (@UI("/users"))
-  └── UserRepository
+  └── UserStore
         └── User (model)
 
 UserEditorPage (@Route("/:id/edit", uis="/users"))
-  └── UserRepository
+  └── UserStore
         └── User (model)
         └── RoleOptionsSupplier (lookup)
         └── RoleLabelSupplier (labels)

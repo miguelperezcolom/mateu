@@ -364,7 +364,7 @@ public class Orders : Crud<Order>
 }
 ```
 
-(The C# analogue of Java's `CrudRepository.find`.)
+(The C# analogue of Java's `CrudStore.find`.)
 
 ## Federation (microfrontends)
 

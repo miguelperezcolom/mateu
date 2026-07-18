@@ -5,7 +5,7 @@ description: "Control the text used when free-text searching a CRUD listing."
 
 **Interface** — `io.mateu.uidl.interfaces.Searchable`
 
-`Searchable` lets an entity/row expose the text that the free-text search box of a listing matches against. The default in-memory implementation of [`CrudRepository.find`](/java-ui-definition/interfaces/crud-repository/#the-find-method) filters `findAll()` by checking whether each row's searchable text contains the query.
+`Searchable` lets an entity/row expose the text that the free-text search box of a listing matches against. The default in-memory implementation of [`CrudStore.find`](/java-ui-definition/interfaces/crud-store/#the-find-method) filters `findAll()` by checking whether each row's searchable text contains the query.
 
 ```java
 public interface Searchable {
@@ -53,8 +53,8 @@ Searching for a SKU or a word from the description now finds the product, even t
 
 ## Scope
 
-`Searchable` only affects the **default** (in-memory) `CrudRepository.find` implementation. If you override `find(searchText, filters, pageable)` to push searching to the database, you decide how `searchText` is matched and `Searchable` is not consulted.
+`Searchable` only affects the **default** (in-memory) `CrudStore.find` implementation. If you override `find(searchText, filters, pageable)` to push searching to the database, you decide how `searchText` is matched and `Searchable` is not consulted.
 
 ## Related
 
-- [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the data-access contract whose default `find` uses `Searchable`
+- [CrudStore](/java-ui-definition/interfaces/crud-store/) — the data-access contract whose default `find` uses `Searchable`

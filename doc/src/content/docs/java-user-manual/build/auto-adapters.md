@@ -14,7 +14,7 @@ These methods are `public` in `FilteredAutoCrud` and can be overridden in any `A
 | Method | Default behaviour | Override to… |
 |---|---|---|
 | `fetchRows(searchText, filters, pageable, httpRequest)` | In-memory filter via `toString()` / `Searchable.searchableText()` | Query a database or external service |
-| `buildNamedView(id, httpRequest)` | Loads via `repository().findById(id)`, wraps in `AutoNamedView` | Return a custom view (pre-loaded data, extra context, etc.) |
+| `buildNamedView(id, httpRequest)` | Loads via `store().findById(id)`, wraps in `AutoNamedView` | Return a custom view (pre-loaded data, extra context, etc.) |
 | `buildCreationForm(httpRequest)` | Instantiates a new `T`, wraps in `AutoNamedView` | Pre-populate fields on the creation form |
 
 ---
@@ -26,9 +26,9 @@ These methods are `public` in `FilteredAutoCrud` and can be overridden in any `A
 @UI("/products")
 public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
 
-    private final ProductRepository repository;
+    private final ProductStore repository;
 
-    public ProductCrud(ProductRepository repository) {
+    public ProductCrud(ProductStore repository) {
         this.repository = repository;
     }
 
@@ -38,7 +38,7 @@ public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
     }
 
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudStore<Product> store() {
         return repository;
     }
 
@@ -60,14 +60,14 @@ public class ProductCrud extends FilteredAutoCrud<ProductFilters, Product> {
 @UI("/orders")
 public class OrderCrud extends AutoCrud<Order> {
 
-    private final OrderRepository repository;
+    private final OrderStore repository;
 
-    public OrderCrud(OrderRepository repository) {
+    public OrderCrud(OrderStore repository) {
         this.repository = repository;
     }
 
     @Override
-    public CrudRepository<Order> repository() {
+    public CrudStore<Order> store() {
         return repository;
     }
 
@@ -76,7 +76,7 @@ public class OrderCrud extends AutoCrud<Order> {
         var order = new Order();
         order.setDate(LocalDate.now());
         order.setStatus(OrderStatus.DRAFT);
-        return new AutoNamedView<>(Order.class, order, repository());
+        return new AutoNamedView<>(Order.class, order, store());
     }
 }
 ```
@@ -109,4 +109,4 @@ If the view, editor, and creation form need to be **genuinely different types** 
 
 - [FilteredAutoCrud](/java-user-manual/build/filtered-orchestrators/) — add a dedicated filter model
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — the interface for a fully custom data layer
-- [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository contract these hooks delegate to
+- [CrudStore](/java-ui-definition/interfaces/crud-store/) — the repository contract these hooks delegate to

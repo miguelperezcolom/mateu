@@ -67,7 +67,7 @@ void usersPage_lists_all_users() {
     var repo = new UserRepository();     // plain class, no Spring
     var page = new UsersPage(repo);
 
-    var result = page.repository().findAll();
+    var result = page.store().findAll();
     assertThat(result).isNotEmpty();
 }
 ```

@@ -54,7 +54,7 @@ above the individual UIs:
   right screen by screen.
 - **A shared domain vocabulary** — company conventions are encoded once as composed
   (semantic) annotations (`@ProveedorId`, `@Importe`, …) and every screen inherits them.
-- **Standard ports / SPIs** — `CrudRepository`, `ListingBackend`, `Translator`, role-based
+- **Standard ports / SPIs** — `CrudStore`, `ListingBackend`, `Translator`, role-based
   security, i18n. Every element plugs in the same way, so cross-cutting rules apply uniformly.
 - **Federation** — Maven (build-time) and `RemoteMenu` / `MicroFrontend` (runtime) let many
   services and teams compose **one** coherent application, and the design system is governed

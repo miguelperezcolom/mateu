@@ -357,7 +357,7 @@ class Orders(Crud[Order]):
         return PageResult(content=list(rows), total_elements=total)
 ```
 
-(The Python analogue of Java's `CrudRepository.find`.)
+(The Python analogue of Java's `CrudStore.find`.)
 
 ## Federation (microfrontends)
 

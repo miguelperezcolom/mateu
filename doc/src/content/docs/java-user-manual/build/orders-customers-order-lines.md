@@ -51,14 +51,14 @@ The main entry point is a standard CRUD UI.
 @UI("/orders")
 public class Orders extends AutoCrud<Order> {
 
-    final OrderRepository orderRepository;
+    final OrderStore orderRepository;
 
-    public Orders(OrderRepository orderRepository) {
+    public Orders(OrderStore orderRepository) {
         this.orderRepository = orderRepository;
     }
 
     @Override
-    public CrudRepository<Order> repository() {
+    public CrudStore<Order> store() {
         return orderRepository;
     }
 }
@@ -203,7 +203,7 @@ public class CustomerLabelSupplier implements LabelSupplier {
 
 ```java
 @Service
-public class OrderRepository implements CrudRepository<Order> {
+public class OrderStore implements CrudStore<Order> {
 
     private final Map<String, Order> db = new LinkedHashMap<>();
 
@@ -265,7 +265,7 @@ If you want to add custom content to the order detail, compose it as dynamic UI.
 @Style(StyleConstants.CONTAINER)
 public class OrderDetail {
 
-    final OrderRepository orderRepository;
+    final OrderStore orderRepository;
 
     String id;
 
@@ -278,7 +278,7 @@ public class OrderDetail {
     @ReadOnly
     OrderStatus status;
 
-    public OrderDetail(OrderRepository orderRepository) {
+    public OrderDetail(OrderStore orderRepository) {
         this.orderRepository = orderRepository;
     }
 
@@ -353,8 +353,8 @@ public class OrderLines extends AutoCrud<OrderLine> {
     }
 
     @Override
-    public CrudRepository<OrderLine> repository() {
-        return new CrudRepository<>() {
+    public CrudStore<OrderLine> store() {
+        return new CrudStore<>() {
 
             @Override
             public Optional<OrderLine> findById(String id) {
@@ -390,7 +390,7 @@ public class OrderLines extends AutoCrud<OrderLine> {
 
 # 9. Filtering the child CRUD by parent id
 
-The important part is that the child CRUD receives the parent context via `withOrderId()`. The `repository()` method captures `orderId` from the outer class — new lines are automatically assigned to the current order, and the listing only returns lines for that order.
+The important part is that the child CRUD receives the parent context via `withOrderId()`. The `store()` method captures `orderId` from the outer class — new lines are automatically assigned to the current order, and the listing only returns lines for that order.
 
 ---
 
@@ -504,9 +504,9 @@ Create explicit pages only when you need custom composition or custom flows.
 
 The Mateu way for this example is:
 
-- `Orders extends AutoCrud<Order>` — overrides `repository()` directly
+- `Orders extends AutoCrud<Order>` — overrides `store()` directly
 - `Order.customerId` uses `@Lookup`
-- `OrderLines extends AutoCrud<OrderLine>` — `repository()` captures `orderId` from the outer class
+- `OrderLines extends AutoCrud<OrderLine>` — `store()` captures `orderId` from the outer class
 - parent detail embeds child CRUD with `Callable<?>`
 - child CRUD is filtered by parent context
 

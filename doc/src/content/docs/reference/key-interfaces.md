@@ -89,11 +89,11 @@ Useful when page metadata should be generated programmatically.
 
 ---
 
-## `CrudRepository`
+## `CrudStore`
 
 This is one of the central interfaces for CRUD-oriented Mateu applications.
 
-Use it when Mateu should read, save, list, and delete entities through a repository abstraction.
+Use it when Mateu should read, save, list, and delete entities through a data-access store abstraction.
 
 Typical responsibilities:
 

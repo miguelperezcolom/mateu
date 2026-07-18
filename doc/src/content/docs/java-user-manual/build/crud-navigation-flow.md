@@ -15,15 +15,15 @@ For a CRUD published at `/users`:
 @UI("/users")
 public class UsersPage extends AutoCrud<User> {
 
-    final UserRepository userRepository;
+    final UserStore userStore;
 
-    public UsersPage(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UsersPage(UserStore userStore) {
+        this.userStore = userStore;
     }
 
     @Override
-    public CrudRepository<User> repository() {
-        return userRepository;
+    public CrudStore<User> store() {
+        return userStore;
     }
 }
 ```
@@ -71,10 +71,10 @@ You can replace the auto-generated edit form with a custom page using `@Route` a
 @FormLayout(columns = 1)
 public class UserEditorPage {
 
-    final UserRepository userRepository;
+    final UserStore userStore;
 
-    public UserEditorPage(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    public UserEditorPage(UserStore userStore) {
+        this.userStore = userStore;
     }
 
     String id;
@@ -92,7 +92,7 @@ public class UserEditorPage {
 
     @Button
     Object save() {
-        userRepository.save(new User(id, name, email, roles));
+        userStore.save(new User(id, name, email, roles));
         return List.of(
                 new Message("User saved"),
                 new State(this)
@@ -167,14 +167,14 @@ If you only need list + detail view (no editing or creating), annotate `AutoCrud
 @ReadOnly
 public class ProductsPage extends AutoCrud<Product> {
 
-    final ProductRepository productRepository;
+    final ProductStore productRepository;
 
-    public ProductsPage(ProductRepository productRepository) {
+    public ProductsPage(ProductStore productRepository) {
         this.productRepository = productRepository;
     }
 
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudStore<Product> store() {
         return productRepository;
     }
 }

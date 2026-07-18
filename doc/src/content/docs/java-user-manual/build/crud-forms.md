@@ -160,7 +160,7 @@ public class ProductOrchestrator
 
 ## Using AutoNamedView instead
 
-When the entity itself is the form (no separate editor class), use `AutoNamedView<T>` in the adapter rather than creating a dedicated form class. `AutoNamedView` implements both `CrudEditorForm` and `CrudCreationForm` automatically via its `save()` and `create()` methods, which delegate to the `CrudRepository`.
+When the entity itself is the form (no separate editor class), use `AutoNamedView<T>` in the adapter rather than creating a dedicated form class. `AutoNamedView` implements both `CrudEditorForm` and `CrudCreationForm` automatically via its `save()` and `create()` methods, which delegate to the `CrudStore`.
 
 This is what `AutoCrud` does internally — it wraps the entity in `AutoNamedView` so you never have to write the form interfaces yourself.
 

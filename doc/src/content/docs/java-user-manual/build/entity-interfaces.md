@@ -9,7 +9,7 @@ These three interfaces are the minimum contracts that entities and row DTOs must
 
 ## Identifiable
 
-Every entity used with `AutoCrud`, `AutoCrud`, or any `CrudRepository` must implement `Identifiable`.
+Every entity used with `AutoCrud`, `AutoCrud`, or any `CrudStore` must implement `Identifiable`.
 
 ```java
 public interface Identifiable {
@@ -88,7 +88,7 @@ public record Product(
 
 `AutoNamedView` calls `named.name()` as the page title when the entity implements `Named`. If it does not, it falls back to `entity.toString()`.
 
-`Named` is also required by `CompositionCrudRepository` — child entities used in embedded grids must implement `Named`.
+`Named` is also required by `CompositionCrudStore` — child entities used in embedded grids must implement `Named`.
 
 ---
 
@@ -129,8 +129,8 @@ This is only relevant when you rely on in-memory filtering. If you override `sea
 
 | Interface | Required by | Purpose |
 |---|---|---|
-| `Identifiable` | `CrudRepository<T>`, `AutoCrud<T>`, `FilteredAutoCrud<F,T>` | Identifies each entity so the framework can navigate, select, and delete rows |
-| `Named` | `CompositionCrudRepository<T, P>`, `AutoNamedView` (optional) | Provides a human-readable title for detail views and breadcrumbs |
+| `Identifiable` | `CrudStore<T>`, `AutoCrud<T>`, `FilteredAutoCrud<F,T>` | Identifies each entity so the framework can navigate, select, and delete rows |
+| `Named` | `CompositionCrudStore<T, P>`, `AutoNamedView` (optional) | Provides a human-readable title for detail views and breadcrumbs |
 | `Searchable` | `AutoCrud<T>`, `FilteredAutoCrud<F,T>` (optional) | Controls which text is matched during in-memory free-text search |
 
 ---
@@ -138,5 +138,5 @@ This is only relevant when you rely on in-memory filtering. If you override `sea
 ## Next
 
 - [AutoCrud&lt;T&gt;](/java-user-manual/build/auto-orchestrators/) — where `Identifiable` and `Searchable` are consumed
-- [CrudRepository](/java-ui-definition/interfaces/crud-repository/) — the repository that requires `T extends Identifiable`
+- [CrudStore](/java-ui-definition/interfaces/crud-store/) — the repository that requires `T extends Identifiable`
 - [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrators that put it all together

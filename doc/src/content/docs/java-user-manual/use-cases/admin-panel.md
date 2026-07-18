@@ -24,7 +24,7 @@ This case is meant to do two things at once:
 This example has three pieces:
 
 - a `Product` model
-- a `ProductRepository`
+- a `ProductStore`
 - a `Products` UI class
 
 Together they generate a complete CRUD UI.
@@ -45,7 +45,7 @@ import io.mateu.uidl.annotations.Stereotype;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.StatusType;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.Identifiable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -80,7 +80,7 @@ record Product(
     }
 }
 
-class ProductRepository implements CrudRepository<Product> {
+class ProductStore implements CrudStore<Product> {
 
     private static final Map<String, Product> db = new HashMap<>();
 
@@ -110,8 +110,8 @@ class ProductRepository implements CrudRepository<Product> {
 public class Products extends AutoCrud<Product> {
 
     @Override
-    public CrudRepository<Product> repository() {
-        return new ProductRepository();
+    public CrudStore<Product> store() {
+        return new ProductStore();
     }
 }
 ```
@@ -218,8 +218,8 @@ Then add handler methods with matching names in the orchestrator:
 public class Products extends AutoCrud<Product> {
 
     @Override
-    public CrudRepository<Product> repository() {
-        return new ProductRepository();
+    public CrudStore<Product> store() {
+        return new ProductStore();
     }
 
     void setAsBlue(Product row) {

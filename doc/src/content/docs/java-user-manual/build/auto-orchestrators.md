@@ -18,7 +18,7 @@ public abstract class AutoCrud<T extends Identifiable>
 
 | Method | Purpose |
 |---|---|
-| `repository()` | Return the `CrudRepository<T>` used for all operations |
+| `store()` | Return the `CrudStore<T>` used for all operations |
 
 ---
 
@@ -29,14 +29,14 @@ public abstract class AutoCrud<T extends Identifiable>
 @UI("/products")
 public class ProductCrud extends AutoCrud<Product> {
 
-    private final ProductRepository repository;
+    private final ProductStore repository;
 
-    public ProductCrud(ProductRepository repository) {
+    public ProductCrud(ProductStore repository) {
         this.repository = repository;
     }
 
     @Override
-    public CrudRepository<Product> repository() {
+    public CrudStore<Product> store() {
         return repository;
     }
 }
@@ -101,7 +101,7 @@ public class AuditLog extends AutoCrud<AuditEntry> {
     }
 
     @Override
-    public CrudRepository<AuditEntry> repository() {
+    public CrudStore<AuditEntry> store() {
         return repository;
     }
 }
@@ -115,13 +115,13 @@ The write operations are simply never invoked for a read-only `AutoCrud`.
 
 | Operation | Behaviour |
 |---|---|
-| `search` | Delegates to `repository().find(searchText, filters, pageable)` → `Page<T>` (default: filters by `Searchable.searchableText()`/`toString()`, sorts by `pageable.sort()`, paginates in memory) |
+| `search` | Delegates to `store().find(searchText, filters, pageable)` → `Page<T>` (default: filters by `Searchable.searchableText()`/`toString()`, sorts by `pageable.sort()`, paginates in memory) |
 | `getView` | Loads entity by id and wraps in `AutoNamedView` |
 | `getEditor` | Same as view — entity fields become editable inputs |
 | `getCreationForm` | Instantiates a new T and wraps in `AutoNamedView` |
-| `deleteAllById` | Delegates to `repository().deleteAllById()` |
+| `deleteAllById` | Delegates to `store().deleteAllById()` |
 
-For most use cases `repository()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudRepository.find(...)`](/java-ui-definition/interfaces/crud-repository/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override the protected hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
+For most use cases `store()` is the only method you need to implement. To push search, filtering, sorting and pagination to the database, override [`CrudStore.find(...)`](/java-ui-definition/interfaces/crud-store/#the-find-method) — `AutoCrud` calls it automatically. To customise other operations (pre-populated creation forms, etc.) override the protected hooks `fetchRows()`, `buildNamedView()`, or `buildCreationForm()` directly in your subclass — see [Customising AutoCrud behaviour](/java-user-manual/build/auto-adapters/).
 
 ---
 

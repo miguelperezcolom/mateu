@@ -53,7 +53,7 @@ Embeds a child CRUD collection inside a parent form. Mateu renders the field as 
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Composition {
     Class<? extends Named> targetClass();
-    Class<? extends CompositionCrudRepository> repositoryClass();
+    Class<? extends CompositionCrudStore> repositoryClass();
     String foreignKeyField();
 }
 ```
@@ -63,7 +63,7 @@ public @interface Composition {
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `targetClass` | `Class<Named>` | — | The child entity class |
-| `repositoryClass` | `Class<CompositionCrudRepository>` | — | Repository that manages the child records |
+| `repositoryClass` | `Class<CompositionCrudStore>` | — | Store that manages the child records |
 | `foreignKeyField` | `String` | — | Name of the foreign key field on the child entity |
 
 ### Example

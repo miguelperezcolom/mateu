@@ -1,9 +1,15 @@
 ---
-title: "CrudRepository"
+title: "CrudStore"
 description: "Interface for providing CRUD data access to AutoCrud."
 ---
 
-`CrudRepository<T>` is the data-access contract consumed by `AutoCrud`. Implement it to back an automatic CRUD UI with your own storage — in-memory map, JPA repository, REST client, or anything else.
+`CrudStore<T>` is the data-access contract consumed by `AutoCrud`. Implement it to back an automatic CRUD UI with your own storage — in-memory map, JPA repository, REST client, or anything else.
+
+It is a **data-access port** — a thin adapter over persistence. The name "repository" is reserved for domain-aggregate repositories, which is why this port is called `CrudStore`.
+
+## Deprecated alias
+
+The former name `CrudRepository` (and the `AutoCrud` override method `repository()`) still exist as a **deprecated alias marked for removal** (`@Deprecated(forRemoval = true)`): `CrudRepository extends CrudStore`, and `repository()` is still honored when `store()` is not overridden. Existing code keeps compiling unchanged, but new code should use `CrudStore` and override `store()`. The same applies to `CompositionCrudRepository` → `CompositionCrudStore`.
 
 The type parameter `T` must implement `Identifiable`, which requires a single method:
 
@@ -16,7 +22,7 @@ public interface Identifiable {
 ## Interface
 
 ```java
-public interface CrudRepository<T extends Identifiable> {
+public interface CrudStore<T extends Identifiable> {
     Optional<T> findById(String id);
     String save(T entity);
     List<T> findAll();
@@ -40,7 +46,7 @@ public interface CrudRepository<T extends Identifiable> {
 
 ## Full example
 
-The snippet below mirrors the pattern used in the Items Catalog e2e test app. It shows the entity, repository, and orchestrator in one place.
+The snippet below mirrors the pattern used in the Items Catalog e2e test app. It shows the entity, store, and orchestrator in one place.
 
 ```java
 // 1. Entity — must implement Identifiable
@@ -58,8 +64,8 @@ class Item implements Identifiable {
     public String toString() { return name != null ? "Item " + name : "New item"; }
 }
 
-// 2. Repository — holds your storage logic
-class ItemRepository implements CrudRepository<Item> {
+// 2. Store — holds your storage logic
+class ItemStore implements CrudStore<Item> {
 
     private static final Map<String, Item> db = new HashMap<>(Map.of(
         "1", new Item("1", "Widget A", 9.99),
@@ -93,8 +99,8 @@ class ItemRepository implements CrudRepository<Item> {
 public class ItemsCatalog extends AutoCrud<Item> {
 
     @Override
-    public CrudRepository<Item> repository() {
-        return new ItemRepository();
+    public CrudStore<Item> store() {
+        return new ItemStore();
     }
 }
 ```
@@ -103,7 +109,7 @@ Navigating to `/items` renders a full list-create-edit-delete UI with no additio
 
 ## Spring Data JPA integration
 
-`CrudRepository` is a plain Java interface, not a Spring Data one. The most common pattern in Spring Boot applications is to wrap a Spring Data `JpaRepository` in a thin adapter:
+`CrudStore` is a plain Java interface, not a Spring Data one. The most common pattern in Spring Boot applications is to wrap a Spring Data `CrudRepository`/`JpaRepository` in a thin adapter (note: that `CrudRepository` is Spring Data's own interface, unrelated to Mateu's port):
 
 ```java
 // Spring Data JPA repository
@@ -113,13 +119,13 @@ public interface ProductJpaRepository extends JpaRepository<Product, String> {
 ```
 
 ```java
-// Mateu CrudRepository — wraps the JPA repo
+// Mateu CrudStore — wraps the JPA repo
 @Service
-public class ProductRepository implements CrudRepository<Product> {
+public class ProductStore implements CrudStore<Product> {
 
     private final ProductJpaRepository jpa;
 
-    public ProductRepository(ProductJpaRepository jpa) {
+    public ProductStore(ProductJpaRepository jpa) {
         this.jpa = jpa;
     }
 
@@ -192,14 +198,14 @@ public record FilterCriterion(String field, FilterOperator operator, List<Object
 ```
 
 They come from the smart search bar's range widgets (temporal fields by default, numeric fields
-annotated with `@RangeFilter`) and enum multi-selects, and reach the repository through a second
+annotated with `@RangeFilter`) and enum multi-selects, and reach the store through a second
 overload:
 
 ```java
 default Page<T> find(String searchText, T filters, List<FilterCriterion> criteria, Pageable pageable)
 ```
 
-The framework calls the 4-arg overload **only when such criteria exist**, so a repository that
+The framework calls the 4-arg overload **only when such criteria exist**, so a store that
 only overrides the 3-arg `find` keeps working unchanged for plain searches — but a range/multi
 search on it falls back to the in-memory default over `findAll()`. Override the 4-arg overload too
 when you want ranges and value lists resolved in the database (translate `between`/`gte`/`lte` to
@@ -211,11 +217,11 @@ For large tables, override `find` so the search, filtering, sorting and paginati
 
 ```java
 @Service
-public class ProductRepository implements CrudRepository<Product> {
+public class ProductStore implements CrudStore<Product> {
 
     private final ProductJpaRepository jpa;
 
-    public ProductRepository(ProductJpaRepository jpa) {
+    public ProductStore(ProductJpaRepository jpa) {
         this.jpa = jpa;
     }
 
@@ -234,17 +240,17 @@ public class ProductRepository implements CrudRepository<Product> {
 }
 ```
 
-`AutoCrud` delegates to `find` automatically, so a repository that overrides it gets DB-side paging with no extra wiring. If you need access to the `HttpRequest` (e.g. tenant scoping), override `fetchRows(searchText, filters, pageable, httpRequest)` on the `AutoCrud` subclass instead — it wraps `repository().find(...)` by default.
+`AutoCrud` delegates to `find` automatically, so a store that overrides it gets DB-side paging with no extra wiring. If you need access to the `HttpRequest` (e.g. tenant scoping), override `fetchRows(searchText, filters, pageable, httpRequest)` on the `AutoCrud` subclass instead — it wraps `store().find(...)` by default.
 
 ---
 
-## CompositionCrudRepository
+## CompositionCrudStore
 
-`CompositionCrudRepository` extends `CrudRepository` for child entities that belong to a parent (a foreign-key relationship expressed with `@Composition`).
+`CompositionCrudStore` extends `CrudStore` for child entities that belong to a parent (a foreign-key relationship expressed with `@Composition`).
 
 ```java
-public interface CompositionCrudRepository<EntityType extends Named, ParentIdType>
-        extends CrudRepository<EntityType> {
+public interface CompositionCrudStore<EntityType extends Named, ParentIdType>
+        extends CrudStore<EntityType> {
 
     ListingData<EntityType> search(
         String searchText,
@@ -268,11 +274,11 @@ public interface Named extends Identifiable {
 |---|---|
 | `search(searchText, filters, parentId, pageable)` | Return a paginated list of child entities scoped to the given `parentId` |
 
-Use `CompositionCrudRepository` when an embedded child grid inside a parent form must fetch its rows from the server filtered by the parent's ID. Annotate the parent field with `@Composition` to trigger this behaviour.
+Use `CompositionCrudStore` when an embedded child grid inside a parent form must fetch its rows from the server filtered by the parent's ID. Annotate the parent field with `@Composition` to trigger this behaviour.
 
 ---
 
 ## Next
 
 - [CrudAdapter](/java-user-manual/build/crud-adapter/) — the lower-level interface for full control over each operation
-- [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrator that consumes this repository
+- [AutoCrud](/java-user-manual/build/auto-orchestrators/) — the orchestrator that consumes this store

@@ -40,7 +40,7 @@ public AutoNamedView<Order> buildCreationForm(HttpRequest httpRequest) {
     var order = new Order();
     order.setDate(LocalDate.now());
     order.setStatus(OrderStatus.DRAFT);
-    return new AutoNamedView<>(Order.class, order, repository());
+    return new AutoNamedView<>(Order.class, order, store());
 }
 ```
 
