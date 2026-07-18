@@ -16,6 +16,7 @@ public record FoldoutLayout(
     List<FoldoutPanel> panels,
     String headerTitle,
     List<Badge> badges,
+    FoldoutOrientation orientation,
     String style,
     String cssClasses)
     implements Component {}

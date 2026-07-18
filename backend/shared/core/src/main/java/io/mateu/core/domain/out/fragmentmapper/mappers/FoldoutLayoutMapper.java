@@ -71,6 +71,11 @@ public class FoldoutLayoutMapper {
             .panels(panelInfos)
             .headerTitle(foldoutLayout.headerTitle())
             .badges(badgeTexts)
+            .orientation(
+                (foldoutLayout.orientation() != null
+                        ? foldoutLayout.orientation()
+                        : io.mateu.uidl.data.FoldoutOrientation.vertical)
+                    .name())
             .build(),
         foldoutLayout.id(),
         children,

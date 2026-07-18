@@ -7,6 +7,7 @@ import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.FoldoutLayout;
+import io.mateu.uidl.data.FoldoutOrientation;
 import io.mateu.uidl.data.FoldoutPanel;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -76,6 +77,15 @@ public abstract class Foldout implements ComponentTreeSupplier {
     return List.of();
   }
 
+  /**
+   * Orientation of the Page Overview (RDS Foldout spec). {@link FoldoutOrientation#vertical}
+   * (default) pins the overview on the left with panels to its right; {@link
+   * FoldoutOrientation#horizontal} spans the overview across the top with panels in a row below.
+   */
+  public FoldoutOrientation orientation() {
+    return FoldoutOrientation.vertical;
+  }
+
   @Override
   @SneakyThrows
   public Component component(HttpRequest httpRequest) {
@@ -113,6 +123,7 @@ public abstract class Foldout implements ComponentTreeSupplier {
         .panels(panels)
         .headerTitle(headerTitle())
         .badges(headerBadges())
+        .orientation(orientation())
         .build();
   }
 }

@@ -10,4 +10,7 @@ export default interface FoldoutLayout extends ComponentMetadata {
 
     badges?: string[]
 
+    // "vertical" (overview on the left) | "horizontal" (overview across the top)
+    orientation?: string
+
 }

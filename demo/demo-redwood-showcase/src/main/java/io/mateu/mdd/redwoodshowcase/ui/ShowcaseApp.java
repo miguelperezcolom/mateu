@@ -7,6 +7,7 @@ import io.mateu.mdd.redwoodshowcase.ui.dashboard.SalesDashboard;
 import io.mateu.mdd.redwoodshowcase.ui.drawercrud.ContactsDrawerCrud;
 import io.mateu.mdd.redwoodshowcase.ui.emptystates.EmptyStatesDemo;
 import io.mateu.mdd.redwoodshowcase.ui.foldout.BookingFoldout;
+import io.mateu.mdd.redwoodshowcase.ui.foldout.BookingFoldoutHorizontal;
 import io.mateu.mdd.redwoodshowcase.ui.forms.GuestProfile;
 import io.mateu.mdd.redwoodshowcase.ui.generaloverview.RequisitionOverview;
 import io.mateu.mdd.redwoodshowcase.ui.herosearch.HotelSearch;
@@ -38,6 +39,8 @@ public class ShowcaseApp {
   @Menu ProductOverview itemOverview;
 
   @Menu BookingFoldout foldout;
+
+  @Menu BookingFoldoutHorizontal foldoutHorizontal;
 
   @Menu HotelSearch heroSearch;
 

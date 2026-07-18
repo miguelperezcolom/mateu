@@ -20,6 +20,10 @@ export class MateuFoldout extends LitElement {
     @property({ type: Array })
     badges: string[] = []
 
+    // "vertical" (overview pinned on the left) | "horizontal" (overview across the top)
+    @property({ type: String, reflect: true })
+    orientation = 'vertical'
+
     @state()
     private openPanels: Set<number> = new Set()
 
@@ -95,6 +99,16 @@ export class MateuFoldout extends LitElement {
             min-height: 0;
             gap: var(--mateu-foldout-gap, var(--lumo-space-m, 1rem));
             align-items: stretch;
+        }
+        /* Horizontal configuration (RDS Foldout spec): the overview spans the top full-width and the
+           panels lay out in a row below it, instead of the overview being pinned on the left. */
+        :host([orientation="horizontal"]) .columns {
+            flex-direction: column;
+        }
+        :host([orientation="horizontal"]) .overview {
+            flex: 0 0 auto;
+            width: 100%;
+            overflow: visible;
         }
         /* The visual treatment is tokenised: the fallbacks reproduce the original bordered-card
            look (Vaadin), while a design system can switch to the RDS "Foldout" anatomy — frameless

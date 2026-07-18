@@ -12,6 +12,7 @@ export const renderFoldoutLayout = (container: LitElement, component: ClientSide
                 .panels="${metadata.panels ?? []}"
                 .headerTitle="${metadata.headerTitle ?? ''}"
                 .badges="${metadata.badges ?? []}"
+                orientation="${metadata.orientation ?? 'vertical'}"
                 style="${component.style}"
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"
