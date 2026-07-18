@@ -330,7 +330,7 @@ export class MateuRedwoodApp extends MateuApp {
             // Hand-styled transient toast (same hand-styled-div idiom as renderFilterBar).
             const toast = document.createElement('div')
             toast.style.cssText = 'position: fixed; bottom: 1rem; left: 1rem; z-index: 10000;'
-                + ' background: var(--oj-core-danger-3, #b1380b); color: #fff; padding: .75rem 1rem;'
+                + ' background: var(--oj-core-danger-3, #b3311f); color: #fff; padding: .75rem 1rem;'
                 + ' border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.25); font-size: .875rem;'
             toast.textContent = 'The action failed: ' + ('' + e)
             document.body.appendChild(toast)

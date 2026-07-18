@@ -20,7 +20,7 @@ import '../components/mateu-redwood-table'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SECONDARY = 'var(--oj-core-text-color-secondary, #666)'
-const DIVIDER = 'var(--oj-core-divider-color, #e0e0e0)'
+const DIVIDER = 'var(--oj-core-divider-color, rgba(22,21,19,.12))'
 
 const HEADER_CELL = `text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid ${DIVIDER}; color: ${SECONDARY}; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;`
 const CELL = `padding: 0.5rem 0.75rem; border-bottom: 1px solid ${DIVIDER};`

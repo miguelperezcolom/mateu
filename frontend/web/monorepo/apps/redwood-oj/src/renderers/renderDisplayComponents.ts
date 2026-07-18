@@ -25,7 +25,7 @@ import { evalIfNecessary } from "@infra/ui/renderers/avatarRenderer.ts"
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SECONDARY = 'var(--oj-core-text-color-secondary, #666)'
-const DIVIDER = 'var(--oj-core-divider-color, #e0e0e0)'
+const DIVIDER = 'var(--oj-core-divider-color, rgba(22,21,19,.12))'
 const BG = 'var(--oj-core-bg-color-content, #fff)'
 const RADIUS = 'var(--oj-core-border-radius-md, 6px)'
 

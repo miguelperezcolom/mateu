@@ -24,7 +24,7 @@ import { uxIconClass } from "@/renderers/renderDisplayComponents.ts";
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SECONDARY = 'var(--oj-core-text-color-secondary, #666)'
-const DIVIDER = 'var(--oj-core-divider-color, #e0e0e0)'
+const DIVIDER = 'var(--oj-core-divider-color, rgba(22,21,19,.12))'
 const LABEL_STYLE = `display:block;font-size:0.75rem;color:${SECONDARY};margin-bottom:4px;`
 
 const makeDataProvider = (items: { value: unknown; label: string }[]) => {
@@ -198,7 +198,7 @@ const renderChoiceOptions = (metadata: FormField, value: any, options: Option[],
             }
             return html`
                 <div role="button" tabindex="0"
-                     style="min-width: 10rem; min-height: 3rem; padding: 0.75rem 1rem; cursor: pointer; border-radius: var(--oj-core-border-radius-lg, 8px); border: 1px solid ${selected ? 'var(--oj-core-info-color, #0572ce)' : DIVIDER}; background: ${selected ? 'var(--oj-core-bg-color-selected, #e5f0fa)' : 'transparent'};"
+                     style="min-width: 10rem; min-height: 3rem; padding: 0.75rem 1rem; cursor: pointer; border-radius: var(--oj-core-border-radius-lg, .375rem); border: 1px solid ${selected ? 'var(--oj-core-info-color, #0572ce)' : DIVIDER}; background: ${selected ? 'var(--oj-core-bg-color-selected, #e5f0fa)' : 'transparent'};"
                      @click="${(e: Event) => dispatchValueChanged(e.target, metadata.fieldId, newValue())}">
                     <div style="display: flex; align-items: center; gap: 0.5rem; pointer-events: none;">
                         ${option.icon ? html`<span class="${uxIconClass(option.icon)}"></span>` : nothing}
@@ -257,9 +257,9 @@ const renderUploadableImage = (metadata: FormField, id: string, value: any): Tem
         <div style="display: flex; flex-direction: column; align-items: stretch; gap: 0.5rem; max-width: 320px;">
             ${hasImage ? html`
                 <img src="${value}"
-                     style="max-width: 100%; max-height: 240px; object-fit: contain; border: 1px solid ${DIVIDER}; border-radius: var(--oj-core-border-radius-lg, 8px); ${metadata.style ?? ''}">
+                     style="max-width: 100%; max-height: 240px; object-fit: contain; border: 1px solid ${DIVIDER}; border-radius: var(--oj-core-border-radius-lg, .375rem); ${metadata.style ?? ''}">
             ` : html`
-                <div style="height: 135px; display: flex; align-items: center; justify-content: center; border: 1px dashed ${DIVIDER}; border-radius: var(--oj-core-border-radius-lg, 8px); color: ${SECONDARY};">
+                <div style="height: 135px; display: flex; align-items: center; justify-content: center; border: 1px dashed ${DIVIDER}; border-radius: var(--oj-core-border-radius-lg, .375rem); color: ${SECONDARY};">
                     <span class="oj-ux-ico-image" style="font-size: 2rem;"></span>
                 </div>
             `}

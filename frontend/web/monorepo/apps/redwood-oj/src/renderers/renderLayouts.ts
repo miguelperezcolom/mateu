@@ -40,7 +40,7 @@ export const renderFormRow = (container: LitElement, component: ClientSideCompon
 export const renderFormSection = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: any, data: any, appState: any, appData: any): TemplateResult => {
     const title = evalTpl((component.metadata as any).title, container)
     return html`
-        <div class="oj-panel oj-panel-shadow-sm" style="padding:1rem; margin-bottom:1rem; border-radius:var(--oj-core-border-radius-lg, 8px);"
+        <div class="oj-panel oj-panel-shadow-sm" style="padding:1rem; margin-bottom:1rem; border-radius:var(--oj-core-border-radius-lg, .375rem);"
              slot="${component.slot ?? nothing}">
             ${title ? html`<h2 class="oj-typography-heading-sm" style="margin:0 0 .75rem;">${title}</h2>` : nothing}
             <div style="display:flex; flex-direction:column; gap:.5rem;">
@@ -106,9 +106,9 @@ export const renderCard = (container: LitElement, component: ClientSideComponent
             </section>`
     }
     return html`
-        <div class="oj-panel oj-panel-shadow-sm" style="border-radius:var(--oj-core-border-radius-lg, 8px); overflow:hidden;"
+        <div class="oj-panel oj-panel-shadow-sm" style="border-radius:var(--oj-core-border-radius-lg, .375rem); overflow:hidden;"
              slot="${component.slot ?? nothing}">
-            ${titleText ? html`<h2 class="oj-typography-heading-sm" style="margin:0; padding:.75rem 1rem; border-bottom:1px solid var(--oj-core-divider-color, #e0e0e0);">${titleText}</h2>` : nothing}
+            ${titleText ? html`<h2 class="oj-typography-heading-sm" style="margin:0; padding:.75rem 1rem; border-bottom:1px solid var(--oj-core-divider-color, rgba(22,21,19,.12));">${titleText}</h2>` : nothing}
             <div style="padding:1rem;">
                 ${typeof md.title === 'object' ? render(md.title) : nothing}
                 ${render(md.content)}
@@ -163,10 +163,10 @@ const dispatchAction = (el: EventTarget | null, actionId: string | undefined) =>
 const modalShell = (title: string, body: unknown, footer: unknown): TemplateResult => html`
     <div style="position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:1000;">
         <div class="oj-panel oj-panel-shadow-lg" role="dialog" aria-modal="true"
-             style="background:var(--oj-core-bg-color-content, #fff); border-radius:var(--oj-core-border-radius-lg, 8px); min-width:320px; max-width:90vw; max-height:90vh; overflow:auto;">
-            ${title ? html`<h2 class="oj-typography-heading-sm" style="margin:0; padding:1rem; border-bottom:1px solid var(--oj-core-divider-color, #e0e0e0);">${title}</h2>` : nothing}
+             style="background:var(--oj-core-bg-color-content, #fff); border-radius:var(--oj-core-border-radius-lg, .375rem); min-width:320px; max-width:90vw; max-height:90vh; overflow:auto;">
+            ${title ? html`<h2 class="oj-typography-heading-sm" style="margin:0; padding:1rem; border-bottom:1px solid var(--oj-core-divider-color, rgba(22,21,19,.12));">${title}</h2>` : nothing}
             <div style="padding:1rem;">${body}</div>
-            ${footer ? html`<div style="display:flex; gap:.5rem; justify-content:flex-end; padding:.75rem 1rem; border-top:1px solid var(--oj-core-divider-color, #e0e0e0);">${footer}</div>` : nothing}
+            ${footer ? html`<div style="display:flex; gap:.5rem; justify-content:flex-end; padding:.75rem 1rem; border-top:1px solid var(--oj-core-divider-color, rgba(22,21,19,.12));">${footer}</div>` : nothing}
         </div>
     </div>`
 
@@ -231,12 +231,12 @@ export const renderMasterDetailLayout = (container: LitElement, component: Clien
     const hasDetail = !!(data?.hasDetail) || !!staticDetail
     const detailContent = dynamicDetail ?? staticDetail
     return html`
-        <div style="display: flex; gap: 0; width: 100%; border: 1px solid var(--oj-core-divider-color, #e0e0e0); border-radius: var(--oj-core-border-radius-lg, 8px); overflow: hidden; ${component.style ?? ''}"
+        <div style="display: flex; gap: 0; width: 100%; border: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12)); border-radius: var(--oj-core-border-radius-lg, .375rem); overflow: hidden; ${component.style ?? ''}"
              class="${component.cssClasses ?? nothing}" slot="${component.slot ?? nothing}">
             <div style="flex: 1; min-width: 0; overflow-y: auto;">
                 ${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}
             </div>
-            <div style="flex: 1; min-width: 0; overflow-y: auto; border-left: 1px solid var(--oj-core-divider-color, #e0e0e0); ${hasDetail && detailContent ? '' : 'display: flex; align-items: center; justify-content: center;'}">
+            <div style="flex: 1; min-width: 0; overflow-y: auto; border-left: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12)); ${hasDetail && detailContent ? '' : 'display: flex; align-items: center; justify-content: center;'}">
                 ${hasDetail && detailContent
                     ? renderComponent(container, detailContent, baseUrl, state, data, appState, appData)
                     : html`<span style="color: var(--oj-core-text-color-secondary, #666); font-size: 0.875rem; padding: 1rem;">Select an item to view details</span>`}

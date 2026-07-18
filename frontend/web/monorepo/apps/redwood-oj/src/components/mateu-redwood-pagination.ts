@@ -62,7 +62,7 @@ export class MateuRedwoodPagination extends LitElement {
     render(): TemplateResult {
         if (!this.totalElements) return html`${nothing}`
         return html`
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.25rem 0; font-size: 0.86rem; color: var(--oj-core-text-color-secondary, #5a5750);">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.25rem 0; font-size: 0.859rem; color: var(--oj-core-text-color-secondary, rgba(22,21,19,.7));">
                 ${this.totalElements <= this.pageSize ? nothing : html`
                     ${this.pages.map(p => p.clickable ? html`
                         <oj-c-button

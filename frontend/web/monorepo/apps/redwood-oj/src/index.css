@@ -2445,7 +2445,7 @@ mateu-markdown p { margin: 0 0 0.6em; }
 mateu-markdown ul,
 mateu-markdown ol { margin: 0 0 0.6em; padding-left: 1.25rem; }
 mateu-markdown li { margin: 0.15em 0; }
-mateu-markdown a { color: var(--oj-core-text-color-brand, #1c659a); }
+mateu-markdown a { color: var(--oj-core-text-color-brand, #0e7297); }
 mateu-markdown code {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-size: 0.85em;

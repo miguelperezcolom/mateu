@@ -27,8 +27,8 @@ function escAttr(s: string): string {
 // document-level CSS modules, which can't cross shadow boundaries; everything below is
 // hand-styled plain markup for that reason, matching renderPlainGrid / renderToolbarButton).
 const TEXT = 'var(--mateu-redwood-text, rgb(22, 21, 19))'
-const SECONDARY = 'var(--oj-core-text-color-secondary, #666)'
-const DIVIDER = 'var(--oj-core-divider-color, #e0e0e0)'
+const SECONDARY = 'var(--oj-core-text-color-secondary, rgba(22,21,19,.7))'
+const DIVIDER = 'var(--oj-core-divider-color, rgba(22,21,19,.12))'
 const PANEL_BG = 'var(--mateu-redwood-panel-bg, #fff)'
 const LINK = 'var(--oj-link-text-color, rgb(28, 101, 154))'
 const SELECTED_BG = 'rgba(28, 101, 154, 0.08)'
