@@ -210,7 +210,12 @@ public static class ComponentMapper
             if (panel.Content is not null)
                 children.Add(Map(panel.Content) with { Slot = $"panel-{i}" });
         }
-        return new ClientSideComponentDto(new FoldoutLayoutMetadataDto(infos), f.Id, children, f.Style, f.CssClasses, null);
+        var meta = new FoldoutLayoutMetadataDto(infos)
+        {
+            HeaderTitle = f.HeaderTitle,
+            Badges = f.Badges,
+        };
+        return new ClientSideComponentDto(meta, f.Id, children, f.Style, f.CssClasses, null);
     }
 
     /// <summary>All actionIds referenced anywhere in the tree (MetricCard/EmptyState tiles, buttons),

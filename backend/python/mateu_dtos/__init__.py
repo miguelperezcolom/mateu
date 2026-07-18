@@ -364,6 +364,10 @@ class FoldoutLayoutMetadata(Wire):
 
     type: Literal["FoldoutLayout"] = "FoldoutLayout"
     panels: list[FoldoutPanelInfo] = Field(default_factory=list)
+    #: Big heading of the optional header band above the columns (RDS "overview title").
+    headerTitle: str | None = None
+    #: Label/Value chips under the header title (flattened to text on the wire).
+    badges: list[str] = Field(default_factory=list)
 
 
 class HeroSectionMetadata(Wire):

@@ -164,12 +164,17 @@ class FoldoutLayout(Component):
 
     overview: Component | None = None
     panels: tuple[FoldoutPanel, ...] = ()
+    #: Big heading of the optional header band above the columns (RDS "overview title").
+    header_title: str | None = None
+    #: Label/Value chips under the header title.
+    badges: tuple[str, ...] = ()
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "panels", tuple(self.panels))
+        object.__setattr__(self, "badges", tuple(self.badges))
 
 
 @dataclass(frozen=True)

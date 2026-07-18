@@ -471,6 +471,9 @@ class BookingFoldout(Foldout):
     guests: Annotated[Text, Panel("Guests", subtitle="2 adults", icon="users")] = Text(text="Ada, Alan")
     payments: Annotated[Text, Panel("Payments", open=False)] = Text(text="Paid in full")
 
+    def header_badges(self) -> list[str]:
+        return ["Confirmed", "12-19 Aug"]
+
 
 @ui("product")
 @title("Product")
@@ -1198,6 +1201,9 @@ def test_foldout_archetype_slots_overview_and_panels():
         {"title": "Guests", "subtitle": "2 adults", "icon": "users", "open": True},
         {"title": "Payments", "subtitle": None, "icon": None, "open": False},
     ]
+    # Header band: title from @title, chips flattened to text.
+    assert foldout["metadata"]["headerTitle"] == "Booking"
+    assert foldout["metadata"]["badges"] == ["Confirmed", "12-19 Aug"]
     overview, p0, p1 = foldout["children"]
     assert overview["slot"] == "overview"
     assert overview["metadata"]["text"] == "Booking ABC123"

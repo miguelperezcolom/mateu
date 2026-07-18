@@ -44,6 +44,14 @@ public abstract class Dashboard : IComponentTreeSupplier
 /// (Open controls the initial state).</summary>
 public abstract class Foldout : IComponentTreeSupplier
 {
+    /// <summary>Big heading of the header band above the columns (RDS "overview title"). Defaults to
+    /// the class [Title]; override to compute it. Return null/blank to hide the header band.</summary>
+    protected virtual string? HeaderTitle =>
+        GetType().GetCustomAttribute<TitleAttribute>()?.Value is { Length: > 0 } t ? t : null;
+
+    /// <summary>Label/Value chips shown under the header title. Empty by default.</summary>
+    protected virtual IReadOnlyList<string> HeaderBadges => [];
+
     public IComponent Component()
     {
         IComponent? overview = null;
@@ -66,7 +74,11 @@ public abstract class Foldout : IComponentTreeSupplier
                 Content = component,
             });
         }
-        return new FoldoutLayout { Id = Archetypes.IdOf(this), Overview = overview, Panels = panels };
+        return new FoldoutLayout
+        {
+            Id = Archetypes.IdOf(this), Overview = overview, Panels = panels,
+            HeaderTitle = HeaderTitle, Badges = HeaderBadges,
+        };
     }
 }
 

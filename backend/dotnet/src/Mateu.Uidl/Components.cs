@@ -108,6 +108,10 @@ public sealed record FoldoutLayout : ComponentBase
 {
     public IComponent? Overview { get; init; }
     public IReadOnlyList<FoldoutPanel> Panels { get; init; } = [];
+    /// <summary>Big heading of the optional header band above the columns (RDS "overview title").</summary>
+    public string? HeaderTitle { get; init; }
+    /// <summary>Label/Value chips shown under the header title.</summary>
+    public IReadOnlyList<string> Badges { get; init; } = [];
 }
 
 // ── Hero, empty state, skeleton, Gantt ─────────────────────────────────────────

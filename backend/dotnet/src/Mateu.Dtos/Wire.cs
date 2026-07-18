@@ -217,7 +217,14 @@ public record DashboardLayoutMetadataDto(int Columns) : ComponentMetadataDto;
 
 /// <summary>Redwood-style foldout layout. The overview travels as the child slotted "overview";
 /// each panel's content as the child slotted "panel-N" matching the panels list order.</summary>
-public record FoldoutLayoutMetadataDto(IReadOnlyList<FoldoutPanelInfoDto> Panels) : ComponentMetadataDto;
+public record FoldoutLayoutMetadataDto(IReadOnlyList<FoldoutPanelInfoDto> Panels) : ComponentMetadataDto
+{
+    /// <summary>Big heading of the optional header band above the columns (RDS "overview title").</summary>
+    public string? HeaderTitle { get; init; }
+
+    /// <summary>Label/Value chips shown under the header title (flattened to text on the wire).</summary>
+    public IReadOnlyList<string> Badges { get; init; } = [];
+}
 
 /// <summary>Header info for one foldout panel; its content travels as a slotted component child.</summary>
 public record FoldoutPanelInfoDto(string? Title, string? Subtitle, string? Icon, bool Open);

@@ -1108,6 +1108,15 @@ class Foldout(ComponentTreeSupplier):
     always-visible overview; ``Panel(title, subtitle, icon, open)`` fields are lateral fold-out
     panels."""
 
+    def header_title(self) -> str | None:
+        """Big heading of the header band above the columns (RDS "overview title"). Defaults to
+        the class ``@title``; override to compute it. Return ``None`` to hide the header band."""
+        return getattr(type(self), "__mateu_title__", None)
+
+    def header_badges(self) -> list[str]:
+        """Label/Value chips shown under the header title. Empty by default."""
+        return []
+
 
 class ItemOverview(ComponentTreeSupplier):
     """Item overview page: the first component field without ``Panel`` is the key-info panel

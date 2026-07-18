@@ -434,6 +434,8 @@ public class Dash : Dashboard
 [UI("fold"), Title("Fold")]
 public class Fold : Foldout
 {
+    protected override IReadOnlyList<string> HeaderBadges => ["Confirmed", "12-19 Aug"];
+
     public Text Overview { get; } = new("the record overview");
 
     [Panel(Title = "Guests", Icon = "people")]
@@ -979,6 +981,10 @@ public class ComponentTests
         Assert.Contains("the record overview", json);
         Assert.Contains("guest list", json);
         Assert.Contains("payment info", json);
+
+        // Header band: title from [Title], chips flattened to text.
+        Assert.Contains("\"headerTitle\":\"Fold\"", json);
+        Assert.Contains("\"badges\":[\"Confirmed\",\"12-19 Aug\"]", json);
     }
 
     [Fact]

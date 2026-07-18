@@ -620,7 +620,12 @@ class ReflectionMapper:
                     content=value,
                 )
             )
-        return fluent.FoldoutLayout(overview=overview, panels=tuple(panels))
+        return fluent.FoldoutLayout(
+            overview=overview,
+            panels=tuple(panels),
+            header_title=instance.header_title(),
+            badges=tuple(instance.header_badges()),
+        )
 
     def compose_item_overview(self, instance: ItemOverview) -> ClientSideComponent:
         key_info: fluent.Component | None = None
@@ -738,7 +743,13 @@ class ReflectionMapper:
                     child = self.map_component(panel.content)
                     child.slot = f"panel-{i}"
                     children.append(child)
-            return self._fluent_client(FoldoutLayoutMetadata(panels=infos), c, children)
+            return self._fluent_client(
+                FoldoutLayoutMetadata(
+                    panels=infos, headerTitle=c.header_title, badges=list(c.badges)
+                ),
+                c,
+                children,
+            )
         if isinstance(c, fluent.HeroSection):
             meta = HeroSectionMetadata(
                 title=c.title, subtitle=c.subtitle, image=c.image, height=c.height, centered=c.centered
