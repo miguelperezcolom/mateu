@@ -2427,23 +2427,26 @@ body::after {
     left: 0;
     right: 0;
     bottom: 0;
-    height: min(22vh, 22rem);
+    height: min(18vh, 18rem);
     background-image: url('/images/redwood-bottom-texture.png');
     background-repeat: no-repeat;
     background-size: 100% auto;
     background-position: center bottom;
     pointer-events: none;
     z-index: -1;
+    opacity: 0.85;
 }
 
 /* Top-right ornament: the Template Header texture (organic shapes + orange accent) that peeks
-   from the upper-right corner around the central content, as in every RDS template frame. */
+   from the upper-right corner around the central content, as in every RDS template frame.
+   Kept low-opacity so it never fights the form fields it sits behind (it is position:fixed,
+   so scrolled content passes under it). */
 body::before {
     content: "";
     position: fixed;
     top: 0;
     right: 0;
-    width: min(26rem, 30vw);
+    width: min(24rem, 26vw);
     aspect-ratio: 800 / 624;
     background-image: url('/images/redwood-header-texture.png');
     background-repeat: no-repeat;
@@ -2451,5 +2454,26 @@ body::before {
     background-position: right top;
     pointer-events: none;
     z-index: -1;
-    opacity: 0.85;
+    opacity: 0.5;
+}
+
+/* On tablet widths the ornaments occupy too much of the viewport — shrink the corner
+   texture and lighten it further. */
+@media (max-width: 1024px) {
+    body::before {
+        width: 20vw;
+        opacity: 0.4;
+    }
+    body::after {
+        height: min(14vh, 12rem);
+        opacity: 0.7;
+    }
+}
+
+/* On phones the decorative chrome would dominate the content — drop it entirely. */
+@media (max-width: 640px) {
+    body::before,
+    body::after {
+        display: none;
+    }
 }

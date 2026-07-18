@@ -342,7 +342,6 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
     }
 
     private handleRowAction(e: CustomEvent) {
-        console.log('handleRowAction', e)
         const item = e.detail?.context?.item?.data
         if (!item) return
         const btnCol = this.metadata?.columns?.find(c => {
@@ -360,16 +359,13 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
     }
 
     private handleCellButtonAction(e: CustomEvent) {
-        console.log('handleCellButtonAction', e)
         const path = e.composedPath()
         let rowKey: string | null = null
         let actionId: string | null = null
         for (const node of path) {
             const el = node as Element
-            console.log('el', el)
             if (el.getAttribute('data-mateu-row-key')) {
                 const k = el.getAttribute('data-mateu-row-key')
-                console.log('k', k)
                 if (k !== null) {
                     rowKey = k
                     actionId = el.getAttribute('data-mateu-action-id')
@@ -380,7 +376,6 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         if (rowKey === null) return
         const rows: any[] = this.data[this.id]?.page?.content ?? []
         const rowData = rows.find((row, _index) => row['_rowNumber'] == rowKey) ?? {}
-        console.log('rowData', rowKey, rows, rowData)
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: { actionId: actionId ?? '', parameters: rowData },
             bubbles: true,
@@ -389,7 +384,6 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
     }
 
     private handleMenuAction(e: CustomEvent) {
-        console.log('handleMenuAction', e)
         const rawKey = e.detail?.key as string
         if (!rawKey) return
         const sep = rawKey.indexOf('|')
@@ -406,7 +400,6 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
     }
 
     private handleSelectedChanged(e: CustomEvent) {
-        console.log('handleSelectedChanged', e)
         const selectedKeys = e.detail.value?.row
         if (!selectedKeys) return
         const rows = this.data[this.id]?.page?.content ?? []

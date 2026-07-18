@@ -22,6 +22,9 @@ export class MateuRedwoodPagination extends LitElement {
     @state()
     private pages: Page[] = []
 
+    @state()
+    private summary = ''
+
     protected createRenderRoot(): HTMLElement | DocumentFragment {
         return this
     }
@@ -30,24 +33,21 @@ export class MateuRedwoodPagination extends LitElement {
         super.updated(_changedProperties)
         if (_changedProperties.has('totalElements') || _changedProperties.has('pageNumber') || _changedProperties.has('pageSize')) {
             const pages: Page[] = []
-            const totalPages = Math.ceil(this.totalElements / this.pageSize)
+            const totalPages = Math.max(1, Math.ceil(this.totalElements / this.pageSize))
             const lastPage = totalPages - 1
             if (this.totalElements > 0) {
                 if (this.pageNumber > 0) {
                     pages.push({ pageNumber: 0, text: 'First', clickable: true })
-                }
-                if (this.pageNumber > 1) {
                     pages.push({ pageNumber: this.pageNumber - 1, text: 'Prev', clickable: true })
                 }
-                pages.push({ pageNumber: this.pageNumber, text: `${this.pageNumber}`, clickable: false })
-                if (this.pageNumber < lastPage - 1) {
-                    pages.push({ pageNumber: parseInt('' + this.pageNumber) + 1, text: 'Next', clickable: true })
-                }
+                pages.push({ pageNumber: this.pageNumber, text: `Page ${this.pageNumber + 1} of ${totalPages}`, clickable: false })
                 if (this.pageNumber < lastPage) {
+                    pages.push({ pageNumber: this.pageNumber + 1, text: 'Next', clickable: true })
                     pages.push({ pageNumber: lastPage, text: 'Last', clickable: true })
                 }
             }
             this.pages = pages
+            this.summary = this.totalElements === 1 ? '1 item' : `${this.totalElements} items`
         }
     }
 
@@ -62,9 +62,8 @@ export class MateuRedwoodPagination extends LitElement {
     render(): TemplateResult {
         if (!this.totalElements) return html`${nothing}`
         return html`
-            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.25rem 0;">
-                ${this.pages.length < 2 || this.totalElements <= this.pageSize ? nothing : html`
-                    <span>Page:</span>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.25rem 0; font-size: 0.86rem; color: var(--oj-core-text-color-secondary, #5a5750);">
+                ${this.totalElements <= this.pageSize ? nothing : html`
                     ${this.pages.map(p => p.clickable ? html`
                         <oj-c-button
                             data-oj-binding-provider="preact"
@@ -72,9 +71,10 @@ export class MateuRedwoodPagination extends LitElement {
                             chroming="borderless"
                             @ojAction="${() => this.goToPage(p.pageNumber)}"
                         ></oj-c-button>
-                    ` : html`<span>[ ${p.text} ]</span>`)}
+                    ` : html`<span style="font-weight: 600; color: var(--oj-core-text-color-primary, #161513);">${p.text}</span>`)}
+                    <span aria-hidden="true" style="opacity: 0.4;">·</span>
                 `}
-                <span>Total elements: ${this.totalElements}</span>
+                <span>${this.summary}</span>
                 <slot></slot>
             </div>
         `

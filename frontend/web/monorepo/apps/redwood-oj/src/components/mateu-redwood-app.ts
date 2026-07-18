@@ -259,7 +259,6 @@ export class MateuRedwoodApp extends MateuApp {
     updateRoute: EventListenerOrEventListenerObject = (e: Event) => {
         e.preventDefault()
         e.stopPropagation()
-        console.log('update route', e, this)
         var detail = (e as CustomEvent).detail
         this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix)
     }
@@ -288,7 +287,6 @@ export class MateuRedwoodApp extends MateuApp {
     }
 
     selected = (event: CustomEvent, _container: LitElement, _baseUrl: string, _metadata: App) => {
-        console.log('selected', event, event.target, event.detail.value)
         const item = this.renderRoot.querySelector('[data-path = "' + event.detail.value + '"]') as HTMLElement
         if (item) {
             this.selectRoute(
@@ -334,7 +332,7 @@ export class MateuRedwoodApp extends MateuApp {
             toast.style.cssText = 'position: fixed; bottom: 1rem; left: 1rem; z-index: 10000;'
                 + ' background: var(--oj-core-danger-3, #b1380b); color: #fff; padding: .75rem 1rem;'
                 + ' border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.25); font-size: .875rem;'
-            toast.textContent = 'La acción falló: ' + ('' + e)
+            toast.textContent = 'The action failed: ' + ('' + e)
             document.body.appendChild(toast)
             setTimeout(() => toast.remove(), 6000)
         }
@@ -367,7 +365,6 @@ export class MateuRedwoodApp extends MateuApp {
         this.data.opened = opened
 
         const toggle = (_e:Event) => {
-            console.log('open', this.data.opened)
             this.data.opened = !this.data.opened;
             this.requestUpdate()
         }
