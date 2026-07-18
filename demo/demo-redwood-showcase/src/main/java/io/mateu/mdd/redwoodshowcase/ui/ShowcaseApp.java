@@ -2,32 +2,52 @@ package io.mateu.mdd.redwoodshowcase.ui;
 
 import io.mateu.mdd.redwoodshowcase.ui.booking.BookingWizard;
 import io.mateu.mdd.redwoodshowcase.ui.catalog.Catalog;
-import io.mateu.mdd.redwoodshowcase.ui.dashboard.OverviewDashboard;
+import io.mateu.mdd.redwoodshowcase.ui.collectiondetail.HotelDirectory;
+import io.mateu.mdd.redwoodshowcase.ui.dashboard.SalesDashboard;
+import io.mateu.mdd.redwoodshowcase.ui.drawercrud.ContactsDrawerCrud;
+import io.mateu.mdd.redwoodshowcase.ui.emptystates.EmptyStatesDemo;
+import io.mateu.mdd.redwoodshowcase.ui.foldout.BookingFoldout;
 import io.mateu.mdd.redwoodshowcase.ui.forms.GuestProfile;
+import io.mateu.mdd.redwoodshowcase.ui.generaloverview.RequisitionOverview;
+import io.mateu.mdd.redwoodshowcase.ui.herosearch.HotelSearch;
+import io.mateu.mdd.redwoodshowcase.ui.itemoverview.ProductOverview;
+import io.mateu.mdd.redwoodshowcase.ui.welcome.WelcomeDemo;
 import io.mateu.uidl.annotations.App;
-import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.fluent.AppVariant;
 
 /**
- * Root app for the Redwood showcase. Aggregates the demo screens under one Oracle Redwood shell so
- * the renderer's chrome, navigation and each UX pattern can be reviewed in one place.
+ * Root app for the Redwood showcase — a menu over one screen per Oracle Redwood page template, in a
+ * fixed order, so each template can be reviewed against its RDS reference for pixel fidelity.
  */
 @UI("")
 @Title("Redwood Showcase")
 @App(value = AppVariant.HAMBURGUER_MENU, themeToggle = true)
 public class ShowcaseApp {
 
-    @Menu
-    OverviewDashboard dashboard;
+  @Menu WelcomeDemo welcome;
 
-    @Menu
-    Catalog catalog;
+  @Menu SalesDashboard dashboard;
 
-    @Menu
-    GuestProfile guest;
+  @Menu HotelDirectory collectionDetail;
 
-    @Menu
-    BookingWizard booking;
+  @Menu RequisitionOverview generalOverview;
+
+  @Menu ProductOverview itemOverview;
+
+  @Menu BookingFoldout foldout;
+
+  @Menu HotelSearch heroSearch;
+
+  @Menu EmptyStatesDemo emptyStates;
+
+  @Menu Catalog listCrud;
+
+  @Menu ContactsDrawerCrud drawerCrud;
+
+  @Menu BookingWizard guidedProcess;
+
+  @Menu GuestProfile zonesForm;
 }
