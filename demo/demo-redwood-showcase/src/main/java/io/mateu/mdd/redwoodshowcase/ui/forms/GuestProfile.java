@@ -41,10 +41,13 @@ public class GuestProfile {
     @Lookup
     String country;
 
-    @Section(value = "Preferences", zone = "side")
+    // NOTE: the section header must sit on a field that stays in the body. `vip` is a
+    // @BadgeInHeader field (excluded from the body), so the @Section that opens the
+    // "Preferences" zone lives on the first visible field of the group (`newsletter`).
     @BadgeInHeader(label = "VIP", color = "success")
     boolean vip = true;
 
+    @Section(value = "Preferences", zone = "side")
     boolean newsletter;
 
     @Help("Used only for room assignment.")
