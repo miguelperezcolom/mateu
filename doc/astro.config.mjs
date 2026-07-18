@@ -68,6 +68,7 @@ export default defineConfig({
 					label: 'UX Patterns',
 					items: [
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
+						{ slug: 'ux-patterns/page-templates', label: 'Page Templates' },
 						{ slug: 'ux-patterns/navigation', label: 'Navigation & Menus' },
 						{ slug: 'ux-patterns/split-view' },
 						{ slug: 'ux-patterns/tree-crud', label: 'Tree CRUD' },
@@ -87,6 +88,9 @@ export default defineConfig({
 						{ slug: 'ux-patterns/foldout' },
 						{ slug: 'ux-patterns/hero-search' },
 						{ slug: 'ux-patterns/item-overview' },
+						{ slug: 'ux-patterns/collection-detail' },
+						{ slug: 'ux-patterns/general-overview' },
+						{ slug: 'ux-patterns/drawer' },
 						{ slug: 'ux-patterns/welcome-page' },
 						{ slug: 'ux-patterns/empty-states-and-skeletons' },
 						{ slug: 'ux-patterns/gantt' },
