@@ -34,12 +34,17 @@ export const renderButton = (component: ClientSideComponent, _baseUrl: string | 
         `
     }
 
+    // A primary button gets the RDS highlighted (callToAction) chroming; everything else keeps
+    // oj-c-button's default "solid" chroming (so this is a no-op for the non-primary buttons).
+    const chroming = (metadata as any).buttonStyle === 'primary' ? 'callToAction' : 'solid'
+
     return html`
         ${metadata.separatorBefore ? html`<span slot="${slot}" style="${separatorStyle}"></span>` : nothing}
         <oj-c-button
             data-oj-binding-provider="preact"
             data-action-id="${metadata.actionId}"
             label="${metadata.label}"
+            chroming="${chroming}"
             @ojAction=${handleButtonClick}
             slot="${slot}"
         ></oj-c-button>

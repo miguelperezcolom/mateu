@@ -9,6 +9,7 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonStyle;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.PageView;
@@ -82,7 +83,11 @@ public class CrudFormComponentBuilder {
     }
     // The edit form persists through "save" (Crud.save → the editor's state); "create" would
     // route to saveNew with the CREATION form's (empty) state, silently discarding the edit.
-    buttons.add(new Button(orchestrator.saveLabel(), isCreation ? "create" : "save"));
+    // Save is the primary action (RDS highlights it; the drawer footer / toolbar renders it
+    // as the call-to-action).
+    buttons.add(
+        new Button(orchestrator.saveLabel(), isCreation ? "create" : "save")
+            .toBuilder().buttonStyle(ButtonStyle.primary).build());
     return buttons;
   }
 }
