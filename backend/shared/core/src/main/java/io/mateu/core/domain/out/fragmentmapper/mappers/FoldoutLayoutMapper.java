@@ -58,8 +58,20 @@ public class FoldoutLayoutMapper {
                 .setSlot("panel-" + i));
       }
     }
+    List<String> badgeTexts = new ArrayList<>();
+    if (foldoutLayout.badges() != null) {
+      for (io.mateu.uidl.data.Badge badge : foldoutLayout.badges()) {
+        if (badge != null && badge.text() != null && !badge.text().isBlank()) {
+          badgeTexts.add(badge.text());
+        }
+      }
+    }
     return new ClientSideComponentDto(
-        FoldoutLayoutDto.builder().panels(panelInfos).build(),
+        FoldoutLayoutDto.builder()
+            .panels(panelInfos)
+            .headerTitle(foldoutLayout.headerTitle())
+            .badges(badgeTexts)
+            .build(),
         foldoutLayout.id(),
         children,
         foldoutLayout.style(),

@@ -4,6 +4,8 @@ import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.ge
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Panel;
+import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.FoldoutLayout;
 import io.mateu.uidl.data.FoldoutPanel;
 import io.mateu.uidl.fluent.Component;
@@ -11,6 +13,7 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -32,6 +35,45 @@ public abstract class Foldout implements ComponentTreeSupplier {
   @Override
   public String style() {
     return null;
+  }
+
+  /**
+   * Big heading shown in the header band above the columns (the RDS "overview title"). Defaults to
+   * the class {@code @Title}; override to compute it. Return {@code null}/blank to hide the header.
+   */
+  public String headerTitle() {
+    Title title = MetaAnnotations.find(getClass(), Title.class);
+    return title != null && !title.value().isBlank() ? title.value() : null;
+  }
+
+  /**
+   * Chips shown under the header title (RDS "Label Value" pills). Defaults to the first {@code
+   * List<Badge>} field found; override to compute them.
+   */
+  @SneakyThrows
+  public List<Badge> headerBadges() {
+    for (Field field : getClass().getDeclaredFields()) {
+      if (Modifier.isStatic(field.getModifiers())) {
+        continue;
+      }
+      if (List.class.isAssignableFrom(field.getType())
+          && field.getGenericType() instanceof ParameterizedType pt
+          && pt.getActualTypeArguments().length == 1
+          && pt.getActualTypeArguments()[0] == Badge.class) {
+        field.setAccessible(true);
+        Object value = field.get(this);
+        if (value instanceof List<?> list) {
+          List<Badge> badges = new ArrayList<>();
+          for (Object item : list) {
+            if (item instanceof Badge badge) {
+              badges.add(badge);
+            }
+          }
+          return badges;
+        }
+      }
+    }
+    return List.of();
   }
 
   @Override
@@ -65,6 +107,12 @@ public abstract class Foldout implements ComponentTreeSupplier {
               .content(component)
               .build());
     }
-    return FoldoutLayout.builder().id(id()).overview(overview).panels(panels).build();
+    return FoldoutLayout.builder()
+        .id(id())
+        .overview(overview)
+        .panels(panels)
+        .headerTitle(headerTitle())
+        .badges(headerBadges())
+        .build();
   }
 }

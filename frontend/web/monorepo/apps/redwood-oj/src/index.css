@@ -2424,6 +2424,59 @@ section.mateu-section .oj-typography-heading-md {
     --mateu-drawer-footer-padding: 1rem 1.5rem;
 }
 
+/* RDS "Foldout" template: frameless columns split by thin vertical dividers, each panel title
+   carrying the short gold heading accent. Overrides the mateu-foldout defaults (bordered cards)
+   via its --mateu-foldout-* custom properties. */
+mateu-foldout {
+    /* RDS: columns abut (no gap, no radius) — the tint changes straight from one to the next —
+       and run the full height of the content area, top to bottom. */
+    --mateu-foldout-gap: 0;
+    --mateu-foldout-panel-border: none;
+    --mateu-foldout-overview-border: none;
+    --mateu-foldout-panel-radius: 0;
+    --mateu-foldout-panel-padding: 1.5rem 1.5rem;
+    --mateu-foldout-overview-padding: 1.5rem 1.5rem;
+    --mateu-foldout-overview-width: 20rem;
+    --mateu-foldout-panel-min-width: 12rem;
+    --mateu-foldout-panel-flex: 1 1 0;
+    /* full-bleed: cancel the app-content 2rem side / 1.5rem top padding so the columns run
+       edge to edge, and fill the viewport height so they reach the bottom */
+    --mateu-foldout-outer-margin: -1.5rem -2rem 0 -2rem;
+    --mateu-foldout-min-height: calc(100vh - 9rem);
+    /* breathing room under the gold title accent */
+    --mateu-foldout-title-accent-gap-below: 0.6rem;
+    /* fixed columns, not collapsible (RDS) */
+    --mateu-foldout-fold-display: none;
+    --mateu-foldout-divider: none;
+    /* RDS uses just TWO alternating warm neutrals (measured from the Figma frame): the overview
+       and every other column are #FBF9F8, the ones between are #F1EFED. Not pastel/colorful. */
+    --mateu-foldout-panel-bg: #fbf9f8;
+    --mateu-foldout-panel-bg-a: #f1efed;
+    --mateu-foldout-panel-bg-b: #fbf9f8;
+    --mateu-foldout-panel-bg-c: #f1efed;
+    --mateu-foldout-panel-bg-d: #fbf9f8;
+    --mateu-foldout-title-size: 1.25rem;
+    --mateu-foldout-title-weight: 700;
+    /* short gold underline accent under each column title: #F0CC72, 36x4px, ~23px below title */
+    --mateu-foldout-title-accent-display: block;
+    --mateu-foldout-title-accent-color: #f0cc72;
+    --mateu-foldout-title-accent-width: 2.25rem;
+    --mateu-foldout-title-accent-height: 4px;
+    --mateu-foldout-title-accent-gap-above: 0.5rem;
+    /* header band above the columns: big RDS title + outlined Label/Value chips + the
+       full-width RDS color strip (same tiled mosaic used under the app header). */
+    --mateu-foldout-header-title-size: 1.5rem;
+    --mateu-foldout-header-title-weight: 700;
+    --mateu-foldout-header-title-color: #161513;
+    --mateu-foldout-header-content-gap: 0.875rem;
+    --mateu-foldout-badge-border: rgba(22, 21, 19, 0.5);
+    --mateu-foldout-badge-radius: 6px;
+    --mateu-foldout-badge-color: #161513;
+    --mateu-foldout-badge-size: 0.859rem;
+    --mateu-foldout-header-accent-height: 8px;
+    --mateu-foldout-header-accent-bg: url('/images/redwood-color-strip.png') left center / auto 100% repeat-x;
+}
+
 /* mateu-markdown renders into light DOM and inherits the host typography (there is no Lumo
    heading scale under Redwood, so bare browser h1..h6 look oversized next to RDS panel titles).
    Scope the markdown output to the Redwood type ramp so headings/lists sit sensibly. */

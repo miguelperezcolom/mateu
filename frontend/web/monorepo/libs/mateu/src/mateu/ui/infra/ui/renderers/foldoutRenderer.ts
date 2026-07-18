@@ -10,6 +10,8 @@ export const renderFoldoutLayout = (container: LitElement, component: ClientSide
     return html`
         <mateu-foldout
                 .panels="${metadata.panels ?? []}"
+                .headerTitle="${metadata.headerTitle ?? ''}"
+                .badges="${metadata.badges ?? []}"
                 style="${component.style}"
                 class="${component.cssClasses}"
                 slot="${component.slot??nothing}"

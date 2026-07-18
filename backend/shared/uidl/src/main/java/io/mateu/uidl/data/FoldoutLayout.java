@@ -11,5 +11,11 @@ import lombok.Builder;
  */
 @Builder
 public record FoldoutLayout(
-    String id, Component overview, List<FoldoutPanel> panels, String style, String cssClasses)
+    String id,
+    Component overview,
+    List<FoldoutPanel> panels,
+    String headerTitle,
+    List<Badge> badges,
+    String style,
+    String cssClasses)
     implements Component {}

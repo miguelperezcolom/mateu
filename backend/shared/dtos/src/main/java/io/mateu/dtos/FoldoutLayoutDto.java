@@ -9,10 +9,13 @@ import lombok.Builder;
  * each panel's content as the child slotted "panel-N" matching the panels list order
  */
 @Builder
-public record FoldoutLayoutDto(List<FoldoutPanelInfoDto> panels) implements ComponentMetadataDto {
+public record FoldoutLayoutDto(
+    List<FoldoutPanelInfoDto> panels, String headerTitle, List<String> badges)
+    implements ComponentMetadataDto {
 
   public FoldoutLayoutDto {
     panels = Collections.unmodifiableList(panels != null ? panels : Collections.emptyList());
+    badges = Collections.unmodifiableList(badges != null ? badges : Collections.emptyList());
   }
 
   @Override

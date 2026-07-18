@@ -6,4 +6,8 @@ export default interface FoldoutLayout extends ComponentMetadata {
 
     panels?: FoldoutPanelInfo[]
 
+    headerTitle?: string
+
+    badges?: string[]
+
 }

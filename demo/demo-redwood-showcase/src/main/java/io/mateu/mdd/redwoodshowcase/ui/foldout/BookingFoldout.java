@@ -4,6 +4,7 @@ import io.mateu.core.infra.declarative.orchestrators.foldout.Foldout;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Chart;
 import io.mateu.uidl.data.ChartData;
 import io.mateu.uidl.data.ChartDataset;
@@ -19,11 +20,16 @@ import java.util.List;
 @Title("Booking 2026-08117")
 public class BookingFoldout extends Foldout {
 
+  List<Badge> badges =
+      List.of(
+          new Badge("Confirmed"),
+          new Badge("12–19 Aug 2026"),
+          new Badge("Double superior, sea view"),
+          new Badge("Playa Azul"));
+
   Markdown overview =
       new Markdown(
           """
-          ### Booking 2026-08117
-
           **Guest:** Jane Smith
           **Hotel:** Playa Azul
           **Dates:** 12–19 Aug 2026
@@ -63,7 +69,7 @@ public class BookingFoldout extends Foldout {
                   .build())
           .build();
 
-  @Panel(title = "Notes", open = false)
+  @Panel(title = "Notes")
   Markdown notes =
       new Markdown(
           """
