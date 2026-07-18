@@ -47,16 +47,57 @@ export class MateuFoldout extends LitElement {
     protected willUpdate() {
         if (!this.initialized && this.panels.length) {
             this.openPanels = new Set(this.panels.map((p, i) => p.open ? i : -1).filter(i => i >= 0))
+            // Bookmarking: if the URL carries a panel anchor, open that panel on load.
+            const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''))
+            if (hash) {
+                const i = this.panels.findIndex((p, idx) => this.panelAnchor(p, idx) === hash)
+                if (i >= 0) this.openPanels.add(i)
+            }
             this.initialized = true
         }
+    }
+
+    protected firstUpdated() {
+        // Scroll the bookmarked panel into view once its DOM exists.
+        const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''))
+        if (!hash) return
+        const el = this.renderRoot.querySelector(`[data-anchor="${CSS.escape(hash)}"]`)
+        if (el) el.scrollIntoView({ block: 'nearest' })
+    }
+
+    // A stable, URL-safe anchor for a panel (its title slug, falling back to the index).
+    private panelAnchor(panel: FoldoutPanelInfo, index: number): string {
+        const slug = (panel.title ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        return slug || `panel-${index}`
+    }
+
+    // Bookmarking (RDS Foldout behavior): record the focused panel's anchor in the URL WITHOUT
+    // pushing to browser history (replaceState), so back/forward is unaffected.
+    private bookmarkPanel(index: number) {
+        const anchor = this.panelAnchor(this.panels[index], index)
+        try {
+            history.replaceState(history.state, '', '#' + anchor)
+        } catch {
+            /* SecurityError in sandboxed frames — bookmarking is best-effort */
+        }
+    }
+
+    private clearBookmark(index: number) {
+        const anchor = this.panelAnchor(this.panels[index], index)
+        if (decodeURIComponent((location.hash || '').replace(/^#/, '')) !== anchor) return
+        try {
+            history.replaceState(history.state, '', location.pathname + location.search)
+        } catch { /* best-effort */ }
     }
 
     private toggle(index: number) {
         const next = new Set(this.openPanels)
         if (next.has(index)) {
             next.delete(index)
+            this.clearBookmark(index)
         } else {
             next.add(index)
+            this.bookmarkPanel(index)
         }
         this.openPanels = next
     }
@@ -319,20 +360,22 @@ export class MateuFoldout extends LitElement {
                 </div>
                 <div class="rail" part="rail">
                     ${this.panels.map((panel, index) => this.openPanels.has(index) ? html`
-                        <div class="panel" part="panel">
+                        <div class="panel" part="panel" data-anchor="${this.panelAnchor(panel, index)}"
+                             @click="${() => this.bookmarkPanel(index)}">
                             <div class="panel-header">
                                 <div>
                                     <h3>${panel.title}</h3>
                                     ${panel.subtitle ? html`<div class="subtitle">${panel.subtitle}</div>` : ''}
                                 </div>
-                                <button class="fold" title="Fold" @click="${() => this.toggle(index)}">⟨</button>
+                                <button class="fold" title="Fold" @click="${(e: Event) => { e.stopPropagation(); this.toggle(index) }}">⟨</button>
                             </div>
                             <div style="flex: 1; min-height: 0;">
                                 <slot name="panel-${index}"></slot>
                             </div>
                         </div>
                     ` : html`
-                        <div class="strip" role="button" title="${panel.title}" @click="${() => this.toggle(index)}">
+                        <div class="strip" role="button" title="${panel.title}"
+                             data-anchor="${this.panelAnchor(panel, index)}" @click="${() => this.toggle(index)}">
                             <button class="fold" tabindex="-1">⟩</button>
                             <span>${panel.title}</span>
                         </div>
