@@ -67,7 +67,7 @@ public Message greet(HttpRequest httpRequest) {
 }
 ```
 
-An `AutoCrud` typically uses it inside `repository()`/`search(...)` to scope the data — the widget
+An `AutoCrud` typically uses it inside `store()`/`search(...)` to scope the data — the widget
 stays fully decoupled from the screens.
 
 ## Behaviour

@@ -5,8 +5,8 @@ import io.mateu.uidl.data.Pageable;
 import java.util.List;
 
 /**
- * Low-level SPI backing a CRUD orchestrator when the standard {@link CrudRepository} is not enough:
- * it owns the whole lifecycle, returning distinct objects for the listing ({@link #search}), the
+ * Low-level SPI backing a CRUD orchestrator when the standard {@link CrudStore} is not enough: it
+ * owns the whole lifecycle, returning distinct objects for the listing ({@link #search}), the
  * read-only view ({@link #getView}), the {@link #getEditor} form and the {@link #getCreationForm},
  * plus bulk delete ({@link #deleteAllById}).
  *

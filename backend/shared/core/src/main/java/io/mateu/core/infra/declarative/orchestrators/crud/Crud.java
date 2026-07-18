@@ -126,8 +126,8 @@ public abstract class Crud<
 
   /**
    * Persists one row edited in place in the listing grid (class-level {@code @InlineEditing}).
-   * {@code AutoCrud}/{@code FilteredAutoCrud} implement it through the {@code CrudRepository};
-   * other cruds must override it to support inline editing.
+   * {@code AutoCrud}/{@code FilteredAutoCrud} implement it through the {@code CrudStore}; other
+   * cruds must override it to support inline editing.
    */
   public Object updateRow(java.util.Map<String, Object> row, HttpRequest httpRequest) {
     throw new UnsupportedOperationException(

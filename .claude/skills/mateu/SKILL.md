@@ -1,6 +1,6 @@
 ---
 name: mateu
-description: Build Mateu UI screens in Java — declarative @UI classes and fluent component trees that render as web UI. Use when creating or editing CRUD screens, forms, wizards, editor/master-detail views, dashboards, application shells, or federated microfrontends with Mateu (io.mateu). Triggers on @UI, AutoCrud, Wizard, ComponentTreeSupplier, CrudRepository.
+description: Build Mateu UI screens in Java — declarative @UI classes and fluent component trees that render as web UI. Use when creating or editing CRUD screens, forms, wizards, editor/master-detail views, dashboards, application shells, or federated microfrontends with Mateu (io.mateu). Triggers on @UI, AutoCrud, Wizard, ComponentTreeSupplier, CrudStore.
 ---
 
 # Building UI with Mateu
@@ -22,7 +22,7 @@ Mateu generates all of that from the model. Validate with Bean Validation
 
 | You want | Use | Reference |
 |---|---|---|
-| list + create/edit/view/delete | `extends AutoCrud<T>` + `CrudRepository<T>` | [crud.md](reference/crud.md) |
+| list + create/edit/view/delete | `extends AutoCrud<T>` + `CrudStore<T>` | [crud.md](reference/crud.md) |
 | a single form with an action | a class with fields + `@Button` | [form-actions.md](reference/form-actions.md) |
 | a multi-step flow | `extends Wizard` + `WizardStep` | [wizard.md](reference/wizard.md) |
 | a dashboard landing page | `extends Dashboard` + `MetricCard` fields + `@Panel` | [dashboard.md](reference/dashboard.md) |

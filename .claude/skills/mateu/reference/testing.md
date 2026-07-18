@@ -10,7 +10,7 @@ Back an `AutoCrud` (or any port) with an in-memory `Map` while developing or in 
 The screen is identical whether the repository is JPA or a `Map`.
 
 ```java
-class ProductRepository implements CrudRepository<Product> {
+class ProductStore implements CrudStore<Product> {
     private final Map<String, Product> db = new LinkedHashMap<>();
     public Optional<Product> findById(String id) { return Optional.ofNullable(db.get(id)); }
     public String save(Product e) {

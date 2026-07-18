@@ -1,15 +1,15 @@
 # Mateu CRUD
 
 A full list + create + edit + view + delete from one class: `extends AutoCrud<T>`,
-where `T extends Identifiable`, plus a `CrudRepository<T>`.
+where `T extends Identifiable`, plus a `CrudStore<T>`.
 
 ```java
 @UI("/products")
 public class Products extends AutoCrud<Products.Product> {
 
     @Override
-    public CrudRepository<Product> repository() {
-        return new ProductRepository(); // or a Spring @Service you inject
+    public CrudStore<Product> store() {
+        return new ProductStore(); // or a Spring @Service you inject
     }
 
     enum ProductStatus { Available, OutOfStock }
@@ -32,12 +32,14 @@ public class Products extends AutoCrud<Products.Product> {
 }
 ```
 
-## Repository
+## Store
 
-Implement `CrudRepository<T>` over any store (JPA, Mongo, a REST client, in-memory):
+Implement `CrudStore<T>` (the data-access port) over any backing store (JPA, Mongo, a REST client,
+in-memory). Note: `CrudRepository`/`repository()` are the old names, kept as a deprecated alias —
+use `CrudStore`/`store()` in new code.
 
 ```java
-class ProductRepository implements CrudRepository<Product> {
+class ProductStore implements CrudStore<Product> {
     public Optional<Product> findById(String id) { /* ... */ }
     public String save(Product e) { /* persist */ return e.id(); } // gen id if null
     public List<Product> findAll() { /* ... */ }
@@ -111,13 +113,13 @@ fluent `ComponentTreeSupplier`).
 Annotate the AutoCrud class with `@InlineEditing` to edit rows directly in the listing grid
 (table layout): every data column becomes an in-place editor (`@ReadOnly` fields stay
 display-only) and each committed cell persists its row immediately via
-`repository().save(entity)` (update-row action). Override `updateRow(Map, HttpRequest)` to
+`store().save(entity)` (update-row action). Override `updateRow(Map, HttpRequest)` to
 customise persistence.
 
 ```java
 @UI("/stock") @InlineEditing
 public class StockCrud extends AutoCrud<StockItem> {
     @Override public GridLayout gridLayout() { return GridLayout.table; }
-    @Override public CrudRepository<StockItem> repository() { /* … */ }
+    @Override public CrudStore<StockItem> store() { /* … */ }
 }
 ```

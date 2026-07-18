@@ -11,7 +11,7 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.AggregateFunction;
 import io.mateu.uidl.data.FieldStereotype;
 import io.mateu.uidl.data.Message;
-import io.mateu.uidl.interfaces.CrudRepository;
+import io.mateu.uidl.interfaces.CrudStore;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Identifiable;
 import java.util.ArrayList;
@@ -89,8 +89,8 @@ public class SalesReport extends AutoCrud<SalesReport.Sale> {
   }
 
   @Override
-  public CrudRepository<Sale> repository() {
-    return new CrudRepository<>() {
+  public CrudStore<Sale> store() {
+    return new CrudStore<>() {
       @Override
       public Optional<Sale> findById(String id) {
         return SALES.stream().filter(sale -> sale.id().equals(id)).findFirst();

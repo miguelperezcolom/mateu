@@ -21,7 +21,7 @@ toolbar button over the listing, and a `List<Row>` parameter receives the **type
 public class InvoicesCrud extends AutoCrud<Invoice> {
 
     @Override
-    public CrudRepository<Invoice> repository() { return repository; }
+    public CrudStore<Invoice> store() { return store; }
 
     @ListToolbarButton
     @Label("Aprobar seleccionadas")
@@ -48,7 +48,7 @@ public class InvoicesCrud extends AutoCrud<Invoice> {
 ## Built-in bulk delete
 
 Every crud listing already ships a bulk **Delete** (selection + confirmation) wired to
-`CrudRepository.deleteAllById(List<IdType>)` — no code needed.
+`CrudStore.deleteAllById(List<IdType>)` — no code needed.
 
 ## Other servers
 

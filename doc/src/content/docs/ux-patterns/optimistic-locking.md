@@ -36,7 +36,7 @@ public class Article implements Identifiable {
 
 ## Database-backed repositories
 
-The check compares against `repository().findById(...)` at save time. If your store enforces its
+The check compares against `store().findById(...)` at save time. If your store enforces its
 own optimistic locking (e.g. JPA `@jakarta.persistence.Version`), you can rely on that instead —
 throw `OptimisticLock.StaleEditException` from `save` to get the same conflict dialog.
 

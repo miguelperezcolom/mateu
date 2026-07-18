@@ -31,7 +31,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
       @Override
       public void deleteAllById(List<String> selectedIds, HttpRequest httpRequest) {
-        repository().deleteAllById(selectedIds);
+        resolveStore().deleteAllById(selectedIds);
       }
 
       @Override
@@ -61,7 +61,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     var spec = ListingSummarySpec.of(rowClass());
     var data =
         new ListingData<>(
-            repository().find(searchText, rowFilters, spec.prependGroupSort(pageable)));
+            resolveStore().find(searchText, rowFilters, spec.prependGroupSort(pageable)));
     return withSummaries(data, spec, searchText, rowFilters, List.of());
   }
 
@@ -84,13 +84,13 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     var spec = ListingSummarySpec.of(rowClass());
     var data =
         new ListingData<>(
-            repository().find(searchText, rowFilters, criteria, spec.prependGroupSort(pageable)));
+            resolveStore().find(searchText, rowFilters, criteria, spec.prependGroupSort(pageable)));
     return withSummaries(data, spec, searchText, rowFilters, criteria);
   }
 
   /**
    * Attaches the {@code @Aggregate} totals and {@code @GroupBy} group subtotals to the page —
-   * computed by {@link CrudRepository#summaries} over the WHOLE filtered set (in memory by default;
+   * computed by {@link CrudStore#summaries} over the WHOLE filtered set (in memory by default;
    * repositories backed by a database override it with one aggregate query).
    */
   private ListingData<T> withSummaries(
@@ -103,13 +103,14 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
       return data;
     }
     var summaries =
-        repository().summaries(searchText, rowFilters, criteria, spec.aggregates(), spec.groupBy());
+        resolveStore()
+            .summaries(searchText, rowFilters, criteria, spec.aggregates(), spec.groupBy());
     return data.withAggregates(summaries.totals()).withGroups(summaries.groups());
   }
 
   public AutoNamedView<T> buildNamedView(String id, HttpRequest httpRequest) {
-    var entity = repository().findById(id).orElseThrow();
-    return new AutoNamedView<>(entityClass(), entity, repository());
+    var entity = resolveStore().findById(id).orElseThrow();
+    return new AutoNamedView<>(entityClass(), entity, resolveStore());
   }
 
   @SneakyThrows
@@ -125,7 +126,7 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     var instance =
         MateuBeanProvider.getBean(InstanceFactory.class)
             .newInstance(entityClass(), data, httpRequest);
-    return new AutoNamedView<>(entityClass(), (T) instance, repository());
+    return new AutoNamedView<>(entityClass(), (T) instance, resolveStore());
   }
 
   @SneakyThrows
@@ -180,9 +181,9 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @SuppressWarnings("unchecked")
   public Object updateRow(Map<String, Object> row, HttpRequest httpRequest) {
     var entity = (T) MateuInstanceFactory.newInstance(entityClass(), row, httpRequest);
-    OptimisticLock.check(entity, repository().findById(entity.id()), httpRequest);
+    OptimisticLock.check(entity, resolveStore().findById(entity.id()), httpRequest);
     OptimisticLock.bump(entity);
-    repository().save(entity);
+    resolveStore().save(entity);
     return io.mateu.uidl.data.Message.success("Saved");
   }
 
@@ -213,5 +214,33 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
     return fetchRows(searchText, (Filters) filters, criteria, pageable, httpRequest);
   }
 
-  public abstract CrudRepository<T> repository();
+  /**
+   * The data-access port for this crud's entity. Implement this (or, on pre-3.0-alpha.257 code, the
+   * deprecated {@link #repository()} — one of the two must be provided).
+   */
+  public CrudStore<T> store() {
+    return null;
+  }
+
+  /**
+   * @deprecated renamed to {@link #store()}; still honored when {@code store()} is not overridden.
+   */
+  @Deprecated(since = "3.0-alpha.257", forRemoval = true)
+  @SuppressWarnings("removal")
+  public CrudRepository<T> repository() {
+    return null;
+  }
+
+  /** Resolves the store, preferring {@link #store()} and falling back to {@link #repository()}. */
+  private CrudStore<T> resolveStore() {
+    var store = store();
+    if (store != null) {
+      return store;
+    }
+    var repository = repository();
+    if (repository != null) {
+      return repository;
+    }
+    throw new UnsupportedOperationException(getClass().getSimpleName() + " must implement store()");
+  }
 }

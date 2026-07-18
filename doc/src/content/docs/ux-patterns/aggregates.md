@@ -36,7 +36,7 @@ public class Sale implements Identifiable {
 ## Pushing the aggregation to the database
 
 The default computation runs in memory over `findAll()` — the same cost class as the default
-`CrudRepository.find`. A repository backed by a database overrides **one method** and runs a
+`CrudStore.find`. A store backed by a database overrides **one method** and runs a
 single aggregate query instead:
 
 ```java

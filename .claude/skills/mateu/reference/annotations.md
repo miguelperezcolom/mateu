@@ -76,7 +76,7 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 | `Wizard` + `WizardStep` | multi-step flow |
 | `AutoEditableView<T>` / `EditableView<V,E>` / `MultiView` | editor / composed views |
 | `ComponentTreeSupplier` | fluent component tree |
-| `CrudRepository<T>` | CRUD persistence contract |
+| `CrudStore<T>` | CRUD data-access port (was `CrudRepository`)  |
 | `ListingBackend<Filters,Row>` | listing contract as an interface (when not extending `Listing`) |
 | `Identifiable` | entity with `String id()` |
 | `ComponentAdapter<T>` | render a non-annotated domain object |

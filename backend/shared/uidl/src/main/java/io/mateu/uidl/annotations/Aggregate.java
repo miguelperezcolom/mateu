@@ -9,9 +9,8 @@ import java.lang.annotation.Target;
 /**
  * Aggregates a listing column over the WHOLE filtered result set (not just the visible page): the
  * listing shows a totals footer with the computed value, and when combined with {@link GroupBy}
- * each group's subtotal row shows the per-group value too. Computed by {@code
- * CrudRepository.summaries} — in memory by default, overridable to push the aggregation to the
- * database.
+ * each group's subtotal row shows the per-group value too. Computed by {@code CrudStore.summaries}
+ * — in memory by default, overridable to push the aggregation to the database.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})

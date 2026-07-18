@@ -6,7 +6,7 @@ import java.util.List;
  * A listing filter condition that the entity-shaped (query-by-example) filters object cannot
  * express: date/number ranges and value lists. The framework builds them from the component state
  * ({@code <field>_from}/{@code <field>_to} keys, multi-select value lists) with the values already
- * coerced to the field's type, and hands them to {@code CrudRepository.find(searchText, filters,
+ * coerced to the field's type, and hands them to {@code CrudStore.find(searchText, filters,
  * criteria, pageable)} alongside the example object, which keeps carrying the plain equality
  * filters.
  *

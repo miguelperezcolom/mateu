@@ -19,12 +19,12 @@ public class AutoNamedView<T extends Identifiable>
 
   T entity;
   Class<T> entityClass;
-  CrudRepository<T> repository;
+  CrudStore<T> store;
 
-  public AutoNamedView(Class<T> entityClass, T entity, CrudRepository<T> repository) {
+  public AutoNamedView(Class<T> entityClass, T entity, CrudStore<T> store) {
     this.entityClass = entityClass;
     this.entity = entity;
-    this.repository = repository;
+    this.store = store;
   }
 
   @Override
@@ -40,7 +40,7 @@ public class AutoNamedView<T extends Identifiable>
   @Override
   public String create(HttpRequest httpRequest) {
     T entity = (T) toEntity(httpRequest);
-    return repository.save(entity);
+    return store.save(entity);
   }
 
   @Override
@@ -49,9 +49,9 @@ public class AutoNamedView<T extends Identifiable>
     // optimistic locking (@Version field): reject the save when someone else saved in between,
     // bump the version otherwise — both no-ops for entities without a version field
     io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.check(
-        entity, repository.findById(entity.id()), httpRequest);
+        entity, store.findById(entity.id()), httpRequest);
     io.mateu.core.infra.declarative.orchestrators.crud.OptimisticLock.bump(entity);
-    repository.save(entity);
+    store.save(entity);
   }
 
   @Override

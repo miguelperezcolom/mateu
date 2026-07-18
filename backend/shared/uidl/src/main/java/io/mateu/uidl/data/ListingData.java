@@ -45,8 +45,8 @@ public record ListingData<Row>(
    * When the row class declares a {@code @GroupBy} column and this page carries no group summaries
    * yet (custom listings rarely compute them), synthesize one per group from the page rows — value
    * and count, no aggregates — so the grid can render its group subtotal rows. AutoCrud listings
-   * compute exact whole-filtered-set summaries via {@code CrudRepository#summaries} instead; a
-   * listing that already set {@code groups} is left untouched.
+   * compute exact whole-filtered-set summaries via {@code CrudStore#summaries} instead; a listing
+   * that already set {@code groups} is left untouched.
    */
   public ListingData<Row> withSynthesizedGroups(Class<?> rowClass) {
     if ((groups != null && !groups.isEmpty())

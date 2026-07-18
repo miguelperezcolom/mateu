@@ -15,7 +15,7 @@ The default CRUD flow persists through the detail form: click the row, edit one 
 
 ## Solution
 
-Annotate the `AutoCrud` class itself with `@InlineEditing`. Every data column becomes an editable input in place (a field marked `@ReadOnly` stays display-only), and **each committed cell persists its row immediately** through `CrudRepository.save(...)` — no explicit save button.
+Annotate the `AutoCrud` class itself with `@InlineEditing`. Every data column becomes an editable input in place (a field marked `@ReadOnly` stays display-only), and **each committed cell persists its row immediately** through `CrudStore.save(...)` — no explicit save button.
 
 ```java
 @UI("/stock")
@@ -27,7 +27,7 @@ public class StockCrud extends AutoCrud<StockItem> {
     public GridLayout gridLayout() { return GridLayout.table; }   // cell editing lives in the table layout
 
     @Override
-    public CrudRepository<StockItem> repository() { /* … */ }
+    public CrudStore<StockItem> store() { /* … */ }
 }
 ```
 
@@ -35,7 +35,7 @@ public class StockCrud extends AutoCrud<StockItem> {
 
 The editor per column is derived from the field's real Java type — the same mapping as [editable tables](/ux-patterns/editable-table): text, integer/number, checkbox, enum combo, date/time pickers.
 
-Under the hood each commit dispatches the crud's `update-row` action with the edited row; `AutoCrud` rebuilds the entity from it and calls `repository().save(entity)`. Override `updateRow(Map, HttpRequest)` to customise persistence (partial updates, optimistic locking, auditing).
+Under the hood each commit dispatches the crud's `update-row` action with the edited row; `AutoCrud` rebuilds the entity from it and calls `store().save(entity)`. Override `updateRow(Map, HttpRequest)` to customise persistence (partial updates, optimistic locking, auditing).
 
 ## When to use it
 

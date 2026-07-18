@@ -112,7 +112,7 @@ UX, and the Redwood renderer implements the same pattern with its own design sys
 ## Filtering on the default repository
 
 You don't need to override anything for the filters to work: the default in-memory
-`CrudRepository.find` applies them. Two mechanisms cooperate:
+`CrudStore.find` applies them. Two mechanisms cooperate:
 
 - **Equality filters travel inside the entity-shaped example object** (query by example). A filter
   counts as **set** when its value differs from a freshly-constructed instance of the filters
@@ -124,7 +124,7 @@ You don't need to override anything for the filters to work: the default in-memo
   50" or "any of A, B". They reach the repository through the 4-arg
   `find(searchText, filters, criteria, pageable)` overload, whose default evaluates them in memory.
 
-See [CrudRepository](/java-ui-definition/interfaces/crud-repository/) for pushing both to the
+See [CrudStore](/java-ui-definition/interfaces/crud-store/) for pushing both to the
 database.
 
 ## Typed filters on declarative listings
