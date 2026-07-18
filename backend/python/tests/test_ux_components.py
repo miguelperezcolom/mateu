@@ -484,6 +484,9 @@ class BookingFoldout(Foldout):
             next_action_id="next",
         )
 
+    def overview_edit_action_id(self) -> str | None:
+        return "editOverview"
+
 
 @ui("booking-h")
 @title("Booking H")
@@ -1230,8 +1233,10 @@ def test_foldout_archetype_slots_overview_and_panels():
     assert foldout["metadata"]["navigation"]["parentActionId"] == "goParent"
     assert foldout["metadata"]["navigation"]["previousActionId"] == "prev"
     assert foldout["metadata"]["navigation"]["nextActionId"] == "next"
+    # Overview edit affordance: actionId on the wire and advertised.
+    assert foldout["metadata"]["overviewEditActionId"] == "editOverview"
     action_ids = [a["id"] for a in doc["fragments"][0]["component"]["actions"]]
-    assert {"goParent", "prev", "next"} <= set(action_ids)
+    assert {"goParent", "prev", "next", "editOverview"} <= set(action_ids)
     overview, p0, p1 = foldout["children"]
     assert overview["slot"] == "overview"
     assert overview["metadata"]["text"] == "Booking ABC123"

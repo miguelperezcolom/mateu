@@ -383,6 +383,8 @@ class FoldoutLayoutMetadata(Wire):
     orientation: str = "vertical"
     #: Navigation Header (prev/next + go-to-parent); None hides the bar.
     navigation: "FoldoutNavigation | None" = None
+    #: ActionId dispatched by the overview's Edit affordance; None = no Edit button.
+    overviewEditActionId: str | None = None
 
 
 class HeroSectionMetadata(Wire):

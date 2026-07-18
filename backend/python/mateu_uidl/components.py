@@ -185,6 +185,8 @@ class FoldoutLayout(Component):
     orientation: str = "vertical"
     #: Navigation Header (prev/next + go-to-parent); None hides the bar.
     navigation: FoldoutNavigation | None = None
+    #: ActionId dispatched by the overview's Edit affordance; None = no Edit button.
+    overview_edit_action_id: str | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

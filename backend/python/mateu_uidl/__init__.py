@@ -1128,6 +1128,11 @@ class Foldout(ComponentTreeSupplier):
         non-blank ``*_action_id`` names a method Mateu runs when the control is clicked."""
         return None
 
+    def overview_edit_action_id(self) -> str | None:
+        """ActionId run by the overview's Edit affordance (RDS edit flow). ``None`` (default) hides
+        the Edit button; the method typically returns a Dialog (vertical) or navigates (horizontal)."""
+        return None
+
 
 class ItemOverview(ComponentTreeSupplier):
     """Item overview page: the first component field without ``Panel`` is the key-info panel

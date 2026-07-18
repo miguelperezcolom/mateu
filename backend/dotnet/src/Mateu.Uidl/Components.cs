@@ -116,6 +116,8 @@ public sealed record FoldoutLayout : ComponentBase
     public string Orientation { get; init; } = "vertical";
     /// <summary>Navigation Header (prev/next + go-to-parent); null hides the bar.</summary>
     public FoldoutNavigation? Navigation { get; init; }
+    /// <summary>ActionId dispatched by the overview's Edit affordance; null = no Edit button.</summary>
+    public string? OverviewEditActionId { get; init; }
 }
 
 /// <summary>Navigation Header of a <see cref="FoldoutLayout"/>: controls to move to the

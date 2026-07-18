@@ -230,6 +230,9 @@ public record FoldoutLayoutMetadataDto(IReadOnlyList<FoldoutPanelInfoDto> Panels
 
     /// <summary>Navigation Header (prev/next + go-to-parent); null hides the bar.</summary>
     public FoldoutNavigationDto? Navigation { get; init; }
+
+    /// <summary>ActionId dispatched by the overview's Edit affordance; null = no Edit button.</summary>
+    public string? OverviewEditActionId { get; init; }
 }
 
 /// <summary>Navigation Header of a foldout: prev/next between objects of the same type +

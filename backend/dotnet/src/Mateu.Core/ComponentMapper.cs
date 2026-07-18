@@ -218,6 +218,7 @@ public static class ComponentMapper
             Navigation = f.Navigation is { } n
                 ? new FoldoutNavigationDto(n.Title, n.ParentLabel, n.ParentActionId, n.PreviousActionId, n.NextActionId)
                 : null,
+            OverviewEditActionId = f.OverviewEditActionId,
         };
         return new ClientSideComponentDto(meta, f.Id, children, f.Style, f.CssClasses, null);
     }
@@ -251,6 +252,7 @@ public static class ComponentMapper
                 if (f.Navigation is { } nav)
                     foreach (var a in new[] { nav.ParentActionId, nav.PreviousActionId, nav.NextActionId })
                         if (!string.IsNullOrEmpty(a)) ids.Add(a);
+                if (!string.IsNullOrEmpty(f.OverviewEditActionId)) ids.Add(f.OverviewEditActionId);
                 break;
             case HeroSection h: foreach (var i in h.Content) Collect(i, ids); break;
             case Card card when card.Content is not null: Collect(card.Content, ids); break;

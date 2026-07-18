@@ -60,6 +60,10 @@ public abstract class Foldout : IComponentTreeSupplier
     /// non-blank *ActionId names a method Mateu runs when the control is clicked.</summary>
     protected virtual FoldoutNavigation? NavigationHeader => null;
 
+    /// <summary>ActionId run by the overview's Edit affordance (RDS edit flow). Null (default) hides
+    /// the Edit button; the method typically returns a Dialog (vertical) or navigates (horizontal).</summary>
+    protected virtual string? OverviewEditActionId => null;
+
     public IComponent Component()
     {
         IComponent? overview = null;
@@ -86,7 +90,7 @@ public abstract class Foldout : IComponentTreeSupplier
         {
             Id = Archetypes.IdOf(this), Overview = overview, Panels = panels,
             HeaderTitle = HeaderTitle, Badges = HeaderBadges, Orientation = Orientation,
-            Navigation = NavigationHeader,
+            Navigation = NavigationHeader, OverviewEditActionId = OverviewEditActionId,
         };
     }
 }

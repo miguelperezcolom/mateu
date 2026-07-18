@@ -628,6 +628,7 @@ class ReflectionMapper:
             badges=tuple(instance.header_badges()),
             orientation=instance.orientation(),
             navigation=instance.navigation_header(),
+            overview_edit_action_id=instance.overview_edit_action_id(),
         )
 
     def compose_item_overview(self, instance: ItemOverview) -> ClientSideComponent:
@@ -763,6 +764,7 @@ class ReflectionMapper:
                         if c.navigation is not None
                         else None
                     ),
+                    overviewEditActionId=c.overview_edit_action_id,
                 ),
                 c,
                 children,
@@ -1326,6 +1328,10 @@ class ReflectionMapper:
                     v = getattr(nav, attr, None)
                     if v:
                         out.append(v)
+            # Foldout overview Edit affordance references an action id.
+            edit = getattr(node, "overview_edit_action_id", None)
+            if edit:
+                out.append(edit)
             for attr in ("content", "overview", "items", "metrics", "panels"):
                 v = getattr(node, attr, None)
                 if isinstance(v, (fluent.Component, ClientSideComponent)):

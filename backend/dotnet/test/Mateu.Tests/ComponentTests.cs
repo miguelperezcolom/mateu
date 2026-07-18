@@ -442,6 +442,8 @@ public class Fold : Foldout
         PreviousActionId = "prev", NextActionId = "next",
     };
 
+    protected override string? OverviewEditActionId => "editOverview";
+
     public Text Overview { get; } = new("the record overview");
 
     [Panel(Title = "Guests", Icon = "people")]
@@ -1011,6 +1013,9 @@ public class ComponentTests
         Assert.Contains("\"parentActionId\":\"goParent\"", json);
         Assert.Contains("\"previousActionId\":\"prev\"", json);
         Assert.Contains("\"nextActionId\":\"next\"", json);
+
+        // Overview edit affordance: actionId on the wire and advertised.
+        Assert.Contains("\"overviewEditActionId\":\"editOverview\"", json);
     }
 
     [Fact]
