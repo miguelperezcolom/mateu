@@ -2415,6 +2415,45 @@ section.mateu-section .oj-typography-heading-md {
     margin-bottom: 0.75rem;
 }
 
+/* mateu-markdown renders into light DOM and inherits the host typography (there is no Lumo
+   heading scale under Redwood, so bare browser h1..h6 look oversized next to RDS panel titles).
+   Scope the markdown output to the Redwood type ramp so headings/lists sit sensibly. */
+mateu-markdown {
+    color: var(--oj-core-text-color-primary, #161513);
+    font-size: 0.9rem;
+    line-height: 1.55;
+}
+mateu-markdown h1,
+mateu-markdown h2,
+mateu-markdown h3,
+mateu-markdown h4,
+mateu-markdown h5,
+mateu-markdown h6 {
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0.75em 0 0.35em;
+    color: var(--oj-core-text-color-primary, #161513);
+}
+mateu-markdown h1 { font-size: 1.375rem; }
+mateu-markdown h2 { font-size: 1.1875rem; }
+mateu-markdown h3 { font-size: 1.0625rem; }
+mateu-markdown h4,
+mateu-markdown h5,
+mateu-markdown h6 { font-size: 1rem; }
+mateu-markdown :first-child { margin-top: 0; }
+mateu-markdown p { margin: 0 0 0.6em; }
+mateu-markdown ul,
+mateu-markdown ol { margin: 0 0 0.6em; padding-left: 1.25rem; }
+mateu-markdown li { margin: 0.15em 0; }
+mateu-markdown a { color: var(--oj-core-text-color-brand, #1c659a); }
+mateu-markdown code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    background: var(--oj-core-neutral-30, rgba(22, 21, 19, 0.06));
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+}
+
 /* ── Redwood chrome (assets exported from the RDS Toolkit Figma) ──────────────
    The color strip under the app header and the subtle bottom-left background
    ornament every RDS template carries. Global CSS on purpose: the shell renders
