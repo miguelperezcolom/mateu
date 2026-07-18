@@ -52,6 +52,10 @@ public abstract class Foldout : IComponentTreeSupplier
     /// <summary>Label/Value chips shown under the header title. Empty by default.</summary>
     protected virtual IReadOnlyList<string> HeaderBadges => [];
 
+    /// <summary>Overview orientation: "vertical" (overview on the left, default) or "horizontal"
+    /// (overview across the top, panels in a row below).</summary>
+    protected virtual string Orientation => "vertical";
+
     public IComponent Component()
     {
         IComponent? overview = null;
@@ -77,7 +81,7 @@ public abstract class Foldout : IComponentTreeSupplier
         return new FoldoutLayout
         {
             Id = Archetypes.IdOf(this), Overview = overview, Panels = panels,
-            HeaderTitle = HeaderTitle, Badges = HeaderBadges,
+            HeaderTitle = HeaderTitle, Badges = HeaderBadges, Orientation = Orientation,
         };
     }
 }

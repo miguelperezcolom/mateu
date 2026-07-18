@@ -112,6 +112,8 @@ public sealed record FoldoutLayout : ComponentBase
     public string? HeaderTitle { get; init; }
     /// <summary>Label/Value chips shown under the header title.</summary>
     public IReadOnlyList<string> Badges { get; init; } = [];
+    /// <summary>Overview orientation: "vertical" (left) or "horizontal" (top).</summary>
+    public string Orientation { get; init; } = "vertical";
 }
 
 // ── Hero, empty state, skeleton, Gantt ─────────────────────────────────────────

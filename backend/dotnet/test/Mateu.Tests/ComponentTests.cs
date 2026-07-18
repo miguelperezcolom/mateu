@@ -445,6 +445,17 @@ public class Fold : Foldout
     public Text Payments { get; } = new("payment info");
 }
 
+[UI("fold-h"), Title("Fold H")]
+public class FoldHorizontal : Foldout
+{
+    protected override string Orientation => "horizontal";
+
+    public Text Overview { get; } = new("the record overview");
+
+    [Panel(Title = "Guests")]
+    public Text Guests { get; } = new("guest list");
+}
+
 [UI("greet-page"), Title("Greet page")]
 public class WelcomePage : Welcome
 {
@@ -985,6 +996,17 @@ public class ComponentTests
         // Header band: title from [Title], chips flattened to text.
         Assert.Contains("\"headerTitle\":\"Fold\"", json);
         Assert.Contains("\"badges\":[\"Confirmed\",\"12-19 Aug\"]", json);
+
+        // Orientation defaults to vertical.
+        Assert.Contains("\"orientation\":\"vertical\"", json);
+    }
+
+    [Fact]
+    public void Foldout_horizontal_orientation_travels_on_the_wire()
+    {
+        var json = RenderView(typeof(FoldHorizontal));
+        Assert.Contains("\"type\":\"FoldoutLayout\"", json);
+        Assert.Contains("\"orientation\":\"horizontal\"", json);
     }
 
     [Fact]

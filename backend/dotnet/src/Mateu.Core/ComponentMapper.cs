@@ -214,6 +214,7 @@ public static class ComponentMapper
         {
             HeaderTitle = f.HeaderTitle,
             Badges = f.Badges,
+            Orientation = f.Orientation,
         };
         return new ClientSideComponentDto(meta, f.Id, children, f.Style, f.CssClasses, null);
     }

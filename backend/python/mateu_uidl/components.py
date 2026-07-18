@@ -168,6 +168,8 @@ class FoldoutLayout(Component):
     header_title: str | None = None
     #: Label/Value chips under the header title.
     badges: tuple[str, ...] = ()
+    #: Overview orientation: "vertical" (left) or "horizontal" (top).
+    orientation: str = "vertical"
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

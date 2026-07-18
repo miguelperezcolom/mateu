@@ -1117,6 +1117,11 @@ class Foldout(ComponentTreeSupplier):
         """Label/Value chips shown under the header title. Empty by default."""
         return []
 
+    def orientation(self) -> str:
+        """Overview orientation: ``"vertical"`` (overview on the left, default) or ``"horizontal"``
+        (overview across the top, panels in a row below)."""
+        return "vertical"
+
 
 class ItemOverview(ComponentTreeSupplier):
     """Item overview page: the first component field without ``Panel`` is the key-info panel

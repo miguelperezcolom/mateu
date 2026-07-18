@@ -475,6 +475,16 @@ class BookingFoldout(Foldout):
         return ["Confirmed", "12-19 Aug"]
 
 
+@ui("booking-h")
+@title("Booking H")
+class BookingFoldoutHorizontal(Foldout):
+    overview: Text = Text(text="Booking ABC123")
+    guests: Annotated[Text, Panel("Guests")] = Text(text="Ada, Alan")
+
+    def orientation(self) -> str:
+        return "horizontal"
+
+
 @ui("product")
 @title("Product")
 class ProductOverview(ItemOverview):
@@ -1204,12 +1214,21 @@ def test_foldout_archetype_slots_overview_and_panels():
     # Header band: title from @title, chips flattened to text.
     assert foldout["metadata"]["headerTitle"] == "Booking"
     assert foldout["metadata"]["badges"] == ["Confirmed", "12-19 Aug"]
+    # Orientation defaults to vertical.
+    assert foldout["metadata"]["orientation"] == "vertical"
     overview, p0, p1 = foldout["children"]
     assert overview["slot"] == "overview"
     assert overview["metadata"]["text"] == "Booking ABC123"
     assert p0["slot"] == "panel-0"
     assert p0["metadata"]["text"] == "Ada, Alan"
     assert p1["slot"] == "panel-1"
+
+
+def test_foldout_horizontal_orientation_travels_on_the_wire():
+    doc = render(BookingFoldoutHorizontal)
+    (foldout,) = page_children(doc)
+    assert foldout["metadata"]["type"] == "FoldoutLayout"
+    assert foldout["metadata"]["orientation"] == "horizontal"
 
 
 def test_item_overview_archetype_key_info_card_plus_tabs():

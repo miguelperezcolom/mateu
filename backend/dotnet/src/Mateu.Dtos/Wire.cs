@@ -224,6 +224,9 @@ public record FoldoutLayoutMetadataDto(IReadOnlyList<FoldoutPanelInfoDto> Panels
 
     /// <summary>Label/Value chips shown under the header title (flattened to text on the wire).</summary>
     public IReadOnlyList<string> Badges { get; init; } = [];
+
+    /// <summary>Overview orientation: "vertical" (left) or "horizontal" (top).</summary>
+    public string Orientation { get; init; } = "vertical";
 }
 
 /// <summary>Header info for one foldout panel; its content travels as a slotted component child.</summary>

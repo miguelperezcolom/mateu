@@ -368,6 +368,8 @@ class FoldoutLayoutMetadata(Wire):
     headerTitle: str | None = None
     #: Label/Value chips under the header title (flattened to text on the wire).
     badges: list[str] = Field(default_factory=list)
+    #: Overview orientation: "vertical" (left) or "horizontal" (top).
+    orientation: str = "vertical"
 
 
 class HeroSectionMetadata(Wire):

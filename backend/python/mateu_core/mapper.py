@@ -625,6 +625,7 @@ class ReflectionMapper:
             panels=tuple(panels),
             header_title=instance.header_title(),
             badges=tuple(instance.header_badges()),
+            orientation=instance.orientation(),
         )
 
     def compose_item_overview(self, instance: ItemOverview) -> ClientSideComponent:
@@ -745,7 +746,10 @@ class ReflectionMapper:
                     children.append(child)
             return self._fluent_client(
                 FoldoutLayoutMetadata(
-                    panels=infos, headerTitle=c.header_title, badges=list(c.badges)
+                    panels=infos,
+                    headerTitle=c.header_title,
+                    badges=list(c.badges),
+                    orientation=c.orientation,
                 ),
                 c,
                 children,
