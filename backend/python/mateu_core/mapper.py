@@ -34,6 +34,7 @@ from mateu_dtos import (
     EmptyStateMetadata,
     Fab,
     FoldoutLayoutMetadata,
+    FoldoutNavigation as FoldoutNavigationWire,
     FoldoutPanelInfo,
     FormFieldMetadata,
     FormLayoutMetadata,
@@ -626,6 +627,7 @@ class ReflectionMapper:
             header_title=instance.header_title(),
             badges=tuple(instance.header_badges()),
             orientation=instance.orientation(),
+            navigation=instance.navigation_header(),
         )
 
     def compose_item_overview(self, instance: ItemOverview) -> ClientSideComponent:
@@ -750,6 +752,17 @@ class ReflectionMapper:
                     headerTitle=c.header_title,
                     badges=list(c.badges),
                     orientation=c.orientation,
+                    navigation=(
+                        FoldoutNavigationWire(
+                            title=c.navigation.title,
+                            parentLabel=c.navigation.parent_label,
+                            parentActionId=c.navigation.parent_action_id,
+                            previousActionId=c.navigation.previous_action_id,
+                            nextActionId=c.navigation.next_action_id,
+                        )
+                        if c.navigation is not None
+                        else None
+                    ),
                 ),
                 c,
                 children,
@@ -1306,6 +1319,13 @@ class ReflectionMapper:
                 v = getattr(node, attr, None)
                 if v:
                     out.append(v)
+            # Foldout Navigation Header references parent/prev/next action ids.
+            nav = getattr(node, "navigation", None)
+            if nav is not None:
+                for attr in ("parent_action_id", "previous_action_id", "next_action_id"):
+                    v = getattr(nav, attr, None)
+                    if v:
+                        out.append(v)
             for attr in ("content", "overview", "items", "metrics", "panels"):
                 v = getattr(node, attr, None)
                 if isinstance(v, (fluent.Component, ClientSideComponent)):

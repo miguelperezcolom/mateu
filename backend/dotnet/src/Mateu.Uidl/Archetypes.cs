@@ -56,6 +56,10 @@ public abstract class Foldout : IComponentTreeSupplier
     /// (overview across the top, panels in a row below).</summary>
     protected virtual string Orientation => "vertical";
 
+    /// <summary>Navigation Header (prev/next + go-to-parent). Null (default) hides the bar; each
+    /// non-blank *ActionId names a method Mateu runs when the control is clicked.</summary>
+    protected virtual FoldoutNavigation? NavigationHeader => null;
+
     public IComponent Component()
     {
         IComponent? overview = null;
@@ -82,6 +86,7 @@ public abstract class Foldout : IComponentTreeSupplier
         {
             Id = Archetypes.IdOf(this), Overview = overview, Panels = panels,
             HeaderTitle = HeaderTitle, Badges = HeaderBadges, Orientation = Orientation,
+            Navigation = NavigationHeader,
         };
     }
 }

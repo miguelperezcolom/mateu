@@ -227,7 +227,16 @@ public record FoldoutLayoutMetadataDto(IReadOnlyList<FoldoutPanelInfoDto> Panels
 
     /// <summary>Overview orientation: "vertical" (left) or "horizontal" (top).</summary>
     public string Orientation { get; init; } = "vertical";
+
+    /// <summary>Navigation Header (prev/next + go-to-parent); null hides the bar.</summary>
+    public FoldoutNavigationDto? Navigation { get; init; }
 }
+
+/// <summary>Navigation Header of a foldout: prev/next between objects of the same type +
+/// go-to-parent. A null/blank actionId hides the corresponding control.</summary>
+public record FoldoutNavigationDto(
+    string? Title, string? ParentLabel, string? ParentActionId,
+    string? PreviousActionId, string? NextActionId);
 
 /// <summary>Header info for one foldout panel; its content travels as a slotted component child.</summary>
 public record FoldoutPanelInfoDto(string? Title, string? Subtitle, string? Icon, bool Open);

@@ -436,6 +436,12 @@ public class Fold : Foldout
 {
     protected override IReadOnlyList<string> HeaderBadges => ["Confirmed", "12-19 Aug"];
 
+    protected override FoldoutNavigation? NavigationHeader => new()
+    {
+        Title = "Booking", ParentLabel = "Bookings", ParentActionId = "goParent",
+        PreviousActionId = "prev", NextActionId = "next",
+    };
+
     public Text Overview { get; } = new("the record overview");
 
     [Panel(Title = "Guests", Icon = "people")]
@@ -999,6 +1005,12 @@ public class ComponentTests
 
         // Orientation defaults to vertical.
         Assert.Contains("\"orientation\":\"vertical\"", json);
+
+        // Navigation Header travels on the wire and its controls' actionIds are advertised.
+        Assert.Contains("\"navigation\":{", json);
+        Assert.Contains("\"parentActionId\":\"goParent\"", json);
+        Assert.Contains("\"previousActionId\":\"prev\"", json);
+        Assert.Contains("\"nextActionId\":\"next\"", json);
     }
 
     [Fact]

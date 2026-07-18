@@ -358,6 +358,17 @@ class FoldoutPanelInfo(Wire):
     open: bool = True
 
 
+class FoldoutNavigation(Wire):
+    """Navigation Header of a foldout: prev/next between objects of the same type + go-to-parent.
+    A null/blank actionId hides the corresponding control."""
+
+    title: str | None = None
+    parentLabel: str | None = None
+    parentActionId: str | None = None
+    previousActionId: str | None = None
+    nextActionId: str | None = None
+
+
 class FoldoutLayoutMetadata(Wire):
     """Redwood-style foldout. Overview travels as the child slotted ``overview``; each panel's
     content as the child slotted ``panel-N`` matching the panels list order."""
@@ -370,6 +381,8 @@ class FoldoutLayoutMetadata(Wire):
     badges: list[str] = Field(default_factory=list)
     #: Overview orientation: "vertical" (left) or "horizontal" (top).
     orientation: str = "vertical"
+    #: Navigation Header (prev/next + go-to-parent); None hides the bar.
+    navigation: "FoldoutNavigation | None" = None
 
 
 class HeroSectionMetadata(Wire):

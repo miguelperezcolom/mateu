@@ -159,6 +159,19 @@ class FoldoutPanel(Component):
 
 
 @dataclass(frozen=True)
+class FoldoutNavigation:
+    """Navigation Header of a :class:`FoldoutLayout`: controls to move to the previous/next object of
+    the same type or go to the parent. Each *_action_id names a method on the Foldout subclass; a
+    None/blank id hides that control."""
+
+    title: str | None = None
+    parent_label: str | None = None
+    parent_action_id: str | None = None
+    previous_action_id: str | None = None
+    next_action_id: str | None = None
+
+
+@dataclass(frozen=True)
 class FoldoutLayout(Component):
     """Redwood-style foldout: a fixed overview panel plus lateral fold-out panels."""
 
@@ -170,6 +183,8 @@ class FoldoutLayout(Component):
     badges: tuple[str, ...] = ()
     #: Overview orientation: "vertical" (left) or "horizontal" (top).
     orientation: str = "vertical"
+    #: Navigation Header (prev/next + go-to-parent); None hides the bar.
+    navigation: FoldoutNavigation | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
@@ -1215,6 +1230,7 @@ __all__ = [
     "DashboardLayout",
     "FoldoutPanel",
     "FoldoutLayout",
+    "FoldoutNavigation",
     "HeroSection",
     "EmptyState",
     "Skeleton",

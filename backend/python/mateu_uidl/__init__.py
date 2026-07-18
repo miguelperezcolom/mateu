@@ -1122,6 +1122,12 @@ class Foldout(ComponentTreeSupplier):
         (overview across the top, panels in a row below)."""
         return "vertical"
 
+    def navigation_header(self):
+        """Navigation Header (prev/next + go-to-parent). Return a
+        :class:`mateu_uidl.components.FoldoutNavigation`, or ``None`` (default) to hide the bar. Each
+        non-blank ``*_action_id`` names a method Mateu runs when the control is clicked."""
+        return None
+
 
 class ItemOverview(ComponentTreeSupplier):
     """Item overview page: the first component field without ``Panel`` is the key-info panel

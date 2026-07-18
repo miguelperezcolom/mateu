@@ -31,6 +31,7 @@ from mateu_uidl.components import (  # noqa: E402
     ChipItem,
     EntityHeader,
     Fact,
+    FoldoutNavigation,
     Ledger,
     LedgerLine,
     Meter,
@@ -473,6 +474,15 @@ class BookingFoldout(Foldout):
 
     def header_badges(self) -> list[str]:
         return ["Confirmed", "12-19 Aug"]
+
+    def navigation_header(self):
+        return FoldoutNavigation(
+            title="Booking",
+            parent_label="Bookings",
+            parent_action_id="goParent",
+            previous_action_id="prev",
+            next_action_id="next",
+        )
 
 
 @ui("booking-h")
@@ -1216,6 +1226,12 @@ def test_foldout_archetype_slots_overview_and_panels():
     assert foldout["metadata"]["badges"] == ["Confirmed", "12-19 Aug"]
     # Orientation defaults to vertical.
     assert foldout["metadata"]["orientation"] == "vertical"
+    # Navigation Header travels on the wire and its controls' actionIds are advertised.
+    assert foldout["metadata"]["navigation"]["parentActionId"] == "goParent"
+    assert foldout["metadata"]["navigation"]["previousActionId"] == "prev"
+    assert foldout["metadata"]["navigation"]["nextActionId"] == "next"
+    action_ids = [a["id"] for a in doc["fragments"][0]["component"]["actions"]]
+    assert {"goParent", "prev", "next"} <= set(action_ids)
     overview, p0, p1 = foldout["children"]
     assert overview["slot"] == "overview"
     assert overview["metadata"]["text"] == "Booking ABC123"

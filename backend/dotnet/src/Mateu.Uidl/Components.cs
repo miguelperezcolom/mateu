@@ -114,6 +114,20 @@ public sealed record FoldoutLayout : ComponentBase
     public IReadOnlyList<string> Badges { get; init; } = [];
     /// <summary>Overview orientation: "vertical" (left) or "horizontal" (top).</summary>
     public string Orientation { get; init; } = "vertical";
+    /// <summary>Navigation Header (prev/next + go-to-parent); null hides the bar.</summary>
+    public FoldoutNavigation? Navigation { get; init; }
+}
+
+/// <summary>Navigation Header of a <see cref="FoldoutLayout"/>: controls to move to the
+/// previous/next object of the same type or go to the parent. Each *ActionId names a method on the
+/// Foldout subclass; a null/blank id hides that control.</summary>
+public sealed record FoldoutNavigation
+{
+    public string? Title { get; init; }
+    public string? ParentLabel { get; init; }
+    public string? ParentActionId { get; init; }
+    public string? PreviousActionId { get; init; }
+    public string? NextActionId { get; init; }
 }
 
 // ── Hero, empty state, skeleton, Gantt ─────────────────────────────────────────
