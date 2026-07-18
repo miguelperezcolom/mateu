@@ -2474,12 +2474,17 @@ body::after {
     pointer-events: none;
     z-index: -1;
     opacity: 0.85;
+    /* Fade the texture out toward the top so it dissolves into the page before reaching
+       content, instead of showing a hard edge behind cards (RDS keeps it a soft bottom band). */
+    -webkit-mask-image: linear-gradient(to top, #000 45%, transparent 100%);
+    mask-image: linear-gradient(to top, #000 45%, transparent 100%);
 }
 
 /* Top-right ornament: the Template Header texture (organic shapes + orange accent) that peeks
    from the upper-right corner around the central content, as in every RDS template frame.
-   Kept low-opacity so it never fights the form fields it sits behind (it is position:fixed,
-   so scrolled content passes under it). */
+   Kept low-opacity AND radially masked so it stays a soft top-right corner accent and
+   dissolves before it reaches the content column (it is position:fixed and the content area is
+   transparent, so an un-masked texture bled through header metrics/fields on the right). */
 body::before {
     content: "";
     position: fixed;
@@ -2494,6 +2499,8 @@ body::before {
     pointer-events: none;
     z-index: -1;
     opacity: 0.5;
+    -webkit-mask-image: radial-gradient(125% 125% at 100% 0%, #000 32%, transparent 68%);
+    mask-image: radial-gradient(125% 125% at 100% 0%, #000 32%, transparent 68%);
 }
 
 /* On tablet widths the ornaments occupy too much of the viewport — shrink the corner
