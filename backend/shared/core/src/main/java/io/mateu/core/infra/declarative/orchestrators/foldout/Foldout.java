@@ -51,19 +51,34 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier {
     return null;
   }
 
-  /** Registers the Navigation Header controls' actionIds so the frontend can dispatch them. */
+  /**
+   * ActionId run when the user clicks the overview's Edit affordance (RDS Foldout edit flow).
+   * Defaults to {@code null} (no Edit button). The named method typically returns a {@code Dialog}
+   * (vertical config) or a {@code URI}/{@code NavigateTo} to an edit page (horizontal config).
+   */
+  public String overviewEditActionId() {
+    return null;
+  }
+
+  /**
+   * Registers the Navigation Header controls' + overview-edit actionIds so the frontend can
+   * dispatch them.
+   */
   @Override
   public List<Action> actions(HttpRequest httpRequest) {
-    FoldoutNavigation nav = navigationHeader();
-    if (nav == null) {
-      return List.of();
-    }
     List<Action> actions = new ArrayList<>();
-    for (String id :
-        new String[] {nav.parentActionId(), nav.previousActionId(), nav.nextActionId()}) {
-      if (id != null && !id.isBlank()) {
-        actions.add(Action.builder().id(id).build());
+    FoldoutNavigation nav = navigationHeader();
+    if (nav != null) {
+      for (String id :
+          new String[] {nav.parentActionId(), nav.previousActionId(), nav.nextActionId()}) {
+        if (id != null && !id.isBlank()) {
+          actions.add(Action.builder().id(id).build());
+        }
       }
+    }
+    String editId = overviewEditActionId();
+    if (editId != null && !editId.isBlank()) {
+      actions.add(Action.builder().id(editId).build());
     }
     return actions;
   }
@@ -155,6 +170,7 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier {
         .badges(headerBadges())
         .orientation(orientation())
         .navigation(navigationHeader())
+        .overviewEditActionId(overviewEditActionId())
         .build();
   }
 }

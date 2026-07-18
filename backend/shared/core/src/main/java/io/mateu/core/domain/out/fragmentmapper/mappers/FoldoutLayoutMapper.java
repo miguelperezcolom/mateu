@@ -79,6 +79,7 @@ public class FoldoutLayoutMapper {
                         : io.mateu.uidl.data.FoldoutOrientation.vertical)
                     .name())
             .navigation(mapNavigation(foldoutLayout.navigation()))
+            .overviewEditActionId(foldoutLayout.overviewEditActionId())
             .build(),
         foldoutLayout.id(),
         children,

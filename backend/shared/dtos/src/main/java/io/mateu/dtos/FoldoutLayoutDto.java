@@ -14,7 +14,8 @@ public record FoldoutLayoutDto(
     String headerTitle,
     List<String> badges,
     String orientation,
-    FoldoutNavigationDto navigation)
+    FoldoutNavigationDto navigation,
+    String overviewEditActionId)
     implements ComponentMetadataDto {
 
   public FoldoutLayoutDto {

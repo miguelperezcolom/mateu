@@ -1,6 +1,7 @@
 package io.mateu.mdd.redwoodshowcase.ui.foldout;
 
 import io.mateu.core.infra.declarative.orchestrators.foldout.Foldout;
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
@@ -11,6 +12,7 @@ import io.mateu.uidl.data.ChartDataset;
 import io.mateu.uidl.data.ChartType;
 import io.mateu.uidl.data.FoldoutOrientation;
 import io.mateu.uidl.data.Markdown;
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -80,4 +82,16 @@ public class BookingFoldoutHorizontal extends Foldout {
   public FoldoutOrientation orientation() {
     return FoldoutOrientation.horizontal;
   }
+
+  @Override
+  public String overviewEditActionId() {
+    return "editOverview";
+  }
+
+  // Horizontal config: the overview Edit affordance navigates to a dedicated edit page.
+  @Action
+  public URI editOverview() {
+    return URI.create("/booking-edit");
+  }
 }
+

@@ -28,6 +28,10 @@ export class MateuFoldout extends LitElement {
     @property({ attribute: false })
     navigation: FoldoutNavigation | null = null
 
+    // actionId dispatched by the overview's Edit affordance ('' = no Edit button)
+    @property({ type: String })
+    overviewEditActionId = ''
+
     @state()
     private openPanels: Set<number> = new Set()
 
@@ -275,6 +279,7 @@ export class MateuFoldout extends LitElement {
            columns split by vertical dividers, a gold accent under each panel title — by setting the
            --mateu-foldout-* custom properties (see redwood-oj index.css). */
         .overview {
+            position: relative;
             flex: 0 0 var(--mateu-foldout-overview-width, 20rem);
             min-width: 0;
             background: var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff));
@@ -283,6 +288,28 @@ export class MateuFoldout extends LitElement {
             padding: var(--mateu-foldout-overview-padding, var(--lumo-space-m, 1rem));
             box-sizing: border-box;
             overflow: auto;
+        }
+        /* Overview Edit affordance (RDS edit flow): dispatches overviewEditActionId, whose backend
+           method opens a Dialog (vertical) or navigates to an edit page (horizontal). */
+        .overview-edit {
+            position: absolute;
+            top: var(--mateu-foldout-overview-edit-top, .5rem);
+            right: var(--mateu-foldout-overview-edit-right, .5rem);
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            border: var(--mateu-foldout-overview-edit-border, 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.16)));
+            background: var(--lumo-base-color, #fff);
+            color: var(--mateu-foldout-nav-parent-color, var(--lumo-primary-text-color, #1976d2));
+            cursor: pointer;
+            font: inherit;
+            font-weight: 600;
+            font-size: var(--lumo-font-size-s, .875rem);
+            padding: .2rem .5rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+        }
+        .overview-edit:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.04));
         }
         .rail {
             display: flex;
@@ -490,6 +517,12 @@ export class MateuFoldout extends LitElement {
             ` : ''}
             <div class="columns" part="columns">
                 <div class="overview" part="overview">
+                    ${this.overviewEditActionId ? html`
+                        <button class="overview-edit" title="Edit"
+                                @click="${() => this.navAction(this.overviewEditActionId)}">
+                            <span>✎</span><span>Edit</span>
+                        </button>
+                    ` : nothing}
                     <slot name="overview"></slot>
                 </div>
                 <div class="rail" part="rail">

@@ -16,4 +16,7 @@ export default interface FoldoutLayout extends ComponentMetadata {
 
     navigation?: FoldoutNavigation
 
+    // actionId dispatched by the overview's Edit affordance (null = no Edit button)
+    overviewEditActionId?: string
+
 }

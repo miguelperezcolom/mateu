@@ -10,9 +10,11 @@ import io.mateu.uidl.data.Chart;
 import io.mateu.uidl.data.ChartData;
 import io.mateu.uidl.data.ChartDataset;
 import io.mateu.uidl.data.ChartType;
+import io.mateu.uidl.data.Dialog;
 import io.mateu.uidl.data.FoldoutNavigation;
 import io.mateu.uidl.data.Markdown;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.ModelViewComponent;
 import java.util.List;
 
 /**
@@ -81,6 +83,21 @@ public class BookingFoldout extends Foldout {
           """,
           null,
           null);
+
+  @Override
+  public String overviewEditActionId() {
+    return "editOverview";
+  }
+
+  // Vertical config: the overview Edit affordance opens a Dialog with the edit form.
+  @Action
+  public Dialog editOverview() {
+    return Dialog.builder()
+        .headerTitle("Edit booking")
+        .width("32rem")
+        .content(new ModelViewComponent(new BookingEditForm()))
+        .build();
+  }
 
   @Override
   public FoldoutNavigation navigationHeader() {
