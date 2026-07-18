@@ -2415,6 +2415,15 @@ section.mateu-section .oj-typography-heading-md {
     margin-bottom: 0.75rem;
 }
 
+/* Drawer chrome to the RDS "Create and Edit - Drawer" spacing (side sheets breathe more than
+   the Lumo defaults). Custom properties pierce the mateu-drawer shadow root; Vaadin keeps its
+   own values via the in-component fallbacks. */
+:root {
+    --mateu-drawer-header-padding: 1rem 1.5rem;
+    --mateu-drawer-content-padding: 1.5rem;
+    --mateu-drawer-footer-padding: 1rem 1.5rem;
+}
+
 /* mateu-markdown renders into light DOM and inherits the host typography (there is no Lumo
    heading scale under Redwood, so bare browser h1..h6 look oversized next to RDS panel titles).
    Scope the markdown output to the Redwood type ramp so headings/lists sit sensibly. */

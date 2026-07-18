@@ -21,35 +21,57 @@ public class CrudFormComponentBuilder {
 
   public static Component build(
       boolean isCreation, HttpRequest httpRequest, Object editor, Crud orchestrator) {
+    return build(isCreation, httpRequest, editor, orchestrator, false);
+  }
+
+  /**
+   * @param buttonsAtBottom when true the cancel/save actions render as a bottom, right-aligned
+   *     button row (via {@code PageView.buttons}) instead of the top toolbar — used for the
+   *     edit-in-drawer mode so the actions sit at the foot of the drawer, the RDS "Create and Edit
+   *     - Drawer" footer treatment. They stay inside the form page, so the action wiring is
+   *     unchanged.
+   */
+  public static Component build(
+      boolean isCreation,
+      HttpRequest httpRequest,
+      Object editor,
+      Crud orchestrator,
+      boolean buttonsAtBottom) {
     Object viewModel =
         editor instanceof AutoNamedView autoNamedView ? autoNamedView.entity() : editor;
     String title;
     httpRequest.setAttribute("windowTitle", title = getTitle(viewModel));
-    return PageView.builder()
-        .title(title)
-        .style(orchestrator.getStyleForView())
-        .badges(createBadges(viewModel))
-        .content(
-            getView(
-                    editor,
-                    "base_url",
-                    httpRequest.runActionRq().route(),
-                    httpRequest.runActionRq().consumedRoute(),
-                    httpRequest.runActionRq().initiatorComponentId(),
-                    httpRequest,
-                    false,
-                    isCreation)
-                .stream()
-                .toList())
-        .toolbar(buildToolbar(isCreation, orchestrator))
-        .actions(
-            List.of(
-                Action.builder()
-                    .id(isCreation ? "create" : "save")
-                    .validationRequired(true)
-                    .bubble(true)
-                    .build()))
-        .build();
+    var buttons = buildToolbar(isCreation, orchestrator);
+    var builder =
+        PageView.builder()
+            .title(title)
+            .style(orchestrator.getStyleForView())
+            .badges(createBadges(viewModel))
+            .content(
+                getView(
+                        editor,
+                        "base_url",
+                        httpRequest.runActionRq().route(),
+                        httpRequest.runActionRq().consumedRoute(),
+                        httpRequest.runActionRq().initiatorComponentId(),
+                        httpRequest,
+                        false,
+                        isCreation)
+                    .stream()
+                    .toList())
+            .actions(
+                List.of(
+                    Action.builder()
+                        .id(isCreation ? "create" : "save")
+                        .validationRequired(true)
+                        .bubble(true)
+                        .build()));
+    if (buttonsAtBottom) {
+      builder.buttons(buttons);
+    } else {
+      builder.toolbar(buttons);
+    }
+    return builder.build();
   }
 
   private static List<UserTrigger> buildToolbar(boolean isCreation, Crud orchestrator) {

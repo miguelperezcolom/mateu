@@ -26,7 +26,7 @@ final class CrudDrawerBuilder {
         .id("crud-edit-drawer")
         .headerTitle(headerTitle)
         .width(orchestrator.editDrawerWidth())
-        .content(CrudFormComponentBuilder.build(isCreation, rq, editor, orchestrator))
+        .content(CrudFormComponentBuilder.build(isCreation, rq, editor, orchestrator, true))
         .initialData(FormViewModel.toMap(model))
         .build();
   }

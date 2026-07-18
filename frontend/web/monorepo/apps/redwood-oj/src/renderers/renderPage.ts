@@ -56,13 +56,14 @@ export const renderPage = (
             ` : nothing}
             <div style="width: 100%;">
                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 0.5rem 0;">
-                    ${metadata.buttons?.map((button: Button) => renderComponent(container, {
+                ${metadata.buttons?.length ? html`
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; padding: 0.75rem 0 0.25rem;">
+                    ${metadata.buttons.map((button: Button) => renderComponent(container, {
                         metadata: button,
                         type: ComponentType.ClientSide,
                         slot: ''
                     } as unknown as ClientSideComponent, undefined, {}, {}, appState, appData))}
-                </div>
+                </div>` : nothing}
             </div>
             ${metadata.footer?.length ? html`
                 <div>

@@ -159,7 +159,7 @@ export class MateuDrawer extends ComponentElement {
             display: flex;
             align-items: center;
             gap: var(--lumo-space-s, 0.5rem);
-            padding: var(--lumo-space-s, 0.5rem) var(--lumo-space-m, 1rem);
+            padding: var(--mateu-drawer-header-padding, var(--lumo-space-s, 0.5rem) var(--lumo-space-m, 1rem));
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.1));
         }
         header h3 {
@@ -174,14 +174,25 @@ export class MateuDrawer extends ComponentElement {
         .content {
             flex: 1;
             overflow: auto;
-            padding: var(--lumo-space-m, 1rem);
+            padding: var(--mateu-drawer-content-padding, var(--lumo-space-m, 1rem));
         }
         .content.no-padding {
             padding: 0;
         }
+        /* Footer holds the drawer's actions — right-aligned with a top divider, the standard
+           (and RDS "Create and Edit - Drawer") footer treatment. The action row inside is a
+           HorizontalLayout, so stretch it and push its buttons to the trailing edge. */
         footer {
-            padding: var(--lumo-space-s, 0.5rem) var(--lumo-space-m, 1rem);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: var(--lumo-space-s, 0.5rem);
+            padding: var(--mateu-drawer-footer-padding, var(--lumo-space-s, 0.5rem) var(--lumo-space-m, 1rem));
             border-top: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.1));
+        }
+        footer > * {
+            display: flex;
+            justify-content: flex-end;
         }
   `
 }
