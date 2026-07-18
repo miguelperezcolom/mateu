@@ -4,6 +4,10 @@ title: "Mateu in hexagonal architecture"
 
 Mateu is an inbound adapter. It sits in `infrastructure/in/ui`, translating user gestures into application use case calls — exactly where a REST API or a message consumer would sit.
 
+:::tip[Worked example repo]
+[`miguelperezcolom/hello-world`](https://github.com/miguelperezcolom/hello-world) is a runnable, step-by-step tutorial that builds exactly this architecture: a pure domain, application use cases and query services, and Mateu as the inbound adapter in `infrastructure/ui`. It uses **one branch per step** — `git checkout` a step and run it, or `git diff` two steps to see precisely what each one adds — from a first screen through a CRUD, dashboard, form layout and lookups, up to swapping the design system and rendering natively.
+:::
+
 This is the key idea:
 
 > The UI is just another inbound adapter.
