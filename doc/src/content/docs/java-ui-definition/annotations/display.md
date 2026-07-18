@@ -284,7 +284,7 @@ public class OrderRow {
 
 **Target:** `FIELD`, `METHOD`
 
-No attributes. Renders the field's value as plain, read-only text instead of an input control — denser and unmistakably display-only. Typically combined with [`@ReadOnly`](../visibility/) on information-heavy screens. Booleans render as a check / dash icon.
+No attributes. Renders the field's value as plain, read-only text instead of an input control — denser and unmistakably display-only. Typically combined with [`@ReadOnly`](./visibility/) on information-heavy screens. Booleans render as a check / dash icon.
 
 It is opt-in and orthogonal: it does not change the default rendering of any field that is not annotated, so existing forms are unaffected.
 
@@ -304,7 +304,7 @@ public class CheckInForm {
 }
 ```
 
-Pairs well with [`@Compact`](../layout/#compact) and [`@Zones`](../layout/#zones--zone) for dense, single-screen layouts.
+Pairs well with [`@Compact`](./layout/#compact) and [`@Zones`](./layout/#zones--zone) for dense, single-screen layouts.
 
 ![PlainText — read-only field values without input chrome](/images/docs/annotations/plain-text.png)
 
@@ -417,4 +417,4 @@ Both can be combined on the same field to independently control each context.
 String description;
 ```
 
-See [field-types](../field-types/) for the complete `FieldStereotype` enum reference.
+See [field-types](./field-types/) for the complete `FieldStereotype` enum reference.

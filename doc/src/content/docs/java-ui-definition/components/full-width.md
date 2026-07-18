@@ -33,4 +33,4 @@ new FullWidth(
 
 ## When to use
 
-Use `FullWidth` for hero sections, full-bleed images, banners, or any section that should break out of the centred column layout. For a constrained, centred column, use [Container](../container/) instead.
+Use `FullWidth` for hero sections, full-bleed images, banners, or any section that should break out of the centred column layout. For a constrained, centred column, use [Container](./container/) instead.

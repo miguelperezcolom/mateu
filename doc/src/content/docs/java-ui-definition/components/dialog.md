@@ -80,4 +80,4 @@ Dialog.builder()
 
 ## Tip
 
-For simple yes/no confirmations use [ConfirmDialog](../confirm-dialog/) instead, which wires the confirm/cancel buttons automatically.
+For simple yes/no confirmations use [ConfirmDialog](./confirm-dialog/) instead, which wires the confirm/cancel buttons automatically.

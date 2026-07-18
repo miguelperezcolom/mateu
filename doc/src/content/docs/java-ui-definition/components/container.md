@@ -33,4 +33,4 @@ new Container(
 
 ## Tip
 
-Use `Container` to give a page a centred, readable column layout. For edge-to-edge content (full browser width), use [FullWidth](../full-width/) instead.
+Use `Container` to give a page a centred, readable column layout. For edge-to-edge content (full browser width), use [FullWidth](./full-width/) instead.

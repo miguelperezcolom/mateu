@@ -37,7 +37,7 @@ Parent rows without a `"children"` key (or with an empty list) are rendered as l
 
 ## Properties
 
-See [Grid](../grid/) for the full property reference. The tree-specific property is:
+See [Grid](./grid/) for the full property reference. The tree-specific property is:
 
 | Property | Type | Default | Description |
 |---|---|---|---|

@@ -69,7 +69,7 @@ content:
 
 ## Available types
 
-All component types from the [`io.mateu.uidl.data`](../supported-components/) package are supported.
+All component types from the [`io.mateu.uidl.data`](./supported-components/) package are supported.
 Use the exact class name as the `type` value.
 
 **Layout components:** `VerticalLayout`, `HorizontalLayout`, `FormLayout`, `TabLayout`, `SplitLayout`, `MasterDetailLayout`, `AccordionLayout`, `BoardLayout`, `CarouselLayout`, `Grid`, …
@@ -161,7 +161,7 @@ public class CustomerFormViewModel {
 
 The YAML file at `src/main/resources/specs/ui/customer-form.yaml` defines the component tree rendered for this class. Mateu combines the two: layout from YAML, behaviour from Java.
 
-See [`@UISpec`](../annotations/uispec/) for the full reference.
+See [`@UISpec`](./annotations/uispec/) for the full reference.
 
 ## When to use YAML vs Java
 

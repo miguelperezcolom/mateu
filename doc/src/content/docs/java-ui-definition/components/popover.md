@@ -46,4 +46,4 @@ Popover.builder()
 
 ## Tip
 
-Use `Popover` when you need a click-triggered overlay with rich content (images, lists, formatted text). Use [Tooltip](../tooltip/) for simple hover hints.
+Use `Popover` when you need a click-triggered overlay with rich content (images, lists, formatted text). Use [Tooltip](./tooltip/) for simple hover hints.

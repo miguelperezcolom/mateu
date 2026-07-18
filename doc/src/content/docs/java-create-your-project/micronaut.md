@@ -109,7 +109,7 @@ public class HelloWorld {
 
 ```
 
-When you run you spring boot application, you will find your ui at [http:localhost:8080](http:localhost:8080) (for the code above) as expected:
+When you run you spring boot application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
 
 
 <p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>

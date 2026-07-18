@@ -56,4 +56,4 @@ SplitLayout.builder()
 
 ## Tip
 
-`SplitLayout` is ideal for list-detail UIs where the user selects an item on one side and sees its detail on the other. For an integrated master-detail pattern with row selection wired automatically, use [MasterDetailLayout](../master-detail-layout/) instead.
+`SplitLayout` is ideal for list-detail UIs where the user selects an item on one side and sees its detail on the other. For an integrated master-detail pattern with row selection wired automatically, use [MasterDetailLayout](./master-detail-layout/) instead.

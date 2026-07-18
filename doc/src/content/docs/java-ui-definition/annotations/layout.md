@@ -648,7 +648,7 @@ record InvoiceRow(
 
 Renders a page/form in a condensed, high-density mode so information-rich screens fit without scrolling. It injects a Lumo density preset (smaller control sizes, spacing, tighter form-row gaps and field labels, smaller card padding, and a smaller auto-responsive column width so more `@Section(columns = N)` columns actually fit) into the page container, which cascades to every component inside.
 
-It is opt-in and non-breaking: pages without `@Compact` are unaffected. The preset is also available directly as `StyleConstants.COMPACT` for use with [`@Style`](../styling/).
+It is opt-in and non-breaking: pages without `@Compact` are unaffected. The preset is also available directly as `StyleConstants.COMPACT` for use with [`@Style`](./styling/).
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -668,7 +668,7 @@ public class CheckInForm {
 }
 ```
 
-Pairs naturally with [`@Zones`](#zones--zone) and [`@PlainText`](../display/#plaintext) for dense, single-screen desks.
+Pairs naturally with [`@Zones`](#zones--zone) and [`@PlainText`](./display/#plaintext) for dense, single-screen desks.
 
 ![Compact — high-density form with 4 columns](/images/docs/ux-patterns/high-density.png)
 

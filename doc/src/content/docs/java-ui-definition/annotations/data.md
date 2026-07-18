@@ -242,7 +242,7 @@ public @interface Representation {
 }
 ```
 
-See [field-types](../field-types/) for the full `FieldStereotype` enum reference.
+See [field-types](./field-types/) for the full `FieldStereotype` enum reference.
 
 :::tip[Combining @Representation and @Stereotype]
 Both annotations can be placed on the same field to independently control the edit-mode widget and the read-only display.

@@ -19,9 +19,9 @@ Mateu defines a set of Java interfaces that your classes implement to plug into 
 | Interface | Description |
 |---|---|
 | [`MenuSupplier`](menu-supplier/) | Provides the application navigation menu |
-| [`Actionable`](actionable/) | A navigable menu item or action link |
-| [`Submenu`](actionable/) | Marker interface for submenu containers |
-| [`App`](app-interface/) | Marker interface for application root classes |
+| `Actionable` | A navigable menu item or action link |
+| `Submenu` | Marker interface for submenu containers |
+| `App` | Marker interface for application root classes |
 
 ## Data loading
 

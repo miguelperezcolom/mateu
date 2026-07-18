@@ -336,7 +336,7 @@ public IdentidadStep load(HttpRequest rq) {
 ```
 
 The moving parts are the same three rules as the cardex above, plus two specific to this shape:
-the async leg (the scan) is a [`LongTask`](/ux-patterns/long-tasks/) SSE action whose completion
+the async leg (the scan) is a [`LongTask`](/ux-patterns/long-running-jobs/) SSE action whose completion
 command dispatches the event, and the `@SubscribeTo` lives on the **empty-state model** (the class
 `view(...)` returns in state 1), because that is the loaded model while the user can trigger the
 scan. Because the host is re-created on every request, it must derive its own context (here the id
