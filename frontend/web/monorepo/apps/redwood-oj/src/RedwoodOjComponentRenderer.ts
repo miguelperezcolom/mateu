@@ -636,7 +636,7 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
         return html`
             <button
                 data-action-id="${btn.id}"
-                style="${skin} border-radius: 4px; height: 40px; padding: 0 16px; font-family: 'Oracle Sans', -apple-system, system-ui, sans-serif; font-size: 0.86rem; font-weight: 600; cursor: pointer; ${btn.disabled ? 'opacity: .4; pointer-events: none;' : ''}"
+                style="${skin} border-radius: var(--oj-button-border-radius, .25rem); height: var(--oj-button-height, 2.75rem); padding: 0 1rem; font-family: 'Oracle Sans', -apple-system, system-ui, sans-serif; font-size: var(--oj-button-font-size, 0.859rem); font-weight: 600; cursor: pointer; ${btn.disabled ? 'opacity: .4; pointer-events: none;' : ''}"
                 ?disabled="${btn.disabled}"
                 @click="${onClick}"
             >${label}</button>
