@@ -2475,6 +2475,8 @@ mateu-foldout {
     --mateu-foldout-badge-size: 0.859rem;
     --mateu-foldout-header-accent-height: 8px;
     --mateu-foldout-header-accent-bg: url('/images/redwood-color-strip.png') left center / auto 100% repeat-x;
+    /* show the panel "Show all" affordance (extended view) — hidden on non-RDS renderers */
+    --mateu-foldout-expand-display: inline-flex;
 }
 
 /* mateu-markdown renders into light DOM and inherits the host typography (there is no Lumo

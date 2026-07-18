@@ -31,6 +31,10 @@ export class MateuFoldout extends LitElement {
     @state()
     private openPanels: Set<number> = new Set()
 
+    // Panel extended view (RDS): when set, the layout is replaced by this panel's detail content.
+    @state()
+    private expandedPanel: number | null = null
+
     private navAction(actionId?: string) {
         if (!actionId) {
             return
@@ -42,14 +46,42 @@ export class MateuFoldout extends LitElement {
         }))
     }
 
+    // Keep the extended view in sync with the URL: back/forward clears (or restores) it in place,
+    // independently of whether the router re-renders this component on popstate.
+    private _onPopState = () => {
+        const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''))
+        if (hash.startsWith('expand=')) {
+            const anchor = hash.slice('expand='.length)
+            const i = this.panels.findIndex((p, idx) => this.panelAnchor(p, idx) === anchor)
+            this.expandedPanel = i >= 0 ? i : null
+        } else {
+            this.expandedPanel = null
+        }
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        window.addEventListener('popstate', this._onPopState)
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('popstate', this._onPopState)
+        super.disconnectedCallback()
+    }
+
     private initialized = false
 
     protected willUpdate() {
         if (!this.initialized && this.panels.length) {
             this.openPanels = new Set(this.panels.map((p, i) => p.open ? i : -1).filter(i => i >= 0))
-            // Bookmarking: if the URL carries a panel anchor, open that panel on load.
             const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''))
-            if (hash) {
+            if (hash.startsWith('expand=')) {
+                // Deep-linked extended view: restore the expanded panel on load.
+                const anchor = hash.slice('expand='.length)
+                const i = this.panels.findIndex((p, idx) => this.panelAnchor(p, idx) === anchor)
+                if (i >= 0) this.expandedPanel = i
+            } else if (hash) {
+                // Bookmarking: if the URL carries a panel anchor, open that panel on load.
                 const i = this.panels.findIndex((p, idx) => this.panelAnchor(p, idx) === hash)
                 if (i >= 0) this.openPanels.add(i)
             }
@@ -88,6 +120,27 @@ export class MateuFoldout extends LitElement {
         try {
             history.replaceState(history.state, '', location.pathname + location.search)
         } catch { /* best-effort */ }
+    }
+
+    // Panel extended view (RDS): expanding a panel replaces the layout with its detail content and
+    // pushes a history entry, so the browser back button (and the in-view Back control) returns to
+    // the default view. mateu-ui reloads the route on popstate, so back naturally restores default.
+    private expandPanel(index: number, e?: Event) {
+        e?.stopPropagation()
+        this.expandedPanel = index
+        const anchor = this.panelAnchor(this.panels[index], index)
+        try {
+            history.pushState(history.state, '', '#expand=' + anchor)
+        } catch { /* best-effort */ }
+    }
+
+    private collapsePanel() {
+        // Pop the pushed entry; the router's popstate handler reloads the route → default view.
+        try {
+            history.back()
+        } catch {
+            this.expandedPanel = null
+        }
     }
 
     private toggle(index: number) {
@@ -316,9 +369,90 @@ export class MateuFoldout extends LitElement {
             padding: 0;
             line-height: 1;
         }
+        .panel-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        /* "Show all" affordance — hidden by default so non-RDS renderers keep flat panels; a design
+           system opts in by setting --mateu-foldout-expand-display (see redwood-oj index.css). */
+        button.panel-expand {
+            display: var(--mateu-foldout-expand-display, none);
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--lumo-secondary-text-color, #666);
+            font-size: 1rem;
+            padding: 0;
+            line-height: 1;
+        }
+        /* Panel extended view: the panel's detail content shown full-bleed with a Back control. */
+        .expanded-view {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+        .expanded-header {
+            display: flex;
+            align-items: baseline;
+            gap: .75rem;
+            padding: var(--mateu-foldout-header-padding, var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem)));
+            padding-bottom: var(--mateu-foldout-header-content-gap, .75rem);
+            border-bottom: var(--mateu-foldout-nav-border, 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)));
+        }
+        .expanded-header .nav-parent {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: .25rem .35rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            color: var(--mateu-foldout-nav-parent-color, var(--lumo-primary-text-color, #1976d2));
+            font: inherit;
+            font-weight: 600;
+        }
+        .expanded-header .nav-parent:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.04));
+        }
+        .expanded-header .nav-title {
+            font-size: var(--mateu-foldout-title-size, var(--lumo-font-size-l, 1.125rem));
+            font-weight: var(--mateu-foldout-title-weight, 600);
+        }
+        .expanded-header .subtitle {
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-secondary-text-color, #666);
+        }
+        .expanded-body {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            padding: var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem));
+        }
     `
 
     render() {
+        // Extended view: the layout is replaced by the expanded panel's detail content.
+        if (this.expandedPanel != null && this.panels[this.expandedPanel]) {
+            const p = this.panels[this.expandedPanel]
+            return html`
+                <div class="expanded-view" part="expanded-view">
+                    <div class="expanded-header">
+                        <button class="nav-parent" title="Back"
+                                @click="${() => this.collapsePanel()}">
+                            <span>‹</span><span>Back</span>
+                        </button>
+                        <span class="nav-title">${p.title}</span>
+                        ${p.subtitle ? html`<span class="subtitle">${p.subtitle}</span>` : nothing}
+                    </div>
+                    <div class="expanded-body">
+                        <slot name="panel-${this.expandedPanel}"></slot>
+                    </div>
+                </div>
+            `
+        }
         const nav = this.navigation
         return html`
             ${nav ? html`
@@ -367,7 +501,11 @@ export class MateuFoldout extends LitElement {
                                     <h3>${panel.title}</h3>
                                     ${panel.subtitle ? html`<div class="subtitle">${panel.subtitle}</div>` : ''}
                                 </div>
-                                <button class="fold" title="Fold" @click="${(e: Event) => { e.stopPropagation(); this.toggle(index) }}">⟨</button>
+                                <span class="panel-actions">
+                                    <button class="panel-expand" title="Show all"
+                                            @click="${(e: Event) => this.expandPanel(index, e)}">⤢</button>
+                                    <button class="fold" title="Fold" @click="${(e: Event) => { e.stopPropagation(); this.toggle(index) }}">⟨</button>
+                                </span>
                             </div>
                             <div style="flex: 1; min-height: 0;">
                                 <slot name="panel-${index}"></slot>
