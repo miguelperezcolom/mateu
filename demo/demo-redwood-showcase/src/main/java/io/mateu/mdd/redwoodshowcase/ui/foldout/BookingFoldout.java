@@ -1,6 +1,7 @@
 package io.mateu.mdd.redwoodshowcase.ui.foldout;
 
 import io.mateu.core.infra.declarative.orchestrators.foldout.Foldout;
+import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
@@ -9,7 +10,9 @@ import io.mateu.uidl.data.Chart;
 import io.mateu.uidl.data.ChartData;
 import io.mateu.uidl.data.ChartDataset;
 import io.mateu.uidl.data.ChartType;
+import io.mateu.uidl.data.FoldoutNavigation;
 import io.mateu.uidl.data.Markdown;
+import io.mateu.uidl.data.Message;
 import java.util.List;
 
 /**
@@ -78,4 +81,30 @@ public class BookingFoldout extends Foldout {
           """,
           null,
           null);
+
+  @Override
+  public FoldoutNavigation navigationHeader() {
+    return FoldoutNavigation.builder()
+        .title("Booking 2026-08117")
+        .parentLabel("Bookings")
+        .parentActionId("goToParent")
+        .previousActionId("previousBooking")
+        .nextActionId("nextBooking")
+        .build();
+  }
+
+  @Action
+  public Message goToParent() {
+    return Message.contrast("Would navigate to the Bookings list");
+  }
+
+  @Action
+  public Message previousBooking() {
+    return Message.success("Loaded previous booking");
+  }
+
+  @Action
+  public Message nextBooking() {
+    return Message.success("Loaded next booking");
+  }
 }

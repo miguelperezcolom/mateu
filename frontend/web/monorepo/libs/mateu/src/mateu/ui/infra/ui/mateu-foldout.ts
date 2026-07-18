@@ -1,6 +1,7 @@
-import { css, html, LitElement } from "lit";
+import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutPanelInfo";
+import FoldoutNavigation from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutNavigation";
 
 /**
  * Redwood-style foldout: a fixed overview panel on the left plus lateral fold-out panels.
@@ -24,8 +25,22 @@ export class MateuFoldout extends LitElement {
     @property({ type: String, reflect: true })
     orientation = 'vertical'
 
+    @property({ attribute: false })
+    navigation: FoldoutNavigation | null = null
+
     @state()
     private openPanels: Set<number> = new Set()
+
+    private navAction(actionId?: string) {
+        if (!actionId) {
+            return
+        }
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId, parameters: {} },
+            bubbles: true,
+            composed: true
+        }))
+    }
 
     private initialized = false
 
@@ -55,6 +70,57 @@ export class MateuFoldout extends LitElement {
             min-height: var(--mateu-foldout-min-height, 24rem);
             height: var(--mateu-foldout-height, auto);
             margin: var(--mateu-foldout-outer-margin, 0);
+        }
+        /* Navigation Header (RDS Foldout anatomy): a top bar to move to the previous/next object of
+           the same type or go to the parent. Rendered only when navigation is provided. */
+        .nav-header {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: var(--mateu-foldout-nav-padding, var(--mateu-foldout-header-padding, var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem))));
+            padding-top: var(--mateu-foldout-nav-pad-y, .5rem);
+            padding-bottom: var(--mateu-foldout-nav-pad-y, .5rem);
+            border-bottom: var(--mateu-foldout-nav-border, 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)));
+        }
+        .nav-header .nav-parent {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: .25rem .35rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            color: var(--mateu-foldout-nav-parent-color, var(--lumo-primary-text-color, #1976d2));
+            font: inherit;
+            font-weight: 600;
+        }
+        .nav-header .nav-parent:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.04));
+        }
+        .nav-header .nav-title {
+            font-weight: 600;
+            color: var(--mateu-foldout-nav-title-color, var(--lumo-body-text-color, inherit));
+        }
+        .nav-header .nav-spacer {
+            flex: 1;
+        }
+        .nav-header .nav-move {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border: var(--mateu-foldout-nav-move-border, 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.16)));
+            background: var(--lumo-base-color, #fff);
+            border-radius: var(--lumo-border-radius-m, 6px);
+            cursor: pointer;
+            color: var(--lumo-body-text-color, inherit);
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .nav-header .nav-move:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.04));
         }
         /* Optional header band above the columns (RDS "overview title" + Label/Value chips +
            full-width accent bar). Rendered only when headerTitle is set. */
@@ -212,7 +278,28 @@ export class MateuFoldout extends LitElement {
     `
 
     render() {
+        const nav = this.navigation
         return html`
+            ${nav ? html`
+                <div class="nav-header" part="nav-header">
+                    ${nav.parentActionId ? html`
+                        <button class="nav-parent" title="${nav.parentLabel ?? 'Back'}"
+                                @click="${() => this.navAction(nav.parentActionId)}">
+                            <span>‹</span><span>${nav.parentLabel ?? 'Back'}</span>
+                        </button>
+                    ` : nothing}
+                    ${nav.title ? html`<span class="nav-title">${nav.title}</span>` : nothing}
+                    <span class="nav-spacer"></span>
+                    ${nav.previousActionId ? html`
+                        <button class="nav-move" title="Previous"
+                                @click="${() => this.navAction(nav.previousActionId)}">‹</button>
+                    ` : nothing}
+                    ${nav.nextActionId ? html`
+                        <button class="nav-move" title="Next"
+                                @click="${() => this.navAction(nav.nextActionId)}">›</button>
+                    ` : nothing}
+                </div>
+            ` : nothing}
             ${this.headerTitle ? html`
                 <div class="header-band" part="header-band">
                     <div class="header-content">

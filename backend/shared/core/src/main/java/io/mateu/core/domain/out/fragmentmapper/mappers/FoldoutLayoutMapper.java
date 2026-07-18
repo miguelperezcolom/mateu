@@ -5,8 +5,10 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FoldoutLayoutDto;
+import io.mateu.dtos.FoldoutNavigationDto;
 import io.mateu.dtos.FoldoutPanelInfoDto;
 import io.mateu.uidl.data.FoldoutLayout;
+import io.mateu.uidl.data.FoldoutNavigation;
 import io.mateu.uidl.data.FoldoutPanel;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.ArrayList;
@@ -76,11 +78,25 @@ public class FoldoutLayoutMapper {
                         ? foldoutLayout.orientation()
                         : io.mateu.uidl.data.FoldoutOrientation.vertical)
                     .name())
+            .navigation(mapNavigation(foldoutLayout.navigation()))
             .build(),
         foldoutLayout.id(),
         children,
         foldoutLayout.style(),
         foldoutLayout.cssClasses(),
         null);
+  }
+
+  private static FoldoutNavigationDto mapNavigation(FoldoutNavigation navigation) {
+    if (navigation == null) {
+      return null;
+    }
+    return FoldoutNavigationDto.builder()
+        .title(navigation.title())
+        .parentLabel(navigation.parentLabel())
+        .parentActionId(navigation.parentActionId())
+        .previousActionId(navigation.previousActionId())
+        .nextActionId(navigation.nextActionId())
+        .build();
   }
 }

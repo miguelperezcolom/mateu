@@ -10,7 +10,11 @@ import lombok.Builder;
  */
 @Builder
 public record FoldoutLayoutDto(
-    List<FoldoutPanelInfoDto> panels, String headerTitle, List<String> badges, String orientation)
+    List<FoldoutPanelInfoDto> panels,
+    String headerTitle,
+    List<String> badges,
+    String orientation,
+    FoldoutNavigationDto navigation)
     implements ComponentMetadataDto {
 
   public FoldoutLayoutDto {

@@ -7,8 +7,11 @@ import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.FoldoutLayout;
+import io.mateu.uidl.data.FoldoutNavigation;
 import io.mateu.uidl.data.FoldoutOrientation;
 import io.mateu.uidl.data.FoldoutPanel;
+import io.mateu.uidl.fluent.Action;
+import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -31,11 +34,38 @@ import lombok.SneakyThrows;
  *
  * Populate the fields in the constructor or field initializers.
  */
-public abstract class Foldout implements ComponentTreeSupplier {
+public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier {
 
   @Override
   public String style() {
     return null;
+  }
+
+  /**
+   * Navigation Header shown at the very top (RDS Foldout anatomy): controls to move to the
+   * previous/next object of the same type or go to the parent. Defaults to {@code null} (no
+   * header). Override to build a {@link FoldoutNavigation}; each non-blank {@code *ActionId} names
+   * a method on this class that Mateu runs when the control is clicked.
+   */
+  public FoldoutNavigation navigationHeader() {
+    return null;
+  }
+
+  /** Registers the Navigation Header controls' actionIds so the frontend can dispatch them. */
+  @Override
+  public List<Action> actions(HttpRequest httpRequest) {
+    FoldoutNavigation nav = navigationHeader();
+    if (nav == null) {
+      return List.of();
+    }
+    List<Action> actions = new ArrayList<>();
+    for (String id :
+        new String[] {nav.parentActionId(), nav.previousActionId(), nav.nextActionId()}) {
+      if (id != null && !id.isBlank()) {
+        actions.add(Action.builder().id(id).build());
+      }
+    }
+    return actions;
   }
 
   /**
@@ -124,6 +154,7 @@ public abstract class Foldout implements ComponentTreeSupplier {
         .headerTitle(headerTitle())
         .badges(headerBadges())
         .orientation(orientation())
+        .navigation(navigationHeader())
         .build();
   }
 }
