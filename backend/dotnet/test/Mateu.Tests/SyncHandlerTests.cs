@@ -307,6 +307,73 @@ public class BookingsListing : Listing<BookingFilters, BookingRow>
             .Where(r => filters.Sources is null || filters.Sources.Count == 0 || filters.Sources.Contains(r.Source));
 }
 
+public enum AssetKind { Machine, Vehicle, Tool }
+
+public class AssetRow
+{
+    public string Code { get; set; } = "";
+    public string Name { get; set; } = "";
+    public AssetKind Kind { get; set; }
+    public DateOnly Purchased { get; set; }
+}
+
+public class AssetFilters
+{
+    public DateRange? Purchased { get; set; }
+    public ISet<AssetKind>? Kinds { get; set; }
+    public string? Name { get; set; }
+}
+
+[UI("asset-search"), Title("Asset Search")]
+public class AssetSearch : SmartSearchPage<AssetFilters, AssetRow>
+{
+    private static readonly List<AssetRow> Rows =
+    [
+        new() { Code = "A-001", Name = "Lathe", Kind = AssetKind.Machine, Purchased = new DateOnly(2025, 1, 15) },
+        new() { Code = "A-002", Name = "Van", Kind = AssetKind.Vehicle, Purchased = new DateOnly(2025, 3, 10) },
+        new() { Code = "A-003", Name = "Drill", Kind = AssetKind.Tool, Purchased = new DateOnly(2025, 5, 20) },
+        new() { Code = "A-004", Name = "Truck", Kind = AssetKind.Vehicle, Purchased = new DateOnly(2025, 7, 1) },
+    ];
+
+    public override string? PageSubtitle() => "Find assets by kind, purchase date or name";
+
+    public override IEnumerable<AssetRow> Search(string? searchText, AssetFilters filters) =>
+        Rows.Where(r => string.IsNullOrWhiteSpace(searchText)
+                        || (r.Name + " " + r.Code).Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .Where(r => filters.Purchased is null || filters.Purchased.Contains(r.Purchased))
+            .Where(r => filters.Kinds is null || filters.Kinds.Count == 0 || filters.Kinds.Contains(r.Kind));
+}
+
+[UI("full-form"), Title("Full Form"), PageWidth(PageWidthStyle.FullWidth)]
+public class FullWidthForm
+{
+    public string? Name { get; set; }
+}
+
+[UI("plain-form"), Title("Plain Form")]
+public class PlainForm
+{
+    public string? Name { get; set; }
+}
+
+[UI("edge-fold"), Title("Edge Fold")]
+public class EdgeFold : Foldout
+{
+    public Text Overview { get; } = new("the record overview");
+
+    [Panel(Title = "Notes")]
+    public Text Notes { get; } = new("some notes");
+}
+
+[UI("fixed-fold"), Title("Fixed Fold"), PageWidth(PageWidthStyle.Fixed)]
+public class FixedFold : Foldout
+{
+    public Text Overview { get; } = new("the record overview");
+
+    [Panel(Title = "Notes")]
+    public Text Notes { get; } = new("some notes");
+}
+
 [UI("folded"), Title("Folded"), FoldedLayout]
 public class FoldedForm
 {
@@ -1192,6 +1259,96 @@ public class SyncHandlerTests
         Assert.Contains("\"crudlType\":\"cards\"", json);
         // Starts empty: no OnLoad→search trigger (the user searches).
         Assert.DoesNotContain("\"OnLoad\"", json);
+    }
+
+    [Fact]
+    public void Smart_search_page_renders_the_subtitle_over_a_read_only_listing_and_starts_empty()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "asset-search", ConsumedRoute = "asset-search" }));
+
+        // The intro line rides over the crud as a Text component under the page title…
+        Assert.Contains("\"type\":\"Text\"", json);
+        Assert.Contains("\"id\":\"page-subtitle\"", json);
+        Assert.Contains("Find assets by kind, purchase date or name", json);
+        // …the listing columns come from the row type and stay read-only…
+        Assert.Contains("\"id\":\"code\"", json);
+        Assert.Contains("\"id\":\"name\"", json);
+        Assert.Contains("\"canEdit\":false", json);
+        // …and the page starts EMPTY: no OnLoad→search trigger (the user searches).
+        Assert.DoesNotContain("\"OnLoad\"", json);
+    }
+
+    [Fact]
+    public void Smart_search_page_emits_typed_filter_widgets()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "asset-search", ConsumedRoute = "asset-search" }));
+
+        // Typed filters render range/multi widgets — the type is the developer's explicit ask…
+        Assert.Contains("\"fieldId\":\"purchased\",\"dataType\":\"date\",\"label\":\"Purchased\",\"stereotype\":\"dateRange\"", json);
+        Assert.Contains("\"fieldId\":\"kinds\",\"dataType\":\"string\",\"label\":\"Kinds\",\"stereotype\":\"multiSelect\"", json);
+        // …plain fields keep single-value widgets.
+        Assert.Contains("\"fieldId\":\"name\",\"dataType\":\"string\",\"label\":\"Name\",\"stereotype\":\"regular\"", json);
+    }
+
+    [Fact]
+    public void Smart_search_page_search_assembles_typed_filters_and_returns_rows()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "search",
+            ServerSideType = typeof(AssetSearch).FullName,
+            ComponentState = new()
+            {
+                ["searchText"] = JsonSerializer.SerializeToElement(""),
+                ["purchased_from"] = JsonSerializer.SerializeToElement("2025-04-01"),
+                ["kinds"] = JsonSerializer.SerializeToElement(new[] { "Vehicle" }),
+            },
+        };
+
+        var json = Render(Handler().Handle(rq));
+
+        // Only the Truck (Vehicle, 07-01) is a Vehicle purchased from April on.
+        Assert.Contains("\"totalElements\":1", json);
+        Assert.Contains("Truck", json);
+        Assert.DoesNotContain("Lathe", json);
+        Assert.DoesNotContain("Drill", json);
+        Assert.DoesNotContain("Van", json);
+    }
+
+    [Fact]
+    public void Page_width_travels_on_the_envelope_and_the_page_metadata_from_the_attribute()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "full-form", ConsumedRoute = "full-form" }));
+
+        // Both the ServerSide envelope and the Page metadata carry the width (Java parity:
+        // ServerSideComponentDto.pageWidth + PageDto.pageWidth) — hence two occurrences.
+        Assert.Equal(2, json.Split("\"pageWidth\":\"fullWidth\"").Length - 1);
+    }
+
+    [Fact]
+    public void Unannotated_view_leaves_the_page_width_null_so_the_renderer_infers()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "plain-form", ConsumedRoute = "plain-form" }));
+
+        Assert.Contains("\"pageWidth\":null", json);
+        Assert.DoesNotContain("\"pageWidth\":\"", json);
+    }
+
+    [Fact]
+    public void Foldout_declares_edge_to_edge_through_the_supplier_hook()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "edge-fold", ConsumedRoute = "edge-fold" }));
+
+        Assert.Contains("\"pageWidth\":\"edgeToEdge\"", json);
+    }
+
+    [Fact]
+    public void The_page_width_attribute_wins_over_the_archetype_hook()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { Route = "fixed-fold", ConsumedRoute = "fixed-fold" }));
+
+        Assert.Contains("\"pageWidth\":\"fixed\"", json);
+        Assert.DoesNotContain("\"pageWidth\":\"edgeToEdge\"", json);
     }
 
     [Fact]

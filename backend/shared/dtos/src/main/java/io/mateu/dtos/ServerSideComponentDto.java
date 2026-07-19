@@ -31,7 +31,14 @@ public record ServerSideComponentDto(
      * detail.__source}) so that {@code @SubscribeTo(source = COMPONENT, from = ...)} subscribers
      * can filter by origin. Set via {@code @Emits(name = ...)}; null when unset.
      */
-    String emitsName)
+    String emitsName,
+    /**
+     * How the page's content column is sized within the viewport (the first parameter of the Oracle
+     * Redwood page templates): {@code "fixed"} (capped, centered column), {@code "fullWidth"}
+     * (fluid with side margins, uncapped) or {@code "edgeToEdge"} (content touches the viewport
+     * edges). {@code null} = the renderer infers it from the page content.
+     */
+    String pageWidth)
     implements ComponentDto {
 
   @Override
@@ -51,7 +58,8 @@ public record ServerSideComponentDto(
         slot,
         containerId,
         confirmOnNavigationIfDirty,
-        emitsName);
+        emitsName,
+        pageWidth);
   }
 
   @Override
@@ -73,7 +81,8 @@ public record ServerSideComponentDto(
         slot,
         containerId,
         confirmOnNavigationIfDirty,
-        emitsName);
+        emitsName,
+        pageWidth);
   }
 
   @Override
@@ -93,7 +102,8 @@ public record ServerSideComponentDto(
         slot,
         containerId,
         confirmOnNavigationIfDirty,
-        emitsName);
+        emitsName,
+        pageWidth);
   }
 
   @Override
@@ -113,6 +123,7 @@ public record ServerSideComponentDto(
         slot,
         containerId,
         confirmOnNavigationIfDirty,
-        emitsName);
+        emitsName,
+        pageWidth);
   }
 }

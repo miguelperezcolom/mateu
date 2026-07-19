@@ -97,6 +97,24 @@ final class PageMetadataExtractor {
         : null;
   }
 
+  /**
+   * Tri-state page width (see {@link PageWidth}): {@code null} when neither the annotation nor the
+   * {@link PageWidthSupplier} hook says anything (the renderer infers it from the content,
+   * defaulting to {@code FIXED}). The annotation on the concrete view class wins over the hook, so
+   * a view can override the width its archetype declares.
+   */
+  static PageWidthStyle getPageWidth(Object instance) {
+    var c = instance instanceof Class ? (Class) instance : instance.getClass();
+    var annotation = MetaAnnotations.find(c, PageWidth.class);
+    if (annotation != null) {
+      return annotation.value();
+    }
+    if (instance instanceof PageWidthSupplier pageWidthSupplier) {
+      return pageWidthSupplier.pageWidth();
+    }
+    return null;
+  }
+
   static List<Badge> getBadges(Object instance, HttpRequest httpRequest) {
     if (instance instanceof BadgeSupplier badgeSupplier) {
       return badgeSupplier.badges().stream()

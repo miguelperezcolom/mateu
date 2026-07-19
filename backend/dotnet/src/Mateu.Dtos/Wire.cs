@@ -90,6 +90,12 @@ public record ServerSideComponentDto(
     public string? EmitsName { get; init; }
     public bool ConfirmOnNavigationIfDirty { get; init; }
 
+    /// <summary>How the page's content column is sized (the first parameter of the Redwood page
+    /// templates): "fixed"|"fullWidth"|"edgeToEdge"; null = no opinion — the renderer infers the
+    /// width from the page content. From [PageWidth] on the view class, else the IPageWidthSupplier
+    /// hook. (Mirrors io.mateu.dtos.ServerSideComponentDto.pageWidth.)</summary>
+    public string? PageWidth { get; init; }
+
     /// <summary>Client-side rules ([Hidden]/[Disabled] fields, IRuleSupplier): the renderer's
     /// no-eval engine re-evaluates them on every state change.</summary>
     public IReadOnlyList<RuleDto> Rules { get; init; } = [];
@@ -763,6 +769,9 @@ public record PageMetadataDto(
     public object? Actions { get; init; }
     /// <summary>Sticky sections index: null = renderer decides (auto), true = force, false = off.</summary>
     public bool? Toc { get; init; }
+    /// <summary>Page width of a reflected view ("fixed"|"fullWidth"|"edgeToEdge"; null = the
+    /// renderer infers it from the content). (Mirrors io.mateu.dtos.PageDto.pageWidth.)</summary>
+    public string? PageWidth { get; init; }
     public IReadOnlyList<BadgeDto> Badges { get; init; } = [];
     public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];

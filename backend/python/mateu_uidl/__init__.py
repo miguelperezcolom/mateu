@@ -20,7 +20,8 @@ Example::
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from datetime import date
 from enum import Enum
 from typing import Callable, Generic, Iterable, TypeVar
 
@@ -620,6 +621,31 @@ def wizard_progress(style: str) -> Callable[[type], type]:
     return deco
 
 
+class PageWidth(Enum):
+    """How a page's content column is sized within the viewport (the first parameter of the
+    Oracle Redwood page templates): FIXED caps the column (1408px in Redwood) and centers it,
+    FULL_WIDTH keeps the side margins but never caps, EDGE_TO_EDGE touches the viewport edges
+    (full-bleed canvases such as gantt charts or planning boards). The member values are the
+    wire names. The Python analogue of Java's PageWidthStyle."""
+
+    FIXED = "fixed"
+    FULL_WIDTH = "fullWidth"
+    EDGE_TO_EDGE = "edgeToEdge"
+
+
+def page_width(width: PageWidth) -> Callable[[type], type]:
+    """Class-level: explicitly sets how the page's content column is sized within the viewport
+    (the first parameter of the Oracle Redwood page templates). When absent the renderer infers
+    the width from the page content (full-bleed canvases → edge-to-edge, dense inline-editing
+    datagrids → full width, anything else → fixed). The Python analogue of Java's @PageWidth."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_page_width__ = width.value if isinstance(width, PageWidth) else width
+        return cls
+
+    return deco
+
+
 def subtitle(value: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
         cls.__mateu_subtitle__ = value
@@ -1050,6 +1076,17 @@ class HeroSearch(Crud[T]):
         return None
 
 
+class SmartSearchPage(Listing[F, R]):
+    """Smart search page (the Oracle Redwood "Smart Search" template): a standalone, search-first
+    page — an optional intro line under the page title, the smart search bar (typed filter facets
+    and chips) and the results collection. Read-only and starts EMPTY (the user searches): no
+    OnLoad→search preload trigger. The Python analogue of Java's SmartSearchPage archetype."""
+
+    def page_subtitle(self) -> str | None:
+        """Optional intro line rendered under the page title, above the smart search bar."""
+        return None
+
+
 class Wizard:
     """A multi-step form; fields carry ``Step(n)`` and ``complete()`` runs on the last step."""
 
@@ -1159,15 +1196,16 @@ class Welcome(ComponentTreeSupplier):
 
 
 __all__ = [
-    "Message", "MessageVariant", "BannerTheme", "PageBanner",
+    "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
-    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "wizard_progress",
+    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "wizard_progress", "page_width",
     "plain_text", "emits", "subscribe_to", "secured",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
-    "Crud", "HeroSearch", "Listing", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
-    "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome",
+    "Crud", "HeroSearch", "Listing", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
+    "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome", "TodoList",
+    "CalendarPage",
 ]
 
 
@@ -1296,5 +1334,226 @@ class GeneralOverview(ComponentTreeSupplier):
             content=(
                 fluent.FormField(field_id="record", label="", options=tuple(options)),
                 self.overview(row) if row is not None else self.empty_overview(),
+            ),
+        )
+
+
+class TodoList(ComponentTreeSupplier):
+    """To-do list page (the Redwood "To-do list" template, the Python analogue of Java's
+    TodoList archetype): the user's pending work as a ``TaskQueue`` of grouped, clickable cards —
+    buckets such as Today / This week / Later, each labelled with its counter — where clicking a
+    card ACTS on it (typically navigating to the task) instead of selecting it for a side detail
+    pane. Implement :meth:`rows`, :meth:`id_of`, :meth:`title_of`, :meth:`group_of` and
+    :meth:`action_on`."""
+
+    #: The inbound request of the current render/action (the port's analogue of Java's
+    #: HttpRequest injection) — set by the sync handler on every request.
+    http_request = None
+
+    def rows(self, http_request):
+        """The pending rows to list, in display order within each bucket."""
+        raise NotImplementedError
+
+    def id_of(self, row):
+        """Stable id of a row (used to find it back on click)."""
+        raise NotImplementedError
+
+    def title_of(self, row):
+        """Main line of the row's card."""
+        raise NotImplementedError
+
+    def group_of(self, row):
+        """Bucket key of a row (e.g. "Today"); buckets render in first-appearance order unless
+        :meth:`group_order` says otherwise."""
+        raise NotImplementedError
+
+    def action_on(self, row, http_request):
+        """What clicking the row's card does — typically a URI string to navigate to the task,
+        or any other Mateu action result (a ``Message``, a dialog component, ...)."""
+        raise NotImplementedError
+
+    def caption_of(self, row):
+        """Secondary line of the row's card. None for none."""
+        return None
+
+    def badges_of(self, row):
+        """Badges of the row's card (due date, priority, ...) — ``ChipItem``s."""
+        return ()
+
+    def group_label(self, group, count: int) -> str:
+        """Label of a bucket. Default: ``"name (count)"``."""
+        return f"{group} ({count})"
+
+    def group_order(self):
+        """Explicit bucket order (buckets not listed go last, in first-appearance order).
+        Default: first appearance."""
+        return ()
+
+    def empty_state(self):
+        """What the page shows when there is nothing pending."""
+        from mateu_uidl import components as fluent
+
+        return fluent.EmptyState(
+            icon="🎉",
+            title="All caught up!",
+            description="There is nothing pending on your plate.",
+        )
+
+    def open_todo_item(self, request):
+        """The card click: the queue dispatches ``openTodoItem`` with ``{"_item": id}``; the
+        matching row's :meth:`action_on` result becomes the response (a URI → NavigateTo)."""
+        raw = (request.parameters or {}).get("_item")
+        item_id = None if raw is None else str(raw)
+        for row in self.rows(request):
+            if self.id_of(row) == item_id:
+                return self.action_on(row, request)
+        return None
+
+    def component(self):
+        from mateu_uidl import components as fluent
+
+        rows = list(self.rows(self.http_request))
+        if not rows:
+            return self.empty_state()
+        buckets: dict = {}
+        for row in rows:
+            buckets.setdefault(self.group_of(row), []).append(
+                fluent.QueueItem(
+                    id=self.id_of(row),
+                    title=self.title_of(row),
+                    caption=self.caption_of(row),
+                    badges=tuple(self.badges_of(row)),
+                )
+            )
+        keys = list(buckets.keys())
+        explicit = list(self.group_order())
+        if explicit:
+            # stable sort: unlisted buckets keep first-appearance order after the listed ones
+            keys.sort(key=lambda k: explicit.index(k) if k in explicit else len(explicit))
+        return fluent.TaskQueue(
+            action_id="openTodoItem",
+            groups=tuple(
+                fluent.QueueGroup(
+                    label=self.group_label(key, len(buckets[key])),
+                    items=tuple(buckets[key]),
+                )
+                for key in keys
+            ),
+        )
+
+
+class CalendarPage(ComponentTreeSupplier):
+    """Calendar page (the Redwood "Calendar" template, the Python analogue of Java's
+    CalendarPage archetype): a full month-grid ``Calendar`` under the page's calendar toolbar —
+    previous/next month chevrons, a *Today* button and an optional primary *+ Create* button —
+    where clicking an event ACTS on it (typically navigating to its detail). Month navigation
+    re-runs :meth:`events` with the newly displayed month, so events can be fetched per month
+    from the backend. Implement :meth:`events` and :meth:`action_on`; :meth:`initial_month`
+    defaults to the current month, :meth:`show_create`/:meth:`create_action` enable the create
+    flow."""
+
+    #: The displayed month (any day of it, ISO-8601; bound from componentState).
+    month: str | None = None
+    #: The last clicked event's id (bound from componentState; set by the event click).
+    event_id: str | None = None
+
+    #: The inbound request of the current render/action (the port's analogue of Java's
+    #: HttpRequest injection) — set by the sync handler on every request.
+    http_request = None
+
+    def events(self, month: date, http_request):
+        """The events of the displayed month (any day of it, for the grid to place them)."""
+        raise NotImplementedError
+
+    def action_on(self, event, http_request):
+        """What clicking an event does — typically a URI string to navigate to its detail, or
+        any other Mateu action result (a ``Message``, a dialog component, ...)."""
+        raise NotImplementedError
+
+    def initial_month(self) -> date:
+        """The initially displayed month. Default: the current month."""
+        return date.today()
+
+    def show_create(self) -> bool:
+        """Whether the primary "+ Create" button shows in the toolbar. Default: False."""
+        return False
+
+    def create_action(self, http_request):
+        """What the "+ Create" button does (required when :meth:`show_create` is true)."""
+        return None
+
+    # ── Wiring ────────────────────────────────────────────────────────────────
+
+    def current_month(self) -> date:
+        """The displayed month: the bound ``month`` state when it parses, else
+        :meth:`initial_month`."""
+        if self.month:
+            try:
+                return date.fromisoformat(self.month)
+            except ValueError:
+                pass  # a stale/unparseable state falls back to the initial month
+        return self.initial_month()
+
+    def previous_calendar_month(self):
+        """``previousCalendarMonth``: moves the displayed month one month back (re-render)."""
+        self.month = self._shift_month(self.current_month(), -1).isoformat()
+
+    def next_calendar_month(self):
+        """``nextCalendarMonth``: moves the displayed month one month forward (re-render)."""
+        self.month = self._shift_month(self.current_month(), 1).isoformat()
+
+    def go_calendar_today(self):
+        """``goCalendarToday``: moves the displayed month back to the current one (re-render)."""
+        self.month = date.today().isoformat()
+
+    def open_calendar_event(self, event_id):
+        """``openCalendarEvent``: finds the clicked event by id among the displayed month's and
+        returns its :meth:`action_on` result; None (unknown event) re-renders the page (the
+        analogue of Java returning ``this``)."""
+        self.event_id = event_id
+        for event in self.events(self.current_month(), self.http_request):
+            if event.id == event_id:
+                return self.action_on(event, self.http_request)
+        return None
+
+    def create_calendar_event(self):
+        """``createCalendarEvent``: runs :meth:`create_action`; a None result re-renders the
+        page (the analogue of Java returning ``this``)."""
+        return self.create_action(self.http_request)
+
+    @staticmethod
+    def _shift_month(month: date, delta: int) -> date:
+        """The first day of the month ``delta`` months away from ``month`` (any day of a month
+        identifies it for the grid)."""
+        m = month.month - 1 + delta
+        return date(month.year + m // 12, m % 12 + 1, 1)
+
+    def component(self):
+        from mateu_uidl import components as fluent
+
+        month = self.current_month()
+        # Every event chip dispatches the same uniform actionId; the clicked event travels in
+        # the action's parameters (_clickedEvent) and the archetype finds it back by id.
+        events = tuple(
+            replace(e, action_id="openCalendarEvent")
+            for e in self.events(month, self.http_request)
+        )
+        buttons = [
+            fluent.Button(label="‹", action_id="previousCalendarMonth"),
+            fluent.Button(label="Today", action_id="goCalendarToday"),
+            fluent.Button(label="›", action_id="nextCalendarMonth"),
+        ]
+        if self.show_create():
+            buttons.append(
+                fluent.Button(label="+ Create", action_id="createCalendarEvent",
+                              button_style="primary")
+            )
+        return fluent.VerticalLayout(
+            spacing=True,
+            content=(
+                fluent.HorizontalLayout(
+                    spacing=True, style="align-items: center;", content=tuple(buttons)
+                ),
+                fluent.Calendar(month=month, events=events),
             ),
         )

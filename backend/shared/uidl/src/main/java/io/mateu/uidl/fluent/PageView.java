@@ -1,5 +1,6 @@
 package io.mateu.uidl.fluent;
 
+import io.mateu.uidl.annotations.PageWidthStyle;
 import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Breadcrumb;
 import io.mateu.uidl.data.KPI;
@@ -30,6 +31,7 @@ public record PageView(
     String style,
     String cssClasses,
     Boolean toc,
+    PageWidthStyle pageWidth,
     @Singular("actionItem") List<Action> actions,
     @Singular("fabItem") List<UserTrigger> fabs)
     implements Component, ActionSupplier {

@@ -71,6 +71,42 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             }
             if (rq.ActionId is "filterCollection" or "switchRecord")
                 return Render(type, instance, rq);
+            // A TodoList row click ACTS on the row instead of selecting it: the archetype finds
+            // the row by id and its ActionOn result maps as a regular action result (a route
+            // string → NavigateTo); an unknown row (or a null result) just re-renders the list
+            // (mirrors Java's TodoList.openTodoItem returning `this`).
+            if (rq.ActionId == "openTodoItem" && instance is ITodoList todoList)
+                return todoList.OpenTodoItem(StateString(GetState(rq.Parameters, "_item"))) is { } result
+                    ? MapResult(result, rq)
+                    : Render(type, instance, rq);
+            // A CalendarPage's built-in actions: the toolbar chevrons/Today move the displayed
+            // month and re-render (re-running Events for the new month); an event click ACTS on
+            // the event — the frontend sends it as parameters._clickedEvent = {id, title, date,
+            // color} and the archetype finds it back by id, its ActionOn result mapping as a
+            // regular action result (a route string → NavigateTo); "+ Create" runs CreateAction.
+            // Unknown events / null results just re-render the page (mirrors Java's CalendarPage
+            // actions returning `this`).
+            if (instance is ICalendarPage calendarPage)
+                switch (rq.ActionId)
+                {
+                    case "openCalendarEvent":
+                        return calendarPage.OpenCalendarEvent(ClickedEventId(rq)) is { } opened
+                            ? MapResult(opened, rq)
+                            : Render(type, instance, rq);
+                    case "previousCalendarMonth":
+                        calendarPage.PreviousMonth();
+                        return Render(type, instance, rq);
+                    case "nextCalendarMonth":
+                        calendarPage.NextMonth();
+                        return Render(type, instance, rq);
+                    case "goCalendarToday":
+                        calendarPage.GoToday();
+                        return Render(type, instance, rq);
+                    case "createCalendarEvent":
+                        return calendarPage.CreateCalendarEvent() is { } created
+                            ? MapResult(created, rq)
+                            : Render(type, instance, rq);
+                }
         }
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }
@@ -822,6 +858,17 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
 
     private static object? GetState(Dictionary<string, object?>? state, string key)
         => state is not null && state.TryGetValue(key, out var v) ? v : null;
+
+    /// <summary>The id inside the calendar's <c>_clickedEvent</c> action parameter — a map
+    /// {id, title, date, color} the frontend sends with every "openCalendarEvent" dispatch
+    /// (mirrors Java reading httpRequest.runActionRq().parameters().get("_clickedEvent") as a Map).</summary>
+    private static string? ClickedEventId(RunActionRqDto rq) => GetState(rq.Parameters, "_clickedEvent") switch
+    {
+        JsonElement { ValueKind: JsonValueKind.Object } el =>
+            el.TryGetProperty("id", out var id) ? StateString(id) : null,
+        IDictionary<string, object?> map => StateString(map.TryGetValue("id", out var id) ? id : null),
+        _ => null,
+    };
 
     private static int ToInt(object? v, int fallback)
     {

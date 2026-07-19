@@ -239,6 +239,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             title, title, OptT(type.Find<SubtitleAttribute>()?.Value), [], buttons)
         {
             Toc = type.Find<TocAttribute>()?.Value,
+            PageWidth = PageWidthOf(type, instance),
             Banners = Banners(type, instance),
             Badges = Badges(type, instance),
             Kpis = Kpis(type, instance),
@@ -279,6 +280,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             EmitsName = emits,
             ConfirmOnNavigationIfDirty = type.Find<ConfirmOnNavigationIfDirtyAttribute>() != null,
             Rules = MapRules(type, instance),
+            PageWidth = PageWidthOf(type, instance),
         };
     }
 
@@ -658,6 +660,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     internal ServerSideComponentDto MapListing(Type viewType, Type filters, Type row, string route)
     {
         var title = viewType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
+        var instance = Activator.CreateInstance(viewType);
+        // A SmartSearchPage is search-first: its optional PageSubtitle rides as an intro text over
+        // the crud, and the page starts EMPTY — no OnLoad→search preload trigger (mirrors Java's
+        // SmartSearchPage archetype).
+        var smartSearch = instance as ISmartSearchPage;
         // A self-referential children list makes rows hierarchical (GridLayout "tree"); it rides
         // inside the row dicts, never as a column.
         var columns = EditableProperties(row)
@@ -683,7 +690,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             actions.Add(new ActionDto("action-on-row-select", ValidationRequired: false));
         }
         var gridLayout = viewType.GetMethod("GridLayout")!
-            .Invoke(Activator.CreateInstance(viewType), []) as string ?? "auto";
+            .Invoke(instance, []) as string ?? "auto";
         var crud = Client(new CrudMetadataDto(title, columns, [])
         {
             CanEdit = false,
@@ -691,11 +698,19 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             GridLayout = gridLayout,
             GroupBy = GroupByOf(row),
         }, "crud", []);
-        var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
+        var pageChildren = new List<ComponentDto>();
+        if (smartSearch?.PageSubtitle() is { } subtitle)
+            pageChildren.Add(Client(new TextMetadataDto(subtitle), "page-subtitle", []));
+        pageChildren.Add(crud);
+        var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren);
+        // A smart-search page starts EMPTY (the user searches); plain listings preload their rows.
+        var triggers = smartSearch is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
-            new Dictionary<string, object?>(), actions,
-            [new TriggerDto("OnLoad", "search")], null, null, null);
+            new Dictionary<string, object?>(), actions, triggers, null, null, null)
+        {
+            PageWidth = PageWidthOf(viewType, instance),
+        };
     }
 
     internal static Type? EnumSetElementType(PropertyInfo p)
@@ -793,7 +808,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         var triggers = hero is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
-            new Dictionary<string, object?>(), actions, triggers, null, null, null);
+            new Dictionary<string, object?>(), actions, triggers, null, null, null)
+        {
+            PageWidth = PageWidthOf(viewType, instance),
+        };
     }
 
     internal static IEnumerable<PropertyInfo> EditableProperties(Type type) =>
@@ -804,6 +822,24 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     /// enum: sum|avg|min|max|count); null on non-aggregated columns.</summary>
     internal static string? AggregateOf(PropertyInfo p) =>
         p.Find<AggregateAttribute>()?.Function.ToString().ToLowerInvariant();
+
+    /// <summary>The view's declared page width as its wire name (fixed|fullWidth|edgeToEdge — the
+    /// lowercase-camel Java enum names), or null when neither [PageWidth] on the class nor the
+    /// IPageWidthSupplier hook says anything (the renderer then infers the width from the page
+    /// content). The attribute on the concrete view wins over the hook (mirrors Java's
+    /// PageWidthResolver).</summary>
+    internal static string? PageWidthOf(Type type, object? instance)
+    {
+        var style = type.Find<PageWidthAttribute>()?.Value
+                    ?? (instance as IPageWidthSupplier)?.PageWidth();
+        return style switch
+        {
+            PageWidthStyle.Fixed => "fixed",
+            PageWidthStyle.FullWidth => "fullWidth",
+            PageWidthStyle.EdgeToEdge => "edgeToEdge",
+            _ => null,
+        };
+    }
 
     /// <summary>The [GroupBy] column of a row class (camelCase field id); one per row class —
     /// first declared wins. Null when the class declares none (mirrors ListingSummarySpec).</summary>

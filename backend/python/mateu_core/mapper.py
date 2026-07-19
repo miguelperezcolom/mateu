@@ -171,6 +171,7 @@ from mateu_uidl import (
     SeparatorBefore,
     Selector,
     Signature,
+    SmartSearchPage,
     TreeSelect,
     Required,
     Section,
@@ -539,6 +540,7 @@ class ReflectionMapper:
             emits_name=emits,
             confirm_on_navigation_if_dirty=bool(class_flag(cls, "__mateu_confirm_dirty__", False)),
             rules=self.map_rules(cls, instance),
+            page_width=getattr(cls, "__mateu_page_width__", None),
         )
 
     # ── Fluent component trees & declarative archetypes ───────────────────────
@@ -1321,6 +1323,11 @@ class ReflectionMapper:
                 v = getattr(node, attr, None)
                 if v:
                     out.append(v)
+            # A Calendar's events (not fluent Components themselves) carry the click action id.
+            for ev in getattr(node, "events", None) or ():
+                aid = getattr(ev, "action_id", None)
+                if aid:
+                    out.append(aid)
             # Foldout Navigation Header references parent/prev/next action ids.
             nav = getattr(node, "navigation", None)
             if nav is not None:
@@ -1494,6 +1501,7 @@ class ReflectionMapper:
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[layout],
             initial_data=initial, actions=[], triggers=[],
+            page_width=getattr(cls, "__mateu_page_width__", None),
         )
 
     # ── CRUD ───────────────────────────────────────────────────────────────────
@@ -1571,6 +1579,7 @@ class ReflectionMapper:
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions, triggers=triggers,
+            page_width=getattr(cls, "__mateu_page_width__", None),
         )
 
     @staticmethod
@@ -1647,11 +1656,22 @@ class ReflectionMapper:
             "crud",
             [],
         )
-        page = self.client(PageMetadata(), None, [crud])
+        page_children = []
+        smart_search = issubclass(cls, SmartSearchPage)
+        if smart_search:
+            # An optional intro line renders under the page title, above the smart search bar.
+            subtitle = cls().page_subtitle()
+            if subtitle is not None:
+                page_children.append(
+                    self.client(TextMetadata(text=subtitle), "page-subtitle", []))
+        page_children.append(crud)
+        page = self.client(PageMetadata(), None, page_children)
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions,
-            triggers=[Trigger(type="OnLoad", action_id="search")],
+            # A smart search page starts EMPTY (the user searches); plain listings preload.
+            triggers=[] if smart_search else [Trigger(type="OnLoad", action_id="search")],
+            page_width=getattr(cls, "__mateu_page_width__", None),
         )
 
     def listing_filters(self, filters_type) -> list[FormFieldMetadata]:
@@ -1739,6 +1759,7 @@ class ReflectionMapper:
             initial_data={}, actions=[], triggers=[],
             # Hidden()/Disabled() on entity fields rule the detail form too.
             rules=self.map_rules(element, entity),
+            page_width=getattr(crud_type, "__mateu_page_width__", None),
         )
 
     def map_rules(self, cls, instance) -> list[RuleRecord]:

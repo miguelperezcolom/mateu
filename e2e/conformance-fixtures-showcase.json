@@ -1,0 +1,21 @@
+{
+  "description": "Renderer-conformance fixtures for the Redwood page-template showcase (demo/demo-redwood-showcase). Each entry is one RDS page-template route; `types` lists the ComponentMetadataType values the screen is expected to exercise (informative; the observed <mateu-unsupported> placeholders are the ground truth). Run against the live showcase: node conformance.mjs --base-url http://localhost:<port> --renderer redwood-oj --fixtures conformance-fixtures-showcase.json",
+  "fixtures": [
+    { "route": "/welcome-demo",            "name": "tpl-welcome",           "types": ["Page", "HeroSection", "Button", "DashboardLayout", "Markdown"] },
+    { "route": "/dashboard-demo",          "name": "tpl-dashboard",         "types": ["Page", "DashboardLayout", "Scoreboard", "MetricCard", "Chart", "Markdown"] },
+    { "route": "/smart-search-demo",       "name": "tpl-smart-search",      "types": ["Page", "Text", "Crud"] },
+    { "route": "/todo-list-demo",          "name": "tpl-to-do-list",        "types": ["Page", "TaskQueue", "Chip"] },
+    { "route": "/calendar-demo",           "name": "tpl-calendar",          "types": ["Page", "Calendar", "Button", "HorizontalLayout"] },
+    { "route": "/hotel-search",            "name": "tpl-hero-search",       "types": ["Page", "HeroSection", "Crud"] },
+    { "route": "/collection-detail-demo",  "name": "tpl-collection-detail", "types": ["Page", "FormField", "TaskQueue", "Card", "EmptyState"] },
+    { "route": "/general-overview-demo",   "name": "tpl-general-overview",  "types": ["Page", "FormField", "EntityHeader", "StatusList", "Card"] },
+    { "route": "/product-overview",        "name": "tpl-item-overview",     "types": ["Page", "Card", "TabLayout", "Chart", "Markdown"] },
+    { "route": "/foldout-demo",            "name": "tpl-foldout",           "types": ["Page", "FoldoutLayout", "Badge", "Markdown"] },
+    { "route": "/foldout-horizontal-demo", "name": "tpl-foldout-horizontal","types": ["Page", "FoldoutLayout", "Badge", "Markdown"] },
+    { "route": "/booking",                 "name": "tpl-guided-process",    "types": ["Page", "Form", "FormField", "ProgressSteps", "Button"] },
+    { "route": "/guest",                   "name": "tpl-forms-zones",       "types": ["Page", "Form", "FormField"] },
+    { "route": "/catalog",                 "name": "tpl-create-edit",       "types": ["Page", "Crud"] },
+    { "route": "/drawer-crud-demo",        "name": "tpl-create-edit-drawer","types": ["Page", "Crud", "Drawer"] },
+    { "route": "/empty-skeleton-demo",     "name": "tpl-empty-states",      "types": ["Page", "EmptyState", "Skeleton"] }
+  ]
+}

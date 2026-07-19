@@ -107,6 +107,25 @@ public abstract class Listing<TFilters, TRow> where TFilters : class, new() wher
     public virtual string GridLayout() => "auto";
 }
 
+/// <summary>The intro line of a <see cref="SmartSearchPage{TFilters,TRow}"/> page (non-generic
+/// view of it).</summary>
+public interface ISmartSearchPage
+{
+    string? PageSubtitle();
+}
+
+/// <summary>Smart search page (the Oracle Redwood "Smart Search" template): a standalone,
+/// search-first page — an optional intro line under the page title, the smart search bar (typed
+/// filter facets and chips) and the results collection. Read-only and starts EMPTY (the user
+/// searches): no OnLoad→search preload trigger. (C# analogue of Java's SmartSearchPage
+/// archetype.)</summary>
+public abstract class SmartSearchPage<TFilters, TRow> : Listing<TFilters, TRow>, ISmartSearchPage
+    where TFilters : class, new() where TRow : class
+{
+    /// <summary>Optional intro line rendered under the page title, above the smart search bar.</summary>
+    public virtual string? PageSubtitle() => null;
+}
+
 /// <summary>The item a <see cref="ISelector{TRow}"/> reports as chosen: its id (stored as the
 /// field value) and its human label (shown next to it). (C# analogue of
 /// io.mateu.uidl.interfaces.SelectedItem.)</summary>

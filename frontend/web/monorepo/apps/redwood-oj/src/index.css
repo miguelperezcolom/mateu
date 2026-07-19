@@ -2479,6 +2479,44 @@ mateu-foldout {
     --mateu-foldout-expand-display: inline-flex;
 }
 
+/* ── RDS page width (the page templates' first parameter) ─────────────────────
+   mateu-ux tags itself with data-page-width on every routed load, resolved from
+   the component's pageWidth (fixed|fullWidth|edgeToEdge) or inferred from the
+   content tree (resolvePageWidth in libs/mateu). Only PAGE mounts are sized here
+   (the top-level ux and the app shell's content ux) — embedded islands keep
+   filling their host. Modes:
+   - fixed: capped 1408px column, centered — 24px gutters below 1536px of content
+     area, auto above, so the canvas (textures) shows at the sides.
+   - full: fluid and uncapped, 24px side gutters always.
+   - edge: content touches the content-area edges (no gutters). */
+mateu-ui > mateu-api-caller > mateu-ux[data-page-width],
+mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width] {
+    display: block;
+    box-sizing: border-box;
+}
+mateu-ui > mateu-api-caller > mateu-ux[data-page-width="fixed"],
+mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="fixed"] {
+    max-width: min(1408px, 100% - 48px);
+    margin-inline: auto;
+    padding-inline: 0;
+}
+mateu-ui > mateu-api-caller > mateu-ux[data-page-width="full"],
+mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="full"] {
+    padding-inline: 24px;
+}
+mateu-ui > mateu-api-caller > mateu-ux[data-page-width="edge"],
+mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="edge"] {
+    padding-inline: 0;
+}
+/* Edge mode paints no side padding, so the foldout's full-bleed negative SIDE
+   margins would reach past the viewport — drop them. The top pull stays: it
+   lifts the columns over the content area's top gap so they keep running top to
+   bottom. */
+mateu-ui > mateu-api-caller > mateu-ux[data-page-width="edge"] mateu-foldout,
+mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="edge"] mateu-foldout {
+    --mateu-foldout-outer-margin: -1.5rem 0 0 0;
+}
+
 /* mateu-markdown renders into light DOM and inherits the host typography (there is no Lumo
    heading scale under Redwood, so bare browser h1..h6 look oversized next to RDS panel titles).
    Scope the markdown output to the Redwood type ramp so headings/lists sit sensibly. */

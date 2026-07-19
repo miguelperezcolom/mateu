@@ -417,7 +417,7 @@ export class MateuRedwoodApp extends MateuApp {
             >
             </oj-c-tab-bar></div>
             <div id="xxxxx" class="demo-padding" style="width: 100%; height: -webkit-fill-available;">
-                <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+                <div class="content" style="padding-bottom: 2rem;">
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
                                 route="${chooseRoute(this.state, this, metadata)}"
@@ -692,7 +692,7 @@ export class MateuRedwoodApp extends MateuApp {
                     </div>
 
                     <div id="xxxxx" class="demo-padding" style="width: 100%; height: -webkit-fill-available;">
-                        <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+                        <div class="content" style="padding-bottom: 2rem;">
                             <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
                                         route="${chooseRoute(this.state, this, metadata)}"

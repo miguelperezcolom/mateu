@@ -1156,6 +1156,9 @@ class ServerSideComponent(Wire):
     #: Client-side rules (Hidden()/Disabled() fields, RuleSupplier): the renderer's no-eval
     #: engine re-evaluates them on every state change.
     rules: list["RuleRecord"] = Field(default_factory=list)
+    #: Redwood page width ("fixed"|"fullWidth"|"edgeToEdge") declared on the view; None = the
+    #: renderer infers it from the page content (mirrors ServerSideComponentDto.pageWidth).
+    page_width: str | None = None
 
 
 class RuleRecord(Wire):

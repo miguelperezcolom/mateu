@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-highcharts.js","assets/vendor-vaadin.js","assets/vendor-lit.js","assets/vendor.js","assets/vendor-ui5.js","assets/vendor-diagrams.js"])))=>i.map(i=>d[i]);
-import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X,p as Do,q as tt,s as Fo}from"./vendor-lit.js";import{v as No,b as wt,e as Mo,f as qo,n as yr,p as xr,N as ia,i as Ht,j as qi,k as wr,l as rs,m as Cs,o as Uo}from"./vendor-vaadin.js";import{S as Bo,n as ye,a as Vo,b as Wo}from"./vendor.js";import{_ as Pe,N as gi}from"./vendor-ui5.js";(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))s(i);new MutationObserver(i=>{for(const r of i)if(r.type==="childList")for(const n of r.addedNodes)n.tagName==="LINK"&&n.rel==="modulepreload"&&s(n)}).observe(document,{childList:!0,subtree:!0});function a(i){const r={};return i.integrity&&(r.integrity=i.integrity),i.referrerPolicy&&(r.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?r.credentials="include":i.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function s(i){if(i.ep)return;i.ep=!0;const r=a(i);fetch(i.href,r)}})();var v=(e=>(e.Page="Page",e.Div="Div",e.Element="Element",e.MicroFrontend="MicroFrontend",e.Form="Form",e.Crud="Crud",e.Result="Result",e.Card="Card",e.Directory="Directory",e.Stepper="Stepper",e.HorizontalLayout="HorizontalLayout",e.VerticalLayout="VerticalLayout",e.SplitLayout="SplitLayout",e.MasterDetailLayout="MasterDetailLayout",e.TabLayout="TabLayout",e.AccordionLayout="AccordionLayout",e.FormLayout="FormLayout",e.FormRow="FormRow",e.FormItem="FormItem",e.BoardLayout="BoardLayout",e.BoardLayoutRow="BoardLayoutRow",e.BoardLayoutItem="BoardLayoutItem",e.Scroller="Scroller",e.FullWidth="FullWidth",e.Container="Container",e.FormField="FormField",e.Table="Table",e.App="App",e.Text="Text",e.Avatar="Avatar",e.Chat="Chat",e.AvatarGroup="AvatarGroup",e.Badge="Badge",e.Breadcrumbs="Breadcrumbs",e.Anchor="Anchor",e.Button="Button",e.Chart="Chart",e.Icon="Icon",e.ConfirmDialog="ConfirmDialog",e.ContextMenu="ContextMenu",e.CookieConsent="CookieConsent",e.Details="Details",e.Dialog="Dialog",e.Drawer="Drawer",e.Image="Image",e.Map="Map",e.Markdown="Markdown",e.Notification="Notification",e.ProgressBar="ProgressBar",e.Popover="Popover",e.CarouselLayout="CarouselLayout",e.Tooltip="Tooltip",e.MessageInput="MessageInput",e.MessageList="MessageList",e.CustomField="CustomField",e.MenuBar="MenuBar",e.Grid="Grid",e.GridColumn="GridColumn",e.GridGroupColumn="GridGroupColumn",e.VirtualList="VirtualList",e.FormSection="FormSection",e.FormSubSection="FormSubSection",e.Bpmn="Bpmn",e.Workflow="Workflow",e.WorkflowElk="WorkflowElk",e.FormEditor="FormEditor",e.MetricCard="MetricCard",e.Scoreboard="Scoreboard",e.DashboardPanel="DashboardPanel",e.DashboardLayout="DashboardLayout",e.FoldoutLayout="FoldoutLayout",e.HeroSection="HeroSection",e.EmptyState="EmptyState",e.Skeleton="Skeleton",e.Gantt="Gantt",e.PlanningBoard="PlanningBoard",e.Kanban="Kanban",e.Timeline="Timeline",e.ProgressSteps="ProgressSteps",e.Stat="Stat",e.Calendar="Calendar",e.PricingTable="PricingTable",e.OrgChart="OrgChart",e.Heatmap="Heatmap",e.Funnel="Funnel",e.TrendChart="TrendChart",e.FeatureGrid="FeatureGrid",e.Testimonials="Testimonials",e.Faq="Faq",e.CalloutCard="CalloutCard",e.CommentThread="CommentThread",e.FileList="FileList",e.Checklist="Checklist",e.ComparisonCard="ComparisonCard",e.EntityHeader="EntityHeader",e.Meter="Meter",e.TaskProgress="TaskProgress",e.StatusList="StatusList",e.BulletedList="BulletedList",e.Separator="Separator",e.Notice="Notice",e.TaskQueue="TaskQueue",e.ResourceGrid="ResourceGrid",e.OfferCard="OfferCard",e.AddOnPicker="AddOnPicker",e.Ledger="Ledger",e.PaymentPicker="PaymentPicker",e.ProcessMonitor="ProcessMonitor",e))(v||{}),de=(e=>(e.ServerSide="ServerSide",e.ClientSide="ClientSide",e))(de||{});class Ho{constructor(){this.afterRenderHook=void 0,this.useShadowRoot=!0,this.componentRenderer=void 0}set(t){if(this.componentRenderer=t,typeof window<"u"){const a=t.supportedClientSideTypes?.();window.__mateuRendererInfo={name:t.rendererName?.()??t.constructor?.name??"unknown",supportedTypes:a?[...a].sort():null}}}get(){return this.componentRenderer}setUseShadowRoot(t){this.useShadowRoot=t}mustUseShadowRoot(){return this.useShadowRoot}setAfterRenderHook(t){this.afterRenderHook=t}getAfterRenderHook(){return this.afterRenderHook}}const te=new Ho,ta=(e,t,a,s,i,r,n,l,c)=>(t.slot=l,w(e,t,a,s,i,r,n,c)),w=(e,t,a,s,i,r,n,l)=>{if(!t)return o``;if(t.type==de.ClientSide)return te.get().renderClientSideComponent(e,t,a,s,i,r,n,l);const c=e.route,u=e.consumedRoute;return o`
+import{d as o,A as d,a as C,j as h,r as $,i as S,k,m as ge,D as xr,c as T,w as X,p as qo,q as at,s as Uo}from"./vendor-lit.js";import{v as Bo,b as kt,e as Vo,f as Wo,n as wr,p as kr,N as ra,i as Kt,j as Ui,k as Cr,l as os,m as Is,o as Ho}from"./vendor-vaadin.js";import{S as Go,n as ye,a as Ko,b as Yo}from"./vendor.js";import{_ as Te,N as $i}from"./vendor-ui5.js";(function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))s(i);new MutationObserver(i=>{for(const r of i)if(r.type==="childList")for(const n of r.addedNodes)n.tagName==="LINK"&&n.rel==="modulepreload"&&s(n)}).observe(document,{childList:!0,subtree:!0});function a(i){const r={};return i.integrity&&(r.integrity=i.integrity),i.referrerPolicy&&(r.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?r.credentials="include":i.crossOrigin==="anonymous"?r.credentials="omit":r.credentials="same-origin",r}function s(i){if(i.ep)return;i.ep=!0;const r=a(i);fetch(i.href,r)}})();var v=(e=>(e.Page="Page",e.Div="Div",e.Element="Element",e.MicroFrontend="MicroFrontend",e.Form="Form",e.Crud="Crud",e.Result="Result",e.Card="Card",e.Directory="Directory",e.Stepper="Stepper",e.HorizontalLayout="HorizontalLayout",e.VerticalLayout="VerticalLayout",e.SplitLayout="SplitLayout",e.MasterDetailLayout="MasterDetailLayout",e.TabLayout="TabLayout",e.AccordionLayout="AccordionLayout",e.FormLayout="FormLayout",e.FormRow="FormRow",e.FormItem="FormItem",e.BoardLayout="BoardLayout",e.BoardLayoutRow="BoardLayoutRow",e.BoardLayoutItem="BoardLayoutItem",e.Scroller="Scroller",e.FullWidth="FullWidth",e.Container="Container",e.FormField="FormField",e.Table="Table",e.App="App",e.Text="Text",e.Avatar="Avatar",e.Chat="Chat",e.AvatarGroup="AvatarGroup",e.Badge="Badge",e.Breadcrumbs="Breadcrumbs",e.Anchor="Anchor",e.Button="Button",e.Chart="Chart",e.Icon="Icon",e.ConfirmDialog="ConfirmDialog",e.ContextMenu="ContextMenu",e.CookieConsent="CookieConsent",e.Details="Details",e.Dialog="Dialog",e.Drawer="Drawer",e.Image="Image",e.Map="Map",e.Markdown="Markdown",e.Notification="Notification",e.ProgressBar="ProgressBar",e.Popover="Popover",e.CarouselLayout="CarouselLayout",e.Tooltip="Tooltip",e.MessageInput="MessageInput",e.MessageList="MessageList",e.CustomField="CustomField",e.MenuBar="MenuBar",e.Grid="Grid",e.GridColumn="GridColumn",e.GridGroupColumn="GridGroupColumn",e.VirtualList="VirtualList",e.FormSection="FormSection",e.FormSubSection="FormSubSection",e.Bpmn="Bpmn",e.Workflow="Workflow",e.WorkflowElk="WorkflowElk",e.FormEditor="FormEditor",e.MetricCard="MetricCard",e.Scoreboard="Scoreboard",e.DashboardPanel="DashboardPanel",e.DashboardLayout="DashboardLayout",e.FoldoutLayout="FoldoutLayout",e.HeroSection="HeroSection",e.EmptyState="EmptyState",e.Skeleton="Skeleton",e.Gantt="Gantt",e.PlanningBoard="PlanningBoard",e.Kanban="Kanban",e.Timeline="Timeline",e.ProgressSteps="ProgressSteps",e.Stat="Stat",e.Calendar="Calendar",e.PricingTable="PricingTable",e.OrgChart="OrgChart",e.Heatmap="Heatmap",e.Funnel="Funnel",e.TrendChart="TrendChart",e.FeatureGrid="FeatureGrid",e.Testimonials="Testimonials",e.Faq="Faq",e.CalloutCard="CalloutCard",e.CommentThread="CommentThread",e.FileList="FileList",e.Checklist="Checklist",e.ComparisonCard="ComparisonCard",e.EntityHeader="EntityHeader",e.Meter="Meter",e.TaskProgress="TaskProgress",e.StatusList="StatusList",e.BulletedList="BulletedList",e.Separator="Separator",e.Notice="Notice",e.TaskQueue="TaskQueue",e.ResourceGrid="ResourceGrid",e.OfferCard="OfferCard",e.AddOnPicker="AddOnPicker",e.Ledger="Ledger",e.PaymentPicker="PaymentPicker",e.ProcessMonitor="ProcessMonitor",e))(v||{}),oe=(e=>(e.ServerSide="ServerSide",e.ClientSide="ClientSide",e))(oe||{});class Jo{constructor(){this.afterRenderHook=void 0,this.useShadowRoot=!0,this.componentRenderer=void 0}set(t){if(this.componentRenderer=t,typeof window<"u"){const a=t.supportedClientSideTypes?.();window.__mateuRendererInfo={name:t.rendererName?.()??t.constructor?.name??"unknown",supportedTypes:a?[...a].sort():null}}}get(){return this.componentRenderer}setUseShadowRoot(t){this.useShadowRoot=t}mustUseShadowRoot(){return this.useShadowRoot}setAfterRenderHook(t){this.afterRenderHook=t}getAfterRenderHook(){return this.afterRenderHook}}const te=new Jo,ia=(e,t,a,s,i,r,n,l,c)=>(t.slot=l,w(e,t,a,s,i,r,n,c)),w=(e,t,a,s,i,r,n,l)=>{if(!t)return o``;if(t.type==oe.ClientSide)return te.get().renderClientSideComponent(e,t,a,s,i,r,n,l);const c=e.route,u=e.consumedRoute;return o`
         <mateu-component id="${t.id}"
                          .component="${t}"
                         route="${c}"
@@ -13,7 +13,7 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                          .appState="${r}"
                          .appData="${n}"
         >
-       </mateu-component>`},Go=640,Ko=e=>e>0&&e<Go?"accordion":"tabs";var Yo=Object.defineProperty,Jo=Object.getOwnPropertyDescriptor,Ui=(e,t,a,s)=>{for(var i=s>1?void 0:s?Jo(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Yo(t,a,i),i};let Ca=class extends S{constructor(){super(...arguments),this.tabLabels=[],this.mode="tabs",this.selected=0,this.selectedChangedListener=e=>{const t=e.detail?.value;typeof t=="number"&&t>=0&&(this.selected=t)}}connectedCallback(){super.connectedCallback(),this.resizeObserver=new ResizeObserver(e=>{for(const t of e)this.mode=Ko(t.contentRect.width)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect(),this.resizeObserver=void 0,this.detachTabsListener()}detachTabsListener(){this.slottedTabs?.removeEventListener("selected-changed",this.selectedChangedListener),this.slottedTabs=void 0}tabsSlotChanged(e){this.detachTabsListener();const a=e.target.assignedElements().find(s=>"selected"in s);a&&(this.slottedTabs=a,a.addEventListener("selected-changed",this.selectedChangedListener),a.selected=this.selected)}select(e){this.selected=e,this.slottedTabs&&(this.slottedTabs.selected=e)}updated(){this.slottedTabs&&this.slottedTabs.selected!=this.selected&&(this.slottedTabs.selected=this.selected)}render(){return o`
+       </mateu-component>`},Xo=640,Qo=e=>e>0&&e<Xo?"accordion":"tabs";var Zo=Object.defineProperty,en=Object.getOwnPropertyDescriptor,Bi=(e,t,a,s)=>{for(var i=s>1?void 0:s?en(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Zo(t,a,i),i};let Ia=class extends S{constructor(){super(...arguments),this.tabLabels=[],this.mode="tabs",this.selected=0,this.selectedChangedListener=e=>{const t=e.detail?.value;typeof t=="number"&&t>=0&&(this.selected=t)}}connectedCallback(){super.connectedCallback(),this.resizeObserver=new ResizeObserver(e=>{for(const t of e)this.mode=Qo(t.contentRect.width)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect(),this.resizeObserver=void 0,this.detachTabsListener()}detachTabsListener(){this.slottedTabs?.removeEventListener("selected-changed",this.selectedChangedListener),this.slottedTabs=void 0}tabsSlotChanged(e){this.detachTabsListener();const a=e.target.assignedElements().find(s=>"selected"in s);a&&(this.slottedTabs=a,a.addEventListener("selected-changed",this.selectedChangedListener),a.selected=this.selected)}select(e){this.selected=e,this.slottedTabs&&(this.slottedTabs.selected=e)}updated(){this.slottedTabs&&this.slottedTabs.selected!=this.selected&&(this.slottedTabs.selected=this.selected)}render(){return o`
             <div class="strip" ?hidden="${this.mode!="tabs"}">
                 <slot name="tabs" @slotchange="${this.tabsSlotChanged}"></slot>
             </div>
@@ -42,7 +42,7 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                     `)}
                 </div>
             `}
-        `}};Ca.styles=C`
+        `}};Ia.styles=C`
         :host {
             display: block;
         }
@@ -97,7 +97,7 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
         .acc-body[hidden] {
             display: none;
         }
-    `;Ui([m({type:Array})],Ca.prototype,"tabLabels",2);Ui([$()],Ca.prototype,"mode",2);Ui([$()],Ca.prototype,"selected",2);Ca=Ui([k("mateu-adaptive-tabs")],Ca);const Xo=(e,t,a,s,i,r,n)=>{const l=t.metadata;let c=t.style;return c==null&&(c=""),l.columnSpacing&&(c+="--vaadin-form-layout-column-spacing: "+l.columnSpacing+";"),l.itemRowSpacing&&(c+="--vaadin-form-layout-row-spacing: "+l.itemRowSpacing+";"),l.itemLabelSpacing&&(c+="--vaadin-form-layout-label-spacing: "+l.itemLabelSpacing+";"),l.labelsAside&&(c+="--vaadin-form-item-label-width: 92px;"),l.fullWidth&&(c+="width: 100%;"),o`
+    `;Bi([h({type:Array})],Ia.prototype,"tabLabels",2);Bi([$()],Ia.prototype,"mode",2);Bi([$()],Ia.prototype,"selected",2);Ia=Bi([k("mateu-adaptive-tabs")],Ia);const tn=(e,t,a,s,i,r,n)=>{const l=t.metadata;let c=t.style;return c==null&&(c=""),l.columnSpacing&&(c+="--vaadin-form-layout-column-spacing: "+l.columnSpacing+";"),l.itemRowSpacing&&(c+="--vaadin-form-layout-row-spacing: "+l.itemRowSpacing+";"),l.itemLabelSpacing&&(c+="--vaadin-form-layout-label-spacing: "+l.itemLabelSpacing+";"),l.labelsAside&&(c+="--vaadin-form-item-label-width: 92px;"),l.fullWidth&&(c+="width: 100%;"),o`
                <vaadin-form-layout 
                        .responsiveSteps="${l.responsiveSteps||d}"  
                        style="${c||d}" 
@@ -110,36 +110,36 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                        labels-aside="${l.labelsAside||d}"
                        slot="${t.slot||d}"
                >
-                   ${t.children?.map(u=>kr(l,e,u,a,s,i,r,n))}
+                   ${t.children?.map(u=>Sr(l,e,u,a,s,i,r,n))}
                </vaadin-form-layout>
-            `},kr=(e,t,a,s,i,r,n,l)=>a.type==de.ClientSide&&a.metadata?.type==v.FormRow?Zo(e,t,a,s,i,r,n,l):e.labelsAside?Qo(t,a,s,i,r,n,l):w(t,a,s,i,r,n,l),Qo=(e,t,a,s,i,r,n)=>{if(t.type==de.ClientSide&&t.metadata?.type==v.FormField&&t.metadata.label){const l=t.metadata,c=l.label?.includes("${")?e._evalTemplate(l.label):l.label;return o`
+            `},Sr=(e,t,a,s,i,r,n,l)=>a.type==oe.ClientSide&&a.metadata?.type==v.FormRow?sn(e,t,a,s,i,r,n,l):e.labelsAside?an(t,a,s,i,r,n,l):w(t,a,s,i,r,n,l),an=(e,t,a,s,i,r,n)=>{if(t.type==oe.ClientSide&&t.metadata?.type==v.FormField&&t.metadata.label){const l=t.metadata,c=l.label?.includes("${")?e._evalTemplate(l.label):l.label;return o`
                        <vaadin-form-item data-colspan="${l.colspan}">
                            <label slot="label">${c}</label>
                            ${w(e,t,a,s,i,r,n,!0)}
                        </vaadin-form-item>
-                   `}return w(e,t,a,s,i,r,n)},Zo=(e,t,a,s,i,r,n,l)=>o`
+                   `}return w(e,t,a,s,i,r,n)},sn=(e,t,a,s,i,r,n,l)=>o`
         <vaadin-form-row>
-            ${a.children?.map(c=>kr(e,t,c,s,i,r,n,l))}
+            ${a.children?.map(c=>Sr(e,t,c,s,i,r,n,l))}
         </vaadin-form-row>
-            `,en=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=(l.padding?" padding":"")+(l.spacing?" spacing":"")+(l.spacingVariant?" spacing-"+l.spacingVariant:"")+(l.wrap?" wrap":"");let u=t.style;return l.fullWidth&&(u=u?"width: 100%;"+u:"width: 100%;"),l.justification&&(u=u?"justify-content: "+l.justification+";"+u:"justify-content: "+l.justification+";"),l.verticalAlignment&&(u=u?"align-items: "+l.verticalAlignment+";"+u:"align-items: "+l.verticalAlignment+";"),o`
+            `,rn=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=(l.padding?" padding":"")+(l.spacing?" spacing":"")+(l.spacingVariant?" spacing-"+l.spacingVariant:"")+(l.wrap?" wrap":"");let u=t.style;return l.fullWidth&&(u=u?"width: 100%;"+u:"width: 100%;"),l.justification&&(u=u?"justify-content: "+l.justification+";"+u:"justify-content: "+l.justification+";"),l.verticalAlignment&&(u=u?"align-items: "+l.verticalAlignment+";"+u:"align-items: "+l.verticalAlignment+";"),o`
                <vaadin-horizontal-layout 
                        style="${u}" 
                        class="${t.cssClasses}"
                        theme="${c}"
                        slot="${t.slot??d}"
                >
-                   ${t.children?.map(h=>w(e,h,a,s,i,r,n))}
+                   ${t.children?.map(m=>w(e,m,a,s,i,r,n))}
                </vaadin-horizontal-layout>
-            `},tn=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=(l.padding?" padding":"")+(l.spacing?" spacing":"")+(l.spacingVariant?" spacing-"+l.spacingVariant:"")+(l.wrap?" wrap":"");let u=t.style;return l.fullWidth&&(u=u?"width: 100%;"+u:"width: 100%;"),l.justification&&(u=u?"justify-content: "+l.justification+";"+u:"justify-content: "+l.justification+";"),l.horizontalAlignment&&(u=u?"align-items: "+l.horizontalAlignment+";"+u:"align-items: "+l.horizontalAlignment+";"),o`
+            `},on=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=(l.padding?" padding":"")+(l.spacing?" spacing":"")+(l.spacingVariant?" spacing-"+l.spacingVariant:"")+(l.wrap?" wrap":"");let u=t.style;return l.fullWidth&&(u=u?"width: 100%;"+u:"width: 100%;"),l.justification&&(u=u?"justify-content: "+l.justification+";"+u:"justify-content: "+l.justification+";"),l.horizontalAlignment&&(u=u?"align-items: "+l.horizontalAlignment+";"+u:"align-items: "+l.horizontalAlignment+";"),o`
         <vaadin-vertical-layout
                 style="${u}"
                 class="${t.cssClasses}"
                 theme="${c}"
                 slot="${t.slot??d}"
         >
-            ${t.children?.map(h=>w(e,h,a,s,i,r,n))}
+            ${t.children?.map(m=>w(e,m,a,s,i,r,n))}
         </vaadin-vertical-layout>
-    `},an=(e,t,a,s,i,r,n)=>{const l=t.metadata;let c=t.style;return l.fullWidth&&(c=c?"width: 100%;"+c:"width: 100%;"),o`
+    `},nn=(e,t,a,s,i,r,n)=>{const l=t.metadata;let c=t.style;return l.fullWidth&&(c=c?"width: 100%;"+c:"width: 100%;"),o`
                <vaadin-split-layout 
                        style="${c}" 
                        class="${t.cssClasses}"
@@ -150,15 +150,15 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                    <master-content>${w(e,t.children[0],a,s,i,r,n)}</master-content>
                    <detail-content>${w(e,t.children[1],a,s,i,r,n)}</detail-content>
                </vaadin-split-layout>
-            `},sn=(e,t,a,s,i,r,n)=>{const l=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,u=!!i?.hasDetail||!!l,h=c??l;return o`
+            `},ln=(e,t,a,s,i,r,n)=>{const l=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,u=!!i?.hasDetail||!!l,m=c??l;return o`
                <vaadin-master-detail-layout ?has-detail="${u}"
                                             style="${t.style}"
                                             class="${t.cssClasses}"
                                             slot="${t.slot??d}">
                    <div>${w(e,t.children[0],a,s,i,r,n)}</div>
-                   ${u&&h?o`<div slot="detail">${w(e,h,a,s,i,r,n)}</div>`:o`<div slot="detail" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Select an item to view details</div>`}
+                   ${u&&m?o`<div slot="detail">${w(e,m,a,s,i,r,n)}</div>`:o`<div slot="detail" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Select an item to view details</div>`}
                </vaadin-master-detail-layout>
-            `},rn=(e,t,a,s,i,r,n)=>{const l=t.metadata;let c=t.style;c==null&&(c=""),l.fullWidth&&(c+="width: 100%;");let u=l.variant;u=="equalWidth"&&(u="equal-width-tabs");const h=Math.max(0,(t.children??[]).findIndex(f=>f.metadata.active)),p=f=>{f.target.selected=h};if(l.adaptable){const f=(t.children??[]).map(g=>{const y=g.metadata.label;return y?.includes("${")?e._evalTemplate(y):y});return o`
+            `},dn=(e,t,a,s,i,r,n)=>{const l=t.metadata;let c=t.style;c==null&&(c=""),l.fullWidth&&(c+="width: 100%;");let u=l.variant;u=="equalWidth"&&(u="equal-width-tabs");const m=Math.max(0,(t.children??[]).findIndex(f=>f.metadata.active)),p=f=>{f.target.selected=m};if(l.adaptable){const f=(t.children??[]).map(g=>{const y=g.metadata.label;return y?.includes("${")?e._evalTemplate(y):y});return o`
             <mateu-adaptive-tabs
                     .tabLabels="${f}"
                     style="${c}"
@@ -203,90 +203,90 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                     >${y}</vaadin-tab>`})}
             </vaadin-tabs>
 
-            ${t.children?.map(f=>on(e,f,a,s,i,r,n))}
+            ${t.children?.map(f=>cn(e,f,a,s,i,r,n))}
         </vaadin-tabsheet>
-            `},on=(e,t,a,s,i,r,n)=>{const l=t.metadata.label,c=l?.includes("${")?e._evalTemplate(l):l;return o`
+            `},cn=(e,t,a,s,i,r,n)=>{const l=t.metadata.label,c=l?.includes("${")?e._evalTemplate(l):l;return o`
         <div tab="${c}" style="padding: var(--lumo-space-m) 0;">
                    ${t.children?.map(u=>w(e,u,a,s,i,r,n))}
                </div>
-            `},nn=(e,t,a,s,i,r,n)=>{const l=t.metadata;t.style,l.fullWidth;let c=0;if(t.children){for(let u=0;u<t.children.length;u++)if(t.children[u].metadata?.active){c=u;break}}return o`
+            `},un=(e,t,a,s,i,r,n)=>{const l=t.metadata;t.style,l.fullWidth;let c=0;if(t.children){for(let u=0;u<t.children.length;u++)if(t.children[u].metadata?.active){c=u;break}}return o`
                <vaadin-accordion
                        style="${t.style}"
                        class="${t.cssClasses}"
                        opened="${c}"
                        slot="${t.slot??d}"
                >
-                   ${t.children?.map(u=>ln(e,u,a,s,i,r,n,l.variant))}
+                   ${t.children?.map(u=>pn(e,u,a,s,i,r,n,l.variant))}
                </vaadin-accordion>
-            `},ln=(e,t,a,s,i,r,n,l)=>{const c=t.metadata,u=c.label?.includes("${")?e._evalTemplate(c.label):c.label;return o`
+            `},pn=(e,t,a,s,i,r,n,l)=>{const c=t.metadata,u=c.label?.includes("${")?e._evalTemplate(c.label):c.label;return o`
         <vaadin-accordion-panel style="${t.style}"
                                 class="${t.cssClasses}"
                                 theme="${l??d}"
                                 ?opened="${c.active}"
                                 ?disabled="${c.disabled}">
             <vaadin-accordion-heading slot="summary">${u}</vaadin-accordion-heading>
-            ${t.children?.map(h=>w(e,h,a,s,i,r,n))}
+            ${t.children?.map(m=>w(e,m,a,s,i,r,n))}
         </vaadin-accordion-panel>
-            `},dn=(e,t,a,s,i,r,n)=>o`
+            `},hn=(e,t,a,s,i,r,n)=>o`
                <vaadin-scroller style="${t.style}" 
                                 class="${t.cssClasses}"
                                 slot="${t.slot??d}">
                    ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
                </vaadin-scroller>
-            `,cn=(e,t,a,s,i,r,n)=>o`
+            `,mn=(e,t,a,s,i,r,n)=>o`
                <div style="width: 100%; ${t.style}" 
                     class="${t.cssClasses}"
                     slot="${t.slot??d}">
                    ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
                </div>
-            `,un=(e,t,a,s,i,r,n)=>o`
+            `,vn=(e,t,a,s,i,r,n)=>o`
                <div style="max-width: min(100%, 1200px); margin: auto; ${t.style}" 
                     class="${t.cssClasses}"
                     slot="${t.slot??d}">
                    ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
                </div>
-            `,pn=(e,t,a,s,i,r,n)=>o`
+            `,fn=(e,t,a,s,i,r,n)=>o`
         <vaadin-board style="${t.style}" 
                       class="${t.cssClasses}"
                       slot="${t.slot??d}">
             ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
         </vaadin-board>
-            `,hn=(e,t,a,s,i,r,n)=>o`
+            `,bn=(e,t,a,s,i,r,n)=>o`
         <vaadin-board-row style="${t.style}" class="${t.cssClasses}">
                    ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
                </vaadin-board-row>
-            `,mn=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+            `,gn=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <div style="${t.style}" 
              class="${t.cssClasses}"
              board-cols="${l.boardCols??d}"
         >
                    ${t.children?.map(c=>w(e,c,a,s,i,r,n))}
                </div>
-            `},Sa=(e,t)=>new Function(...Object.keys(t),"return `"+e+"`")(...Object.values(t)),Oa=(e,t,a)=>({state:e??{},data:t??{},...a});function Oe(e,t,a,s){if(!e?.includes("${"))return e;try{return Sa(e,Oa(t,a,s))}catch(i){return console.warn(`Mateu: could not interpolate "${e}":`,i),e}}const xt=(e,t,a)=>{if(e&&e.indexOf("${")>=0)try{return Sa(e,Oa(t,a))}catch(s){return s.message}return e},Bi=(e,t,a,s,i)=>{if(!e)return e;const r=Oa(t,a,{appState:s??{},appData:i??{}});let n=e;try{if(n=Sa(e,r),n.includes("${"))try{n=Sa(n,r)}catch(l){n="when evaluating nested "+e+" :"+l+", where data is "+a+" and state is "+t+" and app state is "+s+" and app data is "+i,console.error(l,n,t,a,s,i)}}catch(l){n="when evaluating "+e+" :"+l+", where data is "+a+" and state is "+t+" and app state is "+s+" and app data is "+i,console.error(l,n,t,a,s,i)}return n},Cr=(e,t,a,s,i,r)=>{const n=Oa(t,a,{appState:s??{},appData:i??{},...r}),l=Sa(e,n);return new Function(...Object.keys(n),`return (${l})`)(...Object.values(n))},Sr=(e,t,a,s)=>{const i=Oa(t,a,s);return new Function(...Object.keys(i),`return (${e})`)(...Object.values(i))},vn=(e,t,a,s)=>Sa(e,Oa(t,a,s)),fn=(e,t,a)=>{const s=e.metadata;return o`<vaadin-avatar
+            `},_a=(e,t)=>new Function(...Object.keys(t),"return `"+e+"`")(...Object.values(t)),za=(e,t,a)=>({state:e??{},data:t??{},...a});function Oe(e,t,a,s){if(!e?.includes("${"))return e;try{return _a(e,za(t,a,s))}catch(i){return console.warn(`Mateu: could not interpolate "${e}":`,i),e}}const wt=(e,t,a)=>{if(e&&e.indexOf("${")>=0)try{return _a(e,za(t,a))}catch(s){return s.message}return e},Vi=(e,t,a,s,i)=>{if(!e)return e;const r=za(t,a,{appState:s??{},appData:i??{}});let n=e;try{if(n=_a(e,r),n.includes("${"))try{n=_a(n,r)}catch(l){n="when evaluating nested "+e+" :"+l+", where data is "+a+" and state is "+t+" and app state is "+s+" and app data is "+i,console.error(l,n,t,a,s,i)}}catch(l){n="when evaluating "+e+" :"+l+", where data is "+a+" and state is "+t+" and app state is "+s+" and app data is "+i,console.error(l,n,t,a,s,i)}return n},Ir=(e,t,a,s,i,r)=>{const n=za(t,a,{appState:s??{},appData:i??{},...r}),l=_a(e,n);return new Function(...Object.keys(n),`return (${l})`)(...Object.values(n))},_r=(e,t,a,s)=>{const i=za(t,a,s);return new Function(...Object.keys(i),`return (${e})`)(...Object.values(i))},$n=(e,t,a,s)=>_a(e,za(t,a,s)),yn=(e,t,a)=>{const s=e.metadata;return o`<vaadin-avatar
             img="${s.image}"
-            name="${le(s.name,t,a)}"
+            name="${de(s.name,t,a)}"
             abbr="${s.abbreviation}"
             style="${e.style}" class="${e.cssClasses}"
             slot="${e.slot??d}"
-    ></vaadin-avatar>`},le=(e,t,a)=>typeof e=="string"&&e.includes("${")?Oe(e,t,a):e,bn=e=>{const t=e.metadata;return o`<vaadin-avatar-group max-items-visible="${t.maxItemsVisible}"
+    ></vaadin-avatar>`},de=(e,t,a)=>typeof e=="string"&&e.includes("${")?Oe(e,t,a):e,xn=e=>{const t=e.metadata;return o`<vaadin-avatar-group max-items-visible="${t.maxItemsVisible}"
                                      .items="${t.avatars}"
                                      style="${e.style}" class="${e.cssClasses}"
                                      slot="${e.slot??d}">
-    </vaadin-avatar-group>`},gn=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=u=>o`
+    </vaadin-avatar-group>`},wn=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=u=>o`
             ${w(e,u,a,s,i,r,n)}
 `;return o`
         <vaadin-virtual-list
                 .items="${l.page.content}"
-                ${No(c,[])}
+                ${Bo(c,[])}
                 style="${t.style}" class="${t.cssClasses}"
                 slot="${t.slot??d}"
         ></vaadin-virtual-list>
-    `};var $n=Object.defineProperty,yn=Object.getOwnPropertyDescriptor,Ss=(e,t,a,s)=>{for(var i=s>1?void 0:s?yn(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&$n(t,a,i),i};let Ka=class extends S{constructor(){super(...arguments),this.variant="text",this.count=3}render(){const e=Array.from({length:Math.max(1,this.count)});return this.variant=="card"?o`${e.map(()=>o`<div class="bone card" style="margin: .5em 0;"></div>`)}`:this.variant=="grid"?o`${e.map(()=>o`<div class="bone row"></div>`)}`:this.variant=="form"?o`${e.map(()=>o`
+    `};var kn=Object.defineProperty,Cn=Object.getOwnPropertyDescriptor,_s=(e,t,a,s)=>{for(var i=s>1?void 0:s?Cn(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&kn(t,a,i),i};let Ja=class extends S{constructor(){super(...arguments),this.variant="text",this.count=3}render(){const e=Array.from({length:Math.max(1,this.count)});return this.variant=="card"?o`${e.map(()=>o`<div class="bone card" style="margin: .5em 0;"></div>`)}`:this.variant=="grid"?o`${e.map(()=>o`<div class="bone row"></div>`)}`:this.variant=="form"?o`${e.map(()=>o`
                 <div class="form-pair">
                     <div class="bone label"></div>
                     <div class="bone field"></div>
                 </div>
-            `)}`:o`${e.map(()=>o`<div class="bone line"></div>`)}`}};Ka.styles=C`
+            `)}`:o`${e.map(()=>o`<div class="bone line"></div>`)}`}};Ja.styles=C`
         :host {
             display: block;
             flex: 1 1 0;
@@ -315,21 +315,21 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
         .form-pair { display: flex; flex-direction: column; gap: .35em; margin: .9em 0; }
         .label { height: .8em; width: 30%; }
         .field { height: 2.25em; width: 100%; }
-    `;Ss([m()],Ka.prototype,"variant",2);Ss([m({type:Number})],Ka.prototype,"count",2);Ka=Ss([k("mateu-skeleton")],Ka);const xn=(e,t)=>{t&&e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t},bubbles:!0,composed:!0}))},aa=(e,t,a,s,i,r)=>o`
+    `;_s([h()],Ja.prototype,"variant",2);_s([h({type:Number})],Ja.prototype,"count",2);Ja=_s([k("mateu-skeleton")],Ja);const Sn=(e,t)=>{t&&e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t},bubbles:!0,composed:!0}))},sa=(e,t,a,s,i,r)=>o`
         <div class="mateu-empty-state"
              style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; padding: var(--lumo-space-l, 1.5rem); text-align: center; color: var(--lumo-secondary-text-color, #666);">
             <span style="font-size: 1.8rem; line-height: 1; opacity: .6;">${t??"🗂"}</span>
             ${a?o`<span style="font-weight: 600; color: var(--lumo-body-text-color, #333);">${a}</span>`:d}
             <span style="font-size: var(--lumo-font-size-s, .875rem);">${s??e??"Nothing here yet."}</span>
             ${i&&r?o`
-                <vaadin-button theme="tertiary" style="margin-top: .25rem;" @click="${n=>xn(n,i)}">${r}</vaadin-button>
+                <vaadin-button theme="tertiary" style="margin-top: .25rem;" @click="${n=>Sn(n,i)}">${r}</vaadin-button>
             `:d}
         </div>
-    `,wn=e=>{const t=e.metadata;return o`
+    `,In=e=>{const t=e.metadata;return o`
         <div style="${e.style??d}" class="${e.cssClasses??d}" slot="${e.slot??d}">
-            ${aa(void 0,t.icon,t.title,t.description,t.actionId,t.actionLabel)}
+            ${sa(void 0,t.icon,t.title,t.description,t.actionId,t.actionLabel)}
         </div>
-    `},kn=e=>{const t=e.metadata;return o`
+    `},_n=e=>{const t=e.metadata;return o`
         <mateu-skeleton
                 variant="${t.variant??"text"}"
                 count="${t.count&&t.count>0?t.count:3}"
@@ -337,45 +337,45 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-skeleton>
-    `},Ga=e=>!!e&&typeof e=="object"&&"__mateuGroup"in e,os=e=>String(e??""),Ir=(e,t,a)=>{const s=e??[];if(!t||!a||a.length===0)return s;const i=[];let r,n=!1;return s.forEach((l,c)=>{const u=os(l?.[t]);if(!n||u!==r){const h=a.find(p=>os(p.value)===u)??{value:u,count:s.filter(p=>os(p?.[t])===u).length,aggregates:{}};i.push({__mateuGroup:h,__mateuGroupBy:t,_rowNumber:`__mateuGroup:${c}:${u}`}),n=!0,r=u}i.push(l)}),i},_r=(e,t)=>e==null?"":t.dataType==="money"||t.stereotype==="money"?new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(e):t.aggregate==="count"?new Intl.NumberFormat(void 0,{maximumFractionDigits:0}).format(Math.round(e)):new Intl.NumberFormat(void 0,{maximumFractionDigits:2}).format(e),Er=(e,t)=>e&&t.includes(e)?e:t.find(a=>!!a),Tr=(e,t,a)=>{const s=e.__mateuGroup;return t.id===a?`${s.value} (${s.count})`:t.aggregate?_r(s.aggregates?.[t.id],t):""},Pr=(e,t,a)=>{const s=t?.aggregates;if(!s||!e.some(n=>n.aggregate))return;const i={};e.forEach(n=>{n.aggregate&&s[n.id]!=null&&(i[n.id]=_r(s[n.id],n))});const r=e[0];if(r&&i[r.id]===void 0){const n=t?.page?.totalElements;i[r.id]=a&&r.id===a&&n!=null?`Total (${n})`:"Total"}return i};var Ha=(e=>(e.NONE="NONE",e.INFO="INFO",e.SUCCESS="SUCCESS",e.WARNING="WARNING",e.DANGER="DANGER",e))(Ha||{});const Cn=(e,t,a)=>{const s=e[a.path];return s?o`<span theme="badge pill ${Vi(s.type)}">${s.message}</span>`:o``},Vi=e=>{switch(e){case Ha.SUCCESS:return"success";case Ha.WARNING:return"warning";case Ha.DANGER:return"error";case Ha.NONE:return"contrast"}return""},Sn=(e,t,a)=>{const i=e[a.path]?"vaadin:check":"vaadin:minus";return o`<vaadin-icon 
+    `},Ya=e=>!!e&&typeof e=="object"&&"__mateuGroup"in e,ns=e=>String(e??""),Er=(e,t,a)=>{const s=e??[];if(!t||!a||a.length===0)return s;const i=[];let r,n=!1;return s.forEach((l,c)=>{const u=ns(l?.[t]);if(!n||u!==r){const m=a.find(p=>ns(p.value)===u)??{value:u,count:s.filter(p=>ns(p?.[t])===u).length,aggregates:{}};i.push({__mateuGroup:m,__mateuGroupBy:t,_rowNumber:`__mateuGroup:${c}:${u}`}),n=!0,r=u}i.push(l)}),i},Pr=(e,t)=>e==null?"":t.dataType==="money"||t.stereotype==="money"?new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(e):t.aggregate==="count"?new Intl.NumberFormat(void 0,{maximumFractionDigits:0}).format(Math.round(e)):new Intl.NumberFormat(void 0,{maximumFractionDigits:2}).format(e),Tr=(e,t)=>e&&t.includes(e)?e:t.find(a=>!!a),Or=(e,t,a)=>{const s=e.__mateuGroup;return t.id===a?`${s.value} (${s.count})`:t.aggregate?Pr(s.aggregates?.[t.id],t):""},Rr=(e,t,a)=>{const s=t?.aggregates;if(!s||!e.some(n=>n.aggregate))return;const i={};e.forEach(n=>{n.aggregate&&s[n.id]!=null&&(i[n.id]=Pr(s[n.id],n))});const r=e[0];if(r&&i[r.id]===void 0){const n=t?.page?.totalElements;i[r.id]=a&&r.id===a&&n!=null?`Total (${n})`:"Total"}return i};var Ka=(e=>(e.NONE="NONE",e.INFO="INFO",e.SUCCESS="SUCCESS",e.WARNING="WARNING",e.DANGER="DANGER",e))(Ka||{});const En=(e,t,a)=>{const s=e[a.path];return s?o`<span theme="badge pill ${Wi(s.type)}">${s.message}</span>`:o``},Wi=e=>{switch(e){case Ka.SUCCESS:return"success";case Ka.WARNING:return"warning";case Ka.DANGER:return"error";case Ka.NONE:return"contrast"}return""},Pn=(e,t,a)=>{const i=e[a.path]?"vaadin:check":"vaadin:minus";return o`<vaadin-icon 
                     icon="${i}"
                     style="height: 16px; width: 16px; color: ${"var(--lumo-body-text-color)"};"
-            ></vaadin-icon>`},In=(e,t,a,s,i)=>{const r=e[a.path];let n=r;return s=="money"&&r&&r.locale&&r.currency?n=new Intl.NumberFormat(r.locale,{style:"currency",currency:r.currency}).format(r.value):i=="money"&&(n=new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(r)),o`${n}`},Gs=(e,t,a)=>{e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:a},bubbles:!0,composed:!0}))},_n=(e,t,a,s,i,r)=>{const n=a.xcolumn??r;if(n.text){if(n.actionId)return o`<a href="javascript: void(0);" @click="${u=>Gs(a,n,e)}">${n.text}</a>`;const c=e[a.path];return o`<a href="${c}">${n.text}</a>`}if(s=="string"){if(n.actionId){const u=e[a.path];return o`<a href="javascript: void(0);" @click="${h=>Gs(a,n,e)}">${u}</a>`}const c=e[a.path];return o`<a href="${c}">${c}</a>`}const l=e[a.path];return o`<a href="${l.href}">${l.text}</a>`},En=(e,t,a,s,i)=>s=="string"?e[a.path].split(",").map(l=>o`<vaadin-icon icon="${l}" style="width: 16px;"></vaadin-icon>`):e[a.path].split(",").map(n=>o`<vaadin-icon icon="${n.icon}" style="width: 16px;"></vaadin-icon>`),Tn=(e,t,a,s,i)=>{const r=e[a.path];return o`${ge(r)}`},Pn=(e,t,a,s,i,r)=>{if(s=="string"){const l=e[a.path],c="max-height: 40px; "+(r.style??"");return o`<img src="${l}" style="${c}">`}const n=e[a.path];return o`<img src="${n.src}" style="${r.style??""}">`},On=e=>{const t={_clickedRow:e.target.row};e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+e.detail.value.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Ks=e=>{const t={_clickedRow:e.target.row},a=e.target.action;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+a.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Rn=e=>{const t=document.createElement("vaadin-context-menu-item"),a=document.createElement("vaadin-icon");return a.style.color="var(--lumo-secondary-text-color)",a.style.marginInlineEnd="var(--lumo-space-s)",a.style.padding="var(--lumo-space-xs)",a.setAttribute("icon",e.icon),t.appendChild(a),e.label&&t.appendChild(document.createTextNode(e.label)),t.disabled=e.disabled,t},Ys=(e,t,a)=>{const s=e[a.path]?.actions?.map(i=>i.icon?{component:Rn(i),methodNameInCrud:i.methodNameInCrud}:{...i,text:i.label});return!s||s.length==0?o``:o`
+            ></vaadin-icon>`},Tn=(e,t,a,s,i)=>{const r=e[a.path];let n=r;return s=="money"&&r&&r.locale&&r.currency?n=new Intl.NumberFormat(r.locale,{style:"currency",currency:r.currency}).format(r.value):i=="money"&&(n=new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(r)),o`${n}`},Ys=(e,t,a)=>{e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:a},bubbles:!0,composed:!0}))},On=(e,t,a,s,i,r)=>{const n=a.xcolumn??r;if(n.text){if(n.actionId)return o`<a href="javascript: void(0);" @click="${u=>Ys(a,n,e)}">${n.text}</a>`;const c=e[a.path];return o`<a href="${c}">${n.text}</a>`}if(s=="string"){if(n.actionId){const u=e[a.path];return o`<a href="javascript: void(0);" @click="${m=>Ys(a,n,e)}">${u}</a>`}const c=e[a.path];return o`<a href="${c}">${c}</a>`}const l=e[a.path];return o`<a href="${l.href}">${l.text}</a>`},Rn=(e,t,a,s,i)=>s=="string"?e[a.path].split(",").map(l=>o`<vaadin-icon icon="${l}" style="width: 16px;"></vaadin-icon>`):e[a.path].split(",").map(n=>o`<vaadin-icon icon="${n.icon}" style="width: 16px;"></vaadin-icon>`),zn=(e,t,a,s,i)=>{const r=e[a.path];return o`${ge(r)}`},An=(e,t,a,s,i,r)=>{if(s=="string"){const l=e[a.path],c="max-height: 40px; "+(r.style??"");return o`<img src="${l}" style="${c}">`}const n=e[a.path];return o`<img src="${n.src}" style="${r.style??""}">`},jn=e=>{const t={_clickedRow:e.target.row};e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+e.detail.value.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Js=e=>{const t={_clickedRow:e.target.row},a=e.target.action;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+a.methodNameInCrud,parameters:t},bubbles:!0,composed:!0}))},Ln=e=>{const t=document.createElement("vaadin-context-menu-item"),a=document.createElement("vaadin-icon");return a.style.color="var(--lumo-secondary-text-color)",a.style.marginInlineEnd="var(--lumo-space-s)",a.style.padding="var(--lumo-space-xs)",a.setAttribute("icon",e.icon),t.appendChild(a),e.label&&t.appendChild(document.createTextNode(e.label)),t.disabled=e.disabled,t},Xs=(e,t,a)=>{const s=e[a.path]?.actions?.map(i=>i.icon?{component:Ln(i),methodNameInCrud:i.methodNameInCrud}:{...i,text:i.label});return!s||s.length==0?o``:o`
                                      <vaadin-menu-bar
                                          .items=${[{text:"···",children:s}]}
                                          theme="tertiary"
                                          .row="${e}"
                                          data-testid="menubar-${a.path}"
-                                         @item-selected="${On}"
+                                         @item-selected="${jn}"
                                      ></vaadin-menu-bar>
-                                   `},zn=(e,t,a)=>{if(a.path=="select"){const r={actionId:a.path,icon:"",label:"Select",disabled:!1,methodNameInCrud:"select"};return o`
-         <vaadin-button theme="tertiary" title="Select" @click="${Ks}" .row="${e}" .action="${r}">
+                                   `},Dn=(e,t,a)=>{if(a.path=="select"){const r={actionId:a.path,icon:"",label:"Select",disabled:!1,methodNameInCrud:"select"};return o`
+         <vaadin-button theme="tertiary" title="Select" @click="${Js}" .row="${e}" .action="${r}">
              Select
          </vaadin-button>
     `}const s=a.path&&e[a.path]?.methodNameInCrud?e[a.path]:e.action;if(!s)return o``;const i=s.icon&&!s.label;return o`
-         <vaadin-button theme="tertiary${i?" icon":""}" title="${s.label||d}" @click="${Ks}" .row="${e}" .action="${s}">
+         <vaadin-button theme="tertiary${i?" icon":""}" title="${s.label||d}" @click="${Js}" .row="${e}" .action="${s}">
              ${s.icon?o`<vaadin-icon icon="${s.icon}"></vaadin-icon>`:d}
              ${s.label?s.label:d}
          </vaadin-button>
-    `},jn=(e,t,a)=>{e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:a},bubbles:!0,composed:!0}))},An=(e,t,a,s,i,r)=>{const n=a.xcolumn??r;if(n.actionId){const c=n.text||e[a.path];return o`
-            <vaadin-button theme="tertiary" @click="${u=>jn(a,n,e)}" .row="${e}">
+    `},Fn=(e,t,a)=>{e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:a},bubbles:!0,composed:!0}))},Nn=(e,t,a,s,i,r)=>{const n=a.xcolumn??r;if(n.actionId){const c=n.text||e[a.path];return o`
+            <vaadin-button theme="tertiary" @click="${u=>Fn(a,n,e)}" .row="${e}">
                 ${c}
             </vaadin-button>
-        `}const l=e[a.path];return o`<a href="${l}">${n.text||l}</a>`},Ln=(e,t,a,s,i,r,n,l,c)=>{const u=e[a.path];return w(s,u,i,r,n,l,c)},fs=new WeakMap,Dn=(e,t)=>fs.get(e)?.[t],Fn=(e,t,a)=>{let s=fs.get(e);s||(s={},fs.set(e,s)),s[t]=a},Js=e=>{if(e==null||e==="")return null;const t=Number(e);return Number.isNaN(t)?null:t},Nn=(e,t,a,s)=>{const i=a?.field?.fieldId,r=c=>{if(e[t.id]===c||e[t.id]==null&&(c===""||c==null))return;if(e[t.id]=c,!i){a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"update-row",parameters:{_editedRow:{...e}}},bubbles:!0,composed:!0}));return}const h=(a?.state??s)[i];a.dispatchEvent(new CustomEvent("value-changed",{detail:{fieldId:i,value:Array.isArray(h)?[...h]:h},bubbles:!0,composed:!0}))},n=e[t.id],l=n==null?"":String(n);switch(t.editorType){case"boolean":return o`<vaadin-checkbox ?checked=${!!n} @checked-changed=${c=>r(c.detail.value)}></vaadin-checkbox>`;case"integer":return o`<vaadin-integer-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(Js(c.target.value))}></vaadin-integer-field>`;case"number":return o`<vaadin-number-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(Js(c.target.value))}></vaadin-number-field>`;case"date":return o`<vaadin-date-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-date-picker>`;case"time":return o`<vaadin-time-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-time-picker>`;case"datetime":return o`<vaadin-date-time-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-date-time-picker>`;case"select":return o`<vaadin-combo-box
+        `}const l=e[a.path];return o`<a href="${l}">${n.text||l}</a>`},Mn=(e,t,a,s,i,r,n,l,c)=>{const u=e[a.path];return w(s,u,i,r,n,l,c)},bs=new WeakMap,qn=(e,t)=>bs.get(e)?.[t],Un=(e,t,a)=>{let s=bs.get(e);s||(s={},bs.set(e,s)),s[t]=a},Qs=e=>{if(e==null||e==="")return null;const t=Number(e);return Number.isNaN(t)?null:t},Bn=(e,t,a,s)=>{const i=a?.field?.fieldId,r=c=>{if(e[t.id]===c||e[t.id]==null&&(c===""||c==null))return;if(e[t.id]=c,!i){a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"update-row",parameters:{_editedRow:{...e}}},bubbles:!0,composed:!0}));return}const m=(a?.state??s)[i];a.dispatchEvent(new CustomEvent("value-changed",{detail:{fieldId:i,value:Array.isArray(m)?[...m]:m},bubbles:!0,composed:!0}))},n=e[t.id],l=n==null?"":String(n);switch(t.editorType){case"boolean":return o`<vaadin-checkbox ?checked=${!!n} @checked-changed=${c=>r(c.detail.value)}></vaadin-checkbox>`;case"integer":return o`<vaadin-integer-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(Qs(c.target.value))}></vaadin-integer-field>`;case"number":return o`<vaadin-number-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(Qs(c.target.value))}></vaadin-number-field>`;case"date":return o`<vaadin-date-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-date-picker>`;case"time":return o`<vaadin-time-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-time-picker>`;case"datetime":return o`<vaadin-date-time-picker theme="small" style="width:100%;" .value=${l} @value-changed=${c=>r(c.detail.value)}></vaadin-date-time-picker>`;case"select":return o`<vaadin-combo-box
                 theme="small" style="width:100%;"
                 .items=${(t.editorOptions??[]).map(c=>({label:c.label,value:String(c.value)}))}
                 item-label-path="label" item-value-path="value"
                 .value=${l}
-                @value-changed=${c=>r(c.detail.value)}></vaadin-combo-box>`;case"lookup":{const c=a?.field?.fieldId,u=`search-${c}-${t.id}`,h=`${c}-${t.id}`,f=(t.editorOptions??[]).find(y=>String(y.value)===l)??(l?{value:l,label:Dn(e,t.id)??l}:void 0);return o`<vaadin-combo-box
+                @value-changed=${c=>r(c.detail.value)}></vaadin-combo-box>`;case"lookup":{const c=a?.field?.fieldId,u=`search-${c}-${t.id}`,m=`${c}-${t.id}`,f=(t.editorOptions??[]).find(y=>String(y.value)===l)??(l?{value:l,label:qn(e,t.id)??l}:void 0);return o`<vaadin-combo-box
                 theme="small" style="width:100%;"
                 item-label-path="label" item-id-path="value"
-                .dataProvider=${(y,x)=>{a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:u,parameters:{searchText:y.filter,size:y.pageSize,page:y.page},callback:T=>{const U=T?.fragments?.[0]?.data?.[h];x(U?.content??[],U?.totalElements??0)},callbackonly:!0},bubbles:!0,composed:!0}))}}
+                .dataProvider=${(y,x)=>{a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:u,parameters:{searchText:y.filter,size:y.pageSize,page:y.page},callback:P=>{const U=P?.fragments?.[0]?.data?.[m];x(U?.content??[],U?.totalElements??0)},callbackonly:!0},bubbles:!0,composed:!0}))}}
                 .selectedItem=${f}
-                @selected-item-changed=${y=>{const x=y.detail.value,T=x?x.value:null;String(T??"")!==l&&(x&&Fn(e,t.id,x.label),r(T))}}></vaadin-combo-box>`}default:return o`<vaadin-text-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(c.target.value)}></vaadin-text-field>`}},ns=e=>Mo(()=>o`<span title="${e}" style="white-space:normal;overflow-wrap:break-word;">${e}</span>`,[e]),ls=e=>e!==void 0?qo(()=>o`<span style="font-weight: 600; white-space: nowrap;">${e}</span>`,[e]):d,Mn=e=>{e.preventDefault(),e.stopPropagation(),e.currentTarget?.dispatchEvent(new CustomEvent("sort-direction-changed",{detail:{grid:e.currentTarget.parentElement},bubbles:!0,composed:!0}))},qn=(e,t,a,s,i,r,n,l)=>{const c=Oe(e.label,s,i);return o`
+                @selected-item-changed=${y=>{const x=y.detail.value,P=x?x.value:null;String(P??"")!==l&&(x&&Un(e,t.id,x.label),r(P))}}></vaadin-combo-box>`}default:return o`<vaadin-text-field theme="small" style="width:100%;" .value=${l} @change=${c=>r(c.target.value)}></vaadin-text-field>`}},ls=e=>Vo(()=>o`<span title="${e}" style="white-space:normal;overflow-wrap:break-word;">${e}</span>`,[e]),ds=e=>e!==void 0?Wo(()=>o`<span style="font-weight: 600; white-space: nowrap;">${e}</span>`,[e]):d,Vn=e=>{e.preventDefault(),e.stopPropagation(),e.currentTarget?.dispatchEvent(new CustomEvent("sort-direction-changed",{detail:{grid:e.currentTarget.parentElement},bubbles:!0,composed:!0}))},Wn=(e,t,a,s,i,r,n,l)=>{const c=Oe(e.label,s,i);return o`
 <vaadin-grid-column-group header="${c}">
-    ${e.columns.map(u=>Or(u.metadata,t,a,s,i,r,n,l?.[u.metadata?.id]))}
+    ${e.columns.map(u=>zr(u.metadata,t,a,s,i,r,n,l?.[u.metadata?.id]))}
 </vaadin-grid-column-group>
-`},Is=(e,t,a,s,i,r,n,l)=>v.GridGroupColumn==e.metadata?.type?qn(e.metadata,t,a,s,i,r,n,l):Or(e.metadata,t,a,s,i,r,n,l?.[e.metadata?.id]),Or=(e,t,a,s,i,r,n,l)=>{const c=Oe(e.label,s,i);return e.sortable?o`
+`},Es=(e,t,a,s,i,r,n,l)=>v.GridGroupColumn==e.metadata?.type?Wn(e.metadata,t,a,s,i,r,n,l):zr(e.metadata,t,a,s,i,r,n,l?.[e.metadata?.id]),zr=(e,t,a,s,i,r,n,l)=>{const c=Oe(e.label,s,i);return e.sortable?o`
                         <vaadin-grid-sort-column
                                 path="${e.id}"
                                 text-align="${e.align??d}"
@@ -385,12 +385,12 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                                 flex-grow="${e.flexGrow??d}"
                                 ?resizable="${e.resizable}"
                                 width="${e.width??d}"
-                                @direction-changed="${Mn}"
+                                @direction-changed="${Vn}"
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
-                                ${ns(c)}
-                                ${ls(l)}
-                                ${wt((u,h,p)=>xi(u,h,p,e,t,a,s,i,r,n),[])}
+                                ${ls(c)}
+                                ${ds(l)}
+                                ${kt((u,m,p)=>wi(u,m,p,e,t,a,s,i,r,n),[])}
                         ></vaadin-grid-sort-column>
                     `:e.filterable?o`
                         <vaadin-grid-filter-column
@@ -404,9 +404,9 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                                 width="${e.width??d}"
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
-                                ${ns(c)}
-                                ${ls(l)}
-                                ${wt((u,h,p)=>xi(u,h,p,e,t,a,s,i,r,n),[])}
+                                ${ls(c)}
+                                ${ds(l)}
+                                ${kt((u,m,p)=>wi(u,m,p,e,t,a,s,i,r,n),[])}
                         ></vaadin-grid-filter-column>
                     `:o`
                         <vaadin-grid-column
@@ -421,39 +421,39 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                                 data-data-type="${e.dataType}"
                                 data-stereotype="${e.stereotype}"
                                 .xcolumn="${e}"
-                                ${ns(c)}
-                                ${ls(l)}
-                                ${wt((u,h,p)=>xi(u,h,p,e,t,a,s,i,r,n),[])}
+                                ${ls(c)}
+                                ${ds(l)}
+                                ${kt((u,m,p)=>wi(u,m,p,e,t,a,s,i,r,n),[])}
                         ></vaadin-grid-column>
-                    `},xi=(e,t,a,s,i,r,n,l,c,u)=>{const h=a.dataset.dataType??"",p=a.dataset.stereotype??"";if(Ga(e)){const g=i?.metadata,y=(g?.columns??[]).flatMap(N=>N?.metadata?.type===v.GridGroupColumn?(N.metadata.columns??[]).map(oe=>oe?.metadata?.id):[N?.metadata?.id]),x=Er(e.__mateuGroupBy,y),T=Tr(e,s,x),U=e.__mateuGroup.hiddenActions??[],ae=s.id===y[y.length-1]?(g?.groupActions??[]).filter(N=>!U.includes(N.actionId??N.id)):[];return ae.length?o`<span style="display: flex; align-items: center; justify-content: flex-end; gap: var(--lumo-space-s); overflow: hidden;">
-                ${T?o`<span style="font-weight: 600;">${T}</span>`:d}
+                    `},wi=(e,t,a,s,i,r,n,l,c,u)=>{const m=a.dataset.dataType??"",p=a.dataset.stereotype??"";if(Ya(e)){const g=i?.metadata,y=(g?.columns??[]).flatMap(N=>N?.metadata?.type===v.GridGroupColumn?(N.metadata.columns??[]).map(ne=>ne?.metadata?.id):[N?.metadata?.id]),x=Tr(e.__mateuGroupBy,y),P=Or(e,s,x),U=e.__mateuGroup.hiddenActions??[],ae=s.id===y[y.length-1]?(g?.groupActions??[]).filter(N=>!U.includes(N.actionId??N.id)):[];return ae.length?o`<span style="display: flex; align-items: center; justify-content: flex-end; gap: var(--lumo-space-s); overflow: hidden;">
+                ${P?o`<span style="font-weight: 600;">${P}</span>`:d}
                 ${ae.map(N=>o`
                     <vaadin-button theme="tertiary small" style="flex-shrink: 0;"
-                        @click="${oe=>{oe.stopPropagation(),oe.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+(N.actionId??N.id),parameters:{_groupValue:e.__mateuGroup.value}},bubbles:!0,composed:!0}))}}">${N.label??N.caption??""}</vaadin-button>
+                        @click="${ne=>{ne.stopPropagation(),ne.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-"+(N.actionId??N.id),parameters:{_groupValue:e.__mateuGroup.value}},bubbles:!0,composed:!0}))}}">${N.label??N.caption??""}</vaadin-button>
                 `)}
-            </span>`:o`<span title="${T}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${T}</span>`}if(s.editable)return Nn(e,s,i,n);if(h=="status")return Cn(e,t,a);if(h=="bool")return Sn(e,t,a);if(h=="money"||p=="money")return In(e,t,a,h,p);if(h=="link"||p=="link")return _n(e,t,a,h,p,s);if(h=="icon"||p=="icon")return En(e,t,a,h);if(p=="html")return Tn(e,t,a);if(p=="image")return Pn(e,t,a,h,p,s);if(h=="menu")return Ys(e,t,a);if(h=="component")return Ln(e,t,a,i,r,n,l,c,u);if(h=="action")return zn(e,t,a);if(h=="actionGroup")return Ys(e,t,a);if(p=="button"||s.actionId)return An(e,t,a,h,p,s);const f=e[a.path];return o`<span title="${f}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${f}</span>`},Un=(e,t,a,s,i,r,n)=>{const l=t.metadata;if(l.tree){const u=async(h,p)=>{const f=h.parentItem?h.parentItem.children:l.page.content;p(f,f.length)};return o`
+            </span>`:o`<span title="${P}" style="font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${P}</span>`}if(s.editable)return Bn(e,s,i,n);if(m=="status")return En(e,t,a);if(m=="bool")return Pn(e,t,a);if(m=="money"||p=="money")return Tn(e,t,a,m,p);if(m=="link"||p=="link")return On(e,t,a,m,p,s);if(m=="icon"||p=="icon")return Rn(e,t,a,m);if(p=="html")return zn(e,t,a);if(p=="image")return An(e,t,a,m,p,s);if(m=="menu")return Xs(e,t,a);if(m=="component")return Mn(e,t,a,i,r,n,l,c,u);if(m=="action")return Dn(e,t,a);if(m=="actionGroup")return Xs(e,t,a);if(p=="button"||s.actionId)return Nn(e,t,a,m,p,s);const f=e[a.path];return o`<span title="${f}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">${f}</span>`},Hn=(e,t,a,s,i,r,n)=>{const l=t.metadata;if(l.tree){const u=async(m,p)=>{const f=m.parentItem?m.parentItem.children:l.page.content;p(f,f.length)};return o`
         <vaadin-grid style="${t.style}" class="${t.cssClasses}"
                      .itemHasChildrenPath="${"children"}" .dataProvider="${u}"
                      slot="${t.slot??d}"
                      all-rows-visible
         >
-            ${l.content.map((h,p)=>{const f=h.metadata;return p>0?o`
-            <vaadin-grid-column path="${h.id}"
+            ${l.content.map((m,p)=>{const f=m.metadata;return p>0?o`
+            <vaadin-grid-column path="${m.id}"
                                 header="${f?.label??d}"
                                 ?auto-width="${f?.autoWidth}"
                                 flex-grow="${f?.flexGrow??d}"
                                 width="${f?.width??d}"
-                                .column="${h.metadata}"
-                                ${wt((g,y,x)=>xi(g,y,x,f,e,a,s,i,r,n),[])}></vaadin-grid-column>
+                                .column="${m.metadata}"
+                                ${kt((g,y,x)=>wi(g,y,x,f,e,a,s,i,r,n),[])}></vaadin-grid-column>
 `:o`
-            <vaadin-grid-tree-column path="${h.id}"
+            <vaadin-grid-tree-column path="${m.id}"
                                 header="${f?.label??d}"
                                 ?auto-width="${f?.autoWidth}"
                                 flex-grow="${f?.flexGrow??d}"
                                 width="${f?.width??d}"
             ></vaadin-grid-tree-column>
 `})}
-            <span slot="empty-state">${aa()}</span>
+            <span slot="empty-state">${sa()}</span>
         </vaadin-grid>
     `}let c=l.page?.content;return t.id&&s&&s[t.id]&&(c=s[t.id]),c||(c=[]),o`
         <vaadin-grid 
@@ -462,29 +462,29 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
                 .items="${c}"
                 all-rows-visible
         >
-            ${l?.content?.map(u=>Is(u,e,a,s,i,r,n))}
+            ${l?.content?.map(u=>Es(u,e,a,s,i,r,n))}
         </vaadin-grid>
-    `},Bn=e=>{const a=(e.metadata.items??[]).map(s=>({text:s.text,time:s.time,userName:s.userName,userImg:s.userImg,userAbbr:s.userAbbr,userColorIndex:s.userColorIndex}));return o`
+    `},Gn=e=>{const a=(e.metadata.items??[]).map(s=>({text:s.text,time:s.time,userName:s.userName,userImg:s.userImg,userAbbr:s.userAbbr,userColorIndex:s.userColorIndex}));return o`
         <vaadin-message-list
                 markdown
                 style="${e.style}" class="${e.cssClasses}"
                 slot="${e.slot??d}"
                 .items="${a}"
         ></vaadin-message-list>
-    `},Lt=new Bo,ne={value:{}},Ya={value:{}},Vn=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
-        <vaadin-context-menu .items=${_s(e,l.menu,a,s,i,r,n)} 
+    `},Ft=new Go,le={value:{}},Xa={value:{}},Kn=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+        <vaadin-context-menu .items=${Ps(e,l.menu,a,s,i,r,n)} 
                              style="${t.style}" 
                              class="${t.cssClasses}"
                              open-on="${l.activateOnLeftClick?"click":d}"
                              slot="${t.slot??d}">
             ${w(e,l.wrapped,a,s,i,r,n)}
         </vaadin-context-menu>
-            `},Wn=(e,t,a,s,i)=>{const r=t.metadata;return o`
-        <vaadin-menu-bar .items=${_s(e,r.options,a,s,i,ne,Ya)}
+            `},Yn=(e,t,a,s,i)=>{const r=t.metadata;return o`
+        <vaadin-menu-bar .items=${Ps(e,r.options,a,s,i,le,Xa)}
                          style="${t.style}" class="${t.cssClasses}"
                          slot="${t.slot??d}">
         </vaadin-menu-bar>
-            `},Xs=(e,t,a,s,i,r,n)=>{const l=document.createElement("vaadin-context-menu-item");return $r(w(e,t,a,s,i,r,n),l),l},_s=(e,t,a,s,i,r,n)=>t.map(l=>l.submenus?{text:l.component?void 0:l.label,route:l.path,checked:l.selected,disabled:l.disabled,className:l.className,component:l.component?Xs(e,l.component,a,s,i,r,n):void 0,children:_s(e,l.submenus,a,s,i,r,n)}:l.separator?{component:"hr"}:{text:l.component?void 0:l.label,route:l.path,checked:l.selected,disabled:l.disabled,className:l.className,component:l.component?Xs(e,l.component,a,s,i,r,n):void 0}),Hn=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.content?.metadata,u=c?.type==v.Notice&&c.fullWidth===!0;return o`
+            `},Zs=(e,t,a,s,i,r,n)=>{const l=document.createElement("vaadin-context-menu-item");return xr(w(e,t,a,s,i,r,n),l),l},Ps=(e,t,a,s,i,r,n)=>t.map(l=>l.submenus?{text:l.component?void 0:l.label,route:l.path,checked:l.selected,disabled:l.disabled,className:l.className,component:l.component?Zs(e,l.component,a,s,i,r,n):void 0,children:Ps(e,l.submenus,a,s,i,r,n)}:l.separator?{component:"hr"}:{text:l.component?void 0:l.label,route:l.path,checked:l.selected,disabled:l.disabled,className:l.className,component:l.component?Zs(e,l.component,a,s,i,r,n):void 0}),Jn=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.content?.metadata,u=c?.type==v.Notice&&c.fullWidth===!0;return o`
         <vaadin-custom-field label="${l.label}"
                              style="${u?"width: 100%; ":""}${t.style}"
                              class="${t.cssClasses}"
@@ -493,116 +493,116 @@ import{d as o,A as d,a as C,j as m,r as $,i as S,k,m as ge,D as $r,c as P,w as X
         >
             ${w(e,l.content,a,s,i,r,n)}
         </vaadin-custom-field>
-            `},Gn=e=>{const t=e.metadata,a=s=>{const i=s.detail?.value??"";!t.actionId||!i.trim()||s.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:{message:i}},bubbles:!0,composed:!0}))};return o`
+            `},Xn=e=>{const t=e.metadata,a=s=>{const i=s.detail?.value??"";!t.actionId||!i.trim()||s.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,parameters:{message:i}},bubbles:!0,composed:!0}))};return o`
         <vaadin-message-input
                 style="${e.style}" class="${e.cssClasses}"
                 slot="${e.slot??d}"
                 @submit="${a}"
         ></vaadin-message-input>
-    `},Kn=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+    `},Qn=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <div id="show-notifications">${w(e,l.wrapped,a,s,i,r,n)}</div>
         <vaadin-tooltip
                 style="${t.style}" class="${t.cssClasses}"
                 slot="${t.slot??d}"
                 for="show-notifications" text="${l.text}" position="top-start"></vaadin-tooltip>
-    `},Yn=e=>{if(e instanceof CustomEvent)return e.detail;const t={};for(const a in e){const s=e[a];["number","string","boolean"].indexOf(typeof s)>=0&&(t[a]=e[a])}return t},Qs=(e,t,a)=>{for(let s in t.attributes)e.setAttribute(s,t.attributes[s]);a.style&&e.setAttribute("style",a.style),a.cssClasses&&e.setAttribute("class",a.cssClasses),a.slot&&e.setAttribute("slot",a.slot),t.content&&(t.html?e.innerHTML=t.content:e.append(t.content))},Jn=e=>{const t=e.name;t.startsWith("vaadin-chart")&&!customElements.get(t)&&Pe(()=>import("./vendor-highcharts.js"),__vite__mapDeps([0,1,2,3,4]));const a=e.attributes?e.attributes.import:void 0;a&&t.includes("-")&&!customElements.get(t)&&import(a)},Xn=(e,t,a)=>{Jn(t);let s=t.name;return t.attributes&&t.attributes.id&&(s="#"+t.attributes.id),setTimeout(()=>{const i=e.shadowRoot?.querySelector(".element-container")?.querySelector(s);if(i){for(;i.firstChild;)i.removeChild(i.lastChild);Qs(i,t,a)}else{const r=document.createElement(t.name);Qs(r,t,a);for(let n in t.on)r.addEventListener(n,l=>{const c=Yn(l);e.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:t.on[n],parameters:{event:c}},bubbles:!0,composed:!0}))});e.shadowRoot?.querySelector(".element-container")?.appendChild(r)}}),o`<div class="element-container"></div>`};var rt=(e=>(e.div="div",e.p="p",e.h1="h1",e.h2="h2",e.h3="h3",e.h4="h4",e.h5="h5",e.h6="h6",e.span="span",e))(rt||{});const Qn=(e,t,a,s,i)=>{const r=e.metadata,n=r.attributes?.["data-colspan"],l=Bi(r.text,t,a,s,i),c={xl:"var(--lumo-font-size-xl, 1.375rem)",l:"var(--lumo-font-size-l, 1.125rem)",s:"var(--lumo-font-size-s, .875rem)",xs:"var(--lumo-font-size-xs, .8125rem)"},u=(r.size&&c[r.size]?`font-size: ${c[r.size]}; `:"")+(r.noMargins?"margin-block-start: 0; margin-block-end: 0; ":"");return rt.h1==r.container?o`
+    `},Zn=e=>{if(e instanceof CustomEvent)return e.detail;const t={};for(const a in e){const s=e[a];["number","string","boolean"].indexOf(typeof s)>=0&&(t[a]=e[a])}return t},er=(e,t,a)=>{for(let s in t.attributes)e.setAttribute(s,t.attributes[s]);a.style&&e.setAttribute("style",a.style),a.cssClasses&&e.setAttribute("class",a.cssClasses),a.slot&&e.setAttribute("slot",a.slot),t.content&&(t.html?e.innerHTML=t.content:e.append(t.content))},el=e=>{const t=e.name;t.startsWith("vaadin-chart")&&!customElements.get(t)&&Te(()=>import("./vendor-highcharts.js"),__vite__mapDeps([0,1,2,3,4]));const a=e.attributes?e.attributes.import:void 0;a&&t.includes("-")&&!customElements.get(t)&&import(a)},tl=(e,t,a)=>{el(t);let s=t.name;return t.attributes&&t.attributes.id&&(s="#"+t.attributes.id),setTimeout(()=>{const i=e.shadowRoot?.querySelector(".element-container")?.querySelector(s);if(i){for(;i.firstChild;)i.removeChild(i.lastChild);er(i,t,a)}else{const r=document.createElement(t.name);er(r,t,a);for(let n in t.on)r.addEventListener(n,l=>{const c=Zn(l);e.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:t.on[n],parameters:{event:c}},bubbles:!0,composed:!0}))});e.shadowRoot?.querySelector(".element-container")?.appendChild(r)}}),o`<div class="element-container"></div>`};var ot=(e=>(e.div="div",e.p="p",e.h1="h1",e.h2="h2",e.h3="h3",e.h4="h4",e.h5="h5",e.h6="h6",e.span="span",e))(ot||{});const al=(e,t,a,s,i)=>{const r=e.metadata,n=r.attributes?.["data-colspan"],l=Vi(r.text,t,a,s,i),c={xl:"var(--lumo-font-size-xl, 1.375rem)",l:"var(--lumo-font-size-l, 1.125rem)",s:"var(--lumo-font-size-s, .875rem)",xs:"var(--lumo-font-size-xs, .8125rem)"},u=(r.size&&c[r.size]?`font-size: ${c[r.size]}; `:"")+(r.noMargins?"margin-block-start: 0; margin-block-end: 0; ":"");return ot.h1==r.container?o`
             <h1 style="${u}${e.style}" class="${e.cssClasses}"
-                id="${P(e.id)}"
-                data-colspan="${P(n)}"
+                id="${T(e.id)}"
+                data-colspan="${T(n)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h1>
-        `:rt.h2==r.container?o`
+        `:ot.h2==r.container?o`
             <h2 style="${u}${e.style}" class="${e.cssClasses}"
-                id="${P(e.id)}"
-                data-colspan="${P(n)}"
+                id="${T(e.id)}"
+                data-colspan="${T(n)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h2>
-        `:rt.h3==r.container?o`
+        `:ot.h3==r.container?o`
             <h3 style="${u}${e.style}" class="${e.cssClasses}"
-                id="${P(e.id)}"
-                data-colspan="${P(n)}"
+                id="${T(e.id)}"
+                data-colspan="${T(n)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h3>
-        `:rt.h4==r.container?o`
+        `:ot.h4==r.container?o`
             <h4 style="${u}${e.style}" class="${e.cssClasses}"
-                id="${P(e.id)}"
-                data-colspan="${P(n)}"
+                id="${T(e.id)}"
+                data-colspan="${T(n)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h4>
-        `:rt.h5==r.container?o`
+        `:ot.h5==r.container?o`
             <h5 style="${u}${e.style}" class="${e.cssClasses}"
-                id="${P(e.id)}"
-                data-colspan="${P(n)}"
+                id="${T(e.id)}"
+                data-colspan="${T(n)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h5>
-        `:rt.h6==r.container?o`
+        `:ot.h6==r.container?o`
             <h6 style="${u}${e.style}" class="${e.cssClasses}"
-                id="${P(e.id)}"
-                data-colspan="${P(n)}"
+                id="${T(e.id)}"
+                data-colspan="${T(n)}"
                 slot="${e.slot??d}">
                 ${l??d}
             </h6>
-        `:rt.p==r.container?o`
+        `:ot.p==r.container?o`
                <p style="${u}${e.style}" class="${e.cssClasses}"
-                  id="${P(e.id)}"
-                  data-colspan="${P(n)}"
+                  id="${T(e.id)}"
+                  data-colspan="${T(n)}"
                   slot="${e.slot??d}">
                    ${l??d}
                </p>
-            `:rt.div==r.container?o`
+            `:ot.div==r.container?o`
                <div style="${u}${e.style}" class="${e.cssClasses}"
-                    id="${P(e.id)}"
-                    data-colspan="${P(n)}"
+                    id="${T(e.id)}"
+                    data-colspan="${T(n)}"
                     slot="${e.slot??d}">${l?ge(l):d}</div>
-            `:rt.span==r.container?o`
+            `:ot.span==r.container?o`
                <span style="${u}${e.style}" class="${e.cssClasses}"
-                     id="${P(e.id)}"
-                     data-colspan="${P(n)}"
+                     id="${T(e.id)}"
+                     data-colspan="${T(n)}"
                     slot="${e.slot??d}">${l??d}</span>
             `:o`
                <p
-                       id="${P(e.id)}"
-                       data-colspan="${P(n)}"
+                       id="${T(e.id)}"
+                       data-colspan="${T(n)}"
                        slot="${e.slot??d}">
                    Unknown text container: ${r.container} 
                </p>
-            `},Zn=(e,t,a)=>{const s=e.metadata;return o`<span theme="badge ${s.color} ${s.pill?"pill":""} ${s.small?"small":""} ${s.primary?"primary":""}"
+            `},il=(e,t,a)=>{const s=e.metadata;return o`<span theme="badge ${s.color} ${s.pill?"pill":""} ${s.small?"small":""} ${s.primary?"primary":""}"
                       style="${e.style}" class="${e.cssClasses}"
-                      slot="${e.slot??d}">${le(s.text,t,a)}</span>`},el=(e,t,a)=>{const s=le(e.text,t,a);if(!s)return d;let i=le(e.color,t,a);return i=="SUCCESS"&&(i="success"),i=="ERROR"&&(i="error"),i=="DANGER"&&(i="error"),i=="WARNING"&&(i="warning"),i=="INFO"&&(i="info"),i=="PRIMARY"&&(i="primary"),i=="SECONDARY"&&(i="secondary"),i=="TERTIARY"&&(i="tertiary"),i=="QUATERNARY"&&(i="quaternary"),i=="LIGHT"&&(i="light"),i=="DARK"&&(i="dark"),o`<span theme="badge ${i} ${e.pill?"pill":""} ${e.small?"small":""} ${e.primary?"primary":""}">${s}</span>`},tl=e=>{const t=e.metadata;return o`<a href="${t.url}" target="${t.target??d}"
+                      slot="${e.slot??d}">${de(s.text,t,a)}</span>`},sl=(e,t,a)=>{const s=de(e.text,t,a);if(!s)return d;let i=de(e.color,t,a);return i=="SUCCESS"&&(i="success"),i=="ERROR"&&(i="error"),i=="DANGER"&&(i="error"),i=="WARNING"&&(i="warning"),i=="INFO"&&(i="info"),i=="PRIMARY"&&(i="primary"),i=="SECONDARY"&&(i="secondary"),i=="TERTIARY"&&(i="tertiary"),i=="QUATERNARY"&&(i="quaternary"),i=="LIGHT"&&(i="light"),i=="DARK"&&(i="dark"),o`<span theme="badge ${i} ${e.pill?"pill":""} ${e.small?"small":""} ${e.primary?"primary":""}">${s}</span>`},rl=e=>{const t=e.metadata;return o`<a href="${t.url}" target="${t.target??d}"
                    rel="${t.target==="_blank"?"noopener":d}"
                    style="${e.style}" class="${e.cssClasses}"
-                   slot="${e.slot??d}">${t.text}</a>`},Rr=(e,t)=>{const a=e.toLowerCase().split("+");return t.ctrlKey===a.includes("ctrl")&&t.altKey===a.includes("alt")&&t.shiftKey===a.includes("shift")&&t.metaKey===a.includes("meta")},al=(e,t)=>{if(!Rr(e,t))return!1;const a=e.toLowerCase().split("+"),s=a[a.length-1];return!!(t.key.toLowerCase()===s||/^[a-z]$/.test(s)&&t.code==="Key"+s.toUpperCase()||/^[0-9]$/.test(s)&&(t.code==="Digit"+s||t.code==="Numpad"+s))},il=e=>e?e.split("+").map(t=>t.length<=1?t.toUpperCase():t.charAt(0).toUpperCase()+t.slice(1)).join("+"):void 0,sl=(e,t)=>{const a=e.target.dataset.actionId;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a,parameters:t.parameters},bubbles:!0,composed:!0}))},rl=(e,t,a)=>{const s=e.metadata,i=Oe(s.label,t,a);let r="";return s.buttonStyle&&(r+=" "+s.buttonStyle),s.color&&s.color!=="none"&&s.color!=="normal"&&(r+=" "+s.color),s.size&&s.size!=="none"&&s.size!=="normal"&&(r+=" "+s.size),o`<vaadin-button
+                   slot="${e.slot??d}">${t.text}</a>`},Ar=(e,t)=>{const a=e.toLowerCase().split("+");return t.ctrlKey===a.includes("ctrl")&&t.altKey===a.includes("alt")&&t.shiftKey===a.includes("shift")&&t.metaKey===a.includes("meta")},ol=(e,t)=>{if(!Ar(e,t))return!1;const a=e.toLowerCase().split("+"),s=a[a.length-1];return!!(t.key.toLowerCase()===s||/^[a-z]$/.test(s)&&t.code==="Key"+s.toUpperCase()||/^[0-9]$/.test(s)&&(t.code==="Digit"+s||t.code==="Numpad"+s))},nl=e=>e?e.split("+").map(t=>t.length<=1?t.toUpperCase():t.charAt(0).toUpperCase()+t.slice(1)).join("+"):void 0,ll=(e,t)=>{const a=e.target.dataset.actionId;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a,parameters:t.parameters},bubbles:!0,composed:!0}))},dl=(e,t,a)=>{const s=e.metadata,i=Oe(s.label,t,a);let r="";return s.buttonStyle&&(r+=" "+s.buttonStyle),s.color&&s.color!=="none"&&s.color!=="normal"&&(r+=" "+s.color),s.size&&s.size!=="none"&&s.size!=="normal"&&(r+=" "+s.size),o`<vaadin-button
 id="${e.id}"
             data-action-id="${s.actionId}"
-            @click="${n=>sl(n,s)}"
+            @click="${n=>ll(n,s)}"
             style="${e.style}"
             class="${e.cssClasses}"
             theme="${r}"
             ?disabled="${s.disabled}"
-            title="${s.shortcut?`${i} (${il(s.shortcut)})`:d}"
+            title="${s.shortcut?`${i} (${nl(s.shortcut)})`:d}"
             slot="${e.slot??d}"
-    >${s.iconOnLeft?o`<vaadin-icon icon="${s.iconOnLeft}"></vaadin-icon>`:d}${i}${s.iconOnRight?o`<vaadin-icon icon="${s.iconOnRight}"></vaadin-icon>`:d}</vaadin-button>`},ol=(e,t,a,s,i,r,n)=>{const l=t.metadata;if(!l)return o``;let c="";return l.variants?.map(u=>u=="stretchMedia"?"stretch-media":u=="coverMedia"?"cover-media":u).forEach(u=>c+=" "+u),c=c.trim(),o`
+    >${s.iconOnLeft?o`<vaadin-icon icon="${s.iconOnLeft}"></vaadin-icon>`:d}${i}${s.iconOnRight?o`<vaadin-icon icon="${s.iconOnRight}"></vaadin-icon>`:d}</vaadin-button>`},cl=(e,t,a,s,i,r,n)=>{const l=t.metadata;if(!l)return o``;let c="";return l.variants?.map(u=>u=="stretchMedia"?"stretch-media":u=="coverMedia"?"cover-media":u).forEach(u=>c+=" "+u),c=c.trim(),o`
         <vaadin-card
                 style="${t.style}" 
                 class="${t.cssClasses}" 
                 theme="${c}"
                 slot="${t.slot??d}"
         >
-            ${l.media?ta(e,l.media,a,s,i,r,n,"media",!1):d}
-            ${l.title?ta(e,l.title,a,s,i,r,n,"title",!1):d}
-            ${l.subtitle?ta(e,l.subtitle,a,s,i,r,n,"subtitle",!1):d}
-            ${l.header?ta(e,l.header,a,s,i,r,n,"header",!1):d}
-            ${l.headerPrefix?ta(e,l.headerPrefix,a,s,i,r,n,"header-prefix",!1):d}
-            ${l.headerSuffix?ta(e,l.headerSuffix,a,s,i,r,n,"header-suffix",!1):d}
-            ${l.footer?ta(e,l.footer,a,s,i,r,n,"footer",!1):d}
+            ${l.media?ia(e,l.media,a,s,i,r,n,"media",!1):d}
+            ${l.title?ia(e,l.title,a,s,i,r,n,"title",!1):d}
+            ${l.subtitle?ia(e,l.subtitle,a,s,i,r,n,"subtitle",!1):d}
+            ${l.header?ia(e,l.header,a,s,i,r,n,"header",!1):d}
+            ${l.headerPrefix?ia(e,l.headerPrefix,a,s,i,r,n,"header-prefix",!1):d}
+            ${l.headerSuffix?ia(e,l.headerSuffix,a,s,i,r,n,"header-suffix",!1):d}
+            ${l.footer?ia(e,l.footer,a,s,i,r,n,"footer",!1):d}
             ${l.content?w(e,l.content,a,s,i,r,n,!1):d}
         </vaadin-card>
-    `},nl=e=>{const t=e.metadata;return o`
+    `},ul=e=>{const t=e.metadata;return o`
         <mateu-chart 
                 style="${e.style}" 
                 class="${e.cssClasses}"
@@ -612,10 +612,10 @@ id="${e.id}"
                 .options="${t.chartOptions}"
         >
         </mateu-chart>
-    `},ll=e=>{const t=e.metadata;return o`
+    `},pl=e=>{const t=e.metadata;return o`
         <vaadin-icon icon="${t.icon}" style="${e.style}" class="${e.cssClasses}"
                      slot="${e.slot??d}"></vaadin-icon>
-    `},dl=(e,t,a,s,i,r,n)=>{const l=t.metadata;let c=!1;if(l.openedCondition)try{c=Cr(l.openedCondition,s,i,r,n)}catch(u){console.error("when evaluating "+l.openedCondition+" :"+u+", where data is "+i+" and state is "+s)}return o`
+    `},hl=(e,t,a,s,i,r,n)=>{const l=t.metadata;let c=!1;if(l.openedCondition)try{c=Ir(l.openedCondition,s,i,r,n)}catch(u){console.error("when evaluating "+l.openedCondition+" :"+u+", where data is "+i+" and state is "+s)}return o`
         <vaadin-confirm-dialog
   header="${l.header}"
   ?cancel-button-visible="${l.canCancel}"
@@ -628,7 +628,7 @@ id="${e.id}"
 >
   ${t.children?.map(u=>w(e,u,a,s,i,r,n))}
 </vaadin-confirm-dialog>
-            `},cl=e=>{const t=e.metadata;let a;return t.position&&(a={Top:"top",Bottom:"bottom",TopLeft:"top-left",TopRight:"top-right",BottomLeft:"bottom-left",BottomRight:"bottom-right"}[t.position]),o`
+            `},ml=e=>{const t=e.metadata;let a;return t.position&&(a={Top:"top",Bottom:"bottom",TopLeft:"top-left",TopRight:"top-right",BottomLeft:"bottom-left",BottomRight:"bottom-right"}[t.position]),o`
         <mateu-cookie-consent style="${e.style}" class="${e.cssClasses}"
                                slot="${e.slot??d}"
                                position="${a??d}"
@@ -639,7 +639,7 @@ id="${e.id}"
                                .learnMoreLink="${t.learnMoreLink??d}"
                                .dismiss="${t.dismiss??d}"
         ></mateu-cookie-consent>
-    `},ul=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+    `},vl=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <vaadin-details 
                 ?opened="${l.opened}" 
                 style="${t.style}" 
@@ -651,7 +651,7 @@ id="${e.id}"
             </vaadin-details-summary>
             ${w(e,l.content,a,s,i,r,n)}
         </vaadin-details>
-            `},pl=(e,t,a,s,i,r)=>o`
+            `},fl=(e,t,a,s,i,r)=>o`
         <mateu-dialog
                 id="${e.metadata.id}"
             .component="${e}"
@@ -661,7 +661,7 @@ id="${e.id}"
             .appState="${i}"
             .appdata="${r}"
         ></mateu-dialog>
-            `,hl=(e,t,a,s,i,r)=>o`
+            `,bl=(e,t,a,s,i,r)=>o`
         <mateu-drawer
                 id="${e.metadata.id}"
             .component="${e}"
@@ -671,7 +671,7 @@ id="${e.id}"
             .appState="${i}"
             .appdata="${r}"
         ></mateu-drawer>
-            `,ml=e=>{const t=e.metadata;return o`
+            `,gl=e=>{const t=e.metadata;return o`
         <mateu-api-caller>
         <mateu-ux baseUrl="${t.baseUrl}"  
                   route="${t.route}" 
@@ -683,17 +683,17 @@ id="${e.id}"
                   slot="${e.slot??d}"
         ></mateu-ux>
         </mateu-api-caller>
-            `},vl=e=>{const t=e.metadata;return o`
+            `},$l=e=>{const t=e.metadata;return o`
         <mateu-markdown .content=${t.markdown}
                         style="${e.style}" class="${e.cssClasses}"
                         slot="${e.slot??d}"></mateu-markdown>
-            `},fl=e=>{const t=e.metadata;return o`
+            `},yl=e=>{const t=e.metadata;return o`
         <vaadin-notification
                 .opened="${!0}"
                 slot="${e.slot??d}"
                 style="${e.style}"
                 class="${e.cssClasses}"
-                ${yr(()=>o`
+                ${wr(()=>o`
                     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
                         <h3>${t.title}</h3>
                         <div>
@@ -702,7 +702,7 @@ id="${e.id}"
                     </vaadin-horizontal-layout>
                 `,[])}
         ></vaadin-notification>
-            `},bl=(e,t={})=>{const a=e.metadata,s=a.valueKey?t[a.valueKey]:a.value;return o`
+            `},xl=(e,t={})=>{const a=e.metadata,s=a.valueKey?t[a.valueKey]:a.value;return o`
         <div style="${e.style}">
         <vaadin-progress-bar
                 ?indeterminate="${a.indeterminate}"
@@ -717,7 +717,7 @@ id="${e.id}"
     ${a.text}
   </span>`:d}
         </div>
-    `},gl=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+    `},wl=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <div id="show-notifications">${w(e,l.wrapped,a,s,i,r,n)}</div>
         <vaadin-popover
                 for="show-notifications"
@@ -727,24 +727,24 @@ id="${e.id}"
                 content-width="300px"
                 position="bottom"
                 slot="${t.slot??d}"
-                ${xr(()=>o`${w(e,l.content,a,s,i,r,n)}`,[])}
+                ${kr(()=>o`${w(e,l.content,a,s,i,r,n)}`,[])}
                 style="${t.style}" class="${t.cssClasses}"
         ></vaadin-popover>
-    `},$l=e=>{const t=e.metadata;return o`
+    `},kl=e=>{const t=e.metadata;return o`
         <mateu-map position="${t.position}" zoom="${t.zoom}"
                    style="${e.style}" class="${e.cssClasses}"
                    slot="${e.slot??d}"></mateu-map>
-            `},yl=e=>{const t=e.metadata;return o`
+            `},Cl=e=>{const t=e.metadata;return o`
         <img src="${t.src}" style="${e.style}" class="${e.cssClasses}"
              slot="${e.slot??d}">
-            `},xl=e=>{const t=e.metadata;return o`<vaadin-horizontal-layout theme="spacing"
+            `},Sl=e=>{const t=e.metadata;return o`<vaadin-horizontal-layout theme="spacing"
                                           slot="${e.slot??d}">
         ${t.breadcrumbs.map(a=>o`
             <a href="${a.link}">${a.text}</a>
             <span>/</span>
         `)}
         <span style="${e.style}" class="${e.cssClasses}">${t.currentItemText}</span>
-    </vaadin-horizontal-layout>`},wl=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+    </vaadin-horizontal-layout>`},Il=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <skeleton-carousel 
                 id="${t.id}"
                 ?dots = "${l.dots}" 
@@ -755,25 +755,25 @@ id="${e.id}"
         >
             ${t.children?.map(c=>o`<div>${w(e,c,a,s,i,r,n)}</div>`)}
         </skeleton-carousel>
-    `},kl=(e,t,a,s)=>{const i=e.metadata;return o`
+    `},_l=(e,t,a,s)=>{const i=e.metadata;return o`
         <div style="display: flex; gap: 3rem; ${e.style}" class="${e.cssClasses}" slot="${e.slot??d}">
-            ${i.menu.map(r=>zr(r))}
+            ${i.menu.map(r=>jr(r))}
         </div>
-            `},zr=e=>o`
+            `},jr=e=>o`
         ${e.submenus?o`
                 <vaadin-details summary="${e.label}" opened>
                     <vaadin-vertical-layout theme="spacing">
-                        ${e.submenus.map(t=>zr(t))}
+                        ${e.submenus.map(t=>jr(t))}
                     </vaadin-vertical-layout>
                 </vaadin-details>
             `:o`
                 <a href="${e.path}">${e.label}</a>
         `}
-        `,Cl=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`<div
+        `,El=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`<div
                 slot="${t.slot??d}"
                 style="${t.style}" class="${t.cssClasses}"
         >${l.content?ge(l.content):d}${t.children?.map(c=>w(e,c,a,s,i,r,n))}</div>
-    `},Sl=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.title?.includes("${")?e._evalTemplate(l.title):l.title;return o`<vaadin-card
+    `},Pl=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.title?.includes("${")?e._evalTemplate(l.title):l.title;return o`<vaadin-card
                 slot="${t.slot??d}"
                 style="width: 100%; margin-bottom: var(--lumo-space-m); ${t.style}"
                 class="${t.cssClasses}"
@@ -781,14 +781,14 @@ id="${e.id}"
         ${c?o`<div slot="title" style="font-size: var(--lumo-font-size-l); font-weight: 600; color: var(--lumo-header-text-color);">${c}</div>`:d}
         ${t.children?.map(u=>w(e,u,a,s,i,r,n))}
     </vaadin-card>
-    `},Il=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.title?.includes("${")?e._evalTemplate(l.title):l.title;return o`
+    `},Tl=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.title?.includes("${")?e._evalTemplate(l.title):l.title;return o`
         <div
                 slot="${t.slot??d}"
                 style="${t.style}" class="${t.cssClasses}"
         >
         <h4>${c}</h4>
         ${t.children?.map(u=>w(e,u,a,s,i,r,n))}</div>
-    `},bs=(e,t,a,s,i,r,n,l)=>{const c=t.metadata,u=c?.fabs??[];return o`<mateu-page
+    `},gs=(e,t,a,s,i,r,n,l)=>{const c=t.metadata,u=c?.fabs??[];return o`<mateu-page
             .component="${t}"
             baseUrl="${a}"
             .state="${s}"
@@ -800,19 +800,19 @@ id="${e.id}"
             class="${t.cssClasses}"
             ?standalone="${l??!1}"
     >
-        ${t.children?.map(h=>w(e,h,a,s,i,r,n))}
-        ${c?.buttons?.map(h=>o`
-                   ${w(e,{id:h.actionId,metadata:h,type:de.ClientSide,slot:"buttons"},void 0,s,i,r,n)}
+        ${t.children?.map(m=>w(e,m,a,s,i,r,n))}
+        ${c?.buttons?.map(m=>o`
+                   ${w(e,{id:m.actionId,metadata:m,type:oe.ClientSide,slot:"buttons"},void 0,s,i,r,n)}
 `)}
-        ${u.map((h,p)=>o`
+        ${u.map((m,p)=>o`
             <button class="page-fab" style="position: fixed; bottom: ${1.5+p*4}rem; right: 5.5rem;"
-                @click="${()=>e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:h.actionId},bubbles:!0,composed:!0}))}"
-                title="${h.label}">
-                <vaadin-icon icon="${h.icon}"></vaadin-icon>
+                @click="${()=>e.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:m.actionId},bubbles:!0,composed:!0}))}"
+                title="${m.label}">
+                <vaadin-icon icon="${m.icon}"></vaadin-icon>
             </button>
         `)}
 </mateu-page>
-    `},gs=(e,t,a,s,i,r,n,l)=>o`<mateu-table-crud
+    `},$s=(e,t,a,s,i,r,n,l)=>o`<mateu-table-crud
             id="${t.id}"
             baseUrl="${a}"
             .component="${t}"
@@ -827,7 +827,7 @@ id="${e.id}"
             ?standalone="${l??!1}"
     >
         ${t.children?.map(c=>w(e,c,a,s,i,r,n))}
-    </mateu-table-crud>`,_l=e=>{const t=e.metadata;return o`
+    </mateu-table-crud>`,Ol=e=>{const t=e.metadata;return o`
         <mateu-bpmn
                 style="${e.style}"
                 class="${e.cssClasses}"
@@ -835,17 +835,17 @@ id="${e.id}"
                 xml="${t.xml}"
         >
         </mateu-bpmn>
-    `},El=(e,t,a)=>{const s=e.metadata;return o`<mateu-chat sseUrl="${s.sseUrl}"
+    `},Rl=(e,t,a)=>{const s=e.metadata;return o`<mateu-chat sseUrl="${s.sseUrl}"
                             style="${e.style}" 
                             class="${e.cssClasses}" 
-                            slot="${e.slot??d}"></mateu-chat>`},Tl=e=>{const t=e.metadata;return o`
+                            slot="${e.slot??d}"></mateu-chat>`},zl=e=>{const t=e.metadata;return o`
         <mateu-workflow
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
                 value="${t.value??'{"name":"New Workflow","steps":[]}'}"
         ></mateu-workflow>
-    `},Pl=e=>{const t=e.metadata;return o`
+    `},Al=e=>{const t=e.metadata;return o`
         <mateu-workflow-elk
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
@@ -853,25 +853,25 @@ id="${e.id}"
                 value="${t.value??'{"name":"New Workflow","steps":[]}'}"
                 ?readOnly="${t.readOnly??!1}"
         ></mateu-workflow-elk>
-    `},Ol=e=>{const t=e.metadata;return o`
+    `},jl=e=>{const t=e.metadata;return o`
         <mateu-form-editor
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
                 value="${t.value??'{"name":"New Form","fields":[]}'}"
         ></mateu-form-editor>
-    `},jr=`
+    `},Lr=`
     background: var(--lumo-base-color, #fff);
     border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
     border-radius: var(--lumo-border-radius-l, 12px);
     padding: var(--lumo-space-m, 1rem);
     box-sizing: border-box;
-`,Rl=e=>e=="up"?"var(--lumo-success-text-color, #1a7f37)":e=="down"?"var(--lumo-error-text-color, #c5221f)":"var(--lumo-secondary-text-color, #666)",zl=e=>e=="up"?"▲":e=="down"?"▼":"",jl=(e,t)=>{t.actionId&&e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId},bubbles:!0,composed:!0}))},Al=e=>{const t=e.metadata,a=!!t.actionId;return o`
+`,Ll=e=>e=="up"?"var(--lumo-success-text-color, #1a7f37)":e=="down"?"var(--lumo-error-text-color, #c5221f)":"var(--lumo-secondary-text-color, #666)",Dl=e=>e=="up"?"▲":e=="down"?"▼":"",Fl=(e,t)=>{t.actionId&&e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId},bubbles:!0,composed:!0}))},Nl=e=>{const t=e.metadata,a=!!t.actionId;return o`
         <div class="mateu-metric-card ${e.cssClasses??""}"
-             style="${jr} display: flex; flex-direction: column; gap: .25rem; min-width: 11rem; flex: 1; ${a?"cursor: pointer;":""} ${e.style??""}"
+             style="${Lr} display: flex; flex-direction: column; gap: .25rem; min-width: 11rem; flex: 1; ${a?"cursor: pointer;":""} ${e.style??""}"
              slot="${e.slot??d}"
              role="${a?"button":d}"
-             @click="${s=>jl(s,t)}"
+             @click="${s=>Fl(s,t)}"
         >
             <div style="display: flex; align-items: center; justify-content: space-between; gap: .5rem;">
                 <span style="font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-secondary-text-color, #666);">${t.title}</span>
@@ -882,22 +882,22 @@ id="${e.id}"
                 ${t.unit?o`<span style="font-size: var(--lumo-font-size-m, 1rem); color: var(--lumo-secondary-text-color, #666);">${t.unit}</span>`:d}
             </div>
             ${t.trend||t.trendLabel?o`
-                <span style="font-size: var(--lumo-font-size-s, .875rem); color: ${Rl(t.trend)};">
-                    ${zl(t.trend)} ${t.trendLabel??d}
+                <span style="font-size: var(--lumo-font-size-s, .875rem); color: ${Ll(t.trend)};">
+                    ${Dl(t.trend)} ${t.trendLabel??d}
                 </span>
             `:d}
             ${t.description?o`<span style="font-size: var(--lumo-font-size-xs, .8rem); color: var(--lumo-tertiary-text-color, #999);">${t.description}</span>`:d}
         </div>
-    `},Ll=(e,t,a,s,i,r,n)=>o`
+    `},Ml=(e,t,a,s,i,r,n)=>o`
         <div class="mateu-scoreboard ${t.cssClasses??""}"
              style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-m, 1rem); grid-column: 1 / -1; ${t.style??""}"
              slot="${t.slot??d}"
         >
             ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
         </div>
-    `,Dl=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.colSpan&&l.colSpan>1?`grid-column: span ${l.colSpan};`:"",u=l.rowSpan&&l.rowSpan>1?`grid-row: span ${l.rowSpan};`:"";return o`
+    `,ql=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.colSpan&&l.colSpan>1?`grid-column: span ${l.colSpan};`:"",u=l.rowSpan&&l.rowSpan>1?`grid-row: span ${l.rowSpan};`:"";return o`
         <div class="mateu-dashboard-panel ${t.cssClasses??""}"
-             style="${jr} display: flex; flex-direction: column; gap: .5rem; min-width: 0; ${c} ${u} ${t.style??""}"
+             style="${Lr} display: flex; flex-direction: column; gap: .5rem; min-width: 0; ${c} ${u} ${t.style??""}"
              slot="${t.slot??d}"
         >
             ${l.title?o`
@@ -907,79 +907,282 @@ id="${e.id}"
                 </div>
             `:d}
             <div style="flex: 1; min-height: 0;">
-                ${t.children?.map(h=>w(e,h,a,s,i,r,n))}
+                ${t.children?.map(m=>w(e,m,a,s,i,r,n))}
             </div>
         </div>
-    `},Fl=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.columns&&l.columns>0?`repeat(${l.columns}, minmax(0, 1fr))`:"repeat(auto-fit, minmax(20rem, 1fr))";return o`
+    `},Ul=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.columns&&l.columns>0?`repeat(${l.columns}, minmax(0, 1fr))`:"repeat(auto-fit, minmax(20rem, 1fr))";return o`
         <div class="mateu-dashboard ${t.cssClasses??""}"
              style="display: grid; grid-template-columns: ${c}; gap: var(--lumo-space-m, 1rem); align-items: stretch; ${t.style??""}"
              slot="${t.slot??d}"
         >
             ${t.children?.map(u=>w(e,u,a,s,i,r,n))}
         </div>
-    `};var Nl=Object.defineProperty,Ml=Object.getOwnPropertyDescriptor,Es=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ml(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Nl(t,a,i),i};let Ja=class extends S{constructor(){super(...arguments),this.panels=[],this.openPanels=new Set,this.initialized=!1}willUpdate(){!this.initialized&&this.panels.length&&(this.openPanels=new Set(this.panels.map((e,t)=>e.open?t:-1).filter(e=>e>=0)),this.initialized=!0)}toggle(e){const t=new Set(this.openPanels);t.has(e)?t.delete(e):t.add(e),this.openPanels=t}render(){return o`
-            <div class="overview" part="overview">
-                <slot name="overview"></slot>
-            </div>
-            <div class="rail" part="rail">
-                ${this.panels.map((e,t)=>this.openPanels.has(t)?o`
-                    <div class="panel" part="panel">
-                        <div class="panel-header">
-                            <div>
-                                <h3>${e.title}</h3>
-                                ${e.subtitle?o`<div class="subtitle">${e.subtitle}</div>`:""}
+    `};var Bl=Object.defineProperty,Vl=Object.getOwnPropertyDescriptor,_t=(e,t,a,s)=>{for(var i=s>1?void 0:s?Vl(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Bl(t,a,i),i};let Je=class extends S{constructor(){super(...arguments),this.panels=[],this.headerTitle="",this.badges=[],this.orientation="vertical",this.navigation=null,this.overviewEditActionId="",this.openPanels=new Set,this.expandedPanel=null,this._onPopState=()=>{const e=decodeURIComponent((location.hash||"").replace(/^#/,""));if(e.startsWith("expand=")){const t=e.slice(7),a=this.panels.findIndex((s,i)=>this.panelAnchor(s,i)===t);this.expandedPanel=a>=0?a:null}else this.expandedPanel=null},this.initialized=!1}navAction(e){e&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e,parameters:{}},bubbles:!0,composed:!0}))}connectedCallback(){super.connectedCallback(),window.addEventListener("popstate",this._onPopState)}disconnectedCallback(){window.removeEventListener("popstate",this._onPopState),super.disconnectedCallback()}willUpdate(){if(!this.initialized&&this.panels.length){this.openPanels=new Set(this.panels.map((t,a)=>t.open?a:-1).filter(t=>t>=0));const e=decodeURIComponent((location.hash||"").replace(/^#/,""));if(e.startsWith("expand=")){const t=e.slice(7),a=this.panels.findIndex((s,i)=>this.panelAnchor(s,i)===t);a>=0&&(this.expandedPanel=a)}else if(e){const t=this.panels.findIndex((a,s)=>this.panelAnchor(a,s)===e);t>=0&&this.openPanels.add(t)}this.initialized=!0}}firstUpdated(){const e=decodeURIComponent((location.hash||"").replace(/^#/,""));if(!e)return;const t=this.renderRoot.querySelector(`[data-anchor="${CSS.escape(e)}"]`);t&&t.scrollIntoView({block:"nearest"})}panelAnchor(e,t){return(e.title??"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||`panel-${t}`}bookmarkPanel(e){const t=this.panelAnchor(this.panels[e],e);try{history.replaceState(history.state,"","#"+t)}catch{}}clearBookmark(e){const t=this.panelAnchor(this.panels[e],e);if(decodeURIComponent((location.hash||"").replace(/^#/,""))===t)try{history.replaceState(history.state,"",location.pathname+location.search)}catch{}}expandPanel(e,t){t?.stopPropagation(),this.expandedPanel=e;const a=this.panelAnchor(this.panels[e],e);try{history.pushState(history.state,"","#expand="+a)}catch{}}collapsePanel(){try{history.back()}catch{this.expandedPanel=null}}toggle(e){const t=new Set(this.openPanels);t.has(e)?(t.delete(e),this.clearBookmark(e)):(t.add(e),this.bookmarkPanel(e)),this.openPanels=t}render(){if(this.expandedPanel!=null&&this.panels[this.expandedPanel]){const t=this.panels[this.expandedPanel];return o`
+                <div class="expanded-view" part="expanded-view">
+                    <div class="expanded-header">
+                        <button class="nav-parent" title="Back"
+                                @click="${()=>this.collapsePanel()}">
+                            <span>‹</span><span>Back</span>
+                        </button>
+                        <span class="nav-title">${t.title}</span>
+                        ${t.subtitle?o`<span class="subtitle">${t.subtitle}</span>`:d}
+                    </div>
+                    <div class="expanded-body">
+                        <slot name="panel-${this.expandedPanel}"></slot>
+                    </div>
+                </div>
+            `}const e=this.navigation;return o`
+            ${e?o`
+                <div class="nav-header" part="nav-header">
+                    ${e.parentActionId?o`
+                        <button class="nav-parent" title="${e.parentLabel??"Back"}"
+                                @click="${()=>this.navAction(e.parentActionId)}">
+                            <span>‹</span><span>${e.parentLabel??"Back"}</span>
+                        </button>
+                    `:d}
+                    ${e.title?o`<span class="nav-title">${e.title}</span>`:d}
+                    <span class="nav-spacer"></span>
+                    ${e.previousActionId?o`
+                        <button class="nav-move" title="Previous"
+                                @click="${()=>this.navAction(e.previousActionId)}">‹</button>
+                    `:d}
+                    ${e.nextActionId?o`
+                        <button class="nav-move" title="Next"
+                                @click="${()=>this.navAction(e.nextActionId)}">›</button>
+                    `:d}
+                </div>
+            `:d}
+            ${this.headerTitle?o`
+                <div class="header-band" part="header-band">
+                    <div class="header-content">
+                        <h2 class="header-title">${this.headerTitle}</h2>
+                        ${this.badges.length?o`
+                            <div class="header-badges">
+                                ${this.badges.map(t=>o`<span class="header-badge">${t}</span>`)}
                             </div>
-                            <button class="fold" title="Fold" @click="${()=>this.toggle(t)}">⟨</button>
-                        </div>
-                        <div style="flex: 1; min-height: 0;">
-                            <slot name="panel-${t}"></slot>
-                        </div>
+                        `:""}
                     </div>
-                `:o`
-                    <div class="strip" role="button" title="${e.title}" @click="${()=>this.toggle(t)}">
-                        <button class="fold" tabindex="-1">⟩</button>
-                        <span>${e.title}</span>
-                    </div>
-                `)}
+                    <div class="header-accent" part="header-accent"></div>
+                </div>
+            `:""}
+            <div class="columns" part="columns">
+                <div class="overview" part="overview">
+                    ${this.overviewEditActionId?o`
+                        <button class="overview-edit" title="Edit"
+                                @click="${()=>this.navAction(this.overviewEditActionId)}">
+                            <span>✎</span><span>Edit</span>
+                        </button>
+                    `:d}
+                    <slot name="overview"></slot>
+                </div>
+                <div class="rail" part="rail">
+                    ${this.panels.map((t,a)=>this.openPanels.has(a)?o`
+                        <div class="panel" part="panel" data-anchor="${this.panelAnchor(t,a)}"
+                             @click="${()=>this.bookmarkPanel(a)}">
+                            <div class="panel-header">
+                                <div>
+                                    <h3>${t.title}</h3>
+                                    ${t.subtitle?o`<div class="subtitle">${t.subtitle}</div>`:""}
+                                </div>
+                                <span class="panel-actions">
+                                    <button class="panel-expand" title="Show all"
+                                            @click="${s=>this.expandPanel(a,s)}">⤢</button>
+                                    <button class="fold" title="Fold" @click="${s=>{s.stopPropagation(),this.toggle(a)}}">⟨</button>
+                                </span>
+                            </div>
+                            <div style="flex: 1; min-height: 0;">
+                                <slot name="panel-${a}"></slot>
+                            </div>
+                        </div>
+                    `:o`
+                        <div class="strip" role="button" title="${t.title}"
+                             data-anchor="${this.panelAnchor(t,a)}" @click="${()=>this.toggle(a)}">
+                            <button class="fold" tabindex="-1">⟩</button>
+                            <span>${t.title}</span>
+                        </div>
+                    `)}
+                </div>
             </div>
-        `}};Ja.styles=C`
+        `}};Je.styles=C`
         :host {
             display: flex;
-            gap: var(--lumo-space-m, 1rem);
-            align-items: stretch;
-            min-height: 24rem;
+            flex-direction: column;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: var(--mateu-foldout-min-height, 24rem);
+            height: var(--mateu-foldout-height, auto);
+            margin: var(--mateu-foldout-outer-margin, 0);
         }
-        .overview {
-            flex: 0 0 20rem;
-            min-width: 0;
+        /* Navigation Header (RDS Foldout anatomy): a top bar to move to the previous/next object of
+           the same type or go to the parent. Rendered only when navigation is provided. */
+        .nav-header {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: var(--mateu-foldout-nav-padding, var(--mateu-foldout-header-padding, var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem))));
+            padding-top: var(--mateu-foldout-nav-pad-y, .5rem);
+            padding-bottom: var(--mateu-foldout-nav-pad-y, .5rem);
+            border-bottom: var(--mateu-foldout-nav-border, 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)));
+        }
+        .nav-header .nav-parent {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: .25rem .35rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            color: var(--mateu-foldout-nav-parent-color, var(--lumo-primary-text-color, #1976d2));
+            font: inherit;
+            font-weight: 600;
+        }
+        .nav-header .nav-parent:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.04));
+        }
+        .nav-header .nav-title {
+            font-weight: 600;
+            color: var(--mateu-foldout-nav-title-color, var(--lumo-body-text-color, inherit));
+        }
+        .nav-header .nav-spacer {
+            flex: 1;
+        }
+        .nav-header .nav-move {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border: var(--mateu-foldout-nav-move-border, 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.16)));
             background: var(--lumo-base-color, #fff);
-            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
-            border-radius: var(--lumo-border-radius-l, 12px);
-            padding: var(--lumo-space-m, 1rem);
+            border-radius: var(--lumo-border-radius-m, 6px);
+            cursor: pointer;
+            color: var(--lumo-body-text-color, inherit);
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .nav-header .nav-move:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.04));
+        }
+        /* Optional header band above the columns (RDS "overview title" + Label/Value chips +
+           full-width accent bar). Rendered only when headerTitle is set. */
+        .header-band {
+            display: flex;
+            flex-direction: column;
+        }
+        .header-content {
+            padding: var(--mateu-foldout-header-padding, var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem)));
+            padding-bottom: var(--mateu-foldout-header-content-gap, .75rem);
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+        .header-title {
+            margin: 0;
+            font-size: var(--mateu-foldout-header-title-size, var(--lumo-font-size-xxl, 1.5rem));
+            font-weight: var(--mateu-foldout-header-title-weight, 700);
+            color: var(--mateu-foldout-header-title-color, var(--lumo-header-text-color, inherit));
+        }
+        .header-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem;
+        }
+        .header-badge {
+            border: 1px solid var(--mateu-foldout-badge-border, var(--lumo-contrast-30pct, rgba(0,0,0,.2)));
+            border-radius: var(--mateu-foldout-badge-radius, 999px);
+            padding: var(--mateu-foldout-badge-padding, .1rem .625rem);
+            font-size: var(--mateu-foldout-badge-size, var(--lumo-font-size-s, .8rem));
+            color: var(--mateu-foldout-badge-color, var(--lumo-secondary-text-color, inherit));
+            white-space: nowrap;
+        }
+        .header-accent {
+            height: var(--mateu-foldout-header-accent-height, 4px);
+            background: var(--mateu-foldout-header-accent-bg, var(--mateu-foldout-title-accent-color, transparent));
+        }
+        /* Row holding the overview + fold-out panels; fills the remaining height below the header. */
+        .columns {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            gap: var(--mateu-foldout-gap, var(--lumo-space-m, 1rem));
+            align-items: stretch;
+        }
+        /* Horizontal configuration (RDS Foldout spec): the overview spans the top full-width and the
+           panels lay out in a row below it, instead of the overview being pinned on the left. */
+        :host([orientation="horizontal"]) .columns {
+            flex-direction: column;
+        }
+        :host([orientation="horizontal"]) .overview {
+            flex: 0 0 auto;
+            width: 100%;
+            overflow: visible;
+        }
+        /* The visual treatment is tokenised: the fallbacks reproduce the original bordered-card
+           look (Vaadin), while a design system can switch to the RDS "Foldout" anatomy — frameless
+           columns split by vertical dividers, a gold accent under each panel title — by setting the
+           --mateu-foldout-* custom properties (see redwood-oj index.css). */
+        .overview {
+            position: relative;
+            flex: 0 0 var(--mateu-foldout-overview-width, 20rem);
+            min-width: 0;
+            background: var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff));
+            border: var(--mateu-foldout-overview-border, 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)));
+            border-radius: var(--mateu-foldout-panel-radius, var(--lumo-border-radius-l, 12px));
+            padding: var(--mateu-foldout-overview-padding, var(--lumo-space-m, 1rem));
             box-sizing: border-box;
             overflow: auto;
         }
+        /* Overview Edit affordance (RDS edit flow): dispatches overviewEditActionId, whose backend
+           method opens a Dialog (vertical) or navigates to an edit page (horizontal). */
+        .overview-edit {
+            position: absolute;
+            top: var(--mateu-foldout-overview-edit-top, .5rem);
+            right: var(--mateu-foldout-overview-edit-right, .5rem);
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            border: var(--mateu-foldout-overview-edit-border, 1px solid var(--lumo-contrast-20pct, rgba(0,0,0,.16)));
+            background: var(--lumo-base-color, #fff);
+            color: var(--mateu-foldout-nav-parent-color, var(--lumo-primary-text-color, #1976d2));
+            cursor: pointer;
+            font: inherit;
+            font-weight: 600;
+            font-size: var(--lumo-font-size-s, .875rem);
+            padding: .2rem .5rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+        }
+        .overview-edit:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.04));
+        }
         .rail {
             display: flex;
-            gap: var(--lumo-space-s, .5rem);
+            gap: var(--mateu-foldout-gap, var(--lumo-space-s, .5rem));
             flex: 1;
             min-width: 0;
             overflow-x: auto;
             align-items: stretch;
         }
         .panel {
-            flex: 1 1 22rem;
-            min-width: 18rem;
-            background: var(--lumo-base-color, #fff);
-            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
-            border-radius: var(--lumo-border-radius-l, 12px);
-            padding: var(--lumo-space-m, 1rem);
+            flex: var(--mateu-foldout-panel-flex, 1 1 22rem);
+            min-width: var(--mateu-foldout-panel-min-width, 18rem);
+            background: var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff));
+            border: var(--mateu-foldout-panel-border, 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)));
+            border-left: var(--mateu-foldout-divider, var(--mateu-foldout-panel-border, 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08))));
+            border-radius: var(--mateu-foldout-panel-radius, var(--lumo-border-radius-l, 12px));
+            padding: var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem));
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             gap: .5rem;
             overflow: auto;
         }
+        /* Per-section background tint (RDS gives each column its own colour). Cycles through four
+           tokens; each falls back to the flat panel background so non-RDS renderers are unaffected. */
+        .rail .panel:nth-of-type(4n+1) { background: var(--mateu-foldout-panel-bg-a, var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff))); }
+        .rail .panel:nth-of-type(4n+2) { background: var(--mateu-foldout-panel-bg-b, var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff))); }
+        .rail .panel:nth-of-type(4n+3) { background: var(--mateu-foldout-panel-bg-c, var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff))); }
+        .rail .panel:nth-of-type(4n+4) { background: var(--mateu-foldout-panel-bg-d, var(--mateu-foldout-panel-bg, var(--lumo-base-color, #fff))); }
         .panel-header {
             display: flex;
             align-items: baseline;
@@ -988,7 +1191,19 @@ id="${e.id}"
         }
         .panel-header h3 {
             margin: 0;
-            font-size: var(--lumo-font-size-l, 1.125rem);
+            font-size: var(--mateu-foldout-title-size, var(--lumo-font-size-l, 1.125rem));
+            font-weight: var(--mateu-foldout-title-weight, 600);
+        }
+        /* RDS heading accent: a short gold rule under the panel title. Hidden by default so
+           non-RDS renderers keep flat titles. */
+        .panel-header h3::after {
+            content: "";
+            display: var(--mateu-foldout-title-accent-display, none);
+            width: var(--mateu-foldout-title-accent-width, 1.75rem);
+            height: var(--mateu-foldout-title-accent-height, 2px);
+            margin-top: var(--mateu-foldout-title-accent-gap-above, 6px);
+            margin-bottom: var(--mateu-foldout-title-accent-gap-below, 0);
+            background: var(--mateu-foldout-title-accent-color, transparent);
         }
         .panel-header .subtitle {
             font-size: var(--lumo-font-size-s, .875rem);
@@ -996,9 +1211,9 @@ id="${e.id}"
         }
         .strip {
             flex: 0 0 2.75rem;
-            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08));
-            border-radius: var(--lumo-border-radius-l, 12px);
-            background: var(--lumo-contrast-5pct, rgba(0,0,0,.03));
+            border: var(--mateu-foldout-strip-border, 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)));
+            border-radius: var(--mateu-foldout-panel-radius, var(--lumo-border-radius-l, 12px));
+            background: var(--mateu-foldout-strip-bg, var(--lumo-contrast-5pct, rgba(0,0,0,.03)));
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -1016,6 +1231,7 @@ id="${e.id}"
             white-space: nowrap;
         }
         button.fold {
+            display: var(--mateu-foldout-fold-display, inline-block);
             border: none;
             background: none;
             cursor: pointer;
@@ -1024,29 +1240,96 @@ id="${e.id}"
             padding: 0;
             line-height: 1;
         }
-    `;Es([m({type:Array})],Ja.prototype,"panels",2);Es([$()],Ja.prototype,"openPanels",2);Ja=Es([k("mateu-foldout")],Ja);const ql=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+        .panel-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+        }
+        /* "Show all" affordance — hidden by default so non-RDS renderers keep flat panels; a design
+           system opts in by setting --mateu-foldout-expand-display (see redwood-oj index.css). */
+        button.panel-expand {
+            display: var(--mateu-foldout-expand-display, none);
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--lumo-secondary-text-color, #666);
+            font-size: 1rem;
+            padding: 0;
+            line-height: 1;
+        }
+        /* Panel extended view: the panel's detail content shown full-bleed with a Back control. */
+        .expanded-view {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+        .expanded-header {
+            display: flex;
+            align-items: baseline;
+            gap: .75rem;
+            padding: var(--mateu-foldout-header-padding, var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem)));
+            padding-bottom: var(--mateu-foldout-header-content-gap, .75rem);
+            border-bottom: var(--mateu-foldout-nav-border, 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)));
+        }
+        .expanded-header .nav-parent {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            padding: .25rem .35rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            color: var(--mateu-foldout-nav-parent-color, var(--lumo-primary-text-color, #1976d2));
+            font: inherit;
+            font-weight: 600;
+        }
+        .expanded-header .nav-parent:hover {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.04));
+        }
+        .expanded-header .nav-title {
+            font-size: var(--mateu-foldout-title-size, var(--lumo-font-size-l, 1.125rem));
+            font-weight: var(--mateu-foldout-title-weight, 600);
+        }
+        .expanded-header .subtitle {
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-secondary-text-color, #666);
+        }
+        .expanded-body {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            padding: var(--mateu-foldout-panel-padding, var(--lumo-space-m, 1rem));
+        }
+    `;_t([h({type:Array})],Je.prototype,"panels",2);_t([h({type:String})],Je.prototype,"headerTitle",2);_t([h({type:Array})],Je.prototype,"badges",2);_t([h({type:String,reflect:!0})],Je.prototype,"orientation",2);_t([h({attribute:!1})],Je.prototype,"navigation",2);_t([h({type:String})],Je.prototype,"overviewEditActionId",2);_t([$()],Je.prototype,"openPanels",2);_t([$()],Je.prototype,"expandedPanel",2);Je=_t([k("mateu-foldout")],Je);const Wl=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <mateu-foldout
                 .panels="${l.panels??[]}"
+                .headerTitle="${l.headerTitle??""}"
+                .badges="${l.badges??[]}"
+                .navigation="${l.navigation??null}"
+                overviewEditActionId="${l.overviewEditActionId??""}"
+                orientation="${l.orientation??"vertical"}"
                 style="${t.style}"
                 class="${t.cssClasses}"
                 slot="${t.slot??d}"
         >
             ${t.children?.map(c=>w(e,c,a,s,i,r,n))}
         </mateu-foldout>
-    `},Ul=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=!!l.image,u=c?`background-image: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)), url('${l.image}'); background-size: cover; background-position: center; color: #fff;`:"",h=l.centered===!1?"flex-start":"center",p=l.centered===!1?"left":"center";return o`
+    `},Hl=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=!!l.image,u=c?`background-image: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)), url('${l.image}'); background-size: cover; background-position: center; color: #fff;`:"",m=l.centered===!1?"flex-start":"center",p=l.centered===!1?"left":"center";return o`
         <div class="mateu-hero ${t.cssClasses??""}"
-             style="display: flex; flex-direction: column; align-items: ${h}; justify-content: center; gap: var(--lumo-space-m, 1rem); text-align: ${p}; padding: var(--lumo-space-xl, 2.5rem) var(--lumo-space-l, 1.5rem); border-radius: var(--lumo-border-radius-l, 12px); min-height: ${l.height??"12rem"}; box-sizing: border-box; ${u} ${t.style??""}"
+             style="display: flex; flex-direction: column; align-items: ${m}; justify-content: center; gap: var(--lumo-space-m, 1rem); text-align: ${p}; padding: var(--lumo-space-xl, 2.5rem) var(--lumo-space-l, 1.5rem); border-radius: var(--lumo-border-radius-l, 12px); min-height: ${l.height??"12rem"}; box-sizing: border-box; ${u} ${t.style??""}"
              slot="${t.slot??d}"
         >
             ${l.title?o`<h1 style="margin: 0; font-size: var(--lumo-font-size-xxxl, 2.5rem); line-height: 1.15;">${l.title}</h1>`:d}
             ${l.subtitle?o`<p style="margin: 0; font-size: var(--lumo-font-size-l, 1.125rem); ${c?"":"color: var(--lumo-secondary-text-color, #666);"} max-width: 40rem;">${l.subtitle}</p>`:d}
             ${t.children?.length?o`
-                <div style="display: flex; gap: var(--lumo-space-s, .5rem); flex-wrap: wrap; justify-content: ${h}; width: 100%; max-width: 40rem;">
+                <div style="display: flex; gap: var(--lumo-space-s, .5rem); flex-wrap: wrap; justify-content: ${m}; width: 100%; max-width: 40rem;">
                     ${t.children?.map(f=>w(e,f,a,s,i,r,n))}
                 </div>
             `:d}
         </div>
-    `};var Bl=Object.defineProperty,Vl=Object.getOwnPropertyDescriptor,Ar=(e,t,a,s)=>{for(var i=s>1?void 0:s?Vl(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Bl(t,a,i),i};const ds=1440*60*1e3;let wi=class extends S{constructor(){super(...arguments),this.tasks=[]}range(){const e=this.tasks.flatMap(t=>[t.start,t.end]).filter(t=>!!t).map(t=>new Date(t+"T00:00:00").getTime());return e.length?{min:Math.min(...e)-ds,max:Math.max(...e)+2*ds}:null}months(e,t){const a=[],s=new Date(e);for(s.setDate(1);s.getTime()<=t;){const i=Math.max(s.getTime(),e),r=new Date(s.getFullYear(),s.getMonth()+1,1),n=Math.min(r.getTime(),t);a.push({label:s.toLocaleDateString(void 0,{month:"short",year:"2-digit"}),from:i,to:n}),s.setMonth(s.getMonth()+1)}return a}render(){const e=this.range();if(!e)return o``;const t=e.max-e.min,a=i=>(i-e.min)/t*100,s=Date.now();return o`
+    `};var Gl=Object.defineProperty,Kl=Object.getOwnPropertyDescriptor,Dr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Kl(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Gl(t,a,i),i};const cs=1440*60*1e3;let ki=class extends S{constructor(){super(...arguments),this.tasks=[]}range(){const e=this.tasks.flatMap(t=>[t.start,t.end]).filter(t=>!!t).map(t=>new Date(t+"T00:00:00").getTime());return e.length?{min:Math.min(...e)-cs,max:Math.max(...e)+2*cs}:null}months(e,t){const a=[],s=new Date(e);for(s.setDate(1);s.getTime()<=t;){const i=Math.max(s.getTime(),e),r=new Date(s.getFullYear(),s.getMonth()+1,1),n=Math.min(r.getTime(),t);a.push({label:s.toLocaleDateString(void 0,{month:"short",year:"2-digit"}),from:i,to:n}),s.setMonth(s.getMonth()+1)}return a}render(){const e=this.range();if(!e)return o``;const t=e.max-e.min,a=i=>(i-e.min)/t*100,s=Date.now();return o`
             <div class="frame">
                 <div class="head">Task</div>
                 <div class="head months">
@@ -1054,7 +1337,7 @@ id="${e.id}"
                         <div class="month" style="width: ${(i.to-i.from)/t*100}%;">${i.label}</div>
                     `)}
                 </div>
-                ${this.tasks.map(i=>{const r=new Date(i.start+"T00:00:00").getTime(),n=new Date(i.end+"T00:00:00").getTime()+ds;return o`
+                ${this.tasks.map(i=>{const r=new Date(i.start+"T00:00:00").getTime(),n=new Date(i.end+"T00:00:00").getTime()+cs;return o`
                         <div class="label" title="${i.title}">${i.title}</div>
                         <div class="lane">
                             ${s>=e.min&&s<=e.max?o`<div class="today" style="left: ${a(s)}%;"></div>`:d}
@@ -1066,7 +1349,7 @@ id="${e.id}"
                         </div>
                     `})}
             </div>
-        `}};wi.styles=C`
+        `}};ki.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -1133,14 +1416,14 @@ id="${e.id}"
             background: var(--lumo-error-color, #e11d48);
             opacity: .55;
         }
-    `;Ar([m({type:Array})],wi.prototype,"tasks",2);wi=Ar([k("mateu-gantt")],wi);const Wl=e=>{const t=e.metadata;return o`
+    `;Dr([h({type:Array})],ki.prototype,"tasks",2);ki=Dr([k("mateu-gantt")],ki);const Yl=e=>{const t=e.metadata;return o`
         <mateu-gantt
                 .tasks="${t.tasks??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-gantt>
-    `};var Hl=Object.defineProperty,Gl=Object.getOwnPropertyDescriptor,Gt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Gl(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Hl(t,a,i),i};let M=class extends S{constructor(){super(...arguments),this.resources=[],this.blocks=[],this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key==="Escape"&&this.drag&&(e.stopPropagation(),this.endDrag())}}static parse(e){return new Date(e+"T00:00:00")}static iso(e){const t=a=>String(a).padStart(2,"0");return`${e.getFullYear()}-${t(e.getMonth()+1)}-${t(e.getDate())}`}static addDays(e,t){return new Date(e.getFullYear(),e.getMonth(),e.getDate()+t)}static daysBetween(e,t){return Math.round((t.getTime()-e.getTime())/864e5)}window(){if(this.from&&this.to){const s=M.parse(this.from),i=M.daysBetween(s,M.parse(this.to))+1;return i>0?{from:s,days:i}:null}const e=this.blocks.flatMap(s=>[s.start,s.end]).filter(s=>!!s).map(s=>M.parse(s));if(!e.length)return null;const t=new Date(Math.min(...e.map(s=>s.getTime()))),a=new Date(Math.max(...e.map(s=>s.getTime())));return{from:t,days:M.daysBetween(t,a)+1}}onBlockPointerDown(e,t,a){if(!this.moveActionId&&!this.selectActionId||(e.preventDefault(),e.currentTarget.setPointerCapture(e.pointerId),this.dragStartX=e.clientX,this.dragStartY=e.clientY,!this.window()))return;const r=M.parse(t.start),n=M.parse(t.end),l=Math.max(1,M.daysBetween(r,n)+1);this.laneRects=[...this.renderRoot.querySelectorAll(".lane[data-resource-id]")].map(u=>({resourceId:u.dataset.resourceId,rect:u.getBoundingClientRect()}));const c=this.dayAt(t.resourceId,e.clientX)??a;this.drag={blockId:t.id,duration:l,grabOffsetDays:c-a,originResourceId:t.resourceId,originStartIdx:a,targetResourceId:t.resourceId,targetStartIdx:a,moved:!1},window.addEventListener("keydown",this.onDragKeydown)}dayAt(e,t){const a=this.laneRects.find(r=>r.resourceId===e),s=this.window();if(!a||!s||a.rect.width===0)return null;const i=Math.floor((t-a.rect.left)/a.rect.width*s.days);return Math.max(0,Math.min(s.days-1,i))}onBlockPointerMove(e){if(!this.drag||!this.drag.moved&&Math.abs(e.clientX-this.dragStartX)<4&&Math.abs(e.clientY-this.dragStartY)<4||!this.moveActionId)return;const t=this.window();if(!t)return;const a=this.laneRects.find(r=>e.clientY>=r.rect.top&&e.clientY<=r.rect.bottom)??this.laneRects.find(r=>r.resourceId===this.drag.targetResourceId);if(!a)return;const s=this.dayAt(a.resourceId,e.clientX);if(s==null)return;const i=Math.max(0,Math.min(t.days-this.drag.duration,s-this.drag.grabOffsetDays));this.drag={...this.drag,moved:!0,targetResourceId:a.resourceId,targetStartIdx:i}}onBlockPointerUp(e){const t=this.drag;if(this.endDrag(),!t)return;if(!t.moved){this.selectActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.selectActionId,parameters:{_blockId:e.id}},bubbles:!0,composed:!0}));return}if(!this.moveActionId||t.targetResourceId===t.originResourceId&&t.targetStartIdx===t.originStartIdx)return;const a=this.window();if(!a)return;const s=M.addDays(a.from,t.targetStartIdx),i=M.addDays(s,t.duration-1);this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.moveActionId,parameters:{_blockId:t.blockId,_resourceId:t.targetResourceId,_start:M.iso(s),_end:M.iso(i)}},bubbles:!0,composed:!0}))}endDrag(){this.drag=null,window.removeEventListener("keydown",this.onDragKeydown)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("keydown",this.onDragKeydown)}render(){const e=this.window();if(!e||!this.resources.length)return o``;const t=[...Array(e.days).keys()].map(l=>M.addDays(e.from,l)),a=new Date,s=M.daysBetween(e.from,new Date(a.getFullYear(),a.getMonth(),a.getDate())),i=s>=0&&s<e.days,r=[];let n;return this.resources.forEach(l=>{l.group&&l.group!==n&&r.push(o`<div class="group">${l.group}</div>`),n=l.group,r.push(this.renderRow(l,e,t,i?s:null))}),o`
+    `};var Jl=Object.defineProperty,Xl=Object.getOwnPropertyDescriptor,Yt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Xl(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Jl(t,a,i),i};let M=class extends S{constructor(){super(...arguments),this.resources=[],this.blocks=[],this.drag=null,this.dragStartX=0,this.dragStartY=0,this.laneRects=[],this.onDragKeydown=e=>{e.key==="Escape"&&this.drag&&(e.stopPropagation(),this.endDrag())}}static parse(e){return new Date(e+"T00:00:00")}static iso(e){const t=a=>String(a).padStart(2,"0");return`${e.getFullYear()}-${t(e.getMonth()+1)}-${t(e.getDate())}`}static addDays(e,t){return new Date(e.getFullYear(),e.getMonth(),e.getDate()+t)}static daysBetween(e,t){return Math.round((t.getTime()-e.getTime())/864e5)}window(){if(this.from&&this.to){const s=M.parse(this.from),i=M.daysBetween(s,M.parse(this.to))+1;return i>0?{from:s,days:i}:null}const e=this.blocks.flatMap(s=>[s.start,s.end]).filter(s=>!!s).map(s=>M.parse(s));if(!e.length)return null;const t=new Date(Math.min(...e.map(s=>s.getTime()))),a=new Date(Math.max(...e.map(s=>s.getTime())));return{from:t,days:M.daysBetween(t,a)+1}}onBlockPointerDown(e,t,a){if(!this.moveActionId&&!this.selectActionId||(e.preventDefault(),e.currentTarget.setPointerCapture(e.pointerId),this.dragStartX=e.clientX,this.dragStartY=e.clientY,!this.window()))return;const r=M.parse(t.start),n=M.parse(t.end),l=Math.max(1,M.daysBetween(r,n)+1);this.laneRects=[...this.renderRoot.querySelectorAll(".lane[data-resource-id]")].map(u=>({resourceId:u.dataset.resourceId,rect:u.getBoundingClientRect()}));const c=this.dayAt(t.resourceId,e.clientX)??a;this.drag={blockId:t.id,duration:l,grabOffsetDays:c-a,originResourceId:t.resourceId,originStartIdx:a,targetResourceId:t.resourceId,targetStartIdx:a,moved:!1},window.addEventListener("keydown",this.onDragKeydown)}dayAt(e,t){const a=this.laneRects.find(r=>r.resourceId===e),s=this.window();if(!a||!s||a.rect.width===0)return null;const i=Math.floor((t-a.rect.left)/a.rect.width*s.days);return Math.max(0,Math.min(s.days-1,i))}onBlockPointerMove(e){if(!this.drag||!this.drag.moved&&Math.abs(e.clientX-this.dragStartX)<4&&Math.abs(e.clientY-this.dragStartY)<4||!this.moveActionId)return;const t=this.window();if(!t)return;const a=this.laneRects.find(r=>e.clientY>=r.rect.top&&e.clientY<=r.rect.bottom)??this.laneRects.find(r=>r.resourceId===this.drag.targetResourceId);if(!a)return;const s=this.dayAt(a.resourceId,e.clientX);if(s==null)return;const i=Math.max(0,Math.min(t.days-this.drag.duration,s-this.drag.grabOffsetDays));this.drag={...this.drag,moved:!0,targetResourceId:a.resourceId,targetStartIdx:i}}onBlockPointerUp(e){const t=this.drag;if(this.endDrag(),!t)return;if(!t.moved){this.selectActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.selectActionId,parameters:{_blockId:e.id}},bubbles:!0,composed:!0}));return}if(!this.moveActionId||t.targetResourceId===t.originResourceId&&t.targetStartIdx===t.originStartIdx)return;const a=this.window();if(!a)return;const s=M.addDays(a.from,t.targetStartIdx),i=M.addDays(s,t.duration-1);this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.moveActionId,parameters:{_blockId:t.blockId,_resourceId:t.targetResourceId,_start:M.iso(s),_end:M.iso(i)}},bubbles:!0,composed:!0}))}endDrag(){this.drag=null,window.removeEventListener("keydown",this.onDragKeydown)}disconnectedCallback(){super.disconnectedCallback(),window.removeEventListener("keydown",this.onDragKeydown)}render(){const e=this.window();if(!e||!this.resources.length)return o``;const t=[...Array(e.days).keys()].map(l=>M.addDays(e.from,l)),a=new Date,s=M.daysBetween(e.from,new Date(a.getFullYear(),a.getMonth(),a.getDate())),i=s>=0&&s<e.days,r=[];let n;return this.resources.forEach(l=>{l.group&&l.group!==n&&r.push(o`<div class="group">${l.group}</div>`),n=l.group,r.push(this.renderRow(l,e,t,i?s:null))}),o`
             <div class="frame" style="grid-template-columns: minmax(8rem, 12rem) repeat(${e.days}, minmax(2.2rem, 1fr));">
                 <div class="corner">Resource</div>
                 ${t.map((l,c)=>o`
@@ -1158,10 +1441,10 @@ id="${e.id}"
                     ${a.map(l=>o`<div class="cell ${this.isWeekend(l)?"weekend":""}"></div>`)}
                 </div>
                 ${s!=null?o`<div class="today-line" style="left: ${(s+.5)*i}%;"></div>`:d}
-                ${r.map(l=>{const c=M.daysBetween(t.from,M.parse(l.start)),u=M.daysBetween(t.from,M.parse(l.end));if(u<0||c>=t.days)return d;const h=Math.max(0,c),p=Math.min(t.days-1,u),f=this.drag?.moved&&this.drag.blockId===l.id;return o`
+                ${r.map(l=>{const c=M.daysBetween(t.from,M.parse(l.start)),u=M.daysBetween(t.from,M.parse(l.end));if(u<0||c>=t.days)return d;const m=Math.max(0,c),p=Math.min(t.days-1,u),f=this.drag?.moved&&this.drag.blockId===l.id;return o`
                         <div class="block ${this.selectActionId?"clickable":""} ${this.moveActionId?"draggable":""} ${f?"dragging":""}"
                              title="${l.label??""} · ${l.start} → ${l.end}${l.status?` · ${l.status}`:""}"
-                             style="left: ${h*i}%; width: ${(p-h+1)*i}%; ${l.color?`--mateu-planning-block: ${l.color};`:""}"
+                             style="left: ${m*i}%; width: ${(p-m+1)*i}%; ${l.color?`--mateu-planning-block: ${l.color};`:""}"
                              @pointerdown="${g=>this.onBlockPointerDown(g,l,c)}"
                              @pointermove="${g=>this.onBlockPointerMove(g)}"
                              @pointerup="${()=>this.onBlockPointerUp(l)}"
@@ -1315,7 +1598,7 @@ id="${e.id}"
             pointer-events: none;
             z-index: 2;
         }
-    `;Gt([m({type:Array})],M.prototype,"resources",2);Gt([m({type:Array})],M.prototype,"blocks",2);Gt([m()],M.prototype,"from",2);Gt([m()],M.prototype,"to",2);Gt([m()],M.prototype,"moveActionId",2);Gt([m()],M.prototype,"selectActionId",2);Gt([$()],M.prototype,"drag",2);M=Gt([k("mateu-planning-board")],M);const Kl=e=>{const t=e.metadata;return o`
+    `;Yt([h({type:Array})],M.prototype,"resources",2);Yt([h({type:Array})],M.prototype,"blocks",2);Yt([h()],M.prototype,"from",2);Yt([h()],M.prototype,"to",2);Yt([h()],M.prototype,"moveActionId",2);Yt([h()],M.prototype,"selectActionId",2);Yt([$()],M.prototype,"drag",2);M=Yt([k("mateu-planning-board")],M);const Ql=e=>{const t=e.metadata;return o`
         <mateu-planning-board
                 .resources="${t.resources??[]}"
                 .blocks="${t.blocks??[]}"
@@ -1327,7 +1610,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-planning-board>
-    `};var Yl=Object.defineProperty,Jl=Object.getOwnPropertyDescriptor,Lr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Jl(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Yl(t,a,i),i};let ki=class extends S{constructor(){super(...arguments),this.columns=[]}clickCard(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_clickedCard:e}},bubbles:!0,composed:!0}))}render(){return o`
+    `};var Zl=Object.defineProperty,ed=Object.getOwnPropertyDescriptor,Fr=(e,t,a,s)=>{for(var i=s>1?void 0:s?ed(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Zl(t,a,i),i};let Ci=class extends S{constructor(){super(...arguments),this.columns=[]}clickCard(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_clickedCard:e}},bubbles:!0,composed:!0}))}render(){return o`
             <div class="board">
                 ${this.columns.map(e=>o`
                     <div class="column" style="${e.color?`--mateu-kanban-accent: ${e.color};`:""}">
@@ -1347,7 +1630,7 @@ id="${e.id}"
                     </div>
                 `)}
             </div>
-        `}};ki.styles=C`
+        `}};Ci.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -1429,14 +1712,14 @@ id="${e.id}"
         @media (prefers-color-scheme: dark) {
             .card { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
-    `;Lr([m({type:Array})],ki.prototype,"columns",2);ki=Lr([k("mateu-kanban")],ki);const Xl=e=>{const t=e.metadata;return o`
+    `;Fr([h({type:Array})],Ci.prototype,"columns",2);Ci=Fr([k("mateu-kanban")],Ci);const td=e=>{const t=e.metadata;return o`
         <mateu-kanban
                 .columns="${t.columns??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-kanban>
-    `};var Ql=Object.defineProperty,Zl=Object.getOwnPropertyDescriptor,Dr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Zl(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Ql(t,a,i),i};let Ci=class extends S{constructor(){super(...arguments),this.items=[]}clickItem(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_clickedItem:e}},bubbles:!0,composed:!0}))}render(){return o`
+    `};var ad=Object.defineProperty,id=Object.getOwnPropertyDescriptor,Nr=(e,t,a,s)=>{for(var i=s>1?void 0:s?id(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&ad(t,a,i),i};let Si=class extends S{constructor(){super(...arguments),this.items=[]}clickItem(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_clickedItem:e}},bubbles:!0,composed:!0}))}render(){return o`
             <div class="feed">
                 ${this.items.map(e=>o`
                     <div class="item ${e.actionId?"clickable":""}">
@@ -1454,7 +1737,7 @@ id="${e.id}"
                     </div>
                 `)}
             </div>
-        `}};Ci.styles=C`
+        `}};Si.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -1525,14 +1808,14 @@ id="${e.id}"
             color: var(--lumo-secondary-text-color, #666);
             margin-top: .15rem;
         }
-    `;Dr([m({type:Array})],Ci.prototype,"items",2);Ci=Dr([k("mateu-timeline")],Ci);const ed=e=>{const t=e.metadata;return o`
+    `;Nr([h({type:Array})],Si.prototype,"items",2);Si=Nr([k("mateu-timeline")],Si);const sd=e=>{const t=e.metadata;return o`
         <mateu-timeline
                 .items="${t.items??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-timeline>
-    `};var td=Object.defineProperty,ad=Object.getOwnPropertyDescriptor,Ts=(e,t,a,s)=>{for(var i=s>1?void 0:s?ad(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&td(t,a,i),i};let Xa=class extends S{constructor(){super(...arguments),this.steps=[],this.vertical=!1}render(){return o`
+    `};var rd=Object.defineProperty,od=Object.getOwnPropertyDescriptor,Ts=(e,t,a,s)=>{for(var i=s>1?void 0:s?od(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&rd(t,a,i),i};let Qa=class extends S{constructor(){super(...arguments),this.steps=[],this.vertical=!1}render(){return o`
             <div class="steps">
                 ${this.steps.map((e,t)=>{const a=e.status??"upcoming";return o`
                         <div class="step ${a}">
@@ -1543,7 +1826,7 @@ id="${e.id}"
                         </div>
                     `})}
             </div>
-        `}};Xa.styles=C`
+        `}};Qa.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -1646,7 +1929,7 @@ id="${e.id}"
             margin-top: 0;
             padding: 0;
         }
-    `;Ts([m({type:Array})],Xa.prototype,"steps",2);Ts([m({type:Boolean,reflect:!0})],Xa.prototype,"vertical",2);Xa=Ts([k("mateu-progress-steps")],Xa);const id=e=>{const t=e.metadata;return o`
+    `;Ts([h({type:Array})],Qa.prototype,"steps",2);Ts([h({type:Boolean,reflect:!0})],Qa.prototype,"vertical",2);Qa=Ts([k("mateu-progress-steps")],Qa);const nd=e=>{const t=e.metadata;return o`
         <mateu-progress-steps
                 .steps="${t.steps??[]}"
                 ?vertical="${t.vertical??!1}"
@@ -1654,9 +1937,9 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-progress-steps>
-    `};var sd=Object.defineProperty,rd=Object.getOwnPropertyDescriptor,Kt=(e,t,a,s)=>{for(var i=s>1?void 0:s?rd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&sd(t,a,i),i};let ot=class extends S{constructor(){super(...arguments),this.spark=[]}sparkline(){const e=this.spark;if(!e||e.length<2)return d;const t=84,a=30,s=2,i=Math.min(...e),n=Math.max(...e)-i||1,l=(t-s*2)/(e.length-1),c=e.map((f,g)=>{const y=s+g*l,x=s+(a-s*2)*(1-(f-i)/n);return[y,x]}),u=c.map(([f,g],y)=>`${y===0?"M":"L"}${f.toFixed(1)} ${g.toFixed(1)}`).join(" "),h=`${u} L${c[c.length-1][0].toFixed(1)} ${a} L${c[0][0].toFixed(1)} ${a} Z`,p=this.trend==="down"?"var(--lumo-error-color, #e11d48)":this.trend==="flat"?"var(--lumo-secondary-text-color, #888)":"var(--lumo-success-color, #12b76a)";return X`
+    `};var ld=Object.defineProperty,dd=Object.getOwnPropertyDescriptor,Jt=(e,t,a,s)=>{for(var i=s>1?void 0:s?dd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&ld(t,a,i),i};let nt=class extends S{constructor(){super(...arguments),this.spark=[]}sparkline(){const e=this.spark;if(!e||e.length<2)return d;const t=84,a=30,s=2,i=Math.min(...e),n=Math.max(...e)-i||1,l=(t-s*2)/(e.length-1),c=e.map((f,g)=>{const y=s+g*l,x=s+(a-s*2)*(1-(f-i)/n);return[y,x]}),u=c.map(([f,g],y)=>`${y===0?"M":"L"}${f.toFixed(1)} ${g.toFixed(1)}`).join(" "),m=`${u} L${c[c.length-1][0].toFixed(1)} ${a} L${c[0][0].toFixed(1)} ${a} Z`,p=this.trend==="down"?"var(--lumo-error-color, #e11d48)":this.trend==="flat"?"var(--lumo-secondary-text-color, #888)":"var(--lumo-success-color, #12b76a)";return X`
             <svg width="${t}" height="${a}" viewBox="0 0 ${t} ${a}">
-                <path d="${h}" fill="${p}" opacity="0.12"></path>
+                <path d="${m}" fill="${p}" opacity="0.12"></path>
                 <path d="${u}" fill="none" stroke="${p}" stroke-width="1.6"
                       stroke-linejoin="round" stroke-linecap="round"></path>
             </svg>
@@ -1669,7 +1952,7 @@ id="${e.id}"
                     ${this.sparkline()}
                 </div>
             </div>
-        `}};ot.styles=C`
+        `}};nt.styles=C`
         :host {
             display: block;
         }
@@ -1723,7 +2006,7 @@ id="${e.id}"
         @media (prefers-color-scheme: dark) {
             .tile { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
-    `;Kt([m()],ot.prototype,"label",2);Kt([m()],ot.prototype,"value",2);Kt([m()],ot.prototype,"unit",2);Kt([m()],ot.prototype,"delta",2);Kt([m()],ot.prototype,"trend",2);Kt([m({type:Array})],ot.prototype,"spark",2);Kt([m()],ot.prototype,"actionId",2);ot=Kt([k("mateu-stat")],ot);const od=e=>{const t=e.metadata;return o`
+    `;Jt([h()],nt.prototype,"label",2);Jt([h()],nt.prototype,"value",2);Jt([h()],nt.prototype,"unit",2);Jt([h()],nt.prototype,"delta",2);Jt([h()],nt.prototype,"trend",2);Jt([h({type:Array})],nt.prototype,"spark",2);Jt([h()],nt.prototype,"actionId",2);nt=Jt([k("mateu-stat")],nt);const cd=e=>{const t=e.metadata;return o`
         <mateu-stat
                 label="${t.label??d}"
                 value="${t.value??d}"
@@ -1736,7 +2019,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-stat>
-    `};var nd=Object.defineProperty,ld=Object.getOwnPropertyDescriptor,Ps=(e,t,a,s)=>{for(var i=s>1?void 0:s?ld(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&nd(t,a,i),i};let Qa=class extends S{constructor(){super(...arguments),this.events=[]}clickEvent(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_clickedEvent:e}},bubbles:!0,composed:!0}))}render(){const e=this.month?new Date(this.month+"T00:00:00"):new Date,t=e.getFullYear(),a=e.getMonth(),s=new Date(t,a,1),i=(s.getDay()+6)%7,r=new Date(t,a+1,0).getDate(),n=new Date,l=f=>n.getFullYear()===t&&n.getMonth()===a&&n.getDate()===f,c={};for(const f of this.events){if(!f.date)continue;const g=new Date(f.date+"T00:00:00");g.getFullYear()===t&&g.getMonth()===a&&(c[g.getDate()]??=[]).push(f)}const u=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],h=[];for(let f=0;f<i;f++)h.push(o`<div class="cell blank"></div>`);for(let f=1;f<=r;f++)h.push(o`
+    `};var ud=Object.defineProperty,pd=Object.getOwnPropertyDescriptor,Os=(e,t,a,s)=>{for(var i=s>1?void 0:s?pd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&ud(t,a,i),i};let Za=class extends S{constructor(){super(...arguments),this.events=[]}clickEvent(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_clickedEvent:e}},bubbles:!0,composed:!0}))}render(){const e=this.month?new Date(this.month+"T00:00:00"):new Date,t=e.getFullYear(),a=e.getMonth(),s=new Date(t,a,1),i=(s.getDay()+6)%7,r=new Date(t,a+1,0).getDate(),n=new Date,l=f=>n.getFullYear()===t&&n.getMonth()===a&&n.getDate()===f,c={};for(const f of this.events){if(!f.date)continue;const g=new Date(f.date+"T00:00:00");g.getFullYear()===t&&g.getMonth()===a&&(c[g.getDate()]??=[]).push(f)}const u=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],m=[];for(let f=0;f<i;f++)m.push(o`<div class="cell blank"></div>`);for(let f=1;f<=r;f++)m.push(o`
                 <div class="cell ${l(f)?"today":""}">
                     <span class="num">${f}</span>
                     ${(c[f]??[]).map(g=>o`
@@ -1750,9 +2033,9 @@ id="${e.id}"
             <div class="title">${p}</div>
             <div class="grid">
                 ${u.map(f=>o`<div class="dow">${f}</div>`)}
-                ${h}
+                ${m}
             </div>
-        `}};Qa.styles=C`
+        `}};Za.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -1825,7 +2108,7 @@ id="${e.id}"
             .cell { background: var(--lumo-contrast-5pct, #2a2a2a); }
             .dow { background: var(--lumo-contrast-10pct, #333); }
         }
-    `;Ps([m()],Qa.prototype,"month",2);Ps([m({type:Array})],Qa.prototype,"events",2);Qa=Ps([k("mateu-calendar")],Qa);const dd=e=>{const t=e.metadata;return o`
+    `;Os([h()],Za.prototype,"month",2);Os([h({type:Array})],Za.prototype,"events",2);Za=Os([k("mateu-calendar")],Za);const hd=e=>{const t=e.metadata;return o`
         <mateu-calendar
                 month="${t.month??d}"
                 .events="${t.events??[]}"
@@ -1833,7 +2116,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-calendar>
-    `};var cd=Object.defineProperty,ud=Object.getOwnPropertyDescriptor,Fr=(e,t,a,s)=>{for(var i=s>1?void 0:s?ud(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&cd(t,a,i),i};let Si=class extends S{constructor(){super(...arguments),this.plans=[]}cta(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId},bubbles:!0,composed:!0}))}render(){return o`
+    `};var md=Object.defineProperty,vd=Object.getOwnPropertyDescriptor,Mr=(e,t,a,s)=>{for(var i=s>1?void 0:s?vd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&md(t,a,i),i};let Ii=class extends S{constructor(){super(...arguments),this.plans=[]}cta(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId},bubbles:!0,composed:!0}))}render(){return o`
             <div class="plans">
                 ${this.plans.map(e=>o`
                     <div class="plan ${e.featured?"featured":""}">
@@ -1852,7 +2135,7 @@ id="${e.id}"
                     </div>
                 `)}
             </div>
-        `}};Si.styles=C`
+        `}};Ii.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -1945,14 +2228,14 @@ id="${e.id}"
         @media (prefers-color-scheme: dark) {
             .plan { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
-    `;Fr([m({type:Array})],Si.prototype,"plans",2);Si=Fr([k("mateu-pricing-table")],Si);const pd=e=>{const t=e.metadata;return o`
+    `;Mr([h({type:Array})],Ii.prototype,"plans",2);Ii=Mr([k("mateu-pricing-table")],Ii);const fd=e=>{const t=e.metadata;return o`
         <mateu-pricing-table
                 .plans="${t.plans??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-pricing-table>
-    `};var hd=Object.defineProperty,md=Object.getOwnPropertyDescriptor,Nr=(e,t,a,s)=>{for(var i=s>1?void 0:s?md(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&hd(t,a,i),i};let Ii=class extends S{clickNode(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_clickedNode:e}},bubbles:!0,composed:!0}))}renderNode(e){const t=e.avatar,a=t&&(t.startsWith("http")||t.startsWith("data:"));return o`
+    `};var bd=Object.defineProperty,gd=Object.getOwnPropertyDescriptor,qr=(e,t,a,s)=>{for(var i=s>1?void 0:s?gd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&bd(t,a,i),i};let _i=class extends S{clickNode(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_clickedNode:e}},bubbles:!0,composed:!0}))}renderNode(e){const t=e.avatar,a=t&&(t.startsWith("http")||t.startsWith("data:"));return o`
             <li>
                 <div class="node ${e.actionId?"clickable":""}"
                      style="${e.color?`--mateu-org-accent: ${e.color};`:""}"
@@ -1963,7 +2246,7 @@ id="${e.id}"
                 </div>
                 ${e.children&&e.children.length?o`<ul>${e.children.map(s=>this.renderNode(s))}</ul>`:d}
             </li>
-        `}render(){return this.root?o`<div class="tree"><ul>${this.renderNode(this.root)}</ul></div>`:o``}};Ii.styles=C`
+        `}render(){return this.root?o`<div class="tree"><ul>${this.renderNode(this.root)}</ul></div>`:o``}};_i.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -2058,14 +2341,14 @@ id="${e.id}"
         @media (prefers-color-scheme: dark) {
             .node { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
-    `;Nr([m({attribute:!1})],Ii.prototype,"root",2);Ii=Nr([k("mateu-org-chart")],Ii);const vd=e=>{const t=e.metadata;return o`
+    `;qr([h({attribute:!1})],_i.prototype,"root",2);_i=qr([k("mateu-org-chart")],_i);const $d=e=>{const t=e.metadata;return o`
         <mateu-org-chart
                 .root="${t.root}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-org-chart>
-    `};var fd=Object.defineProperty,bd=Object.getOwnPropertyDescriptor,Mr=(e,t,a,s)=>{for(var i=s>1?void 0:s?bd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&fd(t,a,i),i};const gd=1440*60*1e3;let _i=class extends S{constructor(){super(...arguments),this.cells=[]}color(e,t){if(e<=0||t<=0)return"var(--lumo-contrast-10pct, #ebedf0)";const a=e/t,s=a>.75?1:a>.5?.75:a>.25?.5:.3;return`color-mix(in srgb, var(--lumo-primary-color, #1a73e8) ${Math.round(s*100)}%, transparent)`}render(){const e=this.cells.filter(c=>!!c.date);if(!e.length)return o``;const t=e.map(c=>new Date(c.date+"T00:00:00").getTime()),a=Math.min(...t),s=Math.max(...t),i=new Date(a);i.setDate(i.getDate()-(i.getDay()+6)%7);const r={};for(const c of e)r[c.date]=c;const n=Math.max(...e.map(c=>c.value??0),1),l=[];for(let c=i.getTime();c<=s;c+=gd){const u=new Date(c),h=u.toISOString().slice(0,10),p=r[h],f=p?.value??0,g=(u.getDay()+6)%7+1,y=p?.label??`${h}: ${f}`;l.push(o`
+    `};var yd=Object.defineProperty,xd=Object.getOwnPropertyDescriptor,Ur=(e,t,a,s)=>{for(var i=s>1?void 0:s?xd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&yd(t,a,i),i};const wd=1440*60*1e3;let Ei=class extends S{constructor(){super(...arguments),this.cells=[]}color(e,t){if(e<=0||t<=0)return"var(--lumo-contrast-10pct, #ebedf0)";const a=e/t,s=a>.75?1:a>.5?.75:a>.25?.5:.3;return`color-mix(in srgb, var(--lumo-primary-color, #1a73e8) ${Math.round(s*100)}%, transparent)`}render(){const e=this.cells.filter(c=>!!c.date);if(!e.length)return o``;const t=e.map(c=>new Date(c.date+"T00:00:00").getTime()),a=Math.min(...t),s=Math.max(...t),i=new Date(a);i.setDate(i.getDate()-(i.getDay()+6)%7);const r={};for(const c of e)r[c.date]=c;const n=Math.max(...e.map(c=>c.value??0),1),l=[];for(let c=i.getTime();c<=s;c+=wd){const u=new Date(c),m=u.toISOString().slice(0,10),p=r[m],f=p?.value??0,g=(u.getDay()+6)%7+1,y=p?.label??`${m}: ${f}`;l.push(o`
                 <div class="cell" style="grid-row: ${g}; --cell: ${this.color(f,n)};" title="${y}"></div>
             `)}return o`
             <div class="wrap">
@@ -2080,7 +2363,7 @@ id="${e.id}"
                     <span>More</span>
                 </div>
             </div>
-        `}};_i.styles=C`
+        `}};Ei.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -2104,14 +2387,14 @@ id="${e.id}"
             margin-top: .15rem;
         }
         .legend .cell { width: 10px; height: 10px; }
-    `;Mr([m({type:Array})],_i.prototype,"cells",2);_i=Mr([k("mateu-heatmap")],_i);const $d=e=>{const t=e.metadata;return o`
+    `;Ur([h({type:Array})],Ei.prototype,"cells",2);Ei=Ur([k("mateu-heatmap")],Ei);const kd=e=>{const t=e.metadata;return o`
         <mateu-heatmap
                 .cells="${t.cells??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-heatmap>
-    `};var yd=Object.defineProperty,xd=Object.getOwnPropertyDescriptor,qr=(e,t,a,s)=>{for(var i=s>1?void 0:s?xd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&yd(t,a,i),i};let Ei=class extends S{constructor(){super(...arguments),this.stages=[]}render(){const e=this.stages;if(!e.length)return o``;const t=e[0].value??0,a=Math.max(...e.map(s=>s.value??0),1);return o`
+    `};var Cd=Object.defineProperty,Sd=Object.getOwnPropertyDescriptor,Br=(e,t,a,s)=>{for(var i=s>1?void 0:s?Sd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Cd(t,a,i),i};let Pi=class extends S{constructor(){super(...arguments),this.stages=[]}render(){const e=this.stages;if(!e.length)return o``;const t=e[0].value??0,a=Math.max(...e.map(s=>s.value??0),1);return o`
             <div class="funnel">
                 ${e.map((s,i)=>{const r=s.value??0,n=a>0?Math.max(6,r/a*100):6,l=i>0?e[i-1].value??0:t,c=i===0?t>0?"100%":"":l>0?`${Math.round(r/l*100)}%`:"0%";return o`
                         <div class="stage">
@@ -2125,7 +2408,7 @@ id="${e.id}"
                         </div>
                     `})}
             </div>
-        `}};Ei.styles=C`
+        `}};Pi.styles=C`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .funnel { display: flex; flex-direction: column; gap: .35rem; }
         .stage { display: flex; flex-direction: column; align-items: center; gap: .1rem; }
@@ -2144,27 +2427,27 @@ id="${e.id}"
         .meta { display: flex; gap: .5rem; align-items: baseline; }
         .label { font-weight: 600; color: var(--lumo-body-text-color, #222); }
         .conv { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-xs, .75rem); }
-    `;qr([m({type:Array})],Ei.prototype,"stages",2);Ei=qr([k("mateu-funnel")],Ei);const wd=e=>{const t=e.metadata;return o`
+    `;Br([h({type:Array})],Pi.prototype,"stages",2);Pi=Br([k("mateu-funnel")],Pi);const Id=e=>{const t=e.metadata;return o`
         <mateu-funnel
                 .stages="${t.stages??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-funnel>
-    `};var kd=Object.defineProperty,Cd=Object.getOwnPropertyDescriptor,Ra=(e,t,a,s)=>{for(var i=s>1?void 0:s?Cd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&kd(t,a,i),i};let Ft=class extends S{constructor(){super(...arguments),this.values=[],this.labels=[],this.area=!1}render(){const e=this.values;if(!e||e.length<2)return o``;const t=600,a=160,s=8,i=Math.min(...e),r=Math.max(...e),n=r-i||1,l=(t-s*2)/(e.length-1),c=e.map((y,x)=>{const T=s+x*l,U=s+(a-s*2)*(1-(y-i)/n);return[T,U]}),u=c.map(([y,x],T)=>`${T===0?"M":"L"}${y.toFixed(1)} ${x.toFixed(1)}`).join(" "),h=`${u} L${c[c.length-1][0].toFixed(1)} ${a-s} L${c[0][0].toFixed(1)} ${a-s} Z`,p=this.color||"var(--lumo-primary-color, #1a73e8)",f=e.indexOf(r),g=e.indexOf(i);return o`
+    `};var _d=Object.defineProperty,Ed=Object.getOwnPropertyDescriptor,Aa=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ed(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&_d(t,a,i),i};let Mt=class extends S{constructor(){super(...arguments),this.values=[],this.labels=[],this.area=!1}render(){const e=this.values;if(!e||e.length<2)return o``;const t=600,a=160,s=8,i=Math.min(...e),r=Math.max(...e),n=r-i||1,l=(t-s*2)/(e.length-1),c=e.map((y,x)=>{const P=s+x*l,U=s+(a-s*2)*(1-(y-i)/n);return[P,U]}),u=c.map(([y,x],P)=>`${P===0?"M":"L"}${y.toFixed(1)} ${x.toFixed(1)}`).join(" "),m=`${u} L${c[c.length-1][0].toFixed(1)} ${a-s} L${c[0][0].toFixed(1)} ${a-s} Z`,p=this.color||"var(--lumo-primary-color, #1a73e8)",f=e.indexOf(r),g=e.indexOf(i);return o`
             ${this.heading?o`<div class="title">${this.heading}</div>`:d}
             <svg viewBox="0 0 ${t} ${a}" preserveAspectRatio="none">
-                ${this.area?X`<path d="${h}" fill="${p}" opacity="0.12"></path>`:d}
+                ${this.area?X`<path d="${m}" fill="${p}" opacity="0.12"></path>`:d}
                 <path d="${u}" fill="none" stroke="${p}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
                 ${c.map((y,x)=>x===f||x===g?X`<circle cx="${y[0]}" cy="${y[1]}" r="3.2" fill="${p}"><title>${this.labels[x]??""}: ${e[x]}</title></circle>`:X`<circle cx="${y[0]}" cy="${y[1]}" r="6" fill="transparent"><title>${this.labels[x]??""}: ${e[x]}</title></circle>`)}
             </svg>
             ${this.labels&&this.labels.length?o`<div class="labels"><span>${this.labels[0]}</span><span>${this.labels[this.labels.length-1]}</span></div>`:d}
-        `}};Ft.styles=C`
+        `}};Mt.styles=C`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .title { font-weight: 600; margin-bottom: .35rem; color: var(--lumo-body-text-color, #222); }
         svg { display: block; width: 100%; height: auto; overflow: visible; }
         .labels { display: flex; justify-content: space-between; color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-xs, .72rem); margin-top: .2rem; }
-    `;Ra([m()],Ft.prototype,"heading",2);Ra([m({type:Array})],Ft.prototype,"values",2);Ra([m({type:Array})],Ft.prototype,"labels",2);Ra([m()],Ft.prototype,"color",2);Ra([m({type:Boolean})],Ft.prototype,"area",2);Ft=Ra([k("mateu-trend-chart")],Ft);const Sd=e=>{const t=e.metadata;return o`
+    `;Aa([h()],Mt.prototype,"heading",2);Aa([h({type:Array})],Mt.prototype,"values",2);Aa([h({type:Array})],Mt.prototype,"labels",2);Aa([h()],Mt.prototype,"color",2);Aa([h({type:Boolean})],Mt.prototype,"area",2);Mt=Aa([k("mateu-trend-chart")],Mt);const Pd=e=>{const t=e.metadata;return o`
         <mateu-trend-chart
                 heading="${t.title??d}"
                 color="${t.color??d}"
@@ -2175,7 +2458,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-trend-chart>
-    `};var Id=Object.defineProperty,_d=Object.getOwnPropertyDescriptor,Os=(e,t,a,s)=>{for(var i=s>1?void 0:s?_d(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Id(t,a,i),i};let Za=class extends S{constructor(){super(...arguments),this.features=[],this.columns=0}clickFeature(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId},bubbles:!0,composed:!0}))}render(){const e=this.columns&&this.columns>0?`repeat(${this.columns}, minmax(0, 1fr))`:"repeat(auto-fit, minmax(15rem, 1fr))";return o`
+    `};var Td=Object.defineProperty,Od=Object.getOwnPropertyDescriptor,Rs=(e,t,a,s)=>{for(var i=s>1?void 0:s?Od(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Td(t,a,i),i};let ei=class extends S{constructor(){super(...arguments),this.features=[],this.columns=0}clickFeature(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId},bubbles:!0,composed:!0}))}render(){const e=this.columns&&this.columns>0?`repeat(${this.columns}, minmax(0, 1fr))`:"repeat(auto-fit, minmax(15rem, 1fr))";return o`
             <div class="grid" style="grid-template-columns: ${e};">
                 ${this.features.map(t=>o`
                     <div class="card ${t.actionId?"clickable":""}" @click="${()=>this.clickFeature(t)}">
@@ -2185,7 +2468,7 @@ id="${e.id}"
                     </div>
                 `)}
             </div>
-        `}};Za.styles=C`
+        `}};ei.styles=C`
         :host { display: block; width: 100%; }
         .grid {
             display: grid;
@@ -2214,7 +2497,7 @@ id="${e.id}"
         @media (prefers-color-scheme: dark) {
             .card { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
-    `;Os([m({type:Array})],Za.prototype,"features",2);Os([m({type:Number})],Za.prototype,"columns",2);Za=Os([k("mateu-feature-grid")],Za);const Ed=e=>{const t=e.metadata;return o`
+    `;Rs([h({type:Array})],ei.prototype,"features",2);Rs([h({type:Number})],ei.prototype,"columns",2);ei=Rs([k("mateu-feature-grid")],ei);const Rd=e=>{const t=e.metadata;return o`
         <mateu-feature-grid
                 .features="${t.features??[]}"
                 .columns="${t.columns??0}"
@@ -2222,7 +2505,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-feature-grid>
-    `};var Td=Object.defineProperty,Pd=Object.getOwnPropertyDescriptor,Ur=(e,t,a,s)=>{for(var i=s>1?void 0:s?Pd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Td(t,a,i),i};let Ti=class extends S{constructor(){super(...arguments),this.items=[]}stars(e){const t=Math.max(0,Math.min(5,e||0));return"★".repeat(t)+"☆".repeat(5-t)}render(){return o`
+    `};var zd=Object.defineProperty,Ad=Object.getOwnPropertyDescriptor,Vr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ad(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&zd(t,a,i),i};let Ti=class extends S{constructor(){super(...arguments),this.items=[]}stars(e){const t=Math.max(0,Math.min(5,e||0));return"★".repeat(t)+"☆".repeat(5-t)}render(){return o`
             <div class="grid">
                 ${this.items.map(e=>{const t=e.avatar&&(e.avatar.startsWith("http")||e.avatar.startsWith("data:"));return o`
                         <div class="card">
@@ -2262,14 +2545,14 @@ id="${e.id}"
         .name { font-weight: 600; color: var(--lumo-body-text-color, #222); }
         .role { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-xs, .75rem); }
         @media (prefers-color-scheme: dark) { .card { background: var(--lumo-contrast-5pct, #2a2a2a); } }
-    `;Ur([m({type:Array})],Ti.prototype,"items",2);Ti=Ur([k("mateu-testimonials")],Ti);const Od=e=>{const t=e.metadata;return o`
+    `;Vr([h({type:Array})],Ti.prototype,"items",2);Ti=Vr([k("mateu-testimonials")],Ti);const jd=e=>{const t=e.metadata;return o`
         <mateu-testimonials
                 .items="${t.items??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-testimonials>
-    `};var Rd=Object.defineProperty,zd=Object.getOwnPropertyDescriptor,Rs=(e,t,a,s)=>{for(var i=s>1?void 0:s?zd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Rd(t,a,i),i};let ei=class extends S{constructor(){super(...arguments),this.items=[],this.openSet=new Set,this.seeded=!1}seed(){this.seeded||(this.seeded=!0,this.items.forEach((e,t)=>{e.open&&this.openSet.add(t)}))}toggle(e){this.openSet.has(e)?this.openSet.delete(e):this.openSet.add(e),this.requestUpdate()}render(){return this.seed(),o`
+    `};var Ld=Object.defineProperty,Dd=Object.getOwnPropertyDescriptor,zs=(e,t,a,s)=>{for(var i=s>1?void 0:s?Dd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Ld(t,a,i),i};let ti=class extends S{constructor(){super(...arguments),this.items=[],this.openSet=new Set,this.seeded=!1}seed(){this.seeded||(this.seeded=!0,this.items.forEach((e,t)=>{e.open&&this.openSet.add(t)}))}toggle(e){this.openSet.has(e)?this.openSet.delete(e):this.openSet.add(e),this.requestUpdate()}render(){return this.seed(),o`
             <div class="list">
                 ${this.items.map((e,t)=>{const a=this.openSet.has(t);return o`
                         <div class="item ${a?"open":""}">
@@ -2281,7 +2564,7 @@ id="${e.id}"
                         </div>
                     `})}
             </div>
-        `}};ei.styles=C`
+        `}};ti.styles=C`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-m, 1rem); }
         .list {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -2304,14 +2587,14 @@ id="${e.id}"
             line-height: 1.55;
         }
         @media (prefers-color-scheme: dark) { .q { background: var(--lumo-contrast-5pct, #2a2a2a); } }
-    `;Rs([m({type:Array})],ei.prototype,"items",2);Rs([$()],ei.prototype,"openSet",2);ei=Rs([k("mateu-faq")],ei);const jd=e=>{const t=e.metadata;return o`
+    `;zs([h({type:Array})],ti.prototype,"items",2);zs([$()],ti.prototype,"openSet",2);ti=zs([k("mateu-faq")],ti);const Fd=e=>{const t=e.metadata;return o`
         <mateu-faq
                 .items="${t.items??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-faq>
-    `};var Ad=Object.defineProperty,Ld=Object.getOwnPropertyDescriptor,va=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ld(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Ad(t,a,i),i};let kt=class extends S{themeVars(){switch(this.theme){case"success":return"--accent: var(--lumo-success-color, #12b76a); --bg: var(--lumo-success-color-10pct, rgba(18,183,106,.1));";case"warning":return"--accent: #f59e0b; --bg: rgba(245,158,11,.12);";case"danger":return"--accent: var(--lumo-error-color, #e11d48); --bg: var(--lumo-error-color-10pct, rgba(225,29,72,.1));";default:return"--accent: var(--lumo-primary-color, #1a73e8); --bg: var(--lumo-primary-color-10pct, rgba(26,115,232,.1));"}}cta(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId},bubbles:!0,composed:!0}))}render(){return o`
+    `};var Nd=Object.defineProperty,Md=Object.getOwnPropertyDescriptor,ba=(e,t,a,s)=>{for(var i=s>1?void 0:s?Md(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Nd(t,a,i),i};let Ct=class extends S{themeVars(){switch(this.theme){case"success":return"--accent: var(--lumo-success-color, #12b76a); --bg: var(--lumo-success-color-10pct, rgba(18,183,106,.1));";case"warning":return"--accent: #f59e0b; --bg: rgba(245,158,11,.12);";case"danger":return"--accent: var(--lumo-error-color, #e11d48); --bg: var(--lumo-error-color-10pct, rgba(225,29,72,.1));";default:return"--accent: var(--lumo-primary-color, #1a73e8); --bg: var(--lumo-primary-color-10pct, rgba(26,115,232,.1));"}}cta(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId},bubbles:!0,composed:!0}))}render(){return o`
             <div class="callout" style="${this.themeVars()}">
                 ${this.icon?o`<span class="icon">${this.icon}</span>`:d}
                 <div class="body">
@@ -2320,7 +2603,7 @@ id="${e.id}"
                     ${this.ctaLabel?o`<button class="cta" @click="${()=>this.cta()}">${this.ctaLabel}</button>`:d}
                 </div>
             </div>
-        `}};kt.styles=C`
+        `}};Ct.styles=C`
         :host { display: block; width: 100%; }
         .callout {
             display: flex; gap: 1rem; align-items: flex-start;
@@ -2340,7 +2623,7 @@ id="${e.id}"
             background: var(--accent, var(--lumo-primary-color, #1a73e8)); color: #fff;
         }
         .cta:hover { filter: brightness(.95); }
-    `;va([m()],kt.prototype,"heading",2);va([m()],kt.prototype,"description",2);va([m()],kt.prototype,"icon",2);va([m()],kt.prototype,"ctaLabel",2);va([m()],kt.prototype,"actionId",2);va([m()],kt.prototype,"theme",2);kt=va([k("mateu-callout-card")],kt);const Dd=e=>{const t=e.metadata;return o`
+    `;ba([h()],Ct.prototype,"heading",2);ba([h()],Ct.prototype,"description",2);ba([h()],Ct.prototype,"icon",2);ba([h()],Ct.prototype,"ctaLabel",2);ba([h()],Ct.prototype,"actionId",2);ba([h()],Ct.prototype,"theme",2);Ct=ba([k("mateu-callout-card")],Ct);const qd=e=>{const t=e.metadata;return o`
         <mateu-callout-card
                 heading="${t.title??d}"
                 description="${t.description??d}"
@@ -2352,7 +2635,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-callout-card>
-    `};var Fd=Object.defineProperty,Nd=Object.getOwnPropertyDescriptor,Br=(e,t,a,s)=>{for(var i=s>1?void 0:s?Nd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Fd(t,a,i),i};let Pi=class extends S{constructor(){super(...arguments),this.comments=[]}renderComment(e){const t=e.avatar&&(e.avatar.startsWith("http")||e.avatar.startsWith("data:"));return o`
+    `};var Ud=Object.defineProperty,Bd=Object.getOwnPropertyDescriptor,Wr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Bd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Ud(t,a,i),i};let Oi=class extends S{constructor(){super(...arguments),this.comments=[]}renderComment(e){const t=e.avatar&&(e.avatar.startsWith("http")||e.avatar.startsWith("data:"));return o`
             <div class="comment">
                 <span class="avatar">${e.avatar?t?o`<img src="${e.avatar}" alt="">`:e.avatar:e.author?.[0]??"?"}</span>
                 <div class="body">
@@ -2364,7 +2647,7 @@ id="${e.id}"
                     ${e.replies&&e.replies.length?o`<div class="replies">${e.replies.map(a=>this.renderComment(a))}</div>`:d}
                 </div>
             </div>
-        `}render(){return o`<div class="thread">${this.comments.map(e=>this.renderComment(e))}</div>`}};Pi.styles=C`
+        `}render(){return o`<div class="thread">${this.comments.map(e=>this.renderComment(e))}</div>`}};Oi.styles=C`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .thread { display: flex; flex-direction: column; gap: 1rem; }
         .replies {
@@ -2384,14 +2667,14 @@ id="${e.id}"
         .author { font-weight: 600; color: var(--lumo-body-text-color, #222); }
         .time { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-xs, .72rem); }
         .text { color: var(--lumo-body-text-color, #333); margin-top: .15rem; line-height: 1.5; }
-    `;Br([m({type:Array})],Pi.prototype,"comments",2);Pi=Br([k("mateu-comment-thread")],Pi);const Md=e=>{const t=e.metadata;return o`
+    `;Wr([h({type:Array})],Oi.prototype,"comments",2);Oi=Wr([k("mateu-comment-thread")],Oi);const Vd=e=>{const t=e.metadata;return o`
         <mateu-comment-thread
                 .comments="${t.comments??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-comment-thread>
-    `};var qd=Object.defineProperty,Ud=Object.getOwnPropertyDescriptor,Vr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ud(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&qd(t,a,i),i};const Bd={pdf:"📕",image:"🖼️",img:"🖼️",doc:"📘",docx:"📘",word:"📘",xls:"📗",xlsx:"📗",excel:"📗",sheet:"📗",zip:"🗜️",archive:"🗜️",video:"🎬",audio:"🎵",code:"💻",csv:"📄",txt:"📄"};let Oi=class extends S{constructor(){super(...arguments),this.files=[]}icon(e){return e&&Bd[e.toLowerCase()]||"📄"}clickFile(e,t){e.url||e.actionId&&(t.preventDefault(),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_file:e}},bubbles:!0,composed:!0})))}render(){return o`
+    `};var Wd=Object.defineProperty,Hd=Object.getOwnPropertyDescriptor,Hr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Hd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Wd(t,a,i),i};const Gd={pdf:"📕",image:"🖼️",img:"🖼️",doc:"📘",docx:"📘",word:"📘",xls:"📗",xlsx:"📗",excel:"📗",sheet:"📗",zip:"🗜️",archive:"🗜️",video:"🎬",audio:"🎵",code:"💻",csv:"📄",txt:"📄"};let Ri=class extends S{constructor(){super(...arguments),this.files=[]}icon(e){return e&&Gd[e.toLowerCase()]||"📄"}clickFile(e,t){e.url||e.actionId&&(t.preventDefault(),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_file:e}},bubbles:!0,composed:!0})))}render(){return o`
             <div class="list">
                 ${this.files.map(e=>{const t=!!e.url||!!e.actionId,a=o`
                         <span class="icon">${this.icon(e.type)}</span>
@@ -2400,7 +2683,7 @@ id="${e.id}"
                         ${e.url?o`<span class="dl">⬇</span>`:d}
                     `;return e.url?o`<a class="file clickable" href="${e.url}" download target="_blank" rel="noopener">${a}</a>`:o`<div class="file ${t?"clickable":""}" @click="${s=>this.clickFile(e,s)}">${a}</div>`})}
             </div>
-        `}};Oi.styles=C`
+        `}};Ri.styles=C`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .list {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -2415,14 +2698,14 @@ id="${e.id}"
         .name { flex: 1; min-width: 0; font-weight: 500; color: var(--lumo-body-text-color, #222); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .size { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-xs, .75rem); flex: 0 0 auto; }
         .dl { color: var(--lumo-primary-color, #1a73e8); flex: 0 0 auto; }
-    `;Vr([m({type:Array})],Oi.prototype,"files",2);Oi=Vr([k("mateu-file-list")],Oi);const Vd=e=>{const t=e.metadata;return o`
+    `;Hr([h({type:Array})],Ri.prototype,"files",2);Ri=Hr([k("mateu-file-list")],Ri);const Kd=e=>{const t=e.metadata;return o`
         <mateu-file-list
                 .files="${t.files??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-file-list>
-    `};var Wd=Object.defineProperty,Hd=Object.getOwnPropertyDescriptor,Wi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Hd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Wd(t,a,i),i};let Ia=class extends S{constructor(){super(...arguments),this.items=[],this.localDone=new Map}isDone(e,t){return this.localDone.has(t)?!!this.localDone.get(t):!!e.done}toggle(e,t){const a=!this.isDone(e,t);this.localDone.set(t,a),this.requestUpdate(),e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_item:e,_done:a}},bubbles:!0,composed:!0}))}render(){const e=this.items.length,t=this.items.filter((s,i)=>this.isDone(s,i)).length,a=e>0?Math.round(t/e*100):0;return o`
+    `};var Yd=Object.defineProperty,Jd=Object.getOwnPropertyDescriptor,Hi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Jd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Yd(t,a,i),i};let Ea=class extends S{constructor(){super(...arguments),this.items=[],this.localDone=new Map}isDone(e,t){return this.localDone.has(t)?!!this.localDone.get(t):!!e.done}toggle(e,t){const a=!this.isDone(e,t);this.localDone.set(t,a),this.requestUpdate(),e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_item:e,_done:a}},bubbles:!0,composed:!0}))}render(){const e=this.items.length,t=this.items.filter((s,i)=>this.isDone(s,i)).length,a=e>0?Math.round(t/e*100):0;return o`
             <div class="head">
                 ${this.heading?o`<span class="title">${this.heading}</span>`:o`<span></span>`}
                 <span class="count">${t} / ${e}</span>
@@ -2434,7 +2717,7 @@ id="${e.id}"
                         <span class="label">${s.label}</span>
                     </div>
                 `})}
-        `}};Ia.styles=C`
+        `}};Ea.styles=C`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: .5rem; }
         .title { font-weight: 700; color: var(--lumo-body-text-color, #222); }
@@ -2450,7 +2733,7 @@ id="${e.id}"
         .item.done .box { background: var(--lumo-success-color, #12b76a); border-color: var(--lumo-success-color, #12b76a); }
         .label { color: var(--lumo-body-text-color, #333); }
         .item.done .label { color: var(--lumo-secondary-text-color, #999); text-decoration: line-through; }
-    `;Wi([m()],Ia.prototype,"heading",2);Wi([m({type:Array})],Ia.prototype,"items",2);Wi([$()],Ia.prototype,"localDone",2);Ia=Wi([k("mateu-checklist")],Ia);const Gd=e=>{const t=e.metadata;return o`
+    `;Hi([h()],Ea.prototype,"heading",2);Hi([h({type:Array})],Ea.prototype,"items",2);Hi([$()],Ea.prototype,"localDone",2);Ea=Hi([k("mateu-checklist")],Ea);const Xd=e=>{const t=e.metadata;return o`
         <mateu-checklist
                 heading="${t.title??d}"
                 .items="${t.items??[]}"
@@ -2458,7 +2741,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-checklist>
-    `};var Kd=Object.defineProperty,Yd=Object.getOwnPropertyDescriptor,Yt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Yd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Kd(t,a,i),i};let nt=class extends S{render(){const e=this.trend??"flat";return o`
+    `};var Qd=Object.defineProperty,Zd=Object.getOwnPropertyDescriptor,Xt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Zd(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Qd(t,a,i),i};let lt=class extends S{render(){const e=this.trend??"flat";return o`
             <div class="card">
                 ${this.heading?o`<div class="title">${this.heading}</div>`:d}
                 <div class="row">
@@ -2476,7 +2759,7 @@ id="${e.id}"
                     </div>
                 </div>
             </div>
-        `}};nt.styles=C`
+        `}};lt.styles=C`
         :host { display: block; width: 100%; }
         .card {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -2498,7 +2781,7 @@ id="${e.id}"
         .delta.down { color: var(--lumo-error-color, #e11d48); background: var(--lumo-error-color-10pct, rgba(225,29,72,.12)); }
         .delta.flat { color: var(--lumo-secondary-text-color, #888); background: var(--lumo-contrast-10pct, rgba(0,0,0,.06)); }
         @media (prefers-color-scheme: dark) { .card { background: var(--lumo-contrast-5pct, #2a2a2a); } }
-    `;Yt([m()],nt.prototype,"heading",2);Yt([m()],nt.prototype,"leftLabel",2);Yt([m()],nt.prototype,"leftValue",2);Yt([m()],nt.prototype,"rightLabel",2);Yt([m()],nt.prototype,"rightValue",2);Yt([m()],nt.prototype,"delta",2);Yt([m()],nt.prototype,"trend",2);nt=Yt([k("mateu-comparison-card")],nt);const Jd=e=>{const t=e.metadata;return o`
+    `;Xt([h()],lt.prototype,"heading",2);Xt([h()],lt.prototype,"leftLabel",2);Xt([h()],lt.prototype,"leftValue",2);Xt([h()],lt.prototype,"rightLabel",2);Xt([h()],lt.prototype,"rightValue",2);Xt([h()],lt.prototype,"delta",2);Xt([h()],lt.prototype,"trend",2);lt=Xt([k("mateu-comparison-card")],lt);const ec=e=>{const t=e.metadata;return o`
         <mateu-comparison-card
                 heading="${t.title??d}"
                 leftLabel="${t.leftLabel??d}"
@@ -2511,7 +2794,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-comparison-card>
-    `},Hi=C`
+    `},Gi=C`
     .chip {
         display: inline-flex;
         align-items: center;
@@ -2541,7 +2824,7 @@ id="${e.id}"
         color: var(--lumo-contrast-80pct, #333);
         background: var(--lumo-contrast-10pct, rgba(0, 0, 0, .08));
     }
-`,Xd=new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}),$s=e=>Xd.format(e),Ri=(e,t)=>{const a=e<0?"-":"",s=$s(Math.abs(e));return t?`${a}${t} ${s}`:`${a}${s}`},Qd=(e,t)=>t?`${$s(e)} ${t}`:$s(e);var Zd=Object.defineProperty,ec=Object.getOwnPropertyDescriptor,Jt=(e,t,a,s)=>{for(var i=s>1?void 0:s?ec(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Zd(t,a,i),i};let lt=class extends S{constructor(){super(...arguments),this.title="",this.badges=[],this.facts=[]}render(){const e=!!(this.metricLabel||this.metricValue||this.metricCaption);return o`
+`,tc=new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}),ys=e=>tc.format(e),zi=(e,t)=>{const a=e<0?"-":"",s=ys(Math.abs(e));return t?`${a}${t} ${s}`:`${a}${s}`},ac=(e,t)=>t?`${ys(e)} ${t}`:ys(e);var ic=Object.defineProperty,sc=Object.getOwnPropertyDescriptor,Qt=(e,t,a,s)=>{for(var i=s>1?void 0:s?sc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&ic(t,a,i),i};let dt=class extends S{constructor(){super(...arguments),this.title="",this.badges=[],this.facts=[]}render(){const e=!!(this.metricLabel||this.metricValue||this.metricCaption);return o`
             <div class="card">
                 <div class="main">
                     <div class="title-row">
@@ -2568,7 +2851,7 @@ id="${e.id}"
                     </div>
                 `:d}
             </div>
-        `}};lt.styles=[Hi,C`
+        `}};dt.styles=[Gi,C`
         :host { display: block; width: 100%; }
         .card {
             display: flex;
@@ -2624,7 +2907,7 @@ id="${e.id}"
             color: var(--lumo-primary-text-color, #1a73e8);
         }
         .metric .caption { font-size: var(--lumo-font-size-xs, .75rem); color: var(--lumo-secondary-text-color, #888); }
-    `];Jt([m()],lt.prototype,"title",2);Jt([m({type:Array})],lt.prototype,"badges",2);Jt([m()],lt.prototype,"subtitle",2);Jt([m({type:Array})],lt.prototype,"facts",2);Jt([m()],lt.prototype,"metricLabel",2);Jt([m()],lt.prototype,"metricValue",2);Jt([m()],lt.prototype,"metricCaption",2);lt=Jt([k("mateu-entity-header")],lt);const tc=e=>{const t=e.metadata;return o`
+    `];Qt([h()],dt.prototype,"title",2);Qt([h({type:Array})],dt.prototype,"badges",2);Qt([h()],dt.prototype,"subtitle",2);Qt([h({type:Array})],dt.prototype,"facts",2);Qt([h()],dt.prototype,"metricLabel",2);Qt([h()],dt.prototype,"metricValue",2);Qt([h()],dt.prototype,"metricCaption",2);dt=Qt([k("mateu-entity-header")],dt);const rc=e=>{const t=e.metadata;return o`
         <mateu-entity-header
                 .title="${t.title??""}"
                 .badges="${t.badges??[]}"
@@ -2637,16 +2920,16 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-entity-header>
-    `};var ac=Object.defineProperty,ic=Object.getOwnPropertyDescriptor,Xt=(e,t,a,s)=>{for(var i=s>1?void 0:s?ic(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&ac(t,a,i),i};let dt=class extends S{constructor(){super(...arguments),this.value=0,this.max=0}fillColor(){return this.dangerAt!=null&&this.value>=this.dangerAt?"error":this.warnAt!=null&&this.value>=this.warnAt?"warning":this.warnAt!=null||this.dangerAt!=null?"success":"primary"}render(){const e=this.max>0?Math.min(Math.max(this.value/this.max,0),1):0,t=Math.round(e*100);return o`
+    `};var oc=Object.defineProperty,nc=Object.getOwnPropertyDescriptor,Zt=(e,t,a,s)=>{for(var i=s>1?void 0:s?nc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&oc(t,a,i),i};let ct=class extends S{constructor(){super(...arguments),this.value=0,this.max=0}fillColor(){return this.dangerAt!=null&&this.value>=this.dangerAt?"error":this.warnAt!=null&&this.value>=this.warnAt?"warning":this.warnAt!=null||this.dangerAt!=null?"success":"primary"}render(){const e=this.max>0?Math.min(Math.max(this.value/this.max,0),1):0,t=Math.round(e*100);return o`
             <div class="meter">
                 ${this.label?o`<span class="label">${this.label}</span>`:d}
-                <span class="value">${Qd(this.value,this.unit)}</span>
+                <span class="value">${ac(this.value,this.unit)}</span>
                 <div class="track">
                     <div class="fill ${this.fillColor()}" style="width: ${t}%"></div>
                 </div>
                 <span class="caption">${this.caption?this.caption:`${t}%`}</span>
             </div>
-        `}};dt.styles=C`
+        `}};ct.styles=C`
         :host { display: block; width: 100%; }
         .meter { display: flex; flex-direction: column; gap: .35rem; }
         .label {
@@ -2668,7 +2951,7 @@ id="${e.id}"
         .fill.warning { background: var(--lumo-warning-color, #f59e0b); }
         .fill.error { background: var(--lumo-error-color, #e11d48); }
         .caption { font-size: var(--lumo-font-size-xs, .75rem); color: var(--lumo-secondary-text-color, #888); }
-    `;Xt([m()],dt.prototype,"label",2);Xt([m({type:Number})],dt.prototype,"value",2);Xt([m({type:Number})],dt.prototype,"max",2);Xt([m()],dt.prototype,"unit",2);Xt([m()],dt.prototype,"caption",2);Xt([m({type:Number})],dt.prototype,"warnAt",2);Xt([m({type:Number})],dt.prototype,"dangerAt",2);dt=Xt([k("mateu-meter")],dt);const sc=e=>{const t=e.metadata;return o`
+    `;Zt([h()],ct.prototype,"label",2);Zt([h({type:Number})],ct.prototype,"value",2);Zt([h({type:Number})],ct.prototype,"max",2);Zt([h()],ct.prototype,"unit",2);Zt([h()],ct.prototype,"caption",2);Zt([h({type:Number})],ct.prototype,"warnAt",2);Zt([h({type:Number})],ct.prototype,"dangerAt",2);ct=Zt([k("mateu-meter")],ct);const lc=e=>{const t=e.metadata;return o`
         <mateu-meter
                 .label="${t.label}"
                 .value="${t.value??0}"
@@ -2681,7 +2964,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-meter>
-    `};var rc=Object.defineProperty,oc=Object.getOwnPropertyDescriptor,za=(e,t,a,s)=>{for(var i=s>1?void 0:s?oc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&rc(t,a,i),i};let Nt=class extends S{constructor(){super(...arguments),this.total=0,this.done=0}runAction(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{}},bubbles:!0,composed:!0}))}render(){const e=this.total>0&&this.done>=this.total,t=!e&&!!this.actionLabel&&!!this.actionId;return o`
+    `};var dc=Object.defineProperty,cc=Object.getOwnPropertyDescriptor,ja=(e,t,a,s)=>{for(var i=s>1?void 0:s?cc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&dc(t,a,i),i};let qt=class extends S{constructor(){super(...arguments),this.total=0,this.done=0}runAction(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{}},bubbles:!0,composed:!0}))}render(){const e=this.total>0&&this.done>=this.total,t=!e&&!!this.actionLabel&&!!this.actionId;return o`
             <div class="banner ${e?"complete":""}">
                 <span class="icon">👥</span>
                 ${this.label?o`<span class="label">${this.label}</span>`:d}
@@ -2693,7 +2976,7 @@ id="${e.id}"
                 <span class="spacer"></span>
                 ${t?o`<button @click="${()=>this.runAction()}">${this.actionLabel} →</button>`:d}
             </div>
-        `}};Nt.styles=C`
+        `}};qt.styles=C`
         :host { display: block; width: 100%; }
         .banner {
             display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
@@ -2736,7 +3019,7 @@ id="${e.id}"
             white-space: nowrap;
         }
         button:hover { filter: brightness(1.08); }
-    `;za([m()],Nt.prototype,"label",2);za([m({type:Number})],Nt.prototype,"total",2);za([m({type:Number})],Nt.prototype,"done",2);za([m()],Nt.prototype,"actionLabel",2);za([m()],Nt.prototype,"actionId",2);Nt=za([k("mateu-task-progress")],Nt);const nc=e=>{const t=e.metadata;return o`
+    `;ja([h()],qt.prototype,"label",2);ja([h({type:Number})],qt.prototype,"total",2);ja([h({type:Number})],qt.prototype,"done",2);ja([h()],qt.prototype,"actionLabel",2);ja([h()],qt.prototype,"actionId",2);qt=ja([k("mateu-task-progress")],qt);const uc=e=>{const t=e.metadata;return o`
         <mateu-task-progress
                 .label="${t.label}"
                 .total="${t.total??0}"
@@ -2747,7 +3030,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-task-progress>
-    `};var lc=Object.defineProperty,dc=Object.getOwnPropertyDescriptor,si=(e,t,a,s)=>{for(var i=s>1?void 0:s?dc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&lc(t,a,i),i};let sa=class extends S{constructor(){super(...arguments),this.items=[],this.compact=!1,this.frameless=!1}runAction(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_item:e.id}},bubbles:!0,composed:!0}))}rowClicked(e){this.rowActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.rowActionId,parameters:{_item:e.id}},bubbles:!0,composed:!0}))}render(){return o`
+    `};var pc=Object.defineProperty,hc=Object.getOwnPropertyDescriptor,ri=(e,t,a,s)=>{for(var i=s>1?void 0:s?hc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&pc(t,a,i),i};let oa=class extends S{constructor(){super(...arguments),this.items=[],this.compact=!1,this.frameless=!1}runAction(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{_item:e.id}},bubbles:!0,composed:!0}))}rowClicked(e){this.rowActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.rowActionId,parameters:{_item:e.id}},bubbles:!0,composed:!0}))}render(){return o`
             <div class="list ${this.compact?"compact":""} ${this.frameless?"frameless":""}">
                 ${this.items.map(e=>o`
                     <div class="row ${this.rowActionId?"clickable":""}"
@@ -2762,7 +3045,7 @@ id="${e.id}"
                     </div>
                 `)}
             </div>
-        `}};sa.styles=[Hi,C`
+        `}};oa.styles=[Gi,C`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         .list {
             border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
@@ -2803,21 +3086,21 @@ id="${e.id}"
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         vaadin-button { flex: 0 0 auto; }
-    `];si([m({type:Array})],sa.prototype,"items",2);si([m({type:Boolean})],sa.prototype,"compact",2);si([m({type:Boolean})],sa.prototype,"frameless",2);si([m()],sa.prototype,"rowActionId",2);sa=si([k("mateu-status-list")],sa);const cc=e=>{const t=e.metadata;return o`
+    `];ri([h({type:Array})],oa.prototype,"items",2);ri([h({type:Boolean})],oa.prototype,"compact",2);ri([h({type:Boolean})],oa.prototype,"frameless",2);ri([h()],oa.prototype,"rowActionId",2);oa=ri([k("mateu-status-list")],oa);const mc=e=>{const t=e.metadata;return o`
         <mateu-status-list
                 .items="${t.items??[]}"
                 ?compact="${t.compact??!1}"
                 ?frameless="${t.frameless??!1}"
-                rowActionId="${P(t.rowActionId??void 0)}"
+                rowActionId="${T(t.rowActionId??void 0)}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-status-list>
-    `};var uc=Object.defineProperty,pc=Object.getOwnPropertyDescriptor,Wr=(e,t,a,s)=>{for(var i=s>1?void 0:s?pc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&uc(t,a,i),i};let zi=class extends S{constructor(){super(...arguments),this.items=[]}render(){return o`
+    `};var vc=Object.defineProperty,fc=Object.getOwnPropertyDescriptor,Gr=(e,t,a,s)=>{for(var i=s>1?void 0:s?fc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&vc(t,a,i),i};let Ai=class extends S{constructor(){super(...arguments),this.items=[]}render(){return o`
             <ul>
                 ${this.items.map(e=>o`<li>${e}</li>`)}
             </ul>
-        `}};zi.styles=C`
+        `}};Ai.styles=C`
         :host { display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem); }
         ul {
             margin: 0; padding-inline-start: 1.2rem;
@@ -2828,22 +3111,22 @@ id="${e.id}"
             line-height: normal;
         }
         li::marker { color: var(--lumo-secondary-text-color, #888); }
-    `;Wr([m({type:Array})],zi.prototype,"items",2);zi=Wr([k("mateu-bulleted-list")],zi);const hc=e=>{const t=e.metadata;return o`
+    `;Gr([h({type:Array})],Ai.prototype,"items",2);Ai=Gr([k("mateu-bulleted-list")],Ai);const bc=e=>{const t=e.metadata;return o`
         <mateu-bulleted-list
                 .items="${t.items??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-bulleted-list>
-    `},mc=e=>{const a=e.metadata.attributes?.["data-colspan"];return o`
+    `},gc=e=>{const a=e.metadata.attributes?.["data-colspan"];return o`
         <hr style="border: none; border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); width: 100%; margin: var(--lumo-space-s, .5rem) 0; ${e.style??""}"
             class="${e.cssClasses??d}"
-            id="${P(e.id??void 0)}"
-            data-colspan="${P(a)}"
+            id="${T(e.id??void 0)}"
+            data-colspan="${T(a)}"
             slot="${e.slot??d}"/>
-    `};var vc=Object.defineProperty,fc=Object.getOwnPropertyDescriptor,Ue=(e,t,a,s)=>{for(var i=s>1?void 0:s?fc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&vc(t,a,i),i};const bc={info:"ℹ",success:"✓",warning:"!",danger:"!"};let xe=class extends S{constructor(){super(...arguments),this.text="",this.theme="info",this.noIcon=!1,this.slim=!1,this.fullWidth=!1,this.hasContent=!1,this.inlineContent=!1}runAction(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId},bubbles:!0,composed:!0}))}render(){const e=!!this.text&&!!this.text.trim();if(!e&&!this.hasContent)return o``;const t=["info","success","warning","danger"].includes(this.theme)?this.theme:"info";return o`
+    `};var $c=Object.defineProperty,yc=Object.getOwnPropertyDescriptor,Ue=(e,t,a,s)=>{for(var i=s>1?void 0:s?yc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&$c(t,a,i),i};const xc={info:"ℹ",success:"✓",warning:"!",danger:"!"};let xe=class extends S{constructor(){super(...arguments),this.text="",this.theme="info",this.noIcon=!1,this.slim=!1,this.fullWidth=!1,this.hasContent=!1,this.inlineContent=!1}runAction(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId},bubbles:!0,composed:!0}))}render(){const e=!!this.text&&!!this.text.trim();if(!e&&!this.hasContent)return o``;const t=["info","success","warning","danger"].includes(this.theme)?this.theme:"info";return o`
             <div class="notice ${t} ${this.slim?"slim":""}">
-                ${this.noIcon?d:o`<span class="icon ${this.icon?"custom":""}">${this.icon||bc[t]}</span>`}
+                ${this.noIcon?d:o`<span class="icon ${this.icon?"custom":""}">${this.icon||xc[t]}</span>`}
                 <div class="body ${this.inlineContent?"inline":""}">
                     ${e?o`<span class="text">${this.text}</span>`:d}
                     ${this.hasContent?o`<div class="content"><slot></slot></div>`:d}
@@ -2903,15 +3186,15 @@ id="${e.id}"
         .warning .icon { background: #c98a1e; }
         .danger  { background: #f6e0da; } .danger .text, .danger .status   { color: #a5502e; }
         .danger  .icon  { background: #b25b3d; }
-    `;Ue([m()],xe.prototype,"text",2);Ue([m()],xe.prototype,"theme",2);Ue([m()],xe.prototype,"icon",2);Ue([m({type:Boolean})],xe.prototype,"noIcon",2);Ue([m()],xe.prototype,"actionLabel",2);Ue([m()],xe.prototype,"actionId",2);Ue([m()],xe.prototype,"status",2);Ue([m({type:Boolean})],xe.prototype,"slim",2);Ue([m({type:Boolean})],xe.prototype,"fullWidth",2);Ue([m({type:Boolean})],xe.prototype,"hasContent",2);Ue([m({type:Boolean})],xe.prototype,"inlineContent",2);xe=Ue([k("mateu-notice")],xe);const gc=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=Bi(l.text??"",s,i,r,n)??"",u=t.children??[];return o`
+    `;Ue([h()],xe.prototype,"text",2);Ue([h()],xe.prototype,"theme",2);Ue([h()],xe.prototype,"icon",2);Ue([h({type:Boolean})],xe.prototype,"noIcon",2);Ue([h()],xe.prototype,"actionLabel",2);Ue([h()],xe.prototype,"actionId",2);Ue([h()],xe.prototype,"status",2);Ue([h({type:Boolean})],xe.prototype,"slim",2);Ue([h({type:Boolean})],xe.prototype,"fullWidth",2);Ue([h({type:Boolean})],xe.prototype,"hasContent",2);Ue([h({type:Boolean})],xe.prototype,"inlineContent",2);xe=Ue([k("mateu-notice")],xe);const wc=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=Vi(l.text??"",s,i,r,n)??"",u=t.children??[];return o`
         <mateu-notice
                 text="${c}"
                 theme="${l.theme??"info"}"
-                icon="${P(l.icon??void 0)}"
+                icon="${T(l.icon??void 0)}"
                 ?noIcon="${l.noIcon??!1}"
-                actionLabel="${P(l.actionLabel??void 0)}"
-                actionId="${P(l.actionId??void 0)}"
-                status="${P(l.status??void 0)}"
+                actionLabel="${T(l.actionLabel??void 0)}"
+                actionId="${T(l.actionId??void 0)}"
+                status="${T(l.status??void 0)}"
                 ?slim="${l.slim??!1}"
                 ?fullWidth="${l.fullWidth??!1}"
                 ?inlineContent="${l.inlineContent??!1}"
@@ -2920,8 +3203,8 @@ id="${e.id}"
                 style="${t.style??d}"
                 class="${t.cssClasses??d}"
                 slot="${t.slot??d}"
-        >${u.map(h=>w(e,h,a,s,i,r,n))}</mateu-notice>
-    `};var $c=Object.defineProperty,yc=Object.getOwnPropertyDescriptor,Gi=(e,t,a,s)=>{for(var i=s>1?void 0:s?yc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&$c(t,a,i),i};let _a=class extends S{constructor(){super(...arguments),this.groups=[]}willUpdate(e){e.has("groups")&&(this.selectedId=this.groups.flatMap(t=>t.items??[]).find(t=>t.selected)?.id)}select(e){this.selectedId=e,this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{_item:e}},bubbles:!0,composed:!0}))}render(){return o`
+        >${u.map(m=>w(e,m,a,s,i,r,n))}</mateu-notice>
+    `};var kc=Object.defineProperty,Cc=Object.getOwnPropertyDescriptor,Ki=(e,t,a,s)=>{for(var i=s>1?void 0:s?Cc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&kc(t,a,i),i};let Pa=class extends S{constructor(){super(...arguments),this.groups=[]}willUpdate(e){e.has("groups")&&(this.selectedId=this.groups.flatMap(t=>t.items??[]).find(t=>t.selected)?.id)}select(e){this.selectedId=e,this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{_item:e}},bubbles:!0,composed:!0}))}render(){return o`
             <div class="rail">
                 ${this.groups.map(e=>o`
                     <div class="group">
@@ -2939,7 +3222,7 @@ id="${e.id}"
                     </div>
                 `)}
             </div>
-        `}};_a.styles=[Hi,C`
+        `}};Pa.styles=[Gi,C`
         :host { display: block; width: 100%; }
         .rail { display: flex; flex-direction: column; gap: var(--lumo-space-m, 1rem); }
         .group { display: flex; flex-direction: column; gap: .45rem; }
@@ -2972,7 +3255,7 @@ id="${e.id}"
             color: var(--lumo-secondary-text-color, #888);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-    `];Gi([m()],_a.prototype,"actionId",2);Gi([m({type:Array})],_a.prototype,"groups",2);Gi([$()],_a.prototype,"selectedId",2);_a=Gi([k("mateu-task-queue")],_a);const xc=e=>{const t=e.metadata;return o`
+    `];Ki([h()],Pa.prototype,"actionId",2);Ki([h({type:Array})],Pa.prototype,"groups",2);Ki([$()],Pa.prototype,"selectedId",2);Pa=Ki([k("mateu-task-queue")],Pa);const Sc=e=>{const t=e.metadata;return o`
         <mateu-task-queue
                 .actionId="${t.actionId}"
                 .groups="${t.groups??[]}"
@@ -2980,7 +3263,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-task-queue>
-    `};var wc=Object.defineProperty,kc=Object.getOwnPropertyDescriptor,ja=(e,t,a,s)=>{for(var i=s>1?void 0:s?kc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&wc(t,a,i),i};let Mt=class extends S{constructor(){super(...arguments),this.columns=0,this.items=[]}willUpdate(e){e.has("items")&&(this.selectedId=this.items.find(t=>t.selected)?.id)}select(e){e.disabled||(this.selectedId=e.id,this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{_item:e.id}},bubbles:!0,composed:!0})))}render(){const e=this.columns>0?`grid-template-columns: repeat(${this.columns}, minmax(0, 1fr));`:"grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));";return o`
+    `};var Ic=Object.defineProperty,_c=Object.getOwnPropertyDescriptor,La=(e,t,a,s)=>{for(var i=s>1?void 0:s?_c(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Ic(t,a,i),i};let Ut=class extends S{constructor(){super(...arguments),this.columns=0,this.items=[]}willUpdate(e){e.has("items")&&(this.selectedId=this.items.find(t=>t.selected)?.id)}select(e){e.disabled||(this.selectedId=e.id,this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{_item:e.id}},bubbles:!0,composed:!0})))}render(){const e=this.columns>0?`grid-template-columns: repeat(${this.columns}, minmax(0, 1fr));`:"grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));";return o`
             <div class="grid" style="${e}">
                 ${this.items.map(t=>o`
                     <div class="cell ${t.disabled?"disabled":""} ${t.recommended?"recommended":""} ${t.id===this.selectedId?"selected":""}"
@@ -2993,7 +3276,7 @@ id="${e.id}"
                     </div>
                 `)}
             </div>
-        `}};Mt.styles=[Hi,C`
+        `}};Ut.styles=[Gi,C`
         /* explicit line-height: inside a form field wrapper the inherited one is the 44px
            field height, which blows up every text row */
         :host { display: block; width: 100%; line-height: var(--lumo-line-height-m, 1.4); }
@@ -3044,7 +3327,7 @@ id="${e.id}"
         .note.warning { color: var(--lumo-warning-text-color, #b45309); }
         .note.error { color: var(--lumo-error-text-color, #c5221f); }
         .note.contrast { color: var(--lumo-contrast-80pct, #333); }
-    `];ja([m()],Mt.prototype,"actionId",2);ja([m({type:Number})],Mt.prototype,"columns",2);ja([m()],Mt.prototype,"recommendedLabel",2);ja([m({type:Array})],Mt.prototype,"items",2);ja([$()],Mt.prototype,"selectedId",2);Mt=ja([k("mateu-resource-grid")],Mt);const Cc=e=>{const t=e.metadata;return o`
+    `];La([h()],Ut.prototype,"actionId",2);La([h({type:Number})],Ut.prototype,"columns",2);La([h()],Ut.prototype,"recommendedLabel",2);La([h({type:Array})],Ut.prototype,"items",2);La([$()],Ut.prototype,"selectedId",2);Ut=La([k("mateu-resource-grid")],Ut);const Ec=e=>{const t=e.metadata;return o`
         <mateu-resource-grid
                 .actionId="${t.actionId}"
                 .columns="${t.columns??0}"
@@ -3054,7 +3337,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-resource-grid>
-    `};var Sc=Object.defineProperty,Ic=Object.getOwnPropertyDescriptor,je=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ic(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Sc(t,a,i),i};let he=class extends S{constructor(){super(...arguments),this.title="",this.features=[],this.current=!1,this.added=!1}runAction(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{}},bubbles:!0,composed:!0}))}render(){return o`
+    `};var Pc=Object.defineProperty,Tc=Object.getOwnPropertyDescriptor,Ae=(e,t,a,s)=>{for(var i=s>1?void 0:s?Tc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Pc(t,a,i),i};let he=class extends S{constructor(){super(...arguments),this.title="",this.features=[],this.current=!1,this.added=!1}runAction(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{}},bubbles:!0,composed:!0}))}render(){return o`
             <div class="card ${this.current?"":"offer"}">
                 ${this.image?o`<img class="image" src="${this.image}" alt="${this.title}">`:d}
                 ${this.tag&&this.image?o`<span class="tag">${this.tag}</span>`:d}
@@ -3142,7 +3425,7 @@ id="${e.id}"
         button:hover { filter: brightness(1.08); }
         button.added { background: var(--lumo-success-color, #2e7d32); }
         .price { font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
-    `;je([m()],he.prototype,"tag",2);je([m()],he.prototype,"title",2);je([m()],he.prototype,"subtitle",2);je([m()],he.prototype,"image",2);je([m({type:Array})],he.prototype,"features",2);je([m()],he.prototype,"priceLabel",2);je([m()],he.prototype,"actionLabel",2);je([m()],he.prototype,"actionId",2);je([m({type:Boolean})],he.prototype,"current",2);je([m()],he.prototype,"currentLabel",2);je([m({type:Boolean})],he.prototype,"added",2);je([m()],he.prototype,"addedLabel",2);he=je([k("mateu-offer-card")],he);const _c=e=>{const t=e.metadata;return o`
+    `;Ae([h()],he.prototype,"tag",2);Ae([h()],he.prototype,"title",2);Ae([h()],he.prototype,"subtitle",2);Ae([h()],he.prototype,"image",2);Ae([h({type:Array})],he.prototype,"features",2);Ae([h()],he.prototype,"priceLabel",2);Ae([h()],he.prototype,"actionLabel",2);Ae([h()],he.prototype,"actionId",2);Ae([h({type:Boolean})],he.prototype,"current",2);Ae([h()],he.prototype,"currentLabel",2);Ae([h({type:Boolean})],he.prototype,"added",2);Ae([h()],he.prototype,"addedLabel",2);he=Ae([k("mateu-offer-card")],he);const Oc=e=>{const t=e.metadata;return o`
         <mateu-offer-card
                 .tag="${t.tag}"
                 .title="${t.title??""}"
@@ -3160,10 +3443,10 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-offer-card>
-    `};var Ec=Object.defineProperty,Tc=Object.getOwnPropertyDescriptor,Aa=(e,t,a,s)=>{for(var i=s>1?void 0:s?Tc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Ec(t,a,i),i};let qt=class extends S{constructor(){super(...arguments),this.items=[],this.added=new Set}willUpdate(e){e.has("items")&&(this.added=new Set(this.items.filter(t=>t.added).map(t=>t.id)))}total(){return this.items.filter(e=>e.id!=null&&this.added.has(e.id)).reduce((e,t)=>e+(t.price??0),0)}toggle(e){if(e.id==null)return;const t=new Set(this.added),a=!t.has(e.id);a?t.add(e.id):t.delete(e.id),this.added=t,this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{_item:e.id,_added:a,_total:this.total()}},bubbles:!0,composed:!0}))}render(){return o`
+    `};var Rc=Object.defineProperty,zc=Object.getOwnPropertyDescriptor,Da=(e,t,a,s)=>{for(var i=s>1?void 0:s?zc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Rc(t,a,i),i};let Bt=class extends S{constructor(){super(...arguments),this.items=[],this.added=new Set}willUpdate(e){e.has("items")&&(this.added=new Set(this.items.filter(t=>t.added).map(t=>t.id)))}total(){return this.items.filter(e=>e.id!=null&&this.added.has(e.id)).reduce((e,t)=>e+(t.price??0),0)}toggle(e){if(e.id==null)return;const t=new Set(this.added),a=!t.has(e.id);a?t.add(e.id):t.delete(e.id),this.added=t,this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{_item:e.id,_added:a,_total:this.total()}},bubbles:!0,composed:!0}))}render(){return o`
             <div class="header">
                 ${this.totalLabel?o`<span class="total-label">${this.totalLabel}:</span>`:d}
-                <span class="total">${Ri(this.total(),this.currency)}</span>
+                <span class="total">${zi(this.total(),this.currency)}</span>
             </div>
             <div class="grid">
                 ${this.items.map(e=>{const t=e.id!=null&&this.added.has(e.id);return o`
@@ -3173,7 +3456,7 @@ id="${e.id}"
                             ${e.description?o`<span class="description">${e.description}</span>`:d}
                             ${e.includedLabel?o`<span class="included">${e.includedLabel}</span>`:o`
                                     ${e.price!=null?o`
-                                        <span class="price">${Ri(e.price,this.currency)}${e.unit?` / ${e.unit}`:""}</span>
+                                        <span class="price">${zi(e.price,this.currency)}${e.unit?` / ${e.unit}`:""}</span>
                                     `:d}
                                     <button class="toggle ${t?"on":""}" @click="${()=>this.toggle(e)}"
                                             aria-pressed="${t}">${t?"✓":"+"}</button>
@@ -3181,7 +3464,7 @@ id="${e.id}"
                         </div>
                     `})}
             </div>
-        `}};qt.styles=C`
+        `}};Bt.styles=C`
         :host { display: block; width: 100%; }
         .header { display: flex; align-items: baseline; justify-content: flex-end; gap: .4rem; margin-bottom: .6rem; }
         .total-label { font-size: var(--lumo-font-size-s, .875rem); color: var(--lumo-secondary-text-color, #888); }
@@ -3246,7 +3529,7 @@ id="${e.id}"
             background: var(--lumo-primary-color, #1a73e8);
             color: var(--lumo-primary-contrast-color, #fff);
         }
-    `;Aa([m()],qt.prototype,"totalLabel",2);Aa([m()],qt.prototype,"currency",2);Aa([m()],qt.prototype,"actionId",2);Aa([m({type:Array})],qt.prototype,"items",2);Aa([$()],qt.prototype,"added",2);qt=Aa([k("mateu-addon-picker")],qt);const Pc=e=>{const t=e.metadata;return o`
+    `;Da([h()],Bt.prototype,"totalLabel",2);Da([h()],Bt.prototype,"currency",2);Da([h()],Bt.prototype,"actionId",2);Da([h({type:Array})],Bt.prototype,"items",2);Da([$()],Bt.prototype,"added",2);Bt=Da([k("mateu-addon-picker")],Bt);const Ac=e=>{const t=e.metadata;return o`
         <mateu-addon-picker
                 .totalLabel="${t.totalLabel}"
                 .currency="${t.currency}"
@@ -3256,19 +3539,19 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-addon-picker>
-    `};var Oc=Object.defineProperty,Rc=Object.getOwnPropertyDescriptor,ri=(e,t,a,s)=>{for(var i=s>1?void 0:s?Rc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Oc(t,a,i),i};let ra=class extends S{constructor(){super(...arguments),this.lines=[]}computedTotal(){return this.total!=null?this.total:this.lines.filter(e=>!e.included).reduce((e,t)=>e+(t.amount??0),0)}render(){return o`
+    `};var jc=Object.defineProperty,Lc=Object.getOwnPropertyDescriptor,oi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Lc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&jc(t,a,i),i};let na=class extends S{constructor(){super(...arguments),this.lines=[]}computedTotal(){return this.total!=null?this.total:this.lines.filter(e=>!e.included).reduce((e,t)=>e+(t.amount??0),0)}render(){return o`
             ${this.lines.map(e=>o`
                 <div class="row">
                     <span class="dot"></span>
                     <span class="concept">${e.concept}</span>
-                    ${e.included?o`<span class="included-label">${e.includedLabel||"Included"}</span>`:o`<span class="amount ${(e.amount??0)<0?"negative":""}">${Ri(e.amount??0,this.currency)}</span>`}
+                    ${e.included?o`<span class="included-label">${e.includedLabel||"Included"}</span>`:o`<span class="amount ${(e.amount??0)<0?"negative":""}">${zi(e.amount??0,this.currency)}</span>`}
                 </div>
             `)}
             <div class="total-row">
                 <span class="total-label">${this.totalLabel||"Total"}</span>
-                <span class="total">${Ri(this.computedTotal(),this.currency)}</span>
+                <span class="total">${zi(this.computedTotal(),this.currency)}</span>
             </div>
-        `}};ra.styles=C`
+        `}};na.styles=C`
         :host {
             display: block; width: 100%; font-size: var(--lumo-font-size-s, .875rem);
             /* an ancestor (e.g. a form-layout row) may set an inherited line-height like 44px —
@@ -3305,7 +3588,7 @@ id="${e.id}"
             color: var(--lumo-body-text-color, #111);
             white-space: nowrap;
         }
-    `;ri([m()],ra.prototype,"currency",2);ri([m()],ra.prototype,"totalLabel",2);ri([m({type:Array})],ra.prototype,"lines",2);ri([m({type:Number})],ra.prototype,"total",2);ra=ri([k("mateu-ledger")],ra);const zc=e=>{const t=e.metadata;return o`
+    `;oi([h()],na.prototype,"currency",2);oi([h()],na.prototype,"totalLabel",2);oi([h({type:Array})],na.prototype,"lines",2);oi([h({type:Number})],na.prototype,"total",2);na=oi([k("mateu-ledger")],na);const Dc=e=>{const t=e.metadata;return o`
         <mateu-ledger
                 .currency="${t.currency}"
                 .totalLabel="${t.totalLabel}"
@@ -3315,7 +3598,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-ledger>
-    `};var jc=Object.defineProperty,Ac=Object.getOwnPropertyDescriptor,It=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ac(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&jc(t,a,i),i};let Je=class extends S{constructor(){super(...arguments),this.methods=[]}willUpdate(e){e.has("selected")&&(this.selectedId=this.selected)}confirm(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{_method:this.selectedId}},bubbles:!0,composed:!0}))}pick(e){this.selectedId=e,this.methodActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.methodActionId,parameters:{_method:e}},bubbles:!0,composed:!0}))}render(){return o`
+    `};var Fc=Object.defineProperty,Nc=Object.getOwnPropertyDescriptor,Et=(e,t,a,s)=>{for(var i=s>1?void 0:s?Nc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Fc(t,a,i),i};let Xe=class extends S{constructor(){super(...arguments),this.methods=[]}willUpdate(e){e.has("selected")&&(this.selectedId=this.selected)}confirm(){this.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.actionId,parameters:{_method:this.selectedId}},bubbles:!0,composed:!0}))}pick(e){this.selectedId=e,this.methodActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.methodActionId,parameters:{_method:e}},bubbles:!0,composed:!0}))}render(){return o`
             <div class="bar">
                 <div class="methods">
                     ${this.methods.map(e=>o`
@@ -3332,7 +3615,7 @@ id="${e.id}"
                 <span class="spacer"></span>
                 ${this.confirmLabel&&this.actionId?o`<button class="confirm" @click="${()=>this.confirm()}">${this.confirmLabel}</button>`:d}
             </div>
-        `}};Je.styles=C`
+        `}};Xe.styles=C`
         :host { display: block; width: 100%; }
         .bar { display: flex; align-items: stretch; gap: .6rem; flex-wrap: wrap; }
         .methods { display: flex; gap: .4rem; flex-wrap: wrap; }
@@ -3377,7 +3660,7 @@ id="${e.id}"
             white-space: nowrap;
         }
         .confirm:hover { filter: brightness(1.08); }
-    `;It([m()],Je.prototype,"actionId",2);It([m()],Je.prototype,"methodActionId",2);It([m({type:Array})],Je.prototype,"methods",2);It([m()],Je.prototype,"selected",2);It([m()],Je.prototype,"contextLabel",2);It([m()],Je.prototype,"contextValue",2);It([m()],Je.prototype,"confirmLabel",2);It([$()],Je.prototype,"selectedId",2);Je=It([k("mateu-payment-picker")],Je);const Lc=e=>{const t=e.metadata;return o`
+    `;Et([h()],Xe.prototype,"actionId",2);Et([h()],Xe.prototype,"methodActionId",2);Et([h({type:Array})],Xe.prototype,"methods",2);Et([h()],Xe.prototype,"selected",2);Et([h()],Xe.prototype,"contextLabel",2);Et([h()],Xe.prototype,"contextValue",2);Et([h()],Xe.prototype,"confirmLabel",2);Et([$()],Xe.prototype,"selectedId",2);Xe=Et([k("mateu-payment-picker")],Xe);const Mc=e=>{const t=e.metadata;return o`
         <mateu-payment-picker
                 .actionId="${t.actionId}"
                 .methodActionId="${t.methodActionId}"
@@ -3390,7 +3673,7 @@ id="${e.id}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-payment-picker>
-    `};var Dc=Object.defineProperty,Fc=Object.getOwnPropertyDescriptor,Hr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Fc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Dc(t,a,i),i};let ji=class extends S{constructor(){super(...arguments),this.items=[]}runAction(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{}},bubbles:!0,composed:!0}))}render(){return o`
+    `};var qc=Object.defineProperty,Uc=Object.getOwnPropertyDescriptor,Kr=(e,t,a,s)=>{for(var i=s>1?void 0:s?Uc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&qc(t,a,i),i};let ji=class extends S{constructor(){super(...arguments),this.items=[]}runAction(e){e.actionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId,parameters:{}},bubbles:!0,composed:!0}))}render(){return o`
             <div class="list">
                 ${this.items.map(e=>o`
                     <div class="row">
@@ -3444,14 +3727,14 @@ id="${e.id}"
             cursor: pointer; white-space: nowrap; flex: 0 0 auto;
         }
         button:hover { background: var(--lumo-warning-color-10pct, rgba(245,158,11,.25)); filter: brightness(.97); }
-    `;Hr([m({type:Array})],ji.prototype,"items",2);ji=Hr([k("mateu-process-monitor")],ji);const Nc=e=>{const t=e.metadata;return o`
+    `;Kr([h({type:Array})],ji.prototype,"items",2);ji=Kr([k("mateu-process-monitor")],ji);const Bc=e=>{const t=e.metadata;return o`
         <mateu-process-monitor
                 .items="${t.items??[]}"
                 style="${e.style??d}"
                 class="${e.cssClasses??d}"
                 slot="${e.slot??d}"
         ></mateu-process-monitor>
-    `},Mc=(e,t)=>{let a=e.style;return e.id&&(a&&!a.endsWith(";")&&(a+=";"),a==null&&(a=""),t[e.id+".hidden"]==!0&&(a+="display: none;")),a},qc=(e,t)=>{let a={...e.metadata};if(e.id&&a){if(a.type==v.Button){const s=a;t[e.id+".disabled"]==!0&&(s.disabled=!0)}if(a.type==v.FormField){const s=a;t[e.id+".disabled"]==!0&&(s.disabled=!0)}}return a},A=e=>t=>e(t.container,t.component,t.baseUrl,t.state,t.data,t.appState,t.appData),Uc={[v.Bpmn]:({component:e})=>_l(e),[v.Workflow]:({component:e})=>Tl(e),[v.WorkflowElk]:({component:e})=>Pl(e),[v.FormEditor]:({component:e})=>Ol(e),[v.Page]:A(bs),[v.Div]:A(Cl),[v.Directory]:({component:e,baseUrl:t,state:a,data:s})=>kl(e),[v.FormLayout]:A(Xo),[v.HorizontalLayout]:A(en),[v.VerticalLayout]:A(tn),[v.SplitLayout]:A(an),[v.MasterDetailLayout]:A(sn),[v.TabLayout]:A(rn),[v.AccordionLayout]:A(nn),[v.BoardLayout]:A(pn),[v.BoardLayoutRow]:A(hn),[v.BoardLayoutItem]:A(mn),[v.Scroller]:A(dn),[v.FullWidth]:A(cn),[v.Container]:A(un),[v.Form]:({container:e,component:t,baseUrl:a,state:s,data:i,appState:r,appData:n})=>{const l=t.metadata;return o`<mateu-form
+    `},Vc=(e,t)=>{let a=e.style;return e.id&&(a&&!a.endsWith(";")&&(a+=";"),a==null&&(a=""),t[e.id+".hidden"]==!0&&(a+="display: none;")),a},Wc=(e,t)=>{let a={...e.metadata};if(e.id&&a){if(a.type==v.Button){const s=a;t[e.id+".disabled"]==!0&&(s.disabled=!0)}if(a.type==v.FormField){const s=a;t[e.id+".disabled"]==!0&&(s.disabled=!0)}}return a},j=e=>t=>e(t.container,t.component,t.baseUrl,t.state,t.data,t.appState,t.appData),Hc={[v.Bpmn]:({component:e})=>Ol(e),[v.Workflow]:({component:e})=>zl(e),[v.WorkflowElk]:({component:e})=>Al(e),[v.FormEditor]:({component:e})=>jl(e),[v.Page]:j(gs),[v.Div]:j(El),[v.Directory]:({component:e,baseUrl:t,state:a,data:s})=>_l(e),[v.FormLayout]:j(tn),[v.HorizontalLayout]:j(rn),[v.VerticalLayout]:j(on),[v.SplitLayout]:j(nn),[v.MasterDetailLayout]:j(ln),[v.TabLayout]:j(dn),[v.AccordionLayout]:j(un),[v.BoardLayout]:j(fn),[v.BoardLayoutRow]:j(bn),[v.BoardLayoutItem]:j(gn),[v.Scroller]:j(hn),[v.FullWidth]:j(mn),[v.Container]:j(vn),[v.Form]:({container:e,component:t,baseUrl:a,state:s,data:i,appState:r,appData:n})=>{const l=t.metadata;return o`<mateu-form
             id="${t.id}"
         baseUrl="${a}"
             .component="${t}"
@@ -3466,7 +3749,7 @@ id="${e.id}"
             >
                 ${t.children?.map(c=>w(e,c,a,s,i,r,n))}
             ${l?.buttons?.map(c=>o`
-               ${w(e,{id:c.actionId,metadata:c,type:de.ClientSide,slot:"buttons"},void 0,s,i,r,n)}
+               ${w(e,{id:c.actionId,metadata:c,type:oe.ClientSide,slot:"buttons"},void 0,s,i,r,n)}
 `)}
 
             </mateu-form>`},[v.Table]:({container:e,component:t,baseUrl:a,state:s,data:i,appState:r,appData:n})=>o`<mateu-table
@@ -3481,7 +3764,7 @@ id="${e.id}"
                         slot="${t.slot??d}"
             >
              ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
-            </mateu-table>`,[v.Crud]:A(gs),[v.App]:({container:e,component:t,baseUrl:a,state:s,data:i,appState:r,appData:n})=>o`
+            </mateu-table>`,[v.Crud]:j($s),[v.App]:({container:e,component:t,baseUrl:a,state:s,data:i,appState:r,appData:n})=>o`
             <mateu-app
                         id="${t.id}"
                         baseUrl="${a}"
@@ -3494,7 +3777,7 @@ id="${e.id}"
                         .appData="${n}"
             >
              ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
-         </mateu-app>`,[v.Element]:({container:e,component:t})=>Xn(e,t.metadata,t),[v.FormField]:({container:e,component:t,baseUrl:a,state:s,data:i,appState:r,appData:n,labelAlreadyRendered:l})=>{const c=t.metadata;return o`
+         </mateu-app>`,[v.Element]:({container:e,component:t})=>tl(e,t.metadata,t),[v.FormField]:({container:e,component:t,baseUrl:a,state:s,data:i,appState:r,appData:n,labelAlreadyRendered:l})=>{const c=t.metadata;return o`
     <mateu-field
                    id="${t.id}"
                    .component="${t}"
@@ -3511,7 +3794,7 @@ id="${e.id}"
             >
                     ${t.children?.map(u=>w(e,u,a,s,i,r,n,l))}
                 </mateu-field>
-        `},[v.Text]:({component:e,state:t,data:a,appState:s,appData:i})=>Qn(e,t,a,s,i),[v.Avatar]:({component:e,state:t,data:a})=>fn(e,t,a),[v.Chat]:({component:e,state:t,data:a})=>El(e),[v.AvatarGroup]:({component:e})=>bn(e),[v.Badge]:({component:e,state:t,data:a})=>Zn(e,t,a),[v.Breadcrumbs]:({component:e})=>xl(e),[v.Anchor]:({component:e})=>tl(e),[v.Button]:({component:e,state:t,data:a})=>rl(e,t,a),[v.Card]:A(ol),[v.Chart]:({component:e})=>nl(e),[v.Icon]:({component:e})=>ll(e),[v.ConfirmDialog]:A(dl),[v.ContextMenu]:A(Vn),[v.CookieConsent]:({component:e})=>cl(e),[v.Details]:A(ul),[v.Dialog]:({component:e,baseUrl:t,state:a,data:s,appState:i,appData:r})=>pl(e,t,a,s,i,r),[v.Drawer]:({component:e,baseUrl:t,state:a,data:s,appState:i,appData:r})=>hl(e,t,a,s,i,r),[v.Image]:({component:e})=>yl(e),[v.Map]:({component:e})=>$l(e),[v.Markdown]:({component:e})=>vl(e),[v.MicroFrontend]:({component:e})=>ml(e),[v.Notification]:({component:e})=>fl(e),[v.ProgressBar]:({component:e,state:t})=>bl(e,t),[v.Popover]:A(gl),[v.CarouselLayout]:A(wl),[v.Tooltip]:A(Kn),[v.MessageInput]:({component:e})=>Gn(e),[v.MessageList]:({component:e})=>Bn(e),[v.CustomField]:A(Hn),[v.MenuBar]:({container:e,component:t,baseUrl:a,state:s,data:i})=>Wn(e,t,a,s,i),[v.Grid]:A(Un),[v.VirtualList]:A(gn),[v.FormSection]:A(Sl),[v.FormSubSection]:A(Il),[v.MetricCard]:({component:e})=>Al(e),[v.Scoreboard]:A(Ll),[v.DashboardPanel]:A(Dl),[v.DashboardLayout]:A(Fl),[v.FoldoutLayout]:A(ql),[v.HeroSection]:A(Ul),[v.EmptyState]:({component:e})=>wn(e),[v.Skeleton]:({component:e})=>kn(e),[v.Gantt]:({component:e})=>Wl(e),[v.PlanningBoard]:({component:e})=>Kl(e),[v.Kanban]:({component:e})=>Xl(e),[v.Timeline]:({component:e})=>ed(e),[v.ProgressSteps]:({component:e})=>id(e),[v.Stat]:({component:e})=>od(e),[v.Calendar]:({component:e})=>dd(e),[v.PricingTable]:({component:e})=>pd(e),[v.OrgChart]:({component:e})=>vd(e),[v.Heatmap]:({component:e})=>$d(e),[v.Funnel]:({component:e})=>wd(e),[v.TrendChart]:({component:e})=>Sd(e),[v.FeatureGrid]:({component:e})=>Ed(e),[v.Testimonials]:({component:e})=>Od(e),[v.Faq]:({component:e})=>jd(e),[v.CalloutCard]:({component:e})=>Dd(e),[v.CommentThread]:({component:e})=>Md(e),[v.FileList]:({component:e})=>Vd(e),[v.Checklist]:({component:e})=>Gd(e),[v.ComparisonCard]:({component:e})=>Jd(e),[v.EntityHeader]:({component:e})=>tc(e),[v.Meter]:({component:e})=>sc(e),[v.TaskProgress]:({component:e})=>nc(e),[v.StatusList]:({component:e})=>cc(e),[v.BulletedList]:({component:e})=>hc(e),[v.Separator]:({component:e})=>mc(e),[v.Notice]:A(gc),[v.TaskQueue]:({component:e})=>xc(e),[v.ResourceGrid]:({component:e})=>Cc(e),[v.OfferCard]:({component:e})=>_c(e),[v.AddOnPicker]:({component:e})=>Pc(e),[v.Ledger]:({component:e})=>zc(e),[v.PaymentPicker]:({component:e})=>Lc(e),[v.ProcessMonitor]:({component:e})=>Nc(e)},zs=(e,t,a,s,i,r,n,l)=>{if(!t?.metadata)return t==null?(console.warn("No metadata for component",t),o`<p>No metadata for component</p>`):zs(e,{id:ye(),metadata:t,type:de.ClientSide},a,s,i,r,n,l);const c=t.metadata.type,u={...t,style:Mc(t,i),metadata:qc(t,i)},h=Uc[c];return h?h({container:e,component:u,baseUrl:a,state:s,data:i,appState:r,appData:n,labelAlreadyRendered:l}):o`<p ${u?.slot??d}>Unknown metadata type ${c} for component ${u?.id}</p>`};var $e=(e=>(e.HAMBURGUER_MENU="HAMBURGUER_MENU",e.MENU_ON_LEFT="MENU_ON_LEFT",e.MENU_ON_TOP="MENU_ON_TOP",e.TABS="TABS",e.TILES="TILES",e.RAIL="RAIL",e.AUTO="AUTO",e.MEDIATOR="MEDIATOR",e))($e||{});const js="mateu-app-context",Gr="mateu-app-context-labels",Kr=e=>{try{return JSON.parse(localStorage.getItem(e)??"{}")}catch{return{}}},Zs=(e,t)=>{try{localStorage.setItem(e,JSON.stringify(t))}catch{}},Ki=()=>Kr(js),As=()=>Kr(Gr),Yr=(e,t,a)=>{const s=Ki(),i=As();t==null||t===""?(delete s[e],delete i[e]):(s[e]=t,a!==void 0&&(i[e]=a)),Zs(js,s),Zs(Gr,i)};let er=!1;const Jr=()=>{er||(er=!0,window.addEventListener("storage",e=>{e.key===js&&e.newValue!==e.oldValue&&window.location.reload()}))},Bc=(e,t)=>new Promise((a,s)=>{let i=!1;const r={retry:()=>{i||(i=!0,t().then(a,s))},giveUp:()=>{i||(i=!0,s(e))}},n=new CustomEvent("mateu-session-expired",{detail:r,cancelable:!0,bubbles:!1});typeof document<"u"&&!document.dispatchEvent(n)||r.giveUp()}),Vc=(e,t)=>e.includes("json")?!0:t!==null&&typeof t=="object",Wc=(e,t)=>{const a=e.finalUrl;if(!a)return;const s=typeof window<"u"?window.location.href:void 0;let i;try{i=new URL(e.requestedUrl,s).href}catch{return}if(i!==a&&!Vc(e.contentType??"",e.data))return a};let xa=[];class Hc{constructor(){this.axiosInstance=Vo.create({timeout:6e4}),this.axiosInstance.interceptors.request.use(t=>(this.addAuthToken(t),this.addSessionId(t),t)),this.axiosInstance.interceptors.response.use(t=>{const a=Wc({requestedUrl:this.axiosInstance.getUri(t.config),finalUrl:t.request?.responseURL,contentType:String(t.headers?.["content-type"]??""),data:t.data});if(a)throw window.location.assign(a),Object.assign(new Error("session lost — redirecting to "+a),{code:"ERR_CANCELED"});return t},t=>{const a=t;if(a?.response?.status===401&&a.config&&!a.config.__mateuRetried){const s=a.config;return s.__mateuRetried=!0,Bc(t,()=>this.axiosInstance.request(s))}throw t})}addSessionId(t){let a=sessionStorage.getItem("__mateu_sesion_id");a||(a=ye(),sessionStorage.setItem("__mateu_sesion_id",a)),t.headers["X-Session-Id"]=a}addAuthToken(t){const a=localStorage.getItem("__mateu_auth_token");a&&(t.headers.Authorization="Bearer "+a)}async wrap(t,a,s,i){return s||a.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),t.then(r=>(a.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:i}})),r)).catch(r=>{throw r?.code=="ERR_CANCELED"?a.dispatchEvent(new CustomEvent("backend-cancelled-event",{bubbles:!0,composed:!0,detail:{}})):a.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:i,reason:this.serialize(r)}})),r})}serialize(t){return t?.message?t:JSON.stringify(t)}async get(t){const a=new AbortController;return xa=[...xa,a],this.axiosInstance.get(t,{signal:a.signal})}async post(t,a){const s=new AbortController;return xa=[...xa,s],this.axiosInstance.post(t,a,{signal:s.signal})}async abortAll(){xa.forEach(t=>t.abort()),xa=[]}async runAction(t,a,s,i,r,n,l,c,u,h,p){return a&&a.startsWith("/")&&(a=a.substring(1)),n={...Ki(),...n},await this.wrap(this.post(t+"/mateu/v3/sync/"+(a&&a!=""?a:"_no_route"),{serverSideType:l,appState:n,componentState:c,parameters:u,initiatorComponentId:r,consumedRoute:s,route:a&&a!=""?"/"+a:"",actionId:i}).then(f=>f.data),h,p,i)}}const fa=new Hc;var Gc=Object.defineProperty,Kc=Object.getOwnPropertyDescriptor,Yi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Kc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Gc(t,a,i),i};let Ut=class extends S{constructor(){super(...arguments),this.baseUrl="",this.dataProvider=async(e,t)=>{const a=e.filter??"",i=await this.remoteSearch(a)??(this.selector.options??[]).filter(r=>r.label.toLowerCase().includes(a.toLowerCase()));t(i,i.length)}}connectedCallback(){super.connectedCallback(),Jr()}currentValue(){return String(Ki()[this.selector.fieldName]??"")}currentLabel(){const e=this.currentValue();if(!e)return"";const t=(this.selector.options??[]).find(s=>String(s.value)===e);if(t)return t.label;const a=As()[this.selector.fieldName];return a!==void 0?String(a):e}pick(e,t){String(e??"")!==this.currentValue()&&(Yr(this.selector.fieldName,e,t),window.location.reload())}async remoteSearch(e){const t=this.app;if(t?.serverSideType)try{const a=await fa.runAction(this.baseUrl??"",t.rootRoute??t.initialRoute??"","",`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,t.serverSideType,{},{searchText:e},this,!0);for(const s of a?.fragments??[]){const n=s.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(n))return n.map(l=>({value:l.value,label:l.label??String(l.value)}))}}catch{}}renderSelect(){const e=[{label:"—",value:""},...(this.selector.options??[]).map(t=>({label:t.label,value:String(t.value)}))];return o`
+        `},[v.Text]:({component:e,state:t,data:a,appState:s,appData:i})=>al(e,t,a,s,i),[v.Avatar]:({component:e,state:t,data:a})=>yn(e,t,a),[v.Chat]:({component:e,state:t,data:a})=>Rl(e),[v.AvatarGroup]:({component:e})=>xn(e),[v.Badge]:({component:e,state:t,data:a})=>il(e,t,a),[v.Breadcrumbs]:({component:e})=>Sl(e),[v.Anchor]:({component:e})=>rl(e),[v.Button]:({component:e,state:t,data:a})=>dl(e,t,a),[v.Card]:j(cl),[v.Chart]:({component:e})=>ul(e),[v.Icon]:({component:e})=>pl(e),[v.ConfirmDialog]:j(hl),[v.ContextMenu]:j(Kn),[v.CookieConsent]:({component:e})=>ml(e),[v.Details]:j(vl),[v.Dialog]:({component:e,baseUrl:t,state:a,data:s,appState:i,appData:r})=>fl(e,t,a,s,i,r),[v.Drawer]:({component:e,baseUrl:t,state:a,data:s,appState:i,appData:r})=>bl(e,t,a,s,i,r),[v.Image]:({component:e})=>Cl(e),[v.Map]:({component:e})=>kl(e),[v.Markdown]:({component:e})=>$l(e),[v.MicroFrontend]:({component:e})=>gl(e),[v.Notification]:({component:e})=>yl(e),[v.ProgressBar]:({component:e,state:t})=>xl(e,t),[v.Popover]:j(wl),[v.CarouselLayout]:j(Il),[v.Tooltip]:j(Qn),[v.MessageInput]:({component:e})=>Xn(e),[v.MessageList]:({component:e})=>Gn(e),[v.CustomField]:j(Jn),[v.MenuBar]:({container:e,component:t,baseUrl:a,state:s,data:i})=>Yn(e,t,a,s,i),[v.Grid]:j(Hn),[v.VirtualList]:j(wn),[v.FormSection]:j(Pl),[v.FormSubSection]:j(Tl),[v.MetricCard]:({component:e})=>Nl(e),[v.Scoreboard]:j(Ml),[v.DashboardPanel]:j(ql),[v.DashboardLayout]:j(Ul),[v.FoldoutLayout]:j(Wl),[v.HeroSection]:j(Hl),[v.EmptyState]:({component:e})=>In(e),[v.Skeleton]:({component:e})=>_n(e),[v.Gantt]:({component:e})=>Yl(e),[v.PlanningBoard]:({component:e})=>Ql(e),[v.Kanban]:({component:e})=>td(e),[v.Timeline]:({component:e})=>sd(e),[v.ProgressSteps]:({component:e})=>nd(e),[v.Stat]:({component:e})=>cd(e),[v.Calendar]:({component:e})=>hd(e),[v.PricingTable]:({component:e})=>fd(e),[v.OrgChart]:({component:e})=>$d(e),[v.Heatmap]:({component:e})=>kd(e),[v.Funnel]:({component:e})=>Id(e),[v.TrendChart]:({component:e})=>Pd(e),[v.FeatureGrid]:({component:e})=>Rd(e),[v.Testimonials]:({component:e})=>jd(e),[v.Faq]:({component:e})=>Fd(e),[v.CalloutCard]:({component:e})=>qd(e),[v.CommentThread]:({component:e})=>Vd(e),[v.FileList]:({component:e})=>Kd(e),[v.Checklist]:({component:e})=>Xd(e),[v.ComparisonCard]:({component:e})=>ec(e),[v.EntityHeader]:({component:e})=>rc(e),[v.Meter]:({component:e})=>lc(e),[v.TaskProgress]:({component:e})=>uc(e),[v.StatusList]:({component:e})=>mc(e),[v.BulletedList]:({component:e})=>bc(e),[v.Separator]:({component:e})=>gc(e),[v.Notice]:j(wc),[v.TaskQueue]:({component:e})=>Sc(e),[v.ResourceGrid]:({component:e})=>Ec(e),[v.OfferCard]:({component:e})=>Oc(e),[v.AddOnPicker]:({component:e})=>Ac(e),[v.Ledger]:({component:e})=>Dc(e),[v.PaymentPicker]:({component:e})=>Mc(e),[v.ProcessMonitor]:({component:e})=>Bc(e)},As=(e,t,a,s,i,r,n,l)=>{if(!t?.metadata)return t==null?(console.warn("No metadata for component",t),o`<p>No metadata for component</p>`):As(e,{id:ye(),metadata:t,type:oe.ClientSide},a,s,i,r,n,l);const c=t.metadata.type,u={...t,style:Vc(t,i),metadata:Wc(t,i)},m=Hc[c];return m?m({container:e,component:u,baseUrl:a,state:s,data:i,appState:r,appData:n,labelAlreadyRendered:l}):o`<p ${u?.slot??d}>Unknown metadata type ${c} for component ${u?.id}</p>`};var $e=(e=>(e.HAMBURGUER_MENU="HAMBURGUER_MENU",e.MENU_ON_LEFT="MENU_ON_LEFT",e.MENU_ON_TOP="MENU_ON_TOP",e.TABS="TABS",e.TILES="TILES",e.RAIL="RAIL",e.AUTO="AUTO",e.MEDIATOR="MEDIATOR",e))($e||{});const js="mateu-app-context",Yr="mateu-app-context-labels",Jr=e=>{try{return JSON.parse(localStorage.getItem(e)??"{}")}catch{return{}}},tr=(e,t)=>{try{localStorage.setItem(e,JSON.stringify(t))}catch{}},Yi=()=>Jr(js),Ls=()=>Jr(Yr),Xr=(e,t,a)=>{const s=Yi(),i=Ls();t==null||t===""?(delete s[e],delete i[e]):(s[e]=t,a!==void 0&&(i[e]=a)),tr(js,s),tr(Yr,i)};let ar=!1;const Qr=()=>{ar||(ar=!0,window.addEventListener("storage",e=>{e.key===js&&e.newValue!==e.oldValue&&window.location.reload()}))},Gc=(e,t)=>new Promise((a,s)=>{let i=!1;const r={retry:()=>{i||(i=!0,t().then(a,s))},giveUp:()=>{i||(i=!0,s(e))}},n=new CustomEvent("mateu-session-expired",{detail:r,cancelable:!0,bubbles:!1});typeof document<"u"&&!document.dispatchEvent(n)||r.giveUp()}),Kc=(e,t)=>e.includes("json")?!0:t!==null&&typeof t=="object",Yc=(e,t)=>{const a=e.finalUrl;if(!a)return;const s=typeof window<"u"?window.location.href:void 0;let i;try{i=new URL(e.requestedUrl,s).href}catch{return}if(i!==a&&!Kc(e.contentType??"",e.data))return a};let ka=[];class Jc{constructor(){this.axiosInstance=Ko.create({timeout:6e4}),this.axiosInstance.interceptors.request.use(t=>(this.addAuthToken(t),this.addSessionId(t),t)),this.axiosInstance.interceptors.response.use(t=>{const a=Yc({requestedUrl:this.axiosInstance.getUri(t.config),finalUrl:t.request?.responseURL,contentType:String(t.headers?.["content-type"]??""),data:t.data});if(a)throw window.location.assign(a),Object.assign(new Error("session lost — redirecting to "+a),{code:"ERR_CANCELED"});return t},t=>{const a=t;if(a?.response?.status===401&&a.config&&!a.config.__mateuRetried){const s=a.config;return s.__mateuRetried=!0,Gc(t,()=>this.axiosInstance.request(s))}throw t})}addSessionId(t){let a=sessionStorage.getItem("__mateu_sesion_id");a||(a=ye(),sessionStorage.setItem("__mateu_sesion_id",a)),t.headers["X-Session-Id"]=a}addAuthToken(t){const a=localStorage.getItem("__mateu_auth_token");a&&(t.headers.Authorization="Bearer "+a)}async wrap(t,a,s,i){return s||a.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),t.then(r=>(a.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:i}})),r)).catch(r=>{throw r?.code=="ERR_CANCELED"?a.dispatchEvent(new CustomEvent("backend-cancelled-event",{bubbles:!0,composed:!0,detail:{}})):a.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:i,reason:this.serialize(r)}})),r})}serialize(t){return t?.message?t:JSON.stringify(t)}async get(t){const a=new AbortController;return ka=[...ka,a],this.axiosInstance.get(t,{signal:a.signal})}async post(t,a){const s=new AbortController;return ka=[...ka,s],this.axiosInstance.post(t,a,{signal:s.signal})}async abortAll(){ka.forEach(t=>t.abort()),ka=[]}async runAction(t,a,s,i,r,n,l,c,u,m,p){return a&&a.startsWith("/")&&(a=a.substring(1)),n={...Yi(),...n},await this.wrap(this.post(t+"/mateu/v3/sync/"+(a&&a!=""?a:"_no_route"),{serverSideType:l,appState:n,componentState:c,parameters:u,initiatorComponentId:r,consumedRoute:s,route:a&&a!=""?"/"+a:"",actionId:i}).then(f=>f.data),m,p,i)}}const ga=new Jc;var Xc=Object.defineProperty,Qc=Object.getOwnPropertyDescriptor,Ji=(e,t,a,s)=>{for(var i=s>1?void 0:s?Qc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Xc(t,a,i),i};let Vt=class extends S{constructor(){super(...arguments),this.baseUrl="",this.dataProvider=async(e,t)=>{const a=e.filter??"",i=await this.remoteSearch(a)??(this.selector.options??[]).filter(r=>r.label.toLowerCase().includes(a.toLowerCase()));t(i,i.length)}}connectedCallback(){super.connectedCallback(),Qr()}currentValue(){return String(Yi()[this.selector.fieldName]??"")}currentLabel(){const e=this.currentValue();if(!e)return"";const t=(this.selector.options??[]).find(s=>String(s.value)===e);if(t)return t.label;const a=Ls()[this.selector.fieldName];return a!==void 0?String(a):e}pick(e,t){String(e??"")!==this.currentValue()&&(Xr(this.selector.fieldName,e,t),window.location.reload())}async remoteSearch(e){const t=this.app;if(t?.serverSideType)try{const a=await ga.runAction(this.baseUrl??"",t.rootRoute??t.initialRoute??"","",`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,t.serverSideType,{},{searchText:e},this,!0);for(const s of a?.fragments??[]){const n=s.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(n))return n.map(l=>({value:l.value,label:l.label??String(l.value)}))}}catch{}}renderSelect(){const e=[{label:"—",value:""},...(this.selector.options??[]).map(t=>({label:t.label,value:String(t.value)}))];return o`
             <vaadin-select theme="small"
                            .items="${e}"
                            .value="${this.currentValue()}"
@@ -3523,11 +3806,11 @@ id="${e.id}"
                               placeholder="—"
                               .dataProvider="${this.dataProvider}"
                               .selectedItem="${t}"
-                              @selected-item-changed="${a=>{const s=a.detail.value;this.pick(s?.value??"",s?.label)}}"></vaadin-combo-box>`}render(){if(!this.selector)return o``;const e=(this.selector.options?.length??0)>Ut.SEARCHABLE_THRESHOLD;return o`
+                              @selected-item-changed="${a=>{const s=a.detail.value;this.pick(s?.value??"",s?.label)}}"></vaadin-combo-box>`}render(){if(!this.selector)return o``;const e=(this.selector.options?.length??0)>Vt.SEARCHABLE_THRESHOLD;return o`
             <label class="root">
                 <span class="label">${this.selector.label}</span>
                 ${e?this.renderComboBox():this.renderSelect()}
-            </label>`}};Ut.SEARCHABLE_THRESHOLD=7;Ut.styles=C`
+            </label>`}};Vt.SEARCHABLE_THRESHOLD=7;Vt.styles=C`
         :host {
             display: inline-flex;
             flex-shrink: 0;
@@ -3543,7 +3826,7 @@ id="${e.id}"
         vaadin-select, vaadin-combo-box {
             width: 11rem;
         }
-    `;Yi([m()],Ut.prototype,"selector",2);Yi([m()],Ut.prototype,"app",2);Yi([m()],Ut.prototype,"baseUrl",2);Ut=Yi([k("mateu-vaadin-app-context-picker")],Ut);class Yc{constructor(){this._dirty=!1,this._installed=!1,this.message="You have unsaved changes. Are you sure you want to leave this page?",this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=t=>{this._dirty&&(t.preventDefault(),t.returnValue="")}}install(){this._installed||(this._installed=!0,document.addEventListener("dirty",this._onDirty),document.addEventListener("clean",this._onClean),window.addEventListener("beforeunload",this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;const t=window.confirm(this.message);return t&&(this._dirty=!1),t}}const Dt=new Yc;var Jc=Object.defineProperty,Xc=Object.getOwnPropertyDescriptor,oi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Xc(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Jc(t,a,i),i};let oa=class extends S{constructor(){super(...arguments),this.baseUrl="",this.opened=!1,this.notifications=[],this.fetched=!1}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}updated(){!this.fetched&&this.app?.serverSideType&&(this.fetched=!0,this.refresh())}unreadCount(){return this.notifications.filter(e=>e.unread).length}async runNotificationsAction(e,t){const a=this.app;if(a?.serverSideType)try{const s=await fa.runAction(this.baseUrl??"",a.rootRoute??a.initialRoute??"","",e,"notification-bell",void 0,a.serverSideType,{},t,this,!0);for(const i of s?.fragments??[]){const n=i.data?._notifications;if(Array.isArray(n)){this.notifications=n;return}}}catch{}}refresh(){return this.runNotificationsAction("_notifications-list",{})}markRead(e){return this.runNotificationsAction("_notifications-read",{ids:e})}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}openPanel(){this.opened||(this.opened=!0,this.refresh(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick))}closePanel(){this.detachOutsideClick(),this.opened=!1}async entryClicked(e){e.unread&&await this.markRead([e.id]);const t=e.route;if(t){if(!Dt.confirmLeave())return;this.closePanel(),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent("navigate-to-requested",{detail:{route:t},bubbles:!0,composed:!0}))}}renderEntry(e){return o`
+    `;Ji([h()],Vt.prototype,"selector",2);Ji([h()],Vt.prototype,"app",2);Ji([h()],Vt.prototype,"baseUrl",2);Vt=Ji([k("mateu-vaadin-app-context-picker")],Vt);class Zc{constructor(){this._dirty=!1,this._installed=!1,this.message="You have unsaved changes. Are you sure you want to leave this page?",this._onDirty=()=>{this._dirty=!0},this._onClean=()=>{this._dirty=!1},this._onBeforeUnload=t=>{this._dirty&&(t.preventDefault(),t.returnValue="")}}install(){this._installed||(this._installed=!0,document.addEventListener("dirty",this._onDirty),document.addEventListener("clean",this._onClean),window.addEventListener("beforeunload",this._onBeforeUnload))}get dirty(){return this._dirty}markDirty(){this._dirty=!0}markClean(){this._dirty=!1}confirmLeave(){if(!this._dirty)return!0;const t=window.confirm(this.message);return t&&(this._dirty=!1),t}}const Nt=new Zc;var eu=Object.defineProperty,tu=Object.getOwnPropertyDescriptor,ni=(e,t,a,s)=>{for(var i=s>1?void 0:s?tu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&eu(t,a,i),i};let la=class extends S{constructor(){super(...arguments),this.baseUrl="",this.opened=!1,this.notifications=[],this.fetched=!1}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}updated(){!this.fetched&&this.app?.serverSideType&&(this.fetched=!0,this.refresh())}unreadCount(){return this.notifications.filter(e=>e.unread).length}async runNotificationsAction(e,t){const a=this.app;if(a?.serverSideType)try{const s=await ga.runAction(this.baseUrl??"",a.rootRoute??a.initialRoute??"","",e,"notification-bell",void 0,a.serverSideType,{},t,this,!0);for(const i of s?.fragments??[]){const n=i.data?._notifications;if(Array.isArray(n)){this.notifications=n;return}}}catch{}}refresh(){return this.runNotificationsAction("_notifications-list",{})}markRead(e){return this.runNotificationsAction("_notifications-read",{ids:e})}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}openPanel(){this.opened||(this.opened=!0,this.refresh(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick))}closePanel(){this.detachOutsideClick(),this.opened=!1}async entryClicked(e){e.unread&&await this.markRead([e.id]);const t=e.route;if(t){if(!Nt.confirmLeave())return;this.closePanel(),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent("navigate-to-requested",{detail:{route:t},bubbles:!0,composed:!0}))}}renderEntry(e){return o`
             <div class="entry ${e.unread?"entry--unread":""}"
                  @click="${()=>this.entryClicked(e)}">
                 <span class="unread-dot" aria-hidden="true"></span>
@@ -3579,7 +3862,7 @@ id="${e.id}"
                     ${e>0?o`<span class="badge">${e>99?"99+":e}</span>`:d}
                 </button>
                 ${this.opened?this.renderPanel():d}
-            </div>`}};oa.styles=C`
+            </div>`}};la.styles=C`
         :host {
             display: inline-flex;
             position: relative;
@@ -3729,24 +4012,24 @@ id="${e.id}"
             color: var(--lumo-disabled-text-color, rgba(0, 0, 0, 0.3));
             cursor: default;
         }
-    `;oi([m()],oa.prototype,"app",2);oi([m()],oa.prototype,"baseUrl",2);oi([$()],oa.prototype,"opened",2);oi([$()],oa.prototype,"notifications",2);oa=oi([k("mateu-notification-bell")],oa);class Qc{async handle(t,a){return await t.runAction(a.baseUrl,a.route,a.consumedRoute,a.actionId,a.initiatorComponentId,a.appState,a.serverSideType,a.componentState,a.parameters,a.initiator,a.background)}}const Zc=new Qc;class eu{constructor(){this.mapPosition=t=>{switch(t){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=(t,a,s)=>{if(t?.fragments?.forEach(i=>{Lt.next({command:void 0,fragment:i,ui:void 0,error:void 0,callbackToken:s})}),t?.appState&&(ne.value={...t.appState},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))),t?.appData){const i=t?.appData;Ya.value={...t.appData,...i},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))}t?.messages?.forEach(i=>{ia.show(i.text,{position:i.position?this.mapPosition(i.position):void 0,theme:i.variant,duration:i.duration})}),t?.banners&&t.banners.length>0&&document.dispatchEvent(new CustomEvent("page-banners-received",{detail:{banners:t.banners,append:t.appendBanners??!1},bubbles:!1,composed:!1})),t?.commands?.forEach(i=>{Lt.next({command:i,fragment:void 0,ui:void 0,error:void 0,callbackToken:s})})}}async runAction(t,a,s,i,r,n,l,c,u,h,p,f,g,y,x){try{const T=await Zc.handle(t,{baseUrl:a,route:s,consumedRoute:i,actionId:r,appState:ne.value,initiatorComponentId:n,componentState:u,parameters:h,serverSideType:c,initiator:p,background:f});g&&g(T),y||this.handleUIIncrement(T,p,x),T.messages&&T.messages.length==1&&T.messages[0].variant=="error"&&p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0})),p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:r,evevntId:ye()},bubbles:!0,composed:!0}))}catch(T){console.warn("Action request failed",T),p.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(T)}})),p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))}}serialize(t){return t?.message?t:JSON.stringify(t)}}const tu=new eu;class au{constructor(){this.mapPosition=t=>{switch(t){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=(t,a,s)=>{if(t?.messages?.forEach(i=>{if(i.undoActionId){this.showUndoableMessage(i,a);return}ia.show(i.text,{position:i.position?this.mapPosition(i.position):"bottom-end",theme:i.variant,duration:i.duration})}),t?.banners&&t.banners.length>0&&document.dispatchEvent(new CustomEvent("page-banners-received",{detail:{banners:t.banners,append:t.appendBanners??!1},bubbles:!1,composed:!1})),t?.commands?.forEach(i=>{Lt.next({command:i,fragment:void 0,ui:void 0,error:void 0,callbackToken:s})}),t?.fragments?.forEach(i=>{Lt.next({command:void 0,fragment:i,ui:void 0,error:void 0,callbackToken:s})}),t?.appState&&(ne.value={...t.appState},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))),t?.appData){const i=t?.appData;Ya.value={...t.appData,...i},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))}}}async runAction(t,a,s,i,r,n,l,c,u,h,p,f,g,y,x){if(s){s=s||"_no_route",s&&s.startsWith("/")&&(s=s.substring(1));const T={serverSideType:c,appState:ne.value,componentState:u,parameters:h,initiatorComponentId:n,consumedRoute:i,route:"/"+s,actionId:r};f||p.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),fetch(a+"/mateu/v3/sse/"+s,{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json"},body:JSON.stringify(T)}).then(async U=>{const ae=U.body?.pipeThrough(new TextDecoderStream).getReader();if(ae){let N="";for(;;){const{value:oe,done:ue}=await ae.read();if(ue)break;N+=oe;const ie=N.split(`
+    `;ni([h()],la.prototype,"app",2);ni([h()],la.prototype,"baseUrl",2);ni([$()],la.prototype,"opened",2);ni([$()],la.prototype,"notifications",2);la=ni([k("mateu-notification-bell")],la);class au{async handle(t,a){return await t.runAction(a.baseUrl,a.route,a.consumedRoute,a.actionId,a.initiatorComponentId,a.appState,a.serverSideType,a.componentState,a.parameters,a.initiator,a.background)}}const iu=new au;class su{constructor(){this.mapPosition=t=>{switch(t){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=(t,a,s)=>{if(t?.fragments?.forEach(i=>{Ft.next({command:void 0,fragment:i,ui:void 0,error:void 0,callbackToken:s})}),t?.appState&&(le.value={...t.appState},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))),t?.appData){const i=t?.appData;Xa.value={...t.appData,...i},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))}t?.messages?.forEach(i=>{ra.show(i.text,{position:i.position?this.mapPosition(i.position):void 0,theme:i.variant,duration:i.duration})}),t?.banners&&t.banners.length>0&&document.dispatchEvent(new CustomEvent("page-banners-received",{detail:{banners:t.banners,append:t.appendBanners??!1},bubbles:!1,composed:!1})),t?.commands?.forEach(i=>{Ft.next({command:i,fragment:void 0,ui:void 0,error:void 0,callbackToken:s})})}}async runAction(t,a,s,i,r,n,l,c,u,m,p,f,g,y,x){try{const P=await iu.handle(t,{baseUrl:a,route:s,consumedRoute:i,actionId:r,appState:le.value,initiatorComponentId:n,componentState:u,parameters:m,serverSideType:c,initiator:p,background:f});g&&g(P),y||this.handleUIIncrement(P,p,x),P.messages&&P.messages.length==1&&P.messages[0].variant=="error"&&p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0})),p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:r,evevntId:ye()},bubbles:!0,composed:!0}))}catch(P){console.warn("Action request failed",P),p.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(P)}})),p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))}}serialize(t){return t?.message?t:JSON.stringify(t)}}const ru=new su;class ou{constructor(){this.mapPosition=t=>{switch(t){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.handleUIIncrement=(t,a,s)=>{if(t?.messages?.forEach(i=>{if(i.undoActionId){this.showUndoableMessage(i,a);return}ra.show(i.text,{position:i.position?this.mapPosition(i.position):"bottom-end",theme:i.variant,duration:i.duration})}),t?.banners&&t.banners.length>0&&document.dispatchEvent(new CustomEvent("page-banners-received",{detail:{banners:t.banners,append:t.appendBanners??!1},bubbles:!1,composed:!1})),t?.commands?.forEach(i=>{Ft.next({command:i,fragment:void 0,ui:void 0,error:void 0,callbackToken:s})}),t?.fragments?.forEach(i=>{Ft.next({command:void 0,fragment:i,ui:void 0,error:void 0,callbackToken:s})}),t?.appState&&(le.value={...t.appState},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))),t?.appData){const i=t?.appData;Xa.value={...t.appData,...i},a.dispatchEvent(new CustomEvent("app-data-updated",{bubbles:!0,composed:!0}))}}}async runAction(t,a,s,i,r,n,l,c,u,m,p,f,g,y,x){if(s){s=s||"_no_route",s&&s.startsWith("/")&&(s=s.substring(1));const P={serverSideType:c,appState:le.value,componentState:u,parameters:m,initiatorComponentId:n,consumedRoute:i,route:"/"+s,actionId:r};f||p.dispatchEvent(new CustomEvent("backend-called-event",{bubbles:!0,composed:!0,detail:{}})),fetch(a+"/mateu/v3/sse/"+s,{method:"POST",headers:{Accept:"text/event-stream","Content-Type":"application/json"},body:JSON.stringify(P)}).then(async U=>{const ae=U.body?.pipeThrough(new TextDecoderStream).getReader();if(ae){let N="";for(;;){const{value:ne,done:ue}=await ae.read();if(ue)break;N+=ne;const ie=N.split(`
 
-`);N=ie.pop()??"";for(const Y of ie){const ee=Y.trim();if(ee)if(ee.startsWith("data:")){const fe=JSON.parse(ee.substring(5).trim());g&&g(fe),y||this.handleUIIncrement(fe,p,x),fe.messages&&fe.messages.length==1&&fe.messages[0].variant=="error"&&p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))}else{let fe=ee;try{const I=JSON.parse(ee);fe=I.message,I._embedded?.errors?.length>0&&I._embedded.errors[0].message&&(fe=I._embedded.errors[0].message)}catch{}throw new Error(fe)}}}}f||p.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:r}})),p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:r},bubbles:!0,composed:!0}))}).catch(U=>{p.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(U)}})),p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))})}}serialize(t){return t?.message?t:JSON.stringify(t)}showUndoableMessage(t,a){const s=new ia;s.position=t.position?this.mapPosition(t.position):"bottom-end",s.duration=t.duration??1e4,t.variant&&s.setAttribute("theme",t.variant),s.renderer=i=>{if(i.firstElementChild)return;const r=document.createElement("span");r.textContent=t.text;const n=document.createElement("button");n.textContent=t.undoLabel??"Undo",n.style.cssText="margin-left: 0.75rem; background: none; border: 1px solid currentColor; border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer; padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;",n.addEventListener("click",()=>{a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.undoActionId,parameters:t.undoParameters??{}},bubbles:!0,composed:!0})),s.opened=!1}),i.append(r,n)},document.body.appendChild(s),s.opened=!0,s.addEventListener("opened-changed",i=>{i.detail.value||s.remove()})}}const Xr=new au,Qr=e=>{if(!e||!("querySelectorAll"in e))return null;for(const t of e.querySelectorAll("*")){if(t.tagName?.toLowerCase()==="mateu-component")return t;const a=Qr(t.shadowRoot);if(a)return a}return null},Zr=async(e,t,a)=>{const s=t.renderRoot??t,i=Qr(s);await Xr.runAction(fa,t.baseUrl??"",e.rootRoute||"_no_route","",a,i?.id??"app-header-action",{},e.serverSideType??"",{},{},i??t,!0,void 0,!1,"")},tr=async(e,t,a)=>{try{await Zr(e,t,a)}catch(s){ia.show("La acción falló: "+s,{position:"bottom-start",duration:6e3,theme:"error"})}},Ua=(e,t)=>{const a=e.contextSelectors??[],s=e.contextActions??[];return a.length===0&&s.length===0&&!e.notificationsEnabled?d:o`${e.notificationsEnabled?o`
+`);N=ie.pop()??"";for(const Y of ie){const ee=Y.trim();if(ee)if(ee.startsWith("data:")){const fe=JSON.parse(ee.substring(5).trim());g&&g(fe),y||this.handleUIIncrement(fe,p,x),fe.messages&&fe.messages.length==1&&fe.messages[0].variant=="error"&&p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))}else{let fe=ee;try{const I=JSON.parse(ee);fe=I.message,I._embedded?.errors?.length>0&&I._embedded.errors[0].message&&(fe=I._embedded.errors[0].message)}catch{}throw new Error(fe)}}}}f||p.dispatchEvent(new CustomEvent("backend-succeeded-event",{bubbles:!0,composed:!0,detail:{actionId:r}})),p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-succeeded",{detail:{actionId:r},bubbles:!0,composed:!0}))}).catch(U=>{p.dispatchEvent(new CustomEvent("backend-failed-event",{bubbles:!0,composed:!0,detail:{actionId:r,reason:this.serialize(U)}})),p.shadowRoot?.dispatchEvent(new CustomEvent("backend-call-failed",{detail:{actionId:r},bubbles:!0,composed:!0}))})}}serialize(t){return t?.message?t:JSON.stringify(t)}showUndoableMessage(t,a){const s=new ra;s.position=t.position?this.mapPosition(t.position):"bottom-end",s.duration=t.duration??1e4,t.variant&&s.setAttribute("theme",t.variant),s.renderer=i=>{if(i.firstElementChild)return;const r=document.createElement("span");r.textContent=t.text;const n=document.createElement("button");n.textContent=t.undoLabel??"Undo",n.style.cssText="margin-left: 0.75rem; background: none; border: 1px solid currentColor; border-radius: var(--lumo-border-radius-s, 4px); color: inherit; cursor: pointer; padding: 0.15rem 0.6rem; font: inherit; font-weight: 600;",n.addEventListener("click",()=>{a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t.undoActionId,parameters:t.undoParameters??{}},bubbles:!0,composed:!0})),s.opened=!1}),i.append(r,n)},document.body.appendChild(s),s.opened=!0,s.addEventListener("opened-changed",i=>{i.detail.value||s.remove()})}}const Zr=new ou,eo=e=>{if(!e||!("querySelectorAll"in e))return null;for(const t of e.querySelectorAll("*")){if(t.tagName?.toLowerCase()==="mateu-component")return t;const a=eo(t.shadowRoot);if(a)return a}return null},to=async(e,t,a)=>{const s=t.renderRoot??t,i=eo(s);await Zr.runAction(ga,t.baseUrl??"",e.rootRoute||"_no_route","",a,i?.id??"app-header-action",{},e.serverSideType??"",{},{},i??t,!0,void 0,!1,"")},ir=async(e,t,a)=>{try{await to(e,t,a)}catch(s){ra.show("La acción falló: "+s,{position:"bottom-start",duration:6e3,theme:"error"})}},Va=(e,t)=>{const a=e.contextSelectors??[],s=e.contextActions??[];return a.length===0&&s.length===0&&!e.notificationsEnabled?d:o`${e.notificationsEnabled?o`
         <mateu-notification-bell .app="${e}" .baseUrl="${t.baseUrl??""}"></mateu-notification-bell>`:d}${a.map(i=>o`
         <mateu-vaadin-app-context-picker .selector="${i}" .app="${e}" .baseUrl="${t.baseUrl??""}"></mateu-vaadin-app-context-picker>`)}${s.map(i=>(i.children?.length??0)>0?o`
         <vaadin-menu-bar theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
             .items="${[{text:i.label,children:i.children.map(r=>({text:r.label,actionId:r.actionId}))}]}"
-            @item-selected="${r=>{const n=r.detail?.value?.actionId;n&&tr(e,t,n)}}"></vaadin-menu-bar>`:o`
+            @item-selected="${r=>{const n=r.detail?.value?.actionId;n&&ir(e,t,n)}}"></vaadin-menu-bar>`:o`
         <vaadin-button theme="primary small" style="margin-left: 0.5rem; flex-shrink: 0;"
-            @click="${()=>i.actionId&&tr(e,t,i.actionId)}" title="${i.label}">
+            @click="${()=>i.actionId&&ir(e,t,i.actionId)}" title="${i.label}">
             ${i.icon?o`<vaadin-icon icon="${i.icon}" slot="prefix"></vaadin-icon>`:d}${i.label}
-        </vaadin-button>`)}`},$i=(e,t)=>e.themeToggle?o`
+        </vaadin-button>`)}`},yi=(e,t)=>e.themeToggle?o`
         <vaadin-button theme="tertiary icon" @click="${t.toggleTheme}"
             title="${t.isDark?"Switch to light mode":"Switch to dark mode"}"
             style="margin-left: 0.5rem; margin-right: 0.5rem; flex-shrink: 0;">
             <vaadin-icon icon="${t.isDark?"vaadin:sun-o":"vaadin:moon"}" style="color: var(--lumo-body-text-color);"></vaadin-icon>
         </vaadin-button>
-    `:d,iu=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},ar=(e,t,a)=>{const s=Fe(e,t,a),i=re(t,a);return s=="list"||s==i?"new":s},Fe=(e,t,a)=>{const s=e?._route;if(s!=null&&(s===""||s.startsWith("/"))){const i=a.homeRoute??"",r=i.indexOf("?"),n=r>=0?i.substring(r+1):"",l=re(t,a)+s;if(!n)return l;const c=l.indexOf("?")>=0?"&":"?";return l+c+n}return t.selectedRoute?t.selectedRoute:a.homeRoute},re=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,_e=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:t.homeBaseUrl,Ee=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,Te=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,su=(e,t,a,s,i,r,n)=>{const l=e.mapItems(t.menu,e.filter?.toLowerCase()??""),c=re(e,t),u=ar(s,e,t),h=u&&u!=="new"&&u.startsWith(c+"/")?u.substring(c.length+1).split("/")[0]:void 0;return o`
+    `:d,nu=(e,t)=>{t.filter!=e.detail.value&&(t.filter=e.detail.value)},sr=(e,t,a)=>{const s=Fe(e,t,a),i=re(t,a);return s=="list"||s==i?"new":s},Fe=(e,t,a)=>{const s=e?._route;if(s!=null&&(s===""||s.startsWith("/"))){const i=a.homeRoute??"",r=i.indexOf("?"),n=r>=0?i.substring(r+1):"",l=re(t,a)+s;if(!n)return l;const c=l.indexOf("?")>=0?"&":"?";return l+c+n}return t.selectedRoute?t.selectedRoute:a.homeRoute},re=(e,t)=>e.selectedRoute?e.selectedConsumedRoute??t.route:t.homeConsumedRoute,_e=(e,t)=>e.selectedRoute?e.selectedBaseUrl??e.baseUrl:t.homeBaseUrl,Ee=(e,t)=>e.selectedRoute?e.selectedServerSideType??t.serverSideType:t.homeServerSideType,Pe=(e,t)=>e.selectedRoute?e.selectedUriPrefix:t.homeUriPrefix,lu=(e,t,a,s,i,r,n)=>{const l=e.mapItems(t.menu,e.filter?.toLowerCase()??""),c=re(e,t),u=sr(s,e,t),m=u&&u!=="new"&&u.startsWith(c+"/")?u.substring(c.length+1).split("/")[0]:void 0;return o`
                     ${t.variant==$e.MEDIATOR?o`
 
                         ${t.layout=="SPLIT"?o`
@@ -3759,9 +4042,9 @@ id="${e.id}"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${re(e,t)}"
                                             serverSideType="${Ee(e,t)}"
-                                            uriPrefix="${Te(e,t)}"
+                                            uriPrefix="${Pe(e,t)}"
                                             style="width: 100%;"
-                                            .appState="${{...r,_splitDetailId:h}}"
+                                            .appState="${{...r,_splitDetailId:m}}"
                                             .appData="${n}"
                                             instant="${c}"
                                             @navigation-requested="${e.updateRoute}"
@@ -3771,12 +4054,12 @@ id="${e.id}"
                                 <mateu-api-caller slot="detail">
                                     <div style="padding-left: 1rem; width: calc(100% - 1rem);">
                                     <mateu-ux
-                                            route="${ar(s,e,t)}"
+                                            route="${sr(s,e,t)}"
                                             id="ux_${e.id}_detail"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${re(e,t)}"
                                             serverSideType="${Ee(e,t)}"
-                                            uriPrefix="${Te(e,t)}"
+                                            uriPrefix="${Pe(e,t)}"
                                             style="width: 100%;"
                                             .appState="${r}"
                                             .appData="${n}"
@@ -3795,7 +4078,7 @@ id="${e.id}"
                                         baseUrl="${_e(e,t)}"
                                         consumedRoute="${re(e,t)}"
                                         serverSideType="${Ee(e,t)}"
-                                        uriPrefix="${Te(e,t)}"
+                                        uriPrefix="${Pe(e,t)}"
                                         style="width: 100%;"
                                         .appState="${r}"
                                         .appData="${n}"
@@ -3813,12 +4096,12 @@ id="${e.id}"
                     <h2 slot="navbar" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${t.title}</h2><p slot="navbar">${t.subtitle}</p>
                     <vaadin-horizontal-layout slot="navbar" style="margin-left: auto; align-items: center;">
                         <slot name="widgets"></slot>
-                        ${Ua(t,e)}${$i(t,e)}
+                        ${Va(t,e)}${yi(t,e)}
                     </vaadin-horizontal-layout>
                     <vaadin-scroller slot="drawer" class="p-s"
                                      @navigation-requested="${e.updateRoute}">
                         ${t.menu&&t.totalMenuOptions>10?o`
-                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${p=>iu(p,e)}">
+                            <vaadin-text-field style="width: calc(100% - 20px); padding-left: 10px; padding-right: 10px;" @value-changed="${p=>nu(p,e)}">
                                 <vaadin-icon slot="suffix" icon="vaadin:search"></vaadin-icon>
                             </vaadin-text-field>
                             `:d}
@@ -3837,7 +4120,7 @@ id="${e.id}"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${re(e,t)}"
                                             serverSideType="${Ee(e,t)}"
-                                            uriPrefix="${Te(e,t)}"
+                                            uriPrefix="${Pe(e,t)}"
                                             style="width: 100%;"
                                             .appState="${r}"
                                             .appData="${n}"
@@ -3875,7 +4158,7 @@ id="${e.id}"
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
-                            ${Ua(t,e)}${$i(t,e)}
+                            ${Va(t,e)}${yi(t,e)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
@@ -3888,7 +4171,7 @@ id="${e.id}"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${re(e,t)}"
                                             serverSideType="${Ee(e,t)}"
-                                            uriPrefix="${Te(e,t)}"
+                                            uriPrefix="${Pe(e,t)}"
                                             style="width: 100%;"
                                             .appState="${r}"
                                             .appData="${n}"
@@ -3926,7 +4209,7 @@ id="${e.id}"
                         </vaadin-menu-bar>
                         <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
                             <slot name="widgets"></slot>
-                            ${Ua(t,e)}${$i(t,e)}
+                            ${Va(t,e)}${yi(t,e)}
                         </vaadin-horizontal-layout>
                     </vaadin-horizontal-layout>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
@@ -3940,7 +4223,7 @@ id="${e.id}"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${re(e,t)}"
                                             serverSideType="${Ee(e,t)}"
-                                            uriPrefix="${Te(e,t)}"
+                                            uriPrefix="${Pe(e,t)}"
                                             style="width: 100%;"
                                             .appState="${r}"
                                             .appData="${n}"
@@ -3970,7 +4253,7 @@ id="${e.id}"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${re(e,t)}"
                                             serverSideType="${Ee(e,t)}"
-                                            uriPrefix="${Te(e,t)}"
+                                            uriPrefix="${Pe(e,t)}"
                                             style="width: 100%;"
                                             .appState="${r}"
                                             .appData="${n}"
@@ -3992,7 +4275,7 @@ id="${e.id}"
                         <vaadin-vertical-layout
                                 @navigation-requested="${e.updateRoute}">
                             ${t.menu.map(p=>e.renderOptionOnLeftMenu(p))}
-                            ${Ua(t,e)}${$i(t,e)}
+                            ${Va(t,e)}${yi(t,e)}
                         </vaadin-vertical-layout>
                     </vaadin-scroller>
                     <div class="${"app-content"+(e.pageCompact?" no-padding":"")}">
@@ -4005,7 +4288,7 @@ id="${e.id}"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${re(e,t)}"
                                             serverSideType="${Ee(e,t)}"
-                                            uriPrefix="${Te(e,t)}"
+                                            uriPrefix="${Pe(e,t)}"
                                             style="width: 100%; padding: 1em;"
                                             .appState="${r}"
                                             .appData="${n}"
@@ -4052,7 +4335,7 @@ id="${e.id}"
                             </vaadin-tabs>
                             <vaadin-horizontal-layout style="flex-shrink: 0; align-items: center;">
                                 <slot name="widgets"></slot>
-                                ${Ua(t,e)}
+                                ${Va(t,e)}
                             </vaadin-horizontal-layout>
                         </vaadin-horizontal-layout>
                     </div>
@@ -4066,7 +4349,7 @@ id="${e.id}"
                                             baseUrl="${_e(e,t)}"
                                             consumedRoute="${re(e,t)}"
                                             serverSideType="${Ee(e,t)}"
-                                            uriPrefix="${Te(e,t)}"
+                                            uriPrefix="${Pe(e,t)}"
                                             style="width: 100%;"
                                             .appState="${r}"
                                             .appData="${n}"
@@ -4096,7 +4379,7 @@ id="${e.id}"
             `:d}
             ${e.renderCommandPalette()}
             <slot></slot>
-       `},ru=(e,t)=>t!=null&&e!=null&&!e.has(t),ou=typeof HTMLElement<"u"?HTMLElement:class{};class nu extends ou{static get observedAttributes(){return["type","renderer"]}connectedCallback(){this.render()}attributeChangedCallback(){this.render()}render(){const t=this.getAttribute("type")??"unknown",a=this.getAttribute("renderer")??"unknown";this.shadowRoot||this.attachShadow({mode:"open"}),this.shadowRoot.innerHTML=`
+       `},du=(e,t)=>t!=null&&e!=null&&!e.has(t),cu=typeof HTMLElement<"u"?HTMLElement:class{};class uu extends cu{static get observedAttributes(){return["type","renderer"]}connectedCallback(){this.render()}attributeChangedCallback(){this.render()}render(){const t=this.getAttribute("type")??"unknown",a=this.getAttribute("renderer")??"unknown";this.shadowRoot||this.attachShadow({mode:"open"}),this.shadowRoot.innerHTML=`
             <style>
                 :host { display: block; }
                 .mateu-unsupported {
@@ -4115,16 +4398,16 @@ id="${e.id}"
             <div class="mateu-unsupported" role="note">
                 ⚠ Component “${t}” is not supported by the “${a}” renderer yet.
             </div>
-        `}}typeof customElements<"u"&&!customElements.get("mateu-unsupported")&&customElements.define("mateu-unsupported",nu);const ir=new Set,lu=(e,t,a)=>{const s=`${a}/${t}`;return ir.has(s)||(ir.add(s),console.warn(`[mateu] Component type "${t}" is not supported by the "${a}" renderer — rendering <mateu-unsupported> placeholder.`)),o`<mateu-unsupported
+        `}}typeof customElements<"u"&&!customElements.get("mateu-unsupported")&&customElements.define("mateu-unsupported",uu);const rr=new Set,pu=(e,t,a)=>{const s=`${a}/${t}`;return rr.has(s)||(rr.add(s),console.warn(`[mateu] Component type "${t}" is not supported by the "${a}" renderer — rendering <mateu-unsupported> placeholder.`)),o`<mateu-unsupported
             type="${t}"
             renderer="${a}"
             data-component-id="${e?.id??d}"
             slot="${e?.slot??d}"
-    ></mateu-unsupported>`};class du{renderFilterBar(t,a,s,i,r,n,l,c){const u=a?.metadata,h=f=>{const{fieldId:g,value:y}=f.detail;t.state={...t.state,[g]:y}},p=f=>{const{fieldIds:g}=f.detail,y={};g.forEach(x=>{y[x]=void 0}),y.searchText=void 0,t.state={...t.state,...y}};return o`
+    ></mateu-unsupported>`};class hu{renderFilterBar(t,a,s,i,r,n,l,c){const u=a?.metadata,m=f=>{const{fieldId:g,value:y}=f.detail;t.state={...t.state,[g]:y}},p=f=>{const{fieldIds:g}=f.detail,y={};g.forEach(x=>{y[x]=void 0}),y.searchText=void 0,t.state={...t.state,...y}};return o`
             <mateu-filter-bar
                 .metadata="${u}"
                 @search-requested="${t.search}"
-                @value-changed="${h}"
+                @value-changed="${m}"
                 @filter-reset-requested="${p}"
                 .state="${t.state}"
                 .data="${r}"
@@ -4155,8 +4438,8 @@ id="${e.id}"
                      @fetch-more-elements="${t.fetchMoreElements}"
                      baseUrl="${s}"
         ></mateu-table>
-        `}rendererName(){return this.constructor?.name??"unknown"}supportedClientSideTypes(){}renderClientSideComponent(t,a,s,i,r,n,l,c){const u=a?.metadata?.type??a?.type,h=Object.values(v).includes(u)?u:void 0;return ru(this.supportedClientSideTypes(),h)?lu(a,h,this.rendererName()):zs(t,a,s,i,r,n,l,c)}renderAppComponent(t,a,s,i,r,n,l){return su(t,a?.metadata,s,i,r,n,l)}}const sr="border-left: 1px solid var(--oj-core-text-color-secondary, #888); height: 1.5rem; display: inline-block; align-self: center;",cu=(e,t,a,s)=>{const i=e.metadata,r=e.slot??d;if(i.children&&i.children.length>0){const l=i.children.map(c=>({key:c.actionId,label:c.label,disabled:c.disabled??!1}));return o`
-            ${i.separatorBefore?o`<span slot="${r}" style="${sr}"></span>`:d}
+        `}rendererName(){return this.constructor?.name??"unknown"}supportedClientSideTypes(){}renderClientSideComponent(t,a,s,i,r,n,l,c){const u=a?.metadata?.type??a?.type,m=Object.values(v).includes(u)?u:void 0;return du(this.supportedClientSideTypes(),m)?pu(a,m,this.rendererName()):As(t,a,s,i,r,n,l,c)}renderAppComponent(t,a,s,i,r,n,l){return lu(t,a?.metadata,s,i,r,n,l)}}const or="border-left: 1px solid var(--oj-core-text-color-secondary, #888); height: 1.5rem; display: inline-block; align-self: center;",mu=(e,t,a,s)=>{const i=e.metadata,r=e.slot??d;if(i.children&&i.children.length>0){const l=i.children.map(c=>({key:c.actionId,label:c.label,disabled:c.disabled??!1}));return o`
+            ${i.separatorBefore?o`<span slot="${r}" style="${or}"></span>`:d}
             <oj-c-menu-button
                 data-oj-binding-provider="preact"
                 label="${i.label}"
@@ -4165,16 +4448,16 @@ id="${e.id}"
                 @ojMenuAction="${c=>{const u=c.detail.key;c.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:u},bubbles:!0,composed:!0}))}}"
             ></oj-c-menu-button>
         `}const n=i.buttonStyle==="primary"?"callToAction":"solid";return o`
-        ${i.separatorBefore?o`<span slot="${r}" style="${sr}"></span>`:d}
+        ${i.separatorBefore?o`<span slot="${r}" style="${or}"></span>`:d}
         <oj-c-button
             data-oj-binding-provider="preact"
             data-action-id="${i.actionId}"
             label="${i.label}"
             chroming="${n}"
-            @ojAction=${Pm}
+            @ojAction=${Fm}
             slot="${r}"
         ></oj-c-button>
-    `};var uu=Object.defineProperty,pu=Object.getOwnPropertyDescriptor,ni=(e,t,a,s)=>{for(var i=s>1?void 0:s?pu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&uu(t,a,i),i};let na=class extends S{constructor(){super(...arguments),this.fieldId="",this.signing=!1,this.hasStrokes=!1,this.drawing=!1,this.startStroke=e=>{const t=e.target;this.ensureCanvasSize(t),t.setPointerCapture(e.pointerId),this.drawing=!0;const a=t.getContext("2d");a.lineWidth=2,a.lineCap="round",a.lineJoin="round",a.strokeStyle=getComputedStyle(this).getPropertyValue("--lumo-body-text-color")||"#1a1a1a";const[s,i]=this.pointerPosition(e);a.beginPath(),a.moveTo(s,i),e.preventDefault()},this.stroke=e=>{if(!this.drawing)return;const a=e.target.getContext("2d"),[s,i]=this.pointerPosition(e);a.lineTo(s,i),a.stroke(),this.hasStrokes=!0,e.preventDefault()},this.endStroke=e=>{this.drawing=!1,e.target.releasePointerCapture(e.pointerId)}}emit(e){this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}canvas(){return this.renderRoot.querySelector("canvas")}pointerPosition(e){const a=e.target.getBoundingClientRect();return[e.clientX-a.left,e.clientY-a.top]}ensureCanvasSize(e){const t=e.getBoundingClientRect();(e.width!==Math.round(t.width)||e.height!==Math.round(t.height))&&(e.width=Math.round(t.width),e.height=Math.round(t.height))}clear(){const e=this.canvas();e&&e.getContext("2d").clearRect(0,0,e.width,e.height),this.hasStrokes=!1}accept(){const e=this.canvas();!e||!this.hasStrokes||(this.signing=!1,this.emit(e.toDataURL("image/png")))}renderPad(){return o`
+    `};var vu=Object.defineProperty,fu=Object.getOwnPropertyDescriptor,li=(e,t,a,s)=>{for(var i=s>1?void 0:s?fu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&vu(t,a,i),i};let da=class extends S{constructor(){super(...arguments),this.fieldId="",this.signing=!1,this.hasStrokes=!1,this.drawing=!1,this.startStroke=e=>{const t=e.target;this.ensureCanvasSize(t),t.setPointerCapture(e.pointerId),this.drawing=!0;const a=t.getContext("2d");a.lineWidth=2,a.lineCap="round",a.lineJoin="round",a.strokeStyle=getComputedStyle(this).getPropertyValue("--lumo-body-text-color")||"#1a1a1a";const[s,i]=this.pointerPosition(e);a.beginPath(),a.moveTo(s,i),e.preventDefault()},this.stroke=e=>{if(!this.drawing)return;const a=e.target.getContext("2d"),[s,i]=this.pointerPosition(e);a.lineTo(s,i),a.stroke(),this.hasStrokes=!0,e.preventDefault()},this.endStroke=e=>{this.drawing=!1,e.target.releasePointerCapture(e.pointerId)}}emit(e){this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}canvas(){return this.renderRoot.querySelector("canvas")}pointerPosition(e){const a=e.target.getBoundingClientRect();return[e.clientX-a.left,e.clientY-a.top]}ensureCanvasSize(e){const t=e.getBoundingClientRect();(e.width!==Math.round(t.width)||e.height!==Math.round(t.height))&&(e.width=Math.round(t.width),e.height=Math.round(t.height))}clear(){const e=this.canvas();e&&e.getContext("2d").clearRect(0,0,e.width,e.height),this.hasStrokes=!1}accept(){const e=this.canvas();!e||!this.hasStrokes||(this.signing=!1,this.emit(e.toDataURL("image/png")))}renderPad(){return o`
             <canvas class="pad"
                     @pointerdown="${this.startStroke}"
                     @pointermove="${this.stroke}"
@@ -4191,7 +4474,7 @@ id="${e.id}"
             <div class="actions">
                 <button class="button" @click="${()=>{this.signing=!0,this.hasStrokes=!1,this.updateComplete.then(()=>this.clear())}}">Sign again</button>
                 <button class="button button--danger" @click="${()=>this.emit("")}">Delete</button>
-            </div>`}};na.styles=C`
+            </div>`}};da.styles=C`
         :host {
             display: block;
             max-width: 420px;
@@ -4241,7 +4524,7 @@ id="${e.id}"
         .button--danger {
             color: var(--lumo-error-text-color, rgb(179, 49, 31));
         }
-    `;ni([m()],na.prototype,"fieldId",2);ni([m()],na.prototype,"value",2);ni([$()],na.prototype,"signing",2);ni([$()],na.prototype,"hasStrokes",2);na=ni([k("mateu-signature-pad")],na);var hu=Object.defineProperty,mu=Object.getOwnPropertyDescriptor,ba=(e,t,a,s)=>{for(var i=s>1?void 0:s?mu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&hu(t,a,i),i};let Ct=class extends S{constructor(){super(...arguments),this.fieldId="",this.options=[],this.leavesOnly=!1,this.opened=!1,this.expanded=new Set}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}open(){this.opened||(this.opened=!0,this.expanded=new Set(this.pathTo(this.value??"",this.options)??[]),this.outsideClick=e=>{e.composedPath().includes(this)||this.close()},document.addEventListener("mousedown",this.outsideClick))}close(){this.detachOutsideClick(),this.opened=!1}pick(e){this.close(),this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e.value,fieldId:this.fieldId},bubbles:!0,composed:!0}))}clear(){this.close(),this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:void 0,fieldId:this.fieldId},bubbles:!0,composed:!0}))}pathTo(e,t){for(const a of t){if(String(a.value)===e)return[];const s=this.pathTo(e,a.children??[]);if(s!=null)return[String(a.value),...s]}return null}labelOf(e,t){for(const a of t){if(String(a.value)===e)return a.label;const s=this.labelOf(e,a.children??[]);if(s!=null)return s}return null}toggle(e){const t=String(e.value),a=new Set(this.expanded);a.has(t)?a.delete(t):a.add(t),this.expanded=a}renderNode(e,t){const a=(e.children?.length??0)>0,s=this.expanded.has(String(e.value)),i=!this.leavesOnly||!a,r=String(e.value)===String(this.value??"");return o`
+    `;li([h()],da.prototype,"fieldId",2);li([h()],da.prototype,"value",2);li([$()],da.prototype,"signing",2);li([$()],da.prototype,"hasStrokes",2);da=li([k("mateu-signature-pad")],da);var bu=Object.defineProperty,gu=Object.getOwnPropertyDescriptor,$a=(e,t,a,s)=>{for(var i=s>1?void 0:s?gu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&bu(t,a,i),i};let St=class extends S{constructor(){super(...arguments),this.fieldId="",this.options=[],this.leavesOnly=!1,this.opened=!1,this.expanded=new Set}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}open(){this.opened||(this.opened=!0,this.expanded=new Set(this.pathTo(this.value??"",this.options)??[]),this.outsideClick=e=>{e.composedPath().includes(this)||this.close()},document.addEventListener("mousedown",this.outsideClick))}close(){this.detachOutsideClick(),this.opened=!1}pick(e){this.close(),this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e.value,fieldId:this.fieldId},bubbles:!0,composed:!0}))}clear(){this.close(),this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:void 0,fieldId:this.fieldId},bubbles:!0,composed:!0}))}pathTo(e,t){for(const a of t){if(String(a.value)===e)return[];const s=this.pathTo(e,a.children??[]);if(s!=null)return[String(a.value),...s]}return null}labelOf(e,t){for(const a of t){if(String(a.value)===e)return a.label;const s=this.labelOf(e,a.children??[]);if(s!=null)return s}return null}toggle(e){const t=String(e.value),a=new Set(this.expanded);a.has(t)?a.delete(t):a.add(t),this.expanded=a}renderNode(e,t){const a=(e.children?.length??0)>0,s=this.expanded.has(String(e.value)),i=!this.leavesOnly||!a,r=String(e.value)===String(this.value??"");return o`
             <div class="node ${r?"node--selected":""} ${i?"":"node--group"}"
                  style="padding-left: ${.5+t*1.1}rem;"
                  @mousedown="${n=>n.preventDefault()}"
@@ -4265,7 +4548,7 @@ id="${e.id}"
                                  @click="${this.clear}">— (clear)</div>`:d}
                         ${this.options.map(t=>this.renderNode(t,0))}
                     </div>`:d}
-            </div>`}};Ct.styles=C`
+            </div>`}};St.styles=C`
         :host {
             display: block;
             min-width: 12rem;
@@ -4342,7 +4625,7 @@ id="${e.id}"
         .caret--empty::before {
             content: '';
         }
-    `;ba([m()],Ct.prototype,"fieldId",2);ba([m()],Ct.prototype,"value",2);ba([m()],Ct.prototype,"options",2);ba([m({type:Boolean})],Ct.prototype,"leavesOnly",2);ba([$()],Ct.prototype,"opened",2);ba([$()],Ct.prototype,"expanded",2);Ct=ba([k("mateu-tree-select")],Ct);var vu=Object.defineProperty,fu=Object.getOwnPropertyDescriptor,li=(e,t,a,s)=>{for(var i=s>1?void 0:s?fu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&vu(t,a,i),i};let la=class extends S{constructor(){super(...arguments),this.fieldId="",this.cameraOpen=!1,this.cameraError=!1,this.fileFallback=e=>{const t=e.target,a=t.files?.[0];if(!a)return;const s=new FileReader;s.onload=()=>this.emit(s.result),s.readAsDataURL(a),t.value=""}}disconnectedCallback(){super.disconnectedCallback(),this.stopStream()}emit(e){this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}stopStream(){this.stream?.getTracks().forEach(e=>e.stop()),this.stream=void 0}async openCamera(){this.cameraError=!1;try{this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:!1}),this.cameraOpen=!0,await this.updateComplete;const e=this.renderRoot.querySelector("video");e&&(e.srcObject=this.stream,await e.play())}catch{this.stopStream(),this.cameraOpen=!1,this.cameraError=!0}}closeCamera(){this.stopStream(),this.cameraOpen=!1}shoot(){const e=this.renderRoot.querySelector("video");if(!e||e.videoWidth===0)return;const t=document.createElement("canvas");t.width=e.videoWidth,t.height=e.videoHeight,t.getContext("2d").drawImage(e,0,0),this.closeCamera(),this.emit(t.toDataURL("image/jpeg",.9))}triggerFallback(){this.renderRoot.querySelector("input[type=file]")?.click()}render(){const e=this.value!=null&&this.value!=="";return o`
+    `;$a([h()],St.prototype,"fieldId",2);$a([h()],St.prototype,"value",2);$a([h()],St.prototype,"options",2);$a([h({type:Boolean})],St.prototype,"leavesOnly",2);$a([$()],St.prototype,"opened",2);$a([$()],St.prototype,"expanded",2);St=$a([k("mateu-tree-select")],St);var $u=Object.defineProperty,yu=Object.getOwnPropertyDescriptor,di=(e,t,a,s)=>{for(var i=s>1?void 0:s?yu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&$u(t,a,i),i};let ca=class extends S{constructor(){super(...arguments),this.fieldId="",this.cameraOpen=!1,this.cameraError=!1,this.fileFallback=e=>{const t=e.target,a=t.files?.[0];if(!a)return;const s=new FileReader;s.onload=()=>this.emit(s.result),s.readAsDataURL(a),t.value=""}}disconnectedCallback(){super.disconnectedCallback(),this.stopStream()}emit(e){this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}stopStream(){this.stream?.getTracks().forEach(e=>e.stop()),this.stream=void 0}async openCamera(){this.cameraError=!1;try{this.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"},audio:!1}),this.cameraOpen=!0,await this.updateComplete;const e=this.renderRoot.querySelector("video");e&&(e.srcObject=this.stream,await e.play())}catch{this.stopStream(),this.cameraOpen=!1,this.cameraError=!0}}closeCamera(){this.stopStream(),this.cameraOpen=!1}shoot(){const e=this.renderRoot.querySelector("video");if(!e||e.videoWidth===0)return;const t=document.createElement("canvas");t.width=e.videoWidth,t.height=e.videoHeight,t.getContext("2d").drawImage(e,0,0),this.closeCamera(),this.emit(t.toDataURL("image/jpeg",.9))}triggerFallback(){this.renderRoot.querySelector("input[type=file]")?.click()}render(){const e=this.value!=null&&this.value!=="";return o`
             <input type="file" accept="image/*" capture="environment" style="display: none;"
                    @change="${this.fileFallback}">
             ${this.cameraOpen?o`
@@ -4364,7 +4647,7 @@ id="${e.id}"
                 </div>
                 ${this.cameraError?o`
                     <div class="error-hint">Camera unavailable — the file picker opens the device camera on phones.</div>`:d}
-            `}`}};la.styles=C`
+            `}`}};ca.styles=C`
         :host {
             display: block;
             max-width: 420px;
@@ -4420,7 +4703,7 @@ id="${e.id}"
             font-size: var(--lumo-font-size-xs, 0.75rem);
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.6));
         }
-    `;li([m()],la.prototype,"fieldId",2);li([m()],la.prototype,"value",2);li([$()],la.prototype,"cameraOpen",2);li([$()],la.prototype,"cameraError",2);la=li([k("mateu-camera-capture")],la);var bu=Object.defineProperty,gu=Object.getOwnPropertyDescriptor,di=(e,t,a,s)=>{for(var i=s>1?void 0:s?gu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&bu(t,a,i),i};const eo=(e,t)=>{if(!e)return;if(Array.isArray(e)){const s=e.find(i=>i.key==t);return s?.value!=null?String(s.value):void 0}const a=e[t];return a!=null?String(a):void 0};let Bt=class extends S{constructor(){super(...arguments),this.fieldId="",this.editable=!0,this.filePicked=e=>{const t=e.target,a=t.files?.[0];if(!a)return;const s=new FileReader;s.onload=()=>{const i=s.result,r=i.indexOf(","),n=i.substring(0,r).replace(";base64",`;name=${encodeURIComponent(a.name)};base64`);this.emit(n+i.substring(r))},s.readAsDataURL(a),t.value=""}}static fileName(e){if(!e)return"";if(e.startsWith("data:")){const t=e.indexOf(","),s=e.substring(5,t<0?e.length:t).split(";").find(i=>i.startsWith("name="));if(s)try{return decodeURIComponent(s.substring(5))}catch{return s.substring(5)}return"Attached file"}return e.split("/").pop()||e}emit(e){this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}triggerPick(){this.renderRoot.querySelector("input[type=file]")?.click()}render(){const e=this.value!=null&&this.value!=="",t=Bt.fileName(this.value),a=e&&this.value.startsWith("data:"),s=e?o`<span class="file" title="${t}">📄 ${a?o`<a href="${this.value}" download="${t}">${t}</a>`:o`<a href="${this.value}" target="_blank">${t}</a>`}</span>`:d;return this.editable?o`
+    `;di([h()],ca.prototype,"fieldId",2);di([h()],ca.prototype,"value",2);di([$()],ca.prototype,"cameraOpen",2);di([$()],ca.prototype,"cameraError",2);ca=di([k("mateu-camera-capture")],ca);var xu=Object.defineProperty,wu=Object.getOwnPropertyDescriptor,ci=(e,t,a,s)=>{for(var i=s>1?void 0:s?wu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&xu(t,a,i),i};const ao=(e,t)=>{if(!e)return;if(Array.isArray(e)){const s=e.find(i=>i.key==t);return s?.value!=null?String(s.value):void 0}const a=e[t];return a!=null?String(a):void 0};let Wt=class extends S{constructor(){super(...arguments),this.fieldId="",this.editable=!0,this.filePicked=e=>{const t=e.target,a=t.files?.[0];if(!a)return;const s=new FileReader;s.onload=()=>{const i=s.result,r=i.indexOf(","),n=i.substring(0,r).replace(";base64",`;name=${encodeURIComponent(a.name)};base64`);this.emit(n+i.substring(r))},s.readAsDataURL(a),t.value=""}}static fileName(e){if(!e)return"";if(e.startsWith("data:")){const t=e.indexOf(","),s=e.substring(5,t<0?e.length:t).split(";").find(i=>i.startsWith("name="));if(s)try{return decodeURIComponent(s.substring(5))}catch{return s.substring(5)}return"Attached file"}return e.split("/").pop()||e}emit(e){this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e,fieldId:this.fieldId},bubbles:!0,composed:!0}))}triggerPick(){this.renderRoot.querySelector("input[type=file]")?.click()}render(){const e=this.value!=null&&this.value!=="",t=Wt.fileName(this.value),a=e&&this.value.startsWith("data:"),s=e?o`<span class="file" title="${t}">📄 ${a?o`<a href="${this.value}" download="${t}">${t}</a>`:o`<a href="${this.value}" target="_blank">${t}</a>`}</span>`:d;return this.editable?o`
             <input type="file" accept="${this.accept||d}" style="display: none;"
                    @change="${this.filePicked}">
             <div class="row">
@@ -4430,7 +4713,7 @@ id="${e.id}"
                 </button>
                 ${e?o`
                     <button class="button button--danger" @click="${()=>this.emit("")}">Remove</button>`:d}
-            </div>`:o`${e?s:o`<span class="empty">—</span>`}`}};Bt.styles=C`
+            </div>`:o`${e?s:o`<span class="empty">—</span>`}`}};Wt.styles=C`
         :host {
             display: block;
         }
@@ -4468,7 +4751,7 @@ id="${e.id}"
         .button--danger {
             color: var(--lumo-error-text-color, rgb(179, 49, 31));
         }
-    `;di([m()],Bt.prototype,"fieldId",2);di([m()],Bt.prototype,"value",2);di([m()],Bt.prototype,"accept",2);di([m({type:Boolean})],Bt.prototype,"editable",2);Bt=di([k("mateu-file-upload")],Bt);const $u=76;function rr(e){if(e.weight!=null)return e.weight;const t=e.stereotype??"";if(t==="icon")return 1;if(t==="image")return 4;if(t==="html"||t==="richText"||t==="markdown"||t==="textarea")return 5;if(t==="link")return 2.5;if(t==="combobox"||t==="select")return 2;const a=e.dataType??"";return a==="bool"?1:a==="status"||a==="integer"?1.5:a==="number"||a==="date"||a==="money"?2:a==="dateTime"||a==="dateRange"?2.5:3}function to(e,t){if(e.length===0)return"table";const a=e.reduce((c,u)=>c+rr(u),0),s=t/$u,i=a/s;if(i<=1)return"table";const r=e.filter(c=>c.identifier||(c.priority??Number.MAX_SAFE_INTEGER)<=2),n=r.reduce((c,u)=>c+rr(u),0);return i>1.6||e.length>10?"masterDetail":r.length>0&&n<=8?"list":e.some(c=>c.stereotype==="image"||c.stereotype==="html")||r.length===0&&e.length>=4&&e.length<=8?"cards":"masterDetail"}function Ai(e){return e.filter(t=>t.identifier||(t.priority??Number.MAX_SAFE_INTEGER)<=2).sort((t,a)=>(t.priority??Number.MAX_SAFE_INTEGER)-(a.priority??Number.MAX_SAFE_INTEGER))}function yu(e){const t=Ai(e);return t.length>0?t:e.slice(0,3)}var xu=Object.defineProperty,wu=Object.getOwnPropertyDescriptor,Ls=(e,t,a,s)=>{for(var i=s>1?void 0:s?wu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&xu(t,a,i),i};let Li=class extends S{constructor(){super(...arguments),this.actions=[],this.rowdata={}}createRenderRoot(){return this}handleMenuAction(e){e.stopPropagation();const t=e.detail?.key;t&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t,parameters:{_clickedRow:this.rowdata}},bubbles:!0,composed:!0}))}render(){const e=this.actions??[];if(!e.length)return o`${d}`;const t=e.map(a=>({label:a.label??a.text??"",key:a.methodNameInCrud??a.actionId??a.id??a.key??a.label,disabled:a.disabled??!1}));return o`
+    `;ci([h()],Wt.prototype,"fieldId",2);ci([h()],Wt.prototype,"value",2);ci([h()],Wt.prototype,"accept",2);ci([h({type:Boolean})],Wt.prototype,"editable",2);Wt=ci([k("mateu-file-upload")],Wt);const ku=76;function nr(e){if(e.weight!=null)return e.weight;const t=e.stereotype??"";if(t==="icon")return 1;if(t==="image")return 4;if(t==="html"||t==="richText"||t==="markdown"||t==="textarea")return 5;if(t==="link")return 2.5;if(t==="combobox"||t==="select")return 2;const a=e.dataType??"";return a==="bool"?1:a==="status"||a==="integer"?1.5:a==="number"||a==="date"||a==="money"?2:a==="dateTime"||a==="dateRange"?2.5:3}function io(e,t){if(e.length===0)return"table";const a=e.reduce((c,u)=>c+nr(u),0),s=t/ku,i=a/s;if(i<=1)return"table";const r=e.filter(c=>c.identifier||(c.priority??Number.MAX_SAFE_INTEGER)<=2),n=r.reduce((c,u)=>c+nr(u),0);return i>1.6||e.length>10?"masterDetail":r.length>0&&n<=8?"list":e.some(c=>c.stereotype==="image"||c.stereotype==="html")||r.length===0&&e.length>=4&&e.length<=8?"cards":"masterDetail"}function Li(e){return e.filter(t=>t.identifier||(t.priority??Number.MAX_SAFE_INTEGER)<=2).sort((t,a)=>(t.priority??Number.MAX_SAFE_INTEGER)-(a.priority??Number.MAX_SAFE_INTEGER))}function Cu(e){const t=Li(e);return t.length>0?t:e.slice(0,3)}var Su=Object.defineProperty,Iu=Object.getOwnPropertyDescriptor,Ds=(e,t,a,s)=>{for(var i=s>1?void 0:s?Iu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Su(t,a,i),i};let Di=class extends S{constructor(){super(...arguments),this.actions=[],this.rowdata={}}createRenderRoot(){return this}handleMenuAction(e){e.stopPropagation();const t=e.detail?.key;t&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t,parameters:{_clickedRow:this.rowdata}},bubbles:!0,composed:!0}))}render(){const e=this.actions??[];if(!e.length)return o`${d}`;const t=e.map(a=>({label:a.label??a.text??"",key:a.methodNameInCrud??a.actionId??a.id??a.key??a.label,disabled:a.disabled??!1}));return o`
             <oj-c-menu-button
                 data-oj-binding-provider="preact"
                 label="···"
@@ -4476,59 +4759,59 @@ id="${e.id}"
                 .items="${t}"
                 @ojMenuAction="${a=>this.handleMenuAction(a)}"
             ></oj-c-menu-button>
-        `}};Ls([m({type:Array})],Li.prototype,"actions",2);Ls([m({type:Object})],Li.prototype,"rowdata",2);Li=Ls([k("mateu-redwood-action-menu")],Li);var ku=Object.defineProperty,Cu=Object.getOwnPropertyDescriptor,Be=(e,t,a,s)=>{for(var i=s>1?void 0:s?Cu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&ku(t,a,i),i};function cs(e){return e.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}const wa="var(--mateu-redwood-text, rgb(22, 21, 19))",Rt="var(--oj-core-text-color-secondary, rgba(22,21,19,.7))",Ge="var(--oj-core-divider-color, rgba(22,21,19,.12))",Ba="var(--mateu-redwood-panel-bg, #fff)",or="var(--oj-link-text-color, rgb(28, 101, 154))",yi="rgba(28, 101, 154, 0.08)";let H=class extends S{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.dataProvider=void 0,this._connected=!1,this.availableWidthPx=1024,this.selectedItem=null,this.collapsedNodes=new Set,this.mountTimer=null,this.lastContentRef=null,this.lastContentLen=-1}createRenderRoot(){return this}connectedCallback(){super.connectedCallback(),this._connected=!0,this.resizeObserver=new ResizeObserver(e=>{const t=e[0]?.contentRect.width;t&&Math.abs(t-this.availableWidthPx)>10&&(this.availableWidthPx=t)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect()}get cols(){return this.metadata?.columns?.map(e=>e.metadata)??[]}get identifierFieldName(){const e=this.cols.find(t=>t.identifier);return e?e.id:this.cols.find(t=>t.id==="id")?.id}get effectiveGridLayout(){const e=this.metadata,t=e?.gridLayout??"auto";return t==="auto"?e?.crudlType==="card"?"cards":to(this.cols,this.availableWidthPx):t}getRows(){return this.data[this.id]?.page?.content??[]}get groupedTableActive(){const e=this.data?.[this.id];return this.metadata?.groupBy&&(e?.groups?.length??0)>0?!0:!!e?.aggregates&&this.cols.some(a=>a.aggregate)}isLinkColumn(e){return!!e.actionId&&e.stereotype!=="button"&&!["action","actionGroup","status","menu"].includes(e.dataType??"")}getOjColumns(){const e={};return this.metadata?.columns?.forEach(t=>{const a=t.metadata,s=a.stereotype==="button"||a.dataType==="action"||a.dataType==="actionGroup"||a.dataType==="status"||a.dataType==="menu"||this.isLinkColumn(a),i={headerText:a.label,field:a.id};a.resizable&&(i.resizable="enabled"),a.flexGrow!=null&&(i.weight=a.flexGrow),s&&(i.template=a.id+"Template"),e[a.id]=i}),e}getTemplateSlots(){let e="";return this.metadata?.columns?.forEach(t=>{const a=t.metadata;if(a.stereotype==="button"){const s=cs(a.text??a.label??"View"),i=cs(a.actionId??a.id??"");e+=`<template slot="${a.id}Template" data-oj-as="cell">`,e+="<span>",e+=`<oj-c-button
+        `}};Ds([h({type:Array})],Di.prototype,"actions",2);Ds([h({type:Object})],Di.prototype,"rowdata",2);Di=Ds([k("mateu-redwood-action-menu")],Di);var _u=Object.defineProperty,Eu=Object.getOwnPropertyDescriptor,Be=(e,t,a,s)=>{for(var i=s>1?void 0:s?Eu(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&_u(t,a,i),i};function us(e){return e.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}const Ca="var(--mateu-redwood-text, rgb(22, 21, 19))",At="var(--oj-core-text-color-secondary, rgba(22,21,19,.7))",Ge="var(--oj-core-divider-color, rgba(22,21,19,.12))",Wa="var(--mateu-redwood-panel-bg, #fff)",lr="var(--oj-link-text-color, rgb(28, 101, 154))",xi="rgba(28, 101, 154, 0.08)";let H=class extends S{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.dataProvider=void 0,this._connected=!1,this.availableWidthPx=1024,this.selectedItem=null,this.collapsedNodes=new Set,this.mountTimer=null,this.lastContentRef=null,this.lastContentLen=-1}createRenderRoot(){return this}connectedCallback(){super.connectedCallback(),this._connected=!0,this.resizeObserver=new ResizeObserver(e=>{const t=e[0]?.contentRect.width;t&&Math.abs(t-this.availableWidthPx)>10&&(this.availableWidthPx=t)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect()}get cols(){return this.metadata?.columns?.map(e=>e.metadata)??[]}get identifierFieldName(){const e=this.cols.find(t=>t.identifier);return e?e.id:this.cols.find(t=>t.id==="id")?.id}get effectiveGridLayout(){const e=this.metadata,t=e?.gridLayout??"auto";return t==="auto"?e?.crudlType==="card"?"cards":io(this.cols,this.availableWidthPx):t}getRows(){return this.data[this.id]?.page?.content??[]}get groupedTableActive(){const e=this.data?.[this.id];return this.metadata?.groupBy&&(e?.groups?.length??0)>0?!0:!!e?.aggregates&&this.cols.some(a=>a.aggregate)}isLinkColumn(e){return!!e.actionId&&e.stereotype!=="button"&&!["action","actionGroup","status","menu"].includes(e.dataType??"")}getOjColumns(){const e={};return this.metadata?.columns?.forEach(t=>{const a=t.metadata,s=a.stereotype==="button"||a.dataType==="action"||a.dataType==="actionGroup"||a.dataType==="status"||a.dataType==="menu"||this.isLinkColumn(a),i={headerText:a.label,field:a.id};a.resizable&&(i.resizable="enabled"),a.flexGrow!=null&&(i.weight=a.flexGrow),s&&(i.template=a.id+"Template"),e[a.id]=i}),e}getTemplateSlots(){let e="";return this.metadata?.columns?.forEach(t=>{const a=t.metadata;if(a.stereotype==="button"){const s=us(a.text??a.label??"View"),i=us(a.actionId??a.id??"");e+=`<template slot="${a.id}Template" data-oj-as="cell">`,e+="<span>",e+=`<oj-c-button
  data-mateu-row-key="[[cell.item.data._rowNumber]]" 
  data-mateu-action-id="${i}"
-data-oj-binding-provider="preact" label="${s}" chroming="borderless"></oj-c-button>`,e+="</span>",e+="</template>"}else if(this.isLinkColumn(a)){const s=cs(a.actionId??"");e+=`<template slot="${a.id}Template" data-oj-as="cell">`,e+="<span>",e+=`<oj-c-button
+data-oj-binding-provider="preact" label="${s}" chroming="borderless"></oj-c-button>`,e+="</span>",e+="</template>"}else if(this.isLinkColumn(a)){const s=us(a.actionId??"");e+=`<template slot="${a.id}Template" data-oj-as="cell">`,e+="<span>",e+=`<oj-c-button
  data-mateu-row-key="[[cell.item.data._rowNumber]]"
  data-mateu-action-id="${s}"
 data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.data]]" chroming="borderless"></oj-c-button>`,e+="</span>",e+="</template>"}else if(a.dataType==="status")e+=`<template slot="${a.id}Template" data-oj-as="cell">`,e+="<oj-c-badge",e+=` label="[[cell.data ? (cell.data.message || String(cell.data)) : '']]"`,e+=` variant="[[cell.data ? (cell.data.type === 'SUCCESS' ? 'successSubtle' : cell.data.type === 'DANGER' ? 'dangerSubtle' : cell.data.type === 'WARNING' ? 'warningSubtle' : cell.data.type === 'INFO' ? 'infoSubtle' : 'neutral') : 'neutral']]"`,e+="></oj-c-badge>",e+="</template>";else if(a.dataType==="actionGroup"||a.dataType==="menu")e+=`<template slot="${a.id}Template" data-oj-as="cell">`,e+="<oj-c-menu-button",e+=' data-oj-binding-provider="preact"',e+=' label="···"',e+=' chroming="borderless"',e+=` :items="[[cell.data && cell.data.actions ? cell.data.actions.map(function(a){return {label:a.label||a.text||'',key:(cell.item.key+'')+'|'+(a.methodNameInCrud||a.actionId||a.id||a.key||(a.label||'')),disabled:!!a.disabled};}) : []]]"`,e+="></oj-c-menu-button>",e+="</template>";else if(a.dataType==="action"){const s=a.actionId||a.id;e+=`<template slot="${a.id}Template" data-oj-as="cell">`,e+="<oj-c-menu-button",e+=' data-oj-binding-provider="preact"',e+=' label="···"',e+=' chroming="borderless"',e+=` :items="[[cell.data ? [{label:cell.data.label||cell.data.text||'${s}',key:(cell.item.key+'')+'|'+(cell.data.methodNameInCrud||'${s}'),disabled:!!cell.data.disabled}] : []]]"`,e+="></oj-c-menu-button>",e+="</template>"}}),e}refreshDataProvider(){const e=()=>{const t=this.data[this.id]?.page?.content??[];this.dataProvider=new H._ADP(t,{keyAttributes:"@index"}),this.scheduleMount()};H._ADP?e():require(["ojs/ojarraydataprovider"],t=>{H._ADP=t.default??t,this.isConnected&&e()})}scheduleMount(){this.mountTimer&&clearTimeout(this.mountTimer),this.mountTimer=setTimeout(()=>{this.mountTimer=null,this.mountTable()},60)}mountTable(){const e=this.querySelector(".rwt-table-host");if(!e)return;const t=document.createElement("oj-c-table");t.setAttribute("data-oj-binding-provider","preact"),t.setAttribute("aria-label","Data table"),t.setAttribute("layout","contents"),t.style.width="100%";const a=this.getTemplateSlots();if(a){const s=document.createElement("div");s.innerHTML=a,Array.from(s.childNodes).forEach(i=>t.appendChild(i))}t.columns=this.getOjColumns(),t.selectionMode=this.metadata?.rowsSelectionEnabled?{row:"multiple"}:{row:"none"},t.addEventListener("ojRowAction",s=>this.handleRowAction(s)),t.addEventListener("ojAction",s=>this.handleCellButtonAction(s)),t.addEventListener("selectedChanged",s=>this.handleSelectedChanged(s)),t.addEventListener("ojMenuAction",s=>this.handleMenuAction(s)),t.data=this.dataProvider,e.replaceChildren(t)}updated(e){super.updated(e),e.has("metadata")&&(this.lastContentRef=!1);const t=this.data?.[this.id]?.page?.content,a=Array.isArray(t)?t.length:0,s=t!==this.lastContentRef||a!==this.lastContentLen;if(s&&(this.lastContentRef=t,this.lastContentLen=a),this.effectiveGridLayout==="table"&&!this.groupedTableActive){const i=this.querySelector(".rwt-table-host");(s||i&&i.childElementCount===0)&&this.refreshDataProvider()}else s&&(this.collapsedNodes.clear(),this.requestUpdate())}handleRowAction(e){const t=e.detail?.context?.item?.data;if(!t)return;const a=this.metadata?.columns?.find(s=>{const i=s.metadata;return i.stereotype==="button"&&i.actionId});if(a){const s=a.metadata;this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId,parameters:t},bubbles:!0,composed:!0}))}}handleCellButtonAction(e){const t=e.composedPath();let a=null,s=null;for(const n of t){const l=n;if(l.getAttribute("data-mateu-row-key")){const c=l.getAttribute("data-mateu-row-key");if(c!==null){a=c,s=l.getAttribute("data-mateu-action-id");break}}}if(a===null)return;const r=(this.data[this.id]?.page?.content??[]).find((n,l)=>n._rowNumber==a)??{};this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:s??"",parameters:r},bubbles:!0,composed:!0}))}handleMenuAction(e){const t=e.detail?.key;if(!t)return;const a=t.indexOf("|");if(a<0)return;const s=parseInt(t.substring(0,a)),i=t.substring(a+1),n=(this.data[this.id]?.page?.content??[])[s]??{};this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:i,parameters:n},bubbles:!0,composed:!0}))}handleSelectedChanged(e){const t=e.detail.value?.row;if(!t)return;const a=this.data[this.id]?.page?.content??[],s=t.isAddAll()?a:a.filter((i,r)=>t.has(r));this.state.crud_selected_items=s}dispatchAction(e,t){this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e,parameters:t},bubbles:!0,composed:!0}))}openRow(e){const t=this.identifierFieldName;t&&e[t]!==void 0&&(this.state._selectedId=String(e[t])),this.dispatchAction("view",e),this.requestUpdate()}isSelectedRow(e){const t=this.identifierFieldName,a=this.state?._selectedId??this.appState?._splitDetailId;return!!t&&a!==void 0&&String(e[t])===String(a)}static isActionButtonCol(e){return e.dataType==="action"||e.dataType==="actionGroup"||e.dataType==="menu"||e.stereotype==="button"}statusBadge(e){const t=(e?.type??"").toUpperCase();return o`<span style="${t==="SUCCESS"?"background: rgba(104, 150, 90, 0.18); color: rgb(49, 93, 36);":t==="DANGER"||t==="ERROR"?"background: rgba(179, 49, 31, 0.14); color: rgb(150, 40, 27);":t==="WARNING"?"background: rgba(190, 120, 0, 0.16); color: rgb(124, 79, 4);":t==="INFO"?"background: rgba(28, 101, 154, 0.14); color: rgb(28, 90, 131);":"background: rgba(22, 21, 19, 0.08); color: rgb(70, 68, 66);"} border-radius: 1rem; padding: 0.1rem 0.6rem; font-size: 0.75rem; font-weight: 600; white-space: nowrap;">${e?.message??String(e??"")}</span>`}formatValue(e,t){const a=t[e.id];return a==null?o``:e.dataType==="status"?this.statusBadge(a):e.dataType==="bool"||e.dataType==="boolean"?o`${a?"✓":"✗"}`:typeof a=="object"?o`${a.label??a.name??a.message??""}`:o`${a}`}linkButton(e,t,a){return o`
             <button title="${a||d}"
-                    style="background: transparent; border: none; color: ${or}; font-family: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 4px;"
+                    style="background: transparent; border: none; color: ${lr}; font-family: inherit; font-size: 0.8125rem; font-weight: 600; cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 4px;"
                     @click="${t}">${e}</button>`}renderRowActionButtons(e,t,a){const s=[],i=(r,n)=>{r.stopPropagation(),this.dispatchAction("action-on-row-"+n,{_clickedRow:e})};for(const r of t){const n=e[r.id];if(r.dataType==="action"){const l=n?.methodNameInCrud?n:e.action?.methodNameInCrud?e.action:{methodNameInCrud:r.id,label:r.label};s.push(this.linkButton(l.label??"",c=>i(c,l.methodNameInCrud),l.label))}else(r.dataType==="actionGroup"||r.dataType==="menu")&&(n?.actions??[]).forEach(c=>s.push(this.linkButton(c.label??"",u=>i(u,c.methodNameInCrud),c.label)))}return s.length?o`
             <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.35rem; ${a?`padding-top: 0.5rem; border-top: 1px solid ${Ge};`:""}">
                 ${s}
             </div>`:d}renderEmpty(){return o`
-            <div style="padding: 1.5rem; text-align: center; color: ${Rt}; font-size: 0.875rem;">
+            <div style="padding: 1.5rem; text-align: center; color: ${At}; font-size: 0.875rem;">
                 ${this.emptyStateMessage??this.metadata?.emptyStateMessage??"No data."}
             </div>`}renderListItem(e,t,a,s,i,r){return o`
             <div role="listitem"
-                 style="padding: 0.6rem 0.75rem; border-bottom: 1px solid ${Ge}; cursor: pointer; ${s?`background: ${yi};`:""}"
+                 style="padding: 0.6rem 0.75rem; border-bottom: 1px solid ${Ge}; cursor: pointer; ${s?`background: ${xi};`:""}"
                  onmouseover="this.style.background='rgba(22,21,19,0.04)'"
-                 onmouseout="this.style.background='${s?yi:"transparent"}'"
+                 onmouseout="this.style.background='${s?xi:"transparent"}'"
                  @click="${i}">
-                <div style="font-weight: 600; color: ${wa}; font-size: 0.875rem;">${t?e[t.id]??"":""}</div>
-                <div style="font-size: 0.8125rem; color: ${Rt}; display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: center;">
+                <div style="font-weight: 600; color: ${Ca}; font-size: 0.875rem;">${t?e[t.id]??"":""}</div>
+                <div style="font-size: 0.8125rem; color: ${At}; display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; align-items: center;">
                     ${a.map(n=>o`<span>${n.label}: ${this.formatValue(n,e)}</span>`)}
                 </div>
                 ${r}
-            </div>`}renderTwoLineList(e){const t=this.getRows(),a=Ai(e),s=a.find(n=>n.identifier)??a[0],i=a.filter(n=>n!==s&&!H.isActionButtonCol(n)),r=e.filter(n=>H.isActionButtonCol(n));return o`
-            <div role="list" style="width: 100%; background: ${Ba}; border: 1px solid ${Ge}; border-radius: 8px; overflow: hidden;">
+            </div>`}renderTwoLineList(e){const t=this.getRows(),a=Li(e),s=a.find(n=>n.identifier)??a[0],i=a.filter(n=>n!==s&&!H.isActionButtonCol(n)),r=e.filter(n=>H.isActionButtonCol(n));return o`
+            <div role="list" style="width: 100%; background: ${Wa}; border: 1px solid ${Ge}; border-radius: 8px; overflow: hidden;">
                 ${t.length===0?this.renderEmpty():d}
                 ${t.map(n=>this.renderListItem(n,s,i,this.isSelectedRow(n),()=>this.openRow(n),this.renderRowActionButtons(n,r,!1)))}
-            </div>`}renderCards(e){const t=this.getRows(),a=e.slice(0,6),s=a.filter(p=>p.stereotype==="image"),i=a.find(p=>p.identifier)??a[0],r=p=>!!p.actionId&&!H.isActionButtonCol(p),n=a.find(p=>p.id==="select"&&p.dataType==="action"),l=!!n,c=a.filter(p=>p!==i&&!s.includes(p)&&!r(p)&&!H.isActionButtonCol(p)),u=a.filter(p=>H.isActionButtonCol(p)&&!(l&&p===n)),h=(p,f)=>{l?(p.stopPropagation(),this.dispatchAction("action-on-row-select",{_clickedRow:f})):this.openRow(f)};return o`
+            </div>`}renderCards(e){const t=this.getRows(),a=e.slice(0,6),s=a.filter(p=>p.stereotype==="image"),i=a.find(p=>p.identifier)??a[0],r=p=>!!p.actionId&&!H.isActionButtonCol(p),n=a.find(p=>p.id==="select"&&p.dataType==="action"),l=!!n,c=a.filter(p=>p!==i&&!s.includes(p)&&!r(p)&&!H.isActionButtonCol(p)),u=a.filter(p=>H.isActionButtonCol(p)&&!(l&&p===n)),m=(p,f)=>{l?(p.stopPropagation(),this.dispatchAction("action-on-row-select",{_clickedRow:f})):this.openRow(f)};return o`
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; padding: 0.5rem 0;">
                 ${t.length===0?o`<div style="grid-column: 1 / -1;">${this.renderEmpty()}</div>`:d}
                 ${t.map(p=>o`
-                    <div style="background: ${Ba}; border: 1px solid ${this.isSelectedRow(p)?or:Ge}; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; cursor: pointer; display: flex; flex-direction: column;"
+                    <div style="background: ${Wa}; border: 1px solid ${this.isSelectedRow(p)?lr:Ge}; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; cursor: pointer; display: flex; flex-direction: column;"
                          onmouseover="this.style.boxShadow='0 3px 10px rgba(0,0,0,0.14)'"
                          onmouseout="this.style.boxShadow='0 1px 4px rgba(0,0,0,0.08)'"
-                         @click="${f=>h(f,p)}">
+                         @click="${f=>m(f,p)}">
                         ${s.length?o`<img src="${p[s[0].id]??""}" alt="" style="width: 100%; max-height: 160px; object-fit: cover; display: block;"/>`:d}
                         <div style="padding: 0.75rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.35rem; flex: 1;">
-                            ${i?o`<div style="font-weight: 600; color: ${wa}; font-size: 1rem; margin-bottom: 0.25rem;">${p[i.id]??""}</div>`:d}
+                            ${i?o`<div style="font-weight: 600; color: ${Ca}; font-size: 1rem; margin-bottom: 0.25rem;">${p[i.id]??""}</div>`:d}
                             ${c.map(f=>o`
                                 <div style="display: flex; gap: 0.5rem; font-size: 0.8125rem; align-items: baseline;">
-                                    <span style="color: ${Rt}; min-width: 80px;">${f.label}</span>
-                                    <span style="color: ${wa};">${this.formatValue(f,p)}</span>
+                                    <span style="color: ${At}; min-width: 80px;">${f.label}</span>
+                                    <span style="color: ${Ca};">${this.formatValue(f,p)}</span>
                                 </div>
                             `)}
                             ${this.renderRowActionButtons(p,u,!0)}
                         </div>
                     </div>
                 `)}
-            </div>`}renderMasterDetail(e){const t=this.getRows(),a=Ai(e),s=a.find(r=>r.identifier)??a[0],i=a.filter(r=>r!==s);return o`
-            <div style="display: flex; gap: 0; min-height: 400px; background: ${Ba}; border: 1px solid ${Ge}; border-radius: 8px; overflow: hidden;">
+            </div>`}renderMasterDetail(e){const t=this.getRows(),a=Li(e),s=a.find(r=>r.identifier)??a[0],i=a.filter(r=>r!==s);return o`
+            <div style="display: flex; gap: 0; min-height: 400px; background: ${Wa}; border: 1px solid ${Ge}; border-radius: 8px; overflow: hidden;">
                 <!-- Left: compact row list -->
                 <div role="list" style="width: 280px; flex-shrink: 0; border-right: 1px solid ${Ge}; overflow-y: auto;">
                     ${t.length===0?this.renderEmpty():d}
@@ -4540,104 +4823,104 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                             ${e.filter(r=>!H.isActionButtonCol(r)).map(r=>o`
                                 <div style="display: flex; gap: 0.75rem; align-items: baseline;">
-                                    <span style="min-width: 140px; color: ${Rt}; font-size: 0.8125rem;">${r.label}</span>
-                                    <span style="color: ${wa}; font-size: 0.875rem;">${this.formatValue(r,this.selectedItem)}</span>
+                                    <span style="min-width: 140px; color: ${At}; font-size: 0.8125rem;">${r.label}</span>
+                                    <span style="color: ${Ca}; font-size: 0.875rem;">${this.formatValue(r,this.selectedItem)}</span>
                                 </div>
                             `)}
                         </div>
                     `:o`
-                        <p style="color: ${Rt}; font-size: 0.875rem;">Select a row to view details.</p>
+                        <p style="color: ${At}; font-size: 0.875rem;">Select a row to view details.</p>
                     `}
                 </div>
-            </div>`}renderTree(e){const t=this.getRows(),a=e[0],s=e.slice(1),i=!!a?.actionId,r=`text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid ${Ge}; color: ${Rt}; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;`,n=`padding: 0.4rem 0.75rem; border-bottom: 1px solid ${Ge}; color: ${wa}; font-size: 0.875rem;`,l=1+(i?1:0)+s.length,c=(h,p)=>{h.stopPropagation(),this.collapsedNodes.has(p)?this.collapsedNodes.delete(p):this.collapsedNodes.add(p),this.requestUpdate()},u=(h,p)=>{const f=Array.isArray(h.children)?h.children:[],g=f.length>0,y=this.collapsedNodes.has(h);return[o`
-                <tr style="${this.isSelectedRow(h)?`background: ${yi};`:""}">
+            </div>`}renderTree(e){const t=this.getRows(),a=e[0],s=e.slice(1),i=!!a?.actionId,r=`text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid ${Ge}; color: ${At}; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;`,n=`padding: 0.4rem 0.75rem; border-bottom: 1px solid ${Ge}; color: ${Ca}; font-size: 0.875rem;`,l=1+(i?1:0)+s.length,c=(m,p)=>{m.stopPropagation(),this.collapsedNodes.has(p)?this.collapsedNodes.delete(p):this.collapsedNodes.add(p),this.requestUpdate()},u=(m,p)=>{const f=Array.isArray(m.children)?m.children:[],g=f.length>0,y=this.collapsedNodes.has(m);return[o`
+                <tr style="${this.isSelectedRow(m)?`background: ${xi};`:""}">
                     <td style="${n} padding-left: ${.75+p*1.25}rem;">
                         <span style="display: inline-flex; align-items: center; gap: 0.25rem;">
                             ${g?o`
                                 <button aria-label="${y?"Expand":"Collapse"}"
-                                        style="background: transparent; border: none; cursor: pointer; color: ${Rt}; font-size: 0.7rem; padding: 0 0.2rem; width: 1.2rem;"
-                                        @click="${T=>c(T,h)}">${y?"▸":"▾"}</button>
+                                        style="background: transparent; border: none; cursor: pointer; color: ${At}; font-size: 0.7rem; padding: 0 0.2rem; width: 1.2rem;"
+                                        @click="${P=>c(P,m)}">${y?"▸":"▾"}</button>
                             `:o`<span style="display: inline-block; width: 1.2rem;"></span>`}
-                            <span>${h[a?.id??""]??""}</span>
+                            <span>${m[a?.id??""]??""}</span>
                         </span>
                     </td>
                     ${i?o`
                         <td style="${n} text-align: end; width: 6rem;">
-                            ${h?.viewable===!1?d:this.linkButton("View",T=>{T.stopPropagation(),this.openRow(h)})}
+                            ${m?.viewable===!1?d:this.linkButton("View",P=>{P.stopPropagation(),this.openRow(m)})}
                         </td>`:d}
-                    ${s.map(T=>T.id==="select"&&T.dataType==="action"?o`
+                    ${s.map(P=>P.id==="select"&&P.dataType==="action"?o`
                             <td style="${n} text-align: end; width: 7rem;">
-                                ${this.linkButton("Select",U=>{U.stopPropagation(),this.dispatchAction("action-on-row-select",{_clickedRow:h})})}
-                            </td>`:o`<td style="${n}">${this.formatValue(T,h)}</td>`)}
-                </tr>`,...y?[]:f.flatMap(T=>u(T,p+1))]};return o`
-            <table style="width: 100%; border-collapse: collapse; background: ${Ba};">
+                                ${this.linkButton("Select",U=>{U.stopPropagation(),this.dispatchAction("action-on-row-select",{_clickedRow:m})})}
+                            </td>`:o`<td style="${n}">${this.formatValue(P,m)}</td>`)}
+                </tr>`,...y?[]:f.flatMap(P=>u(P,p+1))]};return o`
+            <table style="width: 100%; border-collapse: collapse; background: ${Wa};">
                 <thead>
                     <tr>
                         <th style="${r}">${a?.label??""}</th>
                         ${i?o`<th style="${r}"></th>`:d}
-                        ${s.map(h=>o`<th style="${r} ${h.id==="select"?"text-align: end;":""}">${h.label??""}</th>`)}
+                        ${s.map(m=>o`<th style="${r} ${m.id==="select"?"text-align: end;":""}">${m.label??""}</th>`)}
                     </tr>
                 </thead>
                 <tbody>
-                    ${t.length===0?o`<tr><td colspan="${l}">${this.renderEmpty()}</td></tr>`:t.flatMap(h=>u(h,0))}
+                    ${t.length===0?o`<tr><td colspan="${l}">${this.renderEmpty()}</td></tr>`:t.flatMap(m=>u(m,0))}
                 </tbody>
-            </table>`}renderGroupedTable(e){const t=this.getRows(),a=this.data[this.id],s=this.metadata?.groupBy,i=Ir(t,s,a?.groups),r=Pr(e,a,s),n=Er(s,e.map(h=>h.id)),l=`text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid ${Ge}; color: ${Rt}; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;`,c=`padding: 0.4rem 0.75rem; border-bottom: 1px solid ${Ge}; color: ${wa}; font-size: 0.875rem;`,u=(h,p)=>{const f=h[p.id];if(p.dataType==="action"){if(p.id==="select")return this.linkButton("Select",y=>{y.stopPropagation(),this.dispatchAction("action-on-row-select",{_clickedRow:h})});const g=f?.methodNameInCrud?f:{methodNameInCrud:p.id,label:p.label};return this.linkButton(g.label??"",y=>{y.stopPropagation(),this.dispatchAction("action-on-row-"+g.methodNameInCrud,{_clickedRow:h})},g.label)}if(p.dataType==="actionGroup"||p.dataType==="menu"){const g=f?.actions??[];return o`${g.map(y=>this.linkButton(y.label??"",x=>{x.stopPropagation(),this.dispatchAction("action-on-row-"+y.methodNameInCrud,{_clickedRow:h})},y.label))}`}return p.stereotype==="button"?this.linkButton(p.text??p.label??"View",g=>{g.stopPropagation(),this.dispatchAction(p.actionId??p.id,h)},p.label):this.isLinkColumn(p)?this.linkButton(""+(f??""),g=>{g.stopPropagation(),p.actionId==="view"?this.openRow(h):this.dispatchAction(p.actionId,h)},p.label):this.formatValue(p,h)};return o`
-            <table style="width: 100%; border-collapse: collapse; background: ${Ba};">
+            </table>`}renderGroupedTable(e){const t=this.getRows(),a=this.data[this.id],s=this.metadata?.groupBy,i=Er(t,s,a?.groups),r=Rr(e,a,s),n=Tr(s,e.map(m=>m.id)),l=`text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid ${Ge}; color: ${At}; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;`,c=`padding: 0.4rem 0.75rem; border-bottom: 1px solid ${Ge}; color: ${Ca}; font-size: 0.875rem;`,u=(m,p)=>{const f=m[p.id];if(p.dataType==="action"){if(p.id==="select")return this.linkButton("Select",y=>{y.stopPropagation(),this.dispatchAction("action-on-row-select",{_clickedRow:m})});const g=f?.methodNameInCrud?f:{methodNameInCrud:p.id,label:p.label};return this.linkButton(g.label??"",y=>{y.stopPropagation(),this.dispatchAction("action-on-row-"+g.methodNameInCrud,{_clickedRow:m})},g.label)}if(p.dataType==="actionGroup"||p.dataType==="menu"){const g=f?.actions??[];return o`${g.map(y=>this.linkButton(y.label??"",x=>{x.stopPropagation(),this.dispatchAction("action-on-row-"+y.methodNameInCrud,{_clickedRow:m})},y.label))}`}return p.stereotype==="button"?this.linkButton(p.text??p.label??"View",g=>{g.stopPropagation(),this.dispatchAction(p.actionId??p.id,m)},p.label):this.isLinkColumn(p)?this.linkButton(""+(f??""),g=>{g.stopPropagation(),p.actionId==="view"?this.openRow(m):this.dispatchAction(p.actionId,m)},p.label):this.formatValue(p,m)};return o`
+            <table style="width: 100%; border-collapse: collapse; background: ${Wa};">
                 <thead>
                     <tr>
-                        ${e.map(h=>o`<th style="${l}">${h.label??""}</th>`)}
+                        ${e.map(m=>o`<th style="${l}">${m.label??""}</th>`)}
                     </tr>
                 </thead>
                 <tbody>
                     ${t.length===0?o`<tr><td colspan="${e.length}">${this.renderEmpty()}</td></tr>`:d}
-                    ${i.map(h=>Ga(h)?o`
+                    ${i.map(m=>Ya(m)?o`
                         <tr>
-                            ${e.map(p=>o`<td style="${c} font-weight: 600; background: rgba(22, 21, 19, 0.05);">${Tr(h,p,n)}</td>`)}
+                            ${e.map(p=>o`<td style="${c} font-weight: 600; background: rgba(22, 21, 19, 0.05);">${Or(m,p,n)}</td>`)}
                         </tr>
                     `:o`
-                        <tr style="${this.isSelectedRow(h)?`background: ${yi};`:""}">
-                            ${e.map(p=>o`<td style="${c}">${u(h,p)}</td>`)}
+                        <tr style="${this.isSelectedRow(m)?`background: ${xi};`:""}">
+                            ${e.map(p=>o`<td style="${c}">${u(m,p)}</td>`)}
                         </tr>
                     `)}
                 </tbody>
                 ${r?o`
                     <tfoot>
                         <tr>
-                            ${e.map(h=>o`<td style="${c} font-weight: 700; border-top: 2px solid ${Ge}; border-bottom: none;">${r[h.id]??""}</td>`)}
+                            ${e.map(m=>o`<td style="${c} font-weight: 700; border-top: 2px solid ${Ge}; border-bottom: none;">${r[m.id]??""}</td>`)}
                         </tr>
                     </tfoot>
                 `:d}
             </table>`}render(){if(!this._connected)return o``;const e=this.effectiveGridLayout;return e==="table"&&this.groupedTableActive?this.renderGroupedTable(this.cols):e==="list"?this.renderTwoLineList(this.cols):e==="cards"?this.renderCards(this.cols):e==="masterDetail"?this.renderMasterDetail(this.cols):e==="tree"?this.renderTree(this.cols):o`
             <div class="rwt-table-host" style="width: 100%;"></div>
             <slot></slot>
-        `}};H._ADP=null;Be([m()],H.prototype,"id",2);Be([m()],H.prototype,"metadata",2);Be([m()],H.prototype,"baseUrl",2);Be([m()],H.prototype,"state",2);Be([m()],H.prototype,"data",2);Be([m()],H.prototype,"appState",2);Be([m()],H.prototype,"appData",2);Be([m()],H.prototype,"emptyStateMessage",2);Be([$()],H.prototype,"_connected",2);Be([$()],H.prototype,"availableWidthPx",2);Be([$()],H.prototype,"selectedItem",2);H=Be([k("mateu-redwood-table")],H);const Ji="var(--oj-core-text-color-secondary, #666)",ao="var(--oj-core-divider-color, rgba(22,21,19,.12))",Su=`text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid ${ao}; color: ${Ji}; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;`,nr=`padding: 0.5rem 0.75rem; border-bottom: 1px solid ${ao};`,Iu=e=>{const t=(e??"").toUpperCase();return t==="SUCCESS"?"successSubtle":t==="DANGER"||t==="ERROR"?"dangerSubtle":t==="WARNING"?"warningSubtle":t==="INFO"?"infoSubtle":"neutral"},_u=(e,t,a)=>{e?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t,parameters:a},bubbles:!0,composed:!0}))},Eu=(e,t)=>{const a=e[t.id];if(t.stereotype==="button"||t.dataType==="action"){const s=a?.label??a?.text??t.text??t.label??"View",i=a?.methodNameInCrud??t.actionId??t.id;return o`<oj-c-button
+        `}};H._ADP=null;Be([h()],H.prototype,"id",2);Be([h()],H.prototype,"metadata",2);Be([h()],H.prototype,"baseUrl",2);Be([h()],H.prototype,"state",2);Be([h()],H.prototype,"data",2);Be([h()],H.prototype,"appState",2);Be([h()],H.prototype,"appData",2);Be([h()],H.prototype,"emptyStateMessage",2);Be([$()],H.prototype,"_connected",2);Be([$()],H.prototype,"availableWidthPx",2);Be([$()],H.prototype,"selectedItem",2);H=Be([k("mateu-redwood-table")],H);const Xi="var(--oj-core-text-color-secondary, #666)",so="var(--oj-core-divider-color, rgba(22,21,19,.12))",Pu=`text-align: left; padding: 0.5rem 0.75rem; border-bottom: 2px solid ${so}; color: ${Xi}; font-size: 0.8125rem; font-weight: 600; white-space: nowrap;`,dr=`padding: 0.5rem 0.75rem; border-bottom: 1px solid ${so};`,Tu=e=>{const t=(e??"").toUpperCase();return t==="SUCCESS"?"successSubtle":t==="DANGER"||t==="ERROR"?"dangerSubtle":t==="WARNING"?"warningSubtle":t==="INFO"?"infoSubtle":"neutral"},Ou=(e,t,a)=>{e?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t,parameters:a},bubbles:!0,composed:!0}))},Ru=(e,t)=>{const a=e[t.id];if(t.stereotype==="button"||t.dataType==="action"){const s=a?.label??a?.text??t.text??t.label??"View",i=a?.methodNameInCrud??t.actionId??t.id;return o`<oj-c-button
             data-oj-binding-provider="preact"
             label="${s}"
             chroming="borderless"
-            @ojAction="${r=>_u(r.target,i,e)}"
+            @ojAction="${r=>Ou(r.target,i,e)}"
         ></oj-c-button>`}return t.dataType==="status"?a==null?o``:o`<oj-c-badge
             data-oj-binding-provider="preact"
             label="${a.message??""+a}"
-            variant="${Iu(a.type)}"
-        ></oj-c-badge>`:t.dataType==="bool"||t.dataType==="boolean"?o`<span aria-label="${a?"yes":"no"}">${a?"✓":"✕"}</span>`:o`${a??""}`},io=e=>{const t=[];return e?.forEach(a=>{const s=a.metadata;s?.type===v.GridGroupColumn?t.push(...io(s.columns??s.content??a.children)):s&&t.push({...s,id:s.id??a.id})}),t},so=(e,t,a=!1,s)=>{const i=(r,n)=>{const l=o`
+            variant="${Tu(a.type)}"
+        ></oj-c-badge>`:t.dataType==="bool"||t.dataType==="boolean"?o`<span aria-label="${a?"yes":"no"}">${a?"✓":"✕"}</span>`:o`${a??""}`},ro=e=>{const t=[];return e?.forEach(a=>{const s=a.metadata;s?.type===v.GridGroupColumn?t.push(...ro(s.columns??s.content??a.children)):s&&t.push({...s,id:s.id??a.id})}),t},oo=(e,t,a=!1,s)=>{const i=(r,n)=>{const l=o`
             <tr style="${s?"cursor: pointer;":""}" @click="${s?u=>s(u,r):d}">
-                ${e.map((u,h)=>o`
-                    <td style="${nr} ${h===0&&a?`padding-left: ${.75+n*1.25}rem;`:""} ${u.align?`text-align: ${u.align};`:""}">
-                        ${Eu(r,u)}
+                ${e.map((u,m)=>o`
+                    <td style="${dr} ${m===0&&a?`padding-left: ${.75+n*1.25}rem;`:""} ${u.align?`text-align: ${u.align};`:""}">
+                        ${Ru(r,u)}
                     </td>`)}
             </tr>`,c=a?r.children??[]:[];return[l,...c.flatMap(u=>i(u,n+1))]};return o`
         <table style="width: 100%; border-collapse: collapse;">
             <thead>
-                <tr>${e.map(r=>o`<th style="${Su} ${r.align?`text-align: ${r.align};`:""}" width="${r.width??d}">${r.label??""}</th>`)}</tr>
+                <tr>${e.map(r=>o`<th style="${Pu} ${r.align?`text-align: ${r.align};`:""}" width="${r.width??d}">${r.label??""}</th>`)}</tr>
             </thead>
             <tbody>
-                ${t.length===0?o`<tr><td colspan="${e.length}" style="${nr} color: ${Ji}; text-align: center;">No data.</td></tr>`:t.flatMap(r=>i(r,0))}
+                ${t.length===0?o`<tr><td colspan="${e.length}" style="${dr} color: ${Xi}; text-align: center;">No data.</td></tr>`:t.flatMap(r=>i(r,0))}
             </tbody>
-        </table>`},Tu=(e,t)=>{const a=e.metadata,s=io(a.content);let i=a.page?.content??[];return e.id&&t&&Array.isArray(t[e.id])&&(i=t[e.id]),o`
+        </table>`},zu=(e,t)=>{const a=e.metadata,s=ro(a.content);let i=a.page?.content??[];return e.id&&t&&Array.isArray(t[e.id])&&(i=t[e.id]),o`
         <div style="width: 100%; overflow-x: auto; ${e.style??""}" class="${e.cssClasses??d}"
              slot="${e.slot??d}">
-            ${so(s,i,a.tree)}
-        </div>`},Pu=(e,t,a,s,i,r,n)=>o`
+            ${oo(s,i,a.tree)}
+        </div>`},Au=(e,t,a,s,i,r,n)=>o`
     <mateu-redwood-table
         id="${t.id}"
         .metadata="${t.metadata}"
@@ -4651,11 +4934,11 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         slot="${t.slot??d}"
     >
         ${t.children?.map(l=>w(e,l,a,s,i,r,n))}
-    </mateu-redwood-table>`,Ou=(e,t,a,s,i,r,n)=>{const c=t.metadata.page?.content??[];return o`
+    </mateu-redwood-table>`,ju=(e,t,a,s,i,r,n)=>{const c=t.metadata.page?.content??[];return o`
         <div style="overflow-y: auto; ${t.style??""}" class="${t.cssClasses??d}"
              slot="${t.slot??d}">
             ${c.map(u=>w(e,u,a,s,i,r,n))}
-        </div>`},Ru=e=>{const t=s=>s.submenus?o`
+        </div>`},Lu=e=>{const t=s=>s.submenus?o`
             <div style="min-width: 12rem;">
                 <div class="oj-typography-subheading-sm" style="margin-bottom: 0.5rem;">${s.label??""}</div>
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -4665,12 +4948,12 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         <div style="display: flex; gap: 3rem; align-items: flex-start; flex-wrap: wrap; ${e.style??""}"
              class="${e.cssClasses??d}" slot="${e.slot??d}">
             ${a.menu.map(s=>t(s))}
-        </div>`},zu=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+        </div>`},Du=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <div style="${t.style??d}" class="${t.cssClasses??d}"
              slot="${t.slot??d}" data-colspan="${l.colspan||d}">
-            ${l.label?o`<div style="font-size: 0.75rem; color: ${Ji}; margin-bottom: 4px;">${l.label}</div>`:d}
+            ${l.label?o`<div style="font-size: 0.75rem; color: ${Xi}; margin-bottom: 4px;">${l.label}</div>`:d}
             <div>${w(e,l.content,a,s,i,r,n)}</div>
-        </div>`},ju=e=>{const t=e.state?.items??e.metadata?.items??[];return o`
+        </div>`},Fu=e=>{const t=e.state?.items??e.metadata?.items??[];return o`
         <div style="display: flex; flex-direction: column; gap: 0.75rem; padding: 0.5rem; ${e.style??""}"
              class="${e.cssClasses??d}" slot="${e.slot??d}">
             ${t.map(a=>o`
@@ -4678,40 +4961,40 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     <oj-c-avatar data-oj-binding-provider="preact" size="xs"
                                  initials="${(a.userName??"?").split(/\s+/).map(s=>s[0]).slice(0,2).join("")}"></oj-c-avatar>
                     <div>
-                        ${a.userName?o`<div style="font-size: 0.75rem; color: ${Ji};">${a.userName}</div>`:d}
+                        ${a.userName?o`<div style="font-size: 0.75rem; color: ${Xi};">${a.userName}</div>`:d}
                         <div>${a.text}</div>
                     </div>
                 </div>
             `)}
-        </div>`},Au=e=>{const t=a=>{const i=a.target.closest(".rw-message-input")?.querySelector("oj-c-input-text"),r=i?.rawValue??i?.value??"";r&&(a.target.dispatchEvent(new CustomEvent("submit",{detail:{value:r},bubbles:!0,composed:!0})),i&&(i.value=""))};return o`
+        </div>`},Nu=e=>{const t=a=>{const i=a.target.closest(".rw-message-input")?.querySelector("oj-c-input-text"),r=i?.rawValue??i?.value??"";r&&(a.target.dispatchEvent(new CustomEvent("submit",{detail:{value:r},bubbles:!0,composed:!0})),i&&(i.value=""))};return o`
         <div class="rw-message-input ${e.cssClasses??""}"
              style="display: flex; gap: 0.5rem; align-items: center; ${e.style??""}"
              slot="${e.slot??d}">
             <oj-c-input-text data-oj-binding-provider="preact" label-edge="none" placeholder="Message" style="flex: 1;"
                              @keydown="${a=>{a.key==="Enter"&&t(a)}}"></oj-c-input-text>
             <oj-c-button data-oj-binding-provider="preact" label="Send" chroming="callToAction" @ojAction="${t}"></oj-c-button>
-        </div>`},ka="var(--oj-core-text-color-secondary, #666)",Ds="var(--oj-core-divider-color, rgba(22,21,19,.12))",Fs="var(--oj-core-bg-color-content, #fff)",ro="var(--oj-core-border-radius-md, 6px)",La=e=>"oj-ux-ico-"+(e??"").replace(/^vaadin:/,"").replace(/^lumo:/,""),Lu=e=>{const t=e.metadata;return o`<span class="${La(t?.icon)} ${e.cssClasses??""}"
+        </div>`},Sa="var(--oj-core-text-color-secondary, #666)",Fs="var(--oj-core-divider-color, rgba(22,21,19,.12))",Ns="var(--oj-core-bg-color-content, #fff)",no="var(--oj-core-border-radius-md, 6px)",Fa=e=>"oj-ux-ico-"+(e??"").replace(/^vaadin:/,"").replace(/^lumo:/,""),Mu=e=>{const t=e.metadata;return o`<span class="${Fa(t?.icon)} ${e.cssClasses??""}"
                       style="font-size: 1.25rem; ${e.style??""}"
                       slot="${e.slot??d}"
-                      aria-label="${t?.icon??d}"></span>`},Du=e=>{const t=e.metadata,a=t?.breadcrumbs??[];return o`
+                      aria-label="${t?.icon??d}"></span>`},qu=e=>{const t=e.metadata,a=t?.breadcrumbs??[];return o`
         <nav aria-label="Breadcrumb"
              style="display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; ${e.style??""}"
              class="${e.cssClasses??d}" slot="${e.slot??d}">
             ${a.map((s,i)=>o`
-                ${i>0?o`<span style="color: ${ka};">/</span>`:d}
+                ${i>0?o`<span style="color: ${Sa};">/</span>`:d}
                 ${s.link?o`<a class="oj-link-standalone" href="${s.link}">${s.text}</a>`:o`<span>${s.text}</span>`}
             `)}
             ${t?.currentItemText?o`
-                ${a.length>0?o`<span style="color: ${ka};">/</span>`:d}
-                <span style="color: ${ka};">${t.currentItemText}</span>
+                ${a.length>0?o`<span style="color: ${Sa};">/</span>`:d}
+                <span style="color: ${Sa};">${t.currentItemText}</span>
             `:d}
-        </nav>`},Fu=e=>{const t=e.metadata;return o`
+        </nav>`},Uu=e=>{const t=e.metadata;return o`
         <div role="status"
-             style="display: flex; gap: 0.5rem; align-items: baseline; padding: 0.75rem 1rem; border: 1px solid ${Ds}; border-left: 4px solid var(--oj-core-info-color, #0572ce); border-radius: ${ro}; background: ${Fs}; ${e.style??""}"
+             style="display: flex; gap: 0.5rem; align-items: baseline; padding: 0.75rem 1rem; border: 1px solid ${Fs}; border-left: 4px solid var(--oj-core-info-color, #0572ce); border-radius: ${no}; background: ${Ns}; ${e.style??""}"
              class="${e.cssClasses??d}" slot="${e.slot??d}">
             ${t?.title?o`<span class="oj-typography-body-md oj-typography-bold">${t.title}</span>`:d}
             <span class="oj-typography-body-md">${t?.text??""}</span>
-        </div>`},Nu=(e,t={})=>{const a=e.metadata,s=a.valueKey?t[a.valueKey]:a.value;return o`
+        </div>`},Bu=(e,t={})=>{const a=e.metadata,s=a.valueKey?t[a.valueKey]:a.value;return o`
         <div style="${e.style??""}" class="${e.cssClasses??d}" slot="${e.slot??d}">
             <oj-c-progress-bar
                 data-oj-binding-provider="preact"
@@ -4719,8 +5002,8 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 max="${a.max&&a.max!=0?a.max:100}"
                 style="width: 100%;"
             ></oj-c-progress-bar>
-            ${a.text?o`<div style="font-size: 0.75rem; color: ${ka}; margin-top: 2px;">${a.text}</div>`:d}
-        </div>`},Mu=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+            ${a.text?o`<div style="font-size: 0.75rem; color: ${Sa}; margin-top: 2px;">${a.text}</div>`:d}
+        </div>`},Vu=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <oj-c-collapsible data-oj-binding-provider="preact"
                  ?expanded="${l.opened}"
                  class="${t.cssClasses??d}"
@@ -4733,70 +5016,70 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 ${w(e,l.content,a,s,i,r,n)}
                 ${t.children?.map(c=>w(e,c,a,s,i,r,n))}
             </div>
-        </oj-c-collapsible>`},oo=e=>e.abbreviation||(e.name?e.name.split(/\s+/).map(t=>t[0]).slice(0,2).join(""):""),qu=(e,t,a)=>{const s=e.metadata;return o`<oj-c-avatar
+        </oj-c-collapsible>`},lo=e=>e.abbreviation||(e.name?e.name.split(/\s+/).map(t=>t[0]).slice(0,2).join(""):""),Wu=(e,t,a)=>{const s=e.metadata;return o`<oj-c-avatar
             data-oj-binding-provider="preact"
-            initials="${oo(s)||d}"
+            initials="${lo(s)||d}"
             src="${s.image??d}"
             role="img"
-            aria-label="${le(s.name,t,a)??d}"
-            title="${le(s.name,t,a)??d}"
+            aria-label="${de(s.name,t,a)??d}"
+            title="${de(s.name,t,a)??d}"
             style="${e.style??d}" class="${e.cssClasses??d}"
             slot="${e.slot??d}"
-    ></oj-c-avatar>`},Uu=e=>{const t=e.metadata,a=t.avatars??[],s=t.maxItemsVisible||a.length,i=a.slice(0,s),r=a.length-i.length;return o`
+    ></oj-c-avatar>`},Hu=e=>{const t=e.metadata,a=t.avatars??[],s=t.maxItemsVisible||a.length,i=a.slice(0,s),r=a.length-i.length;return o`
         <div style="display: flex; align-items: center; ${e.style??""}"
              class="${e.cssClasses??d}" slot="${e.slot??d}">
             ${i.map((n,l)=>o`
                 <oj-c-avatar
                     data-oj-binding-provider="preact"
                     size="sm"
-                    initials="${oo(n)||d}"
+                    initials="${lo(n)||d}"
                     src="${n.image??d}"
                     title="${n.name??d}"
-                    style="${l>0?"margin-left: -0.5rem;":""} border: 2px solid ${Fs}; border-radius: 50%;"
+                    style="${l>0?"margin-left: -0.5rem;":""} border: 2px solid ${Ns}; border-radius: 50%;"
                 ></oj-c-avatar>
             `)}
-            ${r>0?o`<span style="margin-left: 0.4rem; font-size: 0.8125rem; color: ${ka};">+${r}</span>`:d}
-        </div>`},Bu=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+            ${r>0?o`<span style="margin-left: 0.4rem; font-size: 0.8125rem; color: ${Sa};">+${r}</span>`:d}
+        </div>`},Gu=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <span title="${l.text??""}" style="${t.style??d}"
               class="${t.cssClasses??d}" slot="${t.slot??d}">
             ${l.wrapped?w(e,l.wrapped,a,s,i,r,n):d}
-        </span>`},ys=e=>{const a=e?.closest(".rw-pop-wrap")?.querySelector(":scope > .rw-pop-panel");a&&(a.hidden=!a.hidden)},no=`position: absolute; top: 100%; left: 0; margin-top: 4px; z-index: 1000; background: ${Fs}; border: 1px solid ${Ds}; border-radius: ${ro}; box-shadow: 0 4px 12px rgba(0,0,0,.15); min-width: 10rem;`,Vu=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+        </span>`},xs=e=>{const a=e?.closest(".rw-pop-wrap")?.querySelector(":scope > .rw-pop-panel");a&&(a.hidden=!a.hidden)},co=`position: absolute; top: 100%; left: 0; margin-top: 4px; z-index: 1000; background: ${Ns}; border: 1px solid ${Fs}; border-radius: ${no}; box-shadow: 0 4px 12px rgba(0,0,0,.15); min-width: 10rem;`,Ku=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         <span class="rw-pop-wrap ${t.cssClasses??""}"
               style="position: relative; display: inline-block; ${t.style??""}"
               slot="${t.slot??d}">
-            <span style="cursor: pointer;" @click="${c=>ys(c.currentTarget)}">
+            <span style="cursor: pointer;" @click="${c=>xs(c.currentTarget)}">
                 ${l.wrapped?w(e,l.wrapped,a,s,i,r,n):d}
             </span>
-            <div class="rw-pop-panel" hidden style="${no} padding: 0.75rem;">
+            <div class="rw-pop-panel" hidden style="${co} padding: 0.75rem;">
                 ${l.content?w(e,l.content,a,s,i,r,n):d}
             </div>
-        </span>`},xs=(e,t)=>{t&&e?.dispatchEvent(new CustomEvent("update-route",{detail:{route:t},bubbles:!0,composed:!0}))},Wu=(e,t)=>{const s=t.metadata.options??[],i=r=>{if(r.submenus&&r.submenus.length>0){const n=r.submenus.map(l=>({key:l.path??l.label,label:l.label,disabled:l.disabled??!1}));return o`
+        </span>`},ws=(e,t)=>{t&&e?.dispatchEvent(new CustomEvent("update-route",{detail:{route:t},bubbles:!0,composed:!0}))},Yu=(e,t)=>{const s=t.metadata.options??[],i=r=>{if(r.submenus&&r.submenus.length>0){const n=r.submenus.map(l=>({key:l.path??l.label,label:l.label,disabled:l.disabled??!1}));return o`
                 <oj-c-menu-button
                     data-oj-binding-provider="preact"
                     label="${r.label}"
                     chroming="borderless"
                     .items="${n}"
-                    @ojMenuAction="${l=>xs(e,l.detail.key)}"
+                    @ojMenuAction="${l=>ws(e,l.detail.key)}"
                 ></oj-c-menu-button>`}return o`
             <oj-c-button
                 data-oj-binding-provider="preact"
                 label="${r.label}"
                 chroming="borderless"
                 ?disabled="${r.disabled}"
-                @ojAction="${n=>xs(n.target,r.path)}"
+                @ojAction="${n=>ws(n.target,r.path)}"
             ></oj-c-button>`};return o`
         <div style="display: flex; flex-direction: row; gap: 0.25rem; align-items: center; ${t.style??""}"
              class="${t.cssClasses??d}" slot="${t.slot??d}">
             ${s.map(i)}
-        </div>`},Hu=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=p=>{p.preventDefault(),ys(p.currentTarget)},u=(p,f)=>{ys(p.currentTarget),xs(p.target,f.path)},h=(p,f=0)=>o`
-        ${p.map(g=>g.separator?o`<div style="border-top: 1px solid ${Ds}; margin: 0.25rem 0;"></div>`:o`
+        </div>`},Ju=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=p=>{p.preventDefault(),xs(p.currentTarget)},u=(p,f)=>{xs(p.currentTarget),ws(p.target,f.path)},m=(p,f=0)=>o`
+        ${p.map(g=>g.separator?o`<div style="border-top: 1px solid ${Fs}; margin: 0.25rem 0;"></div>`:o`
                 <div role="menuitem"
-                     style="padding: 0.4rem 1rem 0.4rem ${1+f*1.25}rem; cursor: ${g.disabled?"default":"pointer"}; ${g.disabled?`color: ${ka}; opacity: 0.6;`:""} white-space: nowrap;"
+                     style="padding: 0.4rem 1rem 0.4rem ${1+f*1.25}rem; cursor: ${g.disabled?"default":"pointer"}; ${g.disabled?`color: ${Sa}; opacity: 0.6;`:""} white-space: nowrap;"
                      @click="${g.disabled?d:y=>u(y,g)}">
-                    ${g.icon?o`<span class="${La(g.icon)}" style="margin-right: 0.4rem;"></span>`:d}
+                    ${g.icon?o`<span class="${Fa(g.icon)}" style="margin-right: 0.4rem;"></span>`:d}
                     ${g.label}
                 </div>
-                ${g.submenus?h(g.submenus,f+1):d}`)}
+                ${g.submenus?m(g.submenus,f+1):d}`)}
     `;return o`
         <span class="rw-pop-wrap ${t.cssClasses??""}"
               style="position: relative; display: inline-block; ${t.style??""}"
@@ -4804,14 +5087,14 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
               @contextmenu="${l.activateOnLeftClick?d:c}"
               @click="${l.activateOnLeftClick?c:d}">
             ${w(e,l.wrapped,a,s,i,r,n)}
-            <div class="rw-pop-panel" hidden role="menu" style="${no} padding: 0.25rem 0;">
-                ${h(l.menu??[])}
+            <div class="rw-pop-panel" hidden role="menu" style="${co} padding: 0.25rem 0;">
+                ${m(l.menu??[])}
             </div>
-        </span>`},ga="var(--oj-core-text-color-secondary, #666)",ti="var(--oj-core-divider-color, rgba(22,21,19,.12))",yt=`display:block;font-size:0.75rem;color:${ga};margin-bottom:4px;`,lo=e=>{const t=window.require;if(!t)return null;try{const a=t("ojs/ojarraydataprovider");return new a(e,{keyAttributes:"value"})}catch{return null}},V=(e,t,a)=>{e.target?.dispatchEvent(new CustomEvent("value-changed",{detail:{value:a,fieldId:t},bubbles:!0,composed:!0}))},ci=(e,t,a)=>{e?.dispatchEvent(new CustomEvent("value-changed",{detail:{value:a,fieldId:t},bubbles:!0,composed:!0}))},ws=(e,t,a)=>{e?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t,parameters:a},bubbles:!0,composed:!0}))},W=(e,t,a="")=>o`
+        </span>`},ya="var(--oj-core-text-color-secondary, #666)",ai="var(--oj-core-divider-color, rgba(22,21,19,.12))",xt=`display:block;font-size:0.75rem;color:${ya};margin-bottom:4px;`,uo=e=>{const t=window.require;if(!t)return null;try{const a=t("ojs/ojarraydataprovider");return new a(e,{keyAttributes:"value"})}catch{return null}},V=(e,t,a)=>{e.target?.dispatchEvent(new CustomEvent("value-changed",{detail:{value:a,fieldId:t},bubbles:!0,composed:!0}))},ui=(e,t,a)=>{e?.dispatchEvent(new CustomEvent("value-changed",{detail:{value:a,fieldId:t},bubbles:!0,composed:!0}))},ks=(e,t,a)=>{e?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t,parameters:a},bubbles:!0,composed:!0}))},W=(e,t,a="")=>o`
     <div style="${a}">
-        ${e?o`<div style="${yt}">${e}</div>`:d}
+        ${e?o`<div style="${xt}">${e}</div>`:d}
         ${t}
-    </div>`,co=(e,t)=>{const a=typeof e=="number"?e:parseFloat(""+e);return isNaN(a)?""+e:t&&t.locale&&t.currency?new Intl.NumberFormat(t.locale,{style:"currency",currency:t.currency}).format(a):new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(a)},lr=new WeakMap,uo=(e,t,a,s,i)=>{const r=i?.[a]??i?.[s],n=r?.content??(Array.isArray(r)?r:void 0);if(n)return n;const l=t.remoteCoordinates?.action;if(l){let c=lr.get(e);c||(c=new Set,lr.set(e,c)),c.has(s)||(c.add(s),setTimeout(()=>ws(e,l,{searchText:"",fieldId:s,size:200,page:0,sort:void 0})))}return[]},$t=(e,t,a,s,i)=>t.remoteCoordinates?uo(e,t,a,s,i):t.options??[],us=(e,t,a,s,i)=>{const r=lo(i.map(n=>({value:n.value,label:n.label??""})));return o`<oj-c-select-single
+    </div>`,po=(e,t)=>{const a=typeof e=="number"?e:parseFloat(""+e);return isNaN(a)?""+e:t&&t.locale&&t.currency?new Intl.NumberFormat(t.locale,{style:"currency",currency:t.currency}).format(a):new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(a)},cr=new WeakMap,ho=(e,t,a,s,i)=>{const r=i?.[a]??i?.[s],n=r?.content??(Array.isArray(r)?r:void 0);if(n)return n;const l=t.remoteCoordinates?.action;if(l){let c=cr.get(e);c||(c=new Set,cr.set(e,c)),c.has(s)||(c.add(s),setTimeout(()=>ks(e,l,{searchText:"",fieldId:s,size:200,page:0,sort:void 0})))}return[]},yt=(e,t,a,s,i)=>t.remoteCoordinates?ho(e,t,a,s,i):t.options??[],ps=(e,t,a,s,i)=>{const r=uo(i.map(n=>({value:n.value,label:n.label??""})));return o`<oj-c-select-single
         data-oj-binding-provider="preact"
         id="${t}"
         label-hint="${a}"
@@ -4822,7 +5105,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         ?required="${e.required}"
         ?disabled="${e.disabled}"
         @valueChanged="${n=>V(n,t,n.detail.value)}"
-    ></oj-c-select-single>`},Gu=(e,t,a,s,i)=>{const r=lo(i.map(n=>({value:n.value,label:n.label??""})));return o`<oj-c-select-multiple
+    ></oj-c-select-single>`},Xu=(e,t,a,s,i)=>{const r=uo(i.map(n=>({value:n.value,label:n.label??""})));return o`<oj-c-select-multiple
         data-oj-binding-provider="preact"
         id="${t}"
         label-hint="${a}"
@@ -4833,85 +5116,85 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         ?required="${e.required}"
         ?disabled="${e.disabled}"
         @valueChanged="${n=>V(n,t,n.detail.value)}"
-    ></oj-c-select-multiple>`},dr=(e,t,a,s)=>{const i=n=>s?Array.isArray(t)&&t.includes(n.value):t===n.value,r=n=>{if(!s)return n.value;const l=Array.isArray(t)?t:[];return l.includes(n.value)?l.filter(c=>c!==n.value):[...l,n.value]};return o`
+    ></oj-c-select-multiple>`},ur=(e,t,a,s)=>{const i=n=>s?Array.isArray(t)&&t.includes(n.value):t===n.value,r=n=>{if(!s)return n.value;const l=Array.isArray(t)?t:[];return l.includes(n.value)?l.filter(c=>c!==n.value):[...l,n.value]};return o`
         <div role="listbox" aria-multiselectable="${s}"
-             style="border: 1px solid ${ti}; border-radius: var(--oj-core-border-radius-md, 6px); max-height: 14rem; overflow-y: auto;">
+             style="border: 1px solid ${ai}; border-radius: var(--oj-core-border-radius-md, 6px); max-height: 14rem; overflow-y: auto;">
             ${a.map(n=>{const l=i(n);return o`
                     <div role="option" aria-selected="${l}" tabindex="0"
                          style="padding: 0.4rem 0.75rem; cursor: ${e.disabled?"default":"pointer"}; display: flex; align-items: center; gap: 0.5rem; ${l?"background: var(--oj-core-bg-color-selected, #e5f0fa); font-weight: 600;":""}"
-                         @click="${e.disabled?d:c=>ci(c.target,e.fieldId,r(n))}">
-                        ${n.icon?o`<span class="${La(n.icon)}"></span>`:d}
+                         @click="${e.disabled?d:c=>ui(c.target,e.fieldId,r(n))}">
+                        ${n.icon?o`<span class="${Fa(n.icon)}"></span>`:d}
                         <span style="pointer-events: none;">
                             <span>${n.label}</span>
-                            ${n.description?o`<span style="display: block; font-size: 0.8125rem; color: ${ga};">${n.description}</span>`:d}
+                            ${n.description?o`<span style="display: block; font-size: 0.8125rem; color: ${ya};">${n.description}</span>`:d}
                         </span>
                     </div>`})}
-        </div>`},ps=(e,t,a,s)=>o`
+        </div>`},hs=(e,t,a,s)=>o`
     <div style="display: flex; gap: 0.75rem; padding: 0.25rem 0; flex-wrap: wrap;">
         ${a.map(i=>{const r=s?Array.isArray(t)&&t.includes(i.value):t==i.value,n=()=>{if(!s)return i.value;const l=Array.isArray(t)?t:[];return l.includes(i.value)?l.filter(c=>c!==i.value):[...l,i.value]};return o`
                 <div role="button" tabindex="0"
-                     style="min-width: 10rem; min-height: 3rem; padding: 0.75rem 1rem; cursor: pointer; border-radius: var(--oj-core-border-radius-lg, .375rem); border: 1px solid ${r?"var(--oj-core-info-color, #0572ce)":ti}; background: ${r?"var(--oj-core-bg-color-selected, #e5f0fa)":"transparent"};"
-                     @click="${l=>ci(l.target,e.fieldId,n())}">
+                     style="min-width: 10rem; min-height: 3rem; padding: 0.75rem 1rem; cursor: pointer; border-radius: var(--oj-core-border-radius-lg, .375rem); border: 1px solid ${r?"var(--oj-core-info-color, #0572ce)":ai}; background: ${r?"var(--oj-core-bg-color-selected, #e5f0fa)":"transparent"};"
+                     @click="${l=>ui(l.target,e.fieldId,n())}">
                     <div style="display: flex; align-items: center; gap: 0.5rem; pointer-events: none;">
-                        ${i.icon?o`<span class="${La(i.icon)}"></span>`:d}
+                        ${i.icon?o`<span class="${Fa(i.icon)}"></span>`:d}
                         ${i.image?o`<img src="${i.image}" alt="${i.label}" style="${i.imageStyle??"width: 2rem;"}" />`:d}
                         <div>
                             <div>${i.label}</div>
                             ${i.description?o`
-                                <div style="font-size: 0.8125rem; color: ${ga};">${i.description}</div>
+                                <div style="font-size: 0.8125rem; color: ${ya};">${i.description}</div>
                             `:d}
                         </div>
                     </div>
                 </div>`})}
-    </div>`,Ku=(e,t,a)=>{let s=typeof e=="number"?e:parseInt(""+e,10);return isNaN(s)&&(s=0),o`<oj-c-rating-gauge
+    </div>`,Qu=(e,t,a)=>{let s=typeof e=="number"?e:parseInt(""+e,10);return isNaN(s)&&(s=0),o`<oj-c-rating-gauge
         data-oj-binding-provider="preact"
         .value="${s}"
         max="5"
         step="1"
         size="md"
         ?readonly="${a}"
-        @valueChanged="${i=>ci(i.target,t,i.detail.value)}"
-    ></oj-c-rating-gauge>`},Yu=e=>t=>{const a=t.target,s=a.files?.[0];if(!s)return;const i=new FileReader;i.onload=()=>ci(a,e,i.result),i.readAsDataURL(s),a.value=""},Ju=e=>t=>{t.target.getRootNode().querySelector(`#${CSS.escape(e)}`)?.click()},Xu=(e,t,a)=>{const s=a!=null&&a!=="",i=`${t}_file`;return o`
+        @valueChanged="${i=>ui(i.target,t,i.detail.value)}"
+    ></oj-c-rating-gauge>`},Zu=e=>t=>{const a=t.target,s=a.files?.[0];if(!s)return;const i=new FileReader;i.onload=()=>ui(a,e,i.result),i.readAsDataURL(s),a.value=""},ep=e=>t=>{t.target.getRootNode().querySelector(`#${CSS.escape(e)}`)?.click()},tp=(e,t,a)=>{const s=a!=null&&a!=="",i=`${t}_file`;return o`
         <div style="display: flex; flex-direction: column; align-items: stretch; gap: 0.5rem; max-width: 320px;">
             ${s?o`
                 <img src="${a}"
-                     style="max-width: 100%; max-height: 240px; object-fit: contain; border: 1px solid ${ti}; border-radius: var(--oj-core-border-radius-lg, .375rem); ${e.style??""}">
+                     style="max-width: 100%; max-height: 240px; object-fit: contain; border: 1px solid ${ai}; border-radius: var(--oj-core-border-radius-lg, .375rem); ${e.style??""}">
             `:o`
-                <div style="height: 135px; display: flex; align-items: center; justify-content: center; border: 1px dashed ${ti}; border-radius: var(--oj-core-border-radius-lg, .375rem); color: ${ga};">
+                <div style="height: 135px; display: flex; align-items: center; justify-content: center; border: 1px dashed ${ai}; border-radius: var(--oj-core-border-radius-lg, .375rem); color: ${ya};">
                     <span class="oj-ux-ico-image" style="font-size: 2rem;"></span>
                 </div>
             `}
-            <input type="file" id="${i}" accept="image/*" style="display: none;" @change="${Yu(e.fieldId)}">
+            <input type="file" id="${i}" accept="image/*" style="display: none;" @change="${Zu(e.fieldId)}">
             <div style="display: flex; gap: 0.5rem;">
                 <oj-c-button data-oj-binding-provider="preact" label="${s?"Replace":"Upload"}" chroming="outlined"
-                             @ojAction="${Ju(i)}"></oj-c-button>
+                             @ojAction="${ep(i)}"></oj-c-button>
                 ${s?o`
                     <oj-c-button data-oj-binding-provider="preact" label="Delete" chroming="borderless"
-                                 @ojAction="${r=>ci(r.target,e.fieldId,"")}"></oj-c-button>`:d}
+                                 @ojAction="${r=>ui(r.target,e.fieldId,"")}"></oj-c-button>`:d}
             </div>
-        </div>`},Qu=(e,t,a)=>{const s=t===!0||t==="true";return o`
+        </div>`},ap=(e,t,a)=>{const s=t===!0||t==="true";return o`
         <div style="${e.style??d}">
             <oj-c-badge data-oj-binding-provider="preact"
                         variant="${s?"success":"neutral"}"
                         style="${s?"":"opacity: 0.4;"}">${a}</oj-c-badge>
-        </div>`},Zu=(e,t,a,s,i)=>{let r=le(t,s,i);const n=r&&typeof r=="object"&&"value"in r?r:null;r&&r.value&&(r=r.value);const l=e.dataType=="bool"||r===!0||r===!1,c=e.dataType=="money",u=r!=null&&r!=="";let h=u?""+r:"—";c&&u&&(h=co(r,n));const p=l?o`<span>${r===!0||r==="true"?"✓":"—"}</span>`:e.multiline?o`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${h}</span>`:o`<span style="display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${c?" font-variant-numeric: tabular-nums;":""}">${h}</span>`;return W(a,p,c?"text-align: right; ":"")},ep=(e,t,a,s,i)=>{let r=le(t,s,i);const n=r&&typeof r=="object"&&"value"in r?r:null;r&&r.value&&(r=r.value);const l=e.dataType=="bool"||r===!0||r===!1,c=e.dataType=="money",u=r!=null&&r!=="";let h=u?""+r:"—";c&&u&&(h=co(r,n));const p=l?o`<span style="margin-left: auto;">${r===!0||r==="true"?"✓":"—"}</span>`:o`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${c?" font-variant-numeric: tabular-nums;":""}">${h}</span>`,f=a!=null&&a!==""&&a!=="null"?""+a:"";return o`<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; width: 100%; padding: 0.4rem 0; border-bottom: 1px solid rgba(0,0,0,.08); ${e.style??""}"
-    >${f?o`<span style="color: ${ga}; white-space: nowrap;">${f}</span>`:d}${p}</div>`},tp=(e,t,a,s,i)=>{const r=le(t,s,i),n=Array.isArray(r)?r.map(l=>""+l):r!=null&&r!==""?[""+r]:[];return W(a,o`<mateu-bulleted-list .items="${n}" style="${e.style??d}"></mateu-bulleted-list>`)},ap=(e,t,a,s,i)=>{let r=le(t,s,i)||i?.[e.fieldId];if(r&&r.value&&(r=r.value),e.stereotype=="image"||e.stereotype=="uploadableImage"||e.stereotype=="signature"||e.stereotype=="camera")return W(a,o`<img src="${r}" style="${e.style??d}">`);if(e.stereotype=="fileUpload")return W(a,o`<mateu-file-upload .fieldId="${e.fieldId}" .value="${r}" .editable="${!1}"></mateu-file-upload>`);if(e.dataType=="bool")return W(a,o`<span>${r?"✓":"—"}</span>`);if(e.stereotype=="link")return W(a,o`<a class="oj-link-standalone" href="${r??""}" target="_blank">${r??""}</a>`);if(e.stereotype=="color")return W(a,o`<span style="background-color: ${r}; display: block; height: 20px; width: 40px; border: 1px solid ${ga}; border-radius: 4px;"></span>`);const n=r!=null&&r!=="";return W(a,o`<span style="display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis;">${n?r:"—"}</span>`)},ip=X`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,sp=X`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,po=(e,t,a)=>{const s=e.link,i=Oe(s.href,t,a)??s.href,r=Oe(s.title,t,a)||i;return{href:i,title:r}},rp=e=>{const t=e;if(!t||t.__navlinkPositioned)return;t.__navlinkPositioned=!0;const a=()=>{const r=t.parentElement,n=r?.firstElementChild?.querySelector("input, textarea, select");if(!r||!n)return;const l=n.getBoundingClientRect();l.height!==0&&(t.style.marginTop=`${Math.max(0,Math.round(l.top+l.height/2-t.offsetHeight/2-r.getBoundingClientRect().top))}px`)};let s=0;const i=()=>{a(),s++<32&&setTimeout(i,250)};setTimeout(i),document.fonts?.ready.then(()=>setTimeout(a))},op=(e,t,a)=>{const s=e.link,{href:i,title:r}=po(e,t,a),n=s.icon?o`<span class="${La(s.icon)}" style="font-size: 1.125rem;"></span>`:i.startsWith("http")?ip:sp;return o`<a data-navlink
+        </div>`},ip=(e,t,a,s,i)=>{let r=de(t,s,i);const n=r&&typeof r=="object"&&"value"in r?r:null;r&&r.value&&(r=r.value);const l=e.dataType=="bool"||r===!0||r===!1,c=e.dataType=="money",u=r!=null&&r!=="";let m=u?""+r:"—";c&&u&&(m=po(r,n));const p=l?o`<span>${r===!0||r==="true"?"✓":"—"}</span>`:e.multiline?o`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${m}</span>`:o`<span style="display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${c?" font-variant-numeric: tabular-nums;":""}">${m}</span>`;return W(a,p,c?"text-align: right; ":"")},sp=(e,t,a,s,i)=>{let r=de(t,s,i);const n=r&&typeof r=="object"&&"value"in r?r:null;r&&r.value&&(r=r.value);const l=e.dataType=="bool"||r===!0||r===!1,c=e.dataType=="money",u=r!=null&&r!=="";let m=u?""+r:"—";c&&u&&(m=po(r,n));const p=l?o`<span style="margin-left: auto;">${r===!0||r==="true"?"✓":"—"}</span>`:o`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${c?" font-variant-numeric: tabular-nums;":""}">${m}</span>`,f=a!=null&&a!==""&&a!=="null"?""+a:"";return o`<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; width: 100%; padding: 0.4rem 0; border-bottom: 1px solid rgba(0,0,0,.08); ${e.style??""}"
+    >${f?o`<span style="color: ${ya}; white-space: nowrap;">${f}</span>`:d}${p}</div>`},rp=(e,t,a,s,i)=>{const r=de(t,s,i),n=Array.isArray(r)?r.map(l=>""+l):r!=null&&r!==""?[""+r]:[];return W(a,o`<mateu-bulleted-list .items="${n}" style="${e.style??d}"></mateu-bulleted-list>`)},op=(e,t,a,s,i)=>{let r=de(t,s,i)||i?.[e.fieldId];if(r&&r.value&&(r=r.value),e.stereotype=="image"||e.stereotype=="uploadableImage"||e.stereotype=="signature"||e.stereotype=="camera")return W(a,o`<img src="${r}" style="${e.style??d}">`);if(e.stereotype=="fileUpload")return W(a,o`<mateu-file-upload .fieldId="${e.fieldId}" .value="${r}" .editable="${!1}"></mateu-file-upload>`);if(e.dataType=="bool")return W(a,o`<span>${r?"✓":"—"}</span>`);if(e.stereotype=="link")return W(a,o`<a class="oj-link-standalone" href="${r??""}" target="_blank">${r??""}</a>`);if(e.stereotype=="color")return W(a,o`<span style="background-color: ${r}; display: block; height: 20px; width: 40px; border: 1px solid ${ya}; border-radius: 4px;"></span>`);const n=r!=null&&r!=="";return W(a,o`<span style="display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis;">${n?r:"—"}</span>`)},np=X`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`,lp=X`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,mo=(e,t,a)=>{const s=e.link,i=Oe(s.href,t,a)??s.href,r=Oe(s.title,t,a)||i;return{href:i,title:r}},dp=e=>{const t=e;if(!t||t.__navlinkPositioned)return;t.__navlinkPositioned=!0;const a=()=>{const r=t.parentElement,n=r?.firstElementChild?.querySelector("input, textarea, select");if(!r||!n)return;const l=n.getBoundingClientRect();l.height!==0&&(t.style.marginTop=`${Math.max(0,Math.round(l.top+l.height/2-t.offsetHeight/2-r.getBoundingClientRect().top))}px`)};let s=0;const i=()=>{a(),s++<32&&setTimeout(i,250)};setTimeout(i),document.fonts?.ready.then(()=>setTimeout(a))},cp=(e,t,a)=>{const s=e.link,{href:i,title:r}=mo(e,t,a),n=s.icon?o`<span class="${Fa(s.icon)}" style="font-size: 1.125rem;"></span>`:i.startsWith("http")?np:lp;return o`<a data-navlink
         href="${i}"
         title="${r}"
         target="${s.target||d}"
-        ${Do(rp)}
-        style="display: flex; align-items: center; color: ${ga}; align-self: flex-start; margin-top: 1.9rem;"
-    >${n}</a>`},np=(e,t,a)=>s=>{const i=s.composedPath()[0]?.value;if(i==null)return;const n=s.currentTarget.querySelector("a[data-navlink]");if(!n)return;const{href:l,title:c}=po(e,{...t,[e.fieldId]:i},a);n.setAttribute("href",l),n.setAttribute("title",c)},lp=(e,t,a,s,i)=>{const r=t.metadata,n=dp(e,t,a,s,i);return r?.link?.href?o`<div style="display: flex; gap: 0.5rem;" @input="${np(r,s,i)}">
+        ${qo(dp)}
+        style="display: flex; align-items: center; color: ${ya}; align-self: flex-start; margin-top: 1.9rem;"
+    >${n}</a>`},up=(e,t,a)=>s=>{const i=s.composedPath()[0]?.value;if(i==null)return;const n=s.currentTarget.querySelector("a[data-navlink]");if(!n)return;const{href:l,title:c}=mo(e,{...t,[e.fieldId]:i},a);n.setAttribute("href",l),n.setAttribute("title",c)},pp=(e,t,a,s,i)=>{const r=t.metadata,n=hp(e,t,a,s,i);return r?.link?.href?o`<div style="display: flex; gap: 0.5rem;" @input="${up(r,s,i)}">
         <div style="flex: 1; min-width: 0;">${n}</div>
-        ${op(r,s,i)}
-    </div>`:n},dp=(e,t,a,s,i)=>{const r=t.metadata,n=r?.fieldId??"",l=s&&n in s?s[n]:r?.initialValue,c=r.label??"",u=t.id??n,h=r.stereotype;if(r.propertyRow)return ep(r,l,c,s,i);if(h==="badge")return Qu(t,l,c||n);if(h==="plainText")return Zu(r,l,c,s,i);if(h==="bulletedList")return tp(r,l,c,s,i);if(r.readOnly&&h!="grid"&&r.dataType!="status"&&r.dataType!="money")return ap(r,l,c,s,i);if(h==="grid"&&r.columns&&r.columns.length>0){const p=Array.isArray(l)?l:[],f=r.columns.map(x=>({...x.metadata,id:x.metadata.id??x.id})),g=r.onItemSelectionActionId;return W(c,o`<div style="overflow-x: auto;">${so(f,p,!1,g?(x,T)=>x.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:g,parameters:{_clickedRow:T}},bubbles:!0,composed:!0})):void 0)}</div>`)}if(r.dataType==="string"){if(h==="searchable"){const p=g=>ws(g.target,"code-"+n,{code:g.detail?.value??g.target?.value??""}),f=g=>ws(g.target,"codesearch-"+n,{});return W(c,o`
+        ${cp(r,s,i)}
+    </div>`:n},hp=(e,t,a,s,i)=>{const r=t.metadata,n=r?.fieldId??"",l=s&&n in s?s[n]:r?.initialValue,c=r.label??"",u=t.id??n,m=r.stereotype;if(r.propertyRow)return sp(r,l,c,s,i);if(m==="badge")return ap(t,l,c||n);if(m==="plainText")return ip(r,l,c,s,i);if(m==="bulletedList")return rp(r,l,c,s,i);if(r.readOnly&&m!="grid"&&r.dataType!="status"&&r.dataType!="money")return op(r,l,c,s,i);if(m==="grid"&&r.columns&&r.columns.length>0){const p=Array.isArray(l)?l:[],f=r.columns.map(x=>({...x.metadata,id:x.metadata.id??x.id})),g=r.onItemSelectionActionId;return W(c,o`<div style="overflow-x: auto;">${oo(f,p,!1,g?(x,P)=>x.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:g,parameters:{_clickedRow:P}},bubbles:!0,composed:!0})):void 0)}</div>`)}if(r.dataType==="string"){if(m==="searchable"){const p=g=>ks(g.target,"code-"+n,{code:g.detail?.value??g.target?.value??""}),f=g=>ks(g.target,"codesearch-"+n,{});return W(c,o`
                 <div style="display: flex; gap: 0.33rem; align-items: center;">
                     <oj-c-input-text data-oj-binding-provider="preact" label-edge="none" style="width: 6rem;"
                                      .value="${l??""}" @valueChanged="${p}"></oj-c-input-text>
                     <oj-c-input-text data-oj-binding-provider="preact" label-edge="none" readonly style="flex: 1;"
                                      .value="${i?.[n+"-label"]??""}"></oj-c-input-text>
                     <oj-c-button data-oj-binding-provider="preact" label="Search" chroming="outlined" @ojAction="${f}"></oj-c-button>
-                </div>`)}if(h==="textarea")return o`<oj-c-text-area
+                </div>`)}if(m==="textarea")return o`<oj-c-text-area
                 data-oj-binding-provider="preact"
                 id="${u}"
                 label-hint="${c}"
@@ -4921,7 +5204,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 ?disabled="${r.disabled}"
                 ?readonly="${r.readOnly}"
                 @valueChanged="${p=>V(p,u,p.detail.value)}"
-            ></oj-c-text-area>`;if(h==="richText"||h==="richtext")return o`<oj-c-text-area
+            ></oj-c-text-area>`;if(m==="richText"||m==="richtext")return o`<oj-c-text-area
                 data-oj-binding-provider="preact"
                 id="${u}"
                 label-hint="${c}"
@@ -4931,7 +5214,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 ?disabled="${r.disabled}"
                 ?readonly="${r.readOnly}"
                 @valueChanged="${p=>V(p,u,p.detail.value)}"
-            ></oj-c-text-area>`;if(h==="markdown")return W(c,o`<mateu-markdown .content="${l??""}"></mateu-markdown>`);if(h==="password")return o`<oj-c-input-password
+            ></oj-c-text-area>`;if(m==="markdown")return W(c,o`<mateu-markdown .content="${l??""}"></mateu-markdown>`);if(m==="password")return o`<oj-c-input-password
                 data-oj-binding-provider="preact"
                 id="${u}"
                 label-hint="${c}"
@@ -4940,17 +5223,17 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 ?required="${r.required}"
                 ?disabled="${r.disabled}"
                 @valueChanged="${p=>V(p,u,p.detail.value)}"
-            ></oj-c-input-password>`;if(h==="select"||h==="combobox"){const p=l&&l.value?l.value:l;return us(r,u,c,p,$t(e,r,u,n,i))}if(h==="listBox")return W(c,dr(r,l,$t(e,r,u,n,i),!1));if(h==="choice")return W(c,ps(r,l,$t(e,r,u,n,i),!1));if(h==="popover"){const p=$t(e,r,u,n,i),f=p.find(y=>y.value===l)?.label??l??"";return W(c,o`
+            ></oj-c-input-password>`;if(m==="select"||m==="combobox"){const p=l&&l.value?l.value:l;return ps(r,u,c,p,yt(e,r,u,n,i))}if(m==="listBox")return W(c,ur(r,l,yt(e,r,u,n,i),!1));if(m==="choice")return W(c,hs(r,l,yt(e,r,u,n,i),!1));if(m==="popover"){const p=yt(e,r,u,n,i),f=p.find(y=>y.value===l)?.label??l??"";return W(c,o`
                 <span class="rw-pop-wrap" style="position: relative; display: inline-block;">
-                    <span style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" @click="${y=>{const T=y.currentTarget.closest(".rw-pop-wrap")?.querySelector(":scope > .rw-pop-panel");T&&(T.hidden=!T.hidden)}}">
+                    <span style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" @click="${y=>{const P=y.currentTarget.closest(".rw-pop-wrap")?.querySelector(":scope > .rw-pop-panel");P&&(P.hidden=!P.hidden)}}">
                         <span>${f}</span>
                         <span class="oj-ux-ico-chevron-down"></span>
                     </span>
                     <div class="rw-pop-panel" hidden
-                         style="position: absolute; top: 100%; left: 0; margin-top: 4px; z-index: 1000; background: var(--oj-core-bg-color-content, #fff); border: 1px solid ${ti}; border-radius: var(--oj-core-border-radius-md, 6px); box-shadow: 0 4px 12px rgba(0,0,0,.15); padding: 0.5rem;">
-                        ${ps(r,l,p,!1)}
+                         style="position: absolute; top: 100%; left: 0; margin-top: 4px; z-index: 1000; background: var(--oj-core-bg-color-content, #fff); border: 1px solid ${ai}; border-radius: var(--oj-core-border-radius-md, 6px); box-shadow: 0 4px 12px rgba(0,0,0,.15); padding: 0.5rem;">
+                        ${hs(r,l,p,!1)}
                     </div>
-                </span>`)}if(h==="radio"){const p=$t(e,r,u,n,i).map(f=>({value:f.value,label:f.label??""}));return o`<oj-c-radioset
+                </span>`)}if(m==="radio"){const p=yt(e,r,u,n,i).map(f=>({value:f.value,label:f.label??""}));return o`<oj-c-radioset
                 data-oj-binding-provider="preact"
                 id="${u}"
                 label-hint="${c}"
@@ -4960,30 +5243,30 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 ?required="${r.required}"
                 ?disabled="${r.disabled}"
                 @valueChanged="${f=>V(f,u,f.detail.value)}"
-            ></oj-c-radioset>`}return h==="html"?o`<div id="${u}">${ge(""+(l??""))}</div>`:h==="image"?o`<figure style="margin: 0;">
-                <figcaption style="${yt}">${c}</figcaption>
+            ></oj-c-radioset>`}return m==="html"?o`<div id="${u}">${ge(""+(l??""))}</div>`:m==="image"?o`<figure style="margin: 0;">
+                <figcaption style="${xt}">${c}</figcaption>
                 <img src="${l}" alt="${c}" style="${r.style??""}" />
-            </figure>`:h==="uploadableImage"?W(c,Xu(r,u,l)):h==="treeSelect"?W(c,o`<mateu-tree-select
+            </figure>`:m==="uploadableImage"?W(c,tp(r,u,l)):m==="treeSelect"?W(c,o`<mateu-tree-select
                 .fieldId="${u}" .value="${l}"
                 .options="${r.options??[]}"
-                .leavesOnly="${r.treeLeavesOnly??!1}"></mateu-tree-select>`):h==="signature"?W(c,o`<mateu-signature-pad .fieldId="${u}" .value="${l}"></mateu-signature-pad>`):h==="camera"?W(c,o`<mateu-camera-capture .fieldId="${u}" .value="${l}"></mateu-camera-capture>`):h==="fileUpload"?W(c,o`<mateu-file-upload
+                .leavesOnly="${r.treeLeavesOnly??!1}"></mateu-tree-select>`):m==="signature"?W(c,o`<mateu-signature-pad .fieldId="${u}" .value="${l}"></mateu-signature-pad>`):m==="camera"?W(c,o`<mateu-camera-capture .fieldId="${u}" .value="${l}"></mateu-camera-capture>`):m==="fileUpload"?W(c,o`<mateu-file-upload
                 .fieldId="${u}" .value="${l}"
-                .accept="${eo(r.attributes,"accept")}"></mateu-file-upload>`):h==="icon"?W(c,o`
+                .accept="${ao(r.attributes,"accept")}"></mateu-file-upload>`):m==="icon"?W(c,o`
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
                     <oj-c-input-text data-oj-binding-provider="preact" label-edge="none" style="flex: 1;"
                                      .value="${l??""}"
                                      ?disabled="${r.disabled}"
                                      @valueChanged="${p=>V(p,u,p.detail.value)}"
                     ></oj-c-input-text>
-                    ${l?o`<span class="${La(l)}" style="font-size: 1.25rem;"></span>`:d}
-                </div>`):h==="color"?o`<div>
-                <label for="${u}" style="${yt}">${c}</label>
+                    ${l?o`<span class="${Fa(l)}" style="font-size: 1.25rem;"></span>`:d}
+                </div>`):m==="color"?o`<div>
+                <label for="${u}" style="${xt}">${c}</label>
                 <input id="${u}" type="color" .value="${l??"#000000"}" ?disabled="${r.disabled}"
                     @input="${p=>V(p,u,p.target.value)}" />
-            </div>`:h==="link"?o`<div>
-                <div style="${yt}">${c}</div>
+            </div>`:m==="link"?o`<div>
+                <div style="${xt}">${c}</div>
                 <a class="oj-link-standalone" href="${l}" target="_blank">${l}</a>
-            </div>`:r.options&&r.options.length>0?us(r,u,c,l,r.options):r.remoteCoordinates?us(r,u,c,l,uo(e,r,u,n,i)):o`<oj-c-input-text
+            </div>`:r.options&&r.options.length>0?ps(r,u,c,l,r.options):r.remoteCoordinates?ps(r,u,c,l,ho(e,r,u,n,i)):o`<oj-c-input-text
             data-oj-binding-provider="preact"
             id="${u}"
             label-hint="${c}"
@@ -5003,8 +5286,8 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             ?required="${r.required}"
             ?disabled="${r.disabled}"
             @valueChanged="${p=>V(p,u,p.detail.value)}"
-        ></oj-c-input-number>`;if(r.dataType==="integer")return h==="stars"?W(c,Ku(l,n,r.disabled)):h==="slider"?o`<div>
-                <label for="${u}" style="${yt}">${c}</label>
+        ></oj-c-input-number>`;if(r.dataType==="integer")return m==="stars"?W(c,Qu(l,n,r.disabled)):m==="slider"?o`<div>
+                <label for="${u}" style="${xt}">${c}</label>
                 <input id="${u}" type="range"
                     min="${r.sliderMin??0}"
                     max="${r.sliderMax??10}"
@@ -5020,8 +5303,8 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             ?required="${r.required}"
             ?disabled="${r.disabled}"
             @valueChanged="${p=>V(p,u,p.detail.value)}"
-        ></oj-c-input-number>`;if(r.dataType==="bool")return h==="toggle"?o`<div>
-                <div style="${yt}">${c}</div>
+        ></oj-c-input-number>`;if(r.dataType==="bool")return m==="toggle"?o`<div>
+                <div style="${xt}">${c}</div>
                 <oj-c-toggle-button
                     data-oj-binding-provider="preact"
                     id="${u}"
@@ -5092,7 +5375,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 .value="${p?.to??null}"
                 @valueChanged="${f=>V(f,u,{...p,to:f.detail.value})}"
             ></oj-c-input-date-picker>
-        </div>`}if(r.dataType==="array"){if(h==="choice")return W(c,ps(r,l,$t(e,r,u,n,i),!0));if(h==="listBox")return W(c,dr(r,l,$t(e,r,u,n,i),!0));if(h==="combobox"||h==="select")return Gu(r,u,c,l,$t(e,r,u,n,i));const p=$t(e,r,u,n,i).map(f=>({value:f.value,label:f.label??""}));return o`<oj-c-checkboxset
+        </div>`}if(r.dataType==="array"){if(m==="choice")return W(c,hs(r,l,yt(e,r,u,n,i),!0));if(m==="listBox")return W(c,ur(r,l,yt(e,r,u,n,i),!0));if(m==="combobox"||m==="select")return Xu(r,u,c,l,yt(e,r,u,n,i));const p=yt(e,r,u,n,i).map(f=>({value:f.value,label:f.label??""}));return o`<oj-c-checkboxset
             data-oj-binding-provider="preact"
             id="${u}"
             label-hint="${c}"
@@ -5103,14 +5386,14 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             ?disabled="${r.disabled}"
             @valueChanged="${f=>V(f,u,f.detail.value)}"
         ></oj-c-checkboxset>`}if(r.dataType==="status"){const p=l,g={danger:"error",success:"success",warning:"warning",info:"info"}[(p?.type??"").toLowerCase()]??"info";return o`<div id="${u}">
-            <div style="${yt}">${c}</div>
+            <div style="${xt}">${c}</div>
             ${p?o`<oj-c-badge
                 data-oj-binding-provider="preact"
                 .value="${p.message}"
                 severity="${g}"
             ></oj-c-badge>`:o``}
         </div>`}if(r.dataType==="money"){if(r.readOnly){const p=l;let f="";return p?.locale&&p?.currency?f=new Intl.NumberFormat(p.locale,{style:"currency",currency:p.currency}).format(p.value):p!=null&&(f=new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(p)),o`<div id="${u}">
-                <div style="${yt}">${c}</div>
+                <div style="${xt}">${c}</div>
                 <div style="text-align:right;font-weight:bold;font-variant-numeric:tabular-nums;">${f}</div>
             </div>`}return o`<oj-c-input-number
             data-oj-binding-provider="preact"
@@ -5128,7 +5411,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             ?disabled="${r.disabled}"
             @ojSelect="${p=>{const f=p.detail.files?.[0];V(p,u,f?{name:f.name,size:f.size}:null)}}"
         ></oj-c-file-picker>`;if(r.dataType==="range"){const p=l;return o`<div>
-            <div style="${yt}">${c}</div>
+            <div style="${xt}">${c}</div>
             <div style="display:flex;gap:1rem;align-items:center;">
                 <input type="range"
                     min="${r.sliderMin??0}" max="${r.sliderMax??10}"
@@ -5139,7 +5422,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     .value="${""+(p?.to??0)}"
                     @input="${f=>V(f,u,{...p,to:parseInt(f.target.value)})}" />
             </div>
-        </div>`}return o`<p>Unknown field type: ${r.dataType} / ${r.stereotype}</p>`};var cp=Object.defineProperty,up=Object.getOwnPropertyDescriptor,$a=(e,t,a,s)=>{for(var i=s>1?void 0:s?up(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&cp(t,a,i),i};let Xe=class extends S{constructor(){super(...arguments),this.baseUrl="",this.opened=!1,this.searchText=""}connectedCallback(){super.connectedCallback(),Jr()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(Ki()[this.selector.fieldName]??"")}currentLabel(){const e=this.currentValue();if(!e)return"—";const t=(this.searchedOptions??this.selector.options)?.find(s=>String(s.value)===e);if(t)return t.label;const a=As()[this.selector.fieldName];return a!==void 0?String(a):e}pick(e,t){Yr(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText="",this.searchedOptions=void 0,this.remoteSearch(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector("input.picker-search")?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){const e=this.app;if(e?.serverSideType)try{const t=await fa.runAction(this.baseUrl??"",e.rootRoute??e.initialRoute??"","",`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(const a of t?.fragments??[]){const r=a.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(r)){this.searchedOptions=r.map(n=>({value:n.value,label:n.label??String(n.value)}));return}}}catch{}}visibleOptions(){const e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(a=>a.label.toLowerCase().includes(t)):e}renderPanel(){const e=this.currentValue(),t=this.visibleOptions(),a=this.searchText!==""||t.length>Xe.SEARCHABLE_THRESHOLD;return o`
+        </div>`}return o`<p>Unknown field type: ${r.dataType} / ${r.stereotype}</p>`};var mp=Object.defineProperty,vp=Object.getOwnPropertyDescriptor,xa=(e,t,a,s)=>{for(var i=s>1?void 0:s?vp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&mp(t,a,i),i};let Qe=class extends S{constructor(){super(...arguments),this.baseUrl="",this.opened=!1,this.searchText=""}connectedCallback(){super.connectedCallback(),Qr()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick(),this.searchTimer&&clearTimeout(this.searchTimer)}currentValue(){return String(Yi()[this.selector.fieldName]??"")}currentLabel(){const e=this.currentValue();if(!e)return"—";const t=(this.searchedOptions??this.selector.options)?.find(s=>String(s.value)===e);if(t)return t.label;const a=Ls()[this.selector.fieldName];return a!==void 0?String(a):e}pick(e,t){Xr(this.selector.fieldName,e,t),window.location.reload()}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}openPanel(){this.opened||(this.opened=!0,this.searchText="",this.searchedOptions=void 0,this.remoteSearch(),this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick),this.updateComplete.then(()=>this.renderRoot.querySelector("input.picker-search")?.focus()))}closePanel(){this.detachOutsideClick(),this.opened=!1}onSearchInput(e){this.searchText=e.target.value,this.searchTimer&&clearTimeout(this.searchTimer),this.searchTimer=setTimeout(()=>this.remoteSearch(),300)}async remoteSearch(){const e=this.app;if(e?.serverSideType)try{const t=await ga.runAction(this.baseUrl??"",e.rootRoute??e.initialRoute??"","",`_appcontext-search-${this.selector.fieldName}`,`appcontext-${this.selector.fieldName}`,void 0,e.serverSideType,{},{searchText:this.searchText},this,!0);for(const a of t?.fragments??[]){const r=a.data?.[`_appcontext_${this.selector.fieldName}`]?.content;if(Array.isArray(r)){this.searchedOptions=r.map(n=>({value:n.value,label:n.label??String(n.value)}));return}}}catch{}}visibleOptions(){const e=this.searchedOptions??this.selector.options??[],t=this.searchText.trim().toLowerCase();return t?e.filter(a=>a.label.toLowerCase().includes(t)):e}renderPanel(){const e=this.currentValue(),t=this.visibleOptions(),a=this.searchText!==""||t.length>Qe.SEARCHABLE_THRESHOLD;return o`
             <div class="panel">
                 ${a?o`
                     <input class="picker-search" type="text" placeholder="Search"
@@ -5161,7 +5444,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     ${this.currentLabel()} <span aria-hidden="true" class="caret">▾</span>
                 </button>
                 ${this.opened?this.renderPanel():d}
-            </label>`:o``}};Xe.SEARCHABLE_THRESHOLD=7;Xe.styles=C`
+            </label>`:o``}};Qe.SEARCHABLE_THRESHOLD=7;Qe.styles=C`
         :host {
             display: inline-flex;
             position: relative;
@@ -5233,14 +5516,14 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         .option--clear {
             color: var(--lumo-secondary-text-color, rgba(0, 0, 0, 0.55));
         }
-    `;$a([m()],Xe.prototype,"selector",2);$a([m()],Xe.prototype,"app",2);$a([m()],Xe.prototype,"baseUrl",2);$a([$()],Xe.prototype,"opened",2);$a([$()],Xe.prototype,"searchText",2);$a([$()],Xe.prototype,"searchedOptions",2);Xe=$a([k("mateu-app-context-picker")],Xe);var ai=(e=>(e.Add="Add",e.Replace="Replace",e.ReplaceKeepData="ReplaceKeepData",e))(ai||{}),pp=Object.defineProperty,ho=(e,t,a,s)=>{for(var i=void 0,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=n(t,a,i)||i);return i&&pp(t,a,i),i};class Xi extends S{constructor(){super(...arguments),this.id="",this.baseUrl="",this.callbackToken="",this.createElement=t=>{const a=t.data,s=document.createElement(a.name);for(let i in a.attributes)s.setAttribute(i,a.attributes[i]);for(let i in a.on)s.addEventListener(i,r=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.on[i],parameters:{event:r}},bubbles:!0,composed:!0}))});return s},this.closeModal=()=>{const t=(this.shadowRoot??this).querySelectorAll("mateu-dialog, mateu-drawer");if(t&&t.length>0){t[t.length-1].close(),this.removeTopOverlayChild();return}this.dispatchEvent(new CustomEvent("close-modal-requested",{bubbles:!0,composed:!0}))},this.changeFavicon=t=>{let a=document.querySelector('link[rel="icon"]');a!==null?a.setAttribute("href",t):(a=document.createElement("link"),a.setAttribute("rel","icon"),a.setAttribute("href",t),document.head.appendChild(a))}}connectedCallback(){super.connectedCallback(),this.upstreamSubscription=Lt.subscribe(t=>{if(t.command){const a=t.command;this.id==a.targetComponentId&&this.applyCommand(a)}if((!t.callbackToken||!this.callbackToken||t.callbackToken===this.callbackToken)&&t.fragment){const a=t.fragment;this.id==a.targetComponentId&&(this.applyFragment(a),this.completeMenu(a))}})}completeMenu(t){if(t.component&&t.component.type==de.ClientSide){const a=t.component,s=a.metadata;if(s?.type==v.App){const i=s,r=this.getRemoteMenus(i.menu);if(r.length>0){const n=r.map(l=>fa.runAction(l.baseUrl,l.route,"_empty","",l.baseUrl+"#"+l.route,void 0,void 0,void 0,l.params,this,!0));Promise.all(n).then(l=>{i.menu=this.updateMenu(i.menu,l.map(c=>c.fragments).filter(c=>c).map(c=>c).flat()),i.variant=$e.MENU_ON_TOP,Lt.next({fragment:{component:a,data:void 0,state:void 0,action:ai.Replace,targetComponentId:this.id,containerId:void 0},callbackToken:this.callbackToken})})}}}}updateMenu(t,a){const s=[];return t.forEach(i=>{if(i.remote){const r=a.find(n=>n.targetComponentId==i.baseUrl+"#"+i.route);if(r&&r.component?.type==de.ClientSide){const n=r.component;if(n.metadata?.type==v.App){const l=n.metadata,c=i.serverSideType&&i.serverSideType!=""?i.serverSideType:l.serverSideType;this.changeBaseUrl(l.menu,i.baseUrl,c,i.route,l.route),s.push(...l.menu)}}}else s.push(i)}),s}changeBaseUrl(t,a,s,i,r){t.forEach(n=>{n.baseUrl||(n.submenus&&n.submenus.length>0?this.changeBaseUrl(n.submenus,a,s,i,r):(n.consumedRoute=r??"",n.baseUrl=a,n.serverSideType=s,n.uriPrefix=i))})}getRemoteMenus(t){const a=[];return t.forEach(s=>{s.remote&&a.push(s)}),a}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe()}applyCommand(t){if(t.type=="SetWindowTitle"&&(document.title=t.data),t.type=="SetFavicon"&&this.changeFavicon(t.data),t.type=="DispatchEvent"&&this.dispatchNamedEvent(t.data),t.type=="NavigateTo"){const a=t.data;a&&(a.startsWith("http:")||a.startsWith("https:")?window.open(t.data,"_blank"):window.location.href=t.data)}if(t.type=="PushStateToHistory"){const a=t.data;a!==void 0&&this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:a},bubbles:!0,composed:!0}))}if(t.type=="RunAction"){const a=t.data;if(a&&a.actionId)if(a.targetComponentId){const s={command:{type:"RunAction",data:{actionId:a.actionId},targetComponentId:a.targetComponentId},fragment:void 0,ui:void 0,error:void 0,callbackToken:""};setTimeout(()=>Lt.next(s))}else this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.actionId,parameters:{}},bubbles:!0,composed:!0}))}if(t.type=="MarkAsDirty"&&this.dispatchEvent(new CustomEvent("dirty",{detail:{},bubbles:!0,composed:!0})),t.type=="MarkAsClean"&&this.dispatchEvent(new CustomEvent("clean",{detail:{},bubbles:!0,composed:!0})),t.type=="DownloadFile"){const a=t.data;if(a&&a.base64Content){const s=atob(a.base64Content),i=new Uint8Array(s.length);for(let c=0;c<s.length;c++)i[c]=s.charCodeAt(c);const r=new Blob([i],{type:a.mimeType}),n=URL.createObjectURL(r),l=document.createElement("a");l.href=n,l.download=a.filename??"export",l.click(),URL.revokeObjectURL(n)}}if(t.type=="CloseModal"&&(this.closeModal(),this.dispatchNamedEvent(t.data)),t.type=="AddContentToHead"){const a=t.data;if(a&&a.name){if(a.attributes&&a.attributes.id&&document.getElementById(a.attributes.id))return;document.head.appendChild(this.createElement(t))}}if(t.type=="AddContentToBody"){const a=t.data;if(a&&a.name){if(a.attributes&&a.attributes.id&&document.getElementById(a.attributes.id))return;document.body.appendChild(this.createElement(t))}}}dispatchNamedEvent(t){if(t&&t.eventName){const a=this.component,s=a?.emitsName??a?.serverSideType;let i=t.payload??t.detail;s&&i&&typeof i=="object"&&(i={...i,__source:s}),this.dispatchEvent(new CustomEvent(t.eventName,{detail:i,bubbles:!0,composed:!0}))}}removeTopOverlayChild(){const t=this.component?.children;if(t)for(let a=t.length-1;a>=0;a--){const s=t[a]?.metadata?.type;if(s==v.Drawer||s==v.Dialog){t.splice(a,1);return}}}}ho([m()],Xi.prototype,"id");ho([m()],Xi.prototype,"baseUrl");var hp=Object.defineProperty,mp=(e,t,a,s)=>{for(var i=void 0,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=n(t,a,i)||i);return i&&hp(t,a,i),i};class ui extends Xi{applyFragment(t){}manageActionRequestedEvent(t){}}mp([m()],ui.prototype,"component");var vp=Object.defineProperty,fp=Object.getOwnPropertyDescriptor,Qt=(e,t,a,s)=>{for(var i=s>1?void 0:s?fp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&vp(t,a,i),i};const bp=()=>{let e=document.activeElement;for(;e?.shadowRoot?.activeElement;)e=e.shadowRoot.activeElement;return e},gp=(e,t)=>{let a=t;for(;a;){if(a===e)return!0;a=a.assignedSlot??a.parentNode??a.host??null}return!1};let ct=class extends ui{constructor(){super(...arguments),this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.hoveredItem=null,this.onGridHoverMove=e=>{const t=e.currentTarget,a=t.getEventContext(e)?.item??null;a!==this.hoveredItem&&(this.hoveredItem=a,t.generateCellPartNames())},this.onGridHoverLeave=e=>{this.hoveredItem!==null&&(this.hoveredItem=null,e.currentTarget.generateCellPartNames())},this.hoverCellPartNameGenerator=(e,t)=>t?.item!=null&&t.item===this.hoveredItem?"hovered-cell":"",this._onRowKey=e=>{const t=this.field?.rowSelectionShortcut;if(!t||!this.field?.onItemSelectionActionId||!this._isRowShortcutRelevant()||!Rr(t,e))return;const a=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!a)return;const s=this.currentItems(),i=parseInt(a[1],10)-1;i>=s.length||(e.preventDefault(),this.selectRow(s[i]))},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))}}connectedCallback(){super.connectedCallback(),document.addEventListener("keydown",this._onRowKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("keydown",this._onRowKey)}currentItems(){return this.field?.remoteCoordinates?this.data?.[this.id]?.content??[]:this.field?.fieldId&&this.state?this.state[this.field.fieldId]??[]:[]}selectRow(e){!e||!this.field?.onItemSelectionActionId||(this.selectedItems=[e],this.state[this.id+"_selected_items"]=[e],this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.field.onItemSelectionActionId,parameters:{_clickedRow:e}},bubbles:!0,composed:!0})))}_isRowShortcutRelevant(){if(this.offsetParent===null&&this.getClientRects().length===0)return!1;const e=bp();if(e&&e!==document.body&&!gp(this,e)){const t=e.tagName?.toLowerCase()??"";if(e.isContentEditable||/^(input|textarea|select)$/.test(t)||t.startsWith("vaadin-")&&/(field|combo|picker|area|select)/.test(t))return!1}return!0}handleItemToggle(e){const{item:t,selected:a,shiftKey:s}=e.detail;if(this.rangeStartItem??=t,s){let i=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(i=this.state[this.field.fieldId]);const[r,n]=[this.rangeStartItem,t].map(u=>i.indexOf(u)).sort((u,h)=>u-h),l=i.slice(r,n+1),c=new Set(this.selectedItems);l.forEach(u=>{a?c.add(u):c.delete(u)}),this.selectedItems=[...c],this.state[this.id+"_selected_items"]=this.selectedItems}this.rangeStartItem=t}render(){let e=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(e=this.state[this.field.fieldId]);const t=this.state[this.field?.fieldId+"_show_detail"]||this.state._show_detail&&this.state._show_detail[this.field.fieldId];if(this.field?.remoteCoordinates){const a=this.field.remoteCoordinates,s="";this.data[this.id]&&(this.data[this.id].searchSignature||s)&&this.data[this.id].searchSignature!=s&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements?e=this.data[this.id].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.action,parameters:{searchText:s,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}if(Array.isArray(e)&&e.forEach((a,s)=>{a&&typeof a=="object"&&a._rowNumber===void 0&&(a._rowNumber=s)}),this.field?.inlineEditing)return this.renderMaster(e);if(this.field?.formPosition&&this.field?.formPosition.startsWith("modal")){const a=this;return o`
+    `;xa([h()],Qe.prototype,"selector",2);xa([h()],Qe.prototype,"app",2);xa([h()],Qe.prototype,"baseUrl",2);xa([$()],Qe.prototype,"opened",2);xa([$()],Qe.prototype,"searchText",2);xa([$()],Qe.prototype,"searchedOptions",2);Qe=xa([k("mateu-app-context-picker")],Qe);var ii=(e=>(e.Add="Add",e.Replace="Replace",e.ReplaceKeepData="ReplaceKeepData",e))(ii||{}),fp=Object.defineProperty,vo=(e,t,a,s)=>{for(var i=void 0,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=n(t,a,i)||i);return i&&fp(t,a,i),i};class Qi extends S{constructor(){super(...arguments),this.id="",this.baseUrl="",this.callbackToken="",this.createElement=t=>{const a=t.data,s=document.createElement(a.name);for(let i in a.attributes)s.setAttribute(i,a.attributes[i]);for(let i in a.on)s.addEventListener(i,r=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.on[i],parameters:{event:r}},bubbles:!0,composed:!0}))});return s},this.closeModal=()=>{const t=(this.shadowRoot??this).querySelectorAll("mateu-dialog, mateu-drawer");if(t&&t.length>0){t[t.length-1].close(),this.removeTopOverlayChild();return}this.dispatchEvent(new CustomEvent("close-modal-requested",{bubbles:!0,composed:!0}))},this.changeFavicon=t=>{let a=document.querySelector('link[rel="icon"]');a!==null?a.setAttribute("href",t):(a=document.createElement("link"),a.setAttribute("rel","icon"),a.setAttribute("href",t),document.head.appendChild(a))}}connectedCallback(){super.connectedCallback(),this.upstreamSubscription=Ft.subscribe(t=>{if(t.command){const a=t.command;this.id==a.targetComponentId&&this.applyCommand(a)}if((!t.callbackToken||!this.callbackToken||t.callbackToken===this.callbackToken)&&t.fragment){const a=t.fragment;this.id==a.targetComponentId&&(this.applyFragment(a),this.completeMenu(a))}})}completeMenu(t){if(t.component&&t.component.type==oe.ClientSide){const a=t.component,s=a.metadata;if(s?.type==v.App){const i=s,r=this.getRemoteMenus(i.menu);if(r.length>0){const n=r.map(l=>ga.runAction(l.baseUrl,l.route,"_empty","",l.baseUrl+"#"+l.route,void 0,void 0,void 0,l.params,this,!0));Promise.all(n).then(l=>{i.menu=this.updateMenu(i.menu,l.map(c=>c.fragments).filter(c=>c).map(c=>c).flat()),i.variant=$e.MENU_ON_TOP,Ft.next({fragment:{component:a,data:void 0,state:void 0,action:ii.Replace,targetComponentId:this.id,containerId:void 0},callbackToken:this.callbackToken})})}}}}updateMenu(t,a){const s=[];return t.forEach(i=>{if(i.remote){const r=a.find(n=>n.targetComponentId==i.baseUrl+"#"+i.route);if(r&&r.component?.type==oe.ClientSide){const n=r.component;if(n.metadata?.type==v.App){const l=n.metadata,c=i.serverSideType&&i.serverSideType!=""?i.serverSideType:l.serverSideType;this.changeBaseUrl(l.menu,i.baseUrl,c,i.route,l.route),s.push(...l.menu)}}}else s.push(i)}),s}changeBaseUrl(t,a,s,i,r){t.forEach(n=>{n.baseUrl||(n.submenus&&n.submenus.length>0?this.changeBaseUrl(n.submenus,a,s,i,r):(n.consumedRoute=r??"",n.baseUrl=a,n.serverSideType=s,n.uriPrefix=i))})}getRemoteMenus(t){const a=[];return t.forEach(s=>{s.remote&&a.push(s)}),a}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe()}applyCommand(t){if(t.type=="SetWindowTitle"&&(document.title=t.data),t.type=="SetFavicon"&&this.changeFavicon(t.data),t.type=="DispatchEvent"&&this.dispatchNamedEvent(t.data),t.type=="NavigateTo"){const a=t.data;a&&(a.startsWith("http:")||a.startsWith("https:")?window.open(t.data,"_blank"):window.location.href=t.data)}if(t.type=="PushStateToHistory"){const a=t.data;a!==void 0&&this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:a},bubbles:!0,composed:!0}))}if(t.type=="RunAction"){const a=t.data;if(a&&a.actionId)if(a.targetComponentId){const s={command:{type:"RunAction",data:{actionId:a.actionId},targetComponentId:a.targetComponentId},fragment:void 0,ui:void 0,error:void 0,callbackToken:""};setTimeout(()=>Ft.next(s))}else this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.actionId,parameters:{}},bubbles:!0,composed:!0}))}if(t.type=="MarkAsDirty"&&this.dispatchEvent(new CustomEvent("dirty",{detail:{},bubbles:!0,composed:!0})),t.type=="MarkAsClean"&&this.dispatchEvent(new CustomEvent("clean",{detail:{},bubbles:!0,composed:!0})),t.type=="DownloadFile"){const a=t.data;if(a&&a.base64Content){const s=atob(a.base64Content),i=new Uint8Array(s.length);for(let c=0;c<s.length;c++)i[c]=s.charCodeAt(c);const r=new Blob([i],{type:a.mimeType}),n=URL.createObjectURL(r),l=document.createElement("a");l.href=n,l.download=a.filename??"export",l.click(),URL.revokeObjectURL(n)}}if(t.type=="CloseModal"&&(this.closeModal(),this.dispatchNamedEvent(t.data)),t.type=="AddContentToHead"){const a=t.data;if(a&&a.name){if(a.attributes&&a.attributes.id&&document.getElementById(a.attributes.id))return;document.head.appendChild(this.createElement(t))}}if(t.type=="AddContentToBody"){const a=t.data;if(a&&a.name){if(a.attributes&&a.attributes.id&&document.getElementById(a.attributes.id))return;document.body.appendChild(this.createElement(t))}}}dispatchNamedEvent(t){if(t&&t.eventName){const a=this.component,s=a?.emitsName??a?.serverSideType;let i=t.payload??t.detail;s&&i&&typeof i=="object"&&(i={...i,__source:s}),this.dispatchEvent(new CustomEvent(t.eventName,{detail:i,bubbles:!0,composed:!0}))}}removeTopOverlayChild(){const t=this.component?.children;if(t)for(let a=t.length-1;a>=0;a--){const s=t[a]?.metadata?.type;if(s==v.Drawer||s==v.Dialog){t.splice(a,1);return}}}}vo([h()],Qi.prototype,"id");vo([h()],Qi.prototype,"baseUrl");var bp=Object.defineProperty,gp=(e,t,a,s)=>{for(var i=void 0,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=n(t,a,i)||i);return i&&bp(t,a,i),i};class pi extends Qi{applyFragment(t){}manageActionRequestedEvent(t){}}gp([h()],pi.prototype,"component");var $p=Object.defineProperty,yp=Object.getOwnPropertyDescriptor,ea=(e,t,a,s)=>{for(var i=s>1?void 0:s?yp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&$p(t,a,i),i};const xp=()=>{let e=document.activeElement;for(;e?.shadowRoot?.activeElement;)e=e.shadowRoot.activeElement;return e},wp=(e,t)=>{let a=t;for(;a;){if(a===e)return!0;a=a.assignedSlot??a.parentNode??a.host??null}return!1};let ut=class extends pi{constructor(){super(...arguments),this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.hoveredItem=null,this.onGridHoverMove=e=>{const t=e.currentTarget,a=t.getEventContext(e)?.item??null;a!==this.hoveredItem&&(this.hoveredItem=a,t.generateCellPartNames())},this.onGridHoverLeave=e=>{this.hoveredItem!==null&&(this.hoveredItem=null,e.currentTarget.generateCellPartNames())},this.hoverCellPartNameGenerator=(e,t)=>t?.item!=null&&t.item===this.hoveredItem?"hovered-cell":"",this._onRowKey=e=>{const t=this.field?.rowSelectionShortcut;if(!t||!this.field?.onItemSelectionActionId||!this._isRowShortcutRelevant()||!Ar(t,e))return;const a=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!a)return;const s=this.currentItems(),i=parseInt(a[1],10)-1;i>=s.length||(e.preventDefault(),this.selectRow(s[i]))},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))}}connectedCallback(){super.connectedCallback(),document.addEventListener("keydown",this._onRowKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("keydown",this._onRowKey)}currentItems(){return this.field?.remoteCoordinates?this.data?.[this.id]?.content??[]:this.field?.fieldId&&this.state?this.state[this.field.fieldId]??[]:[]}selectRow(e){!e||!this.field?.onItemSelectionActionId||(this.selectedItems=[e],this.state[this.id+"_selected_items"]=[e],this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.field.onItemSelectionActionId,parameters:{_clickedRow:e}},bubbles:!0,composed:!0})))}_isRowShortcutRelevant(){if(this.offsetParent===null&&this.getClientRects().length===0)return!1;const e=xp();if(e&&e!==document.body&&!wp(this,e)){const t=e.tagName?.toLowerCase()??"";if(e.isContentEditable||/^(input|textarea|select)$/.test(t)||t.startsWith("vaadin-")&&/(field|combo|picker|area|select)/.test(t))return!1}return!0}handleItemToggle(e){const{item:t,selected:a,shiftKey:s}=e.detail;if(this.rangeStartItem??=t,s){let i=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(i=this.state[this.field.fieldId]);const[r,n]=[this.rangeStartItem,t].map(u=>i.indexOf(u)).sort((u,m)=>u-m),l=i.slice(r,n+1),c=new Set(this.selectedItems);l.forEach(u=>{a?c.add(u):c.delete(u)}),this.selectedItems=[...c],this.state[this.id+"_selected_items"]=this.selectedItems}this.rangeStartItem=t}render(){let e=[];this.field?.fieldId&&this.state&&this.state[this.field.fieldId]&&(e=this.state[this.field.fieldId]);const t=this.state[this.field?.fieldId+"_show_detail"]||this.state._show_detail&&this.state._show_detail[this.field.fieldId];if(this.field?.remoteCoordinates){const a=this.field.remoteCoordinates,s="";this.data[this.id]&&(this.data[this.id].searchSignature||s)&&this.data[this.id].searchSignature!=s&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements?e=this.data[this.id].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.action,parameters:{searchText:s,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}if(Array.isArray(e)&&e.forEach((a,s)=>{a&&typeof a=="object"&&a._rowNumber===void 0&&(a._rowNumber=s)}),this.field?.inlineEditing)return this.renderMaster(e);if(this.field?.formPosition&&this.field?.formPosition.startsWith("modal")){const a=this;return o`
 
                 ${this.renderMaster(e)}
 
                 <vaadin-dialog
                         .opened="${t}"
                         @closed="${()=>{a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.field?.fieldId+"_cancel"},bubbles:!0,composed:!0}))}}"
-                        ${qi(()=>o`
+                        ${Ui(()=>o`
                             <mateu-event-interceptor .target="${a}">
                                 <div id="container" style="${this.field?.formStyle??"display: contents;"}">
                                     <mateu-component id="${this.field?.fieldId}-container"></mateu-component>
@@ -5268,9 +5551,9 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                  here too would duplicate it (e.g. "Guests / Guests"). -->
             <vaadin-grid
                     ?clickable="${!!this.field?.onItemSelectionActionId}"
-                    .cellPartNameGenerator="${P(this.field?.onItemSelectionActionId?this.hoverCellPartNameGenerator:void 0)}"
-                    @mousemove="${P(this.field?.onItemSelectionActionId?this.onGridHoverMove:void 0)}"
-                    @mouseleave="${P(this.field?.onItemSelectionActionId?this.onGridHoverLeave:void 0)}"
+                    .cellPartNameGenerator="${T(this.field?.onItemSelectionActionId?this.hoverCellPartNameGenerator:void 0)}"
+                    @mousemove="${T(this.field?.onItemSelectionActionId?this.onGridHoverMove:void 0)}"
+                    @mouseleave="${T(this.field?.onItemSelectionActionId?this.onGridHoverLeave:void 0)}"
                     style="${this.field?.onItemSelectionActionId?"cursor: pointer;":""}${this.field?.style??""}"
                     class="${this.field?.cssClasses}"
                     .items="${e}"
@@ -5278,21 +5561,21 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     item-id-path="${this.field?.itemIdPath}"
                     @selected-items-changed="${a=>{this.selectedItems=a.detail.value,this.state[this.id+"_selected_items"]=this.selectedItems}}"
                     @item-toggle="${this.handleItemToggle}"
-                    @click="${P(this.field?.onItemSelectionActionId?a=>{const i=a.currentTarget.getEventContext(a)?.item;i&&this.selectRow(i)}:void 0)}"
-                    @active-item-changed="${P(this.field?.detailPath&&!this.field?.useButtonForDetail?a=>{if(this.field?.detailPath){const s=a.detail.value;s?this.detailsOpenedItems=[s]:this.detailsOpenedItems=[]}}:void 0)}"
+                    @click="${T(this.field?.onItemSelectionActionId?a=>{const i=a.currentTarget.getEventContext(a)?.item;i&&this.selectRow(i)}:void 0)}"
+                    @active-item-changed="${T(this.field?.detailPath&&!this.field?.useButtonForDetail?a=>{if(this.field?.detailPath){const s=a.detail.value;s?this.detailsOpenedItems=[s]:this.detailsOpenedItems=[]}}:void 0)}"
                     .detailsOpenedItems="${this.detailsOpenedItems}"
-                    ${P(this.field?.detailPath?wr(a=>o`${w(this,a[this.field?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
+                    ${T(this.field?.detailPath?Cr(a=>o`${w(this,a[this.field?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
                     ?all-rows-visible=${e?.length<10}
             >
                 <span slot="empty-state">${this.field?.label?`No ${this.field.label.toLowerCase()} added yet.`:"No items added yet."}</span>
                 ${this.field?.readOnly||this.field?.inlineEditing?d:o`
                     <vaadin-grid-selection-column drag-select></vaadin-grid-selection-column>
                 `}
-                ${this.field?.columns?.map(a=>Is(a,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
+                ${this.field?.columns?.map(a=>Es(a,this,this.baseUrl,this.state,this.data,this.appState,this.appData))}
 
                 ${this.field?.inlineEditing&&!this.field?.readOnly?o`
                     <vaadin-grid-column width="3.5rem" flex-grow="0" frozen-to-end
-                            ${wt(a=>o`
+                            ${kt(a=>o`
                                 <vaadin-button theme="tertiary icon error" title="Remove row"
                                     @click="${()=>{this.state[this.id+"_selected_items"]=[a],this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.id+"_remove"},bubbles:!0,composed:!0}))}}">
                                     <vaadin-icon icon="vaadin:trash"></vaadin-icon>
@@ -5304,7 +5587,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     <vaadin-grid-column
                             width="44px"
                             flex-grow="0"
-                            ${wt((a,{detailsOpened:s})=>o`
+                            ${kt((a,{detailsOpened:s})=>o`
               <vaadin-button
                 theme="tertiary icon"
                 title="${s?"Collapse":"Expand"}"
@@ -5335,8 +5618,8 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         <vaadin-button theme="tertiary icon" title="Move down" @click="${()=>this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.id+"_move-down"},bubbles:!0,composed:!0}))}"><vaadin-icon icon="vaadin:arrow-down"></vaadin-icon></vaadin-button>
                     </vaadin-horizontal-layout>
                 `}
-        </vaadin-vertical-layout>`}};ct.styles=C`
-        ${Ht}
+        </vaadin-vertical-layout>`}};ut.styles=C`
+        ${Kt}
 
         /* Clickable grids (a row-selection action is wired) give visual feedback: the host sets a
            pointer cursor (inline, inherited by the slotted cell content), and the cells of the
@@ -5345,7 +5628,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             background-color: var(--lumo-primary-color-10pct);
             cursor: pointer;
         }
-    `;Qt([m()],ct.prototype,"field",2);Qt([m()],ct.prototype,"state",2);Qt([m()],ct.prototype,"data",2);Qt([m()],ct.prototype,"appState",2);Qt([m()],ct.prototype,"appData",2);Qt([m()],ct.prototype,"selectedItems",2);Qt([$()],ct.prototype,"detailsOpenedItems",2);ct=Qt([k("mateu-grid")],ct);var $p=Object.defineProperty,yp=Object.getOwnPropertyDescriptor,Da=(e,t,a,s)=>{for(var i=s>1?void 0:s?yp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&$p(t,a,i),i};let Vt=class extends S{constructor(){super(...arguments),this.getNewValue=e=>{if(this.field?.dataType=="array"){if(!this.value)return[e];const t=this.value;return t.indexOf(e)>=0?t.filter(a=>a!==e):[...t,e]}return e}}render(){let e=this.field?.options;if(this.field?.remoteCoordinates){const a=this.field.remoteCoordinates;this.data?.[this.field.fieldId]&&this.data[this.field.fieldId].content&&this.data[this.field.fieldId].totalElements?e=this.data[this.field.fieldId].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.action,parameters:{searchText:"",fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}const t=this.field?.attributes?.divStyle;return o`
+    `;ea([h()],ut.prototype,"field",2);ea([h()],ut.prototype,"state",2);ea([h()],ut.prototype,"data",2);ea([h()],ut.prototype,"appState",2);ea([h()],ut.prototype,"appData",2);ea([h()],ut.prototype,"selectedItems",2);ea([$()],ut.prototype,"detailsOpenedItems",2);ut=ea([k("mateu-grid")],ut);var kp=Object.defineProperty,Cp=Object.getOwnPropertyDescriptor,Na=(e,t,a,s)=>{for(var i=s>1?void 0:s?Cp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&kp(t,a,i),i};let Ht=class extends S{constructor(){super(...arguments),this.getNewValue=e=>{if(this.field?.dataType=="array"){if(!this.value)return[e];const t=this.value;return t.indexOf(e)>=0?t.filter(a=>a!==e):[...t,e]}return e}}render(){let e=this.field?.options;if(this.field?.remoteCoordinates){const a=this.field.remoteCoordinates;this.data?.[this.field.fieldId]&&this.data[this.field.fieldId].content&&this.data[this.field.fieldId].totalElements?e=this.data[this.field.fieldId].content:this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:a.action,parameters:{searchText:"",fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0}))}const t=this.field?.attributes?.divStyle;return o`
         <div style="display: flex; gap: 1rem; padding: 1rem; flex-wrap: wrap; ${t}">
                                     ${e?.map(a=>o`
                             <div 
@@ -5369,7 +5652,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         `)}
                                 </div>
 
-       `}};Vt.styles=C`
+       `}};Ht.styles=C`
         .choice {
             min-width: 10rem;
             min-height: 5rem;
@@ -5391,7 +5674,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         .selected, .selected:hover {
             border: 1px solid var(--lumo-shade-20pct);
         }
-  `;Da([m()],Vt.prototype,"field",2);Da([m()],Vt.prototype,"baseUrl",2);Da([m()],Vt.prototype,"state",2);Da([m()],Vt.prototype,"data",2);Da([m()],Vt.prototype,"value",2);Vt=Da([k("mateu-choice")],Vt);var xp=Object.defineProperty,wp=Object.getOwnPropertyDescriptor,ht=(e,t,a,s)=>{for(var i=s>1?void 0:s?wp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&xp(t,a,i),i};let Ne=class extends S{constructor(){super(...arguments),this.currencyChanged=e=>{this.value||(this.value={value:0,currency:"EUR",locale:"es-ES"}),this.value.currency=e.detail.value,this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{...this.value},fieldId:this.fieldId}}))},this.valueChanged=e=>{this.value||(this.value={value:0,currency:"EUR",locale:"es-ES"}),e.detail.value&&(this.value.value=e.detail.value?parseFloat(e.detail.value):0,this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{...this.value},fieldId:this.fieldId}})))}}render(){return o`
+  `;Na([h()],Ht.prototype,"field",2);Na([h()],Ht.prototype,"baseUrl",2);Na([h()],Ht.prototype,"state",2);Na([h()],Ht.prototype,"data",2);Na([h()],Ht.prototype,"value",2);Ht=Na([k("mateu-choice")],Ht);var Sp=Object.defineProperty,Ip=Object.getOwnPropertyDescriptor,mt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ip(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Sp(t,a,i),i};let Ne=class extends S{constructor(){super(...arguments),this.currencyChanged=e=>{this.value||(this.value={value:0,currency:"EUR",locale:"es-ES"}),this.value.currency=e.detail.value,this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{...this.value},fieldId:this.fieldId}}))},this.valueChanged=e=>{this.value||(this.value={value:0,currency:"EUR",locale:"es-ES"}),e.detail.value&&(this.value.value=e.detail.value?parseFloat(e.detail.value):0,this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:{...this.value},fieldId:this.fieldId}})))}}render(){return o`
             <vaadin-number-field
                     id="${this.fieldId}"
                     label="${this.label}"
@@ -5411,7 +5694,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     theme="small"
             ></vaadin-select></div></vaadin-number-field>
        `}};Ne.styles=C`
-  `;ht([m()],Ne.prototype,"fieldId",2);ht([m()],Ne.prototype,"label",2);ht([m()],Ne.prototype,"state",2);ht([m()],Ne.prototype,"data",2);ht([m()],Ne.prototype,"value",2);ht([m()],Ne.prototype,"autoFocus",2);ht([m()],Ne.prototype,"required",2);ht([m()],Ne.prototype,"colspan",2);ht([m()],Ne.prototype,"helperText",2);Ne=ht([k("mateu-money-field")],Ne);const cr=["vaadin:abacus","vaadin:absolute-position","vaadin:academy-cap","vaadin:accessibility","vaadin:accordion-menu","vaadin:add-dock","vaadin:adjust","vaadin:adobe-flash","vaadin:airplane","vaadin:alarm","vaadin:align-center","vaadin:align-justify","vaadin:align-left","vaadin:align-right","vaadin:alt-a","vaadin:alt","vaadin:ambulance","vaadin:anchor","vaadin:angle-double-down","vaadin:angle-double-left","vaadin:angle-double-right","vaadin:angle-double-up","vaadin:angle-down","vaadin:angle-left","vaadin:angle-right","vaadin:angle-up","vaadin:archive","vaadin:archives","vaadin:area-select","vaadin:arrow-backward","vaadin:arrow-circle-down-o","vaadin:arrow-circle-down","vaadin:arrow-circle-left-o","vaadin:arrow-circle-left","vaadin:arrow-circle-right-o","vaadin:arrow-circle-right","vaadin:arrow-circle-up-o","vaadin:arrow-circle-up","vaadin:arrow-down","vaadin:arrow-forward","vaadin:arrow-left","vaadin:arrow-long-down","vaadin:arrow-long-left","vaadin:arrow-right","vaadin:arrow-up","vaadin:arrows-cross","vaadin:arrows-long-h","vaadin:arrows-long-right","vaadin:arrows-long-up","vaadin:arrows-long-v","vaadin:arrows","vaadin:asterisk","vaadin:at","vaadin:automation","vaadin:backspace-a","vaadin:backspace","vaadin:backwards","vaadin:ban","vaadin:bar-chart-h","vaadin:bar-chart-v","vaadin:bar-chart","vaadin:barcode","vaadin:bed","vaadin:bell-o","vaadin:bell-slash-o","vaadin:bell-slash","vaadin:bell","vaadin:boat","vaadin:bold","vaadin:bolt","vaadin:bomb","vaadin:book-dollar","vaadin:book-percent","vaadin:book","vaadin:bookmark-o","vaadin:bookmark","vaadin:briefcase","vaadin:browser","vaadin:bug-o","vaadin:bug","vaadin:building-o","vaadin:building","vaadin:bullets","vaadin:bullseye","vaadin:bus","vaadin:buss","vaadin:button","vaadin:calc-book","vaadin:calc","vaadin:calendar-briefcase","vaadin:calendar-clock","vaadin:calendar-envelope","vaadin:calendar-o","vaadin:calendar-user","vaadin:calendar","vaadin:camera","vaadin:car","vaadin:caret-down","vaadin:caret-left","vaadin:caret-right","vaadin:caret-square-down-o","vaadin:caret-square-left-o","vaadin:caret-square-right-o","vaadin:caret-square-up-o","vaadin:caret-up","vaadin:cart-o","vaadin:cart","vaadin:cash","vaadin:chart-3d","vaadin:chart-grid","vaadin:chart-line","vaadin:chart-timeline","vaadin:chart","vaadin:chat","vaadin:check-circle-o","vaadin:check-circle","vaadin:check-square-o","vaadin:check-square","vaadin:check","vaadin:chevron-circle-down-o","vaadin:chevron-circle-down","vaadin:chevron-circle-left-o","vaadin:chevron-circle-left","vaadin:chevron-circle-right-o","vaadin:chevron-circle-right","vaadin:chevron-circle-up-o","vaadin:chevron-circle-up","vaadin:chevron-down-small","vaadin:chevron-down","vaadin:chevron-left-small","vaadin:chevron-left","vaadin:chevron-right-small","vaadin:chevron-right","vaadin:chevron-up-small","vaadin:chevron-up","vaadin:child","vaadin:circle-thin","vaadin:circle","vaadin:clipboard-check","vaadin:clipboard-cross","vaadin:clipboard-heart","vaadin:clipboard-pulse","vaadin:clipboard-text","vaadin:clipboard-user","vaadin:clipboard","vaadin:clock","vaadin:close-big","vaadin:close-circle-o","vaadin:close-circle","vaadin:close-small","vaadin:close","vaadin:cloud-download-o","vaadin:cloud-download","vaadin:cloud-o","vaadin:cloud-upload-o","vaadin:cloud-upload","vaadin:cloud","vaadin:cluster","vaadin:code","vaadin:coffee","vaadin:cog-o","vaadin:cog","vaadin:cogs","vaadin:coin-piles","vaadin:coins","vaadin:combobox","vaadin:comment-ellipsis-o","vaadin:comment-ellipsis","vaadin:comment-o","vaadin:comment","vaadin:comments-o","vaadin:comments","vaadin:compile","vaadin:compress-square","vaadin:compress","vaadin:connect-o","vaadin:connect","vaadin:controller","vaadin:copy-o","vaadin:copy","vaadin:copyright","vaadin:corner-lower-left","vaadin:corner-lower-right","vaadin:corner-upper-left","vaadin:corner-upper-right","vaadin:credit-card","vaadin:crop","vaadin:cross-cutlery","vaadin:crosshairs","vaadin:css","vaadin:ctrl-a","vaadin:ctrl","vaadin:cube","vaadin:cubes","vaadin:curly-brackets","vaadin:cursor-o","vaadin:cursor","vaadin:cutlery","vaadin:dashboard","vaadin:database","vaadin:date-input","vaadin:deindent","vaadin:del-a","vaadin:del","vaadin:dental-chair","vaadin:desktop","vaadin:diamond-o","vaadin:diamond","vaadin:diploma-scroll","vaadin:diploma","vaadin:disc","vaadin:doctor-briefcase","vaadin:doctor","vaadin:dollar","vaadin:dot-circle","vaadin:download-alt","vaadin:download","vaadin:drop","vaadin:edit","vaadin:eject","vaadin:elastic","vaadin:ellipsis-circle-o","vaadin:ellipsis-circle","vaadin:ellipsis-dots-h","vaadin:ellipsis-dots-v","vaadin:ellipsis-h","vaadin:ellipsis-v","vaadin:enter-arrow","vaadin:enter","vaadin:envelope-o","vaadin:envelope-open-o","vaadin:envelope-open","vaadin:envelope","vaadin:envelopes-o","vaadin:envelopes","vaadin:eraser","vaadin:esc-a","vaadin:esc","vaadin:euro","vaadin:exchange","vaadin:exclamation-circle-o","vaadin:exclamation-circle","vaadin:exclamation","vaadin:exit-o","vaadin:exit","vaadin:expand-full","vaadin:expand-square","vaadin:expand","vaadin:external-browser","vaadin:external-link","vaadin:eye-slash","vaadin:eye","vaadin:eyedropper","vaadin:facebook-square","vaadin:facebook","vaadin:factory","vaadin:family","vaadin:fast-backward","vaadin:fast-forward","vaadin:female","vaadin:file-add","vaadin:file-code","vaadin:file-font","vaadin:file-movie","vaadin:file-o","vaadin:file-picture","vaadin:file-presentation","vaadin:file-process","vaadin:file-refresh","vaadin:file-remove","vaadin:file-search","vaadin:file-sound","vaadin:file-start","vaadin:file-table","vaadin:file-text-o","vaadin:file-text","vaadin:file-tree-small","vaadin:file-tree-sub","vaadin:file-tree","vaadin:file-zip","vaadin:file","vaadin:fill","vaadin:film","vaadin:filter","vaadin:fire","vaadin:flag-checkered","vaadin:flag-o","vaadin:flag","vaadin:flash","vaadin:flask","vaadin:flight-landing","vaadin:flight-takeoff","vaadin:flip-h","vaadin:flip-v","vaadin:folder-add","vaadin:folder-o","vaadin:folder-open-o","vaadin:folder-open","vaadin:folder-remove","vaadin:folder-search","vaadin:folder","vaadin:font","vaadin:form","vaadin:forward","vaadin:frown-o","vaadin:funcion","vaadin:function","vaadin:funnel","vaadin:gamepad","vaadin:gavel","vaadin:gift","vaadin:glass","vaadin:glasses","vaadin:globe-wire","vaadin:globe","vaadin:golf","vaadin:google-plus-square","vaadin:google-plus","vaadin:grab","vaadin:grid-bevel","vaadin:grid-big-o","vaadin:grid-big","vaadin:grid-h","vaadin:grid-small-o","vaadin:grid-small","vaadin:grid-v","vaadin:grid","vaadin:group","vaadin:hammer","vaadin:hand","vaadin:handle-corner","vaadin:hands-up","vaadin:handshake","vaadin:harddrive-o","vaadin:harddrive","vaadin:hash","vaadin:header","vaadin:headphones","vaadin:headset","vaadin:health-card","vaadin:heart-o","vaadin:heart","vaadin:home-o","vaadin:home","vaadin:hospital","vaadin:hourglass-empty","vaadin:hourglass-end","vaadin:hourglass-start","vaadin:hourglass","vaadin:inbox","vaadin:indent","vaadin:info-circle-o","vaadin:info-circle","vaadin:info","vaadin:input","vaadin:insert","vaadin:institution","vaadin:invoice","vaadin:italic","vaadin:key-o","vaadin:key","vaadin:keyboard-o","vaadin:keyboard","vaadin:laptop","vaadin:layout","vaadin:level-down-bold","vaadin:level-down","vaadin:level-left-bold","vaadin:level-left","vaadin:level-right-bold","vaadin:level-right","vaadin:level-up-bold","vaadin:level-up","vaadin:lifebuoy","vaadin:lightbulb","vaadin:line-bar-chart","vaadin:line-chart","vaadin:line-h","vaadin:line-v","vaadin:lines-list","vaadin:lines","vaadin:link","vaadin:list-ol","vaadin:list-select","vaadin:list-ul","vaadin:list","vaadin:location-arrow-circle-o","vaadin:location-arrow-circle","vaadin:location-arrow","vaadin:lock","vaadin:magic","vaadin:magnet","vaadin:mailbox","vaadin:male","vaadin:map-marker","vaadin:margin-bottom","vaadin:margin-left","vaadin:margin-right","vaadin:margin-top","vaadin:margin","vaadin:medal","vaadin:megafone","vaadin:megaphone","vaadin:meh-o","vaadin:menu","vaadin:microphone","vaadin:minus-circle-o","vaadin:minus-circle","vaadin:minus-square-o","vaadin:minus","vaadin:mobile-browser","vaadin:mobile-retro","vaadin:mobile","vaadin:modal-list","vaadin:modal","vaadin:money-deposit","vaadin:money-exchange","vaadin:money-withdraw","vaadin:money","vaadin:moon-o","vaadin:moon","vaadin:morning","vaadin:movie","vaadin:music","vaadin:mute","vaadin:native-button","vaadin:newspaper","vaadin:notebook","vaadin:nurse","vaadin:office","vaadin:open-book","vaadin:option-a","vaadin:option","vaadin:options","vaadin:orientation","vaadin:out","vaadin:outbox","vaadin:package","vaadin:padding-bottom","vaadin:padding-left","vaadin:padding-right","vaadin:padding-top","vaadin:padding","vaadin:paint-roll","vaadin:paintbrush","vaadin:palete","vaadin:palette","vaadin:panel","vaadin:paperclip","vaadin:paperplane-o","vaadin:paperplane","vaadin:paragraph","vaadin:password","vaadin:paste","vaadin:pause","vaadin:pencil","vaadin:phone-landline","vaadin:phone","vaadin:picture","vaadin:pie-bar-chart","vaadin:pie-chart","vaadin:piggy-bank-coin","vaadin:piggy-bank","vaadin:pill","vaadin:pills","vaadin:pin-post","vaadin:pin","vaadin:play-circle-o","vaadin:play-circle","vaadin:play","vaadin:plug","vaadin:plus-circle-o","vaadin:plus-circle","vaadin:plus-minus","vaadin:plus-square-o","vaadin:plus","vaadin:pointer","vaadin:power-off","vaadin:presentation","vaadin:print","vaadin:progressbar","vaadin:puzzle-piece","vaadin:pyramid-chart","vaadin:qrcode","vaadin:question-circle-o","vaadin:question-circle","vaadin:question","vaadin:quote-left","vaadin:quote-right","vaadin:random","vaadin:raster-lower-left","vaadin:raster","vaadin:records","vaadin:recycle","vaadin:refresh","vaadin:reply-all","vaadin:reply","vaadin:resize-h","vaadin:resize-v","vaadin:retweet","vaadin:rhombus","vaadin:road-branch","vaadin:road-branches","vaadin:road-split","vaadin:road","vaadin:rocket","vaadin:rotate-left","vaadin:rotate-right","vaadin:rss-square","vaadin:rss","vaadin:safe-lock","vaadin:safe","vaadin:scale-unbalance","vaadin:scale","vaadin:scatter-chart","vaadin:scissors","vaadin:screwdriver","vaadin:search-minus","vaadin:search-plus","vaadin:search","vaadin:select","vaadin:server","vaadin:share-square","vaadin:share","vaadin:shield","vaadin:shift-arrow","vaadin:shift","vaadin:shop","vaadin:sign-in-alt","vaadin:sign-in","vaadin:sign-out-alt","vaadin:sign-out","vaadin:signal","vaadin:sitemap","vaadin:slider","vaadin:sliders","vaadin:smiley-o","vaadin:sort","vaadin:sound-disable","vaadin:spark-line","vaadin:specialist","vaadin:spinner-arc","vaadin:spinner-third","vaadin:spinner","vaadin:spline-area-chart","vaadin:spline-chart","vaadin:split-h","vaadin:split-v","vaadin:split","vaadin:spoon","vaadin:square-shadow","vaadin:star-half-left-o","vaadin:star-half-left","vaadin:star-half-right-o","vaadin:star-half-right","vaadin:star-o","vaadin:star","vaadin:start-cog","vaadin:step-backward","vaadin:step-forward","vaadin:stethoscope","vaadin:stock","vaadin:stop-cog","vaadin:stop","vaadin:stopwatch","vaadin:storage","vaadin:strikethrough","vaadin:subscript","vaadin:suitcase","vaadin:sun-down","vaadin:sun-o","vaadin:sun-rise","vaadin:superscript","vaadin:sword","vaadin:tab-a","vaadin:tab","vaadin:table","vaadin:tablet","vaadin:tabs","vaadin:tag","vaadin:tags","vaadin:tasks","vaadin:taxi","vaadin:teeth","vaadin:terminal","vaadin:text-height","vaadin:text-input","vaadin:text-label","vaadin:text-width","vaadin:thin-square","vaadin:thumbs-down-o","vaadin:thumbs-down","vaadin:thumbs-up-o","vaadin:thumbs-up","vaadin:ticket","vaadin:time-backward","vaadin:time-forward","vaadin:timer","vaadin:toolbox","vaadin:tools","vaadin:tooth","vaadin:touch","vaadin:train","vaadin:trash","vaadin:tree-table","vaadin:trendind-down","vaadin:trending-down","vaadin:trending-up","vaadin:trophy","vaadin:truck","vaadin:twin-col-select","vaadin:twitter-square","vaadin:twitter","vaadin:umbrella","vaadin:underline","vaadin:unlink","vaadin:unlock","vaadin:upload-alt","vaadin:upload","vaadin:user-card","vaadin:user-check","vaadin:user-clock","vaadin:user-heart","vaadin:user-star","vaadin:user","vaadin:users","vaadin:vaadin-h","vaadin:vaadin-v","vaadin:viewport","vaadin:vimeo-square","vaadin:vimeo","vaadin:volume-down","vaadin:volume-off","vaadin:volume-up","vaadin:volume","vaadin:wallet","vaadin:warning","vaadin:workplace","vaadin:wrench","vaadin:youtube-square","vaadin:youtube"];var kp=Object.defineProperty,Cp=Object.getOwnPropertyDescriptor,Ae=(e,t,a,s)=>{for(var i=s>1?void 0:s?Cp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&kp(t,a,i),i};let me=class extends S{constructor(){super(...arguments),this.component=void 0,this.field=void 0,this.baseUrl=void 0,this.state={},this.data={},this.appState={},this.appData={},this.colorPickerOpened=!1,this.colorPickerValue=void 0,this.comboData=[],this._comboFilter="",this.rendered=!1,this.renderColorPicker=()=>{const e=this.field?.fieldId,t=this.state&&e in this.state?this.state[e]:this.field?.initialValue;return o`
+  `;mt([h()],Ne.prototype,"fieldId",2);mt([h()],Ne.prototype,"label",2);mt([h()],Ne.prototype,"state",2);mt([h()],Ne.prototype,"data",2);mt([h()],Ne.prototype,"value",2);mt([h()],Ne.prototype,"autoFocus",2);mt([h()],Ne.prototype,"required",2);mt([h()],Ne.prototype,"colspan",2);mt([h()],Ne.prototype,"helperText",2);Ne=mt([k("mateu-money-field")],Ne);const pr=["vaadin:abacus","vaadin:absolute-position","vaadin:academy-cap","vaadin:accessibility","vaadin:accordion-menu","vaadin:add-dock","vaadin:adjust","vaadin:adobe-flash","vaadin:airplane","vaadin:alarm","vaadin:align-center","vaadin:align-justify","vaadin:align-left","vaadin:align-right","vaadin:alt-a","vaadin:alt","vaadin:ambulance","vaadin:anchor","vaadin:angle-double-down","vaadin:angle-double-left","vaadin:angle-double-right","vaadin:angle-double-up","vaadin:angle-down","vaadin:angle-left","vaadin:angle-right","vaadin:angle-up","vaadin:archive","vaadin:archives","vaadin:area-select","vaadin:arrow-backward","vaadin:arrow-circle-down-o","vaadin:arrow-circle-down","vaadin:arrow-circle-left-o","vaadin:arrow-circle-left","vaadin:arrow-circle-right-o","vaadin:arrow-circle-right","vaadin:arrow-circle-up-o","vaadin:arrow-circle-up","vaadin:arrow-down","vaadin:arrow-forward","vaadin:arrow-left","vaadin:arrow-long-down","vaadin:arrow-long-left","vaadin:arrow-right","vaadin:arrow-up","vaadin:arrows-cross","vaadin:arrows-long-h","vaadin:arrows-long-right","vaadin:arrows-long-up","vaadin:arrows-long-v","vaadin:arrows","vaadin:asterisk","vaadin:at","vaadin:automation","vaadin:backspace-a","vaadin:backspace","vaadin:backwards","vaadin:ban","vaadin:bar-chart-h","vaadin:bar-chart-v","vaadin:bar-chart","vaadin:barcode","vaadin:bed","vaadin:bell-o","vaadin:bell-slash-o","vaadin:bell-slash","vaadin:bell","vaadin:boat","vaadin:bold","vaadin:bolt","vaadin:bomb","vaadin:book-dollar","vaadin:book-percent","vaadin:book","vaadin:bookmark-o","vaadin:bookmark","vaadin:briefcase","vaadin:browser","vaadin:bug-o","vaadin:bug","vaadin:building-o","vaadin:building","vaadin:bullets","vaadin:bullseye","vaadin:bus","vaadin:buss","vaadin:button","vaadin:calc-book","vaadin:calc","vaadin:calendar-briefcase","vaadin:calendar-clock","vaadin:calendar-envelope","vaadin:calendar-o","vaadin:calendar-user","vaadin:calendar","vaadin:camera","vaadin:car","vaadin:caret-down","vaadin:caret-left","vaadin:caret-right","vaadin:caret-square-down-o","vaadin:caret-square-left-o","vaadin:caret-square-right-o","vaadin:caret-square-up-o","vaadin:caret-up","vaadin:cart-o","vaadin:cart","vaadin:cash","vaadin:chart-3d","vaadin:chart-grid","vaadin:chart-line","vaadin:chart-timeline","vaadin:chart","vaadin:chat","vaadin:check-circle-o","vaadin:check-circle","vaadin:check-square-o","vaadin:check-square","vaadin:check","vaadin:chevron-circle-down-o","vaadin:chevron-circle-down","vaadin:chevron-circle-left-o","vaadin:chevron-circle-left","vaadin:chevron-circle-right-o","vaadin:chevron-circle-right","vaadin:chevron-circle-up-o","vaadin:chevron-circle-up","vaadin:chevron-down-small","vaadin:chevron-down","vaadin:chevron-left-small","vaadin:chevron-left","vaadin:chevron-right-small","vaadin:chevron-right","vaadin:chevron-up-small","vaadin:chevron-up","vaadin:child","vaadin:circle-thin","vaadin:circle","vaadin:clipboard-check","vaadin:clipboard-cross","vaadin:clipboard-heart","vaadin:clipboard-pulse","vaadin:clipboard-text","vaadin:clipboard-user","vaadin:clipboard","vaadin:clock","vaadin:close-big","vaadin:close-circle-o","vaadin:close-circle","vaadin:close-small","vaadin:close","vaadin:cloud-download-o","vaadin:cloud-download","vaadin:cloud-o","vaadin:cloud-upload-o","vaadin:cloud-upload","vaadin:cloud","vaadin:cluster","vaadin:code","vaadin:coffee","vaadin:cog-o","vaadin:cog","vaadin:cogs","vaadin:coin-piles","vaadin:coins","vaadin:combobox","vaadin:comment-ellipsis-o","vaadin:comment-ellipsis","vaadin:comment-o","vaadin:comment","vaadin:comments-o","vaadin:comments","vaadin:compile","vaadin:compress-square","vaadin:compress","vaadin:connect-o","vaadin:connect","vaadin:controller","vaadin:copy-o","vaadin:copy","vaadin:copyright","vaadin:corner-lower-left","vaadin:corner-lower-right","vaadin:corner-upper-left","vaadin:corner-upper-right","vaadin:credit-card","vaadin:crop","vaadin:cross-cutlery","vaadin:crosshairs","vaadin:css","vaadin:ctrl-a","vaadin:ctrl","vaadin:cube","vaadin:cubes","vaadin:curly-brackets","vaadin:cursor-o","vaadin:cursor","vaadin:cutlery","vaadin:dashboard","vaadin:database","vaadin:date-input","vaadin:deindent","vaadin:del-a","vaadin:del","vaadin:dental-chair","vaadin:desktop","vaadin:diamond-o","vaadin:diamond","vaadin:diploma-scroll","vaadin:diploma","vaadin:disc","vaadin:doctor-briefcase","vaadin:doctor","vaadin:dollar","vaadin:dot-circle","vaadin:download-alt","vaadin:download","vaadin:drop","vaadin:edit","vaadin:eject","vaadin:elastic","vaadin:ellipsis-circle-o","vaadin:ellipsis-circle","vaadin:ellipsis-dots-h","vaadin:ellipsis-dots-v","vaadin:ellipsis-h","vaadin:ellipsis-v","vaadin:enter-arrow","vaadin:enter","vaadin:envelope-o","vaadin:envelope-open-o","vaadin:envelope-open","vaadin:envelope","vaadin:envelopes-o","vaadin:envelopes","vaadin:eraser","vaadin:esc-a","vaadin:esc","vaadin:euro","vaadin:exchange","vaadin:exclamation-circle-o","vaadin:exclamation-circle","vaadin:exclamation","vaadin:exit-o","vaadin:exit","vaadin:expand-full","vaadin:expand-square","vaadin:expand","vaadin:external-browser","vaadin:external-link","vaadin:eye-slash","vaadin:eye","vaadin:eyedropper","vaadin:facebook-square","vaadin:facebook","vaadin:factory","vaadin:family","vaadin:fast-backward","vaadin:fast-forward","vaadin:female","vaadin:file-add","vaadin:file-code","vaadin:file-font","vaadin:file-movie","vaadin:file-o","vaadin:file-picture","vaadin:file-presentation","vaadin:file-process","vaadin:file-refresh","vaadin:file-remove","vaadin:file-search","vaadin:file-sound","vaadin:file-start","vaadin:file-table","vaadin:file-text-o","vaadin:file-text","vaadin:file-tree-small","vaadin:file-tree-sub","vaadin:file-tree","vaadin:file-zip","vaadin:file","vaadin:fill","vaadin:film","vaadin:filter","vaadin:fire","vaadin:flag-checkered","vaadin:flag-o","vaadin:flag","vaadin:flash","vaadin:flask","vaadin:flight-landing","vaadin:flight-takeoff","vaadin:flip-h","vaadin:flip-v","vaadin:folder-add","vaadin:folder-o","vaadin:folder-open-o","vaadin:folder-open","vaadin:folder-remove","vaadin:folder-search","vaadin:folder","vaadin:font","vaadin:form","vaadin:forward","vaadin:frown-o","vaadin:funcion","vaadin:function","vaadin:funnel","vaadin:gamepad","vaadin:gavel","vaadin:gift","vaadin:glass","vaadin:glasses","vaadin:globe-wire","vaadin:globe","vaadin:golf","vaadin:google-plus-square","vaadin:google-plus","vaadin:grab","vaadin:grid-bevel","vaadin:grid-big-o","vaadin:grid-big","vaadin:grid-h","vaadin:grid-small-o","vaadin:grid-small","vaadin:grid-v","vaadin:grid","vaadin:group","vaadin:hammer","vaadin:hand","vaadin:handle-corner","vaadin:hands-up","vaadin:handshake","vaadin:harddrive-o","vaadin:harddrive","vaadin:hash","vaadin:header","vaadin:headphones","vaadin:headset","vaadin:health-card","vaadin:heart-o","vaadin:heart","vaadin:home-o","vaadin:home","vaadin:hospital","vaadin:hourglass-empty","vaadin:hourglass-end","vaadin:hourglass-start","vaadin:hourglass","vaadin:inbox","vaadin:indent","vaadin:info-circle-o","vaadin:info-circle","vaadin:info","vaadin:input","vaadin:insert","vaadin:institution","vaadin:invoice","vaadin:italic","vaadin:key-o","vaadin:key","vaadin:keyboard-o","vaadin:keyboard","vaadin:laptop","vaadin:layout","vaadin:level-down-bold","vaadin:level-down","vaadin:level-left-bold","vaadin:level-left","vaadin:level-right-bold","vaadin:level-right","vaadin:level-up-bold","vaadin:level-up","vaadin:lifebuoy","vaadin:lightbulb","vaadin:line-bar-chart","vaadin:line-chart","vaadin:line-h","vaadin:line-v","vaadin:lines-list","vaadin:lines","vaadin:link","vaadin:list-ol","vaadin:list-select","vaadin:list-ul","vaadin:list","vaadin:location-arrow-circle-o","vaadin:location-arrow-circle","vaadin:location-arrow","vaadin:lock","vaadin:magic","vaadin:magnet","vaadin:mailbox","vaadin:male","vaadin:map-marker","vaadin:margin-bottom","vaadin:margin-left","vaadin:margin-right","vaadin:margin-top","vaadin:margin","vaadin:medal","vaadin:megafone","vaadin:megaphone","vaadin:meh-o","vaadin:menu","vaadin:microphone","vaadin:minus-circle-o","vaadin:minus-circle","vaadin:minus-square-o","vaadin:minus","vaadin:mobile-browser","vaadin:mobile-retro","vaadin:mobile","vaadin:modal-list","vaadin:modal","vaadin:money-deposit","vaadin:money-exchange","vaadin:money-withdraw","vaadin:money","vaadin:moon-o","vaadin:moon","vaadin:morning","vaadin:movie","vaadin:music","vaadin:mute","vaadin:native-button","vaadin:newspaper","vaadin:notebook","vaadin:nurse","vaadin:office","vaadin:open-book","vaadin:option-a","vaadin:option","vaadin:options","vaadin:orientation","vaadin:out","vaadin:outbox","vaadin:package","vaadin:padding-bottom","vaadin:padding-left","vaadin:padding-right","vaadin:padding-top","vaadin:padding","vaadin:paint-roll","vaadin:paintbrush","vaadin:palete","vaadin:palette","vaadin:panel","vaadin:paperclip","vaadin:paperplane-o","vaadin:paperplane","vaadin:paragraph","vaadin:password","vaadin:paste","vaadin:pause","vaadin:pencil","vaadin:phone-landline","vaadin:phone","vaadin:picture","vaadin:pie-bar-chart","vaadin:pie-chart","vaadin:piggy-bank-coin","vaadin:piggy-bank","vaadin:pill","vaadin:pills","vaadin:pin-post","vaadin:pin","vaadin:play-circle-o","vaadin:play-circle","vaadin:play","vaadin:plug","vaadin:plus-circle-o","vaadin:plus-circle","vaadin:plus-minus","vaadin:plus-square-o","vaadin:plus","vaadin:pointer","vaadin:power-off","vaadin:presentation","vaadin:print","vaadin:progressbar","vaadin:puzzle-piece","vaadin:pyramid-chart","vaadin:qrcode","vaadin:question-circle-o","vaadin:question-circle","vaadin:question","vaadin:quote-left","vaadin:quote-right","vaadin:random","vaadin:raster-lower-left","vaadin:raster","vaadin:records","vaadin:recycle","vaadin:refresh","vaadin:reply-all","vaadin:reply","vaadin:resize-h","vaadin:resize-v","vaadin:retweet","vaadin:rhombus","vaadin:road-branch","vaadin:road-branches","vaadin:road-split","vaadin:road","vaadin:rocket","vaadin:rotate-left","vaadin:rotate-right","vaadin:rss-square","vaadin:rss","vaadin:safe-lock","vaadin:safe","vaadin:scale-unbalance","vaadin:scale","vaadin:scatter-chart","vaadin:scissors","vaadin:screwdriver","vaadin:search-minus","vaadin:search-plus","vaadin:search","vaadin:select","vaadin:server","vaadin:share-square","vaadin:share","vaadin:shield","vaadin:shift-arrow","vaadin:shift","vaadin:shop","vaadin:sign-in-alt","vaadin:sign-in","vaadin:sign-out-alt","vaadin:sign-out","vaadin:signal","vaadin:sitemap","vaadin:slider","vaadin:sliders","vaadin:smiley-o","vaadin:sort","vaadin:sound-disable","vaadin:spark-line","vaadin:specialist","vaadin:spinner-arc","vaadin:spinner-third","vaadin:spinner","vaadin:spline-area-chart","vaadin:spline-chart","vaadin:split-h","vaadin:split-v","vaadin:split","vaadin:spoon","vaadin:square-shadow","vaadin:star-half-left-o","vaadin:star-half-left","vaadin:star-half-right-o","vaadin:star-half-right","vaadin:star-o","vaadin:star","vaadin:start-cog","vaadin:step-backward","vaadin:step-forward","vaadin:stethoscope","vaadin:stock","vaadin:stop-cog","vaadin:stop","vaadin:stopwatch","vaadin:storage","vaadin:strikethrough","vaadin:subscript","vaadin:suitcase","vaadin:sun-down","vaadin:sun-o","vaadin:sun-rise","vaadin:superscript","vaadin:sword","vaadin:tab-a","vaadin:tab","vaadin:table","vaadin:tablet","vaadin:tabs","vaadin:tag","vaadin:tags","vaadin:tasks","vaadin:taxi","vaadin:teeth","vaadin:terminal","vaadin:text-height","vaadin:text-input","vaadin:text-label","vaadin:text-width","vaadin:thin-square","vaadin:thumbs-down-o","vaadin:thumbs-down","vaadin:thumbs-up-o","vaadin:thumbs-up","vaadin:ticket","vaadin:time-backward","vaadin:time-forward","vaadin:timer","vaadin:toolbox","vaadin:tools","vaadin:tooth","vaadin:touch","vaadin:train","vaadin:trash","vaadin:tree-table","vaadin:trendind-down","vaadin:trending-down","vaadin:trending-up","vaadin:trophy","vaadin:truck","vaadin:twin-col-select","vaadin:twitter-square","vaadin:twitter","vaadin:umbrella","vaadin:underline","vaadin:unlink","vaadin:unlock","vaadin:upload-alt","vaadin:upload","vaadin:user-card","vaadin:user-check","vaadin:user-clock","vaadin:user-heart","vaadin:user-star","vaadin:user","vaadin:users","vaadin:vaadin-h","vaadin:vaadin-v","vaadin:viewport","vaadin:vimeo-square","vaadin:vimeo","vaadin:volume-down","vaadin:volume-off","vaadin:volume-up","vaadin:volume","vaadin:wallet","vaadin:warning","vaadin:workplace","vaadin:wrench","vaadin:youtube-square","vaadin:youtube"];var _p=Object.defineProperty,Ep=Object.getOwnPropertyDescriptor,je=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ep(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&_p(t,a,i),i};let me=class extends S{constructor(){super(...arguments),this.component=void 0,this.field=void 0,this.baseUrl=void 0,this.state={},this.data={},this.appState={},this.appData={},this.colorPickerOpened=!1,this.colorPickerValue=void 0,this.comboData=[],this._comboFilter="",this.rendered=!1,this.renderColorPicker=()=>{const e=this.field?.fieldId,t=this.state&&e in this.state?this.state[e]:this.field?.initialValue;return o`
             <ui5-color-picker value="${t}" @change="${a=>this.colorPickerValue=a.target.value}">Picker</ui5-color-picker>
         `},this.saveColor=()=>{this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:this.colorPickerValue,fieldId:this.field.fieldId},bubbles:!0,composed:!0})),this.colorPickerOpened=!1},this.renderColorPickerFooter=()=>o`<vaadin-button @click="${()=>this.colorPickerOpened=!1}">Cancel</vaadin-button>
         <vaadin-button theme="primary" @click="${this.saveColor}">Save</vaadin-button>`,this.checked=e=>{const t=e.target;this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:t.checked,fieldId:this.field.fieldId},bubbles:!0,composed:!0}))},this.convert=e=>this.field?.dataType=="integer"?parseInt(e):e,this.multiComboBoxValueChanged=e=>{if(this.rendered){const t=this.field?.fieldId,a=this.state&&t in this.state?this.state[t]:this.field?.initialValue;let s;e.detail.value&&(s=e.detail.value.map(i=>i.value),s&&s.length>0&&(this.data[this.id]||(this.data[this.id]={}),this.data[this.id].content||(this.data[this.id].content=[]),this.data[this.id]&&this.data[this.id].content&&e.detail.value.forEach(i=>{this.data[this.id].content?.find(r=>i.value==r.value)||this.data[this.id].content.push(i)}))),this.compareArrays(s,a)||this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:s,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}},this.valueChanged=e=>{this.rendered&&e.detail.value!==void 0&&e.detail.value!=this.state[this.field.fieldId]&&this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:this.convert(e.detail.value),fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.selectedItems=e=>{if(e&&e.length>0)if(this.field?.remoteCoordinates){if(this.comboData&&this.comboData.length>0)return this.comboData?.filter(t=>e.indexOf(t.value)>=0);if(this.data[this.id]&&this.data[this.id].content&&this.data[this.id].content.length>0)return this.data[this.id].content.filter(t=>e.indexOf(t.value)>=0)}else return this.field?.options?.filter(t=>e.indexOf(t.value)>=0);return[]},this.selectedIndex=e=>{if(e)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content){const t=this.data[this.id].content.find(a=>a.value==e);if(t)return this.data[this.id].content.indexOf(t)}}else{const t=this.field?.options?.find(a=>a.value==e);if(t)return this.field?.options?.indexOf(t)}},this.selectedIndexes=e=>{if(e&&e.length>0)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content)return this.data[this.id].content.filter(a=>e.indexOf(a.value)>=0).map(a=>this.data[this.id].content.indexOf(a))}else return this.field?.options?.filter(t=>e.indexOf(t.value)>=0).map(t=>this.field?.options?.indexOf(t));return[]},this.compareArrays=(e,t)=>this.falsy(e)&&this.falsy(t)||e&&t&&e.length===t.length&&e.every((a,s)=>a===t[s]),this.falsy=e=>!e||e.length==0,this.listItemsSelected=e=>{const t=this.field?.fieldId,a=this.state&&t in this.state?this.state[t]:this.field?.initialValue;let s;this.rendered&&(e.detail.value&&(this.field?.remoteCoordinates?this.data[this.id]&&this.data[this.id].content&&(s=e.detail.value.map(i=>this.data[this.id].content[i].value)):s=e.detail.value.map(i=>this.field.options[i].value)),this.compareArrays(s,a)||this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:s,fieldId:this.field?.fieldId},bubbles:!0,composed:!0})))},this.listItemSelected=e=>{let t;if(e.detail.value||e.detail.value==0)if(this.field?.remoteCoordinates){if(this.data[this.id]&&this.data[this.id].content){const a=this.data[this.id].content[e.detail.value];a&&(t=a.value)}}else{const a=this.field.options[e.detail.value];a&&(t=a.value)}this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:t,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.mapPosition=e=>{switch(e){case"topStretch":return"top-stretch";case"topStart":return"top-start";case"topCenter":return"top-center";case"topEnd":return"top-end";case"middle":return"middle";case"bottomStart":return"bottom-start";case"bottomEnd":return"bottom-end";case"bottomStretch":return"bottom-stretch";case"bottomCenter":return"bottom-center"}return"bottom-end"},this.helperShownInControl=!1,this.fileUploaded=e=>{const t=this.field?.fieldId??"",a=this.state[t];a.push({id:e.detail.xhr.responseText,name:e.detail.file.name}),this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:a,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.fileChanged=e=>{const t=this.field?.fieldId??"",a=(e.detail.value??[]).filter(i=>i.id).map(i=>i.id),s=(this.state[t]??[]).map(i=>i.id);if(!this.compareArrays(s,a)){const i=(e.detail.value??[]).filter(r=>r.id).map(r=>({id:r.id,name:r.name}));this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:i,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))}},this.triggerImageUpload=()=>{this.renderRoot?.querySelector('input[type="file"]')?.click()},this.imageUpload=e=>{const t=e.target,a=t.files?.[0];if(!a)return;const s=new FileReader;s.onload=()=>{this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:s.result,fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},s.readAsDataURL(a),t.value=""},this.imageDelete=()=>{this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:"",fieldId:this.field?.fieldId},bubbles:!0,composed:!0}))},this.iconComboboxRenderer=e=>o`
@@ -5452,13 +5735,13 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
 
             </vaadin-horizontal-layout>
                             `:e.label}
-`,this.filteredIcons=[],this.navLinkOffset=null,this.iconFilterChanged=e=>{this.filteredIcons=cr.filter(t=>!e.detail.value||t.indexOf(e.detail.value)>=0)}}remoteComboDataProvider(e){return(t,a)=>{const{filter:s,page:i,pageSize:r}=t,n=s??"";this._comboFilter=n,this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e,parameters:{searchText:s,fieldId:this.field?.fieldId,size:r,page:i,sort:void 0},callback:l=>{if(n===this._comboFilter)if(l?.messages?.forEach(c=>{ia.show(c.text,{position:c.position?this.mapPosition(c.position):void 0,theme:c.variant,duration:c.duration})}),!l.fragments||l.fragments.length==0)this.comboData=[],a([],0);else{const c=l.fragments[0].data?.[this.id];this.comboData=c?.content,a(c?.content,c?.totalElements)}},callbackonly:!0},bubbles:!0,composed:!0}))}}disconnectedCallback(){super.disconnectedCallback(),this.rendered=!1}renderNavLink(){const e=this.field?.link;if(!e?.href)return d;const t=Oe(e.href,this.state,this.data)??e.href,a=Oe(e.title,this.state,this.data)||t,s=e.icon||(t.startsWith("http")?"vaadin:external-link":"vaadin:link"),i=this.navLinkOffset??"calc(var(--lumo-font-size-s) * 1.6 + (var(--lumo-size-m) - var(--lumo-icon-size-s)) / 2)";return o`<a
+`,this.filteredIcons=[],this.navLinkOffset=null,this.iconFilterChanged=e=>{this.filteredIcons=pr.filter(t=>!e.detail.value||t.indexOf(e.detail.value)>=0)}}remoteComboDataProvider(e){return(t,a)=>{const{filter:s,page:i,pageSize:r}=t,n=s??"";this._comboFilter=n,this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e,parameters:{searchText:s,fieldId:this.field?.fieldId,size:r,page:i,sort:void 0},callback:l=>{if(n===this._comboFilter)if(l?.messages?.forEach(c=>{ra.show(c.text,{position:c.position?this.mapPosition(c.position):void 0,theme:c.variant,duration:c.duration})}),!l.fragments||l.fragments.length==0)this.comboData=[],a([],0);else{const c=l.fragments[0].data?.[this.id];this.comboData=c?.content,a(c?.content,c?.totalElements)}},callbackonly:!0},bubbles:!0,composed:!0}))}}disconnectedCallback(){super.disconnectedCallback(),this.rendered=!1}renderNavLink(){const e=this.field?.link;if(!e?.href)return d;const t=Oe(e.href,this.state,this.data)??e.href,a=Oe(e.title,this.state,this.data)||t,s=e.icon||(t.startsWith("http")?"vaadin:external-link":"vaadin:link"),i=this.navLinkOffset??"calc(var(--lumo-font-size-s) * 1.6 + (var(--lumo-size-m) - var(--lumo-icon-size-s)) / 2)";return o`<a
                 data-navlink
                 href="${t}"
                 title="${a}"
-                target="${P(e.target||void 0)}"
+                target="${T(e.target||void 0)}"
                 style="display: flex; align-items: center; color: var(--lumo-secondary-text-color); align-self: flex-start; margin-top: ${i};"
-        ><vaadin-icon icon="${s}" style="width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s);"></vaadin-icon></a>`}positionNavLink(){const e=this.renderRoot?.querySelector("a[data-navlink]");e&&setTimeout(()=>{const t=e.parentElement,a=t?.firstElementChild?.firstElementChild;if(!t||!a)return;const i=(a.shadowRoot?.querySelector('[part="input-field"]')??a).getBoundingClientRect();if(i.height===0)return;const r=Math.max(0,i.top+i.height/2-e.offsetHeight/2-t.getBoundingClientRect().top),n=`${Math.round(r)}px`;this.navLinkOffset!==n&&(this.navLinkOffset=n)})}helperText(){return this.helperShownInControl=!0,le(this.field?.description??"",this.state,this.data)??""}render(){const e=this.field?.fieldId??"";this.rendered=!0;const t=this.renderNavLink();this.helperShownInControl=!1;const a=this.renderField(),s=this.field?.description&&!this.helperShownInControl?le(this.field.description,this.state,this.data):void 0;return o`<div style="display: block;">
+        ><vaadin-icon icon="${s}" style="width: var(--lumo-icon-size-s); height: var(--lumo-icon-size-s);"></vaadin-icon></a>`}positionNavLink(){const e=this.renderRoot?.querySelector("a[data-navlink]");e&&setTimeout(()=>{const t=e.parentElement,a=t?.firstElementChild?.firstElementChild;if(!t||!a)return;const i=(a.shadowRoot?.querySelector('[part="input-field"]')??a).getBoundingClientRect();if(i.height===0)return;const r=Math.max(0,i.top+i.height/2-e.offsetHeight/2-t.getBoundingClientRect().top),n=`${Math.round(r)}px`;this.navLinkOffset!==n&&(this.navLinkOffset=n)})}helperText(){return this.helperShownInControl=!0,de(this.field?.description??"",this.state,this.data)??""}render(){const e=this.field?.fieldId??"";this.rendered=!0;const t=this.renderNavLink();this.helperShownInControl=!1;const a=this.renderField(),s=this.field?.description&&!this.helperShownInControl?de(this.field.description,this.state,this.data):void 0;return o`<div style="display: block;">
             <div style="${t!==d?"display: flex; gap: var(--lumo-space-xs);":""}"><div style="flex: 1; min-width: 0;">${a}</div>${t}</div>
             ${s?o`
                 <div style="font-size: var(--lumo-font-size-xs); color: var(--lumo-secondary-text-color); margin-top: var(--lumo-space-xs);">${s}</div>
@@ -5466,29 +5749,29 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             ${this.data.errors&&this.data.errors[e]&&this.data.errors[e].length>0?o`
                 <div><ul>${this.data.errors[e].map(i=>o`<li>${i}</li>`)}</ul></div>
             `:d}
-        </div>`}async firstUpdated(){this.filteredIcons=cr}update(e){e.has("component")&&(this.rendered=!1),super.update(e)}updated(e){super.updated(e),this.positionNavLink()}renderField(){const e=this.field?.fieldId??"",t=this.state&&e in this.state?this.state[e]:this.field?.initialValue,a=this.field?.label+"",s=Oe(a,this.state,this.data),i=this.labelAlreadyRendered||!s||s=="null"?d:s;return this.field?.propertyRow?this.renderPropertyRowField(e,t,i,s):this.field?.stereotype=="badge"?this.renderBadgeField(e,t,i,s):this.field?.stereotype=="plainText"?this.renderPlainTextField(e,t,i,s):this.field?.stereotype=="bulletedList"?this.renderBulletedListField(e,t,i,s):this.field?.readOnly&&this.field.stereotype!="grid"&&this.field.dataType!="status"&&this.field?.dataType!="money"?this.renderReadOnlyField(e,t,i,s):this.field?.dataType=="file"?this.renderFileField(e,t,i,s):this.field?.dataType=="string"?this.renderStringField(e,t,i,s):this.field?.dataType=="number"?this.renderNumberField(e,t,i,s):this.field?.dataType=="integer"?this.renderIntegerField(e,t,i,s):this.field?.dataType=="bool"?this.renderBoolField(e,t,i,s):this.field?.dataType=="dateRange"?this.renderDateRangeField(e,t,i,s):this.field?.dataType=="date"?this.renderDateField(e,t,i,s):this.field?.dataType=="dateTime"?this.renderDateTimeField(e,t,i,s):this.field?.dataType=="time"?this.renderTimeField(e,t,i,s):this.field?.dataType=="array"?this.renderArrayField(e,t,i,s):this.field?.dataType=="money"?this.renderMoneyField(e,t,i,s):this.field?.dataType=="status"?this.renderStatusField(e,t,i,s):this.field?.dataType=="range"?this.renderRangeField(e,t,i,s):o`<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`}renderBadgeField(e,t,a,s){if(!this.field)return o``;const i=t===!0||t==="true";return o`<vaadin-custom-field
+        </div>`}async firstUpdated(){this.filteredIcons=pr}update(e){e.has("component")&&(this.rendered=!1),super.update(e)}updated(e){super.updated(e),this.positionNavLink()}renderField(){const e=this.field?.fieldId??"",t=this.state&&e in this.state?this.state[e]:this.field?.initialValue,a=this.field?.label+"",s=Oe(a,this.state,this.data),i=this.labelAlreadyRendered||!s||s=="null"?d:s;return this.field?.propertyRow?this.renderPropertyRowField(e,t,i,s):this.field?.stereotype=="badge"?this.renderBadgeField(e,t,i,s):this.field?.stereotype=="plainText"?this.renderPlainTextField(e,t,i,s):this.field?.stereotype=="bulletedList"?this.renderBulletedListField(e,t,i,s):this.field?.readOnly&&this.field.stereotype!="grid"&&this.field.dataType!="status"&&this.field?.dataType!="money"?this.renderReadOnlyField(e,t,i,s):this.field?.dataType=="file"?this.renderFileField(e,t,i,s):this.field?.dataType=="string"?this.renderStringField(e,t,i,s):this.field?.dataType=="number"?this.renderNumberField(e,t,i,s):this.field?.dataType=="integer"?this.renderIntegerField(e,t,i,s):this.field?.dataType=="bool"?this.renderBoolField(e,t,i,s):this.field?.dataType=="dateRange"?this.renderDateRangeField(e,t,i,s):this.field?.dataType=="date"?this.renderDateField(e,t,i,s):this.field?.dataType=="dateTime"?this.renderDateTimeField(e,t,i,s):this.field?.dataType=="time"?this.renderTimeField(e,t,i,s):this.field?.dataType=="array"?this.renderArrayField(e,t,i,s):this.field?.dataType=="money"?this.renderMoneyField(e,t,i,s):this.field?.dataType=="status"?this.renderStatusField(e,t,i,s):this.field?.dataType=="range"?this.renderRangeField(e,t,i,s):o`<p>Unknown field type ${this.field?.dataType} / ${this.field?.stereotype}</p>`}renderBadgeField(e,t,a,s){if(!this.field)return o``;const i=t===!0||t==="true";return o`<vaadin-custom-field
                     id="${this.field.fieldId}"
                     .helperText="${this.helperText()}"
                     data-colspan="${this.field?.colspan}"
                     style="${this.field?.style}"
             ><span theme="badge ${i?"success":""} pill" style="${i?"":"opacity: 0.4;"}">${s}</span>
-            </vaadin-custom-field>`}renderPropertyRowField(e,t,a,s){if(!this.field)return o``;let i=le(t,this.state,this.data);const r=i&&typeof i=="object"&&"value"in i?i:null;i&&i.value&&(i=i.value);const n=this.field?.dataType=="bool"||i===!0||i===!1,l=this.field?.dataType=="money",c=i!=null&&i!=="";let u=c?String(i):"—";if(l&&c){const f=typeof i=="number"?i:parseFloat(String(i));isNaN(f)||(u=r&&r.locale&&r.currency?new Intl.NumberFormat(r.locale,{style:"currency",currency:r.currency}).format(f):new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(f))}const h=n?o`<vaadin-icon icon="${i===!0||i==="true"?"vaadin:check":"vaadin:minus"}" style="height: 16px; width: 16px;"></vaadin-icon>`:o`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${l?" font-variant-numeric: tabular-nums;":""}">${u}</span>`,p=s&&s!="null";return o`<div
+            </vaadin-custom-field>`}renderPropertyRowField(e,t,a,s){if(!this.field)return o``;let i=de(t,this.state,this.data);const r=i&&typeof i=="object"&&"value"in i?i:null;i&&i.value&&(i=i.value);const n=this.field?.dataType=="bool"||i===!0||i===!1,l=this.field?.dataType=="money",c=i!=null&&i!=="";let u=c?String(i):"—";if(l&&c){const f=typeof i=="number"?i:parseFloat(String(i));isNaN(f)||(u=r&&r.locale&&r.currency?new Intl.NumberFormat(r.locale,{style:"currency",currency:r.currency}).format(f):new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(f))}const m=n?o`<vaadin-icon icon="${i===!0||i==="true"?"vaadin:check":"vaadin:minus"}" style="height: 16px; width: 16px;"></vaadin-icon>`:o`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${l?" font-variant-numeric: tabular-nums;":""}">${u}</span>`,p=s&&s!="null";return o`<div
                     id="${this.field.fieldId}"
                     data-colspan="${this.field?.colspan}"
                     style="display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; width: 100%; padding: 0.4rem 0; border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.08)); font-size: var(--lumo-font-size-s, .875rem); ${this.field?.style}"
-            >${p?o`<span style="color: var(--lumo-secondary-text-color, #888); white-space: nowrap;">${s}</span>`:d}${h}</div>`}renderBulletedListField(e,t,a,s){if(!this.field)return o``;const i=le(t,this.state,this.data),r=Array.isArray(i)?i.map(n=>String(n)):i!=null&&i!==""?[String(i)]:[];return o`<vaadin-custom-field
+            >${p?o`<span style="color: var(--lumo-secondary-text-color, #888); white-space: nowrap;">${s}</span>`:d}${m}</div>`}renderBulletedListField(e,t,a,s){if(!this.field)return o``;const i=de(t,this.state,this.data),r=Array.isArray(i)?i.map(n=>String(n)):i!=null&&i!==""?[String(i)]:[];return o`<vaadin-custom-field
                     id="${this.field.fieldId}"
                     label="${a}"
                     .helperText="${this.helperText()}"
                     data-colspan="${this.field?.colspan}"
                     style="${this.field?.style}"
             ><mateu-bulleted-list .items="${r}"></mateu-bulleted-list>
-            </vaadin-custom-field>`}renderPlainTextField(e,t,a,s){if(!this.field)return o``;let i=le(t,this.state,this.data);const r=i&&typeof i=="object"&&"value"in i?i:null;i&&i.value&&(i=i.value);const n=this.field?.dataType=="bool"||i===!0||i===!1,l=this.field?.dataType=="money",c=i!=null&&i!=="";let u=c?String(i):"—";if(l&&c){const p=typeof i=="number"?i:parseFloat(String(i));isNaN(p)||(u=r&&r.locale&&r.currency?new Intl.NumberFormat(r.locale,{style:"currency",currency:r.currency}).format(p):new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(p))}const h=n?o`<vaadin-icon icon="${i===!0||i==="true"?"vaadin:check":"vaadin:minus"}" style="height: 16px; width: 16px;"></vaadin-icon>`:this.field?.multiline?o`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${u}</span>`:o`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${l?" font-variant-numeric: tabular-nums;":""}">${u}</span>`;return o`<vaadin-custom-field
+            </vaadin-custom-field>`}renderPlainTextField(e,t,a,s){if(!this.field)return o``;let i=de(t,this.state,this.data);const r=i&&typeof i=="object"&&"value"in i?i:null;i&&i.value&&(i=i.value);const n=this.field?.dataType=="bool"||i===!0||i===!1,l=this.field?.dataType=="money",c=i!=null&&i!=="";let u=c?String(i):"—";if(l&&c){const p=typeof i=="number"?i:parseFloat(String(i));isNaN(p)||(u=r&&r.locale&&r.currency?new Intl.NumberFormat(r.locale,{style:"currency",currency:r.currency}).format(p):new Intl.NumberFormat("de-DE",{minimumFractionDigits:2,maximumFractionDigits:2}).format(p))}const m=n?o`<vaadin-icon icon="${i===!0||i==="true"?"vaadin:check":"vaadin:minus"}" style="height: 16px; width: 16px;"></vaadin-icon>`:this.field?.multiline?o`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${u}</span>`:o`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${l?" font-variant-numeric: tabular-nums;":""}">${u}</span>`;return o`<vaadin-custom-field
                     id="${this.field.fieldId}"
                     label="${a}"
                     data-colspan="${this.field?.colspan}"
                     style="${l?"text-align: right; ":""}${this.field?.style}"
-            >${h}</vaadin-custom-field>`}renderReadOnlyField(e,t,a,s){if(!this.field)return o``;let i=le(t,this.state,this.data)||this.data[e];if(i&&i.value&&(i=i.value),this.field.stereotype=="fileUpload")return o`<vaadin-custom-field
+            >${m}</vaadin-custom-field>`}renderReadOnlyField(e,t,a,s){if(!this.field)return o``;let i=de(t,this.state,this.data)||this.data[e];if(i&&i.value&&(i=i.value),this.field.stereotype=="fileUpload")return o`<vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${a}"
                         .helperText="${this.helperText()}"
@@ -5605,7 +5888,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
                             @keyup="${l=>{if(l.key=="Backspace"){const c=l.currentTarget;c.inputElement.value||(c.value="")}}}"
-                            ${rs(this.comboRenderer,[])}
+                            ${os(this.comboRenderer,[])}
                     ></vaadin-combo-box>
                     `}return o`
                     <vaadin-combo-box
@@ -5621,7 +5904,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                             required="${this.field.required||d}"
                             data-colspan="${this.field.colspan}"
                             style="${this.field.style}"
-                            ${rs(this.comboRenderer,[])}
+                            ${os(this.comboRenderer,[])}
                     ></vaadin-combo-box>
                     `}if(this.field?.stereotype=="listBox"){if(this.field?.remoteCoordinates){const i=this.field.remoteCoordinates,r="";return this.data[this.id]&&(this.data[this.id].searchSignature||r)&&this.data[this.id].searchSignature!=r&&(this.data[this.id]=void 0),this.data[this.id]&&this.data[this.id].content&&this.data[this.id].totalElements||this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:i.action,parameters:{searchText:r,fieldId:this.field?.fieldId,size:200,page:0,sort:void 0}},bubbles:!0,composed:!0})),o`
                         <vaadin-custom-field
@@ -5631,7 +5914,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         >
                     <vaadin-list-box
                             id="${this.field.fieldId}"
-                            selected="${P(this.selectedIndex(t))}"
+                            selected="${T(this.selectedIndex(t))}"
                             @selected-changed="${this.listItemSelected}"
                             ?autofocus="${this.field.wantsFocus}"
                     >
@@ -5665,7 +5948,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     >
                     <vaadin-list-box
                             id="${this.field.fieldId}"
-                            selected="${P(this.selectedIndex(t))}"
+                            selected="${T(this.selectedIndex(t))}"
                             @selected-changed="${this.listItemSelected}"
                             ?autofocus="${this.field.wantsFocus}"
                     >
@@ -5776,7 +6059,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                             accessible-name-ref="notifications-heading"
                             content-width="300px"
                             position="bottom"
-                            ${xr(()=>o`
+                            ${kr(()=>o`
                                 <mateu-event-interceptor .target="${this}">
                                 <mateu-choice
                                         .field="${this.field}"
@@ -5878,7 +6161,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                             style="--vaadin-combo-box-overlay-width: 16em"
                                     .filteredItems="${this.filteredIcons}"
                             @filter-changed="${this.iconFilterChanged}"
-                            ${rs(this.iconComboboxRenderer,[])}
+                            ${os(this.iconComboboxRenderer,[])}
                     >
                         ${t?o`<vaadin-icon slot="prefix" icon="${t}"></vaadin-icon>`:d}
                     </vaadin-combo-box>
@@ -5941,7 +6224,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     >
                         <mateu-camera-capture .fieldId="${this.field.fieldId}" .value="${t}"></mateu-camera-capture>
                     </vaadin-custom-field>
-                `;if(this.field?.stereotype=="fileUpload"){const i=eo(this.field.attributes,"accept");return o`
+                `;if(this.field?.stereotype=="fileUpload"){const i=ao(this.field.attributes,"accept");return o`
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${a}"
@@ -6002,8 +6285,8 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
   header-title="Choose color"
   .opened="${this.colorPickerOpened}"
   @closed="${()=>{this.colorPickerOpened=!1}}"
-  ${qi(this.renderColorPicker,[])}
-  ${Cs(this.renderColorPickerFooter,[])}
+  ${Ui(this.renderColorPicker,[])}
+  ${Is(this.renderColorPickerFooter,[])}
 ></vaadin-dialog>
                 `:o`
                 <vaadin-text-field
@@ -6168,7 +6451,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                 data-colspan="${this.field.colspan}"
                         >
                     <vaadin-list-box multiple
-                                     .selectedValues="${P(this.selectedIndexes(t))}"
+                                     .selectedValues="${T(this.selectedIndexes(t))}"
                                      @selected-values-changed="${this.listItemsSelected}"
                             id="${this.field.fieldId}"
                             ?autofocus="${this.field.wantsFocus}"
@@ -6186,7 +6469,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                             data-colspan="${this.field.colspan}"
                     >
                     <vaadin-list-box multiple
-                                     .selectedValues="${P(this.selectedIndexes(t))}"
+                                     .selectedValues="${T(this.selectedIndexes(t))}"
                                      @selected-values-changed="${this.listItemsSelected}"
                                      ?autofocus="${this.field.wantsFocus}"
                                      data-colspan="${this.field.colspan}"
@@ -6293,7 +6576,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
                 >
-                    ${i?o`<span theme="badge pill ${Vi(i.type)}">${i.message}</span>`:o``}                    
+                    ${i?o`<span theme="badge pill ${Wi(i.type)}">${i.message}</span>`:o``}                    
                 </vaadin-custom-field>
             `}renderRangeField(e,t,a,s){if(!this.field)return o``;const i=t;return o`
                 <vaadin-custom-field
@@ -6309,7 +6592,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                    style="min-width: 10rem;"
                 ></ui5-range-slider></vaadin-custom-field>
             `}};me.styles=C`
-        ${Ht}
+        ${Kt}
 
         /* A field spanning several columns (host colspan attribute, set when colspan > 1) must
            stretch to fill them — vaadin inputs default to a fixed width otherwise. */
@@ -6351,7 +6634,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             padding-bottom: var(--mateu-label-padding-bottom, 7px);
             line-height: var(--mateu-label-line-height, 1);
         }
-  `;Ae([m()],me.prototype,"component",2);Ae([m()],me.prototype,"field",2);Ae([m()],me.prototype,"baseUrl",2);Ae([m()],me.prototype,"state",2);Ae([m()],me.prototype,"data",2);Ae([m()],me.prototype,"appState",2);Ae([m()],me.prototype,"appData",2);Ae([m()],me.prototype,"labelAlreadyRendered",2);Ae([$()],me.prototype,"colorPickerOpened",2);Ae([$()],me.prototype,"colorPickerValue",2);Ae([$()],me.prototype,"filteredIcons",2);Ae([$()],me.prototype,"navLinkOffset",2);me=Ae([k("mateu-field")],me);var At=(e=>(e.OnLoad="OnLoad",e.OnSuccess="OnSuccess",e.OnError="OnError",e.OnValueChange="OnValueChange",e.OnCustomEvent="OnCustomEvent",e.AutoSave="AutoSave",e))(At||{}),Sp=Object.defineProperty,Qi=(e,t,a,s)=>{for(var i=void 0,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=n(t,a,i)||i);return i&&Sp(t,a,i),i};class Zt extends ui{constructor(){super(...arguments),this.state={},this.data={},this.appData={},this.appState={},this.triggerOnLoad=()=>{const t=this.component;this.registerCustomEventListeners(),t.triggers?.filter(a=>a.type==At.OnLoad).forEach(a=>{if((!a.condition||this._evalExpr(a.condition))&&!a.triggered){const i=a;i.triggered=!0;var s=i.times-1;i.timeoutMillis>0?this.scheduleOnload(i,s,this.id):this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0}))}})},this.scheduleOnload=(t,a,s)=>{if(s!=this.component?.id)return;const i=this.callbackToken;setTimeout(()=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,callbackToken:i},bubbles:!0,composed:!0}))},t.timeoutMillis)},this._registeredCustomEventListeners=[],this.customEventManager=t=>{if(!(t instanceof CustomEvent))return;const a=t,i=(this.component.triggers??[]).filter(r=>r.type==At.OnCustomEvent).filter(r=>r.eventName==a.type).filter(r=>r.source!=="COMPONENT"||a.detail?.__source===r.from);i.length!==0&&(i.some(r=>!r.source||r.source==="SELF")&&(t.stopPropagation(),t.preventDefault()),i.forEach(r=>{(!r.condition||this._evalExpr(r.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:r.actionId,parameters:a.detail},bubbles:!0,composed:!0}))}))}}_interpolationExtra(){return{appState:this.appState??{},appData:this.appData??{},component:this.component}}_evalExpr(t){return Sr(t,this.state??{},this.data??{},this._interpolationExtra())}_evalTemplate(t){return vn(t,this.state??{},this.data??{},this._interpolationExtra())}applyFragment(t){if(this.id==t.targetComponentId){if(t.component)if(ai.Add==t.action)this.component&&this.component.children?.push(t.component);else{if(this.callbackToken=ye(),t.component?.type==de.ServerSide)if(this.component){const s=this.component,i=t.component;s.actions=i.actions,s.type=i.type,s.rules=i.rules,s.triggers=i.triggers,s.serverSideType=i.serverSideType,s.route=i.route,s.initialData=i.initialData,s.validations=i.validations,s.cssClasses=i.cssClasses,s.slot=i.slot,s.style=i.style,s.children=i.children,(s.serverSideType!=i.serverSideType||s.id!=i.id)&&setTimeout(()=>this.triggerOnLoad())}else this.component=t.component,setTimeout(()=>this.triggerOnLoad());else{const s=[t.component];this.component&&(this.component.children=s)}t.action!==ai.ReplaceKeepData&&(this.state={},this.data={})}if(t.state&&(this.state={...this.state,...t.state}),t.data){for(const s in t.data){const i=t.data[s]?.page;i?.pageNumber>0&&this.data[s]&&this.data[s].page.content&&(i.content?i.content=[...this.data[s].page.content,...i.content]:i.content=[...this.data[s].page.content])}this.data={...this.data,...t.data}}this.registerCustomEventListeners();const a=te.getAfterRenderHook();a&&setTimeout(()=>a(this)),this.requestUpdate()}}registerCustomEventListeners(){this._registeredCustomEventListeners.forEach(({target:a,name:s})=>a.removeEventListener(s,this.customEventManager)),this._registeredCustomEventListeners=[],this.component?.triggers?.filter(a=>a.type==At.OnCustomEvent).forEach(a=>{const s=a.source==="DOCUMENT"||a.source==="COMPONENT"?document:this;s.addEventListener(a.eventName,this.customEventManager),this._registeredCustomEventListeners.push({target:s,name:a.eventName})})}disconnectedCallback(){this._registeredCustomEventListeners.forEach(({target:t,name:a})=>t.removeEventListener(a,this.customEventManager)),this._registeredCustomEventListeners=[],super.disconnectedCallback()}connectedCallback(){super.connectedCallback(),this.component&&this.registerCustomEventListeners()}}Qi([m()],Zt.prototype,"state");Qi([m()],Zt.prototype,"data");Qi([m()],Zt.prototype,"appData");Qi([m()],Zt.prototype,"appState");const Ip={lon:0,lat:0},ur=3,_p=e=>{if(!e)return;const t=e.split(",").map(i=>i.trim());if(t.length!==2)return;const a=Number(t[0]),s=Number(t[1]);if(!(t[0]===""||t[1]===""||!Number.isFinite(a)||!Number.isFinite(s)))return{lon:s,lat:a}},Ep=e=>{if(e==null||e.trim()==="")return ur;const t=Number(e);return Number.isFinite(t)?t:ur};var Tp=Object.defineProperty,Pp=Object.getOwnPropertyDescriptor,Zi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Pp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Tp(t,a,i),i};let Ea=class extends S{constructor(){super(...arguments),this.renderSeq=0}updated(e){super.updated(e),this.createMap()}disconnectedCallback(){super.disconnectedCallback(),this.map?.setTarget(void 0),this.map=void 0}async createMap(){const e=++this.renderSeq,[{default:t},{default:a},{default:s},{default:i},{fromLonLat:r},{default:n}]=await Promise.all([Pe(()=>import("./vendor-ol.js").then(c=>c.M),[]),Pe(()=>import("./vendor-ol.js").then(c=>c.V),[]),Pe(()=>import("./vendor-ol.js").then(c=>c.T),[]),Pe(()=>import("./vendor-ol.js").then(c=>c.O),[]),Pe(()=>import("./vendor-ol.js").then(c=>c.p),[]),Pe(()=>import("./vendor-ol.js").then(c=>c.o),[])]);if(e!==this.renderSeq||!this.isConnected)return;if(!this.shadowRoot.querySelector("style[data-ol]")){const c=document.createElement("style");c.setAttribute("data-ol",""),c.textContent=n,this.shadowRoot.appendChild(c)}this.map&&(this.map.setTarget(void 0),this.map=void 0);const l=_p(this.position)??Ip;this.map=new t({target:this.mapElement,layers:[new s({source:new i})],view:new a({center:r([l.lon,l.lat]),zoom:Ep(this.zoom)})})}render(){return o`<div id="map"></div>`}};Ea.styles=C`
+  `;je([h()],me.prototype,"component",2);je([h()],me.prototype,"field",2);je([h()],me.prototype,"baseUrl",2);je([h()],me.prototype,"state",2);je([h()],me.prototype,"data",2);je([h()],me.prototype,"appState",2);je([h()],me.prototype,"appData",2);je([h()],me.prototype,"labelAlreadyRendered",2);je([$()],me.prototype,"colorPickerOpened",2);je([$()],me.prototype,"colorPickerValue",2);je([$()],me.prototype,"filteredIcons",2);je([$()],me.prototype,"navLinkOffset",2);me=je([k("mateu-field")],me);var Dt=(e=>(e.OnLoad="OnLoad",e.OnSuccess="OnSuccess",e.OnError="OnError",e.OnValueChange="OnValueChange",e.OnCustomEvent="OnCustomEvent",e.AutoSave="AutoSave",e))(Dt||{}),Pp=Object.defineProperty,Zi=(e,t,a,s)=>{for(var i=void 0,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=n(t,a,i)||i);return i&&Pp(t,a,i),i};class ta extends pi{constructor(){super(...arguments),this.state={},this.data={},this.appData={},this.appState={},this.triggerOnLoad=()=>{const t=this.component;this.registerCustomEventListeners(),t.triggers?.filter(a=>a.type==Dt.OnLoad).forEach(a=>{if((!a.condition||this._evalExpr(a.condition))&&!a.triggered){const i=a;i.triggered=!0;var s=i.times-1;i.timeoutMillis>0?this.scheduleOnload(i,s,this.id):this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0}))}})},this.scheduleOnload=(t,a,s)=>{if(s!=this.component?.id)return;const i=this.callbackToken;setTimeout(()=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:t.actionId,callbackToken:i},bubbles:!0,composed:!0}))},t.timeoutMillis)},this._registeredCustomEventListeners=[],this.customEventManager=t=>{if(!(t instanceof CustomEvent))return;const a=t,i=(this.component.triggers??[]).filter(r=>r.type==Dt.OnCustomEvent).filter(r=>r.eventName==a.type).filter(r=>r.source!=="COMPONENT"||a.detail?.__source===r.from);i.length!==0&&(i.some(r=>!r.source||r.source==="SELF")&&(t.stopPropagation(),t.preventDefault()),i.forEach(r=>{(!r.condition||this._evalExpr(r.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:r.actionId,parameters:a.detail},bubbles:!0,composed:!0}))}))}}_interpolationExtra(){return{appState:this.appState??{},appData:this.appData??{},component:this.component}}_evalExpr(t){return _r(t,this.state??{},this.data??{},this._interpolationExtra())}_evalTemplate(t){return $n(t,this.state??{},this.data??{},this._interpolationExtra())}applyFragment(t){if(this.id==t.targetComponentId){if(t.component)if(ii.Add==t.action)this.component&&this.component.children?.push(t.component);else{if(this.callbackToken=ye(),t.component?.type==oe.ServerSide)if(this.component){const s=this.component,i=t.component;s.actions=i.actions,s.type=i.type,s.rules=i.rules,s.triggers=i.triggers,s.serverSideType=i.serverSideType,s.route=i.route,s.initialData=i.initialData,s.validations=i.validations,s.cssClasses=i.cssClasses,s.slot=i.slot,s.style=i.style,s.children=i.children,(s.serverSideType!=i.serverSideType||s.id!=i.id)&&setTimeout(()=>this.triggerOnLoad())}else this.component=t.component,setTimeout(()=>this.triggerOnLoad());else{const s=[t.component];this.component&&(this.component.children=s)}t.action!==ii.ReplaceKeepData&&(this.state={},this.data={})}if(t.state&&(this.state={...this.state,...t.state}),t.data){for(const s in t.data){const i=t.data[s]?.page;i?.pageNumber>0&&this.data[s]&&this.data[s].page.content&&(i.content?i.content=[...this.data[s].page.content,...i.content]:i.content=[...this.data[s].page.content])}this.data={...this.data,...t.data}}this.registerCustomEventListeners();const a=te.getAfterRenderHook();a&&setTimeout(()=>a(this)),this.requestUpdate()}}registerCustomEventListeners(){this._registeredCustomEventListeners.forEach(({target:a,name:s})=>a.removeEventListener(s,this.customEventManager)),this._registeredCustomEventListeners=[],this.component?.triggers?.filter(a=>a.type==Dt.OnCustomEvent).forEach(a=>{const s=a.source==="DOCUMENT"||a.source==="COMPONENT"?document:this;s.addEventListener(a.eventName,this.customEventManager),this._registeredCustomEventListeners.push({target:s,name:a.eventName})})}disconnectedCallback(){this._registeredCustomEventListeners.forEach(({target:t,name:a})=>t.removeEventListener(a,this.customEventManager)),this._registeredCustomEventListeners=[],super.disconnectedCallback()}connectedCallback(){super.connectedCallback(),this.component&&this.registerCustomEventListeners()}}Zi([h()],ta.prototype,"state");Zi([h()],ta.prototype,"data");Zi([h()],ta.prototype,"appData");Zi([h()],ta.prototype,"appState");const Tp={lon:0,lat:0},hr=3,Op=e=>{if(!e)return;const t=e.split(",").map(i=>i.trim());if(t.length!==2)return;const a=Number(t[0]),s=Number(t[1]);if(!(t[0]===""||t[1]===""||!Number.isFinite(a)||!Number.isFinite(s)))return{lon:s,lat:a}},Rp=e=>{if(e==null||e.trim()==="")return hr;const t=Number(e);return Number.isFinite(t)?t:hr};var zp=Object.defineProperty,Ap=Object.getOwnPropertyDescriptor,es=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ap(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&zp(t,a,i),i};let Ta=class extends S{constructor(){super(...arguments),this.renderSeq=0}updated(e){super.updated(e),this.createMap()}disconnectedCallback(){super.disconnectedCallback(),this.map?.setTarget(void 0),this.map=void 0}async createMap(){const e=++this.renderSeq,[{default:t},{default:a},{default:s},{default:i},{fromLonLat:r},{default:n}]=await Promise.all([Te(()=>import("./vendor-ol.js").then(c=>c.M),[]),Te(()=>import("./vendor-ol.js").then(c=>c.V),[]),Te(()=>import("./vendor-ol.js").then(c=>c.T),[]),Te(()=>import("./vendor-ol.js").then(c=>c.O),[]),Te(()=>import("./vendor-ol.js").then(c=>c.p),[]),Te(()=>import("./vendor-ol.js").then(c=>c.o),[])]);if(e!==this.renderSeq||!this.isConnected)return;if(!this.shadowRoot.querySelector("style[data-ol]")){const c=document.createElement("style");c.setAttribute("data-ol",""),c.textContent=n,this.shadowRoot.appendChild(c)}this.map&&(this.map.setTarget(void 0),this.map=void 0);const l=Op(this.position)??Tp;this.map=new t({target:this.mapElement,layers:[new s({source:new i})],view:new a({center:r([l.lon,l.lat]),zoom:Rp(this.zoom)})})}render(){return o`<div id="map"></div>`}};Ta.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -6361,14 +6644,14 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             width: 100%;
             height: 100%;
         }
-    `;Zi([m()],Ea.prototype,"position",2);Zi([m()],Ea.prototype,"zoom",2);Zi([tt("#map")],Ea.prototype,"mapElement",2);Ea=Zi([k("mateu-map")],Ea);const Op=typeof HTMLElement<"u"?HTMLElement:class{};class Rp extends Op{static get observedAttributes(){return["content"]}#e;#t=0;get content(){return this.#e}set content(t){this.#e=t,this.#a()}attributeChangedCallback(t,a,s){this.content=s??void 0}connectedCallback(){this.style.display="block",this.#a()}async#a(){if(!this.isConnected)return;const t=this.#e??"",a=++this.#t,[{marked:s},{default:i}]=await Promise.all([Pe(()=>import("./vendor.js").then(r=>r.f),[]),Pe(()=>import("./vendor.js").then(r=>r.c),[])]);a===this.#t&&(this.innerHTML=i.sanitize(await s.parse(t),{USE_PROFILES:{html:!0,svg:!0,svgFilters:!0},CUSTOM_ELEMENT_HANDLING:{tagNameCheck:r=>!0}}))}}typeof customElements<"u"&&!customElements.get("mateu-markdown")&&customElements.define("mateu-markdown",Rp);var zp=Object.defineProperty,jp=Object.getOwnPropertyDescriptor,ya=(e,t,a,s)=>{for(var i=s>1?void 0:s?jp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&zp(t,a,i),i};const Ap=e=>{const t=[];return e.color&&e.color!=="normal"&&e.color!=="none"&&t.push(e.color),e.buttonStyle&&t.push(e.buttonStyle==="tertiaryInline"?"tertiary-inline":e.buttonStyle),e.size&&e.size!=="none"&&e.size!=="normal"&&t.push(e.size),t.length?t.join(" "):void 0},pr=e=>e==="back"||e==="backToList"||!!e&&e.startsWith("cancel");let St=class extends S{constructor(){super(...arguments),this.appState={},this.appData={},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.evalLabel=e=>Oe(e,this.state,this.data),this.renderBtn=e=>{if((this.data??{})[e.actionId+".hidden"])return d;const t=this.evalLabel(e.label),a=te.get()?.renderToolbarButton?.(e,t,()=>this.handleButtonClick(e.actionId));return a||o`
+    `;es([h()],Ta.prototype,"position",2);es([h()],Ta.prototype,"zoom",2);es([at("#map")],Ta.prototype,"mapElement",2);Ta=es([k("mateu-map")],Ta);const jp=typeof HTMLElement<"u"?HTMLElement:class{};class Lp extends jp{static get observedAttributes(){return["content"]}#e;#t=0;get content(){return this.#e}set content(t){this.#e=t,this.#a()}attributeChangedCallback(t,a,s){this.content=s??void 0}connectedCallback(){this.style.display="block",this.#a()}async#a(){if(!this.isConnected)return;const t=this.#e??"",a=++this.#t,[{marked:s},{default:i}]=await Promise.all([Te(()=>import("./vendor.js").then(r=>r.f),[]),Te(()=>import("./vendor.js").then(r=>r.c),[])]);a===this.#t&&(this.innerHTML=i.sanitize(await s.parse(t),{USE_PROFILES:{html:!0,svg:!0,svgFilters:!0},CUSTOM_ELEMENT_HANDLING:{tagNameCheck:r=>!0}}))}}typeof customElements<"u"&&!customElements.get("mateu-markdown")&&customElements.define("mateu-markdown",Lp);var Dp=Object.defineProperty,Fp=Object.getOwnPropertyDescriptor,wa=(e,t,a,s)=>{for(var i=s>1?void 0:s?Fp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Dp(t,a,i),i};const Np=e=>{const t=[];return e.color&&e.color!=="normal"&&e.color!=="none"&&t.push(e.color),e.buttonStyle&&t.push(e.buttonStyle==="tertiaryInline"?"tertiary-inline":e.buttonStyle),e.size&&e.size!=="none"&&e.size!=="normal"&&t.push(e.size),t.length?t.join(" "):void 0},mr=e=>e==="back"||e==="backToList"||!!e&&e.startsWith("cancel");let It=class extends S{constructor(){super(...arguments),this.appState={},this.appData={},this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.evalLabel=e=>Oe(e,this.state,this.data),this.renderBtn=e=>{if((this.data??{})[e.actionId+".hidden"])return d;const t=this.evalLabel(e.label),a=te.get()?.renderToolbarButton?.(e,t,()=>this.handleButtonClick(e.actionId));return a||o`
         <vaadin-button
                 data-action-id="${e.id}"
-                theme="${Ap(e)||d}"
+                theme="${Np(e)||d}"
                 @click="${()=>this.handleButtonClick(e.actionId)}"
                 ?disabled="${e.disabled}"
         >${e.iconOnLeft?o`<vaadin-icon icon="${e.iconOnLeft}"></vaadin-icon>`:d}${t}${e.iconOnRight?o`<vaadin-icon icon="${e.iconOnRight}"></vaadin-icon>`:d}</vaadin-button>
-    `}}render(){const e=this.metadata;if(!e)return o``;const t=e.toolbar??[],a=t.filter(l=>pr(l.actionId)),s=t.filter(l=>!pr(l.actionId)),i=a.length>0&&s.length>0?o`<span class="toolbar-divider"></span>`:d,r=e.avatar||e.title||e.subtitle||e.kpis?.length>0||e.header?.length>0||t.length>0,n=e.level??0;return n>0?this.setAttribute("data-nested",""):this.removeAttribute("data-nested"),o`
+    `}}render(){const e=this.metadata;if(!e)return o``;const t=e.toolbar??[],a=t.filter(l=>mr(l.actionId)),s=t.filter(l=>!mr(l.actionId)),i=a.length>0&&s.length>0?o`<span class="toolbar-divider"></span>`:d,r=e.avatar||e.title||e.subtitle||e.kpis?.length>0||e.header?.length>0||t.length>0,n=e.level??0;return n>0?this.setAttribute("data-nested",""):this.removeAttribute("data-nested"),o`
             ${e.breadcrumbs&&e.breadcrumbs.length>0?o`
                 <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center;" class="breadcrumbs-bar">
                     ${e.breadcrumbs.map((l,c)=>o`
@@ -6388,19 +6671,19 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center;" class="form-header">
                     ${e.avatar?w(this,e.avatar,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData):d}
                     <div style="flex: 1; min-width: 0; overflow: hidden;">
-                        ${e?.title&&n==0?o`<h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(xt(e?.title,this.state??{},this.data??{}))}</h2>`:d}
-                        ${e?.title&&n==1?o`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(xt(e?.title,this.state??{},this.data??{}))}</h3>`:d}
-                        ${e?.title&&n==2?o`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(xt(e?.title,this.state??{},this.data??{}))}</h4>`:d}
-                        ${e?.title&&n==3?o`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(xt(e?.title,this.state??{},this.data??{}))}</h5>`:d}
-                        ${e?.title&&n>3?o`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(xt(e?.title,this.state??{},this.data??{}))}</h6>`:d}
+                        ${e?.title&&n==0?o`<h2 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(wt(e?.title,this.state??{},this.data??{}))}</h2>`:d}
+                        ${e?.title&&n==1?o`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(wt(e?.title,this.state??{},this.data??{}))}</h3>`:d}
+                        ${e?.title&&n==2?o`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(wt(e?.title,this.state??{},this.data??{}))}</h4>`:d}
+                        ${e?.title&&n==3?o`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(wt(e?.title,this.state??{},this.data??{}))}</h5>`:d}
+                        ${e?.title&&n>3?o`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${ge(wt(e?.title,this.state??{},this.data??{}))}</h6>`:d}
 
-                        ${e?.subtitle?o`<span style="display: inline-block; margin-block-end: 0.83em;">${ge(xt(e?.subtitle,this.state??{},this.data??{}))}</span>`:d}
+                        ${e?.subtitle?o`<span style="display: inline-block; margin-block-end: 0.83em;">${ge(wt(e?.subtitle,this.state??{},this.data??{}))}</span>`:d}
                     </div>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                         ${e?.kpis?.map(l=>o`
                             <div style="display: flex; flex-direction: column; align-items: center;">
                                 <div>${this.evalLabel(l.title)}</div>
-                                <div>${ge(xt(l.text,this.state??{},this.data??{}))}</div>
+                                <div>${ge(wt(l.text,this.state??{},this.data??{}))}</div>
                             </div>
                         `)}
                         ${e?.header?.map(l=>w(this,l,this.baseUrl,this.state??{},this.data??{},this.appState,this.appData))}
@@ -6412,10 +6695,10 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             `:d}
             ${e.badges&&e.badges.length>0?o`
                 <div style="display: flex; gap: var(--lumo-space-s, .5rem); padding-bottom: var(--lumo-space-s, .5rem);">
-                    ${e.badges.map(l=>el(l,this.state??{},this.data??{}))}
+                    ${e.badges.map(l=>sl(l,this.state??{},this.data??{}))}
                 </div>
             `:d}
-        `}};St.styles=C`
+        `}};It.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -6446,8 +6729,8 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             margin: 0 4px;
         }
 
-        ${Ht}
-    `;ya([m()],St.prototype,"metadata",2);ya([m()],St.prototype,"baseUrl",2);ya([m()],St.prototype,"state",2);ya([m()],St.prototype,"data",2);ya([m()],St.prototype,"appState",2);ya([m()],St.prototype,"appData",2);St=ya([k("mateu-content-header")],St);var Lp=Object.defineProperty,Dp=Object.getOwnPropertyDescriptor,pi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Dp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Lp(t,a,i),i};let da=class extends ui{constructor(){super(...arguments),this.state={},this.data={},this.appState={},this.appData={}}render(){const e=this.component?.metadata;return o`
+        ${Kt}
+    `;wa([h()],It.prototype,"metadata",2);wa([h()],It.prototype,"baseUrl",2);wa([h()],It.prototype,"state",2);wa([h()],It.prototype,"data",2);wa([h()],It.prototype,"appState",2);wa([h()],It.prototype,"appData",2);It=wa([k("mateu-content-header")],It);var Mp=Object.defineProperty,qp=Object.getOwnPropertyDescriptor,hi=(e,t,a,s)=>{for(var i=s>1?void 0:s?qp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Mp(t,a,i),i};let ua=class extends pi{constructor(){super(...arguments),this.state={},this.data={},this.appState={},this.appData={}}render(){const e=this.component?.metadata;return o`
             <vaadin-vertical-layout theme="spacing" class="${this.component?.cssClasses}">
                 <mateu-content-header
                     .metadata="${e}"
@@ -6464,7 +6747,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     </vaadin-horizontal-layout>
                 </div>
             </vaadin-vertical-layout>
-       `}};da.styles=C`
+       `}};ua.styles=C`
         :host {
         }
 
@@ -6478,7 +6761,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         .form-content {
             padding-bottom: 3rem;
         }
-    `;pi([m()],da.prototype,"state",2);pi([m()],da.prototype,"data",2);pi([m()],da.prototype,"appState",2);pi([m()],da.prototype,"appData",2);da=pi([k("mateu-form")],da);var Fp=Object.defineProperty,Np=Object.getOwnPropertyDescriptor,at=(e,t,a,s)=>{for(var i=s>1?void 0:s?Np(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Fp(t,a,i),i};let Re=class extends S{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.pagesRequested=[],this.emptyArray=e=>!e||e.length==0,this.dataProvider=(e,t)=>{const a=this.data[this.id]?.page;if(this.metadata?.infiniteScrolling&&e.page>0){let s=!1;a&&a.content&&(a.content.length>=(e.page+1)*e.pageSize||a.content.length==a.totalElements)&&(t(a.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),a.totalElements),s=!0,this.grid&&this.grid.recalculateColumnWidths()),s||this.pagesRequested.find(i=>i==e.page)||(this.pagesRequested.push(e.page),this.dispatchEvent(new CustomEvent("fetch-more-elements",{detail:{params:e,callback:()=>{this.data[this.id]?.page?.content&&(t(this.data[this.id].page.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),this.data[this.id].page.totalElements),this.grid&&this.grid.recalculateColumnWidths())}},bubbles:!0,composed:!0})))}else{const s=this.metadata?.infiniteScrolling?a?.totalElements:a?.content?.length??0;t(a?.content??[],s),this.grid&&this.grid.recalculateColumnWidths()}},this._onActionRequested=e=>{const t=e.detail,a=this.identifierFieldName;if(!a||!t.parameters||t.actionId?.startsWith("action-on-row-"))return;const s=t.parameters[a];s!==void 0&&(this.state._selectedId=String(s),this._applyCellPartNameGenerator(),this.grid?.requestContentUpdate())},this.tooltipGenerator=e=>{let t="";const{column:a,item:s}=e,i=this.metadata?.columns?.find(r=>r.metadata.id==a?.path);if(i?.metadata){const r=(i?.metadata).tooltipPath;r&&a&&s&&(t=s[r])}return t}}get identifierFieldName(){const e=this.metadata?.columns?.find(a=>a.metadata?.identifier);if(e)return e.metadata?.id;if(this.metadata?.columns?.find(a=>a.metadata?.id==="id"))return"id"}_applyCellPartNameGenerator(){if(!this.grid)return;const e=this.identifierFieldName,t=this.state?._selectedId??this.appState?._splitDetailId,a=!!this.metadata?.groupBy;e&&t!==void 0||a?this.grid.cellPartNameGenerator=(s,i)=>{const r=i.item;return Ga(r)?"mateu-group-row":e&&t!==void 0&&String(r[e])===String(t)?"selected-row":""}:this.grid.cellPartNameGenerator=null}connectedCallback(){super.connectedCallback(),this.addEventListener("action-requested",this._onActionRequested)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("action-requested",this._onActionRequested)}updated(e){super.updated(e),this._applyCellPartNameGenerator(),this.grid?.clearCache(),this.grid?.requestContentUpdate(),this.grid?.recalculateColumnWidths(),this.pagesRequested=[]}render(){const e=this.data[this.id],t=e?.page,a=this.metadata?.groupBy,s=this.metadata?.infiniteScrolling?void 0:t?.content?Ir(t.content,a,e?.groups):t?.content,i=(this.metadata?.columns??[]).flatMap(c=>c.metadata?.type===v.GridGroupColumn?(c.metadata.columns??[]).map(u=>u.metadata):[c.metadata]),r=Pr(i,e,a);let n="";this.metadata?.wrapCellContent&&(n+=" wrap-cell-content"),this.metadata?.compact&&(n+=" compact"),this.metadata?.noBorder&&(n+=" no-border"),this.metadata?.noRowBorder&&(n+=" no-row-borders"),this.metadata?.columnBorders&&(n+=" column-borders"),this.metadata?.rowStripes&&(n+=" row-stripes");const l=this.state[this.id+"_selected_items"]||[];return o`
+    `;hi([h()],ua.prototype,"state",2);hi([h()],ua.prototype,"data",2);hi([h()],ua.prototype,"appState",2);hi([h()],ua.prototype,"appData",2);ua=hi([k("mateu-form")],ua);var Up=Object.defineProperty,Bp=Object.getOwnPropertyDescriptor,it=(e,t,a,s)=>{for(var i=s>1?void 0:s?Bp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Up(t,a,i),i};let Re=class extends S{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.detailsOpenedItems=[],this.pagesRequested=[],this.emptyArray=e=>!e||e.length==0,this.dataProvider=(e,t)=>{const a=this.data[this.id]?.page;if(this.metadata?.infiniteScrolling&&e.page>0){let s=!1;a&&a.content&&(a.content.length>=(e.page+1)*e.pageSize||a.content.length==a.totalElements)&&(t(a.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),a.totalElements),s=!0,this.grid&&this.grid.recalculateColumnWidths()),s||this.pagesRequested.find(i=>i==e.page)||(this.pagesRequested.push(e.page),this.dispatchEvent(new CustomEvent("fetch-more-elements",{detail:{params:e,callback:()=>{this.data[this.id]?.page?.content&&(t(this.data[this.id].page.content.slice(e.page*e.pageSize,(e.page+1)*e.pageSize),this.data[this.id].page.totalElements),this.grid&&this.grid.recalculateColumnWidths())}},bubbles:!0,composed:!0})))}else{const s=this.metadata?.infiniteScrolling?a?.totalElements:a?.content?.length??0;t(a?.content??[],s),this.grid&&this.grid.recalculateColumnWidths()}},this._onActionRequested=e=>{const t=e.detail,a=this.identifierFieldName;if(!a||!t.parameters||t.actionId?.startsWith("action-on-row-"))return;const s=t.parameters[a];s!==void 0&&(this.state._selectedId=String(s),this._applyCellPartNameGenerator(),this.grid?.requestContentUpdate())},this.tooltipGenerator=e=>{let t="";const{column:a,item:s}=e,i=this.metadata?.columns?.find(r=>r.metadata.id==a?.path);if(i?.metadata){const r=(i?.metadata).tooltipPath;r&&a&&s&&(t=s[r])}return t}}get identifierFieldName(){const e=this.metadata?.columns?.find(a=>a.metadata?.identifier);if(e)return e.metadata?.id;if(this.metadata?.columns?.find(a=>a.metadata?.id==="id"))return"id"}_applyCellPartNameGenerator(){if(!this.grid)return;const e=this.identifierFieldName,t=this.state?._selectedId??this.appState?._splitDetailId,a=!!this.metadata?.groupBy;e&&t!==void 0||a?this.grid.cellPartNameGenerator=(s,i)=>{const r=i.item;return Ya(r)?"mateu-group-row":e&&t!==void 0&&String(r[e])===String(t)?"selected-row":""}:this.grid.cellPartNameGenerator=null}connectedCallback(){super.connectedCallback(),this.addEventListener("action-requested",this._onActionRequested)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("action-requested",this._onActionRequested)}updated(e){super.updated(e),this._applyCellPartNameGenerator(),this.grid?.clearCache(),this.grid?.requestContentUpdate(),this.grid?.recalculateColumnWidths(),this.pagesRequested=[]}render(){const e=this.data[this.id],t=e?.page,a=this.metadata?.groupBy,s=this.metadata?.infiniteScrolling?void 0:t?.content?Er(t.content,a,e?.groups):t?.content,i=(this.metadata?.columns??[]).flatMap(c=>c.metadata?.type===v.GridGroupColumn?(c.metadata.columns??[]).map(u=>u.metadata):[c.metadata]),r=Rr(i,e,a);let n="";this.metadata?.wrapCellContent&&(n+=" wrap-cell-content"),this.metadata?.compact&&(n+=" compact"),this.metadata?.noBorder&&(n+=" no-border"),this.metadata?.noRowBorder&&(n+=" no-row-borders"),this.metadata?.columnBorders&&(n+=" column-borders"),this.metadata?.rowStripes&&(n+=" row-stripes");const l=this.state[this.id+"_selected_items"]||[];return o`
             <vaadin-grid
                     .items="${s}"
                     item-id-path="_rowNumber"
@@ -6490,28 +6773,28 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     .dataProvider="${this.metadata?.infiniteScrolling?this.dataProvider:void 0}"
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
-                    @selected-items-changed="${c=>{const u=(c.detail.value??[]).filter(h=>!Ga(h));this.emptyArray(this.state[this.id+"_selected_items"])&&this.emptyArray(u)||(this.state[this.id+"_selected_items"]=u,this.metadata?.onRowSelectionChangedActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.metadata?.onRowSelectionChangedActionId},bubbles:!0,composed:!0})))}}"
-                    @active-item-changed="${P(this.metadata?.detailPath&&!this.metadata?.useButtonForDetail?c=>{if(this.metadata?.detailPath){const u=c.detail.value;if(u&&Ga(u))return;u?this.detailsOpenedItems=[u]:this.detailsOpenedItems=[]}}:void 0)}"
+                    @selected-items-changed="${c=>{const u=(c.detail.value??[]).filter(m=>!Ya(m));this.emptyArray(this.state[this.id+"_selected_items"])&&this.emptyArray(u)||(this.state[this.id+"_selected_items"]=u,this.metadata?.onRowSelectionChangedActionId&&this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:this.metadata?.onRowSelectionChangedActionId},bubbles:!0,composed:!0})))}}"
+                    @active-item-changed="${T(this.metadata?.detailPath&&!this.metadata?.useButtonForDetail?c=>{if(this.metadata?.detailPath){const u=c.detail.value;if(u&&Ya(u))return;u?this.detailsOpenedItems=[u]:this.detailsOpenedItems=[]}}:void 0)}"
                     .detailsOpenedItems="${this.detailsOpenedItems}"
-                    ${P(this.metadata?.detailPath?wr(c=>o`${w(this,c[this.metadata?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
+                    ${T(this.metadata?.detailPath?Cr(c=>o`${w(this,c[this.metadata?.detailPath],this.baseUrl,this.state,this.data,this.appState,this.appData)}`):void 0)}
                     theme="${n}"
                     style="${this.metadata?.gridStyle}"
             >
                 ${this.metadata?.rowsSelectionEnabled?o`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:d}
-                ${this.metadata?.columns?.map(c=>Is(c,this,this.baseUrl,this.state,this.data,this.appState,this.appData,r))}
+                ${this.metadata?.columns?.map(c=>Es(c,this,this.baseUrl,this.state,this.data,this.appState,this.appData,r))}
                 ${this.metadata?.useButtonForDetail?o`
                     <vaadin-grid-column
                             width="44px"
                             flex-grow="0"
-                            ${wt((c,{detailsOpened:u})=>o`
+                            ${kt((c,{detailsOpened:u})=>o`
               <vaadin-button
                 theme="tertiary icon"
                 title="${u?"Collapse":"Expand"}"
                 aria-label="Toggle details"
                 aria-expanded="${u?"true":"false"}"
-                @click="${()=>{this.detailsOpenedItems=u?this.detailsOpenedItems.filter(h=>h!==c):[...this.detailsOpenedItems,c]}}"
+                @click="${()=>{this.detailsOpenedItems=u?this.detailsOpenedItems.filter(m=>m!==c):[...this.detailsOpenedItems,c]}}"
               >
                 <vaadin-icon
                   .icon="${u?"lumo:angle-down":"lumo:angle-right"}"
@@ -6520,12 +6803,12 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             `,[])}
                     ></vaadin-grid-column>
                 `:d}
-                <span slot="empty-state">${aa(this.emptyStateMessage??this.metadata?.emptyStateMessage)}</span>
+                <span slot="empty-state">${sa(this.emptyStateMessage??this.metadata?.emptyStateMessage)}</span>
                 ${this.metadata?.columns?.find(c=>c.metadata.tooltipPath)?o`<vaadin-tooltip slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>`:d}
             </vaadin-grid>
             <slot></slot>
        `}};Re.styles=C`
-        ${Ht}
+        ${Kt}
         vaadin-grid[data-clickable-rows]::part(row) {
             cursor: pointer;
         }
@@ -6539,7 +6822,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             background-color: var(--lumo-contrast-5pct, rgba(0, 0, 0, 0.04));
             font-weight: 600;
         }
-  `;at([m()],Re.prototype,"id",2);at([m()],Re.prototype,"metadata",2);at([m()],Re.prototype,"baseUrl",2);at([m()],Re.prototype,"state",2);at([m()],Re.prototype,"data",2);at([m()],Re.prototype,"appState",2);at([m()],Re.prototype,"appData",2);at([m()],Re.prototype,"emptyStateMessage",2);at([$()],Re.prototype,"detailsOpenedItems",2);at([tt("vaadin-grid")],Re.prototype,"grid",2);Re=at([k("mateu-table")],Re);const mo="mateu-saved-views",es=()=>{try{return JSON.parse(localStorage.getItem(mo)??"{}")}catch{return{}}},Ns=e=>{try{localStorage.setItem(mo,JSON.stringify(e))}catch{}},Di=e=>es()[e]??[],vo=(e,t)=>{const a=t.name?.trim();if(!a||Object.keys(t.values??{}).length===0)return;const s=es(),i=(s[e]??[]).filter(r=>r.name!==a);i.push({...t,name:a}),s[e]=i,Ns(s)},fo=(e,t)=>{const a=es(),s=(a[e]??[]).filter(i=>i.name!==t);s.length===0?delete a[e]:a[e]=s,Ns(a)},bo=(e,t)=>{const a=es();a[e]=(a[e]??[]).map(s=>({...s,isDefault:s.name===t?!s.isDefault:!1})),Ns(a)},go=e=>Di(e).find(t=>t.isDefault);var Mp=Object.defineProperty,qp=Object.getOwnPropertyDescriptor,Ve=(e,t,a,s)=>{for(var i=s>1?void 0:s?qp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Mp(t,a,i),i};let we=class extends S{constructor(){super(...arguments),this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.searchOnly=!1,this.panelOpened=!1,this.viewsOpened=!1,this.draftText="",this.openPanel=()=>{this.panelOpened||this.filters.length===0||(this.panelOpened=!0,this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick))},this.closePanel=()=>{this.detachOutsideClick(),this.panelOpened=!1,this.activeFilter=void 0},this.clearAllFilters=()=>{const e=this.filters.flatMap(a=>this.isRangeFilter(a)?[`${a.fieldId}_from`,`${a.fieldId}_to`]:[a.fieldId]),t={searchText:void 0};e.forEach(a=>{t[a]=void 0}),this.state={...this.state,...t},this.dispatchEvent(new CustomEvent("filter-reset-requested",{detail:{fieldIds:e},bubbles:!0,composed:!0})),this.requestSearch()},this.keepFocus=e=>e.preventDefault()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}get filters(){return this.metadata?.filters??[]}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}requestSearch(){this.closePanel(),this.dispatchEvent(new CustomEvent("search-requested",{detail:{},bubbles:!0,composed:!0}))}emitValueChanged(e,t){this.state={...this.state,[e]:t},this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:t,fieldId:e},bubbles:!0,composed:!0}))}applyFilter(e,t){this.emitValueChanged(e,t),this.requestSearch()}removeChip(e){const t=this.filters.find(a=>a.fieldId===e);t&&this.isRangeFilter(t)?(this.emitValueChanged(`${e}_from`,void 0),this.emitValueChanged(`${e}_to`,void 0)):this.emitValueChanged(e,e==="searchText"?"":void 0),this.requestSearch()}commitText(e){this.emitValueChanged("searchText",e.value),this.draftText="",e.value="",this.requestSearch()}get viewsScope(){return window.location.pathname}allFilterKeys(){return["searchText",...this.filters.flatMap(e=>this.isRangeFilter(e)?[`${e.fieldId}_from`,`${e.fieldId}_to`]:[e.fieldId])]}snapshotValues(){const e={};return this.state.searchText&&(e.searchText=this.state.searchText),this.filters.forEach(t=>{if(this.isSet(t))if(this.isRangeFilter(t)){const a=this.rangeBound(t,"from"),s=this.rangeBound(t,"to");a&&(e[`${t.fieldId}_from`]=a),s&&(e[`${t.fieldId}_to`]=s)}else this.isMultiFilter(t)?e[t.fieldId]=this.multiValues(t):e[t.fieldId]=this.state[t.fieldId]}),e}applyView(e){const t=this.allFilterKeys(),a={};t.forEach(s=>{a[s]=void 0}),this.state={...this.state,...a},this.dispatchEvent(new CustomEvent("filter-reset-requested",{detail:{fieldIds:t},bubbles:!0,composed:!0})),Object.entries(e.values).forEach(([s,i])=>this.emitValueChanged(s,i)),this.viewsOpened=!1,this.detachOutsideClick(),this.requestSearch()}saveCurrentView(e){const t=e.value.trim();t&&(vo(this.viewsScope,{name:t,values:this.snapshotValues()}),e.value="",this.requestUpdate())}firstUpdated(){if(window.location.search)return;const e=go(this.viewsScope);e&&setTimeout(()=>{this.state.searchText||this.filters.some(a=>this.isSet(a))||this.applyView(e)},0)}isBooleanFilter(e){return e.dataType==="boolean"||e.dataType==="bool"||e.stereotype==="checkbox"||e.stereotype==="toggle"}isNumericFilter(e){return["integer","decimal","number","money"].includes(e.dataType??"")}isRangeFilter(e){return e.stereotype==="dateRange"||e.stereotype==="numberRange"}isMultiFilter(e){return e.stereotype==="multiSelect"}hasOptions(e){return(e.options?.length??0)>0}multiValues(e){const t=this.state[e.fieldId];return Array.isArray(t)?t.map(String):typeof t=="string"&&t!==""?t.split(",").map(a=>a.trim()).filter(a=>a):[]}rangeBound(e,t){const a=this.state[`${e.fieldId}_${t}`];return a==null?"":String(a)}isSet(e){if(this.isRangeFilter(e))return this.rangeBound(e,"from")!==""||this.rangeBound(e,"to")!=="";if(this.isMultiFilter(e))return this.multiValues(e).length>0;const t=this.state[e.fieldId];return t!=null&&t!==""&&!Number.isNaN(t)}getFilterDisplayValue(e,t){if(e.options?.length){const a=e.options.find(s=>s.value===String(t));if(a)return a.label??a.value}return typeof t=="boolean"?t?"Yes":"No":String(t)}conditionDisplay(e){if(this.isRangeFilter(e)){const t=this.rangeBound(e,"from"),a=this.rangeBound(e,"to");return t&&a?`${t} – ${a}`:t?`≥ ${t}`:`≤ ${a}`}return this.isMultiFilter(e)?this.multiValues(e).map(t=>this.getFilterDisplayValue(e,t)).join(", "):this.getFilterDisplayValue(e,this.state[e.fieldId])}labelOf(e){return Oe(e.label,this.state,this.data)||e.fieldId}panelRow(e,t,a="panel-row"){return o`
+  `;it([h()],Re.prototype,"id",2);it([h()],Re.prototype,"metadata",2);it([h()],Re.prototype,"baseUrl",2);it([h()],Re.prototype,"state",2);it([h()],Re.prototype,"data",2);it([h()],Re.prototype,"appState",2);it([h()],Re.prototype,"appData",2);it([h()],Re.prototype,"emptyStateMessage",2);it([$()],Re.prototype,"detailsOpenedItems",2);it([at("vaadin-grid")],Re.prototype,"grid",2);Re=it([k("mateu-table")],Re);const fo="mateu-saved-views",ts=()=>{try{return JSON.parse(localStorage.getItem(fo)??"{}")}catch{return{}}},Ms=e=>{try{localStorage.setItem(fo,JSON.stringify(e))}catch{}},Fi=e=>ts()[e]??[],bo=(e,t)=>{const a=t.name?.trim();if(!a||Object.keys(t.values??{}).length===0)return;const s=ts(),i=(s[e]??[]).filter(r=>r.name!==a);i.push({...t,name:a}),s[e]=i,Ms(s)},go=(e,t)=>{const a=ts(),s=(a[e]??[]).filter(i=>i.name!==t);s.length===0?delete a[e]:a[e]=s,Ms(a)},$o=(e,t)=>{const a=ts();a[e]=(a[e]??[]).map(s=>({...s,isDefault:s.name===t?!s.isDefault:!1})),Ms(a)},yo=e=>Fi(e).find(t=>t.isDefault);var Vp=Object.defineProperty,Wp=Object.getOwnPropertyDescriptor,Ve=(e,t,a,s)=>{for(var i=s>1?void 0:s?Wp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Vp(t,a,i),i};let we=class extends S{constructor(){super(...arguments),this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.searchOnly=!1,this.panelOpened=!1,this.viewsOpened=!1,this.draftText="",this.openPanel=()=>{this.panelOpened||this.filters.length===0||(this.panelOpened=!0,this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick))},this.closePanel=()=>{this.detachOutsideClick(),this.panelOpened=!1,this.activeFilter=void 0},this.clearAllFilters=()=>{const e=this.filters.flatMap(a=>this.isRangeFilter(a)?[`${a.fieldId}_from`,`${a.fieldId}_to`]:[a.fieldId]),t={searchText:void 0};e.forEach(a=>{t[a]=void 0}),this.state={...this.state,...t},this.dispatchEvent(new CustomEvent("filter-reset-requested",{detail:{fieldIds:e},bubbles:!0,composed:!0})),this.requestSearch()},this.keepFocus=e=>e.preventDefault()}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}get filters(){return this.metadata?.filters??[]}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}requestSearch(){this.closePanel(),this.dispatchEvent(new CustomEvent("search-requested",{detail:{},bubbles:!0,composed:!0}))}emitValueChanged(e,t){this.state={...this.state,[e]:t},this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:t,fieldId:e},bubbles:!0,composed:!0}))}applyFilter(e,t){this.emitValueChanged(e,t),this.requestSearch()}removeChip(e){const t=this.filters.find(a=>a.fieldId===e);t&&this.isRangeFilter(t)?(this.emitValueChanged(`${e}_from`,void 0),this.emitValueChanged(`${e}_to`,void 0)):this.emitValueChanged(e,e==="searchText"?"":void 0),this.requestSearch()}commitText(e){this.emitValueChanged("searchText",e.value),this.draftText="",e.value="",this.requestSearch()}get viewsScope(){return window.location.pathname}allFilterKeys(){return["searchText",...this.filters.flatMap(e=>this.isRangeFilter(e)?[`${e.fieldId}_from`,`${e.fieldId}_to`]:[e.fieldId])]}snapshotValues(){const e={};return this.state.searchText&&(e.searchText=this.state.searchText),this.filters.forEach(t=>{if(this.isSet(t))if(this.isRangeFilter(t)){const a=this.rangeBound(t,"from"),s=this.rangeBound(t,"to");a&&(e[`${t.fieldId}_from`]=a),s&&(e[`${t.fieldId}_to`]=s)}else this.isMultiFilter(t)?e[t.fieldId]=this.multiValues(t):e[t.fieldId]=this.state[t.fieldId]}),e}applyView(e){const t=this.allFilterKeys(),a={};t.forEach(s=>{a[s]=void 0}),this.state={...this.state,...a},this.dispatchEvent(new CustomEvent("filter-reset-requested",{detail:{fieldIds:t},bubbles:!0,composed:!0})),Object.entries(e.values).forEach(([s,i])=>this.emitValueChanged(s,i)),this.viewsOpened=!1,this.detachOutsideClick(),this.requestSearch()}saveCurrentView(e){const t=e.value.trim();t&&(bo(this.viewsScope,{name:t,values:this.snapshotValues()}),e.value="",this.requestUpdate())}firstUpdated(){if(window.location.search)return;const e=yo(this.viewsScope);e&&setTimeout(()=>{this.state.searchText||this.filters.some(a=>this.isSet(a))||this.applyView(e)},0)}isBooleanFilter(e){return e.dataType==="boolean"||e.dataType==="bool"||e.stereotype==="checkbox"||e.stereotype==="toggle"}isNumericFilter(e){return["integer","decimal","number","money"].includes(e.dataType??"")}isRangeFilter(e){return e.stereotype==="dateRange"||e.stereotype==="numberRange"}isMultiFilter(e){return e.stereotype==="multiSelect"}hasOptions(e){return(e.options?.length??0)>0}multiValues(e){const t=this.state[e.fieldId];return Array.isArray(t)?t.map(String):typeof t=="string"&&t!==""?t.split(",").map(a=>a.trim()).filter(a=>a):[]}rangeBound(e,t){const a=this.state[`${e.fieldId}_${t}`];return a==null?"":String(a)}isSet(e){if(this.isRangeFilter(e))return this.rangeBound(e,"from")!==""||this.rangeBound(e,"to")!=="";if(this.isMultiFilter(e))return this.multiValues(e).length>0;const t=this.state[e.fieldId];return t!=null&&t!==""&&!Number.isNaN(t)}getFilterDisplayValue(e,t){if(e.options?.length){const a=e.options.find(s=>s.value===String(t));if(a)return a.label??a.value}return typeof t=="boolean"?t?"Yes":"No":String(t)}conditionDisplay(e){if(this.isRangeFilter(e)){const t=this.rangeBound(e,"from"),a=this.rangeBound(e,"to");return t&&a?`${t} – ${a}`:t?`≥ ${t}`:`≤ ${a}`}return this.isMultiFilter(e)?this.multiValues(e).map(t=>this.getFilterDisplayValue(e,t)).join(", "):this.getFilterDisplayValue(e,this.state[e.fieldId])}labelOf(e){return Oe(e.label,this.state,this.data)||e.fieldId}panelRow(e,t,a="panel-row"){return o`
             <div class="${a}" @mousedown="${this.keepFocus}" @click="${t}">${e}</div>`}renderRangeWidget(e){const t=e.stereotype==="numberRange"?"number":e.dataType==="dateTime"?"datetime-local":e.dataType==="time"?"time":"date",a=i=>{const r=i.closest(".panel-input-row"),n=r.querySelector("input.range-from").value,l=r.querySelector("input.range-to").value;this.emitValueChanged(`${e.fieldId}_from`,n===""?void 0:n),this.emitValueChanged(`${e.fieldId}_to`,l===""?void 0:l),this.requestSearch()},s=i=>{i.key==="Enter"&&a(i.target),i.key==="Escape"&&this.closePanel()};return o`
             <div class="panel-input-row">
                 <input class="range-from" type="${t}" placeholder="From"
@@ -6569,7 +6852,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <button class="apply-button"
                         @mousedown="${this.keepFocus}"
                         @click="${s=>a(s.target.previousElementSibling)}">Apply</button>
-            </div>`}renderViewsPanel(){if(!this.viewsOpened)return d;const e=Di(this.viewsScope),t=!!this.state.searchText||this.filters.some(a=>this.isSet(a));return o`
+            </div>`}renderViewsPanel(){if(!this.viewsOpened)return d;const e=Fi(this.viewsScope),t=!!this.state.searchText||this.filters.some(a=>this.isSet(a));return o`
             <div class="panel views-panel">
                 <div class="panel-caption">Saved views</div>
                 ${e.length===0?o`
@@ -6579,9 +6862,9 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         <span class="view-name" @click="${()=>this.applyView(a)}">${a.name}</span>
                         <button class="view-star ${a.isDefault?"view-star--on":""}"
                                 title="${a.isDefault?"Unset as default":"Open this listing with this view"}"
-                                @click="${()=>{bo(this.viewsScope,a.name),this.requestUpdate()}}">★</button>
+                                @click="${()=>{$o(this.viewsScope,a.name),this.requestUpdate()}}">★</button>
                         <button class="chip-remove" aria-label="Delete view ${a.name}"
-                                @click="${()=>{fo(this.viewsScope,a.name),this.requestUpdate()}}">✕</button>
+                                @click="${()=>{go(this.viewsScope,a.name),this.requestUpdate()}}">✕</button>
                     </div>`)}
                 ${t?o`
                     <div class="panel-input-row" @mousedown="${a=>a.stopPropagation()}">
@@ -6642,7 +6925,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             </div>
             <slot></slot>
         `}};we.styles=C`
-        ${Ht}
+        ${Kt}
         :host {
             width: 100%;
         }
@@ -6838,7 +7121,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             padding: 0.35rem 0.75rem;
             cursor: pointer;
         }
-    `;Ve([m()],we.prototype,"metadata",2);Ve([m()],we.prototype,"baseUrl",2);Ve([$()],we.prototype,"state",2);Ve([$()],we.prototype,"data",2);Ve([m()],we.prototype,"appState",2);Ve([m()],we.prototype,"appData",2);Ve([m({type:Boolean})],we.prototype,"searchOnly",2);Ve([$()],we.prototype,"panelOpened",2);Ve([$()],we.prototype,"viewsOpened",2);Ve([$()],we.prototype,"activeFilter",2);Ve([$()],we.prototype,"draftText",2);we=Ve([k("mateu-filter-bar")],we);const $o="mateu-column-prefs",Ms=()=>{try{const e=JSON.parse(localStorage.getItem($o)??"{}");return e&&typeof e=="object"&&!Array.isArray(e)?e:{}}catch{return{}}},yo=e=>{try{localStorage.setItem($o,JSON.stringify(e))}catch{}},qs=e=>{if(!e||typeof e!="object")return;const t=a=>Array.isArray(a)?a.filter(s=>typeof s=="string"):[];return{hidden:t(e.hidden),order:t(e.order)}},xo=e=>qs(Ms()[e]),Up=(e,t)=>{const a=Ms(),s=qs(t);s.hidden.length===0&&s.order.length===0?delete a[e]:a[e]=s,yo(a)},Bp=e=>{const t=Ms();delete t[e],yo(t)},wo=e=>e?!!e.identifier||e.dataType==="action"||e.dataType==="actionGroup"||e.dataType==="menu"||e.id==="select"||e.id==="menu":!1,ko=(e,t,a=s=>s)=>{const s=qs(t);if(!s||s.hidden.length===0&&s.order.length===0)return e;const i=p=>a(p)?.id??p.id,r=new Set(s.hidden),n=e.filter(p=>{const f=i(p);return!f||!r.has(f)||wo(a(p))});if(s.order.length===0)return n.length===e.length?e:n;const l=new Map;n.forEach(p=>{const f=i(p);f&&!l.has(f)&&l.set(f,p)});const c=[],u=new Set;return s.order.forEach(p=>{const f=l.get(p);f&&!u.has(f)&&(c.push(f),u.add(f))}),n.forEach(p=>{u.has(p)||(c.push(p),u.add(p))}),c.length===e.length&&c.every((p,f)=>p===e[f])?e:c};var Vp=Object.defineProperty,Wp=Object.getOwnPropertyDescriptor,hi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Wp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Vp(t,a,i),i};let ca=class extends S{constructor(){super(...arguments),this.columns=[],this.scope="",this.panelOpened=!1,this.revision=0,this.togglePanel=()=>{if(this.panelOpened){this.closePanel();return}this.panelOpened=!0,this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick)},this.closePanel=()=>{this.detachOutsideClick(),this.panelOpened=!1},this.reset=()=>{Bp(this.scope),this.revision++,this.dispatchEvent(new CustomEvent("column-prefs-changed",{bubbles:!0,composed:!0}))}}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}get prefs(){return xo(this.scope)??{hidden:[],order:[]}}effectiveEntries(e){return ko(this.columns,{hidden:[],order:e.order})}commit(e){Up(this.scope,e),this.revision++,this.dispatchEvent(new CustomEvent("column-prefs-changed",{bubbles:!0,composed:!0}))}toggleVisibility(e){const t=this.prefs,a=t.hidden.includes(e)?t.hidden.filter(s=>s!==e):[...t.hidden,e];this.commit({...t,hidden:a})}move(e,t){const a=this.prefs,s=[...this.effectiveEntries(a)],i=s.findIndex(l=>l.id===e);if(i<0)return;let r=i+t;for(;r>=0&&r<s.length&&s[r].protected;)r+=t;if(r<0||r>=s.length)return;const n=s[i];s[i]=s[r],s[r]=n,this.commit({...a,order:s.map(l=>l.id)})}render(){this.revision;const e=this.prefs,t=this.effectiveEntries(e).filter(s=>!s.protected);if(t.length===0)return o``;const a=e.hidden.length>0||e.order.length>0;return o`
+    `;Ve([h()],we.prototype,"metadata",2);Ve([h()],we.prototype,"baseUrl",2);Ve([$()],we.prototype,"state",2);Ve([$()],we.prototype,"data",2);Ve([h()],we.prototype,"appState",2);Ve([h()],we.prototype,"appData",2);Ve([h({type:Boolean})],we.prototype,"searchOnly",2);Ve([$()],we.prototype,"panelOpened",2);Ve([$()],we.prototype,"viewsOpened",2);Ve([$()],we.prototype,"activeFilter",2);Ve([$()],we.prototype,"draftText",2);we=Ve([k("mateu-filter-bar")],we);const xo="mateu-column-prefs",qs=()=>{try{const e=JSON.parse(localStorage.getItem(xo)??"{}");return e&&typeof e=="object"&&!Array.isArray(e)?e:{}}catch{return{}}},wo=e=>{try{localStorage.setItem(xo,JSON.stringify(e))}catch{}},Us=e=>{if(!e||typeof e!="object")return;const t=a=>Array.isArray(a)?a.filter(s=>typeof s=="string"):[];return{hidden:t(e.hidden),order:t(e.order)}},ko=e=>Us(qs()[e]),Hp=(e,t)=>{const a=qs(),s=Us(t);s.hidden.length===0&&s.order.length===0?delete a[e]:a[e]=s,wo(a)},Gp=e=>{const t=qs();delete t[e],wo(t)},Co=e=>e?!!e.identifier||e.dataType==="action"||e.dataType==="actionGroup"||e.dataType==="menu"||e.id==="select"||e.id==="menu":!1,So=(e,t,a=s=>s)=>{const s=Us(t);if(!s||s.hidden.length===0&&s.order.length===0)return e;const i=p=>a(p)?.id??p.id,r=new Set(s.hidden),n=e.filter(p=>{const f=i(p);return!f||!r.has(f)||Co(a(p))});if(s.order.length===0)return n.length===e.length?e:n;const l=new Map;n.forEach(p=>{const f=i(p);f&&!l.has(f)&&l.set(f,p)});const c=[],u=new Set;return s.order.forEach(p=>{const f=l.get(p);f&&!u.has(f)&&(c.push(f),u.add(f))}),n.forEach(p=>{u.has(p)||(c.push(p),u.add(p))}),c.length===e.length&&c.every((p,f)=>p===e[f])?e:c};var Kp=Object.defineProperty,Yp=Object.getOwnPropertyDescriptor,mi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Yp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Kp(t,a,i),i};let pa=class extends S{constructor(){super(...arguments),this.columns=[],this.scope="",this.panelOpened=!1,this.revision=0,this.togglePanel=()=>{if(this.panelOpened){this.closePanel();return}this.panelOpened=!0,this.outsideClick=e=>{e.composedPath().includes(this)||this.closePanel()},document.addEventListener("mousedown",this.outsideClick)},this.closePanel=()=>{this.detachOutsideClick(),this.panelOpened=!1},this.reset=()=>{Gp(this.scope),this.revision++,this.dispatchEvent(new CustomEvent("column-prefs-changed",{bubbles:!0,composed:!0}))}}disconnectedCallback(){super.disconnectedCallback(),this.detachOutsideClick()}detachOutsideClick(){this.outsideClick&&(document.removeEventListener("mousedown",this.outsideClick),this.outsideClick=void 0)}get prefs(){return ko(this.scope)??{hidden:[],order:[]}}effectiveEntries(e){return So(this.columns,{hidden:[],order:e.order})}commit(e){Hp(this.scope,e),this.revision++,this.dispatchEvent(new CustomEvent("column-prefs-changed",{bubbles:!0,composed:!0}))}toggleVisibility(e){const t=this.prefs,a=t.hidden.includes(e)?t.hidden.filter(s=>s!==e):[...t.hidden,e];this.commit({...t,hidden:a})}move(e,t){const a=this.prefs,s=[...this.effectiveEntries(a)],i=s.findIndex(l=>l.id===e);if(i<0)return;let r=i+t;for(;r>=0&&r<s.length&&s[r].protected;)r+=t;if(r<0||r>=s.length)return;const n=s[i];s[i]=s[r],s[r]=n,this.commit({...a,order:s.map(l=>l.id)})}render(){this.revision;const e=this.prefs,t=this.effectiveEntries(e).filter(s=>!s.protected);if(t.length===0)return o``;const a=e.hidden.length>0||e.order.length>0;return o`
             <div class="chooser">
                 <button
                     class="trigger ${a?"active":""}"
@@ -6882,7 +7165,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     </div>
                 `:d}
             </div>
-        `}};ca.styles=C`
+        `}};pa.styles=C`
         :host {
             display: block;
             flex: none;
@@ -6995,7 +7278,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             opacity: 0.4;
             cursor: default;
         }
-    `;hi([m()],ca.prototype,"columns",2);hi([m()],ca.prototype,"scope",2);hi([$()],ca.prototype,"panelOpened",2);hi([$()],ca.prototype,"revision",2);ca=hi([k("mateu-column-chooser")],ca);var Hp=Object.defineProperty,Gp=Object.getOwnPropertyDescriptor,mi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Gp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Hp(t,a,i),i};let ua=class extends S{constructor(){super(...arguments),this.totalElements=0,this.pageSize=100,this.pageNumber=0,this.totalPages=0}updated(e){super.updated(e),(e.has("totalElements")||e.has("pageSize"))&&(this.totalPages=Math.ceil(this.totalElements/this.pageSize))}dispatch(e){this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:e}}))}render(){if(!this.totalElements)return d;const e=this.totalPages>1,t=this.pageNumber,a=t===0,s=t>=this.totalPages-1;return o`
+    `;mi([h()],pa.prototype,"columns",2);mi([h()],pa.prototype,"scope",2);mi([$()],pa.prototype,"panelOpened",2);mi([$()],pa.prototype,"revision",2);pa=mi([k("mateu-column-chooser")],pa);var Jp=Object.defineProperty,Xp=Object.getOwnPropertyDescriptor,vi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Xp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Jp(t,a,i),i};let ha=class extends S{constructor(){super(...arguments),this.totalElements=0,this.pageSize=100,this.pageNumber=0,this.totalPages=0}updated(e){super.updated(e),(e.has("totalElements")||e.has("pageSize"))&&(this.totalPages=Math.ceil(this.totalElements/this.pageSize))}dispatch(e){this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:e}}))}render(){if(!this.totalElements)return d;const e=this.totalPages>1,t=this.pageNumber,a=t===0,s=t>=this.totalPages-1;return o`
             <vaadin-horizontal-layout theme="spacing" style="align-items: center; flex-wrap: wrap;">
                 ${e?o`
                     <vaadin-button theme="tertiary icon" title="First page" ?disabled="${a}"
@@ -7020,7 +7303,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <span class="total-count">${this.totalElements} item${this.totalElements===1?"":"s"}</span>
                 <slot></slot>
             </vaadin-horizontal-layout>
-        `}};ua.styles=C`
+        `}};ha.styles=C`
         :host {
             display: block;
             width: 100%;
@@ -7043,7 +7326,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             align-self: center;
             margin: 0 4px;
         }
-    `;mi([m()],ua.prototype,"totalElements",2);mi([m()],ua.prototype,"pageSize",2);mi([m()],ua.prototype,"pageNumber",2);mi([$()],ua.prototype,"totalPages",2);ua=mi([k("mateu-pagination")],ua);var Kp=Object.defineProperty,Yp=Object.getOwnPropertyDescriptor,We=(e,t,a,s)=>{for(var i=s>1?void 0:s?Yp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Kp(t,a,i),i};let ke=class extends S{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.dataProvider=(e,t)=>{const a=this.data[this.id]?.page;t(a?.content??[],a?.content?.length??0)},this.respondToVisibility=(e,t)=>{var a={root:document.documentElement},s=new IntersectionObserver(i=>{i.forEach(r=>{t(r.intersectionRatio>0)})},a);s.observe(e)},this.keepAsking=!1,this.askToUpper=()=>{const e=this.data[this.id]?.page,t=e?.content?.length/e?.pageSize;this.dispatchEvent(new CustomEvent("fetch-more-elements",{detail:{params:{page:t,pageSize:this.metadata?.pageSize},callback:()=>{this.keepAsking&&this.askToUpper()}},bubbles:!0,composed:!0}))},this.renderItem=e=>e.card?zs(this,e.card,this.baseUrl,this.state,this.data,this.appState,this.appData,!1):e.title?o`<vaadin-card
+    `;vi([h()],ha.prototype,"totalElements",2);vi([h()],ha.prototype,"pageSize",2);vi([h()],ha.prototype,"pageNumber",2);vi([$()],ha.prototype,"totalPages",2);ha=vi([k("mateu-pagination")],ha);var Qp=Object.defineProperty,Zp=Object.getOwnPropertyDescriptor,We=(e,t,a,s)=>{for(var i=s>1?void 0:s?Zp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Qp(t,a,i),i};let ke=class extends S{constructor(){super(...arguments),this.id="",this.baseUrl="",this.state={},this.data={},this.appState={},this.appData={},this.dataProvider=(e,t)=>{const a=this.data[this.id]?.page;t(a?.content??[],a?.content?.length??0)},this.respondToVisibility=(e,t)=>{var a={root:document.documentElement},s=new IntersectionObserver(i=>{i.forEach(r=>{t(r.intersectionRatio>0)})},a);s.observe(e)},this.keepAsking=!1,this.askToUpper=()=>{const e=this.data[this.id]?.page,t=e?.content?.length/e?.pageSize;this.dispatchEvent(new CustomEvent("fetch-more-elements",{detail:{params:{page:t,pageSize:this.metadata?.pageSize},callback:()=>{this.keepAsking&&this.askToUpper()}},bubbles:!0,composed:!0}))},this.renderItem=e=>e.card?As(this,e.card,this.baseUrl,this.state,this.data,this.appState,this.appData,!1):e.title?o`<vaadin-card
         >
                 ${e.title?o`
                     <div slot="title">${e.title}</div>
@@ -7055,7 +7338,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     <div>${e.content}</div>
                 `:d}
                 ${e.status?o`
-                    <span slot="header-suffix" theme="badge ${Vi(e.status.type)}">${e.status.message}</span>
+                    <span slot="header-suffix" theme="badge ${Wi(e.status.type)}">${e.status.message}</span>
                 `:d}
                 ${e.image?o`
                     <img slot="media" src="${e.image}" alt="" />
@@ -7069,7 +7352,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
 
             <slot></slot>
        `}};ke.styles=C`
-        ${Ht}
+        ${Kt}
         
         .card-container {
             display: flex; 
@@ -7082,26 +7365,26 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             grid-column: 3;
         }
 
-    `;We([m()],ke.prototype,"id",2);We([m()],ke.prototype,"metadata",2);We([m()],ke.prototype,"baseUrl",2);We([m()],ke.prototype,"state",2);We([m()],ke.prototype,"data",2);We([m()],ke.prototype,"appState",2);We([m()],ke.prototype,"appData",2);We([m()],ke.prototype,"emptyStateMessage",2);We([$()],ke.prototype,"keepAsking",2);We([tt("#ask-for-more")],ke.prototype,"askForMore",2);We([$()],ke.prototype,"hasMore",2);ke=We([k("mateu-card-list")],ke);var Co=(e=>(e.none="none",e.success="success",e.error="error",e.warning="warning",e.contrast="contrast",e.normal="normal",e))(Co||{}),So=(e=>(e.primary="primary",e.secondary="secondary",e.tertiary="tertiary",e.tertiaryInline="tertiaryInline",e))(So||{}),Jp=Object.defineProperty,Xp=Object.getOwnPropertyDescriptor,He=(e,t,a,s)=>{for(var i=s>1?void 0:s?Xp(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Jp(t,a,i),i};const Qp={asc:"ascending",desc:"descending"};let Ce=class extends S{constructor(){super(...arguments),this.component=void 0,this.standalone=!1,this.state={},this.data={},this.appState={},this.appData={},this.showImportDialog=!1,this.availableWidthPx=1024,this.selectedItem=null,this._columnPrefsRevision=0,this._prefsRevisionApplied=-1,this.search=()=>{const e=this.component.metadata;this.state={...this.state,size:e.pageSize,page:0,crud_selected_items:[]},this._syncStateToUrl(e),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"search",parameters:{crudId:this.id,_searchState:{...this.state}}},bubbles:!0,composed:!0}))},this.notify=e=>{ia.show(e,{position:"bottom-end",theme:"error",duration:3e3})},this.handleSearchRequested=e=>{this.state={...this.state,crud_selected_items:[]};const t=this.component.metadata;this._syncStateToUrl(t),!t.infiniteScrolling&&this.data?.[this.id]?.page&&(this.data[this.id].page.content=[]),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"search",parameters:{crudId:this.id,_searchState:{...this.state}},callback:e},bubbles:!0,composed:!0}))},this.fetchMoreElements=e=>{const{params:t,callback:a}=e.detail;this.state={...this.state,size:t.pageSize,page:t.page},this.handleSearchRequested(a)},this.directionChanged=e=>{const t=e.detail.grid._sorters;this.state={...this.state,sort:t.map(a=>({fieldId:a.__data.path,direction:a.__data.direction?Qp[a.__data.direction]:void 0}))},this.handleSearchRequested(void 0)},this._initializedForComponentId=void 0,this.evalLabel=e=>Oe(e,this.state,this.data),this.handleToolbarButtonClick=e=>{if(e==="import"){this.showImportDialog=!0;return}this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.handleImportUploadSuccess=e=>{const t=e.detail.xhr.responseText;this.showImportDialog=!1,this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"process-import",parameters:{fileId:t}},bubbles:!0,composed:!0}))}}get columnPrefsScope(){return window.location.pathname}get effectiveComponent(){const e=this.component,t=e?.metadata;if(!e||!t?.columns)return e;if(this._prefsSource===e&&this._prefsRevisionApplied===this._columnPrefsRevision)return this._prefsApplied;const a=xo(this.columnPrefsScope),s=ko(t.columns,a,i=>i.metadata??{});return this._prefsApplied=s===t.columns?e:{...e,metadata:{...t,columns:s}},this._prefsSource=e,this._prefsRevisionApplied=this._columnPrefsRevision,this._prefsApplied}get columnChooserEntries(){return(this.component?.metadata?.columns??[]).map(t=>{const a=t.metadata??{},s=a.id??t.id;return s?{id:s,label:a.label??s,protected:wo(a)}:void 0}).filter(t=>!!t)}renderColumnChooser(){const e=this.columnChooserEntries;return e.filter(t=>!t.protected).length===0?d:o`
+    `;We([h()],ke.prototype,"id",2);We([h()],ke.prototype,"metadata",2);We([h()],ke.prototype,"baseUrl",2);We([h()],ke.prototype,"state",2);We([h()],ke.prototype,"data",2);We([h()],ke.prototype,"appState",2);We([h()],ke.prototype,"appData",2);We([h()],ke.prototype,"emptyStateMessage",2);We([$()],ke.prototype,"keepAsking",2);We([at("#ask-for-more")],ke.prototype,"askForMore",2);We([$()],ke.prototype,"hasMore",2);ke=We([k("mateu-card-list")],ke);var Io=(e=>(e.none="none",e.success="success",e.error="error",e.warning="warning",e.contrast="contrast",e.normal="normal",e))(Io||{}),_o=(e=>(e.primary="primary",e.secondary="secondary",e.tertiary="tertiary",e.tertiaryInline="tertiaryInline",e))(_o||{}),eh=Object.defineProperty,th=Object.getOwnPropertyDescriptor,He=(e,t,a,s)=>{for(var i=s>1?void 0:s?th(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&eh(t,a,i),i};const ah={asc:"ascending",desc:"descending"};let Ce=class extends S{constructor(){super(...arguments),this.component=void 0,this.standalone=!1,this.state={},this.data={},this.appState={},this.appData={},this.showImportDialog=!1,this.availableWidthPx=1024,this.selectedItem=null,this._columnPrefsRevision=0,this._prefsRevisionApplied=-1,this.search=()=>{const e=this.component.metadata;this.state={...this.state,size:e.pageSize,page:0,crud_selected_items:[]},this._syncStateToUrl(e),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"search",parameters:{crudId:this.id,_searchState:{...this.state}}},bubbles:!0,composed:!0}))},this.notify=e=>{ra.show(e,{position:"bottom-end",theme:"error",duration:3e3})},this.handleSearchRequested=e=>{this.state={...this.state,crud_selected_items:[]};const t=this.component.metadata;this._syncStateToUrl(t),!t.infiniteScrolling&&this.data?.[this.id]?.page&&(this.data[this.id].page.content=[]),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"search",parameters:{crudId:this.id,_searchState:{...this.state}},callback:e},bubbles:!0,composed:!0}))},this.fetchMoreElements=e=>{const{params:t,callback:a}=e.detail;this.state={...this.state,size:t.pageSize,page:t.page},this.handleSearchRequested(a)},this.directionChanged=e=>{const t=e.detail.grid._sorters;this.state={...this.state,sort:t.map(a=>({fieldId:a.__data.path,direction:a.__data.direction?ah[a.__data.direction]:void 0}))},this.handleSearchRequested(void 0)},this._initializedForComponentId=void 0,this.evalLabel=e=>Oe(e,this.state,this.data),this.handleToolbarButtonClick=e=>{if(e==="import"){this.showImportDialog=!0;return}this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.handleImportUploadSuccess=e=>{const t=e.detail.xhr.responseText;this.showImportDialog=!1,this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"process-import",parameters:{fileId:t}},bubbles:!0,composed:!0}))}}get columnPrefsScope(){return window.location.pathname}get effectiveComponent(){const e=this.component,t=e?.metadata;if(!e||!t?.columns)return e;if(this._prefsSource===e&&this._prefsRevisionApplied===this._columnPrefsRevision)return this._prefsApplied;const a=ko(this.columnPrefsScope),s=So(t.columns,a,i=>i.metadata??{});return this._prefsApplied=s===t.columns?e:{...e,metadata:{...t,columns:s}},this._prefsSource=e,this._prefsRevisionApplied=this._columnPrefsRevision,this._prefsApplied}get columnChooserEntries(){return(this.component?.metadata?.columns??[]).map(t=>{const a=t.metadata??{},s=a.id??t.id;return s?{id:s,label:a.label??s,protected:Co(a)}:void 0}).filter(t=>!!t)}renderColumnChooser(){const e=this.columnChooserEntries;return e.filter(t=>!t.protected).length===0?d:o`
             <mateu-column-chooser
                 .columns="${e}"
                 .scope="${this.columnPrefsScope}"
                 @column-prefs-changed="${t=>{t.stopPropagation(),this._columnPrefsRevision++}}"
             ></mateu-column-chooser>
-        `}get cols(){return this.effectiveComponent?.metadata?.columns?.map(t=>t.metadata)??[]}get identifierFieldName(){const e=this.cols.find(t=>t.identifier);return e?e.id:this.cols.find(t=>t.id==="id")?.id}get effectiveGridLayout(){const e=this.component?.metadata,t=e?.gridLayout??"auto";return t==="auto"?e?.crudlType==="card"?"cards":to(this.cols,this.availableWidthPx):t}connectedCallback(){super.connectedCallback(),this.resizeObserver=new ResizeObserver(e=>{const t=e[0]?.contentRect.width;t&&Math.abs(t-this.availableWidthPx)>10&&(this.availableWidthPx=t)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect()}_filterIds(e){return new Set(["searchText",...(e.filters??[]).flatMap(t=>t.stereotype==="dateRange"||t.stereotype==="numberRange"?[`${t.fieldId}_from`,`${t.fieldId}_to`]:[t.fieldId])])}_syncStateToUrl(e){const t=this._filterIds(e),a=new URLSearchParams(window.location.search);t.forEach(l=>a.delete(l)),a.delete("page"),a.delete("sort"),t.forEach(l=>{const c=this.state[l];c!=null&&c!==""&&a.set(l,String(c))});const s=this.state.page;s&&s>0&&a.set("page",String(s));const i=this.state.sort;if(i&&i.length>0){const l=i.filter(c=>c.fieldId&&c.direction).map(c=>`${c.fieldId}:${c.direction}`).join(",");l&&a.set("sort",l)}const r=a.toString(),n=r?`${window.location.pathname}?${r}`:window.location.pathname;window.location.pathname+window.location.search!==n&&history.replaceState(null,"",n)}_initStateFromUrl(e,t){const a=new URLSearchParams(window.location.search),s=this._filterIds(e),i={...t};a.forEach((l,c)=>{s.has(c)&&(i[c]=l)});const r=a.get("page");if(r!==null){const l=parseInt(r,10);!isNaN(l)&&l>0&&(i.page=l)}const n=a.get("sort");if(n){const l=n.split(",").map(c=>{const[u,h]=c.split(":");return u&&h?{fieldId:u,direction:h}:null}).filter(Boolean);l.length>0&&(i.sort=l)}return i}pageChanged(e){this.state={...this.state,page:e.detail.page},this.handleSearchRequested(void 0)}updated(e){if(super.updated(e),e.has("component")){const t=this.component?.id;if(t!==this._initializedForComponentId){this._initializedForComponentId=t;const a=this.component?.metadata,s=a.initialPage&&a.initialPage>0?a.initialPage:0;this.state=this._initStateFromUrl(a,{...this.state,size:a.pageSize,page:s,sort:[]}),(this.state.page!==s||this.state.sort?.length>0||[...this._filterIds(a)].some(r=>this.state[r]!=null))&&this.handleSearchRequested(void 0)}}}render(){const e=I=>{const L=[];return I.color&&I.color!==Co.normal&&L.push(I.color),I.buttonStyle&&L.push(I.buttonStyle===So.tertiaryInline?"tertiary-inline":I.buttonStyle),L.length?L.join(" "):void 0},t=I=>I==="back"||I==="backToList"||!!I&&I.startsWith("cancel"),a=I=>{const L=te.get()?.renderToolbarButton?.(I,this.evalLabel(I.label),()=>this.handleToolbarButtonClick(I.actionId));return L||o`
+        `}get cols(){return this.effectiveComponent?.metadata?.columns?.map(t=>t.metadata)??[]}get identifierFieldName(){const e=this.cols.find(t=>t.identifier);return e?e.id:this.cols.find(t=>t.id==="id")?.id}get effectiveGridLayout(){const e=this.component?.metadata,t=e?.gridLayout??"auto";return t==="auto"?e?.crudlType==="card"?"cards":io(this.cols,this.availableWidthPx):t}connectedCallback(){super.connectedCallback(),this.resizeObserver=new ResizeObserver(e=>{const t=e[0]?.contentRect.width;t&&Math.abs(t-this.availableWidthPx)>10&&(this.availableWidthPx=t)}),this.resizeObserver.observe(this)}disconnectedCallback(){super.disconnectedCallback(),this.resizeObserver?.disconnect()}_filterIds(e){return new Set(["searchText",...(e.filters??[]).flatMap(t=>t.stereotype==="dateRange"||t.stereotype==="numberRange"?[`${t.fieldId}_from`,`${t.fieldId}_to`]:[t.fieldId])])}_syncStateToUrl(e){const t=this._filterIds(e),a=new URLSearchParams(window.location.search);t.forEach(l=>a.delete(l)),a.delete("page"),a.delete("sort"),t.forEach(l=>{const c=this.state[l];c!=null&&c!==""&&a.set(l,String(c))});const s=this.state.page;s&&s>0&&a.set("page",String(s));const i=this.state.sort;if(i&&i.length>0){const l=i.filter(c=>c.fieldId&&c.direction).map(c=>`${c.fieldId}:${c.direction}`).join(",");l&&a.set("sort",l)}const r=a.toString(),n=r?`${window.location.pathname}?${r}`:window.location.pathname;window.location.pathname+window.location.search!==n&&history.replaceState(null,"",n)}_initStateFromUrl(e,t){const a=new URLSearchParams(window.location.search),s=this._filterIds(e),i={...t};a.forEach((l,c)=>{s.has(c)&&(i[c]=l)});const r=a.get("page");if(r!==null){const l=parseInt(r,10);!isNaN(l)&&l>0&&(i.page=l)}const n=a.get("sort");if(n){const l=n.split(",").map(c=>{const[u,m]=c.split(":");return u&&m?{fieldId:u,direction:m}:null}).filter(Boolean);l.length>0&&(i.sort=l)}return i}pageChanged(e){this.state={...this.state,page:e.detail.page},this.handleSearchRequested(void 0)}updated(e){if(super.updated(e),e.has("component")){const t=this.component?.id;if(t!==this._initializedForComponentId){this._initializedForComponentId=t;const a=this.component?.metadata,s=a.initialPage&&a.initialPage>0?a.initialPage:0;this.state=this._initStateFromUrl(a,{...this.state,size:a.pageSize,page:s,sort:[]}),(this.state.page!==s||this.state.sort?.length>0||[...this._filterIds(a)].some(r=>this.state[r]!=null))&&this.handleSearchRequested(void 0)}}}render(){const e=I=>{const L=[];return I.color&&I.color!==Io.normal&&L.push(I.color),I.buttonStyle&&L.push(I.buttonStyle===_o.tertiaryInline?"tertiary-inline":I.buttonStyle),L.length?L.join(" "):void 0},t=I=>I==="back"||I==="backToList"||!!I&&I.startsWith("cancel"),a=I=>{const L=te.get()?.renderToolbarButton?.(I,this.evalLabel(I.label),()=>this.handleToolbarButtonClick(I.actionId));return L||o`
                 <vaadin-button
                         data-action-id="${I.id}"
                         theme="${e(I)||d}"
                         @click="${()=>this.handleToolbarButtonClick(I.actionId)}"
                 >${this.evalLabel(I.label)}</vaadin-button>
-            `};if(!this.component)return o`no component`;const s=this.effectiveComponent,i=s.metadata;i.serverSideOrdering=!0;const r=i?.toolbar??[],n=r.filter(I=>t(I.actionId)),l=r.filter(I=>!t(I.actionId)),c=n.length>0&&l.length>0,u=!!i?.title||!!i?.subtitle||r.length>0,h=this.effectiveGridLayout,p=this.cols,f=Ai(p),y=this.data[this.id]?.page?.content??[],x=this.state[this.component?.id]?.emptyStateMessage,T=(I,L)=>{const O=L[I.id];if(O==null)return o``;if(I.dataType==="status"){const D=Vi(O.type);return o`<span theme="badge pill ${D}">${O.message}</span>`}return I.dataType==="bool"?o`${O?"✓":"✗"}`:typeof O=="object"?o`${O.label??O.name??O.message??""}`:o`${O}`},U=()=>{const I=this.identifierFieldName,L=this.state._selectedId??this.appState?._splitDetailId,O=f.find(R=>R.identifier)??f[0],D=R=>R.dataType==="action"||R.dataType==="actionGroup"||R.dataType==="menu"||R.stereotype==="button",De=f.filter(R=>R!==O&&!D(R)),Ie=p.filter(R=>D(R)),it=(R,se,pe)=>{R.stopPropagation(),R.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:se,parameters:{_clickedRow:pe}},bubbles:!0,composed:!0}))},ft=R=>{const se=[];for(const pe of Ie){const F=R[pe.id];if(pe.dataType==="action"){const j=F?.methodNameInCrud?F:R.action?.methodNameInCrud?R.action:{methodNameInCrud:pe.id,label:pe.label,icon:null};se.push(o`
-                            <vaadin-button theme="tertiary small" title="${j.label||d}"
-                                @click="${_=>it(_,"action-on-row-"+j.methodNameInCrud,R)}">
-                                ${j.icon?o`<vaadin-icon icon="${j.icon}"></vaadin-icon>`:d}
-                                ${j.label??d}
+            `};if(!this.component)return o`no component`;const s=this.effectiveComponent,i=s.metadata;i.serverSideOrdering=!0;const r=i?.toolbar??[],n=r.filter(I=>t(I.actionId)),l=r.filter(I=>!t(I.actionId)),c=n.length>0&&l.length>0,u=!!i?.title||!!i?.subtitle||r.length>0,m=this.effectiveGridLayout,p=this.cols,f=Li(p),y=this.data[this.id]?.page?.content??[],x=this.state[this.component?.id]?.emptyStateMessage,P=(I,L)=>{const O=L[I.id];if(O==null)return o``;if(I.dataType==="status"){const D=Wi(O.type);return o`<span theme="badge pill ${D}">${O.message}</span>`}return I.dataType==="bool"?o`${O?"✓":"✗"}`:typeof O=="object"?o`${O.label??O.name??O.message??""}`:o`${O}`},U=()=>{const I=this.identifierFieldName,L=this.state._selectedId??this.appState?._splitDetailId,O=f.find(R=>R.identifier)??f[0],D=R=>R.dataType==="action"||R.dataType==="actionGroup"||R.dataType==="menu"||R.stereotype==="button",De=f.filter(R=>R!==O&&!D(R)),Ie=p.filter(R=>D(R)),st=(R,se,pe)=>{R.stopPropagation(),R.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:se,parameters:{_clickedRow:pe}},bubbles:!0,composed:!0}))},bt=R=>{const se=[];for(const pe of Ie){const F=R[pe.id];if(pe.dataType==="action"){const A=F?.methodNameInCrud?F:R.action?.methodNameInCrud?R.action:{methodNameInCrud:pe.id,label:pe.label,icon:null};se.push(o`
+                            <vaadin-button theme="tertiary small" title="${A.label||d}"
+                                @click="${_=>st(_,"action-on-row-"+A.methodNameInCrud,R)}">
+                                ${A.icon?o`<vaadin-icon icon="${A.icon}"></vaadin-icon>`:d}
+                                ${A.label??d}
                             </vaadin-button>`)}else(pe.dataType==="actionGroup"||pe.dataType==="menu")&&(F?.actions??[]).forEach(_=>se.push(o`
                             <vaadin-button theme="tertiary small" title="${_.label||d}"
-                                @click="${q=>it(q,"action-on-row-"+_.methodNameInCrud,R)}">
+                                @click="${q=>st(q,"action-on-row-"+_.methodNameInCrud,R)}">
                                 ${_.icon?o`<vaadin-icon icon="${_.icon}"></vaadin-icon>`:d}
                                 ${_.label??d}
                             </vaadin-button>`))}return se.length?o`
@@ -7109,7 +7392,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         ${se}
                     </div>`:d};return o`
                 <vaadin-list-box style="width: 100%;">
-                    ${y.length===0?o`<vaadin-item disabled>${aa(x)}</vaadin-item>`:d}
+                    ${y.length===0?o`<vaadin-item disabled>${sa(x)}</vaadin-item>`:d}
                     ${y.map(R=>o`
                         <vaadin-item
                             ?selected="${I&&L!==void 0&&String(R[I])===String(L)}"
@@ -7118,27 +7401,27 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         >
                             <div style="font-weight: 600;">${O?R[O.id]??"":""}</div>
                             <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
-                                ${De.map(se=>o`<span>${se.label}: ${T(se,R)}</span>`)}
+                                ${De.map(se=>o`<span>${se.label}: ${P(se,R)}</span>`)}
                             </div>
-                            ${ft(R)}
+                            ${bt(R)}
                         </vaadin-item>
                     `)}
-                </vaadin-list-box>`},ae=(I,L,O)=>{const D=this.identifierFieldName;D&&O[D]!==void 0&&(this.state={...this.state,_selectedId:String(O[D])}),I.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:L,parameters:O},bubbles:!0,composed:!0}))},N=()=>{const I=this.identifierFieldName,L=this.state._selectedId??this.appState?._splitDetailId,O=p.slice(0,6),D=O.filter(_=>_.stereotype==="image"),De=O.find(_=>_.identifier)??O[0],Ie=_=>!!_.actionId,it=_=>_.dataType==="action"||_.dataType==="actionGroup"||_.dataType==="menu"||_.stereotype==="button",ft=O.find(_=>_.id==="select"&&_.dataType==="action"),R=!!ft,se=O.filter(_=>_!==De&&!D.includes(_)&&!Ie(_)&&!it(_)),pe=O.filter(_=>it(_)&&!(R&&_===ft)),F=(_,q,be)=>{_.stopPropagation(),_.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:q,parameters:{_clickedRow:be}},bubbles:!0,composed:!0}))},j=_=>{const q=[];for(const be of pe){const ea=_[be.id];if(be.dataType==="action"){const bt=ea?.methodNameInCrud?ea:_.action?.methodNameInCrud?_.action:{methodNameInCrud:be.id,label:be.label,icon:null};q.push(o`
-                            <vaadin-button theme="tertiary" title="${bt.label||d}"
-                                @click="${gt=>F(gt,"action-on-row-"+bt.methodNameInCrud,_)}">
-                                ${bt.icon?o`<vaadin-icon icon="${bt.icon}"></vaadin-icon>`:d}
-                                ${bt.label??d}
-                            </vaadin-button>`)}else(be.dataType==="actionGroup"||be.dataType==="menu")&&(ea?.actions??[]).forEach(gt=>q.push(o`
+                </vaadin-list-box>`},ae=(I,L,O)=>{const D=this.identifierFieldName;D&&O[D]!==void 0&&(this.state={...this.state,_selectedId:String(O[D])}),I.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:L,parameters:O},bubbles:!0,composed:!0}))},N=()=>{const I=this.identifierFieldName,L=this.state._selectedId??this.appState?._splitDetailId,O=p.slice(0,6),D=O.filter(_=>_.stereotype==="image"),De=O.find(_=>_.identifier)??O[0],Ie=_=>!!_.actionId,st=_=>_.dataType==="action"||_.dataType==="actionGroup"||_.dataType==="menu"||_.stereotype==="button",bt=O.find(_=>_.id==="select"&&_.dataType==="action"),R=!!bt,se=O.filter(_=>_!==De&&!D.includes(_)&&!Ie(_)&&!st(_)),pe=O.filter(_=>st(_)&&!(R&&_===bt)),F=(_,q,be)=>{_.stopPropagation(),_.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:q,parameters:{_clickedRow:be}},bubbles:!0,composed:!0}))},A=_=>{const q=[];for(const be of pe){const aa=_[be.id];if(be.dataType==="action"){const gt=aa?.methodNameInCrud?aa:_.action?.methodNameInCrud?_.action:{methodNameInCrud:be.id,label:be.label,icon:null};q.push(o`
                             <vaadin-button theme="tertiary" title="${gt.label||d}"
-                                @click="${ss=>F(ss,"action-on-row-"+gt.methodNameInCrud,_)}">
+                                @click="${$t=>F($t,"action-on-row-"+gt.methodNameInCrud,_)}">
                                 ${gt.icon?o`<vaadin-icon icon="${gt.icon}"></vaadin-icon>`:d}
                                 ${gt.label??d}
+                            </vaadin-button>`)}else(be.dataType==="actionGroup"||be.dataType==="menu")&&(aa?.actions??[]).forEach($t=>q.push(o`
+                            <vaadin-button theme="tertiary" title="${$t.label||d}"
+                                @click="${rs=>F(rs,"action-on-row-"+$t.methodNameInCrud,_)}">
+                                ${$t.icon?o`<vaadin-icon icon="${$t.icon}"></vaadin-icon>`:d}
+                                ${$t.label??d}
                             </vaadin-button>`))}return q.length?o`
                     <div style="display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); padding-top: var(--lumo-space-s); border-top: 1px solid var(--lumo-contrast-10pct);">
                         ${q}
                     </div>`:d};return o`
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--lumo-space-m); padding: var(--lumo-space-s) 0;">
-                    ${y.length===0?o`<div style="grid-column: 1 / -1;">${aa(x)}</div>`:d}
+                    ${y.length===0?o`<div style="grid-column: 1 / -1;">${sa(x)}</div>`:d}
                     ${y.map(_=>o`
                         <vaadin-card
                             clickable
@@ -7152,18 +7435,18 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                 ${se.map(q=>o`
                                     <div style="display: flex; gap: var(--lumo-space-s); font-size: var(--lumo-font-size-s);">
                                         <span style="color: var(--lumo-secondary-text-color); min-width: 80px;">${q.label}</span>
-                                        <span>${T(q,_)}</span>
+                                        <span>${P(q,_)}</span>
                                     </div>
                                 `)}
                             </div>
-                            ${j(_)}
+                            ${A(_)}
                         </vaadin-card>
                     `)}
-                </div>`},oe=()=>{const I=yu(p),L=I.find(D=>D.identifier)??I[0],O=I.filter(D=>D!==L);return o`
+                </div>`},ne=()=>{const I=Cu(p),L=I.find(D=>D.identifier)??I[0],O=I.filter(D=>D!==L);return o`
                 <div style="display: flex; height: 100%; min-height: 400px; gap: 0;">
                     <div style="width: 260px; flex-shrink: 0; border-right: 1px solid var(--lumo-contrast-20pct); overflow-y: auto;">
                         <vaadin-list-box style="width: 100%;">
-                            ${y.length===0?o`<vaadin-item disabled>${aa(x)}</vaadin-item>`:d}
+                            ${y.length===0?o`<vaadin-item disabled>${sa(x)}</vaadin-item>`:d}
                             ${y.map(D=>o`
                                 <vaadin-item
                                     ?selected="${this.selectedItem===D}"
@@ -7172,7 +7455,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                 >
                                     <div style="font-weight: 600;">${L?D[L.id]??"":""}</div>
                                     <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
-                                        ${O.map(De=>o`${T(De,D)} `)}
+                                        ${O.map(De=>o`${P(De,D)} `)}
                                     </div>
                                 </vaadin-item>
                             `)}
@@ -7193,47 +7476,47 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                             <p style="color: var(--lumo-secondary-text-color);">Select a row to view details.</p>
                         `}
                     </div>
-                </div>`},ue=()=>{const I=this.identifierFieldName,L=this.state._selectedId??this.appState?._splitDetailId,O=p[0],D=p.slice(1),De=!!O?.actionId,Ie=F=>(F??[]).map(j=>{const _=Array.isArray(j.children)?j.children:[];return _.length>0?{...j,children:Ie(_)}:{...j,children:void 0}}),it=Ie(y),ft=(F,j)=>{const _=F.parentItem?F.parentItem.children??[]:it;j(_,_.length)},R=(F,j)=>{for(const _ of F??[]){if(I&&String(_[I])===j)return _;const q=R(_.children,j);if(q)return q}},se=I&&L!==void 0?R(it,String(L)):void 0,pe=(F,j,_)=>{F.stopPropagation(),I&&j[I]!==void 0&&(this.state={...this.state,_selectedId:String(j[I])}),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:_,parameters:j},bubbles:!0,composed:!0}))};return o`
+                </div>`},ue=()=>{const I=this.identifierFieldName,L=this.state._selectedId??this.appState?._splitDetailId,O=p[0],D=p.slice(1),De=!!O?.actionId,Ie=F=>(F??[]).map(A=>{const _=Array.isArray(A.children)?A.children:[];return _.length>0?{...A,children:Ie(_)}:{...A,children:void 0}}),st=Ie(y),bt=(F,A)=>{const _=F.parentItem?F.parentItem.children??[]:st;A(_,_.length)},R=(F,A)=>{for(const _ of F??[]){if(I&&String(_[I])===A)return _;const q=R(_.children,A);if(q)return q}},se=I&&L!==void 0?R(st,String(L)):void 0,pe=(F,A,_)=>{F.stopPropagation(),I&&A[I]!==void 0&&(this.state={...this.state,_selectedId:String(A[I])}),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:_,parameters:A},bubbles:!0,composed:!0}))};return o`
                 <vaadin-grid
                     style="width: 100%;"
                     all-rows-visible
                     .itemHasChildrenPath="${"children"}"
                     .itemIdPath="${I??"id"}"
-                    .dataProvider="${ft}"
+                    .dataProvider="${bt}"
                     .selectedItems="${se?[se]:[]}"
                 >
                     ${O?o`<vaadin-grid-tree-column path="${O.id}" header="${O.label??d}" flex-grow="1"></vaadin-grid-tree-column>`:d}
                     ${De?o`
-                    <vaadin-grid-column width="6rem" flex-grow="0" text-align="end" ${wt(F=>F?.viewable===!1?d:o`
-                        <vaadin-button theme="tertiary small" @click="${j=>pe(j,F,"view")}">View</vaadin-button>
+                    <vaadin-grid-column width="6rem" flex-grow="0" text-align="end" ${kt(F=>F?.viewable===!1?d:o`
+                        <vaadin-button theme="tertiary small" @click="${A=>pe(A,F,"view")}">View</vaadin-button>
                     `,[])}></vaadin-grid-column>`:d}
-                    ${D.map(F=>F.id==="select"?o`<vaadin-grid-column width="7rem" flex-grow="0" text-align="end" header="${F.label??d}" ${wt(j=>o`
-                            <vaadin-button theme="tertiary small" @click="${_=>{_.stopPropagation(),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-select",parameters:{_clickedRow:j}},bubbles:!0,composed:!0}))}}">Select</vaadin-button>
+                    ${D.map(F=>F.id==="select"?o`<vaadin-grid-column width="7rem" flex-grow="0" text-align="end" header="${F.label??d}" ${kt(A=>o`
+                            <vaadin-button theme="tertiary small" @click="${_=>{_.stopPropagation(),this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:"action-on-row-select",parameters:{_clickedRow:A}},bubbles:!0,composed:!0}))}}">Select</vaadin-button>
                         `,[])}></vaadin-grid-column>`:o`<vaadin-grid-column path="${F.id}" header="${F.label??d}" auto-width></vaadin-grid-column>`)}
-                    <span slot="empty-state">${aa(x)}</span>
+                    <span slot="empty-state">${sa(x)}</span>
                 </vaadin-grid>`},ie=te.get()?.rendersCrudLayouts?.()===!0,Y=o`
             ${i.infiniteScrolling?o`
                 <div>${this.data[this.id]?.page?.totalElements} items found.</div>
             `:d}
-            ${!ie&&h==="list"?U():!ie&&h==="cards"?i.contentHeight?o`
+            ${!ie&&m==="list"?U():!ie&&m==="cards"?i.contentHeight?o`
                 <vaadin-scroller style="width: 100%; height: ${i.contentHeight};">
                     ${N()}
                 </vaadin-scroller>
-            `:N():!ie&&h==="masterDetail"?oe():!ie&&h==="tree"?ue():te.get()?.renderTableComponent(this,s,this.baseUrl,this.state,this.data,this.appState,this.appData)}
+            `:N():!ie&&m==="masterDetail"?ne():!ie&&m==="tree"?ue():te.get()?.renderTableComponent(this,s,this.baseUrl,this.state,this.data,this.appState,this.appData)}
             <slot></slot>
         `,ee=i.infiniteScrolling?d:te.get()?.renderPagination(this,this.component),fe=o`
             <vaadin-dialog
                 .opened="${this.showImportDialog}"
                 header-title="Import"
                 @opened-changed="${I=>{this.showImportDialog=I.detail.value}}"
-                ${qi(()=>o`
+                ${Ui(()=>o`
                     <vaadin-upload
                         target="/upload"
                         max-files="1"
                         @upload-success="${this.handleImportUploadSuccess}"
                     ></vaadin-upload>
                 `,[this.showImportDialog])}
-                ${Cs(()=>o`
+                ${Is(()=>o`
                     <vaadin-button @click="${()=>{this.showImportDialog=!1}}">Cancel</vaadin-button>
                 `,[])}
             ></vaadin-dialog>
@@ -7284,7 +7567,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <div style="flex-shrink: 0;">${ee}</div>
             </div>
         `}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}};Ce.styles=C`
-        ${Ht}
+        ${Kt}
         vaadin-card[clickable] {
             transition: box-shadow 0.15s, transform 0.15s;
         }
@@ -7300,7 +7583,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             outline: 2px solid var(--lumo-primary-color);
             outline-offset: -2px;
         }
-    `;He([m()],Ce.prototype,"component",2);He([m()],Ce.prototype,"baseUrl",2);He([m({type:Boolean})],Ce.prototype,"standalone",2);He([m()],Ce.prototype,"state",2);He([m()],Ce.prototype,"data",2);He([m()],Ce.prototype,"appState",2);He([m()],Ce.prototype,"appData",2);He([$()],Ce.prototype,"showImportDialog",2);He([$()],Ce.prototype,"availableWidthPx",2);He([$()],Ce.prototype,"selectedItem",2);He([$()],Ce.prototype,"_columnPrefsRevision",2);Ce=He([k("mateu-table-crud")],Ce);var Zp=Object.defineProperty,eh=Object.getOwnPropertyDescriptor,ts=(e,t,a,s)=>{for(var i=s>1?void 0:s?eh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Zp(t,a,i),i};let Ta=class extends S{constructor(){super(...arguments),this.notificationOpened=!1,this.fetchStarted=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!0},this.fetchFinished=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!1},this.fetchFailed=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!1,this.error=e.detail.reason,this.openNotification()},this.openNotification=()=>{this.notificationOpened=!0},this.closeNotification=()=>{this.notificationOpened=!1},this.notificationRenderer=()=>o`
+    `;He([h()],Ce.prototype,"component",2);He([h()],Ce.prototype,"baseUrl",2);He([h({type:Boolean})],Ce.prototype,"standalone",2);He([h()],Ce.prototype,"state",2);He([h()],Ce.prototype,"data",2);He([h()],Ce.prototype,"appState",2);He([h()],Ce.prototype,"appData",2);He([$()],Ce.prototype,"showImportDialog",2);He([$()],Ce.prototype,"availableWidthPx",2);He([$()],Ce.prototype,"selectedItem",2);He([$()],Ce.prototype,"_columnPrefsRevision",2);Ce=He([k("mateu-table-crud")],Ce);var ih=Object.defineProperty,sh=Object.getOwnPropertyDescriptor,as=(e,t,a,s)=>{for(var i=s>1?void 0:s?sh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&ih(t,a,i),i};let Oa=class extends S{constructor(){super(...arguments),this.notificationOpened=!1,this.fetchStarted=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!0},this.fetchFinished=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!1},this.fetchFailed=e=>{e.preventDefault(),e.stopPropagation(),this.loading=!1,this.error=e.detail.reason,this.openNotification()},this.openNotification=()=>{this.notificationOpened=!0},this.closeNotification=()=>{this.notificationOpened=!1},this.notificationRenderer=()=>o`
     <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
       <div>${this.error?.message??String(this.error)}</div>
       <vaadin-button theme="tertiary-inline" @click="${this.closeNotification}" aria-label="Close">
@@ -7318,8 +7601,8 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 position="bottom-end"
                 .opened="${this.notificationOpened}"
                 @opened-changed="${e=>{this.notificationOpened=e.detail.value}}"
-                ${yr(this.notificationRenderer,[])}
-        ></vaadin-notification>`}};Ta.styles=C`
+                ${wr(this.notificationRenderer,[])}
+        ></vaadin-notification>`}};Oa.styles=C`
         :host {
         }
 
@@ -7371,14 +7654,14 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             animation: l5 1s infinite;
         }
         @keyframes l5 {to{transform: rotate(.5turn)}}
-  `;ts([$()],Ta.prototype,"loading",2);ts([$()],Ta.prototype,"notificationOpened",2);ts([$()],Ta.prototype,"error",2);Ta=ts([k("mateu-api-caller")],Ta);var th=Object.defineProperty,ah=Object.getOwnPropertyDescriptor,mt=(e,t,a,s)=>{for(var i=s>1?void 0:s?ah(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&th(t,a,i),i};let Me=class extends S{constructor(){super(...arguments),this.message="This website uses cookies.",this.dismiss="Ok. Thanks :).",this.learnMore="Learn more",this.learnMoreLink="https://cookiesandyou.com/",this.showLearnMore=!0,this.position="top",this.cookieName="mateu-cookieconsent"}updated(e){super.updated(e)}connectedCallback(){super.connectedCallback(),this._css=document.createElement("style"),this._css.innerText=".cc-window{opacity:1;transition:opacity 1s ease}.cc-window.cc-invisible{opacity:0}.cc-animate.cc-revoke{transition:transform 1s ease}.cc-animate.cc-revoke.cc-top{transform:translateY(-2em)}.cc-animate.cc-revoke.cc-bottom{transform:translateY(2em)}.cc-animate.cc-revoke.cc-active.cc-bottom,.cc-animate.cc-revoke.cc-active.cc-top,.cc-revoke:hover{transform:translateY(0)}.cc-grower{max-height:0;overflow:hidden;transition:max-height 1s}.cc-link,.cc-revoke:hover{text-decoration:underline}.cc-revoke,.cc-window{position:fixed;overflow:hidden;box-sizing:border-box;font-family:Helvetica,Calibri,Arial,sans-serif;font-size:16px;line-height:1.5em;display:flex;flex-wrap:nowrap;z-index:9999}.cc-window.cc-static{position:static}.cc-window.cc-floating{padding:2em;max-width:24em;flex-direction:column}.cc-window.cc-banner{padding:1em 1.8em;width:100%;flex-direction:row}.cc-revoke{padding:.5em}.cc-header{font-size:18px;font-weight:700}.cc-btn,.cc-close,.cc-link,.cc-revoke{cursor:pointer}.cc-link{opacity:.8;display:inline-block;padding:.2em}.cc-link:hover{opacity:1}.cc-link:active,.cc-link:visited{color:initial}.cc-btn{display:block;padding:.4em .8em;font-size:.9em;font-weight:700;border-width:2px;border-style:solid;text-align:center;white-space:nowrap}.cc-banner .cc-btn:last-child{min-width:140px}.cc-highlight .cc-btn:first-child{background-color:transparent;border-color:transparent}.cc-highlight .cc-btn:first-child:focus,.cc-highlight .cc-btn:first-child:hover{background-color:transparent;text-decoration:underline}.cc-close{display:block;position:absolute;top:.5em;right:.5em;font-size:1.6em;opacity:.9;line-height:.75}.cc-close:focus,.cc-close:hover{opacity:1}.cc-revoke.cc-top{top:0;left:3em;border-bottom-left-radius:.5em;border-bottom-right-radius:.5em}.cc-revoke.cc-bottom{bottom:0;left:3em;border-top-left-radius:.5em;border-top-right-radius:.5em}.cc-revoke.cc-left{left:3em;right:unset}.cc-revoke.cc-right{right:3em;left:unset}.cc-top{top:1em}.cc-left{left:1em}.cc-right{right:1em}.cc-bottom{bottom:1em}.cc-floating>.cc-link{margin-bottom:1em}.cc-floating .cc-message{display:block;margin-bottom:1em}.cc-window.cc-floating .cc-compliance{flex:1 0 auto}.cc-window.cc-banner{align-items:center}.cc-banner.cc-top{left:0;right:0;top:0}.cc-banner.cc-bottom{left:0;right:0;bottom:0}.cc-banner .cc-message{flex:1}.cc-compliance{display:flex;align-items:center;align-content:space-between}.cc-compliance>.cc-btn{flex:1}.cc-btn+.cc-btn{margin-left:.5em}@media print{.cc-revoke,.cc-window{display:none}}@media screen and (max-width:900px){.cc-btn{white-space:normal}}@media screen and (max-width:414px) and (orientation:portrait),screen and (max-width:736px) and (orientation:landscape){.cc-window.cc-top{top:0}.cc-window.cc-bottom{bottom:0}.cc-window.cc-banner,.cc-window.cc-left,.cc-window.cc-right{left:0;right:0}.cc-window.cc-banner{flex-direction:column}.cc-window.cc-banner .cc-compliance{flex:1}.cc-window.cc-floating{max-width:none}.cc-window .cc-message{margin-bottom:1em}.cc-window.cc-banner{align-items:unset}}.cc-floating.cc-theme-classic{padding:1.2em;border-radius:5px}.cc-floating.cc-type-info.cc-theme-classic .cc-compliance{text-align:center;display:inline;flex:none}.cc-theme-classic .cc-btn{border-radius:5px}.cc-theme-classic .cc-btn:last-child{min-width:140px}.cc-floating.cc-type-info.cc-theme-classic .cc-btn{display:inline-block}.cc-theme-edgeless.cc-window{padding:0}.cc-floating.cc-theme-edgeless .cc-message{margin:2em 2em 1.5em}.cc-banner.cc-theme-edgeless .cc-btn{margin:0;padding:.8em 1.8em;height:100%}.cc-banner.cc-theme-edgeless .cc-message{margin-left:1em}.cc-floating.cc-theme-edgeless .cc-btn+.cc-btn{margin-left:0}",document.head.appendChild(this._css),this.__updatePopup()}disconnectedCallback(){super.disconnectedCallback(),this.__closePopup(),this._css.isConnected&&this._css.remove()}__closePopup(){const e=this.popup;e&&e.parentNode?.removeChild(e)}_show(){const e=this.popup;e&&(e.classList.remove("cc-invisible"),e.style.display="")}__updatePopup(){this.__closePopup(),window.cookieconsent.initialise({palette:{popup:{background:"#000"},button:{background:"rgba(22, 118, 243, 0.95)",hover:"rgba(22, 118, 243, 1)"}},showLink:this.showLearnMore,content:{message:this.message,dismiss:this.dismiss,link:this.learnMore,href:this.learnMoreLink},cookie:{name:this.cookieName},position:this.position,elements:{messagelink:`<span id="cookieconsent:desc" class="cc-message">${this.message} <a tabindex="0" class="cc-link" href="${this.learnMoreLink}" target="_blank" rel="noopener noreferrer nofollow">${this.learnMore}</a></span>`,dismiss:`<a tabindex="0" class="cc-btn cc-dismiss">${this.dismiss}</a>`}});const e=this.popup;if(e){e.setAttribute("role","alert");const t=e.querySelector("a.cc-btn");t?.addEventListener("keydown",a=>{const r=a.keyCode||a.which;(r===32||r===13)&&t.click()})}}render(){return o`
+  `;as([$()],Oa.prototype,"loading",2);as([$()],Oa.prototype,"notificationOpened",2);as([$()],Oa.prototype,"error",2);Oa=as([k("mateu-api-caller")],Oa);var rh=Object.defineProperty,oh=Object.getOwnPropertyDescriptor,vt=(e,t,a,s)=>{for(var i=s>1?void 0:s?oh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&rh(t,a,i),i};let Me=class extends S{constructor(){super(...arguments),this.message="This website uses cookies.",this.dismiss="Ok. Thanks :).",this.learnMore="Learn more",this.learnMoreLink="https://cookiesandyou.com/",this.showLearnMore=!0,this.position="top",this.cookieName="mateu-cookieconsent"}updated(e){super.updated(e)}connectedCallback(){super.connectedCallback(),this._css=document.createElement("style"),this._css.innerText=".cc-window{opacity:1;transition:opacity 1s ease}.cc-window.cc-invisible{opacity:0}.cc-animate.cc-revoke{transition:transform 1s ease}.cc-animate.cc-revoke.cc-top{transform:translateY(-2em)}.cc-animate.cc-revoke.cc-bottom{transform:translateY(2em)}.cc-animate.cc-revoke.cc-active.cc-bottom,.cc-animate.cc-revoke.cc-active.cc-top,.cc-revoke:hover{transform:translateY(0)}.cc-grower{max-height:0;overflow:hidden;transition:max-height 1s}.cc-link,.cc-revoke:hover{text-decoration:underline}.cc-revoke,.cc-window{position:fixed;overflow:hidden;box-sizing:border-box;font-family:Helvetica,Calibri,Arial,sans-serif;font-size:16px;line-height:1.5em;display:flex;flex-wrap:nowrap;z-index:9999}.cc-window.cc-static{position:static}.cc-window.cc-floating{padding:2em;max-width:24em;flex-direction:column}.cc-window.cc-banner{padding:1em 1.8em;width:100%;flex-direction:row}.cc-revoke{padding:.5em}.cc-header{font-size:18px;font-weight:700}.cc-btn,.cc-close,.cc-link,.cc-revoke{cursor:pointer}.cc-link{opacity:.8;display:inline-block;padding:.2em}.cc-link:hover{opacity:1}.cc-link:active,.cc-link:visited{color:initial}.cc-btn{display:block;padding:.4em .8em;font-size:.9em;font-weight:700;border-width:2px;border-style:solid;text-align:center;white-space:nowrap}.cc-banner .cc-btn:last-child{min-width:140px}.cc-highlight .cc-btn:first-child{background-color:transparent;border-color:transparent}.cc-highlight .cc-btn:first-child:focus,.cc-highlight .cc-btn:first-child:hover{background-color:transparent;text-decoration:underline}.cc-close{display:block;position:absolute;top:.5em;right:.5em;font-size:1.6em;opacity:.9;line-height:.75}.cc-close:focus,.cc-close:hover{opacity:1}.cc-revoke.cc-top{top:0;left:3em;border-bottom-left-radius:.5em;border-bottom-right-radius:.5em}.cc-revoke.cc-bottom{bottom:0;left:3em;border-top-left-radius:.5em;border-top-right-radius:.5em}.cc-revoke.cc-left{left:3em;right:unset}.cc-revoke.cc-right{right:3em;left:unset}.cc-top{top:1em}.cc-left{left:1em}.cc-right{right:1em}.cc-bottom{bottom:1em}.cc-floating>.cc-link{margin-bottom:1em}.cc-floating .cc-message{display:block;margin-bottom:1em}.cc-window.cc-floating .cc-compliance{flex:1 0 auto}.cc-window.cc-banner{align-items:center}.cc-banner.cc-top{left:0;right:0;top:0}.cc-banner.cc-bottom{left:0;right:0;bottom:0}.cc-banner .cc-message{flex:1}.cc-compliance{display:flex;align-items:center;align-content:space-between}.cc-compliance>.cc-btn{flex:1}.cc-btn+.cc-btn{margin-left:.5em}@media print{.cc-revoke,.cc-window{display:none}}@media screen and (max-width:900px){.cc-btn{white-space:normal}}@media screen and (max-width:414px) and (orientation:portrait),screen and (max-width:736px) and (orientation:landscape){.cc-window.cc-top{top:0}.cc-window.cc-bottom{bottom:0}.cc-window.cc-banner,.cc-window.cc-left,.cc-window.cc-right{left:0;right:0}.cc-window.cc-banner{flex-direction:column}.cc-window.cc-banner .cc-compliance{flex:1}.cc-window.cc-floating{max-width:none}.cc-window .cc-message{margin-bottom:1em}.cc-window.cc-banner{align-items:unset}}.cc-floating.cc-theme-classic{padding:1.2em;border-radius:5px}.cc-floating.cc-type-info.cc-theme-classic .cc-compliance{text-align:center;display:inline;flex:none}.cc-theme-classic .cc-btn{border-radius:5px}.cc-theme-classic .cc-btn:last-child{min-width:140px}.cc-floating.cc-type-info.cc-theme-classic .cc-btn{display:inline-block}.cc-theme-edgeless.cc-window{padding:0}.cc-floating.cc-theme-edgeless .cc-message{margin:2em 2em 1.5em}.cc-banner.cc-theme-edgeless .cc-btn{margin:0;padding:.8em 1.8em;height:100%}.cc-banner.cc-theme-edgeless .cc-message{margin-left:1em}.cc-floating.cc-theme-edgeless .cc-btn+.cc-btn{margin-left:0}",document.head.appendChild(this._css),this.__updatePopup()}disconnectedCallback(){super.disconnectedCallback(),this.__closePopup(),this._css.isConnected&&this._css.remove()}__closePopup(){const e=this.popup;e&&e.parentNode?.removeChild(e)}_show(){const e=this.popup;e&&(e.classList.remove("cc-invisible"),e.style.display="")}__updatePopup(){this.__closePopup(),window.cookieconsent.initialise({palette:{popup:{background:"#000"},button:{background:"rgba(22, 118, 243, 0.95)",hover:"rgba(22, 118, 243, 1)"}},showLink:this.showLearnMore,content:{message:this.message,dismiss:this.dismiss,link:this.learnMore,href:this.learnMoreLink},cookie:{name:this.cookieName},position:this.position,elements:{messagelink:`<span id="cookieconsent:desc" class="cc-message">${this.message} <a tabindex="0" class="cc-link" href="${this.learnMoreLink}" target="_blank" rel="noopener noreferrer nofollow">${this.learnMore}</a></span>`,dismiss:`<a tabindex="0" class="cc-btn cc-dismiss">${this.dismiss}</a>`}});const e=this.popup;if(e){e.setAttribute("role","alert");const t=e.querySelector("a.cc-btn");t?.addEventListener("keydown",a=>{const r=a.keyCode||a.which;(r===32||r===13)&&t.click()})}}render(){return o`
        `}};Me.styles=C`
-  `;mt([m()],Me.prototype,"message",2);mt([m()],Me.prototype,"dismiss",2);mt([m()],Me.prototype,"learnMore",2);mt([m()],Me.prototype,"learnMoreLink",2);mt([m()],Me.prototype,"showLearnMore",2);mt([m()],Me.prototype,"position",2);mt([m()],Me.prototype,"cookieName",2);mt([$()],Me.prototype,"_css",2);mt([tt('[aria-label="cookieconsent"]')],Me.prototype,"popup",2);Me=mt([k("mateu-cookie-consent")],Me);var ih=Object.defineProperty,sh=Object.getOwnPropertyDescriptor,Io=(e,t,a,s)=>{for(var i=s>1?void 0:s?sh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&ih(t,a,i),i};let Fi=class extends S{constructor(){super(...arguments),this.redispatchEvent=e=>{e instanceof CustomEvent&&(e.stopPropagation(),e.preventDefault(),this.target?.dispatchEvent(new CustomEvent(e.type,{detail:e.detail,bubbles:!0,composed:!0})))}}connectedCallback(){super.connectedCallback(),this.addEventListener("value-changed",this.redispatchEvent),this.addEventListener("data-changed",this.redispatchEvent),this.addEventListener("action-requested",this.redispatchEvent),this.addEventListener("server-side-action-requested",this.redispatchEvent),this.addEventListener("route-changed",this.redispatchEvent),this.addEventListener("close-modal-requested",this.redispatchEvent)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("value-changed",this.redispatchEvent),this.removeEventListener("data-changed",this.redispatchEvent),this.removeEventListener("action-requested",this.redispatchEvent),this.removeEventListener("server-side-action-requested",this.redispatchEvent),this.removeEventListener("route-changed",this.redispatchEvent)}render(){return o`<slot></slot>`}};Fi.styles=C`
+  `;vt([h()],Me.prototype,"message",2);vt([h()],Me.prototype,"dismiss",2);vt([h()],Me.prototype,"learnMore",2);vt([h()],Me.prototype,"learnMoreLink",2);vt([h()],Me.prototype,"showLearnMore",2);vt([h()],Me.prototype,"position",2);vt([h()],Me.prototype,"cookieName",2);vt([$()],Me.prototype,"_css",2);vt([at('[aria-label="cookieconsent"]')],Me.prototype,"popup",2);Me=vt([k("mateu-cookie-consent")],Me);var nh=Object.defineProperty,lh=Object.getOwnPropertyDescriptor,Eo=(e,t,a,s)=>{for(var i=s>1?void 0:s?lh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&nh(t,a,i),i};let Ni=class extends S{constructor(){super(...arguments),this.redispatchEvent=e=>{e instanceof CustomEvent&&(e.stopPropagation(),e.preventDefault(),this.target?.dispatchEvent(new CustomEvent(e.type,{detail:e.detail,bubbles:!0,composed:!0})))}}connectedCallback(){super.connectedCallback(),this.addEventListener("value-changed",this.redispatchEvent),this.addEventListener("data-changed",this.redispatchEvent),this.addEventListener("action-requested",this.redispatchEvent),this.addEventListener("server-side-action-requested",this.redispatchEvent),this.addEventListener("route-changed",this.redispatchEvent),this.addEventListener("close-modal-requested",this.redispatchEvent)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("value-changed",this.redispatchEvent),this.removeEventListener("data-changed",this.redispatchEvent),this.removeEventListener("action-requested",this.redispatchEvent),this.removeEventListener("server-side-action-requested",this.redispatchEvent),this.removeEventListener("route-changed",this.redispatchEvent)}render(){return o`<slot></slot>`}};Ni.styles=C`
         :host {
             /* width: 100%; */
             display: inline-block;
         }
-  `;Io([m()],Fi.prototype,"target",2);Fi=Io([k("mateu-event-interceptor")],Fi);var rh=Object.defineProperty,oh=Object.getOwnPropertyDescriptor,_o=(e,t,a,s)=>{for(var i=s>1?void 0:s?oh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&rh(t,a,i),i};let Ni=class extends Zt{constructor(){super(...arguments),this.opened=!0,this.close=()=>{this.opened=!1,setTimeout(()=>this.parentElement?.removeChild(this),500)}}applyFragment(e){super.applyFragment(e);const t=e.state?._closeAfterMillis;t&&setTimeout(()=>this.close(),t)}updated(e){if(super.updated(e),e.has("component")&&this.component){const t=this.component.metadata;this.state=t.initialData}}render(){const e=this.component.metadata;let t="";e.noPadding&&(t+=" no-padding");const a=Bi(e.headerTitle,this.state,this.data,this.appState,this.appData);return o`
+  `;Eo([h()],Ni.prototype,"target",2);Ni=Eo([k("mateu-event-interceptor")],Ni);var dh=Object.defineProperty,ch=Object.getOwnPropertyDescriptor,Po=(e,t,a,s)=>{for(var i=s>1?void 0:s?ch(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&dh(t,a,i),i};let Mi=class extends ta{constructor(){super(...arguments),this.opened=!0,this.close=()=>{this.opened=!1,setTimeout(()=>this.parentElement?.removeChild(this),500)}}applyFragment(e){super.applyFragment(e);const t=e.state?._closeAfterMillis;t&&setTimeout(()=>this.close(),t)}updated(e){if(super.updated(e),e.has("component")&&this.component){const t=this.component.metadata;this.state=t.initialData}}render(){const e=this.component.metadata;let t="";e.noPadding&&(t+=" no-padding");const a=Vi(e.headerTitle,this.state,this.data,this.appState,this.appData);return o`
         <vaadin-dialog
                 header-title="${a}"
                 .opened="${this.opened}"
@@ -7392,20 +7675,20 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 right="${e.right??d}"
                 width="${e.width??d}"
                 height="${e.height??d}"
-                ${e.header||e.closeButtonOnHeader?Uo(()=>o`<mateu-event-interceptor .target="${this}" style="width: 100%;">${e.header?w(this,e.header,this.baseUrl,this.state,this.data,this.appState,this.appData):d}${e.closeButtonOnHeader?o`
+                ${e.header||e.closeButtonOnHeader?Ho(()=>o`<mateu-event-interceptor .target="${this}" style="width: 100%;">${e.header?w(this,e.header,this.baseUrl,this.state,this.data,this.appState,this.appData):d}${e.closeButtonOnHeader?o`
                             <vaadin-button theme="tertiary" @click="${this.close}">
                                 <vaadin-icon icon="lumo:cross"></vaadin-icon>
                             </vaadin-button>
                         `:d}</mateu-event-interceptor>`,[this.state,this.data]):d}
-                ${e.footer?Cs(()=>o`<mateu-event-interceptor .target="${this}" style="width: 100%;">${w(this,e.footer,this.baseUrl,this.state,this.data,this.appState,this.appData)}</mateu-event-interceptor>`,[this.state,this.data]):d}
-                ${e.content?qi(()=>o`<mateu-event-interceptor .target="${this}" style="--mateu-section-border: none; width: 100%;">${w(this,e.content,this.baseUrl,this.state,this.data,this.appState,this.appData)}</mateu-event-interceptor>`,[this.state,this.data]):d}
+                ${e.footer?Is(()=>o`<mateu-event-interceptor .target="${this}" style="width: 100%;">${w(this,e.footer,this.baseUrl,this.state,this.data,this.appState,this.appData)}</mateu-event-interceptor>`,[this.state,this.data]):d}
+                ${e.content?Ui(()=>o`<mateu-event-interceptor .target="${this}" style="--mateu-section-border: none; width: 100%;">${w(this,e.content,this.baseUrl,this.state,this.data,this.appState,this.appData)}</mateu-event-interceptor>`,[this.state,this.data]):d}
                 style="${this.component?.style}" 
                 class="${this.component?.cssClasses}"
         >
         </vaadin-dialog>
 
-       `}};Ni.styles=C`
-  `;_o([$()],Ni.prototype,"opened",2);Ni=_o([k("mateu-dialog")],Ni);var nh=Object.defineProperty,lh=Object.getOwnPropertyDescriptor,Eo=(e,t,a,s)=>{for(var i=s>1?void 0:s?lh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&nh(t,a,i),i};let Mi=class extends Zt{constructor(){super(...arguments),this.opened=!1,this.close=()=>{this.opened=!1,setTimeout(()=>this.parentElement?.removeChild(this),300)},this._escListener=e=>{if(e.key!=="Escape")return;const a=this.getRootNode().querySelectorAll("mateu-drawer, mateu-dialog");a[a.length-1]===this&&(e.stopPropagation(),this.close())}}firstUpdated(){requestAnimationFrame(()=>this.opened=!0)}applyFragment(e){super.applyFragment(e);const t=e.state?._closeAfterMillis;t&&setTimeout(()=>this.close(),t)}updated(e){if(super.updated(e),e.has("component")&&this.component){const t=this.component.metadata;this.state=t.initialData}}connectedCallback(){super.connectedCallback(),document.addEventListener("keydown",this._escListener)}disconnectedCallback(){document.removeEventListener("keydown",this._escListener),super.disconnectedCallback()}render(){const e=this.component.metadata,t=e.position??"end",a=Bi(e.headerTitle,this.state,this.data,this.appState,this.appData);return o`
+       `}};Mi.styles=C`
+  `;Po([$()],Mi.prototype,"opened",2);Mi=Po([k("mateu-dialog")],Mi);var uh=Object.defineProperty,ph=Object.getOwnPropertyDescriptor,To=(e,t,a,s)=>{for(var i=s>1?void 0:s?ph(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&uh(t,a,i),i};let qi=class extends ta{constructor(){super(...arguments),this.opened=!1,this.close=()=>{this.opened=!1,setTimeout(()=>this.parentElement?.removeChild(this),300)},this._escListener=e=>{if(e.key!=="Escape")return;const a=this.getRootNode().querySelectorAll("mateu-drawer, mateu-dialog");a[a.length-1]===this&&(e.stopPropagation(),this.close())}}firstUpdated(){requestAnimationFrame(()=>this.opened=!0)}applyFragment(e){super.applyFragment(e);const t=e.state?._closeAfterMillis;t&&setTimeout(()=>this.close(),t)}updated(e){if(super.updated(e),e.has("component")&&this.component){const t=this.component.metadata;this.state=t.initialData}}connectedCallback(){super.connectedCallback(),document.addEventListener("keydown",this._escListener)}disconnectedCallback(){document.removeEventListener("keydown",this._escListener),super.disconnectedCallback()}render(){const e=this.component.metadata,t=e.position??"end",a=Vi(e.headerTitle,this.state,this.data,this.appState,this.appData);return o`
         ${e.modeless?d:o`
             <div class="backdrop ${this.opened?"open":""}" @click="${this.close}"></div>
         `}
@@ -7434,7 +7717,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 </footer>
             `:d}
         </section>
-       `}};Mi.styles=C`
+       `}};qi.styles=C`
         .drawer-close {
             border: none;
             background: transparent;
@@ -7524,7 +7807,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             display: flex;
             justify-content: flex-end;
         }
-  `;Eo([$()],Mi.prototype,"opened",2);Mi=Eo([k("mateu-drawer")],Mi);var dh=Object.defineProperty,ch=Object.getOwnPropertyDescriptor,Se=(e,t,a,s)=>{for(var i=s>1?void 0:s?ch(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&dh(t,a,i),i};function hr(e){if(e.parentElement)return e.parentElement;const t=e.getRootNode();return t instanceof ShadowRoot?t.host:null}let ce=class extends S{constructor(){super(...arguments),this.appState={},this.appData={},this.standalone=!1,this.actionBanners=[],this.dismissedStaticBannerIndices=new Set,this._tocEntries=[],this._activeToc=0,this._tocVisible=!1,this._tocRebuildScheduled=!1,this._headerH=0,this._onResize=()=>this._layoutStickyTops(),this._tocLocked=!1,this._unlockToc=e=>{if(e&&e.type==="keydown"){const t=e;if(t.ctrlKey&&t.altKey&&!t.shiftKey&&!t.metaKey&&/^(?:Digit|Numpad)[1-9]$/.test(t.code))return}this._tocLocked=!1},this._actionBannerTimers=[],this._staticBannerTimers=[],this._bannersHandler=e=>{const t=e.detail,a=t.banners??[],s=t.append??!1;s?this.actionBanners=[...this.actionBanners,...a]:(this._clearActionBannerTimers(),this.actionBanners=a);const i=s?this.actionBanners.length-a.length:0;a.forEach((r,n)=>{if(r.timeoutSeconds&&r.timeoutSeconds>0){const l=i+n;this._actionBannerTimers.push(setTimeout(()=>{this.actionBanners=this.actionBanners.filter((c,u)=>u!==l)},r.timeoutSeconds*1e3))}})},this._onTocKey=e=>{if(!this._tocVisible||!e.ctrlKey||!e.altKey||e.shiftKey||e.metaKey)return;const t=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!t)return;const a=parseInt(t[1],10)-1;a>=this._tocEntries.length||(e.preventDefault(),this._scrollToSection(a))},this._onScrollSpy=()=>{if(this._tocLocked)return;const e=this._sectionCards();if(!e.length)return;const t=12,a=this.shadowRoot?.querySelector("mateu-content-header");let s=a?a.getBoundingClientRect().bottom:0;for(const n of e){if(!n.classList.contains("mateu-section--sticky"))continue;const l=n.getBoundingClientRect();l.top<=s+t+2&&(s=Math.max(s,l.bottom))}const i=s+t+4;let r=0;this._tocEntries.forEach((n,l)=>{n.el.getBoundingClientRect().top<=i&&(r=l)}),this._activeToc=r}}connectedCallback(){super.connectedCallback(),document.addEventListener("page-banners-received",this._bannersHandler),window.addEventListener("resize",this._onResize),document.addEventListener("keydown",this._onTocKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("page-banners-received",this._bannersHandler),window.removeEventListener("resize",this._onResize),document.removeEventListener("keydown",this._onTocKey),this._clearAllTimers(),this._teardownScrollSpy()}updated(e){super.updated(e),e.has("component")&&e.get("component")!==void 0&&(this._clearAllTimers(),this.actionBanners=[],this.dismissedStaticBannerIndices=new Set),e.has("component")&&(this._scheduleStaticBannerTimeouts(),this.dispatchEvent(new CustomEvent("compact-changed",{detail:{compact:!!this.component?.style?.includes("--mateu-compact:1")},bubbles:!0,composed:!0})),this._scheduleTocRebuild())}_scheduleStaticBannerTimeouts(){this._staticBannerTimers.forEach(a=>clearTimeout(a)),this._staticBannerTimers=[],(this.component?.metadata?.banners??[]).forEach((a,s)=>{a.timeoutSeconds&&a.timeoutSeconds>0&&this._staticBannerTimers.push(setTimeout(()=>{this.dismissedStaticBannerIndices=new Set([...this.dismissedStaticBannerIndices,s])},a.timeoutSeconds*1e3))})}_clearActionBannerTimers(){this._actionBannerTimers.forEach(e=>clearTimeout(e)),this._actionBannerTimers=[]}_clearAllTimers(){this._clearActionBannerTimers(),this._staticBannerTimers.forEach(e=>clearTimeout(e)),this._staticBannerTimers=[]}_dismissActionBanner(e){this.actionBanners=this.actionBanners.filter((t,a)=>a!==e)}_dismissStaticBanner(e){this.dismissedStaticBannerIndices=new Set([...this.dismissedStaticBannerIndices,e])}bannerThemeClass(e){const t=e.theme?.toLowerCase()??"info";return t==="none"?"":t}_evalBannerText(e){return Oe(e,this.state,this.data)}_renderBanner(e,t){const a=this._evalBannerText(e.title),s=this._evalBannerText(e.description);return o`
+  `;To([$()],qi.prototype,"opened",2);qi=To([k("mateu-drawer")],qi);var hh=Object.defineProperty,mh=Object.getOwnPropertyDescriptor,Se=(e,t,a,s)=>{for(var i=s>1?void 0:s?mh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&hh(t,a,i),i};function vr(e){if(e.parentElement)return e.parentElement;const t=e.getRootNode();return t instanceof ShadowRoot?t.host:null}let ce=class extends S{constructor(){super(...arguments),this.appState={},this.appData={},this.standalone=!1,this.actionBanners=[],this.dismissedStaticBannerIndices=new Set,this._tocEntries=[],this._activeToc=0,this._tocVisible=!1,this._tocRebuildScheduled=!1,this._headerH=0,this._onResize=()=>this._layoutStickyTops(),this._tocLocked=!1,this._unlockToc=e=>{if(e&&e.type==="keydown"){const t=e;if(t.ctrlKey&&t.altKey&&!t.shiftKey&&!t.metaKey&&/^(?:Digit|Numpad)[1-9]$/.test(t.code))return}this._tocLocked=!1},this._actionBannerTimers=[],this._staticBannerTimers=[],this._bannersHandler=e=>{const t=e.detail,a=t.banners??[],s=t.append??!1;s?this.actionBanners=[...this.actionBanners,...a]:(this._clearActionBannerTimers(),this.actionBanners=a);const i=s?this.actionBanners.length-a.length:0;a.forEach((r,n)=>{if(r.timeoutSeconds&&r.timeoutSeconds>0){const l=i+n;this._actionBannerTimers.push(setTimeout(()=>{this.actionBanners=this.actionBanners.filter((c,u)=>u!==l)},r.timeoutSeconds*1e3))}})},this._onTocKey=e=>{if(!this._tocVisible||!e.ctrlKey||!e.altKey||e.shiftKey||e.metaKey)return;const t=/^(?:Digit|Numpad)([1-9])$/.exec(e.code);if(!t)return;const a=parseInt(t[1],10)-1;a>=this._tocEntries.length||(e.preventDefault(),this._scrollToSection(a))},this._onScrollSpy=()=>{if(this._tocLocked)return;const e=this._sectionCards();if(!e.length)return;const t=12,a=this.shadowRoot?.querySelector("mateu-content-header");let s=a?a.getBoundingClientRect().bottom:0;for(const n of e){if(!n.classList.contains("mateu-section--sticky"))continue;const l=n.getBoundingClientRect();l.top<=s+t+2&&(s=Math.max(s,l.bottom))}const i=s+t+4;let r=0;this._tocEntries.forEach((n,l)=>{n.el.getBoundingClientRect().top<=i&&(r=l)}),this._activeToc=r}}connectedCallback(){super.connectedCallback(),document.addEventListener("page-banners-received",this._bannersHandler),window.addEventListener("resize",this._onResize),document.addEventListener("keydown",this._onTocKey)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("page-banners-received",this._bannersHandler),window.removeEventListener("resize",this._onResize),document.removeEventListener("keydown",this._onTocKey),this._clearAllTimers(),this._teardownScrollSpy()}updated(e){super.updated(e),e.has("component")&&e.get("component")!==void 0&&(this._clearAllTimers(),this.actionBanners=[],this.dismissedStaticBannerIndices=new Set),e.has("component")&&(this._scheduleStaticBannerTimeouts(),this.dispatchEvent(new CustomEvent("compact-changed",{detail:{compact:!!this.component?.style?.includes("--mateu-compact:1")},bubbles:!0,composed:!0})),this._scheduleTocRebuild())}_scheduleStaticBannerTimeouts(){this._staticBannerTimers.forEach(a=>clearTimeout(a)),this._staticBannerTimers=[],(this.component?.metadata?.banners??[]).forEach((a,s)=>{a.timeoutSeconds&&a.timeoutSeconds>0&&this._staticBannerTimers.push(setTimeout(()=>{this.dismissedStaticBannerIndices=new Set([...this.dismissedStaticBannerIndices,s])},a.timeoutSeconds*1e3))})}_clearActionBannerTimers(){this._actionBannerTimers.forEach(e=>clearTimeout(e)),this._actionBannerTimers=[]}_clearAllTimers(){this._clearActionBannerTimers(),this._staticBannerTimers.forEach(e=>clearTimeout(e)),this._staticBannerTimers=[]}_dismissActionBanner(e){this.actionBanners=this.actionBanners.filter((t,a)=>a!==e)}_dismissStaticBanner(e){this.dismissedStaticBannerIndices=new Set([...this.dismissedStaticBannerIndices,e])}bannerThemeClass(e){const t=e.theme?.toLowerCase()??"info";return t==="none"?"":t}_evalBannerText(e){return Oe(e,this.state,this.data)}_renderBanner(e,t){const a=this._evalBannerText(e.title),s=this._evalBannerText(e.description);return o`
             <div class="page-banner page-banner--${this.bannerThemeClass(e)}">
                 ${a||e.hasCloseButton?o`
                     <div style="display: flex; align-items: center; justify-content: space-between; color: #1a1a1a; width: 100%;">
@@ -7536,7 +7819,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 `:d}
                 ${s?o`<p>${s}</p>`:d}
             </div>
-        `}_onSlotChange(){this._scheduleTocRebuild()}_scheduleTocRebuild(){this._tocRebuildScheduled||(this._tocRebuildScheduled=!0,requestAnimationFrame(()=>{this._tocRebuildScheduled=!1,this._rebuildToc()}))}_sectionCards(){return Array.from(this.querySelectorAll(".mateu-section"))}_sectionTitle(e){const t=e.querySelector('[slot="title"]')?.textContent?.trim();return t||e.querySelector("h1,h2,h3,h4,h5,h6")?.textContent?.trim()||void 0}_rebuildToc(){const e=this._sectionCards(),t=e.map(r=>({title:this._sectionTitle(r),el:r})).filter(r=>!!r.title),a=this.component?.metadata?.toc,s=t.length>4&&e.every(r=>!r.closest("vaadin-horizontal-layout")),i=(a===!0?!0:a===!1?!1:s)&&t.length>0;this._tocEntries=t,this._tocVisible=i,this._activeToc>=t.length&&(this._activeToc=0),this._teardownScrollSpy(),i?requestAnimationFrame(()=>{this._layoutStickyTops(),this._setupScrollSpy()}):this._layoutStickyTops()}_layoutStickyTops(){const e=this.shadowRoot?.querySelector("mateu-content-header");this._headerH=this._tocVisible&&e?e.offsetHeight:0,this.style.setProperty("--mateu-header-h",this._headerH+"px");const t=12;let a=this._headerH+t;for(const s of this._sectionCards())s.classList.contains("mateu-section--sticky")&&(s.style.top=a+"px",a+=s.offsetHeight+t)}_scrollContainer(){let e=hr(this);for(;e;){const t=getComputedStyle(e).overflowY;if((t==="auto"||t==="scroll")&&e.scrollHeight>e.clientHeight)return e;e=hr(e)}return null}_setupScrollSpy(){this._tocEntries.length&&(this._spyTarget=this._scrollContainer()??window,this._spyTarget.addEventListener("scroll",this._onScrollSpy,{passive:!0}),window.addEventListener("wheel",this._unlockToc,{passive:!0}),window.addEventListener("touchstart",this._unlockToc,{passive:!0}),window.addEventListener("keydown",this._unlockToc),this._onScrollSpy())}_teardownScrollSpy(){this._spyTarget?.removeEventListener("scroll",this._onScrollSpy),window.removeEventListener("wheel",this._unlockToc),window.removeEventListener("touchstart",this._unlockToc),window.removeEventListener("keydown",this._unlockToc),this._spyTarget=void 0}_scrollToSection(e){const t=this._tocEntries[e];if(!t)return;this._activeToc=e,this._tocLocked=!0;const a=12;let s=this._headerH+a;for(const l of this._sectionCards()){if(l===t.el)break;l.classList.contains("mateu-section--sticky")&&(s+=l.offsetHeight+a)}const i=this._scrollContainer(),r=i?i.getBoundingClientRect().top:0,n=t.el.getBoundingClientRect().top-r-s;(i??window).scrollBy({top:n,behavior:"smooth"})}_showHeaderBand(){const e=this.component?.metadata,t=!!(e?.title||e?.subtitle||e?.toolbar?.length),a=!!this.component?.children?.some(s=>s.metadata?.type===v.Crud);return t&&!a}render(){const e=this.component?.metadata,s=[...(e?.banners??[]).map((r,n)=>({banner:r,index:n})).filter(({index:r})=>!this.dismissedStaticBannerIndices.has(r)).map(({banner:r,index:n})=>({banner:r,onDismiss:()=>this._dismissStaticBanner(n)})),...this.actionBanners.map((r,n)=>({banner:r,onDismiss:()=>this._dismissActionBanner(n)}))],i=o`
+        `}_onSlotChange(){this._scheduleTocRebuild()}_scheduleTocRebuild(){this._tocRebuildScheduled||(this._tocRebuildScheduled=!0,requestAnimationFrame(()=>{this._tocRebuildScheduled=!1,this._rebuildToc()}))}_sectionCards(){return Array.from(this.querySelectorAll(".mateu-section"))}_sectionTitle(e){const t=e.querySelector('[slot="title"]')?.textContent?.trim();return t||e.querySelector("h1,h2,h3,h4,h5,h6")?.textContent?.trim()||void 0}_rebuildToc(){const e=this._sectionCards(),t=e.map(r=>({title:this._sectionTitle(r),el:r})).filter(r=>!!r.title),a=this.component?.metadata?.toc,s=t.length>4&&e.every(r=>!r.closest("vaadin-horizontal-layout")),i=(a===!0?!0:a===!1?!1:s)&&t.length>0;this._tocEntries=t,this._tocVisible=i,this._activeToc>=t.length&&(this._activeToc=0),this._teardownScrollSpy(),i?requestAnimationFrame(()=>{this._layoutStickyTops(),this._setupScrollSpy()}):this._layoutStickyTops()}_layoutStickyTops(){const e=this.shadowRoot?.querySelector("mateu-content-header");this._headerH=this._tocVisible&&e?e.offsetHeight:0,this.style.setProperty("--mateu-header-h",this._headerH+"px");const t=12;let a=this._headerH+t;for(const s of this._sectionCards())s.classList.contains("mateu-section--sticky")&&(s.style.top=a+"px",a+=s.offsetHeight+t)}_scrollContainer(){let e=vr(this);for(;e;){const t=getComputedStyle(e).overflowY;if((t==="auto"||t==="scroll")&&e.scrollHeight>e.clientHeight)return e;e=vr(e)}return null}_setupScrollSpy(){this._tocEntries.length&&(this._spyTarget=this._scrollContainer()??window,this._spyTarget.addEventListener("scroll",this._onScrollSpy,{passive:!0}),window.addEventListener("wheel",this._unlockToc,{passive:!0}),window.addEventListener("touchstart",this._unlockToc,{passive:!0}),window.addEventListener("keydown",this._unlockToc),this._onScrollSpy())}_teardownScrollSpy(){this._spyTarget?.removeEventListener("scroll",this._onScrollSpy),window.removeEventListener("wheel",this._unlockToc),window.removeEventListener("touchstart",this._unlockToc),window.removeEventListener("keydown",this._unlockToc),this._spyTarget=void 0}_scrollToSection(e){const t=this._tocEntries[e];if(!t)return;this._activeToc=e,this._tocLocked=!0;const a=12;let s=this._headerH+a;for(const l of this._sectionCards()){if(l===t.el)break;l.classList.contains("mateu-section--sticky")&&(s+=l.offsetHeight+a)}const i=this._scrollContainer(),r=i?i.getBoundingClientRect().top:0,n=t.el.getBoundingClientRect().top-r-s;(i??window).scrollBy({top:n,behavior:"smooth"})}_showHeaderBand(){const e=this.component?.metadata,t=!!(e?.title||e?.subtitle||e?.toolbar?.length),a=!!this.component?.children?.some(s=>s.metadata?.type===v.Crud);return t&&!a}render(){const e=this.component?.metadata,s=[...(e?.banners??[]).map((r,n)=>({banner:r,index:n})).filter(({index:r})=>!this.dismissedStaticBannerIndices.has(r)).map(({banner:r,index:n})=>({banner:r,onDismiss:()=>this._dismissStaticBanner(n)})),...this.actionBanners.map((r,n)=>({banner:r,onDismiss:()=>this._dismissActionBanner(n)}))],i=o`
             <mateu-content-header
                 class="${this._tocVisible?"sticky-header":""}"
                 .metadata="${e}"
@@ -7743,7 +8026,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             background: #fdf2f2;
             border-leftx: 4px solid var(--lumo-error-color);
         }
-    `;Se([m()],ce.prototype,"component",2);Se([m()],ce.prototype,"baseUrl",2);Se([m()],ce.prototype,"state",2);Se([m()],ce.prototype,"data",2);Se([m()],ce.prototype,"appState",2);Se([m()],ce.prototype,"appData",2);Se([m()],ce.prototype,"value",2);Se([m({type:Boolean})],ce.prototype,"standalone",2);Se([$()],ce.prototype,"actionBanners",2);Se([$()],ce.prototype,"dismissedStaticBannerIndices",2);Se([$()],ce.prototype,"_tocEntries",2);Se([$()],ce.prototype,"_activeToc",2);Se([$()],ce.prototype,"_tocVisible",2);ce=Se([k("mateu-page")],ce);const as=C`
+    `;Se([h()],ce.prototype,"component",2);Se([h()],ce.prototype,"baseUrl",2);Se([h()],ce.prototype,"state",2);Se([h()],ce.prototype,"data",2);Se([h()],ce.prototype,"appState",2);Se([h()],ce.prototype,"appData",2);Se([h()],ce.prototype,"value",2);Se([h({type:Boolean})],ce.prototype,"standalone",2);Se([$()],ce.prototype,"actionBanners",2);Se([$()],ce.prototype,"dismissedStaticBannerIndices",2);Se([$()],ce.prototype,"_tocEntries",2);Se([$()],ce.prototype,"_activeToc",2);Se([$()],ce.prototype,"_tocVisible",2);ce=Se([k("mateu-page")],ce);const is=C`
     .nbtn {
         display: inline-flex;
         align-items: center;
@@ -7772,29 +8055,29 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
     }
     .nbtn.primary:hover { background: var(--lumo-primary-color, #1676f3); filter: brightness(1.08); }
     .nbtn svg { width: 1em; height: 1em; flex-shrink: 0; }
-`,Fa=e=>X`
+`,Ma=e=>X`
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${e}</svg>`,Us=Fa(X`
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${e}</svg>`,Bs=Ma(X`
     <circle cx="12" cy="12" r="3"></circle>
-    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>`),Bs=Fa(X`
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>`),Vs=Ma(X`
     <line x1="12" y1="5" x2="12" y2="19"></line>
-    <line x1="5" y1="12" x2="19" y2="12"></line>`),Vs=Fa(X`
+    <line x1="5" y1="12" x2="19" y2="12"></line>`),Ws=Ma(X`
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
     <polyline points="7 10 12 15 17 10"></polyline>
-    <line x1="12" y1="15" x2="12" y2="3"></line>`),uh=Fa(X`
+    <line x1="12" y1="15" x2="12" y2="3"></line>`),vh=Ma(X`
     <rect x="9" y="2" width="6" height="5" rx="1"></rect>
     <rect x="2" y="17" width="6" height="5" rx="1"></rect>
     <rect x="16" y="17" width="6" height="5" rx="1"></rect>
-    <path d="M12 7v4M5 17v-3h14v3M12 11v3"></path>`),ph=Fa(X`
+    <path d="M12 7v4M5 17v-3h14v3M12 11v3"></path>`),fh=Ma(X`
     <rect x="9" y="2" width="6" height="12" rx="3"></rect>
     <path d="M5 10v1a7 7 0 0 0 14 0v-1"></path>
-    <line x1="12" y1="18" x2="12" y2="22"></line>`),hh=Fa(X`
+    <line x1="12" y1="18" x2="12" y2="22"></line>`),bh=Ma(X`
     <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>`);var mh=Object.defineProperty,vh=Object.getOwnPropertyDescriptor,Q=(e,t,a,s)=>{for(var i=s>1?void 0:s?vh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&mh(t,a,i),i};const mr=["#e91e63","#1676f3","#10b981","#8b5cf6","#f59e0b","#ef4444"],fh=e=>mr[Math.abs(e??0)%mr.length],bh=e=>(e??"?").split(/\s+/).filter(t=>t).map(t=>t[0]).slice(0,2).join("").toUpperCase()||"?";let G=class extends S{constructor(){super(...arguments),this.localAgentUrl="http://127.0.0.1:8776",this.localAgentAlive=!1,this.menu=[],this.chatSessionId=ye(),this.menuContextSent=!1,this.attachments=[],this.uploading=!1,this.expanded=!1,this.toggleExpanded=()=>{this.expanded=!this.expanded},this.items=[],this.listening=!1,this.recognitionAvailable=!1,this.loading=!1,this.elapsedSeconds=0,this.startListening=()=>{this.recognition&&(this.listening?(this.recognition.stop(),this.listening=!1):(this.recognition.start(),this.listening=!0))},this.onSpeechResult=e=>{if(this.recognition){const t=e,a=t.results[t.results[0].length-1][0].transcript;this.messageInputElement&&(this.messageInputElement.value=a,this.send(new CustomEvent("submit",{detail:{value:a},bubbles:!0,composed:!0})))}},this.probeLocalAgent=async()=>{if(this.localAgentUrl)try{const e=new AbortController,t=setTimeout(()=>e.abort(),1200),a=await fetch(this.localAgentUrl+"/health",{signal:e.signal});clearTimeout(t),this.localAgentAlive=a.ok}catch{this.localAgentAlive=!1}},this.pickFiles=()=>this.fileInputElement?.click(),this.onFilesPicked=async e=>{const t=e.target,a=Array.from(t.files??[]);if(t.value="",!(!a.length||!this.uploadUrl)){this.uploading=!0;try{const s=new FormData;s.append("sessionId",this.chatSessionId);for(const h of a)s.append("files",h,h.name);const i={},r=localStorage.getItem("__mateu_auth_token");r&&(i.Authorization="Bearer "+r);const n=sessionStorage.getItem("__mateu_sesion_id");n&&(i["X-Session-Id"]=n);const l=await fetch(this.uploadUrl,{method:"POST",headers:i,body:s});if(!l.ok)throw new Error(`Upload failed: ${l.status}`);const u=((await l.json()).files??[]).filter(h=>h&&h.path);this.attachments=[...this.attachments,...u]}catch(s){this.addMessage(`⚠️ No se pudieron subir los ficheros: ${s instanceof Error?s.message:s}`,"agent")}finally{this.uploading=!1}}},this.removeAttachment=e=>{this.attachments=this.attachments.filter(t=>t.path!==e)},this.send=async e=>{this.messageInputElement?.setAttribute("disabled","disabled");const t=e.detail.value.trim(),a=this.localAgentAlive?this.localAgentUrl+"/mateu/agent/stream":this.sseUrl,s=this.attachments;if(!t&&s.length===0||!a)return;const i=s.length?`${t}${t?`
+    <line x1="6" y1="6" x2="18" y2="18"></line>`);var gh=Object.defineProperty,$h=Object.getOwnPropertyDescriptor,Q=(e,t,a,s)=>{for(var i=s>1?void 0:s?$h(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&gh(t,a,i),i};const fr=["#e91e63","#1676f3","#10b981","#8b5cf6","#f59e0b","#ef4444"],yh=e=>fr[Math.abs(e??0)%fr.length],xh=e=>(e??"?").split(/\s+/).filter(t=>t).map(t=>t[0]).slice(0,2).join("").toUpperCase()||"?";let G=class extends S{constructor(){super(...arguments),this.localAgentUrl="http://127.0.0.1:8776",this.localAgentAlive=!1,this.menu=[],this.chatSessionId=ye(),this.menuContextSent=!1,this.attachments=[],this.uploading=!1,this.expanded=!1,this.toggleExpanded=()=>{this.expanded=!this.expanded},this.items=[],this.listening=!1,this.recognitionAvailable=!1,this.loading=!1,this.elapsedSeconds=0,this.startListening=()=>{this.recognition&&(this.listening?(this.recognition.stop(),this.listening=!1):(this.recognition.start(),this.listening=!0))},this.onSpeechResult=e=>{if(this.recognition){const t=e,a=t.results[t.results[0].length-1][0].transcript;this.messageInputElement&&(this.messageInputElement.value=a,this.send(new CustomEvent("submit",{detail:{value:a},bubbles:!0,composed:!0})))}},this.probeLocalAgent=async()=>{if(this.localAgentUrl)try{const e=new AbortController,t=setTimeout(()=>e.abort(),1200),a=await fetch(this.localAgentUrl+"/health",{signal:e.signal});clearTimeout(t),this.localAgentAlive=a.ok}catch{this.localAgentAlive=!1}},this.pickFiles=()=>this.fileInputElement?.click(),this.onFilesPicked=async e=>{const t=e.target,a=Array.from(t.files??[]);if(t.value="",!(!a.length||!this.uploadUrl)){this.uploading=!0;try{const s=new FormData;s.append("sessionId",this.chatSessionId);for(const m of a)s.append("files",m,m.name);const i={},r=localStorage.getItem("__mateu_auth_token");r&&(i.Authorization="Bearer "+r);const n=sessionStorage.getItem("__mateu_sesion_id");n&&(i["X-Session-Id"]=n);const l=await fetch(this.uploadUrl,{method:"POST",headers:i,body:s});if(!l.ok)throw new Error(`Upload failed: ${l.status}`);const u=((await l.json()).files??[]).filter(m=>m&&m.path);this.attachments=[...this.attachments,...u]}catch(s){this.addMessage(`⚠️ No se pudieron subir los ficheros: ${s instanceof Error?s.message:s}`,"agent")}finally{this.uploading=!1}}},this.removeAttachment=e=>{this.attachments=this.attachments.filter(t=>t.path!==e)},this.send=async e=>{this.messageInputElement?.setAttribute("disabled","disabled");const t=e.detail.value.trim(),a=this.localAgentAlive?this.localAgentUrl+"/mateu/agent/stream":this.sseUrl,s=this.attachments;if(!t&&s.length===0||!a)return;const i=s.length?`${t}${t?`
 
-`:""}📎 ${s.map(l=>l.name).join(", ")}`:t;this.addMessage(i,"user"),this.attachments=[];const r=this.addMessage("","agent");this.startLoading();let n="";try{const l={Accept:"text/event-stream","Content-Type":"application/json"},c=localStorage.getItem("__mateu_auth_token");c&&(l.Authorization="Bearer "+c);const u=sessionStorage.getItem("__mateu_sesion_id");u&&(l["X-Session-Id"]=u);const h=this.contextProvider?.(),p=JSON.stringify({message:t,sessionId:this.chatSessionId,...s.length&&{attachments:s},...h!=null&&{context:h},...this.mcpUrl&&{mcpUrl:new URL(this.mcpUrl,window.location.origin).href},...!this.menuContextSent&&{menuContext:this.buildMenuContext(this.menu)}});this.menuContextSent=!0;const f=await fetch(a,{method:"POST",headers:l,body:p});if(!f.ok){const T=await f.text();throw new Error(`Servidor respondió ${f.status}: ${T}`)}const g=f.body?.getReader();if(!g)throw new Error("No se pudo obtener el reader del stream.");const y=new TextDecoder;let x="";for(;;){const{done:T,value:U}=await g.read();if(T){if(x.trim().startsWith("data:")){const ue=x.trim().slice(5).trim(),ie=this.tryParseTokenUsage(ue),Y=!ie&&this.tryParseCustomEvent(ue);ie?this.tokenUsage={...this.tokenUsage,...ie}:Y?Y.event==="agent-error"?(n="⚠️ "+(Y.detail?.message??"Error desconocido del agente"),this.updateMessage(r,n)):this.dispatchEvent(new CustomEvent(Y.event,{detail:Y.detail,bubbles:!0,composed:!0})):(n+=ue,this.updateMessage(r,n))}break}const ae=y.decode(U,{stream:!0});x+=ae;const N=x.split(`
-`);x=N.pop()||"";let oe=!1;for(const ue of N)if(ue.trim().startsWith("data:")){const ie=ue.trim().slice(5).trim(),Y=this.tryParseTokenUsage(ie),ee=!Y&&this.tryParseCustomEvent(ie);Y?this.tokenUsage={...this.tokenUsage,...Y}:ee?ee.event==="agent-error"?(n="⚠️ "+(ee.detail?.message??"Error desconocido del agente"),this.updateMessage(r,n)):this.dispatchEvent(new CustomEvent(ee.event,{detail:ee.detail,bubbles:!0,composed:!0})):(n+=ie+`
-`,oe=!0)}oe&&this.updateMessage(r,n)}n||this.updateMessage(r,"⚠️ El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).")}catch(l){console.error("Error en el flujo SSE:",l);const c=l?.message??String(l);(c==="Failed to fetch"||c==="network error"||c==="Load failed")&&!n?this.updateMessage(r,"⚠️ No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible."):this.updateMessage(r,"⚠️ Error: "+c)}finally{this.stopLoading(),setTimeout(()=>{this.messageInputElement&&(this.messageInputElement.value="")},250),this.messageInputElement?.removeAttribute("disabled"),this.messageInputElement?.focus()}},this.closeChat=()=>{this.dispatchEvent(new CustomEvent("close-requested",{bubbles:!0,composed:!0}))},this.submitFromInput=()=>{const e=this.messageInputElement?.value?.trim()??"";e&&this.send(new CustomEvent("submit",{detail:{value:e},bubbles:!0,composed:!0}))},this.onInputKeydown=e=>{e.key==="Enter"&&(e.preventDefault(),this.submitFromInput())}}connectedCallback(){super.connectedCallback(),this.probeLocalAgent();const e=window.SpeechRecognition||window.webkitSpeechRecognition;if(e){const t=new e;this.recognition=t,t.lang="es-ES",t.onend=()=>{setTimeout(()=>{if(this.listening&&this.recognition)try{this.recognition.start()}catch{}},250)},this.recognitionAvailable=!0,t.onresult=this.onSpeechResult,t.onerror=a=>{console.error("Error de reconocimiento: "+a.error),this.listening&&this.recognition&&setTimeout(()=>{this.recognition.start()},250)}}}scrollBottom(){setTimeout(()=>{this.scrollContainer&&this.scrollContainer.scrollTo({top:this.scrollContainer.scrollHeight,behavior:"smooth"})},0)}addMessage(e,t){const a={text:e,time:new Date().toLocaleTimeString(),userName:t.includes("agent")?"Asistente":"Tú",userColorIndex:t.includes("agent")?2:1};return this.items=[...this.items,a],this.scrollBottom(),this.items.length-1}updateMessage(e,t){this.items=this.items.map((a,s)=>s===e?{...a,text:t}:a),this.scrollBottom()}tryParseCustomEvent(e){const t=e.trim();if(!t.startsWith("{"))return null;try{const a=JSON.parse(t);if(typeof a.event=="string")return{event:a.event,detail:a.detail??{}}}catch{}return null}tryParseTokenUsage(e){const t=e.trim();if(!t.startsWith("{"))return null;try{const a=JSON.parse(t);if("inputTokens"in a||"outputTokens"in a||"totalTokens"in a)return a}catch{}return null}buildMenuContext(e,t=[]){const a=[];for(const s of e){if(s.separator||s.remote)continue;const i=[...t,s.label];if(s.submenus&&s.submenus.length>0)a.push(...this.buildMenuContext(s.submenus,i));else{const r={path:i,navigation:{route:s.route,consumedRoute:s.consumedRoute,actionId:s.actionId??"",baseUrl:s.baseUrl,serverSideType:s.serverSideType,uriPrefix:s.uriPrefix}};s.description&&(r.description=s.description),a.push(r)}}return a}startLoading(){this.loading=!0,this.elapsedSeconds=0,this._elapsedTimer=setInterval(()=>{this.elapsedSeconds++},1e3)}stopLoading(){this.loading=!1,clearInterval(this._elapsedTimer),this._elapsedTimer=void 0}render(){return o`
+`:""}📎 ${s.map(l=>l.name).join(", ")}`:t;this.addMessage(i,"user"),this.attachments=[];const r=this.addMessage("","agent");this.startLoading();let n="";try{const l={Accept:"text/event-stream","Content-Type":"application/json"},c=localStorage.getItem("__mateu_auth_token");c&&(l.Authorization="Bearer "+c);const u=sessionStorage.getItem("__mateu_sesion_id");u&&(l["X-Session-Id"]=u);const m=this.contextProvider?.(),p=JSON.stringify({message:t,sessionId:this.chatSessionId,...s.length&&{attachments:s},...m!=null&&{context:m},...this.mcpUrl&&{mcpUrl:new URL(this.mcpUrl,window.location.origin).href},...!this.menuContextSent&&{menuContext:this.buildMenuContext(this.menu)}});this.menuContextSent=!0;const f=await fetch(a,{method:"POST",headers:l,body:p});if(!f.ok){const P=await f.text();throw new Error(`Servidor respondió ${f.status}: ${P}`)}const g=f.body?.getReader();if(!g)throw new Error("No se pudo obtener el reader del stream.");const y=new TextDecoder;let x="";for(;;){const{done:P,value:U}=await g.read();if(P){if(x.trim().startsWith("data:")){const ue=x.trim().slice(5).trim(),ie=this.tryParseTokenUsage(ue),Y=!ie&&this.tryParseCustomEvent(ue);ie?this.tokenUsage={...this.tokenUsage,...ie}:Y?Y.event==="agent-error"?(n="⚠️ "+(Y.detail?.message??"Error desconocido del agente"),this.updateMessage(r,n)):this.dispatchEvent(new CustomEvent(Y.event,{detail:Y.detail,bubbles:!0,composed:!0})):(n+=ue,this.updateMessage(r,n))}break}const ae=y.decode(U,{stream:!0});x+=ae;const N=x.split(`
+`);x=N.pop()||"";let ne=!1;for(const ue of N)if(ue.trim().startsWith("data:")){const ie=ue.trim().slice(5).trim(),Y=this.tryParseTokenUsage(ie),ee=!Y&&this.tryParseCustomEvent(ie);Y?this.tokenUsage={...this.tokenUsage,...Y}:ee?ee.event==="agent-error"?(n="⚠️ "+(ee.detail?.message??"Error desconocido del agente"),this.updateMessage(r,n)):this.dispatchEvent(new CustomEvent(ee.event,{detail:ee.detail,bubbles:!0,composed:!0})):(n+=ie+`
+`,ne=!0)}ne&&this.updateMessage(r,n)}n||this.updateMessage(r,"⚠️ El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).")}catch(l){console.error("Error en el flujo SSE:",l);const c=l?.message??String(l);(c==="Failed to fetch"||c==="network error"||c==="Load failed")&&!n?this.updateMessage(r,"⚠️ No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible."):this.updateMessage(r,"⚠️ Error: "+c)}finally{this.stopLoading(),setTimeout(()=>{this.messageInputElement&&(this.messageInputElement.value="")},250),this.messageInputElement?.removeAttribute("disabled"),this.messageInputElement?.focus()}},this.closeChat=()=>{this.dispatchEvent(new CustomEvent("close-requested",{bubbles:!0,composed:!0}))},this.submitFromInput=()=>{const e=this.messageInputElement?.value?.trim()??"";e&&this.send(new CustomEvent("submit",{detail:{value:e},bubbles:!0,composed:!0}))},this.onInputKeydown=e=>{e.key==="Enter"&&(e.preventDefault(),this.submitFromInput())}}connectedCallback(){super.connectedCallback(),this.probeLocalAgent();const e=window.SpeechRecognition||window.webkitSpeechRecognition;if(e){const t=new e;this.recognition=t,t.lang="es-ES",t.onend=()=>{setTimeout(()=>{if(this.listening&&this.recognition)try{this.recognition.start()}catch{}},250)},this.recognitionAvailable=!0,t.onresult=this.onSpeechResult,t.onerror=a=>{console.error("Error de reconocimiento: "+a.error),this.listening&&this.recognition&&setTimeout(()=>{this.recognition.start()},250)}}}scrollBottom(){setTimeout(()=>{this.scrollContainer&&this.scrollContainer.scrollTo({top:this.scrollContainer.scrollHeight,behavior:"smooth"})},0)}addMessage(e,t){const a={text:e,time:new Date().toLocaleTimeString(),userName:t.includes("agent")?"Asistente":"Tú",userColorIndex:t.includes("agent")?2:1};return this.items=[...this.items,a],this.scrollBottom(),this.items.length-1}updateMessage(e,t){this.items=this.items.map((a,s)=>s===e?{...a,text:t}:a),this.scrollBottom()}tryParseCustomEvent(e){const t=e.trim();if(!t.startsWith("{"))return null;try{const a=JSON.parse(t);if(typeof a.event=="string")return{event:a.event,detail:a.detail??{}}}catch{}return null}tryParseTokenUsage(e){const t=e.trim();if(!t.startsWith("{"))return null;try{const a=JSON.parse(t);if("inputTokens"in a||"outputTokens"in a||"totalTokens"in a)return a}catch{}return null}buildMenuContext(e,t=[]){const a=[];for(const s of e){if(s.separator||s.remote)continue;const i=[...t,s.label];if(s.submenus&&s.submenus.length>0)a.push(...this.buildMenuContext(s.submenus,i));else{const r={path:i,navigation:{route:s.route,consumedRoute:s.consumedRoute,actionId:s.actionId??"",baseUrl:s.baseUrl,serverSideType:s.serverSideType,uriPrefix:s.uriPrefix}};s.description&&(r.description=s.description),a.push(r)}}return a}startLoading(){this.loading=!0,this.elapsedSeconds=0,this._elapsedTimer=setInterval(()=>{this.elapsedSeconds++},1e3)}stopLoading(){this.loading=!1,clearInterval(this._elapsedTimer),this._elapsedTimer=void 0}render(){return o`
             <div class="chat-container">
                 <div class="chat-header">
                     <span class="chat-title">AI Assistant</span>
@@ -7805,14 +8088,14 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         ${this.expanded?"⤡":"⤢"}
                     </button>
                     <button class="chat-close" @click="${this.closeChat}" title="Cerrar">
-                        ${hh}
+                        ${bh}
                     </button>
                 </div>
                 <div class="scroll-container">
                     <div class="message-list" role="list">
                         ${this.items.map(e=>o`
                             <div class="message" role="listitem">
-                                <div class="avatar" style="background: ${fh(e.userColorIndex)};">${bh(e.userName)}</div>
+                                <div class="avatar" style="background: ${yh(e.userColorIndex)};">${xh(e.userName)}</div>
                                 <div class="message-body">
                                     <div class="message-meta">
                                         <span class="message-name">${e.userName}</span>
@@ -7860,7 +8143,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                             style="color: ${this.listening?"red":"var(--lumo-contrast-50pct, #767676)"};"
                             @click="${this.startListening}"
                             ?disabled="${!this.recognitionAvailable}"
-                    >${ph}</button>
+                    >${fh}</button>
                     <input class="msg-input"
                            placeholder="Message"
                            aria-label="Message"
@@ -7868,7 +8151,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     <button class="nbtn primary" ?disabled="${this.loading}" @click="${this.submitFromInput}">Send</button>
                 </div>
             </div>
-        `}};G.styles=[as,C`
+        `}};G.styles=[is,C`
         :host {
             display: block;
             height: 100%;
@@ -8193,15 +8476,15 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-    `];Q([m({attribute:!1})],G.prototype,"contextProvider",2);Q([m()],G.prototype,"localAgentUrl",2);Q([m({attribute:!1})],G.prototype,"mcpUrl",2);Q([$()],G.prototype,"localAgentAlive",2);Q([m()],G.prototype,"sseUrl",2);Q([m()],G.prototype,"uploadUrl",2);Q([m({attribute:!1})],G.prototype,"menu",2);Q([$()],G.prototype,"attachments",2);Q([$()],G.prototype,"uploading",2);Q([tt(".file-input")],G.prototype,"fileInputElement",2);Q([m({type:Boolean,reflect:!0})],G.prototype,"expanded",2);Q([m()],G.prototype,"items",2);Q([tt(".scroll-container")],G.prototype,"scrollContainer",2);Q([tt(".msg-input")],G.prototype,"messageInputElement",2);Q([$()],G.prototype,"recognition",2);Q([$()],G.prototype,"listening",2);Q([$()],G.prototype,"recognitionAvailable",2);Q([$()],G.prototype,"loading",2);Q([$()],G.prototype,"elapsedSeconds",2);Q([$()],G.prototype,"tokenUsage",2);G=Q([k("mateu-chat")],G);var gh=Object.defineProperty,$h=Object.getOwnPropertyDescriptor,vi=(e,t,a,s)=>{for(var i=s>1?void 0:s?$h(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&gh(t,a,i),i};let pa=class extends S{updated(e){super.updated(e),this.chart&&(this.chart.destroy(),this.chart=void 0),this.data&&this.createChart(this.data)}async createChart(e){const[{default:t}]=await Promise.all([Pe(()=>import("./vendor-chartjs.js").then(s=>s.a),[]),Pe(()=>import("./vendor-chartjs.js").then(s=>s.c),[])]);if(e!==this.data)return;this.chart&&this.chart.destroy();const a={type:this.type,data:this.data,options:this.options};this.chart=new t(this.chartElement,a)}handleSlotChange(){}render(){return o`
+    `];Q([h({attribute:!1})],G.prototype,"contextProvider",2);Q([h()],G.prototype,"localAgentUrl",2);Q([h({attribute:!1})],G.prototype,"mcpUrl",2);Q([$()],G.prototype,"localAgentAlive",2);Q([h()],G.prototype,"sseUrl",2);Q([h()],G.prototype,"uploadUrl",2);Q([h({attribute:!1})],G.prototype,"menu",2);Q([$()],G.prototype,"attachments",2);Q([$()],G.prototype,"uploading",2);Q([at(".file-input")],G.prototype,"fileInputElement",2);Q([h({type:Boolean,reflect:!0})],G.prototype,"expanded",2);Q([h()],G.prototype,"items",2);Q([at(".scroll-container")],G.prototype,"scrollContainer",2);Q([at(".msg-input")],G.prototype,"messageInputElement",2);Q([$()],G.prototype,"recognition",2);Q([$()],G.prototype,"listening",2);Q([$()],G.prototype,"recognitionAvailable",2);Q([$()],G.prototype,"loading",2);Q([$()],G.prototype,"elapsedSeconds",2);Q([$()],G.prototype,"tokenUsage",2);G=Q([k("mateu-chat")],G);var wh=Object.defineProperty,kh=Object.getOwnPropertyDescriptor,fi=(e,t,a,s)=>{for(var i=s>1?void 0:s?kh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&wh(t,a,i),i};let ma=class extends S{updated(e){super.updated(e),this.chart&&(this.chart.destroy(),this.chart=void 0),this.data&&this.createChart(this.data)}async createChart(e){const[{default:t}]=await Promise.all([Te(()=>import("./vendor-chartjs.js").then(s=>s.a),[]),Te(()=>import("./vendor-chartjs.js").then(s=>s.c),[])]);if(e!==this.data)return;this.chart&&this.chart.destroy();const a={type:this.type,data:this.data,options:this.options};this.chart=new t(this.chartElement,a)}handleSlotChange(){}render(){return o`
             <div class="container">
                 <canvas id="chart"></canvas>
             </div>
             <div style="display: none;">
                 <slot @slotchange=${this.handleSlotChange}></slot>
             </div>
-       `}};pa.styles=C`
-  `;vi([m()],pa.prototype,"type",2);vi([m()],pa.prototype,"data",2);vi([m()],pa.prototype,"options",2);vi([tt("#chart")],pa.prototype,"chartElement",2);pa=vi([k("mateu-chart")],pa);var yh=Object.defineProperty,xh=Object.getOwnPropertyDescriptor,Ws=(e,t,a,s)=>{for(var i=s>1?void 0:s?xh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&yh(t,a,i),i};let ii=class extends S{updated(e){super.updated(e),this.chart&&(this.chart.destroy(),this.chart=void 0),this.xml&&this.createViewer(this.xml)}async createViewer(e){const{default:t}=await Pe(async()=>{const{default:s}=await import("./vendor-diagrams.js").then(i=>i.i);return{default:s}},__vite__mapDeps([5,3,1,2,4]));if(e!==this.xml)return;this.chart&&this.chart.destroy();const a={container:this.divElement};this.chart=new t(a),this.chart.importXML(e)}handleSlotChange(){}render(){return o`
+       `}};ma.styles=C`
+  `;fi([h()],ma.prototype,"type",2);fi([h()],ma.prototype,"data",2);fi([h()],ma.prototype,"options",2);fi([at("#chart")],ma.prototype,"chartElement",2);ma=fi([k("mateu-chart")],ma);var Ch=Object.defineProperty,Sh=Object.getOwnPropertyDescriptor,Hs=(e,t,a,s)=>{for(var i=s>1?void 0:s?Sh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Ch(t,a,i),i};let si=class extends S{updated(e){super.updated(e),this.chart&&(this.chart.destroy(),this.chart=void 0),this.xml&&this.createViewer(this.xml)}async createViewer(e){const{default:t}=await Te(async()=>{const{default:s}=await import("./vendor-diagrams.js").then(i=>i.i);return{default:s}},__vite__mapDeps([5,3,1,2,4]));if(e!==this.xml)return;this.chart&&this.chart.destroy();const a={container:this.divElement};this.chart=new t(a),this.chart.importXML(e)}handleSlotChange(){}render(){return o`
             <div class="container" style="width: 20rem; height: 15rem; overflow: auto;">
                 <!-- BPMN diagram container -->
                 <div id="canvas" style="width: 60rem; height: 30rem; zoom: 0.5;"></div>
@@ -8209,8 +8492,8 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             <div style="display: none;">
                 <slot @slotchange=${this.handleSlotChange}></slot>
             </div>
-       `}};ii.styles=C`
-  `;Ws([m()],ii.prototype,"xml",2);Ws([tt("#canvas")],ii.prototype,"divElement",2);ii=Ws([k("mateu-bpmn")],ii);var wh=Object.defineProperty,kh=Object.getOwnPropertyDescriptor,Na=(e,t,a,s)=>{for(var i=s>1?void 0:s?kh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&wh(t,a,i),i};const hs=160,st=56,Ch=220,vr=110,zt=60,Sh={ACTION:"#3B82F6",JOIN:"#8B5CF6",FORK:"#F59E0B",END:"#EF4444",USER_TASK:"#10B981",PROCESS:"#6366F1"},Ih={ACTION:"▶",JOIN:"⟨",FORK:"⟩",END:"◼",USER_TASK:"👤",PROCESS:"⚙"},_h=["ACTION","JOIN","FORK","END","USER_TASK","PROCESS"];function Eh(){return"step-"+Math.random().toString(36).slice(2,8)}let Wt=class extends S{constructor(){super(...arguments),this.value='{"name":"New Workflow","steps":[]}',this.wf={name:"New Workflow",steps:[]},this.positions={},this.selectedId=null,this.showMeta=!1,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;const t=this.toSvgPoint(e);this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener("mousemove",this.onMouseMove),window.removeEventListener("mouseup",this.onMouseUp)}}updated(e){if(e.has("value")){try{this.wf=JSON.parse(this.value)}catch{}this.autoLayout()}}autoLayout(){const e=this.wf.steps??[],t={};e.forEach(n=>{t[n.id]=0});let a=!0;for(;a;)a=!1,e.forEach(n=>{if(n.preconditionStepId!=null&&t[n.preconditionStepId]!==void 0){const l=t[n.preconditionStepId]+1;l>t[n.id]&&(t[n.id]=l,a=!0)}});const s={};e.forEach(n=>{const l=t[n.id]??0;(s[l]??=[]).push(n.id)});const i={...this.positions};let r=!1;Object.entries(s).forEach(([n,l])=>{const c=Number(n);l.forEach((u,h)=>{i[u]||(i[u]={x:zt+c*Ch,y:zt+h*vr},r=!0)})}),r&&(this.positions=i)}emit(){const e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){this.wf={...this.wf,steps:this.wf.steps.map(a=>a.id===e?{...a,...t}:a)},this.emit()}addStep(){const e=Eh(),t={id:e,type:"ACTION",name:"New Step"};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};const a=Object.values(this.positions).map(i=>i.y),s=a.length?Math.max(...a)+vr:zt;this.positions={...this.positions,[e]:{x:zt,y:s}},this.selectedId=e,this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(s=>s.id!==e).map(s=>s.preconditionStepId===e?{...s,preconditionStepId:void 0}:s)};const{[e]:t,...a}=this.positions;this.positions=a,this.selectedId===e&&(this.selectedId=null),this.emit()}onNodeMouseDown(e,t){e.preventDefault(),this.draggingId=t;const a=this.positions[t]??{x:0,y:0},s=this.toSvgPoint(e);this.dragOffset={x:s.x-a.x,y:s.y-a.y},this.svgEl=e.currentTarget.closest("svg"),window.addEventListener("mousemove",this.onMouseMove),window.addEventListener("mouseup",this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};const t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}canvasSize(){const e=Object.values(this.positions),t=e.length?Math.max(...e.map(s=>s.x))+hs+zt:600,a=e.length?Math.max(...e.map(s=>s.y))+st+zt:400;return{w:Math.max(t,600),h:Math.max(a,400)}}render(){const{w:e,h:t}=this.canvasSize(),a=this.wf.steps??[];return o`
+       `}};si.styles=C`
+  `;Hs([h()],si.prototype,"xml",2);Hs([at("#canvas")],si.prototype,"divElement",2);si=Hs([k("mateu-bpmn")],si);var Ih=Object.defineProperty,_h=Object.getOwnPropertyDescriptor,qa=(e,t,a,s)=>{for(var i=s>1?void 0:s?_h(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Ih(t,a,i),i};const ms=160,rt=56,Eh=220,br=110,jt=60,Ph={ACTION:"#3B82F6",JOIN:"#8B5CF6",FORK:"#F59E0B",END:"#EF4444",USER_TASK:"#10B981",PROCESS:"#6366F1"},Th={ACTION:"▶",JOIN:"⟨",FORK:"⟩",END:"◼",USER_TASK:"👤",PROCESS:"⚙"},Oh=["ACTION","JOIN","FORK","END","USER_TASK","PROCESS"];function Rh(){return"step-"+Math.random().toString(36).slice(2,8)}let Gt=class extends S{constructor(){super(...arguments),this.value='{"name":"New Workflow","steps":[]}',this.wf={name:"New Workflow",steps:[]},this.positions={},this.selectedId=null,this.showMeta=!1,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;const t=this.toSvgPoint(e);this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener("mousemove",this.onMouseMove),window.removeEventListener("mouseup",this.onMouseUp)}}updated(e){if(e.has("value")){try{this.wf=JSON.parse(this.value)}catch{}this.autoLayout()}}autoLayout(){const e=this.wf.steps??[],t={};e.forEach(n=>{t[n.id]=0});let a=!0;for(;a;)a=!1,e.forEach(n=>{if(n.preconditionStepId!=null&&t[n.preconditionStepId]!==void 0){const l=t[n.preconditionStepId]+1;l>t[n.id]&&(t[n.id]=l,a=!0)}});const s={};e.forEach(n=>{const l=t[n.id]??0;(s[l]??=[]).push(n.id)});const i={...this.positions};let r=!1;Object.entries(s).forEach(([n,l])=>{const c=Number(n);l.forEach((u,m)=>{i[u]||(i[u]={x:jt+c*Eh,y:jt+m*br},r=!0)})}),r&&(this.positions=i)}emit(){const e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){this.wf={...this.wf,steps:this.wf.steps.map(a=>a.id===e?{...a,...t}:a)},this.emit()}addStep(){const e=Rh(),t={id:e,type:"ACTION",name:"New Step"};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};const a=Object.values(this.positions).map(i=>i.y),s=a.length?Math.max(...a)+br:jt;this.positions={...this.positions,[e]:{x:jt,y:s}},this.selectedId=e,this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(s=>s.id!==e).map(s=>s.preconditionStepId===e?{...s,preconditionStepId:void 0}:s)};const{[e]:t,...a}=this.positions;this.positions=a,this.selectedId===e&&(this.selectedId=null),this.emit()}onNodeMouseDown(e,t){e.preventDefault(),this.draggingId=t;const a=this.positions[t]??{x:0,y:0},s=this.toSvgPoint(e);this.dragOffset={x:s.x-a.x,y:s.y-a.y},this.svgEl=e.currentTarget.closest("svg"),window.addEventListener("mousemove",this.onMouseMove),window.addEventListener("mouseup",this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};const t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}canvasSize(){const e=Object.values(this.positions),t=e.length?Math.max(...e.map(s=>s.x))+ms+jt:600,a=e.length?Math.max(...e.map(s=>s.y))+rt+jt:400;return{w:Math.max(t,600),h:Math.max(a,400)}}render(){const{w:e,h:t}=this.canvasSize(),a=this.wf.steps??[];return o`
             <div class="root">
                 ${this.renderToolbar()}
                 ${this.showMeta?this.renderMeta():""}
@@ -8237,15 +8520,15 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <span class="badge badge-${e.toLowerCase()}">${e}</span>
                 <div style="flex:1"></div>
                 <button class="nbtn" @click="${()=>this.showMeta=!this.showMeta}">
-                    ${Us}
+                    ${Bs}
                     Settings
                 </button>
                 <button class="nbtn primary" @click="${()=>this.addStep()}">
-                    ${Bs}
+                    ${Vs}
                     Add Step
                 </button>
                 <button class="nbtn" @click="${()=>this.exportJson()}">
-                    ${Vs}
+                    ${Ws}
                     Export
                 </button>
             </div>
@@ -8274,31 +8557,31 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     `:""}
                 </div>
             </div>
-        `}renderArrow(e){if(!e.preconditionStepId)return X``;const t=this.positions[e.preconditionStepId],a=this.positions[e.id];if(!t||!a)return X``;const s=t.x+hs,i=t.y+st/2,r=a.x,n=a.y+st/2,l=(s+r)/2;return X`
+        `}renderArrow(e){if(!e.preconditionStepId)return X``;const t=this.positions[e.preconditionStepId],a=this.positions[e.id];if(!t||!a)return X``;const s=t.x+ms,i=t.y+rt/2,r=a.x,n=a.y+rt/2,l=(s+r)/2;return X`
             <path d="M${s},${i} C${l},${i} ${l},${n} ${r},${n}"
                   fill="none" stroke="#94a3b8" stroke-width="2"
                   marker-end="url(#arrow)"/>
-        `}renderNode(e){const t=this.positions[e.id]??{x:zt,y:zt},a=Sh[e.type]??"#64748b",s=Ih[e.type]??"•",i=this.selectedId===e.id;return X`
+        `}renderNode(e){const t=this.positions[e.id]??{x:jt,y:jt},a=Ph[e.type]??"#64748b",s=Th[e.type]??"•",i=this.selectedId===e.id;return X`
             <g transform="translate(${t.x},${t.y})"
                style="cursor:grab"
                @mousedown="${r=>this.onNodeMouseDown(r,e.id)}"
                @click="${r=>{r.stopPropagation(),this.selectedId=e.id}}">
-                <rect width="${hs}" height="${st}" rx="8"
+                <rect width="${ms}" height="${rt}" rx="8"
                       fill="white"
                       stroke="${i?a:"#e2e8f0"}"
                       stroke-width="${i?2.5:1.5}"
                       filter="url(#shadow)"/>
                 <!-- type badge -->
-                <rect x="0" y="0" width="32" height="${st}" rx="8" fill="${a}" clip-path="inset(0 -8px 0 0 round 8px)"/>
-                <rect x="24" y="0" width="8" height="${st}" fill="${a}"/>
-                <text x="16" y="${st/2+5}" text-anchor="middle"
+                <rect x="0" y="0" width="32" height="${rt}" rx="8" fill="${a}" clip-path="inset(0 -8px 0 0 round 8px)"/>
+                <rect x="24" y="0" width="8" height="${rt}" fill="${a}"/>
+                <text x="16" y="${rt/2+5}" text-anchor="middle"
                       font-size="14" fill="white">${s}</text>
                 <!-- name -->
-                <text x="44" y="${st/2-6}" font-size="11" fill="#1e293b" font-weight="600">
+                <text x="44" y="${rt/2-6}" font-size="11" fill="#1e293b" font-weight="600">
                     ${e.name.length>16?e.name.slice(0,15)+"…":e.name}
                 </text>
-                <text x="44" y="${st/2+8}" font-size="9" fill="#94a3b8">${e.id}</text>
-                <text x="44" y="${st/2+20}" font-size="9" fill="${a}">${e.type}</text>
+                <text x="44" y="${rt/2+8}" font-size="9" fill="#94a3b8">${e.id}</text>
+                <text x="44" y="${rt/2+20}" font-size="9" fill="${a}">${e.type}</text>
             </g>
         `}renderPanel(){const e=this.wf.steps.find(s=>s.id===this.selectedId);if(!e)return"";const t=this.wf.steps.filter(s=>s.id!==e.id),a=(s,i)=>o`
             <div class="field">
@@ -8319,7 +8602,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         @change="${s=>this.updateStep(e.id,{name:s.target.value})}"/>`)}
                     ${a("Type",o`
                         <select class="inp" @change="${s=>this.updateStep(e.id,{type:s.target.value})}">
-                            ${_h.map(s=>o`<option value="${s}" ?selected="${e.type===s}">${s}</option>`)}
+                            ${Oh.map(s=>o`<option value="${s}" ?selected="${e.type===s}">${s}</option>`)}
                         </select>`)}
                     ${a("Description",o`<textarea class="inp" rows="2"
                         @change="${s=>this.updateStep(e.id,{description:s.target.value})}">${e.description??""}</textarea>`)}
@@ -8364,7 +8647,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         @change="${s=>this.updateStep(e.id,{childWorkflowDefinitionId:s.target.value||void 0})}"/>`):""}
                 </div>
             </div>
-        `}exportJson(){const e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),s=document.createElement("a");s.href=a,s.download=(this.wf.name??"workflow").replace(/\s+/g,"-").toLowerCase()+".json",s.click(),URL.revokeObjectURL(a)}};Wt.styles=[as,C`
+        `}exportJson(){const e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),s=document.createElement("a");s.href=a,s.download=(this.wf.name??"workflow").replace(/\s+/g,"-").toLowerCase()+".json",s.click(),URL.revokeObjectURL(a)}};Gt.styles=[is,C`
         :host { display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif); }
 
         .root { display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff); }
@@ -8442,7 +8725,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         .inp:focus { border-color: #3B82F6; }
         textarea.inp { resize: vertical; }
         input[readonly].inp { background: #f8fafc; color: #94a3b8; }
-    `];Na([m()],Wt.prototype,"value",2);Na([$()],Wt.prototype,"wf",2);Na([$()],Wt.prototype,"positions",2);Na([$()],Wt.prototype,"selectedId",2);Na([$()],Wt.prototype,"showMeta",2);Wt=Na([k("mateu-workflow")],Wt);var Th=Object.defineProperty,Ph=Object.getOwnPropertyDescriptor,_t=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ph(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Th(t,a,i),i};const Va=160,Ke=56,jt=60,Oh={ACTION:"#3B82F6",JOIN:"#8B5CF6",FORK:"#F59E0B",END:"#EF4444",USER_TASK:"#10B981",PROCESS:"#6366F1"},Rh={ACTION:"▶",JOIN:"⟨",FORK:"⟩",END:"◼",USER_TASK:"👤",PROCESS:"⚙"},zh=["ACTION","JOIN","FORK","END","USER_TASK","PROCESS"];let ms;const jh=()=>(ms||(ms=Pe(()=>import("./vendor-diagrams.js").then(e=>e.e),__vite__mapDeps([5,3,1,2,4])).then(e=>new e.default)),ms);function Ah(){return"step-"+Math.random().toString(36).slice(2,8)}let Qe=class extends S{constructor(){super(...arguments),this.value='{"name":"New Workflow","steps":[]}',this.readOnly=!1,this.wf={name:"New Workflow",steps:[]},this.positions={},this.layoutReady=!1,this.selectedId=null,this.showMeta=!1,this.layoutError=null,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.elkPositioned=new Set,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;const t=this.toSvgPoint(e);this.elkPositioned.add(this.draggingId),this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener("mousemove",this.onMouseMove),window.removeEventListener("mouseup",this.onMouseUp)}}updated(e){if(e.has("value"))try{const t=JSON.parse(this.value),a=new Set((this.wf.steps??[]).map(r=>r.id)),s=new Set((t.steps??[]).map(r=>r.id)),i=a.size!==s.size||[...s].some(r=>!a.has(r))||[...s].some(r=>{const n=(this.wf.steps??[]).find(c=>c.id===r),l=(t.steps??[]).find(c=>c.id===r);return n?.preconditionStepId!==l?.preconditionStepId});this.wf=t,(i||!this.layoutReady)&&this.runElkLayout()}catch{}}async runElkLayout(){const e=this.wf.steps??[];if(e.length===0){this.positions={},this.layoutReady=!0;return}const t={id:"root",layoutOptions:{"elk.algorithm":"layered","elk.direction":"RIGHT","elk.spacing.nodeNode":"40","elk.layered.spacing.nodeNodeBetweenLayers":"80","elk.edgeRouting":"ORTHOGONAL","elk.layered.nodePlacement.strategy":"BRANDES_KOEPF"},children:e.map(a=>({id:a.id,width:Va,height:Ke})),edges:e.filter(a=>a.preconditionStepId).map(a=>({id:`${a.preconditionStepId}->${a.id}`,sources:[a.preconditionStepId],targets:[a.id]}))};try{const s=await(await jh()).layout(t),i={...this.positions};for(const r of s.children??[])(!this.elkPositioned.has(r.id)||!i[r.id])&&(i[r.id]={x:(r.x??0)+jt,y:(r.y??0)+jt},this.elkPositioned.add(r.id));this.positions=i,this.layoutReady=!0,this.layoutError=null}catch(a){this.layoutError=a?.message??"ELK layout failed",this.layoutReady=!0}}emit(){const e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){const a=this.wf.steps.map(r=>r.id===e?{...r,...t}:r),s=this.wf.steps.find(r=>r.id===e),i=t.preconditionStepId!==void 0&&t.preconditionStepId!==s?.preconditionStepId;this.wf={...this.wf,steps:a},i&&(this.elkPositioned.clear(),this.runElkLayout()),this.emit()}addStep(){const e=Ah(),t={id:e,type:"ACTION",name:"New Step"};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};const a=Object.values(this.positions).map(s=>s.x);this.positions={...this.positions,[e]:{x:a.length?Math.max(...a)+Va+80:jt,y:jt}},this.selectedId=e,this.elkPositioned.clear(),this.runElkLayout(),this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(s=>s.id!==e).map(s=>s.preconditionStepId===e?{...s,preconditionStepId:void 0}:s)};const{[e]:t,...a}=this.positions;this.positions=a,this.elkPositioned.delete(e),this.selectedId===e&&(this.selectedId=null),this.runElkLayout(),this.emit()}onNodeMouseDown(e,t){if(this.readOnly)return;e.preventDefault(),this.draggingId=t;const a=this.positions[t]??{x:0,y:0},s=this.toSvgPoint(e);this.dragOffset={x:s.x-a.x,y:s.y-a.y},this.svgEl=e.currentTarget.closest("svg"),window.addEventListener("mousemove",this.onMouseMove),window.addEventListener("mouseup",this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};const t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}relayout(){this.elkPositioned.clear(),this.runElkLayout()}canvasSize(){const e=Object.values(this.positions),t=e.length?Math.max(...e.map(s=>s.x))+Va+jt:600,a=e.length?Math.max(...e.map(s=>s.y))+Ke+jt:400;return{w:Math.max(t,600),h:Math.max(a,400)}}render(){if(!this.layoutReady)return o`<div class="loading">Computing layout…</div>`;const{w:e,h:t}=this.canvasSize(),a=this.wf.steps??[];return o`
+    `];qa([h()],Gt.prototype,"value",2);qa([$()],Gt.prototype,"wf",2);qa([$()],Gt.prototype,"positions",2);qa([$()],Gt.prototype,"selectedId",2);qa([$()],Gt.prototype,"showMeta",2);Gt=qa([k("mateu-workflow")],Gt);var zh=Object.defineProperty,Ah=Object.getOwnPropertyDescriptor,Pt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Ah(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&zh(t,a,i),i};const Ha=160,Ke=56,Lt=60,jh={ACTION:"#3B82F6",JOIN:"#8B5CF6",FORK:"#F59E0B",END:"#EF4444",USER_TASK:"#10B981",PROCESS:"#6366F1"},Lh={ACTION:"▶",JOIN:"⟨",FORK:"⟩",END:"◼",USER_TASK:"👤",PROCESS:"⚙"},Dh=["ACTION","JOIN","FORK","END","USER_TASK","PROCESS"];let vs;const Fh=()=>(vs||(vs=Te(()=>import("./vendor-diagrams.js").then(e=>e.e),__vite__mapDeps([5,3,1,2,4])).then(e=>new e.default)),vs);function Nh(){return"step-"+Math.random().toString(36).slice(2,8)}let Ze=class extends S{constructor(){super(...arguments),this.value='{"name":"New Workflow","steps":[]}',this.readOnly=!1,this.wf={name:"New Workflow",steps:[]},this.positions={},this.layoutReady=!1,this.selectedId=null,this.showMeta=!1,this.layoutError=null,this.draggingId=null,this.dragOffset={x:0,y:0},this.svgEl=null,this.elkPositioned=new Set,this.onMouseMove=e=>{if(!this.draggingId||!this.svgEl)return;const t=this.toSvgPoint(e);this.elkPositioned.add(this.draggingId),this.positions={...this.positions,[this.draggingId]:{x:Math.max(0,t.x-this.dragOffset.x),y:Math.max(0,t.y-this.dragOffset.y)}}},this.onMouseUp=()=>{this.draggingId=null,window.removeEventListener("mousemove",this.onMouseMove),window.removeEventListener("mouseup",this.onMouseUp)}}updated(e){if(e.has("value"))try{const t=JSON.parse(this.value),a=new Set((this.wf.steps??[]).map(r=>r.id)),s=new Set((t.steps??[]).map(r=>r.id)),i=a.size!==s.size||[...s].some(r=>!a.has(r))||[...s].some(r=>{const n=(this.wf.steps??[]).find(c=>c.id===r),l=(t.steps??[]).find(c=>c.id===r);return n?.preconditionStepId!==l?.preconditionStepId});this.wf=t,(i||!this.layoutReady)&&this.runElkLayout()}catch{}}async runElkLayout(){const e=this.wf.steps??[];if(e.length===0){this.positions={},this.layoutReady=!0;return}const t={id:"root",layoutOptions:{"elk.algorithm":"layered","elk.direction":"RIGHT","elk.spacing.nodeNode":"40","elk.layered.spacing.nodeNodeBetweenLayers":"80","elk.edgeRouting":"ORTHOGONAL","elk.layered.nodePlacement.strategy":"BRANDES_KOEPF"},children:e.map(a=>({id:a.id,width:Ha,height:Ke})),edges:e.filter(a=>a.preconditionStepId).map(a=>({id:`${a.preconditionStepId}->${a.id}`,sources:[a.preconditionStepId],targets:[a.id]}))};try{const s=await(await Fh()).layout(t),i={...this.positions};for(const r of s.children??[])(!this.elkPositioned.has(r.id)||!i[r.id])&&(i[r.id]={x:(r.x??0)+Lt,y:(r.y??0)+Lt},this.elkPositioned.add(r.id));this.positions=i,this.layoutReady=!0,this.layoutError=null}catch(a){this.layoutError=a?.message??"ELK layout failed",this.layoutReady=!0}}emit(){const e=JSON.stringify(this.wf,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateWf(e){this.wf={...this.wf,...e},this.emit()}updateStep(e,t){const a=this.wf.steps.map(r=>r.id===e?{...r,...t}:r),s=this.wf.steps.find(r=>r.id===e),i=t.preconditionStepId!==void 0&&t.preconditionStepId!==s?.preconditionStepId;this.wf={...this.wf,steps:a},i&&(this.elkPositioned.clear(),this.runElkLayout()),this.emit()}addStep(){const e=Nh(),t={id:e,type:"ACTION",name:"New Step"};this.wf={...this.wf,steps:[...this.wf.steps??[],t]};const a=Object.values(this.positions).map(s=>s.x);this.positions={...this.positions,[e]:{x:a.length?Math.max(...a)+Ha+80:Lt,y:Lt}},this.selectedId=e,this.elkPositioned.clear(),this.runElkLayout(),this.emit()}deleteStep(e){this.wf={...this.wf,steps:this.wf.steps.filter(s=>s.id!==e).map(s=>s.preconditionStepId===e?{...s,preconditionStepId:void 0}:s)};const{[e]:t,...a}=this.positions;this.positions=a,this.elkPositioned.delete(e),this.selectedId===e&&(this.selectedId=null),this.runElkLayout(),this.emit()}onNodeMouseDown(e,t){if(this.readOnly)return;e.preventDefault(),this.draggingId=t;const a=this.positions[t]??{x:0,y:0},s=this.toSvgPoint(e);this.dragOffset={x:s.x-a.x,y:s.y-a.y},this.svgEl=e.currentTarget.closest("svg"),window.addEventListener("mousemove",this.onMouseMove),window.addEventListener("mouseup",this.onMouseUp)}toSvgPoint(e){if(!this.svgEl)return{x:0,y:0};const t=this.svgEl.getBoundingClientRect();return{x:e.clientX-t.left,y:e.clientY-t.top}}relayout(){this.elkPositioned.clear(),this.runElkLayout()}canvasSize(){const e=Object.values(this.positions),t=e.length?Math.max(...e.map(s=>s.x))+Ha+Lt:600,a=e.length?Math.max(...e.map(s=>s.y))+Ke+Lt:400;return{w:Math.max(t,600),h:Math.max(a,400)}}render(){if(!this.layoutReady)return o`<div class="loading">Computing layout…</div>`;const{w:e,h:t}=this.canvasSize(),a=this.wf.steps??[];return o`
             <div class="root">
                 ${this.renderToolbar()}
                 ${this.showMeta?this.renderMeta():""}
@@ -8475,21 +8758,21 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <div style="flex:1"></div>
                 <button class="nbtn" title="Re-run ELK layout"
                         @click="${()=>this.relayout()}">
-                    ${uh}
+                    ${vh}
                     Re-layout
                 </button>
                 ${this.readOnly?d:o`
                     <button class="nbtn" @click="${()=>this.showMeta=!this.showMeta}">
-                        ${Us}
+                        ${Bs}
                         Settings
                     </button>
                     <button class="nbtn primary" @click="${()=>this.addStep()}">
-                        ${Bs}
+                        ${Vs}
                         Add Step
                     </button>
                 `}
                 <button class="nbtn" @click="${()=>this.exportJson()}">
-                    ${Vs}
+                    ${Ws}
                     Export
                 </button>
             </div>
@@ -8522,16 +8805,16 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     `:""}
                 </div>
             </div>
-        `}renderArrow(e){if(!e.preconditionStepId)return X``;const t=this.positions[e.preconditionStepId],a=this.positions[e.id];if(!t||!a)return X``;const s=t.x+Va,i=t.y+Ke/2,r=a.x,n=a.y+Ke/2,l=(s+r)/2;return X`
+        `}renderArrow(e){if(!e.preconditionStepId)return X``;const t=this.positions[e.preconditionStepId],a=this.positions[e.id];if(!t||!a)return X``;const s=t.x+Ha,i=t.y+Ke/2,r=a.x,n=a.y+Ke/2,l=(s+r)/2;return X`
             <path d="M${s},${i} C${l},${i} ${l},${n} ${r},${n}"
                   fill="none" stroke="#94a3b8" stroke-width="2"
                   marker-end="url(#arrow)"/>
-        `}renderNode(e){const t=this.positions[e.id]??{x:jt,y:jt},a=Oh[e.type]??"#64748b",s=Rh[e.type]??"•",i=this.selectedId===e.id,r=e.name.length>16?e.name.slice(0,15)+"…":e.name;return X`
+        `}renderNode(e){const t=this.positions[e.id]??{x:Lt,y:Lt},a=jh[e.type]??"#64748b",s=Lh[e.type]??"•",i=this.selectedId===e.id,r=e.name.length>16?e.name.slice(0,15)+"…":e.name;return X`
             <g transform="translate(${t.x},${t.y})"
                style="cursor:grab"
                @mousedown="${n=>this.onNodeMouseDown(n,e.id)}"
                @click="${n=>{n.stopPropagation(),this.selectedId=e.id}}">
-                <rect width="${Va}" height="${Ke}" rx="8"
+                <rect width="${Ha}" height="${Ke}" rx="8"
                       fill="white"
                       stroke="${i?a:"#e2e8f0"}"
                       stroke-width="${i?2.5:1.5}"
@@ -8571,7 +8854,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     ${s("Type",o`
                         <select class="inp" ?disabled="${a}"
                                 @change="${a?d:i=>this.updateStep(e.id,{type:i.target.value})}">
-                            ${zh.map(i=>o`
+                            ${Dh.map(i=>o`
                                 <option value="${i}" ?selected="${e.type===i}">${i}</option>`)}
                         </select>`)}
                     ${s("Description",o`<textarea class="inp" rows="2" ?readonly="${a}"
@@ -8628,7 +8911,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                @change="${a?d:i=>this.updateStep(e.id,{childWorkflowDefinitionId:i.target.value||void 0})}"/>`):""}
                 </div>
             </div>
-        `}exportJson(){const e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),s=document.createElement("a");s.href=a,s.download=(this.wf.name??"workflow").replace(/\s+/g,"-").toLowerCase()+".json",s.click(),URL.revokeObjectURL(a)}};Qe.styles=[as,C`
+        `}exportJson(){const e=JSON.stringify(this.wf,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),s=document.createElement("a");s.href=a,s.download=(this.wf.name??"workflow").replace(/\s+/g,"-").toLowerCase()+".json",s.click(),URL.revokeObjectURL(a)}};Ze.styles=[is,C`
         :host {display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif);}
 
         .root {display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff);}
@@ -8706,7 +8989,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         .inp:focus {border-color: #3B82F6;}
         textarea.inp {resize: vertical;}
         input[readonly].inp {background: #f8fafc; color: #94a3b8;}
-    `];_t([m()],Qe.prototype,"value",2);_t([m({type:Boolean})],Qe.prototype,"readOnly",2);_t([$()],Qe.prototype,"wf",2);_t([$()],Qe.prototype,"positions",2);_t([$()],Qe.prototype,"layoutReady",2);_t([$()],Qe.prototype,"selectedId",2);_t([$()],Qe.prototype,"showMeta",2);_t([$()],Qe.prototype,"layoutError",2);Qe=_t([k("mateu-workflow-elk")],Qe);var Lh=Object.defineProperty,Dh=Object.getOwnPropertyDescriptor,fi=(e,t,a,s)=>{for(var i=s>1?void 0:s?Dh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Lh(t,a,i),i};const Fh=["string","integer","number","bool","date","time","dateTime","dateRange","money","file","array","status","component","menu","range","action","actionGroup"],Nh=["regular","radio","checkbox","textarea","toggle","combobox","select","email","password","richText","listBox","html","markdown","image","icon","link","money","grid","color","choice","popover","slider","button","stars"],Mh={string:"#3B82F6",integer:"#8B5CF6",number:"#6366F1",bool:"#10B981",date:"#F59E0B",time:"#F59E0B",dateTime:"#F59E0B",dateRange:"#F59E0B",money:"#EF4444",file:"#64748B",array:"#0EA5E9",status:"#EC4899",component:"#14B8A6",menu:"#94A3B8",range:"#A855F7",action:"#F97316",actionGroup:"#FB923C"};function fr(){return"field-"+Math.random().toString(36).slice(2,8)}let ha=class extends S{constructor(){super(...arguments),this.value='{"name":"New Form","fields":[]}',this.form={name:"New Form",fields:[]},this.selectedId=null,this.showMeta=!1,this.sortable=null,this.listEl=null}updated(e){if(e.has("value"))try{this.form=JSON.parse(this.value)}catch{}this.attachSortable()}disconnectedCallback(){super.disconnectedCallback(),this.sortable?.destroy(),this.sortable=null}attachSortable(){const e=this.shadowRoot?.querySelector(".field-list");!e||e===this.listEl||(this.listEl=e,this.sortable?.destroy(),this.sortable=Wo.create(e,{animation:150,handle:".drag-handle",ghostClass:"sortable-ghost",onEnd:t=>{const{oldIndex:a,newIndex:s}=t;if(a===void 0||s===void 0||a===s)return;const i=[...this.form.fields],[r]=i.splice(a,1);i.splice(s,0,r),this.form={...this.form,fields:i},this.emit()}}))}emit(){const e=JSON.stringify(this.form,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateForm(e){this.form={...this.form,...e},this.emit()}updateField(e,t){this.form={...this.form,fields:this.form.fields.map(a=>a.id===e?{...a,...t}:a)},this.emit()}addField(){const e=fr(),t={id:e,label:"New Field",dataType:"string"};this.form={...this.form,fields:[...this.form.fields,t]},this.selectedId=e,this.emit()}deleteField(e){this.form={...this.form,fields:this.form.fields.filter(t=>t.id!==e)},this.selectedId===e&&(this.selectedId=null),this.emit()}duplicateField(e){const t=this.form.fields.find(r=>r.id===e);if(!t)return;const a={...t,id:fr(),label:t.label+" (copy)"},s=this.form.fields.findIndex(r=>r.id===e),i=[...this.form.fields];i.splice(s+1,0,a),this.form={...this.form,fields:i},this.selectedId=a.id,this.emit()}render(){return o`
+    `];Pt([h()],Ze.prototype,"value",2);Pt([h({type:Boolean})],Ze.prototype,"readOnly",2);Pt([$()],Ze.prototype,"wf",2);Pt([$()],Ze.prototype,"positions",2);Pt([$()],Ze.prototype,"layoutReady",2);Pt([$()],Ze.prototype,"selectedId",2);Pt([$()],Ze.prototype,"showMeta",2);Pt([$()],Ze.prototype,"layoutError",2);Ze=Pt([k("mateu-workflow-elk")],Ze);var Mh=Object.defineProperty,qh=Object.getOwnPropertyDescriptor,bi=(e,t,a,s)=>{for(var i=s>1?void 0:s?qh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Mh(t,a,i),i};const Uh=["string","integer","number","bool","date","time","dateTime","dateRange","money","file","array","status","component","menu","range","action","actionGroup"],Bh=["regular","radio","checkbox","textarea","toggle","combobox","select","email","password","richText","listBox","html","markdown","image","icon","link","money","grid","color","choice","popover","slider","button","stars"],Vh={string:"#3B82F6",integer:"#8B5CF6",number:"#6366F1",bool:"#10B981",date:"#F59E0B",time:"#F59E0B",dateTime:"#F59E0B",dateRange:"#F59E0B",money:"#EF4444",file:"#64748B",array:"#0EA5E9",status:"#EC4899",component:"#14B8A6",menu:"#94A3B8",range:"#A855F7",action:"#F97316",actionGroup:"#FB923C"};function gr(){return"field-"+Math.random().toString(36).slice(2,8)}let va=class extends S{constructor(){super(...arguments),this.value='{"name":"New Form","fields":[]}',this.form={name:"New Form",fields:[]},this.selectedId=null,this.showMeta=!1,this.sortable=null,this.listEl=null}updated(e){if(e.has("value"))try{this.form=JSON.parse(this.value)}catch{}this.attachSortable()}disconnectedCallback(){super.disconnectedCallback(),this.sortable?.destroy(),this.sortable=null}attachSortable(){const e=this.shadowRoot?.querySelector(".field-list");!e||e===this.listEl||(this.listEl=e,this.sortable?.destroy(),this.sortable=Yo.create(e,{animation:150,handle:".drag-handle",ghostClass:"sortable-ghost",onEnd:t=>{const{oldIndex:a,newIndex:s}=t;if(a===void 0||s===void 0||a===s)return;const i=[...this.form.fields],[r]=i.splice(a,1);i.splice(s,0,r),this.form={...this.form,fields:i},this.emit()}}))}emit(){const e=JSON.stringify(this.form,null,2);this.dispatchEvent(new CustomEvent("value-changed",{detail:{value:e},bubbles:!0,composed:!0}))}updateForm(e){this.form={...this.form,...e},this.emit()}updateField(e,t){this.form={...this.form,fields:this.form.fields.map(a=>a.id===e?{...a,...t}:a)},this.emit()}addField(){const e=gr(),t={id:e,label:"New Field",dataType:"string"};this.form={...this.form,fields:[...this.form.fields,t]},this.selectedId=e,this.emit()}deleteField(e){this.form={...this.form,fields:this.form.fields.filter(t=>t.id!==e)},this.selectedId===e&&(this.selectedId=null),this.emit()}duplicateField(e){const t=this.form.fields.find(r=>r.id===e);if(!t)return;const a={...t,id:gr(),label:t.label+" (copy)"},s=this.form.fields.findIndex(r=>r.id===e),i=[...this.form.fields];i.splice(s+1,0,a),this.form={...this.form,fields:i},this.selectedId=a.id,this.emit()}render(){return o`
             <div class="root">
                 ${this.renderToolbar()}
                 ${this.showMeta?this.renderMeta():d}
@@ -8720,15 +9003,15 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <span class="form-name">${this.form.name}</span>
                 <div style="flex:1"></div>
                 <button class="nbtn" @click="${()=>this.showMeta=!this.showMeta}">
-                    ${Us}
+                    ${Bs}
                     Settings
                 </button>
                 <button class="nbtn primary" @click="${()=>this.addField()}">
-                    ${Bs}
+                    ${Vs}
                     Add Field
                 </button>
                 <button class="nbtn" @click="${()=>this.exportJson()}">
-                    ${Vs}
+                    ${Ws}
                     Export
                 </button>
             </div>
@@ -8753,7 +9036,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     ${e.map(t=>this.renderRow(t))}
                 </div>
             </div>
-        `}renderRow(e){const t=Mh[e.dataType]??"#64748b",a=this.selectedId===e.id;return o`
+        `}renderRow(e){const t=Vh[e.dataType]??"#64748b",a=this.selectedId===e.id;return o`
             <div class="field-row ${a?"selected":""}"
                  data-id="${e.id}"
                  @click="${()=>this.selectedId=this.selectedId===e.id?null:e.id}">
@@ -8788,13 +9071,13 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     ${t("Data type",o`
                         <select class="inp"
                                 @change="${a=>this.updateField(e.id,{dataType:a.target.value})}">
-                            ${Fh.map(a=>o`
+                            ${Uh.map(a=>o`
                                 <option value="${a}" ?selected="${e.dataType===a}">${a}</option>`)}
                         </select>`)}
                     ${t("Stereotype",o`
                         <select class="inp"
                                 @change="${a=>this.updateField(e.id,{stereotype:a.target.value||void 0})}">
-                            ${Nh.map(a=>o`
+                            ${Bh.map(a=>o`
                                 <option value="${a}" ?selected="${(e.stereotype??"regular")===a}">${a}</option>`)}
                         </select>`)}
                     <div class="prop-field row">
@@ -8807,7 +9090,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                   @change="${a=>this.updateField(e.id,{description:a.target.value||void 0})}">${e.description??""}</textarea>`)}
                 </div>
             </div>
-        `}exportJson(){const e=JSON.stringify(this.form,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),s=document.createElement("a");s.href=a,s.download=(this.form.name??"form").replace(/\s+/g,"-").toLowerCase()+".json",s.click(),URL.revokeObjectURL(a)}};ha.styles=[as,C`
+        `}exportJson(){const e=JSON.stringify(this.form,null,2),t=new Blob([e],{type:"application/json"}),a=URL.createObjectURL(t),s=document.createElement("a");s.href=a,s.download=(this.form.name??"form").replace(/\s+/g,"-").toLowerCase()+".json",s.click(),URL.revokeObjectURL(a)}};va.styles=[is,C`
         :host { display: block; height: 100%; font-family: var(--lumo-font-family, sans-serif); }
 
         .root { display: flex; flex-direction: column; height: 100%; background: var(--lumo-base-color, #fff); }
@@ -8922,7 +9205,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
         .inp:focus { border-color: #3B82F6; }
         textarea.inp { resize: vertical; }
         input[readonly].inp { background: #f8fafc; color: #94a3b8; }
-    `];fi([m()],ha.prototype,"value",2);fi([$()],ha.prototype,"form",2);fi([$()],ha.prototype,"selectedId",2);fi([$()],ha.prototype,"showMeta",2);ha=fi([k("mateu-form-editor")],ha);var qh=Object.defineProperty,Uh=Object.getOwnPropertyDescriptor,vt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Uh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&qh(t,a,i),i};let qe=class extends S{constructor(){super(...arguments),this.appState={},this.appData={},this.open=!1,this.activeTab="appstate",this.hoveredTag="",this.hoveredId="",this.hoveredState=null,this.hoveredData=null,this.hoveredMeta=null,this._prevTarget=null,this._onMouseover=e=>{let t=e.target;for(;t&&!(t.tagName?.toLowerCase().startsWith("mateu-")&&t!==this);)t=t.parentElement;if(t===this||t===null){t===null&&this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget.style.outlineOffset="",this._prevTarget=null,this.hoveredTag="",this.hoveredId="",this.hoveredState=null,this.hoveredData=null,this.hoveredMeta=null);return}t!==this._prevTarget&&(this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget.style.outlineOffset=""),this._prevTarget=t,t.style.outline="2px solid #0070f3",t.style.outlineOffset="-2px",this.hoveredTag=t.tagName.toLowerCase(),this.hoveredId=t.id||"",this.hoveredState=t.state,this.hoveredData=t.data,this.hoveredMeta=t.component?.metadata)}}connectedCallback(){super.connectedCallback(),document.addEventListener("mouseover",this._onMouseover,!0)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("mouseover",this._onMouseover,!0),this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget=null)}_fmt(e){try{return JSON.stringify(e,null,2)??"null"}catch{return String(e)}}_renderTab(e,t){return o`
+    `];bi([h()],va.prototype,"value",2);bi([$()],va.prototype,"form",2);bi([$()],va.prototype,"selectedId",2);bi([$()],va.prototype,"showMeta",2);va=bi([k("mateu-form-editor")],va);var Wh=Object.defineProperty,Hh=Object.getOwnPropertyDescriptor,ft=(e,t,a,s)=>{for(var i=s>1?void 0:s?Hh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Wh(t,a,i),i};let qe=class extends S{constructor(){super(...arguments),this.appState={},this.appData={},this.open=!1,this.activeTab="appstate",this.hoveredTag="",this.hoveredId="",this.hoveredState=null,this.hoveredData=null,this.hoveredMeta=null,this._prevTarget=null,this._onMouseover=e=>{let t=e.target;for(;t&&!(t.tagName?.toLowerCase().startsWith("mateu-")&&t!==this);)t=t.parentElement;if(t===this||t===null){t===null&&this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget.style.outlineOffset="",this._prevTarget=null,this.hoveredTag="",this.hoveredId="",this.hoveredState=null,this.hoveredData=null,this.hoveredMeta=null);return}t!==this._prevTarget&&(this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget.style.outlineOffset=""),this._prevTarget=t,t.style.outline="2px solid #0070f3",t.style.outlineOffset="-2px",this.hoveredTag=t.tagName.toLowerCase(),this.hoveredId=t.id||"",this.hoveredState=t.state,this.hoveredData=t.data,this.hoveredMeta=t.component?.metadata)}}connectedCallback(){super.connectedCallback(),document.addEventListener("mouseover",this._onMouseover,!0)}disconnectedCallback(){super.disconnectedCallback(),document.removeEventListener("mouseover",this._onMouseover,!0),this._prevTarget&&(this._prevTarget.style.outline="",this._prevTarget=null)}_fmt(e){try{return JSON.stringify(e,null,2)??"null"}catch{return String(e)}}_renderTab(e,t){return o`
             <button class="tab ${this.activeTab===e?"tab--active":""}"
                 @click=${()=>{this.activeTab=e}}>
                 ${t}
@@ -9095,35 +9378,35 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             border-bottom: 1px solid #2a2a3a;
         }
         .section-label:first-of-type { margin-top: 0; }
-    `;vt([m()],qe.prototype,"appState",2);vt([m()],qe.prototype,"appData",2);vt([$()],qe.prototype,"open",2);vt([$()],qe.prototype,"activeTab",2);vt([$()],qe.prototype,"hoveredTag",2);vt([$()],qe.prototype,"hoveredId",2);vt([$()],qe.prototype,"hoveredState",2);vt([$()],qe.prototype,"hoveredData",2);vt([$()],qe.prototype,"hoveredMeta",2);qe=vt([k("mateu-debug-overlay")],qe);var Ye=(e=>(e.SetAppDataValue="SetAppDataValue",e.SetAppStateValue="SetAppStateValue",e.SetDataValue="SetDataValue",e.RunAction="RunAction",e.RunJS="RunJS",e.SetAttributeValue="SetAttributeValue",e.SetStateValue="SetStateValue",e.SetCssClass="SetCssClass",e.SetStyle="SetStyle",e))(Ye||{}),To=(e=>(e.required="required",e.disabled="disabled",e.hidden="hidden",e.pattern="pattern",e.minValue="minValue",e.maxValue="maxValue",e.minLength="minLength",e.maxLength="maxLength",e.css="css",e.style="style",e.theme="theme",e.errorMessage="errorMessage",e.description="description",e.none="none",e))(To||{}),Po=(e=>(e.Continue="Continue",e.Stop="Stop",e))(Po||{}),Bh=Object.defineProperty,Vh=Object.getOwnPropertyDescriptor,is=(e,t,a,s)=>{for(var i=s>1?void 0:s?Vh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Bh(t,a,i),i};let Wa=null,Pa=class extends Zt{constructor(){super(...arguments),this.baseUrl="",this.route="",this.consumedRoute="",this.formerState={},this.applyRules=()=>{const e=this.component.rules;if(e&&e.length>0){const t=this.state,a=this.data,s=this.appState,i=this.appData,r=this.component,n=y=>Sr(y,t,a,{appState:s,appData:i,component:r}),l=y=>Cr(y,t,a,s,i,{component:r}),c=["state","data","appState","appData","component"],u=[t,a,s,i,r],h={...this.state},p={...this.data};let f=!1,g=!1;for(let y=0;y<e.length;y++){const x=e[y];try{if(n(x.filter)){if(Ye.SetStateValue==x.action||Ye.SetDataValue==x.action){const T=Ye.SetStateValue==x.action?h:p,U=x.fieldName.split(",");for(let ae=0;ae<U.length;ae++){const N=U[ae];if(!T[N]||T[N]!=x.value){const oe=x.expression?l(x.expression):x.value,ue=To.none==x.fieldAttribute?N:N+"."+x.fieldAttribute;oe!=T[ue]&&(T[ue]=oe,Ye.SetStateValue==x.action&&(f=!0),Ye.SetDataValue==x.action&&(g=!0))}}}if(Ye.RunAction==x.action&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:x.actionId},bubbles:!0,composed:!0})),Ye.RunJS==x.action&&new Function(...c,x.value)(...u),Ye.SetAttributeValue==x.action){const T=x.expression?n(x.expression):x.value;if(x.fieldAttribute=="disabled"){T?this.shadowRoot?.getElementById(x.fieldName)?.setAttribute(x.fieldAttribute,"disabled"):this.shadowRoot?.getElementById(x.fieldName)?.removeAttribute(x.fieldAttribute);continue}this.shadowRoot?.getElementById(x.fieldName)?.setAttribute(x.fieldAttribute,T)}if(Ye.SetCssClass==x.action&&this.shadowRoot?.getElementById(x.fieldName)?.setAttribute("class",x.value),Ye.SetStyle==x.action&&this.shadowRoot?.getElementById(x.fieldName)?.style.setProperty(x.expression,x.value),Po.Stop==x.result)break}}catch(T){console.error("rule failed",x,T)}}f&&(this.state=h),g&&(this.data=p),f&&this.checkValidations()}},this.skipValidation=(e,t)=>e&&t.fieldId&&!e.includes(t.fieldId)||!e&&t.fieldId&&t.fieldId.includes("-"),this.checkValidations=e=>{const t=e?e.split(","):void 0,a=this.component.validations;let s=!0,i=!1;const r=this.data??{},n={...this.data??{},errors:{}};if(a){for(let l=0;l<a.length;l++){const c=a[l];if(this.skipValidation(t,c))continue;const u=(c.fieldId??"_component").split(",");for(let h=0;h<u.length;h++){const p=u[h];n.errors[p]=[]}}for(let l=0;l<a.length;l++){const c=a[l];if(!this.skipValidation(t,c))try{const u=c.condition&&c.condition.includes("${")?this._evalTemplate(c.condition):this._evalExpr(c.condition);if(c.condition&&!u){s=!1;const p=(c.fieldId??"_component").split(",");for(let f=0;f<p.length;f++){const g=p[f];let y=n.errors[g];if(y||(n.errors[g]=[]),y=n.errors[g],!r[g]){let x=c.message;try{x=this._evalTemplate(c.message)}catch{}y.push(x)}}}}catch(u){console.error("validation failed",c,u)}}for(let l=0;l<a.length;l++){const c=a[l];if(this.skipValidation(t,c))continue;const u=(c.fieldId??"_component").split(",");for(let h=0;h<u.length;h++){const p=u[h];if(r.errors?[p].join(","):n.errors==""&&[p].join(",")){i=!0;break}}}(r.errors?["_component"].join(","):n.errors==""&&["_component"].join(","))&&(i=!0)}n._valid=s,n._valid!=r._valid&&(i=!0),i&&(this.data=n)},this._autoSaveTimers=new Map,this.onChange=()=>{this.applyRules()},this.closeModalRequestedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.closeModal()},this.resetFilters=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail,a={};t.fieldIds.forEach(s=>{a[s]=void 0}),a.searchText=void 0,this.state={...this.state,...a}}},this.dataChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail,a={};a[t.key]=t.value,e.type=="data-changed"&&(this.data={...this.data,...a})}},this.valueChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail;if(e.type=="value-changed"){const a={...this.state};a[t.fieldId]=t.value,this.state=a,(this.state[t.fieldId]||this.formerState[t.fieldId])&&this.state[t.fieldId]!=this.formerState[t.fieldId]&&this.component?.confirmOnNavigationIfDirty&&this.dispatchEvent(new CustomEvent("dirty",{detail:e.detail,bubbles:!0,composed:!0}));const s=this.component;s.triggers?.filter(i=>i.type==At.OnValueChange).filter(i=>!i.propertyName||t.fieldId==i.propertyName).forEach(i=>{(!i.condition||this._evalExpr(i.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0}))}),s.triggers?.filter(i=>i.type==At.AutoSave).forEach(i=>{const r=i.actionId,n=this._autoSaveTimers.get(r);n!==void 0&&clearTimeout(n),this._autoSaveTimers.set(r,setTimeout(()=>{this._autoSaveTimers.delete(r),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0}))},i.debounceMillis??800))})}}},this.actionRequestedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.manageActionRequestedEvent(e)},this.manageActionRequestedEvent=e=>{const t=e.detail;if(e.type=="action-requested"){e.preventDefault(),e.stopPropagation();const a=this.component,s=a.actions?.find(i=>i.id==t.actionId||i.id.endsWith("*")&&t.actionId.startsWith(i.id.replace("*","")));if(s){if(s&&s.rowsSelectedRequired&&(!this.state.crud_selected_items||this.state.crud_selected_items.length==0)){this.notify("You first need to select some rows");return}if(s&&s.validationRequired){const r=Wa??this;if(Wa=null,r.checkValidations(s.fieldsToValidate),!r.data._valid){r.notifyValidationErrors();return}}Wa=null;const i={...t,initiatorComponentId:this.id};s&&s.confirmationRequired?this.callAfterConfirmation(s,()=>this.requestActionCallToServerOrBubble(i,a,s)):this.requestActionCallToServerOrBubble(i,a,s)}else{const i={...t.parameters};i.initiatorState||(i.initiatorState=this.state),Wa||(Wa=this),this.dispatchEvent(new CustomEvent(e.type,{detail:{...e.detail,parameters:i},bubbles:!0,composed:!0}))}}},this.buildFieldLabelMap=()=>{const e={},t=a=>{if(a)for(const s of a){const i=s.metadata;if(i?.type===v.FormField){const r=i;r.fieldId&&r.label&&(e[r.fieldId]=r.label)}t(s.children)}};return t(this.component?.children),e},this.notifyValidationErrors=()=>{const e=this.data?.errors??{},t=this.buildFieldLabelMap(),a=[];if(Object.entries(e).forEach(([i,r])=>{if(!Array.isArray(r))return;const n=i==="_component"?void 0:t[i]??i;r.forEach(l=>{l&&!a.some(c=>c.label===n&&c.msg===l)&&a.push({label:n,msg:l})})}),a.length===0){this.notify("There are validation errors");return}const s=document.createElement("vaadin-notification");s.position="bottom-end",s.setAttribute("theme","error"),s.duration=Math.max(3e3,1500+a.length*1e3),s.renderer=i=>{$r(o`
+    `;ft([h()],qe.prototype,"appState",2);ft([h()],qe.prototype,"appData",2);ft([$()],qe.prototype,"open",2);ft([$()],qe.prototype,"activeTab",2);ft([$()],qe.prototype,"hoveredTag",2);ft([$()],qe.prototype,"hoveredId",2);ft([$()],qe.prototype,"hoveredState",2);ft([$()],qe.prototype,"hoveredData",2);ft([$()],qe.prototype,"hoveredMeta",2);qe=ft([k("mateu-debug-overlay")],qe);var Ye=(e=>(e.SetAppDataValue="SetAppDataValue",e.SetAppStateValue="SetAppStateValue",e.SetDataValue="SetDataValue",e.RunAction="RunAction",e.RunJS="RunJS",e.SetAttributeValue="SetAttributeValue",e.SetStateValue="SetStateValue",e.SetCssClass="SetCssClass",e.SetStyle="SetStyle",e))(Ye||{}),Oo=(e=>(e.required="required",e.disabled="disabled",e.hidden="hidden",e.pattern="pattern",e.minValue="minValue",e.maxValue="maxValue",e.minLength="minLength",e.maxLength="maxLength",e.css="css",e.style="style",e.theme="theme",e.errorMessage="errorMessage",e.description="description",e.none="none",e))(Oo||{}),Ro=(e=>(e.Continue="Continue",e.Stop="Stop",e))(Ro||{}),Gh=Object.defineProperty,Kh=Object.getOwnPropertyDescriptor,ss=(e,t,a,s)=>{for(var i=s>1?void 0:s?Kh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Gh(t,a,i),i};let Ga=null,Ra=class extends ta{constructor(){super(...arguments),this.baseUrl="",this.route="",this.consumedRoute="",this.formerState={},this.applyRules=()=>{const e=this.component.rules;if(e&&e.length>0){const t=this.state,a=this.data,s=this.appState,i=this.appData,r=this.component,n=y=>_r(y,t,a,{appState:s,appData:i,component:r}),l=y=>Ir(y,t,a,s,i,{component:r}),c=["state","data","appState","appData","component"],u=[t,a,s,i,r],m={...this.state},p={...this.data};let f=!1,g=!1;for(let y=0;y<e.length;y++){const x=e[y];try{if(n(x.filter)){if(Ye.SetStateValue==x.action||Ye.SetDataValue==x.action){const P=Ye.SetStateValue==x.action?m:p,U=x.fieldName.split(",");for(let ae=0;ae<U.length;ae++){const N=U[ae];if(!P[N]||P[N]!=x.value){const ne=x.expression?l(x.expression):x.value,ue=Oo.none==x.fieldAttribute?N:N+"."+x.fieldAttribute;ne!=P[ue]&&(P[ue]=ne,Ye.SetStateValue==x.action&&(f=!0),Ye.SetDataValue==x.action&&(g=!0))}}}if(Ye.RunAction==x.action&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:x.actionId},bubbles:!0,composed:!0})),Ye.RunJS==x.action&&new Function(...c,x.value)(...u),Ye.SetAttributeValue==x.action){const P=x.expression?n(x.expression):x.value;if(x.fieldAttribute=="disabled"){P?this.shadowRoot?.getElementById(x.fieldName)?.setAttribute(x.fieldAttribute,"disabled"):this.shadowRoot?.getElementById(x.fieldName)?.removeAttribute(x.fieldAttribute);continue}this.shadowRoot?.getElementById(x.fieldName)?.setAttribute(x.fieldAttribute,P)}if(Ye.SetCssClass==x.action&&this.shadowRoot?.getElementById(x.fieldName)?.setAttribute("class",x.value),Ye.SetStyle==x.action&&this.shadowRoot?.getElementById(x.fieldName)?.style.setProperty(x.expression,x.value),Ro.Stop==x.result)break}}catch(P){console.error("rule failed",x,P)}}f&&(this.state=m),g&&(this.data=p),f&&this.checkValidations()}},this.skipValidation=(e,t)=>e&&t.fieldId&&!e.includes(t.fieldId)||!e&&t.fieldId&&t.fieldId.includes("-"),this.checkValidations=e=>{const t=e?e.split(","):void 0,a=this.component.validations;let s=!0,i=!1;const r=this.data??{},n={...this.data??{},errors:{}};if(a){for(let l=0;l<a.length;l++){const c=a[l];if(this.skipValidation(t,c))continue;const u=(c.fieldId??"_component").split(",");for(let m=0;m<u.length;m++){const p=u[m];n.errors[p]=[]}}for(let l=0;l<a.length;l++){const c=a[l];if(!this.skipValidation(t,c))try{const u=c.condition&&c.condition.includes("${")?this._evalTemplate(c.condition):this._evalExpr(c.condition);if(c.condition&&!u){s=!1;const p=(c.fieldId??"_component").split(",");for(let f=0;f<p.length;f++){const g=p[f];let y=n.errors[g];if(y||(n.errors[g]=[]),y=n.errors[g],!r[g]){let x=c.message;try{x=this._evalTemplate(c.message)}catch{}y.push(x)}}}}catch(u){console.error("validation failed",c,u)}}for(let l=0;l<a.length;l++){const c=a[l];if(this.skipValidation(t,c))continue;const u=(c.fieldId??"_component").split(",");for(let m=0;m<u.length;m++){const p=u[m];if(r.errors?[p].join(","):n.errors==""&&[p].join(",")){i=!0;break}}}(r.errors?["_component"].join(","):n.errors==""&&["_component"].join(","))&&(i=!0)}n._valid=s,n._valid!=r._valid&&(i=!0),i&&(this.data=n)},this._autoSaveTimers=new Map,this.onChange=()=>{this.applyRules()},this.closeModalRequestedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.closeModal()},this.resetFilters=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail,a={};t.fieldIds.forEach(s=>{a[s]=void 0}),a.searchText=void 0,this.state={...this.state,...a}}},this.dataChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail,a={};a[t.key]=t.value,e.type=="data-changed"&&(this.data={...this.data,...a})}},this.valueChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent){const t=e.detail;if(e.type=="value-changed"){const a={...this.state};a[t.fieldId]=t.value,this.state=a,(this.state[t.fieldId]||this.formerState[t.fieldId])&&this.state[t.fieldId]!=this.formerState[t.fieldId]&&this.component?.confirmOnNavigationIfDirty&&this.dispatchEvent(new CustomEvent("dirty",{detail:e.detail,bubbles:!0,composed:!0}));const s=this.component;s.triggers?.filter(i=>i.type==Dt.OnValueChange).filter(i=>!i.propertyName||t.fieldId==i.propertyName).forEach(i=>{(!i.condition||this._evalExpr(i.condition))&&this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0}))}),s.triggers?.filter(i=>i.type==Dt.AutoSave).forEach(i=>{const r=i.actionId,n=this._autoSaveTimers.get(r);n!==void 0&&clearTimeout(n),this._autoSaveTimers.set(r,setTimeout(()=>{this._autoSaveTimers.delete(r),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:i.actionId},bubbles:!0,composed:!0}))},i.debounceMillis??800))})}}},this.actionRequestedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.manageActionRequestedEvent(e)},this.manageActionRequestedEvent=e=>{const t=e.detail;if(e.type=="action-requested"){e.preventDefault(),e.stopPropagation();const a=this.component,s=a.actions?.find(i=>i.id==t.actionId||i.id.endsWith("*")&&t.actionId.startsWith(i.id.replace("*","")));if(s){if(s&&s.rowsSelectedRequired&&(!this.state.crud_selected_items||this.state.crud_selected_items.length==0)){this.notify("You first need to select some rows");return}if(s&&s.validationRequired){const r=Ga??this;if(Ga=null,r.checkValidations(s.fieldsToValidate),!r.data._valid){r.notifyValidationErrors();return}}Ga=null;const i={...t,initiatorComponentId:this.id};s&&s.confirmationRequired?this.callAfterConfirmation(s,()=>this.requestActionCallToServerOrBubble(i,a,s)):this.requestActionCallToServerOrBubble(i,a,s)}else{const i={...t.parameters};i.initiatorState||(i.initiatorState=this.state),Ga||(Ga=this),this.dispatchEvent(new CustomEvent(e.type,{detail:{...e.detail,parameters:i},bubbles:!0,composed:!0}))}}},this.buildFieldLabelMap=()=>{const e={},t=a=>{if(a)for(const s of a){const i=s.metadata;if(i?.type===v.FormField){const r=i;r.fieldId&&r.label&&(e[r.fieldId]=r.label)}t(s.children)}};return t(this.component?.children),e},this.notifyValidationErrors=()=>{const e=this.data?.errors??{},t=this.buildFieldLabelMap(),a=[];if(Object.entries(e).forEach(([i,r])=>{if(!Array.isArray(r))return;const n=i==="_component"?void 0:t[i]??i;r.forEach(l=>{l&&!a.some(c=>c.label===n&&c.msg===l)&&a.push({label:n,msg:l})})}),a.length===0){this.notify("There are validation errors");return}const s=document.createElement("vaadin-notification");s.position="bottom-end",s.setAttribute("theme","error"),s.duration=Math.max(3e3,1500+a.length*1e3),s.renderer=i=>{xr(o`
                 <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs, .25rem);">
                     <strong>There are validation errors</strong>
                     ${a.map(({label:r,msg:n})=>r?o`<span>• <b>${r}:</b> ${n}</span>`:o`<span>• ${n}</span>`)}
                 </div>
-            `,i)},document.body.appendChild(s),s.opened=!0,s.addEventListener("opened-changed",i=>{i.detail.value||document.body.removeChild(s)})},this.notify=e=>{ia.show(e,{position:"bottom-end",theme:"error",duration:3e3})},this.callAfterConfirmation=(e,t)=>{let a="One moment, please",s="Are you sure?",i="Yes",r="No";e.confirmationTexts&&(a=e.confirmationTexts.title,s=e.confirmationTexts.message,i=e.confirmationTexts.confirmationText,r=e.confirmationTexts.denialText);const n=document.createElement("vaadin-confirm-dialog");n.setAttribute("header",a),n.setAttribute("cancel-button-visible","cancel-button-visible"),n.setAttribute("confirm-text",i),n.setAttribute("cancel-text",r),n.append(s),n.opened=!0,n.addEventListener("confirm",()=>t()),n.addEventListener("close",()=>document.body.removeChild(n)),n.addEventListener("confirm",()=>document.body.removeChild(n)),n.addEventListener("cancel",()=>document.body.removeChild(n)),n.addEventListener("reject",()=>document.body.removeChild(n)),document.body.append(n)},this.requestActionCallToServerOrBubble=(e,t,a)=>{if(a&&a.bubble){const s={...e.parameters};s.initiatorState||(s.initiatorState=this.state),this.dispatchEvent(new CustomEvent("action-requested",{detail:{...e,parameters:s},bubbles:!0,composed:!0}))}else this.requestActionCallToServer(e,t,a)},this.requestActionCallToServer=(e,t,a)=>{if(a&&a.href){window.location.href=a.href;return}if(a&&a.js)try{new Function("state","data","appState","appData","component",a.js).call(this,this.state??{},this.data??{},this.appState??{},this.appData??{},this.component),this.state={...this.state},this.data={...this.data}}catch(s){console.error("when evaluating "+a.js,s,this.component,this.state,this.data)}if(a&&a.customEvent&&this.dispatchEvent(new CustomEvent(a.customEvent.name,{detail:a.customEvent.detail,bubbles:!0,composed:!0})),!(a&&(a.js||a.customEvent))){if(e.actionId=="search"){const s=e.parameters?._searchState;s?this.state={...this.state,...s}:this.state.size||(this.state={...this.state,size:10,page:0,sort:[]})}this.dispatchEvent(new CustomEvent("server-side-action-requested",{detail:{route:this.route,consumedRoute:this.consumedRoute,componentState:{...this.state},parameters:e.parameters??{},actionId:e.actionId,serverSideType:t.serverSideType,serverSideComponentRoute:t.route,initiatorComponentId:e.initiatorComponentId??t.id,initiator:this,background:a?.background,sse:a?.sse,callback:e.callback,callbackonly:e.callbackonly,callbackToken:e.callbackToken??this.callbackToken},bubbles:!0,composed:!0}))}},this.handleBackendSucceeded=e=>{e.detail.actionId&&this.component.triggers?.filter(s=>s.type==At.OnSuccess).filter(s=>e.detail.actionId==s.calledActionId).forEach(s=>{if(!s.condition||this._evalExpr(s.condition))if(e.preventDefault(),e.stopPropagation(),s.timeoutMillis>0){const i=this.callbackToken;setTimeout(()=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId,callbackToken:i},bubbles:!0,composed:!0}))},s.timeoutMillis)}else this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0}))})},this.handleBackendFailed=e=>{e.detail.actionId&&this.component.triggers?.filter(s=>s.type==At.OnError).filter(s=>e.detail.actionId==s.calledActionId).forEach(s=>{(!s.condition||this._evalExpr(s.condition))&&(e.preventDefault(),e.stopPropagation(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0})))})},this._keydownListener=e=>{if(this._handleTabShortcut(e))return;const t=this.component;if(t)for(const a of t.actions??[]){const s=a.shortcut||(a.runOnEnter?"enter":null);if(s&&this._shortcutMatchesEvent(s,e)){e.preventDefault(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.id},bubbles:!0,composed:!0}));return}}}}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}updated(e){super.updated(e),e.has("state")&&this.state&&JSON.stringify(this.state)!=JSON.stringify({})&&this.onChange(),e.has("component")&&(this.formerState={...this.state},this.component?.confirmOnNavigationIfDirty&&this.dispatchEvent(new CustomEvent("clean",{detail:{},bubbles:!0,composed:!0})),setTimeout(()=>this.triggerOnLoad()))}_shortcutMatchesEvent(e,t){return al(e,t)}_collectShortcutTabs(){const e=this.renderRoot;if(!e)return[];const t=Array.from(e.querySelectorAll("vaadin-tab[data-shortcut]"));return e.querySelectorAll("mateu-drawer, mateu-dialog").forEach(a=>{const s=a.shadowRoot;s&&t.push(...Array.from(s.querySelectorAll("vaadin-tab[data-shortcut]")))}),t}_handleTabShortcut(e){const t=this._collectShortcutTabs();if(t.length===0)return!1;for(const a of Array.from(t)){const s=a.dataset.shortcut;if(!s||!this._shortcutMatchesEvent(s,e))continue;const i=a.closest("vaadin-tabs");if(!i)continue;const r=Array.from(i.querySelectorAll("vaadin-tab")).indexOf(a);if(!(r<0))return e.preventDefault(),i.selected=r,!0}return!1}connectedCallback(){super.connectedCallback(),this.addEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.addEventListener("backend-call-failed",this.handleBackendFailed),document.addEventListener("keydown",this._keydownListener)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.removeEventListener("backend-call-failed",this.handleBackendFailed),document.removeEventListener("keydown",this._keydownListener)}render(){return o`<div>
+            `,i)},document.body.appendChild(s),s.opened=!0,s.addEventListener("opened-changed",i=>{i.detail.value||document.body.removeChild(s)})},this.notify=e=>{ra.show(e,{position:"bottom-end",theme:"error",duration:3e3})},this.callAfterConfirmation=(e,t)=>{let a="One moment, please",s="Are you sure?",i="Yes",r="No";e.confirmationTexts&&(a=e.confirmationTexts.title,s=e.confirmationTexts.message,i=e.confirmationTexts.confirmationText,r=e.confirmationTexts.denialText);const n=document.createElement("vaadin-confirm-dialog");n.setAttribute("header",a),n.setAttribute("cancel-button-visible","cancel-button-visible"),n.setAttribute("confirm-text",i),n.setAttribute("cancel-text",r),n.append(s),n.opened=!0,n.addEventListener("confirm",()=>t()),n.addEventListener("close",()=>document.body.removeChild(n)),n.addEventListener("confirm",()=>document.body.removeChild(n)),n.addEventListener("cancel",()=>document.body.removeChild(n)),n.addEventListener("reject",()=>document.body.removeChild(n)),document.body.append(n)},this.requestActionCallToServerOrBubble=(e,t,a)=>{if(a&&a.bubble){const s={...e.parameters};s.initiatorState||(s.initiatorState=this.state),this.dispatchEvent(new CustomEvent("action-requested",{detail:{...e,parameters:s},bubbles:!0,composed:!0}))}else this.requestActionCallToServer(e,t,a)},this.requestActionCallToServer=(e,t,a)=>{if(a&&a.href){window.location.href=a.href;return}if(a&&a.js)try{new Function("state","data","appState","appData","component",a.js).call(this,this.state??{},this.data??{},this.appState??{},this.appData??{},this.component),this.state={...this.state},this.data={...this.data}}catch(s){console.error("when evaluating "+a.js,s,this.component,this.state,this.data)}if(a&&a.customEvent&&this.dispatchEvent(new CustomEvent(a.customEvent.name,{detail:a.customEvent.detail,bubbles:!0,composed:!0})),!(a&&(a.js||a.customEvent))){if(e.actionId=="search"){const s=e.parameters?._searchState;s?this.state={...this.state,...s}:this.state.size||(this.state={...this.state,size:10,page:0,sort:[]})}this.dispatchEvent(new CustomEvent("server-side-action-requested",{detail:{route:this.route,consumedRoute:this.consumedRoute,componentState:{...this.state},parameters:e.parameters??{},actionId:e.actionId,serverSideType:t.serverSideType,serverSideComponentRoute:t.route,initiatorComponentId:e.initiatorComponentId??t.id,initiator:this,background:a?.background,sse:a?.sse,callback:e.callback,callbackonly:e.callbackonly,callbackToken:e.callbackToken??this.callbackToken},bubbles:!0,composed:!0}))}},this.handleBackendSucceeded=e=>{e.detail.actionId&&this.component.triggers?.filter(s=>s.type==Dt.OnSuccess).filter(s=>e.detail.actionId==s.calledActionId).forEach(s=>{if(!s.condition||this._evalExpr(s.condition))if(e.preventDefault(),e.stopPropagation(),s.timeoutMillis>0){const i=this.callbackToken;setTimeout(()=>{this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId,callbackToken:i},bubbles:!0,composed:!0}))},s.timeoutMillis)}else this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0}))})},this.handleBackendFailed=e=>{e.detail.actionId&&this.component.triggers?.filter(s=>s.type==Dt.OnError).filter(s=>e.detail.actionId==s.calledActionId).forEach(s=>{(!s.condition||this._evalExpr(s.condition))&&(e.preventDefault(),e.stopPropagation(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:s.actionId},bubbles:!0,composed:!0})))})},this._keydownListener=e=>{if(this._handleTabShortcut(e))return;const t=this.component;if(t)for(const a of t.actions??[]){const s=a.shortcut||(a.runOnEnter?"enter":null);if(s&&this._shortcutMatchesEvent(s,e)){e.preventDefault(),this.manageActionRequestedEvent(new CustomEvent("action-requested",{detail:{actionId:a.id},bubbles:!0,composed:!0}));return}}}}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}updated(e){super.updated(e),e.has("state")&&this.state&&JSON.stringify(this.state)!=JSON.stringify({})&&this.onChange(),e.has("component")&&(this.formerState={...this.state},this.component?.confirmOnNavigationIfDirty&&this.dispatchEvent(new CustomEvent("clean",{detail:{},bubbles:!0,composed:!0})),setTimeout(()=>this.triggerOnLoad()))}_shortcutMatchesEvent(e,t){return ol(e,t)}_collectShortcutTabs(){const e=this.renderRoot;if(!e)return[];const t=Array.from(e.querySelectorAll("vaadin-tab[data-shortcut]"));return e.querySelectorAll("mateu-drawer, mateu-dialog").forEach(a=>{const s=a.shadowRoot;s&&t.push(...Array.from(s.querySelectorAll("vaadin-tab[data-shortcut]")))}),t}_handleTabShortcut(e){const t=this._collectShortcutTabs();if(t.length===0)return!1;for(const a of Array.from(t)){const s=a.dataset.shortcut;if(!s||!this._shortcutMatchesEvent(s,e))continue;const i=a.closest("vaadin-tabs");if(!i)continue;const r=Array.from(i.querySelectorAll("vaadin-tab")).indexOf(a);if(!(r<0))return e.preventDefault(),i.selected=r,!0}return!1}connectedCallback(){super.connectedCallback(),this.addEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.addEventListener("backend-call-failed",this.handleBackendFailed),document.addEventListener("keydown",this._keydownListener)}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("backend-call-succeeded",this.handleBackendSucceeded),this.removeEventListener("backend-call-failed",this.handleBackendFailed),document.removeEventListener("keydown",this._keydownListener)}render(){return o`<div>
             <div>${this._render()}</div>
             ${this.data&&this.data.errors&&this.data.errors._component&&this.data.errors._component.length>0?o`
                 <div><ul>${this.data.errors._component.map(e=>o`<li>${e}</li>`)}</ul></div>
-            `:d}</div>`}_render(){if(this.component?.type==de.ClientSide){const e=this.component;return e.metadata?.type==v.Page?bs(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!0):e.metadata?.type==v.Crud?gs(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!0):te.get()?.renderClientSideComponent(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!1)}return o`
+            `:d}</div>`}_render(){if(this.component?.type==oe.ClientSide){const e=this.component;return e.metadata?.type==v.Page?gs(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!0):e.metadata?.type==v.Crud?$s(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!0):te.get()?.renderClientSideComponent(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData,!1)}return o`
             <mateu-api-caller 
                     @value-changed="${this.valueChangedListener}"
                     @data-changed="${this.dataChangedListener}"
                     @close-modal-requested="${this.closeModalRequestedListener}"
                     @filter-reset-requested="${this.resetFilters}"
                     @action-requested="${this.actionRequestedListener}">
-            ${this.component?.children?.map(e=>{if(e.type==de.ClientSide){const t=e;if(t.metadata?.type==v.Page)return bs(this,t,this.baseUrl,this.state,this.data,this.appState,this.appData,!0);if(t.metadata?.type==v.Crud)return gs(this,t,this.baseUrl,this.state,this.data,this.appState,this.appData,!0)}return w(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData)})}
+            ${this.component?.children?.map(e=>{if(e.type==oe.ClientSide){const t=e;if(t.metadata?.type==v.Page)return gs(this,t,this.baseUrl,this.state,this.data,this.appState,this.appData,!0);if(t.metadata?.type==v.Crud)return $s(this,t,this.baseUrl,this.state,this.data,this.appState,this.appData,!0)}return w(this,e,this.baseUrl,this.state,this.data,this.appState,this.appData)})}
             </mateu-api-caller>
-        `}};Pa.styles=C`
+        `}};Ra.styles=C`
         :host {
         }
 
-        ${Fo(Ht.cssText)}
+        ${Uo(Kt.cssText)}
         
         vaadin-card.image-on-right::part(media) {
             grid-column: 3;
         }
         
-  `;is([m()],Pa.prototype,"baseUrl",2);is([m()],Pa.prototype,"route",2);is([m()],Pa.prototype,"consumedRoute",2);Pa=is([k("mateu-component")],Pa);const br=e=>{if(e)try{return JSON.parse(e)}catch{return{value:e}}else return{}},Wh=tu;var Hh=Object.defineProperty,Gh=Object.getOwnPropertyDescriptor,Le=(e,t,a,s)=>{for(var i=s>1?void 0:s?Gh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Hh(t,a,i),i};let ve=class extends Xi{constructor(){super(...arguments),this.consumedRoute="",this.serverSideType=void 0,this.uriPrefix=void 0,this.overrides=void 0,this.homeRoute=void 0,this.route=void 0,this.top=void 0,this.appState={},this.appData={},this.preventNavigation=!1,this.overridesParsed={},this.fragment=void 0,this.actionRequestedListener=e=>{e instanceof CustomEvent&&(e.preventDefault(),e.stopPropagation(),this.manageActionEvent(e))},this.historyPushed=e=>{e instanceof CustomEvent&&(e.preventDefault(),e.stopPropagation(),this.preventNavigation=!0,this.route=e.detail.route)},this.routeChangedListener=e=>{if(e instanceof CustomEvent){e.preventDefault(),e.stopPropagation();let t=e.detail.route;typeof t=="string"&&(t===""||t.startsWith("/"))&&this.consumedRoute&&this.consumedRoute!=="_empty"&&this.consumedRoute.startsWith("/")&&!t.startsWith(this.consumedRoute)&&(t=this.consumedRoute+t),this.uriPrefix&&(t.startsWith("/")&&this.uriPrefix.endsWith("/")?t=this.uriPrefix+t.substring(1):!t.startsWith("/")&&!this.uriPrefix.endsWith("/")?t=this.uriPrefix+"/"+t:t=this.uriPrefix+t),this.dispatchEvent(new CustomEvent("url-update-requested",{detail:{route:t},bubbles:!0,composed:!0}))}},this.backendFailedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&e.detail.actionId==""&&(this.fragment={targetComponentId:this.id,data:{},state:{},component:{type:de.ClientSide,metadata:{type:v.Element,name:"div",content:"Not found"},id:"fieldId"},action:ai.Replace,containerId:void 0})},this.detail1=void 0,this.manageActionEvent=e=>{e.preventDefault(),e.stopPropagation(),this.detail1=e.detail;const t=this.detail1;if(e.type=="server-side-action-requested"){let a=Wh;t.sse&&(a=Xr),a.runAction(fa,this.baseUrl,t.route??"",t.consumedRoute,t.actionId,t.initiatorComponentId,this.getCustomisedAppState(),t.serverSideType,t.componentState,t.parameters,t.initiator,t.background,t.callback,t.callbackonly,t.callbackToken)}},this.getCustomisedAppState=()=>{let e={...ne.value};if(this.overrides){const t=br(this.overrides);e={...e,...t}}return e}}manageActionRequestedEvent(e){throw new Error("Method not implemented.")}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.overridesParsed=br(this.overrides),this.addEventListener("server-side-action-requested",this.actionRequestedListener),this.addEventListener("backend-call-failed",this.backendFailedListener),this.addEventListener("history-pushed",this.historyPushed),this.addEventListener("route-changed",this.routeChangedListener),window.Vaadin.featureFlags.masterDetailLayoutComponent=!0}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("server-side-action-requested",this.actionRequestedListener),this.removeEventListener("backend-call-failed",this.backendFailedListener),this.removeEventListener("history-pushed",this.historyPushed),this.removeEventListener("route-changed",this.routeChangedListener)}shouldUpdate(e){if(this.fragment?.component&&[...e.keys()].every(a=>a==="appState"||a==="appData")){const a=this.renderRoot.querySelector("mateu-component");if(a)return e.has("appState")&&(a.appState=this.appState),e.has("appData")&&(a.appData=this.appData),!1}return!0}updated(e){(e.has("id")||e.has("baseurl")||e.has("route")||e.has("consumedRoute")||e.has("instant"))&&(this.preventNavigation||(this.callbackToken=this.instant||ye(),this.manageActionEvent(new CustomEvent("server-side-action-requested",{detail:{route:this.route,consumedRoute:this.consumedRoute,userData:void 0,actionId:"",serverSideType:this.serverSideType,initiatorComponentId:this.id,initiator:this,componentState:this.initialState,callbackToken:this.callbackToken},bubbles:!0,composed:!0})))),e.has("route")&&this.top&&(this.preventNavigation||this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:this.route},bubbles:!0,composed:!0}))),this.preventNavigation&&(this.preventNavigation=!1)}applyFragment(e){if(!e.component&&this.fragment?.component){this.fragment={...this.fragment,state:{...this.fragment.state??{},...e.state??{}},data:{...this.fragment.data??{},...e.data??{}}};return}this.fragment=e}render(){return o`
+  `;ss([h()],Ra.prototype,"baseUrl",2);ss([h()],Ra.prototype,"route",2);ss([h()],Ra.prototype,"consumedRoute",2);Ra=ss([k("mateu-component")],Ra);const $r=e=>{if(e)try{return JSON.parse(e)}catch{return{value:e}}else return{}},Yh=ru,Jh={fixed:"fixed",fullWidth:"full",edgeToEdge:"edge"},Xh=new Set([v.Gantt,v.PlanningBoard,v.Kanban,v.Bpmn,v.Workflow,v.WorkflowElk,v.Map]),zo=e=>e?Jh[e]:void 0,Gs=e=>e.type==oe.ClientSide?e.metadata:void 0,Ao=e=>{const t=Gs(e);if(t?.type==v.Page){const a=zo(t.pageWidth);if(a)return a}for(const a of e.children??[]){const s=Ao(a);if(s)return s}},Qh=e=>{const t=Gs(e);if(t?.type!=v.Crud)return!1;const a=t;return a.compact?!0:(a.columns??[]).some(s=>s.metadata?.editable)},Cs=(e,t)=>t(e)||(e.children??[]).some(a=>Cs(a,t)),Zh=e=>{if(!e)return"fixed";const t=zo(e.pageWidth)??Ao(e);return t||(Cs(e,a=>{const s=Gs(a)?.type;return s!=null&&Xh.has(s)})?"edge":Cs(e,Qh)?"full":"fixed")};var em=Object.defineProperty,tm=Object.getOwnPropertyDescriptor,Le=(e,t,a,s)=>{for(var i=s>1?void 0:s?tm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&em(t,a,i),i};let ve=class extends Qi{constructor(){super(...arguments),this.consumedRoute="",this.serverSideType=void 0,this.uriPrefix=void 0,this.overrides=void 0,this.homeRoute=void 0,this.route=void 0,this.top=void 0,this.appState={},this.appData={},this.preventNavigation=!1,this.overridesParsed={},this.fragment=void 0,this.actionRequestedListener=e=>{e instanceof CustomEvent&&(e.preventDefault(),e.stopPropagation(),this.manageActionEvent(e))},this.historyPushed=e=>{e instanceof CustomEvent&&(e.preventDefault(),e.stopPropagation(),this.preventNavigation=!0,this.route=e.detail.route)},this.routeChangedListener=e=>{if(e instanceof CustomEvent){e.preventDefault(),e.stopPropagation();let t=e.detail.route;typeof t=="string"&&(t===""||t.startsWith("/"))&&this.consumedRoute&&this.consumedRoute!=="_empty"&&this.consumedRoute.startsWith("/")&&!t.startsWith(this.consumedRoute)&&(t=this.consumedRoute+t),this.uriPrefix&&(t.startsWith("/")&&this.uriPrefix.endsWith("/")?t=this.uriPrefix+t.substring(1):!t.startsWith("/")&&!this.uriPrefix.endsWith("/")?t=this.uriPrefix+"/"+t:t=this.uriPrefix+t),this.dispatchEvent(new CustomEvent("url-update-requested",{detail:{route:t},bubbles:!0,composed:!0}))}},this.backendFailedListener=e=>{e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&e.detail.actionId==""&&(this.fragment={targetComponentId:this.id,data:{},state:{},component:{type:oe.ClientSide,metadata:{type:v.Element,name:"div",content:"Not found"},id:"fieldId"},action:ii.Replace,containerId:void 0})},this.detail1=void 0,this.manageActionEvent=e=>{e.preventDefault(),e.stopPropagation(),this.detail1=e.detail;const t=this.detail1;if(e.type=="server-side-action-requested"){let a=Yh;t.sse&&(a=Zr),a.runAction(ga,this.baseUrl,t.route??"",t.consumedRoute,t.actionId,t.initiatorComponentId,this.getCustomisedAppState(),t.serverSideType,t.componentState,t.parameters,t.initiator,t.background,t.callback,t.callbackonly,t.callbackToken)}},this.getCustomisedAppState=()=>{let e={...le.value};if(this.overrides){const t=$r(this.overrides);e={...e,...t}}return e}}manageActionRequestedEvent(e){throw new Error("Method not implemented.")}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){super.connectedCallback(),this.overridesParsed=$r(this.overrides),this.addEventListener("server-side-action-requested",this.actionRequestedListener),this.addEventListener("backend-call-failed",this.backendFailedListener),this.addEventListener("history-pushed",this.historyPushed),this.addEventListener("route-changed",this.routeChangedListener),window.Vaadin.featureFlags.masterDetailLayoutComponent=!0}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("server-side-action-requested",this.actionRequestedListener),this.removeEventListener("backend-call-failed",this.backendFailedListener),this.removeEventListener("history-pushed",this.historyPushed),this.removeEventListener("route-changed",this.routeChangedListener)}shouldUpdate(e){if(this.fragment?.component&&[...e.keys()].every(a=>a==="appState"||a==="appData")){const a=this.renderRoot.querySelector("mateu-component");if(a)return e.has("appState")&&(a.appState=this.appState),e.has("appData")&&(a.appData=this.appData),!1}return!0}updated(e){(e.has("id")||e.has("baseurl")||e.has("route")||e.has("consumedRoute")||e.has("instant"))&&(this.preventNavigation||(this.callbackToken=this.instant||ye(),this.manageActionEvent(new CustomEvent("server-side-action-requested",{detail:{route:this.route,consumedRoute:this.consumedRoute,userData:void 0,actionId:"",serverSideType:this.serverSideType,initiatorComponentId:this.id,initiator:this,componentState:this.initialState,callbackToken:this.callbackToken},bubbles:!0,composed:!0})))),e.has("route")&&this.top&&(this.preventNavigation||this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:this.route},bubbles:!0,composed:!0}))),this.preventNavigation&&(this.preventNavigation=!1)}applyFragment(e){if(!e.component&&this.fragment?.component){this.fragment={...this.fragment,state:{...this.fragment.state??{},...e.state??{}},data:{...this.fragment.data??{},...e.data??{}}};return}this.fragment=e,e.component&&(this.dataset.pageWidth=Zh(e.component))}render(){return o`
            ${this.fragment?.component?w(this,this.fragment?.component,this.baseUrl,this.fragment?.state??{},this.fragment?.data??{},this.appState,this.appData):d}
        `}};ve.styles=C`
         :host {
@@ -9137,7 +9420,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             max-width: 1392px;
             margin: 0 auto;
         }
-  `;Le([m()],ve.prototype,"consumedRoute",2);Le([m()],ve.prototype,"serverSideType",2);Le([m()],ve.prototype,"uriPrefix",2);Le([m()],ve.prototype,"overrides",2);Le([m()],ve.prototype,"homeRoute",2);Le([m()],ve.prototype,"route",2);Le([m()],ve.prototype,"top",2);Le([m()],ve.prototype,"instant",2);Le([m()],ve.prototype,"initialState",2);Le([m()],ve.prototype,"appState",2);Le([m()],ve.prototype,"appData",2);Le([$()],ve.prototype,"fragment",2);ve=Le([k("mateu-ux")],ve);var Kh=Object.defineProperty,Yh=Object.getOwnPropertyDescriptor,Z=(e,t,a,s)=>{for(var i=s>1?void 0:s?Yh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Kh(t,a,i),i};let K=class extends Zt{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedConsumedRoute=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedServerSideType=void 0,this.selectedParams=void 0,this.tilesMenuOption=null,this.railOpenOption=null,this.commandPaletteOpen=!1,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0,this.commandPaletteDataHits=[],this.openDataHit=e=>{Dt.confirmLeave()&&(this.commandPaletteOpen=!1,this.commandPaletteQuery="",this.commandPaletteDataHits=[],this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:e.route},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent("navigate-to-requested",{detail:{route:e.route},bubbles:!0,composed:!0})))},this._commandPaletteHandler=null,this.pageCompact=!1,this._compactHandler=e=>{this.pageCompact=e.detail?.compact??!1},this.isDark=document.documentElement.getAttribute("theme")==="dark",this.chatOpen=!1,this.toggleTheme=()=>{this.isDark=!this.isDark;const e=this.isDark?"dark":"light";document.documentElement.setAttribute("theme",e),localStorage.setItem("mateu-theme",e)},this.showHideIa=()=>{this.chat&&(this.chatOpen=!this.chatOpen,this.chat.slot=this.chatOpen?"detail":"detail-hidden")},this.runAction=e=>{const a=this.renderRoot.querySelector?.("mateu-component");a&&a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.getSelectedOption=e=>{if(e)for(let t=0;t<e.length;t++){const a=e[t];if(a.selected)return a;const s=this.getSelectedOption(a.submenus);if(s)return s}return null},this.itemSelected=e=>{const t=e.detail.value;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)},this.itemSelectedTiles=e=>{const t=e.detail.value._menuOption;t.submenus&&t.submenus.length>0?this.tilesMenuOption=t:(this.tilesMenuOption=null,this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix))},this.mapItemsForTiles=e=>e.map(t=>({text:t.label,consumedRoute:t.consumedRoute,route:t.route,baseUrl:t.baseUrl,serverSideType:t.serverSideType,uriPrefix:t.uriPrefix,actionId:t.actionId,selected:t.selected,_menuOption:t})),this.flattenMenuForPalette=(e,t)=>{const a=[];for(const s of e)if(!s.separator)if(s.submenus&&s.submenus.length>0){const i=t?`${t} › ${s.label}`:s.label;a.push(...this.flattenMenuForPalette(s.submenus,i))}else a.push({label:s.label,breadcrumb:t,consumedRoute:s.consumedRoute,route:s.route,actionId:s.actionId,baseUrl:s.baseUrl,serverSideType:s.serverSideType,uriPrefix:s.uriPrefix});return a},this.handleCommandPaletteKeydown=(e,t)=>{const a=Math.min(t.length,10),s=a+Math.min(this.commandPaletteDataHits.length,8);if(e.key==="ArrowDown")e.preventDefault(),this.commandPaletteSelectedIndex=Math.min(this.commandPaletteSelectedIndex+1,s-1);else if(e.key==="ArrowUp")e.preventDefault(),this.commandPaletteSelectedIndex=Math.max(this.commandPaletteSelectedIndex-1,0);else if(e.key==="Enter"){if(this.commandPaletteSelectedIndex>=a){const r=this.commandPaletteDataHits[this.commandPaletteSelectedIndex-a];r&&this.openDataHit(r);return}const i=t[this.commandPaletteSelectedIndex];i&&(this.selectRoute(i.consumedRoute,i.route,i.actionId,i.baseUrl,i.serverSideType,i.uriPrefix),this.commandPaletteOpen=!1,this.commandPaletteQuery="")}},this.renderCommandPalette=()=>{if(!this.commandPaletteOpen)return d;const e=this.component?.metadata;if(!e?.menu)return d;const t=this.flattenMenuForPalette(e.menu,""),a=this.commandPaletteQuery.toLowerCase(),s=a?t.filter(i=>i.label.toLowerCase().includes(a)||i.breadcrumb.toLowerCase().includes(a)):t;return o`
+  `;Le([h()],ve.prototype,"consumedRoute",2);Le([h()],ve.prototype,"serverSideType",2);Le([h()],ve.prototype,"uriPrefix",2);Le([h()],ve.prototype,"overrides",2);Le([h()],ve.prototype,"homeRoute",2);Le([h()],ve.prototype,"route",2);Le([h()],ve.prototype,"top",2);Le([h()],ve.prototype,"instant",2);Le([h()],ve.prototype,"initialState",2);Le([h()],ve.prototype,"appState",2);Le([h()],ve.prototype,"appData",2);Le([$()],ve.prototype,"fragment",2);ve=Le([k("mateu-ux")],ve);var am=Object.defineProperty,im=Object.getOwnPropertyDescriptor,Z=(e,t,a,s)=>{for(var i=s>1?void 0:s?im(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&am(t,a,i),i};let K=class extends ta{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedConsumedRoute=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedServerSideType=void 0,this.selectedParams=void 0,this.tilesMenuOption=null,this.railOpenOption=null,this.commandPaletteOpen=!1,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0,this.commandPaletteDataHits=[],this.openDataHit=e=>{Nt.confirmLeave()&&(this.commandPaletteOpen=!1,this.commandPaletteQuery="",this.commandPaletteDataHits=[],this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:e.route},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent("navigate-to-requested",{detail:{route:e.route},bubbles:!0,composed:!0})))},this._commandPaletteHandler=null,this.pageCompact=!1,this._compactHandler=e=>{this.pageCompact=e.detail?.compact??!1},this.isDark=document.documentElement.getAttribute("theme")==="dark",this.chatOpen=!1,this.toggleTheme=()=>{this.isDark=!this.isDark;const e=this.isDark?"dark":"light";document.documentElement.setAttribute("theme",e),localStorage.setItem("mateu-theme",e)},this.showHideIa=()=>{this.chat&&(this.chatOpen=!this.chatOpen,this.chat.slot=this.chatOpen?"detail":"detail-hidden")},this.runAction=e=>{const a=this.renderRoot.querySelector?.("mateu-component");a&&a.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))},this.getSelectedOption=e=>{if(e)for(let t=0;t<e.length;t++){const a=e[t];if(a.selected)return a;const s=this.getSelectedOption(a.submenus);if(s)return s}return null},this.itemSelected=e=>{const t=e.detail.value;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)},this.itemSelectedTiles=e=>{const t=e.detail.value._menuOption;t.submenus&&t.submenus.length>0?this.tilesMenuOption=t:(this.tilesMenuOption=null,this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix))},this.mapItemsForTiles=e=>e.map(t=>({text:t.label,consumedRoute:t.consumedRoute,route:t.route,baseUrl:t.baseUrl,serverSideType:t.serverSideType,uriPrefix:t.uriPrefix,actionId:t.actionId,selected:t.selected,_menuOption:t})),this.flattenMenuForPalette=(e,t)=>{const a=[];for(const s of e)if(!s.separator)if(s.submenus&&s.submenus.length>0){const i=t?`${t} › ${s.label}`:s.label;a.push(...this.flattenMenuForPalette(s.submenus,i))}else a.push({label:s.label,breadcrumb:t,consumedRoute:s.consumedRoute,route:s.route,actionId:s.actionId,baseUrl:s.baseUrl,serverSideType:s.serverSideType,uriPrefix:s.uriPrefix});return a},this.handleCommandPaletteKeydown=(e,t)=>{const a=Math.min(t.length,10),s=a+Math.min(this.commandPaletteDataHits.length,8);if(e.key==="ArrowDown")e.preventDefault(),this.commandPaletteSelectedIndex=Math.min(this.commandPaletteSelectedIndex+1,s-1);else if(e.key==="ArrowUp")e.preventDefault(),this.commandPaletteSelectedIndex=Math.max(this.commandPaletteSelectedIndex-1,0);else if(e.key==="Enter"){if(this.commandPaletteSelectedIndex>=a){const r=this.commandPaletteDataHits[this.commandPaletteSelectedIndex-a];r&&this.openDataHit(r);return}const i=t[this.commandPaletteSelectedIndex];i&&(this.selectRoute(i.consumedRoute,i.route,i.actionId,i.baseUrl,i.serverSideType,i.uriPrefix),this.commandPaletteOpen=!1,this.commandPaletteQuery="")}},this.renderCommandPalette=()=>{if(!this.commandPaletteOpen)return d;const e=this.component?.metadata;if(!e?.menu)return d;const t=this.flattenMenuForPalette(e.menu,""),a=this.commandPaletteQuery.toLowerCase(),s=a?t.filter(i=>i.label.toLowerCase().includes(a)||i.breadcrumb.toLowerCase().includes(a)):t;return o`
             <div class="cmd-backdrop" @click=${()=>{this.commandPaletteOpen=!1,this.commandPaletteQuery=""}}>
                 <div class="cmd-palette" @click=${i=>i.stopPropagation()}>
                     <div class="cmd-search-wrapper">
@@ -9210,7 +9493,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     `)}
                 </div>
             </div>
-        `,this.goHome=()=>{const e=this.component.metadata;this.selectRoute(e.route,"_page","",void 0,void 0,void 0)},this.selectRoute=(e,t,a,s,i,r)=>{Dt.confirmLeave()&&this._selectRoute(e,t,a,s,i,r)},this._selectRoute=(e,t,a,s,i,r)=>{{this.selectedConsumedRoute=e,this.selectedBaseUrl=s,this.selectedRoute=t,this.selectedServerSideType=i,this.selectedUriPrefix=r,this.instant=ye(),this.state&&this.state._route!=null&&(this.state._route=void 0);let n=this.baseUrl??"";n.indexOf("://")<0&&(n.startsWith("/")||(n="/"+n),n=window.location.origin+n),n.endsWith("/")&&(t??"").startsWith("/")&&(t=(t??"").substring(1));let l=new URL(n+t);if(e&&l.pathname.startsWith(e)){const c=l.pathname.substring(e.length);l=new URL(l.origin+(c||"/"))}if((window.location.pathname||l.pathname)&&window.location.pathname!=l.pathname){let c=l.pathname;l.search&&(c+=l.search),c&&!c.startsWith("/")&&(c="/"+c),this.baseUrl&&c.startsWith(this.baseUrl)&&(c=c.substring(this.baseUrl.length));let u=c;this.selectedUriPrefix&&(u.startsWith("/")&&this.selectedUriPrefix.endsWith("/")?u=this.selectedUriPrefix+u.substring(1):!u.startsWith("/")&&!this.selectedUriPrefix.endsWith("/")?u=this.selectedUriPrefix+"/"+u:u=this.selectedUriPrefix+u),u=="/_page"&&(u=""),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:u},bubbles:!0,composed:!0}))}}},this.mapItems=(e,t)=>e.map(a=>{if(a.submenus&&a.submenus.length>0){let s=this.mapItems(a.submenus,t);return t&&a.label.toLowerCase().includes(t)&&(s=this.mapItems(a.submenus,"")),s&&s.length>0?{consumedRoute:a.consumedRoute,text:a.label,route:a.route,baseUrl:a.baseUrl,serverSideType:a.serverSideType,uriPrefix:a.uriPrefix,actionId:a.actionId,selected:t||a.selected,children:s}:void 0}if(a.separator)return t?void 0:{component:"hr"};if(!t||a.label.toLowerCase().includes(t))return{consumedRoute:a.consumedRoute,text:a.label,route:a.route,baseUrl:a.baseUrl,serverSideType:a.serverSideType,uriPrefix:a.uriPrefix,actionId:a.actionId,selected:t||a.selected}}).filter(a=>a!=null),this.getSelectedIndex=e=>{if(e){const t=this.getSelectedOption(e);if(t)return e.indexOf(t)}return NaN},this.renderOptionOnLeftMenu=e=>e.submenus&&e.submenus.length>0?o`
+        `,this.goHome=()=>{const e=this.component.metadata;this.selectRoute(e.route,"_page","",void 0,void 0,void 0)},this.selectRoute=(e,t,a,s,i,r)=>{Nt.confirmLeave()&&this._selectRoute(e,t,a,s,i,r)},this._selectRoute=(e,t,a,s,i,r)=>{{this.selectedConsumedRoute=e,this.selectedBaseUrl=s,this.selectedRoute=t,this.selectedServerSideType=i,this.selectedUriPrefix=r,this.instant=ye(),this.state&&this.state._route!=null&&(this.state._route=void 0);let n=this.baseUrl??"";n.indexOf("://")<0&&(n.startsWith("/")||(n="/"+n),n=window.location.origin+n),n.endsWith("/")&&(t??"").startsWith("/")&&(t=(t??"").substring(1));let l=new URL(n+t);if(e&&l.pathname.startsWith(e)){const c=l.pathname.substring(e.length);l=new URL(l.origin+(c||"/"))}if((window.location.pathname||l.pathname)&&window.location.pathname!=l.pathname){let c=l.pathname;l.search&&(c+=l.search),c&&!c.startsWith("/")&&(c="/"+c),this.baseUrl&&c.startsWith(this.baseUrl)&&(c=c.substring(this.baseUrl.length));let u=c;this.selectedUriPrefix&&(u.startsWith("/")&&this.selectedUriPrefix.endsWith("/")?u=this.selectedUriPrefix+u.substring(1):!u.startsWith("/")&&!this.selectedUriPrefix.endsWith("/")?u=this.selectedUriPrefix+"/"+u:u=this.selectedUriPrefix+u),u=="/_page"&&(u=""),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:u},bubbles:!0,composed:!0}))}}},this.mapItems=(e,t)=>e.map(a=>{if(a.submenus&&a.submenus.length>0){let s=this.mapItems(a.submenus,t);return t&&a.label.toLowerCase().includes(t)&&(s=this.mapItems(a.submenus,"")),s&&s.length>0?{consumedRoute:a.consumedRoute,text:a.label,route:a.route,baseUrl:a.baseUrl,serverSideType:a.serverSideType,uriPrefix:a.uriPrefix,actionId:a.actionId,selected:t||a.selected,children:s}:void 0}if(a.separator)return t?void 0:{component:"hr"};if(!t||a.label.toLowerCase().includes(t))return{consumedRoute:a.consumedRoute,text:a.label,route:a.route,baseUrl:a.baseUrl,serverSideType:a.serverSideType,uriPrefix:a.uriPrefix,actionId:a.actionId,selected:t||a.selected}}).filter(a=>a!=null),this.getSelectedIndex=e=>{if(e){const t=this.getSelectedOption(e);if(t)return e.indexOf(t)}return NaN},this.renderOptionOnLeftMenu=e=>e.submenus&&e.submenus.length>0?o`
                 <vaadin-details summary="${e.label}" theme="reverse">
                     <vaadin-vertical-layout>
                         ${e.submenus.map(t=>o`${this.renderOptionOnLeftMenu(t)}`)}
@@ -9236,7 +9519,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                 </vaadin-side-nav-item>
                         `}
 
-                            `})}`:d,this.updateRoute=e=>{e.preventDefault(),e.stopPropagation();var t=e.detail;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)}}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}fetchGlobalSearch(e){const t=this.component?.metadata;if(t?.globalSearchEnabled){if(clearTimeout(this._globalSearchTimer),!e){this.commandPaletteDataHits=[];return}this._globalSearchTimer=setTimeout(async()=>{try{const s=(await fa.runAction(this.baseUrl??"",t.rootRoute??"","","_globalsearch","cmd-palette",void 0,t.serverSideType,{},{searchText:e},this,!0))?.fragments?.map(i=>i.data).find(i=>i&&i._globalsearch);this.commandPaletteDataHits=s?._globalsearch??[]}catch{this.commandPaletteDataHits=[]}},250)}}connectedCallback(){super.connectedCallback(),this.isDark=document.documentElement.getAttribute("theme")==="dark",this._commandPaletteHandler=e=>{(e.metaKey||e.ctrlKey)&&e.key==="k"&&(e.preventDefault(),this.commandPaletteOpen=!this.commandPaletteOpen,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0),e.key==="Escape"&&this.commandPaletteOpen&&(this.commandPaletteOpen=!1,this.commandPaletteQuery="")},document.addEventListener("keydown",this._commandPaletteHandler),Dt.install(),this.addEventListener("compact-changed",this._compactHandler)}disconnectedCallback(){super.disconnectedCallback(),this._commandPaletteHandler&&document.removeEventListener("keydown",this._commandPaletteHandler),this.removeEventListener("compact-changed",this._compactHandler)}updated(e){if(super.updated(e),this.component){const a=this.component.metadata;if(a){const s=a;if(s.favicon){let i=document.querySelector("link[rel~='icon']");i||(i=document.createElement("link"),i.rel="icon",document.head.appendChild(i)),i.href=s.favicon}e.has("component")&&(this.selectedRoute=s.homeRoute,this.selectedConsumedRoute=s.homeConsumedRoute,this.selectedServerSideType=s.homeServerSideType,this.selectedBaseUrl=s.homeBaseUrl,this.selectedUriPrefix=s.homeUriPrefix)}}e.has("commandPaletteOpen")&&this.commandPaletteOpen&&setTimeout(()=>{this.renderRoot.querySelector(".cmd-input")?.focus()},0)}render(){return te.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}};K.styles=C`
+                            `})}`:d,this.updateRoute=e=>{e.preventDefault(),e.stopPropagation();var t=e.detail;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)}}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}fetchGlobalSearch(e){const t=this.component?.metadata;if(t?.globalSearchEnabled){if(clearTimeout(this._globalSearchTimer),!e){this.commandPaletteDataHits=[];return}this._globalSearchTimer=setTimeout(async()=>{try{const s=(await ga.runAction(this.baseUrl??"",t.rootRoute??"","","_globalsearch","cmd-palette",void 0,t.serverSideType,{},{searchText:e},this,!0))?.fragments?.map(i=>i.data).find(i=>i&&i._globalsearch);this.commandPaletteDataHits=s?._globalsearch??[]}catch{this.commandPaletteDataHits=[]}},250)}}connectedCallback(){super.connectedCallback(),this.isDark=document.documentElement.getAttribute("theme")==="dark",this._commandPaletteHandler=e=>{(e.metaKey||e.ctrlKey)&&e.key==="k"&&(e.preventDefault(),this.commandPaletteOpen=!this.commandPaletteOpen,this.commandPaletteQuery="",this.commandPaletteSelectedIndex=0),e.key==="Escape"&&this.commandPaletteOpen&&(this.commandPaletteOpen=!1,this.commandPaletteQuery="")},document.addEventListener("keydown",this._commandPaletteHandler),Nt.install(),this.addEventListener("compact-changed",this._compactHandler)}disconnectedCallback(){super.disconnectedCallback(),this._commandPaletteHandler&&document.removeEventListener("keydown",this._commandPaletteHandler),this.removeEventListener("compact-changed",this._compactHandler)}updated(e){if(super.updated(e),this.component){const a=this.component.metadata;if(a){const s=a;if(s.favicon){let i=document.querySelector("link[rel~='icon']");i||(i=document.createElement("link"),i.rel="icon",document.head.appendChild(i)),i.href=s.favicon}e.has("component")&&(this.selectedRoute=s.homeRoute,this.selectedConsumedRoute=s.homeConsumedRoute,this.selectedServerSideType=s.homeServerSideType,this.selectedBaseUrl=s.homeBaseUrl,this.selectedUriPrefix=s.homeUriPrefix)}}e.has("commandPaletteOpen")&&this.commandPaletteOpen&&setTimeout(()=>{this.renderRoot.querySelector(".cmd-input")?.focus()},0)}render(){return te.get()?.renderAppComponent(this,this.component,this.baseUrl,this.state,this.data,this.appState,this.appData)}};K.styles=C`
 
         .app-content {
             padding-left: 2rem;
@@ -9516,7 +9799,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             transform: scale(1.08);
         }
 
-  `;Z([$()],K.prototype,"filter",2);Z([$()],K.prototype,"instant",2);Z([$()],K.prototype,"selectedConsumedRoute",2);Z([$()],K.prototype,"selectedRoute",2);Z([$()],K.prototype,"selectedUriPrefix",2);Z([$()],K.prototype,"selectedBaseUrl",2);Z([$()],K.prototype,"selectedServerSideType",2);Z([$()],K.prototype,"selectedParams",2);Z([$()],K.prototype,"tilesMenuOption",2);Z([$()],K.prototype,"railOpenOption",2);Z([$()],K.prototype,"commandPaletteOpen",2);Z([$()],K.prototype,"commandPaletteQuery",2);Z([$()],K.prototype,"commandPaletteSelectedIndex",2);Z([$()],K.prototype,"commandPaletteDataHits",2);Z([$()],K.prototype,"pageCompact",2);Z([tt("mateu-chat")],K.prototype,"chat",2);Z([$()],K.prototype,"isDark",2);Z([$()],K.prototype,"chatOpen",2);Z([tt("vaadin-app-layout")],K.prototype,"vaadinAppLayout",2);K=Z([k("mateu-app")],K);var Jh=Object.defineProperty,Xh=Object.getOwnPropertyDescriptor,Et=(e,t,a,s)=>{for(var i=s>1?void 0:s?Xh(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Jh(t,a,i),i};let Ze=class extends K{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedConsumedRoute=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedServerSideType=void 0,this.selectedParams=void 0,this.lastActionServerSideType=void 0,this.lastActionInitiatorComponentId=void 0,this.captureActionSST=e=>{const t=e.detail;typeof t?.serverSideComponentRoute=="string"&&t.serverSideComponentRoute.indexOf("_embeddedMediator=1")>=0||t?.serverSideType&&(this.lastActionServerSideType=t.serverSideType,this.lastActionInitiatorComponentId=t.initiatorComponentId)},this.handleUnhandledAction=e=>{if(this.component?.metadata?.variant==$e.MEDIATOR)return;const a=e.detail;e.preventDefault(),e.stopPropagation();const s=this.renderRoot?.querySelector("#"+this.contentUxId);!s||typeof s.manageActionEvent!="function"||(this.lastActionServerSideType=this.selectedServerSideType,this.lastActionInitiatorComponentId=s.id,s.manageActionEvent(new CustomEvent("server-side-action-requested",{detail:{route:s.route??this.selectedRoute??"",consumedRoute:s.consumedRoute??this.selectedConsumedRoute??"",componentState:a.parameters?.initiatorState??{},parameters:a.parameters,actionId:a.actionId,serverSideType:this.selectedServerSideType??"",initiatorComponentId:s.id,initiator:s}})))},this.selectRoute=(e,t,a,s,i,r)=>{{const n=this.component?.metadata;if(n?.variant!=$e.MEDIATOR&&!a&&(!s||s===this.baseUrl)&&(!i||i===n?.serverSideType)&&t!=null){if(!Dt.confirmLeave())return;this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent("navigate-to-requested",{detail:{route:t},bubbles:!0,composed:!0}));return}}{this.selectedConsumedRoute=e,this.selectedBaseUrl=s,this.selectedRoute=t,this.selectedServerSideType=i,this.selectedUriPrefix=r,this.instant=ye();let n=this.baseUrl??"";n.indexOf("://")<0&&(n.startsWith("/")||(n="/"+n),n=window.location.origin+n),n.endsWith("/")&&(t??"").startsWith("/")&&(t=(t??"").substring(1));let l=new URL(n+t);if(e&&(t??"").startsWith(e)&&(l=new URL(n+t?.substring(e.length))),(window.location.pathname||l.pathname)&&window.location.pathname!=l.pathname){let c=l.pathname;l.search&&(c+=l.search),c&&!c.startsWith("/")&&(c="/"+c),this.baseUrl&&c.startsWith(this.baseUrl)&&(c=c.substring(this.baseUrl.length));let u=c;this.selectedUriPrefix&&(u.startsWith("/")&&this.selectedUriPrefix.endsWith("/")?u=this.selectedUriPrefix+u.substring(1):!u.startsWith("/")&&!this.selectedUriPrefix.endsWith("/")?u=this.selectedUriPrefix+"/"+u:u=this.selectedUriPrefix+u),u=="_page"&&(u=""),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:u},bubbles:!0,composed:!0}))}}},this.updateRoute=e=>{e.preventDefault(),e.stopPropagation();var t=e.detail;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)},this.ds=e=>e&&e!=="undefined"&&e!=="null"?e:void 0,this.tabSelected=(e,t,a)=>{this.selectRoute(this.ds(e.detail.tab.dataset.consumedRoute),this.ds(e.detail.tab.dataset.route),this.ds(e.detail.tab.dataset.actionId),this.ds(e.detail.tab.dataset.baseUrl),this.ds(e.detail.tab.dataset.serverSideType),this.ds(e.detail.tab.dataset.uriPrefix))},this.mode=gi.Auto,this.toggle=e=>{this.mode=this.mode==gi.Expanded?gi.Collapsed:gi.Expanded,e.requestUpdate()},this.selected=(e,t,a,s)=>{const i=this.renderRoot.querySelector('[data-path = "'+e.detail.value+'"]');if(i){this.selectRoute(this.ds(i.dataset.consumedRoute),this.ds(i.dataset.route),this.ds(i.dataset.actionId),this.ds(i.dataset.baseUrl),this.ds(i.dataset.serverSideType),this.ds(i.dataset.uriPrefix));return}const r=l=>{for(const c of l??[]){if(c.route===e.detail.value||c.path===e.detail.value)return c;const u=r(c.submenus);if(u)return u}},n=r(s?.menu);n?this.selectRoute(n.consumedRoute,n.route,n.actionId,n.baseUrl,n.serverSideType,n.uriPrefix):console.error("No item found for selected route",e.detail.value)},this.runHeaderAction=async(e,t)=>{if(t)try{await Zr(e,this,t)}catch(a){const s=document.createElement("div");s.style.cssText="position: fixed; bottom: 1rem; left: 1rem; z-index: 10000; background: var(--oj-core-danger-3, #b3311f); color: #fff; padding: .75rem 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.25); font-size: .875rem;",s.textContent="The action failed: "+(""+a),document.body.appendChild(s),setTimeout(()=>s.remove(),6e3)}},this.renderContextActions=e=>o`
+  `;Z([$()],K.prototype,"filter",2);Z([$()],K.prototype,"instant",2);Z([$()],K.prototype,"selectedConsumedRoute",2);Z([$()],K.prototype,"selectedRoute",2);Z([$()],K.prototype,"selectedUriPrefix",2);Z([$()],K.prototype,"selectedBaseUrl",2);Z([$()],K.prototype,"selectedServerSideType",2);Z([$()],K.prototype,"selectedParams",2);Z([$()],K.prototype,"tilesMenuOption",2);Z([$()],K.prototype,"railOpenOption",2);Z([$()],K.prototype,"commandPaletteOpen",2);Z([$()],K.prototype,"commandPaletteQuery",2);Z([$()],K.prototype,"commandPaletteSelectedIndex",2);Z([$()],K.prototype,"commandPaletteDataHits",2);Z([$()],K.prototype,"pageCompact",2);Z([at("mateu-chat")],K.prototype,"chat",2);Z([$()],K.prototype,"isDark",2);Z([$()],K.prototype,"chatOpen",2);Z([at("vaadin-app-layout")],K.prototype,"vaadinAppLayout",2);K=Z([k("mateu-app")],K);var sm=Object.defineProperty,rm=Object.getOwnPropertyDescriptor,Tt=(e,t,a,s)=>{for(var i=s>1?void 0:s?rm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&sm(t,a,i),i};let et=class extends K{constructor(){super(...arguments),this.filter="",this.instant=void 0,this.selectedConsumedRoute=void 0,this.selectedRoute=void 0,this.selectedUriPrefix=void 0,this.selectedBaseUrl=void 0,this.selectedServerSideType=void 0,this.selectedParams=void 0,this.lastActionServerSideType=void 0,this.lastActionInitiatorComponentId=void 0,this.captureActionSST=e=>{const t=e.detail;typeof t?.serverSideComponentRoute=="string"&&t.serverSideComponentRoute.indexOf("_embeddedMediator=1")>=0||t?.serverSideType&&(this.lastActionServerSideType=t.serverSideType,this.lastActionInitiatorComponentId=t.initiatorComponentId)},this.handleUnhandledAction=e=>{if(this.component?.metadata?.variant==$e.MEDIATOR)return;const a=e.detail;e.preventDefault(),e.stopPropagation();const s=this.renderRoot?.querySelector("#"+this.contentUxId);!s||typeof s.manageActionEvent!="function"||(this.lastActionServerSideType=this.selectedServerSideType,this.lastActionInitiatorComponentId=s.id,s.manageActionEvent(new CustomEvent("server-side-action-requested",{detail:{route:s.route??this.selectedRoute??"",consumedRoute:s.consumedRoute??this.selectedConsumedRoute??"",componentState:a.parameters?.initiatorState??{},parameters:a.parameters,actionId:a.actionId,serverSideType:this.selectedServerSideType??"",initiatorComponentId:s.id,initiator:s}})))},this.selectRoute=(e,t,a,s,i,r)=>{{const n=this.component?.metadata;if(n?.variant!=$e.MEDIATOR&&!a&&(!s||s===this.baseUrl)&&(!i||i===n?.serverSideType)&&t!=null){if(!Nt.confirmLeave())return;this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:t},bubbles:!0,composed:!0})),this.dispatchEvent(new CustomEvent("navigate-to-requested",{detail:{route:t},bubbles:!0,composed:!0}));return}}{this.selectedConsumedRoute=e,this.selectedBaseUrl=s,this.selectedRoute=t,this.selectedServerSideType=i,this.selectedUriPrefix=r,this.instant=ye();let n=this.baseUrl??"";n.indexOf("://")<0&&(n.startsWith("/")||(n="/"+n),n=window.location.origin+n),n.endsWith("/")&&(t??"").startsWith("/")&&(t=(t??"").substring(1));let l=new URL(n+t);if(e&&(t??"").startsWith(e)&&(l=new URL(n+t?.substring(e.length))),(window.location.pathname||l.pathname)&&window.location.pathname!=l.pathname){let c=l.pathname;l.search&&(c+=l.search),c&&!c.startsWith("/")&&(c="/"+c),this.baseUrl&&c.startsWith(this.baseUrl)&&(c=c.substring(this.baseUrl.length));let u=c;this.selectedUriPrefix&&(u.startsWith("/")&&this.selectedUriPrefix.endsWith("/")?u=this.selectedUriPrefix+u.substring(1):!u.startsWith("/")&&!this.selectedUriPrefix.endsWith("/")?u=this.selectedUriPrefix+"/"+u:u=this.selectedUriPrefix+u),u=="_page"&&(u=""),this.dispatchEvent(new CustomEvent("route-changed",{detail:{route:u},bubbles:!0,composed:!0}))}}},this.updateRoute=e=>{e.preventDefault(),e.stopPropagation();var t=e.detail;this.selectRoute(t.consumedRoute,t.route,t.actionId,t.baseUrl,t.serverSideType,t.uriPrefix)},this.ds=e=>e&&e!=="undefined"&&e!=="null"?e:void 0,this.tabSelected=(e,t,a)=>{this.selectRoute(this.ds(e.detail.tab.dataset.consumedRoute),this.ds(e.detail.tab.dataset.route),this.ds(e.detail.tab.dataset.actionId),this.ds(e.detail.tab.dataset.baseUrl),this.ds(e.detail.tab.dataset.serverSideType),this.ds(e.detail.tab.dataset.uriPrefix))},this.mode=$i.Auto,this.toggle=e=>{this.mode=this.mode==$i.Expanded?$i.Collapsed:$i.Expanded,e.requestUpdate()},this.selected=(e,t,a,s)=>{const i=this.renderRoot.querySelector('[data-path = "'+e.detail.value+'"]');if(i){this.selectRoute(this.ds(i.dataset.consumedRoute),this.ds(i.dataset.route),this.ds(i.dataset.actionId),this.ds(i.dataset.baseUrl),this.ds(i.dataset.serverSideType),this.ds(i.dataset.uriPrefix));return}const r=l=>{for(const c of l??[]){if(c.route===e.detail.value||c.path===e.detail.value)return c;const u=r(c.submenus);if(u)return u}},n=r(s?.menu);n?this.selectRoute(n.consumedRoute,n.route,n.actionId,n.baseUrl,n.serverSideType,n.uriPrefix):console.error("No item found for selected route",e.detail.value)},this.runHeaderAction=async(e,t)=>{if(t)try{await to(e,this,t)}catch(a){const s=document.createElement("div");s.style.cssText="position: fixed; bottom: 1rem; left: 1rem; z-index: 10000; background: var(--oj-core-danger-3, #b3311f); color: #fff; padding: .75rem 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.25); font-size: .875rem;",s.textContent="The action failed: "+(""+a),document.body.appendChild(s),setTimeout(()=>s.remove(),6e3)}},this.renderContextActions=e=>o`
         ${(e.contextActions??[]).map(t=>(t.children?.length??0)>0?o`
             <oj-c-menu-button
                     data-oj-binding-provider="preact"
@@ -9534,7 +9817,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     style="margin-right: 0.75rem;"
                     @ojAction="${()=>this.runHeaderAction(e,t.actionId)}"
             ></oj-c-button>`)}
-    `}get contentUxId(){return this._contentUxId||(this._contentUxId="ux_"+(window.location.pathname||"root").replace(/[^a-zA-Z0-9]/g,"_")+"_app"),this._contentUxId}connectedCallback(){super.connectedCallback(),this.addEventListener("server-side-action-requested",this.captureActionSST,!0),this.addEventListener("action-requested",this.handleUnhandledAction),this.innerFragmentSubscription=Lt.subscribe(e=>{const t=e.fragment;if(t&&this.lastActionInitiatorComponentId&&t.targetComponentId===this.lastActionInitiatorComponentId&&t.state?._route!==void 0){const a=t.state._route;if(a!==""&&!a.startsWith("/")){this.lastActionInitiatorComponentId=void 0,this.lastActionServerSideType=void 0;return}const s=t.state._componentRoute||"",i=this.component?.metadata,r=this.renderRoot?.querySelector("#"+this.contentUxId),n=r?.consumedRoute&&r.consumedRoute!=="_empty"?r.consumedRoute:"",l=s||this.selectedConsumedRoute||n||i?.homeConsumedRoute||"",c=l+a;this.lastActionInitiatorComponentId=void 0,c!==this.selectedRoute&&(this.selectedConsumedRoute=l,this.selectedRoute=c,this.lastActionServerSideType&&(this.selectedServerSideType=this.lastActionServerSideType),this.state&&this.state._route!=null&&(this.state._route=void 0),this.instant=ye()),this.lastActionServerSideType=void 0}})}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("server-side-action-requested",this.captureActionSST,!0),this.removeEventListener("action-requested",this.handleUnhandledAction),this.innerFragmentSubscription?.unsubscribe()}render(){const e=this.component.metadata,t=this.data.opened==null?!0:this.data.opened;this.data.opened=t;const a=i=>{this.data.opened=!this.data.opened,this.requestUpdate()},s=i=>{this.data.opened=!1,this.requestUpdate()};if(e.variant==$e.MEDIATOR)return o`
+    `}get contentUxId(){return this._contentUxId||(this._contentUxId="ux_"+(window.location.pathname||"root").replace(/[^a-zA-Z0-9]/g,"_")+"_app"),this._contentUxId}connectedCallback(){super.connectedCallback(),this.addEventListener("server-side-action-requested",this.captureActionSST,!0),this.addEventListener("action-requested",this.handleUnhandledAction),this.innerFragmentSubscription=Ft.subscribe(e=>{const t=e.fragment;if(t&&this.lastActionInitiatorComponentId&&t.targetComponentId===this.lastActionInitiatorComponentId&&t.state?._route!==void 0){const a=t.state._route;if(a!==""&&!a.startsWith("/")){this.lastActionInitiatorComponentId=void 0,this.lastActionServerSideType=void 0;return}const s=t.state._componentRoute||"",i=this.component?.metadata,r=this.renderRoot?.querySelector("#"+this.contentUxId),n=r?.consumedRoute&&r.consumedRoute!=="_empty"?r.consumedRoute:"",l=s||this.selectedConsumedRoute||n||i?.homeConsumedRoute||"",c=l+a;this.lastActionInitiatorComponentId=void 0,c!==this.selectedRoute&&(this.selectedConsumedRoute=l,this.selectedRoute=c,this.lastActionServerSideType&&(this.selectedServerSideType=this.lastActionServerSideType),this.state&&this.state._route!=null&&(this.state._route=void 0),this.instant=ye()),this.lastActionServerSideType=void 0}})}disconnectedCallback(){super.disconnectedCallback(),this.removeEventListener("server-side-action-requested",this.captureActionSST,!0),this.removeEventListener("action-requested",this.handleUnhandledAction),this.innerFragmentSubscription?.unsubscribe()}render(){const e=this.component.metadata,t=this.data.opened==null?!0:this.data.opened;this.data.opened=t;const a=i=>{this.data.opened=!this.data.opened,this.requestUpdate()},s=i=>{this.data.opened=!1,this.requestUpdate()};if(e.variant==$e.MEDIATOR)return o`
                         <mateu-api-caller>
                             <mateu-ux
                                     route="${Fe(this.state,this,e)}"
@@ -9542,7 +9825,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                     baseUrl="${_e(this,e)}"
                                     consumedRoute="${re(this,e)}"
                                     serverSideType="${Ee(this,e)}"
-                                    uriPrefix="${Te(this,e)}"
+                                    uriPrefix="${Pe(this,e)}"
                                     style="width: 100%;"
                                     .appState="${this.appState}"
                                     .appData="${this.appData}"
@@ -9565,7 +9848,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             >
             </oj-c-tab-bar></div>
             <div id="xxxxx" class="demo-padding" style="width: 100%; height: -webkit-fill-available;">
-                <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+                <div class="content" style="padding-bottom: 2rem;">
                     <mateu-api-caller style="width: 100%;">
                         <mateu-ux
                                 route="${Fe(this.state,this,e)}"
@@ -9573,7 +9856,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                 baseUrl="${_e(this,e)}"
                                 consumedRoute="${re(this,e)}"
                                 serverSideType="${Ee(this,e)}"
-                                uriPrefix="${Te(this,e)}"
+                                uriPrefix="${Pe(this,e)}"
                                 style="width: 100%;"
                                 .appState="${this.appState}"
                                 .appData="${this.appData}"
@@ -9583,7 +9866,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     </mateu-api-caller>
                 </div>
             </div>
-        </div>`}if($e.MENU_ON_LEFT==e.variant){const i=e.menu.map(h=>({label:h.label,itemKey:h.route}));if(!e.homeRoute||e.homeRoute==="_no_home_route"){const h=e.menu[0];e.homeRoute=h?.submenus?.length?h.submenus[0].route:h?.route??""}const r=this.data.activeTopRoute??e.menu.find(h=>h.route===e.homeRoute||h.submenus?.some(p=>p.route===e.homeRoute))?.route??e.menu[0]?.route??"";this.data.activeTopRoute=r;const n=e.menu.find(h=>h.route===r),l=(n?.submenus??[]).map(h=>({label:h.label,itemKey:h.route}));if(this.data.activeConsumedRoute===void 0){const h=n?.submenus?.find(p=>p.route===e.homeRoute);this.data.activeConsumedRoute=h?.consumedRoute??n?.consumedRoute??e.homeConsumedRoute??"",this.data.activeServerSideType=h?.serverSideType??n?.serverSideType??e.homeServerSideType??""}const c=h=>{const p=h.detail.value;this.data.activeTopRoute=p;const f=e.menu.find(g=>g.route===p);if(f?.submenus?.length){const g=f.submenus[0];this.data.activeConsumedRoute=g.consumedRoute??"",this.data.activeServerSideType=g.serverSideType??f.serverSideType??e.serverSideType??"",this.selected({...h,detail:{...h.detail,value:g.route}},this,this.baseUrl??"",e)}else this.data.activeConsumedRoute=f?.consumedRoute??"",this.data.activeServerSideType=f?.serverSideType??e.serverSideType??"",this.selected({...h,detail:{...h.detail,value:p}},this,this.baseUrl??"",e)},u=h=>{const p=h.detail.value,g=e.menu.flatMap(y=>y.submenus??[]).find(y=>y.route===p);this.data.activeConsumedRoute=g?.consumedRoute??"",this.data.activeServerSideType=g?.serverSideType??e.serverSideType??"",this.selected(h,this,this.baseUrl??"",e)};return o`<div style="${this.style??d}">
+        </div>`}if($e.MENU_ON_LEFT==e.variant){const i=e.menu.map(m=>({label:m.label,itemKey:m.route}));if(!e.homeRoute||e.homeRoute==="_no_home_route"){const m=e.menu[0];e.homeRoute=m?.submenus?.length?m.submenus[0].route:m?.route??""}const r=this.data.activeTopRoute??e.menu.find(m=>m.route===e.homeRoute||m.submenus?.some(p=>p.route===e.homeRoute))?.route??e.menu[0]?.route??"";this.data.activeTopRoute=r;const n=e.menu.find(m=>m.route===r),l=(n?.submenus??[]).map(m=>({label:m.label,itemKey:m.route}));if(this.data.activeConsumedRoute===void 0){const m=n?.submenus?.find(p=>p.route===e.homeRoute);this.data.activeConsumedRoute=m?.consumedRoute??n?.consumedRoute??e.homeConsumedRoute??"",this.data.activeServerSideType=m?.serverSideType??n?.serverSideType??e.homeServerSideType??""}const c=m=>{const p=m.detail.value;this.data.activeTopRoute=p;const f=e.menu.find(g=>g.route===p);if(f?.submenus?.length){const g=f.submenus[0];this.data.activeConsumedRoute=g.consumedRoute??"",this.data.activeServerSideType=g.serverSideType??f.serverSideType??e.serverSideType??"",this.selected({...m,detail:{...m.detail,value:g.route}},this,this.baseUrl??"",e)}else this.data.activeConsumedRoute=f?.consumedRoute??"",this.data.activeServerSideType=f?.serverSideType??e.serverSideType??"",this.selected({...m,detail:{...m.detail,value:p}},this,this.baseUrl??"",e)},u=m=>{const p=m.detail.value,g=e.menu.flatMap(y=>y.submenus??[]).find(y=>y.route===p);this.data.activeConsumedRoute=g?.consumedRoute??"",this.data.activeServerSideType=g?.serverSideType??e.serverSideType??"",this.selected(m,this,this.baseUrl??"",e)};return o`<div style="${this.style??d}">
             <oj-c-tab-bar
                     .data="${i}"
                     .selection="${r}"
@@ -9611,7 +9894,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                             baseUrl="${_e(this,e)}"
                             consumedRoute="${re(this,e)}"
                             serverSideType="${Ee(this,e)}"
-                            uriPrefix="${Te(this,e)}"
+                            uriPrefix="${Pe(this,e)}"
                             style="width: 100%;"
                             .appState="${this.appState}"
                             .appData="${this.appData}"
@@ -9777,7 +10060,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     </div>
 
                     <div id="xxxxx" class="demo-padding" style="width: 100%; height: -webkit-fill-available;">
-                        <div class="content" style="padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem;">
+                        <div class="content" style="padding-bottom: 2rem;">
                             <mateu-api-caller style="width: 100%;">
                                 <mateu-ux
                                         route="${Fe(this.state,this,e)}"
@@ -9785,7 +10068,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                         baseUrl="${_e(this,e)}"
                                         consumedRoute="${re(this,e)}"
                                         serverSideType="${Ee(this,e)}"
-                                        uriPrefix="${Te(this,e)}"
+                                        uriPrefix="${Pe(this,e)}"
                                         style="width: 100%;"
                                         .appState="${this.appState}"
                                         .appData="${this.appData}"
@@ -9801,7 +10084,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
 
 
 
-        </div>`}};Ze.styles=C`
+        </div>`}};et.styles=C`
         ::part(tabstrip) {
             height: 4rem;
             top: 0rem;
@@ -9813,7 +10096,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             padding: 0;
             top: -10px;
         }
-  `;Et([$()],Ze.prototype,"filter",2);Et([$()],Ze.prototype,"instant",2);Et([$()],Ze.prototype,"selectedConsumedRoute",2);Et([$()],Ze.prototype,"selectedRoute",2);Et([$()],Ze.prototype,"selectedUriPrefix",2);Et([$()],Ze.prototype,"selectedBaseUrl",2);Et([$()],Ze.prototype,"selectedServerSideType",2);Et([$()],Ze.prototype,"selectedParams",2);Ze=Et([k("mateu-redwood-app")],Ze);const Qh=(e,t,a,s,i,r,n)=>o`
+  `;Tt([$()],et.prototype,"filter",2);Tt([$()],et.prototype,"instant",2);Tt([$()],et.prototype,"selectedConsumedRoute",2);Tt([$()],et.prototype,"selectedRoute",2);Tt([$()],et.prototype,"selectedUriPrefix",2);Tt([$()],et.prototype,"selectedBaseUrl",2);Tt([$()],et.prototype,"selectedServerSideType",2);Tt([$()],et.prototype,"selectedParams",2);et=Tt([k("mateu-redwood-app")],et);const om=(e,t,a,s,i,r,n)=>o`
         <mateu-redwood-app
                 id="${t.id}"
                 baseUrl="${a}"
@@ -9826,7 +10109,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 .appData="${n}"
                 style="width: 100%;"
         ></mateu-redwood-app>
-    `,Zh=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
+    `,nm=(e,t,a,s,i,r,n)=>{const l=t.metadata;return o`
         
         <mateu-redwood-form 
                 id="${t.id}" 
@@ -9839,29 +10122,29 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 >
 
             ${l?.toolbar?.map(c=>o`
-                ${w(e,{metadata:c,type:de.ClientSide,slot:"header"},void 0,{},{},r,n)}
+                ${w(e,{metadata:c,type:oe.ClientSide,slot:"header"},void 0,{},{},r,n)}
             `)}
             
                     ${t.children?.map(c=>w(e,c,a,s,i,r,n))}
                 ${l?.buttons?.map(c=>o`
-                   ${w(e,{metadata:c,type:de.ClientSide,slot:"buttons"},void 0,{},{},r,n)}
+                   ${w(e,{metadata:c,type:oe.ClientSide,slot:"buttons"},void 0,{},{},r,n)}
 `)}
 
                 </mateu-redwood-form>
         
     
-    `},em=e=>{const t=e.color==="error"||e.variant==="danger"?"danger":e.buttonStyle==="primary"?"callToAction":"outlined",a=t==="danger"?"background: var(--mateu-redwood-danger-bg, rgb(179, 49, 31)); color: #fff; border: 1px solid transparent;":t==="callToAction"?"background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); color: #fff; border: 1px solid transparent;":"background: transparent; color: var(--mateu-redwood-text, rgb(22, 21, 19)); border: 1px solid rgba(22, 21, 19, 0.5);",s=i=>i.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId},bubbles:!0,composed:!0}));return o`
+    `},lm=e=>{const t=e.color==="error"||e.variant==="danger"?"danger":e.buttonStyle==="primary"?"callToAction":"outlined",a=t==="danger"?"background: var(--mateu-redwood-danger-bg, rgb(179, 49, 31)); color: #fff; border: 1px solid transparent;":t==="callToAction"?"background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); color: #fff; border: 1px solid transparent;":"background: transparent; color: var(--mateu-redwood-text, rgb(22, 21, 19)); border: 1px solid rgba(22, 21, 19, 0.5);",s=i=>i.currentTarget.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e.actionId},bubbles:!0,composed:!0}));return o`
         <button
             data-action-id="${e.actionId}"
             style="${a} border-radius: var(--oj-button-border-radius, .25rem); height: var(--oj-button-height, 2.75rem); padding: 0 1rem; font-family: 'Oracle Sans', -apple-system, system-ui, sans-serif; font-size: var(--oj-button-font-size, 0.859rem); font-weight: 600; cursor: pointer; ${e.disabled?"opacity: .4; pointer-events: none;":""}"
             ?disabled="${e.disabled}"
             @click="${s}"
-        >${e.label}</button>`},tm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.title||l.subtitle||l.toolbar?.length||l.header?.length||l.avatar;return o`
+        >${e.label}</button>`},dm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l.title||l.subtitle||l.toolbar?.length||l.header?.length||l.avatar;return o`
         <div style="display: flex; flex-direction: column; width: 100%; ${t.style??""}" slot="${t.slot??d}" class="${t.cssClasses}">
             ${l.breadcrumbs?.length>0?o`
                 <div style="display: flex; align-items: center; gap: 0.25rem; padding: 0.5rem 0; flex-wrap: wrap;">
-                    ${l.breadcrumbs.map((u,h)=>o`
-                        ${h>0?o`<span>/</span>`:d}
+                    ${l.breadcrumbs.map((u,m)=>o`
+                        ${m>0?o`<span>/</span>`:d}
                         ${u.link?o`
                             <oj-c-button
                                 data-oj-binding-provider="preact"
@@ -9876,12 +10159,12 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             ${c?o`
                 <div style="display: flex; align-items: center; width: 100%; gap: 1rem; padding: 0.5rem 0;">
                     <div style="flex: 1;">
-                        <h2 style="margin-block-end: 0px;">${ge(xt(l.title,s,i))}</h2>
-                        <span style="display: inline-block;">${ge(xt(l.subtitle,s,i))}</span>
+                        <h2 style="margin-block-end: 0px;">${ge(wt(l.title,s,i))}</h2>
+                        <span style="display: inline-block;">${ge(wt(l.subtitle,s,i))}</span>
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                         ${l.header?.map(u=>w(e,u,a,s,i,r,n))}
-                        ${l.toolbar?.map(u=>w(e,{metadata:u,type:de.ClientSide,slot:""},void 0,{},{},r,n))}
+                        ${l.toolbar?.map(u=>w(e,{metadata:u,type:oe.ClientSide,slot:""},void 0,{},{},r,n))}
                     </div>
                 </div>
             `:d}
@@ -9889,7 +10172,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 ${t.children?.map(u=>w(e,u,a,s,i,r,n))}
                 ${l.buttons?.length?o`
                 <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; padding: 0.75rem 0 0.25rem;">
-                    ${l.buttons.map(u=>em(u))}
+                    ${l.buttons.map(u=>lm(u))}
                 </div>`:d}
             </div>
             ${l.footer?.length?o`
@@ -9898,29 +10181,29 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 </div>
             `:d}
         </div>
-    `},bi=(e,t)=>e?e.includes("${")&&t._evalTemplate?t._evalTemplate(e):e:"",ze=(e,t,a,s,i,r,n)=>(t.children??[]).map(l=>w(e,l,a,s,i,r,n)),Oo=e=>{const t=e?.metadata?.type;return t==="FormRow"||t==="FormItem"?(e.children??[]).flatMap(Oo):[e]},am=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=Math.max(1,l.maxColumns??1),u=(t.children??[]).flatMap(Oo),h=p=>{const f=p?.metadata?.colspan,g=typeof f=="number"?f:parseInt(f??"1",10);return Math.min(Math.max(isNaN(g)?1:g,1),c)};return o`
+    `},gi=(e,t)=>e?e.includes("${")&&t._evalTemplate?t._evalTemplate(e):e:"",ze=(e,t,a,s,i,r,n)=>(t.children??[]).map(l=>w(e,l,a,s,i,r,n)),jo=e=>{const t=e?.metadata?.type;return t==="FormRow"||t==="FormItem"?(e.children??[]).flatMap(jo):[e]},cm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=Math.max(1,l.maxColumns??1),u=(t.children??[]).flatMap(jo),m=p=>{const f=p?.metadata?.colspan,g=typeof f=="number"?f:parseInt(f??"1",10);return Math.min(Math.max(isNaN(g)?1:g,1),c)};return o`
         <div style="display:grid; grid-template-columns: repeat(${c}, minmax(0,1fr)); gap:.5rem 1.5rem; align-items:start;">
-            ${u.map(p=>o`<div style="grid-column: span ${h(p)}; min-width:0; overflow:hidden;">${w(e,p,a,s,i,r,n)}</div>`)}
-        </div>`},im=(e,t,a,s,i,r,n)=>o`<div style="display:flex; flex-direction:row; gap:1rem; flex-wrap:wrap;">${ze(e,t,a,s,i,r,n)}</div>`,sm=(e,t,a,s,i,r,n)=>{const l=bi(t.metadata.title,e);return o`
+            ${u.map(p=>o`<div style="grid-column: span ${m(p)}; min-width:0; overflow:hidden;">${w(e,p,a,s,i,r,n)}</div>`)}
+        </div>`},um=(e,t,a,s,i,r,n)=>o`<div style="display:flex; flex-direction:row; gap:1rem; flex-wrap:wrap;">${ze(e,t,a,s,i,r,n)}</div>`,pm=(e,t,a,s,i,r,n)=>{const l=gi(t.metadata.title,e);return o`
         <div class="oj-panel oj-panel-shadow-sm" style="padding:1rem; margin-bottom:1rem; border-radius:var(--oj-core-border-radius-lg, .375rem);"
              slot="${t.slot??d}">
             ${l?o`<h2 class="oj-typography-heading-sm" style="margin:0 0 .75rem;">${l}</h2>`:d}
             <div style="display:flex; flex-direction:column; gap:.5rem;">
                 ${ze(e,t,a,s,i,r,n)}
             </div>
-        </div>`},rm=(e,t,a,s,i,r,n)=>{const l=bi(t.metadata.title,e);return o`
+        </div>`},hm=(e,t,a,s,i,r,n)=>{const l=gi(t.metadata.title,e);return o`
         <div style="margin:.5rem 0;" slot="${t.slot??d}">
             ${l?o`<h3 class="oj-typography-subheading-sm" style="margin:0 0 .5rem;">${l}</h3>`:d}
             <div style="display:flex; flex-direction:column; gap:.5rem;">${ze(e,t,a,s,i,r,n)}</div>
-        </div>`},om=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l?.spacing===!1?"0":"1rem";return o`<div style="display:flex; flex-direction:row; gap:${c}; ${l?.wrap?"flex-wrap:wrap;":""} ${l?.fullWidth?"width:100%;":""} ${t.style??""}"
-                     slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`},nm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l?.spacing===!1?"0":".75rem";return o`<div style="display:flex; flex-direction:column; gap:${c}; ${l?.fullWidth?"width:100%;":""} ${t.style??""}"
-                     slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`},lm=(e,t,a,s,i,r,n)=>{const l=t.metadata?.orientation==="vertical"?"column":"row";return o`<div style="display:flex; flex-direction:${l}; gap:1rem; width:100%; ${t.style??""}" slot="${t.slot??d}">
+        </div>`},mm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l?.spacing===!1?"0":"1rem";return o`<div style="display:flex; flex-direction:row; gap:${c}; ${l?.wrap?"flex-wrap:wrap;":""} ${l?.fullWidth?"width:100%;":""} ${t.style??""}"
+                     slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`},vm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=l?.spacing===!1?"0":".75rem";return o`<div style="display:flex; flex-direction:column; gap:${c}; ${l?.fullWidth?"width:100%;":""} ${t.style??""}"
+                     slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`},fm=(e,t,a,s,i,r,n)=>{const l=t.metadata?.orientation==="vertical"?"column":"row";return o`<div style="display:flex; flex-direction:${l}; gap:1rem; width:100%; ${t.style??""}" slot="${t.slot??d}">
         ${(t.children??[]).map(c=>o`<div style="flex:1; min-width:0;">${w(e,c,a,s,i,r,n)}</div>`)}
-    </div>`},dm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=h=>h?w(e,h,a,s,i,r,n):d,u=typeof l.title=="string"?l.title:"";if(t.cssClasses?.includes("mateu-section")){const h=u?o`<h2 class="oj-typography-heading-sm" style="margin: 0;">${u}</h2>`:typeof l.title=="object"&&l.title?c(l.title):d;return o`
+    </div>`},bm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=m=>m?w(e,m,a,s,i,r,n):d,u=typeof l.title=="string"?l.title:"";if(t.cssClasses?.includes("mateu-section")){const m=u?o`<h2 class="oj-typography-heading-sm" style="margin: 0;">${u}</h2>`:typeof l.title=="object"&&l.title?c(l.title):d;return o`
             <section class="${t.cssClasses}" style="margin: 0 0 1.5rem 0; min-width: 0; overflow-x: auto; ${t.style??""}"
                  slot="${t.slot??d}">
-                ${h!==d?o`
-                    <div style="padding-bottom: .5rem; border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.2));">${h}</div>
+                ${m!==d?o`
+                    <div style="padding-bottom: .5rem; border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.2));">${m}</div>
                 `:d}
                 <div style="padding-top: .75rem;">
                     ${c(l.content)}
@@ -9937,7 +10220,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 ${ze(e,t,a,s,i,r,n)}
                 ${c(l.footer)}
             </div>
-        </div>`},cm=e=>{switch(e){case"h1":return"oj-typography-heading-xl";case"h2":return"oj-typography-heading-lg";case"h3":return"oj-typography-heading-md";case"h4":return"oj-typography-heading-sm";case"h5":case"h6":return"oj-typography-subheading-sm";default:return"oj-typography-body-md"}},um=(e,t,a)=>{const s=t.metadata,i=bi(s.text,e);return o`<div class="${cm(s.container)}" style="${t.style??""}">${i}</div>`},pm=e=>{const t=e.metadata,a=t.color;return o`<oj-c-badge variant="${a==="success"?"success":a==="error"||a==="danger"?"danger":a==="warning"?"warning":a==="info"?"info":"neutral"}" slot="${e.slot??d}">${t.text??""}</oj-c-badge>`},hm=e=>{const t=e.metadata;return o`<a class="oj-link-standalone" href="${t.url??"#"}" slot="${e.slot??d}">${t.text??t.url??""}</a>`},vs=(e,t)=>{t&&e?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t,parameters:{}},bubbles:!0,composed:!0}))},Ro=(e,t,a)=>o`
+        </div>`},gm=e=>{switch(e){case"h1":return"oj-typography-heading-xl";case"h2":return"oj-typography-heading-lg";case"h3":return"oj-typography-heading-md";case"h4":return"oj-typography-heading-sm";case"h5":case"h6":return"oj-typography-subheading-sm";default:return"oj-typography-body-md"}},$m=(e,t,a)=>{const s=t.metadata,i=gi(s.text,e);return o`<div class="${gm(s.container)}" style="${t.style??""}">${i}</div>`},ym=e=>{const t=e.metadata,a=t.color;return o`<oj-c-badge variant="${a==="success"?"success":a==="error"||a==="danger"?"danger":a==="warning"?"warning":a==="info"?"info":"neutral"}" slot="${e.slot??d}">${t.text??""}</oj-c-badge>`},xm=e=>{const t=e.metadata;return o`<a class="oj-link-standalone" href="${t.url??"#"}" slot="${e.slot??d}">${t.text??t.url??""}</a>`},fs=(e,t)=>{t&&e?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t,parameters:{}},bubbles:!0,composed:!0}))},Lo=(e,t,a)=>o`
     <div style="position:fixed; inset:0; background:rgba(0,0,0,.4); display:flex; align-items:center; justify-content:center; z-index:1000;">
         <div class="oj-panel oj-panel-shadow-lg" role="dialog" aria-modal="true"
              style="background:var(--oj-core-bg-color-content, #fff); border-radius:var(--oj-core-border-radius-lg, .375rem); min-width:320px; max-width:90vw; max-height:90vh; overflow:auto;">
@@ -9945,34 +10228,34 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             <div style="padding:1rem;">${t}</div>
             ${a?o`<div style="display:flex; gap:.5rem; justify-content:flex-end; padding:.75rem 1rem; border-top:1px solid var(--oj-core-divider-color, rgba(22,21,19,.12));">${a}</div>`:d}
         </div>
-    </div>`,mm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=bi(l.headerTitle,e),u=p=>p?w(e,p,a,s,i,r,n):d,h=o`${u(l.content)}${ze(e,t,a,s,i,r,n)}`;return Ro(c,h,u(l.footer))},vm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=bi(l.header,e),u=l.content?w(e,l.content,a,s,i,r,n):d,h=o`
-        ${l.canCancel?o`<oj-c-button label="${l.cancelText??"Cancel"}" @ojAction="${p=>vs(p.target,l.cancelActionId)}"></oj-c-button>`:d}
-        ${l.canReject?o`<oj-c-button label="${l.rejectText??"No"}" @ojAction="${p=>vs(p.target,l.rejectActionId)}"></oj-c-button>`:d}
-        <oj-c-button chroming="callToAction" label="${l.confirmText??"OK"}" @ojAction="${p=>vs(p.target,l.confirmActionId)}"></oj-c-button>`;return Ro(c,u,h)},fm=(e,t,a,s,i,r,n)=>o`<div style="overflow: auto; ${t.style??""}" class="${t.cssClasses??d}"
-              slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`,bm=(e,t,a,s,i,r,n)=>o`<div style="width: 100%; ${t.style??""}" class="${t.cssClasses??d}"
-              slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`,gm=(e,t,a,s,i,r,n)=>o`<div style="max-width: min(100%, 1200px); margin: auto; ${t.style??""}" class="${t.cssClasses??d}"
-              slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`,$m=(e,t,a,s,i,r,n)=>o`<div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; ${t.style??""}"
+    </div>`,wm=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=gi(l.headerTitle,e),u=p=>p?w(e,p,a,s,i,r,n):d,m=o`${u(l.content)}${ze(e,t,a,s,i,r,n)}`;return Lo(c,m,u(l.footer))},km=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=gi(l.header,e),u=l.content?w(e,l.content,a,s,i,r,n):d,m=o`
+        ${l.canCancel?o`<oj-c-button label="${l.cancelText??"Cancel"}" @ojAction="${p=>fs(p.target,l.cancelActionId)}"></oj-c-button>`:d}
+        ${l.canReject?o`<oj-c-button label="${l.rejectText??"No"}" @ojAction="${p=>fs(p.target,l.rejectActionId)}"></oj-c-button>`:d}
+        <oj-c-button chroming="callToAction" label="${l.confirmText??"OK"}" @ojAction="${p=>fs(p.target,l.confirmActionId)}"></oj-c-button>`;return Lo(c,u,m)},Cm=(e,t,a,s,i,r,n)=>o`<div style="overflow: auto; ${t.style??""}" class="${t.cssClasses??d}"
+              slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`,Sm=(e,t,a,s,i,r,n)=>o`<div style="width: 100%; ${t.style??""}" class="${t.cssClasses??d}"
+              slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`,Im=(e,t,a,s,i,r,n)=>o`<div style="max-width: min(100%, 1200px); margin: auto; ${t.style??""}" class="${t.cssClasses??d}"
+              slot="${t.slot??d}">${ze(e,t,a,s,i,r,n)}</div>`,_m=(e,t,a,s,i,r,n)=>o`<div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; ${t.style??""}"
               class="${t.cssClasses??d}" slot="${t.slot??d}">
-        ${ze(e,t,a,s,i,r,n)}</div>`,ym=(e,t,a,s,i,r,n)=>{const l=c=>c?.metadata?.type==="BoardLayoutItem"?c.metadata.boardCols??1:1;return o`<div style="display: flex; flex-direction: row; gap: 1rem; width: 100%; ${t.style??""}"
+        ${ze(e,t,a,s,i,r,n)}</div>`,Em=(e,t,a,s,i,r,n)=>{const l=c=>c?.metadata?.type==="BoardLayoutItem"?c.metadata.boardCols??1:1;return o`<div style="display: flex; flex-direction: row; gap: 1rem; width: 100%; ${t.style??""}"
                      class="${t.cssClasses??d}" slot="${t.slot??d}">
         ${(t.children??[]).map(c=>o`
             <div style="flex: ${l(c)} 1 0; min-width: 0;">${w(e,c,a,s,i,r,n)}</div>`)}
-    </div>`},xm=(e,t,a,s,i,r,n)=>o`<div style="${t.style??""}" class="${t.cssClasses??d}">
-        ${ze(e,t,a,s,i,r,n)}</div>`,wm=(e,t,a,s,i,r,n)=>{const l=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,u=!!i?.hasDetail||!!l,h=c??l;return o`
+    </div>`},Pm=(e,t,a,s,i,r,n)=>o`<div style="${t.style??""}" class="${t.cssClasses??d}">
+        ${ze(e,t,a,s,i,r,n)}</div>`,Tm=(e,t,a,s,i,r,n)=>{const l=t.children&&t.children.length>1?t.children[1]:null,c=i?.detailComponent??null,u=!!i?.hasDetail||!!l,m=c??l;return o`
         <div style="display: flex; gap: 0; width: 100%; border: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12)); border-radius: var(--oj-core-border-radius-lg, .375rem); overflow: hidden; ${t.style??""}"
              class="${t.cssClasses??d}" slot="${t.slot??d}">
             <div style="flex: 1; min-width: 0; overflow-y: auto;">
                 ${w(e,t.children[0],a,s,i,r,n)}
             </div>
-            <div style="flex: 1; min-width: 0; overflow-y: auto; border-left: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12)); ${u&&h?"":"display: flex; align-items: center; justify-content: center;"}">
-                ${u&&h?w(e,h,a,s,i,r,n):o`<span style="color: var(--oj-core-text-color-secondary, #666); font-size: 0.875rem; padding: 1rem;">Select an item to view details</span>`}
+            <div style="flex: 1; min-width: 0; overflow-y: auto; border-left: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12)); ${u&&m?"":"display: flex; align-items: center; justify-content: center;"}">
+                ${u&&m?w(e,m,a,s,i,r,n):o`<span style="color: var(--oj-core-text-color-secondary, #666); font-size: 0.875rem; padding: 1rem;">Select an item to view details</span>`}
             </div>
-        </div>`},km=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=h=>p=>{const g=p.target.closest(".rw-carousel-wrap")?.querySelector(":scope > .rw-carousel");g?.scrollBy({left:h*g.clientWidth,behavior:"smooth"})},u=l?.nav!==!1;return o`
+        </div>`},Om=(e,t,a,s,i,r,n)=>{const l=t.metadata,c=m=>p=>{const g=p.target.closest(".rw-carousel-wrap")?.querySelector(":scope > .rw-carousel");g?.scrollBy({left:m*g.clientWidth,behavior:"smooth"})},u=l?.nav!==!1;return o`
         <div class="rw-carousel-wrap ${t.cssClasses??""}" style="position: relative; width: 100%; ${t.style??""}"
              slot="${t.slot??d}">
             <div class="rw-carousel" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 1rem; scrollbar-width: none;">
-                ${(t.children??[]).map(h=>o`
-                    <div style="scroll-snap-align: start; flex: 0 0 100%; min-width: 0;">${w(e,h,a,s,i,r,n)}</div>`)}
+                ${(t.children??[]).map(m=>o`
+                    <div style="scroll-snap-align: start; flex: 0 0 100%; min-width: 0;">${w(e,m,a,s,i,r,n)}</div>`)}
             </div>
             ${u?o`
                 <div style="display: flex; gap: 0.5rem; justify-content: center; padding-top: 0.5rem;">
@@ -9980,7 +10263,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     <oj-c-button data-oj-binding-provider="preact" label="›" chroming="outlined" @ojAction="${c(1)}"></oj-c-button>
                 </div>
             `:d}
-        </div>`};var Cm=Object.defineProperty,Sm=Object.getOwnPropertyDescriptor,Tt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Sm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Cm(t,a,i),i};let ut=class extends S{constructor(){super(...arguments),this.selected=0}createRenderRoot(){return this}label(e){const t=e?.metadata?.label;return t&&typeof t=="string"&&t.includes("${")&&this.container?._evalTemplate?this.container._evalTemplate(t):t??""}render(){const e=this.component?.children??[],t=e.map((s,i)=>({itemKey:String(i),label:this.label(s)})),a=e[this.selected];return o`
+        </div>`};var Rm=Object.defineProperty,zm=Object.getOwnPropertyDescriptor,Ot=(e,t,a,s)=>{for(var i=s>1?void 0:s?zm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Rm(t,a,i),i};let pt=class extends S{constructor(){super(...arguments),this.selected=0}createRenderRoot(){return this}label(e){const t=e?.metadata?.label;return t&&typeof t=="string"&&t.includes("${")&&this.container?._evalTemplate?this.container._evalTemplate(t):t??""}render(){const e=this.component?.children??[],t=e.map((s,i)=>({itemKey:String(i),label:this.label(s)})),a=e[this.selected];return o`
             <div>
                 <oj-c-tab-bar data-oj-binding-provider="preact"
                         .data="${t}"
@@ -9991,7 +10274,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <div role="tabpanel" style="padding-top: 1rem;">
                     ${(a?.children??[]).map(s=>w(this.container,s,this.baseUrl,this.compState,this.compData,this.appState,this.appData))}
                 </div>
-            </div>`}};Tt([m({attribute:!1})],ut.prototype,"component",2);Tt([m({attribute:!1})],ut.prototype,"container",2);Tt([m()],ut.prototype,"baseUrl",2);Tt([m({attribute:!1})],ut.prototype,"compState",2);Tt([m({attribute:!1})],ut.prototype,"compData",2);Tt([m({attribute:!1})],ut.prototype,"appState",2);Tt([m({attribute:!1})],ut.prototype,"appData",2);Tt([$()],ut.prototype,"selected",2);ut=Tt([k("mateu-redwood-tabs")],ut);var Im=Object.defineProperty,_m=Object.getOwnPropertyDescriptor,Pt=(e,t,a,s)=>{for(var i=s>1?void 0:s?_m(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Im(t,a,i),i};let pt=class extends S{constructor(){super(...arguments),this.open={},this.initialized=!1}createRenderRoot(){return this}label(e){const t=e?.metadata?.label;return t&&typeof t=="string"&&t.includes("${")&&this.container?._evalTemplate?this.container._evalTemplate(t):t??""}render(){const e=this.component?.children??[];return this.initialized||(e.forEach((t,a)=>{t?.metadata?.active&&(this.open[a]=!0)}),this.initialized=!0),o`
+            </div>`}};Ot([h({attribute:!1})],pt.prototype,"component",2);Ot([h({attribute:!1})],pt.prototype,"container",2);Ot([h()],pt.prototype,"baseUrl",2);Ot([h({attribute:!1})],pt.prototype,"compState",2);Ot([h({attribute:!1})],pt.prototype,"compData",2);Ot([h({attribute:!1})],pt.prototype,"appState",2);Ot([h({attribute:!1})],pt.prototype,"appData",2);Ot([$()],pt.prototype,"selected",2);pt=Ot([k("mateu-redwood-tabs")],pt);var Am=Object.defineProperty,jm=Object.getOwnPropertyDescriptor,Rt=(e,t,a,s)=>{for(var i=s>1?void 0:s?jm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Am(t,a,i),i};let ht=class extends S{constructor(){super(...arguments),this.open={},this.initialized=!1}createRenderRoot(){return this}label(e){const t=e?.metadata?.label;return t&&typeof t=="string"&&t.includes("${")&&this.container?._evalTemplate?this.container._evalTemplate(t):t??""}render(){const e=this.component?.children??[];return this.initialized||(e.forEach((t,a)=>{t?.metadata?.active&&(this.open[a]=!0)}),this.initialized=!0),o`
             <div style="display:flex; flex-direction:column; gap:.5rem;">
                 ${e.map((t,a)=>{const s=!!this.open[a];return o`
                         <oj-c-collapsible data-oj-binding-provider="preact"
@@ -10004,7 +10287,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                                 ${(t?.children??[]).map(i=>w(this.container,i,this.baseUrl,this.compState,this.compData,this.appState,this.appData))}
                             </div>
                         </oj-c-collapsible>`})}
-            </div>`}};Pt([m({attribute:!1})],pt.prototype,"component",2);Pt([m({attribute:!1})],pt.prototype,"container",2);Pt([m()],pt.prototype,"baseUrl",2);Pt([m({attribute:!1})],pt.prototype,"compState",2);Pt([m({attribute:!1})],pt.prototype,"compData",2);Pt([m({attribute:!1})],pt.prototype,"appState",2);Pt([m({attribute:!1})],pt.prototype,"appData",2);Pt([$()],pt.prototype,"open",2);pt=Pt([k("mateu-redwood-accordion")],pt);var Em=Object.defineProperty,Tm=Object.getOwnPropertyDescriptor,Ma=(e,t,a,s)=>{for(var i=s>1?void 0:s?Tm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Em(t,a,i),i};let ma=class extends S{constructor(){super(...arguments),this.totalElements=0,this.pageSize=100,this.pageNumber=0,this.pages=[],this.summary=""}createRenderRoot(){return this}updated(e){if(super.updated(e),e.has("totalElements")||e.has("pageNumber")||e.has("pageSize")){const t=[],a=Math.max(1,Math.ceil(this.totalElements/this.pageSize)),s=a-1;this.totalElements>0&&(this.pageNumber>0&&(t.push({pageNumber:0,text:"First",clickable:!0}),t.push({pageNumber:this.pageNumber-1,text:"Prev",clickable:!0})),t.push({pageNumber:this.pageNumber,text:`Page ${this.pageNumber+1} of ${a}`,clickable:!1}),this.pageNumber<s&&(t.push({pageNumber:this.pageNumber+1,text:"Next",clickable:!0}),t.push({pageNumber:s,text:"Last",clickable:!0}))),this.pages=t,this.summary=this.totalElements===1?"1 item":`${this.totalElements} items`}}goToPage(e){this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:e}}))}render(){return this.totalElements?o`
+            </div>`}};Rt([h({attribute:!1})],ht.prototype,"component",2);Rt([h({attribute:!1})],ht.prototype,"container",2);Rt([h()],ht.prototype,"baseUrl",2);Rt([h({attribute:!1})],ht.prototype,"compState",2);Rt([h({attribute:!1})],ht.prototype,"compData",2);Rt([h({attribute:!1})],ht.prototype,"appState",2);Rt([h({attribute:!1})],ht.prototype,"appData",2);Rt([$()],ht.prototype,"open",2);ht=Rt([k("mateu-redwood-accordion")],ht);var Lm=Object.defineProperty,Dm=Object.getOwnPropertyDescriptor,Ua=(e,t,a,s)=>{for(var i=s>1?void 0:s?Dm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&Lm(t,a,i),i};let fa=class extends S{constructor(){super(...arguments),this.totalElements=0,this.pageSize=100,this.pageNumber=0,this.pages=[],this.summary=""}createRenderRoot(){return this}updated(e){if(super.updated(e),e.has("totalElements")||e.has("pageNumber")||e.has("pageSize")){const t=[],a=Math.max(1,Math.ceil(this.totalElements/this.pageSize)),s=a-1;this.totalElements>0&&(this.pageNumber>0&&(t.push({pageNumber:0,text:"First",clickable:!0}),t.push({pageNumber:this.pageNumber-1,text:"Prev",clickable:!0})),t.push({pageNumber:this.pageNumber,text:`Page ${this.pageNumber+1} of ${a}`,clickable:!1}),this.pageNumber<s&&(t.push({pageNumber:this.pageNumber+1,text:"Next",clickable:!0}),t.push({pageNumber:s,text:"Last",clickable:!0}))),this.pages=t,this.summary=this.totalElements===1?"1 item":`${this.totalElements} items`}}goToPage(e){this.dispatchEvent(new CustomEvent("page-changed",{bubbles:!0,composed:!0,detail:{page:e}}))}render(){return this.totalElements?o`
             <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; padding: 0.25rem 0; font-size: 0.859rem; color: var(--oj-core-text-color-secondary, rgba(22,21,19,.7));">
                 ${this.totalElements<=this.pageSize?d:o`
                     ${this.pages.map(e=>e.clickable?o`
@@ -10020,62 +10303,62 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                 <span>${this.summary}</span>
                 <slot></slot>
             </div>
-        `:o`${d}`}};Ma([m({type:Number})],ma.prototype,"totalElements",2);Ma([m({type:Number})],ma.prototype,"pageSize",2);Ma([m({type:Number})],ma.prototype,"pageNumber",2);Ma([$()],ma.prototype,"pages",2);Ma([$()],ma.prototype,"summary",2);ma=Ma([k("mateu-redwood-pagination")],ma);const gr=new WeakMap,Pm=e=>{const t=e.target.dataset.actionId;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t},bubbles:!0,composed:!0}))},Om=new Set([v.App,v.Page,v.Form,v.Button,v.FormField,v.FormLayout,v.FormRow,v.FormSection,v.FormSubSection,v.HorizontalLayout,v.VerticalLayout,v.SplitLayout,v.MasterDetailLayout,v.Scroller,v.FullWidth,v.Container,v.BoardLayout,v.BoardLayoutRow,v.BoardLayoutItem,v.CarouselLayout,v.Card,v.Text,v.Badge,v.Anchor,v.Icon,v.Breadcrumbs,v.Notification,v.ProgressBar,v.Details,v.Avatar,v.AvatarGroup,v.Tooltip,v.Popover,v.MenuBar,v.ContextMenu,v.TabLayout,v.AccordionLayout,v.Dialog,v.Drawer,v.ConfirmDialog,v.Grid,v.Table,v.VirtualList,v.Directory,v.CustomField,v.MessageList,v.MessageInput,v.Crud,v.Element,v.Div,v.Image,v.MicroFrontend,v.Markdown,v.Chart,v.Bpmn,v.Map,v.Chat,v.CookieConsent,v.Workflow,v.WorkflowElk,v.FormEditor,v.MetricCard,v.Scoreboard,v.DashboardPanel,v.DashboardLayout,v.FoldoutLayout,v.HeroSection,v.EmptyState,v.Skeleton,v.Gantt,v.PlanningBoard,v.Kanban,v.Timeline,v.ProgressSteps,v.Stat,v.Calendar,v.PricingTable,v.OrgChart,v.Heatmap,v.Funnel,v.TrendChart,v.FeatureGrid,v.Testimonials,v.Faq,v.CalloutCard,v.CommentThread,v.FileList,v.Checklist,v.ComparisonCard,v.EntityHeader,v.Meter,v.TaskProgress,v.StatusList,v.BulletedList,v.Separator,v.Notice,v.TaskQueue,v.ResourceGrid,v.OfferCard,v.AddOnPicker,v.Ledger,v.PaymentPicker,v.ProcessMonitor]);class Rm extends du{rendererName(){return"redwood-oj"}supportedClientSideTypes(){return Om}rendersCrudLayouts(){return!0}renderFilterBar(t,a,s,i,r,n,l){const c=a?.metadata,u=c?.filters??[],h=gr.get(t)??{open:!1,text:"",viewsOpen:!1};gr.set(t,h);const p=()=>t.requestUpdate(),f=()=>{h.outsideClick&&(document.removeEventListener("mousedown",h.outsideClick),h.outsideClick=void 0)},g=()=>{f(),h.open=!1,h.viewsOpen=!1,h.activeFilter=void 0,p()},y=()=>{f(),h.outsideClick=b=>{b.composedPath().some(z=>z instanceof HTMLElement&&z.classList?.contains("mateu-smart-search"))||g()},document.addEventListener("mousedown",h.outsideClick)},x=()=>{h.open||(h.open=!0,h.viewsOpen=!1,y(),p())},T=()=>{const b=!h.viewsOpen;h.open=!1,h.activeFilter=void 0,h.viewsOpen=b,b?y():f(),p()},U=()=>{f(),h.open=!1,h.viewsOpen=!1,h.activeFilter=void 0,t.search()},ae=(b,E)=>{i[b]=E,U()},N=b=>{const E=u.find(z=>z.fieldId===b);E&&Y(E)?(i[`${b}_from`]=void 0,i[`${b}_to`]=void 0):i[b]=b==="searchText"?"":void 0,U()},oe=b=>{i.searchText=b.value,h.text="",b.value="",U()},ue=b=>b.dataType==="boolean"||b.dataType==="bool"||b.stereotype==="checkbox"||b.stereotype==="toggle",ie=b=>["integer","decimal","number","money"].includes(b.dataType),Y=b=>b.stereotype==="dateRange"||b.stereotype==="numberRange",ee=b=>b.stereotype==="multiSelect",fe=b=>(b.options?.length??0)>0,I=b=>{const E=i[b.fieldId];return Array.isArray(E)?E.map(String):typeof E=="string"&&E!==""?E.split(",").map(z=>z.trim()).filter(z=>z):[]},L=(b,E)=>{const z=i[`${b.fieldId}_${E}`];return z==null?"":String(z)},O=b=>{if(Y(b))return L(b,"from")!==""||L(b,"to")!=="";if(ee(b))return I(b).length>0;const E=i[b.fieldId];return E!=null&&E!==""},D=(b,E)=>{const z=b?.options?.find(B=>B.value===String(E));return z?z.label??z.value:typeof E=="boolean"?E?"Yes":"No":String(E)},De=b=>{if(Y(b)){const E=L(b,"from"),z=L(b,"to");return E&&z?`${E} – ${z}`:E?`≥ ${E}`:`≤ ${z}`}return ee(b)?I(b).map(E=>D(b,E)).join(", "):D(b,i[b.fieldId])},Ie=window.location.pathname,it=()=>["searchText",...u.flatMap(b=>Y(b)?[`${b.fieldId}_from`,`${b.fieldId}_to`]:[b.fieldId])],ft=()=>!!i.searchText||u.some(b=>O(b)),R=()=>{const b={};return i.searchText&&(b.searchText=i.searchText),u.forEach(E=>{if(O(E))if(Y(E)){const z=L(E,"from"),B=L(E,"to");z&&(b[`${E.fieldId}_from`]=z),B&&(b[`${E.fieldId}_to`]=B)}else ee(E)?b[E.fieldId]=I(E):b[E.fieldId]=i[E.fieldId]}),b},se=b=>{it().forEach(E=>{i[E]=void 0}),Object.entries(b.values).forEach(([E,z])=>{i[E]=z}),U()},pe=b=>{const E=b.value.trim();E&&(vo(Ie,{name:E,values:R()}),b.value="",p())};if(!h.defaultViewChecked&&(h.defaultViewChecked=!0,!window.location.search)){const b=go(Ie);b&&setTimeout(()=>{ft()||se(b)},0)}const F=[];i.searchText&&F.push({fieldId:"searchText",label:"Text",display:String(i.searchText)}),u.forEach(b=>{O(b)&&F.push({fieldId:b.fieldId,label:b.label||b.fieldId,display:De(b)})});const j="var(--mateu-redwood-text, rgb(22, 21, 19))",_=`display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.75rem; cursor: pointer; color: ${j}; font-size: 0.875rem;`,q=b=>b.preventDefault(),be=(b,E,z=!1)=>o`
+        `:o`${d}`}};Ua([h({type:Number})],fa.prototype,"totalElements",2);Ua([h({type:Number})],fa.prototype,"pageSize",2);Ua([h({type:Number})],fa.prototype,"pageNumber",2);Ua([$()],fa.prototype,"pages",2);Ua([$()],fa.prototype,"summary",2);fa=Ua([k("mateu-redwood-pagination")],fa);const yr=new WeakMap,Fm=e=>{const t=e.target.dataset.actionId;e.target?.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:t},bubbles:!0,composed:!0}))},Nm=new Set([v.App,v.Page,v.Form,v.Button,v.FormField,v.FormLayout,v.FormRow,v.FormSection,v.FormSubSection,v.HorizontalLayout,v.VerticalLayout,v.SplitLayout,v.MasterDetailLayout,v.Scroller,v.FullWidth,v.Container,v.BoardLayout,v.BoardLayoutRow,v.BoardLayoutItem,v.CarouselLayout,v.Card,v.Text,v.Badge,v.Anchor,v.Icon,v.Breadcrumbs,v.Notification,v.ProgressBar,v.Details,v.Avatar,v.AvatarGroup,v.Tooltip,v.Popover,v.MenuBar,v.ContextMenu,v.TabLayout,v.AccordionLayout,v.Dialog,v.Drawer,v.ConfirmDialog,v.Grid,v.Table,v.VirtualList,v.Directory,v.CustomField,v.MessageList,v.MessageInput,v.Crud,v.Element,v.Div,v.Image,v.MicroFrontend,v.Markdown,v.Chart,v.Bpmn,v.Map,v.Chat,v.CookieConsent,v.Workflow,v.WorkflowElk,v.FormEditor,v.MetricCard,v.Scoreboard,v.DashboardPanel,v.DashboardLayout,v.FoldoutLayout,v.HeroSection,v.EmptyState,v.Skeleton,v.Gantt,v.PlanningBoard,v.Kanban,v.Timeline,v.ProgressSteps,v.Stat,v.Calendar,v.PricingTable,v.OrgChart,v.Heatmap,v.Funnel,v.TrendChart,v.FeatureGrid,v.Testimonials,v.Faq,v.CalloutCard,v.CommentThread,v.FileList,v.Checklist,v.ComparisonCard,v.EntityHeader,v.Meter,v.TaskProgress,v.StatusList,v.BulletedList,v.Separator,v.Notice,v.TaskQueue,v.ResourceGrid,v.OfferCard,v.AddOnPicker,v.Ledger,v.PaymentPicker,v.ProcessMonitor]);class Mm extends hu{rendererName(){return"redwood-oj"}supportedClientSideTypes(){return Nm}rendersCrudLayouts(){return!0}renderFilterBar(t,a,s,i,r,n,l){const c=a?.metadata,u=c?.filters??[],m=yr.get(t)??{open:!1,text:"",viewsOpen:!1};yr.set(t,m);const p=()=>t.requestUpdate(),f=()=>{m.outsideClick&&(document.removeEventListener("mousedown",m.outsideClick),m.outsideClick=void 0)},g=()=>{f(),m.open=!1,m.viewsOpen=!1,m.activeFilter=void 0,p()},y=()=>{f(),m.outsideClick=b=>{b.composedPath().some(z=>z instanceof HTMLElement&&z.classList?.contains("mateu-smart-search"))||g()},document.addEventListener("mousedown",m.outsideClick)},x=()=>{m.open||(m.open=!0,m.viewsOpen=!1,y(),p())},P=()=>{const b=!m.viewsOpen;m.open=!1,m.activeFilter=void 0,m.viewsOpen=b,b?y():f(),p()},U=()=>{f(),m.open=!1,m.viewsOpen=!1,m.activeFilter=void 0,t.search()},ae=(b,E)=>{i[b]=E,U()},N=b=>{const E=u.find(z=>z.fieldId===b);E&&Y(E)?(i[`${b}_from`]=void 0,i[`${b}_to`]=void 0):i[b]=b==="searchText"?"":void 0,U()},ne=b=>{i.searchText=b.value,m.text="",b.value="",U()},ue=b=>b.dataType==="boolean"||b.dataType==="bool"||b.stereotype==="checkbox"||b.stereotype==="toggle",ie=b=>["integer","decimal","number","money"].includes(b.dataType),Y=b=>b.stereotype==="dateRange"||b.stereotype==="numberRange",ee=b=>b.stereotype==="multiSelect",fe=b=>(b.options?.length??0)>0,I=b=>{const E=i[b.fieldId];return Array.isArray(E)?E.map(String):typeof E=="string"&&E!==""?E.split(",").map(z=>z.trim()).filter(z=>z):[]},L=(b,E)=>{const z=i[`${b.fieldId}_${E}`];return z==null?"":String(z)},O=b=>{if(Y(b))return L(b,"from")!==""||L(b,"to")!=="";if(ee(b))return I(b).length>0;const E=i[b.fieldId];return E!=null&&E!==""},D=(b,E)=>{const z=b?.options?.find(B=>B.value===String(E));return z?z.label??z.value:typeof E=="boolean"?E?"Yes":"No":String(E)},De=b=>{if(Y(b)){const E=L(b,"from"),z=L(b,"to");return E&&z?`${E} – ${z}`:E?`≥ ${E}`:`≤ ${z}`}return ee(b)?I(b).map(E=>D(b,E)).join(", "):D(b,i[b.fieldId])},Ie=window.location.pathname,st=()=>["searchText",...u.flatMap(b=>Y(b)?[`${b.fieldId}_from`,`${b.fieldId}_to`]:[b.fieldId])],bt=()=>!!i.searchText||u.some(b=>O(b)),R=()=>{const b={};return i.searchText&&(b.searchText=i.searchText),u.forEach(E=>{if(O(E))if(Y(E)){const z=L(E,"from"),B=L(E,"to");z&&(b[`${E.fieldId}_from`]=z),B&&(b[`${E.fieldId}_to`]=B)}else ee(E)?b[E.fieldId]=I(E):b[E.fieldId]=i[E.fieldId]}),b},se=b=>{st().forEach(E=>{i[E]=void 0}),Object.entries(b.values).forEach(([E,z])=>{i[E]=z}),U()},pe=b=>{const E=b.value.trim();E&&(bo(Ie,{name:E,values:R()}),b.value="",p())};if(!m.defaultViewChecked&&(m.defaultViewChecked=!0,!window.location.search)){const b=yo(Ie);b&&setTimeout(()=>{bt()||se(b)},0)}const F=[];i.searchText&&F.push({fieldId:"searchText",label:"Text",display:String(i.searchText)}),u.forEach(b=>{O(b)&&F.push({fieldId:b.fieldId,label:b.label||b.fieldId,display:De(b)})});const A="var(--mateu-redwood-text, rgb(22, 21, 19))",_=`display: flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.75rem; cursor: pointer; color: ${A}; font-size: 0.875rem;`,q=b=>b.preventDefault(),be=(b,E,z=!1)=>o`
             <div style="${_} ${z?"font-weight: 600;":""}"
                  @mousedown="${q}"
                  @click="${E}"
                  onmouseover="this.style.background='rgba(22,21,19,0.06)'"
-                 onmouseout="this.style.background='transparent'">${b}</div>`,ea=`flex: 1; min-width: 0; font: inherit; font-size: 0.875rem; color: ${j}; border: 1px solid rgba(22,21,19,0.5); border-radius: 4px; padding: 0.35rem 0.5rem; outline: none;`,bt="font: inherit; font-size: 0.875rem; background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); color: #fff; border: 1px solid transparent; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer;",gt=b=>{const E=b.stereotype==="numberRange"?"number":b.dataType==="dateTime"?"datetime-local":b.dataType==="time"?"time":"date",z=J=>{const qa=J.closest(".range-row");i[`${b.fieldId}_from`]=qa.querySelector("input.range-from").value||void 0,i[`${b.fieldId}_to`]=qa.querySelector("input.range-to").value||void 0,U()},B=J=>{J.key==="Enter"&&z(J.target),J.key==="Escape"&&g()};return o`
+                 onmouseout="this.style.background='transparent'">${b}</div>`,aa=`flex: 1; min-width: 0; font: inherit; font-size: 0.875rem; color: ${A}; border: 1px solid rgba(22,21,19,0.5); border-radius: 4px; padding: 0.35rem 0.5rem; outline: none;`,gt="font: inherit; font-size: 0.875rem; background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); color: #fff; border: 1px solid transparent; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer;",$t=b=>{const E=b.stereotype==="numberRange"?"number":b.dataType==="dateTime"?"datetime-local":b.dataType==="time"?"time":"date",z=J=>{const Ba=J.closest(".range-row");i[`${b.fieldId}_from`]=Ba.querySelector("input.range-from").value||void 0,i[`${b.fieldId}_to`]=Ba.querySelector("input.range-to").value||void 0,U()},B=J=>{J.key==="Enter"&&z(J.target),J.key==="Escape"&&g()};return o`
                 <div class="range-row" style="display: flex; gap: 0.5rem; align-items: center; padding: 0.5rem 0.75rem;">
-                    <input class="range-from" type="${E}" placeholder="From" style="${ea}"
+                    <input class="range-from" type="${E}" placeholder="From" style="${aa}"
                            .value="${L(b,"from")}"
                            @mousedown="${J=>J.stopPropagation()}"
                            @keydown="${B}"/>
                     <span aria-hidden="true" style="color: rgba(22,21,19,0.55);">–</span>
-                    <input class="range-to" type="${E}" placeholder="To" style="${ea}"
+                    <input class="range-to" type="${E}" placeholder="To" style="${aa}"
                            .value="${L(b,"to")}"
                            @mousedown="${J=>J.stopPropagation()}"
                            @keydown="${B}"/>
-                    <button style="${bt}"
+                    <button style="${gt}"
                             @mousedown="${q}"
                             @click="${J=>z(J.target)}">Apply</button>
-                </div>`},ss=b=>{const E=I(b),z=J=>{const qa=E.includes(J)?E.filter(Lo=>Lo!==J):[...E,J];i[b.fieldId]=qa.length>0?qa:void 0,t.search(),p()},B="display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: 3px; font-size: 0.7rem; line-height: 1; flex: none;";return o`${(b.options??[]).map(J=>be(o`
+                </div>`},rs=b=>{const E=I(b),z=J=>{const Ba=E.includes(J)?E.filter(Mo=>Mo!==J):[...E,J];i[b.fieldId]=Ba.length>0?Ba:void 0,t.search(),p()},B="display: inline-flex; align-items: center; justify-content: center; width: 1rem; height: 1rem; border-radius: 3px; font-size: 0.7rem; line-height: 1; flex: none;";return o`${(b.options??[]).map(J=>be(o`
                 <span aria-hidden="true" style="${B} ${E.includes(J.value)?"background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); border: 1px solid transparent; color: #fff;":"border: 1px solid rgba(22,21,19,0.5);"}">${E.includes(J.value)?"✓":""}</span>
                 ${J.label??J.value}
-            `,()=>z(J.value)))}`},zo=b=>{if(Y(b))return gt(b);if(ee(b))return ss(b);if(fe(b))return o`${b.options.map(B=>be(B.label??B.value,()=>ae(b.fieldId,B.value)))}`;if(ue(b))return o`
+            `,()=>z(J.value)))}`},Do=b=>{if(Y(b))return $t(b);if(ee(b))return rs(b);if(fe(b))return o`${b.options.map(B=>be(B.label??B.value,()=>ae(b.fieldId,B.value)))}`;if(ue(b))return o`
                     ${be("Yes",()=>ae(b.fieldId,!0))}
                     ${be("No",()=>ae(b.fieldId,!1))}`;const E=ie(b),z=B=>{B.value!==""&&ae(b.fieldId,E?Number(B.value):B.value)};return o`
                 <div style="display: flex; gap: 0.5rem; padding: 0.5rem 0.75rem;">
                     <input type="${E?"number":"text"}"
                            placeholder="${b.placeholder||b.label||b.fieldId}"
-                           style="flex: 1; font: inherit; font-size: 0.875rem; color: ${j}; border: 1px solid rgba(22,21,19,0.5); border-radius: 4px; padding: 0.35rem 0.5rem; outline: none;"
+                           style="flex: 1; font: inherit; font-size: 0.875rem; color: ${A}; border: 1px solid rgba(22,21,19,0.5); border-radius: 4px; padding: 0.35rem 0.5rem; outline: none;"
                            @mousedown="${B=>B.stopPropagation()}"
                            @keydown="${B=>{B.key==="Enter"&&z(B.target),B.key==="Escape"&&g()}}"/>
                     <button style="font: inherit; font-size: 0.875rem; background: var(--mateu-redwood-cta-bg, rgb(49, 45, 42)); color: #fff; border: 1px solid transparent; border-radius: 4px; padding: 0.35rem 0.75rem; cursor: pointer;"
                             @mousedown="${q}"
                             @click="${B=>z(B.target.previousElementSibling)}">Apply</button>
-                </div>`},jo=h.open&&u.length>0?o`
+                </div>`},Fo=m.open&&u.length>0?o`
             <div style="position: absolute; top: calc(100% + 4px); left: 0; min-width: 20rem; max-width: 100%; background: var(--mateu-redwood-panel-bg, #fff); border: 1px solid rgba(22,21,19,0.25); border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); z-index: 30; overflow: hidden; padding: 0.25rem 0;">
-                ${h.activeFilter?o`
+                ${m.activeFilter?o`
                     <div style="${_} font-weight: 600; border-bottom: 1px solid rgba(22,21,19,0.15);"
                          @mousedown="${q}"
-                         @click="${()=>{h.activeFilter=void 0,p()}}">
-                        <span aria-hidden="true">←</span> ${h.activeFilter.label||h.activeFilter.fieldId}
+                         @click="${()=>{m.activeFilter=void 0,p()}}">
+                        <span aria-hidden="true">←</span> ${m.activeFilter.label||m.activeFilter.fieldId}
                     </div>
-                    ${zo(h.activeFilter)}
+                    ${Do(m.activeFilter)}
                 `:o`
                     <div style="padding: 0.35rem 0.75rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(22,21,19,0.6);">Filter by</div>
                     ${u.map(b=>be(o`
                         ${b.label||b.fieldId}
                         ${O(b)?o`<span style="margin-left: auto; color: rgba(22,21,19,0.55); font-size: 0.8125rem;">${De(b)}</span>`:d}
-                    `,()=>{h.activeFilter=b,p()}))}
+                    `,()=>{m.activeFilter=b,p()}))}
                 `}
-            </div>`:d,Hs=`${_} cursor: default; color: rgba(22,21,19,0.6);`,Ao=h.viewsOpen?o`
+            </div>`:d,Ks=`${_} cursor: default; color: rgba(22,21,19,0.6);`,No=m.viewsOpen?o`
             <div style="position: absolute; top: calc(100% + 4px); right: 0; left: auto; min-width: 20rem; max-width: 100%; background: var(--mateu-redwood-panel-bg, #fff); border: 1px solid rgba(22,21,19,0.25); border-radius: 8px; box-shadow: 0 6px 16px rgba(0,0,0,0.15); z-index: 30; overflow: hidden; padding: 0.25rem 0;">
                 <div style="padding: 0.35rem 0.75rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: rgba(22,21,19,0.6);">Saved views</div>
-                ${Di(Ie).length===0?o`
-                    <div style="${Hs}">No saved views yet</div>`:d}
-                ${Di(Ie).map(b=>o`
+                ${Fi(Ie).length===0?o`
+                    <div style="${Ks}">No saved views yet</div>`:d}
+                ${Fi(Ie).map(b=>o`
                     <div style="${_}"
                          @mousedown="${q}"
                          onmouseover="this.style.background='rgba(22,21,19,0.06)'"
@@ -10083,29 +10366,29 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                         <span style="flex: 1 1 auto; cursor: pointer;" @click="${()=>se(b)}">${b.name}</span>
                         <button title="${b.isDefault?"Unset as default":"Open this listing with this view"}"
                                 style="border: none; background: none; cursor: pointer; padding: 0 0.15rem; color: ${b.isDefault?"var(--mateu-redwood-cta-bg, rgb(49, 45, 42))":"rgba(22,21,19,0.4)"};"
-                                @click="${()=>{bo(Ie,b.name),p()}}">★</button>
+                                @click="${()=>{$o(Ie,b.name),p()}}">★</button>
                         <button aria-label="Delete view ${b.name}"
                                 style="border: none; background: transparent; cursor: pointer; font-size: 0.75rem; line-height: 1; padding: 0.1rem 0.3rem; opacity: 0.6;"
-                                @click="${()=>{fo(Ie,b.name),p()}}">✕</button>
+                                @click="${()=>{go(Ie,b.name),p()}}">✕</button>
                     </div>`)}
-                ${ft()?o`
+                ${bt()?o`
                     <div style="display: flex; gap: 0.5rem; padding: 0.5rem 0.75rem;" @mousedown="${b=>b.stopPropagation()}">
-                        <input type="text" placeholder="Save current view as…" style="${ea}"
+                        <input type="text" placeholder="Save current view as…" style="${aa}"
                                @keydown="${b=>{b.key==="Enter"&&pe(b.target),b.key==="Escape"&&g()}}"/>
-                        <button style="${bt}"
+                        <button style="${gt}"
                                 @mousedown="${q}"
                                 @click="${b=>pe(b.target.previousElementSibling)}">Save</button>
                     </div>`:o`
-                    <div style="${Hs}">Apply some filters to save a view</div>`}
+                    <div style="${Ks}">Apply some filters to save a view</div>`}
             </div>`:d;return o`
             <div class="mateu-smart-search" style="position: relative; padding: 0.25rem 0;">
                 <div style="display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; border: 1px solid rgba(22,21,19,0.5); border-radius: 8px; padding: 0.3rem 0.6rem; background: var(--mateu-redwood-panel-bg, #fff); cursor: text;"
                      @click="${b=>{b.currentTarget.querySelector("input.smart-search-input")?.focus(),x()}}">
                     <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" style="flex: none; opacity: 0.6;">
-                        <path fill="${j.startsWith("var")?"rgb(22,21,19)":j}" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>
+                        <path fill="${A.startsWith("var")?"rgb(22,21,19)":A}" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>
                     </svg>
                     ${F.map(b=>o`
-                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(22,21,19,0.08); border-radius: 1rem; padding: 0.15rem 0.3rem 0.15rem 0.6rem; font-size: 0.8125rem; color: ${j}; white-space: nowrap;">
+                        <span style="display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(22,21,19,0.08); border-radius: 1rem; padding: 0.15rem 0.3rem 0.15rem 0.6rem; font-size: 0.8125rem; color: ${A}; white-space: nowrap;">
                             <span style="opacity: 0.7;">${b.label}:</span> ${b.display}
                             <button aria-label="Remove filter ${b.label}"
                                     style="border: none; background: transparent; cursor: pointer; font-size: 0.75rem; line-height: 1; padding: 0.1rem 0.3rem; opacity: 0.6;"
@@ -10115,22 +10398,22 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     ${c?.searchable!==!1?o`
                         <input class="smart-search-input" type="text"
                                placeholder="${F.length===0?"Search":""}"
-                               .value="${h.text??""}"
-                               style="flex: 1 1 8rem; min-width: 7rem; border: none; outline: none; background: transparent; font: inherit; font-size: 0.875rem; color: ${j}; padding: 0.25rem 0;"
-                               @input="${b=>{h.text=b.target.value,x()}}"
-                               @keydown="${b=>{b.key==="Enter"&&oe(b.target),b.key==="Escape"&&g()}}"/>
+                               .value="${m.text??""}"
+                               style="flex: 1 1 8rem; min-width: 7rem; border: none; outline: none; background: transparent; font: inherit; font-size: 0.875rem; color: ${A}; padding: 0.25rem 0;"
+                               @input="${b=>{m.text=b.target.value,x()}}"
+                               @keydown="${b=>{b.key==="Enter"&&ne(b.target),b.key==="Escape"&&g()}}"/>
                     `:d}
                     <button title="Saved views" aria-label="Saved views"
                             style="margin-left: auto; flex: none; border: none; background: none; cursor: pointer; padding: 0.15rem 0.3rem; color: rgba(22,21,19,0.6); line-height: 1;"
                             @mousedown="${q}"
-                            @click="${b=>{b.stopPropagation(),T()}}">
+                            @click="${b=>{b.stopPropagation(),P()}}">
                         <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24">
                             <path fill="currentColor" d="M17 3H7a2 2 0 0 0-2 2v16l7-3 7 3V5a2 2 0 0 0-2-2z"/>
                         </svg>
                     </button>
                 </div>
-                ${jo}
-                ${Ao}
+                ${Fo}
+                ${No}
                 ${c?.header?.map(b=>w(t,b,s,i,r,n,l))}
             </div>
             <!-- RDS chrome: the color strip marks the top edge of the collection container —
@@ -10165,13 +10448,13 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                      .appData="${l}"
                      baseUrl="${s}"
         ></mateu-redwood-table>
-        `}renderClientSideComponent(t,a,s,i,r,n,l,c){return v.Page==a?.metadata?.type?tm(t,a,s,i,r,n,l):v.Form==a?.metadata?.type?Zh(t,a,s,i,r,n,l):v.Button==a?.metadata?.type?cu(a):v.FormField==a?.metadata?.type?lp(t,a,s,i,r):v.FormLayout==a?.metadata?.type?am(t,a,s,i,r,n,l):v.FormRow==a?.metadata?.type?im(t,a,s,i,r,n,l):v.FormSection==a?.metadata?.type?sm(t,a,s,i,r,n,l):v.FormSubSection==a?.metadata?.type?rm(t,a,s,i,r,n,l):v.HorizontalLayout==a?.metadata?.type?om(t,a,s,i,r,n,l):v.VerticalLayout==a?.metadata?.type?nm(t,a,s,i,r,n,l):v.SplitLayout==a?.metadata?.type?lm(t,a,s,i,r,n,l):v.MasterDetailLayout==a?.metadata?.type?wm(t,a,s,i,r,n,l):v.Scroller==a?.metadata?.type?fm(t,a,s,i,r,n,l):v.FullWidth==a?.metadata?.type?bm(t,a,s,i,r,n,l):v.Container==a?.metadata?.type?gm(t,a,s,i,r,n,l):v.BoardLayout==a?.metadata?.type?$m(t,a,s,i,r,n,l):v.BoardLayoutRow==a?.metadata?.type?ym(t,a,s,i,r,n,l):v.BoardLayoutItem==a?.metadata?.type?xm(t,a,s,i,r,n,l):v.CarouselLayout==a?.metadata?.type?km(t,a,s,i,r,n,l):v.Card==a?.metadata?.type?dm(t,a,s,i,r,n,l):v.Text==a?.metadata?.type?um(t,a):v.Badge==a?.metadata?.type?pm(a):v.Anchor==a?.metadata?.type?hm(a):v.Icon==a?.metadata?.type?Lu(a):v.Breadcrumbs==a?.metadata?.type?Du(a):v.Notification==a?.metadata?.type?Fu(a):v.ProgressBar==a?.metadata?.type?Nu(a,i):v.Details==a?.metadata?.type?Mu(t,a,s,i,r,n,l):v.Avatar==a?.metadata?.type?qu(a,i,r):v.AvatarGroup==a?.metadata?.type?Uu(a):v.Tooltip==a?.metadata?.type?Bu(t,a,s,i,r,n,l):v.Popover==a?.metadata?.type?Vu(t,a,s,i,r,n,l):v.MenuBar==a?.metadata?.type?Wu(t,a):v.ContextMenu==a?.metadata?.type?Hu(t,a,s,i,r,n,l):v.Grid==a?.metadata?.type?Tu(a,i):v.Table==a?.metadata?.type?Pu(t,a,s,i,r,n,l):v.VirtualList==a?.metadata?.type?Ou(t,a,s,i,r,n,l):v.Directory==a?.metadata?.type?Ru(a):v.CustomField==a?.metadata?.type?zu(t,a,s,i,r,n,l):v.MessageList==a?.metadata?.type?ju(a):v.MessageInput==a?.metadata?.type?Au(a):v.TabLayout==a?.metadata?.type?o`<mateu-redwood-tabs
+        `}renderClientSideComponent(t,a,s,i,r,n,l,c){return v.Page==a?.metadata?.type?dm(t,a,s,i,r,n,l):v.Form==a?.metadata?.type?nm(t,a,s,i,r,n,l):v.Button==a?.metadata?.type?mu(a):v.FormField==a?.metadata?.type?pp(t,a,s,i,r):v.FormLayout==a?.metadata?.type?cm(t,a,s,i,r,n,l):v.FormRow==a?.metadata?.type?um(t,a,s,i,r,n,l):v.FormSection==a?.metadata?.type?pm(t,a,s,i,r,n,l):v.FormSubSection==a?.metadata?.type?hm(t,a,s,i,r,n,l):v.HorizontalLayout==a?.metadata?.type?mm(t,a,s,i,r,n,l):v.VerticalLayout==a?.metadata?.type?vm(t,a,s,i,r,n,l):v.SplitLayout==a?.metadata?.type?fm(t,a,s,i,r,n,l):v.MasterDetailLayout==a?.metadata?.type?Tm(t,a,s,i,r,n,l):v.Scroller==a?.metadata?.type?Cm(t,a,s,i,r,n,l):v.FullWidth==a?.metadata?.type?Sm(t,a,s,i,r,n,l):v.Container==a?.metadata?.type?Im(t,a,s,i,r,n,l):v.BoardLayout==a?.metadata?.type?_m(t,a,s,i,r,n,l):v.BoardLayoutRow==a?.metadata?.type?Em(t,a,s,i,r,n,l):v.BoardLayoutItem==a?.metadata?.type?Pm(t,a,s,i,r,n,l):v.CarouselLayout==a?.metadata?.type?Om(t,a,s,i,r,n,l):v.Card==a?.metadata?.type?bm(t,a,s,i,r,n,l):v.Text==a?.metadata?.type?$m(t,a):v.Badge==a?.metadata?.type?ym(a):v.Anchor==a?.metadata?.type?xm(a):v.Icon==a?.metadata?.type?Mu(a):v.Breadcrumbs==a?.metadata?.type?qu(a):v.Notification==a?.metadata?.type?Uu(a):v.ProgressBar==a?.metadata?.type?Bu(a,i):v.Details==a?.metadata?.type?Vu(t,a,s,i,r,n,l):v.Avatar==a?.metadata?.type?Wu(a,i,r):v.AvatarGroup==a?.metadata?.type?Hu(a):v.Tooltip==a?.metadata?.type?Gu(t,a,s,i,r,n,l):v.Popover==a?.metadata?.type?Ku(t,a,s,i,r,n,l):v.MenuBar==a?.metadata?.type?Yu(t,a):v.ContextMenu==a?.metadata?.type?Ju(t,a,s,i,r,n,l):v.Grid==a?.metadata?.type?zu(a,i):v.Table==a?.metadata?.type?Au(t,a,s,i,r,n,l):v.VirtualList==a?.metadata?.type?ju(t,a,s,i,r,n,l):v.Directory==a?.metadata?.type?Lu(a):v.CustomField==a?.metadata?.type?Du(t,a,s,i,r,n,l):v.MessageList==a?.metadata?.type?Fu(a):v.MessageInput==a?.metadata?.type?Nu(a):v.TabLayout==a?.metadata?.type?o`<mateu-redwood-tabs
                     .component="${a}" .container="${t}" baseUrl="${s}"
                     .compState="${i}" .compData="${r}" .appState="${n}" .appData="${l}"
             ></mateu-redwood-tabs>`:v.AccordionLayout==a?.metadata?.type?o`<mateu-redwood-accordion
                     .component="${a}" .container="${t}" baseUrl="${s}"
                     .compState="${i}" .compData="${r}" .appState="${n}" .appData="${l}"
-            ></mateu-redwood-accordion>`:v.Dialog==a?.metadata?.type?mm(t,a,s,i,r,n,l):v.ConfirmDialog==a?.metadata?.type?vm(t,a,s,i,r,n,l):super.renderClientSideComponent(t,a,s,i,r,n,l,c)}renderAppComponent(t,a,s,i,r,n,l){return Qh(t,a,s,i,r,n,l)}}te.set(new Rm);te.setUseShadowRoot(!1);te.setAfterRenderHook(e=>{});var zm=Object.defineProperty,jm=Object.getOwnPropertyDescriptor,Ot=(e,t,a,s)=>{for(var i=s>1?void 0:s?jm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&zm(t,a,i),i};let et=class extends S{constructor(){super(...arguments),this.baseUrl="",this.route=void 0,this.consumedRoute="_empty",this.config=void 0,this.top="true",this.pathPrefix=void 0,this.debug=!1,this._lastUrl="",this.routeChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.top=="true"){let t=e.detail.route,a=this.baseUrl??"";!t||t.startsWith("/")?a=window.location.origin+(this.pathPrefix??""):(t=(this.pathPrefix??"")+t,a.indexOf("://")<0&&(a.startsWith("/")||(a="/"+a),a=window.location.origin+a)),t.startsWith(this.pathPrefix+"/")&&(t=t.substring(this.pathPrefix?.length)),a.endsWith("/")&&t.startsWith("/")&&(t=t.substring(1));let s=new URL(a+t);if((window.location.pathname||s.pathname)&&window.location.pathname!=s.pathname){let i=s.pathname;s.search&&(i+=s.search),i&&!i.startsWith("/")&&(i="/"+i),window.history.pushState({},"",i),this._lastUrl=window.location.href}}},this.navigateToRequestedListener=e=>{if(e.preventDefault(),e.stopPropagation(),Dt.markClean(),e instanceof CustomEvent){let t=e.detail.route;const a=this.renderRoot.querySelector("mateu-ux");a&&(a.setAttribute("route",t),a.setAttribute("instant",ye()))}}}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){if(super.connectedCallback(),Dt.install(),this._lastUrl=window.location.href,window.onpopstate=e=>{if(!Dt.confirmLeave()){window.history.pushState({},"",this._lastUrl);return}const t=e.target;this.loadUrl(t)},this.top=="true"?this.loadUrl(window):this.route&&(this.consumedRoute=""),this.config)try{const e=JSON.parse(this.config);ne.value={...ne.value,...e}}catch{ne.value={...ne.value,config:this.config}}this.addEventListener("url-update-requested",this.routeChangedListener),this.addEventListener("navigate-to-requested",this.navigateToRequestedListener)}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe(),this.removeEventListener("url-update-requested",this.routeChangedListener),this.removeEventListener("navigate-to-requested",this.navigateToRequestedListener)}loadUrl(e){if(this.route=this.extractRouteFromUrl(e),this.setAttribute("route",this.route),this.instant=ye(),this._lastUrl=e.location.href,e.location.search){const a=new URLSearchParams(e.location.search).get("overrides");if(a&&(this.config=a,this.config))try{const s=JSON.parse(this.config);ne.value={...ne.value,...s}}catch{ne.value={...ne.value,config:this.config}}}}extractRouteFromUrl(e){return this.addQueryParams(this.extractRouteWithoutParamsFromUrl(e),e.location)}extractRouteWithoutParamsFromUrl(e){const t=this.extractGrossRouteFromUrl(e);return this.pathPrefix&&t.startsWith(this.pathPrefix)?t.substring(this.pathPrefix.length):t=="/"?"":t}addQueryParams(e,t){return e+(t.search?""+t.search:"")}extractGrossRouteFromUrl(e){const t=e.location.pathname,a=this.baseUrl&&(this.baseUrl.startsWith("http://")||this.baseUrl.startsWith("https://"))?this.baseUrl.substring(this.getContextPathStartingIndex(this.baseUrl)):this.baseUrl;return t.startsWith(a)?t.substring(a.length):t}getContextPathStartingIndex(e){return e.startsWith("http:")?e.indexOf("/",7):e.startsWith("https:")?e.indexOf("/",8):0}render(){return o`
+            ></mateu-redwood-accordion>`:v.Dialog==a?.metadata?.type?wm(t,a,s,i,r,n,l):v.ConfirmDialog==a?.metadata?.type?km(t,a,s,i,r,n,l):super.renderClientSideComponent(t,a,s,i,r,n,l,c)}renderAppComponent(t,a,s,i,r,n,l){return om(t,a,s,i,r,n,l)}}te.set(new Mm);te.setUseShadowRoot(!1);te.setAfterRenderHook(e=>{});var qm=Object.defineProperty,Um=Object.getOwnPropertyDescriptor,zt=(e,t,a,s)=>{for(var i=s>1?void 0:s?Um(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=(s?n(t,a,i):n(i))||i);return s&&i&&qm(t,a,i),i};let tt=class extends S{constructor(){super(...arguments),this.baseUrl="",this.route=void 0,this.consumedRoute="_empty",this.config=void 0,this.top="true",this.pathPrefix=void 0,this.debug=!1,this._lastUrl="",this.routeChangedListener=e=>{if(e.preventDefault(),e.stopPropagation(),e instanceof CustomEvent&&this.top=="true"){let t=e.detail.route,a=this.baseUrl??"";!t||t.startsWith("/")?a=window.location.origin+(this.pathPrefix??""):(t=(this.pathPrefix??"")+t,a.indexOf("://")<0&&(a.startsWith("/")||(a="/"+a),a=window.location.origin+a)),t.startsWith(this.pathPrefix+"/")&&(t=t.substring(this.pathPrefix?.length)),a.endsWith("/")&&t.startsWith("/")&&(t=t.substring(1));let s=new URL(a+t);if((window.location.pathname||s.pathname)&&window.location.pathname!=s.pathname){let i=s.pathname;s.search&&(i+=s.search),i&&!i.startsWith("/")&&(i="/"+i),window.history.pushState({},"",i),this._lastUrl=window.location.href}}},this.navigateToRequestedListener=e=>{if(e.preventDefault(),e.stopPropagation(),Nt.markClean(),e instanceof CustomEvent){let t=e.detail.route;const a=this.renderRoot.querySelector("mateu-ux");a&&(a.setAttribute("route",t),a.setAttribute("instant",ye()))}}}createRenderRoot(){return te.mustUseShadowRoot()?super.createRenderRoot():this}connectedCallback(){if(super.connectedCallback(),Nt.install(),this._lastUrl=window.location.href,window.onpopstate=e=>{if(!Nt.confirmLeave()){window.history.pushState({},"",this._lastUrl);return}const t=e.target;this.loadUrl(t)},this.top=="true"?this.loadUrl(window):this.route&&(this.consumedRoute=""),this.config)try{const e=JSON.parse(this.config);le.value={...le.value,...e}}catch{le.value={...le.value,config:this.config}}this.addEventListener("url-update-requested",this.routeChangedListener),this.addEventListener("navigate-to-requested",this.navigateToRequestedListener)}disconnectedCallback(){super.disconnectedCallback(),this.upstreamSubscription?.unsubscribe(),this.removeEventListener("url-update-requested",this.routeChangedListener),this.removeEventListener("navigate-to-requested",this.navigateToRequestedListener)}loadUrl(e){if(this.route=this.extractRouteFromUrl(e),this.setAttribute("route",this.route),this.instant=ye(),this._lastUrl=e.location.href,e.location.search){const a=new URLSearchParams(e.location.search).get("overrides");if(a&&(this.config=a,this.config))try{const s=JSON.parse(this.config);le.value={...le.value,...s}}catch{le.value={...le.value,config:this.config}}}}extractRouteFromUrl(e){return this.addQueryParams(this.extractRouteWithoutParamsFromUrl(e),e.location)}extractRouteWithoutParamsFromUrl(e){const t=this.extractGrossRouteFromUrl(e);return this.pathPrefix&&t.startsWith(this.pathPrefix)?t.substring(this.pathPrefix.length):t=="/"?"":t}addQueryParams(e,t){return e+(t.search?""+t.search:"")}extractGrossRouteFromUrl(e){const t=e.location.pathname,a=this.baseUrl&&(this.baseUrl.startsWith("http://")||this.baseUrl.startsWith("https://"))?this.baseUrl.substring(this.getContextPathStartingIndex(this.baseUrl)):this.baseUrl;return t.startsWith(a)?t.substring(a.length):t}getContextPathStartingIndex(e){return e.startsWith("http:")?e.indexOf("/",7):e.startsWith("https:")?e.indexOf("/",8):0}render(){return o`
            <mateu-api-caller>
                 <mateu-ux id="_ux"
                           baseurl="${this.baseUrl}"
@@ -10181,21 +10464,21 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                           top="${this.top}"
                           style="width: 100%;"
                           @app-data-updated="${()=>this.requestUpdate()}"
-                          .appData="${Ya.value}"
-                          .appState="${ne.value}"
+                          .appData="${Xa.value}"
+                          .appState="${le.value}"
                 ></mateu-ux>
            </mateu-api-caller>
            ${this.debug?o`
                <mateu-debug-overlay
-                   .appState="${ne.value}"
-                   .appData="${Ya.value}"
+                   .appState="${le.value}"
+                   .appData="${Xa.value}"
                ></mateu-debug-overlay>
            `:d}
-       `}};et.styles=C`
+       `}};tt.styles=C`
         :host {
             --lumo-clickable-cursor: pointer;
         }
-  `;Ot([m()],et.prototype,"baseUrl",2);Ot([m()],et.prototype,"route",2);Ot([m()],et.prototype,"consumedRoute",2);Ot([m()],et.prototype,"config",2);Ot([m()],et.prototype,"top",2);Ot([m()],et.prototype,"pathPrefix",2);Ot([$()],et.prototype,"instant",2);Ot([m({type:Boolean})],et.prototype,"debug",2);et=Ot([k("mateu-ui")],et);var Am=Object.getOwnPropertyDescriptor,Lm=(e,t,a,s)=>{for(var i=s>1?void 0:s?Am(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=n(i)||i);return i};let ks=class extends ui{constructor(){super(...arguments),this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))}}render(){const e=this.component?.metadata;return o`
+  `;zt([h()],tt.prototype,"baseUrl",2);zt([h()],tt.prototype,"route",2);zt([h()],tt.prototype,"consumedRoute",2);zt([h()],tt.prototype,"config",2);zt([h()],tt.prototype,"top",2);zt([h()],tt.prototype,"pathPrefix",2);zt([$()],tt.prototype,"instant",2);zt([h({type:Boolean})],tt.prototype,"debug",2);tt=zt([k("mateu-ui")],tt);var Bm=Object.getOwnPropertyDescriptor,Vm=(e,t,a,s)=>{for(var i=s>1?void 0:s?Bm(t,a):t,r=e.length-1,n;r>=0;r--)(n=e[r])&&(i=n(i)||i);return i};let Ss=class extends pi{constructor(){super(...arguments),this.handleButtonClick=e=>{this.dispatchEvent(new CustomEvent("action-requested",{detail:{actionId:e},bubbles:!0,composed:!0}))}}render(){const e=this.component?.metadata;return o`
             <div class="form-frame">
                 <div class="form-header">
                     <div class="form-titles">
@@ -10209,7 +10492,7 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
                     <slot name="buttons"></slot>
                 </div>
             </div>
-       `}};ks.styles=C`
+       `}};Ss.styles=C`
         :host {
             width: 100%;
         }
@@ -10251,4 +10534,4 @@ data-oj-binding-provider="preact" label="[[cell.data == null ? '' : '' + cell.da
             display: flex;
             gap: .5rem;
         }
-  `;ks=Lm([k("mateu-redwood-form")],ks);
+  `;Ss=Vm([k("mateu-redwood-form")],Ss);

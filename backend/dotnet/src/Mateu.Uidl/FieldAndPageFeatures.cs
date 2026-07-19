@@ -180,6 +180,34 @@ public sealed class TocAttribute(bool value = true) : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class CompactAttribute : Attribute;
 
+/// <summary>How a page's content column is sized within the viewport (the first parameter of the
+/// Oracle Redwood page templates; the names follow them). Selected with [PageWidth] or the
+/// <see cref="IPageWidthSupplier"/> hook; when neither is present the renderer infers the width
+/// from the page content (full-bleed canvases like gantt/planning boards → edge-to-edge, dense
+/// inline-editing datagrids → full width, anything else → fixed). Fixed caps the column (1408px
+/// in Redwood) and centers it; FullWidth keeps the side margins but is never capped; EdgeToEdge
+/// touches the viewport edges. (C# analogue of Java's PageWidthStyle.)</summary>
+public enum PageWidthStyle { Fixed, FullWidth, EdgeToEdge }
+
+/// <summary>Explicitly sets how the page's content column is sized within the viewport (the first
+/// parameter of the Oracle Redwood page templates). When absent, the <see cref="IPageWidthSupplier"/>
+/// hook applies, and otherwise the renderer infers the width from the page content (defaulting to
+/// fixed). Inherited by subclasses. (C# analogue of Java's @PageWidth.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class PageWidthAttribute(PageWidthStyle value) : Attribute
+{
+    /// <summary>The page width to paint.</summary>
+    public PageWidthStyle Value { get; } = value;
+}
+
+/// <summary>Programmatic counterpart of [PageWidth] — lets an archetype declare its default page
+/// width (<see cref="Foldout"/> is edge-to-edge). The [PageWidth] attribute on the concrete view
+/// class wins over this hook. (C# analogue of Java's PageWidthSupplier.)</summary>
+public interface IPageWidthSupplier
+{
+    PageWidthStyle? PageWidth();
+}
+
 /// <summary>Renders the whole view read-only (a display page, not an editable form). On a
 /// property of an [InlineEditing] crud entity it keeps that column display-only.
 /// (C# analogue of Java's @ReadOnly.)</summary>

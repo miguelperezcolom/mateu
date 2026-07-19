@@ -27,6 +27,7 @@ from mateu_uidl import (
     Aggregate,
     ComponentTreeSupplier,
     AggregateFunction,
+    CalendarPage,
     DateRange,
     GlobalSearchSupplier,
     GroupBy,
@@ -42,6 +43,7 @@ from mateu_uidl import (
     Searchable,
     SortSpec,
     Step,
+    TodoList,
     Version,
     Wizard,
 )
@@ -156,6 +158,10 @@ class SyncHandler:
         # 4. A plain view.
         instance = type_()
         self.bind_state(instance, rq.component_state)
+        if isinstance(instance, (TodoList, CalendarPage)):
+            # The archetype's data (and its click's action_on) may depend on the inbound
+            # request — the port's analogue of Java's HttpRequest injection.
+            instance.http_request = rq
         if rq.action_id and rq.action_id.startswith("search-"):
             return self.field_search(instance, rq)
         if rq.action_id and rq.action_id.startswith("codesearch-"):
@@ -172,7 +178,41 @@ class SyncHandler:
                 return self.render(type_, instance, rq)
             if rq.action_id in ("filterCollection", "switchRecord"):
                 return self.render(type_, instance, rq)
+        # 4c. A CalendarPage's built-in actions: the toolbar chevrons/Today move the displayed
+        # month and re-render (re-running events for the new month); an event click ACTS on the
+        # event — the frontend sends it as parameters._clickedEvent = {id, title, date, color}
+        # and the archetype finds it back by id, its action_on result mapping as a regular
+        # action result (a route string → NavigateTo); "+ Create" runs create_action. Unknown
+        # events / None results just re-render the page (mirrors Java's CalendarPage actions
+        # returning `this`).
+        if isinstance(instance, CalendarPage):
+            if rq.action_id == "openCalendarEvent":
+                opened = instance.open_calendar_event(self._clicked_event_id(rq))
+                return self.map_result(opened, rq) if opened is not None else self.render(type_, instance, rq)
+            if rq.action_id == "previousCalendarMonth":
+                instance.previous_calendar_month()
+                return self.render(type_, instance, rq)
+            if rq.action_id == "nextCalendarMonth":
+                instance.next_calendar_month()
+                return self.render(type_, instance, rq)
+            if rq.action_id == "goCalendarToday":
+                instance.go_calendar_today()
+                return self.render(type_, instance, rq)
+            if rq.action_id == "createCalendarEvent":
+                created = instance.create_calendar_event()
+                return self.map_result(created, rq) if created is not None else self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq)
+
+    @staticmethod
+    def _clicked_event_id(rq: RunActionRq) -> str | None:
+        """The id inside the calendar's ``_clickedEvent`` action parameter — a map
+        ``{id, title, date, color}`` the frontend sends with every "openCalendarEvent" dispatch
+        (mirrors Java reading ``httpRequest.runActionRq().parameters().get("_clickedEvent")`` as
+        a Map)."""
+        clicked = (rq.parameters or {}).get("_clickedEvent")
+        if isinstance(clicked, dict) and clicked.get("id") is not None:
+            return str(clicked.get("id"))
+        return None
 
     # ── Wizard ─────────────────────────────────────────────────────────────────
     def handle_wizard(self, type_, rq: RunActionRq) -> UIIncrement:

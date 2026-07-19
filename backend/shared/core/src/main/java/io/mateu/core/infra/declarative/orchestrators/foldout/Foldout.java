@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.foldout;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.PageWidthStyle;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.data.Badge;
@@ -15,6 +16,7 @@ import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.PageWidthSupplier;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -34,7 +36,16 @@ import lombok.SneakyThrows;
  *
  * Populate the fields in the constructor or field initializers.
  */
-public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier {
+public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, PageWidthSupplier {
+
+  /**
+   * Foldout pages are edge-to-edge by default (the RDS Foldout anatomy is a full-bleed canvas);
+   * annotate the concrete view with {@code @PageWidth} to change it.
+   */
+  @Override
+  public PageWidthStyle pageWidth() {
+    return PageWidthStyle.EDGE_TO_EDGE;
+  }
 
   @Override
   public String style() {

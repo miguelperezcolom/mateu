@@ -1984,6 +1984,250 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Mateu/Page Templates/Smart Search",
+      "kind": "smartSearchPage",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "SmartSearchPage<F,R>",
+      "csharp": "SmartSearchPage<TFilters,TRow>",
+      "python": "SmartSearchPage[F, R]",
+      "texts": {
+        "Title": "title",
+        "Subtitle": "pageSubtitle"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "label", "text": "Subtitle" },
+        { "t": "fieldbox", "text": "🔍 Search…" },
+        { "t": "table", "cols": 4, "rows": 4 }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/To-do List",
+      "kind": "todoList",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "TodoList<Row>",
+      "csharp": "TodoList<TRow>",
+      "python": "TodoList[Row]",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "label", "text": "TODAY (2)" },
+        { "t": "row", "items": [
+          { "t": "chip", "text": "Approve expenses — overdue" },
+          { "t": "chip", "text": "high" }
+        ] },
+        { "t": "label", "text": "THIS WEEK (1)" },
+        { "t": "row", "items": [
+          { "t": "chip", "text": "Review candidate — in 3 days" }
+        ] }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Calendar",
+      "kind": "calendarPage",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "CalendarPage",
+      "csharp": "CalendarPage",
+      "python": "CalendarPage",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "row", "items": [
+          { "t": "button", "text": "‹", "secondary": true },
+          { "t": "button", "text": "Today", "secondary": true },
+          { "t": "button", "text": "›", "secondary": true },
+          { "t": "button", "text": "+ Create" }
+        ] },
+        { "t": "label", "text": "July 2026" },
+        { "t": "table", "cols": 7, "rows": 5 }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Dashboard",
+      "kind": "dashboard",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "Dashboard",
+      "csharp": "Dashboard",
+      "python": "Dashboard",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "row", "items": [
+          { "t": "tile", "text": "Revenue 1.2M€" },
+          { "t": "tile", "text": "Orders 3,421" },
+          { "t": "tile", "text": "Returns 87" }
+        ] },
+        { "t": "imagebox" }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Welcome",
+      "kind": "welcome",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "Welcome",
+      "csharp": "Welcome",
+      "python": "Welcome",
+      "texts": {
+        "Title": "heroTitle",
+        "Subtitle": "heroSubtitle"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 28 },
+        { "t": "label", "text": "Subtitle" },
+        { "t": "row", "items": [
+          { "t": "button", "text": "Get started" },
+          { "t": "button", "text": "Learn more", "secondary": true }
+        ] },
+        { "t": "row", "items": [
+          { "t": "tile", "text": "Step 1" },
+          { "t": "tile", "text": "Step 2" },
+          { "t": "tile", "text": "Step 3" }
+        ] }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Hero Search",
+      "kind": "heroSearch",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "HeroSearch<F,R>",
+      "csharp": "HeroSearch<T>",
+      "python": "HeroSearch[T]",
+      "texts": {
+        "Title": "heroTitle",
+        "Subtitle": "heroSubtitle"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 28 },
+        { "t": "label", "text": "Subtitle" },
+        { "t": "fieldbox", "text": "🔍 Search…" },
+        { "t": "row", "items": [
+          { "t": "tile", "text": "Result" },
+          { "t": "tile", "text": "Result" },
+          { "t": "tile", "text": "Result" }
+        ] }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Collection Detail",
+      "kind": "collectionDetail",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "CollectionDetail<Row>",
+      "csharp": "CollectionDetail<TRow>",
+      "python": "CollectionDetail[Row]",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "fieldbox", "text": "🔍 Search" },
+        { "t": "row", "items": [
+          { "t": "table", "cols": 1, "rows": 4 },
+          { "t": "imagebox" }
+        ] }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/General Overview",
+      "kind": "generalOverview",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "GeneralOverview<Row>",
+      "csharp": "GeneralOverview<TRow>",
+      "python": "GeneralOverview[Row]",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "fieldbox", "text": "Record ▾", "w": 200 },
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "row", "items": [
+          { "t": "chip", "text": "Status" },
+          { "t": "chip", "text": "Fact" }
+        ] },
+        { "t": "row", "items": [
+          { "t": "tile", "text": "Card" },
+          { "t": "tile", "text": "Card" }
+        ] }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Item Overview",
+      "kind": "itemOverview",
+      "variants": {
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "ItemOverview",
+      "csharp": "ItemOverview",
+      "python": "ItemOverview",
+      "texts": {
+        "Title": "title"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "row", "items": [
+          { "t": "imagebox" },
+          { "t": "table", "cols": 3, "rows": 3 }
+        ] }
+      ]
+    },
+    {
+      "name": "Mateu/Page Templates/Foldout",
+      "kind": "foldout",
+      "variants": {
+        "orientation": ["vertical", "horizontal"],
+        "pageWidth": ["fixed", "fullWidth", "edgeToEdge"]
+      },
+      "java": "Foldout",
+      "csharp": "Foldout",
+      "python": "Foldout",
+      "texts": {
+        "Title": "headerTitle"
+      },
+      "container": true,
+      "sketch": [
+        { "t": "title", "text": "Title", "size": 20 },
+        { "t": "row", "items": [
+          { "t": "chip", "text": "Badge" },
+          { "t": "chip", "text": "Badge" }
+        ] },
+        { "t": "row", "items": [
+          { "t": "tile", "text": "Overview" },
+          { "t": "tile", "text": "Panel" },
+          { "t": "tile", "text": "Panel" }
+        ] }
+      ]
     }
   ]
 }

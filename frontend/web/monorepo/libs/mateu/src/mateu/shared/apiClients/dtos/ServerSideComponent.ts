@@ -15,5 +15,12 @@ export default interface ServerSideComponent extends Component {
     validations: Validation[]
     // Logical source name stamped into custom events this component emits (see @Emits).
     emitsName?: string | undefined
+    /**
+     * How the page's content column is sized within the viewport (the first parameter of the
+     * Oracle Redwood page templates): "fixed" (capped, centered column), "fullWidth" (fluid with
+     * side margins, uncapped) or "edgeToEdge" (content touches the viewport edges).
+     * null/undefined = the renderer infers it from the page content.
+     */
+    pageWidth?: string | undefined
 
 }

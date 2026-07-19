@@ -26,5 +26,12 @@ public record PageDto(
     List<ComponentDto> header,
     List<ComponentDto> footer,
     List<FabDto> fabs,
-    Boolean toc)
+    Boolean toc,
+    /**
+     * How the page's content column is sized within the viewport (the first parameter of the Oracle
+     * Redwood page templates): {@code "fixed"} (capped, centered column), {@code "fullWidth"}
+     * (fluid with side margins, uncapped) or {@code "edgeToEdge"} (content touches the viewport
+     * edges). {@code null} = the renderer infers it from the page content.
+     */
+    String pageWidth)
     implements ComponentMetadataDto {}

@@ -24,6 +24,7 @@ from mateu_uidl import (  # noqa: E402
     Disabled,
     Hidden,
     PageBanner,
+    PageWidth,
     PhotoCapture,
     RangeFilter,
     Rule,
@@ -32,6 +33,7 @@ from mateu_uidl import (  # noqa: E402
     SelectedItem,
     Selector,
     Signature,
+    SmartSearchPage,
     TreeSelect,
     app_context,
     Crud,
@@ -68,6 +70,7 @@ from mateu_uidl import (  # noqa: E402
     kpi,
     list_toolbar_button,
     menu_item,
+    page_width,
     shortcut,
     subscribe_to,
     subtitle,
@@ -378,6 +381,59 @@ class BookingsListing(Listing[ListedBookingFilters, ListedBooking]):
             and (filters.total is None or filters.total.contains(r.total))
             and (not filters.sources or r.source in filters.sources)
         ]
+
+
+class AssetStatus(Enum):
+    ACTIVE = "ACTIVE"
+    RETIRED = "RETIRED"
+
+
+class AssetRow:
+    code: str = ""
+    name: str = ""
+    status: AssetStatus = AssetStatus.ACTIVE
+    purchased: date = date(2026, 1, 1)
+
+
+class AssetFilters:
+    statuses: set[AssetStatus] | None = None
+    purchased: DateRange | None = None
+
+
+def _asset(code, name, status, purchased):
+    a = AssetRow()
+    a.code, a.name, a.status, a.purchased = code, name, status, purchased
+    return a
+
+
+_ASSETS = [
+    _asset("A-001", "Forklift", AssetStatus.ACTIVE, date(2026, 3, 2)),
+    _asset("A-002", "Conveyor", AssetStatus.RETIRED, date(2026, 4, 11)),
+    _asset("A-003", "Pallet jack", AssetStatus.ACTIVE, date(2026, 5, 6)),
+]
+
+
+@ui("asset-search")
+@title("Asset search")
+class AssetSearch(SmartSearchPage[AssetFilters, AssetRow]):
+    def page_subtitle(self):
+        return "Find assets by name, status or purchase date."
+
+    def search(self, search_text, filters):
+        return [
+            a for a in _ASSETS
+            if (not search_text or search_text.lower() in f"{a.code} {a.name}".lower())
+            and (not filters.statuses or a.status in filters.statuses)
+            and (filters.purchased is None or filters.purchased.contains(a.purchased))
+        ]
+
+
+@ui("wide-assets")
+@title("Wide assets")
+@page_width(PageWidth.FULL_WIDTH)
+class WideAssetSearch(SmartSearchPage[AssetFilters, AssetRow]):
+    def search(self, search_text, filters):
+        return list(_ASSETS)
 
 
 @ui("folded")
@@ -1204,6 +1260,54 @@ def test_hero_search_renders_a_hero_over_a_cards_listing_and_does_not_preload():
     assert '"crudlType": "cards"' in j
     # Starts empty: no OnLoad→search trigger (the user searches).
     assert '"OnLoad"' not in j
+
+
+def test_smart_search_page_renders_subtitle_typed_filters_and_columns_and_does_not_preload():
+    inc = handler().handle(RunActionRq(route="asset-search", consumed_route="asset-search"))
+    j = render(inc)
+
+    # The intro line travels as a Text component above the crud…
+    assert '"type": "Text"' in j
+    assert '"id": "page-subtitle"' in j
+    assert "Find assets by name, status or purchase date." in j
+    # …the listing renders its row columns, read-only…
+    assert '"id": "code"' in j
+    assert '"canEdit": false' in j
+    # …typed filters arrive with their facet stereotypes…
+    assert '"fieldId": "statuses", "dataType": "string", "label": "Statuses", "stereotype": "multiSelect"' in j
+    assert '"fieldId": "purchased", "dataType": "date", "label": "Purchased", "stereotype": "dateRange"' in j
+    # …and the page starts EMPTY (the user searches): no OnLoad→search trigger.
+    assert '"OnLoad"' not in j
+
+
+def test_smart_search_page_search_returns_rows():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="search",
+            server_side_type=_name(AssetSearch),
+            component_state={"searchText": "", "statuses": ["ACTIVE"]},
+        )
+    )
+    j = render(inc)
+
+    assert '"totalElements": 2' in j
+    assert "Forklift" in j and "Pallet jack" in j
+
+
+def test_page_width_rides_on_the_server_side_component():
+    inc = handler().handle(RunActionRq(route="wide-assets", consumed_route="wide-assets"))
+    j = render(inc)
+
+    # The @page_width declaration travels on the ServerSideComponent under its wire name.
+    assert '"pageWidth": "fullWidth"' in j
+
+
+def test_page_width_is_null_when_the_view_declares_none():
+    inc = handler().handle(RunActionRq(route="asset-search", consumed_route="asset-search"))
+    j = render(inc)
+
+    # No @page_width → null: the renderer infers the width from the page content.
+    assert '"pageWidth": null' in j
 
 
 def test_action_returned_drawer_is_an_add_fragment_on_the_initiator():

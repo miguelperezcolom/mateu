@@ -1,0 +1,486 @@
+{
+  "renderer": "redwood-oj",
+  "baseUrl": "http://localhost:8695",
+  "date": "2026-07-19T11:16:58.032Z",
+  "rendererInfo": {
+    "name": "redwood-oj",
+    "supportedTypes": [
+      "AccordionLayout",
+      "AddOnPicker",
+      "Anchor",
+      "App",
+      "Avatar",
+      "AvatarGroup",
+      "Badge",
+      "BoardLayout",
+      "BoardLayoutItem",
+      "BoardLayoutRow",
+      "Bpmn",
+      "Breadcrumbs",
+      "BulletedList",
+      "Button",
+      "Calendar",
+      "CalloutCard",
+      "Card",
+      "CarouselLayout",
+      "Chart",
+      "Chat",
+      "Checklist",
+      "CommentThread",
+      "ComparisonCard",
+      "ConfirmDialog",
+      "Container",
+      "ContextMenu",
+      "CookieConsent",
+      "Crud",
+      "CustomField",
+      "DashboardLayout",
+      "DashboardPanel",
+      "Details",
+      "Dialog",
+      "Directory",
+      "Div",
+      "Drawer",
+      "Element",
+      "EmptyState",
+      "EntityHeader",
+      "Faq",
+      "FeatureGrid",
+      "FileList",
+      "FoldoutLayout",
+      "Form",
+      "FormEditor",
+      "FormField",
+      "FormLayout",
+      "FormRow",
+      "FormSection",
+      "FormSubSection",
+      "FullWidth",
+      "Funnel",
+      "Gantt",
+      "Grid",
+      "Heatmap",
+      "HeroSection",
+      "HorizontalLayout",
+      "Icon",
+      "Image",
+      "Kanban",
+      "Ledger",
+      "Map",
+      "Markdown",
+      "MasterDetailLayout",
+      "MenuBar",
+      "MessageInput",
+      "MessageList",
+      "Meter",
+      "MetricCard",
+      "MicroFrontend",
+      "Notice",
+      "Notification",
+      "OfferCard",
+      "OrgChart",
+      "Page",
+      "PaymentPicker",
+      "PlanningBoard",
+      "Popover",
+      "PricingTable",
+      "ProcessMonitor",
+      "ProgressBar",
+      "ProgressSteps",
+      "ResourceGrid",
+      "Scoreboard",
+      "Scroller",
+      "Separator",
+      "Skeleton",
+      "SplitLayout",
+      "Stat",
+      "StatusList",
+      "TabLayout",
+      "Table",
+      "TaskProgress",
+      "TaskQueue",
+      "Testimonials",
+      "Text",
+      "Timeline",
+      "Tooltip",
+      "TrendChart",
+      "VerticalLayout",
+      "VirtualList",
+      "Workflow",
+      "WorkflowElk"
+    ]
+  },
+  "matrix": [
+    {
+      "type": "Badge",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Button",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Calendar",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Card",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Chart",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Chip",
+      "declaredSupported": false,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Crud",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "DashboardLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Drawer",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "EmptyState",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "EntityHeader",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "FoldoutLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Form",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "FormField",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "HeroSection",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "HorizontalLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Markdown",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "MetricCard",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Page",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "ProgressSteps",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Scoreboard",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Skeleton",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "StatusList",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "TabLayout",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "TaskQueue",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    },
+    {
+      "type": "Text",
+      "declaredSupported": true,
+      "placeholderObserved": false
+    }
+  ],
+  "results": [
+    {
+      "route": "/welcome-demo",
+      "name": "tpl-welcome",
+      "declaredTypes": [
+        "Page",
+        "HeroSection",
+        "Button",
+        "DashboardLayout",
+        "Markdown"
+      ],
+      "unsupported": [],
+      "textLength": 15076,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-welcome.png"
+    },
+    {
+      "route": "/dashboard-demo",
+      "name": "tpl-dashboard",
+      "declaredTypes": [
+        "Page",
+        "DashboardLayout",
+        "Scoreboard",
+        "MetricCard",
+        "Chart",
+        "Markdown"
+      ],
+      "unsupported": [],
+      "textLength": 18376,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-dashboard.png"
+    },
+    {
+      "route": "/smart-search-demo",
+      "name": "tpl-smart-search",
+      "declaredTypes": [
+        "Page",
+        "Text",
+        "Crud"
+      ],
+      "unsupported": [],
+      "textLength": 31483,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-smart-search.png"
+    },
+    {
+      "route": "/todo-list-demo",
+      "name": "tpl-to-do-list",
+      "declaredTypes": [
+        "Page",
+        "TaskQueue",
+        "Chip"
+      ],
+      "unsupported": [],
+      "textLength": 18180,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-to-do-list.png"
+    },
+    {
+      "route": "/calendar-demo",
+      "name": "tpl-calendar",
+      "declaredTypes": [
+        "Page",
+        "Calendar",
+        "Button",
+        "HorizontalLayout"
+      ],
+      "unsupported": [],
+      "textLength": 18584,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-calendar.png"
+    },
+    {
+      "route": "/hotel-search",
+      "name": "tpl-hero-search",
+      "declaredTypes": [
+        "Page",
+        "HeroSection",
+        "Crud"
+      ],
+      "unsupported": [],
+      "textLength": 22015,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-hero-search.png"
+    },
+    {
+      "route": "/collection-detail-demo",
+      "name": "tpl-collection-detail",
+      "declaredTypes": [
+        "Page",
+        "FormField",
+        "TaskQueue",
+        "Card",
+        "EmptyState"
+      ],
+      "unsupported": [],
+      "textLength": 16755,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-collection-detail.png"
+    },
+    {
+      "route": "/general-overview-demo",
+      "name": "tpl-general-overview",
+      "declaredTypes": [
+        "Page",
+        "FormField",
+        "EntityHeader",
+        "StatusList",
+        "Card"
+      ],
+      "unsupported": [],
+      "textLength": 17223,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-general-overview.png"
+    },
+    {
+      "route": "/product-overview",
+      "name": "tpl-item-overview",
+      "declaredTypes": [
+        "Page",
+        "Card",
+        "TabLayout",
+        "Chart",
+        "Markdown"
+      ],
+      "unsupported": [],
+      "textLength": 14402,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-item-overview.png"
+    },
+    {
+      "route": "/foldout-demo",
+      "name": "tpl-foldout",
+      "declaredTypes": [
+        "Page",
+        "FoldoutLayout",
+        "Badge",
+        "Markdown"
+      ],
+      "unsupported": [],
+      "textLength": 16762,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-foldout.png"
+    },
+    {
+      "route": "/foldout-horizontal-demo",
+      "name": "tpl-foldout-horizontal",
+      "declaredTypes": [
+        "Page",
+        "FoldoutLayout",
+        "Badge",
+        "Markdown"
+      ],
+      "unsupported": [],
+      "textLength": 16408,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-foldout-horizontal.png"
+    },
+    {
+      "route": "/booking",
+      "name": "tpl-guided-process",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField",
+        "ProgressSteps",
+        "Button"
+      ],
+      "unsupported": [],
+      "textLength": 14933,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-guided-process.png"
+    },
+    {
+      "route": "/guest",
+      "name": "tpl-forms-zones",
+      "declaredTypes": [
+        "Page",
+        "Form",
+        "FormField"
+      ],
+      "unsupported": [],
+      "textLength": 15585,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-forms-zones.png"
+    },
+    {
+      "route": "/catalog",
+      "name": "tpl-create-edit",
+      "declaredTypes": [
+        "Page",
+        "Crud"
+      ],
+      "unsupported": [],
+      "textLength": 47881,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-create-edit.png"
+    },
+    {
+      "route": "/drawer-crud-demo",
+      "name": "tpl-create-edit-drawer",
+      "declaredTypes": [
+        "Page",
+        "Crud",
+        "Drawer"
+      ],
+      "unsupported": [],
+      "textLength": 36340,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-create-edit-drawer.png"
+    },
+    {
+      "route": "/empty-skeleton-demo",
+      "name": "tpl-empty-states",
+      "declaredTypes": [
+        "Page",
+        "EmptyState",
+        "Skeleton"
+      ],
+      "unsupported": [],
+      "textLength": 22560,
+      "status": "rendered",
+      "consoleErrors": [],
+      "screenshot": "screenshots/tpl-empty-states.png"
+    }
+  ]
+}

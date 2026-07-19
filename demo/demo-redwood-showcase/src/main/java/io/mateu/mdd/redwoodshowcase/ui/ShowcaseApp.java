@@ -1,6 +1,7 @@
 package io.mateu.mdd.redwoodshowcase.ui;
 
 import io.mateu.mdd.redwoodshowcase.ui.booking.BookingWizard;
+import io.mateu.mdd.redwoodshowcase.ui.calendar.HousekeepingCalendar;
 import io.mateu.mdd.redwoodshowcase.ui.catalog.Catalog;
 import io.mateu.mdd.redwoodshowcase.ui.collectiondetail.HotelDirectory;
 import io.mateu.mdd.redwoodshowcase.ui.dashboard.SalesDashboard;
@@ -12,6 +13,8 @@ import io.mateu.mdd.redwoodshowcase.ui.forms.GuestProfile;
 import io.mateu.mdd.redwoodshowcase.ui.generaloverview.RequisitionOverview;
 import io.mateu.mdd.redwoodshowcase.ui.herosearch.HotelSearch;
 import io.mateu.mdd.redwoodshowcase.ui.itemoverview.ProductOverview;
+import io.mateu.mdd.redwoodshowcase.ui.smartsearch.AssetSearch;
+import io.mateu.mdd.redwoodshowcase.ui.todolist.FrontDeskTasks;
 import io.mateu.mdd.redwoodshowcase.ui.welcome.WelcomeDemo;
 import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.Menu;
@@ -43,6 +46,12 @@ public class ShowcaseApp {
   @Menu BookingFoldoutHorizontal foldoutHorizontal;
 
   @Menu HotelSearch heroSearch;
+
+  @Menu AssetSearch smartSearch;
+
+  @Menu FrontDeskTasks frontDeskTasks;
+
+  @Menu HousekeepingCalendar housekeepingCalendar;
 
   @Menu EmptyStatesDemo emptyStates;
 

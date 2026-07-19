@@ -25,6 +25,7 @@ import {sseService} from "@application/SSEService.ts";
 import {ComponentState, ComponentData} from "@infra/ui/renderers/types.ts";
 import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {nanoid} from "nanoid";
+import {resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -319,6 +320,13 @@ export class MateuUx extends ConnectedElement {
             return
         }
         this.fragment = fragment
+        // Tag the host with the resolved page width (fixed|full|edge) so the renderer's
+        // stylesheet can size the content column — redwood-oj paints the RDS page-width modes
+        // from it. Recomputed on every load: each routed component can carry its own pageWidth
+        // (resolvePageWidth infers one from the content otherwise).
+        if (fragment.component) {
+            this.dataset.pageWidth = resolvePageWidth(fragment.component)
+        }
     }
 
     render(): TemplateResult {
