@@ -57,12 +57,12 @@ public class RemoteMenuHandler {
             result ->
                 !(result instanceof MicroFrontend microFrontend)
                     ? Mono.empty()
-                    : probeRoute(remoteMenu, route, httpRequest)
+                    : probeRoute(remoteMenu, routeWithinApp(remoteMenu, route), httpRequest)
                         .flatMap(
                             owns ->
                                 owns
                                     ? Mono.just(
-                                        app.withHomeRoute(route)
+                                        app.withHomeRoute(routeWithinApp(remoteMenu, route))
                                             .withHomeBaseUrl(microFrontend.baseUrl())
                                             .withHomeServerSideType(microFrontend.serverSideType())
                                             .withHomeConsumedRoute(microFrontend.consumedRoute())
@@ -137,13 +137,35 @@ public class RemoteMenuHandler {
                             .findFirst())
                     .map(app -> (AppDto) app)
                     .map(
-                        app ->
-                            MicroFrontend.builder()
-                                .route(command.route())
-                                .consumedRoute(app.homeConsumedRoute())
-                                .actionId("")
-                                .baseUrl(remoteMenu.baseUrl())
-                                .serverSideType(app.homeServerSideType())
-                                .build()));
+                        app -> {
+                          var routeWithinApp = routeWithinApp(remoteMenu, command.route());
+                          return MicroFrontend.builder()
+                              // The route WITHIN the remote app: the shell path carries the
+                              // menu's prefix, which does not exist inside the remote app —
+                              // mounting it as-is makes the app serve itself (nested loop).
+                              .route(routeWithinApp)
+                              // The consumed route the mount's ux travels with: the app home
+                              // resolves only with the menu's own ("_empty" = root consumed);
+                              // page routes resolve with the AppDto's home one ("").
+                              .consumedRoute(
+                                  routeWithinApp.isEmpty()
+                                      ? remoteMenu.consumedRoute()
+                                      : app.homeConsumedRoute())
+                              .actionId("")
+                              .baseUrl(remoteMenu.baseUrl())
+                              .serverSideType(app.homeServerSideType())
+                              .build();
+                        }));
+  }
+
+  /** Strips the remote menu's path prefix: /disponibilidad/x → /x (its route inside the app). */
+  private static String routeWithinApp(RemoteMenu remoteMenu, String route) {
+    if (route != null
+        && remoteMenu.path() != null
+        && !remoteMenu.path().isBlank()
+        && route.startsWith(remoteMenu.path())) {
+      return route.substring(remoteMenu.path().length());
+    }
+    return route;
   }
 }
