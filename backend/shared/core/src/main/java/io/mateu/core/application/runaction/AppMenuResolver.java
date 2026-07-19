@@ -171,7 +171,30 @@ public class AppMenuResolver {
       return remoteMenuHandler.handleRemoteMenuActionable(remoteMenu, app, httpRequest, command);
     }
 
+    // Deep links: no local menu matches the route — give the remote menus a chance; the
+    // first remote app that owns it gets mounted (e.g. a bookmarked /venta).
+    if (actionable == null
+        && command.route() != null
+        && !command.route().isBlank()
+        && !command.route().endsWith("_page")
+        && !command.route().endsWith("_no_home_route")) {
+      return tryRemoteMenusForRoute(app, command, httpRequest)
+          .switchIfEmpty((Mono) Mono.just(potentialApp));
+    }
+
     return Mono.just(potentialApp);
+  }
+
+  private Mono<?> tryRemoteMenusForRoute(
+      AppShell app, RunActionCommand command, HttpRequest httpRequest) {
+    return reactor.core.publisher.Flux.fromIterable(app.menu())
+        .filter(item -> item instanceof RemoteMenu)
+        .cast(RemoteMenu.class)
+        .concatMap(
+            remoteMenu ->
+                remoteMenuHandler.tryResolveRoute(
+                    remoteMenu, command.route(), httpRequest, command))
+        .next();
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────
