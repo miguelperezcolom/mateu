@@ -36,6 +36,12 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
 
   @Override
   public CompletableFuture<UIIncrementDto> send(String baseUrl, RunActionRqDto requestDto) {
+    return send(baseUrl, requestDto, null);
+  }
+
+  @Override
+  public CompletableFuture<UIIncrementDto> send(
+      String baseUrl, RunActionRqDto requestDto, String authorizationHeader) {
     try {
       String body = objectMapper.writeValueAsString(requestDto);
 
@@ -45,12 +51,12 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
 
       var uri = baseUrl + "/mateu/v3/sync" + path;
 
-      HttpRequest request =
-          HttpRequest.newBuilder()
-              .uri(URI.create(uri))
-              .header("Content-Type", "application/json")
-              .POST(HttpRequest.BodyPublishers.ofString(body))
-              .build();
+      var requestBuilder =
+          HttpRequest.newBuilder().uri(URI.create(uri)).header("Content-Type", "application/json");
+      if (authorizationHeader != null && !authorizationHeader.isBlank()) {
+        requestBuilder.header("Authorization", authorizationHeader);
+      }
+      HttpRequest request = requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body)).build();
 
       log.info("POST {} {}", uri, body);
 

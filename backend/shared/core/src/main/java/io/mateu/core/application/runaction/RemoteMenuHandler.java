@@ -63,7 +63,8 @@ public class RemoteMenuHandler {
       remoteBaseUrl = remoteBaseUrl.substring(remoteBaseUrl.indexOf("/"));
     }
 
-    return Mono.fromFuture(mateuHttpClient.send(baseUrl, request))
+    return Mono.fromFuture(
+            mateuHttpClient.send(baseUrl, request, httpRequest.getHeaderValue("authorization")))
         .flatMap(
             uiIncrementDto ->
                 Mono.justOrEmpty(
