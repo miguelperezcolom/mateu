@@ -160,10 +160,13 @@ public class RemoteMenuHandler {
 
   /** Strips the remote menu's path prefix: /disponibilidad/x → /x (its route inside the app). */
   private static String routeWithinApp(RemoteMenu remoteMenu, String route) {
-    if (route != null
-        && remoteMenu.path() != null
-        && !remoteMenu.path().isBlank()
-        && route.startsWith(remoteMenu.path())) {
+    if (route == null || remoteMenu.path() == null || remoteMenu.path().isBlank()) {
+      return route;
+    }
+    if (route.equals(remoteMenu.path())) {
+      return "";
+    }
+    if (route.startsWith(remoteMenu.path() + "/")) {
       return route.substring(remoteMenu.path().length());
     }
     return route;
