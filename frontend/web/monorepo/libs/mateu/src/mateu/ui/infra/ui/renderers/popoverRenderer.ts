@@ -8,7 +8,7 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 export const renderPopover = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as Popover
     return html`
-        <div id="show-notifications">${renderComponent(container, metadata.wrapped, baseUrl, state, data, appState, appData)}</div>
+        <div id="show-notifications" slot="${component.slot??nothing}">${renderComponent(container, metadata.wrapped, baseUrl, state, data, appState, appData)}</div>
         <vaadin-popover
                 for="show-notifications"
                 theme="arrow no-padding"
@@ -16,7 +16,6 @@ export const renderPopover = (container: LitElement, component: ClientSideCompon
                 accessible-name-ref="notifications-heading"
                 content-width="300px"
                 position="bottom"
-                slot="${component.slot??nothing}"
                 ${popoverRenderer(() => html`${renderComponent(container, metadata.content, baseUrl, state, data, appState, appData)}`, [])}
                 style="${component.style}" class="${component.cssClasses}"
         ></vaadin-popover>
