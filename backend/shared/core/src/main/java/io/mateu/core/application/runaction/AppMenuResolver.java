@@ -193,7 +193,7 @@ public class AppMenuResolver {
         .concatMap(
             remoteMenu ->
                 remoteMenuHandler.tryResolveRoute(
-                    remoteMenu, command.route(), httpRequest, command))
+                    remoteMenu, command.route(), app, httpRequest, command))
         .next();
   }
 

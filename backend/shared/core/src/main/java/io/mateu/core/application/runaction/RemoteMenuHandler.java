@@ -42,12 +42,16 @@ public class RemoteMenuHandler {
   }
 
   /**
-   * Deep-link resolution: asks the remote app whether it owns the given route. Returns the
-   * MicroFrontend to mount when it does (the remote answered something other than "Not found."),
-   * empty otherwise — so the shell can try the next remote menu.
+   * Deep-link resolution: asks the remote app whether it owns the given route. Returns the SHELL
+   * with the micro-frontend mounted as its home (the remote answered something other than "Not
+   * found."), empty otherwise — so the shell can try the next remote menu.
    */
   Mono<?> tryResolveRoute(
-      RemoteMenu remoteMenu, String route, HttpRequest httpRequest, RunActionCommand command) {
+      RemoteMenu remoteMenu,
+      String route,
+      AppShell app,
+      HttpRequest httpRequest,
+      RunActionCommand command) {
     return resolveRemoteMenu(remoteMenu, httpRequest, command)
         .flatMap(
             result ->
@@ -58,13 +62,11 @@ public class RemoteMenuHandler {
                             owns ->
                                 owns
                                     ? Mono.just(
-                                        MicroFrontend.builder()
-                                            .route(route)
-                                            .consumedRoute(microFrontend.consumedRoute())
-                                            .baseUrl(microFrontend.baseUrl())
-                                            .serverSideType(microFrontend.serverSideType())
-                                            .actionId("")
-                                            .build())
+                                        app.withHomeRoute(route)
+                                            .withHomeBaseUrl(microFrontend.baseUrl())
+                                            .withHomeServerSideType(microFrontend.serverSideType())
+                                            .withHomeConsumedRoute(microFrontend.consumedRoute())
+                                            .withHomeUriPrefix(""))
                                     : Mono.empty()));
   }
 
