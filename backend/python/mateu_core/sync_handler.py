@@ -24,6 +24,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    DataManagement,
     GanttPage,
     Aggregate,
     ComponentTreeSupplier,
@@ -210,6 +211,10 @@ class SyncHandler:
             task_id = None if clicked is None else str(clicked)
             drawer = instance.select_gantt_task(task_id)
             return self.map_result(drawer, rq) if drawer is not None else self.render(type_, instance, rq)
+        # 4e. A DataManagement toolbar switch flips the active view and re-renders in place.
+        if isinstance(instance, DataManagement) and rq.action_id in ("switchToGrid", "switchToGantt"):
+            instance.view = "gantt" if rq.action_id == "switchToGantt" else "grid"
+            return self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq)
 
     @staticmethod

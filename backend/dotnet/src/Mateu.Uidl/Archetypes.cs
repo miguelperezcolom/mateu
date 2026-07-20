@@ -638,3 +638,55 @@ public abstract class GanttPage : IComponentTreeSupplier, IPageWidthSupplier, IG
     protected virtual IComponent TaskDetail(GanttTask task) =>
         new Text($"{task.Start:yyyy-MM-dd} → {task.End:yyyy-MM-dd} · {Math.Round(task.Progress)}% completado");
 }
+
+/// <summary>Implemented by a Data-management page so the SyncHandler can flip its active view.</summary>
+public interface IDataManagement
+{
+    /// <summary>The active view: "grid" (default) or "gantt".</summary>
+    string View { get; set; }
+}
+
+/// <summary>Data management page (the Oracle Redwood "Data management" template): a dense,
+/// full-width page that shows the same data set two ways — a data grid and a Gantt timeline — with a
+/// toolbar switcher to flip between them. Supply <see cref="GridView"/> and <see cref="GanttView"/>;
+/// the active view is kept in <see cref="View"/> and the page re-renders in place on switch.
+/// (Java parity: DataManagement.)</summary>
+public abstract class DataManagement : IComponentTreeSupplier, IPageWidthSupplier, IDataManagement
+{
+    /// <summary>The active view: "grid" (default) or "gantt". Bound from componentState.</summary>
+    public string View { get; set; } = "grid";
+
+    public virtual PageWidthStyle? PageWidth() => PageWidthStyle.FullWidth;
+
+    /// <summary>The data-grid view (typically a dense table — an embedded crud/listing or a Grid).</summary>
+    protected abstract IComponent GridView();
+
+    /// <summary>The Gantt/timeline view of the same data.</summary>
+    protected abstract IComponent GanttView();
+
+    protected virtual string GridLabel => "Grid";
+    protected virtual string GanttLabel => "Gantt";
+
+    /// <summary>Page heading above the toolbar; defaults to the class [Title], null/blank hides it.</summary>
+    protected virtual string? Heading =>
+        GetType().GetCustomAttribute<TitleAttribute>()?.Value is { Length: > 0 } t ? t : null;
+
+    public IComponent Component()
+    {
+        var gantt = View == "gantt";
+        var content = new List<IComponent>();
+        if (Heading is { Length: > 0 } h)
+            content.Add(new Text(h) { Id = "data-management-title", Size = "xl", NoMargins = true, Style = "font-weight: 600;" });
+        content.Add(new HorizontalLayout
+        {
+            Id = "data-management-toolbar", Spacing = true, Style = "align-items: center;",
+            Content =
+            [
+                new Button(GridLabel, "switchToGrid") { Primary = !gantt },
+                new Button(GanttLabel, "switchToGantt") { Primary = gantt },
+            ],
+        });
+        content.Add(gantt ? GanttView() : GridView());
+        return new VerticalLayout { Id = "data-management", Spacing = true, Content = content };
+    }
+}

@@ -46,6 +46,17 @@ public class GanttProjectPlan : GanttPage
     protected override IComponent Detail() => new Text("detail panel");
 }
 
+[UI("schedule-board"), Title("Schedule board")]
+public class ScheduleBoard : DataManagement
+{
+    protected override IComponent GridView() => new Text("the data grid");
+
+    protected override IComponent GanttView() => new Gantt
+    {
+        Tasks = [new() { Id = "t1", Title = "Task 1", Start = new DateOnly(2026, 1, 1), End = new DateOnly(2026, 1, 5), Progress = 50 }],
+    };
+}
+
 [UI("requisition-overview"), Title("Requisitions")]
 public class RequisitionOverview : GeneralOverview<RequisitionOverview.Requisition>
 {
@@ -181,6 +192,25 @@ public class ArchetypeTests
         Assert.Contains("\"onTaskSelectionActionId\":\"selectGanttTask\"", json);
         Assert.Contains("Project plan", json);   // the heading
         Assert.Contains("detail panel", json);    // the docked detail
+    }
+
+    [Fact]
+    public void Data_management_is_full_width_and_shows_the_grid_view_with_a_switcher()
+    {
+        var json = Render(Run("/schedule-board", typeof(ScheduleBoard), null));
+        Assert.Contains("\"pageType\":\"collection\"", json);
+        Assert.Contains("\"actionId\":\"switchToGrid\"", json);
+        Assert.Contains("\"actionId\":\"switchToGantt\"", json);
+        Assert.Contains("the data grid", json);
+        Assert.DoesNotContain("\"type\":\"Gantt\"", json);
+    }
+
+    [Fact]
+    public void Data_management_switches_to_the_gantt_view()
+    {
+        var json = Render(Run("/schedule-board", typeof(ScheduleBoard), "switchToGantt"));
+        Assert.Contains("\"type\":\"Gantt\"", json);
+        Assert.DoesNotContain("the data grid", json);
     }
 
     [Fact]

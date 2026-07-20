@@ -114,6 +114,12 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                 return ganttPage.SelectGanttTask(StateString(GetState(rq.Parameters, "_clickedTaskId"))) is { } drawer
                     ? MapResult(drawer, rq)
                     : Render(type, instance, rq);
+            // A DataManagement toolbar switch flips the active view and re-renders in place.
+            if (instance is IDataManagement dataManagement && rq.ActionId is "switchToGrid" or "switchToGantt")
+            {
+                dataManagement.View = rq.ActionId == "switchToGantt" ? "gantt" : "grid";
+                return Render(type, instance, rq);
+            }
         }
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }

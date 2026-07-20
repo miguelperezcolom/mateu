@@ -1313,7 +1313,7 @@ __all__ = [
     "plain_text", "emits", "subscribe_to", "secured", "welcome_banner",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
-    "ComponentTreeSupplier", "Dashboard", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
+    "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
 ]
 
@@ -1731,3 +1731,61 @@ class GanttPage(ComponentTreeSupplier):
         start = task.start.isoformat() if task.start else ""
         end = task.end.isoformat() if task.end else ""
         return fluent.Text(text=f"{start} → {end} · {round(task.progress)}% completado")
+
+
+class DataManagement(ComponentTreeSupplier):
+    """Data management page (the Redwood "Data management" template, the Python analogue of Java's
+    DataManagement archetype): a dense, full-width page that shows the same data set two ways — a
+    data grid and a Gantt timeline — with a toolbar switcher to flip between them. Supply
+    :meth:`grid_view` and :meth:`gantt_view`; the active :attr:`view` is kept in state and the page
+    re-renders in place when the user switches."""
+
+    #: Full-width dense page; ``@page_width`` on the subclass overrides.
+    __mateu_page_width__ = "fullWidth"
+
+    #: The active view: "grid" (default) or "gantt". Bound from componentState (no underscore so it
+    #: is seeded into initialData and round-trips).
+    view: str = "grid"
+
+    def grid_view(self):
+        """The data-grid view (typically a dense table — an embedded crud/listing or a Grid)."""
+        raise NotImplementedError
+
+    def gantt_view(self):
+        """The Gantt/timeline view of the same data."""
+        raise NotImplementedError
+
+    def grid_label(self) -> str:
+        return "Grid"
+
+    def gantt_label(self) -> str:
+        return "Gantt"
+
+    def heading(self) -> str | None:
+        """Page heading above the toolbar; defaults to the class ``@title``, None/blank hides it."""
+        return getattr(type(self), "__mateu_title__", None)
+
+    def component(self):
+        from mateu_uidl import components as fluent
+
+        gantt = self.view == "gantt"
+        content = []
+        heading = self.heading()
+        if heading:
+            content.append(
+                fluent.Text(id="data-management-title", text=heading, size="xl", no_margins=True,
+                            style="font-weight: 600;")
+            )
+        content.append(
+            fluent.HorizontalLayout(
+                id="data-management-toolbar", spacing=True, style="align-items: center;",
+                content=(
+                    fluent.Button(label=self.grid_label(), action_id="switchToGrid",
+                                  button_style="tertiary" if gantt else "primary"),
+                    fluent.Button(label=self.gantt_label(), action_id="switchToGantt",
+                                  button_style="primary" if gantt else "tertiary"),
+                ),
+            )
+        )
+        content.append(self.gantt_view() if gantt else self.grid_view())
+        return fluent.VerticalLayout(id="data-management", spacing=True, content=tuple(content))

@@ -959,6 +959,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         if (typeof(Wizard).IsAssignableFrom(type)) return "process";
         if (typeof(Foldout).IsAssignableFrom(type)) return "detail";
         if (typeof(GanttPage).IsAssignableFrom(type)) return "detail";
+        if (typeof(DataManagement).IsAssignableFrom(type)) return "collection";
         if (typeof(ItemOverview).IsAssignableFrom(type)) return "detail";
         if (DerivesFrom(type, typeof(GeneralOverview<>))) return "detail";
         if (CrudElementType(type) is not null) return "collection";
