@@ -18,10 +18,14 @@
   <!-- endinjector -->
   <!-- This contains icon fonts used by the starter template -->
   <!-- injector:font -->
-  <link rel="stylesheet" id="redwoodcss" href="https://static.oracle.com/cdn/jet/18.1.0/default/css/redwood/oj-redwood-min.css">
+  <!-- Redwood base skin ya vendorizado localmente (styles/redwood/19.0.0 + oj-redwood-min.css arriba);
+       el antiguo <link> al CDN 18.1.0 se elimina para funcionar offline. -->
   <link rel="stylesheet" id="sitecss" href="/css/samples/site/demo-redwood-site-min.css">
-  <link rel="stylesheet" id="oraclefont" href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/OracleFont/OracleFont.min.css">
-  <link rel="stylesheet" id="uxiconfont" href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/images/iconfont/ojuxIconFont.min.css">
+  <link rel="stylesheet" id="oraclefont" href="/styles/oracle-fnd/OracleFont/OracleFont.min.css">
+  <link rel="stylesheet" id="uxiconfont" href="/styles/oracle-fnd/images/iconfont/ojuxIconFont.min.css">
+  <!-- Oracle Spectra Shell styles (page templates: foldout layout, header navigation, panels).
+       Vendored from a Visual Builder Redwood preview; drives mateu-redwood-foldout & co. -->
+  <link rel="stylesheet" id="spectracss" href="/oj-sp/oj-sp-component-bundle.css">
 
   <link rel="stylesheet" href="/css/demo.css">
 

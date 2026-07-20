@@ -29,6 +29,7 @@ import {
 } from "@/renderers/renderData.ts";
 import './components/mateu-redwood-tabs'
 import './components/mateu-redwood-accordion'
+import './components/mateu-redwood-foldout'
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud.ts";
@@ -147,6 +148,7 @@ const SUPPORTED_TYPES: ReadonlySet<ComponentMetadataType> = new Set([
     ComponentMetadataType.ContextMenu,
     ComponentMetadataType.TabLayout,
     ComponentMetadataType.AccordionLayout,
+    ComponentMetadataType.FoldoutLayout,
     ComponentMetadataType.Dialog,
     ComponentMetadataType.Drawer,
     ComponentMetadataType.ConfirmDialog,
@@ -822,6 +824,12 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
                     .component="${component}" .container="${container}" baseUrl="${baseUrl}"
                     .compState="${state}" .compData="${data}" .appState="${appState}" .appData="${appData}"
             ></mateu-redwood-accordion>`
+        }
+        if (ComponentMetadataType.FoldoutLayout == component?.metadata?.type) {
+            return html`<mateu-redwood-foldout
+                    .component="${component}" .container="${container}" baseUrl="${baseUrl}"
+                    .compState="${state}" .compData="${data}" .appState="${appState}" .appData="${appData}"
+            ></mateu-redwood-foldout>`
         }
         if (ComponentMetadataType.Dialog == component?.metadata?.type) {
             return renderDialog(container, component, baseUrl, state, data, appState, appData)

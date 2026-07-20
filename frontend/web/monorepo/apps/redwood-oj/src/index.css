@@ -1364,17 +1364,13 @@ a.demo-close-icon,a.demo-close-icon:active,a.demo-close-icon:hover {
 .categorylist.fixed {
     position: fixed;
     z-index: 1;
-    background-image: url("https://static.oracle.com/cdn/jet/18.1.0/default/css/alta/images/texture.png");
-    background-repeat: repeat;
     margin: 0;
     padding: 20px
 }
 
 .demo-filter-menu-bar.fixed {
     position: fixed;
-    z-index: 1;
-    background-image: url("https://static.oracle.com/cdn/jet/18.1.0/default/css/alta/images/texture.png");
-    background-repeat: repeat
+    z-index: 1
 }
 
 .demo-badge-position {
