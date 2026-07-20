@@ -1,5 +1,7 @@
 package io.mateu.core.domain.act;
 
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
+
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.AppContext;
@@ -71,7 +73,7 @@ public class AppContextSearchActionRunner implements ActionRunner {
     }
     var serverSideType = httpRequest.runActionRq().serverSideType();
     if (serverSideType != null && !serverSideType.isBlank()) {
-      return Class.forName(serverSideType).getDeclaredField(fieldName);
+      return forName(serverSideType).getDeclaredField(fieldName);
     }
     return null;
   }

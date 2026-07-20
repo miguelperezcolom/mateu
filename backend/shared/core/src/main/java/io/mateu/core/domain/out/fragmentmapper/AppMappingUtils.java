@@ -1,5 +1,7 @@
 package io.mateu.core.domain.out.fragmentmapper;
 
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
+
 import io.mateu.dtos.MenuOptionDto;
 import io.mateu.uidl.fluent.AppShell;
 import io.mateu.uidl.interfaces.Actionable;
@@ -43,7 +45,7 @@ public class AppMappingUtils {
     if (componentSupplier == null) {
       if (instance instanceof AppShell app) {
         if (app.serverSideType() != null && !"".equals(app.serverSideType())) {
-          instanceClass = Class.forName(app.serverSideType());
+          instanceClass = forName(app.serverSideType());
         }
       }
     }

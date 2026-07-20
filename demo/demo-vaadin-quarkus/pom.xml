@@ -92,6 +92,9 @@
                 <version>${compiler-plugin.version}</version>
                 <configuration>
                     <parameters>true</parameters>
+                    <!-- javac disables classpath annotation processing by default since JDK 23;
+                         mateu's annotation processor is a plain dependency, so it needs this -->
+                    <proc>full</proc>
                 </configuration>
             </plugin>
             <plugin>

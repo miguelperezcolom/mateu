@@ -4,6 +4,7 @@ import static io.mateu.core.application.runaction.RouteSegmentUtils.addParameter
 import static io.mateu.core.application.runaction.RouteSegmentUtils.createRoutes;
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
 import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 import static io.mateu.core.infra.reflection.ReflectionUiIncrementMapper.removeQueryParamsFromRoute;
 
 import io.mateu.core.application.ResolvedRoute;
@@ -73,7 +74,7 @@ public class RouteInstanceCreator {
     var routedClass = routedClassResolver.resolve(route, command);
     if (routedClass.isPresent()) {
       var instanceTypeName = routedClass.get().resolvedClass().getName();
-      if (isApp(Class.forName(instanceTypeName), route)) {
+      if (isApp(forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
         var instance =
             createInstance(

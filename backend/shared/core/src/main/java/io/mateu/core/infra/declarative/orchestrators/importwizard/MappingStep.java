@@ -1,5 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.importwizard;
 
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
+
 import io.mateu.core.infra.declarative.orchestrators.wizard.WizardStep;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.InlineEditing;
@@ -40,7 +42,7 @@ public class MappingStep implements WizardStep, OptionsSupplier {
       return List.of();
     }
     try {
-      var rowClass = Class.forName(rowClassName);
+      var rowClass = forName(rowClassName);
       var options = new ArrayList<Option>();
       options.add(new Option("", "— skip —"));
       ImportRowAssembler.assignableFields(rowClass)

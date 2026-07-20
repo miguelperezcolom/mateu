@@ -1,5 +1,7 @@
 package io.mateu.core.infra.reflection.read;
 
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
+
 import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.math.BigDecimal;
@@ -51,7 +53,7 @@ public class TypeCoercionHelper {
     if (LocalDateTime.class.equals(targetType)) return LocalDateTime.parse("" + value);
     if (LocalTime.class.equals(targetType)) return LocalTime.parse("" + value);
     if (targetType.isEnum()) return Enum.valueOf(targetType, "" + value);
-    if (Class.class.equals(targetType)) return Class.forName("" + value);
+    if (Class.class.equals(targetType)) return forName("" + value);
     if (Map.class.isAssignableFrom(value.getClass())) {
       return instanceFactory
           .createInstance(targetType.getName(), (Map<String, Object>) value, httpRequest)

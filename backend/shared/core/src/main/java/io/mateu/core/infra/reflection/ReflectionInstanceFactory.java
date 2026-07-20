@@ -1,5 +1,6 @@
 package io.mateu.core.infra.reflection;
 
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 import static io.mateu.core.infra.reflection.write.Hydrater.hydrate;
 import static java.lang.Thread.currentThread;
 
@@ -58,7 +59,7 @@ public class ReflectionInstanceFactory implements InstanceFactory {
 
   private Class<?> loadClass(String className) throws ClassNotFoundException {
     try {
-      return Class.forName(className);
+      return forName(className);
     } catch (ClassNotFoundException e) {
       return currentThread().getContextClassLoader().loadClass(className);
     }

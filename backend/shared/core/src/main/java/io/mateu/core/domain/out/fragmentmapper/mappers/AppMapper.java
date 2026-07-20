@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.fragmentmapper.AppMappingUtils.totalMenuO
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AppHomeRouteResolver.*;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AppMenuDtoBuilder.buildMenu;
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.*;
@@ -45,7 +46,7 @@ public final class AppMapper {
     }
     var appRouteForMenu = appRoute;
     if (app.serverSideType() != null) {
-      var appType = Class.forName(app.serverSideType());
+      var appType = forName(app.serverSideType());
       if (appType.isAnnotationPresent(Route.class)) {
         appRouteForMenu = "";
         if (route.equals(appType.getAnnotation(Route.class).value())
@@ -110,7 +111,7 @@ public final class AppMapper {
   @SneakyThrows
   private static List<FabDto> getAppFabs(AppShell app) {
     if (app.serverSideType() == null) return List.of();
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     return Arrays.stream(appClass.getMethods())
         .filter(method -> MetaAnnotations.isPresent(method, Fab.class))
         .sorted(Comparator.comparingInt(method -> MetaAnnotations.find(method, Fab.class).order()))
@@ -142,7 +143,7 @@ public final class AppMapper {
   @SneakyThrows
   private static List<AppHeaderActionDto> getContextActions(AppShell app, HttpRequest httpRequest) {
     if (app.serverSideType() == null) return List.of();
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
       return List.of();
     }
@@ -166,7 +167,7 @@ public final class AppMapper {
       return false;
     }
     return io.mateu.uidl.interfaces.NotificationsSupplier.class.isAssignableFrom(
-        Class.forName(app.serverSideType()));
+        forName(app.serverSideType()));
   }
 
   /** The ⌘K palette searches data too when the app class implements GlobalSearchSupplier. */
@@ -176,7 +177,7 @@ public final class AppMapper {
       return false;
     }
     return io.mateu.uidl.interfaces.GlobalSearchSupplier.class.isAssignableFrom(
-        Class.forName(app.serverSideType()));
+        forName(app.serverSideType()));
   }
 
   private static AppHeaderActionDto mapHeaderAction(io.mateu.uidl.data.AppHeaderAction action) {
@@ -201,7 +202,7 @@ public final class AppMapper {
   private static List<AppContextSelectorDto> getContextSelectors(
       AppShell app, HttpRequest httpRequest) {
     if (app.serverSideType() == null) return List.of();
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     var selectors = new java.util.ArrayList<AppContextSelectorDto>();
     for (var field : appClass.getDeclaredFields()) {
       if (!MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)) {
@@ -266,7 +267,7 @@ public final class AppMapper {
   @SneakyThrows
   private static boolean getThemeToggle(AppShell app) {
     if (app.serverSideType() == null) return false;
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
       return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).themeToggle();
     }
@@ -279,7 +280,7 @@ public final class AppMapper {
   @SneakyThrows
   private static boolean getCommandCenter(AppShell app) {
     if (app.serverSideType() == null) return false;
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
       var a = MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class);
       return a.commandCenter() || a.chromeless();
@@ -293,7 +294,7 @@ public final class AppMapper {
   @SneakyThrows
   private static boolean getChromeless(AppShell app) {
     if (app.serverSideType() == null) return false;
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
       return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).chromeless();
     }
@@ -303,7 +304,7 @@ public final class AppMapper {
   @SneakyThrows
   private static String getMcpUrl(AppShell app) {
     if (app.serverSideType() == null) return null;
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, AI.class)) {
       var mcp = MetaAnnotations.find(appClass, AI.class).mcp();
       return mcp.isBlank() ? null : mcp;
@@ -314,7 +315,7 @@ public final class AppMapper {
   @SneakyThrows
   private static String getUploadUrl(AppShell app) {
     if (app.serverSideType() == null) return null;
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, AI.class)) {
       var upload = MetaAnnotations.find(appClass, AI.class).upload();
       return upload.isBlank() ? null : upload;
@@ -325,7 +326,7 @@ public final class AppMapper {
   @SneakyThrows
   private static String getSseUrl(AppShell app) {
     if (app.serverSideType() == null) return null;
-    var appClass = Class.forName(app.serverSideType());
+    var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, AI.class)) {
       return MetaAnnotations.find(appClass, AI.class).sse();
     }

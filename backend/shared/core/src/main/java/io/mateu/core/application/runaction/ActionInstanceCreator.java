@@ -2,6 +2,7 @@ package io.mateu.core.application.runaction;
 
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedPath;
 import static io.mateu.core.application.runaction.RunActionUseCase.setResolvedRoute;
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
 import io.mateu.dtos.UIIncrementDto;
@@ -119,7 +120,7 @@ public class ActionInstanceCreator {
       return false;
     }
     try {
-      var appClass = Class.forName(command.serverSideType());
+      var appClass = forName(command.serverSideType());
       if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
         return false;
       }

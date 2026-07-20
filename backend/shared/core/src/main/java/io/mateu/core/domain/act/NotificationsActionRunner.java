@@ -1,5 +1,7 @@
 package io.mateu.core.domain.act;
 
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
+
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.uidl.data.Data;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -86,7 +88,7 @@ public class NotificationsActionRunner implements ActionRunner {
     }
     var serverSideType = httpRequest.runActionRq().serverSideType();
     if (serverSideType != null && !serverSideType.isBlank()) {
-      var appClass = Class.forName(serverSideType);
+      var appClass = forName(serverSideType);
       if (NotificationsSupplier.class.isAssignableFrom(appClass)) {
         return (NotificationsSupplier)
             io.mateu.uidl.di.MateuBeanProvider.getBean(

@@ -1,6 +1,7 @@
 package io.mateu.core.infra.reflection;
 
 import static io.mateu.core.domain.BasicTypeChecker.isBasic;
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 import static org.apache.commons.beanutils.ConvertUtils.convert;
 
 import io.mateu.uidl.data.Amount;
@@ -79,7 +80,7 @@ final class ReflectionTypeCoercer {
       }
       return array;
     } else if (Class.class.equals(type)) {
-      return Class.forName((String) data);
+      return forName((String) data);
     } else if (Collection.class.isAssignableFrom(type)) {
       var list = new ArrayList();
       ((List<Object>) data)

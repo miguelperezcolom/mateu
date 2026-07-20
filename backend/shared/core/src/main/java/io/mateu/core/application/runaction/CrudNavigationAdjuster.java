@@ -1,5 +1,7 @@
 package io.mateu.core.application.runaction;
 
+import static io.mateu.core.infra.reflection.ClassLoaders.forName;
+
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
@@ -22,7 +24,7 @@ public class CrudNavigationAdjuster {
     if (command.serverSideType() == null || command.serverSideType().isEmpty()) {
       return new AdjustedCommand(command, false);
     }
-    var type = Class.forName(command.serverSideType());
+    var type = forName(command.serverSideType());
     if (!Crud.class.isAssignableFrom(type)) {
       return new AdjustedCommand(command, false);
     }
