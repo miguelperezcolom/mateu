@@ -58,24 +58,11 @@ Or, in case you are using Gradle:
     annotationProcessor("io.mateu:annotation-processor-micronaut:MATEU_VERSION")
 ```
 
-## Step 3: Add some configuration
+## Step 3: Create your Mateu UI
 
-And add the following annotations to your application:
+Nothing special is required. Your application class stays as usual:
 
 ```java
-@Introspected(packages = "io.mateu.dtos")
-@SerdeImport(packageName = "io.mateu.dtos")
-@Import(packages = {
-        "io.mateu",
-        "io.mateu.core.application",
-        "io.mateu.core.application.getui",
-        "io.mateu.core.application.createjourney",
-        "io.mateu.core.application.runaction",
-        "io.mateu.core.domain",
-        "io.mateu.core.domain.fragmentmapper",
-        "io.mateu.core.domain.reflection"
-},
-        annotated = "*")
 public class Application {
 
     public static void main(String[] args) {
@@ -84,17 +71,11 @@ public class Application {
 }
 ```
 
-Also, in case you added the frontend dependency, in the application.properties file you need to add the following properties:
+Mateu's beans, bean introspections and JSON serialization ship inside the `micronaut-core` jar and are
+discovered from the classpath, and static content is served by micronaut's default static resources,
+so no annotations nor extra configuration properties are needed.
 
-```properties
-micronaut.router.static-resources.assets.mapping=/**
-micronaut.router.static-resources.assets.paths=classpath\:static
-```
-
-
-## Step 4: Create your Mateu UI
-
-Nothing special is required. Just annotate your class with `@UI`:
+Just annotate your class with `@UI`:
 
 ```java
 
@@ -109,7 +90,7 @@ public class HelloWorld {
 
 ```
 
-When you run you spring boot application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
+When you run your micronaut application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
 
 
 <p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>

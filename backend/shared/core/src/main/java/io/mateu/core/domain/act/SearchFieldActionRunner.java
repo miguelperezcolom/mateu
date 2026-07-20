@@ -103,5 +103,7 @@ public class SearchFieldActionRunner implements ActionRunner {
     return new SearchTarget(target, null);
   }
 
-  record SearchTarget(String parent, String child) {}
+  // public: micronaut's @Import(annotated = "*") picks up nested types as beans, and the
+  // generated bean definition must be able to access the canonical constructor
+  public record SearchTarget(String parent, String child) {}
 }

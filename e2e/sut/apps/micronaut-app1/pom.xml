@@ -61,25 +61,6 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.21.4</version>
-        </dependency>
-        <!-- keep annotations/core aligned with the databind override — the micronaut parent
-             manages them at 2.19.x, and databind 2.21 needs annotations 2.21
-             (NoClassDefFoundError: JsonSerializeAs at startup otherwise; annotations
-             publishes no micro releases, hence plain 2.21) -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.21</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.21.4</version>
-        </dependency>
-        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <scope>runtime</scope>

@@ -15,6 +15,10 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- aligned with the micronaut platform version used by the demos, so the generated
+         bean definitions match the runtime that consumes them -->
+    <micronaut.core.version>4.9.9</micronaut.core.version>
+    <micronaut.serialization.version>2.15.1</micronaut.serialization.version>
   </properties>
 
   <dependencies>
@@ -22,14 +26,42 @@
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-context</artifactId>
-      <version>4.10.22</version>
+      <version>${micronaut.core.version}</version>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>io.micronaut</groupId>
       <artifactId>micronaut-http</artifactId>
-      <version>4.10.22</version>
+      <version>${micronaut.core.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.micronaut.serde</groupId>
+      <artifactId>micronaut-serde-api</artifactId>
+      <version>${micronaut.serialization.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.micronaut.serde</groupId>
+      <artifactId>micronaut-serde-jackson</artifactId>
+      <version>${micronaut.serialization.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.20.1</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-jackson-databind</artifactId>
+      <version>${micronaut.core.version}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -71,5 +103,34 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <!-- generates the bean definitions / introspections / serdes for mateu itself,
+               so micronaut apps discover them from this jar with zero configuration -->
+          <annotationProcessorPaths>
+            <path>
+              <groupId>io.micronaut</groupId>
+              <artifactId>micronaut-inject-java</artifactId>
+              <version>${micronaut.core.version}</version>
+            </path>
+            <path>
+              <groupId>io.micronaut.serde</groupId>
+              <artifactId>micronaut-serde-processor</artifactId>
+              <version>${micronaut.serialization.version}</version>
+            </path>
+          </annotationProcessorPaths>
+          <compilerArgs>
+            <arg>-Amicronaut.processing.group=io.mateu</arg>
+            <arg>-Amicronaut.processing.module=micronaut-core</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
