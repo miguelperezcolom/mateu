@@ -45,5 +45,15 @@ export default defineConfig({
       },
       testMatch: '**/shared/**/*.spec.ts',
     },
+    {
+      // Federated shell (fed-shell-app :8084) aggregating fed-remote-app :8085 over RemoteMenu.
+      // Runs only the federation specs (not the shared ones).
+      name: 'fed-shell-app',
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:8084',
+      },
+      testMatch: '**/federation/**/*.spec.ts',
+    },
   ],
 });

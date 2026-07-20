@@ -17,6 +17,10 @@
         <module>apps/webflux-app1</module>
         <module>apps/quarkus-app1</module>
         <module>apps/micronaut-app1</module>
+        <module>modules/federation-remote-ui</module>
+        <module>modules/federation-shell-ui</module>
+        <module>apps/fed-remote-app</module>
+        <module>apps/fed-shell-app</module>
     </modules>
 
 </project>
