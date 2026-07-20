@@ -32,7 +32,10 @@ public static class ComponentMapper
         Skeleton s => Dto(s, new SkeletonMetadataDto(LowerName(s.Variant)!, s.Count)),
 
         Gantt g => Dto(g, new GanttMetadataDto(g.Tasks.Select(t => new GanttTaskDto(
-            t.Id, t.Title, Iso(t.Start), Iso(t.End), t.Progress, t.Color)).ToList())),
+            t.Id, t.Title, Iso(t.Start), Iso(t.End), t.Progress, t.Color)).ToList())
+        {
+            OnTaskSelectionActionId = g.OnTaskSelectionActionId,
+        }),
 
         PlanningBoard pb => Dto(pb, new PlanningBoardMetadataDto(
             pb.Resources.Select(r => new PlanningResourceDto(r.Id, r.Label, r.Group)).ToList(),

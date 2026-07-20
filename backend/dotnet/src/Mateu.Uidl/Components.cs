@@ -184,6 +184,9 @@ public sealed record GanttTask
 public sealed record Gantt : ComponentBase
 {
     public IReadOnlyList<GanttTask> Tasks { get; init; } = [];
+    /// <summary>When set, clicking a bar dispatches this action carrying the clicked task id as the
+    /// _clickedTaskId parameter (the interactive Gantt-page selection). Null = read-only.</summary>
+    public string? OnTaskSelectionActionId { get; init; }
 }
 
 /// <summary>One row of a <see cref="PlanningBoard"/>: a bookable/assignable resource (room,

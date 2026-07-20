@@ -449,6 +449,8 @@ class GanttMetadata(Wire):
 
     type: Literal["Gantt"] = "Gantt"
     tasks: list[GanttTaskRecord] = Field(default_factory=list)
+    #: When set, clicking a bar dispatches this action with the clicked task id as _clickedTaskId.
+    on_task_selection_action_id: str | None = None
 
 
 class PlanningResourceRecord(Wire):

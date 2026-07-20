@@ -1313,7 +1313,7 @@ __all__ = [
     "plain_text", "emits", "subscribe_to", "secured", "welcome_banner",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
-    "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome", "TodoList",
+    "ComponentTreeSupplier", "Dashboard", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
 ]
 
@@ -1666,3 +1666,68 @@ class CalendarPage(ComponentTreeSupplier):
                 fluent.Calendar(month=month, events=events),
             ),
         )
+
+
+class GanttPage(ComponentTreeSupplier):
+    """Gantt page (the Redwood "Gantt page" template, the Python analogue of Java's GanttPage
+    archetype): a full-bleed scheduling canvas laid out edge-to-edge — a ``Gantt`` tape chart of
+    :meth:`tasks` — with an optional :meth:`detail` panel docked below it and a heading from
+    ``@title``. Clicking a bar opens the task in a side ``Drawer``."""
+
+    #: Edge-to-edge by default (a full-bleed canvas); ``@page_width`` on the subclass overrides.
+    __mateu_page_width__ = "edgeToEdge"
+
+    #: The inbound request of the current render/action (set by the sync handler).
+    http_request = None
+
+    def tasks(self, http_request):
+        """The bars of the scheduling canvas — a list of ``GanttTask``."""
+        raise NotImplementedError
+
+    def detail(self, http_request):
+        """Optional detail component docked below the canvas (the Redwood bottom panel); None = none."""
+        return None
+
+    def heading(self) -> str | None:
+        """The page heading above the canvas; defaults to the class ``@title``, None/blank hides it."""
+        return getattr(type(self), "__mateu_title__", None)
+
+    def component(self):
+        from mateu_uidl import components as fluent
+
+        content = []
+        heading = self.heading()
+        if heading:
+            content.append(
+                fluent.Text(id="gantt-page-title", text=heading, size="xl", no_margins=True,
+                            style="font-weight: 600;")
+            )
+        content.append(
+            fluent.Gantt(id="gantt", tasks=tuple(self.tasks(self.http_request)),
+                         on_task_selection_action_id="selectGanttTask")
+        )
+        d = self.detail(self.http_request)
+        if d is not None:
+            content.append(d)
+        return fluent.VerticalLayout(id="gantt-page", spacing=True, content=tuple(content))
+
+    def select_gantt_task(self, task_id):
+        """Resolve the clicked task id and return its detail overlay (a Drawer), or None."""
+        task = next((t for t in self.tasks(self.http_request) if t.id == task_id), None)
+        return None if task is None else self.task_drawer(task)
+
+    def task_drawer(self, task):
+        """The drawer opened when a bar is clicked — a side General Drawer with the task title and
+        :meth:`task_detail`. Override to customise (size, position, peer navigation…)."""
+        from mateu_uidl import components as fluent
+
+        return fluent.Drawer(id="gantt-task-drawer", header_title=task.title,
+                             size=fluent.DrawerSize.m, content=self.task_detail(task))
+
+    def task_detail(self, task):
+        """Content shown for a clicked task inside :meth:`task_drawer`. Defaults to dates + progress."""
+        from mateu_uidl import components as fluent
+
+        start = task.start.isoformat() if task.start else ""
+        end = task.end.isoformat() if task.end else ""
+        return fluent.Text(text=f"{start} → {end} · {round(task.progress)}% completado")

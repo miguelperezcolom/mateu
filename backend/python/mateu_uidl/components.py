@@ -256,6 +256,9 @@ class Gantt(Component):
     """A Gantt/timeline chart: one row per :class:`GanttTask`. Read-only by design."""
 
     tasks: tuple[GanttTask, ...] = ()
+    #: When set, clicking a bar dispatches this action with the clicked task id as
+    #: ``_clickedTaskId`` (the interactive Gantt-page selection). None = read-only.
+    on_task_selection_action_id: str | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

@@ -266,7 +266,12 @@ public record EmptyStateMetadataDto(string? Icon, string? Title, string? Descrip
 public record SkeletonMetadataDto(string Variant, int Count) : ComponentMetadataDto;
 
 /// <summary>Gantt/timeline chart metadata.</summary>
-public record GanttMetadataDto(IReadOnlyList<GanttTaskDto> Tasks) : ComponentMetadataDto;
+public record GanttMetadataDto(IReadOnlyList<GanttTaskDto> Tasks) : ComponentMetadataDto
+{
+    /// <summary>When set, clicking a bar dispatches this action with the clicked task id as
+    /// _clickedTaskId. (Mirrors io.mateu.dtos.GanttDto.onTaskSelectionActionId.)</summary>
+    public string? OnTaskSelectionActionId { get; init; }
+}
 
 /// <summary>One Gantt bar; start/end are ISO-8601 dates (yyyy-MM-dd).</summary>
 public record GanttTaskDto(string? Id, string? Title, string? Start, string? End, double Progress, string? Color);

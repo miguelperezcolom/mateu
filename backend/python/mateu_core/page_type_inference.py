@@ -17,6 +17,7 @@ from mateu_uidl import (
     Crud,
     Dashboard,
     Foldout,
+    GanttPage,
     GeneralOverview,
     HeroSearch,
     ItemOverview,
@@ -37,7 +38,7 @@ _LANDING = (Welcome, HeroSearch)
 _COLLECTION = (SmartSearchPage, TodoList, CalendarPage, CollectionDetail, Crud, Listing)
 #: ImportWizard (mateu_core.importwizard) subclasses Wizard, so it resolves to process too.
 _PROCESS = (Wizard,)
-_DETAIL = (Foldout, ItemOverview, GeneralOverview)
+_DETAIL = (Foldout, GanttPage, ItemOverview, GeneralOverview)
 
 
 def page_type_of(cls) -> str:

@@ -107,6 +107,13 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                             ? MapResult(created, rq)
                             : Render(type, instance, rq);
                 }
+            // A GanttPage bar click ACTS on the task: the frontend sends its id as
+            // parameters._clickedTaskId and the archetype opens it in a side Drawer (mirrors Java's
+            // GanttPage.selectGanttTask). Unknown task / null just re-renders the canvas.
+            if (rq.ActionId == "selectGanttTask" && instance is IGanttPage ganttPage)
+                return ganttPage.SelectGanttTask(StateString(GetState(rq.Parameters, "_clickedTaskId"))) is { } drawer
+                    ? MapResult(drawer, rq)
+                    : Render(type, instance, rq);
         }
         return string.IsNullOrEmpty(rq.ActionId) ? Render(type, instance, rq) : RunAction(type, instance, rq);
     }

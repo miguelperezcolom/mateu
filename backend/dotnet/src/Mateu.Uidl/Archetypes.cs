@@ -582,3 +582,59 @@ public abstract class CalendarPage : IComponentTreeSupplier, ICalendarPage
 
     private static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd");
 }
+
+/// <summary>Implemented by a Gantt page so the SyncHandler can route a bar click to the archetype.</summary>
+public interface IGanttPage
+{
+    /// <summary>The task bars of the canvas (used to resolve a clicked task id).</summary>
+    IReadOnlyList<GanttTask> GanttTasks();
+
+    /// <summary>Resolves the clicked task id and returns its detail overlay (a Drawer), or null.</summary>
+    object? SelectGanttTask(string? taskId);
+}
+
+/// <summary>Gantt page (the Oracle Redwood "Gantt page" template): a full-bleed scheduling canvas
+/// laid out edge-to-edge — a <see cref="Gantt"/> tape chart of <see cref="Tasks"/> — with an
+/// optional <see cref="Detail"/> panel docked below it and a heading from [Title]. Clicking a bar
+/// opens the task in a side <see cref="Drawer"/>. (Java parity: GanttPage.)</summary>
+public abstract class GanttPage : IComponentTreeSupplier, IPageWidthSupplier, IGanttPage
+{
+    public virtual PageWidthStyle? PageWidth() => PageWidthStyle.EdgeToEdge;
+
+    /// <summary>The bars of the scheduling canvas — one GanttTask per row.</summary>
+    protected abstract IReadOnlyList<GanttTask> Tasks();
+
+    /// <summary>Optional detail panel docked below the canvas (the Redwood bottom panel); null = none.</summary>
+    protected virtual IComponent? Detail() => null;
+
+    /// <summary>The page heading above the canvas; defaults to the class [Title], null/blank hides it.</summary>
+    protected virtual string? Heading =>
+        GetType().GetCustomAttribute<TitleAttribute>()?.Value is { Length: > 0 } t ? t : null;
+
+    public IComponent Component()
+    {
+        var content = new List<IComponent>();
+        if (Heading is { Length: > 0 } h)
+            content.Add(new Text(h) { Id = "gantt-page-title", Size = "xl", NoMargins = true, Style = "font-weight: 600;" });
+        content.Add(new Gantt { Id = "gantt", Tasks = Tasks(), OnTaskSelectionActionId = "selectGanttTask" });
+        if (Detail() is { } d) content.Add(new Card { Id = "gantt-detail", Content = d });
+        return new VerticalLayout { Id = "gantt-page", Spacing = true, Content = content };
+    }
+
+    public IReadOnlyList<GanttTask> GanttTasks() => Tasks();
+
+    public object? SelectGanttTask(string? taskId)
+    {
+        var task = Tasks().FirstOrDefault(t => t.Id == taskId);
+        return task is null ? null : TaskDrawer(task);
+    }
+
+    /// <summary>The drawer opened when a bar is clicked — a side General Drawer with the task title
+    /// and Detail. Override to customise (size, position, peer navigation…).</summary>
+    protected virtual Drawer TaskDrawer(GanttTask task) =>
+        new() { Id = "gantt-task-drawer", HeaderTitle = task.Title, Size = DrawerSize.M, Content = TaskDetail(task) };
+
+    /// <summary>Content shown for a clicked task inside TaskDrawer. Defaults to dates + progress.</summary>
+    protected virtual IComponent TaskDetail(GanttTask task) =>
+        new Text($"{task.Start:yyyy-MM-dd} → {task.End:yyyy-MM-dd} · {Math.Round(task.Progress)}% completado");
+}

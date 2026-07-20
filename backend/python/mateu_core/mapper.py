@@ -835,7 +835,10 @@ class ReflectionMapper:
                 )
                 for t in c.tasks
             ]
-            return self._fluent_client(GanttMetadata(tasks=tasks), c)
+            return self._fluent_client(
+                GanttMetadata(tasks=tasks, on_task_selection_action_id=c.on_task_selection_action_id),
+                c,
+            )
         if isinstance(c, fluent.PlanningBoard):
             meta = PlanningBoardMetadata(
                 resources=[

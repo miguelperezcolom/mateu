@@ -24,6 +24,7 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 from mateu_uidl import (
+    GanttPage,
     Aggregate,
     ComponentTreeSupplier,
     AggregateFunction,
@@ -201,6 +202,14 @@ class SyncHandler:
             if rq.action_id == "createCalendarEvent":
                 created = instance.create_calendar_event()
                 return self.map_result(created, rq) if created is not None else self.render(type_, instance, rq)
+        # 4d. A GanttPage bar click ACTS on the task: the frontend sends its id as
+        # parameters._clickedTaskId and the archetype opens it in a side Drawer (mirrors Java's
+        # GanttPage.select_gantt_task). Unknown task / None just re-renders the canvas.
+        if isinstance(instance, GanttPage) and rq.action_id == "selectGanttTask":
+            clicked = (rq.parameters or {}).get("_clickedTaskId")
+            task_id = None if clicked is None else str(clicked)
+            drawer = instance.select_gantt_task(task_id)
+            return self.map_result(drawer, rq) if drawer is not None else self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq)
 
     @staticmethod

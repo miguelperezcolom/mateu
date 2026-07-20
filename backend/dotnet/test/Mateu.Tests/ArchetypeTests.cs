@@ -34,6 +34,18 @@ public class HotelDirectory : CollectionDetail<HotelDirectory.Hotel>
         new EntityHeader { Title = row.Name, Subtitle = row.City };
 }
 
+[UI("gantt-project-plan"), Title("Project plan")]
+public class GanttProjectPlan : GanttPage
+{
+    protected override IReadOnlyList<GanttTask> Tasks() =>
+    [
+        new() { Id = "t1", Title = "Design", Start = new DateOnly(2026, 1, 1), End = new DateOnly(2026, 1, 10), Progress = 100 },
+        new() { Id = "t2", Title = "Build", Start = new DateOnly(2026, 1, 11), End = new DateOnly(2026, 2, 1), Progress = 40 },
+    ];
+
+    protected override IComponent Detail() => new Text("detail panel");
+}
+
 [UI("requisition-overview"), Title("Requisitions")]
 public class RequisitionOverview : GeneralOverview<RequisitionOverview.Requisition>
 {
@@ -158,6 +170,26 @@ public class ArchetypeTests
         // the state round-trips and typing re-filters through the AutoSave trigger
         Assert.Contains("\"type\":\"AutoSave\"", json);
         Assert.Contains("\"actionId\":\"filterCollection\"", json);
+    }
+
+    [Fact]
+    public void Gantt_page_is_edge_to_edge_with_the_canvas_heading_and_detail()
+    {
+        var json = Render(Run("/gantt-project-plan", typeof(GanttProjectPlan), null));
+        Assert.Contains("\"pageType\":\"detail\"", json);
+        Assert.Contains("\"type\":\"Gantt\"", json);
+        Assert.Contains("\"onTaskSelectionActionId\":\"selectGanttTask\"", json);
+        Assert.Contains("Project plan", json);   // the heading
+        Assert.Contains("detail panel", json);    // the docked detail
+    }
+
+    [Fact]
+    public void Clicking_a_gantt_task_opens_it_in_a_drawer()
+    {
+        var json = Render(Run("/gantt-project-plan", typeof(GanttProjectPlan), "selectGanttTask",
+            parameters: new() { ["_clickedTaskId"] = "t2" }));
+        Assert.Contains("\"type\":\"Drawer\"", json);
+        Assert.Contains("\"headerTitle\":\"Build\"", json);
     }
 
     [Fact]
