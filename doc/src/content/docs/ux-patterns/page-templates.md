@@ -10,7 +10,8 @@ backend: you extend an archetype or set a flag, and the page comes out with the 
 on every renderer.
 
 This page is the map. Each row names the template (RDS naming), the Mateu piece that builds it,
-and where to see it running.
+and where to see it running. To pick the right one from a user goal, start with
+[Choosing a page template](./choosing-a-page-template).
 
 | Template | Mateu piece | Demo route | Guide |
 |---|---|---|---|
@@ -50,6 +51,15 @@ Three notes on how to read the table:
   `@PageTemplate(PageType.X)`. The type anchors the width default (form/process/landing are
   always capped; collection/detail/dashboard defer to the content inference) and is stamped as
   `data-page-type` on the rendered page host as a stylesheet hook.
+- **Peer navigation.** A detail/overview page can implement `PeerNavigationSupplier` to add the
+  previous/next-object arrows to the header (the Redwood "next/previous object" element): return a
+  `PeerNav(prevLabel, prevRoute, nextLabel, nextRoute)` for the current record — a `null` route
+  disables that side. Ported to .NET (`IPeerNavigationSupplier`) and Python
+  (`PeerNavigationSupplier`). Demo: `/peer-nav-demo`.
+- **Header timestamp.** Mark a field with `@Timestamp("Last updated")` to show a "last updated"
+  line in the header (the Redwood timestamp element); the field's value renders as text and the
+  field is dropped from the form body. Header key/value facts come from `@KPI` fields the same way.
+  Ported to .NET (`[Timestamp]`) and Python (`Timestamp()`).
 - **Backend parity.** Everything on this page also works on the .NET and Python backends — see
   the [parity matrix](/reference/parity/) for the per-feature detail.
 - **Composition beats templates.** When no template fits, the same pieces compose freely:

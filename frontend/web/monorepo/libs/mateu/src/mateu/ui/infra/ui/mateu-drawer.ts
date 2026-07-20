@@ -14,6 +14,38 @@ export class MateuDrawer extends ComponentElement {
     @state()
     opened = false
 
+    // How many times the user pressed Maximize — each step bumps the drawer one standard size up.
+    @state()
+    private maximizeSteps = 0
+
+    // Bottom drawer: collapsed to its header strip (toggled by the handle when `collapsible`).
+    @state()
+    private collapsed = false
+
+    // Standard Redwood drawer widths (s→m→l→xl). An explicit `width` overrides these.
+    private static readonly SIZE_LADDER = ['s', 'm', 'l', 'xl'] as const
+    private static readonly SIZE_WIDTHS: Record<string, string> = {
+        s: '464px', m: '648px', l: '968px', xl: '90vw',
+    }
+
+    // The effective width: explicit `width` wins; otherwise the named `size` bumped up by any
+    // Maximize presses; falls back to the CSS default when neither is set.
+    private effectiveWidth(metadata: Drawer): string | undefined {
+        if (metadata.width) return metadata.width
+        if (!metadata.size) return undefined
+        const ladder = MateuDrawer.SIZE_LADDER
+        const start = Math.max(0, ladder.indexOf(metadata.size))
+        const idx = Math.min(ladder.length - 1, start + this.maximizeSteps)
+        return MateuDrawer.SIZE_WIDTHS[ladder[idx]]
+    }
+
+    private canMaximize(metadata: Drawer): boolean {
+        if (!metadata.maximizable) return false
+        const ladder = MateuDrawer.SIZE_LADDER
+        const start = Math.max(0, ladder.indexOf(metadata.size ?? 'm'))
+        return start + this.maximizeSteps < ladder.length - 1
+    }
+
     firstUpdated() {
         requestAnimationFrame(() => this.opened = true)
     }
@@ -71,25 +103,46 @@ export class MateuDrawer extends ComponentElement {
         const position = metadata.position ?? 'end'
         const title = interpolateNested(
             metadata.headerTitle, this.state, this.data, this.appState, this.appData)
+        const subtitle = interpolateNested(
+            metadata.subtitle, this.state, this.data, this.appState, this.appData)
+        const width = this.effectiveWidth(metadata)
+        const peerNav = metadata.peerNav && (metadata.peerNav.prevRoute || metadata.peerNav.nextRoute)
+            ? metadata.peerNav : undefined
 
         return html`
         ${metadata.modeless ? nothing : html`
             <div class="backdrop ${this.opened ? 'open' : ''}" @click="${this.close}"></div>
         `}
         <section
-                class="panel ${position} ${this.opened ? 'open' : ''} ${this.component?.cssClasses ?? ''}"
+                class="panel ${position} ${this.opened ? 'open' : ''} ${this.collapsed ? 'collapsed' : ''} ${this.component?.cssClasses ?? ''}"
                 role="dialog"
                 aria-modal="${!metadata.modeless}"
                 aria-label="${title ?? nothing}"
-                style="${metadata.width ? `width: ${metadata.width};` : ''}${this.component?.style ?? ''}"
+                style="${width && position !== 'bottom' ? `width: ${width};` : ''}${this.component?.style ?? ''}"
         >
             <header>
-                ${title ? html`<h3>${title}</h3>` : html`<span class="spacer"></span>`}
+                ${title
+                    ? html`<div class="titles"><h3>${title}</h3>${subtitle ? html`<span class="subtitle">${subtitle}</span>` : nothing}</div>`
+                    : html`<span class="spacer"></span>`}
                 ${metadata.header ? html`
                     <mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>
                 ` : nothing}
+                ${peerNav ? html`
+                    <button class="drawer-icon" aria-label="${peerNav.prevLabel ?? 'Previous'}" title="${peerNav.prevLabel ?? 'Previous'}"
+                            ?disabled="${!peerNav.prevRoute}" @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute! }}">‹</button>
+                    <button class="drawer-icon" aria-label="${peerNav.nextLabel ?? 'Next'}" title="${peerNav.nextLabel ?? 'Next'}"
+                            ?disabled="${!peerNav.nextRoute}" @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute! }}">›</button>
+                ` : nothing}
+                ${metadata.collapsible ? html`
+                    <button class="drawer-icon" aria-label="${this.collapsed ? 'Expand' : 'Collapse'}" title="${this.collapsed ? 'Expand' : 'Collapse'}"
+                            @click="${() => this.collapsed = !this.collapsed}">${this.collapsed ? '▴' : '▾'}</button>
+                ` : nothing}
+                ${this.canMaximize(metadata) ? html`
+                    <button class="drawer-icon" aria-label="Maximize" title="Maximize" @click="${() => this.maximizeSteps++}">⤢</button>
+                ` : nothing}
                 <button class="drawer-close" aria-label="Close" @click="${this.close}">✕</button>
             </header>
+            ${this.collapsed ? nothing : html`
             <div class="content ${metadata.noPadding ? 'no-padding' : ''}">
                 ${metadata.content ? html`
                     <mateu-event-interceptor .target="${this}" style="--mateu-section-border: none; width: 100%;">${renderComponent(this, metadata.content, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>
@@ -100,6 +153,7 @@ export class MateuDrawer extends ComponentElement {
                     <mateu-event-interceptor .target="${this}" style="width: 100%;">${renderComponent(this, metadata.footer, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>
                 </footer>
             ` : nothing}
+            `}
         </section>
        `
     }
@@ -155,6 +209,27 @@ export class MateuDrawer extends ComponentElement {
         .panel.open {
             transform: translateX(0);
         }
+        /* Bottom drawer: docked at the bottom edge, full width, slides up (the Redwood
+           "Bottom Drawer" template). Height defaults to half the viewport; collapsing (via the
+           handle) shrinks it to the header strip. */
+        .panel.bottom {
+            top: auto;
+            left: 0;
+            right: 0;
+            width: auto;
+            max-width: 100vw;
+            height: var(--mateu-drawer-height, 50vh);
+            max-height: 90vh;
+            transform: translateY(100%);
+            border-top-left-radius: var(--lumo-border-radius-l, 12px);
+            border-top-right-radius: var(--lumo-border-radius-l, 12px);
+        }
+        .panel.bottom.open {
+            transform: translateY(0);
+        }
+        .panel.bottom.collapsed {
+            height: auto;
+        }
         header {
             display: flex;
             align-items: center;
@@ -162,14 +237,46 @@ export class MateuDrawer extends ComponentElement {
             padding: var(--mateu-drawer-header-padding, var(--lumo-space-s, 0.5rem) var(--lumo-space-m, 1rem));
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, 0.1));
         }
-        header h3 {
+        header .titles {
             flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        header h3 {
             margin: 0;
             font-size: var(--lumo-font-size-l, 1.125rem);
             font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        header .subtitle {
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-secondary-text-color, #6b7280);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         header .spacer {
             flex: 1;
+        }
+        .drawer-icon {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: .35rem .5rem;
+            border-radius: var(--lumo-border-radius-m, 6px);
+            color: var(--lumo-secondary-text-color, #555);
+        }
+        .drawer-icon:hover:not(:disabled) {
+            background: var(--lumo-contrast-5pct, rgba(0,0,0,.05));
+        }
+        .drawer-icon:disabled {
+            opacity: .35;
+            cursor: default;
         }
         .content {
             flex: 1;

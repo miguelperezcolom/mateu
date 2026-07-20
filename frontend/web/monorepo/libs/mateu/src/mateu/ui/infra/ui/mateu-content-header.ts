@@ -80,9 +80,34 @@ export class MateuContentHeader extends LitElement {
     `
     }
 
+    // Previous/next peer-object arrows (the Redwood "next/previous object" header element).
+    // Navigates like a breadcrumb link; a missing route disables that side.
+    renderPeerNav = (peerNav: NonNullable<Form['peerNav']>) => {
+        const custom = componentRenderer.get()?.renderPeerNav?.(peerNav)
+        if (custom) return custom
+        return html`
+            <div style="display: flex; gap: var(--lumo-space-xs, .25rem); align-items: center;" class="peer-nav">
+                <vaadin-button theme="tertiary icon" class="peer-nav-prev"
+                        title="${peerNav.prevLabel ?? 'Previous'}"
+                        ?disabled="${!peerNav.prevRoute}"
+                        @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute }}">
+                    <vaadin-icon icon="vaadin:angle-left"></vaadin-icon>
+                </vaadin-button>
+                <vaadin-button theme="tertiary icon" class="peer-nav-next"
+                        title="${peerNav.nextLabel ?? 'Next'}"
+                        ?disabled="${!peerNav.nextRoute}"
+                        @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute }}">
+                    <vaadin-icon icon="vaadin:angle-right"></vaadin-icon>
+                </vaadin-button>
+            </div>
+        `
+    }
+
     render(): TemplateResult {
         const metadata = this.metadata as Form | undefined
         if (!metadata) return html``
+        const peerNav = metadata.peerNav && (metadata.peerNav.prevRoute || metadata.peerNav.nextRoute)
+            ? metadata.peerNav : undefined
 
         const toolbar: Button[] = metadata.toolbar ?? []
         const navButtons = toolbar.filter((b: Button) => isNavButton(b.actionId))
@@ -92,6 +117,7 @@ export class MateuContentHeader extends LitElement {
             : nothing
         const hasMainHeader = metadata.avatar || metadata.title || metadata.subtitle
             || (metadata.kpis?.length > 0) || (metadata.header?.length > 0) || toolbar.length > 0
+            || !!peerNav
         const level = metadata.level ?? 0
         // The `data-nested` attribute drives the :host([data-nested]) CSS rule that drops the
         // top padding so an embedded (level>0) header sits flush with its host card.
@@ -112,6 +138,7 @@ export class MateuContentHeader extends LitElement {
             ${metadata.noHeader ? html`
                 <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                     ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
+                    ${peerNav ? this.renderPeerNav(peerNav) : nothing}
                     ${navButtons.map(this.renderBtn)}
                     ${divider}
                     ${actionButtons.map(this.renderBtn)}
@@ -127,6 +154,7 @@ export class MateuContentHeader extends LitElement {
                         ${metadata?.title && level > 3?html`<h6 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${unsafeHTML(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h6>`:nothing}
 
                         ${metadata?.subtitle ? html`<span style="display: inline-block; margin-block-end: 0.83em;">${unsafeHTML(possiblyHtml(metadata?.subtitle, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
+                        ${metadata?.timestamp ? html`<span class="page-timestamp" style="display: block; color: var(--lumo-secondary-text-color, #6b7280); font-size: var(--lumo-font-size-s, .875rem);">${unsafeHTML(possiblyHtml(metadata.timestamp, this.state ?? {}, this.data ?? {}))}</span>` : nothing}
                     </div>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                         ${metadata?.kpis?.map((kpi) => html`
@@ -136,6 +164,7 @@ export class MateuContentHeader extends LitElement {
                             </div>
                         `)}
                         ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
+                        ${peerNav ? this.renderPeerNav(peerNav) : nothing}
                         ${navButtons.map(this.renderBtn)}
                         ${divider}
                         ${actionButtons.map(this.renderBtn)}

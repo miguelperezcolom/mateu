@@ -9,5 +9,14 @@ import lombok.Builder;
  * time axis, with per-task progress and a today marker.
  */
 @Builder
-public record Gantt(String id, List<GanttTask> tasks, String style, String cssClasses)
+public record Gantt(
+    String id,
+    List<GanttTask> tasks,
+    /**
+     * When set, clicking a bar dispatches this action carrying the clicked task id as the {@code
+     * _clickedTaskId} parameter (the interactive Gantt-page selection). {@code null} = read-only.
+     */
+    String onTaskSelectionActionId,
+    String style,
+    String cssClasses)
     implements Component {}

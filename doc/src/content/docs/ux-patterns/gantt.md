@@ -36,3 +36,24 @@ The renderer is dependency-free (plain CSS grid), themes through the standard CS
 ## When to use it
 
 Use a Gantt to **monitor** schedules and communicate plans. It is read-only by design in this version — for interactive re-planning (dragging bars, dependencies), pair it with a form or CRUD that edits the underlying tasks and re-renders.
+
+## Gantt page template (`GanttPage` archetype)
+
+For a full-page scheduling canvas — the Redwood **Gantt page** template — extend `GanttPage`
+instead of embedding a `Gantt` in a form. Implement `tasks(rq)` to supply the bars; the page lays
+the canvas out **edge to edge** (it declares `PageWidthStyle.EDGE_TO_EDGE`), and an optional
+`detail(rq)` docks any component (a table, a card) below the canvas as the Redwood bottom panel:
+
+```java
+@UI("/gantt-page-demo")
+@Title("Project plan")
+public class ProjectPlanPage extends GanttPage {
+    @Override protected List<GanttTask> tasks(HttpRequest rq) { return schedule(); }
+    @Override protected Component detail(HttpRequest rq) { return summaryTable(); }
+}
+```
+
+It is pure composition of existing components (Gantt + VerticalLayout + Card), so it renders on
+every renderer without renderer work. Demo: `/gantt-page-demo`. Interactive task selection (click a
+bar → side/bottom drawer with the task detail) and the .NET/Python `GanttPage` ports are planned
+follow-ups.

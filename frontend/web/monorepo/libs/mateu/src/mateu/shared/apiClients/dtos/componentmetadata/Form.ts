@@ -8,6 +8,7 @@ import Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import KPI from "@mateu/shared/apiClients/dtos/componentmetadata/KPI.ts";
 import {Breadcrumb} from "@mateu/shared/apiClients/dtos/componentmetadata/Breadcrumbs.ts";
 import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab.ts";
+import PeerNav from "@mateu/shared/apiClients/dtos/componentmetadata/PeerNav.ts";
 
 export default interface Form extends ComponentMetadata {
 
@@ -30,5 +31,7 @@ export default interface Form extends ComponentMetadata {
     footer: Component[]
     fabs: Fab[] | undefined
     toc?: boolean
+    peerNav?: PeerNav
+    timestamp?: string
 
 }

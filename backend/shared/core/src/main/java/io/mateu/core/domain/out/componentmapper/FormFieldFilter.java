@@ -46,6 +46,10 @@ final class FormFieldFilter {
     if (MetaAnnotations.isPresent(field, BadgeInHeader.class)) {
       return false;
     }
+    // @Timestamp fields render as the HEADER "last updated" text, never as form fields
+    if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Timestamp.class)) {
+      return false;
+    }
     // @AppContext fields render as HEADER context selectors, never as form fields
     if (MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.AppContext.class)) {
       return false;

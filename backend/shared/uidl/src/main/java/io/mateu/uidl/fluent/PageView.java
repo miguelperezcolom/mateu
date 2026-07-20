@@ -6,6 +6,7 @@ import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.Breadcrumb;
 import io.mateu.uidl.data.KPI;
 import io.mateu.uidl.data.PageBanner;
+import io.mateu.uidl.data.PeerNav;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 import lombok.Builder;
@@ -32,6 +33,8 @@ public record PageView(
     String style,
     String cssClasses,
     Boolean toc,
+    PeerNav peerNav,
+    String timestamp,
     PageWidthStyle pageWidth,
     PageType pageType,
     @Singular("actionItem") List<Action> actions,

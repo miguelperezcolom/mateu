@@ -446,6 +446,24 @@ public class OverlayDemo
         Content = new Text("drawer body"),
     };
 
+    [Button] public Drawer OpenGeneralDrawer() => new()
+    {
+        HeaderTitle = "Ada Lovelace",
+        Subtitle = "Employee #100",
+        Size = DrawerSize.L,
+        Maximizable = true,
+        PeerNav = new PeerNav(null, null, "Alan Turing", "/staff/2"),
+        Content = new Text("read-only details"),
+    };
+
+    [Button] public Drawer OpenBottomDrawer() => new()
+    {
+        HeaderTitle = "Detalles",
+        Position = DrawerPosition.Bottom,
+        Collapsible = true,
+        Content = new Text("bottom body"),
+    };
+
     [Button] public Dialog OpenDialog() => new()
     {
         HeaderTitle = "Confirm",
@@ -1408,6 +1426,44 @@ public class SyncHandlerTests
         Assert.Contains("\"headerTitle\":\"Edit contact\"", json);
         Assert.Contains("\"position\":\"end\"", json);
         Assert.Contains("drawer body", json);
+    }
+
+    [Fact]
+    public void General_drawer_carries_subtitle_size_maximizable_and_peer_nav()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "openGeneralDrawer",
+            Route = "overlays",
+            ServerSideType = typeof(OverlayDemo).FullName,
+            InitiatorComponentId = "comp-9",
+        };
+
+        var inc = Handler().Handle(rq);
+
+        var drawer = (DrawerMetadataDto)((ClientSideComponentDto)inc.Fragments.Single().Component!).Metadata;
+        Assert.Equal("Employee #100", drawer.Subtitle);
+        Assert.Equal("l", drawer.Size);
+        Assert.True(drawer.Maximizable);
+        Assert.NotNull(drawer.PeerNav);
+        Assert.Null(drawer.PeerNav!.PrevRoute);
+        Assert.Equal("/staff/2", drawer.PeerNav.NextRoute);
+    }
+
+    [Fact]
+    public void Bottom_drawer_carries_the_bottom_position_and_collapsible_flag()
+    {
+        var rq = new RunActionRqDto
+        {
+            ActionId = "openBottomDrawer",
+            Route = "overlays",
+            ServerSideType = typeof(OverlayDemo).FullName,
+            InitiatorComponentId = "comp-9",
+        };
+
+        var drawer = (DrawerMetadataDto)((ClientSideComponentDto)Handler().Handle(rq).Fragments.Single().Component!).Metadata;
+        Assert.Equal("bottom", drawer.Position);
+        Assert.True(drawer.Collapsible);
     }
 
     [Fact]

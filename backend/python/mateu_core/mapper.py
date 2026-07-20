@@ -108,6 +108,7 @@ from mateu_dtos import (
     HeroSectionMetadata,
     HorizontalLayoutMetadata,
     Kpi,
+    PeerNav,
     MenuItem,
     MetricCardMetadata,
     MicroFrontendMetadata,
@@ -131,6 +132,8 @@ from mateu_dtos import (
 from mateu_uidl import (
     Aggregate,
     AppActionsSupplier,
+    PeerNavigationSupplier,
+    Timestamp,
     Audience,
     BulletedList,
     ComponentTreeSupplier,
@@ -310,6 +313,9 @@ class ReflectionMapper:
     def visible(self, f) -> bool:
         """``EyesOnly()``: the field is visible only to authorized callers; an unmatched
         ``Audience()`` projects it out as well."""
+        # Timestamp() fields render as the header "last updated" text, never as form fields.
+        if f.has(Timestamp):
+            return False
         return self.authorized(f.marker(EyesOnly)) and for_current_audience(f.marker(Audience))
 
     def T(self, s: str) -> str:
@@ -522,6 +528,8 @@ class ReflectionMapper:
             kpis=self.kpis(cls, instance),
             fabs=fabs,
             page_type=page_type,
+            peer_nav=self.peer_nav(instance),
+            timestamp=self.timestamp_of(cls, instance),
         )
         page = ClientSideComponent(
             metadata=page_meta,
@@ -1270,11 +1278,25 @@ class ReflectionMapper:
             meta = DrawerMetadata(
                 id=c.id,
                 header_title=c.header_title,
+                subtitle=c.subtitle,
                 header=self.map_component(c.header) if c.header is not None else None,
                 content=self.map_component(c.content) if c.content is not None else None,
                 footer=self.map_component(c.footer) if c.footer is not None else None,
                 position=c.position.value,
                 width=c.width,
+                size=c.size.value if c.size is not None else None,
+                maximizable=c.maximizable,
+                collapsible=c.collapsible,
+                peer_nav=(
+                    PeerNav(
+                        prev_label=c.peer_nav.prev_label,
+                        prev_route=c.peer_nav.prev_route,
+                        next_label=c.peer_nav.next_label,
+                        next_route=c.peer_nav.next_route,
+                    )
+                    if c.peer_nav is not None
+                    else None
+                ),
                 no_padding=c.no_padding,
                 modeless=c.modeless,
             )
@@ -1407,6 +1429,34 @@ class ReflectionMapper:
             value = getattr(instance, name)()
             out.append(Kpi(title=title, value="" if value is None else str(value)))
         return out
+
+    def peer_nav(self, instance) -> "PeerNav | None":
+        """Previous/next peer-object arrows (the Redwood "next/previous object" header element)
+        from a ``PeerNavigationSupplier``; None when the page supplies none."""
+        if not isinstance(instance, PeerNavigationSupplier):
+            return None
+        p = instance.peers()
+        if p is None:
+            return None
+        return PeerNav(
+            prev_label=p.prev_label,
+            prev_route=p.prev_route,
+            next_label=p.next_label,
+            next_route=p.next_route,
+        )
+
+    def timestamp_of(self, cls, instance) -> str | None:
+        """The page's "last updated" timestamp from the first ``Timestamp()`` field (an optional
+        label prefix + the value's str()); None when there is no such field or its value is None."""
+        for f in view_fields(cls):
+            marker = f.marker(Timestamp)
+            if marker is None:
+                continue
+            value = getattr(instance, f.name, None)
+            if value is None:
+                return None
+            return str(value) if not marker.label else f"{marker.label} {value}"
+        return None
 
     def fabs(self, cls) -> list[Fab]:
         out = []

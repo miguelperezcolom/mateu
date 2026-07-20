@@ -46,7 +46,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     /// <summary>[EyesOnly]: the member is visible only to authorized callers; an unmatched
     /// [Audience] projects it out as well.</summary>
     private bool Visible(MemberInfo member) =>
-        Authorized(member.Find<EyesOnlyAttribute>()) && ForCurrentAudience(member);
+        Authorized(member.Find<EyesOnlyAttribute>()) && ForCurrentAudience(member)
+        // [Timestamp] properties render as the header "last updated" text, never as form fields.
+        && member.Find<Mateu.Uidl.TimestampAttribute>() == null;
 
     /// <summary>OnCustomEvent triggers (from [SubscribeTo]) and the [Emits] name for a view type.</summary>
     private static (List<object> Triggers, string? EmitsName) EventsOf(Type type)
@@ -258,6 +260,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Badges = Badges(type, instance),
             Kpis = Kpis(type, instance),
             Fabs = fabs,
+            PeerNav = PeerNavOf(instance),
+            Timestamp = TimestampOf(type, instance),
         };
         var page = new ClientSideComponentDto(
             pageMeta, null, content, compact ? "--mateu-compact:1" : null, null, null);
@@ -896,6 +900,30 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     /// IPageWidthSupplier hook says anything (the renderer then infers the width from the page
     /// content). The attribute on the concrete view wins over the hook (mirrors Java's
     /// PageWidthResolver).</summary>
+    /// <summary>Previous/next peer-object arrows from an IPeerNavigationSupplier, as the wire DTO;
+    /// null when the page supplies none (mirrors Java's PageMetadataExtractor.getPeerNav).</summary>
+    internal static PeerNavDto? PeerNavOf(object? instance)
+    {
+        if ((instance as IPeerNavigationSupplier)?.Peers() is { } p)
+            return new PeerNavDto(p.PrevLabel, p.PrevRoute, p.NextLabel, p.NextRoute);
+        return null;
+    }
+
+    /// <summary>The page's "last updated" timestamp from the first [Timestamp] property (an
+    /// optional label prefix + the value's ToString()); null when there is no such property or its
+    /// value is null (mirrors Java's PageMetadataExtractor.getTimestamp).</summary>
+    internal static string? TimestampOf(Type type, object? instance)
+    {
+        foreach (var p in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (p.Find<Mateu.Uidl.TimestampAttribute>() is not { } attr) continue;
+            var value = p.GetValue(instance);
+            if (value is null) return null;
+            return string.IsNullOrWhiteSpace(attr.Label) ? value.ToString() : $"{attr.Label} {value}";
+        }
+        return null;
+    }
+
     internal static string? PageWidthOf(Type type, object? instance)
     {
         var style = type.Find<PageWidthAttribute>()?.Value

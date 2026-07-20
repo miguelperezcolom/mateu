@@ -8,6 +8,7 @@ export const renderGantt = (component: ClientSideComponent) => {
     return html`
         <mateu-gantt
                 .tasks="${metadata.tasks ?? []}"
+                .onTaskSelectionActionId="${metadata.onTaskSelectionActionId ?? ''}"
                 style="${component.style??nothing}"
                 class="${component.cssClasses??nothing}"
                 slot="${component.slot??nothing}"

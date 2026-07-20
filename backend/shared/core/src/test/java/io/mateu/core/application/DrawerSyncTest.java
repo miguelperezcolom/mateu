@@ -57,6 +57,28 @@ class DrawerSyncTest {
     }
 
     @Action
+    Drawer openGeneralDrawer() {
+      return Drawer.builder()
+          .headerTitle("Ada Lovelace")
+          .subtitle("Employee #100")
+          .size(io.mateu.uidl.data.DrawerSize.l)
+          .maximizable(true)
+          .peerNav(new io.mateu.uidl.data.PeerNav(null, null, "Alan Turing", "/staff/2"))
+          .content(new Text("read-only details"))
+          .build();
+    }
+
+    @Action
+    Drawer openBottomDrawer() {
+      return Drawer.builder()
+          .headerTitle("Detalles")
+          .position(DrawerPosition.bottom)
+          .collapsible(true)
+          .content(new Text("bottom body"))
+          .build();
+    }
+
+    @Action
     UICommand saveAndClose() {
       return UICommand.closeModal("guest-saved", Map.of("id", 7));
     }
@@ -124,6 +146,28 @@ class DrawerSyncTest {
     var drawer =
         (DrawerDto) ((ClientSideComponentDto) increment.fragments().get(0).component()).metadata();
     assertThat(drawer.position()).isEqualTo(DrawerPositionDto.end);
+  }
+
+  @Test
+  void bottomDrawerCarriesTheBottomPositionAndCollapsibleFlag() {
+    var increment = run("openBottomDrawer");
+    var drawer =
+        (DrawerDto) ((ClientSideComponentDto) increment.fragments().get(0).component()).metadata();
+    assertThat(drawer.position()).isEqualTo(DrawerPositionDto.bottom);
+    assertThat(drawer.collapsible()).isTrue();
+  }
+
+  @Test
+  void generalDrawerCarriesSubtitleSizeMaximizableAndPeerNav() {
+    var increment = run("openGeneralDrawer");
+    var drawer =
+        (DrawerDto) ((ClientSideComponentDto) increment.fragments().get(0).component()).metadata();
+    assertThat(drawer.subtitle()).isEqualTo("Employee #100");
+    assertThat(drawer.size()).isEqualTo("l");
+    assertThat(drawer.maximizable()).isTrue();
+    assertThat(drawer.peerNav()).isNotNull();
+    assertThat(drawer.peerNav().prevRoute()).isNull();
+    assertThat(drawer.peerNav().nextRoute()).isEqualTo("/staff/2");
   }
 
   // ── closeModal commands ─────────────────────────────────────────────────────

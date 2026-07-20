@@ -208,6 +208,29 @@ public interface IPageWidthSupplier
     PageWidthStyle? PageWidth();
 }
 
+/// <summary>Lateral navigation across peer objects — the previous/next arrows in the page header
+/// (the Oracle Redwood "next/previous object" element). A null route on a side disables that arrow.
+/// (C# analogue of Java's PeerNav.)</summary>
+public record PeerNav(string? PrevLabel, string? PrevRoute, string? NextLabel, string? NextRoute);
+
+/// <summary>Implemented by a page to supply the previous/next peer-object arrows in the header.
+/// Return null to show no arrows. (C# analogue of Java's PeerNavigationSupplier.)</summary>
+public interface IPeerNavigationSupplier
+{
+    PeerNav? Peers();
+}
+
+/// <summary>Marks the property whose value is shown as the page's "last updated" timestamp in the
+/// header (the Oracle Redwood timestamp header element). The value is rendered as text; a null
+/// value hides it, and the property is excluded from the form body. (C# analogue of Java's
+/// @Timestamp.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class TimestampAttribute(string label = "") : Attribute
+{
+    /// <summary>Optional label shown before the value (e.g. "Last updated").</summary>
+    public string Label { get; } = label;
+}
+
 /// <summary>The coarse type of a page, in the vocabulary of the Oracle Redwood page templates.
 /// Selected with [PageTemplate]; when absent, Mateu infers it from the ModelView's shape (see
 /// ReflectionMapper.PageTypeOf — archetypes declare theirs, a Listing is a collection page, a

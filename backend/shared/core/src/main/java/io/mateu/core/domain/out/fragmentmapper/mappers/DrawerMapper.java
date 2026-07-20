@@ -5,6 +5,7 @@ import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapp
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.DrawerDto;
 import io.mateu.dtos.DrawerPositionDto;
+import io.mateu.dtos.PeerNavDto;
 import io.mateu.uidl.data.Drawer;
 import io.mateu.uidl.data.DrawerPosition;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -51,8 +52,20 @@ public class DrawerMapper {
                     initiatorComponentId,
                     httpRequest))
             .headerTitle(drawer.headerTitle())
+            .subtitle(drawer.subtitle())
             .position(mapPosition(drawer.position()))
             .width(drawer.width())
+            .size(drawer.size() != null ? drawer.size().name() : null)
+            .maximizable(drawer.maximizable())
+            .collapsible(drawer.collapsible())
+            .peerNav(
+                drawer.peerNav() != null
+                    ? new PeerNavDto(
+                        drawer.peerNav().prevLabel(),
+                        drawer.peerNav().prevRoute(),
+                        drawer.peerNav().nextLabel(),
+                        drawer.peerNav().nextRoute())
+                    : null)
             .noPadding(drawer.noPadding())
             .modeless(drawer.modeless())
             .build(),
@@ -64,6 +77,8 @@ public class DrawerMapper {
   }
 
   private static DrawerPositionDto mapPosition(DrawerPosition position) {
-    return position == DrawerPosition.start ? DrawerPositionDto.start : DrawerPositionDto.end;
+    if (position == DrawerPosition.start) return DrawerPositionDto.start;
+    if (position == DrawerPosition.bottom) return DrawerPositionDto.bottom;
+    return DrawerPositionDto.end;
   }
 }

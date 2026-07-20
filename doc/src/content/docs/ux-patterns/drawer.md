@@ -87,6 +87,52 @@ The same `closeModal(eventName, payload)` contract works for `Dialog` too — it
 - Position `start`/`end` maps to the left/right edge. Width accepts any CSS length; the panel caps at 92vw.
 - Styling is design-system neutral (Lumo CSS variables with fallbacks), so it renders on every web renderer.
 
+## General Drawer — read-only detail (subtitle, sizes, maximize, peer navigation)
+
+The same `Drawer` doubles as the Redwood **General Drawer**: extra read-only info about an object
+without leaving the page. Four header extras enrich it:
+
+```java
+return Drawer.builder()
+    .headerTitle("Ada Lovelace")
+    .subtitle("Employee #100")
+    .size(DrawerSize.l)          // s=464 · m=648 · l=968 · xl=90vw (width overrides)
+    .maximizable(true)           // a ⤢ button bumps the drawer one size up (client-side)
+    .peerNav(new PeerNav("Prev", "/staff/1", "Next", "/staff/3"))  // ‹ › arrows in the header
+    .content(readOnlyDetails)
+    .build();
+```
+
+- **`size`** picks a standard width; an explicit `width` still overrides it.
+- **`maximizable`** shows a maximize button that steps the drawer up the size ladder (`s→m→l→xl`)
+  entirely in the frontend — no server round-trip.
+- **`peerNav`** puts the previous/next-object arrows (the same `PeerNav` used by page headers) in
+  the drawer header; a `null` route disables that side.
+- **`subtitle`** renders under the title.
+
+Ported to .NET (`DrawerSize`, `Drawer { Subtitle, Size, Maximizable, PeerNav }`) and Python
+(`DrawerSize`, `Drawer(subtitle=…, size=…, maximizable=…, peer_nav=…)`).
+
+## Bottom Drawer (`DrawerPosition.bottom` + `collapsible`)
+
+Set `position(DrawerPosition.bottom)` to dock the drawer at the bottom edge, full width — the
+Redwood **Bottom Drawer**. It slides up instead of in, and its height defaults to half the
+viewport (`--mateu-drawer-height`, capped at 90vh). Add `collapsible(true)` for the
+expand/collapse behavior: a ▾/▴ handle in the header shrinks the drawer to just its header strip
+and expands it back — entirely client-side, no round-trip.
+
+```java
+return Drawer.builder()
+    .headerTitle("Detalles del pedido")
+    .position(DrawerPosition.bottom)
+    .collapsible(true)
+    .content(orderLines)
+    .build();
+```
+
+Ported to .NET (`DrawerPosition.Bottom`, `Drawer { Collapsible }`) and Python
+(`DrawerPosition.bottom`, `Drawer(collapsible=…)`).
+
 ## CRUD editing in a drawer (`editInDrawer()`)
 
 For the "Create and Edit - Drawer" pattern (Oracle Redwood's RDS template), you don't need to build the drawer yourself: override `editInDrawer()` on any `AutoCrud` subclass and the crud's **New** button and row clicks open the create/edit form in a drawer sliding over the listing instead of navigating to the `/new` — `/{id}/edit` routes:

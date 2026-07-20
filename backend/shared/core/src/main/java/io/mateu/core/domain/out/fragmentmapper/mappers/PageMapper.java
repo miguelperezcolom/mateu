@@ -11,6 +11,7 @@ import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.FabDto;
 import io.mateu.dtos.PageDto;
+import io.mateu.dtos.PeerNavDto;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.PageBanner;
 import io.mateu.uidl.fluent.PageView;
@@ -138,6 +139,15 @@ public class PageMapper {
                     ? page.banners().stream().map(PageMapper::mapToBannerDto).toList()
                     : null)
             .toc(page.toc())
+            .timestamp(page.timestamp())
+            .peerNav(
+                page.peerNav() != null
+                    ? new PeerNavDto(
+                        page.peerNav().prevLabel(),
+                        page.peerNav().prevRoute(),
+                        page.peerNav().nextLabel(),
+                        page.peerNav().nextRoute())
+                    : null)
             .pageWidth(PageWidthResolver.toWireName(page.pageWidth()))
             .pageType(PageTypeResolver.toWireName(page.pageType()))
             .build();

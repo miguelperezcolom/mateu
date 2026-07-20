@@ -174,10 +174,15 @@ public static class ComponentMapper
         // Overlays — returned from actions; SyncHandler emits them as Add fragments.
         Drawer dr => Dto(dr, new DrawerMetadataDto(dr.Id, dr.HeaderTitle, dr.Content is null ? null : Map(dr.Content))
         {
+            Subtitle = dr.Subtitle,
             Header = dr.Header is null ? null : Map(dr.Header),
             Footer = dr.Footer is null ? null : Map(dr.Footer),
             Position = LowerName(dr.Position),
             Width = dr.Width,
+            Size = dr.Size is null ? null : LowerName(dr.Size.Value),
+            Maximizable = dr.Maximizable,
+            Collapsible = dr.Collapsible,
+            PeerNav = dr.PeerNav is { } p ? new PeerNavDto(p.PrevLabel, p.PrevRoute, p.NextLabel, p.NextRoute) : null,
             NoPadding = dr.NoPadding,
             Modeless = dr.Modeless,
         }),

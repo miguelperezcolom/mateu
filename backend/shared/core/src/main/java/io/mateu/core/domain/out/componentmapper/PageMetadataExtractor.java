@@ -10,6 +10,7 @@ import io.mateu.uidl.data.Badge;
 import io.mateu.uidl.data.BannerTheme;
 import io.mateu.uidl.data.KPI;
 import io.mateu.uidl.data.PageBanner;
+import io.mateu.uidl.data.PeerNav;
 import io.mateu.uidl.interfaces.*;
 import java.util.List;
 import lombok.SneakyThrows;
@@ -194,5 +195,38 @@ final class PageMetadataExtractor {
                   theme, title, description, ann.closeable(), ann.timeoutSeconds());
             })
         .toList();
+  }
+
+  /**
+   * Lateral peer navigation (previous/next object arrows in the header) from a {@link
+   * PeerNavigationSupplier}. {@code null} when the page supplies none.
+   */
+  static PeerNav getPeerNav(Object instance, HttpRequest httpRequest) {
+    if (instance instanceof PeerNavigationSupplier supplier) {
+      return supplier.peers(httpRequest);
+    }
+    return null;
+  }
+
+  /**
+   * The page's "last updated" timestamp from the first {@code @Timestamp} field, as text (an
+   * optional label prefix + the value's {@code toString()}). {@code null} when there is no such
+   * field or its value is null.
+   */
+  @SneakyThrows
+  static String getTimestamp(Object instance) {
+    for (var field : getAllFields(instance.getClass())) {
+      if (!MetaAnnotations.isPresent(field, Timestamp.class)) {
+        continue;
+      }
+      field.setAccessible(true);
+      Object value = field.get(instance);
+      if (value == null) {
+        return null;
+      }
+      String prefix = MetaAnnotations.find(field, Timestamp.class).value();
+      return prefix.isBlank() ? value.toString() : prefix + " " + value;
+    }
+    return null;
   }
 }

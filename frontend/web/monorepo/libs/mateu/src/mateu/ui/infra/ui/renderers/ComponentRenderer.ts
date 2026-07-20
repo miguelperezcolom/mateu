@@ -37,6 +37,12 @@ export interface ComponentRenderer {
      * reference renderer keeps working without implementing this).
      */
     renderToolbarButton?(button: unknown, label: string, onClick: () => void): TemplateResult
+
+    /**
+     * The previous/next peer-object arrows in the page header (the Redwood "next/previous object"
+     * element). Absent → mateu-content-header renders its default vaadin-button arrows.
+     */
+    renderPeerNav?(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult
 }
 
 export class ComponentRendererSingleton {

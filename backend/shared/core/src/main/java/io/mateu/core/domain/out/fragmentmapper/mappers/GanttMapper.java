@@ -26,6 +26,7 @@ public class GanttMapper {
                                     .build())
                         .toList()
                     : List.of())
+            .onTaskSelectionActionId(gantt.onTaskSelectionActionId())
             .build(),
         gantt.id(),
         List.of(),

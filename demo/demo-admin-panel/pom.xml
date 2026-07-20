@@ -61,7 +61,7 @@
         <!-- this dependency provides the frontend component based on vaadin web components -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>redwood-oj-lit</artifactId>
             <version>0.0.1-MATEU</version>
         </dependency>
     </dependencies>

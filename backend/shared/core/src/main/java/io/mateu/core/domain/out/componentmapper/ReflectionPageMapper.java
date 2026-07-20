@@ -50,6 +50,8 @@ public class ReflectionPageMapper {
         .style(getStyle(instance))
         .cssClasses(getCssClasses(instance))
         .toc(getToc(instance))
+        .peerNav(getPeerNav(instance, httpRequest))
+        .timestamp(getTimestamp(instance))
         .pageWidth(getPageWidth(instance))
         .pageType(PageTypeResolver.resolve(instance))
         .avatar(getAvatar(instance, baseUrl, route, initiatorComponentId, httpRequest))

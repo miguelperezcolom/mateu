@@ -885,20 +885,35 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
 
 // ── Overlays ───────────────────────────────────────────────────────────────────
 
-public enum DrawerPosition { Start, End }
+public enum DrawerPosition { Start, End, Bottom }
 
 /// <summary>A panel sliding in from a viewport edge, returned from any action to open its Content
 /// on top of the current page — the side-panel counterpart of <see cref="Dialog"/>. Close it from
 /// a later action with <c>UICommandDto.CloseModal(...)</c>; ✕/Esc/backdrop dismiss without a
 /// result. (C# analogue of io.mateu.uidl.data.Drawer.)</summary>
+/// <summary>Standard drawer widths, following the Oracle Redwood sizes (s=464/m=648/l=968/xl=90%).
+/// An explicit Width overrides the size. (C# analogue of io.mateu.uidl.data.DrawerSize.)</summary>
+public enum DrawerSize { S, M, L, Xl }
+
 public sealed record Drawer : ComponentBase
 {
     public string? HeaderTitle { get; init; }
+    public string? Subtitle { get; init; }
     public IComponent? Header { get; init; }
     public IComponent? Content { get; init; }
     public IComponent? Footer { get; init; }
     public DrawerPosition Position { get; init; } = DrawerPosition.End;
     public string? Width { get; init; }
+    /// <summary>Standard size (S/M/L/Xl); Width overrides it. The General Drawer size ladder.</summary>
+    public DrawerSize? Size { get; init; }
+    /// <summary>When true, the header shows a maximize button bumping the drawer a size up.</summary>
+    public bool Maximizable { get; init; }
+    /// <summary>Bottom drawer only: a handle collapses the drawer to its header strip and expands
+    /// it back (the Redwood expand/collapse bottom-drawer behavior).</summary>
+    public bool Collapsible { get; init; }
+    /// <summary>Previous/next peer-object arrows in the drawer header (the Redwood General Drawer
+    /// lateral navigation).</summary>
+    public PeerNav? PeerNav { get; init; }
     public bool NoPadding { get; init; }
     /// <summary>No backdrop — the page behind stays interactive.</summary>
     public bool Modeless { get; init; }

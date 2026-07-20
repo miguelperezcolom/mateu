@@ -1174,6 +1174,18 @@ class MicroFrontend(Component):
 class DrawerPosition(Enum):
     start = "start"
     end = "end"
+    #: Docked at the bottom, full width — the Redwood "Bottom Drawer" template.
+    bottom = "bottom"
+
+
+class DrawerSize(Enum):
+    """Standard drawer widths, following the Oracle Redwood sizes (s=464/m=648/l=968/xl=90%). An
+    explicit ``width`` overrides the size. The Python analogue of ``io.mateu.uidl.data.DrawerSize``."""
+
+    s = "s"
+    m = "m"
+    l = "l"
+    xl = "xl"
 
 
 @dataclass(frozen=True)
@@ -1184,11 +1196,20 @@ class Drawer(Component):
     The Python analogue of ``io.mateu.uidl.data.Drawer``."""
 
     header_title: str | None = None
+    subtitle: str | None = None
     header: Component | None = None
     content: Component | None = None
     footer: Component | None = None
     position: DrawerPosition = DrawerPosition.end
     width: str | None = None
+    #: Standard size (s/m/l/xl); ``width`` overrides it. The General Drawer size ladder.
+    size: DrawerSize | None = None
+    #: When true, the header shows a maximize button bumping the drawer a size up.
+    maximizable: bool = False
+    #: Bottom drawer only: a handle collapses the drawer to its header strip and expands it back.
+    collapsible: bool = False
+    #: Previous/next peer-object arrows in the drawer header (the Redwood General Drawer).
+    peer_nav: "PeerNav | None" = None
     no_padding: bool = False
     #: No backdrop — the page behind stays interactive.
     modeless: bool = False

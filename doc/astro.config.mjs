@@ -69,6 +69,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
 						{ slug: 'ux-patterns/page-templates', label: 'Page Templates' },
+						{ slug: 'ux-patterns/choosing-a-page-template', label: 'Choosing a Page Template' },
 						{ slug: 'ux-patterns/navigation', label: 'Navigation & Menus' },
 						{ slug: 'ux-patterns/command-center', label: 'Command Center (Ask Oracle)' },
 						{ slug: 'ux-patterns/split-view' },

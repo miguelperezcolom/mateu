@@ -14,6 +14,20 @@ export class MateuGantt extends LitElement {
     @property({ type: Array })
     tasks: GanttTask[] = []
 
+    // When set, clicking a bar dispatches this action carrying the clicked task id (the
+    // interactive Gantt-page selection); empty = read-only.
+    @property()
+    onTaskSelectionActionId = ''
+
+    private selectTask(task: GanttTask) {
+        if (!this.onTaskSelectionActionId) return
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: this.onTaskSelectionActionId, parameters: { _clickedTaskId: task.id } },
+            bubbles: true,
+            composed: true,
+        }))
+    }
+
     static styles = css`
         :host {
             display: block;
@@ -67,6 +81,13 @@ export class MateuGantt extends LitElement {
             background: var(--mateu-gantt-bar, var(--lumo-contrast-20pct, #cbd5e1));
             overflow: hidden;
             min-width: 4px;
+        }
+        .bar.clickable {
+            cursor: pointer;
+        }
+        .bar.clickable:hover {
+            filter: brightness(0.94);
+            box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct, rgba(26,115,232,.5));
         }
         .fill {
             height: 100%;
@@ -135,8 +156,9 @@ export class MateuGantt extends LitElement {
                         <div class="label" title="${task.title}">${task.title}</div>
                         <div class="lane">
                             ${now >= range.min && now <= range.max ? html`<div class="today" style="left: ${pct(now)}%;"></div>` : nothing}
-                            <div class="bar"
+                            <div class="bar ${this.onTaskSelectionActionId ? 'clickable' : ''}"
                                  title="${task.title} · ${task.start} → ${task.end}${task.progress ? ` · ${task.progress}%` : ''}"
+                                 @click="${() => this.selectTask(task)}"
                                  style="left: ${pct(start)}%; width: ${(end - start) / span * 100}%; ${task.color ? `--mateu-gantt-fill: ${task.color};` : ''}">
                                 <div class="fill" style="width: ${task.progress ?? 0}%;"></div>
                             </div>

@@ -516,6 +516,31 @@ class OverlayDemo:
         return Drawer(header_title="Edit contact", width="480px", content=Text(text="drawer body"))
 
     @button()
+    def open_general_drawer(self):
+        from mateu_uidl import PeerNav
+        from mateu_uidl.components import DrawerSize
+
+        return Drawer(
+            header_title="Ada Lovelace",
+            subtitle="Employee #100",
+            size=DrawerSize.l,
+            maximizable=True,
+            peer_nav=PeerNav(None, None, "Alan Turing", "/staff/2"),
+            content=Text(text="read-only details"),
+        )
+
+    @button()
+    def open_bottom_drawer(self):
+        from mateu_uidl.components import DrawerPosition
+
+        return Drawer(
+            header_title="Detalles",
+            position=DrawerPosition.bottom,
+            collapsible=True,
+            content=Text(text="bottom body"),
+        )
+
+    @button()
     def open_dialog(self):
         return Dialog(header_title="Confirm", content=Text(text="dialog body"))
 
@@ -1327,6 +1352,38 @@ def test_action_returned_drawer_is_an_add_fragment_on_the_initiator():
     assert '"headerTitle": "Edit contact"' in j
     assert '"position": "end"' in j
     assert "drawer body" in j
+
+
+def test_general_drawer_carries_subtitle_size_maximizable_and_peer_nav():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="openGeneralDrawer",
+            route="overlays",
+            server_side_type=_name(OverlayDemo),
+            initiator_component_id="comp-9",
+        )
+    )
+    drawer = inc.fragments[0].component.metadata
+    assert drawer.subtitle == "Employee #100"
+    assert drawer.size == "l"
+    assert drawer.maximizable is True
+    assert drawer.peer_nav is not None
+    assert drawer.peer_nav.prev_route is None
+    assert drawer.peer_nav.next_route == "/staff/2"
+
+
+def test_bottom_drawer_carries_the_bottom_position_and_collapsible_flag():
+    inc = handler().handle(
+        RunActionRq(
+            action_id="openBottomDrawer",
+            route="overlays",
+            server_side_type=_name(OverlayDemo),
+            initiator_component_id="comp-9",
+        )
+    )
+    drawer = inc.fragments[0].component.metadata
+    assert drawer.position == "bottom"
+    assert drawer.collapsible is True
 
 
 def test_action_returned_dialog_is_an_add_fragment_too():

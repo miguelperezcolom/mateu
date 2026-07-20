@@ -771,6 +771,11 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
     public bool Explode { get; init; }
 }
 
+/// <summary>Lateral navigation across peer objects — the previous/next arrows in the page header
+/// (the Oracle Redwood "next/previous object" element). A null route on a side hides that arrow.
+/// (Mirrors io.mateu.dtos.PeerNavDto.)</summary>
+public record PeerNavDto(string? PrevLabel, string? PrevRoute, string? NextLabel, string? NextRoute);
+
 public record PageMetadataDto(
     string? Title,
     string? PageTitle,
@@ -794,6 +799,12 @@ public record PageMetadataDto(
     public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];
     public IReadOnlyList<FabDto> Fabs { get; init; } = [];
+    /// <summary>Previous/next peer-object arrows in the page header; null when the page supplies
+    /// none. (Mirrors io.mateu.dtos.PageDto.peerNav.)</summary>
+    public PeerNavDto? PeerNav { get; init; }
+    /// <summary>The page's "last updated" timestamp shown in the header (from a [Timestamp]
+    /// property); null when the page declares none. (Mirrors io.mateu.dtos.PageDto.timestamp.)</summary>
+    public string? Timestamp { get; init; }
 }
 
 /// <summary>A page banner (mirrors io.mateu.dtos.BannerDto). Theme: INFO|SUCCESS|WARNING|DANGER.</summary>
@@ -900,11 +911,20 @@ public record RemoteCoordinatesDto(string Action)
 /// stacks on the page instead of replacing it.</summary>
 public record DrawerMetadataDto(string? Id, string? HeaderTitle, ComponentDto? Content) : ComponentMetadataDto
 {
+    public string? Subtitle { get; init; }
     public ComponentDto? Header { get; init; }
     public ComponentDto? Footer { get; init; }
     /// <summary>start|end (the viewport edge the drawer slides from).</summary>
     public string Position { get; init; } = "end";
     public string? Width { get; init; }
+    /// <summary>Standard drawer size ("s"|"m"|"l"|"xl"); Width overrides it. (Mirrors DrawerDto.size.)</summary>
+    public string? Size { get; init; }
+    /// <summary>When true, the header shows a maximize button that bumps the drawer a size up.</summary>
+    public bool Maximizable { get; init; }
+    /// <summary>Bottom drawer only: a handle collapses the drawer to its header strip and back.</summary>
+    public bool Collapsible { get; init; }
+    /// <summary>Previous/next peer-object arrows in the drawer header; null when none.</summary>
+    public PeerNavDto? PeerNav { get; init; }
     public bool NoPadding { get; init; }
     public bool Modeless { get; init; }
     public object? InitialData { get; init; }

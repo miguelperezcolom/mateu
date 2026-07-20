@@ -438,6 +438,26 @@ class AppActionsSupplier:
 
 
 @dataclass
+class PeerNav:
+    """Lateral navigation across peer objects — the previous/next arrows in the page header (the
+    Oracle Redwood "next/previous object" element). A ``None`` route on a side disables that arrow.
+    The Python analogue of Java's ``PeerNav``."""
+
+    prev_label: str | None = None
+    prev_route: str | None = None
+    next_label: str | None = None
+    next_route: str | None = None
+
+
+class PeerNavigationSupplier:
+    """Implemented by a page to supply the previous/next peer-object arrows in the header. Return
+    ``None`` to show no arrows. The Python analogue of Java's ``PeerNavigationSupplier``."""
+
+    def peers(self) -> "PeerNav | None":
+        raise NotImplementedError
+
+
+@dataclass
 class AppNotification:
     """One entry of the app shell's notification inbox (the header bell): a title, an optional
     detail text, an optional route the entry navigates to when clicked, the unread flag driving
@@ -539,6 +559,16 @@ class NavLink:
 @dataclass(frozen=True)
 class HeaderBadge:
     color: str = "normal"
+
+
+@dataclass(frozen=True)
+class Timestamp:
+    """Marks the field whose value is shown as the page's "last updated" timestamp in the header
+    (the Oracle Redwood timestamp header element). The value is rendered as text; a ``None`` value
+    hides it, and the field is excluded from the form body. The Python analogue of Java's
+    ``@Timestamp``."""
+
+    label: str = ""
 
 
 @dataclass(frozen=True)
@@ -1277,7 +1307,7 @@ class Welcome(ComponentTreeSupplier):
 __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
     "plain_text", "emits", "subscribe_to", "secured", "welcome_banner",

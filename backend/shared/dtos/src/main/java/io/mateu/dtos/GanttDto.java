@@ -6,7 +6,8 @@ import lombok.Builder;
 
 /** Gantt/timeline chart metadata */
 @Builder
-public record GanttDto(List<GanttTaskDto> tasks) implements ComponentMetadataDto {
+public record GanttDto(List<GanttTaskDto> tasks, String onTaskSelectionActionId)
+    implements ComponentMetadataDto {
 
   public GanttDto {
     tasks = Collections.unmodifiableList(tasks != null ? tasks : Collections.emptyList());

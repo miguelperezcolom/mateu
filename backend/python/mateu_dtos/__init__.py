@@ -96,6 +96,10 @@ class PageMetadata(Wire):
     fabs: list["Fab"] = Field(default_factory=list)
     #: The coarse page type (the family of Redwood page templates; mirrors PageDto.pageType).
     page_type: str | None = None
+    #: Previous/next peer-object arrows in the page header; None when the page supplies none.
+    peer_nav: "PeerNav | None" = None
+    #: The page's "last updated" timestamp shown in the header; None when the page declares none.
+    timestamp: str | None = None
 
 
 class CardMetadata(Wire):
@@ -1025,12 +1029,21 @@ class DrawerMetadata(Wire):
     type: Literal["Drawer"] = "Drawer"
     id: str | None = None
     header_title: str | None = None
+    subtitle: str | None = None
     header: "Component | None" = None
     content: "Component | None" = None
     footer: "Component | None" = None
     #: start|end (the viewport edge the drawer slides from).
     position: str = "end"
     width: str | None = None
+    #: Standard drawer size ("s"|"m"|"l"|"xl"); width overrides it.
+    size: str | None = None
+    #: When true, the header shows a maximize button that bumps the drawer a size up.
+    maximizable: bool = False
+    #: Bottom drawer only: a handle collapses the drawer to its header strip and back.
+    collapsible: bool = False
+    #: Previous/next peer-object arrows in the drawer header; None when none.
+    peer_nav: "PeerNav | None" = None
     no_padding: bool = False
     modeless: bool = False
     initial_data: Any | None = None
@@ -1267,6 +1280,15 @@ class Fab(Wire):
     action_id: str
     label: str | None = None
     order: int = 0
+
+
+class PeerNav(Wire):
+    #: Lateral navigation across peer objects — the previous/next arrows in the page header (the
+    #: Oracle Redwood "next/previous object" element). A None route on a side hides that arrow.
+    prev_label: str | None = None
+    prev_route: str | None = None
+    next_label: str | None = None
+    next_route: str | None = None
 
 
 class Banner(Wire):

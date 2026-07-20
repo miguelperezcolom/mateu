@@ -8,6 +8,7 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard;
 import io.mateu.core.infra.declarative.orchestrators.editableview.EditableView;
 import io.mateu.core.infra.declarative.orchestrators.foldout.Foldout;
+import io.mateu.core.infra.declarative.orchestrators.ganttpage.GanttPage;
 import io.mateu.core.infra.declarative.orchestrators.generaloverview.GeneralOverview;
 import io.mateu.core.infra.declarative.orchestrators.herosearch.HeroSearch;
 import io.mateu.core.infra.declarative.orchestrators.importwizard.ImportWizard;
@@ -57,6 +58,7 @@ public final class PageTypeResolver {
     if (Wizard.class.isAssignableFrom(type)) return PageType.PROCESS;
     if (ImportWizard.class.isAssignableFrom(type)) return PageType.PROCESS;
     if (Foldout.class.isAssignableFrom(type)) return PageType.DETAIL;
+    if (GanttPage.class.isAssignableFrom(type)) return PageType.DETAIL;
     if (ItemOverview.class.isAssignableFrom(type)) return PageType.DETAIL;
     if (GeneralOverview.class.isAssignableFrom(type)) return PageType.DETAIL;
     if (MasterDetailView.class.isAssignableFrom(type)) return PageType.DETAIL;
