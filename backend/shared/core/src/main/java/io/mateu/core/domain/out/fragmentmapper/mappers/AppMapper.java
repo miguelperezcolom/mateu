@@ -93,6 +93,8 @@ public final class AppMapper {
             .contextActions(getContextActions(app, httpRequest))
             .notificationsEnabled(isNotificationsEnabled(app))
             .globalSearchEnabled(isGlobalSearchEnabled(app))
+            .commandCenterEnabled(getCommandCenter(app))
+            .chromeless(getChromeless(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -267,6 +269,33 @@ public final class AppMapper {
     var appClass = Class.forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
       return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).themeToggle();
+    }
+    return false;
+  }
+
+  /**
+   * The command-center FAB shows when {@code @App(commandCenter=true)} — or implied by chromeless.
+   */
+  @SneakyThrows
+  private static boolean getCommandCenter(AppShell app) {
+    if (app.serverSideType() == null) return false;
+    var appClass = Class.forName(app.serverSideType());
+    if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
+      var a = MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class);
+      return a.commandCenter() || a.chromeless();
+    }
+    return false;
+  }
+
+  /**
+   * Chromeless drops the nav chrome; it implies the command center so navigation stays possible.
+   */
+  @SneakyThrows
+  private static boolean getChromeless(AppShell app) {
+    if (app.serverSideType() == null) return false;
+    var appClass = Class.forName(app.serverSideType());
+    if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
+      return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).chromeless();
     }
     return false;
   }

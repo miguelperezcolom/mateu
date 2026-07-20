@@ -50,6 +50,12 @@ class AppMetadata(Wire):
     #: searches ENTITIES through the _globalsearch app-level action (mirrors
     #: AppDto.globalSearchEnabled).
     global_search_enabled: bool = False
+    #: @app(command_center=True): the always-present command-center FAB + full-screen palette
+    #: (the Ask-Oracle pattern). Implied by chromeless. Mirrors AppDto.commandCenterEnabled.
+    command_center_enabled: bool = False
+    #: @app(chromeless=True): drop the nav chrome; the command center is the only navigation
+    #: (implies command_center_enabled). Mirrors AppDto.chromeless.
+    chromeless: bool = False
 
 
 class AppContextSelector(Wire):

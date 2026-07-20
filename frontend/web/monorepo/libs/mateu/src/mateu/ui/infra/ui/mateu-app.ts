@@ -16,6 +16,7 @@ import '@vaadin/details'
 import '@vaadin/scroller'
 import '@vaadin/side-nav';
 import ComponentElement from "@infra/ui/ComponentElement";
+import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
 import { MenuBarItem, MenuBarItemSelectedEvent } from "@vaadin/menu-bar";
@@ -140,6 +141,8 @@ export class MateuApp extends ComponentElement {
         super.connectedCallback()
         this.isDark = document.documentElement.getAttribute('theme') === 'dark'
         this._commandPaletteHandler = (e: KeyboardEvent) => {
+            // When the command center is on it owns ⌘K and the full-screen palette; stand down.
+            if (((this.component as ClientSideComponent)?.metadata as App)?.commandCenterEnabled) return
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault()
                 this.commandPaletteOpen = !this.commandPaletteOpen
@@ -154,6 +157,8 @@ export class MateuApp extends ComponentElement {
         document.addEventListener('keydown', this._commandPaletteHandler)
         dirtyGuard.install()
         this.addEventListener('compact-changed', this._compactHandler)
+        // The command center's "Ask AI" row opens the assistant panel.
+        this.addEventListener('mateu-open-ai', this._openAiHandler)
     }
 
     disconnectedCallback() {
@@ -162,6 +167,11 @@ export class MateuApp extends ComponentElement {
             document.removeEventListener('keydown', this._commandPaletteHandler)
         }
         this.removeEventListener('compact-changed', this._compactHandler)
+        this.removeEventListener('mateu-open-ai', this._openAiHandler)
+    }
+
+    private _openAiHandler = () => {
+        if (!this.chatOpen) this.showHideIa()
     }
 
     @state()
@@ -292,6 +302,7 @@ export class MateuApp extends ComponentElement {
     renderCommandPalette = (): TemplateResult | typeof nothing => {
         if (!this.commandPaletteOpen) return nothing
         const metadata = (this.component as ClientSideComponent)?.metadata as App
+        if (metadata?.commandCenterEnabled) return nothing
         if (!metadata?.menu) return nothing
 
         const allItems = this.flattenMenuForPalette(metadata.menu, '')
@@ -638,6 +649,7 @@ export class MateuApp extends ComponentElement {
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
+        syncCommandCenter(this);
         if (this.component) {
             const clientSideComponent = this.component as ClientSideComponent
             const metadata = clientSideComponent.metadata

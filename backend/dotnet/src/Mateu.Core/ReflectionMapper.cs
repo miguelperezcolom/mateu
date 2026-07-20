@@ -125,6 +125,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             // ⌘K palette entity search: the app class implements IGlobalSearchSupplier → the
             // palette also asks _globalsearch (mirrors AppMapper's globalSearchEnabled).
             GlobalSearchEnabled = typeof(IGlobalSearchSupplier).IsAssignableFrom(appType),
+            // Command center (Ask-Oracle): the FAB + full-screen palette; chromeless implies it.
+            CommandCenterEnabled = app.CommandCenter || app.Chromeless,
+            Chromeless = app.Chromeless,
         };
         return new ClientSideComponentDto(meta, "ux_main_app", [], null, null, null);
     }

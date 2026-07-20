@@ -582,6 +582,19 @@ public class SearchableApp : IGlobalSearchSupplier
         }.Where(hit => hit.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
 }
 
+// Command center (the Ask-Oracle pattern): opt-in FAB + full-screen palette; chromeless implies it.
+[App("Command Center App", CommandCenter = true)]
+public class CommandCenterApp
+{
+    [MenuItem("Things")] public Things Home() => new();
+}
+
+[App("Chromeless App", Chromeless = true)]
+public class ChromelessApp
+{
+    [MenuItem("Things")] public Things Home() => new();
+}
+
 // Listing aggregates + row grouping: [Aggregate] columns total over the WHOLE filtered set,
 // the [GroupBy] column groups the rows (implicit primary sort + per-group subtotals).
 public class Sale
@@ -774,6 +787,29 @@ public class SyncHandlerTests
         Assert.Contains("\"contextSelectors\"", json);
         Assert.Contains("\"fieldName\":\"hotel\"", json);
         Assert.Contains("\"label\":\"Hotel 2\"", json);
+    }
+
+    [Fact]
+    public void Command_center_flag_reaches_the_wire_when_opted_in()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(CommandCenterApp).FullName }));
+        Assert.Contains("\"commandCenterEnabled\":true", json);
+        Assert.Contains("\"chromeless\":false", json);
+    }
+
+    [Fact]
+    public void Chromeless_implies_the_command_center()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(ChromelessApp).FullName }));
+        Assert.Contains("\"chromeless\":true", json);
+        Assert.Contains("\"commandCenterEnabled\":true", json);
+    }
+
+    [Fact]
+    public void A_plain_app_enables_neither_command_center_flag()
+    {
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(TestApp).FullName }));
+        Assert.Contains("\"commandCenterEnabled\":false", json);
     }
 
     [Fact]

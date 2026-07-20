@@ -696,15 +696,28 @@ def subtitle(value: str) -> Callable[[type], type]:
     return deco
 
 
-def app(title_: str, variant: str = "") -> Callable[[type], type]:
+def app(
+    title_: str,
+    variant: str = "",
+    command_center: bool = False,
+    chromeless: bool = False,
+) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
     menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS),
     or an explicit TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGUER_MENU | TILES, which always
-    wins."""
+    wins.
+
+    ``command_center=True`` shows the always-present command-center FAB (the Ask-Oracle pattern):
+    a floating button opening a full-screen palette that unifies navigation, global entity search
+    (when the app implements ``GlobalSearchSupplier``), recent screens and the AI assistant.
+    ``chromeless=True`` additionally drops the nav chrome — the command center becomes the only
+    navigation, so it implies ``command_center``."""
 
     def deco(cls: type) -> type:
         cls.__mateu_app__ = title_
         cls.__mateu_app_variant__ = variant
+        cls.__mateu_app_command_center__ = command_center
+        cls.__mateu_app_chromeless__ = chromeless
         return cls
 
     return deco

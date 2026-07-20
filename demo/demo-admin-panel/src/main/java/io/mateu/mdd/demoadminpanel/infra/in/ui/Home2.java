@@ -21,7 +21,7 @@ import java.util.List;
 @UI("")
 @Title("My first Mateu app")
 @AI(sse = "http://localhost:8095/ai/api/agent/stream")
-@App(themeToggle = true)
+@App(themeToggle = true, commandCenter = true)
 public class Home2
         implements WidgetSupplier,
         io.mateu.uidl.interfaces.AppActionsSupplier,

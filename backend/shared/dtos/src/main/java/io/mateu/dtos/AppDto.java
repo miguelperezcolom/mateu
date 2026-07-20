@@ -41,7 +41,9 @@ public record AppDto(
     List<AppContextSelectorDto> contextSelectors,
     List<AppHeaderActionDto> contextActions,
     boolean notificationsEnabled,
-    boolean globalSearchEnabled)
+    boolean globalSearchEnabled,
+    boolean commandCenterEnabled,
+    boolean chromeless)
     implements ComponentMetadataDto {
 
   public AppDto {

@@ -365,6 +365,12 @@ class ReflectionMapper:
             # Command palette entity search: the app class implements GlobalSearchSupplier →
             # the palette also asks _globalsearch (mirrors AppMapper's globalSearchEnabled).
             global_search_enabled=issubclass(cls, GlobalSearchSupplier),
+            # Command center (Ask-Oracle): the FAB + full-screen palette; chromeless implies it.
+            command_center_enabled=bool(
+                getattr(cls, "__mateu_app_command_center__", False)
+                or getattr(cls, "__mateu_app_chromeless__", False)
+            ),
+            chromeless=bool(getattr(cls, "__mateu_app_chromeless__", False)),
         )
         return ClientSideComponent(metadata=meta, id="ux_main_app", children=[])
 

@@ -733,6 +733,14 @@ public record AppMetadataDto(
     /// <summary>True when the app class implements IGlobalSearchSupplier — the command palette
     /// also searches ENTITIES through the app-level _globalsearch action.</summary>
     public bool GlobalSearchEnabled { get; init; }
+
+    /// <summary>[App(CommandCenter=true)] — the always-present command-center FAB + full-screen
+    /// palette (the Ask-Oracle pattern). Implied by Chromeless.</summary>
+    public bool CommandCenterEnabled { get; init; }
+
+    /// <summary>[App(Chromeless=true)] — drop the nav chrome; the command center is the only
+    /// navigation (implies CommandCenterEnabled).</summary>
+    public bool Chromeless { get; init; }
 }
 
 /// <summary>An application-level context selector shown on the app header: fixes a value for

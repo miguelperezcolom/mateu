@@ -1,5 +1,5 @@
 import { property, state } from 'lit/decorators.js'
-import { html, nothing, type TemplateResult } from 'lit'
+import { html, nothing, type TemplateResult, type PropertyValues } from 'lit'
 import { nanoid } from 'nanoid'
 import MetadataDrivenElement from '@infra/ui/MetadataDrivenElement'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
@@ -14,6 +14,7 @@ import {
 } from '@infra/ui/renderers/appRenderer.ts'
 import '@infra/ui/mateu-ux'
 import '@infra/ui/mateu-api-caller'
+import { syncCommandCenter } from '@infra/ui/commandCenterMount.ts'
 
 /**
  * Shared base for the CSS-framework renderer app shells (SLDS, PatternFly, Oracle Redwood…).
@@ -245,5 +246,12 @@ export abstract class MateuRendererApp extends MetadataDrivenElement {
                         @navigation-requested="${this.updateRoute}"
                 ></mateu-ux>
             </mateu-api-caller>`
+    }
+
+    protected updated(changed: PropertyValues) {
+        super.updated?.(changed)
+        // Mount the command-center FAB (Ask-Oracle pattern) once for the DS-framework shells
+        // (PatternFly, SLDS) — same single mechanism the MateuApp shells use.
+        syncCommandCenter(this as unknown as { renderRoot: ParentNode; component: unknown; baseUrl?: string })
     }
 }

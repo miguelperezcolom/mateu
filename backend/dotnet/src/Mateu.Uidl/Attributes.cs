@@ -127,6 +127,16 @@ public sealed class AppAttribute(string title) : Attribute
     /// MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS), or an
     /// explicit TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGUER_MENU | TILES, which always wins.</summary>
     public string Variant { get; set; } = "";
+
+    /// <summary>Show the always-present "command center" FAB (the Ask-Oracle pattern): a floating
+    /// button opening a full-screen palette that unifies navigation (the whole menu), global entity
+    /// search (when the app implements IGlobalSearchSupplier), recent screens and the AI assistant.
+    /// Opt-in; also toggled by ⌘K/Ctrl+K. (C# analogue of Java's @App(commandCenter=true).)</summary>
+    public bool CommandCenter { get; set; }
+
+    /// <summary>Render the app without its navigation chrome (header, menu/tabs) — content fills the
+    /// viewport and the only way to move around is the command-center FAB. Implies CommandCenter.</summary>
+    public bool Chromeless { get; set; }
 }
 
 /// <summary>AI chat on the app: a floating button opens a chat panel that streams its answers

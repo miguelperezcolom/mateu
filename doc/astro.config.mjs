@@ -70,6 +70,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
 						{ slug: 'ux-patterns/page-templates', label: 'Page Templates' },
 						{ slug: 'ux-patterns/navigation', label: 'Navigation & Menus' },
+						{ slug: 'ux-patterns/command-center', label: 'Command Center (Ask Oracle)' },
 						{ slug: 'ux-patterns/split-view' },
 						{ slug: 'ux-patterns/tree-crud', label: 'Tree CRUD' },
 						{ slug: 'ux-patterns/filters-and-listing' },

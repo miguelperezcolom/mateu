@@ -38,5 +38,7 @@ export default interface App extends ComponentMetadata {
     rootRoute: string | undefined
     notificationsEnabled?: boolean
     globalSearchEnabled?: boolean
+    commandCenterEnabled?: boolean
+    chromeless?: boolean
 
 }

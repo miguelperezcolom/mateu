@@ -8,6 +8,10 @@ import "@infra/ui/mateu-notification-bell.ts";
 import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts";
 import { Notification } from "@vaadin/notification";
 import "@vaadin/menu-bar";
+// The always-present command-center FAB + full-screen palette (the Ask-Oracle pattern) is mounted
+// once, from the shell base class's updated() lifecycle (see commandCenterMount.ts), so it does not
+// appear in these templates. What the templates DO account for: the FAB sits bottom-right, so when it
+// is on the AI/app FABs stack 4rem higher; and in chromeless mode the whole nav chrome is dropped.
 // Application-level context selectors (@AppContext fields on the app class): compact pickers on
 // the header that fix a value for every screen. This shared appRenderer is the VAADIN shell, so
 // they render with Vaadin's own widgets (vaadin-select / searchable vaadin-combo-box) — the other
@@ -111,6 +115,38 @@ export const chooseUriPrefix = (container: MateuApp, metadata: App) => {
 }
 
 export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData) => {
+
+    // Chromeless: no header, no menu — the content fills the viewport and the command-center FAB is
+    // the only navigation. "Prescindir de la barra de aplicación" for a clean, focused UI.
+    if (metadata.chromeless) {
+        return html`
+            <div class="app chromeless">
+                <div class="${'app-content' + (container.pageCompact ? ' no-padding' : '')}" style="height: 100%;">
+                    <vaadin-master-detail-layout>
+                        <vaadin-scroller style="height: 100%;">
+                            <mateu-api-caller>
+                                <mateu-ux
+                                        route="${chooseRoute(_state, container, metadata)}"
+                                        id="ux_${container.id}"
+                                        baseUrl="${chooseBaseUrl(container, metadata)}"
+                                        consumedRoute="${chooseConsumedRoute(container, metadata)}"
+                                        serverSideType="${chooseAppServerSideType(container, metadata)}"
+                                        uriPrefix="${chooseUriPrefix(container, metadata)}"
+                                        style="width: 100%;"
+                                        .appState="${appState}"
+                                        .appData="${appData}"
+                                        instant="${container.instant}"
+                                        @navigation-requested="${container.updateRoute}"
+                                ></mateu-ux>
+                            </mateu-api-caller>
+                        </vaadin-scroller>
+                        ${metadata.sseUrl ? html`<mateu-chat slot="detail-hidden" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" style="border-left: 1px solid var(--lumo-contrast-10pct); padding-top: 0.5rem;" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing}
+                    </vaadin-master-detail-layout>
+                </div>
+                <slot></slot>
+            </div>
+        `
+    }
 
     const items = container.mapItems(metadata.menu, container.filter?.toLowerCase()??'')
 
@@ -459,14 +495,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             `:nothing}
 
             ${metadata.fabs?.map((fab, idx) => html`
-                <button class="app-fab" style="bottom: ${metadata.sseUrl ? (5.5 + idx * 4) : (1.5 + idx * 4)}rem; right: 1.5rem;"
+                <button class="app-fab" style="bottom: ${(metadata.commandCenterEnabled ? (metadata.sseUrl ? 9.5 : 5.5) : (metadata.sseUrl ? 5.5 : 1.5)) + idx * 4}rem; right: 1.5rem;"
                     @click="${() => container.runAction(fab.actionId)}"
                     title="${fab.label}">
                     <vaadin-icon icon="${fab.icon}"></vaadin-icon>
                 </button>
             `)}
             ${metadata.sseUrl && !container.chatOpen ? html`
-                <button class="ai-fab" @click="${container.showHideIa}" title="Asistente IA">
+                <button class="ai-fab" style="bottom: ${metadata.commandCenterEnabled ? 5.5 : 1.5}rem;" @click="${container.showHideIa}" title="Asistente IA">
                     <vaadin-icon icon="vaadin:comments-o"></vaadin-icon>
                 </button>
             ` : nothing}
