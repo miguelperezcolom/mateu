@@ -124,18 +124,34 @@ public class RemoteMenuHandler {
         .map(
             app -> {
               var routeWithinApp = routeWithinApp(remoteMenu, command.route());
+              var path = remoteMenu.path();
+              boolean rootDeepLink = routeWithinApp.isEmpty();
+              boolean haveMenuPath = path != null && !path.isBlank();
+              // Root deep-link into the remote (the shell menu path itself, so nothing is left once
+              // the prefix is stripped): mount so the remote renders its HOME CONTENT, not its full
+              // app shell. Mounting the shell menu path as BOTH route and consumedRoute
+              // (route "/distribucion", consumedRoute "/distribucion") makes the remote serve its
+              // home content; mounting route "" / consumedRoute "_empty" instead makes it answer
+              // with its whole app shell — its own chrome and menu nested inside the shell, and
+              // navigating that nested app loops forever (and an empty mount route is downstream
+              // stamped "_no_home_route"). A menu path is always set for a mounted remote menu;
+              // fall back to the menu's own route/consumed route only if it is blank.
+              String mountRoute;
+              String mountConsumedRoute;
+              if (rootDeepLink && haveMenuPath) {
+                mountRoute = path;
+                mountConsumedRoute = path;
+              } else if (rootDeepLink) {
+                mountRoute = routeWithinApp;
+                mountConsumedRoute = remoteMenu.consumedRoute();
+              } else {
+                // Page route: resolves within the app with the AppDto's home consumed route.
+                mountRoute = routeWithinApp;
+                mountConsumedRoute = app.homeConsumedRoute();
+              }
               return MicroFrontend.builder()
-                  // The route WITHIN the remote app: the shell path carries the
-                  // menu's prefix, which does not exist inside the remote app —
-                  // mounting it as-is makes the app serve itself (nested loop).
-                  .route(routeWithinApp)
-                  // The consumed route the mount's ux travels with: the app home
-                  // resolves only with the menu's own ("_empty" = root consumed);
-                  // page routes resolve with the AppDto's home one ("").
-                  .consumedRoute(
-                      routeWithinApp.isEmpty()
-                          ? remoteMenu.consumedRoute()
-                          : app.homeConsumedRoute())
+                  .route(mountRoute)
+                  .consumedRoute(mountConsumedRoute)
                   .actionId("")
                   .baseUrl(remoteMenu.baseUrl())
                   .serverSideType(app.homeServerSideType())
