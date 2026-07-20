@@ -209,14 +209,23 @@ relacionadas con **drawers** y **canvases densos** — precisamente lo que Mateu
 **Estado de la Fase 1: los dos drawers base ENTREGADOS.** Desbloquean la Fase 2 (Gantt page +
 Data Management, que los usan como paneles inferior/lateral).
 
-### 5.3 Guided Process Drawer *(Transactional)*
+### 5.3 Guided Process Drawer *(Transactional)* — **EN CURSO (Fase 3, 2026-07-20)**
 - **Redwood:** wizard **dentro de un drawer** para subflujos o *batch actions*; **máx 5 pasos**
   (si más → Guided Process página). Regiones: (1) header con título de proceso + paginación
   "2 | 4" (clic abre menú de pasos), (2) footer con primary sólo en el último paso / Continue
   antes, (3) default slot con validación secuencial.
-- **Mateu:** hacer que un `Wizard` se pueda servir como contenido de un `Drawer` (ya tienes
-  `ModelViewComponent`-en-drawer en el demo v4). Falta: paginación en cabecera del drawer, límite
-  de 5 pasos, y el patrón batch (N ítems seleccionados → un paso por ítem).
+- **HECHO (mecanismo Java + test + demo + doc):** nuevo componente **`EmbeddedView(view)`** (uidl.data)
+  que embebe una vista ruteada (un `Wizard`) como **`ServerSideComponent` INDEPENDIENTE** — enruta
+  sus propias acciones (navegación de pasos) a sí mismo en vez de burbujear al host (a diferencia de
+  `ModelViewComponent`, que la renderiza inline). Rama nueva en `ComponentToFragmentDtoMapper`
+  (aditiva, no toca `ModelViewComponent` → v4/cardex intactos): envuelve la página del view en un
+  `ServerSideComponentDto` con su `serverSideType` + acciones. Guided Process Drawer =
+  `Drawer.content(new EmbeddedView(wizard))`. El wizard avanza paso a paso dentro del drawer (test
+  `GuidedProcessDrawerSyncTest`: embebido como ServerSideComponent + "next" avanza). Demo
+  `/guided-process-drawer-demo`; doc ux-patterns/drawer.md.
+- **PENDIENTE:** paginación "2|4" en la cabecera del drawer (el wizard ya muestra su progreso
+  STEPS/RAIL dentro); límite explícito de 5 pasos; patrón *batch* (N ítems → un paso por ítem);
+  paridad .NET/Python de `EmbeddedView`; validación visual.
 
 ### 5.4 Advanced Create & Edit *(Transactional)* — forma canónica
 - **Redwood:** transaccional de página única para objetos complejos. 4 regiones: page header

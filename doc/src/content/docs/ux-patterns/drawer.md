@@ -133,6 +133,30 @@ return Drawer.builder()
 Ported to .NET (`DrawerPosition.Bottom`, `Drawer { Collapsible }`) and Python
 (`DrawerPosition.bottom`, `Drawer(collapsible=…)`).
 
+## Guided Process Drawer (a wizard in a drawer, `EmbeddedView`)
+
+The Redwood **Guided Process Drawer** runs a short multi-step process inside a drawer — a subflow
+or a batch action (≤5 steps; a longer process uses the full-page [wizard](./wizard)). Return a
+`Drawer` whose content is a wizard wrapped in **`EmbeddedView`**:
+
+```java
+@Toolbar
+Drawer requestAccess() {
+    return Drawer.builder()
+        .headerTitle("Request access")
+        .size(DrawerSize.m)
+        .content(new EmbeddedView(new RequestAccessWizard()))   // the wizard, embedded
+        .build();
+}
+```
+
+`EmbeddedView(view)` embeds a **routed** model view (a `Wizard`, or any `@UI`/`@Route` view) as an
+**independent server-side component**: it renders inside the drawer but routes its **own** actions
+back to itself, so the wizard advances step by step inside the drawer instead of bubbling its
+Continue/Back to the host. This is the difference from `ModelViewComponent`, which renders a view
+inline (fine for client-side chrome like tabs, but a wizard's step navigation would leak to the
+host). Demo: `/guided-process-drawer-demo`.
+
 ## CRUD editing in a drawer (`editInDrawer()`)
 
 For the "Create and Edit - Drawer" pattern (Oracle Redwood's RDS template), you don't need to build the drawer yourself: override `editInDrawer()` on any `AutoCrud` subclass and the crud's **New** button and row clicks open the create/edit form in a drawer sliding over the listing instead of navigating to the `/new` — `/{id}/edit` routes:

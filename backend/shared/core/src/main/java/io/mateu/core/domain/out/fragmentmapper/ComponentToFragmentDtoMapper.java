@@ -8,13 +8,18 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.FormMapper.mapForm
 import static io.mateu.core.domain.out.fragmentmapper.mappers.FutureComponentMapper.mapFutureComponentToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.PageMapper.mapPageToDto;
 
+import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
+import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
 import io.mateu.core.domain.out.componentmapper.ReflectionPageMapper;
 import io.mateu.core.domain.out.componentmapper.ViewTypeClassifier;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper;
+import io.mateu.core.domain.out.fragmentmapper.mappers.EmitsMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.*;
+import io.mateu.uidl.annotations.ConfirmOnNavigationIfDirty;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.fluent.*;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -88,6 +93,41 @@ public final class ComponentToFragmentDtoMapper {
         return mapPageToDto(
             pageView, null, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
       }
+    }
+    if (component instanceof EmbeddedView embeddedView) {
+      var view = embeddedView.view();
+      if (view instanceof Component c) {
+        return mapComponentToDto(
+            null, c, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      }
+      // A routed model view (e.g. a Wizard) embedded as an INDEPENDENT server-side component: wrap
+      // its page in a ServerSideComponentDto carrying the view's own serverSideType + actions, so
+      // its actions (a wizard's step navigation) route back to itself instead of bubbling to the
+      // host. This is what makes a wizard-in-a-drawer navigate (the Guided Process Drawer pattern).
+      var pageView =
+          ReflectionPageMapper.mapToPageComponent(
+              view, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      var page =
+          mapComponentToDto(
+              null, pageView, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+      return new ServerSideComponentDto(
+          UUID.randomUUID().toString(),
+          view.getClass().getName(),
+          consumedRoute,
+          List.of(page),
+          view,
+          "",
+          "",
+          ActionMapper.mapActions(view, httpRequest),
+          TriggerMapper.mapTriggers(view, httpRequest),
+          RuleMapper.mapRules(view, httpRequest),
+          ValidationMapper.mapValidations(view, route),
+          null,
+          null,
+          MetaAnnotations.isPresent(view.getClass(), ConfirmOnNavigationIfDirty.class),
+          EmitsMapper.emitsName(view),
+          PageWidthResolver.wirePageWidth(view),
+          PageTypeResolver.wirePageType(view));
     }
     if (component instanceof FutureComponent futureComponent) {
       return mapFutureComponentToDto(
