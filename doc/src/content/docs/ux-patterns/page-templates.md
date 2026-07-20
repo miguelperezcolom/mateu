@@ -30,7 +30,8 @@ and where to see it running. To pick the right one from a user goal, start with
 | **Dashboard** | `Dashboard` archetype — KPI scoreboard band + responsive tile grid | `/dashboard-demo` | [Dashboard](./dashboard) |
 | **Welcome Page** | `Welcome` archetype — hero with CTAs + highlight tiles | `/welcome-demo` | [Welcome page](./welcome-page) |
 | **Empty States** | `EmptyState` component — used by every listing and archetype automatically | `/empty-skeleton-demo` | [Empty states & skeletons](./empty-states-and-skeletons) |
-| **Data Management** (dense datagrid) | `@InlineEditing` + `@Compact` on a table crud — in-place cell editing at high density | `/inline-crud-demo` | [Inline CRUD editing](./inline-crud-editing), [High density](./high-density) |
+| **Data Management** (grid ⇄ Gantt) | `DataManagement` archetype — the same data as a grid and a Gantt with a toolbar switcher (full-width). Dense editable grids use `@InlineEditing` + `@Compact` | `/data-management-demo` | [Data management](./data-management) |
+| **Gantt page** | `GanttPage` archetype — edge-to-edge Gantt canvas + docked detail; clicking a bar opens the task in a drawer | `/gantt-page-demo` | [Gantt](./gantt#gantt-page-template-ganttpage-archetype) |
 | **Calendar** | `CalendarPage` archetype — the full page: calendar toolbar (‹/Today/›, optional *+ Create*) over the month grid, per-month event fetching, event click actions (week/day/list views not built in yet) | `/calendar-demo` | [Calendar](./calendar) |
 
 Three notes on how to read the table:

@@ -6,6 +6,7 @@ import io.mateu.core.infra.declarative.orchestrators.calendar.CalendarPage;
 import io.mateu.core.infra.declarative.orchestrators.collectiondetail.CollectionDetail;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard;
+import io.mateu.core.infra.declarative.orchestrators.datamanagement.DataManagement;
 import io.mateu.core.infra.declarative.orchestrators.editableview.EditableView;
 import io.mateu.core.infra.declarative.orchestrators.foldout.Foldout;
 import io.mateu.core.infra.declarative.orchestrators.ganttpage.GanttPage;
@@ -63,6 +64,7 @@ public final class PageTypeResolver {
     if (GeneralOverview.class.isAssignableFrom(type)) return PageType.DETAIL;
     if (MasterDetailView.class.isAssignableFrom(type)) return PageType.DETAIL;
     if (EditableView.class.isAssignableFrom(type)) return PageType.DETAIL;
+    if (DataManagement.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (Crud.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (ListingBackend.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (getAllFields(type).stream().anyMatch(field -> MetricCard.class.equals(field.getType()))) {
