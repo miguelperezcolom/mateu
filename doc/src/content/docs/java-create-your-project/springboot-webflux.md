@@ -33,6 +33,19 @@ available artifacts are: redhat-lit, sapui5-lit, redwood-oj-lit and  vaadin-lit
 
 ```
 
+Since JDK 23 javac no longer runs annotation processors found on the compile classpath by default,
+so with maven you also need to enable annotation processing explicitly:
+
+```xml
+<plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <configuration>
+        <proc>full</proc>
+    </configuration>
+</plugin>
+```
+
 Or, in case you are using Gradle:
 
 ```kotlin

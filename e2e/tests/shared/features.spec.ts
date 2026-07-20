@@ -1266,6 +1266,12 @@ const FULL_CRUD_API = '/full-crud/mateu/v3/components/_/action';
 
 test.describe('FullCrud — full AutoCrud lifecycle', () => {
 
+  // this lifecycle mutates the SUT's in-memory store (edits/creates tasks), so its tests
+  // must run in declaration order on a single worker — otherwise fullyParallel schedules
+  // them concurrently and later assertions observe other tests' mutations
+  test.describe.configure({ mode: 'serial' });
+
+
   test('search returns at least the 3 seed tasks with no errors', async ({ request }) => {
     const body = await callAction(request, FULL_CRUD_API, {
       route: '/', actionId: 'search',

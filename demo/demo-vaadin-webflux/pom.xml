@@ -28,37 +28,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-boot-starter</artifactId>
-            <version>3.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
-            <version>2.0.4</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-models</artifactId>
-            <version>2.2.9</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.zalando</groupId>
-            <artifactId>logbook-core</artifactId>
-            <version>2.16.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-devtools</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-resolver-dns-native-macos</artifactId>
             <version>4.1.116.Final</version>
@@ -87,6 +56,15 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- javac disables classpath annotation processing by default since JDK 23;
+                         mateu's annotation processor is a plain dependency, so it needs this -->
+                    <proc>full</proc>
+                </configuration>
             </plugin>
         </plugins>
     </build>
