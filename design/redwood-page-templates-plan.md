@@ -228,25 +228,35 @@ Data Management, que los usan como paneles inferior/lateral).
   *variante* del crud (`PageType.FORM` "advanced"), (b) el **detail slot** contextual (panel
   lateral de datos de apoyo), (c) header transaccional con contextual info + next objeto + timestamp.
 
-### 5.5 Data Management *(Transactional)*
+### 5.5 Data Management *(Transactional)* — **HECHO (Fase 2, 2026-07-20)**
 - **Redwood:** grid de datos denso + Gantt integrados y **conmutables** en la misma página, con
   drawers para detalle. Edge-to-edge o full-width. Toolbar + search + tabs.
-- **Mateu:** combinar `@InlineEditing`+`@Compact` (grid denso ✅) con conmutación a `Gantt`, más
-  drawer de detalle. Arquetipo `DataManagement<Row>` que orqueste "vista grid ⇄ vista gantt" +
-  toolbar. Depende de 5.6 (gantt) y 5.1 (general drawer).
+- **HECHO — arquetipo `DataManagement` en las 3 backends:** `ComponentTreeSupplier` +
+  `PageWidthSupplier` (FULL_WIDTH); el desarrollador aporta `gridView(rq)`/`ganttView(rq)`; un
+  switcher en toolbar (dos botones) alterna la vista activa (`_view`, re-render en sitio); heading
+  del `@Title`. Java `orchestrators/datamanagement/` + `PageTypeResolver`→COLLECTION; paridad .NET
+  (`DataManagement`/`IDataManagement`, rama SyncHandler switchToGrid/switchToGantt) y Python
+  (`DataManagement`, atributo `view` sin underscore para que persista en estado). Tests:
+  `DataManagementSyncTest` (Java 2/2), `ArchetypeTests` (.NET), `test_data_management.py` (Python).
+  Demo `/data-management-demo`; doc ux-patterns/data-management.md.
+- **PENDIENTE (opcional):** grid denso "real" (Grid fluent con columnas) en el demo, y drawer de
+  detalle en la vista grid (la vista gantt ya abre el drawer de tarea vía `GanttPage`).
 
-### 5.6 Gantt page *(Transactional)* — **EN CURSO (Fase 2, 2026-07-20)**
+### 5.6 Gantt page *(Transactional)* — **HECHO (Fase 2, 2026-07-20)**
 - **Redwood:** canvas Gantt + **bottom drawer** (tablas) + **side panel** (detalle) usados
   simultáneamente. Sólo edge-to-edge. Header create&edit o general-overview.
-- **HECHO (arquetipo Java + test + demo + doc):** `GanttPage` (core
-  `orchestrators/ganttpage/`) — `ComponentTreeSupplier` + `PageWidthSupplier` (EDGE_TO_EDGE) que
-  compone el canvas `Gantt` (de `tasks(rq)`) + panel de detalle opcional acoplado debajo
-  (`detail(rq)` → Card). Composición pura, sin tipos wire nuevos → renderiza en todos. Mapeado en
-  `PageTypeResolver` → DETAIL. Test: `GanttPageSyncTest` (2/2). Demo: `/gantt-page-demo`. Doc:
-  ux-patterns/gantt.md.
-- **PENDIENTE:** (a) **interacción**: clic en una barra del Gantt → selección → side/bottom drawer
-  con el detalle de la tarea (requiere task-click en el componente `Gantt` + acción de selección);
-  (b) paridad **.NET/Python** del arquetipo `GanttPage`.
+- **HECHO — arquetipo `GanttPage` en las 3 backends + interacción + heading:** `ComponentTreeSupplier`
+  + `PageWidthSupplier` (EDGE_TO_EDGE) que compone el canvas `Gantt` (de `tasks(rq)`) + panel de
+  detalle opcional acoplado debajo (`detail(rq)`) + encabezado del `@Title`. **Interacción**: clic
+  en una barra → `Gantt.onTaskSelectionActionId` despacha `selectGanttTask` con `_clickedTaskId` →
+  el arquetipo abre la tarea en un side `Drawer` (`taskDrawer`/`taskDetail` overridables). Paridad
+  .NET (`GanttPage`/`IGanttPage`) y Python (`GanttPage`). `PageTypeResolver`→DETAIL. Tests:
+  `GanttPageSyncTest` (Java 5/5), `ArchetypeTests` (.NET), `test_gantt_page.py` (Python). Demo
+  `/gantt-page-demo` (verificado visualmente); doc ux-patterns/gantt.md.
+- **PENDIENTE (opcional):** bottom drawer de tablas simultáneo al side drawer (Redwood los usa a la
+  vez); actualmente la interacción abre un único side drawer por tarea.
+
+**Estado de la Fase 2: Gantt page + Data Management ENTREGADOS en las 3 backends.**
 
 **Orden de dependencias:** `General Drawer (5.1)` y `Bottom Drawer (5.2)` son la base →
 desbloquean `Gantt page (5.6)` y `Data Management (5.5)`. `Guided Process Drawer (5.3)` y
