@@ -96,6 +96,13 @@ class GanttPageSyncTest {
   }
 
   @Test
+  void theGanttPageShowsItsTitleAsAHeading() {
+    var texts = new ArrayList<io.mateu.dtos.TextDto>();
+    FieldKindsSyncTest.walk(serverSideOf("/project-plan"), io.mateu.dtos.TextDto.class, texts);
+    assertThat(texts).anyMatch(t -> "Project plan".equals(t.text()));
+  }
+
+  @Test
   void theCanvasAdvertisesTheTaskSelectionAction() {
     var gantts = new ArrayList<GanttDto>();
     FieldKindsSyncTest.walk(serverSideOf("/project-plan"), GanttDto.class, gantts);

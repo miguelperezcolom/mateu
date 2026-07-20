@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.ganttpage;
 
+import io.mateu.core.domain.out.componentmapper.ReflectionPageMapper;
 import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.PageWidthStyle;
 import io.mateu.uidl.data.Card;
@@ -8,6 +9,7 @@ import io.mateu.uidl.data.DrawerSize;
 import io.mateu.uidl.data.Gantt;
 import io.mateu.uidl.data.GanttTask;
 import io.mateu.uidl.data.Text;
+import io.mateu.uidl.data.TextSize;
 import io.mateu.uidl.data.VerticalLayout;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
@@ -45,9 +47,29 @@ public abstract class GanttPage implements ComponentTreeSupplier, PageWidthSuppl
     return null;
   }
 
+  /**
+   * The page heading shown above the canvas (the Redwood Gantt-page header). Defaults to the view's
+   * title ({@code @Title} / {@code TitleSupplier} / class name); return {@code null} or blank to
+   * omit it.
+   */
+  protected String heading() {
+    return ReflectionPageMapper.getTitle(this);
+  }
+
   @Override
   public Component component(HttpRequest httpRequest) {
     List<Component> content = new ArrayList<>();
+    String heading = heading();
+    if (heading != null && !heading.isBlank()) {
+      content.add(
+          Text.builder()
+              .id("gantt-page-title")
+              .text(heading)
+              .size(TextSize.xl)
+              .noMargins(true)
+              .style("font-weight: 600;")
+              .build());
+    }
     content.add(
         Gantt.builder()
             .id("gantt")
