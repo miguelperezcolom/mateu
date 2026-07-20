@@ -46,6 +46,12 @@ final class TabFormLayoutBuilder {
         .maxColumns(tab.columns())
         .autoResponsive(true)
         .expandColumns(true)
+        .labelsAside(
+            LabelsAsideInference.labelsAside(
+                tab.fields(),
+                tab.columns(),
+                Class.class.equals(instance.getClass()) ? null : instance,
+                httpRequest))
         .content(buildRows(fields, tab.columns()))
         .build();
   }

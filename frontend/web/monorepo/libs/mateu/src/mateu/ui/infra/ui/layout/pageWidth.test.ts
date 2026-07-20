@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { resolvePageWidth } from './pageWidth'
+import { hasWelcomeBanner, resolvePageWidth } from './pageWidth'
 import Component from '@mateu/shared/apiClients/dtos/Component'
 import ServerSideComponent from '@mateu/shared/apiClients/dtos/ServerSideComponent'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
@@ -97,5 +97,55 @@ describe('resolvePageWidth', () => {
     it('defaults plain content to fixed', () => {
         const form = clientSide(ComponentMetadataType.Form)
         expect(resolvePageWidth(serverSide({}, [page(undefined, [form])]))).toBe('fixed')
+    })
+
+    it('paints a TOP-LEVEL App shell edge (its pages apply their own width inside)', () => {
+        const app = clientSide(ComponentMetadataType.App)
+        expect(resolvePageWidth(serverSide({}, [app]), { top: true })).toBe('edge')
+    })
+
+    it('does NOT paint a mediator page edge just for carrying an App child', () => {
+        const app = clientSide(ComponentMetadataType.App)
+        expect(resolvePageWidth(serverSide({}, [app]))).toBe('fixed')
+        expect(resolvePageWidth(serverSide({}, [app]), { top: false })).toBe('fixed')
+    })
+
+    it('lets a declaration on the wrapper win over the app-shell rule', () => {
+        const app = clientSide(ComponentMetadataType.App)
+        expect(resolvePageWidth(serverSide({ pageWidth: 'fixed' }, [app]), { top: true })).toBe('fixed')
+    })
+
+    it('anchors form, process and landing pages at fixed via the page type', () => {
+        for (const pageType of ['form', 'process', 'landing']) {
+            const dense = page(undefined, [crud({ compact: true })])
+            expect(resolvePageWidth(serverSide({ pageType }, [dense])), pageType).toBe('fixed')
+        }
+    })
+
+    it('lets collection, detail and dashboard pages defer to the content inference', () => {
+        const dense = page(undefined, [crud({ compact: true })])
+        expect(resolvePageWidth(serverSide({ pageType: 'collection' }, [dense]))).toBe('full')
+        const kanban = page(undefined, [clientSide(ComponentMetadataType.Kanban)])
+        expect(resolvePageWidth(serverSide({ pageType: 'detail' }, [kanban]))).toBe('edge')
+        expect(resolvePageWidth(serverSide({ pageType: 'dashboard' }, [kanban]))).toBe('edge')
+    })
+
+    it('reads the page type from the Page metadata when the wrapper says nothing', () => {
+        const dense = clientSide(ComponentMetadataType.Form)
+        const pageWithType = clientSide(ComponentMetadataType.Page, { pageType: 'form' }, [dense])
+        expect(resolvePageWidth(serverSide({}, [pageWithType]))).toBe('fixed')
+    })
+})
+
+describe('hasWelcomeBanner', () => {
+    it('detects a HeroSection anywhere in the tree', () => {
+        const hero = clientSide(ComponentMetadataType.HeroSection)
+        const layout = clientSide(ComponentMetadataType.VerticalLayout, {}, [hero])
+        expect(hasWelcomeBanner(serverSide({}, [layout]))).toBe(true)
+    })
+
+    it('returns false when there is no HeroSection and for no component', () => {
+        expect(hasWelcomeBanner(serverSide({}, [clientSide(ComponentMetadataType.Form)]))).toBe(false)
+        expect(hasWelcomeBanner(undefined)).toBe(false)
     })
 })

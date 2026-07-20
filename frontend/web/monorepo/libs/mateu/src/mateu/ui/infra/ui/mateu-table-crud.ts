@@ -789,7 +789,7 @@ export class MateuTableCrud extends LitElement {
         if (this.standalone) {
             return html`
                 ${importDialog}
-                <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--lumo-space-m); display: flex; flex-direction: column;">
+                <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); background: var(--mateu-section-bg, transparent); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--lumo-space-m); display: flex; flex-direction: column;">
                     <div style="flex-shrink: 0;">
                         <mateu-content-header
                             .metadata="${metadata}"
@@ -827,7 +827,7 @@ export class MateuTableCrud extends LitElement {
                         <slot></slot>
                     </div>
                 ` : nothing}
-            <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--lumo-space-m); display: flex; flex-direction: column;">
+            <div style="border: var(--mateu-section-border, 1px solid var(--lumo-contrast-20pct)); background: var(--mateu-section-bg, transparent); border-radius: var(--lumo-border-radius-l); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--lumo-space-m); display: flex; flex-direction: column;">
                 <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
                     <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
                     ${this.renderColumnChooser()}

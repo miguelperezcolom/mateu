@@ -646,6 +646,48 @@ def page_width(width: PageWidth) -> Callable[[type], type]:
     return deco
 
 
+class PageType(Enum):
+    """The coarse page type — which family of Oracle Redwood page templates the view belongs
+    to: LANDING (welcome / hero-search pages), COLLECTION (cruds, listings, smart searches, todo
+    lists, calendars, collection details), DETAIL (foldouts, item/general overviews), FORM (a
+    plain reflected form), PROCESS (guided wizards) or DASHBOARD. The member values are the
+    wire names. The Python analogue of Java's PageType."""
+
+    LANDING = "landing"
+    COLLECTION = "collection"
+    DETAIL = "detail"
+    FORM = "form"
+    PROCESS = "process"
+    DASHBOARD = "dashboard"
+
+
+def page_template(page_type: PageType) -> Callable[[type], type]:
+    """Class-level: explicitly sets the view's coarse page type (the family of Oracle Redwood
+    page templates the renderer picks from). When absent the backend infers the type from the
+    view's shape (archetype base class, a MetricCard field, plain form). The explicit template
+    always wins over the inference. The Python analogue of Java's @PageTemplate."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_page_type__ = (
+            page_type.value if isinstance(page_type, PageType) else page_type
+        )
+        return cls
+
+    return deco
+
+
+def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Callable[[type], type]:
+    """Class-level: prepends the Redwood "Welcome Banner" element to the page content — a
+    centered HeroSection (id "welcome-banner") with the given title (empty → the page title),
+    subtitle and background image. The Python analogue of Java's ``@WelcomeBanner``."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_welcome_banner__ = (title, subtitle, image)
+        return cls
+
+    return deco
+
+
 def subtitle(value: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
         cls.__mateu_subtitle__ = value
@@ -784,6 +826,30 @@ def folded_layout(cls: type) -> type:
     The Python analogue of Java's ``@FoldedLayout``."""
     cls.__mateu_folded_layout__ = True
     return cls
+
+
+class LabelsAsideMode(Enum):
+    """Where a form's field labels sit: ``AUTO`` lets Mateu infer it from the form's shape
+    (labels aside only for dense single-column forms of short-labelled, single-line widgets),
+    ``ASIDE``/``TOP`` force it. The Python analogue of Java's ``LabelsAsideMode``."""
+
+    AUTO = "auto"
+    ASIDE = "aside"
+    TOP = "top"
+
+
+def form_layout(columns: int = 2, labels_aside: LabelsAsideMode = LabelsAsideMode.AUTO):
+    """Class-level form layout declaration: fixes the form's column count and where the field
+    labels sit. The explicit ``labels_aside=ASIDE|TOP`` always wins over the inference; with the
+    default ``AUTO`` Mateu infers it from the form's shape. The Python analogue of Java's
+    ``@FormLayout``."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_form_layout_columns__ = columns
+        cls.__mateu_labels_aside__ = labels_aside
+        return cls
+
+    return deco
 
 
 def toc(arg=True):
@@ -1196,12 +1262,12 @@ class Welcome(ComponentTreeSupplier):
 
 
 __all__ = [
-    "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth",
+    "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Version", "Lookup", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Step", "Panel",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
-    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "wizard_progress", "page_width",
-    "plain_text", "emits", "subscribe_to", "secured",
+    "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
+    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner",
     "button", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "Foldout", "ItemOverview", "Welcome", "TodoList",

@@ -11,4 +11,11 @@ public @interface FormLayout {
   String style() default "";
 
   int columns() default 2;
+
+  /**
+   * Where the field labels sit. Default {@link LabelsAsideMode#AUTO}: Mateu infers it from the
+   * form's shape (labels-aside only for dense single-column forms of short-labelled, single-line
+   * widgets).
+   */
+  LabelsAsideMode labelsAside() default LabelsAsideMode.AUTO;
 }

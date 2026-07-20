@@ -207,6 +207,37 @@ public sealed class ZoneAttribute(string name, string width = "") : Attribute
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class FoldedLayoutAttribute : Attribute;
 
+/// <summary>Where a form's field labels sit. Selected with <see cref="FormLayoutAttribute.LabelsAside"/>.
+/// (C# analogue of Java's LabelsAsideMode.)</summary>
+public enum LabelsAsideMode
+{
+    /// <summary>Infer from the form's shape (default): labels-aside only for dense single-column
+    /// forms of short-labelled, single-line widgets; anything else keeps labels on top.</summary>
+    Auto,
+
+    /// <summary>Force labels aside (to the left of the field) — the dense backoffice data-entry idiom.</summary>
+    Aside,
+
+    /// <summary>Force labels on top of the field.</summary>
+    Top,
+}
+
+/// <summary>Form layout options for a view class: the responsive grid's column count and where
+/// the field labels sit. (C# analogue of Java's @FormLayout.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class FormLayoutAttribute : Attribute
+{
+    /// <summary>Maximum columns of the responsive form grid (default 2, like Java's columns()).</summary>
+    public int Columns { get; set; } = 2;
+
+    /// <summary>Where the field labels sit. Default <see cref="LabelsAsideMode.Auto"/>: Mateu
+    /// infers it from the form's shape (labels-aside only for dense single-column forms of
+    /// short-labelled, single-line widgets; see LabelsAsideInference). An explicit
+    /// <see cref="LabelsAsideMode.Aside"/>/<see cref="LabelsAsideMode.Top"/> always wins over the
+    /// inference.</summary>
+    public LabelsAsideMode LabelsAside { get; set; } = LabelsAsideMode.Auto;
+}
+
 /// <summary>A subtitle shown under the page title.</summary>
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class SubtitleAttribute(string value) : Attribute

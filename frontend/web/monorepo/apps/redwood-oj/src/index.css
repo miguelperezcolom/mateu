@@ -7,6 +7,12 @@
     --vaadin-card-background: none;
     --vaadin-card-border-color: none;
 
+    /* RDS collections are flat: no frame around the listing container, and the collection area
+       keeps the slab's #FBF9F8 (no white card — the white in this theme belongs to the input
+       controls themselves). */
+    --mateu-section-border: none;
+    --mateu-section-bg: transparent;
+
     /* ── Lumo → Redwood token bridge ──────────────────────────────────────────
        The shared, DS-neutral components in libs/mateu (notices, dashboards,
        gantt, skeletons, empty states, hero, planning board…) style themselves
@@ -2407,8 +2413,8 @@ html:not([dir=rtl]) .componentCategoryItemListview.oj-listview-card-layout li.oj
     height: 143px
 }
 
-/* Redwood form sections: the section title (a heading-md Text inside the mateu-section flat
-   section) gets the conventional Redwood heading + divider treatment. */
+/* Redwood form sections are flat (no enclosing frame): the section title (a heading-md Text
+   inside the section) gets the conventional Redwood heading + divider treatment. */
 section.mateu-section .oj-typography-heading-md {
     padding-bottom: 0.5rem;
     border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.2));
@@ -2490,22 +2496,43 @@ mateu-foldout {
    - full: fluid and uncapped, 24px side gutters always.
    - edge: content touches the content-area edges (no gutters). */
 mateu-ui > mateu-api-caller > mateu-ux[data-page-width],
-mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width] {
+mateu-redwood-app mateu-api-caller > mateu-ux[data-page-width] {
     display: block;
     box-sizing: border-box;
+    /* RDS anatomy: the content column is the opaque, lighter slab (palette neutral-10, #FBF9F8)
+       running full height on the darker #F1EFED canvas — the JET content token is neutral-0
+       (white), which belongs to the COLLECTION, not to the slab. */
+    background-color: rgb(var(--oj-palette-neutral-rgb-10, 251 249 248));
+    min-height: 100%;
+    /* RDS "Header + Background": the page header reads as part of the canvas — the band region
+       paints canvas-colored (the texture still shows through above), and the content slab starts
+       at the color strip below the header (12px desktop, 8px mobile — mateu-page's band hook). */
+    --mateu-page-header-bg: var(--oj-core-bg-color-canvas, #f1efed);
+    --mateu-page-band-h: 12px;
+}
+/* The page canvas is the darker #F1EFED (the JET canvas surface) — the textures
+   (body::before/::after) ride on top of it; without this the whole page was the
+   content color and the canvas/content separation was invisible. */
+body {
+    background-color: var(--oj-core-bg-color-canvas, #f1efed);
 }
 mateu-ui > mateu-api-caller > mateu-ux[data-page-width="fixed"],
-mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="fixed"] {
+mateu-redwood-app mateu-api-caller > mateu-ux[data-page-width="fixed"] {
     max-width: min(1408px, 100% - 48px);
     margin-inline: auto;
     padding-inline: 0;
+    /* RDS "Content Container": the content slab floats with a soft drop shadow (0,4,8)
+       over the header band and the canvas — only when the slab is narrower than the
+       content area (fixed/full), never in edge-to-edge. */
+    box-shadow: 0 4px 8px rgba(22, 21, 19, 0.12);
 }
 mateu-ui > mateu-api-caller > mateu-ux[data-page-width="full"],
-mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="full"] {
+mateu-redwood-app mateu-api-caller > mateu-ux[data-page-width="full"] {
     padding-inline: 24px;
+    box-shadow: 0 4px 8px rgba(22, 21, 19, 0.12);
 }
 mateu-ui > mateu-api-caller > mateu-ux[data-page-width="edge"],
-mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="edge"] {
+mateu-redwood-app mateu-api-caller > mateu-ux[data-page-width="edge"] {
     padding-inline: 0;
 }
 /* Edge mode paints no side padding, so the foldout's full-bleed negative SIDE
@@ -2513,8 +2540,15 @@ mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="edge"]
    lifts the columns over the content area's top gap so they keep running top to
    bottom. */
 mateu-ui > mateu-api-caller > mateu-ux[data-page-width="edge"] mateu-foldout,
-mateu-redwood-app .content > mateu-api-caller > mateu-ux[data-page-width="edge"] mateu-foldout {
+mateu-redwood-app mateu-api-caller > mateu-ux[data-page-width="edge"] mateu-foldout {
     --mateu-foldout-outer-margin: -1.5rem 0 0 0;
+}
+
+/* RDS Welcome Banner: the hero becomes the branded band that takes the accent's place — a soft
+   Redwood gradient band (the inline image+dark-overlay background still wins when the hero
+   carries an image). */
+.mateu-hero {
+    background: linear-gradient(135deg, #e7eff1 0%, #f3f1ee 55%, #fbf9f8 100%);
 }
 
 /* mateu-markdown renders into light DOM and inherits the host typography (there is no Lumo
@@ -2618,10 +2652,15 @@ body::before {
     }
 }
 
-/* On phones the decorative chrome would dominate the content — drop it entirely. */
+/* On phones the decorative chrome would dominate the content — drop it entirely, and the
+   header color strip shrinks to its mobile height (RDS: 12px desktop → 8px mobile). */
 @media (max-width: 640px) {
     body::before,
     body::after {
         display: none;
+    }
+    mateu-ui > mateu-api-caller > mateu-ux[data-page-width],
+    mateu-redwood-app mateu-api-caller > mateu-ux[data-page-width] {
+        --mateu-page-band-h: 8px;
     }
 }

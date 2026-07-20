@@ -44,6 +44,17 @@ import {
     setDefaultView,
 } from "@infra/savedViewsStore.ts";
 
+/** Nearest ancestor mateu-ux host (crossing shadow roots), so page-level flags stamped on it —
+ * like data-has-welcome-banner — are visible from deep inside the rendered tree. */
+const uxHost = (el: Element | null): Element | null => {
+    let n: any = el
+    while (n) {
+        if (n.tagName?.toLowerCase() === 'mateu-ux') return n as Element
+        n = n.parentElement ?? n.getRootNode?.()?.host ?? null
+    }
+    return null
+}
+
 // Local UI state of the smart-search filter bar, keyed by the crud element: the renderer hook is
 // stateless, so panel-open/views-panel-open/active-filter/uncommitted-text live here and
 // re-renders go through the host's requestUpdate(). The document-level outside-click listener is
@@ -612,8 +623,11 @@ export class RedwoodOjComponentRenderer extends BasicComponentRenderer implement
             </div>
             <!-- RDS chrome: the color strip marks the top edge of the collection container —
                  between the smart search bar and the toolbar+table, exactly where the Smart
-                 Filter and Search template places it. -->
-            <div class="redwood-color-strip" aria-hidden="true" style="height: 8px; background-image: url('/images/redwood-color-strip.png'); background-repeat: repeat-x; background-size: auto 8px; flex: none; width: 100%; margin-top: 0.5rem;"></div>
+                 Filter and Search template places it. Suppressed when the page carries a welcome
+                 banner: the accent only shows on pages WITHOUT one (Redwood rule). -->
+            ${uxHost(container)?.getAttribute('data-has-welcome-banner') === 'true' ? nothing : html`
+                <div class="redwood-color-strip" aria-hidden="true" style="height: 8px; background-image: url('/images/redwood-color-strip.png'); background-repeat: repeat-x; background-size: auto 8px; flex: none; width: 100%; margin-top: 0.5rem;"></div>
+            `}
         `
     }
 

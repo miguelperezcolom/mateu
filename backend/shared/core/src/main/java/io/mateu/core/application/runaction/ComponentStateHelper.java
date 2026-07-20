@@ -10,6 +10,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.m
 import static io.mateu.core.infra.declarative.FormViewModel.toMap;
 import static io.mateu.core.infra.declarative.orchestrators.wizard.Wizard.addRowNumber;
 
+import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.uidl.annotations.Route;
@@ -79,7 +80,8 @@ public class ComponentStateHelper {
         null,
         false,
         emitsName(modelView),
-        PageWidthResolver.wirePageWidth(modelView));
+        PageWidthResolver.wirePageWidth(modelView),
+        PageTypeResolver.wirePageType(modelView));
   }
 
   public static Object getState(Object modelView, HttpRequest httpRequest) {

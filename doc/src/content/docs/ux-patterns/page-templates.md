@@ -42,6 +42,14 @@ Three notes on how to read the table:
   sized: capped and centered, fluid with side margins, or touching the viewport edges. When
   neither is set, the renderer infers it from the content (full-bleed canvases → edge-to-edge,
   dense datagrids → full width, anything else → fixed).
+- **The page type is inferred from the ModelView.** Every page carries a coarse `pageType` on the
+  wire — `landing` (Welcome, HeroSearch), `collection` (listings, search pages, CRUDs, to-do
+  lists, calendars, collection detail), `detail` (overviews, foldout, master-detail), `form`
+  (plain reflected forms), `process` (wizards), `dashboard` (archetype, or any ModelView with
+  `MetricCard` fields). Archetypes declare theirs through the mapping; declare it explicitly with
+  `@PageTemplate(PageType.X)`. The type anchors the width default (form/process/landing are
+  always capped; collection/detail/dashboard defer to the content inference) and is stamped as
+  `data-page-type` on the rendered page host as a stylesheet hook.
 - **Backend parity.** Everything on this page also works on the .NET and Python backends — see
   the [parity matrix](/reference/parity/) for the per-feature detail.
 - **Composition beats templates.** When no template fits, the same pieces compose freely:

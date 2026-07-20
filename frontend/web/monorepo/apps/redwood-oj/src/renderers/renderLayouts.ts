@@ -85,7 +85,7 @@ export const renderCard = (container: LitElement, component: ClientSideComponent
     const titleText = typeof md.title === 'string' ? md.title : ''
     // Form sections (the backend marks their cards with the mateu-section class) follow the
     // Redwood form convention: a flat section — heading with a divider, content on the page
-    // background — instead of an elevated panel.
+    // background — no enclosing card/frame.
     if (component.cssClasses?.includes('mateu-section')) {
         const heading = titleText
             ? html`<h2 class="oj-typography-heading-sm" style="margin: 0;">${titleText}</h2>`

@@ -88,6 +88,8 @@ class PageMetadata(Wire):
     kpis: list["Kpi"] = Field(default_factory=list)
     banners: list["Banner"] = Field(default_factory=list)
     fabs: list["Fab"] = Field(default_factory=list)
+    #: The coarse page type (the family of Redwood page templates; mirrors PageDto.pageType).
+    page_type: str | None = None
 
 
 class CardMetadata(Wire):
@@ -118,6 +120,10 @@ class FormLayoutMetadata(Wire):
     type: Literal["FormLayout"] = "FormLayout"
     max_columns: int = 2
     auto_responsive: bool = True
+    #: Where the field labels sit: True = a label column aside (left of) each field row instead
+    #: of labels on top (mirrors FormLayoutDto.labelsAside). An explicit
+    #: ``@form_layout(labels_aside=...)`` wins; otherwise inferred from the form's shape.
+    labels_aside: bool = False
 
 
 class FormRowMetadata(Wire):
@@ -1159,6 +1165,10 @@ class ServerSideComponent(Wire):
     #: Redwood page width ("fixed"|"fullWidth"|"edgeToEdge") declared on the view; None = the
     #: renderer infers it from the page content (mirrors ServerSideComponentDto.pageWidth).
     page_width: str | None = None
+    #: The coarse page type ("landing"|"collection"|"detail"|"form"|"process"|"dashboard") —
+    #: the family of Redwood page templates the view belongs to; never None on the wire
+    #: (mirrors ServerSideComponentDto.pageType).
+    page_type: str | None = None
 
 
 class RuleRecord(Wire):

@@ -376,13 +376,24 @@ export class MateuPage extends LitElement {
     /** Design-system hook: a decorative band under the page header, invisible by default
      *  (height/image come from CSS custom properties, which pierce shadow DOM — e.g. the
      *  Redwood renderer sets them to the RDS color strip). Pages whose content is a crud skip
-     *  it: their collection container carries the band (below the search bar) instead. */
+     *  it: their collection container carries the band (below the search bar) instead. Pages
+     *  with a welcome banner (a HeroSection in the content) skip it too: in the Redwood anatomy
+     *  the accent strip only shows on pages WITHOUT one. */
     private _showHeaderBand(): boolean {
         const metadata = this.component?.metadata as PageComponent
         const hasHeader = !!(metadata?.title || metadata?.subtitle || (metadata as any)?.toolbar?.length)
         const hasCrud = !!this.component?.children?.some(child =>
             (child as ClientSideComponent).metadata?.type === ComponentMetadataType.Crud)
-        return hasHeader && !hasCrud
+        return hasHeader && !hasCrud && !this._hasWelcomeBanner()
+    }
+
+    /** Whether the page content carries a HeroSection (the welcome banner element). */
+    private _hasWelcomeBanner(): boolean {
+        const walk = (node: any): boolean => {
+            if (node?.metadata?.type === ComponentMetadataType.HeroSection) return true
+            return (node?.children ?? []).some(walk)
+        }
+        return (this.component?.children ?? []).some(walk)
     }
 
     render(): TemplateResult {
@@ -396,18 +407,20 @@ export class MateuPage extends LitElement {
             ...this.actionBanners.map((banner, i) => ({ banner, onDismiss: () => this._dismissActionBanner(i) }))
         ]
         const inner = html`
-            <mateu-content-header
-                class="${this._tocVisible ? 'sticky-header' : ''}"
-                .metadata="${metadata}"
-                .baseUrl="${this.baseUrl}"
-                .state="${this.state}"
-                .data="${this.data}"
-                .appState="${this.appState}"
-                .appData="${this.appData}"
-            ></mateu-content-header>
-            ${this._showHeaderBand() ? html`
-                <div class="page-header-band" aria-hidden="true"></div>
-            ` : nothing}
+            <div class="page-header-wrap">
+                <mateu-content-header
+                    class="${this._tocVisible ? 'sticky-header' : ''}"
+                    .metadata="${metadata}"
+                    .baseUrl="${this.baseUrl}"
+                    .state="${this.state}"
+                    .data="${this.data}"
+                    .appState="${this.appState}"
+                    .appData="${this.appData}"
+                ></mateu-content-header>
+                ${this._showHeaderBand() ? html`
+                    <div class="page-header-band" aria-hidden="true"></div>
+                ` : nothing}
+            </div>
             ${banners.length > 0 ? html`
                 <div class="page-banners">
                     ${banners.map(({ banner, onDismiss }) => this._renderBanner(banner, onDismiss))}
@@ -443,6 +456,14 @@ export class MateuPage extends LitElement {
     }
 
     static styles = css`
+        /* Design-system hook: background behind the page header (the RDS "Header + Background"
+           band) — transparent by default; the Redwood renderer paints it with the canvas color
+           via a custom property, so the header reads as part of the canvas and the content slab
+           starts at the color strip below. */
+        .page-header-wrap {
+            background: var(--mateu-page-header-bg, transparent);
+        }
+
         .page-header-band {
             width: 100%;
             height: var(--mateu-page-band-h, 0);

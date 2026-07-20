@@ -184,8 +184,9 @@ from mateu_uidl import (
 )
 from mateu_uidl import components as fluent
 
-from . import layout_inference
+from . import labels_aside_inference, layout_inference
 from .naming import camel_case, humanize
+from .page_type_inference import page_type_of
 from .reflection import class_flag, methods_with, view_fields
 from .registry import normalize, type_name
 
@@ -484,7 +485,25 @@ class ReflectionMapper:
         else:
             children = self.form_cards(cls, instance)
 
+        # @welcome_banner: the Redwood "Welcome Banner" element is a plain HeroSection
+        # prepended to the page content (mirrors Java's ReflectionPageMapper).
+        welcome_banner = getattr(cls, "__mateu_welcome_banner__", None)
+        if welcome_banner is not None:
+            banner_title, banner_subtitle, banner_image = welcome_banner
+            children = [
+                self.map_component(
+                    fluent.HeroSection(
+                        id="welcome-banner",
+                        title=self.T(banner_title) if banner_title else title,
+                        subtitle=self._opt_t(banner_subtitle or None),
+                        image=banner_image or None,
+                        centered=True,
+                    )
+                )
+            ] + children
+
         compact = bool(class_flag(cls, "__mateu_compact__", False))
+        page_type = page_type_of(cls)
         page_meta = PageMetadata(
             title=title,
             page_title=title,
@@ -496,6 +515,7 @@ class ReflectionMapper:
             badges=self.badges(cls, instance),
             kpis=self.kpis(cls, instance),
             fabs=fabs,
+            page_type=page_type,
         )
         page = ClientSideComponent(
             metadata=page_meta,
@@ -541,6 +561,7 @@ class ReflectionMapper:
             confirm_on_navigation_if_dirty=bool(class_flag(cls, "__mateu_confirm_dirty__", False)),
             rules=self.map_rules(cls, instance),
             page_width=getattr(cls, "__mateu_page_width__", None),
+            page_type=page_type,
         )
 
     # ── Fluent component trees & declarative archetypes ───────────────────────
@@ -1502,6 +1523,7 @@ class ReflectionMapper:
             id=_id(), server_side_type=type_name(cls), route=route, children=[layout],
             initial_data=initial, actions=[], triggers=[],
             page_width=getattr(cls, "__mateu_page_width__", None),
+            page_type=page_type_of(cls),
         )
 
     # ── CRUD ───────────────────────────────────────────────────────────────────
@@ -1569,7 +1591,7 @@ class ReflectionMapper:
                 None, [],
             ))
         page_children.append(crud)
-        page = self.client(PageMetadata(), None, page_children)
+        page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
         if inline:
             actions.append(Action(id="update-row"))
@@ -1580,6 +1602,7 @@ class ReflectionMapper:
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions, triggers=triggers,
             page_width=getattr(cls, "__mateu_page_width__", None),
+            page_type=page_type_of(cls),
         )
 
     @staticmethod
@@ -1665,13 +1688,14 @@ class ReflectionMapper:
                 page_children.append(
                     self.client(TextMetadata(text=subtitle), "page-subtitle", []))
         page_children.append(crud)
-        page = self.client(PageMetadata(), None, page_children)
+        page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions,
             # A smart search page starts EMPTY (the user searches); plain listings preload.
             triggers=[] if smart_search else [Trigger(type="OnLoad", action_id="search")],
             page_width=getattr(cls, "__mateu_page_width__", None),
+            page_type=page_type_of(cls),
         )
 
     def listing_filters(self, filters_type) -> list[FormFieldMetadata]:
@@ -1750,7 +1774,8 @@ class ReflectionMapper:
                 Button(label="Save", action_id="create", button_style="Primary"),
             ]
         page = self.client(
-            PageMetadata(title=title, page_title=title, toolbar=toolbar),
+            PageMetadata(title=title, page_title=title, toolbar=toolbar,
+                         page_type=page_type_of(crud_type)),
             None,
             self.form_cards(element, entity, read_only=mode == "view"),
         )
@@ -1760,6 +1785,7 @@ class ReflectionMapper:
             # Hidden()/Disabled() on entity fields rule the detail form too.
             rules=self.map_rules(element, entity),
             page_width=getattr(crud_type, "__mateu_page_width__", None),
+            page_type=page_type_of(crud_type),
         )
 
     def map_rules(self, cls, instance) -> list[RuleRecord]:
@@ -1824,6 +1850,11 @@ class ReflectionMapper:
                 section_markers.append(current_marker)
             sections[-1][1].append(f)
 
+        # @form_layout on the class: the form's column count and where the field labels sit
+        # (an explicit labels_aside=ASIDE|TOP wins; AUTO infers it from the form's shape).
+        max_columns = class_flag(cls, "__mateu_form_layout_columns__", 2)
+        aside = labels_aside_inference.labels_aside(fields, max_columns, cls)
+
         # @zones columns on the class: sections lay out side by side (zones win over inference).
         declared_zones = getattr(cls, "__mateu_zones__", None)
         if declared_zones and len(sections) > 1:
@@ -1835,7 +1866,10 @@ class ReflectionMapper:
             return [ClientSideComponent(
                 metadata=HorizontalLayoutMetadata(spacing=True),
                 children=[
-                    self.section_card(t, self.map_fields(fs, instance, read_only))
+                    self.section_card(
+                        t, self.map_fields(fs, instance, read_only),
+                        labels_aside=aside, max_columns=max_columns,
+                    )
                     for t, fs in sections
                 ],
             )]
@@ -1848,7 +1882,10 @@ class ReflectionMapper:
             return [self.folded_card(plan[0], plan[1], instance, read_only)]
 
         return [
-            self.section_card(t, self.map_fields(fs, instance, read_only), section_markers[i])
+            self.section_card(
+                t, self.map_fields(fs, instance, read_only), section_markers[i],
+                labels_aside=aside, max_columns=max_columns,
+            )
             for i, (t, fs) in enumerate(sections)
         ]
 
@@ -2021,7 +2058,12 @@ class ReflectionMapper:
         )
 
     def section_card(
-        self, title: str | None, fields, section: Section | None = None
+        self,
+        title: str | None,
+        fields,
+        section: Section | None = None,
+        labels_aside: bool = False,
+        max_columns: int = 2,
     ) -> ClientSideComponent:
         # Section(property_list=True): every data field becomes a read-only property row (label
         # left / value right, divider between rows), stacked full-width — so the body is a plain
@@ -2034,7 +2076,11 @@ class ReflectionMapper:
                 style="width: 100%; align-items: stretch;",
             )
         else:
-            body = self.client(FormLayoutMetadata(), None, self.form_rows(fields))
+            body = self.client(
+                FormLayoutMetadata(max_columns=max_columns, labels_aside=labels_aside),
+                None,
+                self.form_rows(fields, max_columns),
+            )
         # Section(frameless=True): no card wrapper, no padding — the content sits bare (mirrors
         # Java's @Section(frameless=true)).
         if section is not None and section.frameless:

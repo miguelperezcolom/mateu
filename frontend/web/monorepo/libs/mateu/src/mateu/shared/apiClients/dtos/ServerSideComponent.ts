@@ -23,4 +23,11 @@ export default interface ServerSideComponent extends Component {
      */
     pageWidth?: string | undefined
 
+    /**
+     * The page's coarse template type (the Oracle Redwood page-template families): "landing",
+     * "collection", "detail", "form", "process" or "dashboard" — inferred from the ModelView's
+     * shape unless declared with @PageTemplate.
+     */
+    pageType?: string | undefined
+
 }

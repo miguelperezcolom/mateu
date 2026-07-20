@@ -34,7 +34,9 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
         style += '--vaadin-form-layout-label-spacing: ' + metadata.itemLabelSpacing + ';'
     }
     if (metadata.labelsAside) {
-        style += '--vaadin-form-item-label-width: 92px;'
+        // Aside label column sized to the inference threshold (~20 chars): dense single-column
+        // forms read as a compact label+field row (see LabelsAsideInference on the Java side).
+        style += '--vaadin-form-item-label-width: 10rem;'
     }
     if (metadata.fullWidth) {
         style += 'width: 100%;';
@@ -49,7 +51,7 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
                        auto-responsive="${metadata.autoResponsive || nothing}"
                        column-width="${metadata.columnWidth || nothing}"
                        expand-columns="${metadata.expandColumns || nothing}"
-                       expand-fields="${metadata.expandFields || nothing}"
+                       expand-fields="${(metadata.expandFields ?? !metadata.labelsAside) || nothing}"
                        labels-aside="${metadata.labelsAside || nothing}"
                        slot="${component.slot || nothing}"
                >

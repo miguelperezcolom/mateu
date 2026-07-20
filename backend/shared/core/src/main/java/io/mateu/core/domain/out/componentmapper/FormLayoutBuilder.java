@@ -189,6 +189,8 @@ class FormLayoutBuilder {
               .maxColumns(maxColumns)
               .autoResponsive(true)
               .columnWidth(compactColumnWidth(instance))
+              .labelsAside(
+                  LabelsAsideInference.labelsAside(noTabFields, maxColumns, instance, httpRequest))
               .content(
                   buildRows(
                       noTabFields.stream()

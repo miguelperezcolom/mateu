@@ -25,7 +25,7 @@ import {sseService} from "@application/SSEService.ts";
 import {ComponentState, ComponentData} from "@infra/ui/renderers/types.ts";
 import type ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {nanoid} from "nanoid";
-import {resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
+import {hasWelcomeBanner, pageTypeOf, resolvePageWidth} from "@infra/ui/layout/pageWidth.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -323,9 +323,14 @@ export class MateuUx extends ConnectedElement {
         // Tag the host with the resolved page width (fixed|full|edge) so the renderer's
         // stylesheet can size the content column — redwood-oj paints the RDS page-width modes
         // from it. Recomputed on every load: each routed component can carry its own pageWidth
-        // (resolvePageWidth infers one from the content otherwise).
+        // (resolvePageWidth infers one from the content otherwise). The coarse page type rides
+        // too (landing|collection|detail|form|process|dashboard) as a stylesheet/conformance hook.
         if (fragment.component) {
-            this.dataset.pageWidth = resolvePageWidth(fragment.component)
+            this.dataset.pageWidth = resolvePageWidth(fragment.component, { top: this.top })
+            this.dataset.pageType = pageTypeOf(fragment.component) ?? ''
+            // Redwood rule: the accent strip only shows on pages WITHOUT a welcome banner —
+            // stamp it so renderers can suppress theirs (mateu-page band, redwood listing strip).
+            this.dataset.hasWelcomeBanner = String(hasWelcomeBanner(fragment.component))
         }
     }
 

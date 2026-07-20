@@ -4,7 +4,6 @@ import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormCo
 import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
-import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
@@ -29,7 +28,8 @@ final class CrudOrchestratorMetadata {
     if (MetaAnnotations.isPresent(orchestrator.getClass(), Style.class)) {
       return MetaAnnotations.find(orchestrator.getClass(), Style.class).value();
     }
-    return columns.size() > 5 ? "width: 100%;" : StyleConstants.CONTAINER;
+    // the collection spans the whole content column (RDS) — no inner cap
+    return "width: 100%;";
   }
 
   static String getStyleForView(Crud<?, ?, ?, ?, ?, ?> orchestrator) {

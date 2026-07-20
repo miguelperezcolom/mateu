@@ -8,8 +8,10 @@ import static io.mateu.core.domain.out.componentmapper.PageMetadataExtractor.*;
 import static io.mateu.core.domain.out.componentmapper.PageMetadataExtractor.getBadges;
 import static io.mateu.core.domain.out.componentmapper.PageMetadataExtractor.getBanners;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.*;
 import io.mateu.uidl.data.Breadcrumb;
+import io.mateu.uidl.data.HeroSection;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.PageView;
 import io.mateu.uidl.interfaces.*;
@@ -25,6 +27,20 @@ public class ReflectionPageMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    var content = new java.util.ArrayList<Component>();
+    var welcomeBanner = MetaAnnotations.find(instance.getClass(), WelcomeBanner.class);
+    if (welcomeBanner != null) {
+      content.add(
+          HeroSection.builder()
+              .id("welcome-banner")
+              .title(welcomeBanner.title().isBlank() ? getTitle(instance) : welcomeBanner.title())
+              .subtitle(welcomeBanner.subtitle().isBlank() ? null : welcomeBanner.subtitle())
+              .image(welcomeBanner.image().isBlank() ? null : welcomeBanner.image())
+              .centered(true)
+              .build());
+    }
+    content.addAll(
+        getContent(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest));
     return PageView.builder()
         .pageTitle(getPageTitle(instance))
         .breadcrumbs(getBreadcrumbs(instance, httpRequest))
@@ -35,6 +51,7 @@ public class ReflectionPageMapper {
         .cssClasses(getCssClasses(instance))
         .toc(getToc(instance))
         .pageWidth(getPageWidth(instance))
+        .pageType(PageTypeResolver.resolve(instance))
         .avatar(getAvatar(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .toolbar(getToolbar(instance, httpRequest))
         .buttons(getButtons(instance, httpRequest))
@@ -43,8 +60,7 @@ public class ReflectionPageMapper {
         .badges(getBadges(instance, httpRequest))
         .banners(getBanners(instance, httpRequest))
         .header(getHeader(instance, baseUrl, route, initiatorComponentId, httpRequest))
-        .content(
-            getContent(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest))
+        .content(content)
         .footer(getFooter(instance, baseUrl, route, initiatorComponentId, httpRequest))
         .build();
   }

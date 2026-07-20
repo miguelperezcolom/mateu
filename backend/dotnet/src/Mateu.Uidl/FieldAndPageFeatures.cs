@@ -208,6 +208,65 @@ public interface IPageWidthSupplier
     PageWidthStyle? PageWidth();
 }
 
+/// <summary>The coarse type of a page, in the vocabulary of the Oracle Redwood page templates.
+/// Selected with [PageTemplate]; when absent, Mateu infers it from the ModelView's shape (see
+/// ReflectionMapper.PageTypeOf — archetypes declare theirs, a Listing is a collection page, a
+/// dashboard shows through its metric cards, a plain reflected form is a form page). The type
+/// anchors the page's anatomy defaults (e.g. its default width) and gives the wire a shared
+/// vocabulary for conformance and docs. (C# analogue of Java's PageType.)</summary>
+public enum PageType
+{
+    /// <summary>Landing/entry pages — the Welcome and Hero Search templates.</summary>
+    Landing,
+
+    /// <summary>Collection pages — listings, search pages, CRUDs, to-do lists, calendars,
+    /// collection detail.</summary>
+    Collection,
+
+    /// <summary>Record/overview pages — general/item overview, foldout, waterfall, master-detail.</summary>
+    Detail,
+
+    /// <summary>Form pages — the Create &amp; Edit family (simple and advanced).</summary>
+    Form,
+
+    /// <summary>Guided process pages — wizards and import wizards.</summary>
+    Process,
+
+    /// <summary>Dashboard pages — KPI scoreboards and chart tiles.</summary>
+    Dashboard,
+}
+
+/// <summary>Explicitly sets the page's coarse template type (the Oracle Redwood page-template
+/// families). When absent, Mateu infers the type from the ModelView's shape; archetypes declare
+/// theirs through the type mapping in ReflectionMapper.PageTypeOf. Inherited by subclasses.
+/// (C# analogue of Java's @PageTemplate.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class PageTemplateAttribute(PageType value) : Attribute
+{
+    /// <summary>The page type to declare.</summary>
+    public PageType Value { get; } = value;
+}
+
+/// <summary>Puts a welcome banner at the top of the page (the Redwood "Welcome Banner" element):
+/// a branded hero band with a big title, a subtitle and an optional background image, rendered as
+/// a centered HeroSection as the page's first content. In the Redwood anatomy the accent color
+/// strip only shows on pages WITHOUT a welcome banner, so renderers suppress it on any page that
+/// carries one (this attribute, or a HeroSection anywhere in the content — the Welcome and
+/// HeroSearch archetypes included). Inherited by subclasses. (C# analogue of Java's
+/// @WelcomeBanner.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class WelcomeBannerAttribute : Attribute
+{
+    /// <summary>Big banner title. Empty → the view's [Title].</summary>
+    public string Title { get; set; } = "";
+
+    /// <summary>Secondary line under the title. Empty for none.</summary>
+    public string Subtitle { get; set; } = "";
+
+    /// <summary>Optional background image URL for the banner (rendered with a dark overlay).</summary>
+    public string Image { get; set; } = "";
+}
+
 /// <summary>Renders the whole view read-only (a display page, not an editable form). On a
 /// property of an [InlineEditing] crud entity it keeps that column display-only.
 /// (C# analogue of Java's @ReadOnly.)</summary>

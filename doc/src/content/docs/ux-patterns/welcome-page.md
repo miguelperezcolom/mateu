@@ -44,6 +44,24 @@ public class WelcomeDemo extends Welcome {
 
 The CTA's `actionId` runs the matching `@Action` method — return a `URI` to navigate into the flow. Override `heroImage()` for a background image (a dark overlay keeps text readable).
 
+## The welcome banner element (and the accent strip rule)
+
+The hero the archetype renders is the Redwood **Welcome Banner** element — a branded band with a
+big title, subtitle and optional background image. You can put one at the top of **any** page
+(archetype or not) with the `@WelcomeBanner` annotation on the view class:
+
+```java
+@UI("/onboarding")
+@Title("Onboarding")
+@WelcomeBanner(title = "Find your flow", subtitle = "Three steps and you are done")
+public class Onboarding { /* … */ }
+```
+
+The banner title falls back to the page `@Title` when left blank. Redwood's anatomy rule: **the
+accent color strip only shows on pages WITHOUT a welcome banner** — so on any page that carries
+one (this annotation, or a `HeroSection` anywhere in the content, like `Welcome` and
+`HeroSearch`), the Redwood renderer suppresses the strip automatically.
+
 ## When to use it
 
 Use a welcome page as the entry route of flows used by **occasional or first-time users** (self-service portals, guided processes, seasonal tasks). Power users working the same screen all day are better served by a [Dashboard](/ux-patterns/dashboard) or by the operational screen itself.

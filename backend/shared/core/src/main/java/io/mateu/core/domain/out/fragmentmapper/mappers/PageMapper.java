@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.domain.out.fragmentmapper.ComponentToFragmentDtoMapper.mapComponentToDto;
 
+import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
 import io.mateu.dtos.BannerDto;
 import io.mateu.dtos.BannerThemeDto;
@@ -138,6 +139,7 @@ public class PageMapper {
                     : null)
             .toc(page.toc())
             .pageWidth(PageWidthResolver.toWireName(page.pageWidth()))
+            .pageType(PageTypeResolver.toWireName(page.pageType()))
             .build();
     return new ClientSideComponentDto(
         formMetadataDto,

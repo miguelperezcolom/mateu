@@ -38,7 +38,14 @@ public record ServerSideComponentDto(
      * (fluid with side margins, uncapped) or {@code "edgeToEdge"} (content touches the viewport
      * edges). {@code null} = the renderer infers it from the page content.
      */
-    String pageWidth)
+    String pageWidth,
+    /**
+     * The page's coarse template type (the Oracle Redwood page-template families): {@code
+     * "landing"}, {@code "collection"}, {@code "detail"}, {@code "form"}, {@code "process"} or
+     * {@code "dashboard"} — inferred from the ModelView's shape unless declared with
+     * {@code @PageTemplate}.
+     */
+    String pageType)
     implements ComponentDto {
 
   @Override
@@ -59,7 +66,8 @@ public record ServerSideComponentDto(
         containerId,
         confirmOnNavigationIfDirty,
         emitsName,
-        pageWidth);
+        pageWidth,
+        pageType);
   }
 
   @Override
@@ -82,7 +90,8 @@ public record ServerSideComponentDto(
         containerId,
         confirmOnNavigationIfDirty,
         emitsName,
-        pageWidth);
+        pageWidth,
+        pageType);
   }
 
   @Override
@@ -103,7 +112,8 @@ public record ServerSideComponentDto(
         containerId,
         confirmOnNavigationIfDirty,
         emitsName,
-        pageWidth);
+        pageWidth,
+        pageType);
   }
 
   @Override
@@ -124,6 +134,7 @@ public record ServerSideComponentDto(
         containerId,
         confirmOnNavigationIfDirty,
         emitsName,
-        pageWidth);
+        pageWidth,
+        pageType);
   }
 }

@@ -96,6 +96,12 @@ public record ServerSideComponentDto(
     /// hook. (Mirrors io.mateu.dtos.ServerSideComponentDto.pageWidth.)</summary>
     public string? PageWidth { get; init; }
 
+    /// <summary>The page's coarse template type (the Redwood page-template families):
+    /// "landing"|"collection"|"detail"|"form"|"process"|"dashboard" — never null, every page gets
+    /// a type (default "form"). From [PageTemplate] on the view class when present, else inferred
+    /// from the ModelView's shape. (Mirrors io.mateu.dtos.ServerSideComponentDto.pageType.)</summary>
+    public string? PageType { get; init; }
+
     /// <summary>Client-side rules ([Hidden]/[Disabled] fields, IRuleSupplier): the renderer's
     /// no-eval engine re-evaluates them on every state change.</summary>
     public IReadOnlyList<RuleDto> Rules { get; init; } = [];
@@ -772,6 +778,10 @@ public record PageMetadataDto(
     /// <summary>Page width of a reflected view ("fixed"|"fullWidth"|"edgeToEdge"; null = the
     /// renderer infers it from the content). (Mirrors io.mateu.dtos.PageDto.pageWidth.)</summary>
     public string? PageWidth { get; init; }
+    /// <summary>Coarse page type of a reflected view ("landing"|"collection"|"detail"|"form"|
+    /// "process"|"dashboard"; never null — every page gets a type). (Mirrors
+    /// io.mateu.dtos.PageDto.pageType.)</summary>
+    public string? PageType { get; init; }
     public IReadOnlyList<BadgeDto> Badges { get; init; } = [];
     public IReadOnlyList<KpiDto> Kpis { get; init; } = [];
     public IReadOnlyList<BannerDto> Banners { get; init; } = [];
@@ -814,6 +824,12 @@ public record FormLayoutMetadataDto : ComponentMetadataDto
 {
     public int MaxColumns { get; init; } = 2;
     public bool AutoResponsive { get; init; } = true;
+
+    /// <summary>Whether the field labels sit aside (to the left of the field, in a 10rem column)
+    /// instead of on top — the dense backoffice data-entry idiom. Resolved server-side: the
+    /// explicit [FormLayout(LabelsAside = …)] wins, else inferred from the form's shape
+    /// (mirrors the Java FormLayout.labelsAside wire flag).</summary>
+    public bool LabelsAside { get; init; }
 }
 
 public record FormRowMetadataDto : ComponentMetadataDto;

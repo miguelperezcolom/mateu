@@ -234,12 +234,23 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             content = FormCards(type, instance, type.Find<ReadOnlyAttribute>() != null);
         }
 
+        // A [WelcomeBanner] prepends a centered HeroSection (id "welcome-banner") to the page
+        // content — the hero IS the banner, there is no new wire type; an empty Title falls back
+        // to the view's [Title]. (Mirrors Java's ReflectionPageMapper.mapToPageComponent.)
+        if (WelcomeBannerOf(type) is { } banner)
+            content.Insert(0, Client(new HeroSectionMetadataDto(
+                banner.Title.Length > 0 ? T(banner.Title) : title,
+                banner.Subtitle.Length > 0 ? T(banner.Subtitle) : null,
+                banner.Image.Length > 0 ? banner.Image : null,
+                null, true), "welcome-banner", []));
+
         var compact = type.Find<CompactAttribute>() != null;
         var pageMeta = new PageMetadataDto(
             title, title, OptT(type.Find<SubtitleAttribute>()?.Value), [], buttons)
         {
             Toc = type.Find<TocAttribute>()?.Value,
             PageWidth = PageWidthOf(type, instance),
+            PageType = PageTypeOf(type),
             Banners = Banners(type, instance),
             Badges = Badges(type, instance),
             Kpis = Kpis(type, instance),
@@ -281,6 +292,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             ConfirmOnNavigationIfDirty = type.Find<ConfirmOnNavigationIfDirtyAttribute>() != null,
             Rules = MapRules(type, instance),
             PageWidth = PageWidthOf(type, instance),
+            PageType = PageTypeOf(type),
         };
     }
 
@@ -335,7 +347,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             .ToList();
         var total = stepProps.Count == 0 ? 1 : stepProps.Max(x => x.step);
         var current = Math.Clamp(step, 1, total);
-        var fields = stepProps.Where(x => x.step == current).Select(x => MapField(x.p, instance)).ToList();
+        var currentProps = stepProps.Where(x => x.step == current).Select(x => x.p).ToList();
+        var fields = currentProps.Select(p => MapField(p, instance)).ToList();
 
         var title = type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
         var titleText = Client(new TextMetadataDto(title), null, []);
@@ -347,7 +360,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         var progress = progressStyle == "steps"
             ? Client(new ProgressStepsMetadataDto(Enumerable.Range(1, total).Select(Bullet).ToList()), "fieldId", [])
             : Client(new ProgressBarMetadataDto((double)current / total), "fieldId", []);
-        var card = Client(new CardMetadataDto(Client(new FormLayoutMetadataDto(), null, FormRows(fields))), "fieldId", []);
+        var columns = FormColumns(type);
+        var card = Client(new CardMetadataDto(Client(new FormLayoutMetadataDto
+        {
+            MaxColumns = columns,
+            LabelsAside = LabelsAsideInference.LabelsAside(currentProps, columns, type, T),
+        }, null, FormRows(fields, columns))), "fieldId", []);
         var back = Client(new ButtonMetadataDto("Back", "back") { Disabled = current == 1 }, null, []);
         var next = Client(new ButtonMetadataDto(current == total ? "Finish" : "Next", "next") { ButtonStyle = "Primary" }, null, []);
         var bar = Client(new HorizontalLayoutMetadataDto(), null, [back, next]);
@@ -388,7 +406,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 : CellValueOf(p.GetValue(instance));
 
         return new ServerSideComponentDto(
-            Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial, [], [], null, null, null);
+            Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial, [], [], null, null, null)
+        {
+            PageType = PageTypeOf(type),
+        };
     }
 
     /// <summary>Detail/edit/new form for a single CRUD entity, with a mode-specific toolbar.</summary>
@@ -409,6 +430,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         {
             // [Hidden]/[Disabled] on entity fields rule the detail form too.
             Rules = MapRules(element, entity),
+            PageType = PageTypeOf(crudType),
         };
     }
 
@@ -455,28 +477,28 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         // [Zone] columns on the class: sections lay out side by side (zones win over inference).
         var zones = type.GetCustomAttributes<ZoneAttribute>().ToList();
         if (zones.Count > 0 && sections.Count > 1)
-            return [BuildZones(zones, sections, sectionZones, sectionAttrs, instance, readOnly)];
+            return [BuildZones(type, zones, sections, sectionZones, sectionAttrs, instance, readOnly)];
 
         // [FoldedLayout]: the section cards side by side in one horizontal row (zones win).
         if (type.Find<FoldedLayoutAttribute>() != null && sections.Count > 1)
             return [new ClientSideComponentDto(
                 new HorizontalLayoutMetadataDto { Spacing = true }, null,
                 sections.Select(s => (ComponentDto)SectionCard(
-                    s.Title, MapFields(s.Props, instance, readOnly))).ToList(),
+                    s.Title, MapFields(s.Props, instance, readOnly), formType: type, props: s.Props)).ToList(),
                 null, null, null)];
 
         // Read-only view with many substantial sections: present the sections as adaptable tabs.
         if (sections.Count > 1 && LayoutInference.PreferTabs(type, sections, readOnly))
-            return [TabsFromSections(sections, instance, readOnly)];
+            return [TabsFromSections(type, sections, instance, readOnly)];
 
         // Heavy unstructured editable form: required fields stay visible, optionals fold away.
         if (sections.Count == 1
             && LayoutInference.BuildFoldPlan(type, sections[0].Title, sections[0].Props, readOnly) is { } plan)
-            return [FoldedCard(plan, instance)];
+            return [FoldedCard(type, plan, instance)];
 
         return sections.Select((s, i) => (ComponentDto)SectionCard(
             s.Title, MapFields(s.Props, instance, readOnly),
-            sectionAttrs[i])).ToList();
+            sectionAttrs[i], type, s.Props)).ToList();
     }
 
     /// <summary>Distributes sections into the [Zone] columns and lays them out side by side —
@@ -484,6 +506,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     /// sections with an unrecognised zone fall into a trailing flexible column (mirrors Java's
     /// SectionFormRenderer.renderZones).</summary>
     private ComponentDto BuildZones(
+        Type type,
         List<ZoneAttribute> zones,
         List<(string? Title, List<PropertyInfo> Props)> sections,
         List<string> sectionZones,
@@ -494,7 +517,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         ComponentDto CardOf(int i) =>
             SectionCard(sections[i].Title,
                 MapFields(sections[i].Props, instance, readOnly),
-                sectionAttrs[i]);
+                sectionAttrs[i], type, sections[i].Props);
 
         // Grow AND shrink around the declared basis minus the spacing gap (with flex-wrap the
         // line breaks are computed from the basis, so 62% + 38% + gap would wrap or overflow);
@@ -529,7 +552,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     // (renderers may degrade them to an accordion) only when the class opted into [AutoLayout].
     private ComponentDto TabLayout(Type type, List<PropertyInfo> props, object instance, bool readOnly)
     {
-        var tabs = new List<(string name, bool open, List<ClientSideComponentDto> fields)>();
+        var tabs = new List<(string name, bool open, List<PropertyInfo> props, List<ClientSideComponentDto> fields)>();
         var current = "Tab";
         foreach (var p in props)
         {
@@ -538,14 +561,20 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             if (tabs.Count == 0 || tabs[^1].name != current)
                 // The field that opens a group carries its [Tab(Open=...)] flag (mirrors the Java
                 // pair.first().open() rule); fields before any [Tab] fall into the default group.
-                tabs.Add((current, attr?.Open ?? false, new List<ClientSideComponentDto>()));
+                tabs.Add((current, attr?.Open ?? false, new List<PropertyInfo>(), new List<ClientSideComponentDto>()));
+            tabs[^1].props.Add(p);
             tabs[^1].fields.Add(MapField(p, instance, readOnly));
         }
         // The tab selected on first render is the first one flagged Open, else the first tab.
         var activeIndex = Math.Max(0, tabs.FindIndex(tb => tb.open));
+        var columns = FormColumns(type);
         var tabComps = tabs.Select((tb, i) => (ComponentDto)Client(
             new TabMetadataDto(T(tb.name)) { Active = i == activeIndex }, null,
-            [Client(new FormLayoutMetadataDto(), null, FormRows(tb.fields))])).ToList();
+            [Client(new FormLayoutMetadataDto
+            {
+                MaxColumns = columns,
+                LabelsAside = LabelsAsideInference.LabelsAside(tb.props, columns, type, T),
+            }, null, FormRows(tb.fields, columns))])).ToList();
         var meta = new TabLayoutMetadataDto
         {
             GroupRelationship = "alternative",
@@ -558,12 +587,18 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     /// section title. The tab layout carries the group semantics and is marked adaptable so
     /// renderers may degrade it to an accordion on narrow viewports.</summary>
     private ComponentDto TabsFromSections(
+        Type type,
         List<(string? Title, List<PropertyInfo> Props)> sections, object instance, bool readOnly)
     {
+        var columns = FormColumns(type);
         var tabs = sections.Select((s, i) => (ComponentDto)Client(
             new TabMetadataDto(T(s.Title ?? "")) { Active = i == 0 }, null,
-            [Client(new FormLayoutMetadataDto(), null,
-                FormRows(MapFields(s.Props, instance, readOnly)))])).ToList();
+            [Client(new FormLayoutMetadataDto
+            {
+                MaxColumns = columns,
+                LabelsAside = LabelsAsideInference.LabelsAside(s.Props, columns, type, T),
+            }, null,
+                FormRows(MapFields(s.Props, instance, readOnly), columns))])).ToList();
         var meta = new TabLayoutMetadataDto { GroupRelationship = "alternative", Adaptable = true };
         return Client(meta, "_tabs", tabs);
     }
@@ -571,12 +606,21 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     /// <summary>The fold-optionals inference presentation: the required fields' form layout stays
     /// visible and the optional fields collapse into a single "More options" accordion panel
     /// underneath, inside the usual untitled section card.</summary>
-    private ClientSideComponentDto FoldedCard(LayoutInference.FoldPlan plan, object instance)
+    private ClientSideComponentDto FoldedCard(Type type, LayoutInference.FoldPlan plan, object instance)
     {
-        var main = Client(new FormLayoutMetadataDto(), null,
-            FormRows(MapFields(plan.Main, instance)));
-        var folded = Client(new FormLayoutMetadataDto(), null,
-            FormRows(MapFields(plan.Folded, instance)));
+        var columns = FormColumns(type);
+        var main = Client(new FormLayoutMetadataDto
+        {
+            MaxColumns = columns,
+            LabelsAside = LabelsAsideInference.LabelsAside(plan.Main, columns, type, T),
+        }, null,
+            FormRows(MapFields(plan.Main, instance), columns));
+        var folded = Client(new FormLayoutMetadataDto
+        {
+            MaxColumns = columns,
+            LabelsAside = LabelsAsideInference.LabelsAside(plan.Folded, columns, type, T),
+        }, null,
+            FormRows(MapFields(plan.Folded, instance), columns));
         var panel = Client(new AccordionPanelMetadataDto(LayoutInference.MoreOptionsLabel), null, [folded]);
         var accordion = Client(new AccordionLayoutMetadataDto(), null, [panel]);
         var vlayout = Client(new VerticalLayoutMetadataDto(), null, [main, accordion]);
@@ -603,9 +647,15 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             .OrderBy(f => f.Order)
             .ToList();
 
+    /// <summary>The form's column count: [FormLayout(Columns = …)] when declared, else 2
+    /// (mirrors Java's PageFormBuilder.getFormColumns).</summary>
+    internal static int FormColumns(Type? type) => type?.Find<FormLayoutAttribute>()?.Columns ?? 2;
+
     private ClientSideComponentDto SectionCard(
-        string? title, List<ClientSideComponentDto> fields, SectionAttribute? section = null)
+        string? title, List<ClientSideComponentDto> fields, SectionAttribute? section = null,
+        Type? formType = null, IReadOnlyList<PropertyInfo>? props = null)
     {
+        var columns = FormColumns(formType);
         // [Section(PropertyList = true)]: every data field becomes a read-only property row
         // (label left / value right, divider between rows), stacked full-width — so the body is a
         // plain vertical layout instead of the responsive form layout (mirrors Java's
@@ -615,7 +665,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 fields.Select(f => f.Metadata is FormFieldMetadataDto ff && ff.Stereotype != "grid"
                     ? f with { Metadata = ff with { PropertyRow = true, ReadOnly = true, Colspan = 1 } }
                     : (ComponentDto)f).ToList()) with { Style = "width: 100%; align-items: stretch;" }
-            : Client(new FormLayoutMetadataDto(), null, FormRows(fields));
+            : Client(new FormLayoutMetadataDto
+            {
+                MaxColumns = columns,
+                LabelsAside = LabelsAsideInference.LabelsAside(props ?? [], columns, formType, T),
+            }, null, FormRows(fields, columns));
         // [Section(Frameless = true)]: no card wrapper, no padding — the content sits bare
         // (mirrors Java's @Section(frameless=true)).
         if (section?.Frameless == true)
@@ -710,6 +764,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             new Dictionary<string, object?>(), actions, triggers, null, null, null)
         {
             PageWidth = PageWidthOf(viewType, instance),
+            PageType = PageTypeOf(viewType),
         };
     }
 
@@ -811,6 +866,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             new Dictionary<string, object?>(), actions, triggers, null, null, null)
         {
             PageWidth = PageWidthOf(viewType, instance),
+            PageType = PageTypeOf(viewType),
         };
     }
 
@@ -822,6 +878,15 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
     /// enum: sum|avg|min|max|count); null on non-aggregated columns.</summary>
     internal static string? AggregateOf(PropertyInfo p) =>
         p.Find<AggregateAttribute>()?.Function.ToString().ToLowerInvariant();
+
+    /// <summary>The view's [WelcomeBanner], when declared. Inherited from a base class (the Java
+    /// annotation is @Inherited), so the lookup walks the base-type chain like PageTypeOf does.</summary>
+    private static WelcomeBannerAttribute? WelcomeBannerOf(Type type)
+    {
+        for (var t = type; t is not null; t = t.BaseType)
+            if (t.Find<WelcomeBannerAttribute>() is { } banner) return banner;
+        return null;
+    }
 
     /// <summary>The view's declared page width as its wire name (fixed|fullWidth|edgeToEdge — the
     /// lowercase-camel Java enum names), or null when neither [PageWidth] on the class nor the
@@ -839,6 +904,46 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             PageWidthStyle.EdgeToEdge => "edgeToEdge",
             _ => null,
         };
+    }
+
+    /// <summary>The view's coarse page type (the Redwood page-template families) as its wire name
+    /// (landing|collection|detail|form|process|dashboard — the lowercase Java enum names). Never
+    /// null: every page gets a type. The explicit [PageTemplate] on the view class (inherited from
+    /// a base class) wins; otherwise the type is inferred from the ModelView's shape — archetypes
+    /// map to their family, a Crud/Listing is a collection page, a view with MetricCard fields is
+    /// a dashboard, and a plain reflected form is a form page. (Mirrors Java's
+    /// PageTypeResolver.)</summary>
+    internal static string PageTypeOf(Type type)
+    {
+        for (var t = type; t is not null; t = t.BaseType)
+            if (t.Find<PageTemplateAttribute>() is { } template)
+                return template.Value.ToString().ToLowerInvariant();
+        if (typeof(Dashboard).IsAssignableFrom(type)) return "dashboard";
+        if (typeof(Welcome).IsAssignableFrom(type)) return "landing";
+        if (DerivesFrom(type, typeof(HeroSearch<>))) return "landing";
+        if (DerivesFrom(type, typeof(SmartSearchPage<,>))) return "collection";
+        if (DerivesFrom(type, typeof(TodoList<>))) return "collection";
+        if (typeof(CalendarPage).IsAssignableFrom(type)) return "collection";
+        if (DerivesFrom(type, typeof(CollectionDetail<>))) return "collection";
+        if (typeof(Wizard).IsAssignableFrom(type)) return "process";
+        if (typeof(Foldout).IsAssignableFrom(type)) return "detail";
+        if (typeof(ItemOverview).IsAssignableFrom(type)) return "detail";
+        if (DerivesFrom(type, typeof(GeneralOverview<>))) return "detail";
+        if (CrudElementType(type) is not null) return "collection";
+        if (ListingTypes(type) is not null) return "collection";
+        if (type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Any(p => p.PropertyType == typeof(MetricCard))) return "dashboard";
+        return "form";
+    }
+
+    /// <summary>Whether <paramref name="type"/> derives from the generic base class
+    /// <paramref name="genericBase"/> (an open generic type definition like Crud&lt;&gt;).</summary>
+    private static bool DerivesFrom(Type type, Type genericBase)
+    {
+        for (var t = type; t is not null; t = t.BaseType)
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == genericBase)
+                return true;
+        return false;
     }
 
     /// <summary>The [GroupBy] column of a row class (camelCase field id); one per row class —

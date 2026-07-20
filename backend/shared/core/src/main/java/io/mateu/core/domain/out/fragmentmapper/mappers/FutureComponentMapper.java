@@ -6,6 +6,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper.mapRule
 import static io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper.mapTriggers;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper.mapValidations;
 
+import io.mateu.core.domain.out.componentmapper.PageTypeResolver;
 import io.mateu.core.domain.out.componentmapper.PageWidthResolver;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.ComponentDto;
@@ -60,7 +61,8 @@ public class FutureComponentMapper {
         MetaAnnotations.isPresent(
             futureComponent.instance().getClass(), ConfirmOnNavigationIfDirty.class),
         EmitsMapper.emitsName(futureComponent.instance()),
-        PageWidthResolver.wirePageWidth(futureComponent.instance()));
+        PageWidthResolver.wirePageWidth(futureComponent.instance()),
+        PageTypeResolver.wirePageType(futureComponent.instance()));
   }
 
   public static Component createComponent(
