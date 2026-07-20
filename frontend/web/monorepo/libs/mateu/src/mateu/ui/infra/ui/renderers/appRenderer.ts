@@ -495,14 +495,14 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             `:nothing}
 
             ${metadata.fabs?.map((fab, idx) => html`
-                <button class="app-fab" style="bottom: ${(metadata.commandCenterEnabled ? (metadata.sseUrl ? 9.5 : 5.5) : (metadata.sseUrl ? 5.5 : 1.5)) + idx * 4}rem; right: 1.5rem;"
+                <button class="app-fab" style="bottom: ${(metadata.sseUrl ? 5.5 : 1.5) + idx * 4}rem; right: 1.5rem;"
                     @click="${() => container.runAction(fab.actionId)}"
                     title="${fab.label}">
                     <vaadin-icon icon="${fab.icon}"></vaadin-icon>
                 </button>
             `)}
             ${metadata.sseUrl && !container.chatOpen ? html`
-                <button class="ai-fab" style="bottom: ${metadata.commandCenterEnabled ? 5.5 : 1.5}rem;" @click="${container.showHideIa}" title="Asistente IA">
+                <button class="ai-fab" @click="${container.showHideIa}" title="Asistente IA">
                     <vaadin-icon icon="vaadin:comments-o"></vaadin-icon>
                 </button>
             ` : nothing}

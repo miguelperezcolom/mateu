@@ -35,11 +35,17 @@ export class MateuCommandCenter extends LitElement {
     @state() private dataHits: GlobalSearchHit[] = []
     @state() private loading = false
     @state() private selectedIndex = 0
+    // Extra bottom offset (rem) so the FAB sits ABOVE any sibling FAB already in the corner (the AI
+    // assistant's .ai-fab, page/app .app-fab). Measured from the DOM and kept in sync, so it adapts
+    // per shell (the DS shells have no AI fab → 0) and reacts when the AI fab appears/disappears (the
+    // chat opening hides it). This replaces the old appRenderer-side, Vaadin-only offset hack.
+    @state() private fabOffset = 0
 
     @query('.cc-input') private inputEl?: HTMLInputElement
 
     private searchTimer: ReturnType<typeof setTimeout> | undefined
     private keydownHandler: ((e: KeyboardEvent) => void) | null = null
+    private fabObserver: MutationObserver | undefined
 
     connectedCallback() {
         super.connectedCallback()
@@ -52,12 +58,33 @@ export class MateuCommandCenter extends LitElement {
             }
         }
         document.addEventListener('keydown', this.keydownHandler)
+        this.setupFabObserver()
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
         if (this.keydownHandler) document.removeEventListener('keydown', this.keydownHandler)
         clearTimeout(this.searchTimer)
+        this.fabObserver?.disconnect()
+        this.fabObserver = undefined
+    }
+
+    // Watch the host root for sibling FABs and stack our FAB above them.
+    private setupFabObserver() {
+        const root = this.getRootNode()
+        const target = root instanceof ShadowRoot ? root : document.body
+        this.measureFabStack()
+        this.fabObserver?.disconnect()
+        this.fabObserver = new MutationObserver(() => this.measureFabStack())
+        this.fabObserver.observe(target, { childList: true, subtree: true })
+    }
+
+    private measureFabStack() {
+        const root = this.getRootNode() as ParentNode
+        // Our own FAB lives in this element's shadow root, so it is never matched here.
+        const siblings = root.querySelectorAll?.('.ai-fab, .app-fab, .page-fab').length ?? 0
+        const offset = siblings * 4 // rem — matches the shells' 4rem FAB stacking pitch
+        if (offset !== this.fabOffset) this.fabOffset = offset
     }
 
     updated(changed: PropertyValues) {
@@ -183,7 +210,8 @@ export class MateuCommandCenter extends LitElement {
 
     render() {
         return html`
-            <button class="cc-fab" @click=${() => this.openCenter()} title="Buscar y navegar (⌘K)" aria-label="Command center">
+            <button class="cc-fab" style="bottom: ${1.5 + this.fabOffset}rem;"
+                @click=${() => this.openCenter()} title="Buscar y navegar (⌘K)" aria-label="Command center">
                 ${this.fabIcon()}
             </button>
             ${this.open ? this.renderOverlay() : nothing}
@@ -315,7 +343,7 @@ export class MateuCommandCenter extends LitElement {
             background: var(--cc-accent); color: #fff; border: none; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 16px rgba(0,0,0,0.25); z-index: 950;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s, transform 0.1s, bottom 0.2s ease;
         }
         .cc-fab:hover { background: var(--lumo-primary-color-50pct, #2563eb); transform: scale(1.08); }
 
