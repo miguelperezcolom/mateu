@@ -30,12 +30,20 @@ jobs:
           java -jar e2e/sut/apps/webflux-app1/target/webflux-app1-1.0.0-SNAPSHOT.jar > /tmp/webflux-app1.log  2>&1 &
           java -jar e2e/sut/apps/quarkus-app1/target/quarkus-app1-1.0.0-SNAPSHOT-runner.jar > /tmp/quarkus-app1.log 2>&1 &
           java -jar e2e/sut/apps/micronaut-app1/target/micronaut-app1-1.0.0-SNAPSHOT.jar > /tmp/micronaut-app1.log 2>&1 &
+          java -jar e2e/sut/apps/fed-remote-app/target/fed-remote-app-1.0.0-SNAPSHOT.jar > /tmp/fed-remote-app.log 2>&1 &
+          java -jar e2e/sut/apps/fed-shell-app/target/fed-shell-app-1.0.0-SNAPSHOT.jar > /tmp/fed-shell-app.log 2>&1 &
 
       - name: Wait for SUT apps to be ready
         run: |
           for port in 8080 8081 8082 8083; do
             echo "Waiting for port $port..."
             until curl -sf http://localhost:$port/ > /dev/null; do sleep 2; done
+            echo "Port $port is ready"
+          done
+          # the federation apps answer 404 on / — any HTTP response means they are up
+          for port in 8084 8085; do
+            echo "Waiting for port $port..."
+            until curl -s -o /dev/null http://localhost:$port/; do sleep 2; done
             echo "Port $port is ready"
           done
 
