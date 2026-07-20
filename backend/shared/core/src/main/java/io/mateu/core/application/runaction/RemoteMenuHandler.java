@@ -51,23 +51,18 @@ public class RemoteMenuHandler {
       AppShell app,
       HttpRequest httpRequest,
       RunActionCommand command) {
+    var routeWithinApp = routeWithinApp(remoteMenu, route);
     return fetchRemoteAppDto(remoteMenu, httpRequest, command)
         .flatMap(
-            appDto -> {
-              // Same prefix correction as resolveRemoteMenu: strip the shell menu prefix, then
-              // restore the remote's own @UI route so ownsRoute and the mount both use the route
-              // the remote actually resolves.
-              var mountRoute =
-                  prependRemoteRoute(appDto.route(), routeWithinApp(remoteMenu, route));
-              return ownsRoute(appDto, mountRoute)
-                  ? Mono.just(
-                      app.withHomeRoute(mountRoute)
-                          .withHomeBaseUrl(remoteMenu.baseUrl())
-                          .withHomeServerSideType(appDto.homeServerSideType())
-                          .withHomeConsumedRoute(appDto.homeConsumedRoute())
-                          .withHomeUriPrefix(""))
-                  : Mono.empty();
-            });
+            appDto ->
+                ownsRoute(appDto, routeWithinApp)
+                    ? Mono.just(
+                        app.withHomeRoute(routeWithinApp)
+                            .withHomeBaseUrl(remoteMenu.baseUrl())
+                            .withHomeServerSideType(appDto.homeServerSideType())
+                            .withHomeConsumedRoute(appDto.homeConsumedRoute())
+                            .withHomeUriPrefix(""))
+                    : Mono.empty());
   }
 
   /**
@@ -128,45 +123,24 @@ public class RemoteMenuHandler {
     return fetchRemoteAppDto(remoteMenu, httpRequest, command)
         .map(
             app -> {
-              var within = routeWithinApp(remoteMenu, command.route());
-              // Strip the shell menu prefix, then restore the remote app's OWN route prefix: the
-              // remote resolves its pages under its @UI route (e.g. "/distribucion/x"). A remote
-              // whose @UI route coincides with the shell menu path would otherwise be asked for
-              // the un-prefixed "/x", which it cannot resolve → it answers with its app-shell
-              // fallback and the mount reloads forever (nested loop).
-              var mountRoute = prependRemoteRoute(app.route(), within);
+              var routeWithinApp = routeWithinApp(remoteMenu, command.route());
               return MicroFrontend.builder()
-                  .route(mountRoute)
-                  // The consumed route the mount's ux travels with: the app home resolves with
-                  // the menu's own ("_empty" = root consumed); page routes resolve with the
-                  // AppDto's home one.
+                  // The route WITHIN the remote app: the shell path carries the
+                  // menu's prefix, which does not exist inside the remote app —
+                  // mounting it as-is makes the app serve itself (nested loop).
+                  .route(routeWithinApp)
+                  // The consumed route the mount's ux travels with: the app home
+                  // resolves only with the menu's own ("_empty" = root consumed);
+                  // page routes resolve with the AppDto's home one ("").
                   .consumedRoute(
-                      within.isEmpty() ? remoteMenu.consumedRoute() : app.homeConsumedRoute())
+                      routeWithinApp.isEmpty()
+                          ? remoteMenu.consumedRoute()
+                          : app.homeConsumedRoute())
                   .actionId("")
                   .baseUrl(remoteMenu.baseUrl())
                   .serverSideType(app.homeServerSideType())
                   .build();
             });
-  }
-
-  /**
-   * Restores the remote app's own route prefix after {@link #routeWithinApp} stripped the shell
-   * menu prefix. Root remotes ({@code @UI("")}) keep the stripped route; path-prefixed remotes
-   * ({@code @UI("/x")}) get their prefix back so the mounted route matches what the remote actually
-   * resolves (otherwise a remote whose @UI route coincides with the shell menu path is asked for a
-   * route it cannot resolve → app-shell fallback → reload loop).
-   */
-  private static String prependRemoteRoute(String remoteAppRoute, String routeWithinApp) {
-    if (remoteAppRoute == null || remoteAppRoute.isBlank()) {
-      return routeWithinApp;
-    }
-    if (routeWithinApp == null || routeWithinApp.isEmpty()) {
-      return remoteAppRoute;
-    }
-    if (routeWithinApp.equals(remoteAppRoute) || routeWithinApp.startsWith(remoteAppRoute + "/")) {
-      return routeWithinApp; // already carries the remote prefix
-    }
-    return remoteAppRoute + routeWithinApp;
   }
 
   /** Strips the remote menu's path prefix: /disponibilidad/x → /x (its route inside the app). */
