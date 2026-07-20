@@ -6,6 +6,7 @@ import {nanoid} from "nanoid"
 import {MateuApiClient} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
+import {loopGuard} from "@infra/ui/loopGuard.ts";
 
 let abortControllers: AbortController[] = []
 
@@ -148,6 +149,35 @@ export class AxiosMateuApiClient implements MateuApiClient {
                     background: boolean): Promise<UIIncrement> {
         if (route && route.startsWith('/')) {
             route = route.substring(1)
+        }
+        // Circuit breaker: a self-remounting federated mount can fire the SAME request in a tight
+        // loop, hammering the server and freezing the UI. When an identical request repeats past
+        // the threshold within a short window, abort the in-flight storm and return an empty
+        // increment (no fragment → nothing re-renders → the loop dies), surfacing one error toast.
+        const loopSignature = [baseUrl, route, consumedRoute, serverSideType ?? '', actionId,
+            initiatorComponentId].join('')
+        const loop = loopGuard.check(loopSignature)
+        if (loop.blocked) {
+            await this.abortAll()
+            if (loop.firstTrip) {
+                console.error('[mateu] request loop detected — aborting repeated request', loopSignature)
+            }
+            return {
+                messages: loop.firstTrip ? [{
+                    title: '',
+                    text: 'A repeating request was detected and stopped to protect the server. '
+                        + 'Reload the page or navigate elsewhere.',
+                    position: 'bottom-end',
+                    variant: 'error',
+                    duration: 6000,
+                }] : [],
+                commands: [],
+                fragments: [],
+                banners: [],
+                appendBanners: false,
+                appData: undefined,
+                appState: undefined,
+            }
         }
         // the app-level context (@AppContext header selectors) travels with EVERY request:
         // explicit appState entries win over the persisted context
