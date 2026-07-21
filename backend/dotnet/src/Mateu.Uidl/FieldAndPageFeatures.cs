@@ -341,6 +341,17 @@ public sealed class AutoLayoutAttribute(bool value = true) : Attribute
     public bool Value { get; } = value;
 }
 
+/// <summary>Page-level sibling of [AutoLayout]: lets Mateu infer the page ARCHETYPE from the
+/// declared information — a plain class with MetricCard properties composes the Dashboard
+/// archetype; a class with only Button properties and panel components composes the Welcome
+/// landing. Explicit always wins (archetype subclasses are never rewritten); [AutoPage(false)]
+/// opts out under the global "Mateu.LayoutInference" switch. (C# analogue of Java's @AutoPage.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class AutoPageAttribute(bool value = true) : Attribute
+{
+    public bool Value { get; } = value;
+}
+
 // ── Permission-driven field states ─────────────────────────────────────────────
 
 /// <summary>The caller's identity, as the framework adapter resolves it (e.g. from the JWT

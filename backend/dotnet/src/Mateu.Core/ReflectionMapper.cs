@@ -226,9 +226,17 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         // renders its fluent tree as the page content; actionIds referenced by the tree (metric-card
         // drill-ins, empty-state CTAs, welcome buttons) are advertised so the renderer routes them back.
         List<ComponentDto> content;
-        if (instance is IComponentTreeSupplier supplier)
+        // Page-level inference ([AutoPage]): a plain class whose structure spells an archetype
+        // is composed as it — the C# analogue of Java's InferredDashboard/InferredWelcome. The
+        // welcome hero title is the declared [Title]; subtitle/image have no declarative source,
+        // so setting them remains a reason to subclass Welcome.
+        var tree = instance is IComponentTreeSupplier supplier ? supplier.Component()
+            : PageInference.ComposesDashboard(type) ? ArchetypeComposers.ComposeDashboard(instance, 0)
+            : PageInference.ComposesWelcome(type)
+                ? ArchetypeComposers.ComposeWelcome(instance, type.Find<TitleAttribute>()?.Value, null, null)
+                : null;
+        if (tree is not null)
         {
-            var tree = supplier.Component();
             content = [ComponentMapper.Map(tree)];
             actions.AddRange(ComponentMapper.CollectActionIds(tree)
                 .Where(a => actions.All(x => x.Id != a)).Select(a => new ActionDto(a)));
@@ -966,6 +974,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         if (ListingTypes(type) is not null) return "collection";
         if (type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Any(p => p.PropertyType == typeof(MetricCard))) return "dashboard";
+        // Page-level inference renders this class as the Welcome landing ([AutoPage]).
+        if (PageInference.ComposesWelcome(type)) return "landing";
         return "form";
     }
 

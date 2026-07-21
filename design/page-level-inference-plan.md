@@ -1,7 +1,7 @@
 # Page-level inference — design plan
 
 **Status:** Fase 0 implemented (2026-07-21) · Fase 1 implemented for the dashboard and welcome
-rules (2026-07-21) · fase 2 pending
+rules (2026-07-21) · Fase 2 implemented (2026-07-21): C#/Python ports + `PageFingerprint`
 
 ## Intent
 
@@ -76,12 +76,31 @@ a form. Dashboard is checked first (a metric card is the stronger signal).
 - Candidate rules, in order of confidence: MetricCards→Dashboard, grid+`@OnRowSelected`+holder→
   CollectionDetail, single big read-only entity+peers→GeneralOverview.
 
-## Fase 2 — ports and tooling
+## Fase 2 — ports and tooling (implemented 2026-07-21)
 
-- Port the `PageInference` table to C#/Python once the Java rules survive a release (same
-  lockstep contract as `LayoutInference`).
-- `mateu layout diff` (CI tool) grows a page-level mode: report archetype flips between
-  commits. Complements the runtime proximity warnings.
+**Ports.** Both backends mirror the two rules with the same signals and precedence (dashboard
+first), reusing each port's archetype composition so subclassing and inference share one
+implementation:
+
+- **.NET**: `[AutoPage]` attribute (Mateu.Uidl) + `PageInference` (Mateu.Core; `Enabled` honors
+  the same `Mateu.LayoutInference` AppContext switch as the form inference). The Dashboard and
+  Welcome compositions were extracted from the archetype base classes into the public
+  `ArchetypeComposers` (Archetypes.cs); `ReflectionMapper.MapView` composes at the tree-supplier
+  branch, `PageTypeOf` adds the welcome→landing branch (MetricCard→dashboard already existed).
+  Welcome hero title = the class `[Title]`. Tests: `AutoPageTests`.
+- **Python**: `@auto_page` decorator (`__mateu_auto_page__`) + `mateu_core/page_inference.py`
+  (no global toggle, same convention as `layout_inference.enabled`). `Mapper.component_tree`
+  composes via the already-extracted `compose_dashboard`/`compose_welcome` (now tolerant of
+  plain instances: auto-fit columns, hero title from `@title`); `page_type_of` adds the
+  welcome→landing branch. Tests: `test_auto_page.py`.
+
+**Tooling.** `PageFingerprint` (Java core, componentmapper): a stable one-line fingerprint of
+the page-level decisions (`pageType=… composes=…`), plus a sorted batch form. Usage: pin your
+screens' fingerprints in a golden test so an inferred flip fails CI and becomes a reviewed
+decision instead of a surprise — the CI complement of the runtime proximity warnings. Java's
+`PageTypeResolver` also gained the welcome→landing branch so every resolver call site (and the
+fingerprint) agrees with the ports. Tests: `PageFingerprintTest`. A full `mateu layout diff`
+CLI over this primitive remains future work if demand appears.
 
 ## Relation to "The Mateu Way"
 

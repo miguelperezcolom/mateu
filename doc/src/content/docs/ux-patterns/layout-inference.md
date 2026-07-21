@@ -135,6 +135,23 @@ Explicit always wins: archetype subclasses, listing backends and fluent componen
 rewritten, `@AutoPage(false)` opts a class out under the global `mateu.layout.inference` property,
 and extending the archetype remains the way to take fine control (e.g. `columns()`).
 
+`@AutoPage` has full backend parity: `[AutoPage]` in C# and `@auto_page` in Python apply the same
+rules and emit the same wire.
+
+### Guarding against flips in CI
+
+Inference means a model change can legitimately flip a page's template. To make that a reviewed
+decision instead of a surprise, pin your screens' fingerprints in a golden test:
+
+```java
+assertThat(PageFingerprint.of(Ops.class))
+    .isEqualTo("pageType=dashboard composes=dashboard");
+```
+
+`PageFingerprint.of(...)` captures the page-level decisions (`pageType` + composed archetype);
+when a change flips one, the test fails with a readable diff. The runtime
+[threshold-proximity warning](#staying-in-control) covers the form-level rules the same way.
+
 ## Staying in control
 
 Inference only fills the gaps you left open — it never overrides a decision you made:

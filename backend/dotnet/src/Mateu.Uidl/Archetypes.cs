@@ -16,27 +16,7 @@ public abstract class Dashboard : IComponentTreeSupplier
     /// <summary>Number of grid columns; 0 (default) means responsive auto-fit.</summary>
     protected virtual int Columns => 0;
 
-    public IComponent Component()
-    {
-        var items = new List<IComponent>();
-        var pendingMetrics = new List<MetricCard>();
-        foreach (var p in Archetypes.ComponentProperties(GetType()))
-        {
-            var value = p.GetValue(this);
-            if (value is MetricCard metricCard)
-            {
-                pendingMetrics.Add(metricCard);
-                continue;
-            }
-            Archetypes.FlushMetrics(pendingMetrics, items);
-            if (value is not IComponent component) continue;
-            items.Add(p.GetCustomAttribute<PanelAttribute>() is { } panel
-                ? Archetypes.Tile(panel, p, component)
-                : component);
-        }
-        Archetypes.FlushMetrics(pendingMetrics, items);
-        return new DashboardLayout { Id = Archetypes.IdOf(this), Columns = Columns, Items = items };
-    }
+    public IComponent Component() => ArchetypeComposers.ComposeDashboard(this, Columns);
 }
 
 /// <summary>Declarative Redwood-style foldout page: the first component property without [Panel] is
@@ -109,34 +89,8 @@ public abstract class Welcome : IComponentTreeSupplier
     /// <summary>Optional background image URL for the hero.</summary>
     protected virtual string? HeroImage => null;
 
-    public IComponent Component()
-    {
-        var ctas = new List<IComponent>();
-        var tiles = new List<IComponent>();
-        foreach (var p in Archetypes.ComponentProperties(GetType()))
-        {
-            var value = p.GetValue(this);
-            if (value is Button button)
-            {
-                ctas.Add(button);
-                continue;
-            }
-            if (value is not IComponent component) continue;
-            tiles.Add(p.GetCustomAttribute<PanelAttribute>() is { } panel
-                ? Archetypes.Tile(panel, p, component)
-                : component);
-        }
-        var content = new List<IComponent>
-        {
-            new HeroSection
-            {
-                Id = "hero", Title = HeroTitle, Subtitle = HeroSubtitle, Image = HeroImage,
-                Centered = true, Content = ctas,
-            },
-        };
-        if (tiles.Count > 0) content.Add(new DashboardLayout { Id = "highlights", Items = tiles });
-        return new VerticalLayout { Id = Archetypes.IdOf(this), Spacing = true, Content = content };
-    }
+    public IComponent Component() =>
+        ArchetypeComposers.ComposeWelcome(this, HeroTitle, HeroSubtitle, HeroImage);
 }
 
 /// <summary>Item overview page: the first component property without [Panel] is the key-info panel
@@ -170,6 +124,65 @@ public abstract class ItemOverview : IComponentTreeSupplier
             });
         content.Add(new TabLayout { Id = "item-tabs", Tabs = tabs, Style = "flex: 1; min-width: 0;" });
         return new HorizontalLayout { Id = Archetypes.IdOf(this), Spacing = true, Content = content };
+    }
+}
+
+/// <summary>The Dashboard and Welcome compositions, extracted so they work over ANY instance
+/// declaring the same property conventions — used by the archetype base classes (subclassing)
+/// and by page-level inference ([AutoPage]) to render a plain class as the archetype. The C#
+/// analogue of Java's DashboardComposer/WelcomeComposer.</summary>
+public static class ArchetypeComposers
+{
+    public static IComponent ComposeDashboard(object host, int columns)
+    {
+        var items = new List<IComponent>();
+        var pendingMetrics = new List<MetricCard>();
+        foreach (var p in Archetypes.ComponentProperties(host.GetType()))
+        {
+            var value = p.GetValue(host);
+            if (value is MetricCard metricCard)
+            {
+                pendingMetrics.Add(metricCard);
+                continue;
+            }
+            Archetypes.FlushMetrics(pendingMetrics, items);
+            if (value is not IComponent component) continue;
+            items.Add(p.GetCustomAttribute<PanelAttribute>() is { } panel
+                ? Archetypes.Tile(panel, p, component)
+                : component);
+        }
+        Archetypes.FlushMetrics(pendingMetrics, items);
+        return new DashboardLayout { Id = Archetypes.IdOf(host), Columns = columns, Items = items };
+    }
+
+    public static IComponent ComposeWelcome(
+        object host, string? heroTitle, string? heroSubtitle, string? heroImage)
+    {
+        var ctas = new List<IComponent>();
+        var tiles = new List<IComponent>();
+        foreach (var p in Archetypes.ComponentProperties(host.GetType()))
+        {
+            var value = p.GetValue(host);
+            if (value is Button button)
+            {
+                ctas.Add(button);
+                continue;
+            }
+            if (value is not IComponent component) continue;
+            tiles.Add(p.GetCustomAttribute<PanelAttribute>() is { } panel
+                ? Archetypes.Tile(panel, p, component)
+                : component);
+        }
+        var content = new List<IComponent>
+        {
+            new HeroSection
+            {
+                Id = "hero", Title = heroTitle, Subtitle = heroSubtitle, Image = heroImage,
+                Centered = true, Content = ctas,
+            },
+        };
+        if (tiles.Count > 0) content.Add(new DashboardLayout { Id = "highlights", Items = tiles });
+        return new VerticalLayout { Id = Archetypes.IdOf(host), Spacing = true, Content = content };
     }
 }
 

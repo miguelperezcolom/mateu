@@ -893,6 +893,7 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
                 "color": "#3366cc",
             }
         ],
+        "onTaskSelectionActionId": None,
     }
 
     # Other component fields land on the grid as-is.
