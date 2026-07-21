@@ -19,6 +19,9 @@ public class WelcomePage extends Welcome {
   Button foldout =
       Button.builder().label("Foldout — booking detail").actionId("openFoldout").build();
 
+  Button dashboard =
+      Button.builder().label("Dashboard — sales").actionId("openDashboard").build();
+
   @Override
   protected String heroTitle() {
     return "Mateu Explorer";
@@ -32,5 +35,10 @@ public class WelcomePage extends Welcome {
   @Action
   Object openFoldout() {
     return URI.create("/foldout");
+  }
+
+  @Action
+  Object openDashboard() {
+    return URI.create("/dashboard");
   }
 }

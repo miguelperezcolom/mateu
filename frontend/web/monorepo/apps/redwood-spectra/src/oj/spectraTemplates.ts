@@ -3,6 +3,12 @@ import type { SpectraTemplate } from '@/oj/types'
 import { welcomePageTemplate } from '@/oj/templates/welcomePage'
 import { foldoutTemplate } from '@/oj/templates/foldout'
 import { buttonTemplate } from '@/oj/templates/button'
+import {
+  dashboardLayoutTemplate,
+  scoreboardTemplate,
+  dashboardPanelTemplate,
+  metricCardTemplate,
+} from '@/oj/templates/dashboard'
 
 /**
  * Registry of Redwood page templates, keyed by the Mateu wire component metadata `type`. Adding a
@@ -14,6 +20,10 @@ const spectraTemplates: Partial<Record<string, SpectraTemplate>> = {
   [ComponentMetadataType.HeroSection]: welcomePageTemplate,
   [ComponentMetadataType.FoldoutLayout]: foldoutTemplate,
   [ComponentMetadataType.Button]: buttonTemplate,
+  [ComponentMetadataType.DashboardLayout]: dashboardLayoutTemplate,
+  [ComponentMetadataType.Scoreboard]: scoreboardTemplate,
+  [ComponentMetadataType.DashboardPanel]: dashboardPanelTemplate,
+  [ComponentMetadataType.MetricCard]: metricCardTemplate,
 }
 
 /** The template for a wire metadata type, or undefined to fall back to the shared base renderer. */
