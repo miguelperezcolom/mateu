@@ -17,8 +17,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- aligned with the micronaut platform version used by the demos, so the generated
          bean definitions match the runtime that consumes them -->
-    <micronaut.core.version>4.9.9</micronaut.core.version>
-    <micronaut.serialization.version>2.15.1</micronaut.serialization.version>
+    <micronaut.core.version>5.1.8</micronaut.core.version>
+    <micronaut.serialization.version>3.1.0</micronaut.serialization.version>
   </properties>
 
   <dependencies>
@@ -88,18 +88,18 @@
       <groupId>io.micronaut.test</groupId>
       <artifactId>micronaut-test-junit5</artifactId>
       <scope>test</scope>
-      <version>4.6.2</version>
+      <version>5.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
-      <version>5.11.4</version>
+      <version>6.1.2</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.11.4</version>
+      <version>6.1.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
