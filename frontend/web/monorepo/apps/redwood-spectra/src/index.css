@@ -1,0 +1,27 @@
+/* App-level styles for the Redwood Spectra renderer. The Redwood look itself comes from the Oracle
+   JET / Redwood CSS loaded from the CDN in index.html; this file only holds the shell layout and
+   the Lumo→Redwood token bridge our shared components read (filled in as we build components up). */
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+#ui-container {
+  min-height: 100vh;
+}
+
+/* Lumo→Redwood token bridge: the shared libs/mateu components style themselves with --lumo-*
+   custom properties; map them onto Redwood's tokens so they inherit the Redwood palette. Extend
+   this as components are ported (see redwood-oj/src/index.css for the full RDS 24C bridge). */
+:root {
+  --lumo-base-color: var(--oj-core-bg-color-content, #fff);
+  --lumo-body-text-color: var(--oj-core-text-color-primary, #1a1a1a);
+  --lumo-secondary-text-color: var(--oj-core-text-color-secondary, #5a5a5a);
+  --lumo-primary-color: var(--oj-core-brand-color, #1b6ea5);
+  --lumo-primary-text-color: var(--oj-core-brand-text-color, #1b6ea5);
+  --lumo-border-radius-m: 6px;
+  --lumo-border-radius-l: 12px;
+  --lumo-font-size-s: 0.875rem;
+  --lumo-font-size-l: 1.125rem;
+}
