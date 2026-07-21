@@ -64,6 +64,13 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
     if (adapter != null) {
       instance = new io.mateu.core.infra.adapters.AdaptedComponentTree(instance, adapter);
     }
+    // Page-level inference (@AutoPage): a plain class whose structure spells an archetype is
+    // bridged into it, same substitution pattern as the adapter above.
+    else if (io.mateu.core.domain.out.componentmapper.PageInference.composesDashboard(
+        instance.getClass())) {
+      instance =
+          new io.mateu.core.infra.declarative.orchestrators.dashboard.InferredDashboard(instance);
+    }
     var fragments =
         mapToFragments(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     return Mono.just(

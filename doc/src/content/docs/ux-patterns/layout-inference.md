@@ -93,6 +93,37 @@ An enum field with up to **4 constants** renders as radio buttons instead of a d
 
 To force radio buttons regardless of the enum size — with or without `@AutoLayout` — annotate the field with `@UseRadioButtons` (equivalent to `@Stereotype(FieldStereotype.radio)`, but self-documenting).
 
+## Page-level inference: `@AutoPage`
+
+The same idea, one altitude up: `@AutoLayout` infers the presentation of a *form*; `@AutoPage`
+infers the page **archetype** from the declared information.
+
+```java
+@UI("/ops")
+@AutoPage
+public class Ops {
+
+  MetricCard revenue   = MetricCard.builder().title("Revenue").value("1.2").unit("M€").build();
+  MetricCard occupancy = MetricCard.builder().title("Occupancy").value("87%").build();
+
+  @Panel(title = "Monthly sales")
+  Text sales = ...;
+}
+```
+
+Nothing in this class extends `Dashboard` — yet it renders as one: the consecutive `MetricCard`
+fields group into the KPI scoreboard band, the `@Panel` field becomes a titled tile on the grid,
+and the page is typed `dashboard` on the wire. Actions keep routing to your class.
+
+Rules are deliberately few and only cover archetypes that are **fully derivable** from the
+declared fields (today: the dashboard rule). Shapes that resemble an archetype but would need
+information you didn't declare — like `CollectionDetail`'s id/title functions — are not composed;
+instead Mateu logs a one-time hint naming the archetype so you can adopt it explicitly.
+
+Explicit always wins: archetype subclasses, listing backends and fluent component trees are never
+rewritten, `@AutoPage(false)` opts a class out under the global `mateu.layout.inference` property,
+and extending the archetype remains the way to take fine control (e.g. `columns()`).
+
 ## Staying in control
 
 Inference only fills the gaps you left open — it never overrides a decision you made:

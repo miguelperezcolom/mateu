@@ -142,7 +142,10 @@ Two properties make the ladder safe to rely on:
 Mateu also nudges you toward the right rung: a plain form class that structurally resembles an
 archetype — `MetricCard` fields that would make a `Dashboard`, a selectable list next to a
 detail pane that would make a `CollectionDetail` — logs a one-time hint naming the archetype.
-Advice only, never a behavior change; `@PageTemplate` on the class silences it.
+Advice only, never a behavior change; `@PageTemplate` on the class silences it. And under
+[`@AutoPage`](/ux-patterns/layout-inference/#page-level-inference-autopage) the fully-derivable
+shapes go one step further and *compose* the archetype for you — declare the metrics, get the
+dashboard.
 
 ## The catalog is a library, not a syllabus
 

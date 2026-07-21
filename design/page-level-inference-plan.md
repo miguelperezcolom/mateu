@@ -1,6 +1,7 @@
 # Page-level inference — design plan
 
-**Status:** Fase 0 implemented (2026-07-21) · Fase 1+ pending
+**Status:** Fase 0 implemented (2026-07-21) · Fase 1 implemented for the dashboard rule
+(2026-07-21) · remaining fase 1 rules + fase 2 pending
 
 ## Intent
 
@@ -45,6 +46,17 @@ An explicit opt-in annotation (page-altitude sibling of `@AutoLayout`; also enab
 `mateu.layout.inference` system property, same as forms) under which the fase-0 signals stop
 advising and start **composing**: the mapper wraps the plain class into the matching archetype
 composition at mapping time.
+
+**Implemented (dashboard rule, 2026-07-21):** `@AutoPage` (uidl, composable) + `PageInference`
+(componentmapper decision table) + `InferredDashboard` bridge (orchestrators/dashboard) hooked in
+`ReflectionUiIncrementMapper.map` right after the adapter substitution — the same instance-bridge
+pattern as `AdaptedComponentTree`. The `Dashboard` archetype's composition was extracted into
+`DashboardComposer` so subclassing and inference share one implementation (archetype behavior
+asserted unchanged by `ArchetypesSyncTest`). The bridge advertises the model as `serverSideType`
+(actions keep routing to the model class) and carries `@PageTemplate(DASHBOARD)` (correct wire
+`pageType`); `ArchetypeAdvisor` stands down for classes the inference composes. Only
+fully-derivable archetypes compose — shapes needing undeclared suppliers (CollectionDetail's
+id/title functions) stay advisory. Tests: `AutoPageSyncTest`.
 
 - Decision table in one class (`PageInference`), mirroring `LayoutInference`: reference
   implementation for the ports, thresholds as constants, javadoc'd rules.
