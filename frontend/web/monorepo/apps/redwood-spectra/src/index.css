@@ -11,6 +11,37 @@ html, body {
   min-height: 100vh;
 }
 
+/* ---------------------------------------------------------------------------
+   RDS page anatomy: the content slab (#FBF9F8) floats on the page canvas
+   (#F1EFED). <rw-root> IS the slab; the page-width mode sizes it.
+   - fixed: capped 1408px column, centered, drop shadow (canvas shows at sides)
+   - full:  fluid + uncapped, 24px side gutters, drop shadow
+   - edge:  content touches the edges (no gutters, no shadow)
+   --------------------------------------------------------------------------- */
+body {
+  background: var(--oj-core-bg-color-canvas, #f1efed);
+}
+rw-root {
+  display: block;
+  box-sizing: border-box;
+  min-height: 100vh;
+  background: rgb(var(--oj-palette-neutral-rgb-10, 251 249 248));
+  padding-block: 1.5rem;
+  padding-inline: 1.5rem;
+}
+rw-root[data-page-width='fixed'] {
+  max-width: min(1408px, 100% - 48px);
+  margin-inline: auto;
+  box-shadow: 0 4px 8px rgba(22, 21, 19, 0.12);
+}
+rw-root[data-page-width='full'] {
+  padding-inline: 24px;
+  box-shadow: 0 4px 8px rgba(22, 21, 19, 0.12);
+}
+rw-root[data-page-width='edge'] {
+  padding-inline: 0;
+}
+
 /* Lumo→Redwood token bridge: the shared libs/mateu components style themselves with --lumo-*
    custom properties; map them onto Redwood's tokens so they inherit the Redwood palette. Extend
    this as components are ported (see redwood-oj/src/index.css for the full RDS 24C bridge). */

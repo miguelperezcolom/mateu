@@ -25,6 +25,14 @@ public class WelcomePage extends Welcome {
   Button generalOverview =
       Button.builder().label("General overview — requisitions").actionId("openGeneralOverview").build();
 
+  Button widthFixed =
+      Button.builder().label("Page width — fixed").actionId("openWidthFixed").build();
+
+  Button widthFull = Button.builder().label("Page width — full").actionId("openWidthFull").build();
+
+  Button widthEdge =
+      Button.builder().label("Page width — edge to edge").actionId("openWidthEdge").build();
+
   @Override
   protected String heroTitle() {
     return "Mateu Explorer";
@@ -48,5 +56,20 @@ public class WelcomePage extends Welcome {
   @Action
   Object openGeneralOverview() {
     return URI.create("/general-overview");
+  }
+
+  @Action
+  Object openWidthFixed() {
+    return URI.create("/width-fixed");
+  }
+
+  @Action
+  Object openWidthFull() {
+    return URI.create("/width-full");
+  }
+
+  @Action
+  Object openWidthEdge() {
+    return URI.create("/width-edge");
   }
 }

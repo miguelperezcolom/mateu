@@ -2,6 +2,7 @@ import { LitElement, html, type TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import type UIFragment from '@mateu/shared/apiClients/dtos/UIFragment'
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand'
+import type ServerSideComponent from '@mateu/shared/apiClients/dtos/ServerSideComponent'
 import { renderComponent } from '@/rw/render-tree'
 import {
   appBags,
@@ -67,7 +68,16 @@ export class RwRoot extends LitElement implements IncrementSink, CommandHost {
     } else {
       this.fragment = fragment
     }
+    this.stampPageWidth()
     this.requestUpdate()
+  }
+
+  /** Stamp the RDS page-width mode so the content slab is sized (fixed 1408 centered / full 24px
+   *  gutters / edge-to-edge) — the Redwood page anatomy. Values normalise the wire form. */
+  private stampPageWidth(): void {
+    const pw = (this.fragment?.component as ServerSideComponent | undefined)?.pageWidth
+    const mode = pw === 'fullWidth' ? 'full' : pw === 'edgeToEdge' ? 'edge' : 'fixed'
+    this.setAttribute('data-page-width', mode)
   }
 
   applyCommand(command: UICommand): void {
