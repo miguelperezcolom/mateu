@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Deterministic layout inference: picks the UX pattern (flat form, folded optionals, tabs…) from
@@ -21,11 +24,17 @@ import java.util.Optional;
  * only has to declare its data. Explicit layout annotations always win — inference only fills the
  * gaps the developer left open.
  *
- * <p>All decisions are based on the declared structure (never on runtime data) and on coarse counts
- * — number of sections, estimated visual weight — so adding one field never flips the whole layout.
- * This class is the reference decision table: the C# and Python backends port these exact rules and
- * thresholds so the wire JSON stays identical across server implementations.
+ * <p>All decisions are based on the declared structure (never on runtime data), so the same class
+ * always renders the same way. They are threshold-based, though: adding or removing a field CAN
+ * flip the inferred layout when the class crosses a threshold. To make that evolution visible
+ * instead of surprising, a class sitting within {@link #THRESHOLD_PROXIMITY_MARGIN} weight units
+ * (or one section) of a threshold logs a one-time warning suggesting the developer pin the layout
+ * with explicit annotations if stability matters. This class is the reference decision table: the
+ * C# and Python backends port these exact rules and thresholds so the wire JSON stays identical
+ * across server implementations (the proximity warning is a log, not wire-visible, so it does not
+ * affect parity).
  */
+@Slf4j
 public final class LayoutInference {
 
   /** Enums with up to this many constants render as radio buttons instead of a dropdown. */
@@ -45,6 +54,15 @@ public final class LayoutInference {
 
   /** Label of the collapsed panel hosting the folded optional fields. */
   public static final String MORE_OPTIONS_LABEL = "More options";
+
+  /**
+   * Distance (in weight units) to a weight threshold below which a one-time warning is logged: the
+   * class is close enough that adding or removing a single field could flip the inferred layout.
+   */
+  public static final int THRESHOLD_PROXIMITY_MARGIN = 2;
+
+  /** One warning per (class, rule): layout stability advice, not a per-request event. */
+  private static final Set<String> PROXIMITY_WARNED = ConcurrentHashMap.newKeySet();
 
   /**
    * Whether inference applies to the type: {@code @AutoLayout} decides when present (composable,
@@ -120,7 +138,9 @@ public final class LayoutInference {
                     || FieldTypeMapper.getDataType(field) == FieldDataType.component)) {
       return Optional.empty();
     }
-    if (estimatedWeight(fields) <= FOLD_WEIGHT_THRESHOLD) {
+    int weight = estimatedWeight(fields);
+    warnIfNearThreshold(type, "fold-optionals", "weight", weight, FOLD_WEIGHT_THRESHOLD);
+    if (weight <= FOLD_WEIGHT_THRESHOLD) {
       return Optional.empty();
     }
     var main = new ArrayList<Field>();
@@ -156,9 +176,6 @@ public final class LayoutInference {
     if (!readOnly && !MetaAnnotations.isPresent(type, ReadOnly.class)) {
       return false;
     }
-    if (sections.size() < TABS_MIN_SECTIONS) {
-      return false;
-    }
     if (sections.stream().anyMatch(io.mateu.uidl.annotations.Section::sticky)) {
       return false;
     }
@@ -169,7 +186,58 @@ public final class LayoutInference {
         fieldsPerSection.values().stream()
             .mapToInt(sectionFields -> estimatedWeight(sectionFields.fields()))
             .sum();
+    if (sections.size() < TABS_MIN_SECTIONS) {
+      // One section short of the tabs rule while heavy enough: the next @Section flips the layout.
+      if (sections.size() == TABS_MIN_SECTIONS - 1 && totalWeight >= TABS_WEIGHT_THRESHOLD) {
+        warnOnce(
+            type,
+            "sections-to-tabs",
+            "one @Section short of the "
+                + TABS_MIN_SECTIONS
+                + "-section threshold — adding a section will turn this view into tabs");
+      }
+      return false;
+    }
+    warnIfNearThreshold(type, "sections-to-tabs", "weight", totalWeight, TABS_WEIGHT_THRESHOLD);
     return totalWeight >= TABS_WEIGHT_THRESHOLD;
+  }
+
+  /**
+   * Layout-stability advice: when an {@code @AutoLayout} class sits within {@link
+   * #THRESHOLD_PROXIMITY_MARGIN} units of a rule threshold (either side), adding or removing a
+   * single field could flip the inferred layout on the next release. Logged once per (class, rule)
+   * so teams that care about layout stability can pin the layout with explicit annotations.
+   */
+  static boolean warnIfNearThreshold(
+      Class<?> type, String rule, String metric, int value, int threshold) {
+    if (Math.abs(value - threshold) > THRESHOLD_PROXIMITY_MARGIN) {
+      return false;
+    }
+    return warnOnce(
+        type,
+        rule,
+        metric
+            + " "
+            + value
+            + " is within "
+            + THRESHOLD_PROXIMITY_MARGIN
+            + " units of the threshold ("
+            + threshold
+            + ") — adding or removing a field may flip the inferred layout");
+  }
+
+  private static boolean warnOnce(Class<?> type, String rule, String detail) {
+    if (!PROXIMITY_WARNED.add(type.getName() + "|" + rule)) {
+      return false;
+    }
+    log.warn(
+        "@AutoLayout stability: {} is close to the '{}' threshold: {}. "
+            + "Pin the layout with explicit annotations (@Section, @Tab, @FoldedLayout…) "
+            + "if it must not change as the model evolves.",
+        type.getName(),
+        rule,
+        detail);
+    return true;
   }
 
   /**

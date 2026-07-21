@@ -63,6 +63,26 @@ String name;
 BigDecimal price;
 ```
 
+### Integration lives on the server
+
+In a SPA — hand-written or interpreted from metadata, as in low-code page builders — the browser
+is the integration point: each page knows which APIs it calls, holds a token for each of them,
+and combines their responses client-side. The integration topology of the application lives in
+the browser.
+
+With Mateu the browser speaks exactly one protocol with exactly one endpoint. All the fan-out —
+calls to APIs, use cases, repositories, aggregating three services for one screen — happens on
+the server, in Java. That changes several things at once:
+
+- **Credentials never reach the browser.** Downstream APIs are called with server credentials;
+  the client holds one session. No token-per-API in the browser, no CORS surface per origin.
+- **Contract breakage moves to compile time.** Screen-to-data wiring is typed Java calling
+  typed use cases — it breaks in your CI, not at runtime in the user's browser.
+- **The fan-out runs on the datacenter network.** The client gets one round-trip with the
+  composed result instead of a waterfall of API calls over the public internet.
+- **Governance in one place.** Auditing, caching, rate limiting and tracing apply where all the
+  data access already flows — the server — instead of being scattered across pages.
+
 ### Stateless and horizontally scalable
 
 Mateu does not store UI state between requests. No sticky sessions, no session replication, no server affinity in Kubernetes. The ViewModel is created per request and discarded after the response.
@@ -82,6 +102,10 @@ Mateu works alongside DDD and hexagonal architecture, CQRS with separate read an
 **Stateless interaction.** Mateu does not store UI state on the server between requests. This keeps the system horizontally scalable and compatible with modern deployment infrastructure.
 
 **Adapters, not frameworks.** The UI is an inbound adapter — the same architectural concept as a REST controller. It calls the same application use cases, the same query services, the same ports.
+
+**Integration lives on the server.** The browser speaks one protocol with one endpoint; every call to APIs, services and repositories happens server-side. The client is a terminal, not an integration point.
+
+**The browser is untrusted.** The UI definition is also the write-authorization boundary: on every request, hydration drops incoming state for fields the definition hides or locks for that user (`@EyesOnly`, `@ReadOnlyUnless`). What a user cannot edit in the UI, a tampered request cannot write either.
 
 **Rendering is pluggable.** The UI definition is a protocol. Different renderers can consume the same definition and produce different visual results. Switching design systems does not require rewriting the definition.
 

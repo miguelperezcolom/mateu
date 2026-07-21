@@ -434,6 +434,18 @@ when the current user is not authorized. Identity is read from the JWT Bearer to
 The same four dimensions are used by `@ReadOnlyUnless` and `@DisabledUnless` below. Matching is
 AND across the dimensions you declare, OR within each; no dimension declared → unrestricted.
 
+### Enforced on write, not just on render
+
+The browser is untrusted, so these restrictions are not merely visual. On every request, when
+Mateu hydrates the ViewModel from the incoming component state, it **drops** any state entry
+targeting a field whose `@EyesOnly` or `@ReadOnlyUnless` restriction the request does not
+satisfy — a tampered component state cannot write a field the UI hides or locks (the Mateu
+equivalent of mass-assignment protection). The field keeps its server-side value instead.
+
+Consequence: never rely on the round-tripped state for a protected field's value — compute it
+server-side (initializer, `load()`, or the action itself). For an unauthorized user the client
+copy is never read back.
+
 ---
 
 ## `@ReadOnlyUnless`

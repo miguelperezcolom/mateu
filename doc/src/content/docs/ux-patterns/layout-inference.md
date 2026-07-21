@@ -40,7 +40,18 @@ public class NewCustomerForm {
 
 Nothing in this class says "accordion", "tabs" or "radio" — yet the rendered form keeps the four required fields visible, collapses the six optional ones into a **More options** panel, and renders `segment` as radio buttons.
 
-Inference is **deterministic**: every decision is based on the declared structure — number of sections, estimated visual weight of the fields, required vs optional — never on runtime data. The same class always renders the same way, and adding one field never flips the whole layout.
+Inference is **deterministic**: every decision is based on the declared structure — number of sections, estimated visual weight of the fields, required vs optional — never on runtime data. The same class always renders the same way.
+
+Determinism is not the same as **stability under model evolution**, though: the rules are threshold-based, so adding or removing a field *can* flip the inferred layout when the class crosses a threshold (that is the point of inference — the presentation follows the information). To make that visible instead of surprising, Mateu logs a **one-time warning** when a class under `@AutoLayout` sits within 2 weight units (or one section) of a threshold:
+
+```text
+WARN @AutoLayout stability: com.acme.NewCustomerForm is close to the 'fold-optionals'
+threshold: weight 15 is within 2 units of the threshold (16) — adding or removing a
+field may flip the inferred layout. Pin the layout with explicit annotations
+(@Section, @Tab, @FoldedLayout…) if it must not change as the model evolves.
+```
+
+If a screen's layout must not change as the model evolves, pin it with explicit annotations — explicit always wins, so inference steps aside.
 
 ### The weight unit
 

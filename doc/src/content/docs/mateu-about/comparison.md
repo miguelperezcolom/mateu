@@ -37,6 +37,7 @@ One step. One file.
 | Relationships | frontend API call + state | `@Lookup` + backend supplier |
 | Browser feedback | frontend toast / notification library | return `Message` from action |
 | Model | backend model + API DTO + frontend type | one Java class |
+| Integration point | the browser (one API call + token per data source) | the server (client speaks one protocol with one endpoint) |
 | Deployment | backend + frontend build + CDN | one Java application |
 | Scaling | stateful sessions or session replication (in some cases) | stateless, no affinity |
 | Design system | bundled into frontend | pluggable renderer |
