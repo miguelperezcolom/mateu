@@ -2,6 +2,7 @@ import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMe
 import type { SpectraTemplate } from '@/oj/types'
 import { welcomePageTemplate } from '@/oj/templates/welcomePage'
 import { foldoutTemplate } from '@/oj/templates/foldout'
+import { buttonTemplate } from '@/oj/templates/button'
 
 /**
  * Registry of Redwood page templates, keyed by the Mateu wire component metadata `type`. Adding a
@@ -12,6 +13,7 @@ import { foldoutTemplate } from '@/oj/templates/foldout'
 const spectraTemplates: Partial<Record<string, SpectraTemplate>> = {
   [ComponentMetadataType.HeroSection]: welcomePageTemplate,
   [ComponentMetadataType.FoldoutLayout]: foldoutTemplate,
+  [ComponentMetadataType.Button]: buttonTemplate,
 }
 
 /** The template for a wire metadata type, or undefined to fall back to the shared base renderer. */

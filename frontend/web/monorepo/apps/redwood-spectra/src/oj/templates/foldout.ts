@@ -26,10 +26,15 @@ export const foldoutTemplate: SpectraTemplate = {
     const overview = children.find((c) => c.slot === 'overview')
     const panels = m.panels ?? []
 
+    // Spectra's foldout shows the overview + ALL panels folded out (navigated by pagination); it has
+    // no per-panel collapsed strip like mateu-foldout. So `panel.open` has no 1:1 — the faithful
+    // mapping is `selectedPanel`: the initially active/focused panel = the first one left open.
+    const firstOpen = panels.findIndex((p) => p.open !== false)
+
     return ojElement('oj-sp-foldout-layout', {
       props: {
         orientation: m.orientation === 'horizontal' ? 'horizontal' : 'vertical',
-        selectedPanel: 0,
+        selectedPanel: firstOpen >= 0 ? firstOpen : 0,
       },
       attrs: {
         class: ctx.component.cssClasses || undefined,
