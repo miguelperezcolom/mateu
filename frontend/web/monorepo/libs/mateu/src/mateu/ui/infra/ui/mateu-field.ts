@@ -31,8 +31,6 @@ import "@vaadin/list-box"
 import "@vaadin/markdown"
 import '@vaadin/item'
 import '@polymer/paper-toggle-button'
-import "@ui5/webcomponents/dist/ColorPicker.js";
-import "@ui5/webcomponents/dist/RangeSlider.js";
 import "@vaadin-component-factory/vcf-date-range-picker"
 import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
@@ -64,8 +62,33 @@ interface FileLike {
 }
 
 
+// UI5's ColorPicker/RangeSlider are only needed by the color-picker and range-slider field
+// stereotypes. Load them LAZILY (a dynamic import on first use) so every other renderer/field does
+// not pull in the whole @ui5/webcomponents library — and its global ui5-announcement-area — just to
+// render a text field. Memoized so the modules load at most once per page.
+let ui5FieldComponentsPromise: Promise<unknown> | null = null
+const ensureUi5FieldComponents = (): Promise<unknown> => {
+    if (!ui5FieldComponentsPromise) {
+        ui5FieldComponentsPromise = Promise.all([
+            import("@ui5/webcomponents/dist/ColorPicker.js"),
+            import("@ui5/webcomponents/dist/RangeSlider.js"),
+        ])
+    }
+    return ui5FieldComponentsPromise
+}
+
 @customElement('mateu-field')
 export class MateuField extends LitElement {
+
+    // Set once the lazily-loaded UI5 field components (color-picker / range-slider) have registered,
+    // so the element re-renders and the placed <ui5-*> upgrades.
+    @state()
+    private ui5FieldComponentsReady = false
+
+    private loadUi5FieldComponents() {
+        if (this.ui5FieldComponentsReady) return
+        ensureUi5FieldComponents().then(() => { this.ui5FieldComponentsReady = true })
+    }
 
     @property()
     component: ClientSideComponent | undefined = undefined
@@ -155,6 +178,7 @@ export class MateuField extends LitElement {
     rendered = false
 
     renderColorPicker = () => {
+        this.loadUi5FieldComponents()
         const fieldId = this.field?.fieldId!
         const value = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
         return html`
@@ -2035,6 +2059,7 @@ export class MateuField extends LitElement {
 
     private renderRangeField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
+            this.loadUi5FieldComponents()
             const range = value as {
                 from: number
                 to: number
