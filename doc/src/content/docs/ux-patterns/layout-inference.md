@@ -115,6 +115,11 @@ Nothing in this class extends `Dashboard` — yet it renders as one: the consecu
 fields group into the KPI scoreboard band, the `@Panel` field becomes a titled tile on the grid,
 and the page is typed `dashboard` on the wire. Actions keep routing to your class.
 
+![A plain @AutoPage class rendered as a dashboard](/images/docs/layout-inference/auto-page-dashboard.png)
+
+Demo: `/auto-dashboard-demo` in `demo-admin-panel` (`InferredOpsDashboard`) — compare with
+`/dashboard-demo` (`SalesDashboard`), which declares the same intent by subclassing.
+
 Rules are deliberately few and only cover archetypes that are **fully derivable** from the
 declared fields (today: the dashboard rule). Shapes that resemble an archetype but would need
 information you didn't declare — like `CollectionDetail`'s id/title functions — are not composed;
