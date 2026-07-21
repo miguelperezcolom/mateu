@@ -139,6 +139,11 @@ Two properties make the ladder safe to rely on:
 - **You can always climb back.** Delete the explicit annotation and inference resumes. Nothing
   is generated, so nothing goes stale.
 
+Mateu also nudges you toward the right rung: a plain form class that structurally resembles an
+archetype — `MetricCard` fields that would make a `Dashboard`, a selectable list next to a
+detail pane that would make a `CollectionDetail` — logs a one-time hint naming the archetype.
+Advice only, never a behavior change; `@PageTemplate` on the class silences it.
+
 ## The catalog is a library, not a syllabus
 
 The [UX patterns catalog](/ux-patterns/) documents everything Mateu can express — smart search,

@@ -68,8 +68,11 @@ public final class PageTypeResolver {
     if (Crud.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (ListingBackend.class.isAssignableFrom(type)) return PageType.COLLECTION;
     if (getAllFields(type).stream().anyMatch(field -> MetricCard.class.equals(field.getType()))) {
+      // Typed dashboard on the wire, but still rendered as a plain form — hint the archetype.
+      ArchetypeAdvisor.advise(type);
       return PageType.DASHBOARD;
     }
+    ArchetypeAdvisor.advise(type);
     return PageType.FORM;
   }
 
