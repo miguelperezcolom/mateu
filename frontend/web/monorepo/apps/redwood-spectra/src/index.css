@@ -60,3 +60,98 @@ html, body {
   padding: 0.75rem 1.25rem 1.25rem;
   overflow: hidden;
 }
+
+/* ---------------------------------------------------------------------------
+   EntityHeader — the Redwood object/record header (General Overview template).
+   All content is in metadata (title/subtitle/badges/facts/metric), rendered
+   directly onto a Redwood card surface.
+   --------------------------------------------------------------------------- */
+.mateu-rw-entity-header {
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+  border-radius: var(--oj-core-border-radius-lg, 8px);
+  box-shadow: var(--oj-core-box-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+  padding: 1.25rem 1.5rem;
+}
+.rw-eh-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.rw-eh-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--oj-core-text-color-primary, #161513);
+}
+.rw-eh-subtitle {
+  margin-top: 0.25rem;
+  color: var(--oj-core-text-color-secondary, #5a5a5a);
+}
+.rw-eh-badges {
+  margin-top: 0.6rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.rw-eh-chip {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: #ececec;
+  color: #3a3a3a;
+}
+.rw-eh-chip--success {
+  background: #e3f4e5;
+  color: #1b5e20;
+}
+.rw-eh-chip--warning {
+  background: #fdf1dd;
+  color: #8a5300;
+}
+.rw-eh-chip--danger,
+.rw-eh-chip--error {
+  background: #fbe4e4;
+  color: #a01313;
+}
+.rw-eh-chip--info {
+  background: #e3eefc;
+  color: #134a9a;
+}
+.rw-eh-metric {
+  text-align: right;
+  white-space: nowrap;
+}
+.rw-eh-metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--oj-core-text-color-primary, #161513);
+}
+.rw-eh-metric-label,
+.rw-eh-metric-caption {
+  font-size: 0.8125rem;
+  color: var(--oj-core-text-color-secondary, #5a5a5a);
+}
+.rw-eh-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+}
+.rw-eh-fact-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--oj-core-text-color-secondary, #5a5a5a);
+}
+.rw-eh-fact-value {
+  font-size: 0.95rem;
+  margin-top: 0.15rem;
+  color: var(--oj-core-text-color-primary, #161513);
+}

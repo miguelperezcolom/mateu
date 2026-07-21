@@ -22,6 +22,9 @@ public class WelcomePage extends Welcome {
   Button dashboard =
       Button.builder().label("Dashboard — sales").actionId("openDashboard").build();
 
+  Button generalOverview =
+      Button.builder().label("General overview — requisitions").actionId("openGeneralOverview").build();
+
   @Override
   protected String heroTitle() {
     return "Mateu Explorer";
@@ -40,5 +43,10 @@ public class WelcomePage extends Welcome {
   @Action
   Object openDashboard() {
     return URI.create("/dashboard");
+  }
+
+  @Action
+  Object openGeneralOverview() {
+    return URI.create("/general-overview");
   }
 }

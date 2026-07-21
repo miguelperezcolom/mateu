@@ -9,6 +9,7 @@ import {
   dashboardPanelTemplate,
   metricCardTemplate,
 } from '@/oj/templates/dashboard'
+import { entityHeaderTemplate } from '@/oj/templates/entityHeader'
 
 /**
  * Registry of Redwood page templates, keyed by the Mateu wire component metadata `type`. Adding a
@@ -24,6 +25,7 @@ const spectraTemplates: Partial<Record<string, SpectraTemplate>> = {
   [ComponentMetadataType.Scoreboard]: scoreboardTemplate,
   [ComponentMetadataType.DashboardPanel]: dashboardPanelTemplate,
   [ComponentMetadataType.MetricCard]: metricCardTemplate,
+  [ComponentMetadataType.EntityHeader]: entityHeaderTemplate,
 }
 
 /** The template for a wire metadata type, or undefined to fall back to the shared base renderer. */
