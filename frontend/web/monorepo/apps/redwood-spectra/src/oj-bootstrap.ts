@@ -20,6 +20,8 @@
 // Oracle CDN coordinates — the exact versions the Spectra Shell uses (bump together to move JET /
 // Spectra). NOTE the JET version carries the build suffix (…-2604.8): the bundle files only exist
 // under that path.
+import { allSpectraTemplateLoaders } from '@/oj/spectraTemplates'
+
 const JET_BASE = 'https://static.oracle.com/cdn/jet/19.0.0-2604.8'
 const SPECTRA_BASE = 'https://static.oracle.com/cdn/spectra-ui/oj-sp/2604.1.0'
 const REQUIRE_JS = `${JET_BASE}/3rdparty/require/require.js`
@@ -74,9 +76,10 @@ async function loadOjet() {
 
   await new Promise<void>((resolve, reject) => {
     // ojbootstrap spins up OJET + its preact binding provider (the body carries
-    // data-oj-binding-provider="preact"); the rest are the Spectra/JET components the renderer
-    // uses, each resolved from its CDN bundle. Add components here as more get ported.
-    require(['ojs/ojbootstrap', 'oj-c/button', 'oj-sp/welcome-page/loader'], () => resolve(), reject)
+    // data-oj-binding-provider="preact"). The rest are the oj-sp loaders the registered page
+    // templates need — sourced from the template registry so a newly ported screen only adds its
+    // loader there, never here. Each resolves from its CDN bundle.
+    require(['ojs/ojbootstrap', ...allSpectraTemplateLoaders()], () => resolve(), reject)
   })
 }
 
