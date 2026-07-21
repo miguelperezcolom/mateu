@@ -123,6 +123,7 @@ Mateu is especially useful for:
 
 ## Next
 
+- [The Mateu Way](/the-mateu-way) — the golden path: six families, one starting class each
 - [Why Mateu](/mateu-about/why-mateu) — the problem it solves and what you gain
 - [How Mateu works](/mateu-about/how-mateu-works) — mental model, building blocks, and the stateless cycle
 - [Build a full backoffice in 10 minutes](/build-a-full-backoffice-in-10-minutes)

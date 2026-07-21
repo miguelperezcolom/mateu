@@ -57,6 +57,7 @@ export default defineConfig({
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/miguelperezcolom/mateu' },
 			],
 			sidebar: [
+				{ slug: 'the-mateu-way', label: 'The Mateu Way' },
 				{
 					label: 'Use with AI',
 					items: [
