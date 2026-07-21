@@ -10,6 +10,10 @@ import {
   metricCardTemplate,
 } from '@/oj/templates/dashboard'
 import { entityHeaderTemplate } from '@/oj/templates/entityHeader'
+import { verticalLayoutTemplate, horizontalLayoutTemplate } from '@/oj/templates/layouts'
+import { cardTemplate } from '@/oj/templates/card'
+import { formLayoutTemplate, formRowTemplate } from '@/oj/templates/form'
+import { formFieldTemplate, customFieldTemplate } from '@/oj/templates/field'
 
 /**
  * Registry of Redwood page templates, keyed by the Mateu wire component metadata `type`. Adding a
@@ -26,6 +30,13 @@ const spectraTemplates: Partial<Record<string, SpectraTemplate>> = {
   [ComponentMetadataType.DashboardPanel]: dashboardPanelTemplate,
   [ComponentMetadataType.MetricCard]: metricCardTemplate,
   [ComponentMetadataType.EntityHeader]: entityHeaderTemplate,
+  [ComponentMetadataType.VerticalLayout]: verticalLayoutTemplate,
+  [ComponentMetadataType.HorizontalLayout]: horizontalLayoutTemplate,
+  [ComponentMetadataType.Card]: cardTemplate,
+  [ComponentMetadataType.FormLayout]: formLayoutTemplate,
+  [ComponentMetadataType.FormRow]: formRowTemplate,
+  [ComponentMetadataType.FormField]: formFieldTemplate,
+  [ComponentMetadataType.CustomField]: customFieldTemplate,
 }
 
 /** The template for a wire metadata type, or undefined to fall back to the shared base renderer. */

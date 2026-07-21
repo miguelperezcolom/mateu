@@ -76,10 +76,20 @@ async function loadOjet() {
 
   await new Promise<void>((resolve, reject) => {
     // ojbootstrap spins up OJET + its preact binding provider (the body carries
-    // data-oj-binding-provider="preact"). The rest are the oj-sp loaders the registered page
-    // templates need — sourced from the template registry so a newly ported screen only adds its
-    // loader there, never here. Each resolves from its CDN bundle.
-    require(['ojs/ojbootstrap', ...allSpectraTemplateLoaders()], () => resolve(), reject)
+    // data-oj-binding-provider="preact"). ojarraydataprovider backs the oj-c form controls (its
+    // constructor is stashed for the FormField template — a select needs a DataProvider). The rest
+    // are the oj-sp/oj-c loaders the registered templates need — sourced from the registry so a
+    // newly ported screen only adds its loader there, never here. Each resolves from its CDN bundle.
+    require(
+      ['ojs/ojbootstrap', 'ojs/ojarraydataprovider', ...allSpectraTemplateLoaders()],
+      (_bootstrap: unknown, arrayDataProvider: unknown) => {
+        const adp = arrayDataProvider as { default?: unknown; ArrayDataProvider?: unknown }
+        ;(window as unknown as { __mateuArrayDataProvider?: unknown }).__mateuArrayDataProvider =
+          adp?.default ?? adp?.ArrayDataProvider ?? arrayDataProvider
+        resolve()
+      },
+      reject,
+    )
   })
 }
 
