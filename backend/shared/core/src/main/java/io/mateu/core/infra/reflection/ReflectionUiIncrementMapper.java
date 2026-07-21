@@ -70,6 +70,10 @@ public class ReflectionUiIncrementMapper implements UiIncrementMapper {
         instance.getClass())) {
       instance =
           new io.mateu.core.infra.declarative.orchestrators.dashboard.InferredDashboard(instance);
+    } else if (io.mateu.core.domain.out.componentmapper.PageInference.composesWelcome(
+        instance.getClass())) {
+      instance =
+          new io.mateu.core.infra.declarative.orchestrators.welcome.InferredWelcome(instance);
     }
     var fragments =
         mapToFragments(instance, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);

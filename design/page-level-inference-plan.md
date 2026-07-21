@@ -1,7 +1,7 @@
 # Page-level inference — design plan
 
-**Status:** Fase 0 implemented (2026-07-21) · Fase 1 implemented for the dashboard rule
-(2026-07-21) · remaining fase 1 rules + fase 2 pending
+**Status:** Fase 0 implemented (2026-07-21) · Fase 1 implemented for the dashboard and welcome
+rules (2026-07-21) · fase 2 pending
 
 ## Intent
 
@@ -57,6 +57,13 @@ asserted unchanged by `ArchetypesSyncTest`). The bridge advertises the model as 
 `pageType`); `ArchetypeAdvisor` stands down for classes the inference composes. Only
 fully-derivable archetypes compose — shapes needing undeclared suppliers (CollectionDetail's
 id/title functions) stay advisory. Tests: `AutoPageSyncTest`.
+
+**Implemented (welcome rule, 2026-07-21):** same machinery — `WelcomeComposer` extracted from the
+`Welcome` archetype, `InferredWelcome` bridge (`@PageTemplate(LANDING)`, hero title derived from
+the class's `@Title`; subtitle/image have no declarative source, so setting them stays a reason
+to subclass). Signal: ≥1 `Button` field AND nothing but presentational fields (buttons,
+components, holders) — a page made only of calls-to-action is a landing; one data field keeps it
+a form. Dashboard is checked first (a metric card is the stronger signal).
 
 - Decision table in one class (`PageInference`), mirroring `LayoutInference`: reference
   implementation for the ports, thresholds as constants, javadoc'd rules.

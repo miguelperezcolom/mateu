@@ -3,10 +3,12 @@ package io.mateu.core.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.mateu.core.testutil.TestMateu;
+import io.mateu.dtos.ButtonDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentMetadataDto;
 import io.mateu.dtos.DashboardLayoutDto;
 import io.mateu.dtos.DashboardPanelDto;
+import io.mateu.dtos.HeroSectionDto;
 import io.mateu.dtos.MetricCardDto;
 import io.mateu.dtos.ScoreboardDto;
 import io.mateu.dtos.ServerSideComponentDto;
@@ -15,6 +17,7 @@ import io.mateu.uidl.annotations.AutoPage;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.MetricCard;
 import io.mateu.uidl.data.Text;
 import java.util.ArrayList;
@@ -58,13 +61,40 @@ class AutoPageSyncTest {
     String note = "still a plain form";
   }
 
+  @SuppressWarnings("unused")
+  @UI("/inferred-welcome")
+  @Title("Front desk")
+  @AutoPage
+  public static class InferredHome {
+
+    Button start = Button.builder().label("Start check-in").actionId("startCheckin").build();
+
+    Button explore = Button.builder().label("Explore rooms").actionId("exploreRooms").build();
+
+    @Panel(title = "Today")
+    Text today = new Text("today-text", "42 arrivals expected");
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/form-with-button")
+  @Title("Not a landing")
+  @AutoPage
+  public static class FormWithButton {
+
+    Button submit = Button.builder().label("Submit").actionId("submit").build();
+
+    String name; // a data field: this is a form that happens to have a button
+  }
+
   // ---------------------------------------------------------------- harness
 
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(InferredOps.class, PlainOps.class);
+    mateu =
+        TestMateu.withUis(
+            InferredOps.class, PlainOps.class, InferredHome.class, FormWithButton.class);
   }
 
   @AfterAll
@@ -104,6 +134,41 @@ class AutoPageSyncTest {
     assertThat(server).isNotNull();
     assertThat(server.serverSideType()).isEqualTo(InferredOps.class.getName());
     assertThat(server.pageType()).isEqualTo("dashboard");
+  }
+
+  @Test
+  void autoPageClassWithOnlyButtonsAndPanelsComposesTheWelcomeLanding() {
+    var increment = mateu.sync("/inferred-welcome");
+
+    var hero = findFirst(increment, HeroSectionDto.class);
+    assertThat(hero).isNotNull();
+    assertThat(((HeroSectionDto) hero.metadata()).title()).isEqualTo("Front desk");
+    assertThat(((HeroSectionDto) hero.metadata()).centered()).isTrue();
+
+    var ctas =
+        hero.children().stream()
+            .map(child -> ((ClientSideComponentDto) child).metadata())
+            .filter(ButtonDto.class::isInstance)
+            .map(ButtonDto.class::cast)
+            .toList();
+    assertThat(ctas).hasSize(2);
+    assertThat(ctas.get(0).label()).isEqualTo("Start check-in");
+    assertThat(ctas.get(0).actionId()).isEqualTo("startCheckin");
+
+    var tile = findFirst(increment, DashboardPanelDto.class);
+    assertThat(tile).isNotNull();
+    assertThat(((DashboardPanelDto) tile.metadata()).title()).isEqualTo("Today");
+
+    var server = firstServerSide(increment);
+    assertThat(server.serverSideType()).isEqualTo(InferredHome.class.getName());
+    assertThat(server.pageType()).isEqualTo("landing");
+  }
+
+  @Test
+  void aDataFieldKeepsAnAutoPageClassWithButtonsAsAPlainForm() {
+    var increment = mateu.sync("/form-with-button");
+
+    assertThat(findFirst(increment, HeroSectionDto.class)).isNull();
   }
 
   @Test

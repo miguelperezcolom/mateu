@@ -30,7 +30,7 @@ public final class ArchetypeAdvisor {
    * PageTypeResolver#resolve} on the shape-fallback branches only.
    */
   public static void advise(Class<?> type) {
-    if (PageInference.composesDashboard(type)) {
+    if (PageInference.composes(type)) {
       // Inference already composes the archetype for this class — nothing to advise.
       return;
     }

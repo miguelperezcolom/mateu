@@ -120,8 +120,14 @@ and the page is typed `dashboard` on the wire. Actions keep routing to your clas
 Demo: `/auto-dashboard-demo` in `demo-admin-panel` (`InferredOpsDashboard`) — compare with
 `/dashboard-demo` (`SalesDashboard`), which declares the same intent by subclassing.
 
+The same applies to landings: a class declaring **only** `Button` fields and `@Panel` tiles — no
+data fields — composes the `Welcome` archetype: buttons become hero calls-to-action (the hero
+title comes from `@Title`) and panels become highlight tiles. A single data field keeps the class
+a form: a page made only of calls-to-action is a landing; a form that happens to have a button is
+not.
+
 Rules are deliberately few and only cover archetypes that are **fully derivable** from the
-declared fields (today: the dashboard rule). Shapes that resemble an archetype but would need
+declared fields (today: the dashboard and welcome rules). Shapes that resemble an archetype but would need
 information you didn't declare — like `CollectionDetail`'s id/title functions — are not composed;
 instead Mateu logs a one-time hint naming the archetype so you can adopt it explicitly.
 
