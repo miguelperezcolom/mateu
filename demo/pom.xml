@@ -28,6 +28,7 @@
     <module>demo-admin-panel</module>
     <module>demo-front-office</module>
     <module>demo-redwood-showcase</module>
+    <module>explorer</module>
   </modules>
 
 </project>
