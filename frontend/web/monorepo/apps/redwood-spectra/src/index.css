@@ -42,6 +42,63 @@ rw-root[data-page-width='edge'] {
   padding-inline: 0;
 }
 
+/* ---------------------------------------------------------------------------
+   RDS background ornaments (the "small drawing" every Redwood frame carries):
+   a Template Header texture peeking from the top-right, and a full-width Template
+   Bottom Texture band. Both are position:fixed behind everything (z-index:-1), so
+   they show in the canvas around the content slab. Assets from the RDS Toolkit.
+   --------------------------------------------------------------------------- */
+body::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(18vh, 18rem);
+  background-image: url('/images/redwood-bottom-texture.png');
+  background-repeat: no-repeat;
+  background-size: 100% auto;
+  background-position: center bottom;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.85;
+  -webkit-mask-image: linear-gradient(to top, #000 45%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 45%, transparent 100%);
+}
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(24rem, 26vw);
+  aspect-ratio: 800 / 624;
+  background-image: url('/images/redwood-header-texture.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: right top;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.5;
+  -webkit-mask-image: radial-gradient(125% 125% at 100% 0%, #000 32%, transparent 68%);
+  mask-image: radial-gradient(125% 125% at 100% 0%, #000 32%, transparent 68%);
+}
+@media (max-width: 1024px) {
+  body::before {
+    width: 20vw;
+    opacity: 0.4;
+  }
+  body::after {
+    height: min(14vh, 12rem);
+    opacity: 0.7;
+  }
+}
+@media (max-width: 640px) {
+  body::before,
+  body::after {
+    display: none;
+  }
+}
+
 /* Lumo→Redwood token bridge: the shared libs/mateu components style themselves with --lumo-*
    custom properties; map them onto Redwood's tokens so they inherit the Redwood palette. Extend
    this as components are ported (see redwood-oj/src/index.css for the full RDS 24C bridge). */
