@@ -14,6 +14,8 @@ import { verticalLayoutTemplate, horizontalLayoutTemplate } from '@/oj/templates
 import { cardTemplate } from '@/oj/templates/card'
 import { formLayoutTemplate, formRowTemplate } from '@/oj/templates/form'
 import { formFieldTemplate, customFieldTemplate } from '@/oj/templates/field'
+import { pageTemplate, formTemplate } from '@/oj/templates/pageChrome'
+import { textTemplate, markdownTemplate, statusListTemplate, divTemplate } from '@/oj/templates/leaf'
 
 /**
  * Registry of Redwood page templates, keyed by the Mateu wire component metadata `type`. Adding a
@@ -37,6 +39,12 @@ const spectraTemplates: Partial<Record<string, SpectraTemplate>> = {
   [ComponentMetadataType.FormRow]: formRowTemplate,
   [ComponentMetadataType.FormField]: formFieldTemplate,
   [ComponentMetadataType.CustomField]: customFieldTemplate,
+  [ComponentMetadataType.Page]: pageTemplate,
+  [ComponentMetadataType.Form]: formTemplate,
+  [ComponentMetadataType.Text]: textTemplate,
+  [ComponentMetadataType.Markdown]: markdownTemplate,
+  [ComponentMetadataType.StatusList]: statusListTemplate,
+  [ComponentMetadataType.Div]: divTemplate,
 }
 
 /** The template for a wire metadata type, or undefined to fall back to the shared base renderer. */

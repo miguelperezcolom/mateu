@@ -45,16 +45,29 @@ const loadScript = (src: string): Promise<void> =>
     document.head.appendChild(s)
   })
 
-/** Adopt the routed <mateu-ui> (injected by the AP controllers into the inert template) into the
- * live #ui-container, then reveal it and drop the loader. */
+/** Mount the native <rw-root>, deriving baseUrl (the screen's API base) + route from the inert
+ * <mateu-ui> the AP controllers inject per route, then reveal it and drop the loader. */
 async function mountLitRoot() {
-  await import('@/index')
+  await import('@/index') // registers <rw-root> + all Spectra templates
   const container = document.getElementById('ui-container')
+  if (!container) return
+
   const holder = document.getElementById('mateu-ui-holder') as HTMLTemplateElement | null
-  if (container && holder && holder.content.childElementCount > 0) {
-    container.appendChild(holder.content.cloneNode(true))
-  }
-  if (container) container.style.display = ''
+  const injected = holder?.content.querySelector('mateu-ui')
+  const baseUrl = injected?.getAttribute('baseurl') ?? ''
+  const pathPrefix = injected?.getAttribute('pathprefix') ?? ''
+
+  let path = window.location.pathname
+  if (pathPrefix && path.startsWith(pathPrefix)) path = path.substring(pathPrefix.length)
+  const route = path.replace(/^\/+/, '') // the client re-adds the leading slash
+
+  const root = document.createElement('rw-root') as HTMLElement & { baseUrl: string; route: string }
+  root.baseUrl = baseUrl
+  root.route = route
+  root.style.width = '100%'
+  container.appendChild(root)
+
+  container.style.display = ''
   document.getElementById('landing-loader')?.remove()
 }
 

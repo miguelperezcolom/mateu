@@ -189,3 +189,134 @@ html, body {
   flex-wrap: wrap;
   width: 100%;
 }
+.mateu-rw-custom-field {
+  width: 100%;
+}
+.rw-field-label {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--oj-core-text-color-secondary, #5a5a5a);
+  margin-bottom: 0.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Native shell chrome: page header, loading, toasts (clean-room; no Vaadin).
+   --------------------------------------------------------------------------- */
+.mateu-rw-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.rw-page-header {
+  padding: 0.5rem 0 0.25rem;
+}
+.rw-page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--oj-core-text-color-primary, #161513);
+}
+.rw-page-subtitle {
+  margin-top: 0.25rem;
+  color: var(--oj-core-text-color-secondary, #5a5a5a);
+}
+.rw-loading {
+  padding: 2rem;
+  color: var(--oj-core-text-color-secondary, #5a5a5a);
+}
+
+.rw-toast-host {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+.rw-toast {
+  min-width: 12rem;
+  max-width: 22rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--oj-core-border-radius-lg, 8px);
+  box-shadow: var(--oj-core-box-shadow-md, 0 4px 12px rgba(0, 0, 0, 0.18));
+  background: #323232;
+  color: #fff;
+  font-size: 0.9rem;
+  opacity: 0;
+  transform: translateY(0.5rem);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.rw-toast--in {
+  opacity: 1;
+  transform: translateY(0);
+}
+.rw-toast--success {
+  background: #1b5e20;
+}
+.rw-toast--error {
+  background: #a01313;
+}
+.rw-toast--warning {
+  background: #8a5300;
+}
+
+/* ---------------------------------------------------------------------------
+   Leaf display components (native): markdown, status list.
+   --------------------------------------------------------------------------- */
+.mateu-rw-markdown :first-child {
+  margin-top: 0;
+}
+.mateu-rw-markdown table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.mateu-rw-markdown th,
+.mateu-rw-markdown td {
+  border: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+  padding: 0.35rem 0.6rem;
+  text-align: left;
+}
+
+.mateu-rw-status-list {
+  display: flex;
+  flex-direction: column;
+}
+.rw-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.1));
+}
+.rw-status-row:last-child {
+  border-bottom: none;
+}
+.rw-status-desc {
+  font-size: 0.8125rem;
+  color: var(--oj-core-text-color-secondary, #5a5a5a);
+}
+.rw-status-chip {
+  flex: none;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #ececec;
+  color: #3a3a3a;
+}
+.rw-status-chip--success {
+  background: #e3f4e5;
+  color: #1b5e20;
+}
+.rw-status-chip--warning {
+  background: #fdf1dd;
+  color: #8a5300;
+}
+.rw-status-chip--danger,
+.rw-status-chip--error {
+  background: #fbe4e4;
+  color: #a01313;
+}

@@ -13,7 +13,8 @@
   "dependencies": {
     "lit": "^3.3.1",
     "mateu": "*",
-    "minimatch": "^10.2.3"
+    "minimatch": "^10.2.3",
+    "marked": "^15.0.11"
   },
   "devDependencies": {
     "typescript": "~5.8.3",
