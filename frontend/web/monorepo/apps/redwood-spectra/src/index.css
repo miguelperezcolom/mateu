@@ -25,18 +25,28 @@ rw-root {
   display: block;
   box-sizing: border-box;
   min-height: 100vh;
-  background: rgb(var(--oj-palette-neutral-rgb-10, 251 249 248));
+  /* the content slab colour (image layers, e.g. the color strip, go on top) */
+  background-color: rgb(var(--oj-palette-neutral-rgb-10, 251 249 248));
+  background-repeat: no-repeat;
   padding-block: 1.5rem;
   padding-inline: 1.5rem;
+}
+/* RDS "Color Strip": the thin accent band that marks the TOP of the content card. Painted at the
+   slab's top edge (fixed/full only — edge-to-edge pages are full-bleed canvases without the card
+   framing; components that carry their own strip, like the foldout overview, sit below it). */
+rw-root[data-page-width='fixed'],
+rw-root[data-page-width='full'] {
+  background-image: url('/images/redwood-color-strip.png');
+  background-size: 100% 8px;
+  background-position: top;
+  box-shadow: 0 4px 8px rgba(22, 21, 19, 0.12);
 }
 rw-root[data-page-width='fixed'] {
   max-width: min(1408px, 100% - 48px);
   margin-inline: auto;
-  box-shadow: 0 4px 8px rgba(22, 21, 19, 0.12);
 }
 rw-root[data-page-width='full'] {
   padding-inline: 24px;
-  box-shadow: 0 4px 8px rgba(22, 21, 19, 0.12);
 }
 rw-root[data-page-width='edge'] {
   padding-inline: 0;
