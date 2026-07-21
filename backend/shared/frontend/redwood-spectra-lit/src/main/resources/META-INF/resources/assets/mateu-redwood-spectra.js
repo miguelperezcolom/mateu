@@ -5,7 +5,7 @@ import{_ as v}from"./vendor-vaadin.js";import{A as c,u as L,s as w,e as S,g as $
             </div>
           `:c})}},B={loaders:["oj-sp/foldout-layout/loader","oj-sp/foldout-panel-summarizing/loader"],render(r){const i=r.component.metadata,o=r.component.children??[],e=o.find(t=>t.slot==="overview"),s=i.panels??[],l=s.findIndex(t=>t.open!==!1);return a("oj-sp-foldout-layout",{props:{orientation:i.orientation==="horizontal"?"horizontal":"vertical",selectedPanel:l>=0?l:0},attrs:{class:r.component.cssClasses||void 0,style:r.component.style||void 0},children:u`
         ${e?u`<div slot="overview">${r.renderChild(e)}</div>`:c}
-        ${s.map((t,g)=>D(r,t,o.find(b=>b.slot===`panel-${g}`)))}
+        ${s.map((t,b)=>D(r,t,o.find(g=>g.slot===`panel-${b}`)))}
       `})}};function D(r,i,o){return a("oj-sp-foldout-panel-summarizing",{props:{panelTitle:i.title??""},children:u`
       <div>${o?r.renderChild(o):c}</div>
       ${i.subtitle?u`<div slot="summary">${i.subtitle}</div>`:c}
@@ -25,10 +25,11 @@ import{_ as v}from"./vendor-vaadin.js";import{A as c,u as L,s as w,e as S,g as $
         ${(r.component.children??[]).map(e=>r.renderChild(e))}
       </div>
     `}},k={loaders:[],render(r){return u`
-      <div style="grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:1rem;">
+      <div class="mateu-rw-scoreboard" style="grid-column:1 / -1;">
         ${(r.component.children??[]).map(i=>r.renderChild(i))}
       </div>
     `}},G={loaders:["oj-sp/dashboard-panel/loader"],render(r){const i=r.component.metadata,o=[];return i.colSpan&&i.colSpan>1&&o.push(`grid-column: span ${i.colSpan}`),i.rowSpan&&i.rowSpan>1&&o.push(`grid-row: span ${i.rowSpan}`),u`<oj-sp-dashboard-panel
+      class="mateu-rw-panel"
       .panelTitle=${i.title??""}
       .panelSubtitle=${i.subtitle??""}
       style=${o.length?o.join("; "):c}

@@ -25,3 +25,38 @@ html, body {
   --lumo-font-size-s: 0.875rem;
   --lumo-font-size-l: 1.125rem;
 }
+
+/* ---------------------------------------------------------------------------
+   Dashboard chrome (RDS look).
+   oj-sp-scoreboard-metric-card and oj-sp-dashboard-panel are TRANSPARENT by
+   design — they expect to sit on the card surface their dynamic container
+   (dynamic-scoreboard / dynamic-dashboard-grid / dashboard-landing-page) would
+   paint. We don't drive those containers (they need an oj-dynamic layoutProvider
+   + data-bound templates), so we provide the same surfaces here with the Redwood
+   tokens. Everything renders in light DOM in this renderer, so these plain
+   selectors reach the leaf components directly.
+   --------------------------------------------------------------------------- */
+.mateu-rw-scoreboard {
+  display: flex;
+  flex-wrap: wrap;
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+  border-radius: var(--oj-core-border-radius-lg, 8px);
+  box-shadow: var(--oj-core-box-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+  overflow: hidden;
+}
+
+/* Vertical dividers between the KPIs, the way the scoreboard container draws them. */
+.mateu-rw-scoreboard > oj-sp-scoreboard-metric-card:not(:first-child) {
+  border-left: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+}
+
+.mateu-rw-panel {
+  display: block;
+  background: var(--oj-core-bg-color-content, #fff);
+  border: 1px solid var(--oj-core-divider-color, rgba(22, 21, 19, 0.12));
+  border-radius: var(--oj-core-border-radius-lg, 8px);
+  box-shadow: var(--oj-core-box-shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+  padding: 0.75rem 1.25rem 1.25rem;
+  overflow: hidden;
+}

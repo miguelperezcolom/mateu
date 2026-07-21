@@ -38,7 +38,7 @@ export const scoreboardTemplate: SpectraTemplate = {
   loaders: [],
   render(ctx) {
     return html`
-      <div style="grid-column:1 / -1; display:flex; flex-wrap:wrap; gap:1rem;">
+      <div class="mateu-rw-scoreboard" style="grid-column:1 / -1;">
         ${(ctx.component.children ?? []).map((c) => ctx.renderChild(c))}
       </div>
     `
@@ -54,6 +54,7 @@ export const dashboardPanelTemplate: SpectraTemplate = {
     if (m.colSpan && m.colSpan > 1) spans.push(`grid-column: span ${m.colSpan}`)
     if (m.rowSpan && m.rowSpan > 1) spans.push(`grid-row: span ${m.rowSpan}`)
     return html`<oj-sp-dashboard-panel
+      class="mateu-rw-panel"
       .panelTitle=${m.title ?? ''}
       .panelSubtitle=${m.subtitle ?? ''}
       style=${spans.length ? spans.join('; ') : nothing}
