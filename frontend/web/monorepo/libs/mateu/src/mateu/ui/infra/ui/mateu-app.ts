@@ -677,6 +677,10 @@ export class MateuApp extends ComponentElement {
         .m-scroll { overflow: auto; }
         .m-md { display: flex; width: 100%; height: 100%; }
         .m-md > .m-scroll { flex: 1; min-width: 0; }
+        /* the AI chat panel: shown when open (slot="detail"), hidden when closed — replaces the
+           vaadin-master-detail-layout detail slot that used to toggle it. */
+        mateu-chat[slot="detail-hidden"] { display: none; }
+        mateu-chat[slot="detail"] { display: flex; flex-direction: column; flex: 0 0 24rem; min-width: 0; }
         .m-app-layout { display: flex; flex-direction: column; width: 100%; height: 100vh; overflow: hidden; }
         .m-app-layout > .app-navbar { display: flex; align-items: center; gap: .5rem; height: 4rem; flex-shrink: 0; padding: 0 .75rem; border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
         .m-app-layout > .app-body { display: flex; flex: 1; min-height: 0; }

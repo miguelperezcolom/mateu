@@ -33,7 +33,8 @@ import '@vaadin/confirm-dialog'
 import '@vaadin/context-menu'
 import '@vaadin/dialog'
 import '@vaadin/notification'
-import '@vaadin/icons'
+import '@vaadin/icons'                              // the `vaadin:` iconset
+import '@vaadin/vaadin-lumo-styles/vaadin-iconset'  // the `lumo:` iconset (e.g. lumo:search, lumo:cross)
 import '@vaadin/icon'
 import '@vaadin/button'
 import '@vaadin/popover'
