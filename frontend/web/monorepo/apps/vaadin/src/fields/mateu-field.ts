@@ -1,6 +1,6 @@
 import { customElement, property, state } from "lit/decorators.js";
 import '@components/mateu-signature-pad.ts';
-import '@components/mateu-tree-select.ts';
+import './mateu-vaadin-tree-select';
 import '@components/mateu-camera-capture.ts';
 import '@components/mateu-file-upload.ts';
 import { fieldAttribute } from '@components/mateu-file-upload.ts';
@@ -1427,20 +1427,25 @@ export class MateuField extends LitElement {
                 `
             }
             if (this.field?.stereotype == 'treeSelect') {
+                // Rendered WITHOUT vaadin-custom-field on purpose: custom-field's inputs wrapper is
+                // shrink-to-content and unreachable from here, so a slotted child never fills the
+                // column. The value round-trips through mateu-vaadin-tree-select's own value-changed
+                // event (not custom-field), so we just render the label ourselves and let the host's
+                // width: 100% flow straight to the control.
+                const helper = this.helperText()
                 return html`
-                    <vaadin-custom-field
-                            id="${this.field.fieldId}"
-                            label="${label}"
-                            .helperText="${this.helperText()}"
-                            data-colspan="${this.field.colspan}"
-                    >
-                        <mateu-tree-select
+                    <div class="tree-field" id="${this.field.fieldId}" data-colspan="${this.field.colspan}">
+                        ${label ? html`
+                            <span class="tree-field__label">${label}${this.field.required ? html`<span class="tree-field__required"> •</span>` : nothing}</span>` : nothing}
+                        <mateu-vaadin-tree-select
+                                style="width: 100%;"
                                 .fieldId="${this.field.fieldId}"
                                 .value="${value}"
                                 .options="${this.field.options ?? []}"
                                 .leavesOnly="${this.field.treeLeavesOnly ?? false}"
-                        ></mateu-tree-select>
-                    </vaadin-custom-field>
+                        ></mateu-vaadin-tree-select>
+                        ${helper ? html`<span class="tree-field__helper">${helper}</span>` : nothing}
+                    </div>
                 `
             }
             if (this.field?.stereotype == 'signature') {
@@ -2099,23 +2104,54 @@ export class MateuField extends LitElement {
     static styles = css`
         ${badge}
 
-        /* A field spanning several columns (host colspan attribute, set when colspan > 1) must
-           stretch to fill them — vaadin inputs default to a fixed width otherwise. */
-        :host([colspan]) {
+        /* Fields fill the whole column width by default. Date, checkbox, numeric and money inputs
+           are the exception — they keep their natural (narrower) width so a date/amount doesn't
+           stretch across the column. (vaadin inputs default to a fixed width, hence the explicit
+           width: 100% on the stretchy ones.) */
+        :host {
             display: block;
             width: 100%;
         }
-        :host([colspan]) vaadin-text-field,
-        :host([colspan]) vaadin-text-area,
-        :host([colspan]) vaadin-combo-box,
+        :host vaadin-text-field,
+        :host vaadin-text-area,
+        :host vaadin-combo-box,
+        :host vaadin-multi-select-combo-box,
+        :host vaadin-email-field,
+        :host vaadin-password-field,
+        :host vaadin-custom-field {
+            width: 100%;
+        }
+        /* A field spanning several columns (host colspan attribute, set when colspan > 1) stretches
+           every input — including the naturally-narrow date/numeric ones — to fill the columns. */
         :host([colspan]) vaadin-date-picker,
+        :host([colspan]) vaadin-date-time-picker,
         :host([colspan]) vaadin-time-picker,
         :host([colspan]) vaadin-number-field,
-        :host([colspan]) vaadin-integer-field,
-        :host([colspan]) vaadin-email-field,
-        :host([colspan]) vaadin-password-field,
-        :host([colspan]) vaadin-custom-field {
+        :host([colspan]) vaadin-integer-field {
             width: 100%;
+        }
+
+        /* Tree-select field wrapper (rendered without vaadin-custom-field — see the treeSelect
+           branch). Its own label mimics the vaadin field label density. */
+        .tree-field {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .tree-field__label {
+            align-self: flex-start;
+            font-size: var(--mateu-label-font-size, var(--lumo-font-size-s));
+            line-height: var(--mateu-label-line-height, 1);
+            padding-bottom: var(--mateu-label-padding-bottom, 7px);
+            color: var(--lumo-secondary-text-color);
+        }
+        .tree-field__required {
+            color: var(--lumo-required-field-indicator-color, var(--lumo-primary-text-color));
+        }
+        .tree-field__helper {
+            padding-top: 0.25rem;
+            font-size: var(--lumo-font-size-xs);
+            color: var(--lumo-secondary-text-color);
         }
 
         .mateu-checkbox-group-multi-column::part(group-field) {
