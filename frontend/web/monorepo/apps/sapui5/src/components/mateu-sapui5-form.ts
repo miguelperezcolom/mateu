@@ -1,7 +1,6 @@
 import { customElement } from "lit/decorators.js";
 import { css, html, nothing } from "lit";
 import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
-import '@infra/ui/mateu-field'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 

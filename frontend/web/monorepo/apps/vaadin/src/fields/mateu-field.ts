@@ -1,12 +1,12 @@
 import { customElement, property, state } from "lit/decorators.js";
-import './mateu-signature-pad.ts';
-import './mateu-tree-select.ts';
-import './mateu-camera-capture.ts';
-import './mateu-file-upload.ts';
-import { fieldAttribute } from './mateu-file-upload.ts';
-import './mateu-bulleted-list.ts';
+import '@components/mateu-signature-pad.ts';
+import '@components/mateu-tree-select.ts';
+import '@components/mateu-camera-capture.ts';
+import '@components/mateu-file-upload.ts';
+import { fieldAttribute } from '@components/mateu-file-upload.ts';
+import '@components/mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
-import { interpolate } from './interpolation'
+import { interpolate } from '@components/interpolation'
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'
@@ -36,7 +36,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import {ComboBox, ComboBoxDataProvider} from "@vaadin/combo-box";
 import './mateu-grid'
-import './mateu-choice'
+import '@components/mateu-choice'
 import './mateu-money-field'
 import { ComboBoxLitRenderer, comboBoxRenderer } from "@vaadin/combo-box/lit";
 import { ifDefined } from "lit/directives/if-defined.js";

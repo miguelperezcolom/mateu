@@ -10,7 +10,7 @@ import '@vaadin/tabs/vaadin-tab'
 import "@vaadin/menu-bar"
 import '@vaadin/button'
 import './mateu-field'
-import { modifiersMatch } from './shortcuts'
+import { modifiersMatch } from '@components/shortcuts'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";

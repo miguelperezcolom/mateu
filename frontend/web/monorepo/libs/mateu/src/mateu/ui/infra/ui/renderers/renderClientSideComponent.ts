@@ -57,6 +57,7 @@ import { renderDiv } from "@infra/ui/renderers/divRenderer.ts";
 import { nanoid } from "nanoid";
 import { renderFormSection } from "@infra/ui/renderers/formSectionRenderer.ts";
 import { renderFormSubSection } from "@infra/ui/renderers/formSubSectionRenderer.ts";
+import { renderNeutralField } from "@infra/ui/renderers/neutralFieldRenderer.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { renderPage } from "@infra/ui/renderers/pageRenderer.ts";
 import { renderCrud } from "@infra/ui/renderers/crudRenderer.ts";
@@ -243,27 +244,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
              ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
          </mateu-app>`,
     [ComponentMetadataType.Element]: ({ container, component }) => renderElement(container, component.metadata as Element, component),
-    [ComponentMetadataType.FormField]: ({ container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered }) => {
-        const field = component.metadata as FormField
-        return html`
-    <mateu-field
-                   id="${component.id}"
-                   .component="${component}"
-            .field="${component.metadata}"
-                   .state="${state}"
-                   .data="${data}"
-                   .appState="${appState}"
-                   .appdata="${appData}"
-                   style="${component.style}" class="${component.cssClasses}"
-                   slot="${component.slot??nothing}"
-                   data-colspan="${field.colspan}"
-                   colspan="${(field.colspan ?? 1) > 1 ? field.colspan : nothing}"
-                   .labelAlreadyRendered="${labelAlreadyRendered}"
-            >
-                    ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData, labelAlreadyRendered))}
-                </mateu-field>
-        `
-    },
+    [ComponentMetadataType.FormField]: ({ component, state }) => renderNeutralField(component, state),
     [ComponentMetadataType.Text]: ({ component, state, data, appState, appData }) => renderText(component, state, data, appState, appData),
     [ComponentMetadataType.Avatar]: ({ component, state, data }) => renderAvatar(component, state, data),
     [ComponentMetadataType.Chat]: ({ component, state, data }) => renderChat(component, state, data),

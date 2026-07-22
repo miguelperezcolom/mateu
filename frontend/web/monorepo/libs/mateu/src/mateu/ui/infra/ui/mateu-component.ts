@@ -46,7 +46,6 @@ import "@vaadin/virtual-list"
 import "@vaadin/board"
 import "@fabricelements/skeleton-carousel"
 import './mateu-form'
-import './mateu-field'
 import './mateu-table'
 import './mateu-table-crud'
 import './mateu-app'

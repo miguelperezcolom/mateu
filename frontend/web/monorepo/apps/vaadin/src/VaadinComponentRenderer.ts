@@ -8,6 +8,7 @@ import { renderVirtualList } from "./renderers/renderVirtualList"
 import { renderNotification } from "./renderers/renderNotification"
 import * as vLayouts from "./renderers/renderLayouts"
 import { renderMenuBar, renderContextMenu } from "./renderers/renderMenu"
+import { renderField } from "./fields/renderField"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -17,6 +18,7 @@ type WidgetRenderer = (
     data: ComponentData,
     appState: ComponentState,
     appData: ComponentData,
+    labelAlreadyRendered?: boolean,
 ) => TemplateResult
 
 /**
@@ -45,6 +47,8 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     // Menu subsystem
     [ComponentMetadataType.MenuBar]: (c, comp, b, s, d) => renderMenuBar(c, comp, b, s, d),
     [ComponentMetadataType.ContextMenu]: (c, comp, b, s, d, as, ad) => renderContextMenu(c, comp, b, s, d, as, ad),
+    // Field subsystem
+    [ComponentMetadataType.FormField]: (c, comp, b, s, d, as, ad, lar) => renderField(c, comp, b, s, d, as, ad, lar),
 }
 
 export class VaadinComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {
@@ -57,7 +61,7 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
         const type = component?.metadata?.type as ComponentMetadataType | undefined
         const widget = type ? VAADIN_WIDGETS[type] : undefined
         if (widget && component) {
-            return widget(container, component, baseUrl, state, data, appState, appData)
+            return widget(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
         }
         return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
     }
