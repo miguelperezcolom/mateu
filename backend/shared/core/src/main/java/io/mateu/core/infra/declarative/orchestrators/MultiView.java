@@ -126,8 +126,24 @@ public abstract class MultiView
   }
 
   public String getConsumedRoute(HttpRequest httpRequest) {
-    if (getComponentRoute() != null && !getComponentRoute().isEmpty()) {
-      return getComponentRoute();
+    var componentRoute = getComponentRoute();
+    if (componentRoute != null && !componentRoute.isEmpty()) {
+      // Trust the component's own route only when the current request route actually lives under
+      // it. When navigating to a SIBLING nested route (e.g. /workflow/definitions ->
+      // /workflow/processes) the componentRoute is stale — it still points at the previous
+      // sibling — and using it would make ListRouteResolver miss the list route and
+      // ViewRouteResolver substring past the end of the (shorter) target route
+      // (StringIndexOutOfBoundsException). In that case fall back to the request's consumedRoute.
+      var requestRoute = httpRequest.runActionRq().route();
+      if (requestRoute != null) {
+        var cleanRoute =
+            requestRoute.contains("?")
+                ? requestRoute.substring(0, requestRoute.indexOf('?'))
+                : requestRoute;
+        if (cleanRoute.startsWith(componentRoute)) {
+          return componentRoute;
+        }
+      }
     }
     return httpRequest.runActionRq().consumedRoute();
   }
