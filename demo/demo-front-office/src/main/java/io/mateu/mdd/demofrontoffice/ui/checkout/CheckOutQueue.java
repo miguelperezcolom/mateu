@@ -11,9 +11,7 @@ import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.Route;
 import io.mateu.uidl.annotations.Section;
-import io.mateu.uidl.annotations.Style;
 import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.data.Chip;
 import io.mateu.uidl.data.EmptyState;
 import io.mateu.uidl.data.HorizontalLayout;
@@ -38,7 +36,6 @@ import lombok.Setter;
 @Setter
 @Route(value = "/checkout", parentRoute = "")
 @Title("Check-Out")
-@Style(StyleConstants.FULL_WIDTH_WITH_PADDING)
 @FormLayout(columns = 3)
 @AutoSave(action = "filtrar", debounceMillis = 400)
 public class CheckOutQueue {
