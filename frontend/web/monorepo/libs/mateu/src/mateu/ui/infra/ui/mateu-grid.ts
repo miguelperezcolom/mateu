@@ -16,7 +16,7 @@ import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField
 import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import {GridActiveItemChangedEvent, GridItemToggleEvent, GridSelectedItemsChangedEvent} from "@vaadin/grid/all-imports";
-import { badge } from "@vaadin/vaadin-lumo-styles";
+import { badge } from "@infra/ui/badgeStyles.ts";
 import {ifDefined} from "lit/directives/if-defined.js";
 import {columnBodyRenderer, gridRowDetailsRenderer} from "@vaadin/grid/lit";
 import '@vaadin/icon';

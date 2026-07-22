@@ -1,10 +1,5 @@
 import { customElement, property } from "lit/decorators.js";
 import { css, html, TemplateResult } from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/menu-bar'
-import '@vaadin/button'
 import Form from "@mateu/shared/apiClients/dtos/componentmetadata/Form";
 import './mateu-field'
 import MetadataDrivenElement from "@infra/ui/MetadataDrivenElement";
@@ -32,7 +27,7 @@ export class MateuForm extends MetadataDrivenElement {
     render(): TemplateResult {
         const metadata = (this.component as ClientSideComponent)?.metadata as Form
         return html`
-            <vaadin-vertical-layout theme="spacing" class="${this.component?.cssClasses}">
+            <div class="mateu-vlayout ${this.component?.cssClasses ?? ''}">
                 <mateu-content-header
                     .metadata="${metadata}"
                     .baseUrl="${this.baseUrl}"
@@ -43,16 +38,31 @@ export class MateuForm extends MetadataDrivenElement {
                 ></mateu-content-header>
                 <div class="form-content" style="width: 100%;">
                     <slot></slot>
-                    <vaadin-horizontal-layout theme="spacing" class="form-buttons">
+                    <div class="mateu-hlayout form-buttons">
                         <slot name="buttons"></slot>
-                    </vaadin-horizontal-layout>
+                    </div>
                 </div>
-            </vaadin-vertical-layout>
+            </div>
        `
     }
 
     static styles = css`
         :host {
+        }
+
+        /* DS-neutral replacements for vaadin vertical/horizontal-layout theme="spacing" */
+        .mateu-vlayout {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: var(--lumo-space-m, 1rem);
+            width: 100%;
+        }
+        .mateu-hlayout {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: var(--lumo-space-m, 1rem);
         }
 
         .redwood .form-header {

@@ -19,7 +19,7 @@ import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import { GridDataProvider } from "@vaadin/grid/all-imports";
 import type { GridDataProviderParams, GridDataProviderCallback } from "@vaadin/grid/src/vaadin-grid-data-provider-mixin.js";
-import { badge } from "@vaadin/vaadin-lumo-styles";
+import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 

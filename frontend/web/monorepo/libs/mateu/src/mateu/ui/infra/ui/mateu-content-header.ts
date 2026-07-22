@@ -7,7 +7,7 @@ import { unsafeHTML } from "lit/directives/unsafe-html.js";
 import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
-import { badge } from "@vaadin/vaadin-lumo-styles";
+import { badge } from "@infra/ui/badgeStyles.ts";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import type ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata.ts";

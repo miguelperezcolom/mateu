@@ -1,6 +1,6 @@
 import {customElement, property} from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
-import {badge} from '@vaadin/vaadin-lumo-styles/badge.js';
+import {badge} from '@infra/ui/badgeStyles.ts';
 import '@vaadin/horizontal-layout'
 import '@vaadin/vertical-layout'
 import '@vaadin/form-layout'

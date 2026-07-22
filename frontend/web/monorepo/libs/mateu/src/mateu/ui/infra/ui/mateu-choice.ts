@@ -1,17 +1,4 @@
 import { css, html, LitElement, nothing } from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/grid"
-import "@vaadin/card"
 import { customElement, property } from 'lit/decorators.js';
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
@@ -92,19 +79,19 @@ export class MateuChoice extends LitElement {
             composed: true
         }))}"
                             >${option.description || option.image?html`
-                                <vaadin-horizontal-layout style="align-items: center;" theme="spacing">
+                                <div style="display: flex; align-items: center; gap: var(--lumo-space-m, 1rem);">
                                     ${option.image?html`
                                             <img src="${option.image}" alt="${option.label}" style="${option.imageStyle??'width: 2rem;'}" />
                                         `:nothing}
-                                    <vaadin-vertical-layout>
+                                    <div style="display: flex; flex-direction: column;">
                                         <span> ${option.label} </span>
                                         <span
                                                 style="color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);"
                                         >
               ${option.description}
             </span>
-                                    </vaadin-vertical-layout>
-                                </vaadin-horizontal-layout>
+                                    </div>
+                                </div>
                             `:option.label}</div>
                         `)}
                                 </div>

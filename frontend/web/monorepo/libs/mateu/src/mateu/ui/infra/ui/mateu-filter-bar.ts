@@ -3,20 +3,9 @@ import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import { interpolate } from './interpolation'
 // side-effect element registrations kept from the previous incarnation of this bar — other
 // templates may rely on this module having registered them
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/grid"
-import '@vaadin/popover'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
-import { badge } from "@vaadin/vaadin-lumo-styles";
+import { badge } from "@infra/ui/badgeStyles.ts";
 import {
     SavedView,
     defaultView,

@@ -1,13 +1,5 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import "@vaadin/menu-bar"
 import './mateu-component'
 import {parseOverrides} from "@infra/ui/common";
 import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";

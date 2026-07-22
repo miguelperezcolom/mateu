@@ -45,7 +45,7 @@ import { popoverRenderer } from "@vaadin/popover/lit";
 import { allIcons } from "@infra/ui/allIcons.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 import Status from "@mateu/shared/apiClients/dtos/componentmetadata/Status.ts";
-import { badge } from "@vaadin/vaadin-lumo-styles";
+import { badge } from "@infra/ui/badgeStyles.ts";
 import Option from "@mateu/shared/apiClients/dtos/componentmetadata/Option.ts";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";

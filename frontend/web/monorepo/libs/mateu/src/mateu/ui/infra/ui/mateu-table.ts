@@ -34,7 +34,7 @@ import {
 } from "@vaadin/grid/all-imports";
 import type { GridDataProviderParams, GridDataProviderCallback } from "@vaadin/grid/src/vaadin-grid-data-provider-mixin.js";
 import { columnBodyRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
-import { badge } from "@vaadin/vaadin-lumo-styles";
+import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { renderColumnOrGroup } from "@infra/ui/renderers/columnRenderers/renderColumn.ts";
 

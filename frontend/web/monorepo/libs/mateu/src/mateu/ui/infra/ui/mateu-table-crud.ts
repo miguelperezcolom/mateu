@@ -43,7 +43,7 @@ import {
     selectColumnLayout,
 } from "@infra/ui/layout/weightEngine.ts";
 import {Card} from "@vaadin/card";
-import { badge } from "@vaadin/vaadin-lumo-styles";
+import { badge } from "@infra/ui/badgeStyles.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 
 const directions: Record<string, string> = {
