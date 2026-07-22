@@ -12,6 +12,7 @@ import { renderField } from "./fields/renderField"
 import { renderGrid } from "./grid/gridRenderer"
 import { renderTableElement, renderCrudTable } from "./grid/renderTable"
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud"
+import { renderPopover } from "./renderers/renderPopover"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -55,6 +56,8 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     // Grid subsystem
     [ComponentMetadataType.Grid]: (c, comp, b, s, d, as, ad) => renderGrid(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.Table]: (c, comp, b, s, d, as, ad) => renderTableElement(c, comp, b, s, d, as, ad),
+    // Overlay widgets
+    [ComponentMetadataType.Popover]: (c, comp, b, s, d, as, ad) => renderPopover(c, comp, b, s, d, as, ad),
 }
 
 export class VaadinComponentRenderer extends BasicComponentRenderer implements ComponentRenderer {

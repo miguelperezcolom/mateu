@@ -1,24 +1,6 @@
 import { customElement, property, query, state } from "lit/decorators.js";
 import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/text-field'
-import '@vaadin/integer-field'
-import '@vaadin/number-field'
-import "@vaadin/menu-bar"
-import "@vaadin/grid"
-import "@vaadin/tooltip"
-import '@vaadin/grid/vaadin-grid-sort-column.js';
-import '@vaadin/grid/vaadin-grid-filter-column.js';
-import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
-import { GridDataProvider } from "@vaadin/grid/all-imports";
-import type { GridDataProviderParams, GridDataProviderCallback } from "@vaadin/grid/src/vaadin-grid-data-provider-mixin.js";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideComponent.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
@@ -52,11 +34,6 @@ export class MateuCardList extends LitElement {
     @property()
     emptyStateMessage?: string
 
-
-    dataProvider: GridDataProvider<unknown> = (_params: GridDataProviderParams<unknown>, callback: GridDataProviderCallback<unknown>) => {
-        const page = this.data[this.id]?.page
-        callback(page?.content??[], page?.content?.length??0);
-    }
 
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
@@ -118,25 +95,17 @@ export class MateuCardList extends LitElement {
             return renderClientSideComponent(this, item.card, this.baseUrl, this.state, this.data, this.appState, this.appData, false)
         }
         if (item.title) {
-            return html`<vaadin-card
-        >
-                ${item.title?html`
-                    <div slot="title">${item.title}</div>
-                `:nothing}
-                ${item.subtitle?html`
-                    <div slot="subtitle">${item.subtitle}</div>
-                `:nothing}
-                ${item.content?html`
-                    <div>${item.content}</div>
-                `:nothing}
-                ${item.status?html`
-                    <span slot="header-suffix" theme="badge ${getThemeForBadgetType(item.status.type)}">${item.status.message}</span>
-                `:nothing}
-                ${item.image?html`
-                    <img slot="media" src="${item.image}" alt="" />
-                `:nothing}
-                
-        </vaadin-card>`
+            return html`<div class="neutral-card">
+                ${item.image?html`<img class="card-media" src="${item.image}" alt="" />`:nothing}
+                <div class="card-body">
+                    <div class="card-head">
+                        ${item.title?html`<span class="card-title">${item.title}</span>`:nothing}
+                        ${item.status?html`<span theme="badge ${getThemeForBadgetType(item.status.type)}">${item.status.message}</span>`:nothing}
+                    </div>
+                    ${item.subtitle?html`<div class="card-subtitle">${item.subtitle}</div>`:nothing}
+                    ${item.content?html`<div>${item.content}</div>`:nothing}
+                </div>
+        </div>`
         }
         return html`${item}`
     }
@@ -178,16 +147,26 @@ export class MateuCardList extends LitElement {
         ${badge}
         
         .card-container {
-            display: flex; 
-            width: 100%; 
-            flex-wrap: wrap; 
+            display: flex;
+            width: 100%;
+            flex-wrap: wrap;
             gap: 10px;
         }
 
-        vaadin-card.image-on-right::part(media) {
-            grid-column: 3;
+        .neutral-card {
+            display: flex;
+            gap: .75rem;
+            padding: .8rem 1rem;
+            border: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+            border-radius: var(--lumo-border-radius-l, 12px);
+            background: var(--lumo-base-color, #fff);
+            min-width: 14rem;
         }
-
+        .neutral-card .card-media { width: 3rem; height: 3rem; object-fit: cover; border-radius: var(--lumo-border-radius-m, 8px); }
+        .neutral-card .card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+        .neutral-card .card-head { display: flex; align-items: center; gap: .5rem; justify-content: space-between; }
+        .neutral-card .card-title { font-weight: 600; }
+        .neutral-card .card-subtitle { color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-s, .875rem); }
     `
 }
 
