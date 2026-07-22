@@ -814,12 +814,15 @@ export class MateuComponent extends ComponentElement {
         /* Reflective @Section forms render as frameless cards (no border/padding). Give them
            breathing room so nothing reads as cramped: 1.5rem between stacked sections, and 0.5rem
            between a section's title and its content. The section title h3 carries an inline
-           margin:0, so we space the wrapping vertical-layout rather than fighting the inline style. */
+           margin:0, so we space the wrapping vertical-layout rather than fighting the inline style.
+           The max(floor, token) keeps the section HEADINGS legible even under @Compact — which
+           shrinks --lumo-space-* to ~0.18-0.45rem and would otherwise glue the 18px titles to their
+           content; the field rows stay compact because their spacing is the raw (shrunk) token. */
         vaadin-vertical-layout:has(> vaadin-card.mateu-section) {
-            gap: var(--lumo-space-l);
+            gap: max(0.9rem, var(--lumo-space-l));
         }
         vaadin-card.mateu-section > vaadin-vertical-layout {
-            gap: var(--lumo-space-s);
+            gap: max(0.45rem, var(--lumo-space-s));
         }
   `
 }
