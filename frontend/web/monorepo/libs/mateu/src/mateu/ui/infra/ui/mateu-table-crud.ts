@@ -1,5 +1,6 @@
 import {customElement, property, state} from "lit/decorators.js";
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
+import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import './mateu-filter-bar'
 import './mateu-column-chooser'
@@ -462,7 +463,7 @@ export class MateuTableCrud extends LitElement {
                         buttons.push(html`
                             <button class="crud-btn" theme="tertiary small" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchListRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${action.icon ? icon(action.icon) : nothing}
                                 ${action.label ?? nothing}
                             </button>`)
                     } else if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
@@ -470,7 +471,7 @@ export class MateuTableCrud extends LitElement {
                         actions.forEach(action => buttons.push(html`
                             <button class="crud-btn" theme="tertiary small" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchListRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${action.icon ? icon(action.icon) : nothing}
                                 ${action.label ?? nothing}
                             </button>`))
                     }
@@ -554,7 +555,7 @@ export class MateuTableCrud extends LitElement {
                         buttons.push(html`
                             <button class="crud-btn" theme="tertiary" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${action.icon ? icon(action.icon) : nothing}
                                 ${action.label ?? nothing}
                             </button>`)
                     } else if (col.dataType === 'actionGroup' || col.dataType === 'menu') {
@@ -562,7 +563,7 @@ export class MateuTableCrud extends LitElement {
                         actions.forEach(action => buttons.push(html`
                             <button class="crud-btn" theme="tertiary" title="${action.label || nothing}"
                                 @click="${(e: Event) => dispatchRowAction(e, 'action-on-row-' + action.methodNameInCrud, item)}">
-                                ${action.icon ? html`<vaadin-icon icon="${action.icon}"></vaadin-icon>` : nothing}
+                                ${action.icon ? icon(action.icon) : nothing}
                                 ${action.label ?? nothing}
                             </button>`))
                     }

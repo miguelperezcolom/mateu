@@ -1,5 +1,5 @@
-import { html } from "lit";
 import type { GridItemModel, GridColumnElement as VaadinGridColumn } from "@infra/ui/renderers/columnRenderers/gridColumnTypes.ts";
+import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 
 export const renderIconCell = (item: any,
                                  _model: GridItemModel<any>,
@@ -7,10 +7,9 @@ export const renderIconCell = (item: any,
                                 type: string,
                                 _stereotype: string
 ) => {
-    if (type == 'string') {
-        const icons = item[column.path!]
-        return icons.split(',').map((icon: any) => html`<vaadin-icon icon="${icon}" style="width: 16px;"></vaadin-icon>`);
-    }
     const icons = item[column.path!]
-    return icons.split(',').map((icon: any) => html`<vaadin-icon icon="${icon.icon}" style="width: 16px;"></vaadin-icon>`);
+    if (type == 'string') {
+        return icons.split(',').map((name: any) => icon(name, 'width: 16px;'));
+    }
+    return icons.split(',').map((entry: any) => icon(entry.icon, 'width: 16px;'));
 }

@@ -18,6 +18,7 @@ import { renderTableElement, renderCrudTable } from "./grid/renderTable"
 import { MateuTableCrud } from "@infra/ui/mateu-table-crud"
 import { renderPopover } from "./renderers/renderPopover"
 import { renderVaadinToolbarButton, renderVaadinPeerNav } from "./renderers/renderToolbarButton"
+import { renderVaadinIcon } from "./renderers/renderIcon"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -99,6 +100,11 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
 
     renderPeerNav(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult {
         return renderVaadinPeerNav(peerNav)
+    }
+
+    // Icon port → vaadin-icon (the core `icon()` helper delegates here; core stays @vaadin-free).
+    renderIcon(icon: string, style?: string, cssClasses?: string): TemplateResult {
+        return renderVaadinIcon(icon, style, cssClasses)
     }
 
 }
