@@ -1,49 +1,8 @@
 import {customElement, property} from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@infra/ui/badgeStyles.ts';
-import '@vaadin/horizontal-layout'
-import '@vaadin/vertical-layout'
-import '@vaadin/form-layout'
-import '@vaadin/form-layout/vaadin-form-row.js';
-import '@vaadin/form-layout/vaadin-form-item.js';
-import '@vaadin/split-layout'
-import '@vaadin/master-detail-layout'
-import '@vaadin/app-layout'
-import '@vaadin/app-layout/vaadin-drawer-toggle'
-import '@vaadin/tabs'
-import '@vaadin/tabs/vaadin-tab'
-import '@vaadin/tabsheet'
-import '@vaadin/card'
-import "@vaadin/menu-bar"
-import "@vaadin/progress-bar"
-import "@vaadin/scroller"
-import "@vaadin/accordion"
-import "@vaadin/avatar"
-import "@vaadin/avatar-group"
-// note: @vaadin/charts (highcharts, ~840 kB) is NOT imported eagerly — nothing in the
-// framework renders <vaadin-chart> directly; elementRenderer lazy-loads it on demand
-// when a backend Element asks for a vaadin-chart* tag.
-import "@vaadin/combo-box"
-import "@vaadin/radio-group"
-import "@vaadin/checkbox-group"
-import "@vaadin/select"
-import "@vaadin/multi-select-combo-box"
-import "@vaadin/confirm-dialog"
-import "@vaadin/context-menu"
-import "@vaadin/dialog"
 import './mateu-map'
 import './mateu-markdown'
-import "@vaadin/notification"
-import "@vaadin/icons"
-import "@vaadin/popover"
-import "@vaadin/tooltip"
-import "@vaadin/message-input"
-import "@vaadin/message-list"
-import "@vaadin/custom-field"
-import "@vaadin/grid"
-import '@vaadin/grid/vaadin-grid-tree-column.js';
-import "@vaadin/virtual-list"
-import "@vaadin/board"
 import "@fabricelements/skeleton-carousel"
 import './mateu-form'
 import './mateu-table-crud'
@@ -73,7 +32,7 @@ import './mateu-workflow-elk'
 import './mateu-form-editor'
 import './mateu-debug-overlay'
 import { shortcutMatchesEvent } from './shortcuts'
-import {Notification} from "@vaadin/notification"
+import { notify as showToast } from "@application/Notifier.ts";
 import {componentRenderer} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAction.ts";
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
@@ -524,33 +483,13 @@ export class MateuComponent extends ComponentElement {
             this.notify('There are validation errors')
             return
         }
-        const notification = document.createElement('vaadin-notification') as any
-        notification.position = 'bottom-end'
-        notification.setAttribute('theme', 'error')
-        notification.duration = Math.max(3000, 1500 + lines.length * 1000)
-        notification.renderer = (root: HTMLElement) => {
-            render(html`
-                <div style="display: flex; flex-direction: column; gap: var(--lumo-space-xs, .25rem);">
-                    <strong>There are validation errors</strong>
-                    ${lines.map(({label, msg}) => label
-                        ? html`<span>• <b>${label}:</b> ${msg}</span>`
-                        : html`<span>• ${msg}</span>`)}
-                </div>
-            `, root)
-        }
-        document.body.appendChild(notification)
-        notification.opened = true
-        notification.addEventListener('opened-changed', (e: any) => {
-            if (!e.detail.value) document.body.removeChild(notification)
-        })
+        const text = 'There are validation errors\n'
+            + lines.map(({ label, msg }) => label ? `• ${label}: ${msg}` : `• ${msg}`).join('\n')
+        showToast({ text, variant: 'error', position: 'bottomEnd', duration: Math.max(3000, 1500 + lines.length * 1000) }, this)
     }
 
     notify = (message: string) => {
-        Notification.show(message, {
-            position: 'bottom-end',
-            theme: 'error',
-            duration: 3000
-        });
+        showToast({ text: message, variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
     }
 
     callAfterConfirmation = (action: Action, callback: Function) => {
@@ -565,20 +504,28 @@ export class MateuComponent extends ComponentElement {
             denialText = action.confirmationTexts.denialText
         }
 
-        const dialog = document.createElement("vaadin-confirm-dialog")
-        dialog.setAttribute("header", header)
-        dialog.setAttribute("cancel-button-visible", "cancel-button-visible")
-        //dialog.setAttribute("reject-button-visible", "reject-button-visible")
-        dialog.setAttribute("confirm-text", confirmationText)
-        dialog.setAttribute("cancel-text", denialText)
-        dialog.append(message)
-        dialog.opened = true
-        dialog.addEventListener('confirm', () => callback())
-        dialog.addEventListener('close', () => document.body.removeChild(dialog))
-        dialog.addEventListener('confirm', () => document.body.removeChild(dialog))
-        dialog.addEventListener('cancel', () => document.body.removeChild(dialog))
-        dialog.addEventListener('reject', () => document.body.removeChild(dialog))
-        document.body.append(dialog)
+        // DS-neutral confirm modal (was a vaadin-confirm-dialog).
+        const backdrop = document.createElement('div')
+        backdrop.style.cssText = 'position:fixed;inset:0;z-index:1100;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);padding:1rem;'
+        const card = document.createElement('div')
+        card.style.cssText = 'background:var(--lumo-base-color,#fff);color:var(--lumo-body-text-color,#1a1a1a);'
+            + 'border-radius:var(--lumo-border-radius-l,12px);box-shadow:var(--lumo-box-shadow-xl,0 12px 40px rgba(0,0,0,.3));'
+            + 'padding:1.2rem;max-width:min(90vw,26rem);'
+        const close = () => { if (backdrop.parentElement) document.body.removeChild(backdrop) }
+        const btn = 'font:inherit;font-weight:600;padding:.45rem 1rem;border-radius:var(--lumo-border-radius-m,6px);cursor:pointer;'
+        render(html`
+            <h3 style="margin:0 0 .5rem;">${header}</h3>
+            <div style="margin-bottom:1.2rem;">${message}</div>
+            <div style="display:flex;justify-content:flex-end;gap:.5rem;">
+                <button style="${btn}border:1px solid var(--lumo-contrast-30pct,rgba(0,0,0,.25));background:var(--lumo-base-color,#fff);"
+                        @click="${() => close()}">${denialText}</button>
+                <button style="${btn}border:none;background:var(--lumo-primary-color,#1676f3);color:var(--lumo-primary-contrast-color,#fff);"
+                        @click="${() => { close(); callback() }}">${confirmationText}</button>
+            </div>
+        `, card)
+        backdrop.appendChild(card)
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close() })
+        document.body.appendChild(backdrop)
     }
 
     requestActionCallToServerOrBubble = (detail: {
