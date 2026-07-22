@@ -12,14 +12,16 @@ export const customFieldRenderer = (container: LitElement, component: ClientSide
     const contentMeta = (metadata.content as ClientSideComponent | undefined)?.metadata as { type?: string, fullWidth?: boolean } | undefined
     const fullWidthContent = contentMeta?.type == ComponentMetadataType.Notice && contentMeta.fullWidth === true
 
+    // DS-neutral custom field — a native label + content wrapper (no `@vaadin`). vaadin-custom-field
+    // only grouped a label with a holder component here, which a plain div does equivalently.
     return html`
-        <vaadin-custom-field label="${metadata.label}"
-                             style="${fullWidthContent ? 'width: 100%; ' : ''}${component.style}"
-                             class="${component.cssClasses}"
-                             slot="${component.slot??nothing}"
-                             data-colspan="${metadata.colspan || (fullWidthContent ? 99 : nothing)}"
+        <div style="display:flex; flex-direction:column; ${fullWidthContent ? 'width: 100%; ' : ''}${component.style}"
+             class="${component.cssClasses}"
+             slot="${component.slot??nothing}"
+             data-colspan="${metadata.colspan || (fullWidthContent ? 99 : nothing)}"
         >
+            ${metadata.label ? html`<label style="font-size: var(--lumo-font-size-s,.875rem); color: var(--lumo-secondary-text-color,#667); margin-bottom:.15rem;">${metadata.label}</label>` : nothing}
             ${renderComponent(container, metadata.content, baseUrl, state, data, appState, appData)}
-        </vaadin-custom-field>
+        </div>
             `
 }

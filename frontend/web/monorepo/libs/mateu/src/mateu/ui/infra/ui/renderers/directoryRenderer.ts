@@ -15,14 +15,17 @@ export const renderDirectory = (component: ClientSideComponent, _baseUrl: string
             `
 }
 
+// DS-neutral directory item — a native <details> group of links (no `@vaadin`); the native
+// disclosure is equivalent here, so no adapter override is needed.
 const renderItem = (item: MenuOption):TemplateResult => {
     return html`
         ${item.submenus?html`
-                <vaadin-details summary="${item.label}" opened>
-                    <vaadin-vertical-layout theme="spacing">
+                <details open>
+                    <summary>${item.label}</summary>
+                    <div style="display:flex; flex-direction:column; gap:0.25rem; padding-left:0.5rem;">
                         ${item.submenus.map(sub => renderItem(sub))}
-                    </vaadin-vertical-layout>
-                </vaadin-details>
+                    </div>
+                </details>
             `:html`
                 <a href="${item.path}">${item.label}</a>
         `}

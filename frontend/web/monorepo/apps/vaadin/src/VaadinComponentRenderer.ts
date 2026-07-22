@@ -7,6 +7,8 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts"
 import { renderVirtualList } from "./renderers/renderVirtualList"
 import { renderNotification } from "./renderers/renderNotification"
 import { renderProgressBar } from "./renderers/renderProgressBar"
+import { renderDetails } from "./renderers/renderDetails"
+import { renderAvatar, renderAvatarGroup } from "./renderers/renderAvatar"
 import * as vLayouts from "./renderers/renderLayouts"
 import { renderMenuBar, renderContextMenu } from "./renderers/renderMenu"
 import { renderField } from "./fields/renderField"
@@ -39,6 +41,9 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.VirtualList]: (c, comp, b, s, d, as, ad) => renderVirtualList(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.Notification]: (_c, comp) => renderNotification(comp),
     [ComponentMetadataType.ProgressBar]: (_c, comp, _b, s) => renderProgressBar(comp, s),
+    [ComponentMetadataType.Details]: (c, comp, b, s, d, as, ad) => renderDetails(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.Avatar]: (_c, comp, _b, s, d) => renderAvatar(comp, s, d),
+    [ComponentMetadataType.AvatarGroup]: (_c, comp) => renderAvatarGroup(comp),
     // Layout subsystem (moved from the core switch — pixel-perfect vaadin-* layout elements)
     [ComponentMetadataType.FormLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderFormLayout(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.HorizontalLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderHorizontalLayout(c, comp, b, s, d, as, ad),
