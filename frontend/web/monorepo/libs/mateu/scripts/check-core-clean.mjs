@@ -42,7 +42,7 @@ const VAADIN_IMPORT = /(?:import|from)\s+['"]@vaadin\/|import\s*\(\s*['"]@vaadin
 const VAADIN_TAG = /<vaadin-[a-z]/
 // Ratchet: files under ui/infra that still emit a <vaadin-*> tag. LOWER as renderers are made
 // DS-neutral (their Vaadin fidelity moving into apps/vaadin). Goal: 0.
-const INFRA_VAADIN_TAG_CEILING = 9
+const INFRA_VAADIN_TAG_CEILING = 4
 
 function walk(dir) {
     const out = []

@@ -27,7 +27,8 @@ export const emptyStateTemplate = (message?: string, icon?: string, title?: stri
             ${title?html`<span style="font-weight: 600; color: var(--lumo-body-text-color, #333);">${title}</span>`:nothing}
             <span style="font-size: var(--lumo-font-size-s, .875rem);">${description ?? message ?? 'Nothing here yet.'}</span>
             ${actionId && actionLabel?html`
-                <vaadin-button theme="tertiary" style="margin-top: .25rem;" @click="${(e: Event) => requestAction(e, actionId)}">${actionLabel}</vaadin-button>
+                <button style="margin-top: .25rem; font: inherit; font-weight: 500; cursor: pointer; padding: .4rem .9rem; border: none; border-radius: var(--lumo-border-radius-m, 6px); background: transparent; color: var(--lumo-primary-text-color, #3b5bdb);"
+                        @click="${(e: Event) => requestAction(e, actionId)}">${actionLabel}</button>
             `:nothing}
         </div>
     `

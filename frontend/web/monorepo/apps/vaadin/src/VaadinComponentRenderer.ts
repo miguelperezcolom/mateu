@@ -19,6 +19,9 @@ import { MateuTableCrud } from "@infra/ui/mateu-table-crud"
 import { renderPopover } from "./renderers/renderPopover"
 import { renderVaadinToolbarButton, renderVaadinPeerNav } from "./renderers/renderToolbarButton"
 import { renderVaadinIcon } from "./renderers/renderIcon"
+import { renderButton as renderVaadinButton } from "./renderers/renderButton"
+import { renderMessageInput as renderVaadinMessageInput, renderMessageList as renderVaadinMessageList } from "./renderers/renderMessages"
+import { renderConfirmDialog as renderVaadinConfirmDialog } from "./renderers/renderConfirmDialog"
 
 type WidgetRenderer = (
     container: LitElement,
@@ -47,6 +50,10 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.Avatar]: (_c, comp, _b, s, d) => renderAvatar(comp, s, d),
     [ComponentMetadataType.AvatarGroup]: (_c, comp) => renderAvatarGroup(comp),
     [ComponentMetadataType.Card]: (c, comp, b, s, d, as, ad) => renderCard(c, comp, b, s, d, as, ad),
+    [ComponentMetadataType.Button]: (_c, comp, _b, s, d) => renderVaadinButton(comp, s, d),
+    [ComponentMetadataType.MessageInput]: (_c, comp) => renderVaadinMessageInput(comp),
+    [ComponentMetadataType.MessageList]: (_c, comp) => renderVaadinMessageList(comp),
+    [ComponentMetadataType.ConfirmDialog]: (c, comp, b, s, d, as, ad) => renderVaadinConfirmDialog(c, comp, b, s, d, as, ad),
     // Layout subsystem (moved from the core switch — pixel-perfect vaadin-* layout elements)
     [ComponentMetadataType.FormLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderFormLayout(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.HorizontalLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderHorizontalLayout(c, comp, b, s, d, as, ad),
