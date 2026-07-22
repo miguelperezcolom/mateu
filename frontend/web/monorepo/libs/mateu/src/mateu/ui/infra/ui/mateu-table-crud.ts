@@ -747,7 +747,7 @@ export class MateuTableCrud extends LitElement {
         if (this.standalone) {
             return html`
                 ${importDialog}
-                <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;">
+                <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); width: 100%; box-sizing: border-box; padding: var(--mateu-section-padding, 0 var(--lumo-space-m, 1rem)); display: flex; flex-direction: column;">
                     <div style="flex-shrink: 0;">
                         <mateu-content-header
                             .metadata="${metadata}"
@@ -785,7 +785,7 @@ export class MateuTableCrud extends LitElement {
                         <slot></slot>
                     </div>
                 ` : nothing}
-            <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--mateu-section-padding, 0); display: flex; flex-direction: column;">
+            <div style="border: var(--mateu-section-border, none); background: var(--mateu-section-bg, transparent); overflow: hidden; max-height: calc(100dvh - 12rem); padding: var(--mateu-section-padding, 0 var(--lumo-space-m, 1rem)); display: flex; flex-direction: column;">
                 <div style="flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem);">
                     <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
                     ${this.renderColumnChooser()}
