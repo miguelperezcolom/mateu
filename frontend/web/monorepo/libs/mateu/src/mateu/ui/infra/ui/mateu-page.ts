@@ -483,6 +483,8 @@ export class MateuPage extends LitElement {
 
         .page-body {
             width: 100%;
+            /* breathing room between the page header (title + toolbar) and the first section */
+            margin-top: var(--lumo-space-l);
         }
 
         .sticky-header {

@@ -810,7 +810,17 @@ export class MateuComponent extends ComponentElement {
         vaadin-card.image-on-right::part(media) {
             grid-column: 3;
         }
-        
+
+        /* Reflective @Section forms render as frameless cards (no border/padding). Give them
+           breathing room so nothing reads as cramped: 1.5rem between stacked sections, and 0.5rem
+           between a section's title and its content. The section title h3 carries an inline
+           margin:0, so we space the wrapping vertical-layout rather than fighting the inline style. */
+        vaadin-vertical-layout:has(> vaadin-card.mateu-section) {
+            gap: var(--lumo-space-l);
+        }
+        vaadin-card.mateu-section > vaadin-vertical-layout {
+            gap: var(--lumo-space-s);
+        }
   `
 }
 

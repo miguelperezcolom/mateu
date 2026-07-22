@@ -2173,7 +2173,7 @@ export class MateuField extends LitElement {
         vaadin-custom-field::part(label) {
             font-size: var(--mateu-label-font-size, var(--lumo-font-size-s));
             padding-bottom: var(--mateu-label-padding-bottom, 7px);
-            line-height: var(--mateu-label-line-height, 1);
+            line-height: var(--mateu-label-line-height, 1.2);
         }
   `
 }

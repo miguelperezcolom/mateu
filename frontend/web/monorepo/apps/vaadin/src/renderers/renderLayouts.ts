@@ -38,9 +38,13 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
     if (metadata.columnSpacing) {
         style += '--vaadin-form-layout-column-spacing: ' + metadata.columnSpacing + ';'
     }
-    if (metadata.itemRowSpacing) {
-        style += '--vaadin-form-layout-row-spacing: ' + metadata.itemRowSpacing + ';'
-    }
+    // Vertical spacing between form rows. The reflective form emits "0" by default, which glued
+    // every field row to the next; fall back to a comfortable Lumo default (which @Compact shrinks
+    // along with the other --lumo-space-* tokens) unless the wire asks for a real, non-zero value.
+    const rowSpacing = metadata.itemRowSpacing && metadata.itemRowSpacing !== '0'
+        ? metadata.itemRowSpacing
+        : 'var(--lumo-space-m)'
+    style += '--vaadin-form-layout-row-spacing: ' + rowSpacing + ';'
     if (metadata.itemLabelSpacing) {
         style += '--vaadin-form-layout-label-spacing: ' + metadata.itemLabelSpacing + ';'
     }
