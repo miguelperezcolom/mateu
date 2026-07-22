@@ -222,10 +222,6 @@ export class MateuUx extends ConnectedElement {
         this.addEventListener('backend-call-failed', this.backendFailedListener)
         this.addEventListener('history-pushed', this.historyPushed)
         this.addEventListener('route-changed', this.routeChangedListener)
-
-        {
-            (window as any).Vaadin.featureFlags.masterDetailLayoutComponent = true
-        }
     }
 
     disconnectedCallback() {

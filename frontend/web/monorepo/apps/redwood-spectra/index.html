@@ -16,11 +16,11 @@
   <link rel="stylesheet" id="uxiconfont"
         href="https://static.oracle.com/cdn/fnd/gallery/2507.0.0/images/iconfont/ojuxIconFont.min.css">
 
+  <link rel="stylesheet" href="/src/index.css">
 
   <!-- The oj bootstrap (require.config against the Oracle CDN + OJET/Spectra load) runs first;
        it loads the Vite ESM entry (src/index.ts) and mounts the Lit root once OJET is ready. -->
-  <script type="module" crossorigin src="/assets/mateu-redwood-spectra.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index.css">
+  <script type="module" src="/src/oj-bootstrap.ts"></script>
 </head>
 
 <!-- data-oj-binding-provider="preact" is REQUIRED: the oj-c-* (VComponents) silently do not
