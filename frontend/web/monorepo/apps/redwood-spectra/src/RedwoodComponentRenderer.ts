@@ -1,4 +1,4 @@
-import { LitElement, type TemplateResult } from 'lit'
+import { LitElement, html, type TemplateResult } from 'lit'
 import { ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
@@ -81,4 +81,45 @@ export class RedwoodComponentRenderer extends BasicComponentRenderer implements 
     }
     return super.renderClientSideComponent(container, component, baseUrl, state, data, appState, appData, labelAlreadyRendered)
   }
+
+  // The icon port for Redwood. Wire icon names are Vaadin/Lumo iconset names; there is no 1:1 map to
+  // Oracle's ojux font, so the common app-chrome + action icons resolve to self-contained Unicode
+  // glyphs (reliable, no font dependency). Unknown names fall back to a small neutral dot.
+  renderIcon(name: string, style?: string, cssClasses?: string): TemplateResult {
+    const key = (name || '').replace(/^(vaadin|lumo):/, '')
+    const glyph = REDWOOD_ICON_GLYPHS[key]
+    return html`<span class="mateu-icon ${cssClasses ?? ''}" data-icon="${name}" aria-hidden="true"
+                      style="display:inline-flex; align-items:center; justify-content:center; width:1em; height:1em; line-height:1; ${style ?? ''}"
+                >${glyph ?? '•'}</span>`
+  }
+}
+
+// Vaadin/Lumo icon name (prefix stripped) → Unicode glyph, for the icons the shell + widgets actually use.
+const REDWOOD_ICON_GLYPHS: Record<string, string> = {
+  menu: '☰',            // ☰
+  search: '🔍',    // 🔍
+  'sun-o': '☀',         // ☀
+  moon: '🌙',      // 🌙
+  'comments-o': '💬', // 💬
+  comment: '💬',
+  plus: '+',            // +
+  minus: '−',           // −
+  check: '✓',           // ✓
+  close: '✕',           // ✕
+  edit: '✎',            // ✎
+  trash: '🗑',     // 🗑
+  dashboard: '▦',       // ▦
+  bell: '🔔',      // 🔔
+  user: '👤',      // 👤
+  cog: '⚙',             // ⚙
+  filter: '≡',          // ≡
+  download: '⤓',        // ⤓
+  upload: '⤑',          // ⤑
+  refresh: '↻',         // ↻
+  'angle-left': '‹',    // ‹
+  'angle-right': '›',   // ›
+  'angle-down': '⌄',    // ⌄
+  'angle-up': '⌃',      // ⌃
+  ellipsis: '⋯',        // ⋯
+  'ellipsis-dots-v': '⋮', // ⋮
 }
